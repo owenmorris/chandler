@@ -5,7 +5,7 @@
 # Author:       Peter Yared
 #
 # Created:      5/15/03
-# CVS-ID:       $Id: docview.py,v 1.13 2006/02/07 03:56:30 RD Exp $
+# CVS-ID:       $Id: docview.py,v 1.14 2006/03/30 01:41:47 RD Exp $
 # Copyright:    (c) 2003-2005 ActiveGrid, Inc. (Port of wxWindows classes by Julian Smart et al)
 # License:      wxWindows license
 #----------------------------------------------------------------------------
@@ -1903,7 +1903,7 @@ class DocManager(wx.EvtHandler):
                     newDoc.DeleteAllViews()  # Implicitly deleted by DeleteAllViews
                     frame = newDoc.GetFirstView().GetFrame()
                     if frame:
-                        Destroy() # DeleteAllViews doesn't get rid of the frame, so we'll explicitly destroy it.
+                        frame.Destroy() # DeleteAllViews doesn't get rid of the frame, so we'll explicitly destroy it.
                     return None
                 self.AddFileToHistory(path)
             return newDoc
