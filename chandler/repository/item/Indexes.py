@@ -346,6 +346,10 @@ class SortedIndex(DelegatingIndex):
             self._descending = str(kwds.pop('descending', 'False')) == 'True'
 
     def __iter__(self, firstKey=None, lastKey=None, backwards=False):
+
+        if firstKey is None:
+            firstKey = self.getFirstKey()
+
         return self._index.__iter__(firstKey, lastKey, self._descending)
 
     def getInitKeywords(self):
