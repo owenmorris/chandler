@@ -97,6 +97,19 @@ def POPDeleteHandler(item, values, data):
     # can't be deleted; True otherwise.
     return not values['POP_DEFAULT']
 
+def SMTPSaveHandler(item, fields, values):
+    newAddressString = values['SMTP_FROM']
+    newFullName = ""
+
+    item.fromAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
+                                                         newAddressString,
+                                                         newFullName)
+
+    return item # Returning a non-None item tells the caller to continue
+                # processing this item.
+                # Returning None would tell the caller that processing this
+                # item is complete.
+
 def SMTPDeleteHandler(item, values, data):
     # If this SMTP account is the default for any of the IMAP accounts, return
     # False to indicate it can't be deleted; True otherwise.
@@ -263,6 +276,10 @@ PANELS = {
                 "required" : True,
                 "default": messages.NEW_ACCOUNT % {'accountType': 'SMTP'}
             },
+            "SMTP_FROM" : {
+                "attr" : "emailAddress",
+                "type" : "string",
+            },
             "SMTP_SERVER" : {
                 "attr" : "host",
                 "type" : "string",
@@ -299,6 +316,7 @@ PANELS = {
             },
         },
         "id" : "SMTPPanel",
+        "saveHandler" : SMTPSaveHandler,
         "deleteHandler" : SMTPDeleteHandler,
         "displayName" : u"SMTP_DESCRIPTION",
         "description" : _(u"Outgoing %(accountType)s mail") % {'accountType': 'SMTP'},

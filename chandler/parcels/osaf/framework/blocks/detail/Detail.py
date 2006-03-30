@@ -1438,6 +1438,15 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
                 addr = unicode(acct.replyToAddress) # eg "name <addr@ess>"
                 if not addr in choices:
                     choices.append(addr)
+
+        # Also include any SMTP accounts which have their 'fromAddress' set:
+        for acct in Mail.SMTPAccount.getKind(self.item.itsView).iterItems():
+            if (acct.isActive and acct.fromAddress is not None 
+                and len(acct.fromAddress.emailAddress) > 0):
+                addr = unicode(acct.fromAddress) # eg "name <addr@ess>"
+                if not addr in choices:
+                    choices.append(addr)
+
         choices.append(_(u"Configure email accounts..."))            
         return choices
     

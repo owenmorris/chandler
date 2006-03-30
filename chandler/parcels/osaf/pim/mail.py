@@ -231,6 +231,15 @@ class SMTPAccount(AccountBase):
         description="An SMTP Account",
     )
 
+    fromAddress = schema.One(
+        'EmailAddress',
+        displayName = _(u'From Address'),
+        initialValue = None
+    )
+    emailAddress = schema.One(
+        displayName = u'From Address (Redirect)',
+        redirectTo = 'fromAddress.emailAddress',
+    )
     port = schema.One(
         schema.Integer,
         displayName = _(u'Port'),
@@ -1167,12 +1176,17 @@ class EmailAddress(items.ContentItem):
         address.
         """
 
+        # See if an IMAP/POP account is configured:
         account = getCurrentMailAccount(view)
-
-        if account is not None and hasattr(account, 'replyToAddress'):
+        if account is None or not account.replyToAddress or not account.replyToAddress.emailAddress:
+            # No IMAP/POP set up, so check SMTP:
+            account, replyTo = getCurrentSMTPAccount(view)
+            if account is None or not account.fromAddress or not account.fromAddress.emailAddress:
+                return None
+            else:
+                return account.fromAddress
+        else:
             return account.replyToAddress
-
-        return None
 
 
 # Map from account type strings to account types
