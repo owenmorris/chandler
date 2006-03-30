@@ -1080,7 +1080,7 @@ class UITestAccounts:
         self.logger = logger
         self.window = None
         self.accountTypeIndex = {'SMTP': 3, 'IMAP': 1, 'POP': 2, 'WebDAV': 4}
-        SMTPfields = {'displayName': 3, 'host': 5, 'username': 15, 'password': 17, 'security': 7, 'port':11,  'authentication': 13}
+        SMTPfields = {'displayName': 3, 'address': 5, 'host': 7, 'username': 17, 'password': 19, 'security': 9, 'port':13,  'authentication': 15}
         IMAPfields = {'displayName': 3, 'email': 5, 'name': 7, 'host': 9, 'username': 11, 'password': 13, 'security': 15, 'port': 19, 'default': 21, 'server': 24}
         POPfields = {'displayName': 3, 'email': 5, 'name': 7, 'host': 9, 'username': 11, 'password': 13, 'security': 15,'port': 19, 'leave': 21,  'default': 23, 'server': 26}
         DAVfields = {'displayName': 3, 'host':5, 'path': 7, 'username':9, 'password':11, 'port': 13, 'ssl': 14, 'default': 16}
