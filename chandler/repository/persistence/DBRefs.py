@@ -510,8 +510,15 @@ class DBNumericIndex(NumericIndex):
     def __iter__(self, firstKey=None, lastKey=None, backwards=False):
 
         version = self._version
-        nextKey = firstKey or self.getFirstKey()
         view = self.view
+
+        if firstKey is None:
+            if backwards:
+                nextKey = self.getLastKey()
+            else:
+                nextKey = self.getFirstKey()
+        else:
+            nextKey = firstKey
 
         sup = super(DBNumericIndex, self)
         nodeIterator = None

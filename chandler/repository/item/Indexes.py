@@ -25,11 +25,18 @@ class Index(dict):
 
     def __iter__(self, firstKey=None, lastKey=None, backwards=False):
 
-        nextKey = firstKey or self.getFirstKey()
+        if backwards:
+            getFirstKey = self.getLastKey
+            getNextKey = self.getPrevKey
+        else:
+            getFirstKey = self.getFirstKey
+            getNextKey = self.getNextKey
+            
+        nextKey = firstKey or getFirstKey()
 
         while nextKey != lastKey:
             key = nextKey
-            nextKey = self.getNextKey(nextKey)
+            nextKey = getNextKey(nextKey)
             yield key
 
         if lastKey is not None:
@@ -347,10 +354,10 @@ class SortedIndex(DelegatingIndex):
 
     def __iter__(self, firstKey=None, lastKey=None, backwards=False):
 
-        if firstKey is None:
-            firstKey = self.getFirstKey()
+        if self._descending:
+            backwards = not backwards
 
-        return self._index.__iter__(firstKey, lastKey, self._descending)
+        return self._index.__iter__(firstKey, lastKey, backwards)
 
     def getInitKeywords(self):
 
