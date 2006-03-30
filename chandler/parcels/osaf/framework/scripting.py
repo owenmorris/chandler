@@ -36,7 +36,7 @@ def installParcel(parcel, oldVersion=None):
     )
 
     scriptsCollection = \
-        pim.InclusionExclusionCollection.update(parcel, 'scriptsCollection',
+        pim.SmartCollection.update(parcel, 'scriptsCollection',
             displayName = _(u"Scripts"),
             renameable = False,
             private = False,

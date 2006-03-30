@@ -939,7 +939,7 @@ class ShareConduit(pim.ContentItem):
 
         # Make sure we have a collection to add items to:
         if self.share.contents is None:
-            self.share.contents = pim.InclusionExclusionCollection(itsView=view)
+            self.share.contents = pim.SmartCollection(itsView=view)
 
         contents = self.share.contents
 
@@ -947,7 +947,7 @@ class ShareConduit(pim.ContentItem):
         # items to add to the collection:
         if isinstance(contents, pim.ContentCollection):
 
-            if isinstance(contents, pim.InclusionExclusionCollection) and \
+            if isinstance(contents, pim.SmartCollection) and \
                    not hasattr(contents, 'inclusions'):
                 contents._setup()
 

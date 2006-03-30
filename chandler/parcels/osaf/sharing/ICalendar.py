@@ -7,7 +7,7 @@ __all__ = [
 
 import Sharing
 import application.Parcel
-from osaf.pim import ContentCollection, InclusionExclusionCollection, CalendarEventMixin
+from osaf.pim import ContentCollection, SmartCollection, CalendarEventMixin
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet
 import osaf.pim.calendar.TimeZone as TimeZone
@@ -615,11 +615,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 calname = _(u"Imported Calendar")
 
             if item is None:
-                item = InclusionExclusionCollection(itsView=view)
+                item = SmartCollection(itsView=view)
             elif isinstance(item, Sharing.Share):                        
                 if item.contents is None:
                     item.contents = \
-                        InclusionExclusionCollection(itsView=view)
+                        SmartCollection(itsView=view)
                 item = item.contents
 
             if not isinstance(item, ContentCollection):

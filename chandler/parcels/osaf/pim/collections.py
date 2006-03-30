@@ -161,7 +161,7 @@ class ListCollection(ContentCollection):
         displayName=u"ListCollection"
     )
 
-    trashFor = schema.Sequence('InclusionExclusionCollection',
+    trashFor = schema.Sequence('SmartCollection',
                                otherName='trash', initialValue=[])
 
     def empty(self):
@@ -352,9 +352,9 @@ class FilteredCollection(ContentCollection):
                             tuple(attrTuples)))
 
 
-class InclusionExclusionCollection(ContentCollection):
+class SmartCollection(ContentCollection):
     """
-    InclusionExclusionCollections implement inclusions, exclusions, source,
+    SmartCollections implement inclusions, exclusions, source,
     and trash along with methods for add and remove
     """
 
@@ -462,7 +462,7 @@ class InclusionExclusionCollection(ContentCollection):
                  itsKind=None, itsView=None,
                  source=None, exclusions=None, trash="default",
                  *args, **kwds):
-        super(InclusionExclusionCollection, self).__init__(itsName=itsName,
+        super(SmartCollection, self).__init__(itsName=itsName,
                                                            itsParent=itsParent,
                                                            itsKind=itsKind,
                                                            itsView=itsView,
@@ -473,9 +473,9 @@ class InclusionExclusionCollection(ContentCollection):
                 trash="default"):
         """
         setup all the extra parts of an
-        InclusionExclusionCollection. In general nobody should call
+        SmartCollection. In general nobody should call
         this but __init__, but unfortunately sharing creates
-        InclusionExclusionCollections without calling __init__ so it
+        SmartCollections without calling __init__ so it
         should be the only caller of _setup.
 
         Sets the source, exclusions and trash collections. 

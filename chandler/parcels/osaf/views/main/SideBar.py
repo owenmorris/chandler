@@ -12,7 +12,7 @@ from osaf.framework.blocks import (
 
 from osaf.pim import (
     ContentCollection, IntersectionCollection, KindCollection,
-    UnionCollection, IndexedSelectionCollection, InclusionExclusionCollection
+    UnionCollection, IndexedSelectionCollection, SmartCollection
     )
     
 from osaf.framework.prompts import promptYesNoCancel
@@ -883,7 +883,7 @@ class SidebarBlock(Table):
         app_ns = schema.ns('osaf.app', self.itsView)
         sidebarCollection = app_ns.sidebarCollection
 
-        newCollection = InclusionExclusionCollection(itsView=self.itsView)
+        newCollection = SmartCollection(itsView=self.itsView)
         
         # disambiguate the display name
         displayName = newDisplayName = messages.UNTITLED

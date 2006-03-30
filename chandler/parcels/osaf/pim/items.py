@@ -178,7 +178,7 @@ class ContentItem(schema.Item):
     # ContentItem instances can be put into ListCollections
     collections = schema.Sequence(otherName='refCollection', notify=True)
 
-    # ContentItem instances can be put into InclusionExclusionCollections
+    # ContentItem instances can be put into SmartCollections
     appearsIn = schema.Sequence(otherName='set')
 
     schema.addClouds(

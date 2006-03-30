@@ -509,11 +509,11 @@ class CollectionTests(CollectionTestCase):
         for i in k1:
             self.failUnless(i != None)
 
-    def testInclusionExclusionCollection(self):
+    def testSmartCollection(self):
         trash = ListCollection(itsView=self.view)
-        coll1 = InclusionExclusionCollection(itsView=self.view, trash=trash)
-        coll2 = InclusionExclusionCollection(itsView=self.view, trash=trash)
-        coll3 = InclusionExclusionCollection(itsView=self.view, trash=trash)
+        coll1 = SmartCollection(itsView=self.view, trash=trash)
+        coll2 = SmartCollection(itsView=self.view, trash=trash)
+        coll3 = SmartCollection(itsView=self.view, trash=trash)
         note = pim.Note(itsView=self.view)
 
         # Ensure that removing an item from its last collection puts it into
@@ -555,11 +555,11 @@ class CollectionTests(CollectionTestCase):
         mine = DifferenceCollection(itsView=self.view,
             sources=[notes, notMine]
         )
-        all = InclusionExclusionCollection(itsView=self.view, source=mine,
+        all = SmartCollection(itsView=self.view, source=mine,
             exclusions=trash, trash=None)
-        coll1 = InclusionExclusionCollection(itsView=self.view, trash=trash)
-        coll2 = InclusionExclusionCollection(itsView=self.view, trash=trash)
-        coll3 = InclusionExclusionCollection(itsView=self.view, trash=trash)
+        coll1 = SmartCollection(itsView=self.view, trash=trash)
+        coll2 = SmartCollection(itsView=self.view, trash=trash)
+        coll3 = SmartCollection(itsView=self.view, trash=trash)
         notMine.addSource(coll1)
         note = pim.Note(itsView=self.view)
 

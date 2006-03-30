@@ -18,7 +18,7 @@ from mail import EmailAddress
 from application.Parcel import Reference
 from collections import KindCollection, ContentCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \
-     FilteredCollection, ListCollection, InclusionExclusionCollection, \
+     FilteredCollection, ListCollection, SmartCollection, \
      IndexedSelectionCollection
 
 import tasks, mail, calendar.Calendar
@@ -94,7 +94,7 @@ def installParcel(parcel, oldVersion=None):
     )
 
     # the "All" collection
-    allCollection = InclusionExclusionCollection.update(parcel, 'allCollection',
+    allCollection = SmartCollection.update(parcel, 'allCollection',
         displayName=_(u"My items"),
         source=mine,
         exclusions=trashCollection,
@@ -122,7 +122,7 @@ def installParcel(parcel, oldVersion=None):
         filterAttributes=['reminders'])
 
     # eventsWithReminders should exclude the trash -- bug 5385
-    eventsWithReminders = InclusionExclusionCollection.update(
+    eventsWithReminders = SmartCollection.update(
         parcel, 'eventsWithReminders',
         source=eventsWithRemindersIncludingTrash,
         exclusions=trashCollection,
@@ -176,7 +176,7 @@ def installParcel(parcel, oldVersion=None):
         filterAttributes=['isOutbound'])
 
     # The "In" collection
-    inCollection = InclusionExclusionCollection.update(parcel, 'inCollection',
+    inCollection = SmartCollection.update(parcel, 'inCollection',
         displayName=_(u"In"),
         source=inSource,
         trash=trashCollection,
@@ -188,7 +188,7 @@ def installParcel(parcel, oldVersion=None):
         filterAttributes=['isOutbound'])
 
     # The "Out" collection
-    outCollection = InclusionExclusionCollection.update(parcel, 'outCollection',
+    outCollection = SmartCollection.update(parcel, 'outCollection',
         displayName=_(u"Out"),
         visible=False,
         source=outSource,

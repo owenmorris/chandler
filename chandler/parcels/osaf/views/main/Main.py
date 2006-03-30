@@ -735,7 +735,7 @@ class MainView(View):
             "Enter your PyLucene query:")
         if query:
             view = self.itsView
-            results = pim.InclusionExclusionCollection(itsView=view,
+            results = pim.SmartCollection(itsView=view,
                 displayName=query)
             for (item, attribute) in view.searchItems(query):
                 results.add(item)
