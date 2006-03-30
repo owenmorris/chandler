@@ -1,11 +1,16 @@
 <?xml version="1.0" ?>
-<!-- $Id: helpview.bkl,v 1.2 2003/08/31 14:29:07 MBN Exp $ -->
+<!-- $Id: helpview.bkl,v 1.3 2006/03/30 11:32:39 JS Exp $ -->
 
 <makefile>
 
     <include file="../../../build/bakefiles/common_samples.bkl"/>
 
     <exe id="helpview" template="wx_util" template_append="wx_append">
+        <if cond="FORMAT=='autoconf'">
+            <wx-mac-app-bundle/>
+            <ldflags>$(SAMPLES_RPATH_FLAG)</ldflags>
+            <postlink-command>$(SAMPLES_RPATH_POSTLINK)</postlink-command>
+        </if>
         <sources>
             helpview.cpp
         </sources>
