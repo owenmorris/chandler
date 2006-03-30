@@ -126,8 +126,10 @@ class wxSidebar(wxTable):
             """
             If we've got hoverImageRow that we must have captured the mouse
             """
-            assert gridWindow.HasCapture()
-            gridWindow.ReleaseMouse()
+            # NB: this assert fires on Mac at inconvenient times - e.g., editing collection names
+            #assert gridWindow.HasCapture()
+            if (gridWindow.HasCapture()):
+                gridWindow.ReleaseMouse()
             for button in blockItem.buttons:
                 method = getattr (type (button), "onOverButton", False)
                 if method:
