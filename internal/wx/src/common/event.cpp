@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.cpp,v 1.175 2006/03/11 21:50:44 VZ Exp $
+// RCS-ID:      $Id: event.cpp,v 1.176 2006/03/30 14:04:14 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -736,10 +736,12 @@ wxKeyEvent::wxKeyEvent(const wxKeyEvent& evt)
 #endif
 }
 
+#if WXWIN_COMPATIBILITY_2_6
 long wxKeyEvent::KeyCode() const
 {
     return m_keyCode;
 }
+#endif // WXWIN_COMPATIBILITY_2_6
 
 wxWindowCreateEvent::wxWindowCreateEvent(wxWindow *win)
 {

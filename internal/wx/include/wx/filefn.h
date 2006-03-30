@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: filefn.h,v 1.132 2005/11/10 16:15:50 ABX Exp $
+// RCS-ID:      $Id: filefn.h,v 1.133 2006/03/30 14:03:56 ABX Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -463,15 +463,14 @@ WXDLLIMPEXP_BASE bool wxRmdir(const wxString& dir, int flags = 0);
 WXDLLIMPEXP_BASE wxFileKind wxGetFileKind(int fd);
 WXDLLIMPEXP_BASE wxFileKind wxGetFileKind(FILE *fp);
 
+#if WXWIN_COMPATIBILITY_2_6
 // compatibility defines, don't use in new code
-// consider removal droping 2.4 compatibility
-// #if WXWIN_COMPATIBILITY_2_4
 wxDEPRECATED( inline bool wxPathExists(const wxChar *pszPathName) );
 inline bool wxPathExists(const wxChar *pszPathName)
 {
     return wxDirExists(pszPathName);
 }
-// #endif //WXWIN_COMPATIBILITY_2_4
+#endif //WXWIN_COMPATIBILITY_2_6
 
 // ----------------------------------------------------------------------------
 // separators in file names

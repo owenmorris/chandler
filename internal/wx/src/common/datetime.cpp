@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetime.cpp,v 1.150 2006/03/21 16:20:39 VZ Exp $
+// RCS-ID:      $Id: datetime.cpp,v 1.151 2006/03/30 14:04:13 ABX Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -1811,6 +1811,7 @@ wxDateTime::SetToWeekOfYear(int year, wxDateTime_t numWeek, WeekDay wd)
     return dt;
 }
 
+#if WXWIN_COMPATIBILITY_2_6
 // use a separate function to avoid warnings about using deprecated
 // SetToTheWeek in GetWeek below
 static wxDateTime
@@ -1848,6 +1849,7 @@ wxDateTime wxDateTime::GetWeek(wxDateTime_t numWeek,
 {
     return ::SetToTheWeek(GetYear(), numWeek, weekday, flags);
 }
+#endif // WXWIN_COMPATIBILITY_2_6
 
 wxDateTime& wxDateTime::SetToLastMonthDay(Month month,
                                           int year)

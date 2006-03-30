@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        gdicmn.h
+// Name:        wx/gdicmn.h
 // Purpose:     Common GDI classes, types and declarations
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdicmn.h,v 1.104 2006/02/10 00:01:17 VZ Exp $
+// RCS-ID:      $Id: gdicmn.h,v 1.105 2006/03/30 14:03:56 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -503,8 +503,10 @@ public:
     // add a new colour to the database
     void AddColour(const wxString& name, const wxColour& colour);
 
+#if WXWIN_COMPATIBILITY_2_6
     // deprecated, use Find() instead
     wxDEPRECATED( wxColour *FindColour(const wxString& name) );
+#endif // WXWIN_COMPATIBILITY_2_6
 
 
 #ifdef __WXPM__

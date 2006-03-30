@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        fontdlg.h
+// Name:        wx/msw/fontdlg.h
 // Purpose:     wxFontDialog class
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: fontdlg.h,v 1.10 2005/09/23 12:50:10 MR Exp $
+// RCS-ID:      $Id: fontdlg.h,v 1.11 2006/03/30 14:04:06 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,14 +27,20 @@ public:
 
     virtual int ShowModal();
 
+#if WXWIN_COMPATIBILITY_2_6
     // deprecated interface, don't use
-    wxFontDialog(wxWindow *parent, const wxFontData *data)
-        : wxFontDialogBase(parent, data) { Create(parent, data); }
+    wxDEPRECATED( wxFontDialog(wxWindow *parent, const wxFontData *data) );
+#endif // WXWIN_COMPATIBILITY_2_6
 
 protected:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxFontDialog)
 };
 
+#if WXWIN_COMPATIBILITY_2_6
+    // deprecated interface, don't use
+inline wxFontDialog::wxFontDialog(wxWindow *parent, const wxFontData *data)
+        : wxFontDialogBase(parent) { InitFontData(data); Create(parent); }
+#endif // WXWIN_COMPATIBILITY_2_6
+
 #endif
     // _WX_MSW_FONTDLG_H_
-

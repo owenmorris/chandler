@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        docview.h
+// Name:        wx/docview.h
 // Purpose:     Doc/View classes
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: docview.h,v 1.70 2005/09/25 22:50:26 VZ Exp $
+// RCS-ID:      $Id: docview.h,v 1.71 2006/03/30 14:03:56 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -424,8 +424,10 @@ public:
     // Get the current document manager
     static wxDocManager* GetDocumentManager() { return sm_docManager; }
 
+#if WXWIN_COMPATIBILITY_2_6
     // deprecated, use GetHistoryFilesCount() instead
     wxDEPRECATED( size_t GetNoHistoryFiles() const );
+#endif // WXWIN_COMPATIBILITY_2_6
 
 protected:
     long              m_flags;
@@ -443,10 +445,12 @@ protected:
     DECLARE_NO_COPY_CLASS(wxDocManager)
 };
 
+#if WXWIN_COMPATIBILITY_2_6
 inline size_t wxDocManager::GetNoHistoryFiles() const
 {
     return GetHistoryFilesCount();
 }
+#endif // WXWIN_COMPATIBILITY_2_6
 
 // ----------------------------------------------------------------------------
 // A default child frame
@@ -580,8 +584,10 @@ public:
 
     const wxList& GetMenus() const { return m_fileMenus; }
 
+#if WXWIN_COMPATIBILITY_2_6
     // deprecated, use GetCount() instead
     wxDEPRECATED( size_t GetNoHistoryFiles() const );
+#endif // WXWIN_COMPATIBILITY_2_6
 
 protected:
     // Last n files
@@ -601,10 +607,12 @@ private:
     DECLARE_NO_COPY_CLASS(wxFileHistory)
 };
 
+#if WXWIN_COMPATIBILITY_2_6
 inline size_t wxFileHistory::GetNoHistoryFiles() const
 {
     return m_fileHistoryN;
 }
+#endif // WXWIN_COMPATIBILITY_2_6
 
 #if wxUSE_STD_IOSTREAM
 // For compatibility with existing file formats:

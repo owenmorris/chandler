@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.02.99
-// RCS-ID:      $Id: datetime.h,v 1.71 2006/01/10 19:39:28 ABX Exp $
+// RCS-ID:      $Id: datetime.h,v 1.72 2006/03/30 14:03:56 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -704,6 +704,7 @@ public:
                                      Month month = Inv_Month,
                                      int year = Inv_Year);
 
+#if WXWIN_COMPATIBILITY_2_6
         // sets the date to the given day of the given week in the year,
         // returns true on success and false if given date doesn't exist (e.g.
         // numWeek is > 53)
@@ -716,6 +717,7 @@ public:
     wxDEPRECATED( wxDateTime GetWeek(wxDateTime_t numWeek,
                                      WeekDay weekday = Mon,
                                      WeekFlags flags = Monday_First) const );
+#endif // WXWIN_COMPATIBILITY_2_6
 
         // returns the date corresponding to the given week day of the given
         // week (in ISO notation) of the specified year

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: fontdlgg.h,v 1.22 2006/03/07 18:53:53 ABX Exp $
+// RCS-ID:      $Id: fontdlgg.h,v 1.23 2006/03/30 14:04:01 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -54,9 +54,10 @@ public:
 
     virtual int ShowModal();
 
+#if WXWIN_COMPATIBILITY_2_6
     // deprecated, for backwards compatibility only
-    wxGenericFontDialog(wxWindow *parent, const wxFontData *data)
-        : wxFontDialogBase(parent, data) { Init(); }
+    wxDEPRECATED( wxGenericFontDialog(wxWindow *parent, const wxFontData *data) );
+#endif // WXWIN_COMPATIBILITY_2_6
 
     // Internal functions
     void OnCloseWindow(wxCloseEvent& event);

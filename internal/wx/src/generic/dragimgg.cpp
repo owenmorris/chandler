@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/2/2000
-// RCS-ID:      $Id: dragimgg.cpp,v 1.21 2006/02/12 12:16:46 MW Exp $
+// RCS-ID:      $Id: dragimgg.cpp,v 1.22 2006/03/30 14:04:17 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -78,6 +78,55 @@ void wxGenericDragImage::Init()
     m_fullScreen = false;
     m_pBackingBitmap = (wxBitmap*) NULL;
 }
+
+#if WXWIN_COMPATIBILITY_2_6
+wxGenericDragImage::wxGenericDragImage(const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    Init();
+    Create(cursor);
+}
+
+wxGenericDragImage::wxGenericDragImage(const wxBitmap& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    Init();
+
+    Create(image, cursor);
+}
+
+wxGenericDragImage::wxGenericDragImage(const wxIcon& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    Init();
+
+    Create(image, cursor);
+}
+
+wxGenericDragImage::wxGenericDragImage(const wxString& str, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    Init();
+
+    Create(str, cursor);
+}
+
+bool wxGenericDragImage::Create(const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    return Create(cursor);
+}
+
+bool wxGenericDragImage::Create(const wxBitmap& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    return Create(image, cursor);
+}
+
+bool wxGenericDragImage::Create(const wxIcon& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    return Create(image, cursor);
+}
+
+bool wxGenericDragImage::Create(const wxString& str, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    return Create(str, cursor);
+}
+#endif // WXWIN_COMPATIBILITY_2_6
 
 // Attributes
 ////////////////////////////////////////////////////////////////////////////
