@@ -5,7 +5,7 @@
 // Created:    April 1997
 // Copyright:  (C) 1999-1997, Guilhem Lavaux
 //             (C) 2000-1999, Guillermo Rodriguez Garcia
-// RCS_ID:     $Id: socket.cpp,v 1.143 2006/03/22 17:55:05 ABX Exp $
+// RCS_ID:     $Id: socket.cpp,v 1.144 2006/03/30 15:29:22 KH Exp $
 // License:    wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -693,7 +693,7 @@ bool wxSocketBase::_Wait(long seconds,
   else
     timeout = m_timeout * 1000;
 
-  bool has_event_loop = wxTheApp ? (wxTheApp->GetTraits() ? true : false) : false;
+  bool has_event_loop = wxTheApp->GetTraits() ? (wxTheApp->GetTraits()->GetSocketGUIFunctionsTable() ? true : false) : false;
 
   // Wait in an active polling loop.
   //
