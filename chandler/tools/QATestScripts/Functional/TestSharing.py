@@ -51,10 +51,13 @@ try:
                                 filterClassName=filterClassName,
                                 modal=False)
         #Share button call
-        win.OnPublish(None)
+        if not win.OnPublish(None):
+            logger.ReportFailure("(On publish collection)")
         #Done button call
         win.OnPublishDone(None)
         wx.GetApp().Yield()
+        logger.SetChecked(True)
+        logger.Report("Sharing dialog")
         logger.Stop()
 
 finally:

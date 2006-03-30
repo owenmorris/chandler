@@ -413,7 +413,7 @@ class PublishCollectionDialog(wx.Dialog):
             self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
             self._resize()
 
-            return
+            return False
 
         share = sharing.getShare(self.collection)
         urls = sharing.getUrls(share)
@@ -433,6 +433,8 @@ class PublishCollectionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCopy,
                   id=wx.xrc.XRCID("BUTTON_CLIPBOARD"))
         self._resize()
+
+        return True
 
     def OnStopPublish(self, evt):
         self.cancelPressed = True
