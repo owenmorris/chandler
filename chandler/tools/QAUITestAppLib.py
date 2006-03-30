@@ -1199,17 +1199,25 @@ class UITestAccounts:
             iter = Mail.POPAccount.iterItems(App_ns.itsView)
         else:
             raise AttributeError
+        
         for account in iter:
             if account.displayName == name:
                 break
-        if self.logger: self.logger.SetChecked(True)
-        result = True
-        for (key, value) in keys.items():
-            if account._values[key] != value:
-                if self.logger: self.logger.ReportFailure("Checking %s %s: expected %s, but got %s" % (type, key, value, account._values[key]))
-                result = False
-            else:
-                if self.logger: self.logger.ReportPass("Checking %s %s" % (type, key))
+        else:
+            if self.logger: self.logger.ReportFailure("No such account: %s" % name)
+            result = False
+            account = None
+        
+        if account is not None:
+            if self.logger: self.logger.SetChecked(True)
+            result = True
+            for (key, value) in keys.items():
+                if account._values[key] != value:
+                    if self.logger: self.logger.ReportFailure("Checking %s %s: expected %s, but got %s" % (type, key, value, account._values[key]))
+                    result = False
+                else:
+                    if self.logger: self.logger.ReportPass("Checking %s %s" % (type, key))
+
         #report the checkings
         if self.logger: self.logger.Report("%s values" %type)
         return result

@@ -62,7 +62,7 @@ try:
     ap.VerifyValues("SMTP", "Personal SMTP", displayName = "Personal SMTP", host= "smtp.osafoundation.org", connectionSecurity = "TLS", useAuth = True, port = 587, username = 'demo1', password = 'ad3leib5' )
     ap.VerifyValues("IMAP", "Personal IMAP", displayName = "Personal IMAP", host = "imap.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
     ap.VerifyValues("POP", "Personal POP", displayName = "Personal POP", host = "pop.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
-    ap.VerifyValues("WebDAV", "Perosnal WebDAV", displayName = "Personal WebDAV", host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
+    ap.VerifyValues("WebDAV", "Personal WebDAV", displayName = "Personal WebDAV", host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
 
 finally:
     # cleaning
