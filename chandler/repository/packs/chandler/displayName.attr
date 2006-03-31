@@ -2,7 +2,6 @@
 
 <item update="displayName" type="path">
  <attribute name="displayName">title</attribute>
- <attribute name="indexed">True</attribute>
   <ref name="type" otherName="typeFor" 
        type="path" otherCard="list">/Core/Text</ref>
 </item>

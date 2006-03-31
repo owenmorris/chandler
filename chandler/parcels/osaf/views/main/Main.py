@@ -15,7 +15,7 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, SyncProgress, RestoreShares
 )
 
-from osaf import pim, sharing, messages, webserver
+from osaf import pim, sharing, messages, webserver, search
 
 from osaf.pim import Contact, ContentCollection, mail
 from osaf.usercollections import UserCollection
@@ -739,10 +739,17 @@ class MainView(View):
             "Enter your PyLucene query:")
         if query:
             view = self.itsView
+            view.commit() # make sure all changes are searchable
+            
+            searchResults = view.searchItems(query)
+
+            # later we'll skip this step if there are no results
             results = pim.SmartCollection(itsView=view,
-                displayName=query)
-            for (item, attribute) in view.searchItems(query):
+                displayName=_(u"Search: %(query)s") % {'query' : query})
+            
+            for item in search.processResults(searchResults):
                 results.add(item)
+                
             schema.ns("osaf.app", self).sidebarCollection.add(results)
 
     def onRestoreSharesEvent(self, event):

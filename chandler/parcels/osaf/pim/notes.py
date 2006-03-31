@@ -24,7 +24,8 @@ class Note(items.ContentItem):
     # because we don't want to redirect this anywhere
     who = schema.One(
         schema.Text,
-        initialValue = u""
+        initialValue = u"",
+        indexed = True,
     )
 
     # redirections

@@ -553,9 +553,9 @@ class MailMessageMixin(MIMEContainer):
         AccountBase, initialValue = None, inverse = AccountBase.mailMessages,
     )
     spamScore = schema.One(schema.Float, initialValue = 0.0)
-    rfc2822Message = schema.One(schema.Lob)
+    rfc2822Message = schema.One(schema.Lob, indexed=True)
     dateSentString = schema.One(schema.Text, initialValue = '')
-    dateSent = schema.One(schema.DateTimeTZ, displayName=_(u"date sent"))
+    dateSent = schema.One(schema.DateTimeTZ, displayName=_(u"date sent"), indexed=True)
     messageId = schema.One(schema.Text, initialValue = '')
     toAddress = schema.Sequence(
         'EmailAddress',
@@ -578,7 +578,7 @@ class MailMessageMixin(MIMEContainer):
     ccAddress = schema.Sequence(
         'EmailAddress', initialValue = [], inverse = 'messagesCc',
     )
-    subject = schema.One(schema.Text, displayName=_(u"subject"))
+    subject = schema.One(schema.Text, displayName=_(u"subject"), indexed=True)
     headers = schema.Mapping(
         schema.Text, doc = 'Catch-all for headers', initialValue = {},
     )
@@ -772,12 +772,14 @@ class EmailAddress(items.ContentItem):
         doc = 'The email address.\n\n'
             "Examples:\n"
             '   "abe@osafoundation.org"\n',
+        indexed = True,
         initialValue = u'',
     )
     fullName = schema.One(
         schema.Text,
         displayName = _(u'Full Name'),
         doc = 'A first and last name associated with this email address',
+        indexed = True,
         initialValue = u'',
     )
     vcardType = schema.One(

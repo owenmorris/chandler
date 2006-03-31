@@ -106,6 +106,7 @@ class CalendarEventMixin(RemindableMixin):
     startTime = schema.One(
         schema.DateTimeTZ,
         displayName=_(u"Start-Time/Do-on"),
+        indexed=True,
         doc="For items that represent *only* Tasks, this attribute serves as "
             "the 'Do-on' attribute. For items that represent only Calendar "
             "Events, this attribute serves as the 'Start-time' attribute. "
@@ -149,7 +150,8 @@ class CalendarEventMixin(RemindableMixin):
         "Location",
         displayName=_(u"location"),
         doc="We might want to think about having Location be just a 'String', "
-            "rather than a reference to a 'Location' item."
+            "rather than a reference to a 'Location' item.",
+        indexed=True
      )
 
     rruleset = schema.One(
@@ -376,7 +378,7 @@ class CalendarEventMixin(RemindableMixin):
         displayName=u"Time-Description",
         basedOn=('startTime', 'duration', 'recurrence'),
         fget=getTimeDescription,
-        doc="A human-readable description of the time-related attributes."
+        doc="A human-readable description of the time-related attributes.",
     )
 
     def getEndTime(self):

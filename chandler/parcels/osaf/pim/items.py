@@ -78,9 +78,11 @@ class ContentItem(schema.Item):
     """
     schema.kindInfo( displayName = u"Content Item" )
 
+    displayName = schema.One(schema.Text, displayName=_(u"Title"), indexed=True)
     body = schema.One(
         schema.Lob,
         displayName=_(u"Body"),
+        indexed = True,
         doc="All Content Items may have a body to contain notes.  It's "
             "not decided yet whether this body would instead contain the "
             "payload for resource items such as presentations or "
@@ -160,7 +162,7 @@ class ContentItem(schema.Item):
         initialValue=[]
     )
 
-    triageStatus = schema.One(TriageEnum,
+    triageStatus = schema.One(TriageEnum, indexed=True,
                               displayName=_(u"Triage Status"),
                               initialValue="now")
 
@@ -818,7 +820,7 @@ class UserNotification(ContentItem):
         doc="DateTime this notification ocurred"
     )
 
-    who = schema.One(schema.Text, initialValue = u"")
+    who = schema.One(schema.Text, initialValue = u"", indexed)
 
     # redirections
     about = schema.One(redirectTo = "displayName")

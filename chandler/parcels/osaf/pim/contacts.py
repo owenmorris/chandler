@@ -14,8 +14,8 @@ from i18n import OSAFMessageFactory as _
 class ContactName(items.ContentItem):
     "A very simple (and incomplete) representation of a person's name"
 
-    firstName = schema.One(schema.Text, initialValue=u"")
-    lastName  = schema.One(schema.Text, initialValue=u"")
+    firstName = schema.One(schema.Text, initialValue=u"", indexed=True)
+    lastName  = schema.One(schema.Text, initialValue=u"", indexed=True)
     contact = schema.One("Contact", inverse="contactName")
 
     schema.addClouds(
@@ -47,7 +47,8 @@ class Contact(items.ContentItem):
 
     emailAddress = schema.One(schema.Text,
         displayName = _(u"Email Address"),
-        initialValue = u""
+        initialValue = u"",
+        indexed = True,
     )
 
     itemsLastModified = schema.Sequence(
