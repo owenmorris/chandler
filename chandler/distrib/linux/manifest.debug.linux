@@ -46,9 +46,10 @@ lib
 src=chandler/debug/lib
 dest=debug/lib
 recursive=yes
-glob=*.py,*.pyd,*.so,*.security
+glob=*.py,*.pyd,*.so,*.security,libgcj.so.5
 python2.4/compiler
 python2.4/curses
+python2.4/distutils
 python2.4/email
 python2.4/encodings
 python2.4/hotshot
@@ -97,7 +98,7 @@ Chandler-project.wpr
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
-glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack,*.pem,*.ics,*.js,*.css
+glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack,*.pem,*.ics,*.js,*.css,*.sh
 application
 parcels
 util
