@@ -50,11 +50,18 @@ class TestLogger:
             
         if filepath:
             self.inTerminal = False
-            time_stamp = "%4s%2s%2s%2s%2s%2s" %(self.startDate.year, self.startDate.month, self.startDate.day,
-                                          self.startDate.hour, self.startDate.minute, self.startDate.second)
-            time_stamp = string.replace(time_stamp, ' ', '0')
-            # add a time stamp at the end of the filename
-            filepath = filepath+'.'+time_stamp
+    
+            # Rename the last log file to timestamped version
+            try:
+                # getatime returns last mod on Unix, and creation time on Win
+                atime = os.path.getatime(filepath)
+                time_stamp = time.strftime('%Y%m%d%H%M%S',
+                                           time.localtime(atime))
+                os.rename(filepath, '%s.%s' % (filepath, time_stamp))
+            except OSError:
+                # Most likely the file didn't exist, just ignore
+                pass
+                
             try:
                 self.File = open(filepath, 'w')
             except IOError:
