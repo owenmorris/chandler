@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: test.bkl,v 1.38 2005/12/20 16:30:12 VZ Exp $ -->
+<!-- $Id: test.bkl,v 1.39 2006/03/31 13:46:34 VZ Exp $ -->
 
 <makefile>
 
@@ -56,6 +56,7 @@
             streams/tempfile.cpp
             streams/textstreamtest.cpp
             streams/zlibstream.cpp
+            textfile/textfiletest.cpp
             uris/uris.cpp
         </sources>
         <wx-lib>net</wx-lib>
