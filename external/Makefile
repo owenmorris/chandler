@@ -10,8 +10,6 @@ SYSTEMS=db \
         epydoc \
         PyLucene \
         PyICU \
-        jabber-py \
-        SOAPpy \
         zope \
         twisted \
         pychecker \
