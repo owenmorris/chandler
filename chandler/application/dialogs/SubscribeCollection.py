@@ -130,7 +130,6 @@ class SubscribeDialog(wx.Dialog):
                 logger.info(_(u'Moving collection out of My Items'))
                 schema.ns('osaf.pim', view).notMine.addSource(collection)
 
-            assert (hasattr (collection, 'color'))
             schema.ns("osaf.app", view).sidebarCollection.add (collection)
             # Need to SelectFirstItem -- DJA
             share = sharing.getShare(collection)

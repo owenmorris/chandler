@@ -746,17 +746,21 @@ class AETypeOverTextCtrl(wxRectangularChild):
         return showingSample
 
     def OnStaticClick(self, event):
-        try:
-            readOnlyMethod = self.editor.ReadOnly
-            item = self.editor.item
-            attributeName = self.editor.attributeName
-        except AttributeError:
-            pass
-        else:
-            # If we're read-only, we want to ignore the click and not turn 
-            # editable. (Also, note: no Skip())
-            if readOnlyMethod((item, attributeName)):
-                return 
+        # We used to reflect read-onlyness in type-over-text fields
+        # by not switching to edit mode. Now, we switch to edit mode, 
+        # but the control makes itself readonly -- this is more consistent,
+        # and "copy" works.
+        #try:
+            #readOnlyMethod = self.editor.ReadOnly
+            #item = self.editor.item
+            #attributeName = self.editor.attributeName
+        #except AttributeError:
+            #pass
+        #else:
+            ## If we're read-only, we want to ignore the click and not turn 
+            ## editable. (Also, note: no Skip())
+            #if readOnlyMethod((item, attributeName)):
+                #return 
             
         editControl = self.editControl
         editControl.SetFocus()
