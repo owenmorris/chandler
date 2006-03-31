@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        xh_sizer.cpp
+// Name:        src/xrc/xh_sizer.cpp
 // Purpose:     XRC resource for wxBoxSizer
 // Author:      Vaclav Slavik
 // Created:     2000/03/21
-// RCS-ID:      $Id: xh_sizer.cpp,v 1.26 2006/03/08 00:05:44 VZ Exp $
+// RCS-ID:      $Id: xh_sizer.cpp,v 1.27 2006/03/31 18:07:22 ABX Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -235,7 +235,7 @@ wxObject* wxSizerXmlHandler::Handle_sizer()
             sizer->Fit(m_parentAsWindow);
         m_node = nd;
 
-        if (m_parentAsWindow->GetWindowStyle() & (wxRESIZE_BOX | wxRESIZE_BORDER))
+        if (m_parentAsWindow->GetWindowStyle() & (wxMAXIMIZE_BOX | wxRESIZE_BORDER))
             sizer->SetSizeHints(m_parentAsWindow);
     }
 

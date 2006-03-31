@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dialog.cpp,v 1.62 2005/10/08 18:33:28 VZ Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.63 2006/03/31 18:07:11 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -69,12 +69,12 @@ extern wxList wxPendingDelete;
 IMPLEMENT_DYNAMIC_CLASS(wxDialog, wxTopLevelWindow)
 
 BEGIN_EVENT_TABLE(wxDialog, wxTopLevelWindow)
-  EVT_BUTTON(wxID_OK, wxDialog::OnOK)
-  EVT_BUTTON(wxID_APPLY, wxDialog::OnApply)
-  EVT_BUTTON(wxID_CANCEL, wxDialog::OnCancel)
-  EVT_CHAR_HOOK(wxDialog::OnCharHook)
-  EVT_SYS_COLOUR_CHANGED(wxDialog::OnSysColourChanged)
-  EVT_CLOSE(wxDialog::OnCloseWindow)
+    EVT_BUTTON(wxID_OK, wxDialog::OnOK)
+    EVT_BUTTON(wxID_APPLY, wxDialog::OnApply)
+    EVT_BUTTON(wxID_CANCEL, wxDialog::OnCancel)
+    EVT_CHAR_HOOK(wxDialog::OnCharHook)
+    EVT_SYS_COLOUR_CHANGED(wxDialog::OnSysColourChanged)
+    EVT_CLOSE(wxDialog::OnCloseWindow)
 END_EVENT_TABLE()
 
 
@@ -319,8 +319,6 @@ bool wxDialog::Show( bool show )
 // Shows a dialog modally, returning a return code
 int wxDialog::ShowModal()
 {
-    m_windowStyle |= wxDIALOG_MODAL;
-
     Show(true);
 
     // after the event loop ran, the widget might already have been destroyed

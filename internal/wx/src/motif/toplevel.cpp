@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     12/10/2002
-// RCS-ID:      $Id: toplevel.cpp,v 1.23 2005/10/08 18:33:28 VZ Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.24 2006/03/31 18:07:11 ABX Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -154,7 +154,7 @@ bool wxTopLevelWindowMotif::Create( wxWindow *parent, wxWindowID id,
             ( m_windowStyle & wxTINY_CAPTION_HORIZ ) ||
             ( m_windowStyle & wxTINY_CAPTION_VERT ) )
             decor |= MWM_DECOR_TITLE;
-        if( m_windowStyle & wxTHICK_FRAME )
+        if( m_windowStyle & wxRESIZE_BORDER )
             decor |= MWM_DECOR_BORDER;
         if( m_windowStyle & wxMINIMIZE_BOX )
             decor |= MWM_DECOR_MINIMIZE;
@@ -423,4 +423,3 @@ void wxTLWEventHandler( Widget wid,
 
     *continueToDispatch = True;
 }
-

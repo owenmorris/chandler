@@ -5,7 +5,7 @@
 //              Ryan Norton, Fredrik Roubert (UTF7)
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.cpp,v 1.177 2006/03/06 23:58:27 ABX Exp $
+// RCS-ID:      $Id: strconv.cpp,v 1.179 2006/03/31 17:40:17 VZ Exp $
 // Copyright:   (c) 1999 Ove Kaaven, Robert Roebling, Vaclav Slavik
 //              (c) 2000-2003 Vadim Zeitlin
 //              (c) 2004 Ryan Norton, Fredrik Roubert
@@ -1694,7 +1694,8 @@ public:
         // check if we succeeded, by doing a double trip:
         if ( !flags && buf )
         {
-            wxCharBuffer mbBuf(n);
+            const size_t mbLen = strlen(psz);
+            wxCharBuffer mbBuf(mbLen);
             if ( ::WideCharToMultiByte
                    (
                       m_CodePage,
@@ -1702,7 +1703,7 @@ public:
                       buf,
                       -1,
                       mbBuf.data(),
-                      n,
+                      mbLen + 1,        // size in bytes, not length
                       NULL,
                       NULL
                    ) == 0 ||

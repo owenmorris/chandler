@@ -3,7 +3,7 @@
 // Purpose:     Unicode unit test
 // Author:      Vadim Zeitlin, Wlodzimierz ABX Skiba
 // Created:     2004-04-28
-// RCS-ID:      $Id: unicode.cpp,v 1.2 2004/11/22 05:00:10 RN Exp $
+// RCS-ID:      $Id: unicode.cpp,v 1.5 2006/03/31 17:42:26 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin, Wlodzimierz Skiba
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -18,10 +18,26 @@
 #endif
 
 #ifndef WX_PRECOMP
-    #include "wx/wx.h"
 #endif // WX_PRECOMP
 
-#include "wx/textfile.h"
+// ----------------------------------------------------------------------------
+// local functions
+// ----------------------------------------------------------------------------
+
+#if wxUSE_WCHAR_T && !wxUSE_UNICODE
+
+// in case wcscmp is missing
+static int wx_wcscmp(const wchar_t *s1, const wchar_t *s2)
+{
+    while (*s1 == *s2 && *s1 != 0)
+    {
+        s1++;
+        s2++;
+    }
+    return *s1 - *s2;
+}
+
+#endif // wxUSE_WCHAR_T && !wxUSE_UNICODE
 
 // ----------------------------------------------------------------------------
 // test class
@@ -35,11 +51,28 @@ public:
 private:
     CPPUNIT_TEST_SUITE( UnicodeTestCase );
         CPPUNIT_TEST( ToFromAscii );
-        CPPUNIT_TEST( TextFileRead );
+#if wxUSE_WCHAR_T
+        CPPUNIT_TEST( ConstructorsWithConversion );
+        CPPUNIT_TEST( Conversion );
+        CPPUNIT_TEST( ConversionUTF7 );
+        CPPUNIT_TEST( ConversionUTF8 );
+#endif // wxUSE_WCHAR_T
     CPPUNIT_TEST_SUITE_END();
 
     void ToFromAscii();
-    void TextFileRead();
+#if wxUSE_WCHAR_T
+    void ConstructorsWithConversion();
+    void Conversion();
+    void ConversionUTF7();
+    void ConversionUTF8();
+
+    // test if converting s using the given encoding gives ws and vice versa
+    //
+    // if either of the first 2 arguments is NULL, the conversion is supposed
+    // to fail
+    void DoTestConversion(const char *s, const wchar_t *w, wxCSConv& conv);
+#endif // wxUSE_WCHAR_T
+
 
     DECLARE_NO_COPY_CLASS(UnicodeTestCase)
 };
@@ -68,29 +101,139 @@ void UnicodeTestCase::ToFromAscii()
     TEST_TO_FROM_ASCII( "additional \" special \t test \\ component \n :-)" );
 }
 
-void UnicodeTestCase::TextFileRead()
+#if wxUSE_WCHAR_T
+void UnicodeTestCase::ConstructorsWithConversion()
 {
-    wxTextFile file;
-    bool file_opened = file.Open(_T("testdata.fc"), wxConvLocal);
+    // the string "Déjà" in UTF-8 and wchar_t:
+    const unsigned char utf8Buf[] = {0x44,0xC3,0xA9,0x6A,0xC3,0xA0,0};
+    const wchar_t wchar[] = {0x44,0xE9,0x6A,0xE0,0};
+    const unsigned char utf8subBuf[] = {0x44,0xC3,0xA9,0x6A,0}; // just "Déj"
+    const char *utf8 = (char *)utf8Buf;
+    const char *utf8sub = (char *)utf8subBuf;
 
-    CPPUNIT_ASSERT( file_opened );
+    wxString s1(utf8, wxConvUTF8);
+    wxString s2(wchar, wxConvUTF8);
 
-    static const wxChar *lines[6] = { 
-        _T("# this is the test data file for wxFileConfig tests"),
-        _T("value1=one"),
-        _T("# a comment here"),
-        _T("value2=two"),
-        _T("value\\ with\\ spaces\\ inside\\ it=nothing special"),
-        _T("path=$PATH")
+#if wxUSE_UNICODE
+    CPPUNIT_ASSERT( s1 == wchar );
+    CPPUNIT_ASSERT( s2 == wchar );
+#else
+    CPPUNIT_ASSERT( s1 == utf8 );
+    CPPUNIT_ASSERT( s2 == utf8 );
+#endif
+
+    wxString sub(utf8sub, wxConvUTF8); // "Dej" substring
+    wxString s3(utf8, wxConvUTF8, 4);
+    wxString s4(wchar, wxConvUTF8, 3);
+
+    CPPUNIT_ASSERT( s3 == sub );
+    CPPUNIT_ASSERT( s4 == sub );
+
+#if wxUSE_UNICODE
+    CPPUNIT_ASSERT ( wxString("\t[pl]open.format.Sformatuj dyskietkê=gfloppy %f", 
+                               wxConvUTF8) == wxT("") ); //should stop at pos 35 
+#endif
+}
+
+void UnicodeTestCase::Conversion()
+{
+#if wxUSE_UNICODE
+        wxString szTheString(L"The\0String", wxConvLibc, 10);
+        wxCharBuffer theBuffer = szTheString.mb_str();
+
+        CPPUNIT_ASSERT( memcmp(theBuffer.data(), "The\0String", 11) == 0 );
+
+        wxString szTheString2("The\0String", wxConvLocal, 10);
+        CPPUNIT_ASSERT( szTheString2.length() == 11 );
+        CPPUNIT_ASSERT( wxTmemcmp(szTheString2.c_str(), L"The\0String", 11) == 0 );
+#else
+        wxString szTheString(wxT("TheString"));
+        szTheString.insert(3, 1, '\0');
+        wxWCharBuffer theBuffer = szTheString.wc_str(wxConvLibc);
+
+        CPPUNIT_ASSERT( memcmp(theBuffer.data(), L"The\0String", 11 * sizeof(wchar_t)) == 0 );
+
+        wxString szLocalTheString(wxT("TheString"));
+        szLocalTheString.insert(3, 1, '\0');
+        wxWCharBuffer theLocalBuffer = szLocalTheString.wc_str(wxConvLocal);
+
+        CPPUNIT_ASSERT( memcmp(theLocalBuffer.data(), L"The\0String", 11 * sizeof(wchar_t)) == 0 );
+#endif
+}
+
+void
+UnicodeTestCase::DoTestConversion(const char *s,
+                                  const wchar_t *ws,
+                                  wxCSConv& conv)
+{
+#if wxUSE_UNICODE
+    if ( ws )
+    {
+        wxCharBuffer buf(wxString(ws).mb_str(conv));
+
+        CPPUNIT_ASSERT( strcmp(buf, s) == 0 );
+    }
+#else // wxUSE_UNICODE
+    if ( s )
+    {
+        wxWCharBuffer wbuf(wxString(s).wc_str(conv));
+
+        if ( ws )
+            CPPUNIT_ASSERT( wx_wcscmp(wbuf, ws) == 0 );
+        else
+            CPPUNIT_ASSERT( !*wbuf );
+    }
+#endif // wxUSE_UNICODE/!wxUSE_UNICODE
+}
+
+struct StringConversionData
+{
+    const char *str;
+    const wchar_t *wcs;
+};
+
+void UnicodeTestCase::ConversionUTF7()
+{
+    static const StringConversionData utf7data[] =
+    {
+        { "+-", L"+" },
+        { "+--", L"+-" },
+
+#ifdef wxHAVE_U_ESCAPE
+        { "+AKM-", L"\u00a3" },
+#endif // wxHAVE_U_ESCAPE
+
+        // the following are invalid UTF-7 sequences
+        { "+", NULL },
+        { "a+", NULL },
     };
 
-    if( file_opened )
+    wxCSConv conv(_T("utf-7"));
+    for ( size_t n = 0; n < WXSIZEOF(utf7data); n++ )
     {
-        const size_t count = file.GetLineCount();
-        CPPUNIT_ASSERT( count == 6 );
-        for ( size_t n = 0; n < count; n++ )
-        {
-            CPPUNIT_ASSERT( wxStrcmp( file[n].c_str() , lines[n] ) == 0 );
-        }
+        const StringConversionData& d = utf7data[n];
+        DoTestConversion(d.str, d.wcs, conv);
     }
 }
+
+void UnicodeTestCase::ConversionUTF8()
+{
+    static const StringConversionData utf8data[] =
+    {
+        //\u isn't recognized on MSVC 6
+#ifdef wxHAVE_U_ESCAPE
+        { "\xc2\xa3", L"\u00a3" },
+#endif
+        { "\xc2", NULL },
+    };
+
+    wxCSConv conv(_T("utf-8"));
+    for ( size_t n = 0; n < WXSIZEOF(utf8data); n++ )
+    {
+        const StringConversionData& d = utf8data[n];
+        DoTestConversion(d.str, d.wcs, conv);
+    }
+}
+
+#endif // wxUSE_WCHAR_T
+

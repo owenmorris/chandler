@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: toplevel.h,v 1.69 2006/03/15 03:42:26 MR Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.70 2006/03/31 18:06:58 ABX Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //                       Vaclav Slavik <vaclav@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -44,15 +44,19 @@ class WXDLLEXPORT wxTopLevelWindowBase;
 #define wxTINY_CAPTION_VERT     0x0080
 #define wxRESIZE_BORDER         0x0040
 
-// deprecated versions defined for compatibility reasons
-#define wxRESIZE_BOX            wxMAXIMIZE_BOX
-#define wxTHICK_FRAME           wxRESIZE_BORDER
+#if WXWIN_COMPATIBILITY_2_6
 
-// obsolete styles, unused any more
-#define wxDIALOG_MODAL          0
-#define wxDIALOG_MODELESS       0
-#define wxNO_3D                 0
-#define wxUSER_COLOURS          0
+    // deprecated versions defined for compatibility reasons
+    #define wxRESIZE_BOX            wxMAXIMIZE_BOX
+    #define wxTHICK_FRAME           wxRESIZE_BORDER
+
+    // obsolete styles, unused any more
+    #define wxDIALOG_MODAL          0
+    #define wxDIALOG_MODELESS       0
+    #define wxNO_3D                 0
+    #define wxUSER_COLOURS          0
+
+#endif // WXWIN_COMPATIBILITY_2_6
 
 // default style
 //
