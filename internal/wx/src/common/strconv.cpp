@@ -5,7 +5,7 @@
 //              Ryan Norton, Fredrik Roubert (UTF7)
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.cpp,v 1.179 2006/03/31 17:40:17 VZ Exp $
+// RCS-ID:      $Id: strconv.cpp,v 1.182 2006/03/31 20:28:37 VZ Exp $
 // Copyright:   (c) 1999 Ove Kaaven, Robert Roebling, Vaclav Slavik
 //              (c) 2000-2003 Vadim Zeitlin
 //              (c) 2004 Ryan Norton, Fredrik Roubert
@@ -408,7 +408,7 @@ size_t wxMBConvUTF7::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 {
     size_t len = 0;
 
-    while (*psz && ((!buf) || (len < n)))
+    while ( *psz && (!buf || (len < n)) )
     {
         unsigned char cc = *psz++;
         if (cc != '+')
@@ -426,20 +426,19 @@ size_t wxMBConvUTF7::MB2WC(wchar_t *buf, const char *psz, size_t n) const
             len++;
             psz++;
         }
-        else
+        else // start of BASE64 encoded string
         {
-            // BASE64 encoded string
-            bool lsb;
-            unsigned char c;
+            bool lsb, ok;
             unsigned int d, l;
-            for (lsb = false, d = 0, l = 0;
-                (cc = utf7unb64[(unsigned char)*psz]) != 0xff; psz++)
+            for ( ok = lsb = false, d = 0, l = 0;
+                  (cc = utf7unb64[(unsigned char)*psz]) != 0xff;
+                  psz++ )
             {
                 d <<= 6;
                 d += cc;
                 for (l += 6; l >= 8; lsb = !lsb)
                 {
-                    c = (unsigned char)((d >> (l -= 8)) % 256);
+                    unsigned char c = (unsigned char)((d >> (l -= 8)) % 256);
                     if (lsb)
                     {
                         if (buf)
@@ -447,16 +446,29 @@ size_t wxMBConvUTF7::MB2WC(wchar_t *buf, const char *psz, size_t n) const
                         len ++;
                     }
                     else
+                    {
                         if (buf)
                             *buf = (wchar_t)(c << 8);
+                    }
+
+                    ok = true;
                 }
             }
+
+            if ( !ok )
+            {
+                // in valid UTF7 we should have valid characters after '+'
+                return (size_t)-1;
+            }
+
             if (*psz == '-')
                 psz++;
         }
     }
-    if (buf && (len < n))
-        *buf = 0;
+
+    if ( buf && (len < n) )
+        *buf = '\0';
+
     return len;
 }
 
@@ -850,20 +862,24 @@ size_t wxMBConvUTF16straight::WC2MB(char *buf, const wchar_t *psz, size_t n) con
 // swap 16bit MB to 16bit String
 size_t wxMBConvUTF16swap::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 {
-    size_t len=0;
+    size_t len = 0;
 
-    while (*(wxUint16*)psz && (!buf || len < n))
+    // UTF16 string must be terminated by 2 NULs as single NULs may occur
+    // inside the string
+    while ( (psz[0] || psz[1]) && (!buf || len < n) )
     {
-        if (buf)
+        if ( buf )
         {
             ((char *)buf)[0] = psz[1];
             ((char *)buf)[1] = psz[0];
             buf++;
         }
         len++;
-        psz += sizeof(wxUint16);
+        psz += 2;
     }
-    if (buf && len<n)   *buf=0;
+
+    if ( buf && len < n )
+        *buf = L'\0';
 
     return len;
 }

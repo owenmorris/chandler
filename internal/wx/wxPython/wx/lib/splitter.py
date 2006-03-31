@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     9-June-2005
-# RCS-ID:      $Id: splitter.py,v 1.6 2006/03/14 01:29:52 RD Exp $
+# RCS-ID:      $Id: splitter.py,v 1.7 2006/03/31 23:19:34 RD Exp $
 # Copyright:   (c) 2005 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -17,7 +17,6 @@ more than once.
 """
 
 import wx
-import sys
 
 _RENDER_VER = (2,6,1,1)
 
@@ -134,7 +133,7 @@ class MultiSplitterWindow(wx.PyPanel):
         of the window stack.  If sashPos is given then it is used to
         size the new window.
         """
-        self.InsertWindow(sys.maxint, window, sashPos)
+        self.InsertWindow(len(self._windows), window, sashPos)
 
 
     def InsertWindow(self, idx, window, sashPos=-1):
