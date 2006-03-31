@@ -109,4 +109,10 @@ WXDLLEXPORT int wxFontFamilyStringToInt(wxChar *family);
 WXDLLEXPORT int wxFontWeightStringToInt(wxChar *weight);
 WXDLLEXPORT int wxFontStyleStringToInt(wxChar *style);
 
+#if WXWIN_COMPATIBILITY_2_6
+    // deprecated, for backwards compatibility only
+inline wxGenericFontDialog::wxGenericFontDialog(wxWindow *parent, const wxFontData *data)
+                           :wxFontDialogBase(parent) { Init(); InitFontData(data); Create(parent); }
+#endif // WXWIN_COMPATIBILITY_2_6
+
 #endif // _WX_GENERIC_FONTDLGG_H

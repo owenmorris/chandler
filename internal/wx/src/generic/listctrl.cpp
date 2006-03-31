@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp,v 1.402 2006/03/30 15:25:59 RR Exp $
+// Id:          $Id: listctrl.cpp,v 1.403 2006/03/30 23:01:55 JG Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -5059,10 +5059,12 @@ wxSize wxGenericListCtrl::GetItemSpacing() const
     return wxSize(spacing, spacing);
 }
 
+#if WXWIN_COMPATIBILITY_2_6
 int wxGenericListCtrl::GetItemSpacing( bool isSmall ) const
 {
     return m_mainWin->GetItemSpacing( isSmall );
 }
+#endif // WXWIN_COMPATIBILITY_2_6
 
 void wxGenericListCtrl::SetItemTextColour( long item, const wxColour &col )
 {

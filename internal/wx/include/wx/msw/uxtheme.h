@@ -4,7 +4,7 @@
 // Author:      John Platts, Vadim Zeitlin
 // Modified by:
 // Created:     2003
-// RCS-ID:      $Id: uxtheme.h,v 1.18 2005/09/23 12:50:17 MR Exp $
+// RCS-ID:      $Id: uxtheme.h,v 1.19 2006/03/31 00:03:15 VZ Exp $
 // Copyright:   (c) 2003 John Platts, Vadim Zeitlin
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ typedef HRESULT (__stdcall *PFNWXUENABLETHEMING)(BOOL);
 // we always define this class, even if wxUSE_UXTHEME == 0, but we just make it
 // empty in this case -- this allows to use it elsewhere without any #ifdefs
 #if wxUSE_UXTHEME
-    #include "wx/dynload.h"
+    #include "wx/dynlib.h"
 
     #define wxUX_THEME_DECLARE(type, func) type func;
 #else
