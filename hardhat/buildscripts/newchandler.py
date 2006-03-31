@@ -265,6 +265,13 @@ def doFunctionalTests(releaseMode, workingDir, log):
             CopyLog('chandler.log', log)
         except:
             pass
+        log.write(separator)
+        log.write("FunctionalTestSuite.log:\n")
+        try:
+            CopyLog('FunctionalTestSuite.log', log)
+        except:
+            pass
+        log.write(separator)
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
     except Exception, e:
