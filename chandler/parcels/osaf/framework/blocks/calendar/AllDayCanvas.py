@@ -444,17 +444,15 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             newTime = newTime.replace(tzinfo=ICUtzinfo.default)
         
         if tzinfo is None:
-            oldStartTime = \
-                item.startTime.replace(tzinfo=ICUtzinfo.default)
+            oldStartTime = item.startTime.replace(tzinfo=ICUtzinfo.default)
         else:
-            oldStartTime = \
-                item.startTime.astimezone(ICUtzinfo.default)
-        # [@@@] grant .toordinal() & tzinfo?
-        
+            oldStartTime = item.startTime.astimezone(ICUtzinfo.default)
+
         if (newTime.date() != oldStartTime.date()):
             item.startTime = datetime(newTime.year, newTime.month, newTime.day,
                                       item.startTime.hour, item.startTime.minute, tzinfo=tzinfo)
-            self.Refresh()
+            self.RefreshCanvasItems()
+
 
     def getRelativeTimeFromPosition(self, drawInfo, position):
         """
