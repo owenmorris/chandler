@@ -96,7 +96,6 @@ endif
 ifeq ($(OS),Cygwin)
 CHANDLERBIN:=$(shell cygpath -au $(CHANDLERBIN))
 CHANDLERHOME:=$(shell cygpath -au $(CHANDLERHOME))
-CHANDLERARCHIVES:=$(shell cygpath -au $(CHANDLERARCHIVES))
 endif
 
 HOST=builds.osafoundation.org
@@ -115,7 +114,7 @@ downloads: $(ARCHIVES)
 
 $(addprefix install-, $(BUNDLED_PLUGINS)):
 	$(CURL) $(CHANDLERARCHIVES)/$(subst install-,,$@) $(URL)/$(subst install-,,$@)
-	MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) ./$(SNAP)/easy_install $(CHANDLERARCHIVES)/$(subst install-,,$@)
+	MACOSX_DEPLOYMENT_TARGET= ./$(SNAP)/easy_install $(CHANDLERARCHIVES)/$(subst install-,,$@)
 
 bundled-plugins: $(addprefix install-, $(BUNDLED_PLUGINS))
 
