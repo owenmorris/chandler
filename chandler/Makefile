@@ -93,6 +93,19 @@ ifeq ($(CHANDLERARCHIVES),)
 CHANDLERARCHIVES=../downloads
 endif
 
+ifeq ($(OS),Darwin)
+EASYINSTALL=MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(CHANDLERBIN)/$(SNAP)/easy_install
+PLUGIN_PYTHON=MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME)/../..  $(CHANDLERHOME)/../../$(SNAP)/RunPython
+else
+ifeq ($(OS),Cygwin)
+EASYINSTALL=$(CHANDLERBIN)/$(SNAP)/easy_install
+PLUGIN_PYTHON=CHANDLERHOME=$(CHANDLERHOME) $(CHANDLERHOME)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
+else
+EASYINSTALL=$(CHANDLERBIN)/$(SNAP)/easy_install
+PLUGIN_PYTHON=CHANDLERHOME=$(CHANDLERHOME)/../..  $(CHANDLERHOME)/../../$(SNAP)/RunPython
+endif
+endif
+
 ifeq ($(OS),Cygwin)
 CHANDLERBIN:=$(shell cygpath -au $(CHANDLERBIN))
 CHANDLERHOME:=$(shell cygpath -au $(CHANDLERHOME))
@@ -114,14 +127,13 @@ downloads: $(ARCHIVES)
 
 $(addprefix install-, $(BUNDLED_PLUGINS)):
 	$(CURL) $(CHANDLERARCHIVES)/$(subst install-,,$@) $(URL)/$(subst install-,,$@)
-	MACOSX_DEPLOYMENT_TARGET= ./$(SNAP)/easy_install $(CHANDLERARCHIVES)/$(subst install-,,$@)
+	$(EASYINSTALL) $(CHANDLERARCHIVES)/$(subst install-,,$@)
 
 bundled-plugins: $(addprefix install-, $(BUNDLED_PLUGINS))
 
 $(addprefix binaries-, $(PLUGINS)):
 	cd $(CHANDLERHOME)/projects/$(subst binaries-,,$@); \
-    MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME)/../.. \
-        $(CHANDLERHOME)/../../$(SNAP)/RunPython setup.py bdist_egg -d $(CHANDLERHOME)/../../$(CHANDLERARCHIVES)
+    $(PLUGIN_PYTHON) setup.py bdist_egg -d ../../$(CHANDLERARCHIVES)
 
 build-plugins: $(addprefix binaries-, $(PLUGINS))
 
