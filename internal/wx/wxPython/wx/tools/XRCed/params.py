@@ -2,7 +2,7 @@
 # Purpose:      Classes for parameter introduction
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      22.08.2001
-# RCS-ID:       $Id: params.py,v 1.20 2006/03/24 01:47:55 RD Exp $
+# RCS-ID:       $Id: params.py,v 1.21 2006/03/31 16:38:20 ROL Exp $
 
 import string
 import os.path
@@ -211,8 +211,11 @@ class ParamColour(PPanel):
         self.freeze = True
         if not value: value = '#FFFFFF'
         self.text.SetValue(str(value))  # update text ctrl
-        colour = wxColour(int(value[1:3], 16), int(value[3:5], 16), int(value[5:7], 16))
-        self.button.SetBackgroundColour(colour)
+        try:
+            colour = wxColour(int(value[1:3], 16), int(value[3:5], 16), int(value[5:7], 16))
+            self.button.SetBackgroundColour(colour)
+        except:                         # ignore errors
+            pass
         self.button.Refresh()
         self.freeze = False
     def OnPaintButton(self, evt):
