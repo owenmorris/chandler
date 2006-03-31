@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.6-$(BRANCH_REV_PREFIX)17
+RELVER=0.6-$(BRANCH_REV_PREFIX)18
 CHANDLERDB=$(INTERNAL)/chandlerdb
 DB_VER=4.4
 TARBALL=chandlerdb-$(SNAP)-$(RELVER).tar.gz

@@ -1119,7 +1119,8 @@ static int __t_item__itemChanged(t_item *self, PyObject *dispatch,
 
                 methName = PyTuple_GetItem(key, 2);
                 result = PyObject_CallMethodObjArgs(watcher, methName, 
-                                                    op, self, names, NULL);
+                                                    op, self->uuid, names,
+                                                    NULL);
                 Py_DECREF(watcher);
                 if (!result)
                     return -1;
