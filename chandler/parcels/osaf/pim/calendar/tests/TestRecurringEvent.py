@@ -207,6 +207,24 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.event.rruleset = self._createRuleSetItem('weekly')
         self.assertEqual(self.event.icalUID, 
                          self.event.getNextOccurrence().icalUID)
+                         
+    def testBug5483(self):
+        """Check that an EXDATE of the first occurrence is correctly excluded."""
+        self.start = self.event.startTime - timedelta(days=1)
+    
+        ruleItem = RecurrenceRule(None, itsView=self.rep.view)
+        ruleItem.freq = 'daily'
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
+        ruleSetItem.addRule(ruleItem)
+        self.event.rruleset = ruleSetItem
+
+        self.event.rruleset.exdates = [self.event.startTime]
+        
+        oneWeek = self.start + timedelta(days=7, minutes=30)
+        
+        occurrences = self.event.getOccurrencesBetween(self.start, oneWeek)
+        
+        self.failIf(self.event in occurrences)
 
     def testRemoveRecurrence(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
