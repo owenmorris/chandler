@@ -705,10 +705,16 @@ class MainView(View):
 
     def onActivateBackgroundSyncingEventUpdateUI (self, event):
         prefs = schema.ns('osaf.sharing', self.itsView).prefs
-        if prefs.background_syncing:
-            event.arguments['Text'] = _(u'Disable background syncing')
+        
+        try:
+            enabled = prefs.background_syncing
+        except AttributeError:
+            logger.exception('*********** Bug 5544\nprefs=%s\nprefs.itsView=%s', prefs, prefs.itsView)
         else:
-            event.arguments['Text'] = _(u'Enable background syncing')
+            if enabled:
+                event.arguments['Text'] = _(u'Disable background syncing')
+            else:
+                event.arguments['Text'] = _(u'Enable background syncing')
 
     def onActivateBackgroundSyncingEvent(self, event):
         prefs = schema.ns('osaf.sharing', self.itsView).prefs
