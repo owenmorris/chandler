@@ -103,6 +103,8 @@ all: env sources $(SYSTEMS)
 world: all binaries install
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) world
 	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) install
+	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) build-plugins
+	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) bundled-plugins
 
 cleanworld: $(addprefix clean-, $(SYSTEMS))
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) clean
@@ -112,8 +114,7 @@ realcleanworld: $(addprefix realclean-, $(SYSTEMS))
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) realclean
 	$(MAKE) -C ../chandler DEBUG=$(DEBUG) realclean
 
-# this is the only one still using a for loop
-# it should only be called by the full tbox client
+# only called by the full tbox client
 uploadstaging:
 	@for system in $(SYSTEMS); \
 	do \

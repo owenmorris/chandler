@@ -95,6 +95,10 @@ ifeq ($(CHANDLERHOME),)
 CHANDLERHOME=$(BUILD_ROOT)/../chandler
 endif
 
+ifeq ($(CHANDLERPLUGINS),)
+CHANDLERPLUGINS=$(BUILD_ROOT)/../chandler/projects
+endif
+
 ifeq ($(CHANDLERBIN),)
 CHANDLERBIN=$(CHANDLERHOME)
 endif

@@ -17,6 +17,8 @@ endif
 
 BP=
 
+BUNDLED_PLUGINS=Chandler_HelloWorldPlugin-0.1-py2.4.egg
+
 # When a version changes, the ARCHIVES lists below needs to be updated.
 
 # these get installed into release or debug
@@ -43,6 +45,8 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/astng-$(SNAP)-0.14.0-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/common-$(SNAP)-0.13.0-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.9.0-$(BP)1.tar.gz
+
+PLUGINS=Chandler-HelloWorldPlugin
 
 
 # readline is only needed for OSX
@@ -105,11 +109,24 @@ ARCHIVES_INST = \
                 $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
                             $(notdir $(ARCHIVES))))
 
-.PHONY: default install clean realclean downloads
+.PHONY: default install clean realclean downloads build-plugins
 
 default: install
 
 downloads: $(ARCHIVES)
+
+$(addprefix install-, $(BUNDLED_PLUGINS)):
+	$(CURL) $(CHANDLERARCHIVES)/$(subst install-,,$@) $(URL)/$(subst install-,,$@)
+	MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) ./$(SNAP)/easy_install $(CHANDLERARCHIVES)/$(subst install-,,$@)
+
+bundled-plugins: $(addprefix install-, $(BUNDLED_PLUGINS))
+
+$(addprefix binaries-, $(PLUGINS)):
+	cd $(CHANDLERHOME)/projects/$(subst binaries-,,$@); \
+    MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME)/../.. \
+        $(CHANDLERHOME)/../../$(SNAP)/RunPython setup.py bdist_egg -d $(CHANDLERHOME)/../../$(CHANDLERARCHIVES)
+
+build-plugins: $(addprefix binaries-, $(PLUGINS))
 
 $(ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
@@ -134,12 +151,13 @@ SETUPTOOLS_ABS:=`cygpath -wa $(SETUPTOOLS_EGG)`
 SETUPTOOLS_BIN:=`cygpath -wa $(SETUPTOOLS_BIN)`
 endif
 
+setuptools: $(SETUPTOOLS_INST)
 
 $(SETUPTOOLS_EGG):
 	mkdir -p $(CHANDLERARCHIVES)
 	$(CURL) $@ http://$(HOST)/external/$(notdir $@)
 
-$(SETUPTOOLS_INST): $(ARCHIVES_INST) $(SETUPTOOLS_EGG)
+$(SETUPTOOLS_INST): $(SETUPTOOLS_EGG)
 	MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) \
       -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
       --script-dir=$(SETUPTOOLS_BIN) $(SETUPTOOLS_ABS)
@@ -155,7 +173,7 @@ else
 manifest_exe:
 endif
 
-install: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe $(SETUPTOOLS_INST)
+install: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe $(SETUPTOOLS_INST) bundled-plugins
 
 download: $(ARCHIVES) $(SETUPTOOLS_EGG)
 
