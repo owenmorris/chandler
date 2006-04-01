@@ -244,6 +244,12 @@ compilers: $(compiler)
 print-%:
 	@echo $* = $($*)
 
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
+
+drop: $(TARBALL)
+	tar -C $(CHANDLERBIN) -xvzf $(TARBALL)
+
 _realclean::
 	@if [ "$(SRC)" = "" ]; then \
 	    echo SRC is not set; false; \

@@ -34,11 +34,8 @@ binaries:
       find $(MANIFEST) -name "*.pyo" | xargs rm -f; \
       tar -C $(BUILD_ROOT) -cvzf $(DATEUTIL)/$(TARBALL) $(MANIFEST)
 
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
-
-install: binaries
-	cp $(TARBALL) $(CHANDLERARCHIVES)
+install: $(TARBALL)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

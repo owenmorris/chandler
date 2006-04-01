@@ -225,11 +225,8 @@ zlib-$(ZLIBVERSION)-expanded: zlib-$(ZLIBVERSION).tar.gz
 	tar xvzf zlib-$(ZLIBVERSION).tar.gz
 	touch zlib-$(ZLIBVERSION)-expanded
 
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
-
 install: $(TARBALL)
-	cp $(TARBALL) $(CHANDLERARCHIVES)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 _realclean::
 	@rm -rf zlib-* bzip2-*

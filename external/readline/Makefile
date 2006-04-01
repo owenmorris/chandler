@@ -42,11 +42,8 @@ binaries:
           $(SNAP)/lib/libreadline*.dylib \
           --exclude '*.a'
 
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
-
 install: $(TARBALL)
-	cp $(TARBALL) $(CHANDLERARCHIVES)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 readline-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/readline-$(VERSION).tar.gz 
@@ -72,16 +69,13 @@ clean:
 binaries:
 
   # Nothing to do
-upload:
-
-  # Nothing to do
-install:
-
-  # Nothing to do
 sources:
 
   # Nothing to do
 expand:
+
+  # Nothing to do
+install:
 
 endif
 

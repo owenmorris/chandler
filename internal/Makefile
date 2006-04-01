@@ -13,7 +13,6 @@ binaries: env
 	    $(MAKE) -C $$system DEBUG=$(DEBUG) snap; \
 	done
 
-
 $(SYSTEMS):
 	$(MAKE) -C $@ DEBUG=$(DEBUG)
 
@@ -52,3 +51,10 @@ install:
 	do \
 		$(MAKE) -C $$system DEBUG=$(DEBUG) install; \
 	done
+
+drops:
+	@for system in $(SYSTEMS); \
+	do \
+		$(MAKE) -C $$system DEBUG=$(DEBUG) drop; \
+	done
+

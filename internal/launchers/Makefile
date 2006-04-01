@@ -84,7 +84,7 @@ snap:
         tar -cvzf $(LAUNCHERS)/$(TARBALL) $(MANIFEST)
 
 install:
-	cp $(TARBALL) $(CHANDLERARCHIVES)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 realclean: clean
 	rm -f Launchers-debug-*.tar.gz* Launchers-release-*.tar.gz*

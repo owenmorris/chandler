@@ -84,11 +84,6 @@ db-$(VERSION)-expanded: db-$(VERSION).tar.gz
 
 expand: db-$(VERSION)-expanded
 
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
-
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
-drop: $(TARBALL)
-	tar -C $(CHANDLERBIN) -xvzf $(TARBALL)

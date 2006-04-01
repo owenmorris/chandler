@@ -36,15 +36,12 @@ binaries:
                   $(SNAP)/$(SITE)/elementtree
 
 install: $(TARBALL)
-	cp $(TARBALL) $(CHANDLERARCHIVES)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)
 endif
-
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
 
 _realclean::
 	rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC)/../*-expanded

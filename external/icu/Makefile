@@ -87,8 +87,6 @@ icu-$(VERSION)-expanded: icu-$(VERSION).tgz
 
 expand: icu-$(VERSION)-expanded
 
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
-
 install: $(TARBALL)
-	cp $(TARBALL) $(CHANDLERARCHIVES)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
+

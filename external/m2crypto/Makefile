@@ -56,11 +56,8 @@ binaries:
       tar -cvzf $(BUILD_ROOT)/m2crypto/$(TARBALL) \
           $(SNAP)/$(SITE)/M2Crypto
 
-install: binaries #m2crypto-$(SNAP)-$(RELVER).tar.gz
-	cp $(TARBALL) $(CHANDLERARCHIVES)
-
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
+install: $(TARBALL)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

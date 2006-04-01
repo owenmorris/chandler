@@ -36,10 +36,7 @@ binaries:
           $(SNAP)/$(SITE)/zanshin
 
 install: $(TARBALL)
-	cp $(TARBALL) $(CHANDLERARCHIVES)
-
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

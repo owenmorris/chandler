@@ -127,7 +127,7 @@ clean:
 	$(MAKE) -C $(SRC) clean
 
 binaries: 
-	tar -C $(BUILD_ROOT) -cvzf $(PYLUCENE)/$(TARBALL) $(MANIFEST)
+	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) $(MANIFEST)
 
 install: $(TARBALL)
 	cp $(TARBALL) $(CHANDLERARCHIVES)
@@ -135,8 +135,8 @@ install: $(TARBALL)
 drop: $(TARBALL)
 	tar -C $(CHANDLERBIN) -xvzf $(TARBALL)
 
-upload: $(PYLUCENE)/$(TARBALL)
-	scp $(PYLUCENE)/$(TARBALL) $(UPLOAD)
+upload: $(TARBALL)
+	scp $(TARBALL) $(UPLOAD)
 
 PyLucene-src-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/PyLucene-src-$(VERSION).tar.gz
@@ -148,3 +148,7 @@ PyLucene-$(VERSION)-expanded: PyLucene-src-$(VERSION).tar.gz
 	touch PyLucene-$(VERSION)-expanded
 
 expand: PyLucene-$(VERSION)-expanded
+
+install: $(TARBALL)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
+

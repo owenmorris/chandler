@@ -126,3 +126,11 @@ uploads:
 	do \
 	   $(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
 	done
+
+# convenience
+drops:
+	@for system in $(SYSTEMS); \
+	do \
+	   echo $$system ; \
+	   $(MAKE) -C $$system DEBUG=$(DEBUG) drop; \
+	done

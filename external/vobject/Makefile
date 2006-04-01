@@ -37,11 +37,8 @@ build: expand apply
 binaries: 
 	tar -C $(BUILD_ROOT) -cvzf $(VOBJECT)/$(TARBALL) $(MANIFEST)
 
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
-
-install:
-	cp $(TARBALL) $(CHANDLERARCHIVES)
+install: $(TARBALL)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

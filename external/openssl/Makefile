@@ -95,12 +95,6 @@ binaries:
 endif # if OS X or linux
 endif # if Cygwin or not
 
-install: $(TARBALL)
-	cp $(TARBALL) $(CHANDLERARCHIVES)
-
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
-
 openssl-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/openssl-$(VERSION).tar.gz
 
@@ -116,6 +110,9 @@ apply:
 	patch -Nup0 < patches-$(VERSION); echo ok
 
 build: expand openssl
+
+install: $(TARBALL)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

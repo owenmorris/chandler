@@ -80,12 +80,6 @@ binaries:
 	cd $(BUILD_ROOT); \
     tar -cvzf $(PYICU)/$(TARBALL) $(MANIFEST)
 
-install: $(TARBALL)
-	cp $(TARBALL) $(CHANDLERARCHIVES)
-
-upload: $(PYICU)/$(TARBALL)
-	scp $(PYICU)/$(TARBALL) $(UPLOAD)
-
 sources: PyICU-$(VERSION)-expanded
 
 PyICU-$(VERSION)-expanded:
@@ -93,3 +87,7 @@ PyICU-$(VERSION)-expanded:
 	touch PyICU-$(VERSION)-expanded
 
 expand: PyICU-$(VERSION)-expanded
+
+install: $(TARBALL)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
+
