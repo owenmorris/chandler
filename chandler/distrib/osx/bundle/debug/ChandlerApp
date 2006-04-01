@@ -1,6 +1,7 @@
 #!/bin/sh
 
-execdir=$(dirname "${0}")
+cd $(dirname "${0}")
+execdir="$PWD"           
 executable="${execdir}/python"
 resdir=$(dirname "${execdir}")/Resources
 main="${resdir}/Chandler.py"
