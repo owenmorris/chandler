@@ -1,0 +1,95 @@
+diff -ur swig-1.3.29.orig/Lib/typemaps/exception.swg swig-1.3.29/Lib/typemaps/exception.swg
+--- swig-1.3.29.orig/Lib/typemaps/exception.swg	2006-03-06 16:14:10.000000000 -0800
++++ swig-1.3.29/Lib/typemaps/exception.swg	2006-03-31 10:54:19.000000000 -0800
+@@ -13,7 +13,7 @@
+ /* macros for error manipulation */
+ #define %nullref_fmt()                     "invalid null reference "		   
+ #define %varfail_fmt(_type,_name)          "in variable '"`_name`"' of type '"`_type`"'"
+-#define %argfail_fmt(_type,_name,_argn)    "in method '" `_name` "', argument " `_argn`" of type '" `_type`"'"
++#define %argfail_fmt(_type,_name,_argn)    "in method '" `_name` "', expected argument " `_argn`" of type '" `_type`"'"
+ #define %outfail_fmt(_type)                "in output value of type '"_type"'"	   
+ #define %argnullref_fmt(_type,_name,_argn) %nullref_fmt() %argfail_fmt(_type, _name, _argn)  
+ #define %varnullref_fmt(_type,_name)       %nullref_fmt() %varfail_fmt(_type, _name)  		   
+diff -ur swig-1.3.29.orig/Makefile.in swig-1.3.29/Makefile.in
+--- swig-1.3.29.orig/Makefile.in	2006-03-10 14:54:02.000000000 -0800
++++ swig-1.3.29/Makefile.in	2006-03-31 10:53:53.000000000 -0800
+@@ -22,7 +22,7 @@
+ source:
+ 	@cd $(SOURCE) && $(MAKE)
+ 
+-libfiles: Lib/swigwarn.swg
++libfiles: $(srcdir)/Lib/swigwarn.swg
+ 
+ .PHONY: source libfiles
+ 
+@@ -340,7 +340,7 @@
+ # Update the Lib/swigwarn.swg file
+ #####################################################################
+ 
+-Lib/swigwarn.swg: Source/Include/swigwarn.h
++$(srcdir)/Lib/swigwarn.swg: $(srcdir)/Source/Include/swigwarn.h
+ 	echo "/* Automatically generated file containing all the swig warning codes.  */" > $@
+ 	echo "/* Do not modify this file by hand, change 'Source/Include/swigwarn.h'  */" >> $@
+ 	echo  "/* and use the command 'make Lib/swigwarn.swg' instead.                 */" >> $@
+diff -ur swig-1.3.29.orig/Source/Modules/python.cxx swig-1.3.29/Source/Modules/python.cxx
+--- swig-1.3.29.orig/Source/Modules/python.cxx	2006-03-15 17:46:50.000000000 -0800
++++ swig-1.3.29/Source/Modules/python.cxx	2006-03-31 10:54:19.000000000 -0800
+@@ -40,7 +40,6 @@
+ static  File         *f_init = 0;
+ static  File         *f_shadow_py = 0;
+ static  String       *f_shadow = 0;
+-static  String       *f_shadow_imports = 0;
+ static  String       *f_shadow_stubs = 0;
+ 
+ static  String       *methods;
+@@ -670,7 +669,6 @@
+       Delete(filen); filen = NULL;
+ 
+       f_shadow = NewString("");
+-      f_shadow_imports = NewString("");
+       f_shadow_stubs = NewString("");
+ 
+       Swig_register_filebyname("shadow",f_shadow);
+@@ -818,10 +816,6 @@
+     Printf(f_wrappers,"#endif\n");
+ 
+     if (shadow) {
+-      /*
+-      Printf(f_shadow_imports,"\nimport %s\n", module);
+-      Printv(f_shadow_py, f_shadow_imports, "\n",NIL);
+-      */
+       Printv(f_shadow_py, f_shadow, "\n",NIL);
+       Printv(f_shadow_py, f_shadow_stubs, "\n",NIL);
+ 
+@@ -883,12 +877,9 @@
+ 
+         // finally, output the name of the imported module
+ 	if (shadowimport) {
+-	  if (!options || (!Getattr(options, "noshadow") && !Getattr(options, "noproxy"))) {	    
+-	    Printf(import, "_%s\n", modname);
+-	    if (!Strstr(f_shadow_imports, import)) {
+-	      Printf(f_shadow, "import %s\n", modname);
+-	      Printv(f_shadow_imports, import, NULL);
+-	    }
++	  if (!options || (!Getattr(options, "noshadow") && !Getattr(options, "noproxy"))) {
++            Printf(import, "%s\n", modname);
++            Printf(f_shadow, "%s", import);
+ 	  }
+ 	}
+ 	
+@@ -1155,8 +1146,13 @@
+       // Do the param type too?
+       if (showTypes) {
+         type =  SwigType_base(type);
+-	lookup = Swig_symbol_clookup(type, 0);
+-	if (lookup) type = Getattr(lookup, "sym:name");
++        SwigType* qt = SwigType_typedef_resolve_all(type);
++        if (SwigType_isenum(qt))
++          type = NewString("int");
++        else {
++          lookup = Swig_symbol_clookup(type, 0);
++          if (lookup) type = Getattr(lookup, "sym:name");
++        }
+         Printf(doc, "%s ", type);
+       }
+ 
