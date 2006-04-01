@@ -105,7 +105,7 @@ class BackgroundSyncTask:
             self.busy = True
 
             try:
-                self.rv.refresh()
+                self.rv.refresh(notify=False)
 
                 prefs = schema.ns('osaf.sharing', self.rv).prefs
                 enabled = prefs.background_syncing

@@ -49,6 +49,53 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         return len(self._log) > 0
 
+
+__revision__  = "$Revision$"
+__date__      = "$Date$"
+__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
+__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+
+from datetime import timedelta
+from time import time
+
+from chandlerdb.item.c import CItem
+from chandlerdb.util.c import isuuid, issingleref
+from chandlerdb.persistence.c import DBLockDeadlockError
+
+from repository.item.RefCollections import RefList, TransientRefList
+from repository.persistence.RepositoryError \
+     import RepositoryError, MergeError, VersionConflictError
+from repository.persistence.RepositoryView \
+     import RepositoryView, OnDemandRepositoryView
+from repository.persistence.Repository import Repository
+from repository.persistence.DBLob import DBLob
+from repository.persistence.DBRefs import DBRefList, DBChildren, DBNumericIndex
+from repository.persistence.DBContainer import HashTuple
+from repository.persistence.DBItemIO \
+     import DBItemWriter, DBItemVMergeReader, DBItemRMergeReader
+
+
+class DBRepositoryView(OnDemandRepositoryView):
+
+    def openView(self):
+
+        self._log = set()
+        self._indexWriter = None
+
+        super(DBRepositoryView, self).openView()
+
+    def _logItem(self, item):
+        
+        if super(DBRepositoryView, self)._logItem(item):
+            self._log.add(item)
+            return True
+        
+        return False
+
+    def dirtyItems(self):
+
+        return iter(self._log)
+
     def dirlog(self):
 
         for item in self._log:
@@ -292,7 +339,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                 if watchers:
                                     self.invokeWatchers(watchers, 'changed', 'notification', uRef, otherName, uItem)
     
-    def refresh(self, mergeFn=None, version=None):
+    def refresh(self, mergeFn=None, version=None, notify=True):
 
         store = self.store
         if not version:
@@ -348,19 +395,26 @@ class DBRepositoryView(OnDemandRepositoryView):
                 if item is not None:
                     item._afterMerge()
 
-            before = time()
-            self._dispatchHistory(history, refreshes, oldVersion, newVersion)
-            count = self.dispatchNotifications()
-            duration = time() - before
-            if duration > 1.0:
-                self.logger.warning('%s %d notifications ran in %s',
-                                    self, len(history) + count,
-                                    timedelta(seconds=duration))
+            if notify:
+                before = time()
+                self._dispatchHistory(history, refreshes,
+                                      oldVersion, newVersion)
+                count = self.dispatchNotifications()
+                duration = time() - before
+                if duration > 1.0:
+                    self.logger.warning('%s %d notifications ran in %s',
+                                        self, len(history) + count,
+                                        timedelta(seconds=duration))
+            else:
+                self.flushNotifications()
 
             self.prune(10000)
 
         elif newVersion == self._version:
-            self.dispatchNotifications()
+            if notify:
+                self.dispatchNotifications()
+            else:
+                self.flushNotifications()
 
         elif newVersion < self._version:
             self.cancel()
@@ -371,7 +425,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             _refresh(unloads.__iter__)
             self.flushNotifications()
 
-    def commit(self, mergeFn=None):
+    def commit(self, mergeFn=None, notify=True):
 
         if not (self._status & RepositoryView.COMMITTING or
                 len(self._log) + len(self._deletedRegistry) == 0):
@@ -396,7 +450,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         
                 while True:
                     try:
-                        self.refresh(mergeFn)
+                        self.refresh(mergeFn, None, notify)
 
                         count = len(self._log) + len(self._deletedRegistry)
                         if count > 500:

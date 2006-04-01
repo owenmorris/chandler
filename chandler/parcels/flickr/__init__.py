@@ -194,7 +194,7 @@ class UpdateTask(object):
         logger.info("receiveWakeupCall()")
 
         # We need the view for most repository operations
-        self.view.refresh()
+        self.view.refresh(notify=False)
 
         # Go through all the PhotoCollections and update those that
         # have fillInBackground set. fillCollectionFromFlickr commits
