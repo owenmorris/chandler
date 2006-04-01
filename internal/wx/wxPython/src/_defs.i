@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     6/24/97
-// RCS-ID:      $Id: _defs.i,v 1.97 2006/03/20 18:02:37 RD Exp $
+// RCS-ID:      $Id: _defs.i,v 1.98 2006/03/31 23:29:39 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -68,8 +68,16 @@
 }
 %enddef
 
-    
 
+// This macro can be used to disable the releasing of the GIL when calling the
+// C++ function.
+%define KeepGIL(name)
+%exception name {
+    $action
+    if (PyErr_Occurred()) SWIG_fail;
+}
+%enddef
+        
 //---------------------------------------------------------------------------
 // some type definitions to simplify things for SWIG
 

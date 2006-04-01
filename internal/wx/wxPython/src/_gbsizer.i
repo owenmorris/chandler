@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     05-Nov-2003
-// RCS-ID:      $Id: _gbsizer.i,v 1.18 2006/01/29 02:09:27 RD Exp $
+// RCS-ID:      $Id: _gbsizer.i,v 1.19 2006/03/31 23:29:39 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -80,14 +80,35 @@ public:
     void SetRow(int row);
     void SetCol(int col);
 
-//     %extend {
-//         bool __eq__(const wxGBPosition* other) { return other ? (*self == *other) : false; }
-//         bool __ne__(const wxGBPosition* other) { return other ? (*self != *other) : true;  }
-//     }
 
-    bool operator==(const wxGBPosition& other);
-    bool operator!=(const wxGBPosition& other);
-    
+    %extend {
+        KeepGIL(__eq__);
+        DocStr(__eq__, "Compare GBPosition for equality.", "");
+        bool __eq__(PyObject* other) {
+            wxGBPosition  temp, *obj = &temp;
+            if ( other == Py_None ) return false;
+            if ( ! wxGBPosition_helper(other, &obj) ) {
+                PyErr_Clear();
+                return false;
+            }
+            return self->operator==(*obj);
+        }
+
+        
+        KeepGIL(__ne__);
+        DocStr(__ne__, "Compare GBPosition for inequality.", "");
+        bool __ne__(PyObject* other) {
+            wxGBPosition  temp, *obj = &temp;
+            if ( other == Py_None ) return true;
+            if ( ! wxGBPosition_helper(other, &obj)) {
+                PyErr_Clear();
+                return true;
+            }
+            return self->operator!=(*obj);
+        }
+    }
+
+   
     %extend {
         void Set(int row=0, int col=0) {
             self->SetRow(row);
@@ -150,14 +171,35 @@ cell in each direction.", "");
     int GetColspan() const;
     void SetRowspan(int rowspan);
     void SetColspan(int colspan);
+
     
-//     %extend {
-//         bool __eq__(const wxGBSpan* other) { return other ? (*self == *other) : false; }
-//         bool __ne__(const wxGBSpan* other) { return other ? (*self != *other) : true;  }
-//     }
-    bool operator==(const wxGBSpan& other);
-    bool operator!=(const wxGBSpan& other);
-    
+    %extend {
+        KeepGIL(__eq__);
+        DocStr(__eq__, "Compare wxGBSpan for equality.", "");
+        bool __eq__(PyObject* other) {
+            wxGBSpan  temp, *obj = &temp;
+            if ( other == Py_None ) return false;
+            if ( ! wxGBSpan_helper(other, &obj) ) {
+                PyErr_Clear();
+                return false;
+            }
+            return self->operator==(*obj);
+        }
+
+        
+        KeepGIL(__ne__);
+        DocStr(__ne__, "Compare GBSpan for inequality.", "");
+        bool __ne__(PyObject* other) {
+            wxGBSpan  temp, *obj = &temp;
+            if ( other == Py_None ) return true;
+            if ( ! wxGBSpan_helper(other, &obj)) {
+                PyErr_Clear();
+                return true;
+            }
+            return self->operator!=(*obj);
+        }
+    }
+
 
     %extend {
         void Set(int rowspan=1, int colspan=1) {
