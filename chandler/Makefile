@@ -201,7 +201,7 @@ else
 ifeq ($(OS),Darwin)
   # we could use -x as an option to strip but it needs testing to
   # see if it gives any performance gains
-STRIP_OPTIONS=-S
+STRIP_OPTIONS=-S -x
 STRIP_OP=\( -name '*.dylib' -o -name '*.so' \)
 else
 STRIP_OPTIONS=
