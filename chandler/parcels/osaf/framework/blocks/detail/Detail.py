@@ -1288,11 +1288,11 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             self.SetAttributeValue(self.item, self.attributeName, 
                                    newChoice)
 
-    def GetAttributeValue (self, item, attributeName):
+    def GetAttributeValue(self, item, attributeName):
         index = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
         return index
     
-    def SetAttributeValue (self, item, attributeName, value):
+    def SetAttributeValue(self, item, attributeName, value):
         """ Set the value of the attribute given by the value. """
         assert value != RecurrenceAttributeEditor.customIndex
         # Changing the recurrence period on a non-master item could delete 
@@ -1301,6 +1301,14 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         if value == RecurrenceAttributeEditor.onceIndex:
             item.removeRecurrence()
         else:
+            oldIndex = self.GetAttributeValue(item, attributeName)
+            
+            # If nothing has changed, return. This avoids building
+            # a whole new ruleset, and the teardown of occurrences,
+            # as in Bug 5526
+            if oldIndex == value:
+                return
+            
             interval = 1
             if value == RecurrenceAttributeEditor.biweeklyIndex:
                 interval = 2
@@ -1318,7 +1326,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             rruleset.rrules.first().untilIsDate = True
             item.changeThisAndFuture('rruleset', rruleset)
 
-        self.AttributeChanged()    
+        self.AttributeChanged()
     
     def GetControlValue (self, control):
         """ Get the value for the current selection """ 
