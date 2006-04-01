@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.04.99
-// RCS-ID:      $Id: buffer.h,v 1.36 2005/10/29 17:46:12 VZ Exp $
+// RCS-ID:      $Id: buffer.h,v 1.37 2006/03/31 23:33:38 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,12 +25,12 @@
 class WXDLLIMPEXP_BASE classname                                            \
 {                                                                           \
 public:                                                                     \
-    classname(const chartype *str)                                          \
+    classname(const chartype *str = NULL)                                   \
         : m_str(str ? strdupfunc(str) : NULL)                               \
     {                                                                       \
     }                                                                       \
                                                                             \
-    classname(size_t len=0)                                                 \
+    classname(size_t len)                                                   \
         : m_str((chartype *)malloc((len + 1)*sizeof(chartype)))             \
     {                                                                       \
         m_str[len] = (chartype)0;                                           \
