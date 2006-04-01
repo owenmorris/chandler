@@ -276,9 +276,10 @@ class DBRepositoryView(OnDemandRepositoryView):
         for item, version, status, literals, references in changes:
 
             kind = item.itsKind
+            uItem = item.itsUUID
             if kind is not None:
                 kind.extent._collectionChanged('changed', 'notification',
-                                               'extent', item)
+                                               'extent', uItem)
 
                 for name in kind._iterNotifyAttributes():
                     value = getattr(item, name, None)
@@ -289,7 +290,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                             if dispatch:
                                 watchers = dispatch.get(otherName, None)
                                 if watchers:
-                                    self.invokeWatchers(watchers, 'changed', 'notification', uRef, otherName, item)
+                                    self.invokeWatchers(watchers, 'changed', 'notification', uRef, otherName, uItem)
     
     def refresh(self, mergeFn=None, version=None):
 

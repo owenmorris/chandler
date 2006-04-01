@@ -373,7 +373,8 @@ class RefList(LinkedMap, Indexed):
             item = self._item
             view = item.itsView
             view._notifyChange(item._collectionChanged,
-                               'remove', 'collection', self._name, other)
+                               'remove', 'collection', self._name,
+                               other.itsUUID)
 
     def _removeRefs(self):
 

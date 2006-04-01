@@ -430,10 +430,10 @@ class References(Values):
 
         if value is not None and value._isRefs():
             view._notifyChange(item._collectionChanged,
-                               'add', 'collection', name, other)
+                               'add', 'collection', name, other.itsUUID)
         if otherValue is not None and otherValue._isRefs():
             view._notifyChange(other._collectionChanged,
-                               'add', 'collection', otherName, item)
+                               'add', 'collection', otherName, item.itsUUID)
             
     def _setRef(self, name, other, otherName, cardinality=None, alias=None):
 

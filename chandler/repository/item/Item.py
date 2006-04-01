@@ -90,7 +90,8 @@ class Item(CItem):
 
         if not (_noMonitors or (itsKind is None)):
             self.itsView._notifyChange(itsKind.extent._collectionChanged,
-                                       'add', 'collection', 'extent', self)
+                                       'add', 'collection', 'extent',
+                                       self.itsUUID)
 
     def _setInitialValues(self, values, fireOnValueChanged):
 
@@ -313,7 +314,7 @@ class Item(CItem):
     def _filteredItemChanged(self, op, item, attribute, name):
 
         if not (item.isDeleting() or self._isNoDirty()):
-            getattr(self, name).itemChanged(item, attribute)
+            getattr(self, name).itemChanged(item.itsUUID, attribute)
 
     def _registerWatch(self, watcher, attribute, watch, name):
 
@@ -1295,7 +1296,7 @@ class Item(CItem):
             hook(view)
         if kind is not None:
             view._notifyChange(kind.extent._collectionChanged,
-                               'add', 'collection', 'extent', item)
+                               'add', 'collection', 'extent', item.itsUUID)
         if hasattr(cls, 'onItemCopy'):
             item.onItemCopy(view, self)
 
@@ -1337,7 +1338,7 @@ class Item(CItem):
             hook(view)
         if kind is not None:
             view._notifyChange(kind.extent._collectionChanged,
-                               'add', 'collection', 'extent', item)
+                               'add', 'collection', 'extent', item.itsUUID)
         if hasattr(cls, 'onItemClone'):
             item.onItemClone(view, self)
 
@@ -1587,8 +1588,8 @@ class Item(CItem):
             prevKind = self._kind
             if prevKind is not None:
                 view._notifyChange(prevKind.extent._collectionChanged,
-                                   'remove', 'collection', 'extent', self,
-                                   kind)
+                                   'remove', 'collection', 'extent',
+                                   self.itsUUID, kind)
 
                 if kind is None:
                     self._values.clear()
@@ -1621,7 +1622,7 @@ class Item(CItem):
                 kind._setupClass(self.__class__)
                 kind.getInitialValues(self, False)
                 view._notifyChange(kind.extent._collectionChanged,
-                                   'add', 'collection', 'extent', self,
+                                   'add', 'collection', 'extent', self.itsUUID,
                                    prevKind)
                 if self.isWatched():
                     view._notifyChange(self._itemChanged,

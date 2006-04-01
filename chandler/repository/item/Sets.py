@@ -265,11 +265,7 @@ class AbstractSet(ItemValue, Indexed):
             if change == 'collection':
                 if op in ('add', 'remove'):
                     if not (local or self._otherName is None):
-                        if isuuid(other):
-                            refs = self._view[other]._references
-                        else:
-                            refs = other._references
-
+                        refs = self._view[other]._references
                         if op == 'add':
                             refs._setRef(self._otherName, item, attribute)
                         else:
@@ -411,14 +407,16 @@ class AbstractSet(ItemValue, Indexed):
 
         self._item.add(other)
         self._view._notifyChange(self._collectionChanged,
-                                 'add', 'collection', other, True)
+                                 'add', 'collection', other.itsUUID,
+                                 True)
 
     def _removeRef(self, other, noError=False):
 
         if not noError or other in self:
             self._item.remove(other)
             self._view._notifyChange(self._collectionChanged,
-                                     'remove', 'collection', other, True)
+                                     'remove', 'collection', other.itsUUID,
+                                     True)
 
     def _removeRefs(self):
         
@@ -1124,13 +1122,7 @@ class FilteredSet(Set):
         if op is not None:
             if change == 'collection':
                 if op != 'refresh':
-                    if isuuid(other):
-                        key = other
-                    else:
-                        if other.isDeleted():
-                            op = None
-                        key = other.itsUUID
-                    if not (op is None or self.filter(self._view, key)):
+                    if not (op is None or self.filter(self._view, other)):
                         op = None
 
             if not (inner is True or op is None):
@@ -1141,11 +1133,10 @@ class FilteredSet(Set):
     def itemChanged(self, other, attribute):
 
         if self._sourceContains(other, self._source):
-            key = other.itsUUID
-            matched = self.filter(self._view, key)
+            matched = self.filter(self._view, other)
 
             if self._indexes:
-                contains = key in self._indexes.itervalues().next()
+                contains = other in self._indexes.itervalues().next()
             else:
                 contains = None
                 

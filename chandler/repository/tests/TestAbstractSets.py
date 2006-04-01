@@ -60,12 +60,12 @@ class TestAbstractSets(RepositoryTestCase):
 
         self.m5.writers.remove(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('remove', m, 'set', w))
+        self.assert_(m.calls[0] == ('remove', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m5.writers.add(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('add', m, 'set', w))
+        self.assert_(m.calls[0] == ('add', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m4.writers.add(w)
@@ -81,7 +81,7 @@ class TestAbstractSets(RepositoryTestCase):
 
         self.m4.writers.remove(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('remove', m, 'set', w))
+        self.assert_(m.calls[0] == ('remove', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m5.writers.remove(w)
@@ -92,7 +92,7 @@ class TestAbstractSets(RepositoryTestCase):
 
         self.m4.writers.add(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('add', m, 'set', w))
+        self.assert_(m.calls[0] == ('add', m, 'set', w.itsUUID))
 
         self.assert_(len(list(m.set)) == 1)
 
@@ -104,22 +104,22 @@ class TestAbstractSets(RepositoryTestCase):
 
         self.m4.writers.remove(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('add', m, 'set', w))
+        self.assert_(m.calls[0] == ('add', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m5.writers.remove(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('remove', m, 'set', w))
+        self.assert_(m.calls[0] == ('remove', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m5.writers.add(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('add', m, 'set', w))
+        self.assert_(m.calls[0] == ('add', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m4.writers.add(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('remove', m, 'set', w))
+        self.assert_(m.calls[0] == ('remove', m, 'set', w.itsUUID))
 
         self.assert_(len(list(m.set)) == 3)
 
@@ -132,22 +132,22 @@ class TestAbstractSets(RepositoryTestCase):
 
         self.m4.writers.remove(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('add', m, 'set', w))
+        self.assert_(m.calls[0] == ('add', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m5.writers.remove(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('remove', m, 'set', w))
+        self.assert_(m.calls[0] == ('remove', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m5.writers.add(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('add', m, 'set', w))
+        self.assert_(m.calls[0] == ('add', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m4.writers.add(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('remove', m, 'set', w))
+        self.assert_(m.calls[0] == ('remove', m, 'set', w.itsUUID))
 
         self.assert_(len(list(m.set)) == 6)
 
@@ -162,12 +162,12 @@ class TestAbstractSets(RepositoryTestCase):
         l.delete()
 
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('remove', m, 'set', l))
+        self.assert_(m.calls[0] == ('remove', m, 'set', l.itsUUID))
 
         del m.calls[:]
         l = self.m5.itsKind.newItem(None, self.m5.itsParent)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('add', m, 'set', l))
+        self.assert_(m.calls[0] == ('add', m, 'set', l.itsUUID))
 
         self.assert_(len(list(m.set)) == count)
 
@@ -184,12 +184,12 @@ class TestAbstractSets(RepositoryTestCase):
 
         self.m5.writers.remove(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('remove', m, 'set', w))
+        self.assert_(m.calls[0] == ('remove', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m5.writers.add(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('add', m, 'set', w))
+        self.assert_(m.calls[0] == ('add', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m4.writers.add(w)
@@ -215,7 +215,7 @@ class TestAbstractSets(RepositoryTestCase):
         self.assert_(len(m.calls) == 0)
         self.m3.writers.add(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('add', m, 'set', w))
+        self.assert_(m.calls[0] == ('add', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m4.writers.add(w)
@@ -227,7 +227,7 @@ class TestAbstractSets(RepositoryTestCase):
 
         self.m1.writers.remove(w)
         self.assert_(len(m.calls) == 1)
-        self.assert_(m.calls[0] == ('remove', m, 'set', w))
+        self.assert_(m.calls[0] == ('remove', m, 'set', w.itsUUID))
 
         del m.calls[:]
         self.m2.writers.add(w)

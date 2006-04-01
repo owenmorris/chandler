@@ -29,7 +29,6 @@ import osaf.mail.constants as MailConstants
 import osaf.mail.sharing as MailSharing
 import osaf.mail.message as MailMessage
 from repository.item.Item import Item
-from chandlerdb.item.c import isitem
 import wx
 import sets
 import logging
@@ -80,7 +79,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             item = getattr(self.item, 'proxiedItem', self.item)
             self.itsView.unwatchItem(self, item, 'onItemKindChanged')
 
-    def onItemKindChanged(self, op, item, attributes):
+    def onItemKindChanged(self, op, uItem, attributes):
         # Ignore notifications for attributes we don't care about
         if 'itsKind' not in attributes:
             #logger.debug("%s: ignoring changes to %s.", 
@@ -88,14 +87,14 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             return
 
         # Ignore notifications during stamping or deleting
-        if isitem(item) and item.isMutating():
+        if self.item.isMutating():
             logger.debug("%s: ignoring kind change to %s during stamping or deletion.", 
-                         debugName(self), debugName(item))
+                         debugName(self), debugName(self.item))
             return
         
         # It's for us - tell our parent to resync.
         logger.debug("%s: Resyncing parent block due to kind change on %s", 
-                     debugName(self), debugName(item))
+                     debugName(self), debugName(self.item))
         self.parentBlock.synchronizeWidget()
         
     def unRender(self):
@@ -456,9 +455,9 @@ class DetailSynchronizer(Item):
                     self.itsView.unwatchItem(self, item, 'onWatchedItemChanged')
                 del self.widget.watchedAttributes        
 
-    def onWatchedItemChanged(self, op, item, attributes):
+    def onWatchedItemChanged(self, op, uItem, attributes):
         # Ignore notifications during stamping or deleting
-        if isitem(item) and item.isMutating():
+        if self.item.isMutating():
             #logger.debug("%s: ignoring changes to %s during stamping or deletion.", 
                          #debugName(self), attributes)
             return

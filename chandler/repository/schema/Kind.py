@@ -243,7 +243,8 @@ class Kind(Item):
 
         if not _noMonitors:
             self.itsView._notifyChange(self.extent._collectionChanged,
-                                       'add', 'collection', 'extent', item)
+                                       'add', 'collection', 'extent',
+                                       item.itsUUID)
 
         return item
             
