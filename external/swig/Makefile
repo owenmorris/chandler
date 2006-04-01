@@ -1,9 +1,9 @@
 
 include ../Makefile.inc
 
-VERSION=1.3.24
+VERSION=1.3.29
 SWIG=$(BUILD_ROOT)/swig
-SRC=$(SWIG)/SWIG-$(VERSION)
+SRC=$(SWIG)/swig-$(VERSION)
 TARBALL=
 
 BUILD=build_$(SNAP)
@@ -13,8 +13,7 @@ BUILD=build_$(SNAP)
 ifeq ($(OS),Cygwin)
 
 $(SRC)/SWIG13.sln:
-	sed -e "s/1.3.24/$(VERSION)/" win32/Source/Include/swigconfig0.h > win32/Source/Include/swigconfig.h
-	tar -C win32 --exclude CVS -cf - . | tar -C $(SRC) -xvf -
+	tar -C win32 --exclude .svn -cf - . | tar -C $(SRC) -xvf -
 
 swig: $(SRC)/SWIG13.sln
 	cd $(SRC); devenv.com SWIG13.sln /build Release
@@ -28,9 +27,8 @@ else
 
 $(SRC)/$(BUILD)/Makefile:
 	mkdir -p $(SRC)/$(BUILD); \
-      cd $(SRC)/$(BUILD); \
-      ../configure --prefix=$(PREFIX) \
-                   --with-python=$(PYTHON)
+		cd $(SRC)/$(BUILD); \
+		../configure --prefix=$(PREFIX) --with-python=$(PYTHON)
 
 swig: $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)
@@ -56,16 +54,16 @@ upload:
 # Nothing to do
 install:
 
-SWIG-$(VERSION).tar.gz:
-	$(CURL) http://builds.osafoundation.org/external/SWIG-$(VERSION).tar.gz 
+swig-$(VERSION).tar.gz:
+	$(CURL) http://builds.osafoundation.org/external/swig-$(VERSION).tar.gz 
 
-sources: SWIG-$(VERSION).tar.gz
+sources: swig-$(VERSION).tar.gz
 
-SWIG-$(VERSION)-expanded: SWIG-$(VERSION).tar.gz
-	tar xvzf SWIG-$(VERSION).tar.gz
-	touch SWIG-$(VERSION)-expanded
+swig-$(VERSION)-expanded: swig-$(VERSION).tar.gz
+	tar xvzf swig-$(VERSION).tar.gz
+	touch swig-$(VERSION)-expanded
 
-expand: SWIG-$(VERSION)-expanded
+expand: swig-$(VERSION)-expanded
 
 build: expand apply swig
 

@@ -80,7 +80,7 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="3"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="Source\Include,Source\DOH,Source\Modules,Source\Preprocessor,Source\Swig,Source\CParse"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
@@ -401,7 +401,24 @@
 				Name="Modules"
 				Filter="">
 				<File
-					RelativePath=".\Source\Modules\allegrocl.cxx">
+					RelativePath="Source\Modules\allegrocl.cxx">
+					<FileConfiguration
+						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							AdditionalIncludeDirectories=""
+							PreprocessorDefinitions=""
+							BasicRuntimeChecks="3"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							AdditionalIncludeDirectories=""
+							PreprocessorDefinitions=""/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="Source\Modules\allocate.cxx">
@@ -444,6 +461,9 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\Source\Modules\cffi.cxx">
+				</File>
+				<File
 					RelativePath="Source\Modules\chicken.cxx">
 					<FileConfiguration
 						Name="Debug|Win32">
@@ -462,6 +482,9 @@
 							AdditionalIncludeDirectories=""
 							PreprocessorDefinitions=""/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Source\Modules\clisp.cxx">
 				</File>
 				<File
 					RelativePath="Source\Modules\contract.cxx">
@@ -604,6 +627,9 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\Source\Modules\lua.cxx">
+				</File>
+				<File
 					RelativePath="Source\Modules\main.cxx">
 					<FileConfiguration
 						Name="Debug|Win32">
@@ -624,7 +650,24 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\Source\Modules\modula3.cxx">
+					RelativePath="Source\Modules\modula3.cxx">
+					<FileConfiguration
+						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							AdditionalIncludeDirectories=""
+							PreprocessorDefinitions=""
+							BasicRuntimeChecks="3"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							AdditionalIncludeDirectories=""
+							PreprocessorDefinitions=""/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="Source\Modules\module.cxx">
@@ -888,6 +931,9 @@
 							AdditionalIncludeDirectories=""
 							PreprocessorDefinitions=""/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Source\Modules\uffi.cxx">
 				</File>
 				<File
 					RelativePath="Source\Modules\utils.cxx">
@@ -1184,6 +1230,12 @@
 					RelativePath="Source\Swig\swig.h">
 				</File>
 				<File
+					RelativePath=".\Source\Swig\swigkeys.c">
+				</File>
+				<File
+					RelativePath=".\Source\Swig\swigkeys.h">
+				</File>
+				<File
 					RelativePath="Source\Swig\symbol.c">
 					<FileConfiguration
 						Name="Debug|Win32">
@@ -1318,7 +1370,7 @@
 						Name="Release|Win32">
 						<Tool
 							Name="VCCLCompilerTool"
-							Optimization="3"
+							Optimization="2"
 							AdditionalIncludeDirectories=""
 							PreprocessorDefinitions=""/>
 					</FileConfiguration>
