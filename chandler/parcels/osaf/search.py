@@ -10,6 +10,7 @@ arbitrary result can be transformed into a Note-based item.
 """
 
 from osaf.pim import Location, EmailAddress, Note
+from itertools import chain
 
 def processResults(results):
     """
