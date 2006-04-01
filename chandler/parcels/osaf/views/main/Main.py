@@ -829,6 +829,41 @@ class MainView(View):
             sharedByMe = sharing.isSharedByMe(share)
         event.arguments['Enable'] = collection is not None and sharing.isShared(collection) and not sharedByMe
 
+    def _freeBusyShared(self):
+        allCollection = schema.ns('osaf.pim', self).allCollection
+        return (sharing.getFreeBusyShare(allCollection) is not None)
+
+    def onSharingPublishFreeBusyEvent(self, event):
+        if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
+            return
+        mainFrame = wx.GetApp().mainFrame
+        allCollection = schema.ns('osaf.pim', self).allCollection
+        PublishCollection.ShowPublishDialog(mainFrame, view=self.itsView,
+                                            publishType = 'freebusy',
+                                            collection=allCollection)
+
+    def onSharingPublishFreeBusyEventUpdateUI(self, event):
+        event.arguments['Enable'] = not self._freeBusyShared()
+
+
+    def onSharingUnpublishFreeBusyEventUpdateUI(self, event):
+        event.arguments['Enable'] = self._freeBusyShared()
+
+    onCopyFreeBusyURLEventUpdateUI = onSharingUnpublishFreeBusyEventUpdateUI
+
+    def onCopyFreeBusyURLEvent(self, event):
+        allCollection = schema.ns('osaf.pim', self).allCollection
+        share = sharing.getFreeBusyShare(allCollection)
+        if share is not None:
+            urlString = sharing.getUrls(share)[0]
+            gotClipboard = wx.TheClipboard.Open()
+            if gotClipboard:
+                wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
+                wx.TheClipboard.Close()
+
+    def onSharingUnpublishFreeBusyEvent(self, event):
+        sharing.unpublishFreeBusy(schema.ns('osaf.pim', self).allCollection)
+
     def onUnpublishSidebarCollectionEvent(self, event):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:

@@ -127,8 +127,6 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
 
     else:
         # just a collection
-        if not isShared(collectionOrShares):
-            return
         shares = getLinkedShares(collectionOrShares.shares.first())
         view = collectionOrShares.itsView
         getMarker = shares[0].conduit.getMarker

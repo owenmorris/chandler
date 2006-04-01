@@ -115,7 +115,6 @@ class BackgroundSyncTask:
                 collections = []
                 for share in Sharing.Share.iterItems(self.rv):
                     if(share.active and
-                        not share.hidden and
                         share.contents is not None and
                         share.contents not in collections):
                         collections.append(share.contents)
@@ -159,7 +158,8 @@ class ProgressMonitor:
 
 
 
-def publish(collection, account, classesToInclude=None,
+def publish(collection, account, classesToInclude=None, 
+            publishType = 'collection',
             attrsToExclude=None, displayName=None, updateCallback=None):
     """
     Publish a collection, automatically determining which conduits/formats
@@ -272,9 +272,10 @@ def publish(collection, account, classesToInclude=None,
             # determine a share name
             existing = getExistingResources(account)
             displayName = displayName or collection.displayName
-
+                
             shareName = displayName
-
+            alias = 'main'
+            
             # See if there are any non-ascii characters, if so, just use UUID
             try:
                 shareName.encode('ascii')
@@ -285,90 +286,101 @@ def publish(collection, account, classesToInclude=None,
 
             shareName = _uniqueName(shareName, existing)
 
+            if publishType == 'freebusy':
+                shareName += '.ifb'
+                alias = 'freebusy'
+
+
             if ('calendar-access' in dav or 'MKCALENDAR' in allowed):
 
                 # We're speaking to a CalDAV server
 
                 # Create a CalDAV conduit / ICalendar format
                 # Create a cloudxml subcollection
+                # or just a freebusy resource
 
                 share = _newOutboundShare(view, collection,
                                          classesToInclude=classesToInclude,
                                          shareName=shareName,
                                          displayName=displayName,
                                          account=account,
-                                         useCalDAV=True)
+                                         useCalDAV=True,
+                                         publishType=publishType)
 
                 if attrsToExclude:
                     share.filterAttributes = attrsToExclude
 
                 try:
-                    collection.shares.append(share, 'main')
+                    collection.shares.append(share, alias)
                 except ValueError:
                     # There is already a 'main' share for this collection
                     collection.shares.append(share)
 
                 shares.append(share)
 
-                if share.exists():
+                # allow freebusy resources to just be overwritten
+                if share.exists() and publishType != 'freebusy':
                     raise SharingError(_(u"Share already exists"))
 
                 share.create()
 
                 share.conduit.setDisplayName(displayName)
 
-                if supportsTickets:
-                    share.conduit.createTickets()
-
-                # Create a subcollection to contain the cloudXML versions of
-                # the shared items
-
-                # Since we're publishing twice as many resources:
-                if progressMonitor:
-                    progressMonitor.totalWork *= 2
-
-                subShareName = u"%s/%s" % (shareName, SUBCOLLECTION)
-
-                subShare = _newOutboundShare(view, collection,
-                                             classesToInclude=classesToInclude,
-                                             shareName=subShareName,
-                                             displayName=displayName,
-                                             account=account)
-
-                if attrsToExclude:
-                    subShare.filterAttributes = attrsToExclude
-                else:
-                    subShare.filterAttributes = []
-
-                for attr in CALDAVFILTER:
-                    subShare.filterAttributes.append(attr)
-
-                shares.append(subShare)
-
-                if subShare.exists():
-                    raise SharingError(_(u"Share already exists"))
-
-                subShare.create()
-
-                # sync the subShare before the CalDAV share
-                share.follows = subShare
+                if publishType == 'collection':
+                    # Create a subcollection to contain the cloudXML versions of
+                    # the shared items
+    
+                    # Since we're publishing twice as many resources:
+                    if progressMonitor:
+                        progressMonitor.totalWork *= 2
+    
+                    subShareName = u"%s/%s" % (shareName, SUBCOLLECTION)
+    
+                    subShare = _newOutboundShare(view, collection,
+                                                 classesToInclude=classesToInclude,
+                                                 shareName=subShareName,
+                                                 displayName=displayName,
+                                                 account=account)
+    
+                    if attrsToExclude:
+                        subShare.filterAttributes = attrsToExclude
+                    else:
+                        subShare.filterAttributes = []
+    
+                    for attr in CALDAVFILTER:
+                        subShare.filterAttributes.append(attr)
+    
+                    shares.append(subShare)
+    
+                    if subShare.exists():
+                        raise SharingError(_(u"Share already exists"))
+    
+                    subShare.create()
+    
+                    # sync the subShare before the CalDAV share
+                    share.follows = subShare
 
                 share.put(updateCallback=callback)
+                
+                # tickets after putting 
+                if supportsTickets:
+                    share.conduit.createTickets()
 
 
             elif dav is not None:
 
                 # We're speaking to a WebDAV server
 
-                # Create a WebDAV conduit / cloudxml format
+                # Create a WebDAV conduit / cloudxml or freebusy format
                 share = _newOutboundShare(view, collection,
                                          classesToInclude=classesToInclude,
                                          shareName=shareName,
                                          displayName=displayName,
-                                         account=account)
+                                         account=account,
+                                         publishType=publishType)
 
                 try:
-                    collection.shares.append(share, 'main')
+                    collection.shares.append(share, alias)
                 except ValueError:
                     # There is already a 'main' share for this collection
                     collection.shares.append(share)
@@ -380,6 +392,7 @@ def publish(collection, account, classesToInclude=None,
 
                 share.create()
                 share.put(updateCallback=callback)
+                
                 if supportsTickets:
                     share.conduit.createTickets()
 
@@ -422,29 +435,44 @@ def publish(collection, account, classesToInclude=None,
     return shares
 
 
+def deleteShare(share):
+    # Remove from server (or disk, etc.)
+    try:
+        if share.exists():
+            share.destroy()
+    except CouldNotConnect, e:
+        pass
+        # @@@MOR what sort of UI do we want in this case?
+
+    # Clean up sharing-related objects
+    share.conduit.delete(True)
+    share.format.delete(True)
+    share.delete(True)
+
 def unpublish(collection):
     """
     Remove a share from the server, and delete all associated Share objects
 
     @type collection: pim.ContentCollection
     @param collection: The shared collection to unpublish
+
     """
 
     for share in collection.shares:
+        deleteShare(share)
 
-        # Remove from server (or disk, etc.)
-        try:
-            if share.exists():
-                share.destroy()
-        except CouldNotConnect, e:
-            pass
-            # @@@MOR what sort of UI do we want in this case?
+def unpublishFreeBusy(collection):
+    """
+    Remove a share from the server, and delete all associated Share objects
 
-        # Clean up sharing-related objects
-        share.conduit.delete(True)
-        share.format.delete(True)
-        share.delete(True)
+    @type collection: pim.ContentCollection
+    @param collection: The collection to unpublish FreeBusy from
 
+    """
+
+    share = getFreeBusyShare(collection)
+    if share is not None:
+        deleteShare(share)
 
 
 def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
@@ -988,6 +1016,18 @@ def getShare(collection):
 
     return None
 
+def getFreeBusyShare(collection):
+    """Return the free/busy Share item (if any) associated with a 
+    ContentCollection.
+
+    @param collection: an ContentCollection
+    @type collection: ContentCollection
+    @return: A Share item, or None
+    
+    """
+    if hasattr(collection, 'shares') and collection.shares:
+        return collection.shares.getByAlias('freebusy')
+    return None
 
 def isOnline(collection):
     """ Return the active state of the first share, if any """
@@ -1033,7 +1073,6 @@ def syncAll(view, updateCallback=None):
     sharedCollections = []
     for share in Share.iterItems(view):
         if (share.active and
-            not share.hidden and
             share.contents is not None and
             share.contents not in sharedCollections):
             sharedCollections.append(share.contents)
@@ -1054,7 +1093,7 @@ def checkForActiveShares(view):
     """
 
     for share in Share.iterItems(view):
-        if share.active and not share.hidden:
+        if share.active and share.active:
             return True
     return False
 
@@ -1094,7 +1133,8 @@ def getExistingResources(account):
 
 
 def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
-        displayName=None, account=None, useCalDAV=False):
+        displayName=None, account=None, useCalDAV=False,
+        publishType='collection'):
     """ Create a new Share item for a collection this client is publishing.
 
     If account is provided, it will be used; otherwise, the default WebDAV
@@ -1120,14 +1160,17 @@ def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
 
     share = Share(itsView=view, contents=collection)
 
-    if useCalDAV:
+    if useCalDAV and publishType=='collection':
         conduit = CalDAVConduit(itsParent=share, account=account,
                                 shareName=shareName)
         format = CalDAVFormat(itsParent=share)
     else:
         conduit = WebDAVConduit(itsParent=share, account=account,
                                 shareName=shareName)
-        format = CloudXMLFormat(itsParent=share)
+        if publishType == 'freebusy':
+            format = FreeBusyFileFormat(itsParent=share)
+        else:
+            format = CloudXMLFormat(itsParent=share)
 
     share.conduit = conduit
     share.format = format
@@ -1139,7 +1182,12 @@ def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
         share.filterClasses = classesToInclude
 
     share.displayName = displayName or collection.displayName
-    share.hidden = False # indicates that the DetailView should show this share
+    # indicates that the DetailView should show this share
+    fb = (publishType == 'freebusy')
+    share.hidden = fb
+    if fb:
+        share.mode = 'put'
+    
     share.sharer = schema.ns("osaf.pim", view).currentContact.item
     return share
 

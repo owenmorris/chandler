@@ -51,6 +51,21 @@ def makeMainEvents(parcel):
         dispatchToBlockName = 'MainView').install(parcel)
 
     BlockEvent.template(
+        'SharingPublishFreeBusy',
+        dispatchEnum = 'SendToBlockByName',
+        dispatchToBlockName = 'MainView').install(parcel)
+
+    BlockEvent.template(
+        'SharingUnpublishFreeBusy',
+        dispatchEnum = 'SendToBlockByName',
+        dispatchToBlockName = 'MainView').install(parcel)
+
+    BlockEvent.template(
+        'CopyFreeBusyURL',
+        dispatchEnum = 'SendToBlockByName',
+        dispatchToBlockName = 'MainView').install(parcel)
+
+    BlockEvent.template(
         'ShowPyCrust',
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'MainView').install(parcel)

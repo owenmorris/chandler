@@ -216,25 +216,28 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
             startOfDay = time(0, tzinfo=ICUtzinfo.default)
             startDatetime = datetime.combine(startDate, startOfDay)
             endDatetime = datetime.combine(endDate, startOfDay)
-    
-            for item in self.blockItem.eventsInRange(startDatetime, endDatetime,
-                                                dayItems=True, timedItems=True):
+
+            events = self.blockItem.contents
+            view = self.blockItem.itsView            
+            
+            for item in Calendar.eventsInRange(view, startDatetime, endDatetime,
+                                               events):                                                
                     updateBusy(item, item.startTime)
     
             # Next, try to find all generated events in the given
             # datetime range
             
             # The following iteration over keys comes from CalendarCanvas.py
-            events = self.blockItem.contents
-            view = self.blockItem.itsView
+
             
             allEvents = schema.ns('osaf.pim', view).events
             masterEvents = schema.ns('osaf.pim', view).masterEvents
     
-            keys = self.blockItem.getKeysInRange(startDatetime, 'effectiveStartTime', 'effectiveStart',
-                                       allEvents, endDatetime, 'recurrenceEnd',
-                                       'recurrenceEnd', masterEvents,
-                                       events, '__adhoc__')
+            keys = Calendar.getKeysInRange(view, startDatetime, 
+                    'effectiveStartTime', 'effectiveStart', allEvents,
+                    endDatetime, 'recurrenceEnd', 'recurrenceEnd', masterEvents,
+                    events, '__adhoc__')
+            
             for key in keys:
                 masterEvent = view[key]
                 rruleset = masterEvent.createDateUtilFromRule()

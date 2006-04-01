@@ -21,7 +21,7 @@ class PublishCollectionDialog(wx.Dialog):
     def __init__(self, parent, title, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
                  resources=None, view=None, collection=None,
-                 filterClassName=None, modal=True):
+                 filterClassName=None, publishType='collection', modal=True):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
         self.resources = resources
@@ -29,6 +29,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.parent = parent
         self.collection = collection    # The collection to share
         self.modal = modal
+        self.publishType = publishType
 
         # List of classes to share
         if filterClassName is None:
@@ -86,8 +87,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         collName = sharing.getFilteredCollectionDisplayName(self.collection,
                                                             self.filterClasses)
-        wx.xrc.XRCCTRL(self, "TEXT_COLLNAME").SetLabel(collName)
-
+        
         self.currentAccount = schema.ns('osaf.sharing',
             self.view).currentWebDAVAccount.item
 
@@ -106,10 +106,12 @@ class PublishCollectionDialog(wx.Dialog):
                   self.OnChangeAccount,
                   id=wx.xrc.XRCID("CHOICE_ACCOUNT"))
 
-        self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
-        self.CheckboxShareAlarms.SetValue(False)
-        self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
-        self.CheckboxShareStatus.SetValue(False)
+        if self.publishType == 'collection': #freebusy doesn't need these
+            wx.xrc.XRCCTRL(self, "TEXT_COLLNAME").SetLabel(collName)
+            self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
+            self.CheckboxShareAlarms.SetValue(False)
+            self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
+            self.CheckboxShareStatus.SetValue(False)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
@@ -217,12 +219,13 @@ class PublishCollectionDialog(wx.Dialog):
 
     def _getAttributeFilterState(self):
         attrs = []
-        # @@@ Jeffrey: Needs updating for new reminders?
-        if not self.CheckboxShareAlarms.GetValue():
-            attrs.append('reminders')
-            attrs.append('expiredReminders')
-        if not self.CheckboxShareStatus.GetValue():
-            attrs.append('transparency')
+        if self.publishType == 'collection':
+            # @@@ Jeffrey: Needs updating for new reminders?
+            if not self.CheckboxShareAlarms.GetValue():
+                attrs.append('reminders')
+                attrs.append('expiredReminders')
+            if not self.CheckboxShareStatus.GetValue():
+                attrs.append('transparency')
         return attrs
 
 
@@ -355,8 +358,10 @@ class PublishCollectionDialog(wx.Dialog):
 
             self._showStatus(_(u"Wait for Sharing URLs...\n"))
             self._showStatus(_(u"Publishing collection to server..."))
-
-            if self.collection is schema.ns('osaf.pim',
+            
+            if self.publishType == 'freebusy':
+                displayName = u"%s FreeBusy" % account.username
+            elif self.collection is schema.ns('osaf.pim',
                 self.view).allCollection:
 
                 ext = _(u'items')
@@ -377,10 +382,11 @@ class PublishCollectionDialog(wx.Dialog):
                 displayName = self.collection.displayName
 
             shares = sharing.publish(self.collection, account,
-                                     classesToInclude=classesToInclude,
-                                     attrsToExclude=attrsToExclude,
-                                     displayName=displayName,
-                                     updateCallback=self.updateCallback)
+                                     classesToInclude = classesToInclude,
+                                     attrsToExclude   = attrsToExclude,
+                                     displayName      = displayName,
+                                     publishType      = self.publishType,
+                                     updateCallback   = self.updateCallback)
 
             self._showStatus(_(u" done.\n"))
             self._hideUpdate()
@@ -415,12 +421,17 @@ class PublishCollectionDialog(wx.Dialog):
 
             return False
 
-        share = sharing.getShare(self.collection)
+        if self.publishType == 'freebusy':
+            share = sharing.getFreeBusyShare(self.collection)
+        else:
+            share = sharing.getShare(self.collection)
+        
         urls = sharing.getUrls(share)
         if len(urls) == 1:
             self._showStatus(u"%s\n" % urls[0])
         else:
-            self._showStatus(u"Read-write: %s\n" % urls[0])
+            if self.publishType != 'freebusy':
+                self._showStatus(u"Read-write: %s\n" % urls[0])
             self._showStatus(u"Read-only: %s\n" % urls[1])
 
         self.buttonPanel.Hide()
@@ -459,13 +470,15 @@ class PublishCollectionDialog(wx.Dialog):
             self.EndModal(False)
         self.Destroy()
 
-
     def OnCopy(self, evt):
         gotClipboard = wx.TheClipboard.Open()
         if gotClipboard:
-            share = sharing.getShare(self.collection)
+            if self.publishType == 'freebusy':
+                share = sharing.getFreeBusyShare(self.collection)
+            else:
+                share = sharing.getShare(self.collection)
             urls = sharing.getUrls(share)
-            if len(urls) == 1:
+            if len(urls) == 1 or self.publishType == 'freebusy':
                 urlString = urls[0]
             else:
                 urlString = "Read-write: %s\nRead-only: %s\n" % (urls[0],
@@ -520,17 +533,24 @@ class PublishCollectionDialog(wx.Dialog):
             key = lambda x: x.displayName.lower()
         )
 
+type_to_xrc_map = {'collection' :
+                   ('PublishCollection_wdr.xrc', _(u"Collection Sharing")),
+                   'freebusy'   :
+                   ('PublishFreeBusy.xrc', _(u"Publish Free/Busy Information"))}
+
 def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None,
-                      modal=True):
+                      publishType = 'collection', modal=True):
+    filename, title = type_to_xrc_map[publishType]
     xrcFile = os.path.join(Globals.chandlerDirectory,
-     'application', 'dialogs', 'PublishCollection_wdr.xrc')
+                           'application', 'dialogs', filename)
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
-    win = PublishCollectionDialog(parent, _(u"Collection Sharing"),
-     resources=resources, view=view, collection=collection,
-     filterClassName=filterClassName, modal=modal)
+    win = PublishCollectionDialog(parent, title, resources=resources, view=view,
+                                  collection=collection,
+                                  publishType=publishType,
+                                  filterClassName=filterClassName, modal=modal)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()

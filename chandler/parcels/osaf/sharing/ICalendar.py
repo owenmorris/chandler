@@ -3,6 +3,7 @@ __parcel__ = "osaf.sharing"
 __all__ = [
     'ICalendarFormat',
     'CalDAVFormat',
+    'FreeBusyFileFormat'
 ]
 
 import Sharing
@@ -26,6 +27,8 @@ import itertools
 from i18n import OSAFMessageFactory as _
 import os, logging
 import application.Globals as Globals
+
+FREEBUSY_WEEKS_EXPORTED = 26
 
 logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
@@ -104,7 +107,8 @@ def itemsToVObject(view, items, cal=None, filters=None):
         if not filters or "transparency" not in filters:
             try:
                 status = item.transparency.upper()
-                if status == 'FYI': status = 'CANCELLED'
+                # anytime events should be interpreted as not taking up time
+                if status == 'FYI' or item.anyTime: status = 'CANCELLED'
                 comp.add('status').value = status
             except AttributeError:
                 pass
@@ -163,6 +167,69 @@ def itemsToVObject(view, items, cal=None, filters=None):
         populateModifications(item, cal)
 
     return cal
+
+transparencyMap = { 'confirmed' : 'BUSY', 'tentative' : 'BUSY-TENTATIVE' }
+
+def itemsToFreeBusy(view, start, end):
+    """
+    Create FREEBUSY components corresponding to all events between start and 
+    end.
+        
+    """
+    # eventsInRange defaults to all events, which is what we want
+    normal    = Calendar.eventsInRange(view, start, end)
+    recurring = Calendar.recurringEventsInRange(view, start, end)
+    events = Calendar._sortEvents(itertools.chain(normal, recurring))
+    
+    def toUTC(dt):
+        if dt < start: dt = start
+        elif dt > end: dt = end
+        return translateToTimezone(dt, utc)    
+    
+    cal = vobject.iCalendar()
+    vfree = cal.add('vfreebusy')
+    vfree.add('dtstart').value = toUTC(start)
+    vfree.add('dtend').value   = toUTC(end)
+    
+    def addFB(event):
+        free = vfree.add('freebusy')
+        free.fbtype_param = transparencyMap[event.transparency]
+        return free
+
+    def realEnd(event):
+        """getEffectiveEndTime doesn't do what we want with allDay events."""
+        if event.allDay:
+            return event.effectiveEndTime + oneDay
+        else:
+            return event.effectiveEndTime 
+
+    free = None
+    for event in events:
+        # ignore anytime events, events with no duration, and fyi events
+        if (event.transparency == 'fyi' or
+            ((event.anyTime or event.duration == datetime.timedelta(0)) and 
+             not event.allDay)):
+            print "skipping", event.duration
+            continue
+        if free is None or free.fbtype_param != \
+                           transparencyMap[event.transparency]:
+            free = addFB(event)
+            free.value = [[toUTC(event.effectiveStartTime), realEnd(event)]]
+        else:
+            # compress freebusy blocks if possible
+            if event.effectiveStartTime <= free.value[-1][1]:
+                if realEnd(event) > free.value[-1][1]:
+                    free.value[-1][1] = realEnd(event)
+            else:
+                free.value.append([toUTC(event.effectiveStartTime),
+                                   realEnd(event)])
+                
+    # change the freebusy periods to their canonical form, dt/period instead of
+    # dt/dt
+    vfree.serialize()
+    
+    return cal
+                
 
 tzid_mapping = {}
 
@@ -651,15 +718,19 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             pass
         return cal.serialize().encode('utf-8')
 
+def beginningOfWeek():
+    midnightToday = datetime.datetime.combine(datetime.date.today(), 
+                                     datetime.time(0, tzinfo=ICUtzinfo.default))
+    return midnightToday - midnightToday.weekday() * oneDay # Monday = 0
+
 
 class CalDAVFormat(ICalendarFormat):
     """
     Treat multiple events as different resources.
     """
-    
+
     def fileStyle(self):
         return self.STYLE_DIRECTORY
-
     def acceptsItem(self, item):
         return isinstance(item, CalendarEventMixin)
 
@@ -672,6 +743,26 @@ class CalDAVFormat(ICalendarFormat):
         cal = itemsToVObject(self.itsView, [item],
                              filters=self.share.filterAttributes)
         return cal.serialize().encode('utf-8')
+
+    
+    
+class FreeBusyFileFormat(ICalendarFormat):
+    """Format for exporting/importing a monolithic freebusy file."""
+    schema.kindInfo(displayName=u"iCalendar Free/Busy Format Kind")
+
+    def extension(self, item):
+        return "ifb"
+
+    def exportProcess(self, item, depth=0):
+        """
+        Share and depth are ignored, always export freebusy associated
+        with the all collection.
+        """
+        start = beginningOfWeek()
+        cal = itemsToFreeBusy(self.itsView, start,
+                              start + FREEBUSY_WEEKS_EXPORTED * 7 * oneDay)
+        return cal.serialize().encode('utf-8')
+
 
 class ImportError(Exception):
     pass

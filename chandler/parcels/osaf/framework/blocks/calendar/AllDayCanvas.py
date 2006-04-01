@@ -142,7 +142,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             addedEvents = \
                 self.GetPendingNewEvents(currentRange)
             addedEvents = [event for event in addedEvents
-                           if self.blockItem.isDayItem(event)]
+                           if Calendar.isDayItem(event)]
                                 
             numAdded = 0
             

@@ -32,6 +32,7 @@ class ICalendarTestCase(unittest.TestCase):
         self.importRecurrenceWithTimezone()
         self.importReminders()
         self.exportRecurrence()
+        self.ExportFreeBusy()
         self._teardown()
 
     def _setup(self):
@@ -106,7 +107,16 @@ class ICalendarTestCase(unittest.TestCase):
         self.assert_(event.allDay == True,
          "allDay not set properly for all day event, allDay is %s"
          % event.allDay)
-         
+
+    def ExportFreeBusy(self):
+        format = self.Import(self.repo.view, u'AllDay.ics')
+        
+        start = datetime.datetime(2005,1,1, tzinfo=ICUtzinfo.floating)
+        end = start + datetime.timedelta(2)
+        
+        cal = ICalendar.itemsToFreeBusy(self.repo.view, start, end)
+        self.assertEqual(cal.vfreebusy.freebusy.value[0][1], datetime.timedelta(1))
+
     def ItemsToVobject(self):
         """Tests itemsToVObject, which converts Chandler items to vobject."""
         event = Calendar.CalendarEvent(itsView = self.repo.view)

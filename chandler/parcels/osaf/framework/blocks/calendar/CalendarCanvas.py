@@ -886,25 +886,6 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         self.rangeStart -= self.rangeIncrement
         if self.selectedDate:
             self.selectedDate -= self.rangeIncrement
-
-
-    @staticmethod
-    def isDayItem(item):
-        
-        anyTime = False
-        try:
-            anyTime = item.anyTime
-        except AttributeError:
-            pass
-        
-        allDay = False
-        try:
-            allDay = item.allDay
-        except AttributeError:
-            pass
-
-        return allDay or anyTime
-
         
     # Get items from the collection
     
@@ -914,121 +895,16 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         Assumes the item has a startTime and endTime attribute
         """
         return ((item.startTime <= end) and (item.endTime >= start))
-
-    def getKeysInRange(self, startVal, startAttrName, startIndex, startColl,
-                             endVal,   endAttrName,   endIndex,   endColl,
-                             filterColl, filterIndex):
-        """
-        This is more general than is really necessary, but it seems like it 
-        might be useful in other contexts.  Take an index of starts, ends,
-        and a filter collection, don't load items, just find relevant keys.
-        """
-
-        view = self.itsView
-        
-        # callbacks to use for searching the indexes
-        def mStart(key):
-            # gets the last item starting before endVal
-            testVal = getattr(view[key], startAttrName)
-            if testVal is None:
-                return -1 # interpret None as negative infinity
-            # note that we're NOT using >=, if we did, we'd include all day
-            # events starting at the beginning of the next week
-            if endVal > testVal:
-                return 0
-            return -1
-
-        def mEnd(key):
-            # gets the first item starting after startVal
-            testVal = getattr(view[key], endAttrName)
-            if testVal is None:
-                return 0 # interpret None as positive infinity, thus, a match
-            if startVal <= testVal:
-                return 0
-            return 1
-        
-        lastStartKey = startColl.findInIndex(startIndex, 'last', mStart)
-        if lastStartKey is None:
-            return #there were no keys ending after start
-        firstEndKey = endColl.findInIndex(endIndex, 'first', mEnd)
-        if firstEndKey is None:
-            return #there were no keys ending before end
-
-        _startIndex = startColl.getIndex(startIndex)
-        _filterIndex = filterColl.getIndex(filterIndex)
-
-        keys = set(endColl.iterindexkeys(endIndex, firstEndKey, None))
-
-        # generate keys, starting from the earliest according to startIndex
-        for key in startColl.iterindexkeys(startIndex, None, lastStartKey):
-            if key in keys and key in _filterIndex:
-                yield key
-
-
-    def eventsInRange(self, date, nextDate, dayItems, timedItems):
-        """
-        An efficient generator to find all the items to be displayed
-        between date and nextDate. This returns only actual events in the
-        collection, and does not yield recurring event occurences, including
-        masters.
-
-        The trick here is to use indexes on startTime/endTime to make
-        sure that we don't access (and thus load) items more than we
-        have to.
-
-        We're looking for the intersection of:
-        [All items that end after date] and
-        [All items that start after nextDate]
-
-        We find these subsets by looking for the first/last occurrence
-        in the index of the end/starttime, and taking the first/last
-        items from that list. This gives us two lists, which we intersect.
-        """
-
-        events = self.contents
-        view = self.itsView
-        allEvents = schema.ns("osaf.pim", view).events
-        keys = self.getKeysInRange(date, 'effectiveStartTime', 'effectiveStart',
-                                   allEvents, nextDate,'effectiveEndTime',
-                                   'effectiveEnd', allEvents,
-                                   events, '__adhoc__')
-        for key in keys:
-            if (((dayItems and timedItems) or
-                 self.isDayItem(view[key]) == dayItems) and
-                 view[key].rruleset is None):
-                yield view[key]
-
-    def recurringEventsInRange(self, date, nextDate, dayItems, timedItems):
-        events = self.contents
-        view = self.itsView
-        pim_ns = schema.ns("osaf.pim", view)
-        allEvents = pim_ns.events
-        masterEvents = pim_ns.masterEvents
-        keys = self.getKeysInRange(date, 'effectiveStartTime', 'effectiveStart',
-                                   allEvents, nextDate, 'recurrenceEnd',
-                                   'recurrenceEnd', masterEvents,
-                                   events, '__adhoc__')
-        for key in keys:
-            masterEvent = view[key]
-            for event in masterEvent.getOccurrencesBetween(date, nextDate):
-                # One or both of dayItems and timedItems must be
-                # True. If both, then there's no need to test the
-                # item's day-ness.  If only one is True, then
-                # dayItems' value must match the return of
-                # isDayItem.
-                if ((event.occurrenceFor is not None) and
-                    ((dayItems and timedItems) or
-                     self.isDayItem(event) == dayItems)):
-                        yield event
-
         
     def generateItemsInRange(self, date, nextDate, dayItems, timedItems):
         # wish we could put this somewhere more useful, but
         # self.contents can be set upon object initialization
         self.EnsureIndexes()
 
-        normalEvents = self.eventsInRange(date, nextDate, dayItems, timedItems)
-        recurringEvents = self.recurringEventsInRange(date, nextDate, dayItems, timedItems)
+        args = self.itsView, date, nextDate, self.contents, dayItems, timedItems
+        normalEvents = Calendar.eventsInRange(*args)
+        recurringEvents = Calendar.recurringEventsInRange(*args)
+        
         return chain(normalEvents, recurringEvents)
 
     def getItemsInRange(self, (date, nextDate), dayItems=False, timedItems=False):

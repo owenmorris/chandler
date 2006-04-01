@@ -403,8 +403,26 @@ def makeMainMenus(parcel):
                         event = main.RestoreShares,
                         title = u'Restore published shares...',
                         helpString = u'Restore previously published shares'),
+                    
                     MenuItem.template('CollectionSeparator2',
                         menuItemKind = 'Separator'),
+                    
+                    MenuItem.template('SharingPublishFreeBusyItem',
+                        event = main.SharingPublishFreeBusy,
+                        title = _(u'Publish My Free/Busy'),
+                        helpString = _(u'Publish Free/Busy information')),
+                    MenuItem.template('SharingUnpublishFreeBusyItem',
+                        event = main.SharingUnpublishFreeBusy,
+                        title = _(u'Unpublish My Free/Busy'),
+                        helpString = _(u'Unpublish Free/Busy information')),
+                    MenuItem.template('CopyFreeBusyURLItem',
+                        event = main.CopyFreeBusyURL,
+                        title = _(u'Copy My Free/Busy URL to clipboard'),
+                        helpString = _(u"Copy Free/Busy URL to the clipboard")),
+
+                    MenuItem.template('CollectionSeparator3',
+                        menuItemKind = 'Separator'),
+                    
                     MenuItem.template('ToggleMineItem',
                         event = main.ToggleMine,
                         title = _(u'Toggle mine/not-mine'),

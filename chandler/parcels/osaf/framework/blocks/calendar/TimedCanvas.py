@@ -103,7 +103,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             for event in addedEvents:
 
                 # skip all-day items, and items we've already drawn
-                if (self.blockItem.isDayItem(event) or
+                if (Calendar.isDayItem(event) or
                     event in itemsOnCanvas):
                     continue
 

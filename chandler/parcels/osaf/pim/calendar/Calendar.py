@@ -55,7 +55,7 @@ class ModificationEnum(schema.Enumeration):
 def _sortEvents(eventlist, reverse=False):
     """Helper function for working with events."""
     def cmpEventStarts(event1, event2):
-        return cmp(event1.startTime, event2.startTime)
+        return cmp(event1.effectiveStartTime, event2.effectiveStartTime)
     eventlist = list(eventlist)
     eventlist.sort(cmp=cmpEventStarts)
     if reverse: eventlist.reverse()
@@ -71,6 +71,128 @@ def findUID(view, uid):
         return None
     else:
         return event.getMaster()
+
+def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
+                         endVal,   endAttrName,   endIndex,   endColl,
+                         filterColl = None, filterIndex = None):
+    """
+    Yield keys for events occurring between startVal and endVal.  Don't load
+    items, just yield relevant keys, sorted according to startIndex.
+    
+    endIndex is needed to determine whether or not events starting before
+    startVal also end before startVal.
+    
+    startIndex, endIndex, and filterIndex are the names (strings) of indexes
+    on the relevant collections.
+    """
+    
+    # callbacks to use for searching the indexes
+    def mStart(key):
+        # gets the last item starting before endVal
+        testVal = getattr(view[key], startAttrName)
+        if testVal is None:
+            return -1 # interpret None as negative infinity
+        # note that we're NOT using >=, if we did, we'd include all day
+        # events starting at the beginning of the next week
+        if endVal > testVal:
+            return 0
+        return -1
+
+    def mEnd(key):
+        # gets the first item starting after startVal
+        testVal = getattr(view[key], endAttrName)
+        if testVal is None:
+            return 0 # interpret None as positive infinity, thus, a match
+        if startVal <= testVal:
+            return 0
+        return 1
+    
+    lastStartKey = startColl.findInIndex(startIndex, 'last', mStart)
+    if lastStartKey is None:
+        return #there were no keys ending after start
+    firstEndKey = endColl.findInIndex(endIndex, 'first', mEnd)
+    if firstEndKey is None:
+        return #there were no keys ending before end
+
+    if filterColl is not None:
+        _filterIndex = filterColl.getIndex(filterIndex)
+
+    keys = set(endColl.iterindexkeys(endIndex, firstEndKey, None))
+
+    # generate keys, starting from the earliest according to startIndex
+    for key in startColl.iterindexkeys(startIndex, None, lastStartKey):
+        if key in keys and (filterColl is None or key in _filterIndex):
+            yield key
+
+def isDayItem(item):
+    anyTime = False
+    try:
+        anyTime = item.anyTime
+    except AttributeError:
+        pass
+    
+    allDay = False
+    try:
+        allDay = item.allDay
+    except AttributeError:
+        pass
+
+    return allDay or anyTime
+
+def eventsInRange(view, start, end, filterColl = None, dayItems=True,
+                  timedItems=True):
+    """
+    An efficient generator to find all the items to be displayed
+    between date and nextDate. This returns only actual events in the
+    collection, and does not yield recurring event occurences, including
+    masters.
+
+    The trick here is to use indexes on startTime/endTime to make
+    sure that we don't access (and thus load) items more than we
+    have to.
+
+    We're looking for the intersection of:
+    [All items that end after date] and
+    [All items that start after nextDate]
+
+    We find these subsets by looking for the first/last occurrence
+    in the index of the end/starttime, and taking the first/last
+    items from that list. This gives us two lists, which we intersect.
+    
+    """
+    allEvents = schema.ns("osaf.pim", view).events
+    keys = getKeysInRange(view, start, 'effectiveStartTime', 'effectiveStart',
+                          allEvents, end,'effectiveEndTime',
+                          'effectiveEnd', allEvents, filterColl, '__adhoc__')
+    for key in keys:
+        if (view[key].rruleset is None and 
+            ((dayItems and timedItems) or isDayItem(view[key]) == dayItems)):
+            yield view[key]
+
+def recurringEventsInRange(view, start, end, filterColl = None,
+                           dayItems = True, timedItems = True):
+    """
+    Yield all recurring events between start and end that appear in filterColl.   
+    """
+    pim_ns = schema.ns("osaf.pim", view)
+    allEvents = pim_ns.events
+    masterEvents = pim_ns.masterEvents
+    keys = getKeysInRange(view, start, 'effectiveStartTime', 'effectiveStart',
+                          allEvents, end, 'recurrenceEnd', 'recurrenceEnd',
+                          masterEvents, filterColl, '__adhoc__')
+    for key in keys:
+        masterEvent = view[key]
+        for event in masterEvent.getOccurrencesBetween(start, end):
+            # One or both of dayItems and timedItems must be
+            # True. If both, then there's no need to test the
+            # item's day-ness.  If only one is True, then
+            # dayItems' value must match the return of
+            # isDayItem.
+            if ((event.occurrenceFor is not None) and
+                ((dayItems and timedItems) or
+                 isDayItem(event) == dayItems)):
+                    yield event
+
 
 
 class CalendarEventMixin(RemindableMixin):
@@ -237,6 +359,12 @@ class CalendarEventMixin(RemindableMixin):
     isGenerated = schema.One(
         schema.Boolean,
         displayName=u"Generated",
+        defaultValue=False
+    )
+
+    isFreeBusy = schema.One(
+        schema.Boolean,
+        displayName=u"FreeBusy",
         defaultValue=False
     )
     
