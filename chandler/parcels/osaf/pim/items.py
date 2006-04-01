@@ -820,7 +820,7 @@ class UserNotification(ContentItem):
         doc="DateTime this notification ocurred"
     )
 
-    who = schema.One(schema.Text, initialValue = u"", indexed)
+    who = schema.One(schema.Text, initialValue = u"", indexed=True)
 
     # redirections
     about = schema.One(redirectTo = "displayName")
