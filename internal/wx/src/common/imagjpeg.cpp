@@ -2,7 +2,7 @@
 // Name:        src/common/imagjpeg.cpp
 // Purpose:     wxImage JPEG handler
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: imagjpeg.cpp,v 1.49 2005/11/10 16:16:05 ABX Exp $
+// RCS-ID:      $Id: imagjpeg.cpp,v 1.50 2006/04/02 01:25:46 VZ Exp $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -163,10 +163,20 @@ CPP_METHODDEF(void) wx_error_exit (j_common_ptr cinfo)
 
   /* Always display the message. */
   /* We could postpone this until after returning, if we chose. */
-  if (cinfo->err->output_message) (*cinfo->err->output_message) (cinfo);
+  (*cinfo->err->output_message) (cinfo);
 
   /* Return control to the setjmp point */
   longjmp(myerr->setjmp_buffer, 1);
+}
+
+/*
+ * This will replace the standard output_message method when the user
+ * wants us to be silent (verbose==false). We must have such method instead of
+ * simply using NULL for cinfo->err->output_message because it's called
+ * unconditionally from within libjpeg when there's "garbage input".
+ */
+CPP_METHODDEF(void) wx_ignore_message (j_common_ptr WXUNUSED(cinfo))
+{
 }
 
 void wx_jpeg_io_src( j_decompress_ptr cinfo, wxInputStream& infile )
@@ -210,7 +220,8 @@ bool wxJPEGHandler::LoadFile( wxImage *image, wxInputStream& stream, bool verbos
     cinfo.err = jpeg_std_error( &jerr.pub );
     jerr.pub.error_exit = wx_error_exit;
 
-    if (!verbose) cinfo.err->output_message=NULL;
+    if (!verbose)
+        cinfo.err->output_message = wx_ignore_message;
 
     /* Establish the setjmp return context for wx_error_exit to use. */
     if (setjmp(jerr.setjmp_buffer)) {
@@ -323,7 +334,8 @@ bool wxJPEGHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbo
     cinfo.err = jpeg_std_error(&jerr.pub);
     jerr.pub.error_exit = wx_error_exit;
 
-    if (!verbose) cinfo.err->output_message=NULL;
+    if (!verbose)
+        cinfo.err->output_message = wx_ignore_message;
 
     /* Establish the setjmp return context for wx_error_exit to use. */
     if (setjmp(jerr.setjmp_buffer))

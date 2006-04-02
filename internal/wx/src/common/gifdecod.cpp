@@ -3,7 +3,7 @@
 // Purpose:     wxGIFDecoder, GIF reader for wxImage and wxAnimation
 // Author:      Guillermo Rodriguez Garcia <guille@iies.es>
 // Version:     3.04
-// RCS-ID:      $Id: gifdecod.cpp,v 1.42 2006/03/07 23:44:25 VZ Exp $
+// RCS-ID:      $Id: gifdecod.cpp,v 1.43 2006/04/02 01:20:43 VZ Exp $
 // Copyright:   (c) Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -467,6 +467,25 @@ int wxGIFDecoder::dgif(GIFImage *img, int interl, int bits)
         /* make new entry in alphabet (only if NOT just cleared) */
         if (lastcode != -1)
         {
+            // Normally, after the alphabet is full and can't grow any
+            // further (ab_free == 4096), encoder should (must?) emit CLEAR
+            // to reset it. This checks whether we really got it, otherwise
+            // the GIF is damaged.
+            if (ab_free > ab_max)
+            {
+                delete[] ab_prefix;
+                delete[] ab_tail;
+                delete[] stack;
+                return wxGIF_INVFORMAT;
+            }
+
+            // This assert seems unnecessary since the condition above
+            // eliminates the only case in which it went false. But I really
+            // don't like being forced to ask "Who in .text could have
+            // written there?!" And I wouldn't have been forced to ask if
+            // this line had already been here.
+            wxASSERT(ab_free < allocSize);
+
             ab_prefix[ab_free] = lastcode;
             ab_tail[ab_free]   = code;
             ab_free++;
