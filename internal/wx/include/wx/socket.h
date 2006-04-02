@@ -4,7 +4,7 @@
 // Authors:     Guilhem Lavaux, Guillermo Rodriguez Garcia
 // Modified by:
 // Created:     April 1997
-// RCS-ID:      $Id: socket.h,v 1.69 2006/02/28 02:04:27 KH Exp $
+// RCS-ID:      $Id: socket.h,v 1.70 2006/04/02 04:56:18 KH Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -256,7 +256,7 @@ public:
   virtual ~wxSocketClient();
 
   virtual bool Connect(wxSockAddress& addr, bool wait = true);
-  virtual bool Connect(wxSockAddress& addr, wxSockAddress& local, bool wait = true);
+  bool Connect(wxSockAddress& addr, wxSockAddress& local, bool wait = true);
 
   bool WaitOnConnect(long seconds = -1, long milliseconds = 0);
 
