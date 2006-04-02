@@ -1658,7 +1658,7 @@ const char *wxMBConv_iconv::GetMBNul(size_t *nulLen) const
                outLen = WXSIZEOF(m_nulBuf);
         const char *in = (char *)wnul;
         char *out = self->m_nulBuf;
-        if ( iconv(w2m, &in, &inLen, &out, &outLen) == (size_t)-1 )
+        if ( iconv(w2m, ICONV_CHAR_CAST(in), &inLen, &out, &outLen) == (size_t)-1 )
         {
             self->m_nulLen = (size_t)-1;
         }
