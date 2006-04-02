@@ -1,6 +1,6 @@
 
 VERSION=0.4-$(SVNVER)
-SVNVER=53
+SVNVER=55
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYICU=$(BUILD_ROOT)/PyICU
 SRC=$(PYICU)/PyICU-$(VERSION)
@@ -27,7 +27,6 @@ build: expand
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             PREFIX_ICU=$(PREFIX) \
             ICU_INC=`cygpath -am $(PREFIX)/include/icu` \
-            SWIG=$(SWIG) \
             PYTHON_VER=$(PYTHON_VER) \
             VERSION=$(VERSION) \
             all install
@@ -47,7 +46,6 @@ build: expand
             PREFIX_FRAMEWORKS=$(PREFIX)/Library/Frameworks \
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             PREFIX_ICU=$(PREFIX)/icu \
-            SWIG=$(SWIG) \
             PYTHON_VER=$(PYTHON_VER) \
             VERSION=$(VERSION) \
             all install
@@ -64,7 +62,6 @@ build: expand
             PREFIX=$(PREFIX) \
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             PREFIX_ICU=$(PREFIX)/icu \
-            SWIG=$(SWIG) \
             PYTHON_VER=$(PYTHON_VER) \
             VERSION=$(VERSION) \
             all install
@@ -87,7 +84,8 @@ PyICU-$(VERSION)-expanded:
 	touch PyICU-$(VERSION)-expanded
 
 expand: PyICU-$(VERSION)-expanded
+	tar -C swig-1.3.24 -cf - \
+            --exclude .svn . | tar -C PyICU-$(VERSION) -xvf -
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
-
