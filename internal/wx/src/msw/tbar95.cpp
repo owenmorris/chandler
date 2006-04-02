@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tbar95.cpp,v 1.176 2006/02/25 03:28:19 VZ Exp $
+// RCS-ID:      $Id: tbar95.cpp,v 1.177 2006/04/01 18:15:16 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1261,7 +1261,10 @@ wxToolBarToolBase *wxToolBar::FindToolForPosition(wxCoord x, wxCoord y) const
 
 void wxToolBar::UpdateSize()
 {
+    wxPoint pos = GetPosition();
     ::SendMessage(GetHwnd(), TB_AUTOSIZE, 0, 0);
+    if (pos != GetPosition())
+        Move(pos);
 
     // In case Realize is called after the initial display (IOW the programmer
     // may have rebuilt the toolbar) give the frame the option of resizing the
