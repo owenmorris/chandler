@@ -160,6 +160,9 @@ void wxColumnHeader::Init( void )
 	m_NativeBoundsR.width =
 	m_NativeBoundsR.height = 0;
 
+	m_defaultItemSize.x =
+	m_defaultItemSize.y = 0;
+
 	m_ItemList = NULL;
 	m_ItemCount = 0;
 	m_ItemSelected = CH_HITTEST_NoPart;
@@ -212,6 +215,9 @@ wxSize			actualSize;
 bool			bResultV;
 
 	localName = name;
+
+	if ((m_defaultItemSize.x <= 0) || (m_defaultItemSize.y <= 0))
+		m_defaultItemSize = CalculateDefaultItemSize();
 
 	actualSize = size;
 	if (m_BFixedHeight)
@@ -376,8 +382,10 @@ wxSize		bestSize;
 		parentW->GetClientSize( &(bestSize.x), &(bestSize.y) );
 	else
 		// FIXME: ugly
-		bestSize.x = 0;
-	bestSize.y = 20;
+		bestSize.x =
+		bestSize.y = 0;
+
+//	bestSize.y = 20;
 
 #if defined(__WXMSW__)
 	{
@@ -395,7 +403,10 @@ wxSize		bestSize;
 		hdl.prc = &boundsR;
 		hdl.pwpos = &wp;
 		if (Header_Layout( targetViewRef, (LPARAM)&hdl ) != 0)
+		{
+			bestSize.x = wp.cx;
 			bestSize.y = wp.cy;
+		}
 	}
 
 #elif defined(__WXMAC__)
@@ -418,6 +429,73 @@ wxSize		bestSize;
 #endif
 
 	return bestSize;
+}
+
+wxSize wxColumnHeader::CalculateDefaultItemSize( void ) const
+{
+wxWindow	*parentW;
+wxSize		bestSize, parentSize;
+
+	bestSize.x =
+	bestSize.y = 0;
+
+	// "best" width is parent's width;
+	// height is fixed by native drawing routines
+	parentW = GetParent();
+	if (parentW != NULL)
+		parentW->GetClientSize( &(parentSize.x), &(parentSize.y) );
+
+#if defined(__WXMSW__)
+	{
+	HDLAYOUT	hdl;
+	WINDOWPOS	wp;
+	HWND		targetViewRef;
+	RECT		boundsR;
+
+		targetViewRef = GetHwnd();
+		boundsR.left = boundsR.top = 0;
+		boundsR.right = bestSize.x;
+		boundsR.bottom = bestSize.y;
+
+		ZeroMemory( &hdl, sizeof(hdl) );
+		hdl.prc = &boundsR;
+		hdl.pwpos = &wp;
+		if (Header_Layout( targetViewRef, (LPARAM)&hdl ) != 0)
+		{
+			bestSize.x = wp.cx;
+			bestSize.y = wp.cy;
+		}
+	}
+
+#elif defined(__WXMAC__)
+	{
+	SInt32		standardHeight;
+	OSStatus		errStatus;
+
+		errStatus = GetThemeMetric( kThemeMetricListHeaderHeight, &standardHeight );
+		if (errStatus == noErr)
+			bestSize.y = standardHeight;
+	}
+#endif
+
+	bestSize.x = ((parentSize.x < 100) ? parentSize.x : 100);
+	if (bestSize.y > 0)
+		bestSize.y = 20;
+
+	return bestSize;
+}
+
+wxSize wxColumnHeader::GetDefaultItemSize( void ) const
+{
+	return m_defaultItemSize;
+}
+
+void wxColumnHeader::SetDefaultItemSize( int width, int height )
+{
+	if (width > 0)
+		m_defaultItemSize.x = width;
+	if (height > 0)
+		m_defaultItemSize.y = height;
 }
 
 // virtual
@@ -766,6 +844,7 @@ bool		bIsVertical;
 
 		// move to new origin
 		m_ItemList[i]->m_OriginX = originX;
+//		m_ItemList[i]->m_Origin = origin;
 
 		// resize item, if non-fixed
 		if (! m_ItemList[i]->m_BFixedWidth)
@@ -830,11 +909,19 @@ bool					bIsVertical;
 	if ((itemRef1 == NULL) || (itemRef2 == NULL))
 		return false;
 
-	if ((originX <= itemRef1->m_OriginX) || (originX >= itemRef2->m_OriginX + itemRef2->m_ExtentX))
-		return false;
-
 	// FIXME: needs work for vertical row headers
 	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+
+//	if (bIsVertical)
+//	{
+//		if ((originY <= itemRef1->m_OriginY) || (originY >= itemRef2->m_OriginY + itemRef2->m_ExtentY))
+//			return false;
+//	}
+//	else
+	{
+		if ((originX <= itemRef1->m_OriginX) || (originX >= itemRef2->m_OriginX + itemRef2->m_ExtentX))
+			return false;
+	}
 
 	deltaV = itemRef2->m_OriginX - originX;
 	newExtent1 = itemRef1->m_ExtentX - deltaV;
@@ -2576,7 +2663,7 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 	// draw column header background:
 	// leverage native (GTK?) wxRenderer
 	localBoundsR = *boundsR;
-//	localBoundsR.Deflate( 1, 1 );
+	localBoundsR.Deflate( 1, 1 );
 	drawFlags = 0;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR, drawFlags );
 
@@ -2602,8 +2689,8 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 			descentY = (localBoundsR.height - m_LabelTextExtent.y) / 2;
 
 			// FIXME: why is this needed? The previous calculation should be exact.
-			if ( ! ((wxColumnHeader*)parentW)->m_BUseGenericRenderer)
-				descentY--;
+//			if ( ! ((wxColumnHeader*)parentW)->m_BUseGenericRenderer)
+//				descentY--;
 		}
 
 		if (m_LabelTextExtent.x <= maxExtentX)

@@ -139,6 +139,11 @@ public:
     virtual wxSize DoGetMinSize( void ) const;
 
     wxSize CalculateDefaultSize( void ) const;
+    wxSize CalculateDefaultItemSize( void ) const;
+
+    wxSize GetDefaultItemSize( void ) const;
+    void SetDefaultItemSize( int width, int height );
+
     long GetTotalUIExtent( void ) const;
     bool ResizeToFit( void );
     bool RescaleToFit(
