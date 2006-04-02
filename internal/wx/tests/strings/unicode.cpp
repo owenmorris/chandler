@@ -3,7 +3,7 @@
 // Purpose:     Unicode unit test
 // Author:      Vadim Zeitlin, Wlodzimierz ABX Skiba
 // Created:     2004-04-28
-// RCS-ID:      $Id: unicode.cpp,v 1.8 2006/03/31 20:25:20 VZ Exp $
+// RCS-ID:      $Id: unicode.cpp,v 1.10 2006/04/01 15:53:55 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin, Wlodzimierz Skiba
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -175,19 +175,24 @@ UnicodeTestCase::DoTestConversion(const char *s,
 #if wxUSE_UNICODE
     if ( ws )
     {
-        wxCharBuffer buf(wxString(ws).mb_str(conv));
+        wxCharBuffer buf = conv.cWC2MB(ws, (size_t)-1, NULL);
 
         CPPUNIT_ASSERT( strcmp(buf, s) == 0 );
     }
 #else // wxUSE_UNICODE
     if ( s )
     {
-        wxWCharBuffer wbuf(wxString(s).wc_str(conv));
+        wxWCharBuffer wbuf = conv.cMB2WC(s, (size_t)-1, NULL);
 
         if ( ws )
+        {
+            CPPUNIT_ASSERT( wbuf.data() );
             CPPUNIT_ASSERT( wx_wcscmp(wbuf, ws) == 0 );
-        else
-            CPPUNIT_ASSERT_EQUAL( L'\0', *wbuf );
+        }
+        else // conversion is supposed to fail
+        {
+            CPPUNIT_ASSERT_EQUAL( (wchar_t *)NULL, wbuf.data() );
+        }
     }
 #endif // wxUSE_UNICODE/!wxUSE_UNICODE
 }
@@ -248,10 +253,10 @@ void UnicodeTestCase::ConversionUTF16()
     static const StringConversionData utf16data[] =
     {
 #ifdef wxHAVE_U_ESCAPE
-        { "\x04\x1f\x04\x40\x04\x38\x04\x32\x04\x35\x04\x42",
+        { "\x04\x1f\x04\x40\x04\x38\x04\x32\x04\x35\x04\x42\0\0",
           L"\u041f\u0440\u0438\u0432\u0435\u0442" },
 #endif
-        { "\0f\0o\0o", L"foo" },
+        { "\0f\0o\0o\0\0", L"foo" },
     };
 
     wxCSConv conv(wxFONTENCODING_UTF16BE);
