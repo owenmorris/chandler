@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.04.99
-// RCS-ID:      $Id: buffer.h,v 1.38 2006/04/01 02:58:56 VZ Exp $
+// RCS-ID:      $Id: buffer.h,v 1.39 2006/04/02 14:57:36 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -62,6 +62,12 @@ public:                                                                     \
         chartype *p = m_str;                                                \
         ((classname *)this)->m_str = NULL;                                  \
         return p;                                                           \
+    }                                                                       \
+                                                                            \
+    void reset()                                                            \
+    {                                                                       \
+        free(m_str);                                                        \
+        m_str = NULL;                                                       \
     }                                                                       \
                                                                             \
     classname(const classname& src)                                         \

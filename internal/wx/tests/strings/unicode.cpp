@@ -3,7 +3,7 @@
 // Purpose:     Unicode unit test
 // Author:      Vadim Zeitlin, Wlodzimierz ABX Skiba
 // Created:     2004-04-28
-// RCS-ID:      $Id: unicode.cpp,v 1.10 2006/04/01 15:53:55 VZ Exp $
+// RCS-ID:      $Id: unicode.cpp,v 1.15 2006/04/02 20:18:31 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin, Wlodzimierz Skiba
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -57,6 +57,7 @@ private:
         CPPUNIT_TEST( ConversionUTF7 );
         CPPUNIT_TEST( ConversionUTF8 );
         CPPUNIT_TEST( ConversionUTF16 );
+        CPPUNIT_TEST( ConversionUTF32 );
 #endif // wxUSE_WCHAR_T
     CPPUNIT_TEST_SUITE_END();
 
@@ -67,6 +68,7 @@ private:
     void ConversionUTF7();
     void ConversionUTF8();
     void ConversionUTF16();
+    void ConversionUTF32();
 
     // test if converting s using the given encoding gives ws and vice versa
     //
@@ -152,7 +154,7 @@ void UnicodeTestCase::ConversionWithNULs()
         CPPUNIT_ASSERT_EQUAL( lenNulString, szTheString2.length() );
         CPPUNIT_ASSERT( wxTmemcmp(szTheString2.c_str(), L"The\0String",
                         lenNulString + 1) == 0 );
-#else
+#else // !wxUSE_UNICODE
         wxString szTheString(wxT("TheString"));
         szTheString.insert(3, 1, '\0');
         wxWCharBuffer theBuffer = szTheString.wc_str(wxConvLibc);
@@ -164,7 +166,7 @@ void UnicodeTestCase::ConversionWithNULs()
         wxWCharBuffer theLocalBuffer = szLocalTheString.wc_str(wxConvLocal);
 
         CPPUNIT_ASSERT( memcmp(theLocalBuffer.data(), L"The\0String", 11 * sizeof(wchar_t)) == 0 );
-#endif
+#endif // wxUSE_UNICODE/!wxUSE_UNICODE
 }
 
 void
@@ -255,6 +257,7 @@ void UnicodeTestCase::ConversionUTF16()
 #ifdef wxHAVE_U_ESCAPE
         { "\x04\x1f\x04\x40\x04\x38\x04\x32\x04\x35\x04\x42\0\0",
           L"\u041f\u0440\u0438\u0432\u0435\u0442" },
+        { "\x01\0\0b\x01\0\0a\x01\0\0r\0\0", L"\u0100b\u0100a\u0100r" },
 #endif
         { "\0f\0o\0o\0\0", L"foo" },
     };
@@ -265,6 +268,38 @@ void UnicodeTestCase::ConversionUTF16()
         const StringConversionData& d = utf16data[n];
         DoTestConversion(d.str, d.wcs, conv);
     }
+
+    // special case: this string has consecutive NULs inside it which don't
+    // terminate the string, this exposed a bug in our conversion code which
+    // got confused in this case
+    size_t len;
+    wxWCharBuffer wbuf(conv.cMB2WC("\x01\0\0B\0C" /* A macron BC */, 6, &len));
+    CPPUNIT_ASSERT_EQUAL( (size_t)3, len );
+}
+
+void UnicodeTestCase::ConversionUTF32()
+{
+    static const StringConversionData utf32data[] =
+    {
+#ifdef wxHAVE_U_ESCAPE
+        {
+            "\0\0\x04\x1f\0\0\x04\x40\0\0\x04\x38\0\0\x04\x32\0\0\x04\x35\0\0\x04\x42\0\0\0\0",
+          L"\u041f\u0440\u0438\u0432\u0435\u0442" },
+#endif
+        { "\0\0\0f\0\0\0o\0\0\0o\0\0\0\0", L"foo" },
+    };
+
+    wxCSConv conv(wxFONTENCODING_UTF32BE);
+    for ( size_t n = 0; n < WXSIZEOF(utf32data); n++ )
+    {
+        const StringConversionData& d = utf32data[n];
+        DoTestConversion(d.str, d.wcs, conv);
+    }
+
+    size_t len;
+    wxWCharBuffer wbuf(conv.cMB2WC("\0\0\x01\0\0\0\0B\0\0\0C" /* A macron BC */,
+                                   12, &len));
+    CPPUNIT_ASSERT_EQUAL( (size_t)3, len );
 }
 
 #endif // wxUSE_WCHAR_T
