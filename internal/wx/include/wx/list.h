@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     29/01/98
-// RCS-ID:      $Id: list.h,v 1.106 2006/03/23 16:19:48 VZ Exp $
+// RCS-ID:      $Id: list.h,v 1.107 2006/04/02 01:10:41 VZ Exp $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -159,7 +159,7 @@ private:
 
 // the real wxList-class declaration
 #define WX_DECLARE_LIST_XO(elT, liT, decl)                                    \
-    class WXDLLEXPORT _WX_LIST_HELPER_##liT                                   \
+    decl _WX_LIST_HELPER_##liT                                                \
     {                                                                         \
         typedef elT _WX_LIST_ITEM_TYPE_##liT;                                 \
     public:                                                                   \

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.04.99
-// RCS-ID:      $Id: buffer.h,v 1.37 2006/03/31 23:33:38 VZ Exp $
+// RCS-ID:      $Id: buffer.h,v 1.38 2006/04/01 02:58:56 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,6 +82,18 @@ public:                                                                     \
         m_str = src.release();                                              \
                                                                             \
         return *this;                                                       \
+    }                                                                       \
+                                                                            \
+    bool extend(size_t len)                                                 \
+    {                                                                       \
+        chartype *                                                          \
+            str = (chartype *)realloc(m_str, (len + 1)*sizeof(chartype));   \
+        if ( !str )                                                         \
+            return false;                                                   \
+                                                                            \
+        m_str = str;                                                        \
+                                                                            \
+        return true;                                                        \
     }                                                                       \
                                                                             \
     chartype *data() { return m_str; }                                      \
