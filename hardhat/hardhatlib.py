@@ -1512,7 +1512,7 @@ def makeInstaller(buildenv, directories, fileRoot, majorVersion='0', minorVersio
         if sys.platform == 'cygwin':
             scriptName = os.path.join(nsisScriptPath, "makeinstaller.sh")
             executeCommand(buildenv, "HardHat", 
-                [scriptName, scriptOption, nsisScriptPath, "chandler.nsi"],
+                [scriptName, scriptOption, nsisScriptPath, "chandler.nsi", buildenv['makensis']],
                 "Building Windows Installer")
         else:
             executeCommand(buildenv, "HardHat",
