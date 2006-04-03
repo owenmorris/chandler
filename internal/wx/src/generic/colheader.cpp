@@ -9,14 +9,6 @@
 // License:
 ///////////////////////////////////////////////////////////////////////////////
 
-// ============================================================================
-// declarations
-// ============================================================================
-
-// ----------------------------------------------------------------------------
-// headers
-// ----------------------------------------------------------------------------
-
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
@@ -452,8 +444,8 @@ wxSize		targetSize, minSize, parentSize;
 
 		targetViewRef = GetHwnd();
 		boundsR.left = boundsR.top = 0;
-		boundsR.right = bestSize.x;
-		boundsR.bottom = bestSize.y;
+		boundsR.right = targetSize.x;
+		boundsR.bottom = targetSize.y;
 
 		ZeroMemory( &hdl, sizeof(hdl) );
 		hdl.prc = &boundsR;
@@ -1232,6 +1224,8 @@ void wxColumnHeader::AddItem(
 wxColumnHeaderItem		itemInfo;
 wxSize					targetExtent;
 long					originX;
+bool					bIsVertical;
+
 
 	// set invariant values
 	itemInfo.m_BEnabled = true;
@@ -1253,7 +1247,12 @@ long					originX;
 	{
 		targetExtent = GetUIExtent( beforeIndex - 1 );
 		originX = ((targetExtent.x > 0) ? targetExtent.x : 0);
-		itemInfo.m_OriginX = originX + targetExtent.y;
+		bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+
+		if (bIsVertical)
+			itemInfo.m_OriginX = originX;
+		else
+			itemInfo.m_OriginX = originX + targetExtent.y;
 	}
 	else
 		itemInfo.m_OriginX = 0;
@@ -1699,8 +1698,31 @@ wxColumnHeaderHitTestResult wxColumnHeader::HitTest(
 	const wxPoint		&locationPt )
 {
 wxColumnHeaderHitTestResult		resultV;
+bool					bIsVertical;
 
 	resultV = CH_HITTEST_NoPart;
+
+	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+	if (bIsVertical)
+	{
+	wxRect	boundsR;
+	long		i;
+
+		for (i=0; i<m_ItemCount; i++)
+		{
+			if (GetItemBounds( i, &boundsR ))
+			{
+				if ((locationPt.x >= boundsR.x) && (locationPt.x < boundsR.x + boundsR.width)
+					&& (locationPt.y >= boundsR.y) && (locationPt.y < boundsR.y + boundsR.height))
+				{
+					resultV = (wxColumnHeaderHitTestResult)i;
+					break;
+				}
+			}
+		}
+
+		return resultV;
+	}
 
 #if defined(__WXMSW__)
 RECT		boundsR;
@@ -1912,15 +1934,19 @@ wxSize	itemExtent;
 void wxColumnHeader::RecalculateItemExtents( void )
 {
 long		originX, i;
+bool		bIsVertical;
 
 	if (m_ItemList != NULL)
 	{
 		originX = 0;
+		bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+
 		for (i=0; i<m_ItemCount; i++)
 			if (m_ItemList[i] != NULL)
 			{
 				m_ItemList[i]->m_OriginX = originX;
-				originX += m_ItemList[i]->m_ExtentX;
+				if (! bIsVertical)
+					originX += m_ItemList[i]->m_ExtentX;
 			}
 	}
 }
@@ -2526,11 +2552,6 @@ OSStatus				errStatus;
 	bHasButtonArrow = (m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None);
 	bHasBitmap = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
 
-	// a broken, dead attempt to tinge the background
-// Collection	origCol, newCol;
-// RGBColor	tintRGB = { 0xFFFF, 0x0000, 0xFFFF };
-//	errStatus = SetAppearanceTintColor( &tintRGB, origCol, newCol );
-
 	if (m_BEnabled)
 		drawInfo.state = (bSelected && bVisibleSelection ? kThemeStateActive: kThemeStateInactive);
 	else
@@ -2555,9 +2576,6 @@ OSStatus				errStatus;
 	else
 		// FIXME: should have HIDrawThemeButton version for CORE_GRAPHICS build
 		errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
-
-	// end of the dead attempt to tinge the background
-//	errStatus = RestoreTheme( origCol, newCol );
 
 	// as specified, render (justified) either: button arrow, bitmap or label text
 	if (bHasButtonArrow)
