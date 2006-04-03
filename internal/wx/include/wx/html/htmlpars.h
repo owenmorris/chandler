@@ -2,7 +2,7 @@
 // Name:        htmlpars.h
 // Purpose:     wxHtmlParser class (generic parser)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlpars.h,v 1.24 2005/09/24 21:42:16 VZ Exp $
+// RCS-ID:      $Id: htmlpars.h,v 1.25 2006/04/03 19:34:16 VS Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -116,6 +116,10 @@ public:
     // empty
     virtual bool RestoreState();
 
+    // Returns HTML source inside the element (i.e. between the starting
+    // and ending tag)
+    wxString GetInnerSource(const wxHtmlTag& tag);
+
     // Parses HTML string 'markup' and extracts charset info from <meta> tag
     // if present. Returns empty string if the tag is missing.
     // For wxHTML's internal use.
@@ -223,6 +227,12 @@ protected:
     // m_Parser must be set.
     void ParseInner(const wxHtmlTag& tag)
         { m_Parser->DoParsing(tag.GetBeginPos(), tag.GetEndPos1()); }
+
+    // Parses given source as if it was tag's inner code (see
+    // wxHtmlParser::GetInnerSource).  Unlike ParseInner(), this method lets
+    // you specify the source code to parse. This is useful when you need to
+    // modify the inner text before parsing.
+    void ParseInnerSource(const wxString& source);
 
     wxHtmlParser *m_Parser;
 
