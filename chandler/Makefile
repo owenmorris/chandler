@@ -95,21 +95,24 @@ endif
 
 ifeq ($(OS),Darwin)
 EASYINSTALL=MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(CHANDLERBIN)/$(SNAP)/easy_install
-PLUGIN_PYTHON=MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME)/../..  $(CHANDLERHOME)/../../$(SNAP)/RunPython
+PLUGIN_PYTHON=MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME)/../..  $(CHANDLERBIN)/../../$(SNAP)/RunPython
+PLUGIN_ARCHIVES=$(CHANDLERARCHIVES)/
 else
 ifeq ($(OS),Cygwin)
 EASYINSTALL=$(CHANDLERBIN)/$(SNAP)/easy_install
-PLUGIN_PYTHON=CHANDLERHOME=$(CHANDLERHOME) $(CHANDLERHOME)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
+PLUGIN_PYTHON=CHANDLERHOME=$(CHANDLERHOME) $(CHANDLERBIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
+PLUGIN_ARCHIVES=$(shell cygpath -aw $(CHANDLERARCHIVES))\\
 else
 EASYINSTALL=$(CHANDLERBIN)/$(SNAP)/easy_install
-PLUGIN_PYTHON=CHANDLERHOME=$(CHANDLERHOME)/../..  $(CHANDLERHOME)/../../$(SNAP)/RunPython
+PLUGIN_PYTHON=CHANDLERHOME=$(CHANDLERHOME)/../..  $(CHANDLERBIN)/../../$(SNAP)/RunPython
+PLUGIN_ARCHIVES=$(CHANDLERARCHIVES)/
 endif
 endif
 
-ifeq ($(OS),Cygwin)
-CHANDLERBIN:=$(shell cygpath -au $(CHANDLERBIN))
-CHANDLERHOME:=$(shell cygpath -au $(CHANDLERHOME))
-endif
+#ifeq ($(OS),Cygwin)
+#CHANDLERBIN:=$(shell cygpath -au $(CHANDLERBIN))
+#CHANDLERHOME:=$(shell cygpath -au $(CHANDLERHOME))
+#endif
 
 HOST=builds.osafoundation.org
 URL=http://$(HOST)/external/$(PLATFORM)
@@ -127,7 +130,7 @@ downloads: $(ARCHIVES)
 
 $(addprefix install-, $(BUNDLED_PLUGINS)):
 	$(CURL) $(CHANDLERARCHIVES)/$(subst install-,,$@) $(URL)/$(subst install-,,$@)
-	$(EASYINSTALL) $(CHANDLERARCHIVES)/$(subst install-,,$@)
+	$(EASYINSTALL) $(PLUGIN_ARCHIVES)$(subst install-,,$@)
 
 bundled-plugins: $(addprefix install-, $(BUNDLED_PLUGINS))
 
