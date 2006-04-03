@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:		generic/colheader.cpp
+// Name:		src/generic/colheader.cpp
 // Purpose:	2-platform (Mac,MSW) + generic implementation of a native-appearance column header
 // Author:	David Surovell
 // Modified by:
@@ -216,16 +216,23 @@ bool			bResultV;
 
 	localName = name;
 
-	if ((m_defaultItemSize.x <= 0) || (m_defaultItemSize.y <= 0))
-		m_defaultItemSize = CalculateDefaultItemSize();
+//	if ((m_defaultItemSize.x <= 0) || (m_defaultItemSize.y <= 0))
+	m_defaultItemSize = CalculateDefaultItemSize();
 
 	actualSize = size;
+#if 1
 	if (m_BFixedHeight)
 	{
 		actualSize = CalculateDefaultSize();
 		if (size.x > 0)
 			actualSize.x = size.x;
 	}
+#else
+	if ((actualSize.x <= 0) || (m_BFixedHeight && (actualSize.x > 0)))
+		actualSize.x = m_defaultItemSize.x;
+	if (actualSize.y <= 0)
+		actualSize.y = m_defaultItemSize.y;
+#endif
 
 	// NB: we're stealing the style argument from Win32 and wx to support ListHeader attributes
 	if (style & (1 << CH_ATTR_VerticalOrientation))
@@ -372,52 +379,35 @@ wxSize	targetSize;
 wxSize wxColumnHeader::CalculateDefaultSize( void ) const
 {
 wxWindow	*parentW;
-wxSize		bestSize;
+wxSize		bestSize, itemSize, parentSize;
+bool		bIsVertical;
 
-	// FIXME: needs work for vertical row headers
+	bestSize.x =
+	bestSize.y = 0;
 
-	// best width is parent's width; height is fixed by native drawing routines
+	parentSize.x =
+	parentSize.y = 0;
+
+	// "best" width is parent's width;
+	// height is (relatively) invariant,
+	// as determined by native (HI/CommonControls) drawing routines
 	parentW = GetParent();
 	if (parentW != NULL)
-		parentW->GetClientSize( &(bestSize.x), &(bestSize.y) );
+		parentW->GetClientSize( &(parentSize.x), &(parentSize.y) );
+
+	itemSize = GetDefaultItemSize();
+
+	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+	if (bIsVertical)
+	{
+		bestSize.x = itemSize.x;
+		bestSize.y = parentSize.y;
+	}
 	else
-		// FIXME: ugly
-		bestSize.x =
-		bestSize.y = 0;
-
-//	bestSize.y = 20;
-
-#if defined(__WXMSW__)
 	{
-	HDLAYOUT	hdl;
-	WINDOWPOS	wp;
-	HWND		targetViewRef;
-	RECT		boundsR;
-
-		targetViewRef = GetHwnd();
-		boundsR.left = boundsR.top = 0;
-		boundsR.right = bestSize.x;
-		boundsR.bottom = bestSize.y;
-
-		ZeroMemory( &hdl, sizeof(hdl) );
-		hdl.prc = &boundsR;
-		hdl.pwpos = &wp;
-		if (Header_Layout( targetViewRef, (LPARAM)&hdl ) != 0)
-		{
-			bestSize.x = wp.cx;
-			bestSize.y = wp.cy;
-		}
+		bestSize.x = parentSize.x;
+		bestSize.y = itemSize.y;
 	}
-
-#elif defined(__WXMAC__)
-	{
-	SInt32		standardHeight;
-	OSStatus		errStatus;
-
-		errStatus = GetThemeMetric( kThemeMetricListHeaderHeight, &standardHeight );
-		bestSize.y = standardHeight;
-	}
-#endif
 
 #if 0
 	if (! HasFlag( wxBORDER_NONE ))
@@ -434,17 +424,25 @@ wxSize		bestSize;
 wxSize wxColumnHeader::CalculateDefaultItemSize( void ) const
 {
 wxWindow	*parentW;
-wxSize		bestSize, parentSize;
+wxSize		targetSize, minSize, parentSize;
 
-	bestSize.x =
-	bestSize.y = 0;
+	minSize.x = 100;
+	minSize.y = 10;
+
+	targetSize.x =
+	targetSize.y = 0;
+
+	parentSize.x =
+	parentSize.y = 0;
 
 	// "best" width is parent's width;
-	// height is fixed by native drawing routines
+	// height is (relatively) invariant,
+	// as determined by native (HI/CommonControls) drawing routines
 	parentW = GetParent();
 	if (parentW != NULL)
 		parentW->GetClientSize( &(parentSize.x), &(parentSize.y) );
 
+	// get (platform-dependent) height
 #if defined(__WXMSW__)
 	{
 	HDLAYOUT	hdl;
@@ -462,8 +460,8 @@ wxSize		bestSize, parentSize;
 		hdl.pwpos = &wp;
 		if (Header_Layout( targetViewRef, (LPARAM)&hdl ) != 0)
 		{
-			bestSize.x = wp.cx;
-			bestSize.y = wp.cy;
+			targetSize.x = wp.cx;
+			targetSize.y = wp.cy;
 		}
 	}
 
@@ -474,15 +472,14 @@ wxSize		bestSize, parentSize;
 
 		errStatus = GetThemeMetric( kThemeMetricListHeaderHeight, &standardHeight );
 		if (errStatus == noErr)
-			bestSize.y = standardHeight;
+			targetSize.y = standardHeight;
 	}
 #endif
 
-	bestSize.x = ((parentSize.x < 100) ? parentSize.x : 100);
-	if (bestSize.y > 0)
-		bestSize.y = 20;
+	targetSize.x = ((parentSize.x > minSize.x) ? parentSize.x : minSize.x);
+	targetSize.y = ((targetSize.y > minSize.y) ? targetSize.y : minSize.y);
 
-	return bestSize;
+	return targetSize;
 }
 
 wxSize wxColumnHeader::GetDefaultItemSize( void ) const
@@ -818,6 +815,8 @@ bool		bIsVertical;
 
 	// FIXME: needs work for vertical row headers
 	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+	if (bIsVertical)
+		return false;
 
 	// count non-fixed-width items and tabulate size
 	scaleItemCount = 0;
@@ -904,13 +903,16 @@ bool					bIsVertical;
 	if ((itemIndex <= 0) || (itemIndex >= m_ItemCount))
 		return false;
 
+	// FIXME: needs work for vertical row headers;
+	// may not be meaningful because Y dimension is assumed to be invariant
+	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+	if (bIsVertical)
+		return false;
+
 	itemRef1 = GetItemRef( itemIndex - 1 );
 	itemRef2 = GetItemRef( itemIndex );
 	if ((itemRef1 == NULL) || (itemRef2 == NULL))
 		return false;
-
-	// FIXME: needs work for vertical row headers
-	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
 
 //	if (bIsVertical)
 //	{
@@ -1401,8 +1403,8 @@ bool					bResultV, bIsVertical;
 	if (bIsVertical)
 	{
 		// is this item beyond the bottom edge?
-		if (bResultV)
-			bResultV = (itemRef->m_OriginX < m_NativeBoundsR.height);
+//		if (bResultV)
+//			bResultV = (itemRef->m_OriginX < m_NativeBoundsR.height);
 
 		if (bResultV)
 		{
