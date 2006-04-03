@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp,v 1.360 2006/03/27 12:24:46 ABX Exp $
+// RCS-ID:      $Id: grid.cpp,v 1.361 2006/04/03 00:21:00 vell Exp $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1618,7 +1618,7 @@ void wxGridCellEditorEvtHandler::OnChar(wxKeyEvent& event)
 
             // get the widths of all cells previous to this one
             int colXPos = 0;
-            for ( int i = 0; i < col; i++ ) 
+            for ( int i = 0; i < col; i++ )
             {
                 colXPos += m_grid->GetColSize(i);
             }
@@ -1669,7 +1669,7 @@ void wxGridCellEditorEvtHandler::OnChar(wxKeyEvent& event)
 
             // get the widths of all cells previous to this one
             int colXPos = 0;
-            for ( int i = 0; i < col; i++ ) 
+            for ( int i = 0; i < col; i++ )
             {
                 colXPos += m_grid->GetColSize(i);
             }
@@ -3917,6 +3917,7 @@ void wxGridWindow::ScrollWindow( int dx, int dy, const wxRect *rect )
 void wxGridWindow::OnMouseEvent( wxMouseEvent& event )
 {
 #if 0
+    // OSAF - debug tool only
     bool bGrabFocus = (event.ButtonDown(wxMOUSE_BTN_LEFT) && (FindFocus() != this));
     if (bGrabFocus)
         SetFocus();
@@ -5595,6 +5596,7 @@ void wxGrid::ChangeCursorMode(CursorMode mode,
 void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
 {
 #if 0
+    // OSAF - debug tool only
 if (event.ButtonDown(wxMOUSE_BTN_LEFT))
 wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
 #endif
@@ -6777,8 +6779,8 @@ void wxGrid::SetCurrentCell( const wxGridCellCoords& coords )
         return;
     }
 
-    wxClientDC dc(m_gridWin);
-    PrepareDC(dc);
+    wxClientDC dc( m_gridWin );
+    PrepareDC( dc );
 
     if ( m_currentCellCoords != wxGridNoCellCoords )
     {
@@ -6787,7 +6789,7 @@ void wxGrid::SetCurrentCell( const wxGridCellCoords& coords )
         if ( IsVisible( m_currentCellCoords, false ) )
         {
             wxRect r;
-            r = BlockToDeviceRect(m_currentCellCoords, m_currentCellCoords);
+            r = BlockToDeviceRect( m_currentCellCoords, m_currentCellCoords );
             if ( !m_gridLinesEnabled )
             {
                 r.x--;
@@ -6801,22 +6803,22 @@ void wxGrid::SetCurrentCell( const wxGridCellCoords& coords )
             // Otherwise refresh redraws the highlight!
             m_currentCellCoords = coords;
 
-            DrawGridCellArea(dc,cells);
+            DrawGridCellArea( dc, cells );
             DrawAllGridLines( dc, r );
         }
     }
 
     m_currentCellCoords = coords;
 
-    wxGridCellAttr* attr = GetCellAttr(coords);
-    DrawCellHighlight(dc, attr);
+    wxGridCellAttr *attr = GetCellAttr( coords );
+    DrawCellHighlight( dc, attr );
     attr->DecRef();
 }
 
-
-void wxGrid::HighlightBlock( int topRow, int leftCol, int bottomRow, int rightCol, bool clearSelection)
+void wxGrid::HighlightBlock( int topRow, int leftCol, int bottomRow, int rightCol, bool clearSelection )
 {
 #if 0
+    // OSAF - debug tool only
 if (! clearSelection)
 {
 static bool sFirstTime = true;
@@ -6869,7 +6871,9 @@ clearSelection = true;
 
     if ( clearSelection && (m_selectingTopLeft != updateTopLeft ||
                             m_selectingBottomRight != updateBottomRight) )
+    {
         ClearSelection();
+    }
 
     // First the case that we selected a completely new area
     if ( m_selectingTopLeft == wxGridNoCellCoords ||
@@ -6880,6 +6884,7 @@ clearSelection = true;
                                   wxGridCellCoords ( bottomRow, rightCol ) );
         m_gridWin->Refresh( false, &rect );
     }
+
     // Now handle changing an existing selection area.
     else if ( m_selectingTopLeft != updateTopLeft ||
               m_selectingBottomRight != updateBottomRight )
@@ -7736,7 +7741,7 @@ void wxGrid::StringToLines( const wxString& value, wxArrayString& lines )
     wxString eol = wxTextFile::GetEOL( wxTextFileType_Unix );
     wxString tVal = wxTextFile::Translate( value, wxTextFileType_Unix );
 
-    while ( startPos < (int)tVal.Length() )
+    while ( startPos < (int)tVal.length() )
     {
         pos = tVal.Mid(startPos).Find( eol );
         if ( pos < 0 )
@@ -7754,7 +7759,7 @@ void wxGrid::StringToLines( const wxString& value, wxArrayString& lines )
         startPos += pos + 1;
     }
 
-    if ( startPos < (int)value.Length() )
+    if ( startPos < (int)value.length() )
     {
         lines.Add( value.Mid( startPos ) );
     }
@@ -8035,7 +8040,7 @@ void wxGrid::ShowCellEditControl()
             editor->Show( true, attr );
 
             int colXPos = 0;
-            for (int i = 0; i < m_currentCellCoords.GetCol(); i++) 
+            for (int i = 0; i < m_currentCellCoords.GetCol(); i++)
             {
                 colXPos += GetColSize( i );
             }
@@ -8067,7 +8072,7 @@ void wxGrid::HideCellEditControl()
         int row = m_currentCellCoords.GetRow();
         int col = m_currentCellCoords.GetCol();
 
-        wxGridCellAttr* attr = GetCellAttr(row, col);
+        wxGridCellAttr *attr = GetCellAttr(row, col);
         wxGridCellEditor *editor = attr->GetEditor(this, row, col);
         editor->Show( false );
         editor->DecRef();
@@ -8377,7 +8382,7 @@ void wxGrid::MakeCellVisible( int row, int col )
         }
 
         // special handling for wide cells - show always left part of the cell!
-        // Otherwise, e.g. when stepping from row to row, it would jump between 
+        // Otherwise, e.g. when stepping from row to row, it would jump between
         // left and right part of the cell on every step!
 //      if ( left < 0 )
         if ( left < 0 || (right-left) >= cw )
@@ -8418,13 +8423,14 @@ wxLogDebug( wxT("wxGrid-SelectCell: entered") );
 
     wxGridCellCoords newCellCoords( row, column );
 
-    ClearSelection(); 
+    ClearSelection();
     MakeCellVisible( newCellCoords );
 	HighlightBlock( newCellCoords, newCellCoords );
     SetCurrentCell( newCellCoords );
     if ( m_selection )
-        m_selection->SelectBlock( m_selectingTopLeft.GetRow(), m_selectingTopLeft.GetCol(),
-                                  m_selectingBottomRight.GetRow(), m_selectingBottomRight.GetCol());
+        m_selection->SelectBlock(
+            m_selectingTopLeft.GetRow(), m_selectingTopLeft.GetCol(),
+            m_selectingBottomRight.GetRow(), m_selectingBottomRight.GetCol() );
 }
 
 bool wxGrid::MoveCursorUp( bool expandSelection )
@@ -10735,4 +10741,3 @@ wxGridEditorCreatedEvent::wxGridEditorCreatedEvent(int id, wxEventType type,
 }
 
 #endif // wxUSE_GRID
-
