@@ -99,7 +99,7 @@ def executeCommandReturnOutput(args):
     args_str = ' '.join(args)
     print args_str
 
-    if os.name not in ['nt', 'os2'] and sys.platform != 'cygwin':
+    if os.name not in ['nt', 'os2']:
         import popen2
         p = popen2.Popen4(args_str)
         p.tochild.close()
@@ -110,9 +110,10 @@ def executeCommandReturnOutput(args):
         else:
             exitCode >>= 8
     else:
-        output = os.popen(args_str, 'r')
-        outputList = output.readlines()
-        exitCode = output.close()
+        i,k = os.popen4(args_str)
+        i.close()
+        outputList = k.readlines()
+        exitCode = k.close()
         
     if exitCode is not None:
         raise ExternalCommandErrorWithOutputList, [exitCode, outputList]
