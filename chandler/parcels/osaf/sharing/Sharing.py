@@ -821,8 +821,14 @@ class ShareConduit(pim.ContentItem):
         if not self._haveLatest(itemPath):
             # logger.info("...getting: %s" % itemPath)
 
-            (item, data) = self._getItem(itemPath, into=into, changes=changes,
-                previousView=previousView, updateCallback=updateCallback)
+            try:
+                (item, data) = self._getItem(itemPath, into=into,
+                    changes=changes, previousView=previousView,
+                    updateCallback=updateCallback)
+            except TransformationFailed, e:
+                # This has already been logged; catch it and return None
+                # to allow the sync to proceed.
+                return None
 
             if item is not None:
                 self._addToManifest(itemPath, item, data)
