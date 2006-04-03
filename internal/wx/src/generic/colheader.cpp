@@ -1407,10 +1407,10 @@ bool					bResultV, bIsVertical;
 
 		if (bResultV)
 		{
-			boundsR->x = 0; // m_NativeBoundsR.x;
-			boundsR->y = m_NativeBoundsR.height * itemIndex; // itemRef->m_OriginX;
-			boundsR->width = m_NativeBoundsR.width;
-			boundsR->height = m_NativeBoundsR.height; // itemRef->m_ExtentX + 1;
+			boundsR->x = 0;
+			boundsR->y = m_defaultItemSize.y * itemIndex;
+			boundsR->width = m_defaultItemSize.x;
+			boundsR->height = m_defaultItemSize.y;
 
 //			if (boundsR->height > m_NativeBoundsR.height - itemRef->m_OriginX)
 //				boundsR->height = m_NativeBoundsR.height - itemRef->m_OriginX;
@@ -2021,16 +2021,22 @@ WXDWORD wxColumnHeader::MSWGetStyle(
 	WXDWORD			*exstyle ) const
 {
 WXDWORD		msStyle;
+bool			bIsVertical;
 
 	style = (style & ~wxBORDER_MASK) | wxBORDER_NONE;
 
 	msStyle = wxControl::MSWGetStyle( style, exstyle );
 
 	// NB: no HDS_DRAGDROP, HDS_FILTERBAR, HDS_FULLDRAG, HDS_HOTTRACK
-	msStyle |= HDS_BUTTONS | HDS_FLAT | HDS_HORZ;
+	msStyle |= HDS_BUTTONS | HDS_FLAT;
 
 	// FIXME: is WS_CLIPSIBLINGS necessary ???
 	msStyle |= WS_CLIPSIBLINGS;
+
+	// if specified, set horizontal orientation flag
+	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+	if (! bIsVertical)
+		msStyle |= HDS_HORZ;
 
 	return msStyle;
 }
