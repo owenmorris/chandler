@@ -272,18 +272,17 @@ class AbstractSet(ItemValue, Indexed):
                             refs._removeRef(self._otherName, item, True)
                             
                     if self._indexes:
-                        key = other.itsUUID
                         dirty = False
 
                         if op == 'add':
                             for index in self._indexes.itervalues():
-                                if key not in index:
-                                    index.insertKey(key, index.getLastKey())
+                                if other not in index:
+                                    index.insertKey(other, index.getLastKey())
                                     dirty = True
                         else:
                             for index in self._indexes.itervalues():
-                                if key in index:
-                                    index.removeKey(key)
+                                if other in index:
+                                    index.removeKey(other)
                                     dirty = True
 
                         if dirty:
