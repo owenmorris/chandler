@@ -56,14 +56,14 @@ class TestPanel( wx.Panel ):
 
         # row header (in progress)
         # "no" to sort arrows for this list
-        prompt = "RowHeader (%d)" %(self.baseCntlID + 1)
+        prompt = "RowHeader (%d)" %(self.baseCntlID + 2)
         l3 = wx.StaticText( self, -1, prompt, (self.colStartX + 400, self.colStartY), (200, 20) )
 
         ch3 = wx.colheader.ColumnHeader( self, self.baseCntlID + 2, (self.colStartX + 400, self.colStartY + 20), (100, 5 * self.colHeight), 1 )
         fancifulRowNames = [ "Stacked", "Tower", "Big", "Babylon", "Story" ]
         for i, v in enumerate( fancifulRowNames ):
-            ch3.AddItem( -1, v, wx.colheader.CH_JUST_Center + i, 100, 0, 0, 1 )
-        ch3.SetSelectedItem( 0 )
+            ch3.AddItem( -1, v, wx.colheader.CH_JUST_Center, 100, 0, 0, 1 )
+        ch3.SetSelectedItem( 2 )
 
         self.ch3 = ch3
         self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnClickColumnHeader, ch3 )

@@ -869,7 +869,12 @@ bool		bIsVertical;
 bool wxColumnHeader::ResizeToFit( void )
 {
 long		extentX;
-bool		bScaling;
+bool		bScaling, bIsVertical;
+
+	// FIXME: needs work for vertical row headers
+	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+	if (bIsVertical)
+		return false;
 
 	// temporarily turn off proportional resizing
 	bScaling = m_BProportionalResizing;
@@ -1245,14 +1250,18 @@ bool					bIsVertical;
 	// determine new item origin
 	if (beforeIndex > 0)
 	{
-		targetExtent = GetUIExtent( beforeIndex - 1 );
-		originX = ((targetExtent.x > 0) ? targetExtent.x : 0);
 		bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
 
 		if (bIsVertical)
-			itemInfo.m_OriginX = originX;
+		{
+			itemInfo.m_OriginX = 0;
+		}
 		else
+		{
+			targetExtent = GetUIExtent( beforeIndex - 1 );
+			originX = ((targetExtent.x > 0) ? targetExtent.x : 0);
 			itemInfo.m_OriginX = originX + targetExtent.y;
+		}
 	}
 	else
 		itemInfo.m_OriginX = 0;
@@ -1439,7 +1448,7 @@ bool					bResultV, bIsVertical;
 	}
 
 
-	if (!bResultV)
+	if (! bResultV)
 	{
 		boundsR->x =
 		boundsR->y =
