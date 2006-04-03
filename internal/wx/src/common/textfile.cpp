@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.04.98
-// RCS-ID:      $Id: textfile.cpp,v 1.55 2006/03/31 14:00:31 VZ Exp $
+// RCS-ID:      $Id: textfile.cpp,v 1.56 2006/04/03 17:38:05 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -98,7 +98,7 @@ bool wxTextFile::OnRead(wxMBConv& conv)
     // read and so the conversion would fail) and, as the file contents is kept
     // in memory by wxTextFile anyhow, it shouldn't be a big problem to read
     // the file entirely
-    const size_t bufSize = m_file.Length() + 4 /* for trailing NULs */;
+    const size_t bufSize = (size_t)(m_file.Length() + 4 /* for trailing NULs */ );
     size_t bufPos = 0;
     wxCharBuffer buf(bufSize - 1 /* it adds 1 internally */);
 
@@ -241,4 +241,3 @@ bool wxTextFile::OnWrite(wxTextFileType typeNew, wxMBConv& conv)
 }
 
 #endif // wxUSE_TEXTFILE
-
