@@ -34,7 +34,7 @@ build: expand apply
         build --build-base=$(BUILD) $(DIST_OPT) \
         install --force
 
-binaries: 
+binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(VOBJECT)/$(TARBALL) $(MANIFEST)
 
 install: $(TARBALL)

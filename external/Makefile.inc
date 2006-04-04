@@ -239,6 +239,27 @@ $(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz:
 
 endif
 
+ifeq ($(OS),Cygwin)
+strip:
+else
+ifeq ($(DEBUG),1)
+strip:
+else
+ifeq ($(OS),Darwin)
+STRIP_OPTIONS=-S -x
+STRIP_OP=\( -name '*.dylib' -o -name '*.so' \)
+else
+STRIP_OPTIONS=
+STRIP_OP=-name '*.so'
+endif
+strip:
+	for item in `find $(SRC)/$(BUILD) $(STRIP_OP)` ; do \
+        chmod +w $$item; \
+        strip $(STRIP_OPTIONS) $$item; \
+    done
+endif
+endif
+
 compilers: $(compiler)
 
 print-%:

@@ -112,7 +112,7 @@ clean:
 	cd $(SRC)/PCbuild; devenv.com pcbuild.sln /clean $(Snap); echo ok
 	rm -f $(SRC)/PCbuild/pcbuild.sln
 
-binaries: 
+binaries: strip
 	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.pyc" | xargs rm -f
 	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.pyo" | xargs rm -f
 	cd $(BUILD_ROOT); \
@@ -143,7 +143,7 @@ build: expand apply $(SRC)/$(BUILD)/Makefile
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) frameworkinstallapps
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
-binaries: 
+binaries: strip
 	find $(BUILD_ROOT)/$(SNAP)/Library/Frameworks/Python.framework -name "*.pyc" | xargs rm -f
 	find $(BUILD_ROOT)/$(SNAP)/Library/Frameworks/Python.framework -name "*.pyo" | xargs rm -f
 	tar -C $(BUILD_ROOT) \
@@ -169,7 +169,7 @@ build: expand bzip2-$(BZIP2VERSION)/libbz2.a apply $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) install
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
-binaries: 
+binaries: strip
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/lib/python*/ -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/lib/python*/ -name "*.pyo" | xargs rm -f; \

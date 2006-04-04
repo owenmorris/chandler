@@ -33,7 +33,7 @@ Twisted-$(VERSION)-expanded: Twisted-$(VERSION).tar.gz
 
 expand: Twisted-$(VERSION)-expanded
 
-binaries: 
+binaries: strip
 	cd $(BUILD_ROOT); \
       find $(SNAP)/$(SITE)/twisted -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/twisted -name "*.pyo" | xargs rm -f; \

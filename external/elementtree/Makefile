@@ -27,7 +27,7 @@ elementtree-$(VERSION)-expanded: elementtree-$(VERSION).tar.gz
 
 expand: elementtree-$(VERSION)-expanded
 
-binaries:
+binaries: strip
 	cd $(BUILD_ROOT); \
     find $(SNAP)/$(SITE)/elementtree -name "*.pyc" | xargs rm -f; \
     find $(SNAP)/$(SITE)/elementtree -name "*.pyo" | xargs rm -f; \

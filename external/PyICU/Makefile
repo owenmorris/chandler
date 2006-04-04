@@ -4,6 +4,7 @@ SVNVER=55
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYICU=$(BUILD_ROOT)/PyICU
 SRC=$(PYICU)/PyICU-$(VERSION)
+BUILD=$(SNAP)
 TARBALL=PyICU-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
@@ -73,7 +74,7 @@ endif
 clean: PyICU-$(VERSION)-expanded
 	$(MAKE) -C $(SRC) clean
 
-binaries: 
+binaries: strip
 	cd $(BUILD_ROOT); \
     tar -cvzf $(PYICU)/$(TARBALL) $(MANIFEST)
 
