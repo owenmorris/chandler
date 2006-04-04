@@ -79,7 +79,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             item = getattr(self.item, 'proxiedItem', self.item)
             self.itsView.unwatchItem(self, item, 'onItemKindChanged')
 
-    def onItemKindChanged(self, op, uItem, attributes):
+    def onItemKindChanged(self, op, uuid, attributes):
         # Ignore notifications for attributes we don't care about
         if 'itsKind' not in attributes:
             #logger.debug("%s: ignoring changes to %s.", 
@@ -87,7 +87,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             return
 
         # Ignore notifications during stamping or deleting
-        if self.item.isMutating():
+        if self.item is not None and self.item.isMutating():
             logger.debug("%s: ignoring kind change to %s during stamping or deletion.", 
                          debugName(self), debugName(self.item))
             return
@@ -455,9 +455,9 @@ class DetailSynchronizer(Item):
                     self.itsView.unwatchItem(self, item, 'onWatchedItemChanged')
                 del self.widget.watchedAttributes        
 
-    def onWatchedItemChanged(self, op, uItem, attributes):
+    def onWatchedItemChanged(self, op, uuid, attributes):
         # Ignore notifications during stamping or deleting
-        if self.item.isMutating():
+        if self.item is None or self.item.isMutating():
             #logger.debug("%s: ignoring changes to %s during stamping or deletion.", 
                          #debugName(self), attributes)
             return
@@ -910,8 +910,8 @@ class TimeZoneConditionalBlock(Item):
         tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
         self.itsView.unwatchItem(self, tzPrefs, 'onTimezonePrefsChanged')
 
-    def onTimezonePrefsChanged(self, op, item, attributes):
-        if self.synchronizeItemDetail(self.item):
+    def onTimezonePrefsChanged(self, op, uuid, attributes):
+        if self.item is not None and self.synchronizeItemDetail(self.item):
             self.detailRoot().relayoutSizer()
 
 class CalendarTimeZoneSpacerBlock(TimeZoneConditionalBlock, 
