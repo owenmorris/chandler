@@ -94,6 +94,7 @@ def makeMainMenus(parcel):
     repositoryView = parcel.itsView
     main = schema.ns("osaf.views.main", repositoryView)
     globalBlocks = schema.ns("osaf.framework.blocks", repositoryView)
+    calBlocks = schema.ns("osaf.framework.blocks.calendar", repositoryView)
 
     fileMenu =  Menu.template('FileMenu',
                 title = _(u'&File'),
@@ -239,17 +240,25 @@ def makeMainMenus(parcel):
                         helpString = _(u'Navigate to different times in the calendar'),
                         childrenBlocks = [
                             MenuItem.template('GoToToday',
-                                              #event = main.GoToToday,
+                                              event = calBlocks.GoToToday,
                                               title = _(u'Today'),
                                               accel = _(u'Ctrl+T'),
                                               helpString = _(u'Navigate to today\'s date')),
+                            MenuItem.template('GoToDate',
+                                              event = calBlocks.GoToDate,
+                                              title = _(u'Date...'),
+                                              accel = _(u'Ctrl+Shift+T'),
+                                              helpString = _(u'Navigate to a specific date')),
+                            
                             MenuItem.template('GoToNextWeek',
-                                              #event = main.GoToNext,
+                                              event = calBlocks.GoToNext,
                                               title = _(u'Next Day/Week'),
+                                              accel = _(u'Ctrl+Right'),
                                               helpString = _(u'Go to the next day or week')),
                             MenuItem.template('GoToPrevWeek',
-                                              #event = main.GoToPrev,
+                                              event = calBlocks.GoToPrev,
                                               title = _(u'Previous Day/Week'),
+                                              accel = _(u'Ctrl+Left'),
                                               helpString = _(u'Go to the previous day or week')),
                             ]),
 

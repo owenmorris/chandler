@@ -773,7 +773,11 @@ class Block(schema.Item):
             callMethod (block, methodName, event)
 
         elif dispatchEnum == 'SendToBlockByName':
-            callMethod (Block.findBlockByName (event.dispatchToBlockName), methodName, event)
+            block = Block.findBlockByName(event.dispatchToBlockName)
+            if not block and event.arguments.has_key('UpdateUI'):
+                event.arguments['Enable'] = False
+            else:
+                callMethod (block, methodName, event)
 
         elif dispatchEnum == 'BroadcastInsideMyEventBoundary':
             block = event.arguments['sender']

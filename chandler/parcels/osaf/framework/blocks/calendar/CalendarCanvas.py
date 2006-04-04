@@ -10,13 +10,12 @@ import wx
 import wx.colheader
 
 from repository.item.Monitors import Monitors
-from chandlerdb.util.c import isuuid
 from chandlerdb.item.ItemError import NoSuchItemInCollectionError
 
 from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
 
-from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime
+from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime, DateTimeUtil
 from osaf.pim import ContentCollection
 from osaf.usercollections import UserCollection
 from application.dialogs import RecurrenceDialog, Util
@@ -571,19 +570,19 @@ class CalendarEventHandler(object):
     ASSUMPTION: its blockItem is a CalendarBlock
     """
 
-    def OnPrev(self, event):
+    def onGoToPrevEvent(self, event):
         blockItem = self.blockItem
         blockItem.decrementRange()
         blockItem.postDateChanged()
         blockItem.synchronizeWidget()
 
-    def OnNext(self, event):
+    def onGoToNextEvent(self, event):
         blockItem = self.blockItem
         blockItem.incrementRange()
         blockItem.postDateChanged()
         blockItem.synchronizeWidget()
 
-    def OnToday(self, event):
+    def onGoToTodayEvent(self, event):
         blockItem = self.blockItem
         today = CalendarBlock.startOfToday()
         
@@ -614,14 +613,11 @@ class CalendarNotificationHandler(object):
     
     def onItemNotification(self, notificationType, data):
         if (notificationType == 'collectionChange'):
-            op, coll, name, item = data
-            if not isuuid(item):
-                item = item.itsUUID
-                
+            op, coll, name, uuid = data
             if op == 'add':
-                self._pendingNewEvents.add(item)
-            elif op == 'remove' and item in self._pendingNewEvents:
-                self._pendingNewEvents.remove(item)
+                self._pendingNewEvents.add(uuid)
+            elif op == 'remove' and uuid in self._pendingNewEvents:
+                self._pendingNewEvents.remove(uuid)
 
     def ClearPendingNewEvents(self):
         self._pendingNewEvents = set()
@@ -1530,6 +1526,32 @@ class CalendarControl(CalendarBlock):
     def onSelectedDateChangedEvent(self, event):
         super(CalendarControl, self).onSelectedDateChangedEvent(event)
 
+    # annoying: right now have to forward this to the widget, but
+    # perhaps block dispatch could dispatch to the widget first, then
+    # the block?
+    def onGoToPrevEvent(self, event):
+        self.widget.onGoToPrevEvent(event)
+
+    def onGoToNextEvent(self, event):
+        self.widget.onGoToNextEvent(event)
+
+    def onGoToTodayEvent(self, event):
+        self.widget.onGoToTodayEvent(event)
+
+    def onGoToDateEvent(self, event):
+        dateString = Util.promptUser(
+            _(u"Go to date"),
+            _(u"Enter a date in the form %(dateFormat)s") %
+                                     dict(dateFormat=DateTimeUtil.sampleDate))
+        if dateString is None:
+            return
+
+        newDate = DateTimeUtil.shortDateFormat.parse(dateString)
+        self.setRange(newDate)
+        self.postDateChanged()
+        self.synchronizeWidget()
+        
+
     def onSelectWeekEvent(self, event):
         """
         I believe, as of now only calctrl sends SelectWeek events anyways.. but just in case...
@@ -1617,8 +1639,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.monthText = wx.StaticText(self, -1)
         self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "CalBackArrow")
         self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "CalForwardArrow")
-        self.Bind(wx.EVT_BUTTON, self.OnPrev, self.prevButton)
-        self.Bind(wx.EVT_BUTTON, self.OnNext, self.nextButton)
+        self.Bind(wx.EVT_BUTTON, self.onGoToPrevEvent, self.prevButton)
+        self.Bind(wx.EVT_BUTTON, self.onGoToNextEvent, self.nextButton)
 
         self.tzChoice = self.MakeTimezoneChoice(tzCharacterStyle)
 
