@@ -122,17 +122,23 @@ ARCHIVES_INST = \
                 $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
                             $(notdir $(ARCHIVES))))
 
+PLUGINS_INST = \
+    $(addsuffix .inst, \
+                $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
+                            $(notdir $(BUNDLED_PLUGINS))))
+
 .PHONY: default install clean realclean downloads build-plugins
 
 default: install
 
 downloads: $(ARCHIVES)
 
-$(addprefix install-, $(BUNDLED_PLUGINS)):
-	$(CURL) $(CHANDLERARCHIVES)/$(subst install-,,$@) $(URL)/$(subst install-,,$@)
-	$(EASYINSTALL) $(PLUGIN_ARCHIVES)$(subst install-,,$@)
+$(PLUGINS_INST):
+	$(CURL) $(CHANDLERARCHIVES)/$(notdir $(basename $@)) $(URL)/$(notdir $(basename $@))
+	$(EASYINSTALL) $(PLUGIN_ARCHIVES)$(notdir $(basename $@))
+	touch $@
 
-bundled-plugins: $(addprefix install-, $(BUNDLED_PLUGINS))
+bundled-plugins: $(PLUGINS_INST)
 
 $(addprefix binaries-, $(PLUGINS)):
 	cd $(CHANDLERHOME)/projects/$(subst binaries-,,$@); \
@@ -225,6 +231,9 @@ else
 purge:
 	python $(CHANDLERHOME)/tools/purge.py $(CHANDLERHOME)
 endif
+
+print-%:
+	@echo $* = $($*)
 
 tests:
 	$(CHANDLERHOME)/tools/do_tests.sh -u
