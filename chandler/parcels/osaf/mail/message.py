@@ -105,7 +105,7 @@ def getUnicodeValue(val, charset=constants.DEFAULT_CHARSET):
         # The PyICU UnicodeString is used because
         # ICU has support for more character set
         # encodings than Python.
-        return UnicodeString(val, charset).__unicode__()
+        return unicode(UnicodeString(val, charset))
 
     except Exception:
         if  charset != constants.DEFAULT_CHARSET:
