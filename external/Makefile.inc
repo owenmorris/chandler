@@ -239,25 +239,6 @@ $(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz:
 
 endif
 
-ifeq ($(OS),Cygwin)
-strip:
-else
-ifeq ($(DEBUG),1)
-strip:
-else
-ifeq ($(OS),Darwin)
-STRIP_OPTIONS=-S -x
-STRIP_OP=\( -name '*.dylib' -o -name '*.so' \)
-else
-STRIP_OPTIONS=
-STRIP_OP=-name '*.so'
-endif
-strip:
-	find $(SRC)/$(BUILD) $(STRIP_OP) | xargs chmod +w
-	find $(SRC)/$(BUILD) $(STRIP_OP) | xargs strip $(STRIP_OPTIONS)
-endif
-endif
-
 compilers: $(compiler)
 
 print-%:

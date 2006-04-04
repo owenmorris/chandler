@@ -6,7 +6,6 @@ CHANDLERDB=$(INTERNAL)/chandlerdb
 DB_VER=4.4
 TARBALL=chandlerdb-$(SNAP)-$(RELVER).tar.gz
 
-SRC=$(CHANDLERDB)
 BUILD=build_$(SNAP)
 
 MANIFEST=$(SNAP)/$(SITE)/chandlerdb
@@ -37,7 +36,7 @@ realclean: clean
 upload: $(TARBALL)
 	scp $(TARBALL) $(UPLOAD)
 
-snap: strip
+snap: 
 	cd $(BUILD_ROOT); \
 	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
 	find $(MANIFEST) -name "*.pyo" | xargs rm -f; \

@@ -34,7 +34,7 @@ clean:
       devenv.com Berkeley_DB.sln /project build_all /clean $(Snap)
 	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
 
-binaries: strip
+binaries: 
 	cd $(BUILD_ROOT); \
     tar -cvzf $(TARBALL) $(SNAP)/bin/libdb*.dll $(SNAP)/bin/db/db_*.exe
 
@@ -62,7 +62,7 @@ build: expand apply $(SRC)/$(BUILD)/Makefile
 clean:
 	cd $(SRC); rm -rf $(BUILD)
 
-binaries: strip
+binaries:
 	cd $(BUILD_ROOT); \
     tar -cvzf $(TARBALL) \
         --exclude '*.a' \

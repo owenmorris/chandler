@@ -49,7 +49,7 @@ M2Crypto-$(VERSION)-expanded: M2Crypto-$(VERSION).tar.gz
 
 expand: M2Crypto-$(VERSION)-expanded
 
-binaries: strip
+binaries:
 	cd $(BUILD_ROOT); \
       find $(SNAP)/$(SITE)/M2Crypto -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/M2Crypto -name "*.pyo" | xargs rm -f; \

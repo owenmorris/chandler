@@ -28,9 +28,6 @@ $(SYSTEMS):
 $(addprefix binaries-, $(SYSTEMS)):
 	$(MAKE) -C $(subst binaries-,,$@) binaries
 
-$(addprefix strip-, $(SYSTEMS)):
-	$(MAKE) -C $(subst strip-,,$@) strip
-
 $(addprefix sources-, $(SYSTEMS)):
 	$(MAKE) -C $(subst sources-,,$@) sources
 
@@ -60,14 +57,33 @@ $(addprefix from-, $(SYSTEMS)):
 $(addprefix to-, $(SYSTEMS)):
 	$(MAKE) $(shell echo $(SYSTEMS) | sed "s=\(.*$(subst to-,,$@)\).*=\1=")
 
+ifeq ($(OS),Cygwin)
+strip:
+else
+ifeq ($(DEBUG),1)
+strip:
+else
+ifeq ($(OS),Darwin)
+  # we could use -x as an option to strip but it needs testing to
+  # see if it gives any performance gains
+STRIP_OPTIONS=-S
+STRIP_OP=\( -name '*.dylib' -o -name '*.so' \)
+else
+STRIP_OPTIONS=
+STRIP_OP=-name '*.so'
+endif
+strip:
+	find release $(STRIP_OP) | xargs chmod +w
+	find release $(STRIP_OP) | xargs strip $(STRIP_OPTIONS)
+endif
+endif
+
 env::
 	mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include $(CHANDLERARCHIVES)
 
 systems: $(SYSTEMS)
 
 binaries: $(addprefix binaries-, $(SYSTEMS))
-
-strips: $(addprefix strip-, $(SYSTEMS))
 
 sources: $(addprefix sources-, $(SYSTEMS))
 

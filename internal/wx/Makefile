@@ -242,7 +242,7 @@ realclean: clean
 upload: $(TARBALL)
 	scp $(TARBALL) $(UPLOAD)
 
-snap: cleanmanifest strip
+snap: cleanmanifest
 	cd $(BUILD_ROOT); \
 	tar -cvzf $(SRC)/$(TARBALL) $(MANIFEST)
 

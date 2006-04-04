@@ -7,12 +7,6 @@ SYSTEMS=chandlerdb \
 
 .PHONY: binaries $(SYSTEMS)
 
-strips:
-	@for system in $(SYSTEMS); \
-	do \
-	    $(MAKE) -C $$system DEBUG=$(DEBUG) strip; \
-	done
-
 binaries: env
 	@for system in $(SYSTEMS); \
 	do \

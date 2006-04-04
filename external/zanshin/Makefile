@@ -27,7 +27,7 @@ zanshin-$(VERSION)-expanded: zanshin-$(VERSION).tar.gz
 
 expand: zanshin-$(VERSION)-expanded
 
-binaries: strip
+binaries: 
 	cd $(BUILD_ROOT); \
       find $(SNAP)/$(SITE)/zanshin -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/zanshin -name "*.pyo" | xargs rm -f; \

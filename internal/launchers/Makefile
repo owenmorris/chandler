@@ -3,7 +3,6 @@ include ../Makefile.inc
 
 RELVER=0.7-$(BRANCH_REV_PREFIX)1
 LAUNCHERS=$(INTERNAL)/launchers
-SRC=$(LAUNCHERS)
 TARBALL=Launchers-$(SNAP)-$(RELVER).tar.gz
 BUILD=build_$(SNAP)
 
@@ -80,7 +79,7 @@ MANIFEST=$(SNAP)/Run* \
          $(LAUNCHER_FILES) \
          $(LIB_FILES)
 
-snap: strip
+snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(LAUNCHERS)/$(TARBALL) $(MANIFEST)
 

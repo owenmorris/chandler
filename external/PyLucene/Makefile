@@ -3,7 +3,6 @@ VERSION=2.0rc1-1
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-src-$(VERSION)
-BUILD=$(SNAP)
 TARBALL=PyLucene-$(SNAP)-$(RELVER).tar.gz
 
 DB_VER=4.4.20
@@ -127,7 +126,7 @@ test:
 clean:
 	$(MAKE) -C $(SRC) clean
 
-binaries: strip
+binaries: 
 	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) $(MANIFEST)
 
 install: $(TARBALL)

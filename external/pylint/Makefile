@@ -51,7 +51,7 @@ binaries-common:
 binaries-astng:
 	$(MAKE) -C astng DEBUG=$(DEBUG) binaries
 
-binaries: binaries-common binaries-astng  strip
+binaries: binaries-common binaries-astng
 	cd $(BUILD_ROOT); \
     find $(SNAP)/$(SITE)/pylint -name "*.pyc" | xargs rm -f; \
     find $(SNAP)/$(SITE)/pylint -name "*.pyo" | xargs rm -f; \

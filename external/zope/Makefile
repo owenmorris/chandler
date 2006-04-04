@@ -33,7 +33,7 @@ ZopeInterface-$(VERSION)-expanded: ZopeInterface-$(VERSION).tgz
 
 expand: ZopeInterface-$(VERSION)-expanded
 
-binaries: strip
+binaries: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/zope -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/zope -name "*.pyo" | xargs rm -f; \

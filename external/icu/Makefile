@@ -7,19 +7,19 @@ TARBALL=icu-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
-BUILD=build_$(SNAP)
+BUILD=$(SRC)/build_$(SNAP)
 
 ifeq ($(OS),Cygwin)
 
 build: expand compile installext
 
 compile:
-	mkdir -p $(SRC)/$(BUILD)/lib $(SRC)/$(BUILD)/bin $(SRC)/$(BUILD)/exe
+	mkdir -p $(BUILD)/lib $(BUILD)/bin $(BUILD)/exe
 	cd $(SRC)/icu/source/allinone; MAKEFLAGS=; \
         devenv.com allinone.sln /build $(Snap)
-	tar -C $(SRC)/icu/lib -cf - . | tar -C $(SRC)/$(BUILD)/lib -xvf -
-	(cd $(SRC)/icu/bin; tar -cf - *.exe) | tar -C $(SRC)/$(BUILD)/exe -xvf -
-	(cd $(SRC)/icu/bin; tar -cf - *.dll) | tar -C $(SRC)/$(BUILD)/bin -xvf -
+	tar -C $(SRC)/icu/lib -cf - . | tar -C $(BUILD)/lib -xvf -
+	(cd $(SRC)/icu/bin; tar -cf - *.exe) | tar -C $(BUILD)/exe -xvf -
+	(cd $(SRC)/icu/bin; tar -cf - *.dll) | tar -C $(BUILD)/bin -xvf -
 	rm -f $(SRC)/icu/lib/* $(SRC)/icu/bin/*
 
 installext:
@@ -30,11 +30,11 @@ installext:
 	tar -C $(BUILD)/exe -cf - . | tar -C $(PREFIX)/bin/icu -xvf -
 
 clean:
-	rm -rf $(SRC)/$(BUILD)
+	rm -rf $(BUILD)
 	cd $(SRC)/icu/source/allinone; MAKEFLAGS=; \
         devenv.com allinone.sln /clean $(Snap)
 
-binaries: strip
+binaries: 
 	cd $(BUILD_ROOT); \
       tar -cvzf $(ICU)/$(TARBALL) \
           $(SNAP)/bin/icu*.dll \
@@ -56,20 +56,19 @@ ifeq ($(OS),Linux)
 CONF_RUN=LinuxRedHat
 endif
 
-$(SRC)/$(BUILD)/Makefile:
-	mkdir -p $(SRC)/$(BUILD)
-	cd $(SRC)/$(BUILD); \
+$(BUILD)/Makefile:
+	mkdir -p $(BUILD)
+	cd $(BUILD); \
       $(SRC)/icu/source/runConfigureICU \
           $(CONF_RUN) --prefix=$(PREFIX)/icu $(CONF_DBG)
 
-build: expand $(SRC)/$(BUILD)/Makefile
-	$(MAKE) -C $(SRC)/$(BUILD)
-	$(MAKE) -C $(SRC)/$(BUILD) install
+build: expand $(BUILD)/Makefile
+	cd $(BUILD); $(MAKE); $(MAKE) install
 
 clean:
-	rm -rf $(SRC)/$(BUILD)
+	rm -rf $(BUILD)
 
-binaries: strip
+binaries:
 	cd $(BUILD_ROOT); \
       tar -cvzf $(ICU)/$(TARBALL) \
           $(SNAP)/icu/bin $(SNAP)/icu/lib

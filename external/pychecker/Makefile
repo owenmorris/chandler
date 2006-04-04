@@ -37,7 +37,7 @@ pychecker-$(VERSION)-expanded: pychecker-$(VERSION).tar.gz
 
 expand: pychecker-$(VERSION)-expanded
 
-binaries: strip
+binaries: 
 	cd $(BUILD_ROOT); \
       find $(SNAP)/$(SITE)/pychecker -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/pychecker -name "*.pyo" | xargs rm -f; \
