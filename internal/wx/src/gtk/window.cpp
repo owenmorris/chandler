@@ -2,7 +2,7 @@
 // Name:        src/gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.586 2006/04/04 14:26:57 MR Exp $
+// Id:          $Id: window.cpp,v 1.587 2006/04/04 16:40:38 vell Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -390,7 +390,7 @@ static void draw_frame( GtkWidget *widget, wxWindowGTK *win )
         gdk_draw_rectangle( widget->window, gc, FALSE,
                          dx, dy,
                          widget->allocation.width-dw-1, widget->allocation.height-dh-1 );
-        g_object_unref (G_OBJECT (gc);
+        g_object_unref (G_OBJECT (gc));
         return;
     }
 #endif // __WXUNIVERSAL__
