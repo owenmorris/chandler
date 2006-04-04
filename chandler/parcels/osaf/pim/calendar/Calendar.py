@@ -72,6 +72,10 @@ def findUID(view, uid):
     else:
         return event.getMaster()
 
+def ensureIndexed(coll):
+    if not coll.hasIndex('__adhoc__'):
+        coll.addIndex('__adhoc__', 'numeric')
+
 def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
                          endVal,   endAttrName,   endIndex,   endColl,
                          filterColl = None, filterIndex = None):

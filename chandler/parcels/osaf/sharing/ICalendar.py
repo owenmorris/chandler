@@ -27,6 +27,7 @@ import itertools
 from i18n import OSAFMessageFactory as _
 import os, logging
 import application.Globals as Globals
+import bisect
 
 FREEBUSY_WEEKS_EXPORTED = 26
 
@@ -169,6 +170,8 @@ def itemsToVObject(view, items, cal=None, filters=None):
     return cal
 
 transparencyMap = { 'confirmed' : 'BUSY', 'tentative' : 'BUSY-TENTATIVE' }
+reverseTransparencyMap = dict(zip(transparencyMap.values(), transparencyMap.keys()))
+
 
 def itemsToFreeBusy(view, start, end):
     """
@@ -643,6 +646,80 @@ _calendarEventPath = "//parcels/osaf/pim/calendar/CalendarEvent"
 _taskPath = "//parcels/osaf/pim/EventTask"
 _lobPath = "//Schema/Core/Lob"
 
+def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
+    """
+    Take a string, create or update freebusy events in busyCollection from that
+    stream.
+
+    Truncate differing existing freebusy events that overlap the start or end
+    times.
+
+    Returns (freebusystart, freebusyend, calname).
+
+    """
+    
+    newItemParent = view.findPath("//userdata")
+    eventKind = view.findPath(_calendarEventPath)
+    
+    countNew = 0
+    countUpdated = 0
+
+    freebusystart = freebusyend = None
+
+    Calendar.ensureIndexed(busyCollection)
+    
+    # iterate over calendars, usually only one, but more are allowed
+    for calendar in vobject.readComponents(text, validate=True):
+        calname = calendar.getChildValue('x_wr_calname')
+            
+        for vfreebusy in calendar.vfreebusy_list:
+            start = vfreebusy.getChildValue('dtstart')
+            end   = vfreebusy.getChildValue('dtend')
+            if freebusystart is None or freebusystart > start:
+                freebusystart = start
+            if freebusyend is None or freebusyend < end:
+                freebusyend = end
+
+            # create a list of busy blocks tuples sorted by start time
+            busyblocks = []
+            for fb in vfreebusy.freebusy_list:
+                status = getattr(fb, 'fbtype_param', 'BUSY').upper()
+                for blockstart, duration in fb.value:
+                    blockstart = translateToTimezone(blockstart, ICUtzinfo.default)
+                    bisect.insort(busyblocks, (blockstart, duration, status))
+            
+            # eventsInRange sorts by start time, recurring events aren't allowed
+            # so we don't bother to fetch them
+            existing = Calendar.eventsInRange(view, start, end, busyCollection)
+            existing = itertools.chain(existing, [None])
+
+            oldEvent = existing.next()
+            for blockstart, duration, status in busyblocks:
+                while oldEvent is not None and oldEvent.startTime < blockstart:
+                    # this assumes no freebusy blocks overlap freebusystart
+                    oldEvent.delete()
+                    oldEvent = existing.next()
+                if oldEvent is not None and oldEvent.startTime == blockstart:
+                    oldEvent.transparency = reverseTransparencyMap[status]
+                    oldEvent.duration = duration
+                    countUpdated += 1
+                    oldEvent = existing.next()
+                else:
+                    vals = { 'startTime'    : blockstart,
+                             'transparency' : reverseTransparencyMap[status],
+                             'duration'     : duration,
+                             'isFreeBusy'   : True,
+                             'anyTime'      : False,
+                             'displayName'  : '' }
+                    eventItem = eventKind.newItem(None, newItemParent, **vals)
+                    busyCollection.add(eventItem)
+                    countNew += 1
+
+    logger.info("...iCalendar import of %d new freebusy blocks, %d updated" % \
+     (countNew, countUpdated))
+    
+    return freebusystart, freebusyend, calname
+
 class ICalendarFormat(Sharing.ImportExportFormat):
 
     schema.kindInfo(displayName=u"iCalendar Import/Export Format Kind")
@@ -762,6 +839,36 @@ class FreeBusyFileFormat(ICalendarFormat):
         cal = itemsToFreeBusy(self.itsView, start,
                               start + FREEBUSY_WEEKS_EXPORTED * 7 * oneDay)
         return cal.serialize().encode('utf-8')
+
+    def importProcess(self, text, extension=None, item=None, changes=None,
+                      previousView=None, updateCallback=None):
+        # the item parameter is so that a share item can be passed in for us
+        # to populate.
+
+        # An ICalendar file doesn't have any 'share' info, just the collection
+        # of events, etc.  Therefore, we want to actually populate the share's
+        # 'contents':
+
+        view = self.itsView
+
+        if item is None:
+            item = SmartCollection(itsView=view)
+        elif isinstance(item, Sharing.Share):                        
+            if item.contents is None:
+                item.contents = \
+                    SmartCollection(itsView=view)
+            item = item.contents
+
+        # something should be done with start and end, eventually
+        start, end, calname = updateFreebusyFromVObject(view, text, item, 
+                                                        updateCallback)
+
+        if getattr(item, 'displayName', "") == "":
+            if calname is None:
+                calname = _(u"Imported Free-busy")
+            item.displayName = unicode(calname)
+
+        return item
 
 
 class ImportError(Exception):

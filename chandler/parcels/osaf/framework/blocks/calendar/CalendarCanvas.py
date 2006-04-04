@@ -783,12 +783,9 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             return
 
     def EnsureIndexes(self):
-        events = self.contents
         # events needs to have an index or iterindexkeys will load items,
         # is that true?
-        if not events.hasIndex('__adhoc__'):
-            events.addIndex('__adhoc__', 'numeric')
-
+        Calendar.ensureIndexed(self.contents)
 
     def setContentsOnBlock(self, *args, **kwds):
         super(CalendarBlock, self).setContentsOnBlock(*args, **kwds)

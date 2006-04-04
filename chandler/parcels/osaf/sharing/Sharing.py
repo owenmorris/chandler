@@ -1964,7 +1964,7 @@ class SimpleHTTPConduit(WebDAVConduit):
         view = self.itsView
         changes = localChanges(view, prevVersion, view.itsVersion)
 
-        location = self.getLocation()
+        location = self.getLocation(privilege='readonly')
         if updateCallback and updateCallback(msg=_(u"Checking for update: '%(location)s'") % { 'location' : location } ):
             raise SharingError(_(u"Cancelled by user"))
 

@@ -496,17 +496,16 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                 ticket = value.encode('utf8')
                 break
 
+    # Get the parent directory of the given path:
+    # '/dev1/foo/bar' becomes ['dev1', 'foo']
+    pathList = path.strip(u'/').split(u'/')
+    parentPath = pathList[:-1]
+    # ['dev1', 'foo'] becomes "dev1/foo"
+    parentPath = u"/".join(parentPath)
+
     if ticket:
         account = None
-
-        # Get the parent directory of the given path:
-        # '/dev1/foo/bar' becomes ['dev1', 'foo']
-        pathList = path.strip(u'/').split(u'/')
-        parentPath = pathList[:-1]
-        # ['dev1', 'foo'] becomes "dev1/foo"
-        parentPath = u"/".join(parentPath)
         shareName = pathList[-1]
-
     else:
         account = WebDAVAccount.findMatchingAccount(view, url)
 
@@ -520,12 +519,6 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
 
         if account is None:
             # Prompt user for account information then create an account
-
-            # Get the parent directory of the given path:
-            # '/dev1/foo/bar' becomes ['dev1', 'foo']
-            parentPath = path.strip(u'/').split(u'/')[:-1]
-            # ['dev1', 'foo'] becomes "dev1/foo"
-            parentPath = u"/".join(parentPath)
 
             if accountInfoCallback:
                 # Prompt the user for username/password/description:
@@ -580,6 +573,44 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
 
             if updateCallback:
                 updateCallback(msg=_(u"Subscribing to calendar..."))
+
+            try:
+                share.get(updateCallback=callback)
+
+                try:
+                    share.contents.shares.append(share, 'main')
+                except ValueError:
+                    # There is already a 'main' share for this collection
+                    share.contents.shares.append(share)
+
+                return share.contents
+
+            except Exception, err:
+                logger.exception("Failed to subscribe to %s", url)
+                share.delete(True)
+                raise
+
+        # Shortcut: similarly, if it's a .ifb file we're subscribing to, it's
+        # read-only
+
+        elif path.endswith(".ifb"):
+            share = Share(itsView=view)
+            share.format = FreeBusyFileFormat(itsParent=share)
+            share.conduit = SimpleHTTPConduit(itsParent=share,
+                                              host=host,
+                                              port=port,
+                                              useSSL=useSSL,                                              
+                                              shareName=shareName,
+                                              sharePath=parentPath,
+                                              account=account)
+            if ticket:
+                share.conduit.ticketReadOnly = ticket
+            share.mode = "get"
+            share.filterClasses = \
+                ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
+
+            if updateCallback:
+                updateCallback(msg=_(u"Subscribing to freebusy..."))
 
             try:
                 share.get(updateCallback=callback)
