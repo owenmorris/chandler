@@ -2,7 +2,7 @@
 // Name:        app.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: app.cpp,v 1.222 2006/04/04 13:13:03 MR Exp $
+// Id:          $Id: app.cpp,v 1.223 2006/04/04 19:44:27 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -555,18 +555,8 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
     bool init_result;
 
 #if wxUSE_THREADS
-    // GTK 1.2 up to version 1.2.3 has broken threads
-    if ((gtk_major_version == 1) &&
-        (gtk_minor_version == 2) &&
-        (gtk_micro_version < 4))
-    {
-        printf( "wxWidgets warning: GUI threading disabled due to outdated GTK version\n" );
-    }
-    else
-    {
-        if (!g_thread_supported())
-            g_thread_init(NULL);
-    }
+    if (!g_thread_supported())
+        g_thread_init(NULL);
 #endif // wxUSE_THREADS
 
     gtk_set_locale();

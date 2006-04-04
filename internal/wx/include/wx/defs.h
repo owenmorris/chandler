@@ -4,7 +4,7 @@
 *  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
-*  RCS-ID:      $Id: defs.h,v 1.534 2006/03/28 11:02:23 ABX Exp $
+*  RCS-ID:      $Id: defs.h,v 1.535 2006/04/04 19:34:38 MR Exp $
 *  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -2879,6 +2879,7 @@ typedef GtkWidget *WXWidget;
 #ifdef __WXGTK20__
 #define G_DISABLE_DEPRECATED
 #define PANGO_DISABLE_DEPRECATED
+#define GDK_PIXBUF_DISABLE_DEPRECATED
 #ifndef __VMS
 /* GtkCombo is not defined on VMS if this is defined */
 # define GTK_DISABLE_DEPRECATED
