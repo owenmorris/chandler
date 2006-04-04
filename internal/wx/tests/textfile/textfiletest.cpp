@@ -3,7 +3,7 @@
 // Purpose:     wxTextFile unit test
 // Author:      Vadim Zeitlin
 // Created:     2006-03-31
-// RCS-ID:      $Id: textfiletest.cpp,v 1.6 2006/04/02 20:18:33 VZ Exp $
+// RCS-ID:      $Id: textfiletest.cpp,v 1.7 2006/04/04 14:25:59 VZ Exp $
 // Copyright:   (c) 2006 Vadim Zeitlin
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -185,7 +185,7 @@ void TextFileTestCase::ReadUTF16()
                    "\x40\x04\x38\x04\x32\x04\x35\x04\x42\x04");
 
     wxTextFile f;
-    wxMBConvUTF16 conv;
+    wxMBConvUTF16LE conv;
     CPPUNIT_ASSERT( f.Open(wxString::FromAscii(GetTestFileName()), conv) );
 
     CPPUNIT_ASSERT_EQUAL( (size_t)2, f.GetLineCount() );

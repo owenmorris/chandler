@@ -4,7 +4,7 @@
 // Author:      Robert Roebling, Ove Kaaven
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.h,v 1.47 2006/04/02 14:59:52 VZ Exp $
+// RCS-ID:      $Id: strconv.h,v 1.50 2006/04/04 13:04:43 VZ Exp $
 // Copyright:   (c) 1998 Ove Kaaven, Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,31 +28,59 @@
 
 #if wxUSE_WCHAR_T
 
+// the error value returned by wxMBConv methods
+#define wxCONV_FAILED ((size_t)-1)
+
 // ----------------------------------------------------------------------------
 // wxMBConv (abstract base class for conversions)
 // ----------------------------------------------------------------------------
 
+// When deriving a new class from wxMBConv you must reimplement ToWChar() and
+// FromWChar() methods which are not pure virtual only for historical reasons,
+// don't let the fact that the existing classes implement MB2WC/WC2MB() instead
+// confuse you.
+//
+// And you might need to override GetMBNulLen() as well.
 class WXDLLIMPEXP_BASE wxMBConv
 {
 public:
-    // The functions doing actual conversion. On success, the return value is
-    // the length (i.e. the number of characters, not bytes, and not counting
-    // the trailing L'\0') of the converted string. On failure, (size_t)-1 is
-    // returned. In the special case when outputBuf is NULL the return value is
-    // the same one but nothing is written to the buffer.
+    // The functions doing actual conversion from/to narrow to/from wide
+    // character strings.
     //
-    // Note that outLen is the length of the output buffer, not the length of
-    // the input (which is always supposed to be terminated by one or more
-    // NULs, as appropriate for the encoding)!
-    virtual size_t MB2WC(wchar_t *out, const char *in, size_t outLen) const = 0;
-    virtual size_t WC2MB(char *out, const wchar_t *in, size_t outLen) const = 0;
+    // On success, the return value is the length (i.e. the number of
+    // characters, not bytes) of the converted string including any trailing
+    // L'\0' or (possibly multiple) '\0'(s). If the conversion fails or if
+    // there is not enough space for everything, including the trailing NUL
+    // character(s), in the output buffer, (size_t)-1 is returned.
+    //
+    // In the special case when dstLen is 0 (outputBuf may be NULL then) the
+    // return value is the length of the needed buffer but nothing happens
+    // otherwise. If srcLen is -1, the entire string, up to and including the
+    // trailing NUL(s), is converted, otherwise exactly srcLen bytes are.
+    //
+    // Typical usage:
+    //
+    //          size_t dstLen = conv.ToWChar(NULL, 0, src);
+    //          if ( dstLen != wxCONV_FAILED )
+    //              ... handle error ...
+    //          wchar_t *wbuf = new wchar_t[dstLen];
+    //          conv.ToWChar(wbuf, dstLen, src);
+    //
+    virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
+                           const char *src, size_t srcLen = -1) const;
 
-    // MB <-> WC
+    virtual size_t FromWChar(char *dst, size_t dstLen,
+                             const wchar_t *src, size_t srcLen = -1) const;
+
+
+    // Convenience functions for translating NUL-terminated strings: returns
+    // the buffer containing the converted string or NULL pointer if the
+    // conversion failed.
     const wxWCharBuffer cMB2WC(const char *in) const;
     const wxCharBuffer cWC2MB(const wchar_t *in) const;
 
-    // Functions converting strings which may contain embedded NULs and don't
-    // have to be NUL-terminated.
+    // Convenience functions for converting strings which may contain embedded
+    // NULs and don't have to be NUL-terminated.
     //
     // inLen is the length of the buffer including trailing NUL if any: if the
     // last 4 bytes of the buffer are all NULs, these functions are more
@@ -81,10 +109,6 @@ public:
     const wxWCharBuffer cWX2WC(const char *psz) const { return cMB2WC(psz); }
 #endif // Unicode/ANSI
 
-    // virtual dtor for any base class
-    virtual ~wxMBConv();
-
-private:
     // this function is used in the implementation of cMB2WC() to distinguish
     // between the following cases:
     //
@@ -96,7 +120,35 @@ private:
     //         4 NULs (UTF-32/UCS-4 and variants): return 4 in this case
     //
     // anything else is not supported currently and -1 should be returned
-    virtual size_t GetMinMBCharWidth() const { return 1; }
+    virtual size_t GetMBNulLen() const { return 1; }
+
+    // return the maximal value currently returned by GetMBNulLen() for any
+    // encoding
+    static size_t GetMaxMBNulLen() { return 4 /* for UTF-32 */; }
+
+
+    // The old conversion functions. The existing classes currently mostly
+    // implement these ones but we're in transition to using To/FromWChar()
+    // instead and any new classes should implement just the new functions.
+    // For now, however, we provide default implementation of To/FromWChar() in
+    // this base class in terms of MB2WC/WC2MB() to avoid having to rewrite all
+    // the conversions at once.
+    //
+    // On success, the return value is the length (i.e. the number of
+    // characters, not bytes) not counting the trailing NUL(s) of the converted
+    // string. On failure, (size_t)-1 is returned. In the special case when
+    // outputBuf is NULL the return value is the same one but nothing is
+    // written to the buffer.
+    //
+    // Note that outLen is the length of the output buffer, not the length of
+    // the input (which is always supposed to be terminated by one or more
+    // NULs, as appropriate for the encoding)!
+    virtual size_t MB2WC(wchar_t *out, const char *in, size_t outLen) const;
+    virtual size_t WC2MB(char *out, const wchar_t *in, size_t outLen) const;
+
+
+    // virtual dtor for any base class
+    virtual ~wxMBConv();
 };
 
 // ----------------------------------------------------------------------------
@@ -136,14 +188,13 @@ public:
         return m_conv->WC2MB(out, in, outLen);
     }
 
-private:
-    virtual size_t GetMinMBCharWidth() const
+    virtual size_t GetMBNulLen() const
     {
         // cast needed to call a private function
-        return ((wxConvBrokenFileNames *)m_conv)->GetMinMBCharWidth();
+        return m_conv->GetMBNulLen();
     }
 
-
+private:
     // the conversion object we forward to
     wxMBConv *m_conv;
 };
@@ -188,8 +239,8 @@ private:
 
 class WXDLLIMPEXP_BASE wxMBConvUTF16Base : public wxMBConv
 {
-private:
-    virtual size_t GetMinMBCharWidth() const { return 2; }
+public:
+    virtual size_t GetMBNulLen() const { return 2; }
 };
 
 // ----------------------------------------------------------------------------
@@ -220,8 +271,8 @@ public:
 
 class WXDLLIMPEXP_BASE wxMBConvUTF32Base : public wxMBConv
 {
-private:
-    virtual size_t GetMinMBCharWidth() const { return 4; }
+public:
+    virtual size_t GetMBNulLen() const { return 4; }
 };
 
 // ----------------------------------------------------------------------------
@@ -267,6 +318,7 @@ public:
 
     virtual size_t MB2WC(wchar_t *outputBuf, const char *psz, size_t outputSize) const;
     virtual size_t WC2MB(char *outputBuf, const wchar_t *psz, size_t outputSize) const;
+    virtual size_t GetMBNulLen() const;
 
     void Clear() ;
 
@@ -283,8 +335,6 @@ private:
     // set the name (may be only called when m_name == NULL), makes copy of
     // charset string
     void SetName(const wxChar *charset);
-
-    virtual size_t GetMinMBCharWidth() const;
 
 
     // note that we can't use wxString here because of compilation
