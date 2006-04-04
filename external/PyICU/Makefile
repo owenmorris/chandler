@@ -1,6 +1,6 @@
 
-VERSION=0.4-$(SVNVER)
-SVNVER=55
+VERSION=0.5-$(SVNVER)
+SVNVER=58
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYICU=$(BUILD_ROOT)/PyICU
 SRC=$(PYICU)/PyICU-$(VERSION)
@@ -18,9 +18,7 @@ SUFFIX=
 _SUFFIX=
 endif
 PREFIX_PYTHON=$(PREFIX)/bin
-MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU$(_SUFFIX).pyd \
-         $(SNAP)/$(SITE)/PyICU_*.py $(SNAP)/$(SITE)/_PyICU_*$(_SUFFIX).pyd \
-         $(SNAP)/$(SITE)/libPyICU$(SUFFIX).dll
+MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU$(_SUFFIX).pyd
 
 build: expand
 	$(MAKE) -C $(SRC) \
@@ -36,9 +34,7 @@ else
 ifeq ($(OS),Darwin)
 PREFIX_PYTHON=$(PREFIX)/$(FRAMEWORK)
 
-MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU.so \
-         $(SNAP)/$(SITE)/PyICU_*.py $(SNAP)/$(SITE)/_PyICU_*.so \
-         $(SNAP)/lib/libPyICU$(SUFFIX).dylib
+MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU.so
 
 build: expand
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
@@ -54,9 +50,7 @@ else
 
 ifeq ($(OS),Linux)
 PREFIX_PYTHON=$(PREFIX)
-MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU.so \
-         $(SNAP)/$(SITE)/PyICU_*.py $(SNAP)/$(SITE)/_PyICU_*.so \
-         $(SNAP)/lib/libPyICU$(SUFFIX).so
+MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU.so
 
 build: expand
 	$(MAKE) -C $(SRC) \
@@ -85,8 +79,6 @@ PyICU-$(VERSION)-expanded:
 	touch PyICU-$(VERSION)-expanded
 
 expand: PyICU-$(VERSION)-expanded
-	tar -C swig-1.3.24 -cf - \
-            --exclude .svn . | tar -C PyICU-$(VERSION) -xvf -
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
