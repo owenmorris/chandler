@@ -1601,9 +1601,10 @@ class CalendarControl(CalendarBlock):
         if hasattr(self, 'widget'):
             self.widget.Refresh()
 
-    def onTZPrefChange(self, op, item, names):
+    def onTZPrefChange(self, op, uuid, names):
         if 'showUI' in names:
-            self.widget.tzChoice.Show(item.showUI)
+            prefs = self.itsView.findUUID(uuid)
+            self.widget.tzChoice.Show(prefs.showUI)
             self.widget.Layout()
 
 class wxCalendarControl(wx.Panel, CalendarEventHandler):
