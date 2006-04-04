@@ -274,7 +274,7 @@ def changesInSVN(workingDir, log):
             outputList = hardhatutil.executeCommandReturnOutputRetry(['python', os.path.join('tools', 'purge.py')])
 
             hardhatutil.dumpOutputList(outputList, log)
- 
+
         outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "up"])
 
         revisionsDict[module] = determineRevision(outputList)
@@ -283,7 +283,7 @@ def changesInSVN(workingDir, log):
 
         if NeedsUpdate(outputList):
             changesDict[module] = True
-	    log.write("%s needs updating\n" % module)
+            log.write("%s needs updating\n" % module)
         else:
             log.write("%s unchanged\n" % module)
 
@@ -357,6 +357,8 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
             print module, "..."
             log.write("- - - - " + module + " - - - - - - -\n")
 
+            makeTargets = dbgStr + " " + clean + " world"
+
             if module == 'external' and not svnChanges['external']:
                 print 'Nothing to be done for module', module
                 log.write('Nothing to be done for module ' + module + '\n')
@@ -367,25 +369,24 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
                 log.write('Nothing to be done for module ' + module + '\n')
                 log.write(separator)
                 continue
-            if module == 'chandler':
-                print 'Nothing to be done for module', module
-                log.write('Nothing to be done for module ' + module + '\n')
-                log.write(separator)
-                continue
+            if module == 'chandler' and not svnChanges['external'] and not svnChanges['internal']:
+                # If external or internal had changes they will already do this
+                # so we only need to do this if we had changes only in chandler/
+                makeTargets = dbgStr + " " + clean + " install purge"
 
             moduleDir = os.path.join(workingDir, module)
             print "cd", moduleDir
             log.write("cd " + moduleDir + "\n")
             os.chdir(moduleDir)
 
-            print "Doing make " + dbgStr + " " + clean + " world\n"
-            log.write("Doing make " + dbgStr + " " + clean + " world\n")
+            print "Doing make " + makeTargets + "\n"
+            log.write("Doing make " + makeTargets + "\n")
 
-            outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, clean, "world"])
+            outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], makeTargets])
             hardhatutil.dumpOutputList(outputList, log)
 
             log.write(separator)
-            
+
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "build error"
         log.write("***Error during build***\n")
