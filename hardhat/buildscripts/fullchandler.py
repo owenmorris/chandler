@@ -357,8 +357,6 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
             print module, "..."
             log.write("- - - - " + module + " - - - - - - -\n")
 
-            makeTargets = dbgStr + " " + clean + " world"
-
             if module == 'external' and not svnChanges['external']:
                 print 'Nothing to be done for module', module
                 log.write('Nothing to be done for module ' + module + '\n')
@@ -369,10 +367,13 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
                 log.write('Nothing to be done for module ' + module + '\n')
                 log.write(separator)
                 continue
-            if module == 'chandler' and not svnChanges['external'] and not svnChanges['internal']:
-                # If external or internal had changes they will already do this
-                # so we only need to do this if we had changes only in chandler/
+
+            # we get here only if the module is chandler or if changes have occurred
+            # in external or internal
+            if module == 'chandler':
                 makeTargets = dbgStr + " " + clean + " install purge"
+            else:
+                makeTargets = dbgStr + " " + clean + " world"
 
             moduleDir = os.path.join(workingDir, module)
             print "cd", moduleDir
