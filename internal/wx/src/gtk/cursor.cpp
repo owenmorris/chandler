@@ -2,7 +2,7 @@
 // Name:        cursor.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: cursor.cpp,v 1.51 2006/04/04 14:05:59 MR Exp $
+// Id:          $Id: cursor.cpp,v 1.52 2006/04/04 18:19:55 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@ wxCursorRefData::wxCursorRefData()
 
 wxCursorRefData::~wxCursorRefData()
 {
-    if (m_cursor) gdk_cursor_destroy( m_cursor );
+    if (m_cursor) gdk_cursor_unref( m_cursor );
 }
 
 //-----------------------------------------------------------------------------

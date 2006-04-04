@@ -2,7 +2,7 @@
 // Name:        src/gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.587 2006/04/04 16:40:38 vell Exp $
+// Id:          $Id: window.cpp,v 1.589 2006/04/04 17:50:58 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -269,7 +269,7 @@ gdk_window_warp_pointer (GdkWindow      *window,
                          gint            y)
 {
   if (!window)
-    window = GDK_ROOT_PARENT();
+    window = gdk_get_default_root_window();
 
   if (!GDK_WINDOW_DESTROYED(window))
   {
@@ -2326,7 +2326,7 @@ void gtk_wxwindow_size_callback( GtkWidget* WXUNUSED_UNLESS_XIM(widget),
     {
         gint width, height;
 
-        gdk_window_get_size (widget->window, &width, &height);
+        gdk_drawable_get_size (widget->window, &width, &height);
         win->m_icattr->preedit_area.width = width;
         win->m_icattr->preedit_area.height = height;
         gdk_ic_set_attr (win->m_ic, win->m_icattr, GDK_IC_PREEDIT_AREA);
@@ -2397,7 +2397,7 @@ gtk_wxwindow_realized_callback( GtkWidget * WXUNUSED_UNLESS_XIM(widget),
                 break;
             }
 
-            gdk_window_get_size (widget->window, &width, &height);
+            gdk_drawable_get_size (widget->window, &width, &height);
 
             attrmask |= GDK_IC_PREEDIT_POSITION_REQ;
             attr->spot_location.x = 0;
@@ -4418,7 +4418,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxWinModule, wxModule)
 
 bool wxWinModule::OnInit()
 {
-    // g_eraseGC = gdk_gc_new( GDK_ROOT_PARENT() );
+    // g_eraseGC = gdk_gc_new( gdk_get_default_root_window() );
     // gdk_gc_set_fill( g_eraseGC, GDK_SOLID );
 
     return true;

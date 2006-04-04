@@ -2,7 +2,7 @@
 // Name:        dnd.cpp
 // Purpose:     wxDropTarget class
 // Author:      Robert Roebling
-// Id:          $Id: dnd.cpp,v 1.104 2006/03/21 14:16:16 VZ Exp $
+// Id:          $Id: dnd.cpp,v 1.105 2006/04/04 17:19:41 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -797,7 +797,7 @@ void wxDropSource::PrepareIcon( int action, GdkDragContext *context )
     GdkPixmap *pixmap = icon->GetPixmap();
 
     gint width,height;
-    gdk_window_get_size (pixmap, &width, &height);
+    gdk_drawable_get_size (pixmap, &width, &height);
 
     GdkColormap *colormap = gtk_widget_get_colormap( m_widget );
     gtk_widget_push_colormap (colormap);

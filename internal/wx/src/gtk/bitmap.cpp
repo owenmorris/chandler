@@ -2,7 +2,7 @@
 // Name:        src/gtk/bitmap.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: bitmap.cpp,v 1.107 2006/04/04 15:06:55 MR Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.108 2006/04/04 17:19:41 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -346,7 +346,7 @@ bool wxBitmap::CreateFromXpm( const char **bits )
         M_BMPDATA->m_mask->m_bitmap = mask;
     }
 
-    gdk_window_get_size( M_BMPDATA->m_pixmap, &(M_BMPDATA->m_width), &(M_BMPDATA->m_height) );
+    gdk_drawable_get_size( M_BMPDATA->m_pixmap, &(M_BMPDATA->m_width), &(M_BMPDATA->m_height) );
 
     M_BMPDATA->m_bpp = visual->depth;  // Can we get a different depth from create_from_xpm_d() ?
 
@@ -1339,7 +1339,7 @@ bool wxBitmap::LoadFile( const wxString &name, wxBitmapType type )
            M_BMPDATA->m_mask->m_bitmap = mask;
         }
 
-        gdk_window_get_size( M_BMPDATA->m_pixmap, &(M_BMPDATA->m_width), &(M_BMPDATA->m_height) );
+        gdk_drawable_get_size( M_BMPDATA->m_pixmap, &(M_BMPDATA->m_width), &(M_BMPDATA->m_height) );
 
         M_BMPDATA->m_bpp = visual->depth;
     }

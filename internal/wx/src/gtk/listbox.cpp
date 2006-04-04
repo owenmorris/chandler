@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Modified By: Ryan Norton (GtkTreeView implementation)
-// Id:          $Id: listbox.cpp,v 1.175 2006/03/23 22:04:56 VZ Exp $
+// Id:          $Id: listbox.cpp,v 1.176 2006/04/04 18:56:39 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1054,7 +1054,7 @@ void wxListBox::DoApplyWidgetStyle(GtkRcStyle *style)
         GdkWindow *window = gtk_tree_view_get_bin_window(m_treeview);
         if (window)
         {
-            m_backgroundColour.CalcPixel( gdk_window_get_colormap( window ) );
+            m_backgroundColour.CalcPixel( gdk_drawable_get_colormap( window ) );
             gdk_window_set_background( window, m_backgroundColour.GetColor() );
             gdk_window_clear( window );
         }

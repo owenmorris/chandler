@@ -2,7 +2,7 @@
 // Name:        dcscreen.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: dcscreen.cpp,v 1.27 2006/01/22 20:29:14 MR Exp $
+// Id:          $Id: dcscreen.cpp,v 1.28 2006/04/04 17:50:58 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ wxScreenDC::wxScreenDC()
 {
     m_ok = FALSE;
     m_cmap = gdk_colormap_get_system();
-    m_window = GDK_ROOT_PARENT();
+    m_window = gdk_get_default_root_window();
 
     m_context = gdk_pango_context_get();
     // Note: The Sun customised version of Pango shipping with Solaris 10
