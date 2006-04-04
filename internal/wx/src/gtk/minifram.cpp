@@ -2,7 +2,7 @@
 // Name:        src/gtk/minifram.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: minifram.cpp,v 1.44 2006/03/09 13:36:51 VZ Exp $
+// Id:          $Id: minifram.cpp,v 1.47 2006/04/04 14:26:57 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,7 @@ static void DrawFrame( GtkWidget *widget, int x, int y, int w, int h )
     gdk_gc_set_function( gc, GDK_INVERT );
 
     gdk_draw_rectangle( GDK_ROOT_PARENT(), gc, FALSE, x, y, w, h );
-    gdk_gc_unref( gc );
+    g_object_unref (G_OBJECT (gc));
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ static void gtk_window_own_expose_callback( GtkWidget *widget, GdkEventExpose *g
                             3,
                             win->m_width - 7,
                             height+1 );
-        gdk_gc_unref( gc );
+        g_object_unref (G_OBJECT (gc));
 
         // Hack alert
         dc.m_window = pizza->bin_window;
@@ -290,8 +290,8 @@ bool wxMiniFrame::Create( wxWindow *parent, wxWindowID id, const wxString &title
                             );
 
         GtkWidget *pw = gtk_pixmap_new( pixmap, mask );
-        gdk_bitmap_unref( mask );
-        gdk_pixmap_unref( pixmap );
+        g_object_unref (G_OBJECT (mask));
+        g_object_unref (G_OBJECT (pixmap));
         gtk_widget_show( pw );
 
         GtkWidget *close_button = gtk_button_new();

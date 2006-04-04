@@ -2,7 +2,7 @@
 // Name:        gtk/dcclient.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dcclient.cpp,v 1.211 2006/01/22 20:29:14 MR Exp $
+// RCS-ID:      $Id: dcclient.cpp,v 1.216 2006/04/04 14:26:56 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Chris Breeze
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -171,7 +171,7 @@ static void wxCleanUpGCPool()
     for (int i = 0; i < wxGCPoolSize; i++)
     {
         if (wxGCPool[i].m_gc)
-            gdk_gc_unref( wxGCPool[i].m_gc );
+            g_object_unref (G_OBJECT (wxGCPool[i].m_gc));
     }
 
     free(wxGCPool);
@@ -1125,7 +1125,7 @@ void wxWindowDC::DoDrawBitmap( const wxBitmap &bitmap,
             gdk_gc_set_fill( gc, GDK_OPAQUE_STIPPLED );
             gdk_gc_set_stipple( gc, mask );
             gdk_draw_rectangle( new_mask, gc, TRUE, 0, 0, ww, hh );
-            gdk_gc_unref( gc );
+            g_object_unref (G_OBJECT (gc));
         }
 
         if (is_mono)
@@ -1158,8 +1158,8 @@ void wxWindowDC::DoDrawBitmap( const wxBitmap &bitmap,
 
         gdk_draw_drawable( m_window, m_textGC, bitmap2, 0, 0, xx, yy, -1, -1 );
 
-        gdk_bitmap_unref( bitmap2 );
-        gdk_gc_unref( gc );
+        g_object_unref (G_OBJECT (bitmap2));
+        g_object_unref (G_OBJECT (gc));
     }
     else
     {
@@ -1174,9 +1174,9 @@ void wxWindowDC::DoDrawBitmap( const wxBitmap &bitmap,
         else
 #endif
         {
-            gdk_draw_pixmap(m_window, m_penGC,
-                            use_bitmap.GetPixmap(),
-                            0, 0, xx, yy, -1, -1);
+            gdk_draw_drawable(m_window, m_penGC,
+                              use_bitmap.GetPixmap(),
+                              0, 0, xx, yy, -1, -1);
         }
     }
 
@@ -1200,7 +1200,7 @@ void wxWindowDC::DoDrawBitmap( const wxBitmap &bitmap,
     }
 
     if (new_mask)
-        gdk_bitmap_unref( new_mask );
+        g_object_unref (G_OBJECT (new_mask));
 }
 
 bool wxWindowDC::DoBlit( wxCoord xdest, wxCoord ydest,
@@ -1368,7 +1368,7 @@ bool wxWindowDC::DoBlit( wxCoord xdest, wxCoord ydest,
                 gdk_gc_set_fill( gc, GDK_OPAQUE_STIPPLED );
                 gdk_gc_set_stipple( gc, mask );
                 gdk_draw_rectangle( new_mask, gc, TRUE, 0, 0, bm_ww, bm_hh );
-                gdk_gc_unref( gc );
+                g_object_unref (G_OBJECT (gc));
             }
 
             if (is_mono)
@@ -1412,13 +1412,13 @@ bool wxWindowDC::DoBlit( wxCoord xdest, wxCoord ydest,
 
             gdk_draw_drawable( m_window, m_textGC, bitmap, xsrc, ysrc, cx, cy, cw, ch );
 
-            gdk_bitmap_unref( bitmap );
-            gdk_gc_unref( gc );
+            g_object_unref (G_OBJECT (bitmap));
+            g_object_unref (G_OBJECT (gc));
         }
         else
         {
-            // was: gdk_draw_pixmap( m_window, m_penGC, use_bitmap.GetPixmap(), xsrc, ysrc, xx, yy, ww, hh );
-            gdk_draw_pixmap( m_window, m_penGC, use_bitmap.GetPixmap(), xsrc, ysrc, cx, cy, cw, ch );
+            // was: gdk_draw_drawable( m_window, m_penGC, use_bitmap.GetPixmap(), xsrc, ysrc, xx, yy, ww, hh );
+            gdk_draw_drawable( m_window, m_penGC, use_bitmap.GetPixmap(), xsrc, ysrc, cx, cy, cw, ch );
         }
 
         // remove mask again if any
@@ -1441,7 +1441,7 @@ bool wxWindowDC::DoBlit( wxCoord xdest, wxCoord ydest,
         }
 
         if (new_mask)
-            gdk_bitmap_unref( new_mask );
+            g_object_unref (G_OBJECT (new_mask));
     }
     else // use_bitmap_method
     {
@@ -1457,8 +1457,8 @@ bool wxWindowDC::DoBlit( wxCoord xdest, wxCoord ydest,
             wxBitmap bitmap = memDC->m_selected.Rescale( cx-xx, cy-yy, cw, ch, ww, hh );
 
             // draw scaled bitmap
-            // was: gdk_draw_pixmap( m_window, m_penGC, bitmap.GetPixmap(), 0, 0, xx, yy, -1, -1 );
-            gdk_draw_pixmap( m_window, m_penGC, bitmap.GetPixmap(), 0, 0, cx, cy, -1, -1 );
+            // was: gdk_draw_drawable( m_window, m_penGC, bitmap.GetPixmap(), 0, 0, xx, yy, -1, -1 );
+            gdk_draw_drawable( m_window, m_penGC, bitmap.GetPixmap(), 0, 0, cx, cy, -1, -1 );
         }
         else
         {
@@ -1466,9 +1466,10 @@ bool wxWindowDC::DoBlit( wxCoord xdest, wxCoord ydest,
 
             // copy including child window contents
             gdk_gc_set_subwindow( m_penGC, GDK_INCLUDE_INFERIORS );
-            gdk_window_copy_area( m_window, m_penGC, xx, yy,
-                                  srcDC->GetWindow(),
-                                  xsrc, ysrc, width, height );
+            gdk_draw_drawable( m_window, m_penGC,
+                               srcDC->GetWindow(),
+                               xsrc, ysrc, xx, yy,
+                               width, height );
             gdk_gc_set_subwindow( m_penGC, GDK_CLIP_BY_CHILDREN );
         }
     }

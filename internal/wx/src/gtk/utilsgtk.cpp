@@ -2,7 +2,7 @@
 // Name:        src/gtk/utilsgtk.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: utilsgtk.cpp,v 1.64 2006/01/22 20:29:17 MR Exp $
+// Id:          $Id: utilsgtk.cpp,v 1.65 2006/04/04 13:13:04 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -157,7 +157,7 @@ bool wxColourDisplay()
 
 int wxDisplayDepth()
 {
-    return gdk_window_get_visual( wxGetRootWindow()->window )->depth;
+    return gdk_drawable_get_visual( wxGetRootWindow()->window )->depth;
 }
 
 wxToolkitInfo& wxGUIAppTraits::GetToolkitInfo()

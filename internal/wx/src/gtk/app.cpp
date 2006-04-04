@@ -2,7 +2,7 @@
 // Name:        app.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: app.cpp,v 1.221 2006/03/17 14:12:44 RR Exp $
+// Id:          $Id: app.cpp,v 1.222 2006/04/04 13:13:03 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -543,7 +543,7 @@ GdkVisual *wxApp::GetGdkVisual()
     if (m_glVisualInfo)
         visual = gdkx_visual_get( ((XVisualInfo *) m_glVisualInfo)->visualid );
     else
-        visual = gdk_window_get_visual( wxGetRootWindow()->window );
+        visual = gdk_drawable_get_visual( wxGetRootWindow()->window );
 
     wxASSERT( visual );
 

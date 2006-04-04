@@ -2,7 +2,7 @@
 // Name:        src/gtk/window.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.cpp,v 1.585 2006/03/27 12:24:50 ABX Exp $
+// Id:          $Id: window.cpp,v 1.586 2006/04/04 14:26:57 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -390,7 +390,7 @@ static void draw_frame( GtkWidget *widget, wxWindowGTK *win )
         gdk_draw_rectangle( widget->window, gc, FALSE,
                          dx, dy,
                          widget->allocation.width-dw-1, widget->allocation.height-dh-1 );
-        gdk_gc_unref( gc );
+        g_object_unref (G_OBJECT (gc);
         return;
     }
 #endif // __WXUNIVERSAL__
@@ -4427,5 +4427,5 @@ bool wxWinModule::OnInit()
 void wxWinModule::OnExit()
 {
     if (g_eraseGC)
-        gdk_gc_unref( g_eraseGC );
+        g_object_unref (G_OBJECT (g_eraseGC));
 }

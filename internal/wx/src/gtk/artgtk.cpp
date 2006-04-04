@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004-08-22
-// RCS-ID:      $Id: artgtk.cpp,v 1.13 2006/01/14 18:32:36 MR Exp $
+// RCS-ID:      $Id: artgtk.cpp,v 1.14 2006/04/04 14:44:06 MR Exp $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -273,7 +273,7 @@ wxBitmap wxGTK2ArtProvider::CreateBitmap(const wxArtID& id,
                                                 GDK_INTERP_BILINEAR);
         if (p2)
         {
-            gdk_pixbuf_unref(pixbuf);
+            g_object_unref (G_OBJECT (pixbuf));
             pixbuf = p2;
         }
     }

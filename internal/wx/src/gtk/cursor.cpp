@@ -2,7 +2,7 @@
 // Name:        cursor.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: cursor.cpp,v 1.49 2006/03/09 13:36:49 VZ Exp $
+// Id:          $Id: cursor.cpp,v 1.51 2006/04/04 14:05:59 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -144,8 +144,8 @@ wxCursor::wxCursor(const char bits[], int width, int  height,
                  data, mask, fg->GetColor(), bg->GetColor(),
                  hotSpotX, hotSpotY );
 
-    gdk_bitmap_unref( data );
-    gdk_bitmap_unref( mask );
+    g_object_unref (G_OBJECT (data));
+    g_object_unref (G_OBJECT (mask));
 }
 
 #if wxUSE_IMAGE
@@ -296,8 +296,8 @@ wxCursor::wxCursor( const wxImage & image )
                                 hotSpotX, hotSpotY
                              );
 
-    gdk_bitmap_unref( data );
-    gdk_bitmap_unref( mask );
+    g_object_unref (G_OBJECT (data));
+    g_object_unref (G_OBJECT (mask));
     delete [] bits;
     delete [] maskBits;
 }
