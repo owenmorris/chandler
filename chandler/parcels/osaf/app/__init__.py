@@ -12,6 +12,21 @@ from osaf.framework import Preferences
 
 class TZPrefs(Preferences):
     showUI = schema.One(schema.Boolean, initialValue = False)
+    
+    def onValueChanged(self, attrName):
+        if attrName == 'showUI':
+            from osaf.pim.calendar.TimeZone import TimeZoneInfo
+            
+            timeZoneInfo = TimeZoneInfo.get(self.itsView)
+        
+            # Sync up the default timezone (i.e. the one used when
+            # creating new events).
+            if self.showUI:
+                timeZoneInfo.default = ICUtzinfo.default
+            else:
+                timeZoneInfo.default = ICUtzinfo.floating
+
+
 
 def installParcel(parcel, oldVersion=None):
 
@@ -103,7 +118,7 @@ def installParcel(parcel, oldVersion=None):
 
     noonToday = datetime.datetime.combine(
         datetime.date.today(),
-        datetime.time(12, tzinfo=ICUtzinfo.default))
+        datetime.time(12, tzinfo=ICUtzinfo.floating))
 
     WelcomeEvent = pim.CalendarEvent.update(parcel, 'WelcomeEvent',
         displayName=_(u'Welcome to Chandler 0.6'),

@@ -85,7 +85,7 @@ class TimeZoneInfo(schema.Item):
         
         super(TimeZoneInfo, self).__init__(*args, **keywds)
         
-        self.default = PyICU.ICUtzinfo.default
+        self.default = PyICU.ICUtzinfo.floating
 
         
     def canonicalTimeZone(self, tzinfo):

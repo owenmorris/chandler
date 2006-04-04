@@ -1721,7 +1721,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # So, we get the repo view from our parent's blockItem.
         view = self.GetParent().blockItem.itsView
         info = TimeZoneInfo.get(view)
-        defaultTzinfo = info.canonicalTimeZone(info.default)
+        defaultTzinfo = info.canonicalTimeZone(ICUtzinfo.default)
         
         # Now, populate the wxChoice with TimeZoneInfo.knownTimeZones
         selectIndex = -1

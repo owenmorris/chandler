@@ -26,7 +26,7 @@ class TimeZoneTestCase(RepositoryTestCase):
 class DefaultTimeZoneTestCase(TimeZoneTestCase):
     def testGetTimeZone(self):
         super(DefaultTimeZoneTestCase, self).testGetTimeZone()
-        self.failUnlessEqual(PyICU.ICUtzinfo.default, self.tzInfoItem.default)
+        self.failUnlessEqual(PyICU.ICUtzinfo.floating, self.tzInfoItem.default)
 
     def testSetTimeZone(self):
         self.tzInfoItem.default = PyICU.ICUtzinfo.getInstance("US/Eastern")
@@ -76,10 +76,11 @@ class PersistenceTestCase(RepositoryTestCase):
         super(PersistenceTestCase, self).setUp(True)
 
     def testGetTimeZone(self):
+        # [Bug 5209] The timezone now defaults to floating
         defaultTzItem = TimeZoneInfo.get(self.rep.view)
         
         self.failUnlessEqual(defaultTzItem.default,
-                             PyICU.ICUtzinfo.default)
+                             PyICU.ICUtzinfo.floating)
 
     def testPerView(self):
         defaultTzItemOne = TimeZoneInfo.get(self.rep.view)
