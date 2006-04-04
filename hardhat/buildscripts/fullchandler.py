@@ -129,7 +129,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
         (svnChanges, svnRevisions) = changesInSVN(workingDir, log)
 
-        if svnChanges['external'] or svnChanges['internal']:
+        if svnChanges['external'] or svnChanges['internal'] or svnChanges['chandler']:
             log.write("Changes in SVN require build\n")
             changes = "-changes"
             clean   = 'realclean'
