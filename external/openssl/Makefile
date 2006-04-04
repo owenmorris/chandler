@@ -45,7 +45,7 @@ openssl: apply $(SRC)/$(BUILD)/ms/$(DOMASM)
       cp -fr  ../inc32/openssl $(PREFIX)/Include
 
 # Need to put the files into M2Crypto dir so that Windows finds our versions
-binaries: 
+binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
           $(SNAP)/$(SITE)/M2Crypto/ssleay32.dll \
           $(SNAP)/$(SITE)/M2Crypto/libeay32.dll
@@ -72,7 +72,7 @@ tests:
 
 ifeq ($(OS),Darwin)
 
-binaries: 
+binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
           $(SNAP)/lib/libcrypto.0.9.7.dylib \
           $(SNAP)/lib/libcrypto.0.dylib \
@@ -83,7 +83,7 @@ binaries:
 
 else
 
-binaries: 
+binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
           $(SNAP)/lib/libcrypto.so.0.9.7 \
           $(SNAP)/lib/libcrypto.so.0 \
