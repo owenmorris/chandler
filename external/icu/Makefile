@@ -25,9 +25,9 @@ compile:
 installext:
 	mkdir -p $(PREFIX)/bin/icu $(PREFIX)/include/icu $(PREFIX)/lib
 	tar -C $(SRC)/icu/include -cf - . | tar -C $(PREFIX)/include/icu -xvf -
-	tar -C $(BUILD)/lib -cf - . | tar -C $(PREFIX)/lib -xvf -
-	tar -C $(BUILD)/bin -cf - . | tar -C $(PREFIX)/bin -xvf -
-	tar -C $(BUILD)/exe -cf - . | tar -C $(PREFIX)/bin/icu -xvf -
+	tar -C $(SRC)/$(BUILD)/lib -cf - . | tar -C $(PREFIX)/lib -xvf -
+	tar -C $(SRC)/$(BUILD)/bin -cf - . | tar -C $(PREFIX)/bin -xvf -
+	tar -C $(SRC)/$(BUILD)/exe -cf - . | tar -C $(PREFIX)/bin/icu -xvf -
 
 clean:
 	rm -rf $(SRC)/$(BUILD)
