@@ -12,7 +12,7 @@ from CalendarCanvas import (
     )
 from PyICU import FieldPosition, DateFormat, ICUtzinfo
 import osaf.pim.calendar.Calendar as Calendar
-from osaf.pim.calendar.TimeZone import TimeZoneInfo
+from osaf.pim.calendar.TimeZone import TimeZoneInfo, coerceTimeZone
 
 from application.dialogs import RecurrenceDialog
 
@@ -805,16 +805,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
     def getPositionFromDateTime(self, datetime):
         (startDay, endDay) = self.GetCurrentDateRange()
         
-        if datetime.tzinfo is None:
-            datetime = datetime.replace(tzinfo=ICUtzinfo.default)
-        else:
-            datetime = datetime.astimezone(ICUtzinfo.default)
+        datetime = coerceTimeZone(datetime, ICUtzinfo.default)
             
         if datetime.date() < startDay.date() or \
-           datetime.date() > endDay.date():
+           datetime.date() >= endDay.date():
             raise ValueError, "Must be visible on the calendar"
         
-        delta = (datetime - startDay)
+        delta = (datetime.date() - startDay.date())
         x,width = self.getColumnForDay(delta.days)
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
         return x,y,width
@@ -847,20 +844,14 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # calculate how many unique days this appears on 
         defaultTzinfo = ICUtzinfo.default
         
-        if startTime.tzinfo is None:
-            startTime = startTime.replace(tzinfo=defaultTzinfo)
-        else:
-            startTime = startTime.astimezone(defaultTzinfo)
+        startTime = coerceTimeZone(startTime, defaultTzinfo)
+        endTime   = coerceTimeZone(endTime,   defaultTzinfo)
 
-
-        if endTime.tzinfo is None:
-            endTime = endTime.replace(tzinfo=defaultTzinfo)
-        else:
-            endTime = endTime.astimezone(defaultTzinfo)
-        
-        # Safe to do comparison here because we've made sure
-        # that neither datetime is naive
         days = 1 + (endTime.date() - startTime.date()).days
+        if endTime.time() == time(0):
+            # events that end at midnight end on the next day, but don't have
+            # any duration then, so they have one fewer rects
+            days -= 1
         
         currentDayStart = datetime.combine(startTime, 
                                            time(tzinfo=startTime.tzinfo))

@@ -569,7 +569,10 @@ class CalendarEventMixin(RemindableMixin):
         if endTime is None:
             return self.effectiveStartTime
         elif self.anyTime or self.allDay:
-            return datetime.combine(endTime, time(0, tzinfo=endTime.tzinfo))
+            # all day events include their endtime, so they end at midnight
+            # one day later than their normal end date.
+            return datetime.combine(endTime + timedelta(1),
+                                    time(0, tzinfo=endTime.tzinfo))
         else:
             return endTime
 

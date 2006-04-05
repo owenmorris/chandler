@@ -183,6 +183,7 @@ def itemsToFreeBusy(view, start, end):
     normal    = Calendar.eventsInRange(view, start, end)
     recurring = Calendar.recurringEventsInRange(view, start, end)
     events = Calendar._sortEvents(itertools.chain(normal, recurring))
+    trash = schema.ns("osaf.pim", view).trashCollection
     
     def toUTC(dt):
         if dt < start: dt = start
@@ -199,33 +200,28 @@ def itemsToFreeBusy(view, start, end):
         free.fbtype_param = transparencyMap[event.transparency]
         return free
 
-    def realEnd(event):
-        """getEffectiveEndTime doesn't do what we want with allDay events."""
-        if event.allDay:
-            return event.effectiveEndTime + oneDay
-        else:
-            return event.effectiveEndTime 
-
     free = None
     for event in events:
         # ignore anytime events, events with no duration, and fyi events
+        # also ignore any events in the trash
         if (event.transparency == 'fyi' or
+            event in trash or
             ((event.anyTime or event.duration == datetime.timedelta(0)) and 
              not event.allDay)):
-            print "skipping", event.duration
             continue
         if free is None or free.fbtype_param != \
                            transparencyMap[event.transparency]:
             free = addFB(event)
-            free.value = [[toUTC(event.effectiveStartTime), realEnd(event)]]
+            free.value = [[toUTC(event.effectiveStartTime),
+                           event.effectiveEndTime]]
         else:
             # compress freebusy blocks if possible
             if event.effectiveStartTime <= free.value[-1][1]:
-                if realEnd(event) > free.value[-1][1]:
-                    free.value[-1][1] = realEnd(event)
+                if event.effectiveEndTime > free.value[-1][1]:
+                    free.value[-1][1] = event.effectiveEndTime
             else:
                 free.value.append([toUTC(event.effectiveStartTime),
-                                   realEnd(event)])
+                                   event.effectiveEndTime])
                 
     # change the freebusy periods to their canonical form, dt/period instead of
     # dt/dt

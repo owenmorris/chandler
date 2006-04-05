@@ -775,7 +775,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         # events needs to have an index or iterindexkeys will load items,
         # is that true?
         Calendar.ensureIndexed(self.contents)
-
+        
     def setContentsOnBlock(self, *args, **kwds):
         super(CalendarBlock, self).setContentsOnBlock(*args, **kwds)
 
