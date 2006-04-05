@@ -60,7 +60,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
         else:
             style |= wx.BORDER_STATIC
         
-        if isMainCalendarVisible() and self.blockItem.doSelectWeek:
+        if isMainCalendarVisible() and not self.blockItem.dayMode:
             style |= minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
         self.setFreeBusy(None, useHints)
@@ -80,28 +80,6 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
     def getSelectedDate(self):
         date = datetime.combine(self.GetDate(), time(tzinfo = ICUtzinfo.floating))
         return date
-
-    def setSelectedDate(self, newDate):
-        self.SetDate(newDate.date())
-
-    def setSelectedDateRange(self, start, end):
-        self.setSelectedDate(start)
-
-        if (start.month != end.month):
-            endday = (datetime.replace(month=start.month+1) - start).days + 1
-        else:
-            endday = end.day + 1
-
-        for day in range(start.day, endday):
-            attr = wx.CalendarDateAttr(wx.WHITE, wx.BLUE, wx.WHITE,
-                                       wx.SWISS_FONT)
-            self.SetAttr(day, attr)
-
-        today = datetime.today()
-        if ((today.year == start.year) and (today.month == start.month)):
-            self.SetHoliday(today.day)
-
-        self.Refresh()
 
     def setFreeBusy(self, event, useHints=False):
         
@@ -317,7 +295,7 @@ def isMainCalendarVisible():
 
 
 class MiniCalendar(CalendarCanvas.CalendarBlock):
-    doSelectWeek = schema.One(schema.Boolean, initialValue = True)
+    dayMode = schema.One(schema.Boolean, initialValue = True)
     
     def instantiateWidget(self):
         if '__WXMAC__' in wx.PlatformInfo:
@@ -328,10 +306,10 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
                               Block.Block.getWidgetID(self), style=style)
 
     def onSelectedDateChangedEvent(self, event):
-        self.widget.setSelectedDate(event.arguments['start'])
+        self.widget.SetDate(event.arguments['start'].date())
         
-    def onSelectWeekEvent(self, event):
-        self.doSelectWeek = event.arguments['doSelectWeek']
+    def onDayModeEvent(self, event):
+        self.dayMode = event.arguments['dayMode']
         self.synchronizeWidget()
         self.widget.Refresh()
 

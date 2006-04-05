@@ -419,6 +419,6 @@ def makeMainEvents(parcel):
         'BroadcastEverywhere').install(parcel)
         
     BlockEvent.template(
-        'SelectWeek',
+        'DayMode',
         'BroadcastEverywhere').install(parcel)
         

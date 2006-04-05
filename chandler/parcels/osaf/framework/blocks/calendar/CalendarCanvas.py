@@ -256,12 +256,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         """
         position = self.GetBoundsRects()[0].GetPosition() + self.textOffset
                   
-        # now offset to account for the time	
+        # now offset to account for the time
         position += (0, self.timeHeight)
-        return position	
+        return position
                   
-    def GetMaxEditorSize(self):	
-        size = self.GetBoundsRects()[0].GetSize()	
+    def GetMaxEditorSize(self):
+        size = self.GetBoundsRects()[0].GetSize()
        
         # now offset to account for the time	
         size -= (13, self.timeHeight + self.textMargin*2)	
@@ -573,13 +573,13 @@ class CalendarEventHandler(object):
     def onGoToPrevEvent(self, event):
         blockItem = self.blockItem
         blockItem.decrementRange()
-        blockItem.postDateChanged()
+        blockItem.postDateChanged(self.blockItem.selectedDate)
         blockItem.synchronizeWidget()
 
     def onGoToNextEvent(self, event):
         blockItem = self.blockItem
         blockItem.incrementRange()
-        blockItem.postDateChanged()
+        blockItem.postDateChanged(self.blockItem.selectedDate)
         blockItem.synchronizeWidget()
 
     def onGoToTodayEvent(self, event):
@@ -587,7 +587,7 @@ class CalendarEventHandler(object):
         today = CalendarBlock.startOfToday()
         
         blockItem.setRange(today)
-        blockItem.postDateChanged()
+        blockItem.postDateChanged(self.blockItem.selectedDate)
         blockItem.synchronizeWidget()
         
     def OnTZChoice(self, event):
@@ -679,23 +679,12 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     @ivar rangeIncrement: increment used to find the next or prev block of time
     @type rangeIncrement: timedelta
 
-    @ivar selectedDate: within the current range. REFACTOR: why is this in
-                        this class? tons of the pre-refactor code used this
-                        variable though it was only declared in the subclass. 
-                        The rule is now: selectedDate = rangeStart for basic
-                        behavior, but selectedDate can range within the date 
-                        range, e.g. when on a week view and you want to have 
-                        a specific selected date inside that. 
-                        TODO: get rid of switches testing for its existence
-
-    @type selectedDate: datetime
     """
     # @@@ method capitalization policy is inconsistent!
     
 
     rangeStart = schema.One(schema.DateTime)
     rangeIncrement = schema.One(schema.TimeDelta)
-    selectedDate = schema.One(schema.DateTime)
     lastHue = schema.One(schema.Float, initialValue = -1.0)
     dayMode = schema.One(schema.Boolean)
     calendarContainer = schema.One(schema.Item, required=True)
@@ -792,12 +781,16 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 
         self.EnsureIndexes()
 
-    def onSelectWeekEvent(self, event):
-        self.dayMode = not event.arguments['doSelectWeek']
+    def onDayModeEvent(self, event):
+        self.dayMode = event.arguments['dayMode']
         if self.dayMode:
             self.rangeIncrement = timedelta(days=1)
+            newDay = event.arguments['newDay']
+            if newDay is not None:
+                self.setRange(newDay)
         else:
             self.rangeIncrement = timedelta(days=7)
+            self.setRange(self.rangeStart)
         self.synchronizeWidget()
 
 
@@ -817,30 +810,24 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """
         Convenience method for changing the selected date.
         """
-        if not newdate:
-            try:
-                newdate = self.selectedDate
-            except AttributeError:
-                raise Exception, "REFACTOR type error in old CalendarBlock code, discovered during refactoring, still need to fix!"
+        if newdate is None:
+            newdate = self.rangeStart
 
         self.postEventByName ('SelectedDateChanged',{'start':newdate})
 
-    def postSelectWeek(self, doSelectWeek):
+    def postDayMode(self, dayMode, newDay=None):
         """
         Convenience method for changing between day and week mode.
         """
-        self.postEventByName ('SelectWeek', {'doSelectWeek':doSelectWeek})
+        self.postEventByName ('DayMode', {'dayMode': dayMode, 'newDay' : newDay})
 
     # Managing the date range
 
     def setRange(self, date):
         """
-        REFACTOR: what this was supposed to do is
-        "Sets the range to include the given date"
-        but the old code didn't do that, and that's somewhat nontrivial: for a
-        big rangeIncrement, what's rangeStart supposed to be? 
-
-        this code's basic behavior works for the main cal canvases.  special case for week view.
+        Sets the range to include the given date, given the current view.
+        For week view, it will start the range at the beginning of the week.
+        For day view, it will set the range to start at the given date
 
         @param date: date to include
         @type date: datetime
@@ -848,20 +835,14 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 
         date = datetime.combine(date, time(tzinfo=ICUtzinfo.floating))
 
-        # basic behavior
-        self.rangeStart = date
-        self.selectedDate = self.rangeStart
-
-        #the canvas CalendarBlocks of the main cal UI can switch between day and week modes.
-        #when on week mode, have to figure out which week to select
-        #the following dayMode-switchable behavior could be subclassed out
-        if hasattr(self, 'dayMode') and not self.dayMode:
+        if self.dayMode:
+            self.rangeStart = date
+        else:
             calendar = GregorianCalendar()
             calendar.setTime(date)
             delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
                                     calendar.getFirstDayOfWeek()))
             self.rangeStart = date - delta
-            self.selectedDate = date
 
 
     def incrementRange(self):
@@ -869,16 +850,12 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         Increments the calendar's current range
         """
         self.rangeStart += self.rangeIncrement
-        if self.selectedDate:
-            self.selectedDate += self.rangeIncrement
 
     def decrementRange(self):
         """
         Decrements the calendar's current range
         """
         self.rangeStart -= self.rangeIncrement
-        if self.selectedDate:
-            self.selectedDate -= self.rangeIncrement
         
     # Get items from the collection
     
@@ -1490,6 +1467,11 @@ class CalendarControl(CalendarBlock):
     daysPerView = schema.One(schema.Integer, initialValue=7) #ready to phase out?
     tzCharacterStyle = schema.One(Styles.CharacterStyle)
 
+    selectedDate = schema.One(schema.DateTime,
+                              doc="The currently selected date for "
+                              "day mode. We try to keep this up to "
+                              "date even when we're in week mode")
+
     schema.addClouds(
         copying = schema.Cloud(byRef = [tzCharacterStyle])
     )
@@ -1545,17 +1527,16 @@ class CalendarControl(CalendarBlock):
 
         newDate = DateTimeUtil.shortDateFormat.parse(dateString)
         self.setRange(newDate)
-        self.postDateChanged()
+        self.postDateChanged(self.selectedDate)
         self.synchronizeWidget()
         
+    def onWeekViewEvent(self, event):
+        self.postDayMode(False)
+        self.widget.UpdateHeader()
 
-    def onSelectWeekEvent(self, event):
-        """
-        I believe, as of now only calctrl sends SelectWeek events anyways.. but just in case...
-        this code probably wont work from external SW events right now.
-        """
-        self.dayMode = not event.arguments['doSelectWeek']
-        self.synchronizeWidget()
+    def onDayViewEvent(self, event):
+        self.postDayMode(True, self.selectedDate)
+        self.widget.UpdateHeader()
 
     def setRange(self, date):
         """
@@ -1569,18 +1550,37 @@ class CalendarControl(CalendarBlock):
 
         #Set rangeStart
         # start at the beginning of the week (Sunday midnight)
-        # refactor to use DayOfWeekNumber
         calendar = GregorianCalendar()
         calendar.setTime(date)
         delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
                                 calendar.getFirstDayOfWeek()))
-        self.rangeStart = date - delta
 
-        #Set selectedDate.  if on week mode, sel'd date is always Sunday midnight.
+        self.rangeStart = date - delta
         if self.dayMode:
             self.selectedDate = date.replace(tzinfo=ICUtzinfo.floating)
         else:
-            self.selectedDate = self.rangeStart
+            # only reset selectedDate if its not in the current range
+            if not hasattr(self, 'selectedDate'):
+                self.selectedDate = self.rangeStart
+
+            # now make sure the selectedDate stays more or less on the
+            # same day of the week even if the week changed
+            while self.selectedDate < self.rangeStart:
+                self.selectedDate += self.rangeIncrement
+
+            rangeEnd = self.rangeStart + self.rangeIncrement
+            while self.selectedDate > rangeEnd:
+                self.selectedDate -= self.rangeIncrement
+
+    def incrementRange(self):
+        """
+        need to override block because what we really want to do is
+        increment the selected date and reset the range
+        """
+        self.setRange(self.selectedDate + self.rangeIncrement)
+
+    def decrementRange(self):
+        self.setRange(self.selectedDate - self.rangeIncrement)
 
     def onSelectItemsEvent(self, event):
         newSelection = event.arguments['items']
@@ -1784,7 +1784,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         year = lastDate.year
         if (startDate.month == lastDate.month):
             monthText = _(u'%(currentMonth)s %(currentYear)d') % \
-                        dict( currentMonth= months[selectedDate.month - 1],
+                        dict( currentMonth= months[startDate.month - 1],
                               currentYear = year )
         else:
             monthText = _(u'%(currentMonth1)s - %(currentMonth2)s %(currentYear)d') % \
@@ -1813,7 +1813,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         self.Layout()
 
-        #REFACTOR: attempting to update correctly... maybe elim some Refresh()'s?
         self.UpdateHeader()
         self.weekColumnHeader.Refresh()
         self.Refresh()
@@ -1933,14 +1932,14 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         startDate = self.blockItem.rangeStart
         selectedDate = startDate + timedelta(days=day)
         
-        self.blockItem.postSelectWeek(False)
+        self.blockItem.postDayMode(True)
         self.blockItem.postDateChanged(selectedDate)
 
     def OnWeekSelect(self):
         """
         Callback when the 'week' button is clicked on column header.
         """
-        self.blockItem.postSelectWeek(True)
+        self.blockItem.postDayMode(False)
         self.blockItem.postDateChanged(self.blockItem.rangeStart)
 
     ########## used to be in wxCalendarContainer, then CalendarContainer.  lets try putting here...

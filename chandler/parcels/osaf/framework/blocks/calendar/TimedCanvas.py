@@ -480,9 +480,18 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     def OnNavigateItem(self, direction):
 
+        # no items to select
+        if len(self.canvasItemsByDate) == 0:
+            return
+
         # find the first selected canvas item:
         currentCanvasItem = self.SelectedCanvasItem()
         if currentCanvasItem is None:
+            # nothing currently selected, just select the middle item
+            # (should probably select one that is guaranteed to be visible)
+            middle = len(self.canvasItemsByDate)/2
+            currentCanvasItem = self.canvasItemsByDate[middle]
+            self.OnSelectItem(currentCanvasItem.item)
             return
 
         newItemIndex = -1
