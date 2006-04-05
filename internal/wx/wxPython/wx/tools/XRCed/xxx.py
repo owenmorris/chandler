@@ -2,7 +2,7 @@
 # Purpose:      XML interface classes
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      22.08.2001
-# RCS-ID:       $Id: xxx.py,v 1.24 2005/11/11 00:23:31 ROL Exp $
+# RCS-ID:       $Id: xxx.py,v 1.25 2006/04/05 14:55:17 ROL Exp $
 
 from xml.dom import minidom
 from globals import *
@@ -874,6 +874,11 @@ class xxxSpacer(xxxObject):
     allParams = ['size', 'option', 'flag', 'border']
     paramDict = {'option': ParamInt}
     default = {'size': '0,0'}
+    def __init__(self, parent, element, refElem=None):
+        # For GridBag sizer items, extra parameters added
+        if isinstance(parent, xxxGridBagSizer):
+            self.allParams = self.allParams + ['cellpos', 'cellspan']
+        xxxObject.__init__(self, parent, element, refElem)
 
 class xxxMenuBar(xxxContainer):
     allParams = ['style']
