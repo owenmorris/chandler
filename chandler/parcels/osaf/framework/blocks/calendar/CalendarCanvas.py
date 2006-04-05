@@ -1741,8 +1741,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     def UpdateHeader(self):
         if self.blockItem.dayMode:
             # ugly back-calculation of the previously selected day
-            reldate = self.blockItem.selectedDate - \
-                      self.blockItem.rangeStart
+            # [Bug 5577]: Do the calculation using date(), or else
+            # things go awry near daylight/standard transitions
+            reldate = self.blockItem.selectedDate.date() - \
+                      self.blockItem.rangeStart.date()
             self.weekColumnHeader.SetSelectedItem(reldate.days+1)
         else:
             self.weekColumnHeader.SetSelectedItem(0)
