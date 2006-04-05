@@ -111,6 +111,11 @@ def installParcel(parcel, oldVersion=None):
                     monitor=('startTime', 'allDay', 'anyTime'))
     events.addIndex('effectiveEnd', 'compare', compare='cmpEndTime',
                     monitor=('startTime', 'allDay', 'anyTime', 'duration'))
+    events.addIndex("effectiveStartNoTZ", 'compare', compare='cmpStartTimeNoTZ',
+                    monitor=('startTime', 'allDay', 'anyTime'))
+    events.addIndex('effectiveEndNoTZ', 'compare', compare='cmpEndTimeNoTZ',
+                    monitor=('startTime', 'allDay', 'anyTime', 'duration'))    
+    
     events.addIndex('icalUID', 'value', attribute='icalUID')
 
 

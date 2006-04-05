@@ -78,7 +78,7 @@ def ensureIndexed(coll):
 
 def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
                          endVal,   endAttrName,   endIndex,   endColl,
-                         filterColl = None, filterIndex = None):
+                         filterColl = None, filterIndex = None, useTZ=True):
     """
     Yield keys for events occurring between startVal and endVal.  Don't load
     items, just yield relevant keys, sorted according to startIndex.
@@ -98,8 +98,12 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
             return -1 # interpret None as negative infinity
         # note that we're NOT using >=, if we did, we'd include all day
         # events starting at the beginning of the next week
-        if endVal > testVal:
-            return 0
+        if useTZ:
+            if endVal > testVal:
+                return 0
+        else:
+            if endVal.replace(tzinfo=None) > testVal.replace(tzinfo=None):
+                return 0
         return -1
 
     def mEnd(key):
@@ -107,8 +111,12 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
         testVal = getattr(view[key], endAttrName)
         if testVal is None:
             return 0 # interpret None as positive infinity, thus, a match
-        if startVal <= testVal:
-            return 0
+        if useTZ:
+            if startVal <= testVal:
+                return 0
+        else:
+            if startVal.replace(tzinfo=None) <= testVal.replace(tzinfo=None):
+                return 0
         return 1
     
     lastStartKey = startColl.findInIndex(startIndex, 'last', mStart)
@@ -164,10 +172,18 @@ def eventsInRange(view, start, end, filterColl = None, dayItems=True,
     items from that list. This gives us two lists, which we intersect.
     
     """
+    tzprefs = schema.ns('osaf.app', view).TimezonePrefs
+    if tzprefs.showUI:
+        startIndex = 'effectiveStart'
+        endIndex   = 'effectiveEnd'
+    else:
+        startIndex = 'effectiveStartNoTZ'
+        endIndex   = 'effectiveEndNoTZ'
+    
     allEvents = schema.ns("osaf.pim", view).events
-    keys = getKeysInRange(view, start, 'effectiveStartTime', 'effectiveStart',
-                          allEvents, end,'effectiveEndTime',
-                          'effectiveEnd', allEvents, filterColl, '__adhoc__')
+    keys = getKeysInRange(view, start, 'effectiveStartTime', startIndex,
+                          allEvents, end,'effectiveEndTime', endIndex,
+                          allEvents, filterColl, '__adhoc__', tzprefs.showUI)
     for key in keys:
         if (view[key].rruleset is None and 
             ((dayItems and timedItems) or isDayItem(view[key]) == dayItems)):
@@ -1445,15 +1461,19 @@ class CalendarEventMixin(RemindableMixin):
         # Otherwise, just do it the normal way.
         return super(CalendarEventMixin, self).isAttributeModifiable(attribute)
 
-    def cmpTimeAttribute(self, item, attr):
-        """Compare item and self.attr, use timezone-safe comparison."""
+    def cmpTimeAttribute(self, item, attr, useTZ=True):
+        """Compare item and self.attr, ignore timezones if useTZ is False."""
         itemTime = getattr(item, attr, None)
         if itemTime is None:
             return -1
+        elif not useTZ:
+            itemTime = itemTime.replace(tzinfo = None)
 
         selfTime = getattr(self, attr, None)
         if selfTime is None:
             return 1
+        elif not useTZ:
+            selfTime = selfTime.replace(tzinfo = None)
         
         return cmp(selfTime, itemTime)
         
@@ -1469,6 +1489,13 @@ class CalendarEventMixin(RemindableMixin):
 
     def cmpReminderTime(self, item):
         return self.cmpTimeAttribute(item, 'reminderFireTime')
+    
+    # comparisons which strip timezones
+    def cmpStartTimeNoTZ(self, item):
+        return self.cmpTimeAttribute(item, 'effectiveStartTime', False)
+
+    def cmpEndTimeNoTZ(self, item):
+        return self.cmpTimeAttribute(item, 'effectiveEndTime', False)
 
 class CalendarEvent(CalendarEventMixin, Note):
     """An unstamped event."""

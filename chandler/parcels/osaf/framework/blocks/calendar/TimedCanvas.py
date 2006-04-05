@@ -24,16 +24,28 @@ class TimedEventsCanvas(CalendarBlock):
         prefs = schema.ns('osaf.framework.blocks.calendar', self.itsView).calendarPrefs
         self.itsView.watchItem(self, prefs, 'onCalendarPrefsChange')
 
+        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        self.itsView.watchItem(self, tzPrefs, 'onTZPrefsChange')
+
     def onDestroyWidget(self, *args, **kwds):
 
         prefs = schema.ns('osaf.framework.blocks.calendar', self.itsView).calendarPrefs
         self.itsView.unwatchItem(self, prefs, 'onCalendarPrefsChange')
+
+        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        self.itsView.unwatchItem(self, tzPrefs, 'onTZPrefsChange')
+
         super(TimedEventsCanvas, self).onDestroyWidget(*args, **kwds)
         
 
     def onCalendarPrefsChange(self, op, item, names):
         self.widget.SetWindowGeometry()
         self.widget.RealignCanvasItems()
+        self.widget.Refresh()
+
+    def onTZPrefsChange(self, op, item, names):
+        self.widget.SetWindowGeometry()
+        self.widget.wxSynchronizeWidget()
         self.widget.Refresh()
 
     def instantiateWidget(self):
@@ -756,10 +768,18 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         on the current position and drag state. Handles both move and
         resize drags
         """
+        tzprefs = schema.ns('osaf.app', self.blockItem.itsView).TimezonePrefs
+        useTZ = tzprefs.showUI
+        
         item = self.dragState.originalDragBox.item
         resizeMode = self.dragState.originalDragBox.resizeMode
         
-        tzinfo = item.startTime.tzinfo
+        oldTZ = item.startTime.tzinfo        
+        
+        if useTZ:
+            tzinfo = oldTZ
+        else:
+            tzinfo = ICUtzinfo.floating
 
         if resizeMode is None:
             # moving an item, need to adjust just the start time
@@ -773,11 +793,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             dragTime = self.getDateTimeFromPosition(
                                 self.dragState.currentPosition,
                                 tzinfo=tzinfo)
-            # getDateTimeFromPosition always sets a non-None tzinfo, even if
-            # it's passed tzinfo=None, so we need to make sure that "floating"
-            # events don't acquire a timezone.
-            if tzinfo is None:
-                dragTime = dragTime.replace(tzinfo=None)
                 
             if resizeMode == TimedCanvasItem.RESIZE_MODE_START:
                 newStartTime = dragTime
@@ -788,6 +803,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         if newEndTime < newStartTime:
             newEndTime = newStartTime + timedelta(minutes=15)
+
+        if not useTZ:
+            newEndTime   = newEndTime.replace(tzinfo = oldTZ)
+            newStartTime = newStartTime.replace(tzinfo = oldTZ)
 
         return (newStartTime, newEndTime)
                     
@@ -841,12 +860,16 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             one from midnight wednesday morning to noon wednesday
         """
 
-        # calculate how many unique days this appears on 
-        defaultTzinfo = ICUtzinfo.default
-        
-        startTime = coerceTimeZone(startTime, defaultTzinfo)
-        endTime   = coerceTimeZone(endTime,   defaultTzinfo)
+        # put events onto the canvas translated into the local timezone,
+        # unless timezone display is off.
+        if schema.ns('osaf.app', self.blockItem.itsView).TimezonePrefs.showUI:
+            startTime = coerceTimeZone(startTime, ICUtzinfo.default)
+            endTime   = coerceTimeZone(endTime,   ICUtzinfo.default)
+        else:
+            startTime = startTime.replace(tzinfo=ICUtzinfo.floating)
+            endTime   = endTime.replace(tzinfo=ICUtzinfo.floating)
 
+        # calculate how many unique days this appears on 
         days = 1 + (endTime.date() - startTime.date()).days
         if endTime.time() == time(0):
             # events that end at midnight end on the next day, but don't have

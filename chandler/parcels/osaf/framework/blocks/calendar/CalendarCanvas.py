@@ -864,7 +864,14 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         Helpful utility to determine if an item is within a given range
         Assumes the item has a startTime and endTime attribute
         """
-        return ((item.startTime <= end) and (item.endTime >= start))
+        tzprefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        if tzprefs.showUI:
+            return ((item.startTime <= end) and (item.endTime >= start))
+        else:
+            return ((item.startTime.replace(tzinfo=None) <=
+                                end.replace(tzinfo=None)) and
+                      (item.endTime.replace(tzinfo=None) >=
+                              start.replace(tzinfo=None)))
         
     def generateItemsInRange(self, date, nextDate, dayItems, timedItems):
         # wish we could put this somewhere more useful, but
