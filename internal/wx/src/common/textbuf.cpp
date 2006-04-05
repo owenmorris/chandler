@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxTextBuffer class
 // Created:     14.11.01
 // Author:      Morten Hanssen, Vadim Zeitlin
-// RCS-ID:      $Id: textbuf.cpp,v 1.16 2006/03/27 23:01:00 VZ Exp $
+// RCS-ID:      $Id: textbuf.cpp,v 1.17 2006/04/05 14:37:43 VZ Exp $
 // Copyright:   (c) 1998-2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -181,14 +181,14 @@ bool wxTextBuffer::Create()
     return true;
 }
 
-bool wxTextBuffer::Open(const wxString& strBufferName, wxMBConv& conv)
+bool wxTextBuffer::Open(const wxString& strBufferName, const wxMBConv& conv)
 {
     m_strBufferName = strBufferName;
 
     return Open(conv);
 }
 
-bool wxTextBuffer::Open(wxMBConv& conv)
+bool wxTextBuffer::Open(const wxMBConv& conv)
 {
     // buffer name must be either given in ctor or in Open(const wxString&)
     wxASSERT( !m_strBufferName.empty() );
@@ -276,7 +276,7 @@ bool wxTextBuffer::Close()
     return true;
 }
 
-bool wxTextBuffer::Write(wxTextFileType typeNew, wxMBConv& conv)
+bool wxTextBuffer::Write(wxTextFileType typeNew, const wxMBConv& conv)
 {
     return OnWrite(typeNew, conv);
 }

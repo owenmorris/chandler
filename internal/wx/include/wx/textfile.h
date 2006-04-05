@@ -6,7 +6,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.04.98
-// RCS-ID:      $Id: textfile.h,v 1.34 2005/09/23 12:48:48 MR Exp $
+// RCS-ID:      $Id: textfile.h,v 1.35 2006/04/05 14:37:38 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,8 +39,8 @@ protected:
     virtual bool OnOpen(const wxString &strBufferName,
                         wxTextBufferOpenMode OpenMode);
     virtual bool OnClose();
-    virtual bool OnRead(wxMBConv& conv);
-    virtual bool OnWrite(wxTextFileType typeNew, wxMBConv& conv);
+    virtual bool OnRead(const wxMBConv& conv);
+    virtual bool OnWrite(wxTextFileType typeNew, const wxMBConv& conv);
 
 private:
 

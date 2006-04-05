@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: file.h,v 1.48 2005/09/23 12:48:38 MR Exp $
+// RCS-ID:      $Id: file.h,v 1.49 2006/04/05 14:37:37 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ public:
     // returns the number of bytes written
   size_t Write(const void *pBuf, size_t nCount);
     // returns true on success
-  bool Write(const wxString& s, wxMBConv& conv = wxConvUTF8)
+  bool Write(const wxString& s, const wxMBConv& conv = wxConvUTF8)
   {
       const wxWX2MBbuf buf = s.mb_str(conv);
       size_t size = strlen(buf);
@@ -172,7 +172,7 @@ public:
 
   // I/O (both functions return true on success, false on failure)
   bool Write(const void *p, size_t n) { return m_file.Write(p, n) == n; }
-  bool Write(const wxString& str, wxMBConv& conv = wxConvUTF8)
+  bool Write(const wxString& str, const wxMBConv& conv = wxConvUTF8)
     { return m_file.Write(str, conv); }
 
   // different ways to close the file

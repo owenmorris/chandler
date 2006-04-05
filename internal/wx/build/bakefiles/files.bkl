@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.318 2006/03/20 16:37:21 RR Exp $ -->
+<!-- $Id: files.bkl,v 1.319 2006/04/05 14:37:47 VZ Exp $ -->
 <makefile>
 
 <!--
@@ -290,6 +290,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/common/clntdata.cpp
     src/common/cmdline.cpp
     src/common/config.cpp
+    src/common/convauto.cpp
     src/common/datetime.cpp
     src/common/datstrm.cpp
     src/common/dircmn.cpp
@@ -362,6 +363,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/cmdline.h
     wx/confbase.h
     wx/config.h
+    wx/convauto.h
     wx/containr.h
     wx/datetime.h
     wx/datstrm.h

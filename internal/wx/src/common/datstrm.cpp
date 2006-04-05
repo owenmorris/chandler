@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: Mickael Gilabert
 // Created:     28/06/98
-// RCS-ID:      $Id: datstrm.cpp,v 1.51 2006/03/05 00:38:59 ABX Exp $
+// RCS-ID:      $Id: datstrm.cpp,v 1.53 2006/04/05 16:10:08 VZ Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,13 +26,20 @@
 // ---------------------------------------------------------------------------
 
 #if wxUSE_UNICODE
-wxDataInputStream::wxDataInputStream(wxInputStream& s, wxMBConv& conv)
-  : m_input(&s), m_be_order(false), m_conv(conv)
+wxDataInputStream::wxDataInputStream(wxInputStream& s, const wxMBConv& conv)
+  : m_input(&s), m_be_order(false), m_conv(conv.Clone())
 #else
 wxDataInputStream::wxDataInputStream(wxInputStream& s)
   : m_input(&s), m_be_order(false)
 #endif
 {
+}
+
+wxDataInputStream::~wxDataInputStream()
+{
+#if wxUSE_UNICODE
+    delete m_conv;
+#endif // wxUSE_UNICODE
 }
 
 #if wxHAS_INT64
@@ -100,7 +107,7 @@ wxString wxDataInputStream::ReadString()
     wxCharBuffer tmp(len + 1);
     m_input->Read(tmp.data(), len);
     tmp.data()[len] = '\0';
-    wxString ret(m_conv.cMB2WX(tmp.data()));
+    wxString ret(m_conv->cMB2WX(tmp.data()));
 #else
     wxString ret;
     m_input->Read( wxStringBuffer(ret, len), len);
@@ -445,13 +452,20 @@ wxDataInputStream& wxDataInputStream::operator>>(float& f)
 // ---------------------------------------------------------------------------
 
 #if wxUSE_UNICODE
-wxDataOutputStream::wxDataOutputStream(wxOutputStream& s, wxMBConv& conv)
-  : m_output(&s), m_be_order(false), m_conv(conv)
+wxDataOutputStream::wxDataOutputStream(wxOutputStream& s, const wxMBConv& conv)
+  : m_output(&s), m_be_order(false), m_conv(conv.Clone())
 #else
 wxDataOutputStream::wxDataOutputStream(wxOutputStream& s)
   : m_output(&s), m_be_order(false)
 #endif
 {
+}
+
+wxDataOutputStream::~wxDataOutputStream()
+{
+#if wxUSE_UNICODE
+    delete m_conv;
+#endif // wxUSE_UNICODE
 }
 
 #if wxHAS_INT64
@@ -497,7 +511,7 @@ void wxDataOutputStream::Write8(wxUint8 i)
 void wxDataOutputStream::WriteString(const wxString& string)
 {
 #if wxUSE_UNICODE
-  const wxWX2MBbuf buf = string.mb_str(m_conv);
+  const wxWX2MBbuf buf = string.mb_str(*m_conv);
 #else
   const wxWX2MBbuf buf = string.mb_str();
 #endif

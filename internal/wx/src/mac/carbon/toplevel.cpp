@@ -450,12 +450,14 @@ pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , Ev
 
     WindowRef window = NULL;
     short windowPart = ::FindWindow(screenMouseLocation, &window);
+    if (windowPart < inContent)
+        window = NULL;
 
     wxWindow* currentMouseWindow = NULL ;
     ControlRef control = NULL ;
 
 #if NEW_CAPTURE_HANDLING
-    if ( wxApp::s_captureWindow )
+    if ( wxApp::s_captureWindow && (window != NULL))
     {
         window = (WindowRef) wxApp::s_captureWindow->MacGetTopLevelWindowRef() ;
         windowPart = inContent ;

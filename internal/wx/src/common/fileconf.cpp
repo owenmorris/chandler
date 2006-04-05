@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.cpp,v 1.145 2006/02/09 15:28:42 JS Exp $
+// RCS-ID:      $Id: fileconf.cpp,v 1.147 2006/04/05 16:54:02 VZ Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -394,7 +394,7 @@ void wxFileConfig::Init()
     {
         wxTextFile fileGlobal(m_strGlobalFile);
 
-        if ( fileGlobal.Open(m_conv/*ignored in ANSI build*/) )
+        if ( fileGlobal.Open(*m_conv/*ignored in ANSI build*/) )
         {
             Parse(fileGlobal, false /* global */);
             SetRootPath();
@@ -409,7 +409,7 @@ void wxFileConfig::Init()
     if ( !m_strLocalFile.empty() && wxFile::Exists(m_strLocalFile) )
     {
         wxTextFile fileLocal(m_strLocalFile);
-        if ( fileLocal.Open(m_conv/*ignored in ANSI build*/) )
+        if ( fileLocal.Open(*m_conv/*ignored in ANSI build*/) )
         {
             Parse(fileLocal, true /* local */);
             SetRootPath();
@@ -426,12 +426,13 @@ void wxFileConfig::Init()
 // constructor supports creation of wxFileConfig objects of any type
 wxFileConfig::wxFileConfig(const wxString& appName, const wxString& vendorName,
                            const wxString& strLocal, const wxString& strGlobal,
-                           long style, wxMBConv& conv)
+                           long style,
+                           const wxMBConv& conv)
             : wxConfigBase(::GetAppName(appName), vendorName,
                            strLocal, strGlobal,
                            style),
               m_strLocalFile(strLocal), m_strGlobalFile(strGlobal),
-              m_conv(conv)
+              m_conv(conv.Clone())
 {
     // Make up names for files if empty
     if ( m_strLocalFile.empty() && (style & wxCONFIG_USE_LOCAL_FILE) )
@@ -474,8 +475,8 @@ wxFileConfig::wxFileConfig(const wxString& appName, const wxString& vendorName,
 
 #if wxUSE_STREAMS
 
-wxFileConfig::wxFileConfig(wxInputStream &inStream, wxMBConv& conv)
-            : m_conv(conv)
+wxFileConfig::wxFileConfig(wxInputStream &inStream, const wxMBConv& conv)
+            : m_conv(conv.Clone())
 {
     // always local_file when this constructor is called (?)
     SetStyle(GetStyle() | wxCONFIG_USE_LOCAL_FILE);
@@ -1011,7 +1012,7 @@ bool wxFileConfig::Flush(bool /* bCurrentOnly */)
   {
     wxString line = p->Text();
     line += wxTextFile::GetEOL();
-    if ( !file.Write(line, m_conv) )
+    if ( !file.Write(line, *m_conv) )
     {
       wxLogError(_("can't write user configuration file."));
       return false;
@@ -1036,7 +1037,7 @@ bool wxFileConfig::Flush(bool /* bCurrentOnly */)
 
 #if wxUSE_STREAMS
 
-bool wxFileConfig::Save(wxOutputStream& os, wxMBConv& conv)
+bool wxFileConfig::Save(wxOutputStream& os, const wxMBConv& conv)
 {
     // save unconditionally, even if not dirty
     for ( wxFileConfigLineList *p = m_linesHead; p != NULL; p = p->Next() )
