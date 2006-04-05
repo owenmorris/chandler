@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, main module
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      20.08.2001
-# RCS-ID:       $Id: xrced.py,v 1.40 2006/04/05 14:55:17 ROL Exp $
+# RCS-ID:       $Id: xrced.py,v 1.41 2006/04/05 17:36:21 ROL Exp $
 
 """
 
@@ -679,7 +679,7 @@ class Frame(wxFrame):
         # We simply perform depth-first traversal, sinse it's too much
         # hassle to deal with all sizer/window combinations
         w = tree.FindNodeObject(item)
-        if w == obj:
+        if w == obj or isinstance(w, wxGBSizerItem) and w.GetWindow() == obj:
             return item
         if tree.ItemHasChildren(item):
             child = tree.GetFirstChild(item)[0]
@@ -695,6 +695,7 @@ class Frame(wxFrame):
         g.testWin.Disconnect(wxID_ANY, wxID_ANY, wxEVT_LEFT_DOWN)
         item = self.FindObject(g.testWin.item, evt.GetEventObject())
         if item:
+            tree.EnsureVisible(item)
             tree.SelectItem(item)
         self.tb.ToggleTool(self.ID_TOOL_LOCATE, False)
         if item:
