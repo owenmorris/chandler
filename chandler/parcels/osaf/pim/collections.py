@@ -80,7 +80,7 @@ class ContentCollection(ContentItem, Collection):
     schema.addClouds(
         copying = schema.Cloud(
             invitees,
-            byRef=['contentsOwner']
+            byRef=['contentsOwner', 'subscribers']
         ),
         sharing = schema.Cloud( none = ["displayName"] ),
     )
@@ -371,8 +371,14 @@ class SmartCollection(ContentCollection):
     sources = schema.Sequence(ContentCollection, initialValue=[])
     trash = schema.One(ListCollection, otherName='trashFor', initialValue=None)
 
+    # __collection__ denotes a bi-ref set, 
+    # therefore it must be added to the copying cloud def for it to be copied.
+
     schema.addClouds(
-        copying = schema.Cloud(byCloud=[sources]),
+        copying = schema.Cloud(
+            byCloud=[inclusions, exclusions, sources],
+            byRef=[trash, __collection__]
+        ),
     )
 
     def add (self, item):
@@ -463,10 +469,10 @@ class SmartCollection(ContentCollection):
                  source=None, exclusions=None, trash="default",
                  *args, **kwds):
         super(SmartCollection, self).__init__(itsName=itsName,
-                                                           itsParent=itsParent,
-                                                           itsKind=itsKind,
-                                                           itsView=itsView,
-                                                           *args, **kwds)
+                                              itsParent=itsParent,
+                                              itsKind=itsKind,
+                                              itsView=itsView,
+                                              *args, **kwds)
         self._setup(source, exclusions, trash)
 
     def _setup(self, source=None, exclusions=None,

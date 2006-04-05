@@ -310,6 +310,16 @@ class AbstractSet(ItemValue, Indexed):
 
     def _copy(self, item, attribute, copyPolicy, copyFn):
 
+        # in the bi-ref case, set owner and value on item as needed
+        # in non bi-ref case, Values sets owner and value on item
+
+        otherName = self._otherName
+
+        if otherName is not None:
+            copy = item._references.get(attribute, Nil)
+            if copy is not Nil:
+                return copy
+
         policy = (copyPolicy or
                   item.getAttributeAspect(attribute, 'copyPolicy',
                                           False, None, 'copy'))
@@ -323,6 +333,10 @@ class AbstractSet(ItemValue, Indexed):
 
         copy = eval(self._repr_(replace))
         copy._setView(item.itsView)
+
+        if otherName is not None:
+            item._references[attribute] = copy
+            copy._setOwner(item, attribute)
 
         return copy
 

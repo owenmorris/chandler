@@ -43,8 +43,9 @@ class RepositoryView(CView):
     # 0.5.11: removed inheritedAttributes transient cache
     # 0.6.1: watcherDispatch layout changed
     # 0.6.2: added 'notify' aspect
+    # 0.6.3: added Collection 'export' cloud with 'subscribers' endpoint
     
-    CORE_SCHEMA_VERSION = 0x00060200
+    CORE_SCHEMA_VERSION = 0x00060300
 
     def __init__(self, repository, name, version):
         """

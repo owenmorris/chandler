@@ -49,8 +49,10 @@ class Collection(Item):
 
         if change == 'dispatch':
 
-            for subscriber in self.subscribers:
-                subscriber.onCollectionNotification(op, self, name, other)
+            subscribers = getattr(self, 'subscribers', None)
+            if subscribers:
+                for subscriber in subscribers:
+                    subscriber.onCollectionNotification(op, self, name, other)
 
             view = self.itsView
             subscribers = view._subscribers.get(self.itsUUID)
@@ -59,9 +61,10 @@ class Collection(Item):
                     view[subscriber].onCollectionNotification(op, self, name, other)
 
         else:
-
             view = self.itsView
-            if self.subscribers or view._subscribers.get(self.itsUUID):
+
+            if (getattr(self, 'subscribers', None) or
+                view._subscribers.get(self.itsUUID)):
                 view.queueNotification(self, op, change, name, other)
 
             super(Collection, self)._collectionChanged(op, change, name, other)

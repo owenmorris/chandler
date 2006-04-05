@@ -37,6 +37,7 @@
         <item file="Struct.cloud" />
         <item file="Cloud.cloud" />
         <item file="Endpoint.cloud" />
+        <item file="Collection.cloud" />
       </item>
 
       <item file="Mixins.namespace" />
