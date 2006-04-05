@@ -1569,7 +1569,7 @@ class CalendarControl(CalendarBlock):
                 self.selectedDate += self.rangeIncrement
 
             rangeEnd = self.rangeStart + self.rangeIncrement
-            while self.selectedDate > rangeEnd:
+            while self.selectedDate >= rangeEnd:
                 self.selectedDate -= self.rangeIncrement
 
     def incrementRange(self):
