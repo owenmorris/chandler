@@ -112,10 +112,10 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
         if testVal is None:
             return 0 # interpret None as positive infinity, thus, a match
         if useTZ:
-            if startVal <= testVal:
+            if startVal < testVal:
                 return 0
         else:
-            if startVal.replace(tzinfo=None) <= testVal.replace(tzinfo=None):
+            if startVal.replace(tzinfo=None) < testVal.replace(tzinfo=None):
                 return 0
         return 1
     
