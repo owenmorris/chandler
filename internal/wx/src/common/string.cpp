@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Ryan Norton
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.cpp,v 1.264 2006/04/05 14:37:43 VZ Exp $
+// RCS-ID:      $Id: string.cpp,v 1.265 2006/04/05 22:12:45 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              (c) 2004 Ryan Norton <wxprojects@comcast.net>
 // Licence:     wxWindows licence
@@ -1013,13 +1013,7 @@ wxString::wxString(const char *psz, const wxMBConv& conv, size_t nLength)
     {
         if ( nLength == npos )
         {
-            nLength = (size_t)-1;
-        }
-        else if ( nLength == length() )
-        {
-            // this is important to avoid copying the string in cMB2WC: we're
-            // already NUL-terminated so we can pass this NUL with the data
-            nLength++;
+            nLength = wxNO_LEN;
         }
 
         size_t nLenWide;
@@ -1048,13 +1042,7 @@ wxString::wxString(const wchar_t *pwz, const wxMBConv& conv, size_t nLength)
     {
         if ( nLength == npos )
         {
-            nLength = (size_t)-1;
-        }
-        else if ( nLength == length() )
-        {
-            // this is important to avoid copying the string in cMB2WC: we're
-            // already NUL-terminated so we can pass this NUL with the data
-            nLength++;
+            nLength = wxNO_LEN;
         }
 
         size_t nLenMB;

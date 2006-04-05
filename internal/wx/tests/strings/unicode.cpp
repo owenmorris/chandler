@@ -3,7 +3,7 @@
 // Purpose:     Unicode unit test
 // Author:      Vadim Zeitlin, Wlodzimierz ABX Skiba
 // Created:     2004-04-28
-// RCS-ID:      $Id: unicode.cpp,v 1.15 2006/04/02 20:18:31 VZ Exp $
+// RCS-ID:      $Id: unicode.cpp,v 1.16 2006/04/05 19:59:27 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin, Wlodzimierz Skiba
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -85,7 +85,7 @@ private:
 CPPUNIT_TEST_SUITE_REGISTRATION( UnicodeTestCase );
 
 // also include in it's own registry so that these tests can be run alone
-CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( UnicodeTestCase, "UnicodeTestCase" );
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( UnicodeTestCase, "Unicode" );
 
 UnicodeTestCase::UnicodeTestCase()
 {

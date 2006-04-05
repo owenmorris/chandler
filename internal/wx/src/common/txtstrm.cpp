@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     28/06/98
-// RCS-ID:      $Id: txtstrm.cpp,v 1.42 2006/04/05 16:28:29 VZ Exp $
+// RCS-ID:      $Id: txtstrm.cpp,v 1.43 2006/04/05 23:19:09 VZ Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -415,9 +415,8 @@ void wxTextOutputStream::WriteString(const wxString& string)
     }
 
 #if wxUSE_UNICODE
-    // note that we must not write the trailing NUL here
     wxCharBuffer buffer = m_conv->cWC2MB(out, out.length(), &len);
-    m_output.Write(buffer, len + 1 - m_conv->GetMBNulLen());
+    m_output.Write(buffer, len);
 #else
     m_output.Write(out.c_str(), out.length() );
 #endif

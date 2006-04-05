@@ -3,7 +3,7 @@
 // Purpose:     wxConvAuto class declaration
 // Author:      Vadim Zeitlin
 // Created:     2006-04-03
-// RCS-ID:      $Id: convauto.h,v 1.2 2006/04/05 16:10:00 VZ Exp $
+// RCS-ID:      $Id: convauto.h,v 1.3 2006/04/05 22:12:41 VZ Exp $
 // Copyright:   (c) 2006 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,10 +33,10 @@ public:
 
     // override the base class virtual function(s) to use our m_conv
     virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen = -1) const;
+                           const char *src, size_t srcLen = wxNO_LEN) const;
 
     virtual size_t FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen = -1) const;
+                             const wchar_t *src, size_t srcLen = wxNO_LEN) const;
 
     virtual size_t GetMBNulLen() const { return m_conv->GetMBNulLen(); }
 
