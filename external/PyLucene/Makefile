@@ -1,5 +1,5 @@
 
-VERSION=2.0rc1-1
+VERSION=2.0rc1-3
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-src-$(VERSION)
@@ -51,8 +51,7 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/security/classpath.security \
          $(SNAP)/$(SITE)/security/libgcj.security \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).dylib \
-         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).la \
-         $(SNAP)/lib/libgcj.$(LIBGCJ_VER).dylib
+         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).la
 ifeq ($(GCJ_VER),3)
 MANIFEST:=$(MANIFEST) \
          $(SNAP)/lib/libgcc_s.1.0.dylib \
@@ -68,8 +67,7 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene.so \
          $(SNAP)/$(SITE)/security/classpath.security \
          $(SNAP)/$(SITE)/security/libgcj.security \
-         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).so \
-         $(SNAP)/lib/libgcj.so.$(LIBGCJ_VER)
+         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).so
 ifeq ($(GCJ_VER),3)
 MANIFEST:=$(MANIFEST) \
          $(SNAP)/lib/libgcc_s.so.1 \
@@ -106,6 +104,7 @@ build: expand apply
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             GCJ_HOME=$(GCJ_HOME) \
             GCJ_VER=$(GCJ_VER) \
+            GCJ_STATIC=1 \
             PYDBG=$(PYDBG) \
             _SUFFIX=$(_SUFFIX) \
             CC=$(PYLUCENE_CC) \
@@ -129,15 +128,6 @@ clean:
 
 binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) $(MANIFEST)
-
-install: $(TARBALL)
-	cp $(TARBALL) $(CHANDLERARCHIVES)
-
-drop: $(TARBALL)
-	tar -C $(CHANDLERBIN) -xvzf $(TARBALL)
-
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
 
 PyLucene-src-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/PyLucene-src-$(VERSION).tar.gz
