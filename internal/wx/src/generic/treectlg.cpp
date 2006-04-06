@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp,v 1.187 2006/03/24 23:46:31 ABX Exp $
+// Id:          $Id: treectlg.cpp,v 1.188 2006/04/06 14:27:34 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2887,12 +2887,9 @@ bool wxGenericTreeCtrl::GetBoundingRect(const wxTreeItemId& item,
 
     wxGenericTreeItem *i = (wxGenericTreeItem*) item.m_pItem;
 
-    int startX, startY;
-    GetViewStart(& startX, & startY);
-
     if ( textOnly )
     {
-        rect.x = i->GetX() - startX*PIXELS_PER_UNIT;
+        rect.x = i->GetX();
         rect.width = i->GetWidth();
 
         if ( m_imageListNormal )
@@ -2908,8 +2905,15 @@ bool wxGenericTreeCtrl::GetBoundingRect(const wxTreeItemId& item,
         rect.width = GetClientSize().x;
     }
 
-    rect.y = i->GetY() - startY*PIXELS_PER_UNIT;
+    rect.y = i->GetY();
     rect.height = GetLineHeight(i);
+
+    // we have to return the logical coordinates, not physical ones
+    int startX, startY;
+    GetViewStart(& startX, & startY);
+
+    rect.x -= startX*PIXELS_PER_UNIT;
+    rect.y -= startY*PIXELS_PER_UNIT;
 
     return true;
 }
