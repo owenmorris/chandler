@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Modified by: Mart Raudsepp (GetMetric)
-// Id:          $Id: settings.cpp,v 1.62 2006/02/20 21:28:52 MR Exp $
+// Id:          $Id: settings.cpp,v 1.63 2006/04/06 11:59:07 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -537,7 +537,7 @@ int wxSystemSettingsNative::GetMetric( wxSystemMetric index, wxWindow* win )
         case wxSYS_ICON_Y:     return 32;
 
         case wxSYS_SCREEN_X:
-#if defined(__WXGTK20__) && GTK_CHECK_VERSION(2,2,0)
+#if GTK_CHECK_VERSION(2,2,0)
             if (window && !gtk_check_version(2,2,0))
                 return gdk_screen_get_width(gdk_drawable_get_screen(window));
             else
@@ -545,7 +545,7 @@ int wxSystemSettingsNative::GetMetric( wxSystemMetric index, wxWindow* win )
                 return gdk_screen_width();
 
         case wxSYS_SCREEN_Y:
-#if defined(__WXGTK20__) && GTK_CHECK_VERSION(2,2,0)
+#if GTK_CHECK_VERSION(2,2,0)
             if (window && !gtk_check_version(2,2,0))
                 return gdk_screen_get_height(gdk_drawable_get_screen(window));
             else

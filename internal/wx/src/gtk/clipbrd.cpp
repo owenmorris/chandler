@@ -2,7 +2,7 @@
 // Name:        gtk/clipbrd.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: clipbrd.cpp,v 1.68 2006/03/25 00:06:23 RD Exp $
+// Id:          $Id: clipbrd.cpp,v 1.69 2006/04/06 12:06:37 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ GdkAtom  g_clipboardAtom   = 0;
 GdkAtom  g_targetsAtom     = 0;
 GdkAtom  g_timestampAtom   = 0;
 
-#if defined(__WXGTK20__) && wxUSE_UNICODE
+#if wxUSE_UNICODE
 extern GdkAtom g_altTextAtom;
 #endif
 
@@ -548,7 +548,7 @@ bool wxClipboard::IsSupported( const wxDataFormat& format )
 
     while (m_waiting) gtk_main_iteration();
 
-#if defined(__WXGTK20__) && wxUSE_UNICODE
+#if wxUSE_UNICODE
     if (!m_formatSupported && format == wxDataFormat(wxDF_UNICODETEXT))
     {
         // Another try with plain STRING format
