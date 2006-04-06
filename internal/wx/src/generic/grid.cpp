@@ -5824,9 +5824,24 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                              coords.GetCol(),
                              event ) )
             {
-                // we want double click to select a cell and start editing
-                // (i.e. to behave in same way as sequence of two slow clicks):
-                m_waitForSlowClick = true;
+                // We want double click to select a cell and start editing
+                // (i.e. to behave in same way as sequence of two slow clicks)
+                // except when we don't have a cursor, in which case double
+                // click starts editing
+                if ( m_hasCursor )
+                {
+                    m_waitForSlowClick = true;
+                }
+                else if ( coords == m_currentCellCoords && CanEnableCellControl() )
+                {
+                    EnableCellEditControl();
+
+                    wxGridCellAttr* attr = GetCellAttr(coords);
+                    wxGridCellEditor *editor = attr->GetEditor(this, coords.GetRow(), coords.GetCol());
+                    editor->StartingClick();
+                    editor->DecRef();
+                    attr->DecRef();
+                }
             }
         }
     }
