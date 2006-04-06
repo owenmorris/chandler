@@ -173,7 +173,7 @@ transparencyMap = { 'confirmed' : 'BUSY', 'tentative' : 'BUSY-TENTATIVE' }
 reverseTransparencyMap = dict(zip(transparencyMap.values(), transparencyMap.keys()))
 
 
-def itemsToFreeBusy(view, start, end):
+def itemsToFreeBusy(view, start, end, calname = None):
     """
     Create FREEBUSY components corresponding to all events between start and 
     end.
@@ -191,6 +191,9 @@ def itemsToFreeBusy(view, start, end):
         return translateToTimezone(dt, utc)    
     
     cal = vobject.iCalendar()
+    
+    if calname is not None:
+        cal.add('x-wr-calname').value = calname
     vfree = cal.add('vfreebusy')
     vfree.add('dtstart').value = toUTC(start)
     vfree.add('dtend').value   = toUTC(end)
@@ -833,7 +836,8 @@ class FreeBusyFileFormat(ICalendarFormat):
         """
         start = beginningOfWeek()
         cal = itemsToFreeBusy(self.itsView, start,
-                              start + FREEBUSY_WEEKS_EXPORTED * 7 * oneDay)
+                              start + FREEBUSY_WEEKS_EXPORTED * 7 * oneDay,
+                              calname = self.itsParent.displayName)
         return cal.serialize().encode('utf-8')
 
     def importProcess(self, text, extension=None, item=None, changes=None,
