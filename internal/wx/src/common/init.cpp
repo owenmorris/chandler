@@ -179,7 +179,8 @@ static void ConvertArgsToUnicode(int argc, char **argv)
     gs_initData.argv = new wchar_t *[argc + 1];
     for ( int i = 0; i < argc; i++ )
     {
-        gs_initData.argv[i] = wxStrdup(wxConvLocal.cMB2WX(argv[i]));
+        gs_initData.argv[i] = wxStrdup((const wchar_t*)argv[i]);
+//        gs_initData.argv[i] = wxStrdup(wxConvLocal.cMB2WX(argv[i]));
     }
 
     gs_initData.argc = argc;
