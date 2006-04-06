@@ -5,7 +5,7 @@
 //              Ryan Norton, Fredrik Roubert (UTF7)
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.cpp,v 1.199 2006/04/05 23:04:10 VZ Exp $
+// RCS-ID:      $Id: strconv.cpp,v 1.203 2006/04/06 12:43:38 VZ Exp $
 // Copyright:   (c) 1999 Ove Kaaven, Robert Roebling, Vaclav Slavik
 //              (c) 2000-2003 Vadim Zeitlin
 //              (c) 2004 Ryan Norton, Fredrik Roubert
@@ -149,14 +149,15 @@ static size_t decode_utf16(const wxUint16* input, wxUint32& output)
 // check for this
 static wxUint32 wxDecodeSurrogate(const wxDecodeSurrogate_t **pSrc)
 {
-    wxUint32 out;
-    const size_t n = decode_utf16(*pSrc, out);
+    wxUint32 outBuff;
+    const size_t
+        n = decode_utf16(wx_reinterpret_cast(const wxUint16 *, *pSrc), outBuff);
     if ( n == wxCONV_FAILED )
         *pSrc = NULL;
     else
         *pSrc += n;
 
-    return out;
+    return outBuff;
 }
 
 // ----------------------------------------------------------------------------
@@ -2759,7 +2760,7 @@ public:
     {
         OSStatus status = noErr ;
         ByteCount byteOutLen ;
-        ByteCount byteInLen = strlen(psz) ;
+        ByteCount byteInLen = strlen(psz) + 1;
         wchar_t *tbuf = NULL ;
         UniChar* ubuf = NULL ;
         size_t res = 0 ;
