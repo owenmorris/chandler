@@ -46,7 +46,6 @@ class TimedEventsCanvas(CalendarBlock):
     def onTZPrefsChange(self, op, item, names):
         self.widget.SetWindowGeometry()
         self.widget.wxSynchronizeWidget()
-        self.widget.Refresh()
 
     def instantiateWidget(self):
         super(TimedEventsCanvas, self).instantiateWidget()

@@ -198,9 +198,16 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
             events = self.blockItem.contents
             view = self.blockItem.itsView            
             
+            tzprefs = schema.ns('osaf.app', view).TimezonePrefs
+            def shift(dt):
+                if tzprefs.showUI:
+                    return dt
+                else:
+                    return dt.replace(tzinfo=None)
+                
             for item in Calendar.eventsInRange(view, startDatetime, endDatetime,
                                                events):                                                
-                    updateBusy(item, item.startTime)
+                    updateBusy(item, shift(item.startTime))
     
             # Next, try to find all generated events in the given
             # datetime range
@@ -296,7 +303,23 @@ def isMainCalendarVisible():
 
 class MiniCalendar(CalendarCanvas.CalendarBlock):
     dayMode = schema.One(schema.Boolean, initialValue = True)
-    
+
+    def render(self, *args, **kwds):
+        super(MiniCalendar, self).render(*args, **kwds)
+
+        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        self.itsView.watchItem(self, tzPrefs, 'onTZPrefsChange')
+
+    def onDestroyWidget(self, *args, **kwds):
+
+        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        self.itsView.unwatchItem(self, tzPrefs, 'onTZPrefsChange')
+
+        super(MiniCalendar, self).onDestroyWidget(*args, **kwds)
+
+    def onTZPrefsChange(self, op, item, names):
+        self.widget.wxSynchronizeWidget()
+
     def instantiateWidget(self):
         if '__WXMAC__' in wx.PlatformInfo:
             style = wx.BORDER_SIMPLE
