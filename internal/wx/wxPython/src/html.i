@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Nov-1998
-// RCS-ID:      $Id: html.i,v 1.80 2006/03/13 23:11:35 RD Exp $
+// RCS-ID:      $Id: html.i,v 1.81 2006/04/06 02:35:05 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -175,6 +175,11 @@ public:
 
     // void AddText(const char* txt) = 0;
     // void AddTag(const wxHtmlTag& tag);
+
+    
+    // Returns HTML source inside the element (i.e. between the starting
+    // and ending tag)
+    wxString GetInnerSource(const wxHtmlTag& tag);   
 };
 
 
