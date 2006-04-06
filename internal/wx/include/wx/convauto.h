@@ -3,7 +3,7 @@
 // Purpose:     wxConvAuto class declaration
 // Author:      Vadim Zeitlin
 // Created:     2006-04-03
-// RCS-ID:      $Id: convauto.h,v 1.3 2006/04/05 22:12:41 VZ Exp $
+// RCS-ID:      $Id: convauto.h,v 1.4 2006/04/06 17:11:25 VZ Exp $
 // Copyright:   (c) 2006 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ public:
 
     // copy ctor doesn't initialize anything neither as conversion can only be
     // deduced on first use
-    wxConvAuto(const wxConvAuto& WXUNUSED(other)) { m_conv = NULL; }
+    wxConvAuto(const wxConvAuto& WXUNUSED(other)) : wxMBConv() { m_conv = NULL; }
 
     virtual ~wxConvAuto() { if ( m_conv && m_ownsConv ) delete m_conv; }
 

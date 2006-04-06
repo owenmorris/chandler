@@ -4,7 +4,7 @@
 // Author:      Ove Kaaven, Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.h,v 1.53 2006/04/05 23:04:04 VZ Exp $
+// RCS-ID:      $Id: strconv.h,v 1.54 2006/04/06 17:11:25 VZ Exp $
 // Copyright:   (c) 1998 Ove Kaaven, Robert Roebling
 //              (c) 1998-2006 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -191,7 +191,8 @@ class WXDLLIMPEXP_BASE wxConvBrokenFileNames : public wxMBConv
 public:
     wxConvBrokenFileNames(const wxChar *charset);
     wxConvBrokenFileNames(const wxConvBrokenFileNames& conv)
-        : m_conv(conv.m_conv ? conv.m_conv->Clone() : NULL)
+        : wxMBConv(),
+          m_conv(conv.m_conv ? conv.m_conv->Clone() : NULL)
     {
     }
     virtual ~wxConvBrokenFileNames() { delete m_conv; }
