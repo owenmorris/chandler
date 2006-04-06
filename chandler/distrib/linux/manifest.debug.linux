@@ -35,18 +35,11 @@ dest=debug
 glob=libssl*,libcrypto*
 lib
 
-# Grab the PyICU libs
-src=chandler/debug
-recursive=no
-dest=debug
-glob=libPy*
-lib
-
 # Recursively grab python libraries
 src=chandler/debug/lib
 dest=debug/lib
 recursive=yes
-glob=*.py,*.pyd,*.so,*.security,libgcj.so.5
+glob=*.py,*.pyd,*.so,*.security
 python2.4/compiler
 python2.4/curses
 python2.4/distutils
@@ -72,7 +65,6 @@ recursive=yes
 glob=*
 site-packages
 
-
 # Grab the DB libraries
 dest=debug/db/lib
 src=chandler/debug/db/lib
@@ -81,10 +73,9 @@ libdb_java-4.4.so
 src=chandler/debug/lib
 dest=debug/lib
 
-# Grab the gcj 3.4.x runtime libs
+# Grab the gcc 3.4.x runtime libs
 src=chandler/debug/lib
 dest=debug/lib
-libgcj.so.5
 libstdc++.so.6
 libgcc_s.so.1
 

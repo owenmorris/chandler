@@ -29,13 +29,6 @@ dest=release
 glob=libssl*,libcrypto*
 lib
 
-# Grab the PyICU libs
-src=chandler/release
-recursive=no
-dest=release
-glob=libPy*
-lib
-
 # Grab icu libs
 src=chandler/release/icu
 dest=release
@@ -71,7 +64,6 @@ recursive=yes
 glob=*
 site-packages
 
-
 # Grab the DB libraries
 dest=release/db/lib
 src=chandler/release/db/lib
@@ -80,10 +72,9 @@ libdb_java-4.4.so
 src=chandler/release/lib
 dest=release/lib
 
-# Grab the gcj 3.4.x runtime libs
+# Grab the gcc 3.4.x runtime libs
 src=chandler/release/lib
 dest=release/lib
-libgcj.so.5
 libstdc++.so.6
 libgcc_s.so.1
 
@@ -107,8 +98,6 @@ glob=*
 repository
 resources
 i18n
-
-
 
 # Grab the linux README
 src=chandler/distrib/linux
