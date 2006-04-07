@@ -33,6 +33,7 @@ class UserCollection(schema.Annotation):
     colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
     dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
     outOfTheBoxCollection   = schema.One(schema.Boolean, defaultValue = False)
+    canAdd                  = schema.One(schema.Boolean, defaultValue = True)
     """
       preferredKind is used as a hint to the user-interface to choose the right
       view for the display, e.g. CalendarView for collections that have a preferredKind
@@ -97,7 +98,8 @@ def installParcel(parcel, oldVersion=None):
     trashUC = UserCollection(pim_ns.trashCollection)
     trashUC.setValues(renameable=False,
                       dontDisplayAsCalendar=True,
-                      outOfTheBoxCollection = True)
+                      outOfTheBoxCollection = True,
+                      canAdd=False)
     trashUC.ensureColor()
 
     inUC = UserCollection(pim_ns.inCollection)

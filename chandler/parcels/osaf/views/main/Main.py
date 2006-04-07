@@ -160,7 +160,8 @@ class MainView(View):
             # all collection
             collection = sidebar.selectedItemToView
             isReadOnly = getattr(collection, 'isReadOnly', None)
-            if isReadOnly and isReadOnly():
+            if (isReadOnly and isReadOnly() or
+                not UserCollection(collection).canAdd):
                 # Tell the sidebar we want to go to the All collection
                 allCollection = schema.ns('osaf.pim', self).allCollection
                 self.postEventByName ('RequestSelectSidebarItem',

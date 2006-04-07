@@ -959,6 +959,10 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     def GetSelection(self):
         return CalendarSelection(self.contents)
 
+    def CanAdd(self):
+        return (super(CalendarBlock, self).CanAdd() and
+                UserCollection(self.contentsCollection).canAdd)
+
 # ATTENTION: do not put mixins here - put them in wxCollectionCanvas
 # instead, to keep them more general
 class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectionCanvas):
