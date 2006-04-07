@@ -8461,13 +8461,7 @@ bool wxGrid::MoveCursorUp( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetRow() > 0 )
-        {
-            int row = m_currentCellCoords.GetRow() - 1;
-            int col = m_currentCellCoords.GetCol();
-            ClearSelection();
-            MakeCellVisible( row, col );
-            SetCurrentCell( row, col );
-        }
+            SelectCell( m_currentCellCoords.GetRow() - 1, m_currentCellCoords.GetCol() );
         else
             return false;
 
@@ -8487,7 +8481,7 @@ bool wxGrid::MoveCursorDown( bool expandSelection )
         {
             if ( m_selectingKeyboard == wxGridNoCellCoords )
                 m_selectingKeyboard = m_currentCellCoords;
-            if ( m_selectingKeyboard.GetRow() < m_numRows-1 )
+            if ( m_selectingKeyboard.GetRow() < m_numRows - 1 )
             {
                 m_selectingKeyboard.SetRow( m_selectingKeyboard.GetRow() + 1 );
                 MakeCellVisible( m_selectingKeyboard.GetRow(),
@@ -8496,13 +8490,7 @@ bool wxGrid::MoveCursorDown( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetRow() < m_numRows - 1 )
-        {
-            int row = m_currentCellCoords.GetRow() + 1;
-            int col = m_currentCellCoords.GetCol();
-            ClearSelection();
-            MakeCellVisible( row, col );
-            SetCurrentCell( row, col );
-        }
+            SelectCell( m_currentCellCoords.GetRow() + 1, m_currentCellCoords.GetCol() );
         else
             return false;
 
@@ -8530,13 +8518,7 @@ bool wxGrid::MoveCursorLeft( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetCol() > 0 )
-        {
-            int row = m_currentCellCoords.GetRow();
-            int col = m_currentCellCoords.GetCol() - 1;
-            ClearSelection();
-            MakeCellVisible( row, col );
-            SetCurrentCell( row, col );
-        }
+            SelectCell( m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol() - 1 );
         else
             return false;
 
@@ -8564,13 +8546,7 @@ bool wxGrid::MoveCursorRight( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetCol() < m_numCols - 1 )
-        {
-            int row = m_currentCellCoords.GetRow();
-            int col = m_currentCellCoords.GetCol() + 1;
-            ClearSelection();
-            MakeCellVisible( row, col );
-            SetCurrentCell( row, col );
-        }
+            SelectCell( m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol() + 1 );
         else
             return false;
 
