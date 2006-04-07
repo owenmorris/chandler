@@ -15,7 +15,7 @@ try:
     ev = testView.DoubleClickInCalView()
     scripting.User.idle()
     # double click one more time => edit the title
-    #testView.DoubleClickInCalView()
+    testView.DoubleClickInCalView()
     # type a new title and return
     QAUITestAppLib.scripting.User.emulate_typing("Writing tests")
     QAUITestAppLib.scripting.User.emulate_return()
