@@ -20,7 +20,7 @@ try:
     ap.CreateAccount("WebDAV")
     ap.TypeValue("displayName", "Sharing Test WebDAV")
     ap.TypeValue("host", "qacosmo.osafoundation.org")
-    ap.TypeValue("path", "home/demo1")
+    ap.TypeValue("path", "cosmo/home/demo1")
     ap.TypeValue("username", "demo1")
     ap.TypeValue("password", "ad3leib5")
     ap.TypeValue("port", "8080")
