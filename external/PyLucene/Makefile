@@ -1,5 +1,5 @@
 
-VERSION=2.0rc1-3
+VERSION=2.0rc1-4
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-src-$(VERSION)
@@ -126,7 +126,7 @@ test:
 clean:
 	$(MAKE) -C $(SRC) clean
 
-binaries: strip
+binaries:
 	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) $(MANIFEST)
 
 PyLucene-src-$(VERSION).tar.gz:
