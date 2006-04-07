@@ -31,6 +31,7 @@ allTests = [
                 "TestNewTask.py",
                 "TestNewNote.py",
                 "TestStamping.py", 
+                "TestSharing.py", #cosmo bug 5339 requires this be ahead of the recurence tests for now
                 "TestMoveToTrash.py", 
                 "TestDeleteCollection.py",
                 "TestNewCollNoteStampMulti.py", 
@@ -42,7 +43,6 @@ allTests = [
                 "TestFlickr.py",
                 "TestImporting.py",
                 "TestImportOverwrite.py",
-                "TestSharing.py",
                 "TestBlocks.py",
                 ]
 
