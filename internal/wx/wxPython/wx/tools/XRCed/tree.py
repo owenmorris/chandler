@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, XML_tree class
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      02.12.2002
-# RCS-ID:       $Id: tree.py,v 1.30 2006/03/24 01:47:55 RD Exp $
+# RCS-ID:       $Id: tree.py,v 1.31 2006/04/07 19:24:39 RD Exp $
 
 from xxx import *                       # xxx imports globals and params
 import types
@@ -677,9 +677,6 @@ class XML_Tree(wxTreeCtrl):
             if child.IsWindow(): child = child.GetWindow()
             elif child.IsSizer():
                 child = child.GetSizer()
-                # Test for notebook sizers (deprecated)
-                if isinstance(child, wxNotebookSizer):
-                    child = child.GetNotebook()        
         return child
 
     def OnSelChanged(self, evt):
