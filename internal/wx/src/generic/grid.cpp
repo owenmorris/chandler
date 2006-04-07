@@ -5798,13 +5798,7 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                     m_waitForSlowClick = m_currentCellCoords == coords && coords != wxGridNoCellCoords;
                     SetCurrentCell( coords );
                     if ( m_selection )
-                    {
-                        if ( m_selection->GetSelectionMode() !=
-                                wxGrid::wxGridSelectCells )
-                        {
-                            HighlightBlock( coords, coords, clearSelection );
-                        }
-                    }
+                        HighlightBlock( coords, coords, clearSelection );
                 }
             }
         }
@@ -5836,7 +5830,7 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                 {
                     EnableCellEditControl();
 
-                    wxGridCellAttr* attr = GetCellAttr(coords);
+                    wxGridCellAttr *attr = GetCellAttr(coords);
                     wxGridCellEditor *editor = attr->GetEditor(this, coords.GetRow(), coords.GetCol());
                     editor->StartingClick();
                     editor->DecRef();
@@ -5855,7 +5849,8 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
         {
             if (m_winCapture)
             {
-                if (m_winCapture->HasCapture()) m_winCapture->ReleaseMouse();
+                if (m_winCapture->HasCapture())
+                    m_winCapture->ReleaseMouse();
                 m_winCapture = NULL;
             }
 
@@ -5888,13 +5883,13 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                                               event.MetaDown() );
                 }
 
-                //In the past we cleared the selection here, however, we now keep
-                //the selection around so that HighlightBlock can avoid clearing
-                //the selection with it doesn't change, which avoids flicker,
-                //expecially when we don't have a cursor.
+                // In the past we cleared the selection here, however, we now keep
+                // the selection around so that HighlightBlock can avoid clearing
+                // the selection with it doesn't change, which avoids flicker,
+                // expecially when we don't have a cursor.
                 //
-                //m_selectingTopLeft = wxGridNoCellCoords;
-                //m_selectingBottomRight = wxGridNoCellCoords;
+                // m_selectingTopLeft = wxGridNoCellCoords;
+                // m_selectingBottomRight = wxGridNoCellCoords;
 
                 // Show the edit control, if it has been hidden for
                 // drag-shrinking.
