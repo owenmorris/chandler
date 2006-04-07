@@ -170,45 +170,50 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
         self.untrustedCertificates = []
 
     def verifyCallback(self, ok, store):
+        # Returning 1 means any error is ignored and SSL checking continues
         log.debug('TwistedProtocolWrapper.verifyCallback')
         global trusted_until_shutdown_site_certs, \
                trusted_until_shutdown_invalid_site_certs, \
                unknown_issuer
                         
         if not ok:
-            err = store.get_error()
-
-            x509 = store.get_current_cert()
-
-            # Check temporarily trusted certificates
-            pem = x509.as_pem()
-
-            if err not in unknown_issuer:
-                # Check if we are temporarily ignoring errors with this cert
-                acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(pem)
-                if acceptedErrList is not None and err in acceptedErrList:
-                    log.debug('Ignoring certificate error %d' %err)
+            try:
+                err = store.get_error()
+    
+                x509 = store.get_current_cert()
+    
+                # Check temporarily trusted certificates
+                pem = x509.as_pem()
+    
+                if err not in unknown_issuer:
+                    # Check if we are temporarily ignoring errors with this
+                    # certificate.
+                    acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(pem)
+                    if acceptedErrList is not None and err in acceptedErrList:
+                        log.debug('Ignoring certificate error %d' %err)
+                        return 1
+                    self.untrustedCertificates.append(pem)
+                    return ok
+    
+                if pem in trusted_until_shutdown_site_certs:
+                    log.debug('Found temporarily trusted site cert')
                     return 1
-                self.untrustedCertificates.append(pem)
-                return ok
-
-            if pem in trusted_until_shutdown_site_certs:
-                log.debug('Found temporarily trusted site cert')
-                return 1
-
-            # Check permanently trusted certificates
-            # XXX Why does this need to be commit()? refresh() does not
-            # XXX seem pick up changes made in main thread.
-            self.repositoryView.commit()
-
-            q = self.repositoryView.findPath('//userdata/%s' %(constants.TRUSTED_SITE_CERTS_QUERY_NAME))
-            if q is not None:
+    
+                # Check permanently trusted certificates
+                # XXX Why does this need to be commit()? refresh() does not
+                # XXX seem pick up changes made in main thread.
+                self.repositoryView.commit()
+    
+                q = schema.ns('osaf.framework.certstore', 
+                              self.repositoryView).sslTrustedSiteCertificatesQuery
                 for cert in q:
                     if cert.pemAsString() == pem:
                         log.debug('Found permanently trusted site cert')
                         return 1
-
-            self.untrustedCertificates.append(pem)
+    
+                self.untrustedCertificates.append(pem)
+            except: # This is ok, we MUST return a value and not raise
+                log.exception('SSL verifyCallback raised exception')
 
         log.debug('Returning %d' % ok)
         return ok
@@ -333,7 +338,8 @@ def askTrustSiteCertificate(repositoryView, pem, reconnect):
                     fingerprint = utils.fingerprint(x509)
                     certificate.importCertificate(x509, fingerprint, 
                                                   constants.TRUST_AUTHENTICITY,
-                                                  repositoryView)
+                                                  repositoryView,
+                                                  typeHint=constants.TYPE_SITE)
 
             reconnect()
     finally:

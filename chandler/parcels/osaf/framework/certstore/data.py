@@ -27,7 +27,7 @@ def loadCerts(parcel, moduleName, filename=u'cacert.pem'):
     cert = schema.ns('osaf.framework.certstore', parcel)
     lobType = schema.itemFor(schema.Lob, parcel.itsView)
 
-    from osaf.framework.certstore import utils
+    from osaf.framework.certstore import utils, constants
 
     lastLine = ''
     pem = []
@@ -61,11 +61,24 @@ def loadCerts(parcel, moduleName, filename=u'cacert.pem'):
                 #print x509.as_text()
                 continue
 
+            try:
+                trust = constants.TRUST_AUTHENTICITY | constants.TRUST_SITE
+                type = cert.certificateType(x509)
+                if type != constants.TYPE_ROOT:
+                    trust &= ~constants.TRUST_SITE
+                    log.warn('Importing non-root certificate: %s' % \
+                             (commonName))
+            except utils.CertificateException:
+                log.warn('Could not determine certificate type, assuming "%s": %s' % \
+                              (constants.TYPE_ROOT, commonName))
+                type = constants.TYPE_ROOT
+                #print x509.as_text()
+
             #XXX [i18n] Can a commonName contain non-ascii characters?
             cert.Certificate.update(parcel, itsName,
                 displayName = unicode(commonName),
-                type='root',#cert.TYPE_ROOT, 
-                trust=3,#cert.TRUST_AUTHENTICITY | cert.TRUST_SITE, 
+                type=type,
+                trust=trust,
                 fingerprintAlgorithm='sha1',
                 fingerprint=utils.fingerprint(x509),
                 pem=lobType.makeValue(''.join(pem)),

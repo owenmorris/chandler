@@ -7,7 +7,7 @@ Certificate
 __parcel__ = "osaf.framework.certstore"
 
 __all__ = ['Certificate', 'importCertificate',
-           'importCertificateDialog', 'findCertificate']
+           'importCertificateDialog', 'findCertificate', 'certificateType']
 
 import os, logging, sys
 
@@ -148,42 +148,100 @@ class Certificate(pim.ContentItem):
         return super(Certificate, self).isAttributeModifiable(attribute)
 
 
-def _isSiteCertificate(x509):
+def _isRootCertificate(x509):
     # XXX This will need tweaks
-    site = False
+    # XXX Should use OpenSSL itself if possible
+    # XXX X509_check_ca, X509_check_purpose
+    root = False
+
     try:
-        host = x509.get_ext('subjectAltName').get_value()
-        host = host.lower()
-        if host[:4] == 'dns:':
-            site = True
+        root = x509.get_ext('basicConstraints').get_value().find('CA:TRUE') > -1
+        log.debug('"basicConstraints" contained "CA:TRUE": %s' % root)
     except LookupError:
         pass
 
+    if not root:
+        try:
+            root = x509.get_ext('keyUsage').get_value().find('Certificate Sign') > -1
+            log.debug('"keyUsage" contained "Certificate Sign": %s' % root)
+        except LookupError:
+            pass
+    
+    if not root:
+        try:
+            root = x509.get_ext('nsCertType').get_value().find('SSL CA') > -1
+            log.debug('"nsCertType" contained "SSL CA": %s' % root)
+        except LookupError:
+            pass
+    
+    if not root:
+        subject = x509.get_subject()
+        issuer = x509.get_issuer()
+        if subject.as_text() == issuer.as_text():
+            root = True
+        log.debug('subject and issuer matched: %s' % root)
+
+    return root
+
+def _isSiteCertificate(x509):
+    # XXX This will need tweaks
+    # XXX Should use OpenSSL itself if possible
+    # XXX X509_check_purpose
+    site = False
+    
+    try:
+        site = x509.get_ext('extendedKeyUsage').get_value().find('TLS Web Server Authentication') > -1
+        log.debug('"extendedKeyUsage" contained "TLS Web Server Authentication": %s' % site)
+    except LookupError:
+        pass
+    
     if not site:
         try:
-            commonName = x509.get_subject().CN
-            if commonName.find('.') > -1 and commonName.find(' ') < 0:
-                site = True
-        except AttributeError:
+            site = x509.get_ext('nsCertType').get_value().find('SSL Server') > -1
+            log.debug('"nsCertType" contained "SSL Server": %s' % site)
+        except LookupError:
             pass
+
+    if not site:
+        try:
+            host = x509.get_ext('subjectAltName').get_value()
+            host = host.lower()
+            if host[:4] == 'dns:':
+                site = True
+            log.debug('"subjectAltName" contained "DNS": %s' % site)
+        except LookupError:
+            pass
+
+    if not site:
+        commonName = x509.get_subject().CN
+        if commonName.find(' ') < 0 and commonName.find('.') > -1:
+            site = True
+        elif commonName.replace('.','').isdigit():
+            site = True
+        elif commonName == 'localhost':
+            site = True
+        # XXX We could still miss certificates that are issued for
+        # XXX local, named hosts other than localhost.
+        log.debug('"commonName" indicated a site certificate: %s' % site)
 
     return site
 
 
-def _certificateType(x509):
-    # Determine certificate type.
-    # XXX This will need tweaking, for example
-    # XXX X509_check_ca, X509_check_purpose
+def certificateType(x509, typeHint=None):
+    """
+    Determine certificate type.
+    
+    @param typeHint: We try to see if the certificate could be this type first,
+                     before trying any other types.
+    """
     type = None
-    try:
-        if x509.get_ext('basicConstraints').get_value() == 'CA:TRUE':
-            type = constants.TYPE_ROOT
-        elif _isSiteCertificate(x509):
+    
+    if typeHint == constants.TYPE_SITE:
+        if _isSiteCertificate(x509):
             type = constants.TYPE_SITE
-    except LookupError:
-        subject = x509.get_subject()
-        issuer = x509.get_issuer()
-        if subject.CN == issuer.CN:
+
+    if type is None:
+        if _isRootCertificate(x509):
             type = constants.TYPE_ROOT
         elif _isSiteCertificate(x509):
             type = constants.TYPE_SITE
@@ -197,9 +255,6 @@ def findCertificate(repView, pem):
     """
     See if the certificate is stored in the repository.
     """
-    # XXX This could be optimized by querying based on some cheap field,
-    # XXX which would typically return just 0 or 1
-    # XXX hit. But I don't want to leave query items laying around either.
     q = utils.getExtent(Certificate, view=repView)
 
     for cert in q:
@@ -208,7 +263,7 @@ def findCertificate(repView, pem):
 
     return None
 
-def importCertificate(x509, fingerprint, trust, repView):
+def importCertificate(x509, fingerprint, trust, repView, typeHint=None):
     """
     Import X.509 certificate.
 
@@ -227,7 +282,7 @@ def importCertificate(x509, fingerprint, trust, repView):
 
     asText = x509.as_text()
 
-    type = _certificateType(x509)
+    type = certificateType(x509, typeHint)
     if type == constants.TYPE_ROOT:
         if not x509.verify():
             raise utils.CertificateException(_(u'Unable to verify the certificate.'))
@@ -246,16 +301,10 @@ def importCertificate(x509, fingerprint, trust, repView):
                        pem=pem,
                        asText=text)
 
-    # XXX Why is this collection created here, as it is not used here?
-    q = repView.findPath('//userdata/%s' %(constants.TRUSTED_SITE_CERTS_QUERY_NAME))
-    if q is None:
-        q = FilteredCollection(constants.TRUSTED_SITE_CERTS_QUERY_NAME,
-                               itsView=repView,
-                               source=utils.getExtent(Certificate, repView),
-                               filterExpression=u"view.findValue(uuid, 'type') == '%s' and view.findValue(uuid, 'trust') == %d" % (constants.TYPE_SITE, constants.TRUST_AUTHENTICITY),
-                               filterAttributes=['type', 'trust'])
-
     repView.commit()
+    log.debug('Imported certificate: CN=%s, type=%s, fp=%s' % (commonName,
+                                                               type,
+                                                               fingerprint))
 
 
 def importCertificateDialog(repView):
@@ -283,7 +332,7 @@ def importCertificateDialog(repView):
         x509 = X509.load_cert(path)
 
         fprint = utils.fingerprint(x509)
-        type = _certificateType(x509)
+        type = certificateType(x509)
         # Note: the order of choices must match the selections code below
         choices = [_(u"Trust the authenticity of this certificate.")]
         if type == constants.TYPE_ROOT:

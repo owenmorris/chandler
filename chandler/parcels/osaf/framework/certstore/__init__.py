@@ -14,3 +14,9 @@ def installParcel(parcel, oldVersion=None):
         filterExpression=u"view.findValue(uuid, 'type') == '%s' and view.findValue(uuid, 'trust') == %d" % (constants.TYPE_ROOT, constants.TRUST_AUTHENTICITY | constants.TRUST_SITE),
         filterAttributes=['type', 'trust']
     )
+    
+    FilteredCollection.update(parcel, 'sslTrustedSiteCertificatesQuery',
+        source=utils.getExtent(certificate.Certificate, parcel.itsView),
+        filterExpression=u"view.findValue(uuid, 'type') == '%s' and view.findValue(uuid, 'trust') == %d" % (constants.TYPE_SITE, constants.TRUST_AUTHENTICITY),
+        filterAttributes=['type', 'trust']
+    )

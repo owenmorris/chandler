@@ -22,9 +22,6 @@ Certificate constants
                          a specific computer with a name, for example
                          www.example.com). Applies to Certificate Kind's
                          type attribute.    
-
-@var TRUSTED_SITE_CERTS_QUERY_NAME: The query name for the query that will
-                                    return all trusted site certificates.
 """
 
 TRUST_AUTHENTICITY = 1
@@ -32,5 +29,3 @@ TRUST_SITE         = 2
 
 TYPE_ROOT          = 'root'
 TYPE_SITE          = 'site'
-
-TRUSTED_SITE_CERTS_QUERY_NAME = 'sslTrustedSiteCertificatesQuery'
