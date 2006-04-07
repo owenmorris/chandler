@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h,v 1.50 2006/03/28 10:32:00 JS Exp $
+// RCS-ID:      $Id: private.h,v 1.51 2006/04/07 18:56:13 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -220,7 +220,9 @@ template<> inline EventParamType wxMacGetEventParamType<HISize>() { return typeH
 template<> inline EventParamType wxMacGetEventParamType<HIRect>() { return typeHIRect ; }
 template<> inline EventParamType wxMacGetEventParamType<void*>() { return typeVoidPtr ; }
 #endif
+#if TARGET_API_MAC_OSX && ( MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2 )
 template<> inline EventParamType wxMacGetEventParamType<CFDictionaryRef>() { return typeCFDictionaryRef ; }
+#endif
 template<> inline EventParamType wxMacGetEventParamType<Collection>() { return typeCollection ; }
 template<> inline EventParamType wxMacGetEventParamType<CGContextRef>() { return typeCGContextRef ; }
 /*
@@ -387,7 +389,7 @@ public :
 
     ~wxMacCFRefHolder()
     {
-        CFRelease( m_ref ) ;
+        Release() ;
     }
 
     void Release()

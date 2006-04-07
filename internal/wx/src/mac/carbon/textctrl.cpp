@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.cpp,v 1.179 2006/03/28 11:02:32 ABX Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.180 2006/04/07 18:59:51 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -875,6 +875,13 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
 {
     int key = event.GetKeyCode() ;
     bool eat_key = false ;
+
+    if ( key == 'a' && event.MetaDown() )
+    {
+        SelectAll() ;     
+        
+        return ;
+    }
 
     if ( key == 'c' && event.MetaDown() )
     {
