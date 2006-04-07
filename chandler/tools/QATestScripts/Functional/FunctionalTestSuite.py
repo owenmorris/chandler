@@ -55,6 +55,7 @@ else:
     
 exclusions = {
     'other':(
+                "TestCalView.py", #bug 5109 
     ),
     
     'mac':( 
