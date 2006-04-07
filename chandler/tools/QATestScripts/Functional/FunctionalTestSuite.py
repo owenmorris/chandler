@@ -68,8 +68,7 @@ exclusions = {
     'all':(        
         "TestAllDayEvent.py", #test not functioning bug#5110
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
-        "TestSharing.py", #bug 5542, 5541 
-    )
+        )
 }
 
 tests_to_run = filter(lambda test : test not in exclusions['all'] and test not in exclusions[platform], allTests)
