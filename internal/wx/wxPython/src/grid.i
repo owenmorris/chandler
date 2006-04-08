@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     17-March-2000
-// RCS-ID:      $Id: grid.i,v 1.80 2006/03/31 23:29:39 RD Exp $
+// RCS-ID:      $Id: grid.i,v 1.81 2006/04/08 21:49:20 RD Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -1127,7 +1127,7 @@ class wxGridTableBase : public wxObject
 {
 public:
     // wxGridTableBase();   This is an ABC
-    //~wxGridTableBase();
+    ~wxGridTableBase();
 
     %extend {
         void _setOORInfo(PyObject* _self) {
@@ -1661,9 +1661,12 @@ public:
 
 
     wxGridTableBase * GetTable() const;
+
+    %disownarg(wxGridTableBase *);
     bool SetTable( wxGridTableBase *table, bool takeOwnership=false,
                    WXGRIDSELECTIONMODES selmode =
                    wxGrid::wxGridSelectCells );
+    %cleardisown(wxGridTableBase *);
 
     void ClearGrid();
     bool InsertRows( int pos = 0, int numRows = 1, bool updateLabels=true );
