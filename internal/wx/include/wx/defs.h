@@ -4,7 +4,7 @@
 *  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
-*  RCS-ID:      $Id: defs.h,v 1.535 2006/04/04 19:34:38 MR Exp $
+*  RCS-ID:      $Id: defs.h,v 1.536 2006/04/08 15:32:18 SC Exp $
 *  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -1656,6 +1656,8 @@ enum wxBorder
  * wxStaticText flags
  */
 #define wxST_NO_AUTORESIZE    0x0001
+#define wxST_DOTS_MIDDLE      0x0002
+#define wxST_DOTS_END         0x0004
 
 /*
  * wxStaticBitmap flags
