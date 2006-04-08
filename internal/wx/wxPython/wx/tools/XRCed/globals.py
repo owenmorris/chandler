@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, global variables
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      02.12.2002
-# RCS-ID:       $Id: globals.py,v 1.24 2006/04/05 14:55:17 ROL Exp $
+# RCS-ID:       $Id: globals.py,v 1.25 2006/04/08 06:17:08 RD Exp $
 
 from wxPython.wx import *
 from wxPython.xrc import *
@@ -21,7 +21,7 @@ MinWxVersion = (2,6,0)
 if wxVERSION[:3] < MinWxVersion:
     print '''\
 ******************************* WARNING **************************************
-  This version of XRCed may not work correctly on your version of wxWindows.
+  This version of XRCed may not work correctly on your version of wxWidgets.
   Please upgrade wxWindows to %d.%d.%d or higher.
 ******************************************************************************''' % MinWxVersion    
 
