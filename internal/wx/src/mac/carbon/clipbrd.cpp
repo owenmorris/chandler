@@ -5,7 +5,7 @@
 //                   Generalized clipboard implementation by Matthew Flatt
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: clipbrd.cpp,v 1.42 2006/03/17 19:11:32 vell Exp $
+// RCS-ID:      $Id: clipbrd.cpp,v 1.43 2006/04/08 15:26:05 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -328,6 +328,16 @@ bool wxClipboard::IsSupported( const wxDataFormat &dataFormat )
             err = GetScrapFlavorSize( scrapRef, dataFormat.GetFormatId(), &byteCount );
             if (err == noErr)
                 hasData = true;
+        }
+        else if ( dataFormat.GetType() == wxDF_UNICODETEXT )
+        {
+            err = GetScrapFlavorFlags( scrapRef, 'TEXT', &flavorFlags );
+            if (err == noErr)
+            {
+                err = GetScrapFlavorSize( scrapRef, 'TEXT', &byteCount );
+                if (err == noErr)
+                    hasData = true;
+            }
         }
     }
 
