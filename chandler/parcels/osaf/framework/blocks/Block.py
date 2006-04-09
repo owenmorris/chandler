@@ -1063,9 +1063,8 @@ AddToSidebarEvent = AddToViewableCollectionEvent
     By default the item will be selected and it's displayName will be
     disambiguated, i.e. a "-NN" suffix added to make it unique.
     
-    By setting the preferredKind UseCollection attribute of your collection
-    you can cause the colleciton to be displayed in a particular application
-    area as follows:
+    By setting the preferredKind UserCollection attribute of your collection,
+    it will be displayed in a particular application area as follows:
     
     If preferredKind attribute is absent (the default) then the collection
     will be the current application area.
