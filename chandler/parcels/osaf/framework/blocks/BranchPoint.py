@@ -89,7 +89,7 @@ class BranchPointBlock(BoxContainer):
             
         self.detailItemCollection = \
             self.delegate.getContentsCollection(self.selectedItem,
-                                                     event.arguments.get('collection'))
+                                                event.arguments.get('collection'))
         widget = getattr (self, 'widget', None)
         if widget is not None:
             # eventually results in installTreeOfBlocks()

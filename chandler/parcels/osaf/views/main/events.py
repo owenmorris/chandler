@@ -1,3 +1,4 @@
+from osaf.usercollections import UserCollection
 
 def makeMainEvents(parcel):
 
@@ -222,13 +223,11 @@ def makeMainEvents(parcel):
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
     repositoryViewer = schema.ns("osaf.views.repositoryviewer", repositoryView)
-    ModifyCollectionEvent.template(
-        'AddCPIAView',
-        methodName = 'onModifyCollectionEvent',
-        dispatchToBlockName = 'MainView',
-        commitAfterDispatch = True,
+    AddToSidebarEvent.update(
+        parcel, 'AddCPIAView',
+        blockName = 'AddCPIAView',
         items = [repositoryViewer.CPIAView],
-        dispatchEnum = 'SendToBlockByName').install(parcel)
+        copyItems = False)
 
     BlockEvent.template(
         'ShareSidebarCollection',
@@ -289,13 +288,11 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'MainView').install(parcel)
 
-    ModifyCollectionEvent.template(
-        'AddRepositoryView',
-        methodName = 'onModifyCollectionEvent',
-        dispatchToBlockName = 'MainView',
-        commitAfterDispatch = True,
+    AddToSidebarEvent.update(
+        parcel, 'AddRepositoryView',
+        blockName = 'AddRepositoryView',
         items = [repositoryViewer.RepositoryView],
-        dispatchEnum = 'SendToBlockByName').install(parcel)
+        copyItems = False)
 
     ChoiceEvent.template(
         'ChooseChandlerMainView',
@@ -314,25 +311,26 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'MainView').install(parcel)
 
-    NewEvent.template(
-        'NewCollection',
-        methodName = 'onNewCollection',
-        kindParameter = osaf.pim.SmartCollection.getKind(repositoryView),
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'Sidebar').install(parcel)
+    untitledCollection = pim.SmartCollection.update(parcel,
+        'untitledCollection',
+        displayName=messages.UNTITLED)
+
+    AddToSidebarEvent.update(
+        parcel, 'NewCollection',
+        blockName = 'NewCollection',
+        editAttributeNamed = 'displayName',
+        items = [untitledCollection])
         
     BlockEvent.template(
         'ImportImage',
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'MainView').install(parcel)
 
-    ModifyCollectionEvent.template(
-        'AddAllAdditionalViews',
-        methodName = 'onModifyCollectionEvent',
-        dispatchToBlockName = 'MainView',
-        commitAfterDispatch = True,
+    AddToSidebarEvent.update(
+        parcel, 'AddAllAdditionalViews',
+        blockName = 'AddAllAdditionalViews',
         items = [repositoryViewer.RepositoryView, repositoryViewer.CPIAView],
-        dispatchEnum = 'SendToBlockByName').install(parcel)
+        copyItems = False)
 
     BlockEvent.template(
         'GenerateContentItemsFromFile',

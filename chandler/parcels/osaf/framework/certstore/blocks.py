@@ -12,6 +12,7 @@ from osaf.framework.blocks.detail import Detail
 from osaf.framework.attributeEditors import AttributeEditorMapping
 from osaf.pim.structs import SizeType, RectType
 from osaf.pim import KindCollection
+from osaf.usercollections import UserCollection
 
 class _CertificateImportController(Block.Block):
     def onCertificateImportBlockEvent(self, event):
@@ -36,14 +37,14 @@ def installParcel(parcel, oldVersion=None):
         displayName = _(u"Certificate Store"),
         kind = certstore.Certificate.getKind(parcel.itsView),
         recursive = True)
+    
+    #setting the preferredKind to None is a hint to display it in the All View
+    UserCollection (certStore).preferredKind = None
 
-    addCertificateToSidebarEvent = Block.ModifyCollectionEvent.template(
-        'addCertificateToSidebarEvent',
-        methodName = 'onModifyCollectionEvent',
-        dispatchToBlockName = 'MainView',
-        selectInBlockNamed = 'Sidebar',
-        items = [certStore],
-        dispatchEnum = 'SendToBlockByName').install(parcel)
+    addCertificateToSidebarEvent = Block.AddToSidebarEvent.update(
+        parcel, 'addCertificateToSidebarEvent',
+        blockName = 'addCertificateToSidebarEvent',
+        items = [certStore])
 
     certMenu = blocks.Menu.update(
         parcel, "CertificateTestMenu",

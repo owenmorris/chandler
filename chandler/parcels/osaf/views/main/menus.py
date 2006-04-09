@@ -373,6 +373,7 @@ def makeMainMenus(parcel):
                 childrenBlocks = [
                     MenuItem.template('NewCollectionItem',
                         event = main.NewCollection,
+                        eventsForNamedLookup = [main.NewCollection],
                         title = _(u'New Collection'),
                         helpString = _(u'Create a new Collection')),
                     MenuItem.template('CollectionSeparator1',
@@ -570,16 +571,19 @@ def makeMainMenus(parcel):
                         childrenBlocks = [
                             MenuItem.template('AddAllAdditionalViewsItem',
                                 event = main.AddAllAdditionalViews,
+                                eventsForNamedLookup = [main.AddAllAdditionalViews],
                                 title = u'Add All Additional Views',
                                 helpString = u'Adds all of the extra views to the sidebar'),
                             MenuItem.template('TestViewSeparator1',
                                 menuItemKind = 'Separator'),
                             MenuItem.template('AddRepositoryViewItem',
                                 event = main.AddRepositoryView,
+                                eventsForNamedLookup = [main.AddRepositoryView],
                                 title = u'Add Repository Viewer',
                                 helpString = u'Adds the repository viewer to the sidebar'),
                             MenuItem.template('AddCPIAViewItem',
                                 event = main.AddCPIAView,
+                                eventsForNamedLookup = [main.AddCPIAView],
                                 title = u'Add CPIA Viewer',
                                 helpString = u'Adds the CPIA viewer to the sidebar'),
                             ]), # Menu AddAdditionalViews

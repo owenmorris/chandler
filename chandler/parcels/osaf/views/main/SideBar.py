@@ -2,7 +2,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.views.main"
 
-from osaf.framework.blocks import ControlBlocks
+from osaf.framework.blocks import ControlBlocks, KindParameterizedEvent
 import wx, os
 from osaf.framework.blocks import (
     Block, BranchPoint, DrawingUtilities, Table, wxTable, GridCellAttributeEditor
@@ -10,12 +10,12 @@ from osaf.framework.blocks import (
 
 from osaf.pim import (
     ContentCollection, IntersectionCollection, KindCollection,
-    UnionCollection, IndexedSelectionCollection, SmartCollection
+    UnionCollection, IndexedSelectionCollection
     )
     
 from osaf.framework.prompts import promptYesNoCancel
 
-from osaf import sharing, pim, messages
+from osaf import sharing, pim
 from osaf.usercollections import UserCollection
 import osaf.sharing.ICalendar
 from application import schema
@@ -732,17 +732,19 @@ class SidebarBlock(Table):
         return widget
 
     def onKindParameterizedEvent (self, event):
-        if self.filterKind != event.kindParameter:
-            self.filterKind = event.kindParameter
+        self.setPreferredKind (event.kindParameter)
+
+    def setPreferredKind (self, filterKind):
+        if self.filterKind != filterKind:
+            self.filterKind = filterKind
             # We need to update the click state of the toolbar as well
             toolbar = Block.Block.findBlockByName("ApplicationBar")
             for button in toolbar.childrenBlocks:
                 buttonEvent = getattr (button, 'event', None)
-                if buttonEvent is None:
-                    continue
-                if buttonEvent == event:
+                if (isinstance (buttonEvent, KindParameterizedEvent) and
+                    buttonEvent.kindParameter == filterKind):
                     button.widget.selectTool()
-                    continue
+                    break
             self.widget.Refresh()
             self.postEventByName("SelectItemsBroadcast",
                                  {'items':[self.selectedItemToView]})
@@ -876,33 +878,6 @@ class SidebarBlock(Table):
         # here's the meat of it
         for item in collection:
             DoDeleteAction(item)
-
-    def onNewCollection(self, event):
-        app_ns = schema.ns('osaf.app', self.itsView)
-        sidebarCollection = app_ns.sidebarCollection
-
-        newCollection = SmartCollection(itsView=self.itsView)
-        
-        # disambiguate the display name
-        displayName = newDisplayName = messages.UNTITLED
-        suffix = 1
-        while True:
-            for theCollection in sidebarCollection:
-                if theCollection.displayName == newDisplayName:
-                    newDisplayName = displayName + u'-' + unicode (suffix)
-                    suffix += 1
-                    break
-            else:
-                newCollection.displayName = newDisplayName
-                break
-
-        sidebarCollection.add (newCollection)
-
-        # now initiate the selection
-        arguments = {'items': [newCollection],
-                     'editAttributeNamed': 'displayName'}
-        self.postEventByName('SelectItemsBroadcast', arguments)
-        return [newCollection]
         
     def onCollectionColorEvent(self, event):
         if (self.selectedItemToView is not None and
@@ -1058,6 +1033,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 # things like selection and sorting
                 newKey = IndexedSelectionCollection(itsView=self.itsView,
                                                     source=key)
+                if len (newKey) > 0:
+                    newKey.addSelectionRange (0)
                 UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
                 key = newKey
 

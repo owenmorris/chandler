@@ -1,4 +1,3 @@
-
 from osaf.pim.structs import ColorType
 
 from application import schema
@@ -39,7 +38,12 @@ class UserCollection(schema.Annotation):
       view for the display, e.g. CalendarView for collections that have a preferredKind
       of CalendarEventMixin's kind.
     """
-    preferredKind           = schema.One(schema.TypeReference('//Schema/Core/Kind'), defaultValue = None)
+    preferredKind           = schema.One(schema.TypeReference('//Schema/Core/Kind'))
+
+    schema.addClouds(
+        copying = schema.Cloud(byRef=[preferredKind]),
+    )
+
     """
       A dictionary mapping a KindName string to a new displayName.
     """

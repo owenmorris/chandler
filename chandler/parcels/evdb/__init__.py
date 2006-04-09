@@ -3,6 +3,7 @@ import application.dialogs.Util as Util
 from i18n import OSAFMessageFactory as _
 from osaf import messages, pim
 from osaf.framework.blocks import Block
+from osaf.usercollections import UserCollection
 
 import evdb, EVDBDialog
 
@@ -29,28 +30,23 @@ class EVDBCollection(pim.ListCollection):
 def installParcel(parcel, version=None):
 
     # Make a template, which we'll copy whenever creating
-    # new collections in the sidebar.
+    # new collections in the sidebar. setting the preferredKind
+    # to None is a hint to display it in the All View
     EVDBCollectionTemplate = EVDBCollection.update(
         parcel, 'EVDBCollectionTemplate',
         displayName = messages.UNTITLED)
+
+    UserCollection (EVDBCollectionTemplate).preferredKind = None
 
     blocks = schema.ns('osaf.framework.blocks', parcel)
     main   = schema.ns('osaf.views.main', parcel)
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
 
     # Add an event for creating new EVDB collections
-    NewEVDBCollectionEvent = Block.ModifyCollectionEvent.update(
+    NewEVDBCollectionEvent = Block.AddToSidebarEvent.update(
         parcel, 'NewEVDBCollectionEvent',
         blockName = 'newEVDBCollectionEvent',
-        methodName='onModifyCollectionEvent',
-        copyItems = True,
-        disambiguateDisplayName = True,
-        dispatchToBlockName = 'MainView',
-        selectInBlockNamed = 'Sidebar',
-        items=[EVDBCollectionTemplate],
-        dispatchEnum = 'SendToBlockByName',
-        commitAfterDispatch = True)
-
+        items=[EVDBCollectionTemplate])
 
     # Add a separator to the "Collection" menu ...
     blocks.MenuItem.update(parcel, 'EVDBParcelSeparator',

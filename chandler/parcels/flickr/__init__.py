@@ -20,6 +20,7 @@ from osaf.framework.blocks.Block import *
 from osaf.framework.blocks.MenusAndToolbars import MenuItem
 from osaf.startup import PeriodicTask
 from datetime import timedelta
+from osaf.usercollections import UserCollection
 
 
 logger = logging.getLogger(__name__)
@@ -112,40 +113,6 @@ class PhotoCollection(pim.ListCollection):
     tag = schema.One (Tag, initialValue=None)
     fillInBackground = schema.One (schema.Boolean, defaultValue=False)
 
-    def onAddToCollection (self, event):
-        """
-        An initialization routine that gets called when the collection
-        is added to the sidebar. It's used to ask the user what Owner
-        or Tag to use for the collection.
-        """
-        result = None
-        if event.collectionType == 'Owner':
-            userName = application.dialogs.Util.promptUser(
-                messages.USERNAME,
-                _(u"Enter a Flickr user name"))
-            if userName is not None:
-                self.userName = userName
-                self.displayName = userName
-        else:
-            assert (event.collectionType == 'Tag')
-            tagString = application.dialogs.Util.promptUser(
-                _(u"Tag"),
-                _(u"Enter a Flickr Tag"))
-            if tagString is not None:
-                self.tag = Tag.getTag(self.itsView, tagString)
-                self.displayName = self.tag.displayName
-
-        if self.userName or self.tag:
-            try:
-                self.fillCollectionFromFlickr(self.itsView)
-            except flickr.FlickrError, fe:
-                wx.MessageBox (unicode(fe))
-            else:
-                self.fillInBackground = True
-                result = self
-
-        return result
-
 
     def fillCollectionFromFlickr(self, repView):
         """
@@ -206,16 +173,53 @@ class UpdateTask(object):
 
 class CollectionTypeEnumType(schema.Enumeration):
     """
-    An enumeration used to specify two different kinds of NewFlickrCollectionEvent
+    An enumeration used to specify two different kinds of AddFlickrCollectionEvent
     types.
     """
     values = "Tag", "Owner"
 
-class NewFlickrCollectionEvent(ModifyCollectionEvent):
+class AddFlickrCollectionEvent(AddToSidebarEvent):
     """
     An event used to add a new FlickrCollection to the sidebar.
     """
     collectionType = schema.One (CollectionTypeEnumType, initialValue = 'Tag')
+    
+    def onNewItem (self):
+        """
+        Called to create a new collection that gets added to the sidebar.
+        """
+        photoCollection = None
+        if self.collectionType == 'Owner':
+            userName = application.dialogs.Util.promptUser(
+                messages.USERNAME,
+                _(u"Enter a Flickr user name"))
+            if userName is not None:
+                photoCollection = PhotoCollection (itsView = self.itsView)
+                photoCollection.userName = userName
+                photoCollection.displayName = userName
+        else:
+            assert (self.collectionType == 'Tag')
+            tagString = application.dialogs.Util.promptUser(
+                _(u"Tag"),
+                _(u"Enter a Flickr Tag"))
+            if tagString is not None:
+                photoCollection = PhotoCollection (itsView = self.itsView)
+                photoCollection.tag = Tag.getTag(self.itsView, tagString)
+                photoCollection.displayName = photoCollection.tag.displayName
+
+        if photoCollection is not None:
+            # Setting perferredKind to None will cause it to be displayed in the All View
+            UserCollection (photoCollection).preferredKind = None
+            try:
+                photoCollection.fillCollectionFromFlickr(self.itsView)
+            except flickr.FlickrError, flickrException:
+                wx.MessageBox (unicode(flickrException))
+                photoCollection.delete()
+                photoCollection = None
+            else:
+                photoCollection.fillInBackground = True
+
+        return photoCollection
 
 def installParcel(parcel, oldVersion=None):
     """
@@ -227,41 +231,19 @@ def installParcel(parcel, oldVersion=None):
         parcel, 'flickrPhotosCollection',
         kind = FlickrPhotoMixin.getKind(parcel.itsView),
         recursive = True)
-    
+
     flickrPhotosCollection.addIndex ('flickrIDIndex', 'attribute', attribute='flickrID', compare="__cmp__")
 
-    # A template flickrPhotoCollection that is copied and added to the sidebar by
-    # the NewFlickrCollectionEvent
-    photoCollectionTemplate = PhotoCollection.update(
-        parcel, 'photoCollectionTemplate',
-        displayName = messages.UNTITLED)
-
     # A NewFlickrCollectionEvent that adds a "Owner" collection to the sidebar
-    newFlickrCollectionByOwnerEvent = NewFlickrCollectionEvent.update(
-        parcel, 'newFlickrCollectionByOwnerEvent',
-        blockName = 'newFlickrCollectionByOwnerEvent',
-        methodName='onModifyCollectionEvent',
-        copyItems = True,
-        disambiguateDisplayName = True,
-        dispatchToBlockName = 'MainView',
-        selectInBlockNamed = 'Sidebar',
-        items=[photoCollectionTemplate],
-        dispatchEnum = 'SendToBlockByName',
-        commitAfterDispatch = True,
+    addFlickrCollectionByOwnerEvent = AddFlickrCollectionEvent.update(
+        parcel, 'addFlickrCollectionByOwnerEvent',
+        blockName = 'addFlickrCollectionByOwnerEvent',
         collectionType = 'Owner')
 
     # A NewFlickrCollectionEvent that adds a "Tag" collection to the sidebar
-    newFlickrCollectionByTagEvent = NewFlickrCollectionEvent.update(
-        parcel, 'newFlickrCollectionByTagEvent',
-        blockName = 'newFlickrCollectionByTagEvent',
-        methodName='onModifyCollectionEvent',
-        copyItems = True,
-        disambiguateDisplayName = True,
-        dispatchToBlockName = 'MainView',
-        selectInBlockNamed = 'Sidebar',
-        items=[photoCollectionTemplate],
-        dispatchEnum = 'SendToBlockByName',
-        commitAfterDispatch = True,
+    addFlickrCollectionByTagEvent = AddFlickrCollectionEvent.update(
+        parcel, 'addFlickrCollectionByTagEvent',
+        blockName = 'addFlickrCollectionByTagEvent',
         collectionType = 'Tag')
 
     # Add menu items to Chandler
@@ -277,16 +259,16 @@ def installParcel(parcel, oldVersion=None):
         parcel, 'NewFlickrCollectionByOwner',
         blockName = 'NewFlickrCollectionByOwnerMenuItem',
         title = _(u'New Flickr Collection by Owner'),
-        event = newFlickrCollectionByOwnerEvent,
-        eventsForNamedLookup = [newFlickrCollectionByOwnerEvent],
+        event = addFlickrCollectionByOwnerEvent,
+        eventsForNamedLookup = [addFlickrCollectionByOwnerEvent],
         parentBlock = collectionMenu)
  
     MenuItem.update(
         parcel, 'NewFlickrCollectionByTag',
         blockName = 'NewFlickrCollectionByTagIMenutem',
         title = _(u'New Flickr Collection by Tag'),
-        event = newFlickrCollectionByTagEvent,
-        eventsForNamedLookup = [newFlickrCollectionByTagEvent],
+        event = addFlickrCollectionByTagEvent,
+        eventsForNamedLookup = [addFlickrCollectionByTagEvent],
         parentBlock = collectionMenu)
 
 

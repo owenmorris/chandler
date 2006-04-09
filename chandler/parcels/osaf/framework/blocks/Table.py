@@ -412,10 +412,6 @@ class wxTable(DragAndDrop.DraggableWidget,
                 self.GetNumberRows() == gridTable.GetNumberRows())
 
         self.UpdateColumnWidths(newColumns)
-        
-        # Workaround for bug #3994
-        wx.CallAfter (self.AdjustScrollbars)
-
         self.UpdateSelection(newColumns)
         self.EndBatch()
 
@@ -743,6 +739,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         item = event.arguments ['item']
         if isinstance (item, ContentCollection):
             self.setContentsOnBlock(item, event.arguments['collection'])
+            self.PostSelectItems()
 
     def onSelectItemsEvent (self, event):
         items = event.arguments ['items']

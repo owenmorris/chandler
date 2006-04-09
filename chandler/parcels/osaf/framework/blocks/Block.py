@@ -81,6 +81,9 @@ class Block(schema.Item):
     # should be declared with schema.Sequence().
     subscribesTo = schema.One(ContentCollection, otherName="subscribers")
 
+    # Blocks instances can be put into ListCollections
+    collections = schema.Sequence(otherName='refCollection')
+
     viewAttribute = schema.One(
         schema.Text,
         doc = 'Specifies which attribute of the selected Item should be '
@@ -484,42 +487,20 @@ class Block(schema.Item):
     def onShowHideEventUpdateUI(self, event):
         event.arguments['Check'] = self.isShown
 
-    def onModifyCollectionEvent(self, event):
+    def onAddToViewableCollectionEvent(self, event):
         """
-        Adds items to a collection, by default the sidebarCollection.
-
-        This method originally had an operation attribute that let you add,
-        remove or toggle (e.g. add if not present or delete if present) items
-        to a collection.
-        
-        Since this behavior is no longer used, we removed it. It can be added back
-        if necessary
+        Adds items to a collection, typically the sidebarCollection, that is viewed
+        by the user interface.
         """
-        collection = getattr (schema.ns ("osaf.app", self.itsView), event.collectionName)
-        itemList = []
-        for item in event.items:
-
-            if event.copyItems:
-                # Do a cloud copy
-                item = item.copy (parent = self.getDefaultParent(self.itsView),
-                                  cloudAlias="copying")
-
+        def addItem (self, item):
             if isinstance(item, ContentCollection):
                 UserCollection(item).ensureColor()
             # Call the item's onAddToCollection method if it has one. If it returns None
             # Exit. If it returns something else, add that to the collection
-            method = getattr (type (item), "onAddToCollection", None)
-            if method:
-                result = method (item, event)
-                if result is None:
-                    if event.copyItems:
-                        item.delete (cloudAlias="copying")
-                    return
-                item = result
 
             if event.disambiguateDisplayName:
-                # You can only change the name if you make a copy
-                assert self.copy
+                # You can only change the name if you make a copy or create a new item
+                assert self.copy or onNewItemMethod != None
                 displayName = item.displayName
                 newDisplayName = displayName
                 suffix = 1;
@@ -534,6 +515,7 @@ class Block(schema.Item):
                         break
             
             collection.add (item)
+            items.append (item)
 
             # Optionally select the item in a named block and possibly edit
             # an attribute on it
@@ -548,16 +530,34 @@ class Block(schema.Item):
                 
                 blockItem.postEventByName ("SelectItemsBroadcast", arguments)
                 
-                method = getattr(blockItem, 'onKindParameterizedEvent', None)
+                # Let the block know about the preferred kind
+                method = getattr(blockItem, 'setPreferredKind', None)
                 if method:
-                    event = KindParameterizedEvent(itsView = self.itsView)
-                    event.kindParameter = UserCollection(item).preferredKind
-                    method (event)
-                    event.delete()
+                    preferredKind = getattr(UserCollection (item), 'preferredKind', False)
+                    if preferredKind is not False:
+                        method (preferredKind)
 
-            itemList.append (item)
-        # Need to SelectFirstItem -- DJA based on self.selectInBlock
-        return itemList
+        # You either have something in items or implement onNewItem, but not both
+        onNewItemMethod = getattr (type (event), "onNewItem", None)
+        assert ((len (event.items) > 0) ^ (onNewItemMethod != None))
+
+        collection = getattr (schema.ns ("osaf.app", self.itsView), event.collectionName)
+        
+        #Scripting expects the event to return a list of items that were added
+        items = []
+
+        if onNewItemMethod:
+            item = onNewItemMethod (event)
+            if item is not None:
+                addItem (self, item)
+        else:
+            for item in event.items:
+                if event.copyItems:
+                    item = item.copy (parent = self.getDefaultParent(self.itsView),
+                                      cloudAlias="copying")
+                addItem (self, item)
+
+        return items
 
     def synchronizeWidget (self, useHints=False):
         """
@@ -1030,19 +1030,57 @@ class KindParameterizedEvent(BlockEvent):
 class NewEvent(KindParameterizedEvent):
     collection = schema.One(ContentCollection, defaultValue = None)
 
+class AddToViewableCollectionEvent(BlockEvent):
+    dispatchEnum = schema.One(
+        dispatchEnumType, initialValue = 'SendToBlockByName',
+    )
+    commitAfterDispatch = schema.One(schema.Boolean, initialValue = True)
+    dispatchToBlockName = schema.One(schema.Text, initialValue = 'MainView')
+    methodName = schema.One(schema.Text, initialValue = 'onAddToViewableCollectionEvent')
 
-
-class ModifyCollectionEvent(BlockEvent):
     items = schema.Sequence(schema.Item, initialValue = [])
     collectionName = schema.One(schema.Text, initialValue = "sidebarCollection")
-    copyItems = schema.One(schema.Boolean, defaultValue=False)
-    selectInBlockNamed = schema.One(schema.Text)
+    copyItems = schema.One(schema.Boolean, defaultValue=True)
+    selectInBlockNamed = schema.One(schema.Text, initialValue = "Sidebar")
     editAttributeNamed = schema.One(schema.Text)
-    disambiguateDisplayName = schema.One(schema.Boolean, defaultValue=False)
+    disambiguateDisplayName = schema.One(schema.Boolean, defaultValue=True)
     schema.addClouds(
         copying = schema.Cloud(byRef=[items])
     )
 
+AddToSidebarEvent = AddToViewableCollectionEvent
+"""
+    Adds items to the sidebar. The items may be either a collection or tree
+    of blocks.    
+    
+    You can add an item to the sidebar in two different ways: Either add a
+    reference to a template item to the C{items} attribute and a copy of
+    the template will be added when the event is dispatched. Or implement
+    the C{onNewItem} method on your subclass of AddToSidebarEvent and it
+    will be called to create the item added to the sidebar. If your method
+    returns None then nothing will be added to the sidebar.
+    
+    By default the item will be selected and it's displayName will be
+    disambiguated, i.e. a "-NN" suffix added to make it unique.
+    
+    By setting the preferredKind UseCollection attribute of your collection
+    you can cause the colleciton to be displayed in a particular application
+    area as follows:
+    
+    If preferredKind attribute is absent (the default) then the collection
+    will be the current application area.
+    
+    If preferredKind attribute is None the collection will be viewed in All
+    
+    if preferredKind attribute is the kind associated with another application
+    area it will be displayed in that area. For example if preferredKind is
+    
+    schema.ns('osaf.pim.calendar.Calendar', theView).CalendarEventMixin.getKind (theView)
+    
+    it will be displayed in the calendar area.
+    
+    For more advanced options see AddToViewableCollectionEvent.
+"""
 
 class EventList(schema.Item):
     eventsForNamedLookup = schema.Sequence(BlockEvent)
