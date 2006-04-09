@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     17-March-2000
-// RCS-ID:      $Id: grid.i,v 1.81 2006/04/08 21:49:20 RD Exp $
+// RCS-ID:      $Id: grid.i,v 1.82 2006/04/09 00:15:04 RD Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -2066,7 +2066,7 @@ public:
     bool        MetaDown();
     bool        ShiftDown();
     bool        AltDown();
-
+    bool        CmdDown();
 };
 
 
@@ -2083,7 +2083,7 @@ public:
     bool        MetaDown();
     bool        ShiftDown();
     bool        AltDown();
-
+    bool        CmdDown();
 };
 
 
@@ -2108,6 +2108,7 @@ public:
     bool        MetaDown();
     bool        ShiftDown();
     bool        AltDown();
+    bool        CmdDown();
 };
 
 
