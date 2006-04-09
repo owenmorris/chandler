@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.cpp,v 1.285 2006/03/11 21:13:28 vell Exp $
+// RCS-ID:      $Id: window.cpp,v 1.287 2006/04/09 12:51:03 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -504,19 +504,20 @@ pascal OSStatus wxMacUnicodeTextEventHandler( EventHandlerCallRef handler , Even
     UniChar buf[2] ;
     if ( GetEventParameter( event, kEventParamTextInputSendText, typeUnicodeText, NULL, 0 , &dataSize, NULL ) == noErr )
     {
-        numChars = dataSize / sizeof( UniChar) ;
+        numChars = dataSize / sizeof( UniChar) + 1;
         charBuf = buf ;
 
-        if ( dataSize > sizeof(buf) )
+        if ( numChars * 2 > sizeof(buf) )
             charBuf = new UniChar[ numChars ] ;
         else
             charBuf = buf ;
 
         uniChars = new wchar_t[ numChars ] ;
         GetEventParameter( event, kEventParamTextInputSendText, typeUnicodeText, NULL, dataSize , NULL , charBuf ) ;
+		charBuf[ numChars - 1 ] = 0;
 #if SIZEOF_WCHAR_T == 2
         uniChars = (wchar_t*) charBuf ;
-        memcpy( uniChars , charBuf , dataSize ) ;
+        memcpy( uniChars , charBuf , numChars * 2 ) ;
 #else
         // the resulting string will never have more chars than the utf16 version, so this is safe
         wxMBConvUTF16 converter ;
