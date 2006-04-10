@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.cpp,v 1.148 2006/04/07 22:41:11 VZ Exp $
+// RCS-ID:      $Id: fileconf.cpp,v 1.149 2006/04/10 00:52:21 VZ Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -568,11 +568,11 @@ void wxFileConfig::CleanUp()
 
 wxFileConfig::~wxFileConfig()
 {
-    delete m_conv;
-
     Flush();
 
     CleanUp();
+
+    delete m_conv;
 }
 
 // ----------------------------------------------------------------------------
