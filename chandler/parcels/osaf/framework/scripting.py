@@ -179,7 +179,7 @@ def run_script(scriptText, fileName=u"", profiler=None):
             pass    # no alarm on Windows  :(
         else:
             def timeout(*args):
-                sys.exit('Timeout: Script did not finish within %d seconds.' % scriptTimeout)
+                sys.exit('Timeout error: Script did not finish within %d seconds.' % scriptTimeout)
             signal(SIGALRM, timeout)
             alarm(scriptTimeout)
 
