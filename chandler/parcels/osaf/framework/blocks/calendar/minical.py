@@ -613,12 +613,12 @@ class PyMiniCalendar(wx.PyControl):
                         highlightWeek = (self.GetWindowStyle() &
                                          CAL_HIGHLIGHT_WEEK) != 0
                             
-                        if ((highlightWeek and
-                             (self.GetWeek(weekDate, False) ==
-                              self.GetWeek(self.selectedDate, False))) or
-                            
-                            (not highlightWeek and
-                             (weekDate == self.selectedDate))):
+                        if ((weekDate.month == startDate.month) and   # Only highlight days that fall in the current month
+                            ((highlightWeek and                        # Highlighting week and the week we are drawing matches
+                              (self.GetWeek(weekDate, False) ==        # the currently selected week
+                               self.GetWeek(self.selectedDate, False))) or
+                             (not highlightWeek and                # Highlighting a single day
+                              (weekDate == self.selectedDate)))):
 
                             startX = weekDay * self.widthCol
                             if weekDay == 0:
