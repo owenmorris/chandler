@@ -124,9 +124,9 @@ if [ ! -d "$PC_DIR" ]; then
 fi
 
   # if the debug/ path is not found, then avoid debug tests
-if [ ! -d $C_DIR/debug ]; then
+if [ ! -d $CHANDLERBIN/debug ]; then
     MODES="release"
-    echo Skipping debug tests as $C_DIR/debug does not exist | tee -a $TESTLOG
+    echo Skipping debug tests as $CHANDLERBIN/debug does not exist | tee -a $TESTLOG
 else
     MODES="release debug"
 fi
@@ -136,7 +136,7 @@ fi
   # the EXCLUDES array is then walked and the length of the
   # directory is calculated - beats doing it by hand and making a mistake
 
-EXCLUDES=("$C_DIR/release" "$C_DIR/debug" "$C_DIR/tools" "$C_DIR/util")
+EXCLUDES=("$CHANDLERBIN/release" "$CHANDLERBIN/debug" "$C_DIR/tools" "$C_DIR/util")
 L_EXCLUDES=(0 0 0 0)
 for item in 0 1 2 3 ; do
     L_EXCLUDES[$item]=${#EXCLUDES[$item]}
