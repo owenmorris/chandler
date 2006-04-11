@@ -15,7 +15,7 @@ LF    = u"\n"
 CR    = u"\r"
 EMPTY = u""
 
-CHANDLER_USERAGENT = "Chandler (%s %s)" % (version.release, version.build)
+CHANDLER_USERAGENT = "Chandler (%s)" % version.version
 CHANDLER_HEADER_PREFIX = "X-Chandler-"
 
 INVALID_EMAIL_ADDRESS = _(u"Email Address %(emailAddress)s is not valid")

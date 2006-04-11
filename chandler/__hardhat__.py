@@ -213,7 +213,8 @@ def _outputLine(path, text):
 
 
 def _getSVNRevisionInfo(buildenv):
-    revision   = ''
+    revision = ''
+    trunk    = False
 
     command = [buildenv["svn"], 'info']
 
@@ -222,9 +223,11 @@ def _getSVNRevisionInfo(buildenv):
     for line in outputList:
         if line.lower().startswith('revision:'):
             revision = line[10:-1]
-            break
+        if line.lower().startswith('url:'):
+            url   = line[6:-1]
+            trunk = url.find('chandler/trunk') != -1
 
-    return revision
+    return revision, trunk
 
 
 def _getVersionInfo(buildenv):
@@ -233,8 +236,20 @@ def _getVersionInfo(buildenv):
     releaseVersion  = '0'
     versionFilename = 'version.py'
 
+    headerData = """\
+# Note:
+#   release    - base version number
+#   build      - "" or ".dev"
+#   checkpoint - "" or "-YYYYMMDD"
+#   revision   - "####"
+#
+#   version    - "%s%s-r%s%s" % (release, build, revision, checkpoint)
+#
+
+"""
+
     versionFile = open(versionFilename, 'r')
-    lines      = versionFile.readlines()
+    lines       = versionFile.readlines()
     versionFile.close()
 
     data = {}
@@ -255,28 +270,15 @@ def _getVersionInfo(buildenv):
 
                 data[id] = value
 
-        # remove keys that we calculate below
-    for key in ('revision', 'version', 'majorversion', 'minorversion', 'releaseversion'):
-        if key in data:
-            del data[key]
-
-    if len(buildenv['buildVersion']) > 0:
-        data['build'] = '-%s' % buildenv['buildVersion']
-    else:
-        data['build'] = ''
-
-    data['revision'] = _getSVNRevisionInfo(buildenv)
-
     release     = data['release']
     versionData = release.split('.')
 
     if len(versionData) == 2:
         majorVersion = versionData[0]
-
-        versionData = versionData[1].split('-')
+        versionData  = versionData[1].split('-')
 
         if len(versionData) == 2:
-            minorVersion = versionData[0]
+            minorVersion   = versionData[0]
             releaseVersion = versionData[1]
         else:
             minorVersion = versionData[0]
@@ -288,53 +290,31 @@ def _getVersionInfo(buildenv):
         else:
             majorVersion = release
 
-    data['majorVersion']   = majorVersion
-    data['minorVersion']   = minorVersion
-    data['releaseVersion'] = releaseVersion
+    revision, isTrunk = _getSVNRevisionInfo(buildenv)
 
-    if releaseVersion == 'dev':
-        buildRevision = data['revision']
+      # re-write the version.py file *only* if we are doing a trunk build
+      # as any tag or branch will already have versioned info stored
+    if isTrunk:
+        if len(buildenv['buildVersion']) > 0:
+            data['checkpoint'] = '-%s' % buildenv['buildVersion']
+
+        data['revision'] = revision
+
+        versionFile = open(versionFilename, 'w')
+
+        versionFile.write(headerData)
+        for key in ('release', 'build', 'checkpoint', 'revision'):
+            if key in data:
+                versionFile.write('%s = "%s"\n' % (key, data[key]))
+
+        versionFile.write('\nversion = "%s%s-r%s%s" % (release, build, revision, checkpoint)\n\n')
+
+        versionFile.close()
+
+    if data['build'] == '':
+        buildName = release
     else:
-        buildRevision = ""
-
-    buildName = '%s-r%s%s' % (release, buildRevision, data['build'])
-
-    versionFile = open(versionFilename, 'w')
-
-    headerData = """\
-# Note:
-#
-# release  - base version number
-# build    - "" or "-checkpointYYYYMMDD"
-# revision - "####"
-# version  - "%s-r%s%s" % (release, revision, build)
-#
-# build and revision are calculated by the distribution script
-# majorVersion, minorVersion and releaseVersion are calculated
-# by the distribution script and inserted here
-#
-
-"""
-
-    body = ''
-
-      # These four items are written out manually to ensure
-      # their order of presentation and that they come last
-      # in the file
-    for key in ('release', 'build', 'revision'):
-        body += '%s = "%s"\n' % (key, data[key])
-        del data[key]
-
-    versionFile.write(headerData)
-
-    for key in data.keys():
-        versionFile.write('%s = "%s"\n' % (key, data[key]))
-
-    versionFile.write(body)
-    versionFile.write('\nversion = "%s-r%s%s" % (release, revision, build)')
-    versionFile.write('\n\n')
-
-    versionFile.close()
+        buildName = '%s%s-r%s%s' % (release, data['build'], data['revision'], data['checkpoint'])
 
     return (majorVersion, minorVersion, releaseVersion, buildName)
 

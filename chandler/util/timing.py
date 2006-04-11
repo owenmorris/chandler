@@ -103,7 +103,7 @@ def results(verbose=True):
 
     totalCounts = 0
     totalTime = 0.0
-    revision = getattr(version, 'buildRevision', '0')
+    revision = getattr(version, 'revision', '0')
     bannerFormat = "         %-30s   %6s   %8s"
     lines = bannerFormat % \
      ("-----------------------------", "------", "--------")
