@@ -554,7 +554,7 @@ class PyMiniCalendar(wx.PyControl):
             dc.SetPen(wx.Pen(self.colHeaderBg, 1, wx.SOLID))
 
             # draw the background
-            dc.DrawRectangle(0, y, self.GetClientSize().x, self.heightRow)
+            dc.DrawRectangle(0, y-1, self.GetClientSize().x, self.heightRow+2)
 
             for wd in xrange(DAYS_PER_WEEK):
                 n = wd + self.firstDayOfWeek - 1
@@ -574,7 +574,7 @@ class PyMiniCalendar(wx.PyControl):
         lightColour = wx.Colour(255, 255, 255)
         highlightColour = wx.Colour(204, 204, 204)
         lineColour = wx.Colour(229, 229, 229)
-        busyColour = wx.Colour(0, 0, 0)
+        busyColour = wx.Colour(127, 191, 255)
 
         dc.SetTextForeground(mainColour)
         # dc.SetTextForeground(wx.RED)    # help us find drawing mistakes
@@ -645,19 +645,21 @@ class PyMiniCalendar(wx.PyControl):
                     if (self.GetWindowStyle() & CAL_SHOW_BUSY and
                         weekDate.month == startDate.month):
                         busyPercentage = self.GetBusy(weekDate)
-                        height = (self.heightRow - 8) * busyPercentage
+                        if '__WXMAC__' in wx.PlatformInfo:
+                            YAdjust = 7
+                        else:
+                            YAdjust = 6
+                        height = (self.heightRow - YAdjust) * busyPercentage
 
                         dc.SetTextBackground(busyColour)
                         dc.SetBrush(wx.Brush(busyColour, wx.SOLID))
 
                         if '__WXMAC__' in wx.PlatformInfo:
                             dc.SetPen(wx.TRANSPARENT_PEN)
-                            YAdjust = -2
                         else:
                             dc.SetPen(wx.Pen(busyColour, 1, wx.SOLID))
-                            YAdjust = 0
 
-                        dc.DrawRectangle(x-3, y + self.heightRow - height - 4 + YAdjust, 2, height)
+                        dc.DrawRectangle(x-3, y + self.heightRow - height - 2, 2, height)
                         changedColours = True
 
                     if (weekDate.month != startDate.month or
@@ -677,7 +679,11 @@ class PyMiniCalendar(wx.PyControl):
                             changedFont = True
                             changedColours = True
 
-                    dc.DrawText(dayStr, x, y + 1)
+                    if '__WXMAC__' in wx.PlatformInfo:
+                        YAdjust = 2
+                    else:
+                        YAdjust = 1
+                    dc.DrawText(dayStr, x, y + YAdjust)
 
                     dc.SetBrush(wx.TRANSPARENT_BRUSH)
 
