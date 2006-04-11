@@ -60,7 +60,7 @@ class DraggableWidget (object):
     """
     Mixin class for widgets with data that are draggable.
     """
-    def DoDragAndDrop(self, copyOnly=None):
+    def DoDragAndDrop(self, copyOnly=None, noDelete=False):
         """
         Do a Drag And Drop operation, given the data in the selection.
         If you want to disable Move, pass True for copyOnly.  Passing
@@ -70,6 +70,9 @@ class DraggableWidget (object):
         @type copyOnly: C{None} to allow a move based on the presence of a Delete capability
             C{True} to disallow a move
             C{False} to allow a move
+        @param copyOnly: flag to disable deletion after a move
+        @type copyOnly: C{True} to disallow deletes
+            C{False} to allow deletes
         @return: C{wx.DragResult} - e.g. wx.DragNone if the drag was refused
         """
         global DraggedFromWidget
@@ -108,7 +111,7 @@ class DraggableWidget (object):
             result = wx.DragNone # override the result
 
         # if we moved the item, instead of the usual copy, remove the original
-        if not copyOnly and result == wx.DragMove:
+        if not copyOnly and result == wx.DragMove and not noDelete:
             self.DeleteSelection()
         DraggedFromWidget = None
         return result
@@ -180,7 +183,8 @@ class DropReceiveWidget (object):
         return wx.CursorFromImage(img)
 
     def GetDraggedFromWidget(self):
-        # return the wiget that initiated the drag
+        # return the widget that initiated the drag
+        global DraggedFromWidget
         return DraggedFromWidget
 
 class DropSourceWithFeedback(wx.DropSource):

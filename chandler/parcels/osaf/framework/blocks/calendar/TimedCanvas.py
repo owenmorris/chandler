@@ -10,9 +10,13 @@ from CalendarCanvas import (
     CalendarCanvasItem, CalendarBlock, CalendarSelection,
     wxCalendarCanvas, roundTo, roundToColumnPosition
     )
+from CollectionCanvas import DragState
 from PyICU import FieldPosition, DateFormat, ICUtzinfo
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.TimeZone import TimeZoneInfo, coerceTimeZone
+
+from time import time as epochtime
+from itertools import chain, islice
 
 from application.dialogs import RecurrenceDialog
 
@@ -178,6 +182,54 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.SetScrollRate(0, self._scrollYRate)
         
 
+    def OnHover (self, x, y, dragResult):
+        """
+        Scroll the canvas in the y axis if the cursor is in the top or bottom
+        half hour.
+        
+        """
+        if not hasattr(self, 'lastHover'):
+            self.lastHover = epochtime() - 1 # one second ago
+        if epochtime() > self.lastHover + .05: # 20 scrolls a second
+            windowHeight = self.GetSize().GetHeight()
+            if y < self.hourHeight:
+                self.ScaledScroll(0, (y - self.hourHeight))
+            elif windowHeight - y < self.hourHeight:
+                self.ScaledScroll(0, y - windowHeight + self.hourHeight)
+        
+        return super(wxTimedEventsCanvas, self).OnHover(x, y, dragResult)
+
+    def OnLeave(self):
+        """
+        Stop the drag timer when we leave.        
+        """
+        self.StopDragTimer()
+        return super(wxTimedEventsCanvas, self).OnLeave()
+
+    def makeCoercedCanvasItem(self, x, y, item):
+        primaryCollection = self.blockItem.contents.collectionList[0]
+        collection = self.blockItem.getContainingCollection(item)
+        canvasItem = TimedCanvasItem(collection, primaryCollection, item, self)        
+
+        unscrolledPosition = wx.Point(*self.CalcUnscrolledPosition(x, y))
+        start = self.getDateTimeFromPosition(unscrolledPosition,
+                                             item.startTime.tzinfo)
+        end = start + max(item.duration, timedelta(hours=1))
+        
+        canvasItem.UpdateDrawingRects(start, end)
+        
+        self.coercedCanvasItem  = canvasItem
+        noop = lambda x: None
+        self.dragState = DragState(canvasItem, self, noop,
+                                   noop, self.FinishDrag,
+                                   unscrolledPosition)
+        
+        canvasItem.resizeMode = None
+        self.dragState._dragStarted = True
+        self.dragState.originalDragBox = canvasItem
+        self.dragState.currentPosition = unscrolledPosition
+        self.dragState._dragDirty = True
+
     def OnInit(self):
         super (wxTimedEventsCanvas, self).OnInit()
 
@@ -198,9 +250,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         # rounding ensures we scroll at least one unit
         if dy < 0:
-            rounding = -self._scrollYRate
+            rounding = -1
         else:
-            rounding = self._scrollYRate
+            rounding = 1
 
         scaledY = (scrollY // self._scrollYRate) + rounding
         self.Scroll(scrollX, scaledY)
@@ -365,7 +417,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             currentDragItem = None
             
         primaryCollection = self.blockItem.contentsCollection
-        
+                
         # First generate a sorted list of TimedCanvasItems
         for item in self.visibleItems:
             collection = self.blockItem.getContainingCollection(item)
@@ -378,6 +430,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             # (should probably happen in CollectionCanvas?)
             if currentDragItem is item:
                 dragState.currentDragBox = canvasItem
+
+        if self.coercedCanvasItem is not None:
+            self.canvasItemList.append(self.coercedCanvasItem)
+            dragState.currentDragBox = self.coercedCanvasItem
+
                 
     def RealignCanvasItems(self):
         """
@@ -433,9 +490,14 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         unselectedBoxes = []
         selectedBoxes = []
         contents = CalendarSelection(self.blockItem.contents)
-        for canvasItem in self.canvasItemList:
 
+        draggedOutItem = self._getHiddenOrClearDraggedOut()
+
+        for canvasItem in self.canvasItemList:
             item = canvasItem.item
+            if item == draggedOutItem:
+                # don't render items we're dragging out of the canvas
+                continue
 
             # for some reason, we're getting paint events before
             # widget synchronize events, so item isn't always in contents
@@ -453,16 +515,15 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
     def CheckConflicts(self):
         assert sorted(self.visibleItems, self.sortByStartTime) == self.visibleItems
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
-            # since these are sorted, we only have to check the items 
-            # that come after the current one
-
-            # XXX should I use itertools to avoid excess temp lists?
-            # That would be islice(self.canvasItemList, itemIndex+1, None)
-            canvasItem.FindConflicts(self.canvasItemList[itemIndex+1:])
-
-            # We've found all past and future conflicts of this one,
-            # so count of up the conflicts
-            canvasItem.CalculateConflictDepth()
+            if self.coercedCanvasItem is not canvasItem:
+                   # since these are sorted, we only have to check the items 
+                   # that come after the current one
+                   canvasItem.FindConflicts(islice(self.canvasItemList,
+                                                   itemIndex+1, None))
+       
+                   # We've found all past and future conflicts of this one,
+                   # so count of up the conflicts
+                   canvasItem.CalculateConflictDepth()
 
     # handle mouse related actions: move, resize, create, select
     
@@ -677,7 +738,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
     
     def OnDragTimer(self):
         """
-        This timer goes off while we're dragging/resizing
+        This timer goes off while we're resizing
         """
         if self.dragState is not None:
             scrolledPosition = self.CalcScrolledPosition(self.dragState.currentPosition)
@@ -688,7 +749,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.scrollTimer.Start(100, wx.TIMER_CONTINUOUS)
     
     def StopDragTimer(self):
-        self.scrollTimer.Stop()
+        if self.scrollTimer is not None:
+            self.scrollTimer.Stop()
         self.scrollTimer = None
         
     def OnBeginDragItem(self):
@@ -711,13 +773,17 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         proxy.duration = duration
         proxy.startTime = startTime
         
+        if self.coercedCanvasItem is not None:
+            self.coercedCanvasItem = None
+            proxy.allDay = proxy.anyTime = False
+        
     def OnEndDragItem(self):
         try:
             self.FinishDrag()
         finally:
             # make sure the drag timer stops no matter what!
             self.StopDragTimer()
-        self.RefreshCanvasItems()
+        self.RefreshCanvasItems(resort=True)
         
     def OnDraggingNone(self, unscrolledPosition):
         dragDateTime = self.getDateTimeFromPosition(unscrolledPosition)
@@ -737,30 +803,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
     def OnDraggingItem(self, unscrolledPosition):
         self.RefreshCanvasItems()
 
-    def GetDragAdjustedStartTime(self, tzinfo):
-        """
-        When a moving drag is originated within a canvasItem, the drag
-        originates from a point within the canvasItem, represented by
-        dragOffset
-
-        During a drag, you need to put a canvasItem at currentPosition,
-        but you also want to make sure to round it to the nearest dayWidth,
-        so that the event will sort of stick to the current column until
-        it absolutely must move
-        """
-        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
-        dx,dy = self.dragState.dragOffset
-        dx = roundToColumnPosition(dx, drawInfo.columnPositions)
-        
-        position = self.dragState.currentPosition - (dx, dy)
-
-        result = self.getDateTimeFromPosition(position, tzinfo=tzinfo)
-        
-        if tzinfo is None:
-            result = result.replace(tzinfo=None)
-            
-        return result
-
     def GetDragAdjustedTimes(self):
         """
         Return a new start/end time for the currently selected event, based
@@ -773,7 +815,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         item = self.dragState.originalDragBox.item
         resizeMode = self.dragState.originalDragBox.resizeMode
         
-        oldTZ = item.startTime.tzinfo        
+        oldTZ = item.startTime.tzinfo
         
         if useTZ:
             tzinfo = oldTZ

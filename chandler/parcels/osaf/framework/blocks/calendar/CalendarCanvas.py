@@ -94,6 +94,10 @@ def roundToColumnPosition(v, columnList):
     index = bisect(columnList, v)-1
     if index >= 0:
         return columnList[index]
+    elif v < 0:
+        return columnList[0]
+    else:
+        return columnList[-1]
 
 class ColorInfo(object):
     def __init__(self, collection):
@@ -1116,7 +1120,33 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
             xPosition = min(xPosition, 
                             drawInfo.xOffset + drawInfo.middleWidth - 1)
         return wx.Point(xPosition, yPosition)
+
+    def GetDragAdjustedStartTime(self, tzinfo):
+        """
+        When a moving drag is originated within a canvasItem, the drag
+        originates from a point within the canvasItem, represented by
+        dragOffset
+
+        During a drag, you need to put a canvasItem at currentPosition,
+        but you also want to make sure to round it to the nearest dayWidth,
+        so that the event will sort of stick to the current column until
+        it absolutely must move
+        """
+        if self.dragState is None or not hasattr(self.dragState, 'dragOffset'):
+            return
+        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+        dx,dy = self.dragState.dragOffset
+        dx = roundToColumnPosition(dx, drawInfo.columnPositions)
         
+        position = self.dragState.currentPosition - (dx, dy)
+
+        result = self.getDateTimeFromPosition(position, tzinfo=tzinfo)
+        
+        if tzinfo is None:
+            result = result.replace(tzinfo=None)
+            
+        return result
+
     def getDateTimeFromPosition(self, position, tzinfo=None, mustBeInBounds=True):
         """
         calculate the date based on the x,y coordinates on the canvas
@@ -1439,11 +1469,7 @@ class CalendarContainer(BoxContainer):
         if kindParam is not ourKind:
             event.arguments['continueBubbleUp'] = True
         else:
-            # this is a little bit of a hack, because we know we want to get
-            # to the timed events canvas
-            calendarSplitter = nth(self.childrenBlocks, 1)
-            timedEventsBlock = nth(calendarSplitter.childrenBlocks, 1)
-            timedEventsCanvas = timedEventsBlock.widget
+            timedEventsCanvas = self.getTimedBlock().widget
     
             startTime, duration = timedEventsCanvas.GetNewEventTime()
             newEvent = timedEventsCanvas.CreateEmptyEvent(startTime=startTime,
@@ -1452,7 +1478,20 @@ class CalendarContainer(BoxContainer):
             
             # return the list of items created
             return [newEvent]
-    
+
+    def getTimedBlock(self):
+        # this is a little bit of a hack, because we know we want to get
+        # to the timed events canvas        
+        calendarSplitter = nth(self.childrenBlocks, 1)
+        return nth(calendarSplitter.childrenBlocks, 1)
+
+    def getAllDayBlock(self):
+        # this is a little bit of a hack, because we know we want to get
+        # to the timed events canvas        
+        calendarSplitter = nth(self.childrenBlocks, 1)
+        return nth(calendarSplitter.childrenBlocks, 0)
+
+        
 class CanvasSplitterWindow(SplitterWindow):
     calendarControl = schema.One(schema.Item, required=True)
     def instantiateWidget(self):

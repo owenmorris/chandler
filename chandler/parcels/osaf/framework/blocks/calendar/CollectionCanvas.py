@@ -14,6 +14,7 @@ from application.dialogs import Util
 from wx.lib import buttons
 import osaf.sharing.ICalendar
 from i18n import OSAFMessageFactory as _
+from time import time as epochtime
 
 # temporary hack because Mac/Linux force BitmapButtons to
 # have some specific borders
@@ -150,7 +151,8 @@ class DragState(object):
                  dragStartHandler,
                  dragHandler,
                  dragEndHandler,
-                 initialPosition):
+                 initialPosition,
+                 resize = False):
         
         self.dragStartHandler = dragStartHandler
         self.dragHandler = dragHandler
@@ -178,11 +180,24 @@ class DragState(object):
         
         self._dragStarted = False
         self._dragCanceled = False
+        self.resize = resize
+        # when canvas items are dragged between all-day and timed, pretend
+        # there's just one canvas and hide the item in the other canvas, but
+        # for other drags (to the sidebar, for instance) leave the item visible
+        self.hiddenWhileDraggedOut = False
 
     def ResetDrag(self):
         # do we need to have a handler for this?
         self.HandleDrag(self._originalPosition)
+
+    def DragOut(self):
+        self.HandleDrag(self._originalPosition)
+        if self.currentDragBox is not None:
+            self.draggedOutItem = self.currentDragBox.item
         
+    def DragIn(self):
+        self.draggedOutItem = None
+
     def HandleDragStart(self):
         if self._dragCanceled:
             return
@@ -226,8 +241,9 @@ class DragState(object):
             return
         
         if self._dragStarted:
-            self._dragTimer.Stop()
-            del self._dragTimer
+            if hasattr(self, '_dragTimer'):
+                self._dragTimer.Stop()
+                del self._dragTimer
             self.dragEndHandler()
             self._window.ReleaseMouse()
 
@@ -288,7 +304,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvent)
 
-        self.dragState = None
+        self.dragState = self.draggedOutState = None
+        self.coercedCanvasItem = None
         
     def OnInit(self):
         # _focusWindow is used because wxPanel is much happier if it
@@ -319,7 +336,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                                         self.OnBeginDragNone,
                                         self.OnDraggingNone,
                                         self.OnEndDragNone,
-                                        unscrolledPosition)
+                                        unscrolledPosition, resize = True)
         
         elif hitBox.isHitResize(unscrolledPosition): 
             # start resizing
@@ -327,7 +344,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                                         self.OnBeginResizeItem,
                                         self.OnResizingItem,
                                         self.OnEndResizeItem,
-                                        unscrolledPosition)
+                                        unscrolledPosition, resize = True)
 
         else: 
             # start dragging
@@ -403,13 +420,103 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # create a drag state just in case
         self._initiateDrag(hitBox, unscrolledPosition)
 
+    def OnHover (self, x, y, dragResult):
+        if not hasattr(self, 'lastHover'):
+            self.lastHover = epochtime() - 1
+        if epochtime() > self.lastHover + .05: # 20 scrolls a second
+            self.lastHover = epochtime()
+            self.RefreshCanvasItems()
+
+        unscrolledPosition = wx.Point(*self.CalcUnscrolledPosition(x, y))
+        dragResult = wx.DragMove
+        if self.dragState:
+            if self.IsValidDragPosition(unscrolledPosition):
+                self.dragState.HandleDrag(unscrolledPosition)
+            
+        return dragResult
+
+    def OnRequestDrop(self, x, y):
+        """Let items be dragged and dropped from self to self."""
+        return True
+
+    def OnItemPaste(self):
+        """Handle the paste of an item differently if it's being dragged."""
+        if self.dragState is None:
+            super(wxCollectionCanvas, self).OnItemPaste()
+        else:
+            self.dragState.HandleDragEnd()
+            self.dragState = None
+
+    def OnEnter(self, x, y, dragResult):          
+        if self.draggingCoerced():
+            source = self.GetDraggedFromWidget()
+            source.draggedOutState.hiddenWhileDraggedOut = True
+            source.Refresh()
+            self.makeCoercedCanvasItem(x, y, 
+                                       source.draggedOutState.draggedOutItem)
+
+        elif self.draggedOutState:
+            self.dragState = self.draggedOutState
+            self.dragState.hiddenWhileDraggedOut = False
+            self.dragState.DragIn()
+            self.draggedOutState = None
+
+    def OnLeave(self):
+        if self.draggingCoerced():
+            source = self.GetDraggedFromWidget()
+            if source.draggedOutState:
+                source.draggedOutState.hiddenWhileDraggedOut = False
+            source.Refresh()
+            self.dragState = None
+            self.coercedCanvasItem = None
+            
+        elif self.dragState:
+            self.draggedOutState = self.dragState
+            self.dragState.DragOut()
+            self.dragState = None
+            
+        # make sure to redraw the canvas with the dragged item gone
+        self.RefreshCanvasItems()
+
+    def makeCoercedCanvasItem(self, x, y, item):
+        """
+        When an all day item is dragged to the time canvas, or vice versa,
+        create an appropriate self.coercedCanvasItem and set self.dragState
+        appropriately.
+        
+        """        
+        pass
+
+    def draggingCoerced(self):
+        """
+        Return a boolean, whether an item has been dragged from another canvas.
+        """
+        source = self.GetDraggedFromWidget()
+        return (source not in (self, None) and
+                hasattr(source, 'draggedOutState') and
+                source.draggedOutState is not None)
+
+    def _getHiddenOrClearDraggedOut(self):
+        """
+        Return the item currently being dragged out if it should be hidden,
+        or clear draggedOutState if the mouse isn't down.
+        
+        """
+        if self.draggedOutState is not None:
+            if wx.GetMouseState().leftDown:
+                if self.draggedOutState.hiddenWhileDraggedOut:
+                    return self.draggedOutState.draggedOutItem
+            else:
+                self.draggedOutState = None        
+        return None
+
     def OnMouseEvent(self, event):
         """
         Handles mouse events, calls overridable methods related to:
           1. Selecting an item
           2. Dragging/moving an item
           3. Resizing an item
-        """
+        """  
         # ignore entering and leaving events
         if (event.Entering() or event.Leaving()):
             event.Skip()
@@ -431,15 +538,19 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
         # checks if the event iself is from dragging the mouse
         elif self.dragState and event.Dragging():
-            if self.IsValidDragPosition(unscrolledPosition):
-                self.dragState.HandleDrag(unscrolledPosition)
+            if self.dragState.resize:
+                if self.IsValidDragPosition(unscrolledPosition):
+                    self.dragState.HandleDrag(unscrolledPosition)
+                else:
+                    # We've interrupted the resize within the calendar,
+                    # so reset the drag state, putting the event where it started
+                    self.dragState.ResetDrag()
+                    self.dragState.HandleDragEnd()
+                    self.dragState = None
+                    self.DoDragAndDrop(copyOnly=True)
             else:
-                # We've interrupted the drag within the calendar,
-                # so reset the drag state, putting the event where it started
-                self.dragState.ResetDrag()
-                self.dragState.HandleDragEnd()
-                self.dragState = None
                 self.DoDragAndDrop(copyOnly=True)
+
 
         elif event.LeftDClick():
             # cancel/stop any drag in progress

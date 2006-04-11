@@ -10,10 +10,14 @@ from CalendarCanvas import (
     CalendarCanvasItem, CalendarBlock, CalendarSelection,
     wxCalendarCanvas, roundToColumnPosition
     )
+from CollectionCanvas import DragState
 from PyICU import GregorianCalendar, ICUtzinfo
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
 
+from application.dialogs import RecurrenceDialog
 from osaf.pim.calendar import Calendar
+
+from itertools import chain
 
 class SparseMatrix(object):
 
@@ -184,7 +188,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                     self.size.width - drawInfo.scrollbarWidth, self.size.height)
 
     def DrawCells(self, dc):
-        
         styles = self.blockItem.calendarContainer
 
         dc.SetFont(styles.eventLabelFont)
@@ -199,10 +202,16 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         contents = CalendarSelection(self.blockItem.contents)
         selectedBoxes = []
+
+        draggedOutItem = self._getHiddenOrClearDraggedOut()
+        
         for canvasItem in self.canvasItemList:
 
             # save the selected box to be drawn last
             item = canvasItem.item
+            if item == draggedOutItem:
+                # don't render items we're dragging out of the canvas
+                continue      
             
             # for some reason, we're getting paint events before
             # widget synchronize events
@@ -216,12 +225,12 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         drawCanvasItems(selectedBoxes, True)
             
     @staticmethod
-    def GetColumnRange(item, (startDateTime, endDateTime)):
+    def GetColumnRange(itemStart, itemEnd, (startDateTime, endDateTime)):
         # get first and last column of its span
-        if item.startTime < startDateTime:
+        if itemStart < startDateTime:
             dayStart = 0
         else:
-            dayStart = wxAllDayEventsCanvas.DayOfWeekNumber(item.startTime)
+            dayStart = wxAllDayEventsCanvas.DayOfWeekNumber(itemStart)
 
         # this is a really wacky corner case. Since all day events
         # tend to end at midnight on their last day, it sometimes
@@ -229,13 +238,106 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # means that events that 'end' on midnight, on exactly
         # endDateTime, need to be thought of as extending PAST
         # endDateTime.
-        if item.endTime >= endDateTime:
+        if itemEnd >= endDateTime:
             dayEnd = 6
         else:
-            dayEnd = wxAllDayEventsCanvas.DayOfWeekNumber(item.endTime)
+            dayEnd = wxAllDayEventsCanvas.DayOfWeekNumber(itemEnd)
 
         return (dayStart, dayEnd)
+
+    def FinishDrag(self):
+        currentCanvasItem = self.dragState.currentDragBox
+        if not currentCanvasItem.CanDrag():
+            return
+
+        proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.item,
+                                          cancelCallback=self.RefreshCanvasItems)
         
+        (startTime, endTime) = self.GetDragAdjustedTimes()
+        duration = endTime - startTime
+        proxy.duration = duration
+        proxy.startTime = startTime
+
+        if self.coercedCanvasItem is not None:
+            self.coercedCanvasItem = None
+            proxy.allDay = True
+
+    def makeCoercedCanvasItem(self, x, y, item):
+        unscrolledPosition = wx.Point(*self.CalcUnscrolledPosition(x, y))
+        start = self.getDateTimeFromPosition(unscrolledPosition,
+                                             item.startTime.tzinfo)
+        end = start + max(item.duration, timedelta(hours=1))
+        
+        colStart, colEnd = self.GetColumnRange(start, end, 
+                                               self.GetCurrentDateRange())
+        
+        canvasItem = self.GetCanvasItem(item, colStart, colEnd, 0)
+        
+        self.coercedCanvasItem  = canvasItem
+        noop = lambda x: None
+        self.dragState = DragState(canvasItem, self, noop,
+                                   noop, self.FinishDrag,
+                                   unscrolledPosition)
+        
+        canvasItem.resizeMode = None
+        self.dragState._dragStarted = True
+        self.dragState.originalDragBox = canvasItem
+        self.dragState.currentPosition = unscrolledPosition
+        self.dragState._dragDirty = True        
+        
+    def OnEndDragItem(self):
+        self.FinishDrag()
+        self.RebuildCanvasItems(resort=True)
+
+
+    def GetDragAdjustedTimes(self):
+        """
+        Return a new start/end time for the currently selected event, based
+        on the current position and drag state. Handles both move and
+        resize drags
+        """
+        tzprefs = schema.ns('osaf.app', self.blockItem.itsView).TimezonePrefs
+        useTZ = tzprefs.showUI
+        
+        item = self.dragState.originalDragBox.item
+        #resizeMode = self.dragState.originalDragBox.resizeMode
+        
+        oldTZ = item.startTime.tzinfo        
+        
+        if useTZ:
+            tzinfo = oldTZ
+        else:
+            tzinfo = ICUtzinfo.floating
+
+        #if resizeMode is None:
+            # moving an item, need to adjust just the start time
+            # for the relative position of the mouse in the item
+        newStartTime = self.GetDragAdjustedStartTime(tzinfo)
+        newEndTime = newStartTime + item.duration
+
+        # top/bottom resizes: just set the appropriate start/end
+        # to where the mouse is
+        #else:
+            #pass # ignore for now
+            #dragTime = self.getDateTimeFromPosition(
+                                #self.dragState.currentPosition,
+                                #tzinfo=tzinfo)
+                
+            #if resizeMode == TimedCanvasItem.RESIZE_MODE_START:
+                #newStartTime = dragTime
+                #newEndTime = item.endTime
+            #elif resizeMode == TimedCanvasItem.RESIZE_MODE_END:
+                #newEndTime = dragTime
+                #newStartTime = item.startTime
+
+        if newEndTime < newStartTime:
+            newEndTime = newStartTime + timedelta(minutes=15)
+
+        if not useTZ:
+            newEndTime   = newEndTime.replace(tzinfo = oldTZ)
+            newStartTime = newStartTime.replace(tzinfo = oldTZ)
+
+        return (newStartTime, newEndTime)
 
     def RebuildCanvasItems(self, resort=False):
         currentRange = self.GetCurrentDateRange()
@@ -267,14 +369,39 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             
             numEventRows = 0
 
-            for item in self.visibleItems:
-                (dayStart, dayEnd) = \
-                           self.GetColumnRange(item, currentRange)
-                
+            def addCanvasItem(item, start, end):
                 #search downward, looking for a spot where it'll fit
+                (dayStart, dayEnd) = \
+                           self.GetColumnRange(start, end, currentRange)
                 row = self.grid.FillRange(dayStart, dayEnd, item)
                 self.RebuildCanvasItem(item, dayStart, dayEnd, row)
                 numEventRows = max(row+1, self.numEventRows)
+                
+            newTime = None
+            if self.dragState is not None:
+                newTime = self.GetDragAdjustedStartTime(ICUtzinfo.default)
+                # if the dragged item isn't from the allday canvas, it won't
+                # appear in self.visibleItems
+                if self.coercedCanvasItem is not None:
+                    item = self.coercedCanvasItem.item
+                    addCanvasItem(item, newTime, newTime + item.duration)
+
+            for item in self.visibleItems:
+                if newTime is not None and \
+                   item is self.dragState.originalDragBox.item:
+
+                    # bounding rules are: at least one cell of the event must stay visible.
+                    if newTime >= self.blockItem.rangeEnd:
+                        newTime = self.blockItem.rangeEnd - timedelta(days=1)
+                    elif newTime + item.duration < self.blockItem.rangeStart:
+                        newTime = self.blockItem.rangeStart - item.duration
+
+                    start = newTime
+                    end   = start + item.duration
+                else:
+                    start, end = item.startTime, item.endTime
+                
+                addCanvasItem(item, start, end)
 
             self.numEventRows = numEventRows
             
@@ -300,13 +427,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
     
     expandedHeight = property(GetExpandedHeight)
     
-    def RebuildCanvasItem(self, item, dayStart, dayEnd, gridRow):
-        """
-        @param columnWidth is pixel width of one column under the
-        @param dayStart is the day-column (0-based) of the first day
-        @param dayEnd is the day-column (0-based) of the last day
-        @param gridRow is the row (0-based) in the grid
-        """
+    def GetCanvasItem(self, item, dayStart, dayEnd, gridRow):
         size = self.GetSize()
         calendarBlock = self.blockItem
 
@@ -316,8 +437,17 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                        width, self.eventHeight)
 
         collection = calendarBlock.getContainingCollection(item)
-        canvasItem = AllDayCanvasItem(collection, calendarBlock.contentsCollection,
+        return AllDayCanvasItem(collection, calendarBlock.contentsCollection,
                                       rect, item)
+    
+    def RebuildCanvasItem(self, item, dayStart, dayEnd, gridRow):
+        """
+        @param columnWidth is pixel width of one column under the
+        @param dayStart is the day-column (0-based) of the first day
+        @param dayEnd is the day-column (0-based) of the last day
+        @param gridRow is the row (0-based) in the grid
+        """
+        canvasItem = self.GetCanvasItem(item, dayStart, dayEnd, gridRow)
         self.canvasItemList.append(canvasItem)
         
         # keep track of the current drag/resize box
@@ -396,62 +526,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         return True
 
     def OnDraggingItem(self, unscrolledPosition):
-        if self.blockItem.dayMode:
-             #no dragging allowed.
-             return
-        
-        # we have to deduce the offset, so you can begin a drag in any
-        # cell of a multi-day event. Code borrowed from
-        # wxTimedEventsCanvas.OnDraggingItem()
-        dragState = self.dragState
-        
-        if not dragState.currentDragBox.CanDrag():
-            return
-        
-        (boxX,boxY) = dragState.originalDragBox.GetDragOrigin()
-        
-        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
-
-        dx, dy = dragState.dragOffset
-        
-        # but if the event starts before the current week adjust dx,
-        # make it negative: where the event would start on the screen,
-        # if it was drawn
-        
-        # hack alert! We shouldn't need to adjust this
-        dx = roundToColumnPosition(dx, drawInfo.columnPositions)
-
-        position = wx.Point(unscrolledPosition.x - dx,
-                            unscrolledPosition.y - dy)
-  
-        item = dragState.currentDragBox.item
-        newTime = self.getDateTimeFromPosition(position, mustBeInBounds=False)
-        
-        oldStartTime = item.startTime
-        tzinfo = oldStartTime.tzinfo
-        
-        if tzinfo is None or newTime.tzinfo is None:
-            newTime = newTime.replace(tzinfo=tzinfo)
-        else:
-            newTime = newTime.astimezone(tzinfo)
-        
-        # bounding rules are: at least one cell of the event must stay visible.
-        if newTime >= self.blockItem.rangeEnd:
-            newTime = self.blockItem.rangeEnd - timedelta(days=1)
-            newTime = newTime.replace(tzinfo=ICUtzinfo.default)
-        elif newTime + item.duration < self.blockItem.rangeStart:
-            newTime = self.blockItem.rangeStart - item.duration
-            newTime = newTime.replace(tzinfo=ICUtzinfo.default)
-        
-        if tzinfo is None:
-            oldStartTime = item.startTime.replace(tzinfo=ICUtzinfo.default)
-        else:
-            oldStartTime = item.startTime.astimezone(ICUtzinfo.default)
-
-        if (newTime.date() != oldStartTime.date()):
-            item.startTime = datetime(newTime.year, newTime.month, newTime.day,
-                                      item.startTime.hour, item.startTime.minute, tzinfo=tzinfo)
-            self.RefreshCanvasItems()
+        self.RefreshCanvasItems()
 
 
     def getRelativeTimeFromPosition(self, drawInfo, position):
@@ -472,7 +547,25 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         return event
 
 class AllDayCanvasItem(CalendarCanvasItem):
+    resizeBufferSize = 5
     textMargin = 2
     def GetBoundsRects(self):
         return [self._bounds]
 
+    def UpdateDrawingRects(self, startTime=None, endTime=None):
+        # allow caller to override start/end time
+        item = self.item
+        
+        if not startTime:
+            startTime = item.startTime
+            
+        if not endTime:
+            endTime = item.endTime
+        
+        #self._calendarCanvas.GenerateBoundsRects(startTime, endTime)        
+        
+        b = self._bounds
+        self._resizeLeftBounds  = wx.Rect(b.x, b.y, self.resizeBufferSize, 
+                                          b.height)
+        self._resizeRightBounds = wx.Rect(b.x + b.width - self.resizeBufferSize,
+                                          b.y, self.resizeBufferSize, b.height)
