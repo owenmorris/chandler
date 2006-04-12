@@ -561,7 +561,7 @@ class IndexedSelectionCollection(ContentCollection):
         super(IndexedSelectionCollection, self).__init__(*args, **kwds)
         setattr(self, self.__collection__, Set(self.source))
 
-    def getCollectionIndex(self):
+    def getCollectionIndex(self, indexName=None):
         """
         Get the index. If it doesn't exist, create. Also create a RangeSet
         for storing the selection on the index
@@ -571,13 +571,52 @@ class IndexedSelectionCollection(ContentCollection):
         the C{indexName} attribute should contain the name of the
         attribute (of an item) to be indexed.
         """
-        if not self.hasIndex(self.indexName):
-            if self.indexName == "__adhoc__":
-                self.addIndex(self.indexName, 'numeric')
+        if indexName is None:
+            indexName = self.indexName
+        
+        if not self.hasIndex(indexName):
+            if indexName == "__adhoc__":
+                self.addIndex(indexName, 'numeric')
             else:
-                self.addIndex(self.indexName, 'attribute', attribute=self.indexName)
-            self.setRanges(self.indexName, [])
-        return self.getIndex(self.indexName)
+                self.addIndex(indexName, 'attribute', attribute=indexName)
+            self.setRanges(indexName, [])
+        return self.getIndex(indexName)
+
+    def setCollectionIndex(self, newIndexName, toggleDescending=False):
+        """
+        Switches to a different index, bringing over the selection to
+        the new index.
+
+        If toggleDescending is True, then when the indexName is set to
+        the current indexName, the sort will toggle its Descending
+        status, and reset the selection to match.
+        """
+
+        # assuming that we'll have to redo selection when sort is reversed?
+        currentIndexName = self.indexName
+
+        newIndex = self.getCollectionIndex(newIndexName)
+
+                
+        if currentIndexName != newIndexName:
+            # new index - bring over the items one by one
+            self.setRanges(newIndexName, [])
+
+            for item in self.iterSelection():
+                newItemIndex = self.positionInIndex(newIndexName, item)
+                self.addRange(newIndexName, (newItemIndex, newItemIndex))
+                
+            self.indexName = newIndexName
+        elif toggleDescending:
+            itemMax = len(self) - 1
+            newRanges = []
+            for start,end in self.getSelectionRanges():
+                (newStart, newEnd) = (itemMax - end, itemMax - start)
+                newRanges.append((newStart, newEnd))
+
+            self.setDescending (currentIndexName, not self.isDescending(currentIndexName))
+            self.setSelectionRanges(newRanges)
+        
 
     def __len__(self):
 

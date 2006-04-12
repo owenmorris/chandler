@@ -139,13 +139,9 @@ class wxTable(DragAndDrop.DraggableWidget,
             return
         attributeName = blockItem.columns[event.GetCol()].attributeName
         contents = blockItem.contents
-        indexName = contents.indexName
 
-        if indexName != attributeName:
-            contents.indexName = attributeName
-        else:
-            contents.setDescending (indexName, not contents.isDescending(indexName))
-
+        self.blockItem.contents.setCollectionIndex(attributeName,
+                                                   toggleDescending=True)
         self.wxSynchronizeWidget()
 
     def OnKeyDown(self, event):
@@ -452,7 +448,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         if len(topLeftSelection) > 0:
             newRowSelection = topLeftSelection[0][0]
         
-        self.ClearSelection()
+        # avoid OnRangeSelect
+        IgnoreSynchronizeWidget(True, self.ClearSelection)
         contents = self.blockItem.contents
         for rowStart,rowEnd in self.SelectedRowRanges():
             # since we're selecting something, we don't need to
@@ -494,7 +491,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             self.SelectBlock (row, 0, row, self.GetColumnCount() - 1)
             self.MakeCellVisible (row, 0)
         else:
-            blockItem.contents.setSelectionRanges([])
+            blockItem.contents.clearSelection()
             blockItem.selectedItemToView = None
             self.ClearSelection()
         self.blockItem.PostSelectItems()
@@ -559,7 +556,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 # remember the last deleted row
                 newSelectedItemIndex = itemIndex
         
-        blockItem.contents.setSelectionRanges([])
+        blockItem.contents.clearSelection()
         blockItem.selectedItemToView = None
         blockItem.itsView.commit()
         
