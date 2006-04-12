@@ -1,9 +1,13 @@
 import tools.QAUITestAppLib as QAUITestAppLib
-import os
+import os, sys
 from application.dialogs.PublishCollection import ShowPublishDialog
 import application.Globals as Globals
 import wx
 from i18n import OSAFMessageFactory as _
+import osaf.sharing.Sharing as Sharing
+import osaf.sharing.ICalendar as ICalendar
+import tools.QAUITestAppLib as QAUITestAppLib
+import osaf.pim as pim
 
 App_ns = app_ns()
 
@@ -33,9 +37,30 @@ try:
     ap.VerifyValues("WebDAV", "Sharing Test WebDAV", displayName = "Sharing Test WebDAV", host = "qacosmo.osafoundation.org", username = "demo1",
                     password="ad3leib5", port=8080)
     
+    
+    # import events so test will have something to share even when run by itself
+    path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
+    # Upcast path to unicode since Sharing requires a unicode path
+    path = unicode(path, sys.getfilesystemencoding())
+    share = Sharing.OneTimeFileSystemShare(path, u'500Events.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
+    
+    logger.Start("Import 500 event Calendar")
+    try:
+        collection = share.get()
+    except:
+        logger.Stop()
+        logger.ReportFailure("Importing calendar: exception raised")
+    else:
+        App_ns.sidebarCollection.add(collection)
+        User.idle()
+        logger.Stop()
+        logger.ReportPass("Importing calendar")
+    
+    
     # Collection selection
+    # at SVN REV 10217 this does not work
     sidebar = App_ns.sidebar
-    QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, "All")
+    QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, "500Events")
     
     # Sharing dialog
     logger.Start("Sharing dialog")
