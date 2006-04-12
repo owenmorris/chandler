@@ -18,6 +18,8 @@ endif
 BP=
 
 BUNDLED_PLUGINS=Chandler_HelloWorldPlugin-0.1-py2.4.egg
+BUILD_PLUGINS=Chandler-HelloWorldPlugin
+
 
 # When a version changes, the ARCHIVES lists below needs to be updated.
 
@@ -43,8 +45,6 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/astng-$(SNAP)-0.14.0-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/common-$(SNAP)-0.13.0-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.9.0-$(BP)1.tar.gz
-
-PLUGINS=Chandler-HelloWorldPlugin
 
 
 # readline is only needed for OSX
@@ -127,24 +127,30 @@ PLUGINS_INST = \
                 $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
                             $(notdir $(BUNDLED_PLUGINS))))
 
+PLUGINS_DOWNLOAD = \
+                $(addprefix $(PLUGIN_ARCHIVES)/, \
+                            $(notdir $(BUNDLED_PLUGINS)))
+
 .PHONY: default install clean realclean downloads build-plugins
 
 default: install
 
-downloads: $(ARCHIVES)
+downloads: $(ARCHIVES) $(PLUGINS_DOWNLOAD)
+
+$(PLUGINS_DOWNLOAD):
+	$(CURL) $(PLUGIN_ARCHIVES)/$(notdir $(basename $@)) $(URL)/$(notdir $(basename $@))
 
 $(PLUGINS_INST):
-	$(CURL) $(CHANDLERARCHIVES)/$(notdir $(basename $@)) $(URL)/$(notdir $(basename $@))
 	$(EASYINSTALL) $(PLUGIN_ARCHIVES)$(notdir $(basename $@))
 	touch $@
 
 bundled-plugins: $(PLUGINS_INST)
 
-$(addprefix binaries-, $(PLUGINS)):
+$(addprefix binaries-, $(BUILD_PLUGINS)):
 	cd $(CHANDLERHOME)/projects/$(subst binaries-,,$@); \
     $(PLUGIN_PYTHON) setup.py bdist_egg -d ../../$(CHANDLERARCHIVES)
 
-build-plugins: $(addprefix binaries-, $(PLUGINS))
+build-plugins: $(addprefix binaries-, $(BUILD_PLUGINS))
 
 $(ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
