@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     6/24/97
-// RCS-ID:      $Id: _defs.i,v 1.98 2006/03/31 23:29:39 RD Exp $
+// RCS-ID:      $Id: _defs.i,v 1.99 2006/04/11 01:43:37 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -521,7 +521,9 @@ enum {
     wxRB_USE_CHECKBOX,
     wxST_SIZEGRIP,
     wxST_NO_AUTORESIZE,
-
+    wxST_DOTS_MIDDLE,
+    wxST_DOTS_END,
+    
     wxFLOOD_SURFACE,
     wxFLOOD_BORDER,
     wxODDEVEN_RULE,
