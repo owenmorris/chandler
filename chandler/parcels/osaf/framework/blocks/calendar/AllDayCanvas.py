@@ -132,7 +132,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
     def OnSize(self, event):
         self.size = self.GetSize()
-        self.RefreshCanvasItems()
+        self.RefreshCanvasItems(resort=False)
         event.Skip()
 
     def wxSynchronizeWidget(self, useHints=False):
@@ -251,7 +251,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             return
 
         proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.item,
-                                          cancelCallback=self.RefreshCanvasItems)
+                                          endCallback=self.RefreshCanvasItems)
         
         (startTime, endTime) = self.GetDragAdjustedTimes()
         duration = endTime - startTime
@@ -526,7 +526,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         return True
 
     def OnDraggingItem(self, unscrolledPosition):
-        self.RefreshCanvasItems()
+        self.RefreshCanvasItems(resort=False)
 
 
     def getRelativeTimeFromPosition(self, drawInfo, position):

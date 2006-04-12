@@ -768,7 +768,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             collections = getattr(self.contents, 'collectionList',
                                   [self.contents])
             if item in collections:
-                self.widget.RefreshCanvasItems()
+                self.widget.RefreshCanvasItems(resort=False)
         except AttributeError:
             # sometimes self.contents hasn't been set yet, or the
             # widget hasn't been rendered yet, or the widget doesn't
@@ -1017,7 +1017,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         if self.editor.IsShown():
             self.editor.SaveAndHide()
 
-    def RefreshCanvasItems(self, resort=False):
+    def RefreshCanvasItems(self, resort=True):
         # [@@@] grant setting resort=True here avoids a
         # wiggling events problem (if you drag an event
         # from Tuesday to Thursday, Wednesday's events
@@ -1300,7 +1300,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         if ((self.item != None) and (not self.IsBeingDeleted())):
             if self.item.displayName != self.GetValue():
                 parentBlock = self.GetParent()
-                proxy = RecurrenceDialog.getProxy(u'ui', self.item, cancelCallback=parentBlock.RefreshCanvasItems)
+                proxy = RecurrenceDialog.getProxy(u'ui', self.item, endCallback=parentBlock.RefreshCanvasItems)
                 proxy.displayName = self.GetValue()
 
     def ResetFocus(self):

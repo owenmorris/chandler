@@ -425,7 +425,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             self.lastHover = epochtime() - 1
         if epochtime() > self.lastHover + .05: # 20 scrolls a second
             self.lastHover = epochtime()
-            self.RefreshCanvasItems()
+            self.RefreshCanvasItems(resort=False)
 
         unscrolledPosition = wx.Point(*self.CalcUnscrolledPosition(x, y))
         dragResult = wx.DragMove
@@ -476,7 +476,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             self.dragState = None
             
         # make sure to redraw the canvas with the dragged item gone
-        self.RefreshCanvasItems()
+        self.RefreshCanvasItems(resort=False)
 
     def makeCoercedCanvasItem(self, x, y, item):
         """

@@ -98,8 +98,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             primaryCollection = self.blockItem.contents.collectionList[0]
             
             def insertInSortedList(eventList, newElement):
-                # Could binary search here, but hopefully we're never
-                # displaying that many events ... ?
+                # insertInSortedList serves two functions, membership testing
+                # and sorted insertion, if it didn't, could use bisect.insort
                 insertIndex = 0
                 
                 for event in eventList:
@@ -156,7 +156,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.SetWindowGeometry()
         self._doDrawingCalculations()
 
-        self.RefreshCanvasItems()
+        self.RefreshCanvasItems(resort=False)
         event.Skip()
 
     def SetWindowGeometry(self):
@@ -734,7 +734,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.dragState.originalDragBox.ResetResizeMode()
         
     def OnResizingItem(self, unscrolledPosition):
-        self.RefreshCanvasItems()
+        self.RefreshCanvasItems(resort=False)
     
     def OnDragTimer(self):
         """
@@ -766,7 +766,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             return
 
         proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.item,
-                                          cancelCallback=self.RefreshCanvasItems)
+                                          endCallback=self.RefreshCanvasItems)
         
         (startTime, endTime) = self.GetDragAdjustedTimes()
         duration = endTime - startTime
@@ -801,7 +801,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             
         
     def OnDraggingItem(self, unscrolledPosition):
-        self.RefreshCanvasItems()
+        self.RefreshCanvasItems(resort=False)
 
     def GetDragAdjustedTimes(self):
         """

@@ -91,9 +91,9 @@ class RecurrenceDialog(wx.Dialog):
 
         self._init_sizers()
 
-    def __init__(self, parent, proxy, cancelCallbacks):
+    def __init__(self, parent, proxy, endCallbacks):
         self.proxy = proxy
-        self.cancelCallbacks = cancelCallbacks
+        self.endCallbacks = endCallbacks
         self._init_ctrls(parent)
 
         # use the first action to determine the UI
@@ -115,12 +115,12 @@ class RecurrenceDialog(wx.Dialog):
 
     def _end(self):
         self.proxy.dialogUp = False
+        for method in self.endCallbacks:
+            method()
         self.Destroy()
         
     def onCancel(self, event):
         self.proxy.cancelBuffer()
-        for method in self.cancelCallbacks:
-            method()
         self._end()
 
     def onAll(self, event):
@@ -142,7 +142,7 @@ class RecurrenceDialog(wx.Dialog):
 
 _proxies = {}
 
-def getProxy(context, obj, createNew=True, cancelCallback=None):
+def getProxy(context, obj, createNew=True, endCallback=None):
     """Return a proxy for obj, reusing cached proxies in the same context.
         
     Return obj if obj doesn't support the changeThis and changeThisAndFuture
@@ -174,9 +174,9 @@ def getProxy(context, obj, createNew=True, cancelCallback=None):
 
         # sometimes a cancel requires that some UI element needs to
         # be "reset" to the original state.. so queue up the cancel changes
-        if (cancelCallback is not None and
-            cancelCallback not in proxy.cancelCallbacks):
-            proxy.cancelCallbacks.append(cancelCallback)
+        if (endCallback is not None and
+            endCallback not in proxy.endCallbacks):
+            proxy.endCallbacks.append(endCallback)
         return proxy
     else:
         return obj
@@ -185,14 +185,14 @@ class OccurrenceProxy(object):
     """Proxy which pops up a RecurrenceDialog when it's changed."""
     __class__ = 'temp'
     proxyAttributes = 'proxiedItem', 'currentlyModifying', '__class__', \
-                      'dialogUp', 'changeBuffer', 'cancelCallbacks'
+                      'dialogUp', 'changeBuffer', 'endCallbacks'
     
     def __init__(self, item):
         self.proxiedItem = item
         self.currentlyModifying = None
         self.__class__ = self.proxiedItem.__class__
         self.dialogUp = False
-        self.cancelCallbacks = []
+        self.endCallbacks = []
 
         # change buffer is an array of dicts, where each dict contains
         # information required to propagate the change
@@ -337,7 +337,7 @@ class OccurrenceProxy(object):
     def runDialog(self):
          # Check in case the dialog somehow got cancelled
          if self.dialogUp:
-            RecurrenceDialog(wx.GetApp().mainFrame, self, self.cancelCallbacks)
+            RecurrenceDialog(wx.GetApp().mainFrame, self, self.endCallbacks)
     
     def propagateBufferChanges(self):
         while len(self.changeBuffer) > 0:
