@@ -4,7 +4,7 @@
 %% Author:      Vadim Zeitlin
 %% Modified by:
 %% Created:     2004-09-07 (partly extracted from frame.tex)
-%% RCS-ID:      $Id: tlw.tex,v 1.14 2006/02/05 20:39:15 MR Exp $
+%% RCS-ID:      $Id: tlw.tex,v 1.15 2006/04/07 00:38:49 VZ Exp $
 %% Copyright:   (c) 2004 Vadim Zeitlin
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -261,6 +261,17 @@ Sets the window title.
 \wxheading{See also}
 
 \helpref{wxTopLevelWindow::GetTitle}{wxtoplevelwindowgettitle}
+
+
+\membersection{wxTopLevelWindow::ShouldPreventAppExit}\label{wxtoplevelwindowshouldpreventappexit}
+
+\constfunc{virtual bool}{ShouldPreventAppExit}{\void}
+
+This virtual function is not meant to be called directly but can be overridden
+to return \false (it returns \true by default) to allow the application to
+close even if this, presumably not very important, window is still opened.
+By default, the application stays alive as long as there are any open top level
+windows.
 
 
 \membersection{wxTopLevelWindow::ShowFullScreen}\label{wxtoplevelwindowshowfullscreen}

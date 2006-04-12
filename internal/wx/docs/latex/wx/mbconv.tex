@@ -3,7 +3,7 @@
 %% Purpose:     wxMBConv documentation
 %% Author:      Ove Kaaven, Vadim Zeitlin
 %% Created:     2000-03-25
-%% RCS-ID:      $Id: mbconv.tex,v 1.9 2006/04/04 12:35:18 VZ Exp $
+%% RCS-ID:      $Id: mbconv.tex,v 1.11 2006/04/11 00:36:17 VZ Exp $
 %% Copyright:   (c) 2000 Ove Kaaven
 %%              (c) 2003-2006 Vadim Zeitlin
 %% License:     wxWindows license
@@ -30,8 +30,19 @@ There are several predefined instances of this class:
 \twocolitem{\textbf{wxConvLibc}}{Uses the standard ANSI C \texttt{mbstowcs()} and
 \texttt{wcstombs()} functions to perform the conversions; thus depends on the
 current locale.}
+\twocolitem{\textbf{wxConvLocal}}{Another conversion corresponding to the
+current locale but this one uses the best available conversion.}
+\twocolitem{\textbf{wxConvUI}}{The conversion used for hte standard UI elements
+such as menu items and buttons. This is a pointer which is initially set to
+\texttt{wxConvLocal} as the program uses the current locale by default but can
+be set to some specific conversion if the program needs to use a specific
+encoding for its UI.}
+\twocolitem{\textbf{wxConvISO8859\_1}}{Conversion to and from ISO-8859-1 (Latin I)
+encoding.}
+\twocolitem{\textbf{wxConvUTF8}}{Conversion to and from UTF-8 encoding.}
 \twocolitem{\textbf{wxConvFile}}{The appropriate conversion for the file names,
 depends on the system.}
+% \twocolitem{\textbf{wxConvCurrent}}{Not really clear what is it for...}
 \end{twocollist}
 
 
