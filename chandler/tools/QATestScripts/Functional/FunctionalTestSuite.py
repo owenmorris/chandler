@@ -43,6 +43,7 @@ allTests = [
                 "TestFlickr.py",
                 "TestImporting.py",
                 "TestImportOverwrite.py",
+                "TestCertstoreView.py",
                 "TestBlocks.py",
                 ]
 
