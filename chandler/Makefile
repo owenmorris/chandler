@@ -18,7 +18,7 @@ endif
 BP=
 
 BUNDLED_PLUGINS=Chandler_HelloWorldPlugin-0.1-py2.4.egg \
-         Chandler_FeedsPlugin-0.1-py2.4.egg
+                Chandler_FeedsPlugin-0.1-py2.4.egg
 
 BUILD_PLUGINS=Chandler-HelloWorldPlugin Chandler-FeedsPlugin
 
@@ -99,15 +99,18 @@ ifeq ($(OS),Darwin)
 EASYINSTALL=MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(CHANDLERBIN)/$(SNAP)/easy_install
 PLUGIN_PYTHON=MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME)/../..  $(CHANDLERBIN)/../../$(SNAP)/RunPython
 PLUGIN_ARCHIVES=$(CHANDLERARCHIVES)/
+SED_MODERN=-E
 else
 ifeq ($(OS),Cygwin)
 EASYINSTALL=$(CHANDLERBIN)/$(SNAP)/easy_install
 PLUGIN_PYTHON=CHANDLERHOME=$(CHANDLERHOME) $(shell cygpath -au $(CHANDLERBIN))/$(SNAP)/bin/python$(DEBUG_SUFFIX)
 PLUGIN_ARCHIVES=$(shell cygpath -aw $(CHANDLERARCHIVES))\\
+SED_MODERN=-r
 else
 EASYINSTALL=$(CHANDLERBIN)/$(SNAP)/easy_install
 PLUGIN_PYTHON=CHANDLERHOME=$(CHANDLERHOME)/../..  $(CHANDLERBIN)/../../$(SNAP)/RunPython
 PLUGIN_ARCHIVES=$(CHANDLERARCHIVES)/
+SED_MODERN=-r
 endif
 endif
 
@@ -130,7 +133,7 @@ PLUGINS_INST = \
                             $(notdir $(BUNDLED_PLUGINS))))
 
 PLUGINS_DOWNLOAD = \
-                $(addprefix $(PLUGIN_ARCHIVES)/, \
+                $(addprefix $(PLUGIN_ARCHIVES), \
                             $(notdir $(BUNDLED_PLUGINS)))
 
 .PHONY: default install clean realclean downloads build-plugins
@@ -140,13 +143,13 @@ default: install
 downloads: $(ARCHIVES) $(PLUGINS_DOWNLOAD)
 
 $(PLUGINS_DOWNLOAD):
-	$(CURL) $(PLUGIN_ARCHIVES)/$(notdir $@) $(URL)/$(notdir $@)
+	$(CURL) $(PLUGIN_ARCHIVES)$(notdir $@) $(URL)/$(notdir $@)
 
-$(PLUGINS_INST): $(PLUGINS_DOWNLOAD)
+$(PLUGINS_INST):
 	$(EASYINSTALL) $(PLUGIN_ARCHIVES)$(notdir $(basename $@))
 	touch $@
 
-bundled-plugins: $(PLUGINS_INST)
+bundled-plugins: $(PLUGINS_DOWNLOAD) $(PLUGINS_INST)
 
 $(addprefix binaries-, $(BUILD_PLUGINS)):
 	cd $(CHANDLERHOME)/projects/$(subst binaries-,,$@); \
@@ -208,6 +211,14 @@ download: $(ARCHIVES) $(SETUPTOOLS_EGG)
 $(notdir $(shell echo $(ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
 	$(MAKE) $(shell echo $(ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
 	$(MAKE) $(shell echo $(ARCHIVES_INST) | sed "s=.*\($(CHANDLERBIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
+
+
+# to install individual eggs, for example: make Chandler_HelloWorldPlugin
+
+$(notdir $(shell echo $(BUNDLED_PLUGINS) | sed $(SED_MODERN) "s/-[0-9]+[^ ]*\.egg//g")):
+	$(MAKE) $(PLUGIN_ARCHIVES)$(shell echo $(BUNDLED_PLUGINS) | sed "s=.*\($@-[^ ]*\).*=\1=")
+	$(MAKE) $(CHANDLERBIN)/$(SNAP)/$(shell echo $(PLUGINS_INST) | sed "s=.*\($@-[^ ]*\).*=\1=")
+
 
 ifeq ($(OS),Cygwin)
 strip:
