@@ -12,6 +12,12 @@ def makeMainMenus(parcel):
     from osaf import usercollections
     from colorsys import hsv_to_rgb
     from itertools import chain
+
+    if '__WXMAC__' in wx.PlatformInfo:
+        platform_delete = _(u'Back')
+    else:
+        platform_delete = _(u'Del')
+
     
     def makeColorMenuItems (parcel, cls, hues):
         """
@@ -203,7 +209,7 @@ def makeMainMenus(parcel):
                     MenuItem.template('DeleteItem',
                         event = main.Delete,
                         title = _(u'Delete'),
-                        accel = _(u'Del'),
+                        accel = platform_delete,
                         helpString = _(u'Move the current selection to the trash')),
                     MenuItem.template('EmptyTrashItem',
                         event = main.EmptyTrash,

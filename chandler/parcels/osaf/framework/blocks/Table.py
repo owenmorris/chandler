@@ -672,6 +672,21 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         assert False # who needs this?
         return self.delegate.GetControlValue (self.control)
 
+    def IsAcceptedKey(self, event):
+
+        # These are the keys that are acceptable to begin editing in
+        # the table. Because these keys are also bound to menu items,
+        # we don't want them to start editing.
+
+        # Really, we should be able to look them up in the window's
+        # accelerator table, but there's no way to do that from
+        # Python.
+        
+        if event.GetKeyCode() in (wx.WXK_DELETE, wx.WXK_BACK):
+            return False
+
+        return super(GridCellAttributeEditor, self).IsAcceptedKey()
+
 
 class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
