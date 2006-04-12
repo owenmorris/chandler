@@ -42,9 +42,9 @@ try:
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
     path = unicode(path, sys.getfilesystemencoding())
-    share = Sharing.OneTimeFileSystemShare(path, u'500Events.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
+    share = Sharing.OneTimeFileSystemShare(path, u'testSharing.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
     
-    logger.Start("Import 500 event Calendar")
+    logger.Start("Import testSharing Calendar")
     try:
         collection = share.get()
     except:
@@ -60,7 +60,7 @@ try:
     # Collection selection
     # at SVN REV 10217 this does not work
     sidebar = App_ns.sidebar
-    QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, "500Events")
+    QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, "testSharing")
     
     # Sharing dialog
     logger.Start("Sharing dialog")
