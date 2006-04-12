@@ -140,7 +140,7 @@ default: install
 downloads: $(ARCHIVES) $(PLUGINS_DOWNLOAD)
 
 $(PLUGINS_DOWNLOAD):
-	$(CURL) $(PLUGIN_ARCHIVES)/$(notdir $(basename $@)) $(URL)/$(notdir $(basename $@))
+	$(CURL) $(PLUGIN_ARCHIVES)/$(notdir $@) $(URL)/$(notdir $@)
 
 $(PLUGINS_INST): $(PLUGINS_DOWNLOAD)
 	$(EASYINSTALL) $(PLUGIN_ARCHIVES)$(notdir $(basename $@))
