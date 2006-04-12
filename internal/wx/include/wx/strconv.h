@@ -4,7 +4,7 @@
 // Author:      Ove Kaaven, Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.h,v 1.54 2006/04/06 17:11:25 VZ Exp $
+// RCS-ID:      $Id: strconv.h,v 1.56 2006/04/11 00:36:21 VZ Exp $
 // Copyright:   (c) 1998 Ove Kaaven, Robert Roebling
 //              (c) 1998-2006 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -435,9 +435,14 @@ extern WXDLLIMPEXP_DATA_BASE(wxMBConv *) wxConvFileName;
 // default in a couple of places inside wx (initially same as wxConvLibc)
 extern WXDLLIMPEXP_DATA_BASE(wxMBConv *) wxConvCurrent;
 
-// ???
+// the conversion corresponding to the current locale
 extern WXDLLIMPEXP_DATA_BASE(wxCSConv&) wxConvLocal;
 
+// the conversion corresponding to the encoding of the standard UI elements
+//
+// by default this is the same as wxConvLocal but may be changed if the program
+// needs to use a fixed encoding
+extern WXDLLIMPEXP_DATA_BASE(wxMBConv *) wxConvUI;
 
 // ----------------------------------------------------------------------------
 // endianness-dependent conversions
