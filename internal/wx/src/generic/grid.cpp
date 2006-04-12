@@ -5794,7 +5794,7 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                 DisableCellEditControl();
                 MakeCellVisible( coords );
 
-                if ( event.ControlDown() )
+                if ( event.CmdDown() )
                 {
                     if ( m_selection )
                     {
