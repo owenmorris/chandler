@@ -148,7 +148,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.RealignCanvasItems()
         self.Refresh()
 
-        if numAdded == 1:
+        if numAdded == 1 and \
+           getattr(self, 'justCreatedCanvasItem', False):
+            self.justCreatedCanvasItem = False
             self.EditCurrentItem()
 
     def OnSize(self, event):
@@ -641,6 +643,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         collection = self.blockItem.contentsCollection
         canvasItem = TimedCanvasItem(collection, collection, event, self)
         
+        # set a flag so when wxSynchronizeWidgets happens, the newly created
+        # item is edited
+        self.justCreatedCanvasItem = True
+        
         # only problem here is that we haven't checked for conflicts
         canvasItem.UpdateDrawingRects()
         canvasItem.setResizeMode(canvasItem.RESIZE_MODE_END)
@@ -749,7 +755,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.scrollTimer.Start(100, wx.TIMER_CONTINUOUS)
     
     def StopDragTimer(self):
-        if self.scrollTimer is not None:
+        # drags of object from outside Chandler won't initiate timer
+        if hasattr(self, 'scrollTimer') and self.scrollTimer is not None:
             self.scrollTimer.Stop()
         self.scrollTimer = None
         
@@ -761,6 +768,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         return True
 
     def FinishDrag(self):
+        self.fileDragPosition = None
         currentCanvasItem = self.dragState.currentDragBox
         if not currentCanvasItem.CanDrag():
             return
@@ -776,6 +784,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if self.coercedCanvasItem is not None:
             self.coercedCanvasItem = None
             proxy.allDay = proxy.anyTime = False
+        self.dragState = None
         
     def OnEndDragItem(self):
         try:

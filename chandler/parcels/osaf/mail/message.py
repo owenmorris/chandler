@@ -230,26 +230,34 @@ def messageObjectToKind(view, messageObject, messageText=None,
     # If this message came with an ICS attachment, parse it first; ICalendar
     # will return an item that we can stamp as mail. Otherwise, just create
     # a MailMessage.
-    m = None
-    if messageObject.is_multipart():
+
+    def importIcalendarPayload(mailobj):
+        if mailobj.get_content_type() == "text/calendar":
+            import osaf.sharing.ICalendar as ICalendar
+            try:
+                items = ICalendar.itemsFromVObject(view, mailobj.get_payload(),
+                                                   filters=('reminders',))[0]
+            except:
+                # ignore parts we can't parse
+                pass
+            else:
+                if len(items) > 0:
+                    # We got something - stamp the first thing as a MailMessage
+                    # and use it. (If it was an existing event, we'll reuse it.)
+                    m = items[0]
+                    if not isinstance(m, Mail.MailMessageMixin):
+                        m.StampKind('add', Mail.MailMessageMixin.getKind(view)) 
+                    return m
+        return None
+    
+    m = importIcalendarPayload(messageObject)
+    if m is None and messageObject.is_multipart():
         for mimePart in messageObject.get_payload():
             if mimePart.get_content_type() == "text/calendar":
-                import osaf.sharing.ICalendar as ICalendar
-                try:
-                    items = ICalendar.itemsFromVObject(view, 
-                        mimePart.get_payload(),
-                        filters=('reminders',))[0]
-                except:
-                    # ignore parts we can't parse
-                    pass
-                else:
-                    if len(items) > 0:
-                        # We got something - stamp the first thing as a MailMessage
-                        # and use it. (If it was an existing event, we'll reuse it.)
-                        m = items[0]
-                        if not isinstance(m, Mail.MailMessageMixin):
-                            m.StampKind('add', Mail.MailMessageMixin.getKind(view))
-                        break
+                m = importIcalendarPayload(mimePart.get_payload())
+                if m is not None:
+                    break
+
     if m is None:
         # Didn't find a parsable ICS attachment: just treat it as a mail msg.
         m = Mail.MailMessage(itsView=view)

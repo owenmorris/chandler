@@ -7,6 +7,7 @@ from application.Application import mixinAClass
 
 from osaf.pim import ContentCollection
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
+from osaf.sharing import ChooseFormat
 
 from Block import (
     RectangularChild,
@@ -319,6 +320,11 @@ class wxTable(DragAndDrop.DraggableWidget,
             item = self.blockItem.contents[itemIndex]
             
         self.blockItem.DisplayContextMenu(event.GetPosition(), item)
+
+    def OnFilePaste(self):
+        for filename in self.fileDataObject.GetFilenames():
+            ChooseFormat.importFile(filename, self.blockItem.itsView,
+                                    selectedCollection=True)
 
     def wxSynchronizeWidget(self, useHints=False):
         """

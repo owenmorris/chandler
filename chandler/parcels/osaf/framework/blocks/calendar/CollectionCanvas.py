@@ -12,7 +12,6 @@ from osaf.framework.blocks import Block, DragAndDrop, FocusEventHandlers
 from application import schema
 from application.dialogs import Util
 from wx.lib import buttons
-import osaf.sharing.ICalendar
 from i18n import OSAFMessageFactory as _
 from time import time as epochtime
 
@@ -417,7 +416,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         else:
             self.OnSelectNone(unscrolledPosition)
 
-        # create a drag state just in case
+        # create a drag state for resize dragging
         self._initiateDrag(hitBox, unscrolledPosition)
 
     def OnHover (self, x, y, dragResult):
@@ -432,6 +431,9 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         if self.dragState:
             if self.IsValidDragPosition(unscrolledPosition):
                 self.dragState.HandleDrag(unscrolledPosition)
+        else:
+            # save unscrolledPosition in case an email is dragged in
+            self.fileDragPosition = unscrolledPosition
             
         return dragResult
 
@@ -493,8 +495,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         """
         source = self.GetDraggedFromWidget()
         return (source not in (self, None) and
-                hasattr(source, 'draggedOutState') and
-                source.draggedOutState is not None)
+                getattr(source, 'draggedOutState', None) is not None)
 
     def _getHiddenOrClearDraggedOut(self):
         """
@@ -889,11 +890,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     # Methods for Drag and Drop and Cut and Paste
     def DeleteSelection(self, *args, **kwargs):
         self.blockItem.DeleteSelection(*args, **kwargs)
-
-    def OnFilePaste(self):
-        for filename in self.fileDataObject.GetFilenames():
-            osaf.sharing.ICalendar.importICalendarFile(filename,
-                              self.blockItem.itsView, selectedCollection = True)
 
     def WarnReadOnlyAdd(self, collection):
         Util.ok(self, _(u'Warning'), _(u'This collection is read-only. You cannot add items to read-only collections'))

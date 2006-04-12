@@ -19,6 +19,7 @@ from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime, DateTimeUtil
 from osaf.pim import ContentCollection
 from osaf.usercollections import UserCollection
 from application.dialogs import RecurrenceDialog, Util
+from osaf.sharing import ChooseFormat
 
 from osaf.framework.blocks import (
     DragAndDrop, Block, SplitterWindow, Styles, BoxContainer, BlockEvent
@@ -1012,6 +1013,21 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         size = canvasItem.GetMaxEditorSize()
 
         self.editor.SetItem(canvasItem.item, position, size, styles.eventLabelFont.GetPointSize())
+
+    def OnFilePaste(self):
+        eventKind = Calendar.CalendarEventMixin.getKind(self.blockItem.itsView)
+        
+        for filename in self.fileDataObject.GetFilenames():
+            item = ChooseFormat.importFile(filename, self.blockItem.itsView,
+                                           selectedCollection=True)
+            if not item.isItemOf(eventKind) and \
+               getattr(self, 'fileDragPosition', None) is not None:
+                startTime = self.getDateTimeFromPosition(self.fileDragPosition)
+                item.StampKind('add', eventKind)
+                # make the event's middle happen at startTime
+                item.startTime = startTime - timedelta(minutes=30)
+                item.duration = timedelta(hours=1)
+                item.allDay = item.anyTime = False
 
     def GrabFocusHack(self):
         if self.editor.IsShown():

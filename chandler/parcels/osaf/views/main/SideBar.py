@@ -17,7 +17,7 @@ from osaf.framework.prompts import promptYesNoCancel
 
 from osaf import sharing, pim
 from osaf.usercollections import UserCollection
-import osaf.sharing.ICalendar
+from osaf.sharing import ChooseFormat
 from application import schema
 from i18n import OSAFMessageFactory as _
 
@@ -335,10 +335,9 @@ class wxSidebar(wxTable):
             coll = self.blockItem.contents[whereToDropItem]
             self.SetRowHighlight(self.whereToDropItem, False)
             del self.whereToDropItem
-        
+
         for filename in self.fileDataObject.GetFilenames():
-            osaf.sharing.ICalendar.importICalendarFile(filename,
-                                                   self.blockItem.itsView, coll)
+            ChooseFormat.importFile(filename, self.blockItem.itsView, coll)
 
 class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
     """

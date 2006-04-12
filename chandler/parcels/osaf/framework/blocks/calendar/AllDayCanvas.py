@@ -246,6 +246,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         return (dayStart, dayEnd)
 
     def FinishDrag(self):
+        self.fileDragPosition = None
         currentCanvasItem = self.dragState.currentDragBox
         if not currentCanvasItem.CanDrag():
             return
