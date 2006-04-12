@@ -142,7 +142,7 @@ downloads: $(ARCHIVES) $(PLUGINS_DOWNLOAD)
 $(PLUGINS_DOWNLOAD):
 	$(CURL) $(PLUGIN_ARCHIVES)/$(notdir $(basename $@)) $(URL)/$(notdir $(basename $@))
 
-$(PLUGINS_INST):
+$(PLUGINS_INST): $(PLUGINS_DOWNLOAD)
 	$(EASYINSTALL) $(PLUGIN_ARCHIVES)$(notdir $(basename $@))
 	touch $@
 
