@@ -91,7 +91,7 @@ try:
             f8:38:f8:eb:d2:5f:75:5f:cd:7b:fc:e5:8e:80:7c:fc:50
         """)
     
-	# 5. Change certificate trust
+    # 5. Change certificate trust
     cert.CheckEditableBlock('TrustAttribute', 'trust', '3')
     # SetAttr has hardcode values :(
     cert.SetEditableBlock('TrustAttribute', 'trust', '0', True)
