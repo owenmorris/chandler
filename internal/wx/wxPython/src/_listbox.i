@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _listbox.i,v 1.19 2006/03/24 00:08:45 RD Exp $
+// RCS-ID:      $Id: _listbox.i,v 1.21 2006/04/11 01:17:25 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,6 @@
 
 %{
 #include <wx/checklst.h>
-    
 %}
 
 MAKE_CONST_WXSTRING(ListBoxNameStr);
@@ -34,31 +33,57 @@ public:
     %pythonAppend wxListBox         "self._setOORInfo(self)"
     %pythonAppend wxListBox()       ""
 
-    wxListBox(wxWindow* parent, wxWindowID id=-1,
-              const wxPoint& pos = wxDefaultPosition,
-              const wxSize& size = wxDefaultSize,
-              const wxArrayString& choices = wxPyEmptyStringArray,              
-              long style = 0,
-              const wxValidator& validator = wxDefaultValidator,
-              const wxString& name = wxPyListBoxNameStr);
+    wxListBox(wxWindow* parent,
+            wxWindowID id = -1,
+            const wxPoint& pos = wxDefaultPosition,
+            const wxSize& size = wxDefaultSize,
+            const wxArrayString& choices = wxPyEmptyStringArray,
+            long style = 0,
+            const wxValidator& validator = wxDefaultValidator,
+            const wxString& name = wxPyListBoxNameStr);
+
+//    wxListBox(wxWindow* parent,
+//            wxWindowID id = -1,
+//            const wxPoint& pos = wxDefaultPosition,
+//            const wxSize& size = wxDefaultSize,
+//            int n = 0,
+//            const wxString choices[] = NULL,
+//            long style = 0,
+//            const wxValidator& validator = wxDefaultValidator,
+//            const wxString& name = wxPyListBoxNameStr);
     %RenameCtor(PreListBox, wxListBox());
 
-    bool Create(wxWindow* parent, wxWindowID id=-1,
-                const wxPoint& pos = wxDefaultPosition,
-                const wxSize& size = wxDefaultSize,
-                const wxArrayString& choices = wxPyEmptyStringArray,
-                long style = 0,
-                const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxPyListBoxNameStr);
+    bool Create(wxWindow* parent,
+            wxWindowID id = -1,
+            const wxPoint& pos = wxDefaultPosition,
+            const wxSize& size = wxDefaultSize,
+            const wxArrayString& choices = wxPyEmptyStringArray,
+            long style = 0,
+            const wxValidator& validator = wxDefaultValidator,
+            const wxString& name = wxPyListBoxNameStr);
+
+//    bool Create(wxWindow *parent,
+//            wxWindowID id = -1,
+//            const wxPoint& pos = wxDefaultPosition,
+//            const wxSize& size = wxDefaultSize,
+//            int n = 0,
+//            const wxString choices[] = NULL,
+//            long style = 0,
+//            const wxValidator& validator = wxDefaultValidator,
+//            const wxString& name = wxPyListBoxNameStr);
 
     // all generic methods are in wxControlWithItems...
 
-    %extend {
-        void Insert(const wxString& item, int pos, PyObject* clientData=NULL) {
-            if (clientData) {
+    %extend
+    {
+        void Insert(const wxString& item, int pos, PyObject* clientData = NULL)
+        {
+            if (clientData)
+            {
                 wxPyClientData* data = new wxPyClientData(clientData);
                 self->Insert(item, pos, data);
-            } else
+            }
+            else
                 self->Insert(item, pos);
         }
     }
@@ -70,6 +95,7 @@ public:
     virtual bool IsSelected(int n) const;
     virtual void SetSelection(int n, bool select = true);
     virtual void Select(int n);
+
     void Deselect(int n);
     void DeselectAll(int itemToLeaveSelected = -1);
 
@@ -80,12 +106,15 @@ public:
     //virtual int GetSelections(wxArrayInt& aSelections) const;
     %extend {
         PyObject* GetSelections() {
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             wxArrayInt lst;
             self->GetSelections(lst);
             PyObject *tup = PyTuple_New(lst.GetCount());
-            for(size_t i=0; i<lst.GetCount(); i++) {
+            for (size_t i=0; i<lst.GetCount(); i++)
+            {
                 PyTuple_SetItem(tup, i, PyInt_FromLong(lst[i]));
             }
+            wxPyEndBlockThreads(blocked);
             return tup;
         }
     }
@@ -95,8 +124,8 @@ public:
     void SetFirstItem(int n);
     %Rename(SetFirstItemStr,  void, SetFirstItem(const wxString& s));
 
-    // ensures that the given item is visible scrolling the listbox if
-    // necessary
+    // ensures that the given item is visible scrolling the listbox
+    // if necessary
     virtual void EnsureVisible(int n);
 
     // a combination of Append() and EnsureVisible(): appends the item to the
@@ -109,27 +138,31 @@ public:
     // return the index of the item at this position or wxNOT_FOUND
     int HitTest(const wxPoint& pt) const;
 
-    %extend {
-        void SetItemForegroundColour(int item, const wxColour& c) {
+    %extend
+    {
+        void SetItemForegroundColour(int item, const wxColour& c)
+        {
             %#ifdef __WXMSW__
                  if (self->GetWindowStyle() & wxLB_OWNERDRAW)
                      self->GetItem(item)->SetTextColour(c);
             %#endif
         }
-        void SetItemBackgroundColour(int item, const wxColour& c) {
+        void SetItemBackgroundColour(int item, const wxColour& c)
+        {
             %#ifdef __WXMSW__
                  if (self->GetWindowStyle() & wxLB_OWNERDRAW)
                      self->GetItem(item)->SetBackgroundColour(c);
             %#endif
         }
-        void SetItemFont(int item, const wxFont& f) {
+        void SetItemFont(int item, const wxFont& f)
+        {
             %#ifdef __WXMSW__
                  if (self->GetWindowStyle() & wxLB_OWNERDRAW)
                      self->GetItem(item)->SetFont(f);
             %#endif
         }
     }
-    
+
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
@@ -148,22 +181,24 @@ public:
     %pythonAppend wxCheckListBox         "self._setOORInfo(self)"
     %pythonAppend wxCheckListBox()       ""
 
-    wxCheckListBox(wxWindow *parent, wxWindowID id=-1,
-                   const wxPoint& pos = wxDefaultPosition,
-                   const wxSize& size = wxDefaultSize,
-                   const wxArrayString& choices = wxPyEmptyStringArray,
-                   long style = 0,
-                   const wxValidator& validator = wxDefaultValidator,
-                   const wxString& name = wxPyListBoxNameStr);
+    wxCheckListBox(wxWindow *parent,
+            wxWindowID id = -1,
+            const wxPoint& pos = wxDefaultPosition,
+            const wxSize& size = wxDefaultSize,
+            const wxArrayString& choices = wxPyEmptyStringArray,
+            long style = 0,
+            const wxValidator& validator = wxDefaultValidator,
+            const wxString& name = wxPyListBoxNameStr);
     %RenameCtor(PreCheckListBox, wxCheckListBox());
 
-    bool Create(wxWindow *parent, wxWindowID id=-1,
-                const wxPoint& pos = wxDefaultPosition,
-                const wxSize& size = wxDefaultSize,
-                const wxArrayString& choices = wxPyEmptyStringArray,
-                long style = 0,
-                const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxPyListBoxNameStr);
+    bool Create(wxWindow *parent,
+            wxWindowID id = -1,
+            const wxPoint& pos = wxDefaultPosition,
+            const wxSize& size = wxDefaultSize,
+            const wxArrayString& choices = wxPyEmptyStringArray,
+            long style = 0,
+            const wxValidator& validator = wxDefaultValidator,
+            const wxString& name = wxPyListBoxNameStr);
 
     bool  IsChecked(unsigned int index);
     void  Check(unsigned int index, int check = true);
@@ -171,7 +206,6 @@ public:
 #if defined(__WXMSW__) || defined(__WXGTK__)
     int GetItemHeight();
 #endif
-
 };
 
 //---------------------------------------------------------------------------
