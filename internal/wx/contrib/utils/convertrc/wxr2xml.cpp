@@ -404,16 +404,14 @@ wxString wxr2xml::GetStyles(wxItemResource * res)
 
     if (restype == _T("wxDialog"))
         {
-        if (style & wxDEFAULT_DIALOG_STYLE)
-            s += _T("wxDEFAULT_DIALOG_STYLE|");
-#if WXWIN_COMPATIBILITY_2_6
         if (style & wxDIALOG_MODAL)
             s += _T("wxDIALOG_MODAL|");
+        if (style & wxDEFAULT_DIALOG_STYLE)
+            s += _T("wxDEFAULT_DIALOG_STYLE|");
         if (style & wxDIALOG_MODELESS)
             s += _T("wxDIALOG_MODELESS|");
         if (style & wxNO_3D)
             s += _T("wxNO_3D|");
-#endif // WXWIN_COMPATIBILITY_2_6
         if (style & wxTAB_TRAVERSAL)
             s += _T("wxTAB_TRAVERSAL|");
         if (style & wxWS_EX_VALIDATE_RECURSIVELY)
@@ -422,8 +420,8 @@ wxString wxr2xml::GetStyles(wxItemResource * res)
             s += _T("wxSTAY_ON_TOP|");
         if (style & wxCAPTION)
             s += _T("wxCAPTION|");
-        if (style & wxRESIZE_BORDER)
-            s += _T("wxRESIZE_BORDER|");
+        if (style & wxTHICK_FRAME)
+            s += _T("wxTHICK_FRAME|");
         if (style & wxRESIZE_BOX)
             s += _T("wxRESIZE_BOX|");
         if (style & wxRESIZE_BORDER)
@@ -438,10 +436,8 @@ wxString wxr2xml::GetStyles(wxItemResource * res)
         {
         if (style & wxCLIP_CHILDREN)
             s += _T("wxCLIP_CHILDREN|");
-#if WXWIN_COMPATIBILITY_2_6
         if (style & wxNO_3D)
             s += _T("wxNO_3D|");
-#endif // WXWIN_COMPATIBILITY_2_6
         if (style & wxTAB_TRAVERSAL)
             s += _T("wxTAB_TRAVERSAL|");
         if (style & wxWS_EX_VALIDATE_RECURSIVELY)
@@ -540,10 +536,11 @@ wxString wxr2xml::GetStyles(wxItemResource * res)
             s += _T("wxSB_VERTICAL|");
         }
 
-    int l = s.length();
+    int l;
+    l = s.Length();
     // No styles defined
     if (l == 11)
-        return wxEmptyString;
+        return _T("");
     // Trim off last |
     s = s.Truncate(l - 1);
 
@@ -606,7 +603,7 @@ void wxr2xml::ParseMenu(wxItemResource * res)
     m_xmlfile.Write(_T(">\n"));
     m_xmlfile.Write(_T("\t\t\t\t<label>")
         + FixMenuString(res->GetTitle()) + _T("</label>\n"));
-    if (!res->GetValue4().empty())
+    if (res->GetValue4() != _T(""))
         m_xmlfile.Write(_T("\t\t\t\t<help>") + res->GetValue4() +
         _T("</help>\n"));
     // Read in menu items and additional menus
@@ -624,7 +621,7 @@ void wxr2xml::ParseMenu(wxItemResource * res)
 void wxr2xml::ParseMenuItem(wxItemResource * res)
 {
     // Get Menu Item or Separator
-    if (res->GetTitle().empty()) {
+    if (res->GetTitle() == _T("")) {
         m_xmlfile.Write(_T("\t\t\t<object class=\"separator\"/>\n"));
     } else {
         m_xmlfile.Write(_T("\t\t\t\t<object class=\"wxMenuItem\" "));
@@ -634,7 +631,7 @@ void wxr2xml::ParseMenuItem(wxItemResource * res)
         m_xmlfile.Write(_T(">\n"));
             m_xmlfile.Write(_T("\t\t\t<label>")
             + FixMenuString(res->GetTitle()) + _T("</label>\n"));
-        if (!res->GetValue4().empty())
+        if (res->GetValue4() != _T(""))
             m_xmlfile.Write(_T("\t\t\t<help>") +
         res->GetValue4() + _T("</help>\n"));
         if (res->GetValue2())

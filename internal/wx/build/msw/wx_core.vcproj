@@ -37681,9 +37681,6 @@
 				RelativePath="..\..\include\wx\display.h">
 			</File>
 			<File
-				RelativePath="..\..\include\wx\display_impl.h">
-			</File>
-			<File
 				RelativePath="..\..\include\wx\dnd.h">
 			</File>
 			<File

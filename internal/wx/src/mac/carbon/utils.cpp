@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils.cpp,v 1.111 2006/03/24 13:01:05 JS Exp $
+// RCS-ID:      $Id: utils.cpp,v 1.109 2006/02/11 16:19:03 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1554,6 +1554,10 @@ CMProfileRef wxMacOpenGenericProfile()
     return it whenever this function is called.
 */
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
+#define kCGColorSpaceGenericRGB   CFSTR("kCGColorSpaceGenericRGB")
+#endif
+
 CGColorSpaceRef wxMacGetGenericRGBColorSpace()
 {
     static wxMacCFRefHolder<CGColorSpaceRef> genericRGBColorSpace ;
@@ -1562,7 +1566,7 @@ CGColorSpaceRef wxMacGetGenericRGBColorSpace()
     {
         if ( UMAGetSystemVersion() >= 0x1040 )
         {
-            genericRGBColorSpace.Set( CGColorSpaceCreateWithName( CFSTR("kCGColorSpaceGenericRGB") ) ) ;
+            genericRGBColorSpace.Set( CGColorSpaceCreateWithName( kCGColorSpaceGenericRGB ) ) ;
         }
         else
         {
@@ -1583,16 +1587,5 @@ CGColorSpaceRef wxMacGetGenericRGBColorSpace()
     return genericRGBColorSpace;
 }
 #endif
-
-wxMacPortSaver::wxMacPortSaver( GrafPtr port )
-{
-    ::GetPort( &m_port ) ;
-    ::SetPort( port ) ;
-}
-
-wxMacPortSaver::~wxMacPortSaver()
-{
-    ::SetPort( m_port ) ;
-}
 
 #endif // wxUSE_GUI

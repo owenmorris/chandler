@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     7-July-1997
-// RCS-ID:      $Id: _bitmap.i,v 1.18 2006/03/10 00:27:37 RD Exp $
+// RCS-ID:      $Id: _bitmap.i,v 1.16 2005/12/30 23:01:19 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ public:
         wxBitmap(int width, int height, int depth=-1),
         "Creates a new bitmap of the given size.  A depth of -1 indicates the
 depth of the current screen or visual. Some platforms only support 1
-for monochrome and -1 for the current display depth.", "",
+for monochrome and -1 for the current colour setting.", "",
         EmptyBitmap);
 
     DocCtorStrName(
@@ -201,7 +201,6 @@ bitmap. This preserves mask information so that bitmaps and images can
 be converted back and forth without loss in that respect.", "");
     
 
-    
     DocDeclStr(
         virtual wxMask* , GetMask() const,
         "Gets the associated mask (if any) which may have been loaded from a
@@ -212,14 +211,13 @@ file or explpicitly set for the bitmap.
 
     // MSW only?    wxBitmap GetMaskBitmap() const;
 
-    %disownarg(wxMask*);
     DocDeclStr(
         virtual void , SetMask(wxMask* mask),
         "Sets the mask for this bitmap.
 
 :see: `GetMask`, `wx.Mask`
 ", "");
-    %cleardisown(wxMask*);
+    
     
     %extend {
         DocStr(SetMaskColour,
@@ -340,7 +338,7 @@ passed then BLACK is used.
         }
     }
     
-    ~wxMask();
+    //~wxMask();
 };
 
 %pythoncode { MaskColour = wx._deprecated(Mask, "wx.MaskColour is deprecated, use `wx.Mask` instead.") }

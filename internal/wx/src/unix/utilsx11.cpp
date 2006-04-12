@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon, Vaclav Slavik, Robert Roebling
 // Modified by:
 // Created:     25.03.02
-// RCS-ID:      $Id: utilsx11.cpp,v 1.31 2006/03/27 12:25:15 ABX Exp $
+// RCS-ID:      $Id: utilsx11.cpp,v 1.30 2005/11/09 20:14:39 ABX Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -575,9 +575,9 @@ int wxCharCodeXToWX(KeySym keySym)
         case XK_Down:
             id = WXK_DOWN; break;
         case XK_Next:
-            id = WXK_PAGEDOWN; break;
+            id = WXK_NEXT; break;
         case XK_Prior:
-            id = WXK_PAGEUP; break;
+            id = WXK_PRIOR; break;
         case XK_Menu:
             id = WXK_MENU; break;
         case XK_Select:
@@ -704,8 +704,8 @@ KeySym wxCharCodeWXToX(int id)
         case WXK_PAUSE:         keySym = XK_Pause; break;
         case WXK_ESCAPE:        keySym = XK_Escape; break;
         case WXK_SPACE:         keySym = ' '; break;
-        case WXK_PAGEUP:        keySym = XK_Prior; break;
-        case WXK_PAGEDOWN:      keySym = XK_Next; break;
+        case WXK_PRIOR:         keySym = XK_Prior; break;
+        case WXK_NEXT :         keySym = XK_Next; break;
         case WXK_END:           keySym = XK_End; break;
         case WXK_HOME :         keySym = XK_Home; break;
         case WXK_LEFT :         keySym = XK_Left; break;

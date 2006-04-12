@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp,v 1.257 2006/03/15 19:49:39 MR Exp $
+// RCS-ID:      $Id: wincmn.cpp,v 1.252 2006/02/12 16:32:48 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -221,6 +221,9 @@ wxWindowBase::wxWindowBase()
 
     // VZ: this one shouldn't exist...
     m_isBeingDeleted = false;
+
+    // Reserved for future use
+    m_windowReserved = NULL;
 }
 
 // common part of window creation process
@@ -443,10 +446,8 @@ void wxWindowBase::InvalidateBestSize()
     m_bestSizeCache = wxDefaultSize;
 
     // parent's best size calculation may depend on its children's
-    // as long as child window we are in is not top level window itself
-    // (because the TLW size is never resized automatically)
-    // so let's invalidate it as well to be safe:
-    if (m_parent && !IsTopLevel())
+    // best sizes, so let's invalidate it as well to be safe:
+    if (m_parent)
         m_parent->InvalidateBestSize();
 }
 
@@ -710,18 +711,6 @@ wxSize wxWindowBase::DoGetVirtualSize() const
         size.y = m_virtualSize.y;
 
     return size;
-}
-
-void wxWindowBase::DoGetScreenPosition(int *x, int *y) const
-{
-    // screen position is the same as (0, 0) in client coords for non TLWs (and
-    // TLWs override this method)
-    if ( x )
-        *x = 0;
-    if ( y )
-        *y = 0;
-
-    ClientToScreen(x, y);
 }
 
 // ----------------------------------------------------------------------------

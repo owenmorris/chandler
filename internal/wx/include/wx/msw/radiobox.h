@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: radiobox.h,v 1.49 2006/03/23 22:04:39 VZ Exp $
+// RCS-ID:      $Id: radiobox.h,v 1.46 2006/01/02 11:03:24 JG Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ public:
                      style, val, name);
     }
 
-    virtual ~wxRadioBox();
+    ~wxRadioBox();
 
     bool Create(wxWindow *parent,
                 wxWindowID id,
@@ -85,13 +85,13 @@ public:
     // implement the radiobox interface
     virtual void SetSelection(int n);
     virtual int GetSelection() const { return m_selectedButton; }
-    virtual unsigned int GetCount() const;
-    virtual wxString GetString(unsigned int n) const;
-    virtual void SetString(unsigned int n, const wxString& label);
-    virtual bool Enable(unsigned int n, bool enable = true);
-    virtual bool Show(unsigned int n, bool show = true);
-    virtual bool IsItemEnabled(unsigned int n) const;
-    virtual bool IsItemShown(unsigned int n) const;
+    virtual int GetCount() const;
+    virtual wxString GetString(int n) const;
+    virtual void SetString(int n, const wxString& label);
+    virtual bool Enable(int n, bool enable = true);
+    virtual bool Show(int n, bool show = true);
+    virtual bool IsItemEnabled(int n) const;
+    virtual bool IsItemShown(int n) const;
 
     // override some base class methods
     virtual bool Show(bool show = true);
@@ -100,9 +100,8 @@ public:
     virtual bool SetFont(const wxFont& font);
     virtual bool ContainsHWND(WXHWND hWnd) const;
 
-    // we inherit a version always returning false from wxStaticBox, override
-    // it to behave normally
-    virtual bool AcceptsFocus() const { return wxControl::AcceptsFocus(); }
+    // we inherit a version returning false from wxStaticBox, override it again
+    virtual bool AcceptsFocus() const { return true; }
 
     void SetLabelFont(const wxFont& WXUNUSED(font)) {}
     void SetButtonFont(const wxFont& font) { SetFont(font); }

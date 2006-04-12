@@ -10,10 +10,6 @@ INCOMPATIBLE CHANGES SINCE 2.6.x
   even compile)
 - For all wxInputStreams, Eof() becomes true after an attempt has been made
   to read _past_ the end of file.
-- wxCHECK family of macros now must be followed by a semicolon
-- wxMBConv::cMB2WC() and cWC2MB() take size of the input buffer and return
-  length of the converted string in all cases now.
-
 
 Deprecated methods since 2.6.x and their replacements
 -----------------------------------------------------
@@ -27,11 +23,8 @@ Deprecated methods since 2.6.x and their replacements
 
 All:
 
-- wx(F)File, wxTextFile and wxInputStreams recognize Unicode BOM now
-- wxLaunchDefaultBrowser() now supports wxBROWSER_NEW_WINDOW flag.
-- Added wxStandardPaths::GetResourcesDir() and GetLocalizedResourcesDir()
-- Added wxStringTokenizer::GetLastDelimiter(); improved documentation.
-- Fixed wxTextFile in Unicode build
+- wxLaunchDefaultBrowser() now supports wxBROWSER_NEW_WINDOW flag
+- Added wxStringTokenizer::GetLastDelimiter(); improved documentation
 - Speed improvements to wxRegEx when matching is done in a loop such as
   during a search and replace.
 - Fix regerror and regfree name conficts when built-in regex and system regex
@@ -46,19 +39,10 @@ All:
 - Fixed build error in list.h with VC++ 2005.
 - Fixed wxODBC buffer overflow problem in Unicode builds.
 - Fixed wxSocketBase::InterruptWait on wxBase.
-- Important code cleanup (Paul Cornett).
-- Added support for wxLongLong in wx stream classes (Mark Junker).
+- Important code cleanup (Paul Cornett)
+- Added support for wxLongLong in wx stream classes (Mark Junker)
 - wxSOCKET_REUSEADDR can be used with wxSocketClient.
-- Overloaded Connect() and SetLocal() methods for binding to local address/port.
-- Albanian translation added (Besnik Bleta)
-- Assert messages now show the function in which assert failed
-- wxApp::OnAssertFailure() should now be used instead the old wxApp::OnAssert()
-- Fixed several bugs in wxDateTime::ParseDate()
-- The WXK*PRIOR and WXK*NEXT constants are now aliases for WXK*PAGEUP 
-  and WXK*PAGEDOWN.  If you have switch statements that use both
-  constants from a set then you need to remove the PRIOR/NEXT 
-  versions in order to eliminate compiler errors.
-
+- Overloaded Connect and SetLocal methods for binding to local address/port.
 
 All (GUI):
 
@@ -78,14 +62,14 @@ All (GUI):
 - Added parent window parameter to wxHelpController constructor
   and added SetParentWindow/GetParentWindow.
 - wxMultiChoiceDialog uses now wxCheckListBox if possible, wxListBox if not.
-- Added wxBitmapButton::SetHoverBitmap().
+- Added wxBitmapButton::SetHoverBitmap()
 - Access to titles through Get/SetTitle is available now only for top level
   windows (wxDialog, wxFrame).
-- Fixed memory leak of pending events in wxEvtHandler.
+- Fixed memory leak of pending events in wxEvtHandler
 - Added wxRadioBox::IsItemEnabled/Shown()
 - Added space after list item number in wxHTML.
 - Implemented <sub> and <sup> handling in wxHTML (based on patch
-  by Sandro Sigala).
+  by Sandro Sigala)
 - Added caption parameter to wxGetFontFromUser and wxGetColourFromUser.
 - Added wxGetMouseState function.
 - Added wxHtmlHelpWindow, wxHtmlHelpDialog and wxHtmlModalHelp classes,
@@ -96,8 +80,8 @@ All (GUI):
 - More checking of image validity before loading into wxImage.
 - Added wxImage::ConvertToGreyscale.
 - Added ability to use templates with static event tables
-  with BEGIN_EVENT_TABLE_TEMPLATEn() macros.
-- Added play, pause, and state change events to wxMediaCtrl.
+  with BEGIN_EVENT_TABLE_TEMPLATEn() macros
+- Added play, pause, and state change events to wxMediaCtrl
 - Added double-buffering to wxVListBox and fixed a scrolling issue.
 - Added wxToolbook (uses a wxToolBar to control pages).
 - Added SetSheetStyle to wxPropertySheetDialog and allowed it to
@@ -105,11 +89,6 @@ All (GUI):
 - Added <disabled> XRC tag for wxToolBar elements and <bg> for wxToolBar itself.
 - Fixed centering of top level windows on secondary displays.
 - Implemented wxDisplay::GetFromWindow() for platforms other than MSW.
-- UpdateUI handler can now show/hide the window too (Ronald Weiss).
-- More than one filter allowed in in wxDocTemplate filter.
-- Added wxListBox::HitTest().
-- Added wxDisplay::GetClientArea().
-- Indices and counts in wxControlWithItems derived API are unsigned.
 
 wxMSW:
 
@@ -144,8 +123,8 @@ wxMSW:
 - Fixed wxToolBar background colour problem for some video cards.
 - wxGenericDirCtrl now shows volume name.
 - Added XP theme support for DrawHeaderButton, DrawTreeItemButton.
-- Made the wxActiveXContainer class public and documentated.
-- Added a Windows Media Player 9/10 backend for wxMediaCtrl.
+- Made the wxActiveXContainer class public and documentated
+- Added a Windows Media Player 9/10 backend for wxMediaCtrl
 - Multiline notebook tab label change now resizes the control
   correctly if an extra row is removed or added.
 - Fixed a crash when dismissing wxPrintDialog under VC++ 7.1.
@@ -154,37 +133,24 @@ wxMSW:
 - Link oleacc.lib conditionally.
 - Drag and drop now works inside static boxes.
 - Fall back to unthemed wxNotebook if specified orientation not available.
-- wxListCtrl and wxTreeCtrl now resize their standard font if the user
-  changes the system font.
-- wxDisplay doesn't require multimon.h now and is enabled by default (Olly Betts).
-- Fixed wxChoice/wxComboBox slow appending and infinite recursion
-  if its size is set within a paint handler (for example when embedded in a
-  wxHtmlWindow). [Now reverted due to problems in W2K and below.]
 
 wxGTK:
 
-- Fixed handling of font encoding in non-Unicode build
-- wxEVT_MENU_CLOSE and wxEVT_MENU_OPENED for popup menus are now generated.
-- Implemented wxCURSOR_BLANK support.
-- wxSlider generates all scroll events now and not only wxEVT_SCROLL_THUMBTRACK.
+- wxEVT_MENU_CLOSE and wxEVT_MENU_OPENED for popup menus are now generated
+- Implemented wxCURSOR_BLANK support
+- wxSlider generates all scroll events now and not only wxEVT_SCROLL_THUMBTRACK
 - Fixed a host of bugs in wxMediaCtrl as well as added a GStreamer 0.10
-  implementation.
+  implementation
 - Improved configure checks for GStreamer. You may also now specify
-  --enable-gstreamer8 to force configure to check for GStreamer 0.8.
+  --enable-gstreamer8 to force configure to check for GStreamer 0.8.\
 - Fixed problem with choice editor in wxGrid whereby the editor
   lost focus when the combobox menu was shown.
-- Fixed focusing with mnemonic accelerator keys on wxStaticText which
-  is now able to focus on wxComboBox and possibly other controls
-  previously unable to be focused before.
-- Enabled mnemonics and the corresponding accelerator keys for 
-  wxStaticBox and wxRadioBox.
 - Fixed problem trying to print from a preview, whereby wrong printer
   class was used.
 - Worked around pango crashes in strncmp on Solaris 10.
 - Polygon and line drawing speeded up if there is no scaling.
 - Fixed problems with CJK input method.
-- Implemented ScrollLines/Pages() for all windows (Paul Cornett).
-- Support underlined fonts in wxTextCtrl.
+- Implemented ScrollLines/Pages() for all windows (Paul Cornett)
 
 wxMac:
 
@@ -223,10 +189,6 @@ wxMac:
 - Fixed joystick GetXMin/Max bug.
 - Fixed Unix domain socket problem in wxIPC.
 
-wxCocoa:
-
-- wxDirDialog is now native (Hiroyuki Nakamura).
-
 wxWinCE:
 
 - Pressing build-in joystick on WinCE phones fires wxEVT_JOY_BUTTON_DOWN event.
@@ -240,24 +202,19 @@ wxWinCE:
 - Checkable items in wxToolMenuBarTool supported.
 - Fixed date formatting and mktime.
 - Fixed getting standard folder paths on WinCE.
-- Support for backspace key on Smartphone.
+- Support for backspace key on smartphone.
 - Made both windows wxMediaCtrl Windows backends compilable with wxWinCE - it
   is recommended that you use wxMEDIABACKEND_WMP10 on this platform
   directly, however.
-- Added support for the context menu event (wxContextMenuEvent)
-  and added platform-specific wxWindow::EnableContextMenu.
-- Fixed wxGenericFileDialog to work with WinCE.
-- Fixed compilation and menubar disappearance on Windows Mobile 5.
 
 wxUniv:
 
-- Send wxEVT_SCROLL_XXX events from wxSlider (Danny Raynor).
+- Send wxEVT_SCROLL_XXX events from wxSlider (Danny Raynor)
 
 wxX11:
 
 - Invisible text problem fixed.
 - Bitmap clipping with masks and scaling improved.
-- Fixed a crash bug in the generic timer.
 
 Unix:
 

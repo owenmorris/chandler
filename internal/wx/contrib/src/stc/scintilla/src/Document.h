@@ -134,7 +134,6 @@ public:
 	int MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd=true);
 
 	// Gateways to modifying document
-	void ModifiedAt(int pos);
 	bool DeleteChars(int pos, int len);
 	bool InsertStyledString(int position, char *s, int insertLength);
 	int Undo();
@@ -176,7 +175,6 @@ public:
 	char StyleAt(int position) { return cb.StyleAt(position); }
 	int GetMark(int line) { return cb.GetMark(line); }
 	int AddMark(int line, int markerNum);
-	void AddMarkSet(int line, int valueSet);
 	void DeleteMark(int line, int markerNum);
 	void DeleteMarkFromHandle(int markerHandle);
 	void DeleteAllMarks(int markerNum);
@@ -230,19 +228,16 @@ public:
 	int WordPartLeft(int pos);
 	int WordPartRight(int pos);
 	int ExtendStyleRange(int pos, int delta, bool singleLine = false);
-	bool IsWhiteLine(int line);
 	int ParaUp(int pos);
 	int ParaDown(int pos);
 	int IndentSize() { return actualIndentInChars; }
-	int BraceMatch(int position, int maxReStyle);
 
 private:
-	void CheckReadOnly();
-
 	charClassification WordCharClass(unsigned char ch);
 	bool IsWordStartAt(int pos);
 	bool IsWordEndAt(int pos);
 	bool IsWordAt(int start, int end);
+	void ModifiedAt(int pos);
 
 	void NotifyModifyAttempt();
 	void NotifySavePoint(bool atSavePoint);
@@ -266,19 +261,19 @@ public:
 	int foldLevelPrev;
 
 	DocModification(int modificationType_, int position_=0, int length_=0,
-		int linesAdded_=0, const char *text_=0, int line_=0) :
+		int linesAdded_=0, const char *text_=0) :
 		modificationType(modificationType_),
 		position(position_),
 		length(length_),
 		linesAdded(linesAdded_),
 		text(text_),
-		line(line_),
+		line(0),
 		foldLevelNow(0),
 		foldLevelPrev(0) {}
 
-	DocModification(int modificationType_, const Action &act, int linesAdded_=0) :
+    DocModification(int modificationType_, const Action &act, int linesAdded_=0) :
 		modificationType(modificationType_),
-		position(act.position),
+		position(act.position / 2),
 		length(act.lenData),
 		linesAdded(linesAdded_),
 		text(act.data),

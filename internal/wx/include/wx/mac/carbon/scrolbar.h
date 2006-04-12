@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: scrolbar.h,v 1.8 2006/03/17 22:50:03 RD Exp $
+// RCS-ID:      $Id: scrolbar.h,v 1.7 2006/01/16 14:59:33 MR Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,9 +55,6 @@ public:
   void Command(wxCommandEvent& event);
     virtual void  MacHandleControlClick( WXWidget control , wxInt16 controlpart , bool mouseStillDown ) ;
     virtual wxInt32 MacControlHit( WXEVENTHANDLERREF handler , WXEVENTREF mevent ) ;
-
-    wxSize DoGetBestSize() const;
-    
 protected:
     int m_pageSize;
     int m_viewSize;

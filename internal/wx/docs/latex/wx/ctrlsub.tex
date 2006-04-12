@@ -4,7 +4,7 @@
 %% Author:      Vadim Zeitlin
 %% Modified by:
 %% Created:     01.01.03
-%% RCS-ID:      $Id: ctrlsub.tex,v 1.12 2006/03/23 22:04:19 VZ Exp $
+%% RCS-ID:      $Id: ctrlsub.tex,v 1.10 2005/09/27 16:38:17 ABX Exp $
 %% Copyright:   (c) 2003 Vadim Zeitlin
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -12,8 +12,8 @@
 \section{\class{wxControlWithItems}}\label{wxcontrolwithitems}
 
 This class is an abstract base class for some wxWidgets controls which contain
-several items, such as \helpref{wxListBox}{wxlistbox} and
-\helpref{wxCheckListBox}{wxchecklistbox} derived from it,
+several items, such as \helpref{wxListBox}{wxlistbox} and 
+\helpref{wxCheckListBox}{wxchecklistbox} derived from it, 
 \helpref{wxChoice}{wxchoice} and \helpref{wxComboBox}{wxcombobox}.
 
 It defines the methods for accessing the controls items and although each of
@@ -25,8 +25,8 @@ optionally, client data associated with them. Client data may be of two
 different kinds: either simple untyped ({\tt void *}) pointers which are simply
 stored by the control but not used in any way by it, or typed pointers
 ({\tt wxClientData *}) which are owned by the control meaning that the typed
-client data (and only it) will be deleted when an item is
-\helpref{deleted}{wxcontrolwithitemsdelete} or the entire control is
+client data (and only it) will be deleted when an item is 
+\helpref{deleted}{wxcontrolwithitemsdelete} or the entire control is 
 \helpref{cleared}{wxcontrolwithitemsclear} (which also happens when it is
 destroyed). Finally note that in the same control all items must have client
 data of the same type (typed or untyped), if any. This type is determined by
@@ -88,7 +88,7 @@ by the control.
 
 \membersection{wxControlWithItems::Delete}\label{wxcontrolwithitemsdelete}
 
-\func{void}{Delete}{\param{unsigned int}{ n}}
+\func{void}{Delete}{\param{int}{ n}}
 
 Deletes an item from the control. The client data associated with the item
 will be also deleted if it is owned by the control.
@@ -125,7 +125,7 @@ not found.
 
 \membersection{wxControlWithItems::GetClientData}\label{wxcontrolwithitemsgetclientdata}
 
-\constfunc{void *}{GetClientData}{\param{unsigned int}{ n}}
+\constfunc{void *}{GetClientData}{\param{int}{ n}}
 
 Returns a pointer to the client data associated with the given item (if any).
 It is an error to call this function for a control which doesn't have untyped
@@ -143,7 +143,7 @@ A pointer to the client data, or {\tt NULL} if not present.
 
 \membersection{wxControlWithItems::GetClientObject}\label{wxcontrolwithitemsgetclientobject}
 
-\constfunc{wxClientData *}{GetClientObject}{\param{unsigned int}{ n}}
+\constfunc{wxClientData *}{GetClientObject}{\param{int}{ n}}
 
 Returns a pointer to the client data associated with the given item (if any).
 It is an error to call this function for a control which doesn't have typed
@@ -161,7 +161,7 @@ A pointer to the client data, or {\tt NULL} if not present.
 
 \membersection{wxControlWithItems::GetCount}\label{wxcontrolwithitemsgetcount}
 
-\constfunc{unsigned int}{GetCount}{\void}
+\constfunc{int}{GetCount}{\void}
 
 Returns the number of items in the control.
 
@@ -183,7 +183,7 @@ The position of the current selection.
 
 \wxheading{Remarks}
 
-This method can be used with single selection list boxes only, you should use
+This method can be used with single selection list boxes only, you should use 
 \helpref{wxListBox::GetSelections}{wxlistboxgetselections} for the list boxes
 with {\tt wxLB\_MULTIPLE} style.
 
@@ -195,7 +195,7 @@ with {\tt wxLB\_MULTIPLE} style.
 
 \membersection{wxControlWithItems::GetString}\label{wxcontrolwithitemsgetstring}
 
-\constfunc{wxString}{GetString}{\param{unsigned int}{ n}}
+\constfunc{wxString}{GetString}{\param{int}{ n}}
 
 Returns the label of the item with the given index.
 
@@ -222,14 +222,14 @@ selected.
 
 \membersection{wxControlWithItems::Insert}\label{wxcontrolwithitemsinsert}
 
-\func{int}{Insert}{\param{const wxString\& }{ item}, \param{unsigned int }{pos}}
+\func{int}{Insert}{\param{const wxString\& }{ item}, \param{int }{pos}}
 
 Inserts the item into the list before pos.
 Not valid for {\tt wxLB\_SORT} or {\tt wxCB\_SORT} styles, use Append instead.
 
-\func{int}{Insert}{\param{const wxString\& }{ item}, \param{unsigned int }{pos}, \param{void *}{clientData}}
+\func{int}{Insert}{\param{const wxString\& }{ item}, \param{int }{pos}, \param{void *}{clientData}}
 
-\func{int}{Insert}{\param{const wxString\& }{ item}, \param{unsigned int }{pos}, \param{wxClientData *}{clientData}}
+\func{int}{Insert}{\param{const wxString\& }{ item}, \param{int }{pos}, \param{wxClientData *}{clientData}}
 
 Inserts the item into the list before pos, associating the given, typed or
 untyped, client data pointer with the item.
@@ -266,7 +266,7 @@ Returns {\tt true} if the control is empty or {\tt false} if it has some items.
 
 {\bf Obsolescence note:} This method is obsolete and was replaced with
 \helpref{GetCount}{wxcontrolwithitemsgetcount}, please use the new method in
-the new code. This method is only available if wxWidgets was compiled with
+the new code. This method is only available if wxWidgets was compiled with 
 {\tt WXWIN\_COMPATIBILITY\_2\_2} defined and will disappear completely in
 future versions.
 
@@ -282,7 +282,7 @@ multiple selection.
 
 \membersection{wxControlWithItems::SetClientData}\label{wxcontrolwithitemssetclientdata}
 
-\func{void}{SetClientData}{\param{unsigned int}{ n}, \param{void *}{data}}
+\func{void}{SetClientData}{\param{int}{ n}, \param{void *}{data}}
 
 Associates the given untyped client data pointer with the given item. Note that
 it is an error to call this function if any typed client data pointers had been
@@ -297,9 +297,9 @@ associated with the control items before.
 
 \membersection{wxControlWithItems::SetClientObject}\label{wxcontrolwithitemssetclientobject}
 
-\func{void}{SetClientObject}{\param{unsigned int}{ n}, \param{wxClientData *}{data}}
+\func{void}{SetClientObject}{\param{int}{ n}, \param{wxClientData *}{data}}
 
-Associates the given typed client data pointer with the given item: the
+Associates the given typed client data pointer with the given item: the 
 {\it data} object will be deleted when the item is deleted (either explicitly
 by using \helpref{Deletes}{wxcontrolwithitemsdelete} or implicitly when the
 control itself is destroyed).
@@ -336,7 +336,7 @@ deselect any other items in the controls which support multiple selections.
 
 \membersection{wxControlWithItems::SetString}\label{wxcontrolwithitemssetstring}
 
-\func{void}{SetString}{\param{unsigned int}{ n}, \param{const wxString\& }{ string}}
+\func{void}{SetString}{\param{int}{ n}, \param{const wxString\& }{ string}}
 
 Sets the label for the given item.
 
@@ -366,3 +366,5 @@ the control.
 \wxheading{See also}
 
 \helpref{SetSelection}{wxcontrolwithitemssetselection}
+
+

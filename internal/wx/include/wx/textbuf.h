@@ -14,7 +14,6 @@
 
 #include "wx/defs.h"
 #include "wx/arrstr.h"
-#include "wx/convauto.h"
 
 // ----------------------------------------------------------------------------
 // constants
@@ -81,10 +80,10 @@ public:
     bool Create(const wxString& strBufferName);
 
     // Open() also loads buffer in memory on success
-    bool Open(const wxMBConv& conv = wxConvAuto());
+    bool Open(wxMBConv& conv = wxConvUTF8);
 
     // same as Open() but with (another) buffer name
-    bool Open(const wxString& strBufferName, const wxMBConv& conv = wxConvAuto());
+    bool Open(const wxString& strBufferName, wxMBConv& conv = wxConvUTF8);
 
     // closes the buffer and frees memory, losing all changes
     bool Close();
@@ -107,7 +106,7 @@ public:
     // you're using "direct access" i.e. GetLine()
     size_t GetCurrentLine() const { return m_nCurLine; }
     void GoToLine(size_t n) { m_nCurLine = n; }
-    bool Eof() const { return m_nCurLine == m_aLines.size(); }
+    bool Eof() const { return (m_aLines.size() == 0 || m_nCurLine == m_aLines.size() - 1); }
 
     // these methods allow more "iterator-like" traversal of the list of
     // lines, i.e. you may write something like:
@@ -115,15 +114,12 @@ public:
 
     // NB: const is commented out because not all compilers understand
     //     'mutable' keyword yet (m_nCurLine should be mutable)
-    wxString& GetFirstLine() /* const */
-        { return m_aLines.empty() ? ms_eof : m_aLines[m_nCurLine = 0]; }
-    wxString& GetNextLine()  /* const */
-        { return ++m_nCurLine == m_aLines.size() ? ms_eof
-                                                 : m_aLines[m_nCurLine]; }
+    wxString& GetFirstLine() /* const */ { return m_aLines[m_nCurLine = 0]; }
+    wxString& GetNextLine()  /* const */ { return m_aLines[++m_nCurLine];   }
     wxString& GetPrevLine()  /* const */
-        { wxASSERT(m_nCurLine > 0); return m_aLines[--m_nCurLine]; }
+        { wxASSERT(m_nCurLine > 0); return m_aLines[--m_nCurLine];   }
     wxString& GetLastLine() /* const */
-        { m_nCurLine = m_aLines.size() - 1; return m_aLines.Last(); }
+        { return m_aLines[m_nCurLine = m_aLines.size() - 1]; }
 
     // get the type of the line (see also GetEOL)
     wxTextFileType GetLineType(size_t n) const { return m_aTypes[n]; }
@@ -162,7 +158,7 @@ public:
     // change the buffer (default argument means "don't change type")
     // possibly in another format
     bool Write(wxTextFileType typeNew = wxTextFileType_None,
-               const wxMBConv& conv = wxConvAuto());
+               wxMBConv& conv = wxConvUTF8);
 
     // dtor
     virtual ~wxTextBuffer();
@@ -184,11 +180,10 @@ protected:
     virtual bool OnOpen(const wxString &strBufferName,
                         wxTextBufferOpenMode openmode) = 0;
     virtual bool OnClose() = 0;
-    virtual bool OnRead(const wxMBConv& conv) = 0;
-    virtual bool OnWrite(wxTextFileType typeNew, const wxMBConv& conv) = 0;
+    virtual bool OnRead(wxMBConv& conv) = 0;
+    virtual bool OnWrite(wxTextFileType typeNew, wxMBConv& conv) = 0;
 
-    static wxString ms_eof;     // dummy string returned at EOF
-    wxString m_strBufferName;   // name of the buffer
+    wxString m_strBufferName;  // name of the buffer
 
 private:
     wxArrayLinesType m_aTypes;   // type of each line

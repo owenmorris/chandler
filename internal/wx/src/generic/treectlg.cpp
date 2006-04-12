@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp,v 1.188 2006/04/06 14:27:34 VZ Exp $
+// Id:          $Id: treectlg.cpp,v 1.184 2006/02/12 12:16:49 MW Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -199,9 +199,9 @@ public:
     wxGenericTreeItem *GetParent() const { return m_parent; }
 
     // operations
-
-    // deletes all children notifying the treectrl about it
-    void DeleteChildren(wxGenericTreeCtrl *tree);
+        // deletes all children notifying the treectrl about it if !NULL
+        // pointer given
+    void DeleteChildren(wxGenericTreeCtrl *tree = NULL);
 
     // get count of all children (and grand children if 'recursively')
     size_t GetChildrenCount(bool recursively = true) const;
@@ -548,10 +548,11 @@ void wxGenericTreeItem::DeleteChildren(wxGenericTreeCtrl *tree)
     for ( size_t n = 0; n < count; n++ )
     {
         wxGenericTreeItem *child = m_children[n];
-        tree->SendDeleteEvent(child);
+        if (tree)
+            tree->SendDeleteEvent(child);
 
         child->DeleteChildren(tree);
-        if ( child == tree->m_select_me )
+        if (child == tree->m_select_me)
             tree->m_select_me = NULL;
         delete child;
     }
@@ -863,7 +864,7 @@ wxGenericTreeCtrl::~wxGenericTreeCtrl()
 // accessors
 // -----------------------------------------------------------------------------
 
-unsigned int wxGenericTreeCtrl::GetCount() const
+size_t wxGenericTreeCtrl::GetCount() const
 {
     if ( !m_anchor )
     {
@@ -871,7 +872,7 @@ unsigned int wxGenericTreeCtrl::GetCount() const
         return 0;
     }
 
-    unsigned int count = m_anchor->GetChildrenCount();
+    size_t count = m_anchor->GetChildrenCount();
     if ( !HasFlag(wxTR_HIDE_ROOT) )
     {
         // take the root itself into account
@@ -2887,9 +2888,12 @@ bool wxGenericTreeCtrl::GetBoundingRect(const wxTreeItemId& item,
 
     wxGenericTreeItem *i = (wxGenericTreeItem*) item.m_pItem;
 
+    int startX, startY;
+    GetViewStart(& startX, & startY);
+
     if ( textOnly )
     {
-        rect.x = i->GetX();
+        rect.x = i->GetX() - startX*PIXELS_PER_UNIT;
         rect.width = i->GetWidth();
 
         if ( m_imageListNormal )
@@ -2905,15 +2909,8 @@ bool wxGenericTreeCtrl::GetBoundingRect(const wxTreeItemId& item,
         rect.width = GetClientSize().x;
     }
 
-    rect.y = i->GetY();
+    rect.y = i->GetY() - startY*PIXELS_PER_UNIT;
     rect.height = GetLineHeight(i);
-
-    // we have to return the logical coordinates, not physical ones
-    int startX, startY;
-    GetViewStart(& startX, & startY);
-
-    rect.x -= startX*PIXELS_PER_UNIT;
-    rect.y -= startY*PIXELS_PER_UNIT;
 
     return true;
 }
@@ -3147,8 +3144,6 @@ void wxGenericTreeCtrl::OnMouse( wxMouseEvent &event )
     }
     else if ( (event.LeftUp() || event.RightUp()) && m_isDragging )
     {
-        ReleaseMouse();
-
         // erase the highlighting
         DrawDropEffect(m_dropTarget);
 
@@ -3170,6 +3165,8 @@ void wxGenericTreeCtrl::OnMouse( wxMouseEvent &event )
 
         m_isDragging = false;
         m_dropTarget = (wxGenericTreeItem *)NULL;
+
+        ReleaseMouse();
 
         SetCursor(m_oldCursor);
 

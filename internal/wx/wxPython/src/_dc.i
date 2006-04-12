@@ -881,17 +881,6 @@ a logical operation. wx.INVERT is commonly used for drawing rubber
 bands or moving outlines, since drawing twice reverts to the original
 colour.
 ", "");
-
-
-    DocDeclStr(
-        bool , GetAntiAliasing() const,
-        "Gets the current anti-aliasing state. True means anti-aliasing is enabled.", "");
-    
-    DocDeclStr(
-        virtual void , SetAntiAliasing(bool isAntiAliased),
-        "Sets the current anti-aliasing state. True means any subsequent drawing in the
-context will be anti-aliased. False means it will not be anti-aliased.
-", "");
     
 
     DocDeclStr(

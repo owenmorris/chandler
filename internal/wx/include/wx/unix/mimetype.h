@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     23.09.98
-// RCS-ID:      $Id: mimetype.h,v 1.18 2006/03/17 14:12:46 RR Exp $
+// RCS-ID:      $Id: mimetype.h,v 1.17 2005/09/23 12:50:53 MR Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ class WXDLLEXPORT wxMimeTypesManagerImpl
 public:
     // ctor and dtor
     wxMimeTypesManagerImpl();
-    virtual ~wxMimeTypesManagerImpl();
+    ~wxMimeTypesManagerImpl();
 
     // load all data into memory - done when it is needed for the first time
     void Initialize(int mailcapStyles = wxMAILCAP_ALL,
@@ -66,7 +66,7 @@ public:
         // file type
     wxString GetExtension(size_t index) { return m_aExtensions[index]; }
 
-protected:
+private:
     void InitIfNeeded();
 
     wxArrayString m_aTypes,         // MIME types
@@ -93,6 +93,11 @@ protected:
     void LoadGnomeMimeFilesFromDir(const wxString& dirbase,
                                    const wxArrayString& dirs);
     void GetGnomeMimeInfo(const wxString& sExtraDir);
+
+    // write gnome files
+    bool CheckGnomeDirsExist();
+    bool WriteGnomeKeyFile(int index, bool delete_index);
+    bool WriteGnomeMimeFile(int index, bool delete_index);
 
     // read KDE
     void LoadKDELinksForMimeSubtype(const wxString& dirbase,
@@ -122,20 +127,20 @@ protected:
 
     // functions used to do associations
 
-    virtual int AddToMimeData(const wxString& strType,
+    int AddToMimeData(const wxString& strType,
                       const wxString& strIcon,
                       wxMimeTypeCommands *entry,
                       const wxArrayString& strExtensions,
                       const wxString& strDesc,
                       bool replaceExisting = TRUE);
 
-    virtual bool DoAssociation(const wxString& strType,
+    bool DoAssociation(const wxString& strType,
                        const wxString& strIcon,
                        wxMimeTypeCommands *entry,
                        const wxArrayString& strExtensions,
                        const wxString& strDesc);
 
-    virtual bool WriteMimeInfo(int nIndex, bool delete_mime );
+    bool WriteMimeInfo(int nIndex, bool delete_mime );
 
     // give it access to m_aXXX variables
     friend class WXDLLEXPORT wxFileTypeImpl;

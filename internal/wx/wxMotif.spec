@@ -124,7 +124,6 @@ wx/clntdata.h
 wx/cmdline.h
 wx/confbase.h
 wx/config.h
-wx/convauto.h
 wx/containr.h
 wx/datetime.h
 wx/datstrm.h

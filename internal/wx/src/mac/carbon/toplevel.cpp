@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.175 2006/03/28 19:55:24 vell Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.170 2006/02/08 21:47:09 VZ Exp $
 // Copyright:   (c) 2001-2004 Stefan Csomor
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,14 +86,12 @@ extern long wxMacTranslateKey(unsigned char key, unsigned char code) ;
 static const EventTypeSpec eventList[] =
 {
     // TODO: remove control related event like key and mouse (except for WindowLeave events)
-
+#if 1
     { kEventClassKeyboard, kEventRawKeyDown } ,
     { kEventClassKeyboard, kEventRawKeyRepeat } ,
     { kEventClassKeyboard, kEventRawKeyUp } ,
     { kEventClassKeyboard, kEventRawKeyModifiersChanged } ,
-
-    { kEventClassTextInput, kEventTextInputUnicodeForKeyEvent } ,
-    { kEventClassTextInput, kEventTextInputUpdateActiveInputArea } ,
+#endif
 
     { kEventClassWindow , kEventWindowShown } ,
     { kEventClassWindow , kEventWindowActivated } ,
@@ -448,16 +446,14 @@ pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , Ev
     Point screenMouseLocation = cEvent.GetParameter<Point>(kEventParamMouseLocation) ;
     Point windowMouseLocation = screenMouseLocation ;
 
-    WindowRef window = NULL;
+    WindowRef window ;
     short windowPart = ::FindWindow(screenMouseLocation, &window);
-    if (windowPart < inContent)
-        window = NULL;
 
     wxWindow* currentMouseWindow = NULL ;
     ControlRef control = NULL ;
 
 #if NEW_CAPTURE_HANDLING
-    if ( wxApp::s_captureWindow && (window != NULL))
+    if ( wxApp::s_captureWindow )
     {
         window = (WindowRef) wxApp::s_captureWindow->MacGetTopLevelWindowRef() ;
         windowPart = inContent ;
@@ -501,10 +497,6 @@ pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , Ev
 #endif
                 }
             }
-
-            // disabled windows must not get any input messages
-            if ( currentMouseWindow && !currentMouseWindow->MacIsReallyEnabled() )
-                currentMouseWindow = NULL;
         }
     }
 
@@ -569,7 +561,9 @@ pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , Ev
         // make tooltips current
 
 #if wxUSE_TOOLTIPS
-        if ( wxevent.GetEventType() == wxEVT_MOTION )
+        if ( wxevent.GetEventType() == wxEVT_MOTION
+            || wxevent.GetEventType() == wxEVT_ENTER_WINDOW
+            || wxevent.GetEventType() == wxEVT_LEAVE_WINDOW )
             wxToolTip::RelayEvent( currentMouseWindow , wxevent );
 #endif
 
@@ -644,8 +638,8 @@ pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , Ev
                 cursorPoint += cursorTarget->GetPosition();
         }
 
-    }
-    else // currentMouseWindow == NULL
+    } // else if ( currentMouseWindow )
+    else
     {
         // don't mess with controls we don't know about
         // for some reason returning eventNotHandledErr does not lead to the correct behaviour
@@ -654,17 +648,17 @@ pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , Ev
         {
             EventModifiers modifiers = cEvent.GetParameter<EventModifiers>(kEventParamKeyModifiers, typeUInt32) ;
             Point clickLocation = windowMouseLocation ;
-#if TARGET_API_MAC_OSX
             if ( toplevelWindow->MacUsesCompositing() )
             {
+#ifdef __WXMAC_OSX__
                 HIPoint hiPoint ;
                 hiPoint.x = clickLocation.h ;
                 hiPoint.y = clickLocation.v ;
                 HIViewConvertPoint( &hiPoint , (ControlRef) toplevelWindow->GetHandle() , control  ) ;
                 clickLocation.h = (int)hiPoint.x ;
                 clickLocation.v = (int)hiPoint.y ;
+#endif
             }
-#endif // TARGET_API_MAC_OSX
 
             HandleControlClick( control , clickLocation , modifiers , (ControlActionUPP ) -1 ) ;
             result = noErr ;
@@ -799,19 +793,12 @@ static pascal OSStatus wxMacTopLevelWindowEventHandler( EventHandlerCallRef hand
     return result ;
 }
 
-// mix this in from window.cpp
-pascal OSStatus wxMacUnicodeTextEventHandler( EventHandlerCallRef handler , EventRef event , void *data ) ;
-
 pascal OSStatus wxMacTopLevelEventHandler( EventHandlerCallRef handler , EventRef event , void *data )
 {
     OSStatus result = eventNotHandledErr ;
 
     switch ( GetEventClass( event ) )
     {
-        case kEventClassTextInput :
-            result = wxMacUnicodeTextEventHandler( handler, event , data ) ;
-            break ;
-
         case kEventClassKeyboard :
             result = KeyboardEventHandler( handler, event , data ) ;
             break ;
@@ -1221,9 +1208,7 @@ void  wxTopLevelWindowMac::MacCreateRealWindow(
     // the root control level handler
     MacInstallEventHandler( (WXWidget) m_peer->GetControlRef() ) ;
 
-    // Causes the inner part of the window not to be metal
-    // if the style is used before window creation.
-#if 0 // TARGET_API_MAC_OSX
+#if TARGET_API_MAC_OSX
     if ( m_macUsesCompositing && m_macWindow != NULL )
     {
         if ( GetExtraStyle() & wxFRAME_EX_METAL )
@@ -1418,11 +1403,11 @@ bool wxTopLevelWindowMac::IsFullScreen() const
     return m_macFullScreenData != NULL ;
 }
 
-void wxTopLevelWindowMac::SetExtraStyle(long exStyle)
+void wxTopLevelWindowMac::SetExtraStyle(long exStyle) 
 {
     if ( GetExtraStyle() == exStyle )
         return ;
-
+    
     wxTopLevelWindowBase::SetExtraStyle( exStyle ) ;
 
 #if TARGET_API_MAC_OSX
@@ -1435,8 +1420,8 @@ void wxTopLevelWindowMac::SetExtraStyle(long exStyle)
 #endif
 }
 
-// TODO: switch to structure bounds -
 // we are still using coordinates of the content view
+// TODO: switch to structure bounds
 //
 void wxTopLevelWindowMac::MacGetContentAreaInset( int &left , int &top , int &right , int &bottom )
 {

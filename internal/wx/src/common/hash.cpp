@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/common/hash.cpp
+// Name:        hash.cpp
 // Purpose:     wxHashTable implementation
 // Author:      Julian Smart
 // Modified by: VZ at 25.02.00: type safe hashes with WX_DECLARE_HASH()
 // Created:     01/02/97
-// RCS-ID:      $Id: hash.cpp,v 1.39 2006/03/23 11:47:21 ABX Exp $
+// RCS-ID:      $Id: hash.cpp,v 1.38 2005/09/23 12:52:56 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1036,7 +1036,7 @@ void wxHashTable::DoCopy( const wxHashTable& WXUNUSED(table) )
 {
     Create( m_keyType, m_size );
 
-    wxFAIL;
+    wxASSERT( false );
 }
 
 void wxHashTable::DoDeleteContents( wxHashTableBase_Node* node )

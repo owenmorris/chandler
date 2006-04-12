@@ -452,10 +452,6 @@ LIB32=link.exe -lib
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\common\datavcmn.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\common\taskbarcmn.cpp
 # End Source File
 # End Group
@@ -613,10 +609,6 @@ SOURCE=..\..\src\msw\version.rc
 # Begin Source File
 
 SOURCE=..\..\src\generic\calctrl.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\generic\datavgen.cpp
 # End Source File
 # Begin Source File
 
@@ -1117,10 +1109,6 @@ SOURCE=..\..\include\wx\generic\calctrl.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\wx\generic\dataview.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\include\wx\generic\datectrl.h
 # End Source File
 # Begin Source File
@@ -1166,10 +1154,6 @@ SOURCE=..\..\include\wx\generic\wizard.h
 # Begin Source File
 
 SOURCE=..\..\include\wx\calctrl.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\wx\dataview.h
 # End Source File
 # Begin Source File
 

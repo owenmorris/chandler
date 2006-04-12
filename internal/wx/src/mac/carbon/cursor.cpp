@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: cursor.cpp,v 1.32 2006/03/21 14:16:22 VZ Exp $
+// RCS-ID:      $Id: cursor.cpp,v 1.31 2006/02/12 09:00:44 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -262,10 +262,10 @@ wxCursor::wxCursor(char **bits)
 bool wxCursor::CreateFromXpm(const char **bits)
 {
 #if wxUSE_IMAGE
-    wxCHECK_MSG( bits != NULL, false, wxT("invalid cursor data") );
+    wxCHECK_MSG( bits != NULL, false, wxT("invalid cursor data") )
     wxXPMDecoder decoder;
     wxImage img = decoder.ReadData(bits);
-    wxCHECK_MSG( img.Ok(), false, wxT("invalid cursor data") );
+    wxCHECK_MSG( img.Ok(), false, wxT("invalid cursor data") )
     CreateFromImage( img ) ;
     return true;
 #else

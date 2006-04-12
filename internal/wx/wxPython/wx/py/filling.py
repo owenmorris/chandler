@@ -2,8 +2,8 @@
 the local namespace or any object."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: filling.py,v 1.7 2006/02/18 21:40:57 RD Exp $"
-__revision__ = "$Revision: 1.7 $"[11:-2]
+__cvsid__ = "$Id: filling.py,v 1.6 2005/12/30 23:00:54 RD Exp $"
+__revision__ = "$Revision: 1.6 $"[11:-2]
 
 import wx
 
@@ -159,8 +159,6 @@ class FillingTree(wx.TreeCtrl):
 
     def display(self):
         item = self.item
-        if not item:
-            return
         if self.IsExpanded(item):
             self.addChildren(item)
         self.setText('')

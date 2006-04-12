@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/03/16
-// RCS-ID:      $Id: listbox.h,v 1.11 2006/03/23 22:04:25 VZ Exp $
+// RCS-ID:      $Id: listbox.h,v 1.9 2005/09/27 16:54:23 ABX Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ public:
     virtual bool IsSelected(int n) const;
     virtual int GetSelections(wxArrayInt& aSelections) const;
 protected:
-    virtual void DoInsertItems(const wxArrayString& items, unsigned int pos);
+    virtual void DoInsertItems(const wxArrayString& items, int pos);
     virtual void DoSetItems(const wxArrayString& items, void **clientData);
     virtual void DoSetFirstItem(int n);
     virtual void DoSetSelection(int n, bool select);
@@ -93,20 +93,20 @@ protected:
 public:
     // deleting items
     virtual void Clear();
-    virtual void Delete(unsigned int n);
+    virtual void Delete(int n);
     // accessing strings
-    virtual unsigned int GetCount() const;
-    virtual wxString GetString(unsigned int n) const;
-    virtual void SetString(unsigned int n, const wxString& s);
+    virtual int GetCount() const;
+    virtual wxString GetString(int n) const;
+    virtual void SetString(int n, const wxString& s);
     virtual int FindString(const wxString& s, bool bCase = false) const;
     // selection
     virtual int GetSelection() const;
 protected:
     virtual int DoAppend(const wxString& item);
-    virtual void DoSetItemClientData(unsigned int n, void* clientData);
-    virtual void* DoGetItemClientData(unsigned int n) const;
-    virtual void DoSetItemClientObject(unsigned int n, wxClientData* clientData);
-    virtual wxClientData* DoGetItemClientObject(unsigned int n) const;
+    virtual void DoSetItemClientData(int n, void* clientData);
+    virtual void* DoGetItemClientData(int n) const;
+    virtual void DoSetItemClientObject(int n, wxClientData* clientData);
+    virtual wxClientData* DoGetItemClientObject(int n) const;
 };
 
 #endif // __WX_COCOA_LISTBOX_H__

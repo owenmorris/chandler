@@ -4,7 +4,7 @@
 // Author:      Denis Pershin
 // Modified by:
 // Created:     07/05/98
-// RCS-ID:      $Id: treegtk.cpp,v 1.14 2006/03/24 23:46:32 ABX Exp $
+// RCS-ID:      $Id: treegtk.cpp,v 1.13 2006/02/03 23:39:48 MR Exp $
 // Copyright:   (c) Denis Pershin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -152,14 +152,12 @@ static void gtk_treectrl_count_callback (GtkWidget *widget, gpointer data) {
     gtk_container_foreach(GTK_CONTAINER(widget), gtk_treectrl_count_callback, data);
 }
 
-unsigned int wxTreeCtrl::GetCount() const
-{
-    int count = 0;
+size_t wxTreeCtrl::GetCount() const {
+  int count = 0;
 
-    if (m_anchor != NULL)
-        gtk_treectrl_count_callback(GTK_WIDGET(m_anchor), &count);
-
-    return (unsigned int)count;
+  if (m_anchor != NULL)
+    gtk_treectrl_count_callback(GTK_WIDGET(m_anchor), &count);
+  return count;
 }
 
 unsigned int wxTreeCtrl::GetIndent() const {

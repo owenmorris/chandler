@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.cpp,v 1.287 2006/04/09 12:51:03 SC Exp $
+// RCS-ID:      $Id: window.cpp,v 1.283 2006/02/09 15:30:21 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -167,11 +167,9 @@ static const EventTypeSpec eventList[] =
     { kEventClassTextInput, kEventTextInputUpdateActiveInputArea } ,
 
     { kEventClassControl , kEventControlDraw } ,
-#if TARGET_API_MAC_OSX
     { kEventClassControl , kEventControlVisibilityChanged } ,
     { kEventClassControl , kEventControlEnabledStateChanged } ,
     { kEventClassControl , kEventControlHiliteChanged } ,
-#endif
     { kEventClassControl , kEventControlSetFocusPart } ,
 
     { kEventClassService , kEventServiceGetTypes },
@@ -498,26 +496,25 @@ pascal OSStatus wxMacUnicodeTextEventHandler( EventHandlerCallRef handler , Even
     wchar_t* uniChars = NULL ;
     UInt32 when = EventTimeToTicks( GetEventTime( event ) ) ;
 
-    UniChar* charBuf = NULL;
+    UniChar* charBuf;
     UInt32 dataSize = 0 ;
     int numChars = 0 ;
     UniChar buf[2] ;
     if ( GetEventParameter( event, kEventParamTextInputSendText, typeUnicodeText, NULL, 0 , &dataSize, NULL ) == noErr )
     {
-        numChars = dataSize / sizeof( UniChar) + 1;
+        numChars = dataSize / sizeof( UniChar) ;
         charBuf = buf ;
 
-        if ( numChars * 2 > sizeof(buf) )
+        if ( dataSize > sizeof(buf) )
             charBuf = new UniChar[ numChars ] ;
         else
             charBuf = buf ;
 
         uniChars = new wchar_t[ numChars ] ;
         GetEventParameter( event, kEventParamTextInputSendText, typeUnicodeText, NULL, dataSize , NULL , charBuf ) ;
-		charBuf[ numChars - 1 ] = 0;
 #if SIZEOF_WCHAR_T == 2
-        uniChars = (wchar_t*) charBuf ;
-        memcpy( uniChars , charBuf , numChars * 2 ) ;
+        uniChars = charBuf ;
+        memcpy( uniChars , charBuf , dataSize ) ;
 #else
         // the resulting string will never have more chars than the utf16 version, so this is safe
         wxMBConvUTF16 converter ;
@@ -588,7 +585,7 @@ pascal OSStatus wxMacUnicodeTextEventHandler( EventHandlerCallRef handler , Even
     delete [] uniChars ;
     if ( charBuf != buf )
         delete [] charBuf ;
-
+    
     return result ;
 }
 
@@ -1260,16 +1257,14 @@ void wxWindowMac::MacSetBackgroundBrush( const wxBrush &brush )
 bool wxWindowMac::MacCanFocus() const
 {
     // TODO : evaluate performance hits by looking up this value, eventually cache the results for a 1 sec or so
-    // CAUTION : the value returned currently is 0 or 2, I've also found values of 1 having the same meaning,
-    // but the value range is nowhere documented
+    // CAUTION : the value returned currently is 0 or 2, I've also found values of 1 having the same meaning, but the value range
+    // is nowhere documented
     Boolean keyExistsAndHasValidFormat ;
-    CFIndex fullKeyboardAccess = CFPreferencesGetAppIntegerValue( CFSTR("AppleKeyboardUIMode" ) ,
-        kCFPreferencesCurrentApplication, &keyExistsAndHasValidFormat );
-
+    CFIndex fullKeyboardAccess = CFPreferencesGetAppIntegerValue ( CFSTR("AppleKeyboardUIMode" ) ,
+        kCFPreferencesCurrentApplication, &keyExistsAndHasValidFormat);  
+    
     if ( keyExistsAndHasValidFormat && fullKeyboardAccess > 0 )
-    {
         return true ;
-    }
     else
     {
         UInt32 features = 0 ;
@@ -1339,7 +1334,7 @@ void wxWindowMac::DoCaptureMouse()
     wxApp::s_captureWindow = this ;
 }
 
-wxWindow * wxWindowBase::GetCapture()
+wxWindow* wxWindowBase::GetCapture()
 {
     return wxApp::s_captureWindow ;
 }
@@ -1365,7 +1360,7 @@ void wxWindowMac::SetDropTarget(wxDropTarget *pDropTarget)
 
 #endif
 
-// Old-style File Manager Drag & Drop
+// Old style file-manager drag&drop
 void wxWindowMac::DragAcceptFiles(bool accept)
 {
     // TODO:

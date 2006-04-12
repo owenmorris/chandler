@@ -1,21 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////
-// Name:        src/unix/displayx11.cpp
+// Name:        displayx11.cpp
 // Purpose:     Unix/X11 implementation of wxDisplay class
-// Author:      Brian Victor, Vadim Zeitlin
+// Author:      Brian Victor
 // Modified by:
 // Created:     12/05/02
-// RCS-ID:      $Id: displayx11.cpp,v 1.23 2006/03/16 04:32:42 VZ Exp $
+// RCS-ID:      $Id: displayx11.cpp,v 1.18 2005/09/23 12:55:58 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
-
-// ============================================================================
-// declarations
-// ============================================================================
-
-// ----------------------------------------------------------------------------
-// headers
-// ----------------------------------------------------------------------------
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
@@ -25,7 +17,6 @@
 #endif
 
 #include "wx/display.h"
-#include "wx/display_impl.h"
 #include "wx/intl.h"
 #include "wx/log.h"
 
@@ -40,120 +31,124 @@
 
 /* These must be included after the wx files.  Otherwise the Data macro in
  * Xlibint.h conflicts with a function declaration in wx/list.h.  */
-extern "C"
-{
-    #include <X11/Xlib.h>
-    #include <X11/Xlibint.h>
-
-    #include <X11/extensions/Xinerama.h>
-    #ifdef HAVE_X11_EXTENSIONS_XF86VMODE_H
-        #include <X11/extensions/xf86vmode.h>
-    #endif
+extern "C" {
+  #include <X11/Xlib.h>
+  #include <X11/Xlibint.h>
+  #include <X11/extensions/Xinerama.h>
+#ifdef HAVE_X11_EXTENSIONS_XF86VMODE_H
+  #include <X11/extensions/xf86vmode.h>
+#endif
 }
 
-// ----------------------------------------------------------------------------
-// helper class to automatically free XineramaQueryScreens() return value
-// ----------------------------------------------------------------------------
-
-class ScreensInfo
+class wxDisplayUnixPriv
 {
-public:
-    ScreensInfo()
-    {
-        m_screens = XineramaQueryScreens((Display *)wxGetDisplay(), &m_num);
-    }
-
-    ~ScreensInfo()
-    {
-        XFree(m_screens);
-    }
-
-    operator const XineramaScreenInfo *() const { return m_screens; }
-
-    size_t GetCount() const { return wx_static_cast(size_t, m_num); }
-
-private:
-    XineramaScreenInfo *m_screens;
-    int m_num;
-};
-
-// ----------------------------------------------------------------------------
-// display and display factory classes
-// ----------------------------------------------------------------------------
-
-class WXDLLEXPORT wxDisplayImplX11 : public wxDisplayImpl
-{
-public:
-    wxDisplayImplX11(size_t n, const XineramaScreenInfo& info)
-        : wxDisplayImpl(n),
-          m_rect(info.x_org, info.y_org, info.width, info.height)
-    {
-    }
-
-    virtual wxRect GetGeometry() const { return m_rect; }
-    virtual wxString GetName() const { return wxString(); }
-
-    virtual wxArrayVideoModes GetModes(const wxVideoMode& mode) const;
-    virtual wxVideoMode GetCurrentMode() const;
-    virtual bool ChangeMode(const wxVideoMode& mode);
-
-private:
+  public:
     wxRect m_rect;
     int m_depth;
-
-    DECLARE_NO_COPY_CLASS(wxDisplayImplX11)
 };
 
-class wxDisplayFactoryX11 : public wxDisplayFactory
+size_t wxDisplayBase::GetCount()
 {
-public:
-    wxDisplayFactoryX11() { }
+  Display *disp = (Display*)wxGetDisplay();
 
-    virtual wxDisplayImpl *CreateDisplay(size_t n);
-    virtual size_t GetCount();
-    virtual int GetFromPoint(const wxPoint& pt);
-
-protected:
-    DECLARE_NO_COPY_CLASS(wxDisplayFactoryX11)
-};
-
-// ============================================================================
-// wxDisplayFactoryX11 implementation
-// ============================================================================
-
-size_t wxDisplayFactoryX11::GetCount()
-{
-    return ScreensInfo().GetCount();
+  if ( XineramaIsActive(disp) )
+  {
+    XineramaScreenInfo *screenarr;
+    int numscreens;
+    screenarr = XineramaQueryScreens(disp, &numscreens);
+    XFree(screenarr);
+    return numscreens;
+  }
+  else
+  {
+    return 1;
+  }
 }
 
-int wxDisplayFactoryX11::GetFromPoint(const wxPoint& p)
+int wxDisplayBase::GetFromPoint(const wxPoint &p)
 {
-    ScreensInfo screens;
+  Display *disp = (Display*)wxGetDisplay();
 
-    const size_t numscreens(screens.GetCount());
-    for ( size_t i = 0; i < numscreens; ++i )
+  if ( XineramaIsActive(disp) )
+  {
+    int which_screen = -1;
+    XineramaScreenInfo *screenarr;
+    int numscreens;
+    screenarr = XineramaQueryScreens(disp, &numscreens);
+
+    int i;
+    for (i = 0; i < numscreens; ++i)
     {
-        const XineramaScreenInfo& s = screens[i];
-        if ( p.x >= s.x_org && p.x < s.x_org + s.width &&
-                p.y >= s.y_org && p.y < s.y_org + s.height )
-        {
-            return i;
-        }
+      if (p.x >= screenarr[i].x_org &&
+          p.x < screenarr[i].x_org + screenarr[i].width &&
+          p.y >= screenarr[i].y_org &&
+          p.y < screenarr[i].y_org + screenarr[i].height)
+      {
+        which_screen = i;
+      }
     }
 
-    return wxNOT_FOUND;
+    XFree(screenarr);
+    return which_screen;
+  }
+  else
+  {
+    wxSize size = wxGetDisplaySize();
+    if (p.x >= 0 &&
+        p.x < size.GetWidth() &&
+        p.y >= 0 &&
+        p.y < size.GetHeight())
+    {
+        return 0;
+    }
+
+    return -1;
+  }
 }
 
-wxDisplayImpl *wxDisplayFactoryX11::CreateDisplay(size_t n)
+wxDisplay::wxDisplay(size_t index) : wxDisplayBase ( index ), m_priv( new wxDisplayUnixPriv )
 {
-    ScreensInfo screens;
+  Display *disp = (Display*)wxGetDisplay();
 
-    return n < screens.GetCount() ? new wxDisplayImplX11(n, screens[n]) : NULL;
+  if ( XineramaIsActive(disp) )
+  {
+    XineramaScreenInfo *screenarr;
+    int numscreens;
+    screenarr = XineramaQueryScreens(disp, &numscreens);
+
+    m_priv->m_rect = wxRect(screenarr[index].x_org, screenarr[index].y_org,
+                            screenarr[index].width, screenarr[index].height);
+    m_priv->m_depth = DefaultDepth(disp, DefaultScreen(disp));
+    XFree(screenarr);
+  }
+  else
+  {
+    wxSize size = wxGetDisplaySize();
+    m_priv->m_rect = wxRect(0, 0, size.GetWidth(), size.GetHeight());
+    m_priv->m_depth = wxDisplayDepth();
+  }
 }
 
-// ============================================================================
-// wxDisplayImplX11 implementation
-// ============================================================================
+wxDisplay::~wxDisplay()
+{
+  delete m_priv;
+}
+
+wxRect wxDisplay::GetGeometry() const
+{
+  return m_priv->m_rect;
+}
+
+int wxDisplay::GetDepth() const
+{
+  return m_priv->m_depth;
+}
+
+wxString wxDisplay::GetName() const
+{
+  return wxEmptyString;
+}
+
 
 #ifdef HAVE_X11_EXTENSIONS_XF86VMODE_H
 
@@ -171,7 +166,7 @@ wxDisplayImpl *wxDisplayFactoryX11::CreateDisplay(size_t n)
 #define wxCVM2(v, dc) wxVideoMode(v.hdisplay, v.vdisplay, DefaultDepth((Display*)wxGetDisplay(), DefaultScreen((Display*)wxGetDisplay())), wxCRR2(v,dc))
 #define wxCVM(v) wxCVM2(v, v.dotclock)
 
-wxArrayVideoModes wxDisplayImplX11::GetModes(const wxVideoMode& mode) const
+wxArrayVideoModes wxDisplay::GetModes(const wxVideoMode& mode) const
 {
     //Convenience...
     Display* pDisplay = (Display*) wxGetDisplay(); //default display
@@ -205,7 +200,7 @@ wxArrayVideoModes wxDisplayImplX11::GetModes(const wxVideoMode& mode) const
     return Modes;
 }
 
-wxVideoMode wxDisplayImplX11::GetCurrentMode() const
+wxVideoMode wxDisplay::GetCurrentMode() const
 {
   XF86VidModeModeLine VM;
   int nDotClock;
@@ -215,7 +210,7 @@ wxVideoMode wxDisplayImplX11::GetCurrentMode() const
   return wxCVM2(VM, nDotClock);
 }
 
-bool wxDisplayImplX11::ChangeMode(const wxVideoMode& mode)
+bool wxDisplay::ChangeMode(const wxVideoMode& mode)
 {
     XF86VidModeModeInfo** ppXModes; //Enumerated Modes (Don't forget XFree() :))
     int nNumModes; //Number of modes enumerated....
@@ -264,49 +259,35 @@ bool wxDisplayImplX11::ChangeMode(const wxVideoMode& mode)
 
 #else // !HAVE_X11_EXTENSIONS_XF86VMODE_H
 
-wxArrayVideoModes wxDisplayImplX11::GetModes(const wxVideoMode& mode) const
+wxArrayVideoModes wxDisplay::GetModes(const wxVideoMode& mode) const
 {
-    int count_return;
-    int* depths = XListDepths((Display*)wxGetDisplay(), 0, &count_return);
-    wxArrayVideoModes modes;
-    if ( depths )
+  Display *disp = (Display*)wxGetDisplay();
+  int count_return;
+  int* depths = XListDepths(disp, 0, &count_return);
+  wxArrayVideoModes modes;
+  if (depths)
+  {
+    int x;
+    for (x = 0; x < count_return; ++x)
     {
-        for ( int x = 0; x < count_return; ++x )
-        {
-            modes.Add(wxVideoMode(m_rect.GetWidth(), m_rect.GetHeight(), depths[x]));
-        }
-
-        XFree(depths);
+      modes.Add(wxVideoMode(m_priv->m_rect.GetWidth(), m_priv->m_rect.GetHeight(), depths[x]));
     }
-    return modes;
+  }
+  return modes;
 }
 
-wxVideoMode wxDisplayImplX11::GetCurrentMode() const
+wxVideoMode wxDisplay::GetCurrentMode() const
 {
     // Not implemented
     return wxVideoMode();
 }
 
-bool wxDisplayImplX11::ChangeMode(const wxVideoMode& mode)
+bool wxDisplay::ChangeMode(const wxVideoMode& mode)
 {
     // Not implemented
     return false;
 }
 
 #endif // !HAVE_X11_EXTENSIONS_XF86VMODE_H
-
-// ============================================================================
-// wxDisplay::CreateFactory()
-// ============================================================================
-
-/* static */ wxDisplayFactory *wxDisplay::CreateFactory()
-{
-    if ( XineramaIsActive((Display*)wxGetDisplay()) )
-    {
-        return new wxDisplayFactoryX11;
-    }
-
-    return new wxDisplayFactorySingle;
-}
 
 #endif /* wxUSE_DISPLAY */

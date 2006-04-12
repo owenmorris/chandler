@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: app.cpp,v 1.243 2006/03/03 23:06:54 VZ Exp $
+// RCS-ID:      $Id: app.cpp,v 1.242 2006/02/11 14:57:25 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -503,6 +503,17 @@ wxApp::wxApp()
 
 wxApp::~wxApp()
 {
+    // our cmd line arguments are allocated inside wxEntry(HINSTANCE), they
+    // don't come from main(), so we have to free them
+
+    while ( argc )
+    {
+        // m_argv elements were allocated by wxStrdup()
+        free(argv[--argc]);
+    }
+
+    // but m_argv itself -- using new[]
+    delete [] argv;
 }
 
 // ----------------------------------------------------------------------------

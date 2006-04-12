@@ -4,7 +4,7 @@
 // Author:      Marcel Rasche, Vaclav Slavik
 // Modified by:
 // Created:     25/10/98
-// RCS-ID:      $Id: sound.cpp,v 1.17 2006/03/12 13:29:05 VZ Exp $
+// RCS-ID:      $Id: sound.cpp,v 1.15 2006/01/26 16:50:16 ABX Exp $
 // Copyright:   (c) Julian Smart, Open Source Applications Foundation
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -467,14 +467,12 @@ bool wxSound::Create(const wxString& fileName,
     wxUint8 *data = new wxUint8[len];
     if ( fileWave.Read(data, len) != lenOrig )
     {
-        delete [] data;
         wxLogError(_("Couldn't load sound data from '%s'."), fileName.c_str());
         return false;
     }
 
     if (!LoadWAV(data, len, false))
     {
-        delete [] data;
         wxLogError(_("Sound file '%s' is in unsupported format."),
                    fileName.c_str());
         return false;
@@ -626,30 +624,12 @@ typedef struct
 
 bool wxSound::LoadWAV(const wxUint8 *data, size_t length, bool copyData)
 {
-    // the simplest wave file header consists of 44 bytes:
-    //
-    //      0   "RIFF"
-    //      4   file size - 8
-    //      8   "WAVE"
-    //
-    //      12  "fmt "
-    //      16  chunk size                  |
-    //      20  format tag                  |
-    //      22  number of channels          |
-    //      24  sample rate                 | WAVEFORMAT
-    //      28  average bytes per second    |
-    //      32  bytes per frame             |
-    //      34  bits per sample             |
-    //  
-    //      36  "data"
-    //      40  number of data bytes
-    //      44  (wave signal) data
-    //
-    // so check that we have at least as much
-    if ( length < 44 )
+    WAVEFORMAT waveformat;
+    wxUint32 ul;
+
+    if (length < 32 + sizeof(WAVEFORMAT))
         return false;
 
-    WAVEFORMAT waveformat;
     memcpy(&waveformat, &data[FMT_INDEX + 4], sizeof(WAVEFORMAT));
     waveformat.uiSize = wxUINT32_SWAP_ON_BE(waveformat.uiSize);
     waveformat.uiFormatTag = wxUINT16_SWAP_ON_BE(waveformat.uiFormatTag);
@@ -659,14 +639,6 @@ bool wxSound::LoadWAV(const wxUint8 *data, size_t length, bool copyData)
     waveformat.uiBlockAlign = wxUINT16_SWAP_ON_BE(waveformat.uiBlockAlign);
     waveformat.uiBitsPerSample = wxUINT16_SWAP_ON_BE(waveformat.uiBitsPerSample);
 
-    // get the sound data size
-    wxUint32 ul;
-    memcpy(&ul, &data[FMT_INDEX + waveformat.uiSize + 12], 4);
-    ul = wxUINT32_SWAP_ON_BE(ul);
-
-    if ( length < ul + FMT_INDEX + waveformat.uiSize + 16 )
-        return false;
-
     if (memcmp(data, "RIFF", 4) != 0)
         return false;
     if (memcmp(&data[WAVE_INDEX], "WAVE", 4) != 0)
@@ -674,6 +646,12 @@ bool wxSound::LoadWAV(const wxUint8 *data, size_t length, bool copyData)
     if (memcmp(&data[FMT_INDEX], "fmt ", 4) != 0)
         return false;
     if (memcmp(&data[FMT_INDEX + waveformat.uiSize + 8], "data", 4) != 0)
+        return false;
+    memcpy(&ul,&data[FMT_INDEX + waveformat.uiSize + 12], 4);
+    ul = wxUINT32_SWAP_ON_BE(ul);
+
+    //WAS: if (ul + FMT_INDEX + waveformat.uiSize + 16 != length)
+    if (ul + FMT_INDEX + waveformat.uiSize + 16 > length)
         return false;
 
     if (waveformat.uiFormatTag != WAVE_FORMAT_PCM)

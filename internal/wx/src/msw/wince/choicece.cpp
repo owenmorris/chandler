@@ -4,7 +4,7 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     29.07.2004
-// RCS-ID:      $Id: choicece.cpp,v 1.9 2006/03/23 22:05:16 VZ Exp $
+// RCS-ID:      $Id: choicece.cpp,v 1.7 2005/09/27 17:05:19 ABX Exp $
 // Copyright:   (c) Wlodzimierz Skiba
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,16 +24,17 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_CHOICE && defined(__SMARTPHONE__) && defined(__WXWINCE__)
-
 #ifndef WX_PRECOMP
     #include "wx/choice.h"
-    #include <commctrl.h>
-    #include "wx/msw/missing.h"
-    #include "wx/msw/winundef.h"
 #endif
 
 #include "wx/spinbutt.h" // for wxSpinnerBestSize
+
+#include <commctrl.h>
+#include "wx/msw/missing.h"
+#include "wx/msw/winundef.h"
+
+#if wxUSE_CHOICE && defined(__SMARTPHONE__) && defined(__WXWINCE__)
 
 #if wxUSE_EXTENDED_RTTI
 // TODO
@@ -345,10 +346,10 @@ int wxChoice::DoAppend(const wxString& item)
     return n;
 }
 
-int wxChoice::DoInsert(const wxString& item, unsigned int pos)
+int wxChoice::DoInsert(const wxString& item, int pos)
 {
     wxCHECK_MSG(!(GetWindowStyle() & wxCB_SORT), -1, wxT("can't insert into choice"));
-    wxCHECK_MSG(IsValidInsert(pos), -1, wxT("invalid index"));
+    wxCHECK_MSG((pos>=0) && (pos<=GetCount()), -1, wxT("invalid index"));
 
     int n = (int)::SendMessage(GetBuddyHwnd(), LB_INSERTSTRING, pos, (LPARAM)item.c_str());
     if ( n == LB_ERR )
@@ -359,9 +360,9 @@ int wxChoice::DoInsert(const wxString& item, unsigned int pos)
     return n;
 }
 
-void wxChoice::Delete(unsigned int n)
+void wxChoice::Delete(int n)
 {
-    wxCHECK_RET( IsValid(n), wxT("invalid item index in wxChoice::Delete") );
+    wxCHECK_RET( n < GetCount(), wxT("invalid item index in wxChoice::Delete") );
 
     if ( HasClientObjectData() )
     {
@@ -382,8 +383,8 @@ void wxChoice::Free()
 {
     if ( HasClientObjectData() )
     {
-        unsigned int count = GetCount();
-        for ( unsigned int n = 0; n < count; n++ )
+        size_t count = GetCount();
+        for ( size_t n = 0; n < count; n++ )
         {
             delete GetClientObject(n);
         }
@@ -408,9 +409,9 @@ void wxChoice::SetSelection(int n)
 // string list functions
 // ----------------------------------------------------------------------------
 
-unsigned int wxChoice::GetCount() const
+int wxChoice::GetCount() const
 {
-    return (unsigned int)::SendMessage(GetBuddyHwnd(), LB_GETCOUNT, 0, 0);
+    return (int)::SendMessage(GetBuddyHwnd(), LB_GETCOUNT, 0, 0);
 }
 
 int wxChoice::FindString(const wxString& s, bool bCase) const
@@ -425,9 +426,9 @@ int wxChoice::FindString(const wxString& s, bool bCase) const
     return pos == LB_ERR ? wxNOT_FOUND : pos;
 }
 
-void wxChoice::SetString(unsigned int n, const wxString& s)
+void wxChoice::SetString(int n, const wxString& s)
 {
-    wxCHECK_RET( IsValid(n),
+    wxCHECK_RET( n >= 0 && n < GetCount(),
                  wxT("invalid item index in wxChoice::SetString") );
 
     // we have to delete and add back the string as there is no way to change a
@@ -454,7 +455,7 @@ void wxChoice::SetString(unsigned int n, const wxString& s)
     //else: it's already NULL by default
 }
 
-wxString wxChoice::GetString(unsigned int n) const
+wxString wxChoice::GetString(int n) const
 {
     int len = (int)::SendMessage(GetBuddyHwnd(), LB_GETTEXTLEN, n, 0);
 
@@ -480,7 +481,7 @@ wxString wxChoice::GetString(unsigned int n) const
 // client data
 // ----------------------------------------------------------------------------
 
-void wxChoice::DoSetItemClientData(unsigned int n, void* clientData)
+void wxChoice::DoSetItemClientData( int n, void* clientData )
 {
     if ( ::SendMessage(GetHwnd(), LB_SETITEMDATA,
                        n, (LPARAM)clientData) == LB_ERR )
@@ -489,7 +490,7 @@ void wxChoice::DoSetItemClientData(unsigned int n, void* clientData)
     }
 }
 
-void* wxChoice::DoGetItemClientData(unsigned int n) const
+void* wxChoice::DoGetItemClientData( int n ) const
 {
     LPARAM rc = ::SendMessage(GetHwnd(), LB_GETITEMDATA, n, 0);
     if ( rc == LB_ERR )
@@ -503,12 +504,12 @@ void* wxChoice::DoGetItemClientData(unsigned int n) const
     return (void *)rc;
 }
 
-void wxChoice::DoSetItemClientObject(unsigned int n, wxClientData* clientData)
+void wxChoice::DoSetItemClientObject( int n, wxClientData* clientData )
 {
     DoSetItemClientData(n, clientData);
 }
 
-wxClientData* wxChoice::DoGetItemClientObject(unsigned int n) const
+wxClientData* wxChoice::DoGetItemClientObject( int n ) const
 {
     return (wxClientData *)DoGetItemClientData(n);
 }

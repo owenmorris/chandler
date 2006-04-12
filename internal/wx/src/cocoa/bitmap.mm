@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/07/19
-// RCS-ID:      $Id: bitmap.mm,v 1.23 2006/03/21 14:16:10 VZ Exp $
+// RCS-ID:      $Id: bitmap.mm,v 1.22 2005/05/22 23:39:30 DE Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -415,11 +415,11 @@ bool wxBitmap::CreateFromXpm(const char **xpm)
 #if wxUSE_IMAGE && wxUSE_XPM
     UnRef();
 
-    wxCHECK_MSG( xpm, false, wxT("invalid XPM data") );
+    wxCHECK_MSG( xpm, false, wxT("invalid XPM data") )
 
     wxXPMDecoder decoder;
     wxImage img = decoder.ReadData(xpm);
-    wxCHECK_MSG( img.Ok(), false, wxT("invalid XPM data") );
+    wxCHECK_MSG( img.Ok(), false, wxT("invalid XPM data") )
 
     *this = wxBitmap(img);
     return true;

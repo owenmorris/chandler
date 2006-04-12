@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        src/common/ctrlsub.cpp
+// Name:        common/ctrlsub.cpp
 // Purpose:     wxItemContainer implementation
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.10.99
-// RCS-ID:      $Id: ctrlsub.cpp,v 1.21 2006/03/23 22:04:52 VZ Exp $
+// RCS-ID:      $Id: ctrlsub.cpp,v 1.20 2005/12/23 00:58:32 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,10 +49,9 @@ wxItemContainerImmutable::~wxItemContainerImmutable()
 wxString wxItemContainerImmutable::GetStringSelection() const
 {
     wxString s;
-
     int sel = GetSelection();
-    if ( sel != wxNOT_FOUND )
-        s = GetString((unsigned int)sel);
+    if ( sel != -1 )
+        s = GetString(sel);
 
     return s;
 }
@@ -72,9 +71,9 @@ wxArrayString wxItemContainerImmutable::GetStrings() const
 {
     wxArrayString result;
 
-    const unsigned int count = GetCount();
+    const size_t count = GetCount();
     result.Alloc(count);
-    for ( unsigned int n = 0; n < count; n++ )
+    for ( size_t n = 0; n < count; n++ )
         result.Add(GetString(n));
 
     return result;
@@ -95,14 +94,14 @@ wxItemContainer::~wxItemContainer()
 
 void wxItemContainer::Append(const wxArrayString& strings)
 {
-    const size_t count = strings.GetCount();
+    size_t count = strings.GetCount();
     for ( size_t n = 0; n < count; n++ )
     {
         Append(strings[n]);
     }
 }
 
-int wxItemContainer::Insert(const wxString& item, unsigned int pos, void *clientData)
+int wxItemContainer::Insert(const wxString& item, int pos, void *clientData)
 {
     int n = DoInsert(item, pos);
     if ( n != wxNOT_FOUND )
@@ -111,7 +110,8 @@ int wxItemContainer::Insert(const wxString& item, unsigned int pos, void *client
     return n;
 }
 
-int wxItemContainer::Insert(const wxString& item, unsigned int pos, wxClientData *clientData)
+int
+wxItemContainer::Insert(const wxString& item, int pos, wxClientData *clientData)
 {
     int n = DoInsert(item, pos);
     if ( n != wxNOT_FOUND )
@@ -124,7 +124,7 @@ int wxItemContainer::Insert(const wxString& item, unsigned int pos, wxClientData
 // client data
 // ----------------------------------------------------------------------------
 
-void wxItemContainer::SetClientObject(unsigned int n, wxClientData *data)
+void wxItemContainer::SetClientObject(int n, wxClientData *data)
 {
     wxASSERT_MSG( m_clientDataItemsType != wxClientData_Void,
                   wxT("can't have both object and void client data") );
@@ -147,7 +147,7 @@ void wxItemContainer::SetClientObject(unsigned int n, wxClientData *data)
     DoSetItemClientObject(n, data);
 }
 
-wxClientData *wxItemContainer::GetClientObject(unsigned int n) const
+wxClientData *wxItemContainer::GetClientObject(int n) const
 {
     wxASSERT_MSG( m_clientDataItemsType == wxClientData_Object,
                   wxT("this window doesn't have object client data") );
@@ -155,7 +155,7 @@ wxClientData *wxItemContainer::GetClientObject(unsigned int n) const
     return DoGetItemClientObject(n);
 }
 
-void wxItemContainer::SetClientData(unsigned int n, void *data)
+void wxItemContainer::SetClientData(int n, void *data)
 {
     wxASSERT_MSG( m_clientDataItemsType != wxClientData_Object,
                   wxT("can't have both object and void client data") );
@@ -164,7 +164,7 @@ void wxItemContainer::SetClientData(unsigned int n, void *data)
     m_clientDataItemsType = wxClientData_Void;
 }
 
-void *wxItemContainer::GetClientData(unsigned int n) const
+void *wxItemContainer::GetClientData(int n) const
 {
     wxASSERT_MSG( m_clientDataItemsType == wxClientData_Void,
                   wxT("this window doesn't have void client data") );

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     7-July-1997
-// RCS-ID:      $Id: _colour.i,v 1.17 2006/03/31 23:29:39 RD Exp $
+// RCS-ID:      $Id: _colour.i,v 1.16 2006/01/17 05:42:23 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -106,32 +106,14 @@ COLORREF is returned. On X, an allocated pixel value is returned.  -1
 is returned if the pixel is invalid (on X, unallocated).", "");
     
     
-    %extend {
-        KeepGIL(__eq__);
-        DocStr(__eq__, "Compare colours for equality.", "");
-        bool __eq__(PyObject* other) {
-            wxColour  temp, *obj = &temp;
-            if ( other == Py_None ) return false;
-            if ( ! wxColour_helper(other, &obj) ) {
-                PyErr_Clear();
-                return false;
-            }
-            return self->operator==(*obj);
-        }
-
-        
-        KeepGIL(__ne__);
-        DocStr(__ne__, "Compare colours for inequality.", "");
-        bool __ne__(PyObject* other) {
-            wxColour  temp, *obj = &temp;
-            if ( other == Py_None ) return true;
-            if ( ! wxColour_helper(other, &obj)) {
-                PyErr_Clear();
-                return true;
-            }
-            return self->operator!=(*obj);
-        }
-    }
+    DocDeclStr(
+        bool , operator==(const wxColour& colour) const,
+        "Compare colours for equality", "");
+    
+    DocDeclStr(
+        bool , operator!=(const wxColour& colour) const,
+        "Compare colours for inequality", "");
+    
 
 
     %extend {

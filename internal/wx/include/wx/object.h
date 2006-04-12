@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Ron Lee
 // Created:     01/02/97
-// RCS-ID:      $Id: object.h,v 1.124 2006/03/27 00:54:00 VZ Exp $
+// RCS-ID:      $Id: object.h,v 1.122 2006/02/09 00:48:33 VZ Exp $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2001 Ron Lee <ron@debian.org>
 // Licence:     wxWindows licence
@@ -98,6 +98,7 @@ public:
     // Cleans up hash table used for fast searching.
     wxDEPRECATED( static void CleanUpClasses() );
 #endif
+    static void     CleanUp();
 
 public:
     const wxChar            *m_className;
@@ -469,6 +470,18 @@ public:
 
     // destroy a reference
     void UnRef();
+
+
+    // Reserved for future use
+    virtual void ReservedObjectFunc1() {}
+    virtual void ReservedObjectFunc2() {}
+    virtual void ReservedObjectFunc3() {}
+    virtual void ReservedObjectFunc4() {}
+    virtual void ReservedObjectFunc5() {}
+    virtual void ReservedObjectFunc6() {}
+    virtual void ReservedObjectFunc7() {}
+    virtual void ReservedObjectFunc8() {}
+    virtual void ReservedObjectFunc9() {}
 
 protected:
     // ensure that our data is not shared with anybody else: if we have no

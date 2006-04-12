@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: combobox.cpp,v 1.39 2006/03/23 22:05:11 VZ Exp $
+// RCS-ID:      $Id: combobox.cpp,v 1.37 2006/01/26 16:02:00 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -144,7 +144,7 @@ void wxComboBox::SetValue(const wxString& value)
     m_inSetValue = false;
 }
 
-void wxComboBox::SetString(unsigned int WXUNUSED(n), const wxString& WXUNUSED(s))
+void wxComboBox::SetString(int WXUNUSED(n), const wxString& WXUNUSED(s))
 {
     wxFAIL_MSG( wxT("wxComboBox::SetString only implemented for Motif 2.0") );
 }
@@ -159,10 +159,10 @@ int wxComboBox::DoAppend(const wxString& item)
     return GetCount() - 1;
 }
 
-int wxComboBox::DoInsert(const wxString& item, unsigned int pos)
+int wxComboBox::DoInsert(const wxString& item, int pos)
 {
     wxCHECK_MSG(!(GetWindowStyle() & wxCB_SORT), -1, wxT("can't insert into sorted list"));
-    wxCHECK_MSG(IsValidInsert(pos), -1, wxT("invalid index"));
+    wxCHECK_MSG((pos>=0) && (pos<=GetCount()), -1, wxT("invalid index"));
 
     if (pos == GetCount())
         return DoAppend(item);
@@ -176,7 +176,7 @@ int wxComboBox::DoInsert(const wxString& item, unsigned int pos)
     return pos;
 }
 
-void wxComboBox::Delete(unsigned int n)
+void wxComboBox::Delete(int n)
 {
     XmComboBoxDeletePos((Widget) m_mainWidget, n+1);
     wxStringList::Node *node = m_stringList.Item(n);
@@ -213,7 +213,7 @@ int wxComboBox::GetSelection (void) const
         return sel - 1;
 }
 
-wxString wxComboBox::GetString(unsigned int n) const
+wxString wxComboBox::GetString(int n) const
 {
     wxStringList::Node *node = m_stringList.Item(n);
     if (node)

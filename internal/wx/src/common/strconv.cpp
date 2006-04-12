@@ -5,20 +5,32 @@
 //              Ryan Norton, Fredrik Roubert (UTF7)
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.cpp,v 1.203 2006/04/06 12:43:38 VZ Exp $
+// RCS-ID:      $Id: strconv.cpp,v 1.175 2006/02/09 14:58:08 VZ Exp $
 // Copyright:   (c) 1999 Ove Kaaven, Robert Roebling, Vaclav Slavik
 //              (c) 2000-2003 Vadim Zeitlin
 //              (c) 2004 Ryan Norton, Fredrik Roubert
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
+// ============================================================================
+// declarations
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// headers
+// ----------------------------------------------------------------------------
+
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
+
+#ifdef __BORLANDC__
+  #pragma hdrstop
+#endif
 
 #ifndef WX_PRECOMP
     #include "wx/intl.h"
     #include "wx/log.h"
-#endif
+#endif // WX_PRECOMP
 
 #include "wx/strconv.h"
 
@@ -39,7 +51,7 @@
 
 #if defined(__WIN32__) && !defined(__WXMICROWIN__)
     #define wxHAVE_WIN32_MB2WC
-#endif
+#endif // __WIN32__ but !__WXMICROWIN__
 
 #ifdef __SALFORDC__
     #include <clib.h>
@@ -61,73 +73,58 @@
 #include <TextEncodingConverter.h>
 #endif
 
-// includes Mac headers
-#include "wx/mac/private.h"
+#include  "wx/mac/private.h"  // includes mac headers
 #endif
-
 
 #define TRACE_STRCONV _T("strconv")
 
-// WC_UTF16 is defined only if sizeof(wchar_t) == 2, otherwise it's supposed to
-// be 4 bytes
 #if SIZEOF_WCHAR_T == 2
     #define WC_UTF16
 #endif
-
 
 // ============================================================================
 // implementation
 // ============================================================================
 
-// helper function of cMB2WC(): check if n bytes at this location are all NUL
-static bool NotAllNULs(const char *p, size_t n)
-{
-    while ( n && *p++ == '\0' )
-        n--;
-
-    return n != 0;
-}
-
 // ----------------------------------------------------------------------------
-// UTF-16 en/decoding to/from UCS-4 with surrogates handling
+// UTF-16 en/decoding to/from UCS-4
 // ----------------------------------------------------------------------------
+
 
 static size_t encode_utf16(wxUint32 input, wxUint16 *output)
 {
-    if (input <= 0xffff)
+    if (input<=0xffff)
     {
         if (output)
             *output = (wxUint16) input;
-
         return 1;
     }
-    else if (input >= 0x110000)
+    else if (input>=0x110000)
     {
-        return wxCONV_FAILED;
+        return (size_t)-1;
     }
     else
     {
         if (output)
         {
-            *output++ = (wxUint16) ((input >> 10) + 0xd7c0);
-            *output = (wxUint16) ((input & 0x3ff) + 0xdc00);
+            *output++ = (wxUint16) ((input >> 10)+0xd7c0);
+            *output = (wxUint16) ((input&0x3ff)+0xdc00);
         }
-
         return 2;
     }
 }
 
 static size_t decode_utf16(const wxUint16* input, wxUint32& output)
 {
-    if ((*input < 0xd800) || (*input > 0xdfff))
+    if ((*input<0xd800) || (*input>0xdfff))
     {
         output = *input;
         return 1;
     }
-    else if ((input[1] < 0xdc00) || (input[1] > 0xdfff))
+    else if ((input[1]<0xdc00) || (input[1]>0xdfff))
     {
         output = *input;
-        return wxCONV_FAILED;
+        return (size_t)-1;
     }
     else
     {
@@ -136,218 +133,10 @@ static size_t decode_utf16(const wxUint16* input, wxUint32& output)
     }
 }
 
-#ifdef WC_UTF16
-    typedef wchar_t wxDecodeSurrogate_t;
-#else // !WC_UTF16
-    typedef wxUint16 wxDecodeSurrogate_t;
-#endif // WC_UTF16/!WC_UTF16
-
-// returns the next UTF-32 character from the wchar_t buffer and advances the
-// pointer to the character after this one
-//
-// if an invalid character is found, *pSrc is set to NULL, the caller must
-// check for this
-static wxUint32 wxDecodeSurrogate(const wxDecodeSurrogate_t **pSrc)
-{
-    wxUint32 outBuff;
-    const size_t
-        n = decode_utf16(wx_reinterpret_cast(const wxUint16 *, *pSrc), outBuff);
-    if ( n == wxCONV_FAILED )
-        *pSrc = NULL;
-    else
-        *pSrc += n;
-
-    return outBuff;
-}
 
 // ----------------------------------------------------------------------------
 // wxMBConv
 // ----------------------------------------------------------------------------
-
-size_t
-wxMBConv::ToWChar(wchar_t *dst, size_t dstLen,
-                  const char *src, size_t srcLen) const
-{
-    // although new conversion classes are supposed to implement this function
-    // directly, the existins ones only implement the old MB2WC() and so, to
-    // avoid to have to rewrite all conversion classes at once, we provide a
-    // default (but not efficient) implementation of this one in terms of the
-    // old function by copying the input to ensure that it's NUL-terminated and
-    // then using MB2WC() to convert it
-
-    // the number of chars [which would be] written to dst [if it were not NULL]
-    size_t dstWritten = 0;
-
-    // the number of NULs terminating this string
-    size_t nulLen wxDUMMY_INITIALIZE(0);
-
-    // if we were not given the input size we just have to assume that the
-    // string is properly terminated as we have no way of knowing how long it
-    // is anyhow, but if we do have the size check whether there are enough
-    // NULs at the end
-    wxCharBuffer bufTmp;
-    const char *srcEnd;
-    if ( srcLen != wxNO_LEN )
-    {
-        // we need to know how to find the end of this string
-        nulLen = GetMBNulLen();
-        if ( nulLen == wxCONV_FAILED )
-            return wxCONV_FAILED;
-
-        // if there are enough NULs we can avoid the copy
-        if ( srcLen < nulLen || NotAllNULs(src + srcLen - nulLen, nulLen) )
-        {
-            // make a copy in order to properly NUL-terminate the string
-            bufTmp = wxCharBuffer(srcLen + nulLen - 1 /* 1 will be added */);
-            char * const p = bufTmp.data();
-            memcpy(p, src, srcLen);
-            for ( char *s = p + srcLen; s < p + srcLen + nulLen; s++ )
-                *s = '\0';
-
-            src = bufTmp;
-        }
-
-        srcEnd = src + srcLen;
-    }
-    else // quit after the first loop iteration
-    {
-        srcEnd = NULL;
-    }
-
-    for ( ;; )
-    {
-        // try to convert the current chunk
-        size_t lenChunk = MB2WC(NULL, src, 0);
-        if ( lenChunk == wxCONV_FAILED )
-            return wxCONV_FAILED;
-
-        lenChunk++; // for the L'\0' at the end of this chunk
-
-        dstWritten += lenChunk;
-
-        if ( lenChunk == 1 )
-        {
-            // nothing left in the input string, conversion succeeded
-            break;
-        }
-
-        if ( dst )
-        {
-            if ( dstWritten > dstLen )
-                return wxCONV_FAILED;
-
-            if ( MB2WC(dst, src, lenChunk) == wxCONV_FAILED )
-                return wxCONV_FAILED;
-
-            dst += lenChunk;
-        }
-
-        if ( !srcEnd )
-        {
-            // we convert just one chunk in this case as this is the entire
-            // string anyhow
-            break;
-        }
-
-        // advance the input pointer past the end of this chunk
-        while ( NotAllNULs(src, nulLen) )
-        {
-            // notice that we must skip over multiple bytes here as we suppose
-            // that if NUL takes 2 or 4 bytes, then all the other characters do
-            // too and so if advanced by a single byte we might erroneously
-            // detect sequences of NUL bytes in the middle of the input
-            src += nulLen;
-        }
-
-        src += nulLen; // skipping over its terminator as well
-
-        // note that ">=" (and not just "==") is needed here as the terminator
-        // we skipped just above could be inside or just after the buffer
-        // delimited by inEnd
-        if ( src >= srcEnd )
-            break;
-    }
-
-    return dstWritten;
-}
-
-size_t
-wxMBConv::FromWChar(char *dst, size_t dstLen,
-                    const wchar_t *src, size_t srcLen) const
-{
-    // the number of chars [which would be] written to dst [if it were not NULL]
-    size_t dstWritten = 0;
-
-    // make a copy of the input string unless it is already properly
-    // NUL-terminated
-    //
-    // if we don't know its length we have no choice but to assume that it is,
-    // indeed, properly terminated
-    wxWCharBuffer bufTmp;
-    if ( srcLen == wxNO_LEN )
-    {
-        srcLen = wxWcslen(src) + 1;
-    }
-    else if ( srcLen != 0 && src[srcLen - 1] != L'\0' )
-    {
-        // make a copy in order to properly NUL-terminate the string
-        bufTmp = wxWCharBuffer(srcLen);
-        memcpy(bufTmp.data(), src, srcLen * sizeof(wchar_t));
-        src = bufTmp;
-    }
-
-    const size_t lenNul = GetMBNulLen();
-    for ( const wchar_t * const srcEnd = src + srcLen;
-          src < srcEnd;
-          src += wxWcslen(src) + 1 /* skip L'\0' too */ )
-    {
-        // try to convert the current chunk
-        size_t lenChunk = WC2MB(NULL, src, 0);
-
-        if ( lenChunk == wxCONV_FAILED )
-            return wxCONV_FAILED;
-
-        lenChunk += lenNul;
-        dstWritten += lenChunk;
-
-        if ( dst )
-        {
-            if ( dstWritten > dstLen )
-                return wxCONV_FAILED;
-
-            if ( WC2MB(dst, src, lenChunk) == wxCONV_FAILED )
-                return wxCONV_FAILED;
-
-            dst += lenChunk;
-        }
-    }
-
-    return dstWritten;
-}
-
-size_t wxMBConv::MB2WC(wchar_t *outBuff, const char *inBuff, size_t outLen) const
-{
-    size_t rc = ToWChar(outBuff, outLen, inBuff);
-    if ( rc != wxCONV_FAILED )
-    {
-        // ToWChar() returns the buffer length, i.e. including the trailing
-        // NUL, while this method doesn't take it into account
-        rc--;
-    }
-
-    return rc;
-}
-
-size_t wxMBConv::WC2MB(char *outBuff, const wchar_t *inBuff, size_t outLen) const
-{
-    size_t rc = FromWChar(outBuff, outLen, inBuff);
-    if ( rc != wxCONV_FAILED )
-    {
-        rc -= GetMBNulLen();
-    }
-
-    return rc;
-}
 
 wxMBConv::~wxMBConv()
 {
@@ -359,96 +148,168 @@ const wxWCharBuffer wxMBConv::cMB2WC(const char *psz) const
     if ( psz )
     {
         // calculate the length of the buffer needed first
-        const size_t nLen = MB2WC(NULL, psz, 0);
-        if ( nLen != wxCONV_FAILED )
+        size_t nLen = MB2WC(NULL, psz, 0);
+        if ( nLen != (size_t)-1 )
         {
             // now do the actual conversion
-            wxWCharBuffer buf(nLen /* +1 added implicitly */);
-
-            // +1 for the trailing NULL
-            if ( MB2WC(buf.data(), psz, nLen + 1) != wxCONV_FAILED )
+            wxWCharBuffer buf(nLen);
+            nLen = MB2WC(buf.data(), psz, nLen + 1); // with the trailing NULL
+            if ( nLen != (size_t)-1 )
+            {
                 return buf;
+            }
         }
     }
 
-    return wxWCharBuffer();
+    wxWCharBuffer buf((wchar_t *)NULL);
+
+    return buf;
 }
 
 const wxCharBuffer wxMBConv::cWC2MB(const wchar_t *pwz) const
 {
     if ( pwz )
     {
-        const size_t nLen = WC2MB(NULL, pwz, 0);
-        if ( nLen != wxCONV_FAILED )
+        size_t nLen = WC2MB(NULL, pwz, 0);
+        if ( nLen != (size_t)-1 )
         {
-            // extra space for trailing NUL(s)
-            static const size_t extraLen = GetMaxMBNulLen();
-
-            wxCharBuffer buf(nLen + extraLen - 1);
-            if ( WC2MB(buf.data(), pwz, nLen + extraLen) != wxCONV_FAILED )
+            wxCharBuffer buf(nLen+3);       // space for a wxUint32 trailing zero
+            nLen = WC2MB(buf.data(), pwz, nLen + 4);
+            if ( nLen != (size_t)-1 )
+            {
                 return buf;
+            }
         }
     }
 
-    return wxCharBuffer();
+    wxCharBuffer buf((char *)NULL);
+
+    return buf;
 }
 
-const wxWCharBuffer
-wxMBConv::cMB2WC(const char *inBuff, size_t inLen, size_t *outLen) const
+const wxWCharBuffer wxMBConv::cMB2WC(const char *szString, size_t nStringLen, size_t* pOutSize) const
 {
-    const size_t dstLen = ToWChar(NULL, 0, inBuff, inLen);
-    if ( dstLen != wxCONV_FAILED )
-    {
-        wxWCharBuffer wbuf(dstLen - 1);
-        if ( ToWChar(wbuf.data(), dstLen, inBuff, inLen) != wxCONV_FAILED )
-        {
-            if ( outLen )
-            {
-                *outLen = dstLen;
-                if ( wbuf[dstLen - 1] == L'\0' )
-                    (*outLen)--;
-            }
+    wxASSERT(pOutSize != NULL);
 
-            return wbuf;
+    const char* szEnd = szString + nStringLen + 1;
+    const char* szPos = szString;
+    const char* szStart = szPos;
+
+    size_t nActualLength = 0;
+    size_t nCurrentSize = nStringLen; //try normal size first (should never resize?)
+
+    wxWCharBuffer theBuffer(nCurrentSize);
+
+    //Convert the string until the length() is reached, continuing the
+    //loop every time a null character is reached
+    while(szPos != szEnd)
+    {
+        wxASSERT(szPos < szEnd); //something is _really_ screwed up if this rings true
+
+        //Get the length of the current (sub)string
+        size_t nLen = MB2WC(NULL, szPos, 0);
+
+        //Invalid conversion?
+        if( nLen == (size_t)-1 )
+        {
+            *pOutSize = 0;
+            theBuffer.data()[0u] = wxT('\0');
+            return theBuffer;
         }
+
+
+        //Increase the actual length (+1 for current null character)
+        nActualLength += nLen + 1;
+
+        //if buffer too big, realloc the buffer
+        if (nActualLength > (nCurrentSize+1))
+        {
+            wxWCharBuffer theNewBuffer(nCurrentSize << 1);
+            memcpy(theNewBuffer.data(), theBuffer.data(), nCurrentSize * sizeof(wchar_t));
+            theBuffer = theNewBuffer;
+            nCurrentSize <<= 1;
+        }
+
+        //Convert the current (sub)string
+        if ( MB2WC(&theBuffer.data()[szPos - szStart], szPos, nLen + 1) == (size_t)-1 )
+        {
+            *pOutSize = 0;
+            theBuffer.data()[0u] = wxT('\0');
+            return theBuffer;
+        }
+
+        //Increment to next (sub)string
+        //Note that we have to use strlen instead of nLen here
+        //because XX2XX gives us the size of the output buffer,
+        //which is not necessarily the length of the string
+        szPos += strlen(szPos) + 1;
     }
 
-    if ( outLen )
-        *outLen = 0;
-
-    return wxWCharBuffer();
+    //success - return actual length and the buffer
+    *pOutSize = nActualLength;
+    return theBuffer;
 }
 
-const wxCharBuffer
-wxMBConv::cWC2MB(const wchar_t *inBuff, size_t inLen, size_t *outLen) const
+const wxCharBuffer wxMBConv::cWC2MB(const wchar_t *szString, size_t nStringLen, size_t* pOutSize) const
 {
-    const size_t dstLen = FromWChar(NULL, 0, inBuff, inLen);
-    if ( dstLen != wxCONV_FAILED )
+    wxASSERT(pOutSize != NULL);
+
+    const wchar_t* szEnd = szString + nStringLen + 1;
+    const wchar_t* szPos = szString;
+    const wchar_t* szStart = szPos;
+
+    size_t nActualLength = 0;
+    size_t nCurrentSize = nStringLen << 2; //try * 4 first
+
+    wxCharBuffer theBuffer(nCurrentSize);
+
+    //Convert the string until the length() is reached, continuing the
+    //loop every time a null character is reached
+    while(szPos != szEnd)
     {
-        wxCharBuffer buf(dstLen - 1);
-        if ( FromWChar(buf.data(), dstLen, inBuff, inLen) != wxCONV_FAILED )
+        wxASSERT(szPos < szEnd); //something is _really_ screwed up if this rings true
+
+        //Get the length of the current (sub)string
+        size_t nLen = WC2MB(NULL, szPos, 0);
+
+        //Invalid conversion?
+        if( nLen == (size_t)-1 )
         {
-            if ( outLen )
-            {
-                *outLen = dstLen;
-
-                const size_t nulLen = GetMBNulLen();
-                if ( !NotAllNULs(buf.data() + dstLen - nulLen, nulLen) )
-                {
-                    // in this case the output is NUL-terminated and we're not
-                    // supposed to count NUL
-                    (*outLen) -= nulLen;
-                }
-            }
-
-            return buf;
+            *pOutSize = 0;
+            theBuffer.data()[0u] = wxT('\0');
+            return theBuffer;
         }
+
+        //Increase the actual length (+1 for current null character)
+        nActualLength += nLen + 1;
+
+        //if buffer too big, realloc the buffer
+        if (nActualLength > (nCurrentSize+1))
+        {
+            wxCharBuffer theNewBuffer(nCurrentSize << 1);
+            memcpy(theNewBuffer.data(), theBuffer.data(), nCurrentSize);
+            theBuffer = theNewBuffer;
+            nCurrentSize <<= 1;
+        }
+
+        //Convert the current (sub)string
+        if(WC2MB(&theBuffer.data()[szPos - szStart], szPos, nLen + 1) == (size_t)-1 )
+        {
+            *pOutSize = 0;
+            theBuffer.data()[0u] = wxT('\0');
+            return theBuffer;
+        }
+
+        //Increment to next (sub)string
+        //Note that we have to use wxWcslen instead of nLen here
+        //because XX2XX gives us the size of the output buffer,
+        //which is not necessarily the length of the string
+        szPos += wxWcslen(szPos) + 1;
     }
 
-    if ( outLen )
-        *outLen = 0;
-
-    return wxCharBuffer();
+    //success - return actual length and the buffer
+    *pOutSize = nActualLength;
+    return theBuffer;
 }
 
 // ----------------------------------------------------------------------------
@@ -465,11 +326,11 @@ size_t wxMBConvLibc::WC2MB(char *buf, const wchar_t *psz, size_t n) const
     return wxWC2MB(buf, psz, n);
 }
 
+#ifdef __UNIX__
+
 // ----------------------------------------------------------------------------
 // wxConvBrokenFileNames
 // ----------------------------------------------------------------------------
-
-#ifdef __UNIX__
 
 wxConvBrokenFileNames::wxConvBrokenFileNames(const wxChar *charset)
 {
@@ -480,7 +341,23 @@ wxConvBrokenFileNames::wxConvBrokenFileNames(const wxChar *charset)
         m_conv = new wxCSConv(charset);
 }
 
-#endif // __UNIX__
+size_t
+wxConvBrokenFileNames::MB2WC(wchar_t *outputBuf,
+                             const char *psz,
+                             size_t outputSize) const
+{
+    return m_conv->MB2WC( outputBuf, psz, outputSize );
+}
+
+size_t
+wxConvBrokenFileNames::WC2MB(char *outputBuf,
+                             const wchar_t *psz,
+                             size_t outputSize) const
+{
+    return m_conv->WC2MB( outputBuf, psz, outputSize );
+}
+
+#endif
 
 // ----------------------------------------------------------------------------
 // UTF-7
@@ -531,7 +408,7 @@ size_t wxMBConvUTF7::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 {
     size_t len = 0;
 
-    while ( *psz && (!buf || (len < n)) )
+    while (*psz && ((!buf) || (len < n)))
     {
         unsigned char cc = *psz++;
         if (cc != '+')
@@ -549,19 +426,20 @@ size_t wxMBConvUTF7::MB2WC(wchar_t *buf, const char *psz, size_t n) const
             len++;
             psz++;
         }
-        else // start of BASE64 encoded string
+        else
         {
-            bool lsb, ok;
+            // BASE64 encoded string
+            bool lsb;
+            unsigned char c;
             unsigned int d, l;
-            for ( ok = lsb = false, d = 0, l = 0;
-                  (cc = utf7unb64[(unsigned char)*psz]) != 0xff;
-                  psz++ )
+            for (lsb = false, d = 0, l = 0;
+                (cc = utf7unb64[(unsigned char)*psz]) != 0xff; psz++)
             {
                 d <<= 6;
                 d += cc;
                 for (l += 6; l >= 8; lsb = !lsb)
                 {
-                    unsigned char c = (unsigned char)((d >> (l -= 8)) % 256);
+                    c = (unsigned char)((d >> (l -= 8)) % 256);
                     if (lsb)
                     {
                         if (buf)
@@ -569,29 +447,16 @@ size_t wxMBConvUTF7::MB2WC(wchar_t *buf, const char *psz, size_t n) const
                         len ++;
                     }
                     else
-                    {
                         if (buf)
                             *buf = (wchar_t)(c << 8);
-                    }
-
-                    ok = true;
                 }
             }
-
-            if ( !ok )
-            {
-                // in valid UTF7 we should have valid characters after '+'
-                return wxCONV_FAILED;
-            }
-
             if (*psz == '-')
                 psz++;
         }
     }
-
-    if ( buf && (len < n) )
-        *buf = '\0';
-
+    if (buf && (len < n))
+        *buf = 0;
     return len;
 }
 
@@ -632,6 +497,8 @@ static const unsigned char utf7encode[128] =
 
 size_t wxMBConvUTF7::WC2MB(char *buf, const wchar_t *psz, size_t n) const
 {
+
+
     size_t len = 0;
 
     while (*psz && ((!buf) || (len < n)))
@@ -642,21 +509,19 @@ size_t wxMBConvUTF7::WC2MB(char *buf, const wchar_t *psz, size_t n) const
             // plain ASCII char
             if (buf)
                 *buf++ = (char)cc;
-
             len++;
         }
 #ifndef WC_UTF16
         else if (((wxUint32)cc) > 0xffff)
         {
             // no surrogate pair generation (yet?)
-            return wxCONV_FAILED;
+            return (size_t)-1;
         }
 #endif
         else
         {
             if (buf)
                 *buf++ = '+';
-
             len++;
             if (cc != '+')
             {
@@ -677,30 +542,24 @@ size_t wxMBConvUTF7::WC2MB(char *buf, const wchar_t *psz, size_t n) const
                             len++;
                         }
                     }
-
                     cc = *psz;
                     if (!(cc) || (cc < 0x80 && utf7encode[cc] < 1))
                         break;
                 }
-
                 if (l != 0)
                 {
                     if (buf)
                         *buf++ = utf7enb64[((d % 16) << (6 - l)) % 64];
-
                     len++;
                 }
             }
-
             if (buf)
                 *buf++ = '-';
             len++;
         }
     }
-
     if (buf && (len < n))
         *buf = 0;
-
     return len;
 }
 
@@ -728,7 +587,6 @@ size_t wxMBConvUTF8::MB2WC(wchar_t *buf, const char *psz, size_t n) const
         unsigned cnt;
         for (cnt = 0; fc & 0x80; cnt++)
             fc <<= 1;
-
         if (!cnt)
         {
             // plain ASCII char
@@ -766,11 +624,9 @@ size_t wxMBConvUTF8::MB2WC(wchar_t *buf, const char *psz, size_t n) const
                         invalid = true;
                         break;
                     }
-
                     psz++;
                     res = (res << 6) | (cc & 0x3f);
                 }
-
                 if (invalid || res <= utf8_max[ocnt])
                 {
                     // illegal UTF-8 encoding
@@ -789,7 +645,7 @@ size_t wxMBConvUTF8::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 #ifdef WC_UTF16
                     // cast is ok because wchar_t == wxUuint16 if WC_UTF16
                     size_t pa = encode_utf16(res, (wxUint16 *)buf);
-                    if (pa == wxCONV_FAILED)
+                    if (pa == (size_t)-1)
                     {
                         invalid = true;
                     }
@@ -806,7 +662,6 @@ size_t wxMBConvUTF8::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 #endif // WC_UTF16/!WC_UTF16
                 }
             }
-
             if (invalid)
             {
                 if (m_options & MAP_INVALID_UTF8_TO_PUA)
@@ -816,7 +671,7 @@ size_t wxMBConvUTF8::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 #ifdef WC_UTF16
                         // cast is ok because wchar_t == wxUuint16 if WC_UTF16
                         size_t pa = encode_utf16((unsigned char)*opsz + wxUnicodePUA, (wxUint16 *)buf);
-                        wxASSERT(pa != wxCONV_FAILED);
+                        wxASSERT(pa != (size_t)-1);
                         if (buf)
                             buf += pa;
                         opsz++;
@@ -841,22 +696,19 @@ size_t wxMBConvUTF8::MB2WC(wchar_t *buf, const char *psz, size_t n) const
                             *buf++ = (wchar_t)( L'0' + (on % 0100) / 010 );
                             *buf++ = (wchar_t)( L'0' + on % 010 );
                         }
-
                         opsz++;
                         len += 4;
                     }
                 }
                 else // MAP_INVALID_UTF8_NOT
                 {
-                    return wxCONV_FAILED;
+                    return (size_t)-1;
                 }
             }
         }
     }
-
     if (buf && (len < n))
         *buf = 0;
-
     return len;
 }
 
@@ -872,13 +724,12 @@ size_t wxMBConvUTF8::WC2MB(char *buf, const wchar_t *psz, size_t n) const
     while (*psz && ((!buf) || (len < n)))
     {
         wxUint32 cc;
-
 #ifdef WC_UTF16
         // cast is ok for WC_UTF16
         size_t pa = decode_utf16((const wxUint16 *)psz, cc);
-        psz += (pa == wxCONV_FAILED) ? 1 : pa;
+        psz += (pa == (size_t)-1) ? 1 : pa;
 #else
-        cc = (*psz++) & 0x7fffffff;
+        cc=(*psz++) & 0x7fffffff;
 #endif
 
         if ( (m_options & MAP_INVALID_UTF8_TO_PUA)
@@ -902,8 +753,8 @@ size_t wxMBConvUTF8::WC2MB(char *buf, const wchar_t *psz, size_t n) const
         {
             if (buf)
             {
-                *buf++ = (char) ((psz[0] - L'0') * 0100 +
-                                 (psz[1] - L'0') * 010 +
+                *buf++ = (char) ((psz[0] - L'0')*0100 +
+                                 (psz[1] - L'0')*010 +
                                  (psz[2] - L'0'));
             }
 
@@ -913,10 +764,7 @@ size_t wxMBConvUTF8::WC2MB(char *buf, const wchar_t *psz, size_t n) const
         else
         {
             unsigned cnt;
-            for (cnt = 0; cc > utf8_max[cnt]; cnt++)
-            {
-            }
-
+            for (cnt = 0; cc > utf8_max[cnt]; cnt++) {}
             if (!cnt)
             {
                 // plain ASCII char
@@ -924,6 +772,7 @@ size_t wxMBConvUTF8::WC2MB(char *buf, const wchar_t *psz, size_t n) const
                     *buf++ = (char) cc;
                 len++;
             }
+
             else
             {
                 len += cnt + 1;
@@ -937,15 +786,15 @@ size_t wxMBConvUTF8::WC2MB(char *buf, const wchar_t *psz, size_t n) const
         }
     }
 
-    if (buf && (len < n))
+    if (buf && (len<n))
         *buf = 0;
 
     return len;
 }
 
-// ============================================================================
+// ----------------------------------------------------------------------------
 // UTF-16
-// ============================================================================
+// ----------------------------------------------------------------------------
 
 #ifdef WORDS_BIGENDIAN
     #define wxMBConvUTF16straight wxMBConvUTF16BE
@@ -955,589 +804,457 @@ size_t wxMBConvUTF8::WC2MB(char *buf, const wchar_t *psz, size_t n) const
     #define wxMBConvUTF16straight wxMBConvUTF16LE
 #endif
 
-/* static */
-size_t wxMBConvUTF16Base::GetLength(const char *src, size_t srcLen)
-{
-    if ( srcLen == wxNO_LEN )
-    {
-        // count the number of bytes in input, including the trailing NULs
-        const wxUint16 *inBuff = wx_reinterpret_cast(const wxUint16 *, src);
-        for ( srcLen = 1; *inBuff++; srcLen++ )
-            ;
 
-        srcLen *= BYTES_PER_CHAR;
-    }
-    else // we already have the length
-    {
-        // we can only convert an entire number of UTF-16 characters
-        if ( srcLen % BYTES_PER_CHAR )
-            return wxCONV_FAILED;
-    }
-
-    return srcLen;
-}
-
-// case when in-memory representation is UTF-16 too
 #ifdef WC_UTF16
 
-// ----------------------------------------------------------------------------
-// conversions without endianness change
-// ----------------------------------------------------------------------------
-
-size_t
-wxMBConvUTF16straight::ToWChar(wchar_t *dst, size_t dstLen,
-                               const char *src, size_t srcLen) const
+// copy 16bit MB to 16bit String
+size_t wxMBConvUTF16straight::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 {
-    // set up the scene for using memcpy() (which is presumably more efficient
-    // than copying the bytes one by one)
-    srcLen = GetLength(src, srcLen);
-    if ( srcLen == wxNO_LEN )
-        return wxCONV_FAILED;
+    size_t len=0;
 
-    const size_t inLen = srcLen / BYTES_PER_CHAR;
-    if ( dst )
+    while (*(wxUint16*)psz && (!buf || len < n))
     {
-        if ( dstLen < inLen )
-            return wxCONV_FAILED;
+        if (buf)
+            *buf++ = *(wxUint16*)psz;
+        len++;
 
-        memcpy(dst, src, srcLen);
+        psz += sizeof(wxUint16);
     }
+    if (buf && len<n)   *buf=0;
 
-    return inLen;
+    return len;
 }
 
-size_t
-wxMBConvUTF16straight::FromWChar(char *dst, size_t dstLen,
-                                 const wchar_t *src, size_t srcLen) const
+
+// copy 16bit String to 16bit MB
+size_t wxMBConvUTF16straight::WC2MB(char *buf, const wchar_t *psz, size_t n) const
 {
-    if ( srcLen == wxNO_LEN )
-        srcLen = wxWcslen(src) + 1;
+    size_t len=0;
 
-    srcLen *= BYTES_PER_CHAR;
-
-    if ( dst )
+    while (*psz && (!buf || len < n))
     {
-        if ( dstLen < srcLen )
-            return wxCONV_FAILED;
-
-        memcpy(dst, src, srcLen);
-    }
-
-    return srcLen;
-}
-
-// ----------------------------------------------------------------------------
-// endian-reversing conversions
-// ----------------------------------------------------------------------------
-
-size_t
-wxMBConvUTF16swap::ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen) const
-{
-    srcLen = GetLength(src, srcLen);
-    if ( srcLen == wxNO_LEN )
-        return wxCONV_FAILED;
-
-    srcLen /= BYTES_PER_CHAR;
-
-    if ( dst )
-    {
-        if ( dstLen < srcLen )
-            return wxCONV_FAILED;
-
-        const wxUint16 *inBuff = wx_reinterpret_cast(const wxUint16 *, src);
-        for ( size_t n = 0; n < srcLen; n++, inBuff++ )
+        if (buf)
         {
-            *dst++ = wxUINT16_SWAP_ALWAYS(*inBuff);
+            *(wxUint16*)buf = *psz;
+            buf += sizeof(wxUint16);
         }
+        len += sizeof(wxUint16);
+        psz++;
     }
+    if (buf && len<=n-sizeof(wxUint16))   *(wxUint16*)buf=0;
 
-    return srcLen;
+    return len;
 }
 
-size_t
-wxMBConvUTF16swap::FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen) const
+
+// swap 16bit MB to 16bit String
+size_t wxMBConvUTF16swap::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 {
-    if ( srcLen == wxNO_LEN )
-        srcLen = wxWcslen(src) + 1;
+    size_t len=0;
 
-    srcLen *= BYTES_PER_CHAR;
-
-    if ( dst )
+    while (*(wxUint16*)psz && (!buf || len < n))
     {
-        if ( dstLen < srcLen )
-            return wxCONV_FAILED;
-
-        wxUint16 *outBuff = wx_reinterpret_cast(wxUint16 *, dst);
-        for ( size_t n = 0; n < srcLen; n += BYTES_PER_CHAR, src++ )
+        if (buf)
         {
-            *outBuff++ = wxUINT16_SWAP_ALWAYS(*src);
+            ((char *)buf)[0] = psz[1];
+            ((char *)buf)[1] = psz[0];
+            buf++;
         }
+        len++;
+        psz += sizeof(wxUint16);
     }
+    if (buf && len<n)   *buf=0;
 
-    return srcLen;
+    return len;
 }
 
-#else // !WC_UTF16: wchar_t is UTF-32
 
-// ----------------------------------------------------------------------------
-// conversions without endianness change
-// ----------------------------------------------------------------------------
-
-size_t
-wxMBConvUTF16straight::ToWChar(wchar_t *dst, size_t dstLen,
-                               const char *src, size_t srcLen) const
+// swap 16bit MB to 16bit String
+size_t wxMBConvUTF16swap::WC2MB(char *buf, const wchar_t *psz, size_t n) const
 {
-    srcLen = GetLength(src, srcLen);
-    if ( srcLen == wxNO_LEN )
-        return wxCONV_FAILED;
+    size_t len=0;
 
-    const size_t inLen = srcLen / BYTES_PER_CHAR;
-    if ( !dst )
+    while (*psz && (!buf || len < n))
     {
-        // optimization: return maximal space which could be needed for this
-        // string even if the real size could be smaller if the buffer contains
-        // any surrogates
-        return inLen;
+        if (buf)
+        {
+            *buf++ = ((char*)psz)[1];
+            *buf++ = ((char*)psz)[0];
+        }
+        len += sizeof(wxUint16);
+        psz++;
     }
+    if (buf && len<=n-sizeof(wxUint16))   *(wxUint16*)buf=0;
 
-    size_t outLen = 0;
-    const wxUint16 *inBuff = wx_reinterpret_cast(const wxUint16 *, src);
-    for ( const wxUint16 * const inEnd = inBuff + inLen; inBuff < inEnd; )
-    {
-        const wxUint32 ch = wxDecodeSurrogate(&inBuff);
-        if ( !inBuff )
-            return wxCONV_FAILED;
-
-        if ( ++outLen > dstLen )
-            return wxCONV_FAILED;
-
-        *dst++ = ch;
-    }
-
-
-    return outLen;
+    return len;
 }
 
-size_t
-wxMBConvUTF16straight::FromWChar(char *dst, size_t dstLen,
-                                 const wchar_t *src, size_t srcLen) const
-{
-    if ( srcLen == wxNO_LEN )
-        srcLen = wxWcslen(src) + 1;
 
-    size_t outLen = 0;
-    wxUint16 *outBuff = wx_reinterpret_cast(wxUint16 *, dst);
-    for ( size_t n = 0; n < srcLen; n++ )
+#else // WC_UTF16
+
+
+// copy 16bit MB to 32bit String
+size_t wxMBConvUTF16straight::MB2WC(wchar_t *buf, const char *psz, size_t n) const
+{
+    size_t len=0;
+
+    while (*(wxUint16*)psz && (!buf || len < n))
+    {
+        wxUint32 cc;
+        size_t pa=decode_utf16((wxUint16*)psz, cc);
+        if (pa == (size_t)-1)
+            return pa;
+
+        if (buf)
+            *buf++ = (wchar_t)cc;
+        len++;
+        psz += pa * sizeof(wxUint16);
+    }
+    if (buf && len<n)   *buf=0;
+
+    return len;
+}
+
+
+// copy 32bit String to 16bit MB
+size_t wxMBConvUTF16straight::WC2MB(char *buf, const wchar_t *psz, size_t n) const
+{
+    size_t len=0;
+
+    while (*psz && (!buf || len < n))
     {
         wxUint16 cc[2];
-        const size_t numChars = encode_utf16(*src++, cc);
-        if ( numChars == wxCONV_FAILED )
-            return wxCONV_FAILED;
+        size_t pa=encode_utf16(*psz, cc);
 
-        outLen += numChars * BYTES_PER_CHAR;
-        if ( outBuff )
+        if (pa == (size_t)-1)
+            return pa;
+
+        if (buf)
         {
-            if ( outLen > dstLen )
-                return wxCONV_FAILED;
-
-            *outBuff++ = cc[0];
-            if ( numChars == 2 )
+            *(wxUint16*)buf = cc[0];
+            buf += sizeof(wxUint16);
+            if (pa > 1)
             {
-                // second character of a surrogate
-                *outBuff++ = cc[1];
+                *(wxUint16*)buf = cc[1];
+                buf += sizeof(wxUint16);
             }
         }
-    }
 
-    return outLen;
+        len += pa*sizeof(wxUint16);
+        psz++;
+    }
+    if (buf && len<=n-sizeof(wxUint16))   *(wxUint16*)buf=0;
+
+    return len;
 }
 
-// ----------------------------------------------------------------------------
-// endian-reversing conversions
-// ----------------------------------------------------------------------------
 
-size_t
-wxMBConvUTF16swap::ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen) const
+// swap 16bit MB to 32bit String
+size_t wxMBConvUTF16swap::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 {
-    srcLen = GetLength(src, srcLen);
-    if ( srcLen == wxNO_LEN )
-        return wxCONV_FAILED;
+    size_t len=0;
 
-    const size_t inLen = srcLen / BYTES_PER_CHAR;
-    if ( !dst )
+    while (*(wxUint16*)psz && (!buf || len < n))
     {
-        // optimization: return maximal space which could be needed for this
-        // string even if the real size could be smaller if the buffer contains
-        // any surrogates
-        return inLen;
+        wxUint32 cc;
+        char tmp[4];
+        tmp[0]=psz[1];  tmp[1]=psz[0];
+        tmp[2]=psz[3];  tmp[3]=psz[2];
+
+        size_t pa=decode_utf16((wxUint16*)tmp, cc);
+        if (pa == (size_t)-1)
+            return pa;
+
+        if (buf)
+            *buf++ = (wchar_t)cc;
+
+        len++;
+        psz += pa * sizeof(wxUint16);
     }
+    if (buf && len<n)   *buf=0;
 
-    size_t outLen = 0;
-    const wxUint16 *inBuff = wx_reinterpret_cast(const wxUint16 *, src);
-    for ( const wxUint16 * const inEnd = inBuff + inLen; inBuff < inEnd; )
-    {
-        wxUint32 ch;
-        wxUint16 tmp[2];
-
-        tmp[0] = wxUINT16_SWAP_ALWAYS(*inBuff);
-        inBuff++;
-        tmp[1] = wxUINT16_SWAP_ALWAYS(*inBuff);
-
-        const size_t numChars = decode_utf16(tmp, ch);
-        if ( numChars == wxCONV_FAILED )
-            return wxCONV_FAILED;
-
-        if ( numChars == 2 )
-            inBuff++;
-
-        if ( ++outLen > dstLen )
-            return wxCONV_FAILED;
-
-        *dst++ = ch;
-    }
-
-
-    return outLen;
+    return len;
 }
 
-size_t
-wxMBConvUTF16swap::FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen) const
-{
-    if ( srcLen == wxNO_LEN )
-        srcLen = wxWcslen(src) + 1;
 
-    size_t outLen = 0;
-    wxUint16 *outBuff = wx_reinterpret_cast(wxUint16 *, dst);
-    for ( const wchar_t *srcEnd = src + srcLen; src < srcEnd; src++ )
+// swap 32bit String to 16bit MB
+size_t wxMBConvUTF16swap::WC2MB(char *buf, const wchar_t *psz, size_t n) const
+{
+    size_t len=0;
+
+    while (*psz && (!buf || len < n))
     {
         wxUint16 cc[2];
-        const size_t numChars = encode_utf16(*src, cc);
-        if ( numChars == wxCONV_FAILED )
-            return wxCONV_FAILED;
+        size_t pa=encode_utf16(*psz, cc);
 
-        outLen += numChars * BYTES_PER_CHAR;
-        if ( outBuff )
+        if (pa == (size_t)-1)
+            return pa;
+
+        if (buf)
         {
-            if ( outLen > dstLen )
-                return wxCONV_FAILED;
-
-            *outBuff++ = wxUINT16_SWAP_ALWAYS(cc[0]);
-            if ( numChars == 2 )
+            *buf++ = ((char*)cc)[1];
+            *buf++ = ((char*)cc)[0];
+            if (pa > 1)
             {
-                // second character of a surrogate
-                *outBuff++ = wxUINT16_SWAP_ALWAYS(cc[1]);
+                *buf++ = ((char*)cc)[3];
+                *buf++ = ((char*)cc)[2];
             }
         }
-    }
 
-    return outLen;
+        len += pa*sizeof(wxUint16);
+        psz++;
+    }
+    if (buf && len<=n-sizeof(wxUint16))   *(wxUint16*)buf=0;
+
+    return len;
 }
 
-#endif // WC_UTF16/!WC_UTF16
+#endif // WC_UTF16
 
 
-// ============================================================================
+// ----------------------------------------------------------------------------
 // UTF-32
-// ============================================================================
+// ----------------------------------------------------------------------------
 
 #ifdef WORDS_BIGENDIAN
-    #define wxMBConvUTF32straight  wxMBConvUTF32BE
-    #define wxMBConvUTF32swap      wxMBConvUTF32LE
+#define wxMBConvUTF32straight  wxMBConvUTF32BE
+#define wxMBConvUTF32swap      wxMBConvUTF32LE
 #else
-    #define wxMBConvUTF32swap      wxMBConvUTF32BE
-    #define wxMBConvUTF32straight  wxMBConvUTF32LE
+#define wxMBConvUTF32swap      wxMBConvUTF32BE
+#define wxMBConvUTF32straight  wxMBConvUTF32LE
 #endif
 
 
 WXDLLIMPEXP_DATA_BASE(wxMBConvUTF32LE) wxConvUTF32LE;
 WXDLLIMPEXP_DATA_BASE(wxMBConvUTF32BE) wxConvUTF32BE;
 
-/* static */
-size_t wxMBConvUTF32Base::GetLength(const char *src, size_t srcLen)
-{
-    if ( srcLen == wxNO_LEN )
-    {
-        // count the number of bytes in input, including the trailing NULs
-        const wxUint32 *inBuff = wx_reinterpret_cast(const wxUint32 *, src);
-        for ( srcLen = 1; *inBuff++; srcLen++ )
-            ;
 
-        srcLen *= BYTES_PER_CHAR;
-    }
-    else // we already have the length
-    {
-        // we can only convert an entire number of UTF-32 characters
-        if ( srcLen % BYTES_PER_CHAR )
-            return wxCONV_FAILED;
-    }
-
-    return srcLen;
-}
-
-// case when in-memory representation is UTF-16
 #ifdef WC_UTF16
 
-// ----------------------------------------------------------------------------
-// conversions without endianness change
-// ----------------------------------------------------------------------------
-
-size_t
-wxMBConvUTF32straight::ToWChar(wchar_t *dst, size_t dstLen,
-                               const char *src, size_t srcLen) const
+// copy 32bit MB to 16bit String
+size_t wxMBConvUTF32straight::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 {
-    srcLen = GetLength(src, srcLen);
-    if ( srcLen == wxNO_LEN )
-        return wxCONV_FAILED;
+    size_t len=0;
 
-    const wxUint32 *inBuff = wx_reinterpret_cast(const wxUint32 *, src);
-    const size_t inLen = srcLen / BYTES_PER_CHAR;
-    size_t outLen = 0;
-    for ( size_t n = 0; n < inLen; n++ )
+    while (*(wxUint32*)psz && (!buf || len < n))
     {
         wxUint16 cc[2];
-        const size_t numChars = encode_utf16(*inBuff++, cc);
-        if ( numChars == wxCONV_FAILED )
-            return wxCONV_FAILED;
 
-        outLen += numChars;
-        if ( dst )
+        size_t pa=encode_utf16(*(wxUint32*)psz, cc);
+        if (pa == (size_t)-1)
+            return pa;
+
+        if (buf)
         {
-            if ( outLen > dstLen )
-                return wxCONV_FAILED;
-
-            *dst++ = cc[0];
-            if ( numChars == 2 )
-            {
-                // second character of a surrogate
-                *dst++ = cc[1];
-            }
+            *buf++ = cc[0];
+            if (pa > 1)
+                *buf++ = cc[1];
         }
+        len += pa;
+        psz += sizeof(wxUint32);
     }
+    if (buf && len<n)   *buf=0;
 
-    return outLen;
+    return len;
 }
 
-size_t
-wxMBConvUTF32straight::FromWChar(char *dst, size_t dstLen,
-                                 const wchar_t *src, size_t srcLen) const
+
+// copy 16bit String to 32bit MB
+size_t wxMBConvUTF32straight::WC2MB(char *buf, const wchar_t *psz, size_t n) const
 {
-    if ( srcLen == wxNO_LEN )
-        srcLen = wxWcslen(src) + 1;
+    size_t len=0;
 
-    if ( !dst )
+    while (*psz && (!buf || len < n))
     {
-        // optimization: return maximal space which could be needed for this
-        // string instead of the exact amount which could be less if there are
-        // any surrogates in the input
-        //
-        // we consider that surrogates are rare enough to make it worthwhile to
-        // avoid running the loop below at the cost of slightly extra memory
-        // consumption
-        return srcLen * BYTES_PER_CHAR;
+        wxUint32 cc;
+
+        // cast is ok for WC_UTF16
+        size_t pa = decode_utf16((const wxUint16 *)psz, cc);
+        if (pa == (size_t)-1)
+            return pa;
+
+        if (buf)
+        {
+            *(wxUint32*)buf = cc;
+            buf += sizeof(wxUint32);
+        }
+        len += sizeof(wxUint32);
+        psz += pa;
     }
 
-    wxUint32 *outBuff = wx_reinterpret_cast(wxUint32 *, dst);
-    size_t outLen = 0;
-    for ( const wchar_t * const srcEnd = src + srcLen; src < srcEnd; )
-    {
-        const wxUint32 ch = wxDecodeSurrogate(&src);
-        if ( !src )
-            return wxCONV_FAILED;
+    if (buf && len<=n-sizeof(wxUint32))
+        *(wxUint32*)buf=0;
 
-        outLen += BYTES_PER_CHAR;
-
-        if ( outLen > dstLen )
-            return wxCONV_FAILED;
-
-        *outBuff++ = ch;
-    }
-
-    return outLen;
+    return len;
 }
 
-// ----------------------------------------------------------------------------
-// endian-reversing conversions
-// ----------------------------------------------------------------------------
 
-size_t
-wxMBConvUTF32swap::ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen) const
+
+// swap 32bit MB to 16bit String
+size_t wxMBConvUTF32swap::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 {
-    srcLen = GetLength(src, srcLen);
-    if ( srcLen == wxNO_LEN )
-        return wxCONV_FAILED;
+    size_t len=0;
 
-    const wxUint32 *inBuff = wx_reinterpret_cast(const wxUint32 *, src);
-    const size_t inLen = srcLen / BYTES_PER_CHAR;
-    size_t outLen = 0;
-    for ( size_t n = 0; n < inLen; n++, inBuff++ )
+    while (*(wxUint32*)psz && (!buf || len < n))
     {
+        char tmp[4];
+        tmp[0] = psz[3];   tmp[1] = psz[2];
+        tmp[2] = psz[1];   tmp[3] = psz[0];
+
+
         wxUint16 cc[2];
-        const size_t numChars = encode_utf16(wxUINT32_SWAP_ALWAYS(*inBuff), cc);
-        if ( numChars == wxCONV_FAILED )
-            return wxCONV_FAILED;
 
-        outLen += numChars;
-        if ( dst )
+        size_t pa=encode_utf16(*(wxUint32*)tmp, cc);
+        if (pa == (size_t)-1)
+            return pa;
+
+        if (buf)
         {
-            if ( outLen > dstLen )
-                return wxCONV_FAILED;
-
-            *dst++ = cc[0];
-            if ( numChars == 2 )
-            {
-                // second character of a surrogate
-                *dst++ = cc[1];
-            }
+            *buf++ = cc[0];
+            if (pa > 1)
+                *buf++ = cc[1];
         }
+        len += pa;
+        psz += sizeof(wxUint32);
     }
 
-    return outLen;
+    if (buf && len<n)
+        *buf=0;
+
+    return len;
 }
 
-size_t
-wxMBConvUTF32swap::FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen) const
+
+// swap 16bit String to 32bit MB
+size_t wxMBConvUTF32swap::WC2MB(char *buf, const wchar_t *psz, size_t n) const
 {
-    if ( srcLen == wxNO_LEN )
-        srcLen = wxWcslen(src) + 1;
+    size_t len=0;
 
-    if ( !dst )
+    while (*psz && (!buf || len < n))
     {
-        // optimization: return maximal space which could be needed for this
-        // string instead of the exact amount which could be less if there are
-        // any surrogates in the input
-        //
-        // we consider that surrogates are rare enough to make it worthwhile to
-        // avoid running the loop below at the cost of slightly extra memory
-        // consumption
-        return srcLen*BYTES_PER_CHAR;
-    }
+        char cc[4];
 
-    wxUint32 *outBuff = wx_reinterpret_cast(wxUint32 *, dst);
-    size_t outLen = 0;
-    for ( const wchar_t * const srcEnd = src + srcLen; src < srcEnd; )
-    {
-        const wxUint32 ch = wxDecodeSurrogate(&src);
-        if ( !src )
-            return wxCONV_FAILED;
+        // cast is ok for WC_UTF16
+        size_t pa=decode_utf16((const wxUint16 *)psz, *(wxUint32*)cc);
+        if (pa == (size_t)-1)
+            return pa;
 
-        outLen += BYTES_PER_CHAR;
-
-        if ( outLen > dstLen )
-            return wxCONV_FAILED;
-
-        *outBuff++ = wxUINT32_SWAP_ALWAYS(ch);
-    }
-
-    return outLen;
-}
-
-#else // !WC_UTF16: wchar_t is UTF-32
-
-// ----------------------------------------------------------------------------
-// conversions without endianness change
-// ----------------------------------------------------------------------------
-
-size_t
-wxMBConvUTF32straight::ToWChar(wchar_t *dst, size_t dstLen,
-                               const char *src, size_t srcLen) const
-{
-    // use memcpy() as it should be much faster than hand-written loop
-    srcLen = GetLength(src, srcLen);
-    if ( srcLen == wxNO_LEN )
-        return wxCONV_FAILED;
-
-    const size_t inLen = srcLen/BYTES_PER_CHAR;
-    if ( dst )
-    {
-        if ( dstLen < inLen )
-            return wxCONV_FAILED;
-
-        memcpy(dst, src, srcLen);
-    }
-
-    return inLen;
-}
-
-size_t
-wxMBConvUTF32straight::FromWChar(char *dst, size_t dstLen,
-                                 const wchar_t *src, size_t srcLen) const
-{
-    if ( srcLen == wxNO_LEN )
-        srcLen = wxWcslen(src) + 1;
-
-    srcLen *= BYTES_PER_CHAR;
-
-    if ( dst )
-    {
-        if ( dstLen < srcLen )
-            return wxCONV_FAILED;
-
-        memcpy(dst, src, srcLen);
-    }
-
-    return srcLen;
-}
-
-// ----------------------------------------------------------------------------
-// endian-reversing conversions
-// ----------------------------------------------------------------------------
-
-size_t
-wxMBConvUTF32swap::ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen) const
-{
-    srcLen = GetLength(src, srcLen);
-    if ( srcLen == wxNO_LEN )
-        return wxCONV_FAILED;
-
-    srcLen /= BYTES_PER_CHAR;
-
-    if ( dst )
-    {
-        if ( dstLen < srcLen )
-            return wxCONV_FAILED;
-
-        const wxUint32 *inBuff = wx_reinterpret_cast(const wxUint32 *, src);
-        for ( size_t n = 0; n < srcLen; n++, inBuff++ )
+        if (buf)
         {
-            *dst++ = wxUINT32_SWAP_ALWAYS(*inBuff);
+            *buf++ = cc[3];
+            *buf++ = cc[2];
+            *buf++ = cc[1];
+            *buf++ = cc[0];
         }
+        len += sizeof(wxUint32);
+        psz += pa;
     }
 
-    return srcLen;
+    if (buf && len<=n-sizeof(wxUint32))
+        *(wxUint32*)buf=0;
+
+    return len;
 }
 
-size_t
-wxMBConvUTF32swap::FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen) const
+#else // WC_UTF16
+
+
+// copy 32bit MB to 32bit String
+size_t wxMBConvUTF32straight::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 {
-    if ( srcLen == wxNO_LEN )
-        srcLen = wxWcslen(src) + 1;
+    size_t len=0;
 
-    srcLen *= BYTES_PER_CHAR;
-
-    if ( dst )
+    while (*(wxUint32*)psz && (!buf || len < n))
     {
-        if ( dstLen < srcLen )
-            return wxCONV_FAILED;
-
-        wxUint32 *outBuff = wx_reinterpret_cast(wxUint32 *, dst);
-        for ( size_t n = 0; n < srcLen; n += BYTES_PER_CHAR, src++ )
-        {
-            *outBuff++ = wxUINT32_SWAP_ALWAYS(*src);
-        }
+        if (buf)
+            *buf++ = (wchar_t)(*(wxUint32*)psz);
+        len++;
+        psz += sizeof(wxUint32);
     }
 
-    return srcLen;
+    if (buf && len<n)
+        *buf=0;
+
+    return len;
 }
 
-#endif // WC_UTF16/!WC_UTF16
+
+// copy 32bit String to 32bit MB
+size_t wxMBConvUTF32straight::WC2MB(char *buf, const wchar_t *psz, size_t n) const
+{
+    size_t len=0;
+
+    while (*psz && (!buf || len < n))
+    {
+        if (buf)
+        {
+            *(wxUint32*)buf = *psz;
+            buf += sizeof(wxUint32);
+        }
+
+        len += sizeof(wxUint32);
+        psz++;
+    }
+
+    if (buf && len<=n-sizeof(wxUint32))
+        *(wxUint32*)buf=0;
+
+    return len;
+}
+
+
+// swap 32bit MB to 32bit String
+size_t wxMBConvUTF32swap::MB2WC(wchar_t *buf, const char *psz, size_t n) const
+{
+    size_t len=0;
+
+    while (*(wxUint32*)psz && (!buf || len < n))
+    {
+        if (buf)
+        {
+            ((char *)buf)[0] = psz[3];
+            ((char *)buf)[1] = psz[2];
+            ((char *)buf)[2] = psz[1];
+            ((char *)buf)[3] = psz[0];
+            buf++;
+        }
+        len++;
+        psz += sizeof(wxUint32);
+    }
+
+    if (buf && len<n)
+        *buf=0;
+
+    return len;
+}
+
+
+// swap 32bit String to 32bit MB
+size_t wxMBConvUTF32swap::WC2MB(char *buf, const wchar_t *psz, size_t n) const
+{
+    size_t len=0;
+
+    while (*psz && (!buf || len < n))
+    {
+        if (buf)
+        {
+            *buf++ = ((char *)psz)[3];
+            *buf++ = ((char *)psz)[2];
+            *buf++ = ((char *)psz)[1];
+            *buf++ = ((char *)psz)[0];
+        }
+        len += sizeof(wxUint32);
+        psz++;
+    }
+
+    if (buf && len<=n-sizeof(wxUint32))
+        *(wxUint32*)buf=0;
+
+    return len;
+}
+
+
+#endif // WC_UTF16
 
 
 // ============================================================================
@@ -1589,25 +1306,14 @@ public:
     virtual size_t MB2WC(wchar_t *buf, const char *psz, size_t n) const;
     virtual size_t WC2MB(char *buf, const wchar_t *psz, size_t n) const;
 
-    // classify this encoding as explained in wxMBConv::GetMBNulLen() comment
-    virtual size_t GetMBNulLen() const;
-
-    virtual wxMBConv *Clone() const
-    {
-        wxMBConv_iconv *p = new wxMBConv_iconv(m_name);
-        p->m_minMBCharWidth = m_minMBCharWidth;
-        return p;
-    }
-
     bool IsOk() const
         { return (m2w != ICONV_T_INVALID) && (w2m != ICONV_T_INVALID); }
 
 protected:
-    // the iconv handlers used to translate from multibyte
-    // to wide char and in the other direction
+    // the iconv handlers used to translate from multibyte to wide char and in
+    // the other direction
     iconv_t m2w,
             w2m;
-
 #if wxUSE_THREADS
     // guards access to m2w and w2m objects
     wxMutex m_iconvMutex;
@@ -1621,14 +1327,6 @@ private:
     // true if the wide char encoding we use (i.e. ms_wcCharsetName) has
     // different endian-ness than the native one
     static bool ms_wcNeedsSwap;
-
-
-    // name of the encoding handled by this conversion
-    wxString m_name;
-
-    // cached result of GetMBNulLen(); set to 0 meaning "unknown"
-    // initially
-    size_t m_minMBCharWidth;
 };
 
 // make the constructor available for unit testing
@@ -1640,7 +1338,6 @@ WXDLLIMPEXP_BASE wxMBConv* new_wxMBConv_iconv( const wxChar* name )
         delete result;
         return 0;
     }
-
     return result;
 }
 
@@ -1648,10 +1345,7 @@ wxString wxMBConv_iconv::ms_wcCharsetName;
 bool wxMBConv_iconv::ms_wcNeedsSwap = false;
 
 wxMBConv_iconv::wxMBConv_iconv(const wxChar *name)
-              : m_name(name)
 {
-    m_minMBCharWidth = 0;
-
     // iconv operates with chars, not wxChars, but luckily it uses only ASCII
     // names for the charsets
     const wxCharBuffer cname(wxString(name).ToAscii());
@@ -1681,12 +1375,11 @@ wxMBConv_iconv::wxMBConv_iconv(const wxChar *name)
 
             // first try charset with explicit bytesex info (e.g. "UCS-4LE"):
             wxString nameXE(nameCS);
-
-#ifdef WORDS_BIGENDIAN
+            #ifdef WORDS_BIGENDIAN
                 nameXE += _T("BE");
-#else // little endian
+            #else // little endian
                 nameXE += _T("LE");
-#endif
+            #endif
 
             wxLogTrace(TRACE_STRCONV, _T("  trying charset \"%s\""),
                        nameXE.c_str());
@@ -1715,9 +1408,8 @@ wxMBConv_iconv::wxMBConv_iconv(const wxChar *name)
                     wbufPtr = wbuf;
                     bufPtr = buf;
 
-                    res = iconv(
-                        m2w, ICONV_CHAR_CAST(&bufPtr), &insz,
-                        (char**)&wbufPtr, &outsz);
+                    res = iconv(m2w, ICONV_CHAR_CAST(&bufPtr), &insz,
+                                (char**)&wbufPtr, &outsz);
 
                     if (ICONV_FAILED(res, insz))
                     {
@@ -1776,31 +1468,6 @@ wxMBConv_iconv::~wxMBConv_iconv()
 
 size_t wxMBConv_iconv::MB2WC(wchar_t *buf, const char *psz, size_t n) const
 {
-    // find the string length: notice that must be done differently for
-    // NUL-terminated strings and UTF-16/32 which are terminated with 2/4 NULs
-    size_t inbuf;
-    const size_t nulLen = GetMBNulLen();
-    switch ( nulLen )
-    {
-        default:
-            return wxCONV_FAILED;
-
-        case 1:
-            inbuf = strlen(psz); // arguably more optimized than our version
-            break;
-
-        case 2:
-        case 4:
-            // for UTF-16/32 not only we need to have 2/4 consecutive NULs but
-            // they also have to start at character boundary and not span two
-            // adjacent characters
-            const char *p;
-            for ( p = psz; NotAllNULs(p, nulLen); p += nulLen )
-                ;
-            inbuf = p - psz;
-            break;
-    }
-
 #if wxUSE_THREADS
     // NB: iconv() is MT-safe, but each thread must use it's own iconv_t handle.
     //     Unfortunately there is a couple of global wxCSConv objects such as
@@ -1809,8 +1476,9 @@ size_t wxMBConv_iconv::MB2WC(wchar_t *buf, const char *psz, size_t n) const
     //     only a few wx classes would be safe to use from non-main threads
     //     as MB<->WC conversion would fail "randomly".
     wxMutexLocker lock(wxConstCast(this, wxMBConv_iconv)->m_iconvMutex);
-#endif // wxUSE_THREADS
+#endif
 
+    size_t inbuf = strlen(psz);
     size_t outbuf = n * SIZEOF_WCHAR_T;
     size_t res, cres;
     // VS: Use these instead of psz, buf because iconv() modifies its arguments:
@@ -1832,7 +1500,9 @@ size_t wxMBConv_iconv::MB2WC(wchar_t *buf, const char *psz, size_t n) const
                 buf[n] = WC_BSWAP(buf[i]);
         }
 
-        // NUL-terminate the string if there is any space left
+        // NB: iconv was given only strlen(psz) characters on input, and so
+        //     it couldn't convert the trailing zero. Let's do it ourselves
+        //     if there's some room left for it in the output buffer.
         if (res < n)
             buf[res] = 0;
     }
@@ -1842,26 +1512,23 @@ size_t wxMBConv_iconv::MB2WC(wchar_t *buf, const char *psz, size_t n) const
         // to calculate destination buffer requirement
         wchar_t tbuf[8];
         res = 0;
-
-        do
-        {
+        do {
             bufPtr = tbuf;
-            outbuf = 8 * SIZEOF_WCHAR_T;
+            outbuf = 8*SIZEOF_WCHAR_T;
 
             cres = iconv(m2w,
                          ICONV_CHAR_CAST(&pszPtr), &inbuf,
                          (char**)&bufPtr, &outbuf );
 
-            res += 8 - (outbuf / SIZEOF_WCHAR_T);
-        }
-        while ((cres == (size_t)-1) && (errno == E2BIG));
+            res += 8-(outbuf/SIZEOF_WCHAR_T);
+        } while ((cres==(size_t)-1) && (errno==E2BIG));
     }
 
     if (ICONV_FAILED(cres, inbuf))
     {
         //VS: it is ok if iconv fails, hence trace only
         wxLogTrace(TRACE_STRCONV, wxT("iconv failed: %s"), wxSysErrorMsg(wxSysErrorCode()));
-        return wxCONV_FAILED;
+        return (size_t)-1;
     }
 
     return res;
@@ -1889,7 +1556,6 @@ size_t wxMBConv_iconv::WC2MB(char *buf, const wchar_t *psz, size_t n) const
         tmpbuf = (wchar_t *)malloc(inbuf + SIZEOF_WCHAR_T);
         for ( size_t i = 0; i < inlen; i++ )
             tmpbuf[n] = WC_BSWAP(psz[i]);
-
         tmpbuf[inlen] = L'\0';
         psz = tmpbuf;
     }
@@ -1899,7 +1565,7 @@ size_t wxMBConv_iconv::WC2MB(char *buf, const wchar_t *psz, size_t n) const
         // have destination buffer, convert there
         cres = iconv( w2m, ICONV_CHAR_CAST(&psz), &inbuf, &buf, &outbuf );
 
-        res = n - outbuf;
+        res = n-outbuf;
 
         // NB: iconv was given only wcslen(psz) characters on input, and so
         //     it couldn't convert the trailing zero. Let's do it ourselves
@@ -1909,20 +1575,17 @@ size_t wxMBConv_iconv::WC2MB(char *buf, const wchar_t *psz, size_t n) const
     }
     else
     {
-        // no destination buffer: convert using temp buffer
+        // no destination buffer... convert using temp buffer
         // to calculate destination buffer requirement
         char tbuf[16];
         res = 0;
-        do
-        {
-            buf = tbuf;
-            outbuf = 16;
+        do {
+            buf = tbuf; outbuf = 16;
 
             cres = iconv( w2m, ICONV_CHAR_CAST(&psz), &inbuf, &buf, &outbuf );
 
             res += 16 - outbuf;
-        }
-        while ((cres == (size_t)-1) && (errno == E2BIG));
+        } while ((cres==(size_t)-1) && (errno==E2BIG));
     }
 
     if (ms_wcNeedsSwap)
@@ -1933,40 +1596,10 @@ size_t wxMBConv_iconv::WC2MB(char *buf, const wchar_t *psz, size_t n) const
     if (ICONV_FAILED(cres, inbuf))
     {
         wxLogTrace(TRACE_STRCONV, wxT("iconv failed: %s"), wxSysErrorMsg(wxSysErrorCode()));
-        return wxCONV_FAILED;
+        return (size_t)-1;
     }
 
     return res;
-}
-
-size_t wxMBConv_iconv::GetMBNulLen() const
-{
-    if ( m_minMBCharWidth == 0 )
-    {
-        wxMBConv_iconv * const self = wxConstCast(this, wxMBConv_iconv);
-
-#if wxUSE_THREADS
-        // NB: explained in MB2WC
-        wxMutexLocker lock(self->m_iconvMutex);
-#endif
-
-        wchar_t *wnul = L"";
-        char buf[8]; // should be enough for NUL in any encoding
-        size_t inLen = sizeof(wchar_t),
-               outLen = WXSIZEOF(buf);
-        char *inBuff = (char *)wnul;
-        char *outBuff = buf;
-        if ( iconv(w2m, ICONV_CHAR_CAST(&inBuff), &inLen, &outBuff, &outLen) == (size_t)-1 )
-        {
-            self->m_minMBCharWidth = (size_t)-1;
-        }
-        else // ok
-        {
-            self->m_minMBCharWidth = outBuff - buf;
-        }
-    }
-
-    return m_minMBCharWidth;
 }
 
 #endif // HAVE_ICONV
@@ -1990,30 +1623,21 @@ public:
     wxMBConv_win32()
     {
         m_CodePage = CP_ACP;
-        m_minMBCharWidth = 0;
-    }
-
-    wxMBConv_win32(const wxMBConv_win32& conv)
-    {
-        m_CodePage = conv.m_CodePage;
-        m_minMBCharWidth = conv.m_minMBCharWidth;
     }
 
 #if wxUSE_FONTMAP
     wxMBConv_win32(const wxChar* name)
     {
         m_CodePage = wxCharsetToCodepage(name);
-        m_minMBCharWidth = 0;
     }
 
     wxMBConv_win32(wxFontEncoding encoding)
     {
         m_CodePage = wxEncodingToCodepage(encoding);
-        m_minMBCharWidth = 0;
     }
-#endif // wxUSE_FONTMAP
+#endif
 
-    virtual size_t MB2WC(wchar_t *buf, const char *psz, size_t n) const
+    size_t MB2WC(wchar_t *buf, const char *psz, size_t n) const
     {
         // note that we have to use MB_ERR_INVALID_CHARS flag as it without it
         // the behaviour is not compatible with the Unix version (using iconv)
@@ -2021,27 +1645,14 @@ public:
         // wouldn't work if reading an incomplete MB char didn't result in an
         // error
         //
-        // Moreover, MB_ERR_INVALID_CHARS is only supported on Win 2K SP4 or
-        // Win XP or newer and it is not supported for UTF-[78] so we always
-        // use our own conversions in this case. See
-        //     http://blogs.msdn.com/michkap/archive/2005/04/19/409566.aspx
-        //     http://msdn.microsoft.com/library/en-us/intl/unicode_17si.asp
-        if ( m_CodePage == CP_UTF8 )
-        {
-            return wxConvUTF8.MB2WC(buf, psz, n);
-        }
-
-        if ( m_CodePage == CP_UTF7 )
-        {
-            return wxConvUTF7.MB2WC(buf, psz, n);
-        }
-
-        int flags = 0;
-        if ( (m_CodePage < 50000 && m_CodePage != CP_SYMBOL) &&
-                IsAtLeastWin2kSP4() )
-        {
-            flags = MB_ERR_INVALID_CHARS;
-        }
+        // note however that using MB_ERR_INVALID_CHARS with CP_UTF7 results in
+        // an error (tested under Windows Server 2003) and apparently it is
+        // done on purpose, i.e. the function accepts any input in this case
+        // and although I'd prefer to return error on ill-formed output, our
+        // own wxMBConvUTF7 doesn't detect errors (e.g. lone "+" which is
+        // explicitly ill-formed according to RFC 2152) neither so we don't
+        // even have any fallback here...
+        int flags = m_CodePage == CP_UTF7 ? 0 : MB_ERR_INVALID_CHARS;
 
         const size_t len = ::MultiByteToWideChar
                              (
@@ -2052,44 +1663,14 @@ public:
                                 buf,            // output string
                                 buf ? n : 0     // size of output buffer
                              );
-        if ( !len )
-        {
-            // function totally failed
-            return wxCONV_FAILED;
-        }
-
-        // if we were really converting and didn't use MB_ERR_INVALID_CHARS,
-        // check if we succeeded, by doing a double trip:
-        if ( !flags && buf )
-        {
-            const size_t mbLen = strlen(psz);
-            wxCharBuffer mbBuf(mbLen);
-            if ( ::WideCharToMultiByte
-                   (
-                      m_CodePage,
-                      0,
-                      buf,
-                      -1,
-                      mbBuf.data(),
-                      mbLen + 1,        // size in bytes, not length
-                      NULL,
-                      NULL
-                   ) == 0 ||
-                  strcmp(mbBuf, psz) != 0 )
-            {
-                // we didn't obtain the same thing we started from, hence
-                // the conversion was lossy and we consider that it failed
-                return wxCONV_FAILED;
-            }
-        }
 
         // note that it returns count of written chars for buf != NULL and size
         // of the needed buffer for buf == NULL so in either case the length of
         // the string (which never includes the terminating NUL) is one less
-        return len - 1;
+        return len ? len - 1 : (size_t)-1;
     }
 
-    virtual size_t WC2MB(char *buf, const wchar_t *pwz, size_t n) const
+    size_t WC2MB(char *buf, const wchar_t *pwz, size_t n) const
     {
         /*
             we have a problem here: by default, WideCharToMultiByte() may
@@ -2140,7 +1721,7 @@ public:
         if ( !len )
         {
             // function totally failed
-            return wxCONV_FAILED;
+            return (size_t)-1;
         }
 
         // if we were really converting, check if we succeeded
@@ -2151,17 +1732,17 @@ public:
                 // check if the conversion failed, i.e. if any replacements
                 // were done
                 if ( usedDef )
-                    return wxCONV_FAILED;
+                    return (size_t)-1;
             }
             else // we must resort to double tripping...
             {
                 wxWCharBuffer wcBuf(n);
-                if ( MB2WC(wcBuf.data(), buf, n) == wxCONV_FAILED ||
+                if ( MB2WC(wcBuf.data(), buf, n) == (size_t)-1 ||
                         wcscmp(wcBuf, pwz) != 0 )
                 {
                     // we didn't obtain the same thing we started from, hence
                     // the conversion was lossy and we consider that it failed
-                    return wxCONV_FAILED;
+                    return (size_t)-1;
                 }
             }
         }
@@ -2169,47 +1750,6 @@ public:
         // see the comment above for the reason of "len - 1"
         return len - 1;
     }
-
-    virtual size_t GetMBNulLen() const
-    {
-        if ( m_minMBCharWidth == 0 )
-        {
-            int len = ::WideCharToMultiByte
-                        (
-                            m_CodePage,     // code page
-                            0,              // no flags
-                            L"",            // input string
-                            1,              // translate just the NUL
-                            NULL,           // output buffer
-                            0,              // and its size
-                            NULL,           // no replacement char
-                            NULL            // [out] don't care if it was used
-                        );
-
-            wxMBConv_win32 * const self = wxConstCast(this, wxMBConv_win32);
-            switch ( len )
-            {
-                default:
-                    wxLogDebug(_T("Unexpected NUL length %d"), len);
-                    self->m_minMBCharWidth = (size_t)-1;
-                    break;
-
-                case 0:
-                    self->m_minMBCharWidth = (size_t)-1;
-                    break;
-
-                case 1:
-                case 2:
-                case 4:
-                    self->m_minMBCharWidth = len;
-                    break;
-            }
-        }
-
-        return m_minMBCharWidth;
-    }
-
-    virtual wxMBConv *Clone() const { return new wxMBConv_win32(*this); }
 
     bool IsOk() const { return m_CodePage != -1; }
 
@@ -2232,9 +1772,8 @@ private:
                     break;
 
                 default:
-                    // unknown: be conservative by default
+                    // unknown, be conseravtive by default
                     s_isWin98Or2k = 0;
-                    break;
             }
 
             wxASSERT_MSG( s_isWin98Or2k != -1, _T("should be set above") );
@@ -2243,40 +1782,7 @@ private:
         return s_isWin98Or2k == 1;
     }
 
-    static bool IsAtLeastWin2kSP4()
-    {
-#ifdef __WXWINCE__
-        return false;
-#else
-        static int s_isAtLeastWin2kSP4 = -1;
-
-        if ( s_isAtLeastWin2kSP4 == -1 )
-        {
-            OSVERSIONINFOEX ver;
-
-            memset(&ver, 0, sizeof(ver));
-            ver.dwOSVersionInfoSize = sizeof(ver);
-            GetVersionEx((OSVERSIONINFO*)&ver);
-
-            s_isAtLeastWin2kSP4 =
-              ((ver.dwMajorVersion > 5) || // Vista+
-               (ver.dwMajorVersion == 5 && ver.dwMinorVersion > 0) || // XP/2003
-               (ver.dwMajorVersion == 5 && ver.dwMinorVersion == 0 &&
-               ver.wServicePackMajor >= 4)) // 2000 SP4+
-              ? 1 : 0;
-        }
-
-        return s_isAtLeastWin2kSP4 == 1;
-#endif
-    }
-
-
-    // the code page we're working with
     long m_CodePage;
-
-    // cached result of GetMBNulLen(), set to 0 initially meaning
-    // "unknown"
-    size_t m_minMBCharWidth;
 };
 
 #endif // wxHAVE_WIN32_MB2WC
@@ -2287,9 +1793,9 @@ private:
 
 #if defined(__WXCOCOA__)
 
-// RN: There is no UTF-32 support in either Core Foundation or Cocoa.
-// Strangely enough, internally Core Foundation uses
-// UTF-32 internally quite a bit - its just not public (yet).
+// RN:  There is no UTF-32 support in either Core Foundation or
+// Cocoa.  Strangely enough, internally Core Foundation uses
+// UTF 32 internally quite a bit - its just not public (yet).
 
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFStringEncodingExt.h>
@@ -2297,13 +1803,12 @@ private:
 CFStringEncoding wxCFStringEncFromFontEnc(wxFontEncoding encoding)
 {
     CFStringEncoding enc = kCFStringEncodingInvalidId ;
-
-    switch (encoding)
+    if ( encoding == wxFONTENCODING_DEFAULT )
     {
-        case wxFONTENCODING_DEFAULT :
-            enc = CFStringGetSystemEncoding();
-            break ;
-
+        enc = CFStringGetSystemEncoding();
+    }
+    else switch( encoding)
+    {
         case wxFONTENCODING_ISO8859_1 :
             enc = kCFStringEncodingISOLatin1 ;
             break ;
@@ -2359,7 +1864,7 @@ CFStringEncoding wxCFStringEncFromFontEnc(wxFontEncoding encoding)
 //          break ;
 
         case wxFONTENCODING_CP437 :
-            enc = kCFStringEncodingDOSLatinUS ;
+            enc =kCFStringEncodingDOSLatinUS ;
             break ;
         case wxFONTENCODING_CP850 :
             enc = kCFStringEncodingDOSLatin1;
@@ -2371,7 +1876,7 @@ CFStringEncoding wxCFStringEncFromFontEnc(wxFontEncoding encoding)
             enc = kCFStringEncodingDOSCyrillic;
             break ;
         case wxFONTENCODING_CP866 :
-            enc = kCFStringEncodingDOSRussian ;
+            enc =kCFStringEncodingDOSRussian ;
             break ;
         case wxFONTENCODING_CP874 :
             enc = kCFStringEncodingDOSThai;
@@ -2380,7 +1885,7 @@ CFStringEncoding wxCFStringEncFromFontEnc(wxFontEncoding encoding)
             enc = kCFStringEncodingDOSJapanese;
             break ;
         case wxFONTENCODING_CP936 :
-            enc = kCFStringEncodingDOSChineseSimplif ;
+            enc =kCFStringEncodingDOSChineseSimplif ;
             break ;
         case wxFONTENCODING_CP949 :
             enc = kCFStringEncodingDOSKorean;
@@ -2392,10 +1897,10 @@ CFStringEncoding wxCFStringEncFromFontEnc(wxFontEncoding encoding)
             enc = kCFStringEncodingWindowsLatin2;
             break ;
         case wxFONTENCODING_CP1251 :
-            enc = kCFStringEncodingWindowsCyrillic ;
+            enc =kCFStringEncodingWindowsCyrillic ;
             break ;
         case wxFONTENCODING_CP1252 :
-            enc = kCFStringEncodingWindowsLatin1 ;
+            enc =kCFStringEncodingWindowsLatin1 ;
             break ;
         case wxFONTENCODING_CP1253 :
             enc = kCFStringEncodingWindowsGreek;
@@ -2404,10 +1909,10 @@ CFStringEncoding wxCFStringEncFromFontEnc(wxFontEncoding encoding)
             enc = kCFStringEncodingWindowsLatin5;
             break ;
         case wxFONTENCODING_CP1255 :
-            enc = kCFStringEncodingWindowsHebrew ;
+            enc =kCFStringEncodingWindowsHebrew ;
             break ;
         case wxFONTENCODING_CP1256 :
-            enc = kCFStringEncodingWindowsArabic ;
+            enc =kCFStringEncodingWindowsArabic ;
             break ;
         case wxFONTENCODING_CP1257 :
             enc = kCFStringEncodingWindowsBalticRim;
@@ -2545,12 +2050,10 @@ CFStringEncoding wxCFStringEncFromFontEnc(wxFontEncoding encoding)
 //      case wxFONTENCODING_MACKEYBOARD :
 //          enc = kCFStringEncodingMacKeyboardGlyphs ;
 //          break ;
-
         default :
             // because gcc is picky
             break ;
-    }
-
+    } ;
     return enc ;
 }
 
@@ -2560,11 +2063,6 @@ public:
     wxMBConv_cocoa()
     {
         Init(CFStringGetSystemEncoding()) ;
-    }
-
-    wxMBConv_cocoa(const wxMBConv_cocoa& conv)
-    {
-        m_encoding = conv.m_encoding;
     }
 
 #if wxUSE_FONTMAP
@@ -2620,12 +2118,12 @@ public:
 
         CFRelease(theString);
 
-        szUniCharBuffer[nOutLength] = '\0';
+        szUniCharBuffer[nOutLength] = '\0' ;
 
 #if SIZEOF_WCHAR_T == 4
-        wxMBConvUTF16 converter;
-        converter.MB2WC( szOut, (const char*)szUniCharBuffer, nOutSize );
-        delete [] szUniCharBuffer;
+        wxMBConvUTF16 converter ;
+        converter.MB2WC(szOut, (const char*)szUniCharBuffer , nOutSize ) ;
+        delete[] szUniCharBuffer;
 #endif
 
         return nOutLength;
@@ -2641,9 +2139,9 @@ public:
 
 #if SIZEOF_WCHAR_T == 4
         wxMBConvUTF16 converter ;
-        nBufSize = converter.WC2MB( NULL, szUnConv, 0 );
-        szUniBuffer = new UniChar[ (nBufSize / sizeof(UniChar)) + 1];
-        converter.WC2MB( (char*) szUniBuffer, szUnConv, nBufSize + sizeof(UniChar));
+        nBufSize = converter.WC2MB( NULL , szUnConv , 0 );
+        szUniBuffer = new UniChar[ (nBufSize / sizeof(UniChar)) + 1] ;
+        converter.WC2MB( (char*) szUniBuffer , szUnConv, nBufSize + sizeof(UniChar)) ;
         nBufSize /= sizeof(UniChar);
 #endif
 
@@ -2689,8 +2187,6 @@ public:
         return  nRealOutSize - 1;
     }
 
-    virtual wxMBConv *Clone() const { return new wxMBConv_cocoa(*this); }
-
     bool IsOk() const
     {
         return m_encoding != kCFStringEncodingInvalidId &&
@@ -2717,15 +2213,10 @@ public:
         Init(CFStringGetSystemEncoding()) ;
     }
 
-    wxMBConv_mac(const wxMBConv_mac& conv)
-    {
-        Init(conv.m_char_encoding);
-    }
-
 #if wxUSE_FONTMAP
     wxMBConv_mac(const wxChar* name)
     {
-        Init( wxMacGetSystemEncFromFontEnc( wxFontMapperBase::Get()->CharsetToEncoding(name, false) ) );
+        Init( wxMacGetSystemEncFromFontEnc(wxFontMapperBase::Get()->CharsetToEncoding(name, false) ) ) ;
     }
 #endif
 
@@ -2746,7 +2237,7 @@ public:
     {
         OSStatus status = noErr ;
         m_char_encoding = encoding ;
-        m_unicode_encoding = CreateTextEncoding(kTextEncodingUnicodeDefault, 0, kUnicode16BitFormat) ;
+        m_unicode_encoding = CreateTextEncoding(kTextEncodingUnicodeDefault,0,kUnicode16BitFormat) ;
 
         status = TECCreateConverter(&m_MB2WC_converter,
                                     m_char_encoding,
@@ -2760,41 +2251,35 @@ public:
     {
         OSStatus status = noErr ;
         ByteCount byteOutLen ;
-        ByteCount byteInLen = strlen(psz) + 1;
+        ByteCount byteInLen = strlen(psz) ;
         wchar_t *tbuf = NULL ;
         UniChar* ubuf = NULL ;
         size_t res = 0 ;
 
         if (buf == NULL)
         {
-            // Apple specs say at least 32
-            n = wxMax( 32, byteInLen ) ;
-            tbuf = (wchar_t*) malloc( n * SIZEOF_WCHAR_T ) ;
+            //apple specs say at least 32
+            n = wxMax( 32 , byteInLen ) ;
+            tbuf = (wchar_t*) malloc( n * SIZEOF_WCHAR_T) ;
         }
-
         ByteCount byteBufferLen = n * sizeof( UniChar ) ;
-
 #if SIZEOF_WCHAR_T == 4
         ubuf = (UniChar*) malloc( byteBufferLen + 2 ) ;
 #else
         ubuf = (UniChar*) (buf ? buf : tbuf) ;
 #endif
-
-        status = TECConvertText(
-            m_MB2WC_converter, (ConstTextPtr) psz, byteInLen, &byteInLen,
-            (TextPtr) ubuf, byteBufferLen, &byteOutLen);
-
+        status = TECConvertText(m_MB2WC_converter, (ConstTextPtr) psz , byteInLen, &byteInLen,
+          (TextPtr) ubuf , byteBufferLen, &byteOutLen);
 #if SIZEOF_WCHAR_T == 4
         // we have to terminate here, because n might be larger for the trailing zero, and if UniChar
         // is not properly terminated we get random characters at the end
         ubuf[byteOutLen / sizeof( UniChar ) ] = 0 ;
         wxMBConvUTF16 converter ;
-        res = converter.MB2WC( (buf ? buf : tbuf), (const char*)ubuf, n ) ;
+        res = converter.MB2WC( (buf ? buf : tbuf) , (const char*)ubuf , n ) ;
         free( ubuf ) ;
 #else
         res = byteOutLen / sizeof( UniChar ) ;
 #endif
-
         if ( buf == NULL )
              free(tbuf) ;
 
@@ -2814,32 +2299,27 @@ public:
 
         if (buf == NULL)
         {
-            // Apple specs say at least 32
-            n = wxMax( 32, ((byteInLen / SIZEOF_WCHAR_T) * 8) + SIZEOF_WCHAR_T );
+            //apple specs say at least 32
+            n = wxMax( 32 , ((byteInLen / SIZEOF_WCHAR_T) * 8) + SIZEOF_WCHAR_T );
             tbuf = (char*) malloc( n ) ;
         }
 
         ByteCount byteBufferLen = n ;
         UniChar* ubuf = NULL ;
-
 #if SIZEOF_WCHAR_T == 4
         wxMBConvUTF16 converter ;
-        size_t unicharlen = converter.WC2MB( NULL, psz, 0 ) ;
+        size_t unicharlen = converter.WC2MB( NULL , psz , 0 ) ;
         byteInLen = unicharlen ;
         ubuf = (UniChar*) malloc( byteInLen + 2 ) ;
-        converter.WC2MB( (char*) ubuf, psz, unicharlen + 2 ) ;
+        converter.WC2MB( (char*) ubuf , psz, unicharlen + 2 ) ;
 #else
         ubuf = (UniChar*) psz ;
 #endif
-
-        status = TECConvertText(
-            m_WC2MB_converter, (ConstTextPtr) ubuf, byteInLen, &byteInLen,
-            (TextPtr) (buf ? buf : tbuf), byteBufferLen, &byteOutLen);
-
+        status = TECConvertText(m_WC2MB_converter, (ConstTextPtr) ubuf , byteInLen, &byteInLen,
+            (TextPtr) (buf ? buf : tbuf) , byteBufferLen, &byteOutLen);
 #if SIZEOF_WCHAR_T == 4
         free( ubuf ) ;
 #endif
-
         if ( buf == NULL )
             free(tbuf) ;
 
@@ -2852,30 +2332,28 @@ public:
             //of bogus characters
             wxWCharBuffer wcBuf(n);
             size_t pszlen = wxWcslen(psz);
-            if ( MB2WC(wcBuf.data(), buf, n) == wxCONV_FAILED ||
+            if ( MB2WC(wcBuf.data(), buf, n) == (size_t)-1 ||
                         wxWcslen(wcBuf) != pszlen ||
                         memcmp(wcBuf, psz, pszlen * sizeof(wchar_t)) != 0 )
             {
                 // we didn't obtain the same thing we started from, hence
                 // the conversion was lossy and we consider that it failed
-                return wxCONV_FAILED;
+                return (size_t)-1;
             }
         }
 
         return res ;
     }
 
-    virtual wxMBConv *Clone() const { return new wxMBConv_mac(*this); }
-
     bool IsOk() const
-        { return m_MB2WC_converter != NULL && m_WC2MB_converter != NULL; }
+        { return m_MB2WC_converter !=  NULL && m_WC2MB_converter != NULL  ; }
 
 private:
-    TECObjectRef m_MB2WC_converter;
-    TECObjectRef m_WC2MB_converter;
+    TECObjectRef m_MB2WC_converter ;
+    TECObjectRef m_WC2MB_converter ;
 
-    TextEncodingBase m_char_encoding;
-    TextEncodingBase m_unicode_encoding;
+    TextEncodingBase m_char_encoding ;
+    TextEncodingBase m_unicode_encoding ;
 };
 
 #endif // defined(__WXMAC__) && defined(TARGET_CARBON)
@@ -2920,8 +2398,8 @@ public:
         size_t inbuf = strlen(psz);
         if (buf)
         {
-            if (!m2w.Convert(psz, buf))
-                return wxCONV_FAILED;
+            if (!m2w.Convert(psz,buf))
+                return (size_t)-1;
         }
         return inbuf;
     }
@@ -2931,31 +2409,12 @@ public:
         const size_t inbuf = wxWcslen(psz);
         if (buf)
         {
-            if (!w2m.Convert(psz, buf))
-                return wxCONV_FAILED;
+            if (!w2m.Convert(psz,buf))
+                return (size_t)-1;
         }
 
         return inbuf;
     }
-
-    virtual size_t GetMBNulLen() const
-    {
-        switch ( m_enc )
-        {
-            case wxFONTENCODING_UTF16BE:
-            case wxFONTENCODING_UTF16LE:
-                return 2;
-
-            case wxFONTENCODING_UTF32BE:
-            case wxFONTENCODING_UTF32LE:
-                return 4;
-
-            default:
-                return 1;
-        }
-    }
-
-    virtual wxMBConv *Clone() const { return new wxMBConv_wxwin(m_enc); }
 
     bool IsOk() const { return m_ok; }
 
@@ -2963,7 +2422,6 @@ public:
     wxFontEncoding m_enc;
     wxEncodingConverter m2w, w2m;
 
-private:
     // were we initialized successfully?
     bool m_ok;
 
@@ -2979,7 +2437,6 @@ WXDLLIMPEXP_BASE wxMBConv* new_wxMBConv_wxwin( const wxChar* name )
         delete result;
         return 0;
     }
-
     return result;
 }
 
@@ -3175,13 +2632,13 @@ wxMBConv *wxCSConv::DoCreate() const
 #endif
     }
 #endif // wxHAVE_WIN32_MB2WC
-
 #if defined(__WXMAC__)
     {
         // leave UTF16 and UTF32 to the built-ins of wx
         if ( m_name || ( m_encoding < wxFONTENCODING_UTF16BE ||
             ( m_encoding >= wxFONTENCODING_MACMIN && m_encoding <= wxFONTENCODING_MACMAX ) ) )
         {
+
 #if wxUSE_FONTMAP
             wxMBConv_mac *conv = m_name ? new wxMBConv_mac(m_name)
                                         : new wxMBConv_mac(m_encoding);
@@ -3195,18 +2652,17 @@ wxMBConv *wxCSConv::DoCreate() const
         }
     }
 #endif
-
 #if defined(__WXCOCOA__)
     {
         if ( m_name || ( m_encoding <= wxFONTENCODING_UTF16 ) )
         {
+
 #if wxUSE_FONTMAP
             wxMBConv_cocoa *conv = m_name ? new wxMBConv_cocoa(m_name)
                                           : new wxMBConv_cocoa(m_encoding);
 #else
             wxMBConv_cocoa *conv = new wxMBConv_cocoa(m_encoding);
 #endif
-
             if ( conv->IsOk() )
                  return conv;
 
@@ -3248,7 +2704,7 @@ wxMBConv *wxCSConv::DoCreate() const
 
         default:
              // nothing to do but put here to suppress gcc warnings
-             break;
+             ;
     }
 
     // step (3)
@@ -3283,7 +2739,6 @@ wxMBConv *wxCSConv::DoCreate() const
                          wxString::Format(_("encoding %s"), m_encoding).c_str()
 #endif // wxUSE_FONTMAP/!wxUSE_FONTMAP
               );
-
         alreadyLoggingError = false;
     }
 
@@ -3343,8 +2798,7 @@ size_t wxCSConv::WC2MB(char *buf, const wchar_t *psz, size_t n) const
         for (size_t c = 0; c <= len; c++)
         {
             if (psz[c] > 0xFF)
-                return wxCONV_FAILED;
-
+                return (size_t)-1;
             buf[c] = (char)psz[c];
         }
     }
@@ -3353,23 +2807,11 @@ size_t wxCSConv::WC2MB(char *buf, const wchar_t *psz, size_t n) const
         for (size_t c = 0; c <= len; c++)
         {
             if (psz[c] > 0xFF)
-                return wxCONV_FAILED;
+                return (size_t)-1;
         }
     }
 
     return len;
-}
-
-size_t wxCSConv::GetMBNulLen() const
-{
-    CreateConvIfNeeded();
-
-    if ( m_convReal )
-    {
-        return m_convReal->GetMBNulLen();
-    }
-
-    return 1;
 }
 
 // ----------------------------------------------------------------------------
@@ -3395,13 +2837,13 @@ WXDLLIMPEXP_DATA_BASE(wxCSConv&) wxConvISO8859_1 = wxConvISO8859_1Obj;
 WXDLLIMPEXP_DATA_BASE(wxMBConvUTF7&) wxConvUTF7 = wxConvUTF7Obj;
 WXDLLIMPEXP_DATA_BASE(wxMBConvUTF8&) wxConvUTF8 = wxConvUTF8Obj;
 WXDLLIMPEXP_DATA_BASE(wxMBConv *) wxConvCurrent = &wxConvLibcObj;
-WXDLLIMPEXP_DATA_BASE(wxMBConv *) wxConvUI = &wxConvLocal;
 WXDLLIMPEXP_DATA_BASE(wxMBConv *) wxConvFileName = &
 #ifdef __WXOSX__
                                     wxConvUTF8Obj;
 #else
                                     wxConvLibcObj;
 #endif
+
 
 #else // !wxUSE_WCHAR_T
 

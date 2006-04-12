@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98
-// RCS-ID:      $Id: config.cpp,v 1.79 2006/03/27 22:48:16 VZ Exp $
+// RCS-ID:      $Id: config.cpp,v 1.78 2006/01/20 00:55:52 VZ Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   Ballueder@usa.net
 //                       Vadim Zeitlin      <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -33,6 +33,8 @@
 
 #include "wx/app.h"
 #include "wx/file.h"
+#include "wx/textfile.h"
+#include "wx/utils.h"
 #include "wx/utils.h"
 #include "wx/math.h"
 

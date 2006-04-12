@@ -2,7 +2,7 @@
 // Name:        wx/gtk/stabox.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: statbox.h,v 1.18 2006/03/12 14:21:15 VZ Exp $
+// Id:          $Id: statbox.h,v 1.17 2005/09/23 12:49:18 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,9 +43,6 @@ public:
     virtual bool IsTransparentForMouse() const { return TRUE; }
 
 protected:
-    virtual bool GTKWidgetNeedsMnemonic() const;
-    virtual void GTKWidgetDoSetMnemonic(GtkWidget* w);
-
     void DoApplyWidgetStyle(GtkRcStyle *style);
     
 private:

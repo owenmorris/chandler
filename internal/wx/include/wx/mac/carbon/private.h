@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h,v 1.51 2006/04/07 18:56:13 SC Exp $
+// RCS-ID:      $Id: private.h,v 1.45 2005/12/10 15:24:55 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -97,8 +97,15 @@ class WXDLLEXPORT wxMacPortSaver
     DECLARE_NO_COPY_CLASS(wxMacPortSaver)
 
 public:
-    wxMacPortSaver( GrafPtr port );
-    ~wxMacPortSaver();
+    wxMacPortSaver( GrafPtr port )
+    {
+        ::GetPort( &m_port ) ;
+        ::SetPort( port ) ;
+    }
+    ~wxMacPortSaver()
+    {
+        ::SetPort( m_port ) ;
+    }
 private :
     GrafPtr m_port ;
 } ;
@@ -209,19 +216,12 @@ template<> inline EventParamType wxMacGetEventParamType<EventRef>() { return typ
 template<> inline EventParamType wxMacGetEventParamType<Point>() { return typeQDPoint ; }
 template<> inline EventParamType wxMacGetEventParamType<Rect>() { return typeQDRectangle ; }
 template<> inline EventParamType wxMacGetEventParamType<Boolean>() { return typeBoolean ; }
-template<> inline EventParamType wxMacGetEventParamType<SInt16>() { return typeSInt16 ; }
-template<> inline EventParamType wxMacGetEventParamType<SInt32>() { return typeSInt32 ; }
-template<> inline EventParamType wxMacGetEventParamType<UInt32>() { return typeUInt32 ; }
-template<> inline EventParamType wxMacGetEventParamType<RGBColor>() { return typeRGBColor ; }
 #if TARGET_API_MAC_OSX
 template<> inline EventParamType wxMacGetEventParamType<HICommand>() { return typeHICommand ; }
 template<> inline EventParamType wxMacGetEventParamType<HIPoint>() { return typeHIPoint ; }
 template<> inline EventParamType wxMacGetEventParamType<HISize>() { return typeHISize ; }
 template<> inline EventParamType wxMacGetEventParamType<HIRect>() { return typeHIRect ; }
 template<> inline EventParamType wxMacGetEventParamType<void*>() { return typeVoidPtr ; }
-#endif
-#if TARGET_API_MAC_OSX && ( MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2 )
-template<> inline EventParamType wxMacGetEventParamType<CFDictionaryRef>() { return typeCFDictionaryRef ; }
 #endif
 template<> inline EventParamType wxMacGetEventParamType<Collection>() { return typeCollection ; }
 template<> inline EventParamType wxMacGetEventParamType<CGContextRef>() { return typeCGContextRef ; }
@@ -389,7 +389,7 @@ public :
 
     ~wxMacCFRefHolder()
     {
-        Release() ;
+        CFRelease( m_ref ) ;
     }
 
     void Release()
@@ -538,14 +538,6 @@ public :
     {
         return SetData( inPartCode , inTag , sizeof( T ) , &data ) ;
     }
-    template <typename T> OSStatus SetData( ResType inTag , const T *data )
-    {
-        return SetData( kControlEntireControl , inTag , sizeof( T ) , data ) ;
-    }
-    template <typename T> OSStatus SetData( ResType inTag , const T& data )
-    {
-        return SetData( kControlEntireControl , inTag , sizeof( T ) , &data ) ;
-    }
     template <typename T> OSStatus GetData( ControlPartCode inPartCode , ResType inTag , T *data ) const
     {
         Size dummy ;
@@ -557,18 +549,7 @@ public :
         verify_noerr( GetData<T>( inPartCode , inTag , &value ) ) ;
         return value ;
     }
-    template <typename T> OSStatus GetData( ResType inTag , T *data ) const
-    {
-        Size dummy ;
-        return GetData( kControlEntireControl , inTag , sizeof( T ) , data , &dummy ) ;
-    }
-    template <typename T> T GetData( ResType inTag ) const
-    {
-        T value ;
-        verify_noerr( GetData<T>( kControlEntireControl , inTag , &value ) ) ;
-        return value ;
-    }
-    
+
     // Flash the control for the specified amount of time
     virtual void Flash( ControlPartCode part , UInt32 ticks = 8 ) ;
 
@@ -829,19 +810,6 @@ private :
 // toplevel.cpp
 
 ControlRef wxMacFindControlUnderMouse( wxTopLevelWindowMac* toplevelWindow, const Point& location , WindowRef window , ControlPartCode *outPart ) ;
-
-#ifdef WORDS_BIGENDIAN
-    inline Rect* wxMacGetPictureBounds( PicHandle pict , Rect* rect ) 
-    { 
-       *rect = (**pict).picFrame ; 
-        return rect ;
-    }
-#else
-    inline Rect* wxMacGetPictureBounds( PicHandle pict , Rect* rect ) 
-    {   
-        return QDGetPictureBounds( pict , rect ) ;
-    }
-#endif
 
 #endif // wxUSE_GUI
 

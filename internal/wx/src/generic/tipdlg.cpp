@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.06.99
-// RCS-ID:      $Id: tipdlg.cpp,v 1.42 2006/03/27 00:57:06 VZ Exp $
+// RCS-ID:      $Id: tipdlg.cpp,v 1.41 2005/09/23 12:53:30 MR Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -196,9 +196,6 @@ wxString wxFileTipProvider::GetTip()
         tip = tip.BeforeLast(wxT('\"'));
         // ...and replace escaped quotes
         tip.Replace(wxT("\\\""), wxT("\""));
-
-        // and translate it as requested
-        tip = wxGetTranslation(tip);
     }
 
     return tip;
@@ -221,7 +218,7 @@ wxTipDialog::wxTipDialog(wxWindow *parent,
                       wxDEFAULT_DIALOG_STYLE
 #if !defined(__SMARTPHONE__) && !defined(__POCKETPC__)
                       | wxRESIZE_BORDER
-#endif
+#endif                      
                       )
 {
     m_tipProvider = tipProvider;

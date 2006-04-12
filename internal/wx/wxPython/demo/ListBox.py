@@ -101,11 +101,8 @@ class TestListBox(wx.Panel):
 
 
     def EvtListBox(self, event):
-        self.log.WriteText('EvtListBox: %s, %s, %s, %s\n' %
-                           (event.GetString(),
-                            event.IsSelection(),
-                            event.GetSelection(),
-                            event.GetClientData()))
+        self.log.WriteText('EvtListBox: %s, %s, %s\n' %
+                           (event.GetString(), event.IsSelection(), event.GetSelection()))
 
         lb = event.GetEventObject()
         data = lb.GetClientData(lb.GetSelection())

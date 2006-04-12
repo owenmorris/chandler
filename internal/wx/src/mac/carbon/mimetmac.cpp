@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/mac/carbon/mimetype.cpp
+// Name:        mac/mimetype.cpp
 // Purpose:     Mac Carbon implementation for wx MIME-related classes
 // Author:      Ryan Norton
 // Modified by:
 // Created:     04/16/2005
-// RCS-ID:      $Id: mimetmac.cpp,v 1.34 2006/03/12 15:14:12 ABX Exp $
+// RCS-ID:      $Id: mimetmac.cpp,v 1.33 2006/01/18 13:02:08 JS Exp $
 // Copyright:   (c) 2005 Ryan Norton (<wxprojects@comcast.net>)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,8 +30,6 @@
   #pragma hdrstop
 #endif
 
-#if wxUSE_MIMETYPE
-
 #ifndef WX_PRECOMP
   #include "wx/string.h"
 
@@ -39,6 +37,9 @@
     #include "wx/icon.h"
   #endif
 #endif
+
+
+#if wxUSE_MIMETYPE
 
 #include "wx/log.h"
 #include "wx/file.h"
@@ -414,7 +415,7 @@ wxString wxFileTypeImpl::GetCommand(const wxString& verb) const
                        m_lIndex, &entry);
 
         wxString sCurrentExtension = wxMacMakeStringFromPascal(entry.extension);
-        sCurrentExtension = sCurrentExtension.Right(sCurrentExtension.length()-1 );
+        sCurrentExtension = sCurrentExtension.Right(sCurrentExtension.Length()-1 );
 
         //type, creator, ext, roles, outapp (FSRef), outappurl
         CFURLRef cfurlAppPath;
@@ -546,7 +547,7 @@ bool wxFileTypeImpl::GetExtensions(wxArrayString& extensions)
 
     //entry has period in it
     wxString sCurrentExtension = wxMacMakeStringFromPascal( entry.extension );
-    extensions.Add( sCurrentExtension.Right( sCurrentExtension.length() - 1 ) );
+    extensions.Add( sCurrentExtension.Right( sCurrentExtension.Length() - 1 ) );
 
     return true;
 }
@@ -716,7 +717,7 @@ wxFileType* wxMimeTypesManagerImpl::GetFileTypeFromExtension(const wxString& e)
         if (status == noErr)
         {
             wxString sCurrentExtension = wxMacMakeStringFromPascal(entry.extension);
-            if ( sCurrentExtension.Right(sCurrentExtension.length() - 1) == e ) // entry has period in it
+            if ( sCurrentExtension.Right(sCurrentExtension.Length() - 1) == e ) // entry has period in it
             {
                 wxFileType* pFileType = new wxFileType();
                 pFileType->m_impl->Init((wxMimeTypesManagerImpl*)this, pos);
@@ -1591,7 +1592,7 @@ wxFileType* wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
                 //'*' for unrestricted
                 if (ftInfo.GetExtensionsCount() != 0)
                 {
-                    for (size_t iExtension = 0; iExtension < ftInfo.GetExtensionsCount(); ++iExtension)
+                    for (size_t iExtension = 0; iExtension < (size_t)ftInfo.GetExtensionsCount(); ++iExtension)
                     {
                         cfaExtensions.Add( wxCFString( asExtensions[iExtension] ) );
                     }
@@ -1749,7 +1750,7 @@ wxFileType* wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
                 wxMacStringToPascal(ftInfo.GetDescription(), psDescription);
 
                 Str255 psPostCreatorName;
-                wxMacStringToPascal(wxEmptyString, psPostCreatorName);
+                wxMacStringToPascal(wxT(""), psPostCreatorName);
 
                 //add the entry to the database
                 ICMapEntry entry;

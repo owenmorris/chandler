@@ -2,7 +2,7 @@
 // Name:        menu.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: menu.cpp,v 1.179 2006/03/24 04:14:25 RD Exp $
+// Id:          $Id: menu.cpp,v 1.177 2006/02/09 22:19:14 MW Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,6 +47,9 @@ static const int wxGTK_TITLE_ID = -3;
 //-----------------------------------------------------------------------------
 // idle system
 //-----------------------------------------------------------------------------
+
+extern void wxapp_install_idle_handler();
+extern bool g_isIdle;
 
 #if wxUSE_ACCEL
 static wxString GetGtkHotKey( const wxMenuItem& item );
@@ -1196,10 +1199,12 @@ static wxString GetGtkHotKey( const wxMenuItem& item )
                 hotkey << wxT("Down" );
                 break;
             case WXK_PAGEUP:
-                hotkey << wxT("PgUp" );
+            case WXK_PRIOR:
+                hotkey << wxT("Prior" );
                 break;
             case WXK_PAGEDOWN:
-                hotkey << wxT("PgDn" );
+            case WXK_NEXT:
+                hotkey << wxT("Next" );
                 break;
             case WXK_LEFT:
                 hotkey << wxT("Left" );
@@ -1316,11 +1321,11 @@ static wxString GetGtkHotKey( const wxMenuItem& item )
             case WXK_NUMPAD_DOWN:
                 hotkey << wxT("KP_Down" );
                 break;
-            case WXK_NUMPAD_PAGEUP:
-                hotkey << wxT("KP_PgUp" );
+            case WXK_NUMPAD_PRIOR: case WXK_NUMPAD_PAGEUP:
+                hotkey << wxT("KP_Prior" );
                 break;
-            case WXK_NUMPAD_PAGEDOWN:
-                hotkey << wxT("KP_PgDn" );
+            case WXK_NUMPAD_NEXT:  case WXK_NUMPAD_PAGEDOWN:
+                hotkey << wxT("KP_Next" );
                 break;
             case WXK_NUMPAD_END:
                 hotkey << wxT("KP_End" );

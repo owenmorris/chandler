@@ -111,7 +111,6 @@ FoldPanelBar is supported on the following platforms:
   * Mac OSX (Thanks To Robin Dunn For The CaptionBar Size Patch)
 
 
-FoldPanelBar is based upon Jorgen Bodde's C++ implementation.
 Latest Revision: Andrea Gavana @ 05 Nov 2005, 23.30 CET
 
 """
@@ -502,7 +501,7 @@ class CaptionBar(wx.Window):
                  iconWidth=16, iconHeight=16, collapsed=False):
         """ Default Class Constructor."""
         
-        wx.Window.__init__(self, parent, wx.ID_ANY, pos=pos,
+        wx.Window.__init__(self, parent, wx.ID_ANY, pos=wx.DefaultPosition,
                            size=(20,20), style=wx.NO_BORDER)
 
         self._controlCreated = False
@@ -1005,7 +1004,7 @@ class FoldPanelBar(wx.Panel):
 
     This control is easy to use. Simply create it as a child for a
     panel or sash window, and populate panels with
-    `AddFoldPanel`. Then use the `AdddFoldPanelWindow` to add
+    `AddFoldPanel`. Then use the AdddFoldPanelWindow` to add
     `wx.Window` derived controls to the current fold panel. Use
     `AddFoldPanelSeparator` to put separators between the groups of
     controls that need a visual separator to group them
@@ -1489,7 +1488,7 @@ class FoldPanelItem(wx.Panel):
                  collapsed=False, cbstyle=EmptyCaptionBarStyle):
         """ Default Class Constructor. """
         
-        wx.Panel.__init__(self, parent, id, wx.Point(0,0), style=wx.CLIP_CHILDREN)
+        wx.Panel.__init__(self, parent, id, style=wx.CLIP_CHILDREN)
         self._controlCreated = False
         self._UserSize = 0
         self._PanelSize = 0

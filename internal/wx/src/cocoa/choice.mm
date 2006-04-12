@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/03/16
-// Id:          $Id: choice.mm,v 1.17 2006/03/23 22:04:50 VZ Exp $
+// Id:          $Id: choice.mm,v 1.15 2005/09/27 17:04:52 ABX Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -78,7 +78,7 @@ bool wxChoice::Create(wxWindow *parent, wxWindowID winid,
         {
             m_sortedStrings->Add(choices[i]);
         }
-        for(unsigned int i=0; i < m_sortedStrings->GetCount(); i++)
+        for(size_t i=0; i < m_sortedStrings->GetCount(); i++)
         {
             [nsmenu addItemWithTitle:wxNSStringWithWxString(
                     m_sortedStrings->Item(i))
@@ -113,7 +113,7 @@ wxChoice::~wxChoice()
 
     if(HasClientObjectData())
     {
-        for(unsigned int i=0; i < m_itemsClientData.GetCount(); i++)
+        for(size_t i=0; i < m_itemsClientData.GetCount(); i++)
             delete (wxClientData*)m_itemsClientData.Item(i);
     }
     m_itemsClientData.Clear();
@@ -139,14 +139,14 @@ void wxChoice::Clear()
         m_sortedStrings->Clear();
     if(HasClientObjectData())
     {
-        for(unsigned int i=0; i < m_itemsClientData.GetCount(); i++)
+        for(size_t i=0; i < m_itemsClientData.GetCount(); i++)
             delete (wxClientData*)m_itemsClientData.Item(i);
     }
     m_itemsClientData.Clear();
     [(NSPopUpButton*)m_cocoaNSView removeAllItems];
 }
 
-void wxChoice::Delete(unsigned int n)
+void wxChoice::Delete(int n)
 {
     if(m_sortedStrings)
         m_sortedStrings->RemoveAt(n);
@@ -156,18 +156,18 @@ void wxChoice::Delete(unsigned int n)
     [(NSPopUpButton*)m_cocoaNSView removeItemAtIndex:n];
 }
 
-unsigned int wxChoice::GetCount() const
+int wxChoice::GetCount() const
 {
-    return (unsigned int)[(NSPopUpButton*)m_cocoaNSView numberOfItems];
+    return [(NSPopUpButton*)m_cocoaNSView numberOfItems];
 }
 
-wxString wxChoice::GetString(unsigned int n) const
+wxString wxChoice::GetString(int n) const
 {
     wxAutoNSAutoreleasePool pool;
     return wxStringWithNSString([(NSPopUpButton*)m_cocoaNSView itemTitleAtIndex:n]);
 }
 
-void wxChoice::SetString(unsigned int n, const wxString& title)
+void wxChoice::SetString(int n, const wxString& title)
 {
     NSMenuItem *item = [(NSPopUpButton*)m_cocoaNSView itemAtIndex:n];
     [item setTitle:wxNSStringWithWxString(title)];
@@ -207,7 +207,7 @@ int wxChoice::DoAppend(const wxString& title)
     return [nsmenu indexOfItem:item];
 }
 
-int wxChoice::DoInsert(const wxString& title, unsigned int pos)
+int wxChoice::DoInsert(const wxString& title, int pos)
 {
     if(m_sortedStrings)
         return DoAppend(title);
@@ -218,22 +218,22 @@ int wxChoice::DoInsert(const wxString& title, unsigned int pos)
     return [nsmenu indexOfItem:item];
 }
 
-void wxChoice::DoSetItemClientData(unsigned int n, void *data)
+void wxChoice::DoSetItemClientData(int n, void *data)
 {
     m_itemsClientData.Item(n) = data;
 }
 
-void* wxChoice::DoGetItemClientData(unsigned int n) const
+void* wxChoice::DoGetItemClientData(int n) const
 {
     return m_itemsClientData.Item(n);
 }
 
-void wxChoice::DoSetItemClientObject(unsigned int n, wxClientData *data)
+void wxChoice::DoSetItemClientObject(int n, wxClientData *data)
 {
     m_itemsClientData.Item(n) = data;
 }
 
-wxClientData* wxChoice::DoGetItemClientObject(unsigned int n) const
+wxClientData* wxChoice::DoGetItemClientObject(int n) const
 {
     return (wxClientData*)m_itemsClientData.Item(n);
 }

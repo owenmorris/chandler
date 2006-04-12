@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     30-April-2001
-# RCS-ID:      $Id: make_installer.py,v 1.77 2006/03/18 01:03:45 RD Exp $
+# RCS-ID:      $Id: make_installer.py,v 1.76 2006/01/06 07:05:08 RD Exp $
 # Copyright:   (c) 2003 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -102,8 +102,6 @@ Source: "wx\_xrc.pyd";                         DestDir: "{app}\%(PKGDIR)s\wx"; C
 Source: "wx\*.py";                             DestDir: "{app}\%(PKGDIR)s\wx"; Components: core
 Source: "wx\build\*.py";                       DestDir: "{app}\%(PKGDIR)s\wx\build"; Components: core
 Source: "wx\lib\*.py";                         DestDir: "{app}\%(PKGDIR)s\wx\lib"; Components: core
-Source: "wx\lib\analogclock\*.py";             DestDir: "{app}\%(PKGDIR)s\wx\lib\analogclock"; Components: core
-Source: "wx\lib\analogclock\lib_setup\*.py";   DestDir: "{app}\%(PKGDIR)s\wx\lib\analogclock\lib_setup"; Components: core
 Source: "wx\lib\colourchooser\*.py";           DestDir: "{app}\%(PKGDIR)s\wx\lib\colourchooser"; Components: core
 Source: "wx\lib\editor\*.py";                  DestDir: "{app}\%(PKGDIR)s\wx\lib\editor"; Components: core
 Source: "wx\lib\editor\*.txt";                 DestDir: "{app}\%(PKGDIR)s\wx\lib\editor"; Components: core
@@ -187,10 +185,6 @@ Type: files; Name: "{app}\%(PKGDIR)s\wx\build\*.pyc";
 Type: files; Name: "{app}\%(PKGDIR)s\wx\build\*.pyo";
 Type: files; Name: "{app}\%(PKGDIR)s\wx\lib\*.pyc";
 Type: files; Name: "{app}\%(PKGDIR)s\wx\lib\*.pyo";
-Type: files; Name: "{app}\%(PKGDIR)s\wx\lib\analogclock\*.pyc";
-Type: files; Name: "{app}\%(PKGDIR)s\wx\lib\analogclock\*.pyo";
-Type: files; Name: "{app}\%(PKGDIR)s\wx\lib\analogclock\lib_setup\*.pyc";
-Type: files; Name: "{app}\%(PKGDIR)s\wx\lib\analogclock\lib_setup\*.pyo";
 Type: files; Name: "{app}\%(PKGDIR)s\wx\lib\colourchooser\*.pyc";
 Type: files; Name: "{app}\%(PKGDIR)s\wx\lib\colourchooser\*.pyo";
 Type: files; Name: "{app}\%(PKGDIR)s\wx\lib\editor\*.pyc";

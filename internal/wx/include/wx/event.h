@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.h,v 1.253 2006/03/30 14:03:56 ABX Exp $
+// RCS-ID:      $Id: event.h,v 1.252 2006/02/12 16:32:43 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1007,10 +1007,8 @@ public:
     // Get Y position
     wxCoord GetY() const { return m_y; }
 
-#if WXWIN_COMPATIBILITY_2_6
     // deprecated, Use GetKeyCode instead.
     wxDEPRECATED( long KeyCode() const );
-#endif // WXWIN_COMPATIBILITY_2_6
 
     virtual wxEvent *Clone() const { return new wxKeyEvent(*this); }
 
@@ -2923,12 +2921,10 @@ typedef void (wxEvtHandler::*wxMouseCaptureChangedEventFunction)(wxMouseCaptureC
     EVT_COMMAND_SCROLL_THUMBRELEASE(winid, func) \
     EVT_COMMAND_SCROLL_CHANGED(winid, func)
 
-#if WXWIN_COMPATIBILITY_2_6
-    // compatibility macros for the old name, deprecated in 2.8
-    #define wxEVT_SCROLL_ENDSCROLL wxEVT_SCROLL_CHANGED
-    #define EVT_COMMAND_SCROLL_ENDSCROLL EVT_COMMAND_SCROLL_CHANGED
-    #define EVT_SCROLL_ENDSCROLL EVT_SCROLL_CHANGED
-#endif // WXWIN_COMPATIBILITY_2_6
+// compatibility macros for the old name, to be deprecated in 2.8
+#define wxEVT_SCROLL_ENDSCROLL wxEVT_SCROLL_CHANGED
+#define EVT_COMMAND_SCROLL_ENDSCROLL EVT_COMMAND_SCROLL_CHANGED
+#define EVT_SCROLL_ENDSCROLL EVT_SCROLL_CHANGED
 
 // Convenience macros for commonly-used commands
 #define EVT_CHECKBOX(winid, func) wx__DECLARE_EVT1(wxEVT_COMMAND_CHECKBOX_CLICKED, winid, wxCommandEventHandler(func))
@@ -3026,3 +3022,4 @@ WXDLLIMPEXP_CORE wxWindow* wxFindFocusDescendant(wxWindow* ancestor);
 #endif // wxUSE_GUI
 
 #endif // _WX_EVENT_H__
+

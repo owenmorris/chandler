@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpaths.h,v 1.4 2006/03/25 17:00:28 VZ Exp $
+// RCS-ID:      $Id: stdpaths.h,v 1.3 2005/05/31 09:18:55 JS Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,8 +41,6 @@ public:
     virtual wxString GetLocalDataDir() const;
     virtual wxString GetUserDataDir() const;
     virtual wxString GetPluginsDir() const;
-    virtual wxString GetLocalizedResourcesDir(const wxChar *lang,
-                                              ResourceCat category) const;
 
 private:
     wxString m_prefix;

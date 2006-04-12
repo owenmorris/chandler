@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/04/08
-// RCS-ID:      $Id: NSTabView.h,v 1.4 2006/03/12 15:10:23 VZ Exp $
+// RCS-ID:      $Id: NSTabView.h,v 1.3 2004/05/23 20:50:42 JS Exp $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,8 +27,6 @@ public:
     void DisassociateNSTabView(WX_NSTabView ocoaNSTabView);
     virtual void CocoaDelegate_tabView_didSelectTabViewItem(WX_NSTabViewItem tabviewItem) = 0;
     virtual bool CocoaDelegate_tabView_shouldSelectTabViewItem(WX_NSTabViewItem tabviewItem) = 0;
-    virtual ~wxCocoaNSTabView() { }
-
 protected:
     static wxObjcAutoRefFromAlloc<struct objc_object*> sm_cocoaDelegate;
 };

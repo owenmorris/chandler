@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: setup0.h,v 1.220 2006/03/23 21:28:10 JS Exp $
+// RCS-ID:      $Id: setup0.h,v 1.217 2006/01/30 16:26:30 JS Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -559,7 +559,6 @@
 #define wxUSE_TEXTCTRL     1    // wxTextCtrl
 #define wxUSE_TOGGLEBTN    1    // requires wxButton
 #define wxUSE_TREECTRL     1    // wxTreeCtrl
-#define wxUSE_DATAVIEWCTRL 0    // wxDataViewCtrl // OSAF - disabled
 
 // Use a status bar class? Depending on the value of wxUSE_NATIVE_STATUSBAR
 // below either wxStatusBar95 or a generic wxStatusBar will be used.
@@ -678,7 +677,7 @@
 // Default is 0 because it isn't yet implemented on all platforms
 //
 // Recommended setting: 1 if you need it, can be safely set to 0 otherwise
-#define wxUSE_DISPLAY       1
+#define wxUSE_DISPLAY       0
 
 // Miscellaneous geometry code: needed for Canvas library
 #define wxUSE_GEOMETRY            1
@@ -1098,12 +1097,7 @@
 // bitmaps > 16MB on Win95/98/Me.  Set to 0 to use DDB's only.
 #define wxUSE_DIB_FOR_BITMAP 0
 
-// Set this to 1 to enable wxDIB class used internally for manipulating
-// wxBitmao data.
-//
-// Default is 1, set it to 0 only if you don't use wxImage neither
-//
-// Recommended setting: 1 (without it conversion to/from wxImage won't work)
+// Set this to 1 to enable wxDIB
 #define wxUSE_WXDIB 1
 
 // Set to 0 to disable PostScript print/preview architecture code under Windows

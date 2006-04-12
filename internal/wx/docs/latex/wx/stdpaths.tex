@@ -4,7 +4,7 @@
 %% Author:      Vadim Zeitlin
 %% Modified by:
 %% Created:     2004-10-17
-%% RCS-ID:      $Id: stdpaths.tex,v 1.13 2006/03/27 15:02:59 ABX Exp $
+%% RCS-ID:      $Id: stdpaths.tex,v 1.11 2005/09/01 14:46:18 VZ Exp $
 %% Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -22,8 +22,8 @@ the Windows directory may be named \texttt{W:$\backslash$Win2003} instead of
 the default \texttt{C:$\backslash$Windows}.
 
 The strings \texttt{\textit{appname}} and \texttt{\textit{username}} should be
-replaced with the value returned by \helpref{wxApp::GetAppName}{wxappgetappname}
-and the name of the currently logged in user, respectively. The string
+replaced with the value returned by \helpref{wxApp::GetAppName}{wxappgetappname} 
+and the name of the currently logged in user, respectively. The string 
 \texttt{\textit{prefix}} is only used under Unix and is \texttt{/usr/local} by
 default but may be changed using \helpref{SetInstallPrefix}{wxstandardpathssetinstallprefix}.
 
@@ -101,10 +101,10 @@ Example return values:
 
 \textbf{Note: } This function is only available under Unix.
 
-Return the program installation prefix, e.g. \texttt{/usr}, \texttt{/opt} or
+Return the program installation prefix, e.g. \texttt{/usr}, \texttt{/opt} or 
 \texttt{/home/zeitlin}.
 
-If the prefix had been previously by
+If the prefix had been previously by 
 \helpref{SetInstallPrefix}{wxstandardpathssetinstallprefix}, returns that
 value, otherwise tries to determine it automatically (Linux only right
 now) and finally returns the default \texttt{/usr/local} value if it failed.
@@ -121,48 +121,11 @@ This is the same as \helpref{GetDataDir()}{wxstandardpathsgetdatadir} except
 under Unix where it returns \texttt{/etc/\textit{appname}}.
 
 
-\membersection{wxStandardPaths::GetLocalizedResourcesDir}\label{wxstandardpathsgetlocalizedresourcesdir}
-
-\func{wxString}{GetLocalizedResourcesDir}{\param{const wxChar*}{ lang}, \param{ResourceCat}{ category = ResourceCat\_None}}
-
-Return the localized resources directory containing the resource files of the
-specified category for the given language.
-
-In general this is just the same as \arg{lang} subdirectory of
-\helpref{GetResourcesDir()}{wxstandardpathsgetresourcesdir} (or
-\texttt{\arg{lang}.lproj} under Mac OS X) but is something quite
-different for message catalog category under Unix where it returns the standard
-\texttt{\textit{prefix}/share/locale/\arg{lang}/LC\_MESSAGES} directory.
-
-
 \membersection{wxStandardPaths::GetPluginsDir}\label{wxstandardpathsgetpluginsdir}
 
 \func{wxString}{GetPluginsDir}{\void}
 
 Return the directory where the loadable modules (plugins) live.
-
-Example return values:
-\begin{itemize}
-    \item Unix: \texttt{\textit{prefix}/share/\textit{appname}}
-    \item Windows: the directory where the executable file is located
-    \item Mac: \texttt{\textit{appname}.app/Contents/Resources} bundle subdirectory
-\end{itemize}
-
-\wxheading{See also}
-
-\helpref{wxDynamicLibrary}{wxdynamiclibrary}
-
-
-\membersection{wxStandardPaths::GetResourcesDir}\label{wxstandardpathsgetresourcesdir}
-
-\func{wxString}{GetResourcesDir}{\void}
-
-Return the directory where the application resource files are located. The
-resources are the auxiliary data files needed for the application to run and
-include, for example, image and sound files it might use.
-
-This function is the same as \helpref{GetDataDir}{wxstandardpathsgetdatadir} for
-all platforms except Mac OS X.
 
 Example return values:
 \begin{itemize}
@@ -173,7 +136,7 @@ Example return values:
 
 \wxheading{See also}
 
-\helpref{GetLocalizedResourcesDir}{wxstandardpathsgetlocalizedresourcesdir}
+\helpref{wxDynamicLibrary}{wxdynamiclibrary}
 
 
 \membersection{wxStandardPaths::GetUserConfigDir}\label{wxstandardpathsgetuserconfigdir}
@@ -212,7 +175,7 @@ Return the directory for user data files which shouldn't be shared with
 the other machines.
 
 This is the same as \helpref{GetUserDataDir()}{wxstandardpathsgetuserdatadir} for
-all platforms except Windows where it returns
+all platforms except Windows where it returns 
 \texttt{C:$\backslash$Documents and Settings$\backslash$\textit{username}$\backslash$Local Settings$\backslash$Application Data$\backslash$\textit{appname}}
 
 
@@ -223,7 +186,7 @@ all platforms except Windows where it returns
 \textbf{Note:} This function is only available under Unix.
 
 Lets wxStandardPaths know about the real program installation prefix on a Unix
-system. By default, the value returned by
+system. By default, the value returned by 
 \helpref{GetInstallPrefix}{wxstandardpathsgetinstallprefix} is used.
 
 Although under Linux systems the program prefix may usually be determined

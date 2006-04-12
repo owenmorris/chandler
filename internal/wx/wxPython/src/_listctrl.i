@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _listctrl.i,v 1.29 2006/03/10 21:26:40 RD Exp $
+// RCS-ID:      $Id: _listctrl.i,v 1.27 2006/01/29 02:09:26 RD Exp $
 // Copyright:   (c) 2002 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -483,8 +483,10 @@ public:
     // return the total area occupied by all the items (icon/small icon only)
     wxRect GetViewRect() const;
 
+#ifdef __WXMSW__
     // Gets the edit control for editing labels.
     wxTextCtrl* GetEditControl() const;
+#endif
 
     // Gets information about the item
     %pythonAppend GetItem "if val is not None: val.thisown = 1";  // %newobject doesn't work with OOR typemap
@@ -513,7 +515,6 @@ public:
 
     // Sets the item image
     bool SetItemImage(long item, int image, int selImage=-1) ;
-    bool SetItemColumnImage( long item, long column, int image );
 
     // Gets the item text
     wxString GetItemText(long item) const ;

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     3-July-1997
-// RCS-ID:      $Id: _constraints.i,v 1.6 2006/03/10 00:27:37 RD Exp $
+// RCS-ID:      $Id: _constraints.i,v 1.5 2004/05/12 00:17:40 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -233,7 +233,6 @@ button label.", "");
         "is not determinable, -1.", "");
 };
 
-
 DocStr(wxLayoutConstraints,
 "**Note:** constraints are now deprecated and you should use sizers
 instead.
@@ -290,8 +289,6 @@ public:
     DocCtorStr(
         wxLayoutConstraints(),
         "", "");
-
-    ~wxLayoutConstraints();
     
     DocDeclA(
         bool, SatisfyConstraints(wxWindow *win, int *OUTPUT),

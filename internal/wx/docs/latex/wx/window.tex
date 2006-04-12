@@ -4,7 +4,7 @@
 %% Author:      wxWidgets Team
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: window.tex,v 1.200 2006/03/14 15:45:08 VZ Exp $
+%% RCS-ID:      $Id: window.tex,v 1.198 2006/02/13 15:18:35 VZ Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -689,10 +689,6 @@ a wxTextCtrl under wxGTK) but is not implemented on all platforms nor for all
 controls so it is mostly just a hint to wxWidgets and not a mandatory
 directive.
 
-\wxheading{See also}
-
-\helpref{wxWindowUpdateLocker}{wxwindowupdatelocker}
-
 
 \membersection{wxWindow::GetAcceleratorTable}\label{wxwindowgetacceleratortable}
 
@@ -1111,9 +1107,9 @@ windows.
 
 \wxheading{Parameters}
 
-\docparam{x}{Receives the x position of the window if non-\NULL.}
+\docparam{x}{Receives the x position of the window.}
 
-\docparam{y}{Receives the y position of the window if non-\NULL.}
+\docparam{y}{Receives the y position of the window.}
 
 \pythonnote{In place of a single overloaded method name, wxPython
 implements the following methods:\par
@@ -1133,52 +1129,11 @@ method:\par
 }}
 
 
-\wxheading{See also}
-
-\helpref{GetScreenPosition}{wxwindowgetscreenposition}
-
-
 \membersection{wxWindow::GetRect}\label{wxwindowgetrect}
 
 \constfunc{virtual wxRect}{GetRect}{\void}
 
 Returns the size and position of the window as a \helpref{wxRect}{wxrect} object.
-
-\wxheading{See also}
-
-\helpref{GetScreenRect}{wxwindowgetscreenrect}
-
-
-\membersection{wxWindow::GetScreenPosition}\label{wxwindowgetscreenposition}
-
-\constfunc{virtual void}{GetScreenPosition}{\param{int* }{x}, \param{int* }{y}}
-
-\constfunc{wxPoint}{GetScreenPosition}{\void}
-
-Returns the window position in screen coordinates, whether the window is a
-child window or a top level one.
-
-\wxheading{Parameters}
-
-\docparam{x}{Receives the x position of the window on the screen if non-\NULL.}
-
-\docparam{y}{Receives the y position of the window on the screen if non-\NULL.}
-
-\wxheading{See also}
-
-\helpref{GetPosition}{wxwindowgetposition}
-
-
-\membersection{wxWindow::GetScreenRect}\label{wxwindowgetscreenrect}
-
-\constfunc{virtual wxRect}{GetScreenRect}{\void}
-
-Returns the size and position of the window on the screen as a 
-\helpref{wxRect}{wxrect} object.
-
-\wxheading{See also}
-
-\helpref{GetRect}{wxwindowgetrect}
 
 
 \membersection{wxWindow::GetScrollPos}\label{wxwindowgetscrollpos}
@@ -3455,10 +3410,6 @@ done because it already was in the requested state.
 Reenables window updating after a previous call to
 \helpref{Freeze}{wxwindowfreeze}. To really thaw the control, it must be called
 exactly the same number of times as \helpref{Freeze}{wxwindowfreeze}.
-
-\wxheading{See also}
-
-\helpref{wxWindowUpdateLocker}{wxwindowupdatelocker}
 
 
 \membersection{wxWindow::TransferDataFromWindow}\label{wxwindowtransferdatafromwindow}

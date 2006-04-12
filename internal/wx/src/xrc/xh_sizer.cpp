@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/xrc/xh_sizer.cpp
+// Name:        xh_sizer.cpp
 // Purpose:     XRC resource for wxBoxSizer
 // Author:      Vaclav Slavik
 // Created:     2000/03/21
-// RCS-ID:      $Id: xh_sizer.cpp,v 1.27 2006/03/31 18:07:22 ABX Exp $
+// RCS-ID:      $Id: xh_sizer.cpp,v 1.25 2005/09/23 12:56:14 MR Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -200,11 +200,6 @@ wxObject* wxSizerXmlHandler::Handle_sizer()
     else if (m_class == wxT("wxGridBagSizer"))
         sizer = Handle_wxGridBagSizer();
 
-    if ( !sizer )
-    {
-        wxLogError(_T("Failed to create size of class \"%s\""), m_class.c_str());
-        return NULL;
-    }
 
     wxSize minsize = GetSize(wxT("minsize"));
     if (!(minsize == wxDefaultSize))
@@ -235,7 +230,7 @@ wxObject* wxSizerXmlHandler::Handle_sizer()
             sizer->Fit(m_parentAsWindow);
         m_node = nd;
 
-        if (m_parentAsWindow->GetWindowStyle() & (wxMAXIMIZE_BOX | wxRESIZE_BORDER))
+        if (m_parentAsWindow->GetWindowStyle() & (wxRESIZE_BOX | wxRESIZE_BORDER))
             sizer->SetSizeHints(m_parentAsWindow);
     }
 

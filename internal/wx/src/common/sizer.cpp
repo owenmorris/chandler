@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/common/sizer.cpp
+// Name:        sizer.cpp
 // Purpose:     provide new wxSizer class for layout
 // Author:      Robert Roebling and Robin Dunn, contributions by
 //              Dirk Holtwick, Ron Lee
 // Modified by: Ron Lee
 // Created:
-// RCS-ID:      $Id: sizer.cpp,v 1.132 2006/03/30 14:04:14 ABX Exp $
+// RCS-ID:      $Id: sizer.cpp,v 1.131 2006/02/08 22:22:48 VZ Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -473,7 +473,6 @@ bool wxSizerItem::IsShown() const
     return false;
 }
 
-#if WXWIN_COMPATIBILITY_2_6
 void wxSizerItem::SetOption( int option )
 {
     SetProportion( option );
@@ -483,7 +482,6 @@ int wxSizerItem::GetOption() const
 {
     return GetProportion();
 }
-#endif // WXWIN_COMPATIBILITY_2_6
 
 
 //---------------------------------------------------------------------------
@@ -505,12 +503,10 @@ wxSizerItem* wxSizer::Insert( size_t index, wxSizerItem *item )
     return item;
 }
 
-#if WXWIN_COMPATIBILITY_2_6
 bool wxSizer::Remove( wxWindow *window )
 {
     return Detach( window );
 }
-#endif // WXWIN_COMPATIBILITY_2_6
 
 bool wxSizer::Remove( wxSizer *sizer )
 {

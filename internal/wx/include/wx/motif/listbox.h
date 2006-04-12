@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: listbox.h,v 1.30 2006/03/23 22:04:36 VZ Exp $
+// RCS-ID:      $Id: listbox.h,v 1.28 2005/10/03 16:25:53 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -66,22 +66,22 @@ public:
     ~wxListBox();
 
     // implementation of wxControlWithItems
-    virtual unsigned int GetCount() const;
+    virtual int GetCount() const;
     virtual int DoAppend(const wxString& item);
-    virtual void DoSetItemClientData(unsigned int n, void* clientData);
-    virtual void* DoGetItemClientData(unsigned int n) const;
-    virtual void DoSetItemClientObject(unsigned int n, wxClientData* clientData);
-    virtual wxClientData* DoGetItemClientObject(unsigned int n) const;
+    virtual void DoSetItemClientData(int n, void* clientData);
+    virtual void* DoGetItemClientData(int n) const;
+    virtual void DoSetItemClientObject(int n, wxClientData* clientData);
+    virtual wxClientData* DoGetItemClientObject(int n) const;
     virtual int GetSelection() const;
-    virtual void Delete(unsigned int n);
+    virtual void Delete(int n);
     virtual int FindString(const wxString& s, bool bCase = false) const;
     virtual void Clear();
-    virtual void SetString(unsigned int n, const wxString& s);
-    virtual wxString GetString(unsigned int n) const;
+    virtual void SetString(int n, const wxString& s);
+    virtual wxString GetString(int n) const;
 
     // implementation of wxListBoxbase
     virtual void DoSetSelection(int n, bool select);
-    virtual void DoInsertItems(const wxArrayString& items, unsigned int pos);
+    virtual void DoInsertItems(const wxArrayString& items, int pos);
     virtual void DoSetItems(const wxArrayString& items, void **clientData);
     virtual void DoSetFirstItem(int n);
     virtual int GetSelections(wxArrayInt& aSelections) const;
@@ -101,7 +101,7 @@ public:
 protected:
     virtual wxSize DoGetBestSize() const;
 
-    unsigned int m_noItems;
+    int       m_noItems;
 
     // List mapping positions->client data
     wxClientDataDictionary m_clientDataDict;

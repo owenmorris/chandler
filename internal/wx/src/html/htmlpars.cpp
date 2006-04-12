@@ -2,7 +2,7 @@
 // Name:        htmlpars.cpp
 // Purpose:     wxHtmlParser class (generic parser)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlpars.cpp,v 1.54 2006/04/03 19:34:21 VS Exp $
+// RCS-ID:      $Id: htmlpars.cpp,v 1.51 2005/09/25 19:59:09 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -432,26 +432,11 @@ bool wxHtmlParser::RestoreState()
     return true;
 }
 
-wxString wxHtmlParser::GetInnerSource(const wxHtmlTag& tag)
-{
-    return GetSource()->Mid(tag.GetBeginPos(),
-                            tag.GetEndPos1() - tag.GetBeginPos());
-}
-
 //-----------------------------------------------------------------------------
 // wxHtmlTagHandler
 //-----------------------------------------------------------------------------
 
 IMPLEMENT_ABSTRACT_CLASS(wxHtmlTagHandler,wxObject)
-
-void wxHtmlTagHandler::ParseInnerSource(const wxString& source)
-{
-    // It is safe to temporarily change the source being parsed,
-    // provided we restore the state back after parsing
-    m_Parser->SetSourceAndSaveState(source);
-    m_Parser->DoParsing();
-    m_Parser->RestoreState();
-}
 
 
 //-----------------------------------------------------------------------------
@@ -506,8 +491,7 @@ wxString wxHtmlEntitiesParser::Parse(const wxString& input)
         {
             if (c - last > 0)
                 output.append(last, c - last);
-            if ( *++c == wxT('\0') )
-                break;
+            if (++c == wxT('\0')) break;
 
             wxString entity;
             const wxChar *ent_s = c;
@@ -849,24 +833,11 @@ wxChar wxHtmlEntitiesParser::GetEntityChar(const wxString& entity)
             while (substitutions[substitutions_cnt].code != 0)
                 substitutions_cnt++;
 
-        wxHtmlEntityInfo *info = NULL;
-#ifdef __WXWINCE__
-        // bsearch crashes under WinCE for some reason
-        size_t i;
-        for (i = 0; i < substitutions_cnt; i++)
-        {
-            if (entity == substitutions[i].name)
-            {
-                info = & substitutions[i];
-                break;
-            }
-        }
-#else
+        wxHtmlEntityInfo *info;
         info = (wxHtmlEntityInfo*) bsearch(entity.c_str(), substitutions,
                                            substitutions_cnt,
                                            sizeof(wxHtmlEntityInfo),
                                            wxHtmlEntityCompare);
-#endif
         if (info)
             code = info->code;
     }

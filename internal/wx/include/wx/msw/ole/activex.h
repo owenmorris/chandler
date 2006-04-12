@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        wx/msw/ole/activex.h
+// Name:        wx/activex.h
 // Purpose:     wxActiveXContainer class
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     8/18/05
-// RCS-ID:      $Id: activex.h,v 1.4 2006/03/12 14:48:01 ABX Exp $
+// RCS-ID:      $Id: activex.h,v 1.3 2006/02/10 19:37:29 VZ Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -196,24 +196,24 @@ public:
     virtual wxEvent *Clone() const
     { return new wxActiveXEvent(*this); }
 
-    size_t ParamCount() const
+    int ParamCount() const
     {   return m_params.GetCount();  }
 
-    wxString ParamType(size_t idx) const
+    wxString ParamType(int idx) const
     {
-        wxASSERT(idx < m_params.GetCount());
+        wxASSERT(idx >= 0 && idx < m_params.GetCount());
         return m_params[idx].GetType();
     }
 
-    wxString ParamName(size_t idx) const
+    wxString ParamName(int idx) const
     {
-        wxASSERT(idx < m_params.GetCount());
+        wxASSERT(idx >= 0 && idx < m_params.GetCount());
         return m_params[idx].GetName();
     }
 
-    wxVariant& operator[] (size_t idx)
+    wxVariant& operator[] (int idx)
     {
-        wxASSERT(idx < ParamCount());
+        wxASSERT(idx >= 0 && idx < ParamCount());
         return m_params[idx];
     }
 
@@ -229,3 +229,4 @@ typedef void (wxEvtHandler::*wxActiveXEventFunction)(wxActiveXEvent&);
     (wxObjectEventFunction)(wxEventFunction)wxStaticCastEvent(wxActiveXEventFunction, &func)
 
 #endif // _WX_MSW_OLE_ACTIVEXCONTAINER_H_
+

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox.h,v 1.19 2006/03/23 22:04:31 VZ Exp $
+// RCS-ID:      $Id: listbox.h,v 1.16 2006/02/08 21:46:10 VZ Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -71,15 +71,15 @@ public:
                 const wxString& name = wxListBoxNameStr);
 
     virtual ~wxListBox();
-    virtual void Refresh(bool eraseBack = true, const wxRect *rect = NULL);
+    virtual void Refresh(bool eraseBack = TRUE, const wxRect *rect = NULL);
 
     // implement base class pure virtuals
     virtual void Clear();
-    virtual void Delete(unsigned int n);
+    virtual void Delete(int n);
 
-    virtual unsigned int GetCount() const;
-    virtual wxString GetString(unsigned int n) const;
-    virtual void SetString(unsigned int n, const wxString& s);
+    virtual int GetCount() const;
+    virtual wxString GetString(int n) const;
+    virtual void SetString(int n, const wxString& s);
     virtual int FindString(const wxString& s, bool bCase = false) const;
 
     virtual bool IsSelected(int n) const;
@@ -105,15 +105,14 @@ public:
 protected:
     virtual void DoSetSelection(int n, bool select);
     virtual int DoAppend(const wxString& item);
-    virtual void DoInsertItems(const wxArrayString& items, unsigned int pos);
+    virtual void DoInsertItems(const wxArrayString& items, int pos);
     virtual void DoSetItems(const wxArrayString& items, void **clientData);
     virtual void DoSetFirstItem(int n);
-    virtual void DoSetItemClientData(unsigned int n, void* clientData);
-    virtual void* DoGetItemClientData(unsigned int n) const;
-    virtual void DoSetItemClientObject(unsigned int n, wxClientData* clientData);
-    virtual wxClientData* DoGetItemClientObject(unsigned int n) const;
+    virtual void DoSetItemClientData(int n, void* clientData);
+    virtual void* DoGetItemClientData(int n) const;
+    virtual void DoSetItemClientObject(int n, wxClientData* clientData);
+    virtual wxClientData* DoGetItemClientObject(int n) const;
     virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
-    virtual int DoListHitTest(const wxPoint& point) const;
 
     void            MacDelete( int n ) ;
     void            MacInsert( int n , const wxString& item) ;
@@ -132,7 +131,7 @@ protected:
     // prevent collision with some BSD definitions of macro Free()
     void FreeData();
 
-    unsigned int m_noItems;
+    int m_noItems;
     int m_selected;
     bool m_suppressSelection ;
     wxString  m_typeIn ;

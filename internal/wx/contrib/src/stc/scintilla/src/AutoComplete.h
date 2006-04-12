@@ -15,7 +15,7 @@ class AutoComplete {
 	char stopChars[256];
 	char fillUpChars[256];
 	char separator;
-	char typesep; // Type seperator
+	char typesep; // Type separator
 
 public:
 	bool ignoreCase;
@@ -35,7 +35,7 @@ public:
 	bool Active();
 
 	/// Display the auto completion list positioned to be near a character position
-	void Start(Window &parent, int ctrlID, int position, Point location,
+	void Start(Window &parent, int ctrlID, int position,
 		int startLen_, int lineHeight, bool unicodeMode);
 
 	/// The stop chars are characters which, when typed, cause the auto completion list to disappear
@@ -50,14 +50,14 @@ public:
 	void SetSeparator(char separator_);
 	char GetSeparator();
 
-	/// The typesep character is used for seperating the word from the type
+	/// The typesep character is used for separating the word from the type
 	void SetTypesep(char separator_);
 	char GetTypesep();
 
 	/// The list string contains a sequence of words separated by the separator character
 	void SetList(const char *list);
 
-	void Show(bool show);
+	void Show();
 	void Cancel();
 
 	/// Move the current list element by delta, scrolling appropriately

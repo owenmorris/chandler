@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: common.bkl,v 1.145 2006/03/07 14:59:59 ABX Exp $ -->
+<!-- $Id: common.bkl,v 1.144 2006/01/21 22:50:42 MW Exp $ -->
 
 <makefile>
 
@@ -130,7 +130,7 @@
         <if cond="MONOLITHIC=='0'">$(mk.evalExpr(wxwin.mkLibName('adv')))</if>
     </set>
     <set var="WXLIB_MEDIA">
-        <if cond="MONOLITHIC=='0' and USE_MEDIA=='1'">$(mk.evalExpr(wxwin.mkLibName('media')))</if>
+        <if cond="MONOLITHIC=='0'">$(mk.evalExpr(wxwin.mkLibName('media')))</if>
     </set>
     <set var="WXLIB_HTML">
         <if cond="MONOLITHIC=='0'">$(mk.evalExpr(wxwin.mkLibName('html')))</if>

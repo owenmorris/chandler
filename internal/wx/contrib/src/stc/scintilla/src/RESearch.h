@@ -20,8 +20,6 @@
 class CharacterIndexer {
 public: 
 	virtual char CharAt(int index)=0;
-	virtual ~CharacterIndexer() {
-	}
 };
 
 class RESearch {

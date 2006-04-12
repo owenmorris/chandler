@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.h,v 1.60 2006/04/05 16:53:13 VZ Exp $
+// RCS-ID:      $Id: fileconf.h,v 1.58 2005/09/24 21:42:07 VZ Exp $
 // Copyright:   (c) 1997 Karsten Ballüder   &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -122,11 +122,11 @@ public:
                const wxString& localFilename = wxEmptyString,
                const wxString& globalFilename = wxEmptyString,
                long style = wxCONFIG_USE_LOCAL_FILE | wxCONFIG_USE_GLOBAL_FILE,
-               const wxMBConv& conv = wxConvAuto());
+               wxMBConv& conv = wxConvUTF8);
 
 #if wxUSE_STREAMS
     // ctor that takes an input stream.
-  wxFileConfig(wxInputStream &inStream, const wxMBConv& conv = wxConvAuto());
+  wxFileConfig(wxInputStream &inStream, wxMBConv& conv = wxConvUTF8);
 #endif // wxUSE_STREAMS
 
     // dtor will save unsaved data
@@ -169,7 +169,7 @@ public:
   // save the entire config file text to the given stream, note that the text
   // won't be saved again in dtor when Flush() is called if you use this method
   // as it won't be "changed" any more
-  virtual bool Save(wxOutputStream& os, const wxMBConv& conv = wxConvAuto());
+  virtual bool Save(wxOutputStream& os, wxMBConv& conv = wxConvUTF8);
 #endif // wxUSE_STREAMS
 
 public:
@@ -227,7 +227,7 @@ private:
   wxFileConfigGroup *m_pRootGroup,      // the top (unnamed) group
                     *m_pCurrentGroup;   // the current group
 
-  wxMBConv    *m_conv;
+  wxMBConv   &m_conv;
 
 #ifdef __UNIX__
   int m_umask;                          // the umask to use for file creation

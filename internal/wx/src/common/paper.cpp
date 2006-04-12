@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: paper.cpp,v 1.24 2006/03/05 12:40:32 VZ Exp $
+// RCS-ID:      $Id: paper.cpp,v 1.23 2005/09/25 11:13:31 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -212,7 +212,7 @@ void wxPrintPaperDatabase::CreateDatabase()
     WXADDPAPER(wxPAPER_PENV_7_ROTATED,      115,                        wxTRANSLATE("PRC Envelope #7 Rotated 230 x 160 mm"), 2300, 1600);
     WXADDPAPER(wxPAPER_PENV_8_ROTATED,      116,                        wxTRANSLATE("PRC Envelope #8 Rotated 309 x 120 mm"), 3090, 1200);
     WXADDPAPER(wxPAPER_PENV_9_ROTATED,      117,                        wxTRANSLATE("PRC Envelope #9 Rotated 324 x 229 mm"), 3240, 2290);
-    WXADDPAPER(wxPAPER_PENV_10_ROTATED,     118,                        wxTRANSLATE("PRC Envelope #10 Rotated 458 x 324 mm"), 4580, 3240);
+    WXADDPAPER(wxPAPER_PENV_10_ROTATED,     118,                        wxTRANSLATE("PRC Envelope #10 Rotated 458 x 324 m"), 4580, 3240);
 }
 
 void wxPrintPaperDatabase::ClearDatabase()

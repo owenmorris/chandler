@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Sept-2000
-// RCS-ID:      $Id: _image.i,v 1.35 2006/03/05 03:59:45 RD Exp $
+// RCS-ID:      $Id: _image.i,v 1.34 2006/01/20 17:23:02 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -947,12 +947,6 @@ option is not present, the function returns 0.", "
     static void AddHandler( wxImageHandler *handler );
     static void InsertHandler( wxImageHandler *handler );
     static bool RemoveHandler( const wxString& name );
-    %extend {
-        static PyObject* GetHandlers() {
-            wxList& list = wxImage::GetHandlers();
-            return wxPy_ConvertList(&list);
-        }
-    }
     
     DocDeclStr(
         static wxString , GetImageExtWildcard(),

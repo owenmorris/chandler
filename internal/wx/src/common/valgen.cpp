@@ -4,7 +4,7 @@
 // Author:      Kevin Smith
 // Modified by:
 // Created:     Jan 22 1999
-// RCS-ID:      $Id: valgen.cpp,v 1.33 2006/03/11 14:27:51 JS Exp $
+// RCS-ID:      $Id: valgen.cpp,v 1.32 2005/09/23 12:53:10 MR Exp $
 // Copyright:   (c) 1999 Kevin Smith
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,16 +40,14 @@
   #include "wx/slider.h"
 #endif
 
-#include "wx/spinctrl.h"
+
+  #include "wx/spinctrl.h"
 
 #if wxUSE_SPINBTN
   #include "wx/spinbutt.h"
 #endif
 #if wxUSE_CHECKLISTBOX
   #include "wx/checklst.h"
-#endif
-#if wxUSE_TOGGLEBTN
-  #include "wx/tglbtn.h"
 #endif
 
 #include "wx/valgen.h"
@@ -125,17 +123,6 @@ bool wxGenericValidator::TransferToWindow(void)
             pControl->SetValue(*m_pBool) ;
             return true;
         }
-    } else
-#endif
-#if wxUSE_TOGGLEBTN
-    if (m_validatorWindow->IsKindOf(CLASSINFO(wxToggleButton)) )
-    {
-        wxToggleButton * pControl = (wxToggleButton *) m_validatorWindow;
-	if (m_pBool)
-	{
-	    pControl->SetValue(*m_pBool);
-	    return true;
-	}
     } else
 #endif
 
@@ -290,7 +277,6 @@ bool wxGenericValidator::TransferToWindow(void)
         }
     } else
 #endif
-
     // array controls
 #if wxUSE_CHECKLISTBOX
     // NOTE: wxCheckListBox is a wxListBox, so wxCheckListBox MUST come first:
@@ -370,17 +356,6 @@ bool wxGenericValidator::TransferFromWindow(void)
             *m_pBool = pControl->GetValue() ;
             return true;
         }
-    } else
-#endif
-#if wxUSE_TOGGLEBTN
-    if (m_validatorWindow->IsKindOf(CLASSINFO(wxToggleButton)) )
-    {
-	wxToggleButton *pControl = (wxToggleButton *) m_validatorWindow;
-	if (m_pBool)
-	{
-	    *m_pBool = pControl->GetValue() ;
-	    return true;
-	}
     } else
 #endif
 

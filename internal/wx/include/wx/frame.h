@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.11.99
-// RCS-ID:      $Id: frame.h,v 1.60 2006/03/22 20:51:05 ABX Exp $
+// RCS-ID:      $Id: frame.h,v 1.59 2006/01/23 03:27:32 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,6 +19,7 @@
 #include "wx/toplevel.h"      // the base class
 
 // the default names for various classs
+extern WXDLLEXPORT_DATA(const wxChar) wxFrameNameStr[];
 extern WXDLLEXPORT_DATA(const wxChar) wxStatusLineNameStr[];
 extern WXDLLEXPORT_DATA(const wxChar) wxToolBarNameStr[];
 

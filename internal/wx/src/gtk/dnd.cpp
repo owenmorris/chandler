@@ -2,7 +2,7 @@
 // Name:        dnd.cpp
 // Purpose:     wxDropTarget class
 // Author:      Robert Roebling
-// Id:          $Id: dnd.cpp,v 1.105 2006/04/04 17:19:41 MR Exp $
+// Id:          $Id: dnd.cpp,v 1.101 2006/02/03 21:51:21 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,6 +28,20 @@
 
 #include <gtk/gtkdnd.h>
 #include <gtk/gtkselection.h>
+
+//-----------------------------------------------------------------------------
+// idle system
+//-----------------------------------------------------------------------------
+
+extern void wxapp_install_idle_handler();
+extern bool g_isIdle;
+
+//-----------------------------------------------------------------------------
+// thread system
+//-----------------------------------------------------------------------------
+
+#if wxUSE_THREADS
+#endif
 
 //----------------------------------------------------------------------------
 // global data
@@ -345,7 +359,7 @@ static gboolean target_drag_drop( GtkWidget *widget,
         GdkAtom format = drop_target->GetMatchingPair();
 
         // this does happen somehow, see bug 555111
-        wxCHECK_MSG( format, FALSE, _T("no matching GdkAtom for format?") );
+        wxCHECK_MSG( format, FALSE, _T("no matching GdkAtom for format?") )
 
 /*
         GdkDragAction action = GDK_ACTION_MOVE;
@@ -797,7 +811,7 @@ void wxDropSource::PrepareIcon( int action, GdkDragContext *context )
     GdkPixmap *pixmap = icon->GetPixmap();
 
     gint width,height;
-    gdk_drawable_get_size (pixmap, &width, &height);
+    gdk_window_get_size (pixmap, &width, &height);
 
     GdkColormap *colormap = gtk_widget_get_colormap( m_widget );
     gtk_widget_push_colormap (colormap);

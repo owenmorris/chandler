@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: listbox.h,v 1.28 2006/03/23 22:04:46 VZ Exp $
+// RCS-ID:      $Id: listbox.h,v 1.26 2006/02/08 21:46:51 VZ Exp $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,13 +97,13 @@ public:
 
     // implement the listbox interface defined by wxListBoxBase
     virtual void Clear();
-    virtual void Delete(unsigned int n);
+    virtual void Delete(int n);
 
-    virtual unsigned int GetCount() const
-        { return (unsigned int)m_strings->GetCount(); }
-    virtual wxString GetString(unsigned int n) const
+    virtual int GetCount() const
+        { return (int)m_strings->GetCount(); }
+    virtual wxString GetString(int n) const
         { return m_strings->Item(n); }
-    virtual void SetString(unsigned int n, const wxString& s);
+    virtual void SetString(int n, const wxString& s);
     virtual int FindString(const wxString& s, bool bCase = false) const
         { return m_strings->Index(s, bCase); }
 
@@ -116,15 +116,15 @@ protected:
     virtual void DoSetSelection(int n, bool select);
     virtual int DoAppendOnly(const wxString& item);
     virtual int DoAppend(const wxString& item);
-    virtual void DoInsertItems(const wxArrayString& items, unsigned int pos);
+    virtual void DoInsertItems(const wxArrayString& items, int pos);
     virtual void DoSetItems(const wxArrayString& items, void **clientData);
 
     virtual void DoSetFirstItem(int n);
 
-    virtual void DoSetItemClientData(unsigned int n, void* clientData);
-    virtual void* DoGetItemClientData(unsigned int n) const;
-    virtual void DoSetItemClientObject(unsigned int n, wxClientData* clientData);
-    virtual wxClientData* DoGetItemClientObject(unsigned int n) const;
+    virtual void DoSetItemClientData(int n, void* clientData);
+    virtual void* DoGetItemClientData(int n) const;
+    virtual void DoSetItemClientObject(int n, wxClientData* clientData);
+    virtual wxClientData* DoGetItemClientObject(int n) const;
 
 public:
     // override some more base class methods

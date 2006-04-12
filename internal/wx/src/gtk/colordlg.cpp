@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004/06/04
-// RCS-ID:      $Id: colordlg.cpp,v 1.7 2006/03/21 13:33:08 VZ Exp $
+// RCS-ID:      $Id: colordlg.cpp,v 1.5 2005/11/03 02:50:00 KH Exp $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -104,10 +104,12 @@ void wxColourDialog::ColourDataToDialog()
         }
     }
 
-    wxGtkString pal(gtk_color_selection_palette_to_string(colors, n_colors));
+    gchar *pal = gtk_color_selection_palette_to_string(colors, n_colors);
 
     GtkSettings *settings = gtk_widget_get_settings(GTK_WIDGET(sel));
-    g_object_set(settings, "gtk-color-palette", pal.c_str(), NULL);
+    g_object_set(settings, "gtk-color-palette", pal, NULL);
+
+    g_free(pal);
 }
 
 void wxColourDialog::DialogToColourData()

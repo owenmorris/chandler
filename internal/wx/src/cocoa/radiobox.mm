@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/cocoa/radiobox.mm
+// Name:        cocoa/radiobox.mm
 // Purpose:     wxRadioBox
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/02/15
-// RCS-ID:      $Id: radiobox.mm,v 1.14 2006/03/23 22:04:51 VZ Exp $
+// RCS-ID:      $Id:
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -76,28 +76,28 @@ int wxRadioBox::GetSelection() const
 }
 
     // string access
-unsigned int wxRadioBox::GetCount() const
+int wxRadioBox::GetCount() const
 {
     return 0;
 }
 
-wxString wxRadioBox::GetString(unsigned int n) const
+wxString wxRadioBox::GetString(int n) const
 {
     return wxEmptyString;
 }
 
-void wxRadioBox::SetString(unsigned int n, const wxString& label)
+void wxRadioBox::SetString(int n, const wxString& label)
 {
 }
 
     // change the individual radio button state
-bool wxRadioBox::Enable(unsigned int n, bool enable)
+bool wxRadioBox::Enable(int n, bool enable)
 {
     // TODO
     return false;
 }
 
-bool wxRadioBox::Show(unsigned int n, bool show)
+bool wxRadioBox::Show(int n, bool show)
 {
     // TODO
     return false;
@@ -109,3 +109,4 @@ wxSize wxRadioBox::DoGetBestSize() const
 }
 
 #endif
+

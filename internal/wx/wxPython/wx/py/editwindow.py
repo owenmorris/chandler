@@ -1,8 +1,8 @@
 """EditWindow class."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: editwindow.py,v 1.13 2006/02/24 01:21:14 RD Exp $"
-__revision__ = "$Revision: 1.13 $"[11:-2]
+__cvsid__ = "$Id: editwindow.py,v 1.12 2006/01/06 07:04:58 RD Exp $"
+__revision__ = "$Revision: 1.12 $"[11:-2]
 
 import wx
 from wx import stc
@@ -251,13 +251,13 @@ class EditWindow(stc.StyledTextCtrl):
 
     def DoFindNext(self, findData, findDlg=None):
         backward = not (findData.GetFlags() & wx.FR_DOWN)
-        matchcase = (findData.GetFlags() & wx.FR_MATCHCASE) != 0
+        matchcase = findData.GetFlags() & wx.FR_MATCHCASE
         end = self.GetLastPosition()
         textstring = self.GetRange(0, end)
         findstring = findData.GetFindString()
         if not matchcase:
-            textstring = textstring.lower()
-            findstring = findstring.lower()
+            textstring.lower()
+            findstring.lower()
         if backward:
             start = self.GetSelection()[0]
             loc = textstring.rfind(findstring, 0, start)

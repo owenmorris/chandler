@@ -1,14 +1,3 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Name:        flexsizr.tex
-%% Purpose:     wxFlexGridSizer
-%% Author:      wxWidgets Team
-%% Modified by:
-%% Created:
-%% RCS-ID:      $Id: flexsizr.tex,v 1.16 2006/03/28 13:00:42 ABX Exp $
-%% Copyright:   (c) wxWidgets Team
-%% License:     wxWindows license
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \section{\class{wxFlexGridSizer}}\label{wxflexgridsizer}
 
 A flex grid sizer is a sizer which lays out its children in a two-dimensional
@@ -19,10 +8,10 @@ the \helpref{wxGridSizer}{wxgridsizer}.
 
 Since wxWidgets 2.5.0, wxFlexGridSizer can also size items equally in one
 direction but unequally ("flexibly") in the other. If the sizer is only
-flexible in one direction (this can be changed using
-\helpref{SetFlexibleDirection}{wxflexgridsizersetflexibledirection}),
+flexible in one direction (this can be changed using 
+\helpref{SetFlexibleDrection}{wxflexgridsizersetflexibledirection}),
 it needs to be decided how the sizer should grow in the other ("non flexible")
-direction in order to fill the available space. The
+direction in order to fill the available space. The 
 \helpref{SetNonFlexibleGrowMode}{wxflexgridsizersetnonflexiblegrowmode} method
 serves this purpose.
 
@@ -78,7 +67,7 @@ of {\it proportion} parameter.
 
 \membersection{wxFlexGridSizer::GetFlexibleDirection}\label{wxflexgridsizergetflexibledrection}
 
-\constfunc{int}{GetFlexibleDirection}{\void}
+\constfunc{int}{GetFlexibleDirections}{\void}
 
 Returns a wxOrientation value that specifies whether the sizer flexibly
 resizes its columns, rows, or both (default).
@@ -95,7 +84,7 @@ One of the following values:
 
 \wxheading{See also}
 
-\helpref{SetFlexibleDirection}{wxflexgridsizersetflexibledirection}
+\helpref{SetFlexibleDrection}{wxflexgridsizersetflexibledirection}
 
 
 \membersection{wxFlexGridSizer::GetNonFlexibleGrowMode}\label{wxflexgridsizergetnonflexiblegrowmode}
@@ -112,7 +101,7 @@ One of the following values:
 \begin{twocollist}
 \twocolitem{wxFLEX\_GROWMODE\_NONE}{Sizer doesn't grow in the non flexible direction.}
 \twocolitem{wxFLEX\_GROWMODE\_SPECIFIED}{Sizer honors growable columns/rows set with
-\helpref{AddGrowableCol}{wxflexgridsizeraddgrowablecol} and
+\helpref{AddGrowableCol}{wxflexgridsizeraddgrowablecol} and 
 \helpref{AddGrowableRow}{wxflexgridsizeraddgrowablerow}.
 In this case equal sizing applies to minimum sizes of columns or
 rows (this is the default value).}
@@ -123,7 +112,7 @@ direction.}
 
 \wxheading{See also}
 
-\helpref{SetFlexibleDirection}{wxflexgridsizersetflexibledirection},
+\helpref{SetFlexibleDrection}{wxflexgridsizersetflexibledirection}, 
 \helpref{SetNonFlexibleGrowMode}{wxflexgridsizersetnonflexiblegrowmode}
 
 
@@ -143,10 +132,10 @@ Specifies that row idx is no longer growable.
 
 \membersection{wxFlexGridSizer::SetFlexibleDirection}\label{wxflexgridsizersetflexibledirection}
 
-\func{void}{SetFlexibleDirection}{\param{int }{direction}}
+\func{void}{SetFlexibleDirections}{\param{int }{direction}}
 
 Specifies whether the sizer should flexibly resize its columns, rows, or
-both. Argument {\tt direction} can be {\tt wxVERTICAL}, {\tt wxHORIZONTAL}
+both. Argument {\tt direction} can be {\tt wxVERTICAL}, {\tt wxHORIZONTAL} 
 or {\tt wxBOTH} (which is the default value). Any other value is ignored. See
 \helpref{GetFlexibleDirection()}{wxflexgridsizergetflexibledrection} for the
 explanation of these values.
@@ -160,9 +149,10 @@ Note that this method does not trigger relayout.
 
 Specifies how the sizer should grow in the non flexible direction if
 there is one (so
-\helpref{SetFlexibleDirection()}{wxflexgridsizersetflexibledirection} must have
+\helpref{SetFlexibleDirections()}{wxflexgridsizersetflexibledirection} must have
 been called previously). Argument {\it mode} can be one of those documented in
 \helpref{GetNonFlexibleGrowMode}{wxflexgridsizergetnonflexiblegrowmode}, please
 see there for their explanation.
 
 Note that this method does not trigger relayout.
+

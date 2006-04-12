@@ -2,7 +2,7 @@
 // Name:        gtk/statbox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: statbox.cpp,v 1.45 2006/03/12 14:21:17 VZ Exp $
+// Id:          $Id: statbox.cpp,v 1.44 2006/01/22 20:29:16 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,8 +56,8 @@ bool wxStaticBox::Create( wxWindow *parent,
         return FALSE;
     }
 
-    m_widget = GTKCreateFrame(label);
-    wxControl::SetLabel(label);
+    m_widget = gtk_frame_new(NULL);
+    SetLabel(label);
 
     m_parent->DoAddChild( this );
 
@@ -87,17 +87,8 @@ void wxStaticBox::SetLabel( const wxString& label )
 
 void wxStaticBox::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    GTKFrameApplyWidgetStyle(GTK_FRAME(m_widget), style);
-}
-
-bool wxStaticBox::GTKWidgetNeedsMnemonic() const
-{
-    return true;
-}
-
-void wxStaticBox::GTKWidgetDoSetMnemonic(GtkWidget* w)
-{
-    GTKFrameSetMnemonicWidget(GTK_FRAME(m_widget), w);
+    gtk_widget_modify_style(m_widget, style);
+    gtk_widget_modify_style(GTK_FRAME(m_widget)->label_widget, style);
 }
 
 // static

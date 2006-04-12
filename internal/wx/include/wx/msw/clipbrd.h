@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: clipbrd.h,v 1.26 2006/03/09 13:56:17 VZ Exp $
+// RCS-ID:      $Id: clipbrd.h,v 1.25 2005/09/23 12:50:07 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,7 @@ public:
     void UsePrimarySelection( bool WXUNUSED(primary) = false ) { }
 
 private:
-    IDataObject *m_lastDataObject;
+    bool m_clearOnExit;
     bool m_isOpened;
 };
 

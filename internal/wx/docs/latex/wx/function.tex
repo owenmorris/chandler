@@ -4,7 +4,7 @@
 %% Author:      wxWidgets Team
 %% Modified by:
 %% Created:
-%% RCS-ID:      $Id: function.tex,v 1.243 2006/04/10 19:42:56 VZ Exp $
+%% RCS-ID:      $Id: function.tex,v 1.238 2006/01/25 23:26:27 JG Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,12 +32,16 @@ the corresponding topic.
 \helpref{IMPLEMENT\_CLASS}{implementclass}\\
 \helpref{IMPLEMENT\_DYNAMIC\_CLASS2}{implementdynamicclass2}\\
 \helpref{IMPLEMENT\_DYNAMIC\_CLASS}{implementdynamicclass}\\
-\helpref{wxASSERT}{wxassert}\\
+\helpref{wxCONCAT}{wxconcat}\\
+\helpref{WXDEBUG\_NEW}{debugnew}\\
+\helpref{WXTRACELEVEL}{tracelevel}\\
+\helpref{WXTRACE}{trace}\\
 \helpref{wxASSERT\_MIN\_BITSIZE}{wxassertminbitsize}\\
 \helpref{wxASSERT\_MSG}{wxassertmsg}\\
+\helpref{wxASSERT}{wxassert}\\
+\helpref{wxBITMAP}{wxbitmapmacro}\\
 \helpref{wxBeginBusyCursor}{wxbeginbusycursor}\\
 \helpref{wxBell}{wxbell}\\
-\helpref{wxBITMAP}{wxbitmapmacro}\\
 \helpref{wxCHANGE\_UMASK}{wxchangeumask}\\
 \helpref{wxCHECK}{wxcheck}\\
 \helpref{wxCHECK2\_MSG}{wxcheck2msg}\\
@@ -54,7 +58,6 @@ the corresponding topic.
 \helpref{wxColourDisplay}{wxcolourdisplay}\\
 \helpref{wxCOMPILE\_TIME\_ASSERT}{wxcompiletimeassert}\\
 \helpref{wxCOMPILE\_TIME\_ASSERT2}{wxcompiletimeassert2}\\
-\helpref{wxCONCAT}{wxconcat}\\
 \helpref{wxConcatFiles}{wxconcatfiles}\\
 \helpref{wxConstCast}{wxconstcast}\\
 \helpref{wxCopyFile}{wxcopyfile}\\
@@ -68,8 +71,6 @@ the corresponding topic.
 \helpref{wxDDEInitialize}{wxddeinitialize}\\
 \helpref{wxDROP\_ICON}{wxdropicon}\\
 \helpref{wxDebugMsg}{wxdebugmsg}\\
-\helpref{WXDEBUG\_NEW}{debugnew}\\
-\helpref{wxDirExists}{functionwxdirexists}\\
 \helpref{wxDirSelector}{wxdirselector}\\
 \helpref{wxDisplayDepth}{wxdisplaydepth}\\
 \helpref{wxDisplaySize}{wxdisplaysize}\\
@@ -204,8 +205,8 @@ the corresponding topic.
 \helpref{wxON\_BLOCK\_EXIT\_OBJ}{wxonblockexitobj}\\
 \helpref{wxOpenClipboard}{wxopenclipboard}\\
 \helpref{wxParseCommonDialogsFilter}{wxparsecommondialogsfilter}\\
+\helpref{wxDirExists}{functionwxdirexists}\\
 \helpref{wxPathOnly}{wxpathonly}\\
-\helpref{wxPLURAL}{wxplural}\\
 \helpref{wxPostDelete}{wxpostdelete}\\
 \helpref{wxPostEvent}{wxpostevent}\\
 \helpref{wxRegisterClipboardFormat}{wxregisterclipboardformat}\\
@@ -247,10 +248,8 @@ the corresponding topic.
 \helpref{wxSysErrorCode}{wxsyserrorcode}\\
 \helpref{wxSysErrorMsg}{wxsyserrormsg}\\
 \helpref{wxT}{wxt}\\
-\helpref{wxTrace}{wxtrace}\\
-\helpref{WXTRACE}{trace}\\
 \helpref{wxTraceLevel}{wxtracelevel}\\
-\helpref{WXTRACELEVEL}{tracelevel}\\
+\helpref{wxTrace}{wxtrace}\\
 \helpref{wxTransferFileToStream}{wxtransferfiletostream}\\
 \helpref{wxTransferStreamToFile}{wxtransferstreamtofile}\\
 \helpref{wxTrap}{wxtrap}\\
@@ -269,8 +268,8 @@ the corresponding topic.
 \helpref{wx\_static\_cast}{wxstaticcastraw}\\
 \helpref{wx\_truncate\_cast}{wxtruncatecast}\\
 \helpref{\_}{underscore}\\
+\helpref{wxPLURAL}{wxplural}\\
 \helpref{\_T}{underscoret}
-\helpref{\_\_WXFUNCTION\_\_}{wxfunction}
 
 
 
@@ -2955,8 +2954,7 @@ and current pointer position in screen coordinates.
 
 \func{wxWindow *}{wxGetActiveWindow}{\void}
 
-Gets the currently active window (implemented for MSW and GTK only currently,
-always returns \NULL in the other ports).
+Gets the currently active window (Windows only).
 
 \wxheading{Include files}
 
@@ -3054,7 +3052,7 @@ public:
     void        SetLeftDown(bool down);
     void        SetMiddleDown(bool down);
     void        SetRightDown(bool down);
-
+    
     void        SetControlDown(bool down);
     void        SetShiftDown(bool down);
     void        SetAltDown(bool down);
@@ -3331,15 +3329,6 @@ See also \helpref{wxGetResource}{wxgetresource}, \helpref{wxConfigBase}{wxconfig
 \wxheading{Include files}
 
 <wx/utils.h>
-
-
-\membersection{\_\_WXFUNCTION\_\_}\label{wxfunction}
-
-\func{}{\_\_WXFUNCTION\_\_}{\void}
-
-This macro expands to the name of the current function if the compiler supports
-any of \texttt{\_\_FUNCTION\_\_}, \texttt{\_\_func\_\_} or equivalent variables
-or macros or to \NULL if none of them is available.
 
 
 
@@ -4323,7 +4312,7 @@ compilation error messages if the condition they check fail.
 
 \membersection{::wxOnAssert}\label{wxonassert}
 
-\func{void}{wxOnAssert}{\param{const char *}{fileName}, \param{int}{ lineNumber}, \param{const char *}{func}, \param{const char *}{cond}, \param{const char *}{msg = NULL}}
+\func{void}{wxOnAssert}{\param{const char *}{fileName}, \param{int}{ lineNumber}, \param{const char *}{cond}, \param{const char *}{msg = NULL}}
 
 This function is called whenever one of debugging macros fails (i.e. condition
 is false in an assertion). It is only defined in the debug mode, in release
@@ -4332,7 +4321,7 @@ builds the \helpref{wxCHECK}{wxcheck} failures don't result in anything.
 To override the default behaviour in the debug builds which is to show the user
 a dialog asking whether he wants to abort the program, continue or continue
 ignoring any subsequent assert failures, you may override
-\helpref{wxApp::OnAssertFailure}{wxapponassertfailure} which is called by this function if
+\helpref{wxApp::OnAssert}{wxapponassert} which is called by this function if
 the global application object exists.
 
 

@@ -4,7 +4,7 @@
 * Author:      Vadim Zeitlin
 * Modified by:
 * Created:     29.10.01 (extracted from wx/defs.h)
-* RCS-ID:      $Id: platform.h,v 1.92 2006/03/24 13:41:27 ABX Exp $
+* RCS-ID:      $Id: platform.h,v 1.91 2006/01/28 06:59:20 SC Exp $
 * Copyright:   (c) 1997-2001 Vadim Zeitlin
 * Licence:     wxWindows licence
 */
@@ -72,12 +72,6 @@
 #endif
 
 #if defined(__PALMOS__)
-#   if __PALMOS__ == 0x06000000
-#       define __WXPALMOS6__
-#   endif
-#   if __PALMOS__ == 0x05000000
-#       define __WXPALMOS5__
-#   endif
 #   ifndef __WXPALMOS__
 #       define __WXPALMOS__
 #   endif

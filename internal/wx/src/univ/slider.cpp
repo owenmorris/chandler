@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        src/univ/slider.cpp
+// Name:        univ/slider.cpp
 // Purpose:     implementation of the universal version of wxSlider
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     09.02.01
-// RCS-ID:      $Id: slider.cpp,v 1.20 2006/03/27 12:25:13 ABX Exp $
+// RCS-ID:      $Id: slider.cpp,v 1.19 2006/02/10 21:03:35 VZ Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -1009,10 +1009,12 @@ bool wxStdSliderButtonInputHandler::HandleKey(wxInputConsumer *consumer,
                 action = wxACTION_SLIDER_LINE_DOWN;
                 break;
 
+            case WXK_PRIOR:
             case WXK_PAGEUP:
                 action = wxACTION_SLIDER_PAGE_UP;
                 break;
 
+            case WXK_NEXT:
             case WXK_PAGEDOWN:
                 action = wxACTION_SLIDER_PAGE_DOWN;
                 break;

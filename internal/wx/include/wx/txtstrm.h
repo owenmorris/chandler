@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     28/06/1998
-// RCS-ID:      $Id: txtstrm.h,v 1.30 2006/04/05 16:10:01 VZ Exp $
+// RCS-ID:      $Id: txtstrm.h,v 1.28 2005/09/23 12:48:49 MR Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,7 +13,6 @@
 #define _WX_TXTSTREAM_H_
 
 #include "wx/stream.h"
-#include "wx/convauto.h"
 
 #if wxUSE_STREAMS
 
@@ -37,11 +36,9 @@ class WXDLLIMPEXP_BASE wxTextInputStream
 {
 public:
 #if wxUSE_UNICODE
-    wxTextInputStream(wxInputStream& s,
-                      const wxString &sep=wxT(" \t"),
-                      const wxMBConv& conv = wxConvAuto());
+    wxTextInputStream(wxInputStream& s, const wxString &sep=wxT(" \t"), wxMBConv& conv = wxConvUTF8 );
 #else
-    wxTextInputStream(wxInputStream& s, const wxString &sep=wxT(" \t"));
+    wxTextInputStream(wxInputStream& s, const wxString &sep=wxT(" \t") );
 #endif
     ~wxTextInputStream();
 
@@ -81,7 +78,7 @@ protected:
     char m_lastBytes[10]; // stores the bytes that were read for the last character
 
 #if wxUSE_UNICODE
-    wxMBConv *m_conv;
+    wxMBConv &m_conv;
 #endif
 
     bool   EatEOL(const wxChar &c);
@@ -105,11 +102,9 @@ class WXDLLIMPEXP_BASE wxTextOutputStream
 {
 public:
 #if wxUSE_UNICODE
-    wxTextOutputStream(wxOutputStream& s,
-                       wxEOL mode = wxEOL_NATIVE,
-                       const wxMBConv& conv = wxConvAuto());
+    wxTextOutputStream( wxOutputStream& s, wxEOL mode = wxEOL_NATIVE, wxMBConv& conv = wxConvUTF8  );
 #else
-    wxTextOutputStream(wxOutputStream& s, wxEOL mode = wxEOL_NATIVE);
+    wxTextOutputStream( wxOutputStream& s, wxEOL mode = wxEOL_NATIVE );
 #endif
     virtual ~wxTextOutputStream();
 
@@ -144,7 +139,7 @@ protected:
     wxEOL           m_mode;
 
 #if wxUSE_UNICODE
-    wxMBConv *m_conv;
+    wxMBConv &m_conv;
 #endif
 
     DECLARE_NO_COPY_CLASS(wxTextOutputStream)

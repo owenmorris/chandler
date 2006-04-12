@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Andrej Putrin
 // Modified by:
 // Created:     2005-01-21
-// RCS-ID:      $Id: dbgrptg.cpp,v 1.13 2006/03/31 18:07:08 ABX Exp $
+// RCS-ID:      $Id: dbgrptg.cpp,v 1.12 2005/07/21 16:22:28 ABX Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -296,7 +296,7 @@ wxDebugReportDialog::wxDebugReportDialog(wxDebugReport& dbgrpt)
                               dbgrpt.GetReportName().c_str()),
                               wxDefaultPosition,
                               wxDefaultSize,
-                              wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+                              wxDEFAULT_DIALOG_STYLE | wxTHICK_FRAME),
                      m_dbgrpt(dbgrpt)
 {
     // upper part of the dialog: explanatory message

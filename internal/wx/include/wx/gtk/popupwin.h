@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:
-// Id:          $Id: popupwin.h,v 1.13 2006/02/27 09:16:28 RR Exp $
+// Id:          $Id: popupwin.h,v 1.12 2006/02/08 21:45:44 VZ Exp $
 // Copyright:   (c) 2001 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,9 +35,6 @@ public:
     // --------------
 
     virtual void OnInternalIdle();
-    
-    // GTK time when connecting to button_press signal
-    wxUint32  m_time;
 
 
 protected:

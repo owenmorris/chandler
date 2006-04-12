@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Karsten Ballueder
-// RCS-ID:      $Id: treectrl.h,v 1.41 2006/03/24 23:44:38 ABX Exp $
+// RCS-ID:      $Id: treectrl.h,v 1.40 2005/10/17 19:31:32 VZ Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -50,7 +50,7 @@ public:
     // ---------
 
         // get the total number of items in the control
-    virtual unsigned int GetCount() const = 0;
+    virtual size_t GetCount() const = 0;
 
         // indent is the number of pixels the children are indented relative to
         // the parents position. SetIndent() also redraws the control

@@ -447,10 +447,6 @@ SOURCE=.\streams\bstream.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\mbconv\convautotest.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\strings\crt.cpp
 # End Source File
 # Begin Source File
@@ -550,10 +546,6 @@ SOURCE=.\streams\tempfile.cpp
 # Begin Source File
 
 SOURCE=.\test.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\textfile\textfiletest.cpp
 # End Source File
 # Begin Source File
 

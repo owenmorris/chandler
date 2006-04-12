@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/common/dcbase.cpp
+// Name:        common/dcbase.cpp
 // Purpose:     generic methods of the wxDC Class
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05/25/99
-// RCS-ID:      $Id: dcbase.cpp,v 1.47 2006/03/27 17:26:38 ABX Exp $
+// RCS-ID:      $Id: dcbase.cpp,v 1.44 2006/02/12 13:08:37 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -817,9 +817,9 @@ void wxDCBase::GradientFillConcentric(const wxRect& rect,
                 nGradient = 0;
 
             //get dest colors
-            nR = (wxUint8)(nR1 + ((nR2 - nR1) * nGradient / 100));
-            nG = (wxUint8)(nG1 + ((nG2 - nG1) * nGradient / 100));
-            nB = (wxUint8)(nB1 + ((nB2 - nB1) * nGradient / 100));
+            nR = nR1 + ((nR2 - nR1) * nGradient / 100);
+            nG = nG1 + ((nG2 - nG1) * nGradient / 100);
+            nB = nB1 + ((nB2 - nB1) * nGradient / 100);
 
             //set the pixel
             m_pen.SetColour(wxColour(nR,nG,nB));
@@ -885,13 +885,13 @@ void wxDCBase::DoDrawEllipticArcRot( wxCoord x, wxCoord y,
     list.Append( (wxObject*) new wxPoint( x+w/2, y+h/2 ) );
 
     // copy list into array and delete list elements
-    int n = list.GetCount();
+    int n = list.Number();
     wxPoint *points = new wxPoint[n];
     int i = 0;
     wxNode* node = 0;
-    for ( node = list.GetFirst(); node; node = node->GetNext(), i++ )
+    for ( node = list.First(); node; node = node->Next(), i++ )
     {
-        wxPoint *point = (wxPoint *)node->GetData();
+        wxPoint *point = (wxPoint *)node->Data();
         points[i].x = point->x;
         points[i].y = point->y;
         delete point;
@@ -924,9 +924,9 @@ void wxDCBase::Rotate( wxList* points, double angle, wxPoint center )
         double pi(M_PI);
         double dSinA = -sin(angle*2.0*pi/360.0);
         double dCosA = cos(angle*2.0*pi/360.0);
-        for ( wxNode* node = points->GetFirst(); node; node = node->GetNext() )
+        for ( wxNode* node = points->First(); node; node = node->Next() )
         {
-            wxPoint* point = (wxPoint*)node->GetData();
+            wxPoint* point = (wxPoint*)node->Data();
 
             // transform coordinates, if necessary
             if( center.x ) point->x -= center.x;
@@ -1062,14 +1062,14 @@ void wxDCBase::CalculateEllipticPoints( wxList* points,
         bool bForceTurn = ( sq == eq && sa > ea );
         while( !bReady )
         {
-            for( wxNode *node = pointsarray[q].GetFirst(); node; node = node->GetNext() )
+            for( wxNode *node = pointsarray[q].First(); node; node = node->Next() )
             {
                 // once: go to starting point in start quadrant
                 if( !bStarted &&
                     (
-                      ( (wxPoint*) node->GetData() )->x < xsa+1 && q <= 1
+                      ( (wxPoint*) node->Data() )->x < xsa+1 && q <= 1
                       ||
-                      ( (wxPoint*) node->GetData() )->x > xsa-1 && q >= 2
+                      ( (wxPoint*) node->Data() )->x > xsa-1 && q >= 2
                     )
                   )
                 {
@@ -1081,16 +1081,16 @@ void wxDCBase::CalculateEllipticPoints( wxList* points,
                 {
                     if( q != eq || bForceTurn
                         ||
-                        ( (wxPoint*) node->GetData() )->x > xea+1 && q <= 1
+                        ( (wxPoint*) node->Data() )->x > xea+1 && q <= 1
                         ||
-                        ( (wxPoint*) node->GetData() )->x < xea-1 && q >= 2
+                        ( (wxPoint*) node->Data() )->x < xea-1 && q >= 2
                       )
                     {
                         // copy point
-                        wxPoint* pPoint = new wxPoint( *((wxPoint*) node->GetData() ) );
+                        wxPoint* pPoint = new wxPoint( *((wxPoint*) node->Data() ) );
                         points->Append( (wxObject*) pPoint );
                     }
-                    else if( q == eq && !bForceTurn || ( (wxPoint*) node->GetData() )->x == xea)
+                    else if( q == eq && !bForceTurn || ( (wxPoint*) node->Data() )->x == xea)
                     {
                         bReady = true;
                     }
@@ -1106,38 +1106,38 @@ void wxDCBase::CalculateEllipticPoints( wxList* points,
         // delete points
         for( q = 0; q < 4; ++q )
         {
-            for( wxNode *node = pointsarray[q].GetFirst(); node; node = node->GetNext() )
+            for( wxNode *node = pointsarray[q].First(); node; node = node->Next() )
             {
-                wxPoint *p = (wxPoint *)node->GetData();
+                wxPoint *p = (wxPoint *)node->Data();
                 delete p;
             }
         }
     }
     else
     {
-        wxNode* node;
         // copy whole ellipse, wxPoints will be deleted outside
-        for( node = pointsarray[0].GetFirst(); node; node = node->GetNext() )
+        for( wxNode *node = pointsarray[0].First(); node; node = node->Next() )
         {
-            wxObject *p = node->GetData();
+            wxObject *p = node->Data();
             points->Append( p );
         }
-        for( node = pointsarray[1].GetFirst(); node; node = node->GetNext() )
+        for( node = pointsarray[1].First(); node; node = node->Next() )
         {
-            wxObject *p = node->GetData();
+            wxObject *p = node->Data();
             points->Append( p );
         }
-        for( node = pointsarray[2].GetFirst(); node; node = node->GetNext() )
+        for( node = pointsarray[2].First(); node; node = node->Next() )
         {
-            wxObject *p = node->GetData();
+            wxObject *p = node->Data();
             points->Append( p );
         }
-        for( node = pointsarray[3].GetFirst(); node; node = node->GetNext() )
+        for( node = pointsarray[3].First(); node; node = node->Next() )
         {
-            wxObject *p = node->GetData();
+            wxObject *p = node->Data();
             points->Append( p );
         }
     } // not iUseAngles
 } // CalculateEllipticPoints
 
 #endif
+

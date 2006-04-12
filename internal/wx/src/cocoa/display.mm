@@ -2,9 +2,9 @@
 // Name:        src/cocoa/display.mm
 // Purpose:     Cocoa implementation of wxDisplay class
 // Author:      Ryan Norton
-// Modified by:
+// Modified by: 
 // Created:     2004-10-03
-// RCS-ID:      $Id: display.mm,v 1.6 2006/03/16 15:28:22 VZ Exp $
+// RCS-ID:      $Id: display.mm,v 1.4 2005/09/23 12:52:37 MR Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,78 +23,36 @@
 #endif
 
 #include "wx/display.h"
-#include "wx/display_impl.h"
 #include "wx/gdicmn.h"
 #include "wx/string.h"
 
 #import <Foundation/Foundation.h>
 
 // ----------------------------------------------------------------------------
-// display classes implementation
+// private classes
 // ----------------------------------------------------------------------------
 
-class wxDisplayImplMacOSX : public wxDisplayImpl
-{
-public:
-    wxDisplayImplMacOSX(size_t n, CGDirectDisplayID id_)
-        : wxDisplayImpl(n),
-          m_id(id_)
-    {
-    }
-
-    virtual wxRect GetGeometry() const;
-    virtual wxString GetName() const { return wxString(); }
-
-    virtual wxArrayVideoModes GetModes(const wxVideoMode& mode) const;
-    virtual wxVideoMode GetCurrentMode() const;
-    virtual bool ChangeMode(const wxVideoMode& mode);
-
-private:
-    CGDirectDisplayID m_id;
-
-    DECLARE_NO_COPY_CLASS(wxDisplayImplMacOSX)
-};
-
-class wxDisplayFactoryMacOSX : public wxDisplayFactory
-{
-public:
-    wxDisplayFactoryMacOSX() { }
-
-    virtual wxDisplayImpl *CreateDisplay(size_t n);
-    virtual size_t GetCount();
-    virtual int GetFromPoint(const wxPoint& pt);
-
-protected:
-    DECLARE_NO_COPY_CLASS(wxDisplayFactoryMacOSX)
-};
-
-// ============================================================================
-// wxDisplayFactoryMacOSX implementation
-// ============================================================================
-
-size_t wxDisplayFactoryMacOSX::GetCount()
+size_t wxDisplayBase::GetCount()
 {
     CGDisplayCount count;
 #ifdef __WXDEBUG__
-    CGDisplayErr err =
+    CGDisplayErr err = 
 #endif
     CGGetActiveDisplayList(0, NULL, &count);
 
     wxASSERT(err == CGDisplayNoErr);
-
     return count;
 }
 
-int wxDisplayFactoryMacOSX::GetFromPoint(const wxPoint& p)
-{
+int wxDisplayBase::GetFromPoint(const wxPoint &p)
+{   
     CGPoint thePoint = {(float)p.x, (float)p.y};
     CGDirectDisplayID theID;
     CGDisplayCount theCount;
     CGDisplayErr err = CGGetDisplaysWithPoint(thePoint, 1, &theID, &theCount);
     wxASSERT(err == CGDisplayNoErr);
-
-    int nWhich = wxNOT_FOUND;
-
+    int nWhich = -1;
+    
     if (theCount)
     {
         theCount = GetCount();
@@ -102,52 +60,59 @@ int wxDisplayFactoryMacOSX::GetFromPoint(const wxPoint& p)
         err = CGGetActiveDisplayList(theCount, theIDs, &theCount);
         wxASSERT(err == CGDisplayNoErr);
 
-        for (nWhich = 0; nWhich < (int) theCount; ++nWhich)
+        for(nWhich = 0; nWhich < (int) theCount; ++nWhich)
         {
-            if (theIDs[nWhich] == theID)
+            if(theIDs[nWhich] == theID)
                 break;
         }
-
-        delete [] theIDs;
-
-        if (nWhich == (int) theCount)
+        
+        delete[] theIDs;
+        
+        if(nWhich == (int) theCount)
         {
             wxFAIL_MSG(wxT("Failed to find display in display list"));
-            nWhich = wxNOT_FOUND;
+            nWhich = -1;
         }
     }
-
+    
     return nWhich;
-}
+}//CFUserNotification[NSBundle bundleForClass:[self class]]
 
-wxDisplayImpl *wxDisplayFactoryMacOSX::CreateDisplay(size_t n)
+wxDisplay::wxDisplay(size_t index) : wxDisplayBase ( index )
 {
     CGDisplayCount theCount = GetCount();
     CGDirectDisplayID* theIDs = new CGDirectDisplayID[theCount];
-
 #ifdef __WXDEBUG__
-    CGDisplayErr err =
+    CGDisplayErr err = 
 #endif
     CGGetActiveDisplayList(theCount, theIDs, &theCount);
 
-    wxASSERT( err == CGDisplayNoErr );
-    wxASSERT( n < theCount );
-
-    wxDisplayImplMacOSX *display = new wxDisplayImplMacOSX(n, theIDs[n]);
-
-    delete [] theIDs;
-
-    return display;
+    wxASSERT(err == CGDisplayNoErr);
+    wxASSERT(index < theCount);
+    
+    m_id = theIDs[index];
+    
+    delete[] theIDs;
 }
 
-
-wxRect wxDisplayImplMacOSX::GetGeometry() const
+wxRect wxDisplay::GetGeometry() const
 {
     CGRect theRect = CGDisplayBounds(m_id);
-    return wxRect(  (int)theRect.origin.x,
+    return wxRect(	(int)theRect.origin.x,
                     (int)theRect.origin.y,
                     (int)theRect.size.width,
                     (int)theRect.size.height  ); //floats
+}
+
+int wxDisplay::GetDepth() const
+{
+    return (int) CGDisplayBitsPerPixel(m_id); //size_t
+}
+
+wxString wxDisplay::GetName() const
+{
+    // Macs don't name their displays...
+    return wxEmptyString;
 }
 
 static int wxCFDictKeyToInt( CFDictionaryRef desc, CFStringRef key )
@@ -161,39 +126,40 @@ static int wxCFDictKeyToInt( CFDictionaryRef desc, CFStringRef key )
     return num;
 }
 
-wxArrayVideoModes wxDisplayImplMacOSX::GetModes(const wxVideoMode& mode) const
+wxArrayVideoModes
+    wxDisplay::GetModes(const wxVideoMode& mode) const
 {
     wxArrayVideoModes Modes;
-
+    
     CFArrayRef theArray = CGDisplayAvailableModes(m_id);
 
     for(CFIndex i = 0; i < CFArrayGetCount(theArray); ++i)
     {
         CFDictionaryRef theValue = (CFDictionaryRef) CFArrayGetValueAtIndex(theArray, i);
-
+        
         wxVideoMode theMode(wxCFDictKeyToInt(theValue, kCGDisplayWidth),
                             wxCFDictKeyToInt(theValue, kCGDisplayHeight),
                             wxCFDictKeyToInt(theValue, kCGDisplayBitsPerPixel),
                             wxCFDictKeyToInt(theValue, kCGDisplayRefreshRate));
-
+        
         if (theMode.Matches(mode))
             Modes.Add(theMode);
     }
-
+    
     return Modes;
 }
 
-wxVideoMode wxDisplayImplMacOSX::GetCurrentMode() const
+wxVideoMode wxDisplay::GetCurrentMode() const
 {
     CFDictionaryRef theValue = CGDisplayCurrentMode (m_id);
-
+    
     return wxVideoMode(wxCFDictKeyToInt(theValue, kCGDisplayWidth),
                             wxCFDictKeyToInt(theValue, kCGDisplayHeight),
                             wxCFDictKeyToInt(theValue, kCGDisplayBitsPerPixel),
                             wxCFDictKeyToInt(theValue, kCGDisplayRefreshRate));
 }
 
-bool wxDisplayImplMacOSX::ChangeMode(const wxVideoMode& mode)
+bool wxDisplay::ChangeMode(const wxVideoMode& mode)
 {
     //Changing to default mode (wxDefualtVideoMode) doesn't
     //work because we don't have access to the system's 'scrn'
@@ -207,23 +173,17 @@ bool wxDisplayImplMacOSX::ChangeMode(const wxVideoMode& mode)
                                         (size_t)mode.h,
                                         (double)mode.refresh,
                                         &bExactMatch);
-
+    
     bool bOK = bExactMatch;
-
+    
     if(bOK)
         bOK = CGDisplaySwitchToMode(m_id, theCGMode) == CGDisplayNoErr;
 
     return bOK;
 }
 
-// ============================================================================
-// wxDisplay::CreateFactory()
-// ============================================================================
-
-/* static */ wxDisplayFactory *wxDisplay::CreateFactory()
+wxDisplay::~wxDisplay()
 {
-    return new wxDisplayFactoryMacOSX;
 }
 
 #endif // wxUSE_DISPLAY
-

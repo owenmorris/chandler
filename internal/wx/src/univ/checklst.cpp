@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/univ/checklst.cpp
+// Name:        univ/checklst.cpp
 // Purpose:     wxCheckListBox implementation
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.00
-// RCS-ID:      $Id: checklst.cpp,v 1.16 2006/03/23 22:05:22 VZ Exp $
+// RCS-ID:      $Id: checklst.cpp,v 1.14 2005/09/23 12:55:49 MR Exp $
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -103,17 +103,17 @@ bool wxCheckListBox::Create(wxWindow *parent,
 // wxCheckListBox functions
 // ----------------------------------------------------------------------------
 
-bool wxCheckListBox::IsChecked(unsigned int item) const
+bool wxCheckListBox::IsChecked(size_t item) const
 {
-    wxCHECK_MSG( IsValid(item), false,
+    wxCHECK_MSG( item < m_checks.GetCount(), false,
                  _T("invalid index in wxCheckListBox::IsChecked") );
 
     return m_checks[item] != 0;
 }
 
-void wxCheckListBox::Check(unsigned int item, bool check)
+void wxCheckListBox::Check(size_t item, bool check)
 {
-    wxCHECK_RET( IsValid(item),
+    wxCHECK_RET( item < m_checks.GetCount(),
                  _T("invalid index in wxCheckListBox::Check") );
 
     // intermediate var is needed to avoid compiler warning with VC++
@@ -130,9 +130,9 @@ void wxCheckListBox::Check(unsigned int item, bool check)
 // methods forwarded to wxListBox
 // ----------------------------------------------------------------------------
 
-void wxCheckListBox::Delete(unsigned int n)
+void wxCheckListBox::Delete(int n)
 {
-    wxCHECK_RET( IsValid(n), _T("invalid index in wxListBox::Delete") );
+    wxCHECK_RET( n < GetCount(), _T("invalid index in wxListBox::Delete") );
 
     wxListBox::Delete(n);
 
@@ -149,12 +149,12 @@ int wxCheckListBox::DoAppend(const wxString& item)
     return pos;
 }
 
-void wxCheckListBox::DoInsertItems(const wxArrayString& items, unsigned int pos)
+void wxCheckListBox::DoInsertItems(const wxArrayString& items, int pos)
 {
     wxListBox::DoInsertItems(items, pos);
 
-    unsigned int count = items.GetCount();
-    for ( unsigned int n = 0; n < count; n++ )
+    size_t count = items.GetCount();
+    for ( size_t n = 0; n < count; n++ )
     {
         m_checks.Insert(false, pos + n);
     }
@@ -165,8 +165,8 @@ void wxCheckListBox::DoSetItems(const wxArrayString& items, void **clientData)
     // call it first as it does DoClear()
     wxListBox::DoSetItems(items, clientData);
 
-    unsigned int count = items.GetCount();
-    for ( unsigned int n = 0; n < count; n++ )
+    size_t count = items.GetCount();
+    for ( size_t n = 0; n < count; n++ )
     {
         m_checks.Add(false);
     }
@@ -265,7 +265,7 @@ bool wxStdCheckListboxInputHandler::HandleMouse(wxInputConsumer *consumer,
         if ( x >= 0 &&
              x < renderer->GetCheckBitmapSize().x &&
              item >= 0 &&
-             (unsigned int)item < lbox->GetCount() )
+             item < lbox->GetCount() )
         {
             lbox->PerformAction(wxACTION_CHECKLISTBOX_TOGGLE, item);
 

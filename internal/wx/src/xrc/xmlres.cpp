@@ -3,7 +3,7 @@
 // Purpose:     XRC resources
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xmlres.cpp,v 1.81 2006/03/20 23:25:48 VS Exp $
+// RCS-ID:      $Id: xmlres.cpp,v 1.77 2006/02/11 16:20:22 VZ Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -786,15 +786,12 @@ void wxXmlResourceHandler::AddStyle(const wxString& name, int value)
 void wxXmlResourceHandler::AddWindowStyles()
 {
     XRC_ADD_STYLE(wxCLIP_CHILDREN);
-
-    // the border styles all have the old and new names, recognize both for now
-    XRC_ADD_STYLE(wxSIMPLE_BORDER); XRC_ADD_STYLE(wxBORDER_SIMPLE);
-    XRC_ADD_STYLE(wxSUNKEN_BORDER); XRC_ADD_STYLE(wxBORDER_SUNKEN);
-    XRC_ADD_STYLE(wxDOUBLE_BORDER); XRC_ADD_STYLE(wxBORDER_DOUBLE);
-    XRC_ADD_STYLE(wxRAISED_BORDER); XRC_ADD_STYLE(wxBORDER_RAISED);
-    XRC_ADD_STYLE(wxSTATIC_BORDER); XRC_ADD_STYLE(wxBORDER_STATIC);
-    XRC_ADD_STYLE(wxNO_BORDER);     XRC_ADD_STYLE(wxBORDER_NONE);
-
+    XRC_ADD_STYLE(wxSIMPLE_BORDER);
+    XRC_ADD_STYLE(wxSUNKEN_BORDER);
+    XRC_ADD_STYLE(wxDOUBLE_BORDER);
+    XRC_ADD_STYLE(wxRAISED_BORDER);
+    XRC_ADD_STYLE(wxSTATIC_BORDER);
+    XRC_ADD_STYLE(wxNO_BORDER);
     XRC_ADD_STYLE(wxTRANSPARENT_WINDOW);
     XRC_ADD_STYLE(wxWANTS_CHARS);
     XRC_ADD_STYLE(wxTAB_TRAVERSAL);
@@ -1094,17 +1091,21 @@ wxBitmap wxXmlResourceHandler::GetBitmap(const wxString& param,
     wxImage img(*(fsfile->GetStream()));
     delete fsfile;
 #else
-    wxImage img(name);
+    wxImage img(GetParamValue(wxT("bitmap")));
 #endif
 
     if (!img.Ok())
     {
         wxLogError(_("XRC resource: Cannot create bitmap from '%s'."),
-                   name.c_str());
+                   param.c_str());
         return wxNullBitmap;
     }
     if (!(size == wxDefaultSize)) img.Rescale(size.x, size.y);
+#if !defined(__WXMSW__) || wxUSE_WXDIB
     return wxBitmap(img);
+#else
+    return wxBitmap();
+#endif
 }
 
 
@@ -1287,10 +1288,10 @@ wxFont wxXmlResourceHandler::GetFont(const wxString& param)
     // font attributes:
 
     // size
-    int isize = -1;
+    int isize = wxDEFAULT;
     bool hasSize = HasParam(wxT("size"));
     if (hasSize)
-        isize = GetLong(wxT("size"), -1);
+        isize = GetLong(wxT("size"), wxDEFAULT);
 
     // style
     int istyle = wxNORMAL;
@@ -1368,38 +1369,36 @@ wxFont wxXmlResourceHandler::GetFont(const wxString& param)
     }
 
     // is this font based on a system font?
-    wxFont font = GetSystemFont(GetParamValue(wxT("sysfont")));
+    wxFont sysfont = GetSystemFont(GetParamValue(wxT("sysfont")));
 
-    if (font.Ok())
+    if (sysfont.Ok())
     {
-        if (hasSize && isize != -1)
-            font.SetPointSize(isize);
+        if (hasSize)
+            sysfont.SetPointSize(isize);
         else if (HasParam(wxT("relativesize")))
-            font.SetPointSize(int(font.GetPointSize() *
+            sysfont.SetPointSize(int(sysfont.GetPointSize() *
                                      GetFloat(wxT("relativesize"))));
 
         if (hasStyle)
-            font.SetStyle(istyle);
+            sysfont.SetStyle(istyle);
         if (hasWeight)
-            font.SetWeight(iweight);
+            sysfont.SetWeight(iweight);
         if (hasUnderlined)
-            font.SetUnderlined(underlined);
+            sysfont.SetUnderlined(underlined);
         if (hasFamily)
-            font.SetFamily(ifamily);
+            sysfont.SetFamily(ifamily);
         if (hasFacename)
-            font.SetFaceName(facename);
+            sysfont.SetFaceName(facename);
         if (hasEncoding)
-            font.SetDefaultEncoding(enc);
-    }
-    else // not based on system font
-    {
-        font = wxFont(isize == -1 ? wxNORMAL_FONT->GetPointSize() : isize,
-                      ifamily, istyle, iweight,
-                      underlined, facename, enc);
+            sysfont.SetDefaultEncoding(enc);
+
+        m_node = oldnode;
+        return sysfont;
     }
 
     m_node = oldnode;
-    return font;
+    return wxFont(isize, ifamily, istyle, iweight,
+                  underlined, facename, enc);
 }
 
 

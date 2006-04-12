@@ -2,7 +2,7 @@
 // Name:        src/gtk/minifram.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: minifram.cpp,v 1.48 2006/04/04 17:50:58 MR Exp $
+// Id:          $Id: minifram.cpp,v 1.43 2006/02/04 13:06:06 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,6 +23,13 @@
 #include <gdk/gdk.h>
 #include <gdk/gdkprivate.h>
 #include <gdk/gdkx.h>
+
+//-----------------------------------------------------------------------------
+// idle system
+//-----------------------------------------------------------------------------
+
+extern void wxapp_install_idle_handler();
+extern bool g_isIdle;
 
 //-----------------------------------------------------------------------------
 // data
@@ -46,12 +53,12 @@ static void DrawFrame( GtkWidget *widget, int x, int y, int w, int h )
     x += org_x;
     y += org_y;
 
-    GdkGC *gc = gdk_gc_new( gdk_get_default_root_window() );
+    GdkGC *gc = gdk_gc_new( GDK_ROOT_PARENT() );
     gdk_gc_set_subwindow( gc, GDK_INCLUDE_INFERIORS );
     gdk_gc_set_function( gc, GDK_INVERT );
 
-    gdk_draw_rectangle( gdk_get_default_root_window(), gc, FALSE, x, y, w, h );
-    g_object_unref (G_OBJECT (gc));
+    gdk_draw_rectangle( GDK_ROOT_PARENT(), gc, FALSE, x, y, w, h );
+    gdk_gc_unref( gc );
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +99,7 @@ static void gtk_window_own_expose_callback( GtkWidget *widget, GdkEventExpose *g
                             3,
                             win->m_width - 7,
                             height+1 );
-        g_object_unref (G_OBJECT (gc));
+        gdk_gc_unref( gc );
 
         // Hack alert
         dc.m_window = pizza->bin_window;
@@ -290,8 +297,8 @@ bool wxMiniFrame::Create( wxWindow *parent, wxWindowID id, const wxString &title
                             );
 
         GtkWidget *pw = gtk_pixmap_new( pixmap, mask );
-        g_object_unref (G_OBJECT (mask));
-        g_object_unref (G_OBJECT (pixmap));
+        gdk_bitmap_unref( mask );
+        gdk_pixmap_unref( pixmap );
         gtk_widget_show( pw );
 
         GtkWidget *close_button = gtk_button_new();

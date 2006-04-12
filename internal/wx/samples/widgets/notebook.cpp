@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxNotebook
 // Author:      Vadim Zeitlin
 // Created:     06.04.01
-// Id:          $Id: notebook.cpp,v 1.19 2006/03/22 18:07:19 ABX Exp $
+// Id:          $Id: notebook.cpp,v 1.18 2005/10/21 19:03:06 ABX Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -211,19 +211,22 @@ NotebookWidgetsPage::NotebookWidgetsPage(wxBookCtrlBase *book,
     wxStaticBox *box = new wxStaticBox(this, wxID_ANY, _T("&Set style"));
 
     // must be in sync with Orient enum
-    wxArrayString orientations;
-    orientations.Add(_T("&top"));
-    orientations.Add(_T("&bottom"));
-    orientations.Add(_T("&left"));
-    orientations.Add(_T("&right"));
+    wxString orientations[] =
+    {
+        _T("&top"),
+        _T("&bottom"),
+        _T("&left"),
+        _T("&right"),
+    };
 
-    wxASSERT_MSG( orientations.GetCount() == Orient_Max,
+    wxASSERT_MSG( WXSIZEOF(orientations) == Orient_Max,
                   _T("forgot to update something") );
 
     m_chkImages = new wxCheckBox(this, wxID_ANY, _T("Show &images"));
     m_radioOrient = new wxRadioBox(this, wxID_ANY, _T("&Tab orientation"),
                                    wxDefaultPosition, wxDefaultSize,
-                                   orientations, 1, wxRA_SPECIFY_COLS);
+                                   WXSIZEOF(orientations), orientations,
+                                   1, wxRA_SPECIFY_COLS);
 
     wxSizer *sizerLeft = new wxStaticBoxSizer(box, wxVERTICAL);
 

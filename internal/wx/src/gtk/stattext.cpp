@@ -2,7 +2,7 @@
 // Name:        stattext.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: stattext.cpp,v 1.65 2006/03/12 14:21:18 VZ Exp $
+// Id:          $Id: stattext.cpp,v 1.64 2006/02/05 22:41:39 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -164,16 +164,6 @@ bool wxStaticText::SetForegroundColour(const wxColour& colour)
     // Then, to force the color change, we set the label with the current label
     SetLabel(GetLabel());
     return true;
-}
-
-bool wxStaticText::GTKWidgetNeedsMnemonic() const
-{
-    return true;
-}
-
-void wxStaticText::GTKWidgetDoSetMnemonic(GtkWidget* w)
-{
-    gtk_label_set_mnemonic_widget(GTK_LABEL(m_widget), w);
 }
 
 // static

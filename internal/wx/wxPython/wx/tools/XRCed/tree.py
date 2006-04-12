@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, XML_tree class
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      02.12.2002
-# RCS-ID:       $Id: tree.py,v 1.32 2006/04/10 13:13:51 ROL Exp $
+# RCS-ID:       $Id: tree.py,v 1.28 2006/01/29 17:35:47 vell Exp $
 
 from xxx import *                       # xxx imports globals and params
 import types
@@ -298,7 +298,6 @@ class PullDownMenu:
              (ID_NEW.SPLITTER_WINDOW, 'SplitterWindow', 'Create splitter window'),
              (ID_NEW.TOOL_BAR, 'ToolBar', 'Create toolbar'),
              (ID_NEW.STATUS_BAR, 'StatusBar', 'Create status bar'),
-             (ID_NEW.MENU_BAR, 'MenuBar', 'Create menubar'),
 #             (ID_NEW.WIZARD_PAGE, 'Wizard Page', 'Create wizard page'),
              (ID_NEW.WIZARD_PAGE_SIMPLE, 'WizardPageSimple', 'Create simple wizard page'),
              ],
@@ -654,9 +653,9 @@ class XML_Tree(wxTreeCtrl):
         # Top-level sizer? return window's sizer
         if xxx.isSizer and isinstance(parentWin, wxWindow):
             return parentWin.GetSizer()
-        elif xxx.__class__ in [xxxMenu, xxxMenuItem, xxxSeparator]:  return None
-        elif xxx.__class__ in [xxxToolBar, xxxMenuBar]:
-            # If it's the main toolbar or menubar, we can't really select it
+        elif isinstance(xxx, xxxStatusBar):  return None
+        elif isinstance(xxx, xxxToolBar):
+            # If it's the main toolbar, we can't really select it
             if xxx.parent.__class__ == xxxFrame:  return None
         elif isinstance(xxx.parent, xxxToolBar):
             # Select complete toolbar
@@ -671,12 +670,15 @@ class XML_Tree(wxTreeCtrl):
             # First window is controld
             return parentWin.GetChildren()[self.ItemIndex(item)+1]
         # Otherwise get parent's object and it's child
-        child = parentWin.GetChildren()[self.WindowIndex(item)]
+        child = parentWin.GetChildren()[self.ItemIndex(item)]
         # Return window or sizer for sizer items
         if child.GetClassName() == 'wxSizerItem':
             if child.IsWindow(): child = child.GetWindow()
             elif child.IsSizer():
                 child = child.GetSizer()
+                # Test for notebook sizers (deprecated)
+                if isinstance(child, wxNotebookSizer):
+                    child = child.GetNotebook()        
         return child
 
     def OnSelChanged(self, evt):
@@ -738,9 +740,7 @@ class XML_Tree(wxTreeCtrl):
             return
         # Get window/sizer object
         obj = self.FindNodeObject(item)
-        if not obj:
-            if g.testWin.highLight: g.testWin.highLight.Remove()
-            return
+        if not obj: return
         pos = self.FindNodePos(item, obj)
         size = obj.GetSize()
         # Highlight
@@ -981,17 +981,6 @@ class XML_Tree(wxTreeCtrl):
     def OnCloseTestWin(self, evt):
         self.CloseTestWindow()
 
-    # Return index in parent, for real window children
-    def WindowIndex(self, item):
-        n = 0                           # index of sibling
-        prev = self.GetPrevSibling(item)
-        while prev.IsOk():
-            # MenuBar is not a child
-            if not isinstance(self.GetPyData(prev), xxxMenuBar):
-                n += 1
-            prev = self.GetPrevSibling(prev)
-        return n
-
     # Return item index in parent
     def ItemIndex(self, item):
         n = 0                           # index of sibling
@@ -1081,8 +1070,6 @@ class XML_Tree(wxTreeCtrl):
                         m.Enable(m.FindItem('sizer'), False)
                     elif not (xxx.isSizer or xxx.parent and xxx.parent.isSizer):
                         m.Enable(ID_NEW.SPACER, False)
-                    if xxx.__class__ is not xxxFrame:
-                        m.Enable(ID_NEW.MENU_BAR, False)
                 m.AppendSeparator()
                 m.Append(ID_NEW.REF, 'reference...', 'Create object_ref node')
             # Select correct label for create menu

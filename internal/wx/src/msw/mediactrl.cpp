@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrl.cpp,v 1.72 2006/03/11 14:32:36 JS Exp $
+// RCS-ID:      $Id: mediactrl.cpp,v 1.71 2006/01/29 08:49:53 vell Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -62,15 +62,6 @@ extern WXDLLIMPEXP_CORE const wxChar *wxCanvasClassName;
 
 LRESULT WXDLLIMPEXP_CORE APIENTRY _EXPORT wxWndProc(HWND hWnd, UINT message,
                                    WPARAM wParam, LPARAM lParam);
-
-//---------------------------------------------------------------------------
-// Killed MSVC warnings
-//---------------------------------------------------------------------------
-//disable "cast truncates constant value" for VARIANT_BOOL values
-//passed as parameters in VC5 and up
-#ifdef _MSC_VER
-#pragma warning (disable:4310)
-#endif
 
 //===========================================================================
 // BACKEND DECLARATIONS

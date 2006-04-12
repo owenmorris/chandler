@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: combobox.h,v 1.23 2006/03/23 22:04:36 VZ Exp $
+// RCS-ID:      $Id: combobox.h,v 1.22 2005/09/27 16:54:33 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -71,14 +71,14 @@ public:
 
     // implementation of wxControlWithItems
     virtual int DoAppend(const wxString& item);
-    virtual int DoInsert(const wxString& item, unsigned int pos);
-    virtual void Delete(unsigned int n);
+    virtual int DoInsert(const wxString& item, int pos);
+    virtual void Delete(int n);
     virtual void Clear();
     virtual int GetSelection() const ;
     virtual void SetSelection(int n);
     virtual int FindString(const wxString& s, bool bCase = false) const;
-    virtual wxString GetString(unsigned int n) const ;
-    virtual void SetString(unsigned int n, const wxString& s);
+    virtual wxString GetString(int n) const ;
+    virtual void SetString(int n, const wxString& s);
 
     // Text field functions
     virtual wxString GetValue() const ;

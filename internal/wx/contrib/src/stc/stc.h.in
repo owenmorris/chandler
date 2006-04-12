@@ -12,7 +12,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Jan-2000
-// RCS-ID:      $Id: stc.h.in,v 1.54 2006/03/08 01:47:54 RD Exp $
+// RCS-ID:      $Id: stc.h.in,v 1.53 2005/10/07 08:36:08 ABX Exp $
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -445,7 +445,6 @@ BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_STC, wxEVT_STC_HOTSPOT_CLICK,      1673)
     DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_STC, wxEVT_STC_HOTSPOT_DCLICK,     1674)
     DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_STC, wxEVT_STC_CALLTIP_CLICK,      1675)
-    DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_STC, wxEVT_STC_AUTOCOMP_SELECTION, 1676)
 END_DECLARE_EVENT_TYPES()
 #else
     enum {
@@ -473,8 +472,7 @@ END_DECLARE_EVENT_TYPES()
         wxEVT_STC_ZOOM,
         wxEVT_STC_HOTSPOT_CLICK,
         wxEVT_STC_HOTSPOT_DCLICK,
-        wxEVT_STC_CALLTIP_CLICK,
-        wxEVT_STC_AUTOCOMP_SELECTION
+        wxEVT_STC_CALLTIP_CLICK
     };
 #endif
 
@@ -508,7 +506,7 @@ typedef void (wxEvtHandler::*wxStyledTextEventFunction)(wxStyledTextEvent&);
 #define EVT_STC_HOTSPOT_CLICK(id, fn)      DECLARE_EVENT_TABLE_ENTRY( wxEVT_STC_HOTSPOT_CLICK,         id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxStyledTextEventFunction, & fn ), (wxObject *) NULL ),
 #define EVT_STC_HOTSPOT_DCLICK(id, fn)     DECLARE_EVENT_TABLE_ENTRY( wxEVT_STC_HOTSPOT_DCLICK,        id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxStyledTextEventFunction, & fn ), (wxObject *) NULL ),
 #define EVT_STC_CALLTIP_CLICK(id, fn))     DECLARE_EVENT_TABLE_ENTRY( wxEVT_STC_CALLTIP_CLICK          id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxStyledTextEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_STC_AUTOCOMP_SELECTION(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_STC_AUTOCOMP_SELECTION     id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxStyledTextEventFunction, & fn ), (wxObject *) NULL ),
+
 #endif
 
 //----------------------------------------------------------------------
@@ -517,9 +515,9 @@ typedef void (wxEvtHandler::*wxStyledTextEventFunction)(wxStyledTextEvent&);
 #ifndef SWIG
 #if wxUSE_UNICODE
 
-WXDLLIMPEXP_STC wxString stc2wx(const char* str);
-WXDLLIMPEXP_STC wxString stc2wx(const char* str, size_t len);
-WXDLLIMPEXP_STC const wxWX2MBbuf wx2stc(const wxString& str);
+wxString stc2wx(const char* str);
+wxString stc2wx(const char* str, size_t len);
+const wxWX2MBbuf wx2stc(const wxString& str);
 
 #else // not UNICODE
 

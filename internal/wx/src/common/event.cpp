@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.cpp,v 1.176 2006/03/30 14:04:14 ABX Exp $
+// RCS-ID:      $Id: event.cpp,v 1.174 2006/02/12 12:16:41 MW Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -736,12 +736,10 @@ wxKeyEvent::wxKeyEvent(const wxKeyEvent& evt)
 #endif
 }
 
-#if WXWIN_COMPATIBILITY_2_6
 long wxKeyEvent::KeyCode() const
 {
     return m_keyCode;
 }
-#endif // WXWIN_COMPATIBILITY_2_6
 
 wxWindowCreateEvent::wxWindowCreateEvent(wxWindow *win)
 {
@@ -1346,10 +1344,6 @@ bool wxEvtHandler::SearchDynamicEventTable( wxEvent& event )
         wxDynamicEventTableEntry *entry = (wxDynamicEventTableEntry*)node->GetData();
 #endif // WXWIN_COMPATIBILITY_EVENT_TYPES/!WXWIN_COMPATIBILITY_EVENT_TYPES
 
-        // get next node before (maybe) calling the event handler as it could
-        // call Disconnect() invalidating the current node
-        node = node->GetNext();
-
         if ((event.GetEventType() == entry->m_eventType) && (entry->m_fn != 0))
         {
             wxEvtHandler *handler =
@@ -1364,6 +1358,8 @@ bool wxEvtHandler::SearchDynamicEventTable( wxEvent& event )
                 return true;
             }
         }
+
+        node = node->GetNext();
     }
 
     return false;

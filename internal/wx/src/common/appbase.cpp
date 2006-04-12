@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.06.2003 (extracted from common/appcmn.cpp)
-// RCS-ID:      $Id: appbase.cpp,v 1.69 2006/03/21 17:00:16 VZ Exp $
+// RCS-ID:      $Id: appbase.cpp,v 1.65 2006/01/09 00:12:49 VZ Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,6 @@
     static
     void ShowAssertDialog(const wxChar *szFile,
                           int nLine,
-                          const wxChar *szFunc,
                           const wxChar *szCond,
                           const wxChar *szMsg,
                           wxAppTraits *traits = NULL);
@@ -435,21 +434,12 @@ bool wxAppConsole::CheckBuildOptions(const char *optionsSignature,
 
 #ifdef __WXDEBUG__
 
-void wxAppConsole::OnAssertFailure(const wxChar *file,
-                                   int line,
-                                   const wxChar *func,
-                                   const wxChar *cond,
-                                   const wxChar *msg)
-{
-    ShowAssertDialog(file, line, func, cond, msg, GetTraits());
-}
-
 void wxAppConsole::OnAssert(const wxChar *file,
                             int line,
                             const wxChar *cond,
                             const wxChar *msg)
 {
-    OnAssertFailure(file, line, NULL, cond, msg);
+    ShowAssertDialog(file, line, cond, msg, GetTraits());
 }
 
 #endif // __WXDEBUG__
@@ -597,10 +587,19 @@ void wxTrap()
 #endif // Win/Unix
 }
 
+void wxAssert(int cond,
+              const wxChar *szFile,
+              int nLine,
+              const wxChar *szCond,
+              const wxChar *szMsg)
+{
+    if ( !cond )
+        wxOnAssert(szFile, nLine, szCond, szMsg);
+}
+
 // this function is called when an assert fails
 void wxOnAssert(const wxChar *szFile,
                 int nLine,
-                const char *szFunc,
                 const wxChar *szCond,
                 const wxChar *szMsg)
 {
@@ -619,19 +618,16 @@ void wxOnAssert(const wxChar *szFile,
 
     s_bInAssert = true;
 
-    // __FUNCTION__ is always in ASCII, convert it to wide char if needed
-    const wxString strFunc = wxString::FromAscii(szFunc);
-
     if ( !wxTheApp )
     {
         // by default, show the assert dialog box -- we can't customize this
         // behaviour
-        ShowAssertDialog(szFile, nLine, strFunc, szCond, szMsg);
+        ShowAssertDialog(szFile, nLine, szCond, szMsg);
     }
     else
     {
         // let the app process it as it wants
-        wxTheApp->OnAssertFailure(szFile, nLine, strFunc, szCond, szMsg);
+        wxTheApp->OnAssert(szFile, nLine, szCond, szMsg);
     }
 
     s_bInAssert = false;
@@ -742,7 +738,7 @@ static wxString GetAssertStackTrace()
     };
 
     StackDump dump;
-    dump.Walk(2); // don't show OnAssert() call itself
+    dump.Walk(5); // don't show OnAssert() call itself
     stackTrace = dump.GetStackTrace();
 
     // don't show more than maxLines or we could get a dialog too tall to be
@@ -761,7 +757,6 @@ static wxString GetAssertStackTrace()
 static
 void ShowAssertDialog(const wxChar *szFile,
                       int nLine,
-                      const wxChar *szFunc,
                       const wxChar *szCond,
                       const wxChar *szMsg,
                       wxAppTraits *traits)
@@ -777,11 +772,6 @@ void ShowAssertDialog(const wxChar *szFile,
     // the failed assert
     msg.Printf(wxT("%s(%d): assert \"%s\" failed"), szFile, nLine, szCond);
 
-    // add the function name, if any
-    if ( szFunc && *szFunc )
-        msg << _T(" in ") << szFunc << _T("()");
-
-    // and the message itself
     if ( szMsg )
     {
         msg << _T(": ") << szMsg;

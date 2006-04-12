@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.03.02
-// RCS-ID:      $Id: private.h,v 1.21 2006/03/21 13:31:35 VZ Exp $
+// RCS-ID:      $Id: private.h,v 1.16 2006/02/03 20:38:49 MR Exp $
 // Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,59 +30,14 @@
     #define wxGTK_CONV_BACK(s)  wxConvLocal.cWC2WX( (wxConvUTF8.cMB2WC( s ) ) )
 #endif
 
-// Some deprecated GTK+ prototypes we still use often
-// FIXME: Don't use them if possible.
-G_BEGIN_DECLS
-
-// Should use gtk_image_new, but the mask seems to be handled different,
-// and we need to migrate
-GtkWidget* gtk_pixmap_new (GdkPixmap *pixmap,
-                           GdkBitmap *mask);
-
-// Deprecated since GTK+-1.3.7:
-// Trivial wrapper around gtk_window_move, with some side effects we seem to rely on
-void gtk_widget_set_uposition (GtkWidget *widget,
-                               gint      x,
-                               gint      y);
-
-// We rely on the allow_shrink parameter in one place
-void gtk_window_set_policy (GtkWindow *window,
-                            gint       allow_shrink,
-                            gint       allow_grow,
-                            gint       auto_shrink);
-
-G_END_DECLS
-
-//-----------------------------------------------------------------------------
-// idle system
-//-----------------------------------------------------------------------------
-
-extern void wxapp_install_idle_handler();
-extern bool g_isIdle;
-
-//-----------------------------------------------------------------------------
-// Convenience class for g_freeing a gchar* on scope exit automatically
-//-----------------------------------------------------------------------------
-
-class wxGtkString
-{
-public:
-    explicit wxGtkString(gchar *s) : m_str(s) { }
-    ~wxGtkString() { g_free(m_str); }
-
-    const gchar *c_str() const { return m_str; }
-
-    operator gchar *() const { return m_str; }
-
-private:
-    gchar *m_str;
-
-    DECLARE_NO_COPY_CLASS(wxGtkString)
-};
-
-//-----------------------------------------------------------------------------
-// GTK+ scroll types -> wxEventType
-//-----------------------------------------------------------------------------
+// FIXME: Make gtk2 only, so no macros needed - MR
+// GTK+ 2.0 compatibility define is broken when used from C++ as it
+// casts enum to int implicitly
+#undef gtk_signal_disconnect_by_func
+#define gtk_signal_disconnect_by_func(object,func,data) \
+    gtk_signal_compat_matched((object), (func), (data), \
+                              (GSignalMatchType)(G_SIGNAL_MATCH_FUNC | \
+                                                 G_SIGNAL_MATCH_DATA), 0)
 
 // translate a GTK+ scroll type to a wxEventType
 inline wxEventType GtkScrollTypeToWx(guint scrollType)
@@ -119,11 +74,6 @@ inline wxEventType GtkScrollWinTypeToWx(guint scrollType)
     return GtkScrollTypeToWx(scrollType) +
             wxEVT_SCROLLWIN_TOP - wxEVT_SCROLL_TOP;
 }
-
-
-//-----------------------------------------------------------------------------
-// Misc. functions
-//-----------------------------------------------------------------------------
 
 // Needed for implementing e.g. combobox on wxGTK within a modal dialog.
 void wxAddGrab(wxWindow* window);

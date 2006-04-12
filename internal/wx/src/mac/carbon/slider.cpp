@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: slider.cpp,v 1.53 2006/04/11 05:45:31 SC Exp $
+// RCS-ID:      $Id: slider.cpp,v 1.52 2006/02/06 05:08:13 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -204,16 +204,7 @@ void wxSlider::SetRange(int minValue, int maxValue)
         m_macMaximumStatic->SetLabel( value );
     }
 
-    // If the range is out of bounds, set it to a 
-    // value that is within bounds
-    // RN: Testing reveals OSX does its own 
-    // bounding, perhaps this isn't needed?
-    int currentValue = GetValue();
-
-    if (currentValue < m_rangeMin)
-        SetValue(m_rangeMin);
-    else if (currentValue > m_rangeMax)
-        SetValue(m_rangeMax);
+    SetValue( m_rangeMin );
 }
 
 // For trackbars only
@@ -303,14 +294,19 @@ void wxSlider::MacHandleControlClick( WXWidget control, wxInt16 controlpart, boo
 
     SetValue( value );
 
-    wxScrollEvent event( wxEVT_SCROLL_THUMBTRACK, m_windowId );
-    event.SetPosition( value );
+    wxEventType scrollEvent = wxEVT_NULL;
+
+    scrollEvent = wxEVT_SCROLL_THUMBTRACK;
+
+    wxScrollEvent event(scrollEvent, m_windowId);
+    event.SetPosition(value);
     event.SetEventObject( this );
-    GetEventHandler()->ProcessEvent( event );
+    GetEventHandler()->ProcessEvent(event);
 
     wxCommandEvent cevent( wxEVT_COMMAND_SLIDER_UPDATED, m_windowId );
     cevent.SetInt( value );
     cevent.SetEventObject( this );
+
     GetEventHandler()->ProcessEvent( cevent );
 }
 
@@ -322,10 +318,14 @@ wxInt32 wxSlider::MacControlHit( WXEVENTHANDLERREF handler , WXEVENTREF mevent )
 
     SetValue( value ) ;
 
-    wxScrollEvent event( wxEVT_SCROLL_THUMBRELEASE, m_windowId );
-    event.SetPosition( value );
+    wxEventType scrollEvent = wxEVT_NULL ;
+
+    scrollEvent = wxEVT_SCROLL_THUMBRELEASE;
+
+    wxScrollEvent event(scrollEvent, m_windowId);
+    event.SetPosition(value);
     event.SetEventObject( this );
-    GetEventHandler()->ProcessEvent( event );
+    GetEventHandler()->ProcessEvent(event);
 
     wxCommandEvent cevent( wxEVT_COMMAND_SLIDER_UPDATED, m_windowId );
     cevent.SetInt( value );

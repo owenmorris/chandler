@@ -2,7 +2,7 @@
 // Name:        src/gtk/toplevel.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: toplevel.cpp,v 1.104 2006/04/06 12:01:04 MR Exp $
+// Id:          $Id: toplevel.cpp,v 1.100 2006/02/16 09:00:45 RR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,6 +47,13 @@
 
 // XA_CARDINAL
 #include <X11/Xatom.h>
+
+// ----------------------------------------------------------------------------
+// idle system
+// ----------------------------------------------------------------------------
+
+extern void wxapp_install_idle_handler();
+extern bool g_isIdle;
 
 // ----------------------------------------------------------------------------
 // data
@@ -96,7 +103,7 @@ static void wxgtk_window_set_urgency_hint (GtkWindow *win,
 
 static gboolean gtk_frame_urgency_timer_callback( wxTopLevelWindowGTK *win )
 {
-#if GTK_CHECK_VERSION(2,7,0)
+#if defined(__WXGTK20__) && GTK_CHECK_VERSION(2,7,0)
     if(!gtk_check_version(2,7,0))
         gtk_window_set_urgency_hint(GTK_WINDOW( win->m_widget ), FALSE);
     else
@@ -146,7 +153,7 @@ static gboolean gtk_frame_focus_in_callback( GtkWidget *widget,
             g_source_remove( win->m_urgency_hint );
             // no break, fallthrough to remove hint too
         case -1:
-#if GTK_CHECK_VERSION(2,7,0)
+#if defined(__WXGTK20__) && GTK_CHECK_VERSION(2,7,0)
             if(!gtk_check_version(2,7,0))
                 gtk_window_set_urgency_hint(GTK_WINDOW( widget ), FALSE);
             else
@@ -258,10 +265,7 @@ static void gtk_frame_size_callback( GtkWidget *WXUNUSED(widget), GtkAllocation*
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gboolean
-gtk_frame_delete_callback( GtkWidget *WXUNUSED(widget),
-                           GdkEvent *WXUNUSED(event),
-                           wxTopLevelWindowGTK *win )
+static gint gtk_frame_delete_callback( GtkWidget *WXUNUSED(widget), GdkEvent *WXUNUSED(event), wxTopLevelWindowGTK *win )
 {
     if (g_isIdle)
         wxapp_install_idle_handler();
@@ -281,10 +285,8 @@ gtk_frame_delete_callback( GtkWidget *WXUNUSED(widget),
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gboolean
-gtk_frame_configure_callback( GtkWidget *WXUNUSED(widget),
-                              GdkEventConfigure *WXUNUSED(event),
-                              wxTopLevelWindowGTK *win )
+static gint
+gtk_frame_configure_callback( GtkWidget *WXUNUSED(widget), GdkEventConfigure *WXUNUSED(event), wxTopLevelWindowGTK *win )
 {
     if (g_isIdle)
         wxapp_install_idle_handler();
@@ -378,10 +380,7 @@ gtk_frame_unmap_callback( GtkWidget * WXUNUSED(widget),
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gboolean
-gtk_window_expose_callback( GtkWidget *widget,
-                            GdkEventExpose *gdk_event,
-                            wxWindow *win )
+static int gtk_window_expose_callback( GtkWidget *widget, GdkEventExpose *gdk_event, wxWindow *win )
 {
     GtkPizza *pizza = GTK_PIZZA(widget);
 
@@ -1264,7 +1263,7 @@ void wxTopLevelWindowGTK::RequestUserAttention(int flags)
         }
     }
 
-#if GTK_CHECK_VERSION(2,7,0)
+#if defined(__WXGTK20__) && GTK_CHECK_VERSION(2,7,0)
     if(!gtk_check_version(2,7,0))
         gtk_window_set_urgency_hint(GTK_WINDOW( m_widget ), new_hint_value);
     else
@@ -1274,10 +1273,8 @@ void wxTopLevelWindowGTK::RequestUserAttention(int flags)
 
 void wxTopLevelWindowGTK::SetWindowStyleFlag( long style )
 {
-#if defined(__WXGTK24__) || GTK_CHECK_VERSION(2,2,0)
     // Store which styles were changed
     long styleChanges = style ^ m_windowStyle;
-#endif
 
     // Process wxWindow styles. This also updates the internal variable
     // Therefore m_windowStyle bits carry now the _new_ style values

@@ -27,7 +27,6 @@ protected:
 	char chWhile;
 	unsigned int startSeg;
 	int startPosStyling;
-	int mask;
 
 	bool InternalIsLeadByte(char ch);
 	void Fill(int position);
@@ -36,8 +35,7 @@ public:
 	DocumentAccessor(Document *pdoc_, PropSet &props_, WindowID id_=0) : 
 		Accessor(), pdoc(pdoc_), props(props_), id(id_),
 		lenDoc(-1), validLen(0), chFlags(0), chWhile(0), 
-		startSeg(0), startPosStyling(0),
-		mask(127) { // Initialize the mask to be big enough for any lexer.
+		startSeg(0), startPosStyling(0) {
 	}
 	~DocumentAccessor();
 	bool Match(int pos, const char *s);

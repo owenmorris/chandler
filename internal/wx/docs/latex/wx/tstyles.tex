@@ -1,14 +1,3 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Name:        tstyles.tex
-%% Purpose:     Window styles documenation
-%% Author:      wxWidgets Team
-%% Modified by:
-%% Created:
-%% RCS-ID:      $Id: tstyles.tex,v 1.4 2006/03/31 18:06:57 ABX Exp $
-%% Copyright:   (c) wxWidgets Team
-%% License:     wxWindows license
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \section{Window styles}\label{windowstyles}
 
 Window styles are used to specify alternative behaviour and appearances for windows, when they are
@@ -16,9 +5,10 @@ created. The symbols are defined in such a way that they can be combined in a `b
 C++ {\it bitwise-or} operator. For example:
 
 \begin{verbatim}
-  wxCAPTION | wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER
+  wxCAPTION | wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxTHICK_FRAME
 \end{verbatim}
 
 For the window styles specific to each window class, please see the documentation
 for the window. Most windows can use the generic styles listed for \helpref{wxWindow}{wxwindow} in
 addition to their own styles.
+

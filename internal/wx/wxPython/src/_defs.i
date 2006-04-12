@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     6/24/97
-// RCS-ID:      $Id: _defs.i,v 1.99 2006/04/11 01:43:37 RD Exp $
+// RCS-ID:      $Id: _defs.i,v 1.96 2006/02/11 19:46:49 RD Exp $
 // Copyright:   (c) 1998 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -68,16 +68,8 @@
 }
 %enddef
 
+    
 
-// This macro can be used to disable the releasing of the GIL when calling the
-// C++ function.
-%define KeepGIL(name)
-%exception name {
-    $action
-    if (PyErr_Occurred()) SWIG_fail;
-}
-%enddef
-        
 //---------------------------------------------------------------------------
 // some type definitions to simplify things for SWIG
 
@@ -112,8 +104,6 @@ typedef unsigned long   wxUIntPtr;
 #define %disownarg(typespec)   %typemap(in) typespec = SWIGTYPE* DISOWN
 #define %cleardisown(typespec) %typemap(in) typespec
     
-#define %ref   %feature("ref")
-#define %unref %feature("unref")
 
 
 #ifndef %pythoncode
@@ -521,9 +511,7 @@ enum {
     wxRB_USE_CHECKBOX,
     wxST_SIZEGRIP,
     wxST_NO_AUTORESIZE,
-    wxST_DOTS_MIDDLE,
-    wxST_DOTS_END,
-    
+
     wxFLOOD_SURFACE,
     wxFLOOD_BORDER,
     wxODDEVEN_RULE,

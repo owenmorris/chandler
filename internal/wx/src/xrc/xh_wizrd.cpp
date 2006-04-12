@@ -3,7 +3,7 @@
 // Purpose:     XRC resource for wxWizard
 // Author:      Vaclav Slavik
 // Created:     2003/03/01
-// RCS-ID:      $Id: xh_wizrd.cpp,v 1.11 2006/03/07 23:34:34 VZ Exp $
+// RCS-ID:      $Id: xh_wizrd.cpp,v 1.10 2005/09/23 12:56:15 MR Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,8 @@ wxObject *wxWizardXmlHandler::DoCreateResource()
     }
     else
     {
-        wxWizardPage *page;
+        wxWizardPage *page = NULL;
+        wxUnusedVar(page);
 
         if (m_class == wxT("wxWizardPageSimple"))
         {
@@ -68,14 +69,13 @@ wxObject *wxWizardXmlHandler::DoCreateResource()
         }
         else /*if (m_class == wxT("wxWizardPage"))*/
         {
-            if ( !m_instance )
-            {
+            wxWizardPage *p = NULL;
+            if (m_instance)
+                p = wxStaticCast(m_instance, wxWizardPage);
+            else
                 wxLogError(wxT("wxWizardPage is abstract class, must be subclassed"));
-                return NULL;
-            }
-
-            page = wxStaticCast(m_instance, wxWizardPage);
-            page->Create(m_wizard, GetBitmap());
+            p->Create(m_wizard, GetBitmap());
+            page = p;
         }
 
         page->SetName(GetName());

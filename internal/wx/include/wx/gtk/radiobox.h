@@ -2,7 +2,7 @@
 // Name:        wx/gtk/radiobox.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobox.h,v 1.51 2006/03/23 22:04:27 VZ Exp $
+// Id:          $Id: radiobox.h,v 1.47 2006/02/08 21:45:44 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -81,21 +81,21 @@ public:
 
 
     // implement wxItemContainerImmutable methods
-    virtual unsigned int GetCount() const;
+    virtual int GetCount() const;
 
-    virtual wxString GetString(unsigned int n) const;
-    virtual void SetString(unsigned int n, const wxString& s);
+    virtual wxString GetString(int n) const;
+    virtual void SetString(int n, const wxString& s);
 
     virtual void SetSelection(int n);
     virtual int GetSelection() const;
 
 
     // implement wxRadioBoxBase methods
-    virtual bool Show(unsigned int n, bool show = true);
-    virtual bool Enable(unsigned int n, bool enable = true);
+    virtual bool Show(int n, bool show = true);
+    virtual bool Enable(int n, bool enable = true);
 
-    virtual bool IsItemEnabled(unsigned int n) const;
-    virtual bool IsItemShown(unsigned int n) const;
+    virtual bool IsItemEnabled(int n) const;
+    virtual bool IsItemShown(int n) const;
 
 
     // override some base class methods to operate on radiobox itself too
@@ -127,14 +127,16 @@ public:
 protected:
     void DoApplyWidgetStyle(GtkRcStyle *style);
 
-    virtual bool GTKWidgetNeedsMnemonic() const;
-    virtual void GTKWidgetDoSetMnemonic(GtkWidget* w);
-
     // common part of all ctors
     void Init();
+
+    // check that the index is valid
+    // FIXME: remove once GTK will derive from wxRadioBoxBase
+    inline bool IsValid(int n) const { return n >= 0 && n < GetCount(); }
 
 private:
     DECLARE_DYNAMIC_CLASS(wxRadioBox)
 };
 
 #endif // _WX_GTK_RADIOBOX_H_
+

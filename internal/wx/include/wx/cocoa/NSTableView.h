@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/08/05
-// RCS-ID:      $Id: NSTableView.h,v 1.4 2006/03/12 15:10:23 VZ Exp $
+// RCS-ID:      $Id: NSTableView.h,v 1.3 2004/05/23 20:50:42 JS Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,6 @@ public:
     virtual int CocoaDataSource_numberOfRows() = 0;
     virtual struct objc_object* CocoaDataSource_objectForTableColumn(
         WX_NSTableColumn tableColumn, int rowIndex) = 0;
-    virtual ~wxCocoaNSTableView() { }
 };
 
 #endif // _WX_COCOA_NSTABLEVIEW_H_

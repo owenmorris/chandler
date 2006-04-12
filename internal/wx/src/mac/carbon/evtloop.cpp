@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2006-01-12
-// RCS-ID:      $Id: evtloop.cpp,v 1.4 2006/03/10 16:03:39 SC Exp $
+// RCS-ID:      $Id: evtloop.cpp,v 1.3 2006/01/27 09:50:40 SC Exp $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,11 +27,8 @@
 #include "wx/evtloop.h"
 #include "wx/app.h"
 
-#ifdef __DARWIN__
-    #include <Carbon/Carbon.h>
-#else
-    #include <Carbon.h>
-#endif
+#include <Carbon/Carbon.h>
+
 // ============================================================================
 // wxEventLoop implementation
 // ============================================================================

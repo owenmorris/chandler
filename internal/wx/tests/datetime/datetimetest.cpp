@@ -3,7 +3,7 @@
 // Purpose:     wxDateTime unit test
 // Author:      Vadim Zeitlin
 // Created:     2004-06-23 (extracted from samples/console/console.cpp)
-// RCS-ID:      $Id: datetimetest.cpp,v 1.10 2006/03/21 16:21:18 VZ Exp $
+// RCS-ID:      $Id: datetimetest.cpp,v 1.9 2006/02/11 16:20:28 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -20,23 +20,14 @@
 #ifndef WX_PRECOMP
 #endif // WX_PRECOMP
 
-#if wxUSE_DATETIME
-
 #include "wx/datetime.h"
-#include "wx/ioswrap.h"
-
-// need this to be able to use CPPUNIT_ASSERT_EQUAL with wxDateTime objects
-static wxSTD ostream& operator<<(wxSTD ostream& ostr, const wxDateTime& dt)
-{
-    ostr << dt.Format();
-
-    return ostr;
-}
 
 // to test Today() meaningfully we must be able to change the system date which
 // is not usually the case, but if we're under Win32 we can try it -- define
 // the macro below to do it
 //#define CHANGE_SYSTEM_DATE
+
+#if wxUSE_DATETIME
 
 #ifndef __WINDOWS__
     #undef CHANGE_SYSTEM_DATE
@@ -188,8 +179,7 @@ private:
         CPPUNIT_TEST( TestTimeDST );
         CPPUNIT_TEST( TestTimeFormat );
         CPPUNIT_TEST( TestTimeTicks );
-        CPPUNIT_TEST( TestParceRFC822 );
-        CPPUNIT_TEST( TestDateParse );
+        CPPUNIT_TEST( TestTimeParse );
         CPPUNIT_TEST( TestTimeArithmetics );
         CPPUNIT_TEST( TestDSTBug );
     CPPUNIT_TEST_SUITE_END();
@@ -202,8 +192,7 @@ private:
     void TestTimeDST();
     void TestTimeFormat();
     void TestTimeTicks();
-    void TestParceRFC822();
-    void TestDateParse();
+    void TestTimeParse();
     void TestTimeArithmetics();
     void TestDSTBug();
 
@@ -691,12 +680,12 @@ void DateTimeTestCase::TestTimeTicks()
     }
 }
 
-// test parsing dates in RFC822 format
-void DateTimeTestCase::TestParceRFC822()
+// test text -> wxDateTime conversion
+void DateTimeTestCase::TestTimeParse()
 {
     static const struct ParseTestData
     {
-        const wxChar *rfc822;
+        const wxChar *format;
         Date date;              // NB: this should be in UTC
         bool good;
     } parseTestDates[] =
@@ -720,56 +709,15 @@ void DateTimeTestCase::TestParceRFC822()
 
     for ( size_t n = 0; n < WXSIZEOF(parseTestDates); n++ )
     {
+        const wxChar *format = parseTestDates[n].format;
+
         wxDateTime dt;
-        if ( dt.ParseRfc822Date(parseTestDates[n].rfc822) )
+        if ( dt.ParseRfc822Date(format) )
         {
             CPPUNIT_ASSERT( parseTestDates[n].good );
 
             wxDateTime dtReal = parseTestDates[n].date.DT().FromUTC();
-            CPPUNIT_ASSERT_EQUAL( dtReal, dt );
-        }
-        else // failed to parse
-        {
-            CPPUNIT_ASSERT( !parseTestDates[n].good );
-        }
-    }
-}
-
-// test parsing dates in free format
-void DateTimeTestCase::TestDateParse()
-{
-    static const struct ParseTestData
-    {
-        const wxChar *str;
-        Date date;              // NB: this should be in UTC
-        bool good;
-    } parseTestDates[] =
-    {
-        { _T("21 Mar 2006"), { 21, wxDateTime::Mar, 2006 }, true },
-        { _T("29 Feb 1976"), { 29, wxDateTime::Feb, 1976 }, true },
-        { _T("Feb 29 1976"), { 29, wxDateTime::Feb, 1976 }, true },
-        { _T("31/03/06"),    { 31, wxDateTime::Mar,    6 }, true },
-        { _T("31/03/2006"),  { 31, wxDateTime::Mar, 2006 }, true },
-
-        // some invalid ones too
-        { _T("29 Feb 2006") },
-        { _T("31/04/06") },
-        { _T("bloordyblop") }
-    };
-
-    // special cases
-    wxDateTime dt;
-    CPPUNIT_ASSERT( dt.ParseDate(_T("today")) );
-    CPPUNIT_ASSERT_EQUAL( wxDateTime::Today(), dt );
-
-    for ( size_t n = 0; n < WXSIZEOF(parseTestDates); n++ )
-    {
-        wxDateTime dt;
-        if ( dt.ParseDate(parseTestDates[n].str) )
-        {
-            CPPUNIT_ASSERT( parseTestDates[n].good );
-
-            CPPUNIT_ASSERT_EQUAL( parseTestDates[n].date.DT(), dt );
+            CPPUNIT_ASSERT( dt == dtReal );
         }
         else // failed to parse
         {

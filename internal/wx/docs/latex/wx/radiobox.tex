@@ -3,8 +3,8 @@
 %% Purpose:     wxRadioBox documentation
 %% Author:      wxWidgets Team
 %% Modified by:
-%% Created:
-%% RCS-ID:      $Id: radiobox.tex,v 1.29 2006/03/23 22:04:19 VZ Exp $
+%% Created:     
+%% RCS-ID:      $Id: radiobox.tex,v 1.26 2005/11/30 17:29:10 VZ Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -17,7 +17,6 @@ labelled buttons.
 
 \wxheading{Derived from}
 
-\helpref{wxControlWithItems}{wxcontrolwithitems}\\
 \helpref{wxControl}{wxcontrol}\\
 \helpref{wxWindow}{wxwindow}\\
 \helpref{wxEvtHandler}{wxevthandler}\\
@@ -149,7 +148,7 @@ for further details.
 
 Enables or disables the entire radiobox.
 
-\func{virtual bool}{Enable}{\param{unsigned int}{ n}, \param{bool}{ enable = {\tt true}}}
+\func{virtual bool}{Enable}{\param{int}{ n}, \param{bool}{ enable = {\tt true}}}
 
 Enables or disables an individual button in the radiobox.
 
@@ -188,9 +187,16 @@ Finds a button matching the given string, returning the position if found, or
 
 \membersection{wxRadioBox::GetColumnCount}\label{wxradioboxgetcolumncount}
 
-\constfunc{unsigned int}{GetColumnCount}{\void}
+\constfunc{int}{GetColumnCount}{\void}
 
 Returns the number of columns in the radiobox.
+
+
+\membersection{wxRadioBox::GetCount}\label{wxradioboxgetcount}
+
+\constfunc{int}{GetCount}{\void}
+
+Returns the number of items in the radiobox.
 
 
 \membersection{wxRadioBox::GetLabel}\label{wxradioboxgetlabel}
@@ -218,7 +224,7 @@ implements the following methods:\par
 
 \membersection{wxRadioBox::GetRowCount}\label{wxradioboxgetrowcount}
 
-\constfunc{unsigned int}{GetRowCount}{\void}
+\constfunc{int}{GetRowCount}{\void}
 
 Returns the number of rows in the radiobox.
 
@@ -239,7 +245,7 @@ Returns the selected string.
 
 \membersection{wxRadioBox::GetString}\label{wxradioboxgetstring}
 
-\constfunc{wxString}{GetString}{\param{unsigned int}{ n}}
+\constfunc{wxString}{GetString}{\param{int}{ n}}
 
 Returns the label for the button at the given position.
 
@@ -250,24 +256,20 @@ Returns the label for the button at the given position.
 
 \membersection{wxRadioBox::IsItemEnabled}\label{wxradioboxisitemenabled}
 
-\constfunc{bool}{IsItemEnabled}{\param{unsigned int}{ n}}
+\constfunc{bool}{IsItemEnabled}{\void}
 
-Returns \true if the item is enabled or \false if it was disabled using
+Returns \true if the item is enabled or \false if it was disabled using 
 \helpref{Enable(n, false)}{wxradioboxenable}.
 
 {\bf Platform note:} Currently only implemented in wxMSW, wxGTK and wxUniversal
 and always returns \true in the other ports.
 
-\wxheading{Parameters}
-
-\docparam{n}{The zero-based button position.}
-
 
 \membersection{wxRadioBox::IsItemShown}\label{wxradioboxisitemshown}
 
-\constfunc{bool}{IsItemShown}{\param{unsigned int}{ n}}
+\constfunc{bool}{IsItemShown}{\void}
 
-Returns \true if the item is currently shown or \false if it was hidden using
+Returns \true if the item is currently shown or \false if it was hidden using 
 \helpref{Show(n, false)}{wxradioboxshow}.
 
 Note that this function returns \true for an item which hadn't been hidden even
@@ -276,9 +278,18 @@ if the entire radiobox is not currently shown.
 {\bf Platform note:} Currently only implemented in wxMSW, wxGTK and wxUniversal
 and always returns \true in the other ports.
 
-\wxheading{Parameters}
 
-\docparam{n}{The zero-based button position.}
+\membersection{wxRadioBox::Number}\label{wxradioboxnumber}
+
+\constfunc{int}{Number}{\void}
+
+{\bf Obsolescence note:} This method is obsolete and was replaced with
+\helpref{GetCount}{wxradioboxgetcount}, please use the new method in the new
+code. This method is only available if wxWidgets was compiled with
+{\tt WXWIN\_COMPATIBILITY\_2\_2} defined and will disappear completely in
+future versions.
+
+Returns the number of buttons in the radiobox.
 
 
 \membersection{wxRadioBox::SetLabel}\label{wxradioboxsetlabel}
@@ -333,7 +344,7 @@ a wxEVT\_COMMAND\_RADIOBOX\_SELECTED event to get emitted.
 
 Shows or hides the entire radiobox.
 
-\func{virtual bool}{Show}{\param{unsigned int}{ item}, \param{const bool}{ show = {\tt true}}}
+\func{virtual bool}{Show}{\param{int}{ item}, \param{const bool}{ show = {\tt true}}}
 
 Shows or hides individual buttons.
 

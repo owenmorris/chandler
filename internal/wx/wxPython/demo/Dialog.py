@@ -5,20 +5,19 @@ import  wx
 # Create and set a help provider.  Normally you would do this in
 # the app's OnInit as it must be done before any SetHelpText calls.
 provider = wx.SimpleHelpProvider()
-wx.HelpProvider.Set(provider)
+wx.HelpProvider_Set(provider)
 
 #---------------------------------------------------------------------------
 
 class TestDialog(wx.Dialog):
     def __init__(
             self, parent, ID, title, size=wx.DefaultSize, pos=wx.DefaultPosition, 
-            style=wx.DEFAULT_DIALOG_STYLE,
-            useMetal=False,
+            style=wx.DEFAULT_DIALOG_STYLE
             ):
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
-        # creation, and then we create the GUI object using the Create
+        # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
         pre.SetExtraStyle(wx.DIALOG_EX_CONTEXTHELP)
@@ -28,11 +27,6 @@ class TestDialog(wx.Dialog):
         # object into the real wrapper of the dialog (instead of pre)
         # as far as the wxPython extension is concerned.
         self.PostCreate(pre)
-
-        # This extra style can be set after the UI object has been created.
-        if 'wxMac' in wx.PlatformInfo and useMetal:
-            self.SetExtraStyle(wx.DIALOG_EX_METAL)
-
 
         # Now continue with the normal construction of the dialog
         # contents
@@ -100,19 +94,11 @@ class TestPanel(wx.Panel):
         b = wx.Button(self, -1, "Create and Show a custom Dialog", (50,50))
         self.Bind(wx.EVT_BUTTON, self.OnButton, b)
 
-        if 'wxMac' in wx.PlatformInfo:
-            self.cb = wx.CheckBox(self, -1, "Set Metal appearance", (50,90))
-            
 
     def OnButton(self, evt):
-        useMetal = False
-        if 'wxMac' in wx.PlatformInfo:
-            useMetal = self.cb.IsChecked()
-            
-        dlg = TestDialog(self, -1, "Sample Dialog", size=(350, 200),
-                         #style=wxCAPTION | wxSYSTEM_MENU | wxTHICK_FRAME,
-                         style=wx.DEFAULT_DIALOG_STYLE,
-                         useMetal=useMetal,
+        dlg = TestDialog(self, -1, "This is a Dialog", size=(350, 200),
+                         #style = wxCAPTION | wxSYSTEM_MENU | wxTHICK_FRAME
+                         style = wx.DEFAULT_DIALOG_STYLE
                          )
         dlg.CenterOnScreen()
 

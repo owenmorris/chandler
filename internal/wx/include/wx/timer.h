@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin (wxTimerBase)
 //              Guillermo Rodriguez (global clean up)
 // Created:     04/01/98
-// RCS-ID:      $Id: timer.h,v 1.56 2006/03/14 22:46:49 vell Exp $
+// RCS-ID:      $Id: timer.h,v 1.55 2006/01/23 03:27:34 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,6 +22,9 @@
 #include "wx/event.h"
 #include "wx/stopwatch.h" // for backwards compatibility
 
+// ----------------------------------------------------------------------------
+// wxTimer
+// ----------------------------------------------------------------------------
 
 // more readable flags for Start():
 
@@ -40,8 +43,7 @@ public:
 
     // default: if you don't call SetOwner(), your only chance to get timer
     // notifications is to override Notify() in the derived class
-    wxTimerBase()
-        { Init(); SetOwner(this); }
+    wxTimerBase() { Init(); SetOwner(this); }
 
     // ctor which allows to avoid having to override Notify() in the derived
     // class: the owner will get timer notifications which can be handled with
@@ -52,7 +54,7 @@ public:
     // same as ctor above
     void SetOwner(wxEvtHandler *owner, int timerid = wxID_ANY)
         { m_owner = owner; m_idTimer = timerid; }
-    wxEvtHandler * GetOwner() const { return m_owner; }
+    wxEvtHandler* GetOwner() const { return m_owner; }
 
     virtual ~wxTimerBase();
 
@@ -79,22 +81,23 @@ public:
     // return true if the timer is running
     virtual bool IsRunning() const = 0;
 
-    // return the timer ID
-    int GetId() const { return m_idTimer; }
-
-    // get the (last) timer interval in milliseconds
+    // get the (last) timer interval in the milliseconds
     int GetInterval() const { return m_milli; }
 
     // return true if the timer is one shot
     bool IsOneShot() const { return m_oneShot; }
 
+    // return the timer ID
+    int GetId() const { return m_idTimer; }
+
+
 protected:
     // common part of all ctors
-    void Init()
-        { m_owner = NULL; m_idTimer = wxID_ANY; m_milli = 0; m_oneShot = false; }
+    void Init() { m_oneShot = false; m_milli = 0; }
 
     wxEvtHandler *m_owner;
     int     m_idTimer;
+
     int     m_milli;        // the timer interval
     bool    m_oneShot;      // true if one shot
 

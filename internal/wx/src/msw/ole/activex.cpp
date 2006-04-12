@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/msw/ole/activex.cpp
+// Name:        msw/ole/activex.cpp
 // Purpose:     wxActiveXContainer implementation
 // Author:      Ryan Norton <wxprojects@comcast.net>, Lindsay Mathieson <???>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: activex.cpp,v 1.21 2006/03/23 10:11:05 ABX Exp $
+// RCS-ID:      $Id: activex.cpp,v 1.16 2006/02/12 13:01:07 VZ Exp $
 // Copyright:   (c) 2003 Lindsay Mathieson, (c) 2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -523,7 +523,7 @@ public:
     HRESULT STDMETHODCALLTYPE LockContainer(BOOL){return S_OK;}
     //********************IOleItemContainer***************************
     HRESULT STDMETHODCALLTYPE
-    #if 0 // defined(__WXWINCE__) && __VISUALC__ < 1400
+    #ifdef __WXWINCE__
     GetObject
     #elif defined(_UNICODE)
     GetObjectW
@@ -691,7 +691,7 @@ private:
 
 public:
     wxActiveXEvents(wxActiveXContainer *ax) : m_activeX(ax), m_haveCustomId(false) {}
-    wxActiveXEvents(wxActiveXContainer *ax, REFIID iid) : m_activeX(ax), m_customId(iid), m_haveCustomId(true) {}
+    wxActiveXEvents(wxActiveXContainer *ax, REFIID iid) : m_activeX(ax), m_haveCustomId(true), m_customId(iid) {}
     virtual ~wxActiveXEvents()
     {
     }
@@ -946,7 +946,7 @@ void wxActiveXContainer::CreateActiveX(REFIID iid, IUnknown* pUnk)
                 hret = cp->Advise(new wxActiveXEvents(this, ta->guid),
                                   &adviseCookie);
                 wxASSERT_MSG( SUCCEEDED(hret),
-                    wxString::Format(wxT("Cannot connect!\nHRESULT:%X"), (unsigned int)hret)
+                    wxString::Format(wxT("Cannot connect!\nHRESULT:%X"), hret)
                             );
             }
         }
@@ -1123,11 +1123,7 @@ void wxActiveXContainer::OnPaint(wxPaintEvent& WXUNUSED(event))
         posRect.right = w;
         posRect.bottom = h;
 
-#if !(defined(_WIN32_WCE) && _WIN32_WCE < 400)
         ::RedrawWindow(m_oleObjectHWND, NULL, NULL, RDW_INTERNALPAINT);
-#else
-        ::InvalidateRect(m_oleObjectHWND, NULL, false);
-#endif
         RECTL *prcBounds = (RECTL *) &posRect;
         m_viewObject->Draw(DVASPECT_CONTENT, -1, NULL, NULL, NULL,
             (HDC)dc.GetHDC(), prcBounds, NULL, NULL, 0);

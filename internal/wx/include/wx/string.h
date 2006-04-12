@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.h,v 1.213 2006/04/05 14:37:38 VZ Exp $
+// RCS-ID:      $Id: string.h,v 1.211 2005/12/14 01:55:48 VZ Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -325,9 +325,7 @@ public:
       { InitWith(psz, 0, npos); }
   wxStringBase(const wxChar *psz, size_t nLength)
       { InitWith(psz, 0, nLength); }
-  wxStringBase(const wxChar *psz,
-               const wxMBConv& WXUNUSED(conv),
-               size_t nLength = npos)
+  wxStringBase(const wxChar *psz, wxMBConv& WXUNUSED(conv), size_t nLength = npos)
       { InitWith(psz, 0, nLength); }
     // take nLen chars starting at nPos
   wxStringBase(const wxStringBase& str, size_t nPos, size_t nLen)
@@ -366,9 +364,9 @@ public:
   wxStringBase& operator=(const wxChar *psz);
 
     // return the length of the string
-  size_type length() const { return GetStringData()->nDataLength; }
+  size_type size() const { return GetStringData()->nDataLength; }
     // return the length of the string
-  size_type size() const { return length(); }
+  size_type length() const { return size(); }
     // return the maximum size of the string
   size_type max_size() const { return wxSTRING_MAXLEN; }
     // resize the string, filling the space with c if c != 0
@@ -376,7 +374,7 @@ public:
     // delete the contents of the string
   void clear() { erase(0, npos); }
     // returns true if the string is empty
-  bool empty() const { return length() == 0; }
+  bool empty() const { return size() == 0; }
     // inform string about planned change in size
   void reserve(size_t sz) { Alloc(sz); }
   size_type capacity() const { return GetStringData()->nAllocLength; }
@@ -617,7 +615,7 @@ friend class WXDLLIMPEXP_BASE wxArrayString;
 
   // NB: special care was taken in arranging the member functions in such order
   //     that all inline functions can be effectively inlined, verify that all
-  //     performance critical functions are still inlined if you change order!
+  //     performace critical functions are still inlined if you change order!
 private:
   // if we hadn't made these operators private, it would be possible to
   // compile "wxString s; s = 17;" without any warnings as 17 is implicitly
@@ -652,12 +650,10 @@ public:
       : wxStringBase(psz ? psz : wxT("")) { }
   wxString(const wxChar *psz, size_t nLength)
       : wxStringBase(psz, nLength) { }
-  wxString(const wxChar *psz,
-           const wxMBConv& WXUNUSED(conv),
-           size_t nLength = npos)
+  wxString(const wxChar *psz, wxMBConv& WXUNUSED(conv), size_t nLength = npos)
       : wxStringBase(psz, nLength == npos ? wxStrlen(psz) : nLength) { }
 
-  // even if we're not built with wxUSE_STL == 1 it is very convenient to allow
+  // even we're not build with wxUSE_STL == 1 it is very convenient to allow
   // implicit conversions from std::string to wxString as this allows to use
   // the same strings in non-GUI and GUI code, however we don't want to
   // unconditionally add this ctor as it would make wx lib dependent on
@@ -670,7 +666,7 @@ public:
 
 #if wxUSE_UNICODE
     // from multibyte string
-  wxString(const char *psz, const wxMBConv& conv, size_t nLength = npos);
+  wxString(const char *psz, wxMBConv& conv, size_t nLength = npos);
     // from wxWCharBuffer (i.e. return from wxGetString)
   wxString(const wxWCharBuffer& psz) : wxStringBase(psz.data()) { }
 #else // ANSI
@@ -683,9 +679,7 @@ public:
 
 #if wxUSE_WCHAR_T
     // from wide (Unicode) string
-  wxString(const wchar_t *pwz,
-           const wxMBConv& conv = wxConvLibc,
-           size_t nLength = npos);
+  wxString(const wchar_t *pwz, wxMBConv& conv = wxConvLibc, size_t nLength = npos);
 #endif // !wxUSE_WCHAR_T
 
     // from wxCharBuffer
@@ -699,7 +693,7 @@ public:
     // string contains any characters?
   bool IsEmpty() const { return empty(); }
     // empty string is "false", so !str will return true
-  bool operator!() const { return empty(); }
+  bool operator!() const { return IsEmpty(); }
     // truncate the string to given length
   wxString& Truncate(size_t uiLen);
     // empty string contents
@@ -815,14 +809,14 @@ public:
     // type differs because a function may either return pointer to the buffer
     // directly or have to use intermediate buffer for translation.
 #if wxUSE_UNICODE
-    const wxCharBuffer mb_str(const wxMBConv& conv = wxConvLibc) const;
+    const wxCharBuffer mb_str(wxMBConv& conv = wxConvLibc) const;
 
     const wxWX2MBbuf mbc_str() const { return mb_str(*wxConvCurrent); }
 
     const wxChar* wc_str() const { return c_str(); }
 
     // for compatibility with !wxUSE_UNICODE version
-    const wxChar* wc_str(const wxMBConv& WXUNUSED(conv)) const { return c_str(); }
+    const wxChar* wc_str(wxMBConv& WXUNUSED(conv)) const { return c_str(); }
 
 #if wxMBFILES
     const wxCharBuffer fn_str() const { return mb_str(wxConvFile); }
@@ -833,12 +827,12 @@ public:
     const wxChar* mb_str() const { return c_str(); }
 
     // for compatibility with wxUSE_UNICODE version
-    const wxChar* mb_str(const wxMBConv& WXUNUSED(conv)) const { return c_str(); }
+    const wxChar* mb_str(wxMBConv& WXUNUSED(conv)) const { return c_str(); }
 
     const wxWX2MBbuf mbc_str() const { return mb_str(); }
 
 #if wxUSE_WCHAR_T
-    const wxWCharBuffer wc_str(const wxMBConv& conv) const;
+    const wxWCharBuffer wc_str(wxMBConv& conv) const;
 #endif // wxUSE_WCHAR_T
 #ifdef __WXOSX__
     const wxCharBuffer fn_str() const { return wxConvFile.cWC2WX( wc_str( wxConvLocal ) ); }
@@ -999,7 +993,7 @@ public:
     // (if compareWithCase then the case matters)
   bool IsSameAs(const wxChar *psz, bool compareWithCase = true) const
     { return (compareWithCase ? Cmp(psz) : CmpNoCase(psz)) == 0; }
-    // comparison with a single character: returns true if equal
+    // comparison with a signle character: returns true if equal
   bool IsSameAs(wxChar c, bool compareWithCase = true) const
     {
       return (length() == 1) && (compareWithCase ? GetChar(0u) == c

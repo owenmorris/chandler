@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     29/01/2002
-// RCS-ID:      $Id: hashmap.h,v 1.57 2006/04/06 23:45:14 VZ Exp $
+// RCS-ID:      $Id: hashmap.h,v 1.55 2006/02/14 09:21:37 MR Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -344,8 +344,8 @@ protected: \
         { \
             if( m_equals( m_getKey( (*node)->m_value ), key ) ) \
                 return node; \
-            /* Tell the compiler to not do any strict-aliasing assumptions with a void cast? Can we make such a runtime guarantee? */ \
-            node = (Node**)&(*node)->m_nxt; \
+            /* Tell the compiler to not do any strict-aliasing assumptions with the void cast */ \
+            node = (Node**)(void*)&(*node)->m_nxt; \
         } \
  \
         return NULL; \
@@ -640,7 +640,7 @@ public: \
  \
     /* count() == 0 | 1 */ \
     size_type count( const const_key_type& key ) \
-        { return GetNode( key ) ? 1u : 0u; } \
+        { return GetNode( key ) ? 1 : 0; } \
 }
 
 #endif // !wxUSE_STL || !defined(HAVE_STL_HASH_MAP)

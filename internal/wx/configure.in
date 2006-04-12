@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Id: configure.in,v 1.1118 2006/03/17 14:12:52 RR Exp $)dnl
+AC_REVISION($Id: configure.in,v 1.1115 2006/02/12 01:55:40 MW Exp $)dnl
 
 AC_PREREQ(2.58)
 
@@ -10,7 +10,7 @@ dnl Vadim Zeitlin and Ron Lee
 dnl
 dnl This script is under the wxWidgets licence.
 dnl
-dnl Version: $Id: configure.in,v 1.1118 2006/03/17 14:12:52 RR Exp $
+dnl Version: $Id: configure.in,v 1.1115 2006/02/12 01:55:40 MW Exp $
 dnl ---------------------------------------------------------------------------
 
 dnl ---------------------------------------------------------------------------
@@ -401,7 +401,6 @@ if test $DEBUG_CONFIGURE = 1; then
   DEFAULT_wxUSE_LIBMSPACK=no
   DEFAULT_wxUSE_LIBSDL=no
   DEFAULT_wxUSE_LIBGNOMEPRINT=no
-  DEFAULT_wxUSE_LIBGNOMEVFS=no
   DEFAULT_wxUSE_LIBHILDON=no
   DEFAULT_wxUSE_ODBC=no
   DEFAULT_wxUSE_OPENGL=no
@@ -605,7 +604,6 @@ else
   DEFAULT_wxUSE_LIBMSPACK=yes
   DEFAULT_wxUSE_LIBSDL=no
   DEFAULT_wxUSE_LIBGNOMEPRINT=no
-  DEFAULT_wxUSE_LIBGNOMEVFS=no
   DEFAULT_wxUSE_LIBHILDON=no
   DEFAULT_wxUSE_ODBC=no
   DEFAULT_wxUSE_OPENGL=no
@@ -832,8 +830,7 @@ WX_ARG_SYS_WITH(libtiff,   [  --with-libtiff          use libtiff (TIFF file for
 WX_ARG_SYS_WITH(libxpm,    [  --with-libxpm           use libxpm (XPM file format)], wxUSE_LIBXPM)
 WX_ARG_WITH(libmspack,     [  --with-libmspack        use libmspack (CHM help files loading)], wxUSE_LIBMSPACK)
 WX_ARG_WITH(sdl,           [  --with-sdl              use SDL for audio on Unix], wxUSE_LIBSDL)
-WX_ARG_WITH(gnomeprint,    [  --with-gnomeprint       use GNOME print for printing under GNOME], wxUSE_LIBGNOMEPRINT)
-WX_ARG_WITH(gnomevfs,      [  --with-gnomevfs         use GNOME VFS for associating MIME types], wxUSE_LIBGNOMEVFS)
+WX_ARG_WITH(gnomeprint,    [  --with-gnomeprint       use GNOME print for printing under Unix], wxUSE_LIBGNOMEPRINT)
 WX_ARG_WITH(hildon,        [  --with-hildon           use Hildon framework for Nokia 770], wxUSE_LIBHILDON)
 WX_ARG_WITH(opengl,        [  --with-opengl           use OpenGL (or Mesa)], wxUSE_OPENGL)
 
@@ -3622,9 +3619,14 @@ dnl ---------------------------------------------------------------------------
         fi
     elif test "$wxUSE_MSW" = 1; then
 dnl ---------------------------------------------------------------------------
-dnl DirectDraw for MSW - optionally used by WxDisplay.
+dnl DirectDraw  / Multimon for MSW
 dnl ---------------------------------------------------------------------------
-        AC_CHECK_HEADERS([ddraw.h], [], [], [#include <windows.h>])
+        AC_CHECK_HEADERS([multimon.h ddraw.h], [],
+            [
+                wxUSE_DISPLAY="no"
+                AC_MSG_WARN([ddraw.h or multimon.h not found; disabling wxDisplay])
+            ],
+            [#include <windows.h>])
     fi
 fi
 
@@ -5145,19 +5147,10 @@ if test "$wxUSE_OPTIMISE" = "no" ; then
     fi
 else
     if test "$GCC" = yes ; then
-        case "${host}" in
-            *-pc-os2_emx | *-pc-os2-emx )
-                dnl Not all of the supported gcc versions understand
-                dnl -fstrict-aliasing and none actually needs it (yet).
-                OPTIMISE_CFLAGS="-O2"
-            ;;
-            *)
-                dnl Switch on optimisation but keep strict-aliasing off for
-                dnl now (see -fstrict-aliasing in the gcc manual). When it is
-                dnl switched back on consider using -Wstrict-aliasing=2.
-                OPTIMISE_CFLAGS="-O2 -fno-strict-aliasing"
-            ;;
-        esac
+        dnl Switch on optimisation but keep strict-aliasing off for now (see
+        dnl -fstrict-aliasing in the gcc manual). When it is switched back on
+        dnl consider using -Wstrict-aliasing=2.
+        OPTIMISE_CFLAGS="-O2 -fno-strict-aliasing"
     else
         OPTIMISE_CFLAGS="-O"
     fi
@@ -5397,26 +5390,6 @@ dnl                     EXTRALIBS_GNOMEPRINT="$LIBGNOMEPRINTUI_LIBS"
                     [
                         AC_MSG_WARN([libgnomeprintui not found, library will use standard PostScript printing])
                         wxUSE_LIBGNOMEPRINT="no"
-                    ]
-                )
-        fi
-    fi
-fi
-
-if test "$WXGTK20" = 1; then
-    if test "$wxUSE_MIMETYPE" = "yes" ; then
-        if test "$wxUSE_LIBGNOMEVFS" = "yes" ; then
-
-                PKG_CHECK_MODULES(GNOMEVFS,
-                                  [gnome-vfs-2.0 >= 2.0],
-                    [
-dnl                     EXTRALIBS_GNOMEVFS="$LIBGNOMEVFS_LIBS"
-                        CXXFLAGS="$GNOMEVFS_CFLAGS $CXXFLAGS"
-                        AC_DEFINE(wxUSE_LIBGNOMEVFS)
-                    ],
-                    [
-                        AC_MSG_WARN([libgnomevfs not found, library won't be able to associate MIME type])
-                        wxUSE_LIBGNOMEVFS="no"
                     ]
                 )
         fi
@@ -7106,7 +7079,7 @@ EXTRALIBS_XML="$EXPAT_LINK"
 EXTRALIBS_HTML="$MSPACK_LINK"
 EXTRALIBS_ODBC="$ODBC_LINK"
 if test "$wxUSE_GUI" = "yes"; then
-    EXTRALIBS_GUI=`echo $GUI_TK_LIBRARY $PNG_LINK $JPEG_LINK $TIFF_LINK $WEBKIT_LINK $EXTRALIBS_HILDON $EXTRALIBS_GNOMEVFS $EXTRALIBS_GNOMEPRINT`
+    EXTRALIBS_GUI=`echo $GUI_TK_LIBRARY $PNG_LINK $JPEG_LINK $TIFF_LINK $WEBKIT_LINK $EXTRALIBS_HILDON $EXTRALIBS_GNOMEPRINT`
 fi
 if test "$wxUSE_OPENGL" = "yes"; then
     EXTRALIBS_OPENGL="$LDFLAGS_GL $OPENGL_LIBS"
@@ -7206,7 +7179,6 @@ AC_SUBST(EXTRALIBS_OPENGL)
 AC_SUBST(EXTRALIBS_SDL)
 AC_SUBST(WITH_PLUGIN_SDL)
 AC_SUBST(EXTRALIBS_GNOMEPRINT)
-AC_SUBST(EXTRALIBS_GNOMEVFS)
 AC_SUBST(EXTRALIBS_HILDON)
 AC_SUBST(UNICODE)
 AC_SUBST(BUILD)
@@ -7552,7 +7524,6 @@ echo "                                       expat              ${wxUSE_EXPAT}"
 echo "                                       libmspack          ${wxUSE_LIBMSPACK}"
 echo "                                       sdl                ${wxUSE_LIBSDL}"
 echo "                                       gnomeprint         ${wxUSE_LIBGNOMEPRINT-none}"
-echo "                                       gnomevfs           ${wxUSE_LIBGNOMEVFS-none}"
 echo "                                       hildon             ${wxUSE_LIBHILDON-none}"
 
 echo ""

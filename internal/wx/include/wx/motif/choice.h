@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: choice.h,v 1.29 2006/03/23 22:04:36 VZ Exp $
+// RCS-ID:      $Id: choice.h,v 1.27 2005/09/27 21:20:22 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -71,18 +71,18 @@ public:
         const wxString& name = wxChoiceNameStr);
 
     // implementation of wxControlWithItems
-    virtual unsigned int GetCount() const;
+    virtual int GetCount() const;
     virtual int DoAppend(const wxString& item);
-    virtual int DoInsert(const wxString& item, unsigned int pos);
-    virtual void DoSetItemClientData(unsigned int n, void* clientData);
-    virtual void* DoGetItemClientData(unsigned int n) const;
-    virtual void DoSetItemClientObject(unsigned int n, wxClientData* clientData);
-    virtual wxClientData* DoGetItemClientObject(unsigned int n) const;
+    virtual int DoInsert(const wxString& item, int pos);
+    virtual void DoSetItemClientData(int n, void* clientData);
+    virtual void* DoGetItemClientData(int n) const;
+    virtual void DoSetItemClientObject(int n, wxClientData* clientData);
+    virtual wxClientData* DoGetItemClientObject(int n) const;
     virtual int GetSelection() const;
-    virtual void Delete(unsigned int n);
+    virtual void Delete(int n);
     virtual void Clear();
-    virtual void SetString(unsigned int n, const wxString& s);
-    virtual wxString GetString(unsigned int n) const;
+    virtual void SetString(int n, const wxString& s);
+    virtual wxString GetString(int n) const;
 
     // implementation of wxChoiceBase
     virtual void SetSelection(int n);
@@ -112,7 +112,7 @@ protected:
     // common part of all contructors
     void Init();
 
-    unsigned int  m_noStrings;
+    size_t        m_noStrings;
     WXWidget      m_menuWidget;
     WXWidget      m_buttonWidget;
     wxWidgetArray m_widgetArray;

@@ -2,7 +2,7 @@
 // Name:        app.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: app.cpp,v 1.223 2006/04/04 19:44:27 MR Exp $
+// Id:          $Id: app.cpp,v 1.217 2006/02/03 21:44:31 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -74,18 +74,8 @@
 
 #include "wx/unix/private.h"
 #include "wx/gtk/win_gtk.h"
-#include "wx/gtk/private.h"
 
 #include <gtk/gtk.h>
-
-//-----------------------------------------------------------------------------
-// link GnomeVFS
-//-----------------------------------------------------------------------------
-
-#if wxUSE_LIBGNOMEVFS
-#include "wx/html/forcelnk.h"
-FORCE_LINK(gnome_vfs)
-#endif
 
 //-----------------------------------------------------------------------------
 // global data
@@ -99,6 +89,8 @@ static GtkWidget *gs_RootWindow = (GtkWidget*) NULL;
 //-----------------------------------------------------------------------------
 // idle system
 //-----------------------------------------------------------------------------
+
+extern bool g_isIdle;
 
 void wxapp_install_idle_handler();
 
@@ -257,18 +249,17 @@ static gint wxapp_idle_callback( gpointer WXUNUSED(data) )
         wxTheApp->m_idleTag = 0;
     }
 
-    bool moreIdles;
-
     // Send idle event to all who request them as long as
     // no events have popped up in the event queue.
-    while ( (moreIdles = wxTheApp->ProcessIdle()) && gtk_events_pending() == 0)
+    while (wxTheApp->ProcessIdle() && (gtk_events_pending() == 0))
         ;
 
     // Release lock again
     gdk_threads_leave();
 
-    // Return FALSE if no more idle events are to be sent
-    return moreIdles;
+    // Return FALSE to indicate that no more idle events are
+    // to be sent (single shot instead of continuous stream).
+    return FALSE;
 }
 
 #if wxUSE_THREADS
@@ -543,7 +534,7 @@ GdkVisual *wxApp::GetGdkVisual()
     if (m_glVisualInfo)
         visual = gdkx_visual_get( ((XVisualInfo *) m_glVisualInfo)->visualid );
     else
-        visual = gdk_drawable_get_visual( wxGetRootWindow()->window );
+        visual = gdk_window_get_visual( wxGetRootWindow()->window );
 
     wxASSERT( visual );
 
@@ -555,8 +546,18 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
     bool init_result;
 
 #if wxUSE_THREADS
-    if (!g_thread_supported())
-        g_thread_init(NULL);
+    // GTK 1.2 up to version 1.2.3 has broken threads
+    if ((gtk_major_version == 1) &&
+        (gtk_minor_version == 2) &&
+        (gtk_micro_version < 4))
+    {
+        printf( "wxWidgets warning: GUI threading disabled due to outdated GTK version\n" );
+    }
+    else
+    {
+        if (!g_thread_supported())
+            g_thread_init(NULL);
+    }
 #endif // wxUSE_THREADS
 
     gtk_set_locale();

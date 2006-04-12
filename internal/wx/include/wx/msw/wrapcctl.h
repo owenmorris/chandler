@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.08.2003
-// RCS-ID:      $Id: wrapcctl.h,v 1.12 2006/03/12 13:35:59 ABX Exp $
+// RCS-ID:      $Id: wrapcctl.h,v 1.10 2005/07/01 13:38:51 ABX Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,12 +49,10 @@ inline void wxSetCCUnicodeFormat(HWND WXUNUSED_IN_WINCE(hwnd))
 #endif // __WXWINCE__/!__WXWINCE__
 }
 
-#if wxUSE_GUI
 // Return the default font for the common controls
 //
 // this is implemented in msw/settings.cpp
-class wxFont;
 extern wxFont wxGetCCDefaultFont();
-#endif
 
 #endif // _WX_MSW_WRAPCCTL_H_
+

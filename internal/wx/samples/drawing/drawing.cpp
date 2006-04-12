@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: drawing.cpp,v 1.82 2006/03/15 07:49:18 ABX Exp $
+// RCS-ID:      $Id: drawing.cpp,v 1.80 2005/09/23 12:51:38 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -60,9 +60,7 @@ enum ScreenToShow
     Show_Ops,
     Show_Regions,
     Show_Circles,
-    Show_Splines,
-    Show_Gradient,
-    Show_Max
+    Show_Splines
 };
 
 // ----------------------------------------------------------------------------
@@ -166,7 +164,6 @@ protected:
     void DrawCircles(wxDC& dc);
     void DrawSplines(wxDC& dc);
     void DrawDefault(wxDC& dc);
-    void DrawGradients(wxDC& dc);
 
     void DrawRegionsHelper(wxDC& dc, wxCoord x, bool firstTime);
 
@@ -203,8 +200,7 @@ enum
     File_ShowRegions,
     File_ShowCircles,
     File_ShowSplines,
-    File_ShowGradients,
-    MenuShow_Last = File_ShowGradients,
+    MenuShow_Last = File_ShowSplines,
 
     File_Clip,
 
@@ -515,7 +511,7 @@ void MyCanvas::DrawDefault(wxDC& dc)
     // mark the origin
     dc.DrawCircle(0, 0, 10);
 
-#if !defined(wxMAC_USE_CORE_GRAPHICS) || !wxMAC_USE_CORE_GRAPHICS
+#if !wxMAC_USE_CORE_GRAPHICS
     // GetPixel and FloodFill not supported by Mac OS X CoreGraphics
     // (FloodFill uses Blit from a non-wxMemoryDC)
     //flood fill using brush, starting at 1,1 and replacing whatever colour we find there
@@ -975,36 +971,6 @@ void MyCanvas::DrawSplines(wxDC& dc)
 #endif
 }
 
-void MyCanvas::DrawGradients(wxDC& dc)
-{
-    // LHS: linear
-    wxRect r(10, 10, 100, 100);
-    dc.GradientFillLinear(r, *wxWHITE, *wxBLUE, wxRIGHT);
-
-    r.Offset(0, 110);
-    dc.GradientFillLinear(r, *wxWHITE, *wxBLUE, wxLEFT);
-
-    r.Offset(0, 110);
-    dc.GradientFillLinear(r, *wxWHITE, *wxBLUE, wxDOWN);
-
-    r.Offset(0, 110);
-    dc.GradientFillLinear(r, *wxWHITE, *wxBLUE, wxUP);
-
-
-    // RHS: concentric
-    r = wxRect(200, 10, 100, 100);
-    dc.GradientFillConcentric(r, *wxBLUE, *wxWHITE);
-
-    r.Offset(0, 110);
-    dc.GradientFillConcentric(r, *wxWHITE, *wxBLUE);
-
-    r.Offset(0, 110);
-    dc.GradientFillConcentric(r, *wxBLUE, *wxWHITE, wxPoint(0, 0));
-
-    r.Offset(0, 110);
-    dc.GradientFillConcentric(r, *wxBLUE, *wxWHITE, wxPoint(100, 100));
-}
-
 void MyCanvas::DrawRegions(wxDC& dc)
 {
     dc.DrawText(_T("You should see a red rect partly covered by a cyan one ")
@@ -1139,13 +1105,6 @@ void MyCanvas::OnPaint(wxPaintEvent &WXUNUSED(event))
         case Show_Ops:
             DrawWithLogicalOps(dc);
             break;
-
-        case Show_Gradient:
-            DrawGradients(dc);
-            break;
-
-        default:
-            break;
     }
 }
 
@@ -1202,8 +1161,7 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
     menuFile->Append(File_ShowOps, _T("&ROP screen\tF7"));
     menuFile->Append(File_ShowRegions, _T("Re&gions screen\tF8"));
     menuFile->Append(File_ShowCircles, _T("&Circles screen\tF9"));
-    menuFile->Append(File_ShowSplines, _T("&Splines screen\tF11"));
-    menuFile->Append(File_ShowGradients, _T("&Gradients screen\tF12"));
+    menuFile->Append(File_ShowSplines, _T("&Splines screen"));
     menuFile->AppendSeparator();
     menuFile->AppendCheckItem(File_Clip, _T("&Clip\tCtrl-C"), _T("Clip/unclip drawing"));
     menuFile->AppendSeparator();

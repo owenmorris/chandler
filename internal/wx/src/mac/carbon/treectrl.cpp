@@ -4,9 +4,9 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: treectrl.cpp,v 1.15 2006/03/24 23:46:35 ABX Exp $
+// RCS-ID:      $Id: treectrl.cpp,v 1.13 2006/02/05 22:00:44 vell Exp $
 // Copyright:   (c) Stefan Csomor
-// Licence:     wxWindows licence
+// Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
@@ -41,7 +41,7 @@ bool wxTreeCtrl::Create(wxWindow *parent,
 
     m_windowStyle = style;
 
-    m_windowId = (id == wxID_ANY) ? NewControlId() : id;
+    m_windowId = (id == -1) ? NewControlId() : id;
 
     if (parent)
         parent->AddChild(this);
@@ -57,7 +57,7 @@ wxTreeCtrl::~wxTreeCtrl()
 }
 
 // Attributes
-unsigned int wxTreeCtrl::GetCount() const
+int wxTreeCtrl::GetCount() const
 {
     // TODO
     return 0;
@@ -413,3 +413,4 @@ wxTreeEvent::wxTreeEvent(wxEventType commandType, int id)
     m_code = 0;
     m_oldItem = 0;
 }
+

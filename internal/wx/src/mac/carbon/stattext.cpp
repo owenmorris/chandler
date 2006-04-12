@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/mac/carbon/stattext.cpp
+// Name:        stattext.cpp
 // Purpose:     wxStaticText
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: stattext.cpp,v 1.61 2006/04/08 09:14:06 vell Exp $
+// RCS-ID:      $Id: stattext.cpp,v 1.59 2006/01/09 00:46:43 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -53,16 +53,6 @@ bool wxStaticText::Create( wxWindow *parent,
         &bounds, str, NULL, m_peer->GetControlRefAddr() );
     verify_noerr( err );
 
-    if ( ( style & wxST_DOTS_END ) || ( style & wxST_DOTS_MIDDLE ) )
-    {
-        TruncCode tCode = truncEnd;
-        if ( style & wxST_DOTS_MIDDLE )
-            tCode = truncMiddle;
-
-        err = m_peer->SetData( kControlStaticTextTruncTag, tCode );
-        err = m_peer->SetData( kControlStaticTextIsMultilineTag, (Boolean)0 );
-    }
-
     MacPostControlCreate( pos, size );
 
     return true;
@@ -99,7 +89,7 @@ wxSize wxStaticText::DoGetBestSize() const
     }
 
     if ( m_label.Length() == 0 )
-        bounds.h = 0;
+        bounds.h = 0 ;
 
     bounds.h += MacGetLeftBorderSize() + MacGetRightBorderSize();
     bounds.v += MacGetTopBorderSize() + MacGetBottomBorderSize();
@@ -125,7 +115,7 @@ void wxStaticText::SetLabel( const wxString& st )
     Refresh();
 
     // we shouldn't need forced updates
-    // Update();
+    // Update() ;
 }
 
 bool wxStaticText::SetFont(const wxFont& font)

@@ -3,7 +3,7 @@
 // Purpose:     Declarations for parts of the Win32 SDK that are missing in
 //              the versions that come with some compilers
 // Created:     2002/04/23
-// RCS-ID:      $Id: missing.h,v 1.63 2006/03/16 10:45:11 ABX Exp $
+// RCS-ID:      $Id: missing.h,v 1.59 2006/02/06 17:42:08 JS Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -121,10 +121,6 @@
 #define EM_SETUSEMOUSEFORINPUT (WM_USER + 0x224)
 #endif
 
-#ifndef TPM_RECURSE
-#define TPM_RECURSE 1
-#endif
-
 // ----------------------------------------------------------------------------
 // ListView common control
 // Needed by listctrl.cpp
@@ -140,10 +136,6 @@
 
 #ifndef LVS_EX_SUBITEMIMAGES
     #define LVS_EX_SUBITEMIMAGES 0x00000002
-#endif
-
-#ifndef HDN_GETDISPINFOW
-    #define HDN_GETDISPINFOW (HDN_FIRST-29)
 #endif
 
  /*
@@ -197,22 +189,10 @@
 
 #ifdef __DMC__
 
-typedef struct _OSVERSIONINFOEX {
-    DWORD dwOSVersionInfoSize;
-    DWORD dwMajorVersion;
-    DWORD dwMinorVersion;
-    DWORD dwBuildNumber;
-    DWORD dwPlatformId;
-    TCHAR szCSDVersion[ 128 ];
-    WORD  wServicePackMajor;
-    WORD  wServicePackMinor;
-    WORD  wSuiteMask;
-    BYTE  wProductType;
-    BYTE  wReserved;
-} OSVERSIONINFOEX;
-
-#ifndef _TrackMouseEvent
-    #define _TrackMouseEvent TrackMouseEvent
+#ifdef __DMC__
+    #ifndef _TrackMouseEvent
+        #define _TrackMouseEvent TrackMouseEvent
+    #endif
 #endif
 
 #ifndef LVM_SETEXTENDEDLISTVIEWSTYLE
@@ -232,6 +212,10 @@ typedef struct _OSVERSIONINFOEX {
     #define HDM_GETITEMRECT (HDM_FIRST+7)
 #endif
 
+#ifndef HDN_GETDISPINFOW
+    #define HDN_GETDISPINFOW (HDN_FIRST-29)
+#endif
+
 #ifndef ListView_GetHeader
     #define ListView_GetHeader(w) (HWND)SendMessage((w),LVM_GETHEADER,0,0)
 #endif
@@ -244,57 +228,6 @@ typedef struct _OSVERSIONINFOEX {
     #define LVSICF_NOINVALIDATEALL  0x0001
     #define LVSICF_NOSCROLL         0x0002
 #endif
-
-#ifndef CP_SYMBOL
-    #define CP_SYMBOL 42
-#endif
-
-// ----------------------------------------------------------------------------
-// wxDisplay
-// ----------------------------------------------------------------------------
-
-// The windows headers with Digital Mars lack some typedefs.
-// typedef them as my_XXX and then #define to rename to XXX in case
-// a newer version of Digital Mars fixes the headers
-// (or up to date PSDK is in use with older version)
-// also we use any required definition (MONITOR_DEFAULTTONULL) to recognize
-// whether whole missing block needs to be included
-
-#ifndef MONITOR_DEFAULTTONULL
-
-    #define HMONITOR_DECLARED
-    DECLARE_HANDLE(HMONITOR);
-    typedef BOOL(CALLBACK* my_MONITORENUMPROC)(HMONITOR,HDC,LPRECT,LPARAM);
-    #define MONITORENUMPROC my_MONITORENUMPROC
-    typedef struct my_tagMONITORINFO {
-        DWORD cbSize;
-        RECT rcMonitor;
-        RECT rcWork;
-        DWORD dwFlags;
-    } my_MONITORINFO,*my_LPMONITORINFO;
-    #define MONITORINFO my_MONITORINFO
-    #define LPMONITORINFO my_LPMONITORINFO
-
-    typedef struct my_MONITORINFOEX : public my_tagMONITORINFO
-    {
-        TCHAR       szDevice[CCHDEVICENAME];
-    } my_MONITORINFOEX, *my_LPMONITORINFOEX;
-    #define MONITORINFOEX my_MONITORINFOEX
-    #define LPMONITORINFOEX my_LPMONITORINFOEX
-
-    #ifndef MONITOR_DEFAULTTONULL
-        #define MONITOR_DEFAULTTONULL 0
-    #endif // MONITOR_DEFAULTTONULL
-
-    #ifndef MONITORINFOF_PRIMARY
-        #define MONITORINFOF_PRIMARY 1
-    #endif // MONITORINFOF_PRIMARY
-
-    #ifndef DDENUM_ATTACHEDSECONDARYDEVICES
-        #define DDENUM_ATTACHEDSECONDARYDEVICES 1
-    #endif
-
-#endif // MONITOR_DEFAULTTONULL
 
 // ----------------------------------------------------------------------------
 // Tree control

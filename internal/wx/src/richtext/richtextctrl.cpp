@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/richtext/richeditctrl.cpp
+// Name:        richtext/richeditctrl.cpp
 // Purpose:     A rich edit control
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextctrl.cpp,v 1.20 2006/03/27 12:25:10 ABX Exp $
+// RCS-ID:      $Id: richtextctrl.cpp,v 1.19 2006/02/12 16:32:50 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -429,6 +429,8 @@ void wxRichTextCtrl::OnChar(wxKeyEvent& event)
         event.GetKeyCode() == WXK_HOME ||
         event.GetKeyCode() == WXK_PAGEUP ||
         event.GetKeyCode() == WXK_PAGEDOWN ||
+        event.GetKeyCode() == WXK_PRIOR ||
+        event.GetKeyCode() == WXK_NEXT ||
         event.GetKeyCode() == WXK_END)
     {
         KeyboardNavigate(event.GetKeyCode(), flags);
@@ -616,11 +618,11 @@ bool wxRichTextCtrl::KeyboardNavigate(int keyCode, int flags)
         else
             success = MoveDown(1, flags);
     }
-    else if (keyCode == WXK_PAGEUP)
+    else if (keyCode == WXK_PAGEUP || keyCode == WXK_PRIOR)
     {
         success = PageUp(1, flags);
     }
-    else if (keyCode == WXK_PAGEDOWN)
+    else if (keyCode == WXK_PAGEDOWN || keyCode == WXK_NEXT)
     {
         success = PageDown(1, flags);
     }
@@ -714,7 +716,7 @@ bool wxRichTextCtrl::ScrollIntoView(long position, int keyCode)
     wxSize clientSize = GetClientSize();
 
     // Going down
-    if (keyCode == WXK_DOWN || keyCode == WXK_RIGHT || keyCode == WXK_END || keyCode == WXK_PAGEDOWN)
+    if (keyCode == WXK_DOWN || keyCode == WXK_RIGHT || keyCode == WXK_END || keyCode == WXK_NEXT || keyCode == WXK_PAGEDOWN)
     {
         if ((rect.y + rect.height) > (clientSize.y + startY))
         {
@@ -744,7 +746,7 @@ bool wxRichTextCtrl::ScrollIntoView(long position, int keyCode)
         }
     }
     // Going up
-    else if (keyCode == WXK_UP || keyCode == WXK_LEFT || keyCode == WXK_HOME || keyCode == WXK_PAGEUP )
+    else if (keyCode == WXK_UP || keyCode == WXK_LEFT || keyCode == WXK_HOME || keyCode == WXK_PRIOR || keyCode == WXK_PAGEUP)
     {
         if (rect.y < startY)
         {
@@ -2531,3 +2533,4 @@ long wxRichTextCtrl::GetFirstVisiblePosition() const
 
 #endif
     // wxUSE_RICHTEXT
+

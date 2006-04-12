@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/msw/datectrl.cpp
+// Name:        msw/datectrl.cpp
 // Purpose:     wxDatePickerCtrl implementation
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-09
-// RCS-ID:      $Id: datectrl.cpp,v 1.25 2006/03/12 13:03:40 ABX Exp $
+// RCS-ID:      $Id: datectrl.cpp,v 1.23 2006/01/21 16:47:24 JS Exp $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,22 +23,22 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_DATEPICKCTRL
-
 #ifndef WX_PRECOMP
-    #include "wx/app.h"
-    #include "wx/intl.h"
-    #include "wx/dcclient.h"
-    #include "wx/msw/wrapwin.h"
-    #include "wx/msw/wrapcctl.h"
-    #include "wx/msw/private.h"
 #endif
 
+#if wxUSE_DATEPICKCTRL
+
 #include "wx/datectrl.h"
+#include "wx/app.h"
+#include "wx/intl.h"
 #include "wx/dynlib.h"
 
 #define _WX_DEFINE_DATE_EVENTS_
 #include "wx/dateevt.h"
+
+#include "wx/msw/wrapwin.h"
+#include "wx/msw/wrapcctl.h"
+#include "wx/msw/private.h"
 
 // apparently some versions of mingw define these macros erroneously
 #ifndef DateTime_GetSystemtime
@@ -127,7 +127,7 @@ wxDatePickerCtrl::Create(wxWindow *parent,
         }
 
         s_initDone = true;
-#endif
+#endif        
     }
 
 
@@ -180,46 +180,9 @@ WXDWORD wxDatePickerCtrl::MSWGetStyle(long style, WXDWORD *exstyle) const
 
 wxSize wxDatePickerCtrl::DoGetBestSize() const
 {
-    wxClientDC dc(wx_const_cast(wxDatePickerCtrl *, this));
-    dc.SetFont(GetFont());
+    const int y = GetCharHeight();
 
-    // we can't use FormatDate() here as the CRT doesn't always use the same
-    // format as the date picker control
-    wxString s;
-    for ( int len = 100; ; len *= 2 )
-    {
-        if ( ::GetDateFormat
-               (
-                    LOCALE_USER_DEFAULT,    // the control should use the same
-                    DATE_SHORTDATE,         // the format used by the control
-                    NULL,                   // use current date (we don't care)
-                    NULL,                   // no custom format
-                    wxStringBuffer(s, len), // output buffer
-                    len                     // and its length
-               ) )
-        {
-            // success
-            break;
-        }
-
-        const DWORD rc = ::GetLastError();
-        if ( rc != ERROR_INSUFFICIENT_BUFFER )
-        {
-            wxLogApiError(_T("GetDateFormat"), rc);
-
-            // fall back on wxDateTime, what else to do?
-            s = wxDateTime::Today().FormatDate();
-            break;
-        }
-    }
-
-    // the control adds a lot of extra space around separators
-    s.Replace(_T(","), _T("    ,    "));
-
-    int x, y;
-    dc.GetTextExtent(s, &x, &y);
-
-    wxSize best(x + 40 /* margin + arrows */, EDIT_HEIGHT_FROM_CHAR_HEIGHT(y));
+    wxSize best(DEFAULT_ITEM_WIDTH, EDIT_HEIGHT_FROM_CHAR_HEIGHT(y));
     CacheBestSize(best);
     return best;
 }
@@ -331,3 +294,4 @@ wxDatePickerCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
 }
 
 #endif // wxUSE_DATEPICKCTRL
+

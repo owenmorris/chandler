@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     16/11/98
-// RCS-ID:      $Id: listimpl.cpp,v 1.11 2006/03/23 02:01:21 VZ Exp $
+// RCS-ID:      $Id: listimpl.cpp,v 1.10 2006/02/03 18:26:51 MBN Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,10 +12,10 @@
 #if wxUSE_STL
 
     #undef  WX_DEFINE_LIST
-    #define WX_DEFINE_LIST(name)                                                   \
-        void _WX_LIST_HELPER_##name::DeleteFunction( _WX_LIST_ITEM_TYPE_##name X ) \
-        {                                                                          \
-            delete X;                                                              \
+    #define WX_DEFINE_LIST(name)                                        \
+        void name::DeleteFunction( _WX_LIST_ITEM_TYPE_##name X )        \
+        {                                                               \
+            delete X;                                                   \
         }
 
 #else // if !wxUSE_STL

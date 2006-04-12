@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: app.cpp,v 1.100 2006/03/17 00:09:41 VZ Exp $
+// RCS-ID:      $Id: app.cpp,v 1.99 2005/12/19 16:06:31 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -374,7 +374,7 @@ WXWidget wxCreateTopLevelRealizedWidget( WXDisplay* WXUNUSED(display) )
 {
     Widget rTlw = XtVaCreateWidget( "dummy_widget", topLevelShellWidgetClass,
                                     (Widget)wxTheApp->GetTopLevelWidget(),
-                                     NULL );
+                                     NULL, 0 );
     XtSetMappedWhenManaged( rTlw, False );
     XtRealizeWidget( rTlw );
 

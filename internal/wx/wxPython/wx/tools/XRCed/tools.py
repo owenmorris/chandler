@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, toolbar
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      19.03.2003
-# RCS-ID:       $Id: tools.py,v 1.11 2006/03/24 01:47:55 RD Exp $
+# RCS-ID:       $Id: tools.py,v 1.10 2005/11/11 00:23:31 ROL Exp $
 
 from xxx import *                       # xxx imports globals and params
 from tree import ID_NEW
@@ -285,7 +285,5 @@ class Tools(wxPanel):
                 self.EnableGroup(GROUP_SIZERS)
                 if not (xxx.isSizer or xxx.parent and xxx.parent.isSizer):
                     self.EnableGroupItem(GROUP_SIZERS, ID_NEW.SPACER, False)
-            if xxx.__class__ == xxxFrame:
-                self.EnableGroupItem(GROUP_MENUS, ID_NEW.MENU_BAR)
         # Save state
         self.state = state

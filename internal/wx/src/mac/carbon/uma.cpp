@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/mac/carbon/uma.cpp
+// Name:        uma.cpp
 // Purpose:     UMA support
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: uma.cpp,v 1.75 2006/03/27 12:24:54 ABX Exp $
+// RCS-ID:      $Id: uma.cpp,v 1.72 2006/01/09 00:46:43 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     The wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -358,12 +358,12 @@ void UMASetMenuItemShortcut( MenuRef menu , MenuItemIndex item , wxAcceleratorEn
                     glyph = kMenuClearGlyph ;
                     break ;
 
-                case WXK_PAGEUP :
+                case WXK_PRIOR : // PAGE UP
                     macKey = kPageUpCharCode ;
                     glyph = kMenuPageUpGlyph ;
                     break ;
 
-                case WXK_PAGEDOWN :
+                case WXK_NEXT :
                     macKey = kPageDownCharCode ;
                     glyph = kMenuPageDownGlyph ;
                     break ;
@@ -388,15 +388,6 @@ void UMASetMenuItemShortcut( MenuRef menu , MenuItemIndex item , wxAcceleratorEn
                     glyph = kMenuDownArrowGlyph ;
                     break ;
 
-                case WXK_HOME :
-                    macKey = kHomeCharCode ;
-                    glyph = kMenuNorthwestArrowGlyph ;
-                    break ;
-
-                case WXK_END :
-                    macKey = kEndCharCode ;
-                    glyph = kMenuSoutheastArrowGlyph ;
-                    break ;
                 default :
                     macKey = toupper( key ) ;
                     break ;
@@ -410,7 +401,7 @@ void UMASetMenuItemShortcut( MenuRef menu , MenuItemIndex item , wxAcceleratorEn
 
         // 1d and 1e have special meaning to SetItemCmd, so
         // do not use for these character codes.
-        if (key != WXK_UP && key != WXK_RIGHT && key != WXK_DOWN && key != WXK_LEFT)
+        if (key != WXK_UP && key != WXK_RIGHT)
             SetItemCmd( menu, item , macKey );
 
         SetMenuItemModifiers( menu, item , modifiers ) ;
@@ -424,7 +415,7 @@ void UMAAppendMenuItem( MenuRef menu , const wxString& title, wxFontEncoding enc
 {
     MacAppendMenu(menu, "\pA");
 
-    // don't attempt to interpret metacharacters like a '-' at the beginning (would become a separator otherwise)
+    // don't attempt to interpret metacharacters like a '-' at the beginning (would become a separator otherwise) 
     ChangeMenuItemAttributes( menu , ::CountMenuItems(menu), kMenuItemAttrIgnoreMeta , 0 ) ;
     UMASetMenuItemText(menu, (SInt16) ::CountMenuItems(menu), title , encoding );
     UMASetMenuItemShortcut( menu , (SInt16) ::CountMenuItems(menu), entry ) ;
@@ -434,7 +425,7 @@ void UMAInsertMenuItem( MenuRef menu , const wxString& title, wxFontEncoding enc
 {
     MacInsertMenuItem( menu , "\pA" , item) ;
 
-    // don't attempt to interpret metacharacters like a '-' at the beginning (would become a separator otherwise)
+    // don't attempt to interpret metacharacters like a '-' at the beginning (would become a separator otherwise) 
     ChangeMenuItemAttributes( menu , item+1, kMenuItemAttrIgnoreMeta , 0 ) ;
     UMASetMenuItemText(menu, item+1 , title , encoding );
     UMASetMenuItemShortcut( menu , item+1 , entry ) ;
@@ -593,7 +584,7 @@ void UMAActivateControl( ControlRef inControl )
             InvalWindowRect( GetControlOwner(inControl), UMAGetControlBoundsInWindowCoords(inControl, &ctrlBounds) ) ;
         }
     }
-#endif
+#endif    
 }
 
 void UMAMoveControl( ControlRef inControl , short x , short y )
@@ -885,3 +876,4 @@ void UMASetSystemIsInitialized(bool val)
 }
 
 #endif // wxUSE_BASE
+

@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: Mickael Gilabert
 // Created:     28/06/1998
-// RCS-ID:      $Id: datstrm.h,v 1.39 2006/04/05 16:10:00 VZ Exp $
+// RCS-ID:      $Id: datstrm.h,v 1.37 2006/02/11 16:51:27 VZ Exp $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 
 #include "wx/stream.h"
 #include "wx/longlong.h"
-#include "wx/convauto.h"
+#include "wx/strconv.h"
 
 #if wxUSE_STREAMS
 
@@ -22,11 +22,11 @@ class WXDLLIMPEXP_BASE wxDataInputStream
 {
 public:
 #if wxUSE_UNICODE
-    wxDataInputStream(wxInputStream& s, const wxMBConv& conv = wxConvAuto());
+    wxDataInputStream(wxInputStream& s, wxMBConv& conv = wxConvUTF8);
 #else
     wxDataInputStream(wxInputStream& s);
 #endif
-    ~wxDataInputStream();
+    ~wxDataInputStream(){}
 
     bool IsOk() { return m_input->IsOk(); }
 
@@ -83,7 +83,7 @@ protected:
     wxInputStream *m_input;
     bool m_be_order;
 #if wxUSE_UNICODE
-    wxMBConv *m_conv;
+    wxMBConv& m_conv;
 #endif
 
     DECLARE_NO_COPY_CLASS(wxDataInputStream)
@@ -93,11 +93,11 @@ class WXDLLIMPEXP_BASE wxDataOutputStream
 {
 public:
 #if wxUSE_UNICODE
-    wxDataOutputStream(wxOutputStream& s, const wxMBConv& conv = wxConvAuto());
+    wxDataOutputStream(wxOutputStream& s, wxMBConv& conv = wxConvUTF8);
 #else
     wxDataOutputStream(wxOutputStream& s);
 #endif
-    ~wxDataOutputStream();
+    ~wxDataOutputStream(){}
 
     bool IsOk() { return m_output->IsOk(); }
 
@@ -157,7 +157,7 @@ protected:
     wxOutputStream *m_output;
     bool m_be_order;
 #if wxUSE_UNICODE
-    wxMBConv *m_conv;
+    wxMBConv& m_conv;
 #endif
 
     DECLARE_NO_COPY_CLASS(wxDataOutputStream)

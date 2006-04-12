@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: bitmap.cpp,v 1.142 2006/03/21 14:16:28 VZ Exp $
+// RCS-ID:      $Id: bitmap.cpp,v 1.139 2006/02/09 00:49:39 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -476,11 +476,11 @@ wxBitmap::wxBitmap(const char bits[], int width, int height, int depth)
 bool wxBitmap::CreateFromXpm(const char **data)
 {
 #if wxUSE_IMAGE && wxUSE_XPM && wxUSE_WXDIB
-    wxCHECK_MSG( data != NULL, false, wxT("invalid bitmap data") );
+    wxCHECK_MSG( data != NULL, false, wxT("invalid bitmap data") )
 
     wxXPMDecoder decoder;
     wxImage img = decoder.ReadData(data);
-    wxCHECK_MSG( img.Ok(), false, wxT("invalid bitmap data") );
+    wxCHECK_MSG( img.Ok(), false, wxT("invalid bitmap data") )
 
     *this = wxBitmap(img);
     return true;
@@ -780,6 +780,8 @@ wxImage wxBitmap::ConvertToImage() const
 // wxImage to/from conversions
 // ----------------------------------------------------------------------------
 
+#if wxUSE_WXDIB
+
 bool wxBitmap::CreateFromImage(const wxImage& image, int depth)
 {
     return CreateFromImage(image, depth, 0);
@@ -792,8 +794,6 @@ bool wxBitmap::CreateFromImage(const wxImage& image, const wxDC& dc)
 
     return CreateFromImage(image, -1, dc.GetHDC());
 }
-
-#if wxUSE_WXDIB
 
 bool wxBitmap::CreateFromImage(const wxImage& image, int depth, WXHDC hdc)
 {
@@ -808,9 +808,8 @@ bool wxBitmap::CreateFromImage(const wxImage& image, int depth, WXHDC hdc)
     wxDIB dib(image);
     if ( !dib.IsOk() )
         return false;
-
-    if ( depth == -1 )
-        depth = dib.GetDepth(); // Get depth from image if none specified
+	if (depth == -1)
+		depth = dib.GetDepth();	// Get depth from image if none specified
 
     // store the bitmap parameters
     wxBitmapRefData *refData = new wxBitmapRefData;
@@ -974,22 +973,7 @@ wxImage wxBitmap::ConvertToImage() const
     return image;
 }
 
-#else // !wxUSE_WXDIB
-
-bool
-wxBitmap::CreateFromImage(const wxImage& WXUNUSED(image),
-                          int WXUNUSED(depth),
-                          WXHDC WXUNUSED(hdc))
-{
-    return false;
-}
-
-wxImage wxBitmap::ConvertToImage() const
-{
-    return wxImage();
-}
-
-#endif // wxUSE_WXDIB/!wxUSE_WXDIB
+#endif // wxUSE_WXDIB
 
 #endif // wxUSE_IMAGE
 

@@ -232,7 +232,6 @@ ALL_BASE_HEADERS =  \
 	wx/cmdline.h \
 	wx/confbase.h \
 	wx/config.h \
-	wx/convauto.h \
 	wx/containr.h \
 	wx/datetime.h \
 	wx/datstrm.h \
@@ -360,7 +359,6 @@ ALL_PORTS_BASE_HEADERS =  \
 	wx/cmdline.h \
 	wx/confbase.h \
 	wx/config.h \
-	wx/convauto.h \
 	wx/containr.h \
 	wx/datetime.h \
 	wx/datstrm.h \
@@ -515,7 +513,6 @@ ALL_BASE_SOURCES =  \
 	src/common/clntdata.cpp \
 	src/common/cmdline.cpp \
 	src/common/config.cpp \
-	src/common/convauto.cpp \
 	src/common/datetime.cpp \
 	src/common/datstrm.cpp \
 	src/common/dircmn.cpp \
@@ -660,7 +657,6 @@ MONODLL_OBJECTS =  \
 	monodll_clntdata.o \
 	monodll_cmdline.o \
 	monodll_config.o \
-	monodll_convauto.o \
 	monodll_datetime.o \
 	monodll_datstrm.o \
 	monodll_dircmn.o \
@@ -750,7 +746,6 @@ MONOLIB_OBJECTS =  \
 	monolib_clntdata.o \
 	monolib_cmdline.o \
 	monolib_config.o \
-	monolib_convauto.o \
 	monolib_datetime.o \
 	monolib_datstrm.o \
 	monolib_dircmn.o \
@@ -842,7 +837,6 @@ BASEDLL_OBJECTS =  \
 	basedll_clntdata.o \
 	basedll_cmdline.o \
 	basedll_config.o \
-	basedll_convauto.o \
 	basedll_datetime.o \
 	basedll_datstrm.o \
 	basedll_dircmn.o \
@@ -917,7 +911,6 @@ BASELIB_OBJECTS =  \
 	baselib_clntdata.o \
 	baselib_cmdline.o \
 	baselib_config.o \
-	baselib_convauto.o \
 	baselib_datetime.o \
 	baselib_datstrm.o \
 	baselib_dircmn.o \
@@ -1575,6 +1568,7 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION__LOWLEVEL_HDR =  \
 	wx/generic/caret.h \
 	wx/unix/fontutil.h \
 	wx/unix/utilsx11.h \
+	wx/unix/displayx11.h \
 	wx/generic/paletteg.h \
 	wx/gtk1/app.h \
 	wx/gtk1/bitmap.h \
@@ -1607,6 +1601,7 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_LOWLEVEL_HDR =  \
 	wx/generic/caret.h \
 	wx/unix/fontutil.h \
 	wx/unix/utilsx11.h \
+	wx/unix/displayx11.h \
 	wx/generic/paletteg.h \
 	wx/gtk/app.h \
 	wx/gtk/bitmap.h \
@@ -1666,6 +1661,7 @@ COND_TOOLKIT_MOTIF_LOWLEVEL_HDR =  \
 	wx/generic/caret.h \
 	wx/unix/fontutil.h \
 	wx/unix/utilsx11.h \
+	wx/unix/displayx11.h \
 	wx/x11/bitmap.h \
 	wx/x11/brush.h \
 	wx/x11/pen.h \
@@ -1690,6 +1686,7 @@ COND_TOOLKIT_X11_LOWLEVEL_HDR =  \
 	wx/generic/caret.h \
 	wx/unix/fontutil.h \
 	wx/unix/utilsx11.h \
+	wx/unix/displayx11.h \
 	wx/x11/app.h \
 	wx/x11/bitmap.h \
 	wx/x11/brush.h \
@@ -1759,7 +1756,7 @@ COND_TOOLKIT_COCOA_GUI_HDR =  \
 	wx/cocoa/dcmemory.h \
 	wx/cocoa/dcscreen.h \
 	wx/cocoa/dialog.h \
-	wx/cocoa/dirdlg.h \
+	wx/cocoa/display.h \
 	wx/cocoa/drawer.h \
 	wx/cocoa/filedlg.h \
 	wx/cocoa/font.h \
@@ -1794,6 +1791,7 @@ COND_TOOLKIT_COCOA_GUI_HDR =  \
 	wx/cocoa/toplevel.h \
 	wx/cocoa/window.h \
 	wx/generic/caret.h \
+	wx/generic/dirdlgg.h \
 	wx/generic/fdrepdlg.h \
 	wx/generic/fontdlgg.h \
 	wx/generic/imaglist.h \
@@ -1867,7 +1865,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_GUI_HDR =  \
 	wx/gtk/frame.h \
 	wx/gtk/gauge.h \
 	wx/gtk/gnome/gprint.h \
-	wx/gtk/gnome/gvfs.h \
 	wx/gtk/listbox.h \
 	wx/gtk/mdi.h \
 	wx/gtk/menu.h \
@@ -1888,8 +1885,7 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_GUI_HDR =  \
 	wx/gtk/tbargtk.h \
 	wx/gtk/textctrl.h \
 	wx/gtk/tglbtn.h \
-	wx/gtk/treectrl.h \
-	wx/gtk/treeentry_gtk.h
+	wx/gtk/treectrl.h
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@GUI_HDR = $(COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_GUI_HDR)
 COND_TOOLKIT_MAC_GUI_HDR =  \
 	wx/mac/accel.h \
@@ -1919,6 +1915,7 @@ COND_TOOLKIT_MAC_GUI_HDR =  \
 	wx/mac/dcscreen.h \
 	wx/mac/dialog.h \
 	wx/mac/dirdlg.h \
+	wx/mac/display.h \
 	wx/mac/dnd.h \
 	wx/mac/evtloop.h \
 	wx/mac/filedlg.h \
@@ -2003,6 +2000,7 @@ COND_TOOLKIT_MAC_GUI_HDR =  \
 	wx/mac/carbon/dcscreen.h \
 	wx/mac/carbon/dialog.h \
 	wx/mac/carbon/dirdlg.h \
+	wx/mac/carbon/display.h \
 	wx/mac/carbon/dnd.h \
 	wx/mac/carbon/evtloop.h \
 	wx/mac/carbon/filedlg.h \
@@ -2279,6 +2277,7 @@ COND_TOOLKIT_PM_GUI_HDR =  \
 	wx/os2/dcprint.h \
 	wx/os2/dcscreen.h \
 	wx/os2/dialog.h \
+	wx/os2/display.h \
 	wx/os2/dnd.h \
 	wx/os2/filedlg.h \
 	wx/os2/font.h \
@@ -2435,7 +2434,6 @@ COND_TOOLKIT_WINCE_GUI_HDR =  \
 	wx/msw/removble.ico \
 	wx/msw/std.ico \
 	wx/generic/fdrepdlg.h \
-	wx/generic/filedlgg.h \
 	wx/generic/fontdlgg.h \
 	wx/msw/wince/checklst.h \
 	wx/msw/wince/choicece.h \
@@ -2471,7 +2469,6 @@ COND_TOOLKIT_MAC_ADVANCED_PLATFORM_HDR =  \
 @COND_TOOLKIT_WINCE@ADVANCED_PLATFORM_NATIVE_HDR = wx/msw/datectrl.h
 COND_WXUNIV_0_ADVANCED_HDR =  \
 	wx/calctrl.h \
-	wx/dataview.h \
 	wx/dateevt.h \
 	wx/dcbuffer.h \
 	wx/generic/calctrl.h \
@@ -2505,13 +2502,11 @@ COND_WXUNIV_0_ADVANCED_HDR =  \
 	wx/richtext/richtextstyles.h \
 	wx/richtext/richtextxml.h \
 	wx/datectrl.h \
-	wx/dataview.h \
 	$(ADVANCED_PLATFORM_HDR) \
 	$(ADVANCED_PLATFORM_NATIVE_HDR)
 @COND_WXUNIV_0@ADVANCED_HDR = $(COND_WXUNIV_0_ADVANCED_HDR)
 COND_WXUNIV_1_ADVANCED_HDR =  \
 	wx/calctrl.h \
-	wx/dataview.h \
 	wx/dateevt.h \
 	wx/dcbuffer.h \
 	wx/generic/calctrl.h \
@@ -2683,7 +2678,6 @@ COND_USE_GUI_1_ALL_GUI_HEADERS =  \
 	wx/validate.h \
 	wx/valtext.h \
 	wx/window.h \
-	wx/wupdlock.h \
 	wx/accel.h \
 	wx/access.h \
 	wx/artprov.h \
@@ -2704,7 +2698,6 @@ COND_USE_GUI_1_ALL_GUI_HEADERS =  \
 	wx/dialup.h \
 	wx/dirctrl.h \
 	wx/display.h \
-	wx/display_impl.h \
 	wx/dnd.h \
 	wx/docmdi.h \
 	wx/docview.h \
@@ -3631,6 +3624,7 @@ COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS =  \
 	monodll_gdiobj.o \
 	monodll_gsockx11.o \
 	monodll_icon.o \
+	monodll_main.o \
 	monodll_minifram.o \
 	monodll_nanox.o \
 	monodll_palette.o \
@@ -3678,7 +3672,6 @@ COND_TOOLKIT_COCOA___GUI_SRC_OBJECTS =  \
 	monodll_dcmemory.o \
 	monodll_dcscreen.o \
 	monodll_dialog.o \
-	monodll_dirdlg.o \
 	monodll_display.o \
 	monodll_drawer.o \
 	monodll_evtloop.o \
@@ -3723,6 +3716,7 @@ COND_TOOLKIT_COCOA___GUI_SRC_OBJECTS =  \
 	monodll_accel.o \
 	monodll_caret.o \
 	monodll_colrdlgg.o \
+	monodll_dirdlgg.o \
 	monodll_fdrepdlg.o \
 	monodll_fontdlgg.o \
 	monodll_imaglist.o \
@@ -3806,7 +3800,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS =  \
 	monodll_frame.o \
 	monodll_gauge.o \
 	monodll_gprint.o \
-	monodll_gvfs.o \
 	monodll_listbox.o \
 	monodll_mdi.o \
 	monodll_menu.o \
@@ -3826,7 +3819,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS =  \
 	monodll_tbargtk.o \
 	monodll_textctrl.o \
 	monodll_tglbtn.o \
-	monodll_treeentry_gtk.o \
 	monodll_utilsres.o
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@__GUI_SRC_OBJECTS = $(COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS)
 COND_TOOLKIT_MAC___GUI_SRC_OBJECTS =  \
@@ -4063,6 +4055,7 @@ COND_TOOLKIT_PM___GUI_SRC_OBJECTS =  \
 	monodll_dcprint.o \
 	monodll_dcscreen.o \
 	monodll_dialog.o \
+	monodll_display.o \
 	monodll_dnd.o \
 	monodll_evtloop.o \
 	monodll_filedlg.o \
@@ -4161,7 +4154,6 @@ COND_TOOLKIT_WINCE___GUI_SRC_OBJECTS =  \
 	monodll_treectrl.o \
 	monodll_dirdlgg.o \
 	monodll_fdrepdlg.o \
-	monodll_filedlgg.o \
 	monodll_fontdlgg.o \
 	monodll_checklst.o \
 	monodll_choicece.o \
@@ -4426,6 +4418,7 @@ COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS_1 =  \
 	monodll_gdiobj.o \
 	monodll_gsockx11.o \
 	monodll_icon.o \
+	monodll_main.o \
 	monodll_minifram.o \
 	monodll_nanox.o \
 	monodll_palette.o \
@@ -4440,9 +4433,7 @@ COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS_1 =  \
 	monodll_window.o
 @COND_TOOLKIT_X11@__LOWLEVEL_SRC_OBJECTS_1 = $(COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS_1)
 COND_WXUNIV_0___ADVANCED_SRC_OBJECTS =  \
-	monodll_datavcmn.o \
 	monodll_calctrl.o \
-	monodll_datavgen.o \
 	monodll_datectlg.o \
 	monodll_minical.o \
 	monodll_colheader.o \
@@ -4465,9 +4456,7 @@ COND_WXUNIV_0___ADVANCED_SRC_OBJECTS =  \
 	$(__ADVANCED_PLATFORM_NATIVE_SRC_OBJECTS)
 @COND_WXUNIV_0@__ADVANCED_SRC_OBJECTS = $(COND_WXUNIV_0___ADVANCED_SRC_OBJECTS)
 COND_WXUNIV_1___ADVANCED_SRC_OBJECTS =  \
-	monodll_datavcmn.o \
 	monodll_calctrl.o \
-	monodll_datavgen.o \
 	monodll_datectlg.o \
 	monodll_minical.o \
 	monodll_colheader.o \
@@ -5258,6 +5247,7 @@ COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS_2 =  \
 	monolib_gdiobj.o \
 	monolib_gsockx11.o \
 	monolib_icon.o \
+	monolib_main.o \
 	monolib_minifram.o \
 	monolib_nanox.o \
 	monolib_palette.o \
@@ -5305,7 +5295,6 @@ COND_TOOLKIT_COCOA___GUI_SRC_OBJECTS_1 =  \
 	monolib_dcmemory.o \
 	monolib_dcscreen.o \
 	monolib_dialog.o \
-	monolib_dirdlg.o \
 	monolib_display.o \
 	monolib_drawer.o \
 	monolib_evtloop.o \
@@ -5350,6 +5339,7 @@ COND_TOOLKIT_COCOA___GUI_SRC_OBJECTS_1 =  \
 	monolib_accel.o \
 	monolib_caret.o \
 	monolib_colrdlgg.o \
+	monolib_dirdlgg.o \
 	monolib_fdrepdlg.o \
 	monolib_fontdlgg.o \
 	monolib_imaglist.o \
@@ -5433,7 +5423,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS_1 =  \
 	monolib_frame.o \
 	monolib_gauge.o \
 	monolib_gprint.o \
-	monolib_gvfs.o \
 	monolib_listbox.o \
 	monolib_mdi.o \
 	monolib_menu.o \
@@ -5453,7 +5442,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS_1 =  \
 	monolib_tbargtk.o \
 	monolib_textctrl.o \
 	monolib_tglbtn.o \
-	monolib_treeentry_gtk.o \
 	monolib_utilsres.o
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@__GUI_SRC_OBJECTS_1 = $(COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS_1)
 COND_TOOLKIT_MAC___GUI_SRC_OBJECTS_1 =  \
@@ -5690,6 +5678,7 @@ COND_TOOLKIT_PM___GUI_SRC_OBJECTS_1 =  \
 	monolib_dcprint.o \
 	monolib_dcscreen.o \
 	monolib_dialog.o \
+	monolib_display.o \
 	monolib_dnd.o \
 	monolib_evtloop.o \
 	monolib_filedlg.o \
@@ -5788,7 +5777,6 @@ COND_TOOLKIT_WINCE___GUI_SRC_OBJECTS_1 =  \
 	monolib_treectrl.o \
 	monolib_dirdlgg.o \
 	monolib_fdrepdlg.o \
-	monolib_filedlgg.o \
 	monolib_fontdlgg.o \
 	monolib_checklst.o \
 	monolib_choicece.o \
@@ -6054,6 +6042,7 @@ COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS_3 =  \
 	monolib_gdiobj.o \
 	monolib_gsockx11.o \
 	monolib_icon.o \
+	monolib_main.o \
 	monolib_minifram.o \
 	monolib_nanox.o \
 	monolib_palette.o \
@@ -6068,9 +6057,7 @@ COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS_3 =  \
 	monolib_window.o
 @COND_TOOLKIT_X11@__LOWLEVEL_SRC_OBJECTS_3 = $(COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS_3)
 COND_WXUNIV_0___ADVANCED_SRC_OBJECTS_1 =  \
-	monolib_datavcmn.o \
 	monolib_calctrl.o \
-	monolib_datavgen.o \
 	monolib_datectlg.o \
 	monolib_minical.o \
 	monolib_colheader.o \
@@ -6093,9 +6080,7 @@ COND_WXUNIV_0___ADVANCED_SRC_OBJECTS_1 =  \
 	$(__ADVANCED_PLATFORM_NATIVE_SRC_OBJECTS_1)
 @COND_WXUNIV_0@__ADVANCED_SRC_OBJECTS_1 = $(COND_WXUNIV_0___ADVANCED_SRC_OBJECTS_1)
 COND_WXUNIV_1___ADVANCED_SRC_OBJECTS_1 =  \
-	monolib_datavcmn.o \
 	monolib_calctrl.o \
-	monolib_datavgen.o \
 	monolib_datectlg.o \
 	monolib_minical.o \
 	monolib_colheader.o \
@@ -7118,6 +7103,7 @@ COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS_4 =  \
 	coredll_gdiobj.o \
 	coredll_gsockx11.o \
 	coredll_icon.o \
+	coredll_main.o \
 	coredll_minifram.o \
 	coredll_nanox.o \
 	coredll_palette.o \
@@ -7165,7 +7151,6 @@ COND_TOOLKIT_COCOA___GUI_SRC_OBJECTS_2 =  \
 	coredll_dcmemory.o \
 	coredll_dcscreen.o \
 	coredll_dialog.o \
-	coredll_dirdlg.o \
 	coredll_display.o \
 	coredll_drawer.o \
 	coredll_evtloop.o \
@@ -7210,6 +7195,7 @@ COND_TOOLKIT_COCOA___GUI_SRC_OBJECTS_2 =  \
 	coredll_accel.o \
 	coredll_caret.o \
 	coredll_colrdlgg.o \
+	coredll_dirdlgg.o \
 	coredll_fdrepdlg.o \
 	coredll_fontdlgg.o \
 	coredll_imaglist.o \
@@ -7293,7 +7279,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS_2 =  \
 	coredll_frame.o \
 	coredll_gauge.o \
 	coredll_gprint.o \
-	coredll_gvfs.o \
 	coredll_listbox.o \
 	coredll_mdi.o \
 	coredll_menu.o \
@@ -7313,7 +7298,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS_2 =  \
 	coredll_tbargtk.o \
 	coredll_textctrl.o \
 	coredll_tglbtn.o \
-	coredll_treeentry_gtk.o \
 	coredll_utilsres.o
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@__GUI_SRC_OBJECTS_2 = $(COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS_2)
 COND_TOOLKIT_MAC___GUI_SRC_OBJECTS_2 =  \
@@ -7550,6 +7534,7 @@ COND_TOOLKIT_PM___GUI_SRC_OBJECTS_2 =  \
 	coredll_dcprint.o \
 	coredll_dcscreen.o \
 	coredll_dialog.o \
+	coredll_display.o \
 	coredll_dnd.o \
 	coredll_evtloop.o \
 	coredll_filedlg.o \
@@ -7648,7 +7633,6 @@ COND_TOOLKIT_WINCE___GUI_SRC_OBJECTS_2 =  \
 	coredll_treectrl.o \
 	coredll_dirdlgg.o \
 	coredll_fdrepdlg.o \
-	coredll_filedlgg.o \
 	coredll_fontdlgg.o \
 	coredll_checklst.o \
 	coredll_choicece.o \
@@ -7914,6 +7898,7 @@ COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS_5 =  \
 	coredll_gdiobj.o \
 	coredll_gsockx11.o \
 	coredll_icon.o \
+	coredll_main.o \
 	coredll_minifram.o \
 	coredll_nanox.o \
 	coredll_palette.o \
@@ -8448,6 +8433,7 @@ COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS_6 =  \
 	corelib_gdiobj.o \
 	corelib_gsockx11.o \
 	corelib_icon.o \
+	corelib_main.o \
 	corelib_minifram.o \
 	corelib_nanox.o \
 	corelib_palette.o \
@@ -8495,7 +8481,6 @@ COND_TOOLKIT_COCOA___GUI_SRC_OBJECTS_3 =  \
 	corelib_dcmemory.o \
 	corelib_dcscreen.o \
 	corelib_dialog.o \
-	corelib_dirdlg.o \
 	corelib_display.o \
 	corelib_drawer.o \
 	corelib_evtloop.o \
@@ -8540,6 +8525,7 @@ COND_TOOLKIT_COCOA___GUI_SRC_OBJECTS_3 =  \
 	corelib_accel.o \
 	corelib_caret.o \
 	corelib_colrdlgg.o \
+	corelib_dirdlgg.o \
 	corelib_fdrepdlg.o \
 	corelib_fontdlgg.o \
 	corelib_imaglist.o \
@@ -8623,7 +8609,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS_3 =  \
 	corelib_frame.o \
 	corelib_gauge.o \
 	corelib_gprint.o \
-	corelib_gvfs.o \
 	corelib_listbox.o \
 	corelib_mdi.o \
 	corelib_menu.o \
@@ -8643,7 +8628,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS_3 =  \
 	corelib_tbargtk.o \
 	corelib_textctrl.o \
 	corelib_tglbtn.o \
-	corelib_treeentry_gtk.o \
 	corelib_utilsres.o
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@__GUI_SRC_OBJECTS_3 = $(COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___GUI_SRC_OBJECTS_3)
 COND_TOOLKIT_MAC___GUI_SRC_OBJECTS_3 =  \
@@ -8880,6 +8864,7 @@ COND_TOOLKIT_PM___GUI_SRC_OBJECTS_3 =  \
 	corelib_dcprint.o \
 	corelib_dcscreen.o \
 	corelib_dialog.o \
+	corelib_display.o \
 	corelib_dnd.o \
 	corelib_evtloop.o \
 	corelib_filedlg.o \
@@ -8978,7 +8963,6 @@ COND_TOOLKIT_WINCE___GUI_SRC_OBJECTS_3 =  \
 	corelib_treectrl.o \
 	corelib_dirdlgg.o \
 	corelib_fdrepdlg.o \
-	corelib_filedlgg.o \
 	corelib_fontdlgg.o \
 	corelib_checklst.o \
 	corelib_choicece.o \
@@ -9244,6 +9228,7 @@ COND_TOOLKIT_X11___LOWLEVEL_SRC_OBJECTS_7 =  \
 	corelib_gdiobj.o \
 	corelib_gsockx11.o \
 	corelib_icon.o \
+	corelib_main.o \
 	corelib_minifram.o \
 	corelib_nanox.o \
 	corelib_palette.o \
@@ -9304,9 +9289,7 @@ COND_USE_SOSYMLINKS_1___advdll___so_symlinks_inst_cmd = rm -f \
 @COND_USE_SOSYMLINKS_1@__advdll___so_symlinks_inst_cmd = $(COND_USE_SOSYMLINKS_1___advdll___so_symlinks_inst_cmd)
 @COND_PLATFORM_WIN32_1@__advdll___win32rc = advdll_version_rc.o
 COND_WXUNIV_0___ADVANCED_SRC_OBJECTS_2 =  \
-	advdll_datavcmn.o \
 	advdll_calctrl.o \
-	advdll_datavgen.o \
 	advdll_datectlg.o \
 	advdll_minical.o \
 	advdll_colheader.o \
@@ -9329,9 +9312,7 @@ COND_WXUNIV_0___ADVANCED_SRC_OBJECTS_2 =  \
 	$(__ADVANCED_PLATFORM_NATIVE_SRC_OBJECTS_2)
 @COND_WXUNIV_0@__ADVANCED_SRC_OBJECTS_2 = $(COND_WXUNIV_0___ADVANCED_SRC_OBJECTS_2)
 COND_WXUNIV_1___ADVANCED_SRC_OBJECTS_2 =  \
-	advdll_datavcmn.o \
 	advdll_calctrl.o \
-	advdll_datavgen.o \
 	advdll_datectlg.o \
 	advdll_minical.o \
 	advdll_colheader.o \
@@ -9369,9 +9350,7 @@ COND_MONOLITHIC_0_SHARED_0_USE_GUI_1___advlib___depname = \
 @COND_USE_PCH_1@___pch_wxprec_advlib_wx_wxprec_h_gch___depname \
 @COND_USE_PCH_1@	= .pch/wxprec_advlib/wx/wxprec.h.gch
 COND_WXUNIV_0___ADVANCED_SRC_OBJECTS_3 =  \
-	advlib_datavcmn.o \
 	advlib_calctrl.o \
-	advlib_datavgen.o \
 	advlib_datectlg.o \
 	advlib_minical.o \
 	advlib_colheader.o \
@@ -9394,9 +9373,7 @@ COND_WXUNIV_0___ADVANCED_SRC_OBJECTS_3 =  \
 	$(__ADVANCED_PLATFORM_NATIVE_SRC_OBJECTS_3)
 @COND_WXUNIV_0@__ADVANCED_SRC_OBJECTS_3 = $(COND_WXUNIV_0___ADVANCED_SRC_OBJECTS_3)
 COND_WXUNIV_1___ADVANCED_SRC_OBJECTS_3 =  \
-	advlib_datavcmn.o \
 	advlib_calctrl.o \
-	advlib_datavgen.o \
 	advlib_datectlg.o \
 	advlib_minical.o \
 	advlib_colheader.o \
@@ -9958,7 +9935,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___ADVANCED_PLATFORM_SRC_OBJECTS =  \
 	monodll_sound.o \
 	monodll_taskbarx11.o \
 	monodll_taskbar.o \
-	monodll_dataview.o \
 	monodll_eggtrayicon.o
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@__ADVANCED_PLATFORM_SRC_OBJECTS = $(COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___ADVANCED_PLATFORM_SRC_OBJECTS)
 COND_TOOLKIT_MAC___ADVANCED_PLATFORM_SRC_OBJECTS =  \
@@ -10005,7 +9981,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___ADVANCED_PLATFORM_SRC_OBJECTS_0 =  \
 	monolib_sound.o \
 	monolib_taskbarx11.o \
 	monolib_taskbar.o \
-	monolib_dataview.o \
 	monolib_eggtrayicon.o
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@__ADVANCED_PLATFORM_SRC_OBJECTS_0 = $(COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___ADVANCED_PLATFORM_SRC_OBJECTS_0)
 COND_TOOLKIT_MAC___ADVANCED_PLATFORM_SRC_OBJECTS_0 =  \
@@ -10052,7 +10027,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___ADVANCED_PLATFORM_SRC_OBJECTS_8 =  \
 	advdll_sound.o \
 	advdll_taskbarx11.o \
 	advdll_taskbar.o \
-	advdll_dataview.o \
 	advdll_eggtrayicon.o
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@__ADVANCED_PLATFORM_SRC_OBJECTS_8 = $(COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___ADVANCED_PLATFORM_SRC_OBJECTS_8)
 COND_TOOLKIT_MAC___ADVANCED_PLATFORM_SRC_OBJECTS_8 =  \
@@ -10087,7 +10061,6 @@ COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___ADVANCED_PLATFORM_SRC_OBJECTS_9 =  \
 	advlib_sound.o \
 	advlib_taskbarx11.o \
 	advlib_taskbar.o \
-	advlib_dataview.o \
 	advlib_eggtrayicon.o
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@__ADVANCED_PLATFORM_SRC_OBJECTS_9 = $(COND_TOOLKIT_GTK_TOOLKIT_VERSION_2___ADVANCED_PLATFORM_SRC_OBJECTS_9)
 COND_TOOLKIT_MAC___ADVANCED_PLATFORM_SRC_OBJECTS_9 =  \
@@ -11165,9 +11138,6 @@ monodll_cmdline.o: $(srcdir)/src/common/cmdline.cpp $(MONODLL_ODEP)
 monodll_config.o: $(srcdir)/src/common/config.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/common/config.cpp
 
-monodll_convauto.o: $(srcdir)/src/common/convauto.cpp $(MONODLL_ODEP)
-	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/common/convauto.cpp
-
 monodll_datetime.o: $(srcdir)/src/common/datetime.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/common/datetime.cpp
 
@@ -11434,12 +11404,6 @@ monodll_artgtk.o: $(srcdir)/src/gtk/artgtk.cpp $(MONODLL_ODEP)
 
 monodll_gprint.o: $(srcdir)/src/gtk/gnome/gprint.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/gtk/gnome/gprint.cpp
-
-monodll_gvfs.o: $(srcdir)/src/gtk/gnome/gvfs.cpp $(MONODLL_ODEP)
-	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/gtk/gnome/gvfs.cpp
-
-monodll_treeentry_gtk.o: $(srcdir)/src/gtk/treeentry_gtk.c $(MONODLL_ODEP)
-	$(CCC) -c -o $@ $(MONODLL_CFLAGS) $(srcdir)/src/gtk/treeentry_gtk.c
 
 monodll_bmpmotif.o: $(srcdir)/src/motif/bmpmotif.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/motif/bmpmotif.cpp
@@ -12166,6 +12130,9 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1@monodll_main.o: $(srcdir)/src/gtk1/main.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/gtk1/main.cpp
+
+@COND_TOOLKIT_X11_USE_GUI_1@monodll_main.o: $(srcdir)/src/x11/main.cpp $(MONODLL_ODEP)
+@COND_TOOLKIT_X11_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/x11/main.cpp
 
 @COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0@monodll_main.o: $(srcdir)/src/motif/main.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/motif/main.cpp
@@ -13133,6 +13100,9 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@monodll_display.o: $(srcdir)/src/cocoa/display.mm $(MONODLL_ODEP)
 @COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/cocoa/display.mm
 
+@COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@monodll_display.o: $(srcdir)/src/os2/display.cpp $(MONODLL_ODEP)
+@COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/os2/display.cpp
+
 @COND_TOOLKIT_MSW_USE_GUI_1@monodll_enhmeta.o: $(srcdir)/src/msw/enhmeta.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_MSW_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/msw/enhmeta.cpp
 
@@ -13325,6 +13295,9 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@monodll_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
 
+@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@monodll_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(MONODLL_ODEP)
+@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
+
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@monodll_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
 
@@ -13363,9 +13336,6 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0@monodll_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
-
-@COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@monodll_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(MONODLL_ODEP)
-@COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
 
 @COND_USE_GUI_1_WXUNIV_1@monodll_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1_WXUNIV_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
@@ -14321,9 +14291,6 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0@monodll_dirdlg.o: $(srcdir)/src/mac/carbon/dirdlg.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/mac/carbon/dirdlg.cpp
 
-@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@monodll_dirdlg.o: $(srcdir)/src/cocoa/dirdlg.mm $(MONODLL_ODEP)
-@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/cocoa/dirdlg.mm
-
 @COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0@monodll_dragimag.o: $(srcdir)/src/msw/dragimag.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/msw/dragimag.cpp
 
@@ -14753,14 +14720,8 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1@monodll_vscroll.o: $(srcdir)/src/generic/vscroll.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/vscroll.cpp
 
-@COND_USE_GUI_1@monodll_datavcmn.o: $(srcdir)/src/common/datavcmn.cpp $(MONODLL_ODEP)
-@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/common/datavcmn.cpp
-
 @COND_USE_GUI_1@monodll_calctrl.o: $(srcdir)/src/generic/calctrl.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/calctrl.cpp
-
-@COND_USE_GUI_1@monodll_datavgen.o: $(srcdir)/src/generic/datavgen.cpp $(MONODLL_ODEP)
-@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/datavgen.cpp
 
 @COND_USE_GUI_1@monodll_datectlg.o: $(srcdir)/src/generic/datectlg.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/datectlg.cpp
@@ -14891,9 +14852,6 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_X11_USE_GUI_1@monodll_taskbarx11.o: $(srcdir)/src/unix/taskbarx11.cpp $(MONODLL_ODEP)
 @COND_TOOLKIT_X11_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/unix/taskbarx11.cpp
 
-@COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1@monodll_dataview.o: $(srcdir)/src/gtk/dataview.cpp $(MONODLL_ODEP)
-@COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/gtk/dataview.cpp
-
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1@monodll_eggtrayicon.o: $(srcdir)/src/gtk/eggtrayicon.c $(MONODLL_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1@	$(CCC) -c -o $@ $(MONODLL_CFLAGS) $(srcdir)/src/gtk/eggtrayicon.c
 
@@ -14956,9 +14914,6 @@ monolib_cmdline.o: $(srcdir)/src/common/cmdline.cpp $(MONOLIB_ODEP)
 
 monolib_config.o: $(srcdir)/src/common/config.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/common/config.cpp
-
-monolib_convauto.o: $(srcdir)/src/common/convauto.cpp $(MONOLIB_ODEP)
-	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/common/convauto.cpp
 
 monolib_datetime.o: $(srcdir)/src/common/datetime.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/common/datetime.cpp
@@ -15226,12 +15181,6 @@ monolib_artgtk.o: $(srcdir)/src/gtk/artgtk.cpp $(MONOLIB_ODEP)
 
 monolib_gprint.o: $(srcdir)/src/gtk/gnome/gprint.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/gtk/gnome/gprint.cpp
-
-monolib_gvfs.o: $(srcdir)/src/gtk/gnome/gvfs.cpp $(MONOLIB_ODEP)
-	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/gtk/gnome/gvfs.cpp
-
-monolib_treeentry_gtk.o: $(srcdir)/src/gtk/treeentry_gtk.c $(MONOLIB_ODEP)
-	$(CCC) -c -o $@ $(MONOLIB_CFLAGS) $(srcdir)/src/gtk/treeentry_gtk.c
 
 monolib_bmpmotif.o: $(srcdir)/src/motif/bmpmotif.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/motif/bmpmotif.cpp
@@ -15958,6 +15907,9 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1@monolib_main.o: $(srcdir)/src/gtk1/main.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/gtk1/main.cpp
+
+@COND_TOOLKIT_X11_USE_GUI_1@monolib_main.o: $(srcdir)/src/x11/main.cpp $(MONOLIB_ODEP)
+@COND_TOOLKIT_X11_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/x11/main.cpp
 
 @COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0@monolib_main.o: $(srcdir)/src/motif/main.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/motif/main.cpp
@@ -16925,6 +16877,9 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@monolib_display.o: $(srcdir)/src/cocoa/display.mm $(MONOLIB_ODEP)
 @COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/cocoa/display.mm
 
+@COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@monolib_display.o: $(srcdir)/src/os2/display.cpp $(MONOLIB_ODEP)
+@COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/os2/display.cpp
+
 @COND_TOOLKIT_MSW_USE_GUI_1@monolib_enhmeta.o: $(srcdir)/src/msw/enhmeta.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_MSW_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/msw/enhmeta.cpp
 
@@ -17117,6 +17072,9 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@monolib_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
 
+@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@monolib_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(MONOLIB_ODEP)
+@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
+
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@monolib_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
 
@@ -17155,9 +17113,6 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0@monolib_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
-
-@COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@monolib_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(MONOLIB_ODEP)
-@COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
 
 @COND_USE_GUI_1_WXUNIV_1@monolib_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1_WXUNIV_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
@@ -18113,9 +18068,6 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0@monolib_dirdlg.o: $(srcdir)/src/mac/carbon/dirdlg.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/mac/carbon/dirdlg.cpp
 
-@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@monolib_dirdlg.o: $(srcdir)/src/cocoa/dirdlg.mm $(MONOLIB_ODEP)
-@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/cocoa/dirdlg.mm
-
 @COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0@monolib_dragimag.o: $(srcdir)/src/msw/dragimag.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/msw/dragimag.cpp
 
@@ -18545,14 +18497,8 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1@monolib_vscroll.o: $(srcdir)/src/generic/vscroll.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/vscroll.cpp
 
-@COND_USE_GUI_1@monolib_datavcmn.o: $(srcdir)/src/common/datavcmn.cpp $(MONOLIB_ODEP)
-@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/common/datavcmn.cpp
-
 @COND_USE_GUI_1@monolib_calctrl.o: $(srcdir)/src/generic/calctrl.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/calctrl.cpp
-
-@COND_USE_GUI_1@monolib_datavgen.o: $(srcdir)/src/generic/datavgen.cpp $(MONOLIB_ODEP)
-@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/datavgen.cpp
 
 @COND_USE_GUI_1@monolib_datectlg.o: $(srcdir)/src/generic/datectlg.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/datectlg.cpp
@@ -18683,9 +18629,6 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_X11_USE_GUI_1@monolib_taskbarx11.o: $(srcdir)/src/unix/taskbarx11.cpp $(MONOLIB_ODEP)
 @COND_TOOLKIT_X11_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/unix/taskbarx11.cpp
 
-@COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1@monolib_dataview.o: $(srcdir)/src/gtk/dataview.cpp $(MONOLIB_ODEP)
-@COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/gtk/dataview.cpp
-
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1@monolib_eggtrayicon.o: $(srcdir)/src/gtk/eggtrayicon.c $(MONOLIB_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2_USE_GUI_1@	$(CCC) -c -o $@ $(MONOLIB_CFLAGS) $(srcdir)/src/gtk/eggtrayicon.c
 
@@ -18751,9 +18694,6 @@ basedll_cmdline.o: $(srcdir)/src/common/cmdline.cpp $(BASEDLL_ODEP)
 
 basedll_config.o: $(srcdir)/src/common/config.cpp $(BASEDLL_ODEP)
 	$(CXXC) -c -o $@ $(BASEDLL_CXXFLAGS) $(srcdir)/src/common/config.cpp
-
-basedll_convauto.o: $(srcdir)/src/common/convauto.cpp $(BASEDLL_ODEP)
-	$(CXXC) -c -o $@ $(BASEDLL_CXXFLAGS) $(srcdir)/src/common/convauto.cpp
 
 basedll_datetime.o: $(srcdir)/src/common/datetime.cpp $(BASEDLL_ODEP)
 	$(CXXC) -c -o $@ $(BASEDLL_CXXFLAGS) $(srcdir)/src/common/datetime.cpp
@@ -19306,9 +19246,6 @@ baselib_cmdline.o: $(srcdir)/src/common/cmdline.cpp $(BASELIB_ODEP)
 
 baselib_config.o: $(srcdir)/src/common/config.cpp $(BASELIB_ODEP)
 	$(CXXC) -c -o $@ $(BASELIB_CXXFLAGS) $(srcdir)/src/common/config.cpp
-
-baselib_convauto.o: $(srcdir)/src/common/convauto.cpp $(BASELIB_ODEP)
-	$(CXXC) -c -o $@ $(BASELIB_CXXFLAGS) $(srcdir)/src/common/convauto.cpp
 
 baselib_datetime.o: $(srcdir)/src/common/datetime.cpp $(BASELIB_ODEP)
 	$(CXXC) -c -o $@ $(BASELIB_CXXFLAGS) $(srcdir)/src/common/datetime.cpp
@@ -19982,12 +19919,6 @@ coredll_artgtk.o: $(srcdir)/src/gtk/artgtk.cpp $(COREDLL_ODEP)
 coredll_gprint.o: $(srcdir)/src/gtk/gnome/gprint.cpp $(COREDLL_ODEP)
 	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/gtk/gnome/gprint.cpp
 
-coredll_gvfs.o: $(srcdir)/src/gtk/gnome/gvfs.cpp $(COREDLL_ODEP)
-	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/gtk/gnome/gvfs.cpp
-
-coredll_treeentry_gtk.o: $(srcdir)/src/gtk/treeentry_gtk.c $(COREDLL_ODEP)
-	$(CCC) -c -o $@ $(COREDLL_CFLAGS) $(srcdir)/src/gtk/treeentry_gtk.c
-
 coredll_bmpmotif.o: $(srcdir)/src/motif/bmpmotif.cpp $(COREDLL_ODEP)
 	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/motif/bmpmotif.cpp
 
@@ -20170,6 +20101,9 @@ coredll_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(COREDLL_ODEP)
 
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1@coredll_main.o: $(srcdir)/src/gtk1/main.cpp $(COREDLL_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/gtk1/main.cpp
+
+@COND_TOOLKIT_X11_USE_GUI_1@coredll_main.o: $(srcdir)/src/x11/main.cpp $(COREDLL_ODEP)
+@COND_TOOLKIT_X11_USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/x11/main.cpp
 
 @COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0@coredll_main.o: $(srcdir)/src/motif/main.cpp $(COREDLL_ODEP)
 @COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/motif/main.cpp
@@ -21137,6 +21071,9 @@ coredll_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(COREDLL_ODEP)
 @COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@coredll_display.o: $(srcdir)/src/cocoa/display.mm $(COREDLL_ODEP)
 @COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/cocoa/display.mm
 
+@COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@coredll_display.o: $(srcdir)/src/os2/display.cpp $(COREDLL_ODEP)
+@COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/os2/display.cpp
+
 @COND_TOOLKIT_MSW_USE_GUI_1@coredll_enhmeta.o: $(srcdir)/src/msw/enhmeta.cpp $(COREDLL_ODEP)
 @COND_TOOLKIT_MSW_USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/msw/enhmeta.cpp
 
@@ -21329,6 +21266,9 @@ coredll_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(COREDLL_ODEP)
 @COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@coredll_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(COREDLL_ODEP)
 @COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
 
+@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@coredll_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(COREDLL_ODEP)
+@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
+
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@coredll_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(COREDLL_ODEP)
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
 
@@ -21367,9 +21307,6 @@ coredll_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(COREDLL_ODEP)
 
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0@coredll_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(COREDLL_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
-
-@COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@coredll_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(COREDLL_ODEP)
-@COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
 
 @COND_USE_GUI_1_WXUNIV_1@coredll_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(COREDLL_ODEP)
 @COND_USE_GUI_1_WXUNIV_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
@@ -22325,9 +22262,6 @@ coredll_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(COREDLL_ODEP)
 @COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0@coredll_dirdlg.o: $(srcdir)/src/mac/carbon/dirdlg.cpp $(COREDLL_ODEP)
 @COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/mac/carbon/dirdlg.cpp
 
-@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@coredll_dirdlg.o: $(srcdir)/src/cocoa/dirdlg.mm $(COREDLL_ODEP)
-@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/cocoa/dirdlg.mm
-
 @COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0@coredll_dragimag.o: $(srcdir)/src/msw/dragimag.cpp $(COREDLL_ODEP)
 @COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/msw/dragimag.cpp
 
@@ -22751,12 +22685,6 @@ corelib_artgtk.o: $(srcdir)/src/gtk/artgtk.cpp $(CORELIB_ODEP)
 corelib_gprint.o: $(srcdir)/src/gtk/gnome/gprint.cpp $(CORELIB_ODEP)
 	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/gtk/gnome/gprint.cpp
 
-corelib_gvfs.o: $(srcdir)/src/gtk/gnome/gvfs.cpp $(CORELIB_ODEP)
-	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/gtk/gnome/gvfs.cpp
-
-corelib_treeentry_gtk.o: $(srcdir)/src/gtk/treeentry_gtk.c $(CORELIB_ODEP)
-	$(CCC) -c -o $@ $(CORELIB_CFLAGS) $(srcdir)/src/gtk/treeentry_gtk.c
-
 corelib_bmpmotif.o: $(srcdir)/src/motif/bmpmotif.cpp $(CORELIB_ODEP)
 	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/motif/bmpmotif.cpp
 
@@ -22939,6 +22867,9 @@ corelib_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(CORELIB_ODEP)
 
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1@corelib_main.o: $(srcdir)/src/gtk1/main.cpp $(CORELIB_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/gtk1/main.cpp
+
+@COND_TOOLKIT_X11_USE_GUI_1@corelib_main.o: $(srcdir)/src/x11/main.cpp $(CORELIB_ODEP)
+@COND_TOOLKIT_X11_USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/x11/main.cpp
 
 @COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0@corelib_main.o: $(srcdir)/src/motif/main.cpp $(CORELIB_ODEP)
 @COND_TOOLKIT_MOTIF_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/motif/main.cpp
@@ -23906,6 +23837,9 @@ corelib_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(CORELIB_ODEP)
 @COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@corelib_display.o: $(srcdir)/src/cocoa/display.mm $(CORELIB_ODEP)
 @COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/cocoa/display.mm
 
+@COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@corelib_display.o: $(srcdir)/src/os2/display.cpp $(CORELIB_ODEP)
+@COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/os2/display.cpp
+
 @COND_TOOLKIT_MSW_USE_GUI_1@corelib_enhmeta.o: $(srcdir)/src/msw/enhmeta.cpp $(CORELIB_ODEP)
 @COND_TOOLKIT_MSW_USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/msw/enhmeta.cpp
 
@@ -24098,6 +24032,9 @@ corelib_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(CORELIB_ODEP)
 @COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@corelib_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(CORELIB_ODEP)
 @COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
 
+@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@corelib_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(CORELIB_ODEP)
+@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
+
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@corelib_dirdlgg.o: $(srcdir)/src/generic/dirdlgg.cpp $(CORELIB_ODEP)
 @COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/generic/dirdlgg.cpp
 
@@ -24136,9 +24073,6 @@ corelib_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(CORELIB_ODEP)
 
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0@corelib_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(CORELIB_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION__USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
-
-@COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@corelib_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(CORELIB_ODEP)
-@COND_TOOLKIT_WINCE_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
 
 @COND_USE_GUI_1_WXUNIV_1@corelib_filedlgg.o: $(srcdir)/src/generic/filedlgg.cpp $(CORELIB_ODEP)
 @COND_USE_GUI_1_WXUNIV_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/generic/filedlgg.cpp
@@ -25094,9 +25028,6 @@ corelib_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(CORELIB_ODEP)
 @COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0@corelib_dirdlg.o: $(srcdir)/src/mac/carbon/dirdlg.cpp $(CORELIB_ODEP)
 @COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/mac/carbon/dirdlg.cpp
 
-@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@corelib_dirdlg.o: $(srcdir)/src/cocoa/dirdlg.mm $(CORELIB_ODEP)
-@COND_TOOLKIT_COCOA_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/cocoa/dirdlg.mm
-
 @COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0@corelib_dragimag.o: $(srcdir)/src/msw/dragimag.cpp $(CORELIB_ODEP)
 @COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/msw/dragimag.cpp
 
@@ -25499,14 +25430,8 @@ advdll_version_rc.o: $(srcdir)/src/msw/version.rc $(ADVDLL_ODEP)
 advdll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(ADVDLL_ODEP)
 	$(CXXC) -c -o $@ $(ADVDLL_CXXFLAGS) $(srcdir)/src/unix/sound_sdl.cpp
 
-advdll_datavcmn.o: $(srcdir)/src/common/datavcmn.cpp $(ADVDLL_ODEP)
-	$(CXXC) -c -o $@ $(ADVDLL_CXXFLAGS) $(srcdir)/src/common/datavcmn.cpp
-
 advdll_calctrl.o: $(srcdir)/src/generic/calctrl.cpp $(ADVDLL_ODEP)
 	$(CXXC) -c -o $@ $(ADVDLL_CXXFLAGS) $(srcdir)/src/generic/calctrl.cpp
-
-advdll_datavgen.o: $(srcdir)/src/generic/datavgen.cpp $(ADVDLL_ODEP)
-	$(CXXC) -c -o $@ $(ADVDLL_CXXFLAGS) $(srcdir)/src/generic/datavgen.cpp
 
 advdll_datectlg.o: $(srcdir)/src/generic/datectlg.cpp $(ADVDLL_ODEP)
 	$(CXXC) -c -o $@ $(ADVDLL_CXXFLAGS) $(srcdir)/src/generic/datectlg.cpp
@@ -25664,9 +25589,6 @@ advdll_richtexthtml.o: $(srcdir)/src/richtext/richtexthtml.cpp $(ADVDLL_ODEP)
 @COND_TOOLKIT_X11@advdll_taskbarx11.o: $(srcdir)/src/unix/taskbarx11.cpp $(ADVDLL_ODEP)
 @COND_TOOLKIT_X11@	$(CXXC) -c -o $@ $(ADVDLL_CXXFLAGS) $(srcdir)/src/unix/taskbarx11.cpp
 
-@COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@advdll_dataview.o: $(srcdir)/src/gtk/dataview.cpp $(ADVDLL_ODEP)
-@COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@	$(CXXC) -c -o $@ $(ADVDLL_CXXFLAGS) $(srcdir)/src/gtk/dataview.cpp
-
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@advdll_eggtrayicon.o: $(srcdir)/src/gtk/eggtrayicon.c $(ADVDLL_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@	$(CCC) -c -o $@ $(ADVDLL_CFLAGS) $(srcdir)/src/gtk/eggtrayicon.c
 
@@ -25679,14 +25601,8 @@ advdll_richtexthtml.o: $(srcdir)/src/richtext/richtexthtml.cpp $(ADVDLL_ODEP)
 advlib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(ADVLIB_ODEP)
 	$(CXXC) -c -o $@ $(ADVLIB_CXXFLAGS) $(srcdir)/src/unix/sound_sdl.cpp
 
-advlib_datavcmn.o: $(srcdir)/src/common/datavcmn.cpp $(ADVLIB_ODEP)
-	$(CXXC) -c -o $@ $(ADVLIB_CXXFLAGS) $(srcdir)/src/common/datavcmn.cpp
-
 advlib_calctrl.o: $(srcdir)/src/generic/calctrl.cpp $(ADVLIB_ODEP)
 	$(CXXC) -c -o $@ $(ADVLIB_CXXFLAGS) $(srcdir)/src/generic/calctrl.cpp
-
-advlib_datavgen.o: $(srcdir)/src/generic/datavgen.cpp $(ADVLIB_ODEP)
-	$(CXXC) -c -o $@ $(ADVLIB_CXXFLAGS) $(srcdir)/src/generic/datavgen.cpp
 
 advlib_datectlg.o: $(srcdir)/src/generic/datectlg.cpp $(ADVLIB_ODEP)
 	$(CXXC) -c -o $@ $(ADVLIB_CXXFLAGS) $(srcdir)/src/generic/datectlg.cpp
@@ -25843,9 +25759,6 @@ advlib_richtexthtml.o: $(srcdir)/src/richtext/richtexthtml.cpp $(ADVLIB_ODEP)
 
 @COND_TOOLKIT_X11@advlib_taskbarx11.o: $(srcdir)/src/unix/taskbarx11.cpp $(ADVLIB_ODEP)
 @COND_TOOLKIT_X11@	$(CXXC) -c -o $@ $(ADVLIB_CXXFLAGS) $(srcdir)/src/unix/taskbarx11.cpp
-
-@COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@advlib_dataview.o: $(srcdir)/src/gtk/dataview.cpp $(ADVLIB_ODEP)
-@COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@	$(CXXC) -c -o $@ $(ADVLIB_CXXFLAGS) $(srcdir)/src/gtk/dataview.cpp
 
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@advlib_eggtrayicon.o: $(srcdir)/src/gtk/eggtrayicon.c $(ADVLIB_ODEP)
 @COND_TOOLKIT_GTK_TOOLKIT_VERSION_2@	$(CCC) -c -o $@ $(ADVLIB_CFLAGS) $(srcdir)/src/gtk/eggtrayicon.c
@@ -26938,7 +26851,9 @@ DEMOS_DIST: ALL_GUI_DIST
 	$(CP_P) $(DEMODIR)/forty/*.h $(DISTDIR)/demos/forty
 	$(CP_P) $(DEMODIR)/forty/*.cpp $(DISTDIR)/demos/forty
 	$(CP_P) $(DEMODIR)/forty/*.xpm $(DISTDIR)/demos/forty
+	$(CP_P) $(DEMODIR)/forty/*.xbm $(DISTDIR)/demos/forty
 	$(CP_P) $(DEMODIR)/forty/*.htm $(DISTDIR)/demos/forty
+	$(CP_P) $(DEMODIR)/forty/*.bmp $(DISTDIR)/demos/forty
 	$(CP_P) $(DEMODIR)/forty/*.ico $(DISTDIR)/demos/forty
 	$(CP_P) $(DEMODIR)/forty/*.rc $(DISTDIR)/demos/forty
 	$(CP_P) $(DEMODIR)/forty/readme.txt $(DISTDIR)/demos/forty

@@ -3,7 +3,7 @@
 // Purpose:     XML resource compiler
 // Author:      Vaclav Slavik, Eduardo Marques <edrdo@netcabo.pt>
 // Created:     2000/03/05
-// RCS-ID:      $Id: wxrc.cpp,v 1.49 2006/03/21 15:12:37 VZ Exp $
+// RCS-ID:      $Id: wxrc.cpp,v 1.48 2005/09/25 19:58:28 VZ Exp $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -381,30 +381,28 @@ wxArrayString XmlResApp::PrepareTempFiles()
 // Does 'node' contain filename information at all?
 static bool NodeContainsFilename(wxXmlNode *node)
 {
-   const wxString name = node->GetName();
-
-   // Any bitmaps (bitmap2 is used for disabled toolbar buttons):
-   if ( name == _T("bitmap") || name == _T("bitmap2") )
+   // Any bitmaps:
+   if (node->GetName() == _T("bitmap"))
        return true;
 
-   if ( name == _T("icon") )
+   if (node->GetName() == _T("icon"))
        return true;
 
    // URLs in wxHtmlWindow:
-   if ( name == _T("url") )
+   if (node->GetName() == _T("url"))
        return true;
 
    // wxBitmapButton:
    wxXmlNode *parent = node->GetParent();
    if (parent != NULL &&
        parent->GetPropVal(_T("class"), _T("")) == _T("wxBitmapButton") &&
-       (name == _T("focus") ||
-        name == _T("disabled") ||
-        name == _T("selected")))
+       (node->GetName() == _T("focus") ||
+        node->GetName() == _T("disabled") ||
+        node->GetName() == _T("selected")))
        return true;
 
    // wxBitmap or wxIcon toplevel resources:
-   if ( name == _T("object") )
+   if (node->GetName() == _T("object"))
    {
        wxString klass = node->GetPropVal(_T("class"), wxEmptyString);
        if (klass == _T("wxBitmap") || klass == _T("wxIcon"))

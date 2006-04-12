@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     18-June-1999
-// RCS-ID:      $Id: _mimetype.i,v 1.9 2006/03/14 04:06:36 RD Exp $
+// RCS-ID:      $Id: _mimetype.i,v 1.8 2005/05/31 09:29:15 JS Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ public:
 
     // get the array of all extensions
     const wxArrayString& GetExtensions() const;
-    size_t GetExtensionsCount() const;
+    int GetExtensionsCount() const;
 
     // get the icon info
     const wxString& GetIconFile() const;

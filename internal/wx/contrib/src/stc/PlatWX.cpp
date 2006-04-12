@@ -12,7 +12,6 @@
 #include "wx/mstream.h"
 #include "wx/image.h"
 #include "wx/imaglist.h"
-#include "wx/tokenzr.h"
 
 #include "Platform.h"
 #include "PlatWX.h"
@@ -108,7 +107,7 @@ void Font::Create(const char *faceName, int characterSet, int size, bool bold, b
     // so we adjust the encoding before passing it to Scintilla.  See also
     // wxStyledTextCtrl::StyleSetCharacterSet
     wxFontEncoding encoding = (wxFontEncoding)(characterSet-1);
-
+    
     wxFontEncodingArray ea = wxEncodingConverter::GetPlatformEquivalents(encoding);
     if (ea.GetCount())
         encoding = ea[0];
@@ -667,7 +666,7 @@ END_EVENT_TABLE()
 
 
 
-#if wxUSE_POPUPWIN //-----------------------------------
+#if wxUSE_POPUPWIN //-----------------------------------   
 #include <wx/popupwin.h>
 
 
@@ -677,9 +676,9 @@ END_EVENT_TABLE()
 // implement wxPopupWindow for the Mac!!)
 //
 // In the meantime, be careful to duplicate any changes as needed...
-//
-
-// A popup window to place the wxSTCListBox upon
+//    
+    
+// A popup window to place the wxSTCListBox upon    
 class wxSTCListBoxWin : public wxPopupWindow
 {
 private:
@@ -687,7 +686,7 @@ private:
     CallBackAction      doubleClickAction;
     void*               doubleClickActionData;
 public:
-    wxSTCListBoxWin(wxWindow* parent, wxWindowID id, Point WXUNUSED(location)) :
+    wxSTCListBoxWin(wxWindow* parent, wxWindowID id) :
         wxPopupWindow(parent, wxBORDER_NONE)
     {
         SetBackgroundColour(*wxBLACK);  // for our simple border
@@ -703,7 +702,7 @@ public:
         // "right" to the user.  But since the wxPopupWindow or its children
         // can't receive focus then we have to pull a fast one and temporarily
         // parent the listctrl on the STC window and then call SetFocus and
-        // then reparent it back to the popup.
+        // then reparent it back to the popup. 
         lv->SetFocus();
         lv->Reparent(this);
 #ifdef __WXMSW__
@@ -794,7 +793,7 @@ BEGIN_EVENT_TABLE(wxSTCListBoxWin, wxPopupWindow)
     EVT_LIST_ITEM_ACTIVATED(wxID_ANY, wxSTCListBoxWin::OnActivate)
 END_EVENT_TABLE()
 
-
+    
 
 #else // wxUSE_POPUPWIN -----------------------------------
 
@@ -805,8 +804,8 @@ private:
     CallBackAction      doubleClickAction;
     void*               doubleClickActionData;
 public:
-    wxSTCListBoxWin(wxWindow* parent, wxWindowID id, Point location) :
-        wxWindow(parent, id, wxPoint(location.x, location.y), wxSize(0,0), wxSIMPLE_BORDER )
+    wxSTCListBoxWin(wxWindow* parent, wxWindowID id) :
+        wxWindow(parent, id, wxDefaultPosition, wxSize(0,0), wxSIMPLE_BORDER )
     {
 
         lv = new wxSTCListBox(this, id, wxDefaultPosition, wxDefaultSize,
@@ -882,7 +881,7 @@ public:
         return rv;
     }
 #endif
-
+    
     void OnActivate(wxListEvent& WXUNUSED(event)) {
         doubleClickAction(doubleClickActionData);
     }
@@ -919,8 +918,7 @@ private:
     bool                unicodeMode;
     int                 desiredVisibleRows;
     int                 aveCharWidth;
-    size_t              maxStrWidth;
-    Point               location;       // Caret location at which the list is opened
+    int                 maxStrWidth;
     wxImageList*        imgList;
     wxArrayInt*         imgTypeMap;
 
@@ -929,15 +927,13 @@ public:
     ~ListBoxImpl();
 
     virtual void SetFont(Font &font);
-    virtual void Create(Window &parent, int ctrlID, Point location_, int lineHeight_, bool unicodeMode_);
+    virtual void Create(Window &parent, int ctrlID, int lineHeight_, bool unicodeMode_);
     virtual void SetAverageCharWidth(int width);
     virtual void SetVisibleRows(int rows);
-    virtual int GetVisibleRows() const;
     virtual PRectangle GetDesiredRect();
     virtual int CaretFromEdge();
     virtual void Clear();
     virtual void Append(char *s, int type = -1);
-            void Append(const wxString& text, int type);
     virtual int Length();
     virtual void Select(int n);
     virtual int GetSelection();
@@ -946,7 +942,7 @@ public:
     virtual void RegisterImage(int type, const char *xpm_data);
     virtual void ClearRegisteredImages();
     virtual void SetDoubleClickAction(CallBackAction, void *);
-    virtual void SetList(const char* list, char separator, char typesep);
+
 };
 
 
@@ -974,12 +970,11 @@ void ListBoxImpl::SetFont(Font &font) {
 }
 
 
-void ListBoxImpl::Create(Window &parent, int ctrlID, Point location_, int lineHeight_, bool unicodeMode_) {
-    location = location_;
+void ListBoxImpl::Create(Window &parent, int ctrlID, int lineHeight_, bool unicodeMode_) {
     lineHeight =  lineHeight_;
     unicodeMode = unicodeMode_;
     maxStrWidth = 0;
-    id = new wxSTCListBoxWin(GETWIN(parent.GetID()), ctrlID, location);
+    id = new wxSTCListBoxWin(GETWIN(parent.GetID()), ctrlID);
     if (imgList != NULL)
         GETLB(id)->SetImageList(imgList, wxIMAGE_LIST_SMALL);
 }
@@ -995,14 +990,10 @@ void ListBoxImpl::SetVisibleRows(int rows) {
 }
 
 
-int ListBoxImpl::GetVisibleRows() const {
-    return desiredVisibleRows;
-}
-
 PRectangle ListBoxImpl::GetDesiredRect() {
     // wxListCtrl doesn't have a DoGetBestSize, so instead we kept track of
     // the max size in Append and calculate it here...
-    int maxw = maxStrWidth * aveCharWidth;
+    int maxw = maxStrWidth;
     int maxh ;
 
     // give it a default if there are no lines, and/or add a bit more
@@ -1048,36 +1039,18 @@ void ListBoxImpl::Clear() {
 
 
 void ListBoxImpl::Append(char *s, int type) {
-    Append(stc2wx(s), type);
-}
-
-void ListBoxImpl::Append(const wxString& text, int type) {
+    wxString text = stc2wx(s);
     long count  = GETLB(id)->GetItemCount();
     long itemID  = GETLB(id)->InsertItem(count, wxEmptyString);
     GETLB(id)->SetItem(itemID, 1, text);
-    maxStrWidth = wxMax(maxStrWidth, text.length());
+    int itemWidth = 0;
+    GETLB(id)->GetTextExtent(text, &itemWidth, NULL);
+    maxStrWidth = wxMax(maxStrWidth, itemWidth);
     if (type != -1) {
         wxCHECK_RET(imgTypeMap, wxT("Unexpected NULL imgTypeMap"));
         long idx = imgTypeMap->Item(type);
         GETLB(id)->SetItemImage(itemID, idx, idx);
     }
-}
-
-void ListBoxImpl::SetList(const char* list, char separator, char typesep) {
-    GETLB(id)->Freeze();
-    Clear();
-    wxStringTokenizer tkzr(stc2wx(list), (wxChar)separator);
-    while ( tkzr.HasMoreTokens() ) {
-        wxString token = tkzr.GetNextToken();
-        long type = -1;
-        int pos = token.Find(typesep);
-        if (pos != -1) {
-            token.Mid(pos+1).ToLong(&type);
-            token.Truncate(pos);
-        }
-        Append(token, (int)type);
-    }
-    GETLB(id)->Thaw();
 }
 
 
@@ -1158,6 +1131,7 @@ void ListBoxImpl::ClearRegisteredImages() {
 void ListBoxImpl::SetDoubleClickAction(CallBackAction action, void *data) {
     GETLBW(id)->SetDoubleClickAction(action, data);
 }
+
 
 
 ListBox::ListBox() {
@@ -1396,3 +1370,9 @@ const wxWX2MBbuf wx2stc(const wxString& str)
 }
 
 #endif
+
+
+
+
+
+

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dc.cpp,v 1.201 2006/03/15 09:50:37 JS Exp $
+// RCS-ID:      $Id: dc.cpp,v 1.198 2006/02/12 01:57:17 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@
 #include "wx/sysopt.h"
 #include "wx/dcprint.h"
 #include "wx/module.h"
-#include "wx/dynlib.h"
+#include "wx/dynload.h"
 
 #ifdef wxHAVE_RAW_BITMAP
 #include "wx/rawbmp.h"
@@ -483,14 +483,6 @@ void wxDC::DestroyClippingRegion()
 
     if (m_clipping && m_hDC)
     {
-#if 1
-        // On a PocketPC device (not necessarily emulator), resetting
-        // the clip region as per the old method causes bad display
-        // problems. In fact setting a null region is probably OK
-        // on desktop WIN32 also, since the WIN32 docs imply that the user
-        // clipping region is independent from the paint clipping region.
-        ::SelectClipRgn(GetHdc(), 0);
-#else        
         // TODO: this should restore the previous clipping region,
         //       so that OnPaint processing works correctly, and the update
         //       clipping region doesn't get destroyed after the first
@@ -498,7 +490,6 @@ void wxDC::DestroyClippingRegion()
         HRGN rgn = CreateRectRgn(0, 0, 32000, 32000);
         ::SelectClipRgn(GetHdc(), rgn);
         ::DeleteObject(rgn);
-#endif        
     }
 
     wxDCBase::DestroyClippingRegion();
@@ -2656,13 +2647,13 @@ void wxDC::DoGradientFillLinear (const wxRect& rect,
         vertices[1].x = rect.GetRight();
         vertices[1].y = rect.GetBottom();
 
-        vertices[firstVertex].Red = (COLOR16)(initialColour.Red() << 8);
-        vertices[firstVertex].Green = (COLOR16)(initialColour.Green() << 8);
-        vertices[firstVertex].Blue = (COLOR16)(initialColour.Blue() << 8);
+        vertices[firstVertex].Red = initialColour.Red() << 8;
+        vertices[firstVertex].Green = initialColour.Green() << 8;
+        vertices[firstVertex].Blue = initialColour.Blue() << 8;
         vertices[firstVertex].Alpha = 0;
-        vertices[1 - firstVertex].Red = (COLOR16)(destColour.Red() << 8);
-        vertices[1 - firstVertex].Green = (COLOR16)(destColour.Green() << 8);
-        vertices[1 - firstVertex].Blue = (COLOR16)(destColour.Blue() << 8);
+        vertices[1 - firstVertex].Red = destColour.Red() << 8;
+        vertices[1 - firstVertex].Green = destColour.Green() << 8;
+        vertices[1 - firstVertex].Blue = destColour.Blue() << 8;
         vertices[1 - firstVertex].Alpha = 0;
 
         if (nDirection == wxWEST ||

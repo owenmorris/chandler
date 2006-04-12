@@ -2,7 +2,7 @@
 # Purpose:      Classes for parameter introduction
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      22.08.2001
-# RCS-ID:       $Id: params.py,v 1.21 2006/03/31 16:38:20 ROL Exp $
+# RCS-ID:       $Id: params.py,v 1.19 2005/11/11 00:23:31 ROL Exp $
 
 import string
 import os.path
@@ -187,6 +187,7 @@ class ParamExStyle(ParamBinaryOr):
         else:
             self.values = []
         ParamBinaryOr.__init__(self, parent, name)
+        self.SetTitle('Extended window styles')
 
 class ParamColour(PPanel):
     def __init__(self, parent, name):
@@ -211,11 +212,8 @@ class ParamColour(PPanel):
         self.freeze = True
         if not value: value = '#FFFFFF'
         self.text.SetValue(str(value))  # update text ctrl
-        try:
-            colour = wxColour(int(value[1:3], 16), int(value[3:5], 16), int(value[5:7], 16))
-            self.button.SetBackgroundColour(colour)
-        except:                         # ignore errors
-            pass
+        colour = wxColour(int(value[1:3], 16), int(value[3:5], 16), int(value[5:7], 16))
+        self.button.SetBackgroundColour(colour)
         self.button.Refresh()
         self.freeze = False
     def OnPaintButton(self, evt):
@@ -236,7 +234,7 @@ class ParamColour(PPanel):
 
 ################################################################################
 
-# Mapping from wx constants to XML strings
+# Mapping from wx constants ro XML strings
 fontFamiliesWx2Xml = {wxDEFAULT: 'default', wxDECORATIVE: 'decorative',
                 wxROMAN: 'roman', wxSCRIPT: 'script', wxSWISS: 'swiss',
                 wxMODERN: 'modern'}

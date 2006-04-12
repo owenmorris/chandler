@@ -79,7 +79,6 @@ OBJECTS = \
 		dobjcmn.obj,\
 		docmdi.obj,\
 		docview.obj,\
-		dpycmn.obj,\
 		dynarray.obj,\
 		dynlib.obj,\
 		encconv.obj,\
@@ -222,7 +221,6 @@ SOURCES = \
 		dobjcmn.cpp,\
 		docmdi.cpp,\
 		docview.cpp,\
-		dpycmn.cpp,\
 		dynarray.cpp,\
 		dynlib.cpp,\
 		encconv.cpp,\
@@ -525,4 +523,3 @@ xti.obj : xti.cpp
 xtistrm.obj : xtistrm.cpp
 xtixml.obj : xtixml.cpp
 uri.obj : uri.cpp
-dpycmn.obj : dpycmn.cpp

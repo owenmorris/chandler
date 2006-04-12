@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp,v 1.137 2006/03/23 12:58:43 ABX Exp $
+// RCS-ID:      $Id: toplevel.cpp,v 1.133 2006/02/08 21:55:02 VZ Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -325,13 +325,9 @@ WXHWND wxTopLevelWindowMSW::MSWGetParent() const
 #if defined(__SMARTPHONE__) || defined(__POCKETPC__)
 bool wxTopLevelWindowMSW::HandleSettingChange(WXWPARAM wParam, WXLPARAM lParam)
 {
-    SHACTIVATEINFO *info = (SHACTIVATEINFO*) m_activateInfo;
-    if ( info )
-    {
-        SHHandleWMSettingChange(GetHwnd(), wParam, lParam, info);
-    }
-
-    return wxWindowMSW::HandleSettingChange(wParam, lParam);
+    SHACTIVATEINFO* info = (SHACTIVATEINFO*) m_activateInfo;
+    if (!info) return false;
+    return SHHandleWMSettingChange(GetHwnd(), wParam, lParam, info) == TRUE;
 }
 #endif
 
@@ -357,6 +353,11 @@ WXLRESULT wxTopLevelWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WX
             if (wxTheApp)
                 wxTheApp->SetActive(wParam != 0, FindFocus());
 
+            break;
+        }
+        case WM_SETTINGCHANGE:
+        {
+            processed = HandleSettingChange(wParam,lParam);
             break;
         }
         case WM_HIBERNATE:
@@ -740,8 +741,8 @@ void wxTopLevelWindowMSW::Maximize(bool maximize)
 
 bool wxTopLevelWindowMSW::IsMaximized() const
 {
-#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
-    return true;
+#ifdef __WXWINCE__
+    return false;
 #else
     return m_maximizeOnShow || ::IsZoomed(GetHwnd()) != 0;
 #endif
@@ -1110,8 +1111,8 @@ void wxTopLevelWindowMSW::OnActivate(wxActivateEvent& event)
 LONG APIENTRY _EXPORT
 wxDlgProc(HWND hDlg,
           UINT message,
-          WPARAM WXUNUSED(wParam),
-          LPARAM WXUNUSED(lParam))
+          WPARAM wParam,
+          LPARAM lParam)
 {
     switch ( message )
     {
@@ -1142,6 +1143,18 @@ wxDlgProc(HWND hDlg,
             // the first control in the dialog box, but as we set the focus
             // ourselves, we return FALSE for it as well
             return FALSE;
+        }
+
+        case WM_SETTINGCHANGE:
+        {
+#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
+            wxTopLevelWindow *tlw = wxDynamicCast(wxGetWindowFromHWND(hDlg), wxTopLevelWindow);
+            if(tlw) return tlw->HandleSettingChange(wParam,lParam) ? TRUE : FALSE;
+#else
+            wxUnusedVar(wParam);
+            wxUnusedVar(lParam);
+#endif
+            break;
         }
     }
 

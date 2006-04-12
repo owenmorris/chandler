@@ -4,9 +4,9 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/03/16
-// RCS-ID:      $Id: checklst.h,v 1.5 2006/03/23 22:04:24 VZ Exp $
+// RCS-ID:      $Id:
 // Copyright:   (c) 2003 David Elliott
-// Licence:     wxWindows licence
+// Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __WX_COCOA_CHECKLST_H__
@@ -73,8 +73,8 @@ protected:
 // ------------------------------------------------------------------------
 public:
     // check list box specific methods
-    virtual bool IsChecked(unsigned int item) const;
-    virtual void Check(unsigned int item, bool check = true);
+    virtual bool IsChecked(size_t item) const;
+    virtual void Check(size_t item, bool check = TRUE);
 };
 
 #endif // __WX_COCOA_CHECKLST_H__

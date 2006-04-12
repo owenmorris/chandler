@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     16-Aug-2002
-// RCS-ID:      $Id: wizard.i,v 1.23 2006/03/24 00:10:48 RD Exp $
+// RCS-ID:      $Id: wizard.i,v 1.22 2006/02/07 03:56:36 RD Exp $
 // Copyright:   (c) 2002 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -103,7 +103,7 @@ public:
                     const wxBitmap& bitmap = wxNullBitmap,
                     const wxString& resource = wxPyEmptyString) {
             wxChar* res = NULL;
-            if (resource.length())
+            if (resource.Length())
                 res = (wxChar*)resource.c_str();
             return self->Create(parent, bitmap, res);
         }
@@ -218,7 +218,7 @@ public:
                        const wxBitmap* bitmap = &wxNullBitmap,
                        const wxString* resource = &wxPyEmptyString) {
             wxChar* res = NULL;
-            if (resource->length())
+            if (resource->Length())
                 res = (wxChar*)resource->c_str();
             return new wxPyWizardPage(parent, *bitmap, res);
         }
@@ -234,7 +234,7 @@ public:
                     const wxBitmap& bitmap = wxNullBitmap,
                     const wxString& resource = wxPyEmptyString) {
             wxChar* res = NULL;
-            if (resource.length())
+            if (resource.Length())
                 res = (wxChar*)resource.c_str();
             return self->Create(parent, bitmap, res);
         }
@@ -403,7 +403,7 @@ public:
     virtual void SetBorder(int border);
 
     // is the wizard running?
-    bool IsRunning() const;
+    bool IsRunning() const { return m_page != NULL; }
 
     // show the prev/next page, but call TransferDataFromWindow on the current
     // page first and return False without changing the page if

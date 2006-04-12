@@ -2,7 +2,7 @@
 # Purpose:      XRC editor, main module
 # Author:       Roman Rolinsky <rolinsky@mema.ucl.ac.be>
 # Created:      20.08.2001
-# RCS-ID:       $Id: xrced.py,v 1.42 2006/04/08 06:17:08 RD Exp $
+# RCS-ID:       $Id: xrced.py,v 1.36 2006/02/14 23:06:34 ROL Exp $
 
 """
 
@@ -22,7 +22,6 @@ Options:
 
 from globals import *
 import os, sys, getopt, re, traceback, tempfile, shutil, cPickle
-from xml.parsers import expat
 
 # Local modules
 from tree import *                      # imports xxx which imports params
@@ -104,7 +103,6 @@ class Frame(wxFrame):
         self.res = wxXmlResource('')
         # !!! Blocking of assert failure occurring in older unicode builds
         try:
-            quietlog = wx.LogNull()
             self.res.Load(os.path.join(basePath, 'xrced.xrc'))
         except wx._core.PyAssertionError:
             print 'PyAssertionError was ignored'
@@ -122,9 +120,6 @@ class Frame(wxFrame):
         menu.AppendSeparator()
         menu.Append(wxID_SAVE, '&Save\tCtrl-S', 'Save XRC file')
         menu.Append(wxID_SAVEAS, 'Save &As...', 'Save XRC file under different name')
-        self.ID_GENERATE_PYTHON = wxNewId()
-        menu.Append(self.ID_GENERATE_PYTHON, '&Generate Python...', 
-                    'Generate a Python module that uses this XRC')
         menu.AppendSeparator()
         menu.Append(wxID_EXIT, '&Quit\tCtrl-Q', 'Exit application')
 
@@ -225,7 +220,6 @@ class Frame(wxFrame):
         EVT_MENU(self, wxID_OPEN, self.OnOpen)
         EVT_MENU(self, wxID_SAVE, self.OnSaveOrSaveAs)
         EVT_MENU(self, wxID_SAVEAS, self.OnSaveOrSaveAs)
-        EVT_MENU(self, self.ID_GENERATE_PYTHON, self.OnGeneratePython)
         EVT_MENU(self, wxID_EXIT, self.OnExit)
         # Edit
         EVT_MENU(self, wxID_UNDO, self.OnUndo)
@@ -377,20 +371,6 @@ class Frame(wxFrame):
             else:
                 dlg.Destroy()
                 return
-
-            if conf.localconf:
-                # if we already have a localconf then it needs to be
-                # copied to a new config with the new name
-                lc = conf.localconf
-                nc = self.CreateLocalConf(path)
-                flag, key, idx = lc.GetFirstEntry()
-                while flag:
-                    nc.Write(key, lc.Read(key))
-                    flag, key, idx = lc.GetNextEntry(idx)
-                conf.localconf = nc
-            else:
-                # otherwise create a new one
-                conf.localconf = self.CreateLocalConf(path)
         else:
             path = self.dataFile
         self.SetStatusText('Saving...')
@@ -402,11 +382,6 @@ class Frame(wxFrame):
                 self.Save(tmpName) # save temporary file first
                 shutil.move(tmpName, path)
                 self.dataFile = path
-                if conf.localconf.ReadBool("autogenerate", False):
-                    pypath = conf.localconf.Read("filename")
-                    embed = conf.localconf.ReadBool("embedResource", False)
-                    self.GeneratePython(self.dataFile, pypath, embed)
-                    
                 self.SetStatusText('Data saved')
                 self.SaveRecent(path)
             except IOError:
@@ -422,28 +397,6 @@ class Frame(wxFrame):
             EVT_MENU(self, newid, self.OnRecentFile)
             conf.recentfiles[newid] = path
 
-    def GeneratePython(self, dataFile, pypath, embed):
-        try:
-            import wx.tools.pywxrc
-            rescomp = wx.tools.pywxrc.XmlResourceCompiler()
-            rescomp.MakePythonModule(dataFile, pypath, embed)
-        except:
-            inf = sys.exc_info()
-            wxLogError(traceback.format_exception(inf[0], inf[1], None)[-1])
-            wxLogError('Error generating python code : %s' % pypath)
-            raise
-        
-
-    def OnGeneratePython(self, evt):
-        if self.modified or not conf.localconf:
-            wx.MessageBox("Save the XRC file first!", "Error")
-            return
-        
-        dlg = PythonOptions(self, conf.localconf, self.dataFile)
-        dlg.ShowModal()
-        dlg.Destroy()
-
-        
     def OnExit(self, evt):
         self.Close()
 
@@ -460,17 +413,12 @@ class Frame(wxFrame):
         selected = tree.selection
         if not selected: return         # key pressed event
         xxx = tree.GetPyData(selected)
-        if wx.TheClipboard.Open():
-            data = wx.CustomDataObject('XRCED')
-            # Set encoding in header
-            # (False,True)
-            s = xxx.element.toxml(encoding=expat.native_encoding)
-            data.SetData(cPickle.dumps(s))
-            wx.TheClipboard.SetData(data)
-            wx.TheClipboard.Close()
-            self.SetStatusText('Copied')
-        else:
-            wx.MessageBox("Unable to open the clipboard", "Error")
+        wx.TheClipboard.Open()
+        data = wx.CustomDataObject('XRCED')
+        data.SetData(cPickle.dumps(xxx.element.toxml()))
+        wx.TheClipboard.SetData(data)
+        wx.TheClipboard.Close()
+        self.SetStatusText('Copied')
 
     def OnPaste(self, evt):
         selected = tree.selection
@@ -499,19 +447,14 @@ class Frame(wxFrame):
         parent = tree.GetPyData(parentLeaf).treeObject()
 
         # Create a copy of clipboard pickled element
-        success = False
-        if wx.TheClipboard.Open():
-            data = wx.CustomDataObject('XRCED')
-            if wx.TheClipboard.IsSupported(data.GetFormat()):
-                success = wx.TheClipboard.GetData(data)
+        wx.TheClipboard.Open()
+        data = wx.CustomDataObject('XRCED')
+        if not wx.TheClipboard.IsSupported(data.GetFormat()):
             wx.TheClipboard.Close()
-
-        if not success:
-            wx.MessageBox(
-                "There is no data in the clipboard in the required format",
-                "Error")
+            wx.LogError('unsupported clipboard format')
             return
-
+        wx.TheClipboard.GetData(data)
+        wx.TheClipboard.Close()
         xml = cPickle.loads(data.GetData()) # xml representation of element
         elem = minidom.parseString(xml).childNodes[0]
         # Tempopary xxx object to test things
@@ -520,12 +463,9 @@ class Frame(wxFrame):
         error = False
         # Top-level
         x = xxx.treeObject()
-        if x.__class__ in [xxxDialog, xxxFrame, xxxWizard]:
+        if x.__class__ in [xxxDialog, xxxFrame, xxxMenuBar, xxxWizard]:
             # Top-level classes
             if parent.__class__ != xxxMainNode: error = True
-        elif x.__class__ == xxxMenuBar:
-            # Menubar can be put in frame or dialog
-            if parent.__class__ not in [xxxMainNode, xxxFrame, xxxDialog]: error = True
         elif x.__class__ == xxxToolBar:
             # Toolbar can be top-level of child of panel or frame
             if parent.__class__ not in [xxxMainNode, xxxPanel, xxxFrame] and \
@@ -606,7 +546,6 @@ class Frame(wxFrame):
         self.SetModified()
         self.SetStatusText('Pasted')
 
-        
     def OnCutDelete(self, evt):
         selected = tree.selection
         if not selected: return         # key pressed event
@@ -635,15 +574,11 @@ class Frame(wxFrame):
         elem = tree.RemoveLeaf(selected)
         undoMan.RegisterUndo(UndoCutDelete(index, parent, elem))
         if evt.GetId() == wxID_CUT:
-            if wx.TheClipboard.Open():
-                data = wx.CustomDataObject('XRCED')
-                # (False, True)
-                s = elem.toxml(encoding=expat.native_encoding)
-                data.SetData(cPickle.dumps(s))
-                wx.TheClipboard.SetData(data)
-                wx.TheClipboard.Close()
-            else:
-                wx.MessageBox("Unable to open the clipboard", "Error")
+            wx.TheClipboard.Open()
+            data = wx.CustomDataObject('XRCED')
+            data.SetData(cPickle.dumps(elem))
+            wx.TheClipboard.SetData(data)
+            wx.TheClipboard.Close()
         tree.pendingHighLight = None
         tree.UnselectAll()
         tree.selection = None
@@ -724,7 +659,7 @@ class Frame(wxFrame):
         # We simply perform depth-first traversal, sinse it's too much
         # hassle to deal with all sizer/window combinations
         w = tree.FindNodeObject(item)
-        if w == obj or isinstance(w, wxGBSizerItem) and w.GetWindow() == obj:
+        if w == obj:
             return item
         if tree.ItemHasChildren(item):
             child = tree.GetFirstChild(item)[0]
@@ -740,7 +675,6 @@ class Frame(wxFrame):
         g.testWin.Disconnect(wxID_ANY, wxID_ANY, wxEVT_LEFT_DOWN)
         item = self.FindObject(g.testWin.item, evt.GetEventObject())
         if item:
-            tree.EnsureVisible(item)
             tree.SelectItem(item)
         self.tb.ToggleTool(self.ID_TOOL_LOCATE, False)
         if item:
@@ -1092,16 +1026,8 @@ Homepage: http://xrced.sourceforge.net\
                 conf.panelWidth, conf.panelHeight = self.miniFrame.GetSize()
         evt.Skip()
 
-
-    def CreateLocalConf(self, path):
-        name = os.path.splitext(path)[0]
-        name += '.xcfg'
-        return wx.FileConfig(localFilename=name)
-
-
     def Clear(self):
         self.dataFile = ''
-        conf.localconf = None
         undoMan.Clear()
         self.SetModified(False)
         tree.Clear()
@@ -1147,7 +1073,6 @@ Homepage: http://xrced.sourceforge.net\
             if dir: os.chdir(dir)
             tree.SetData(dom)
             self.SetTitle(progname + ': ' + os.path.basename(path))
-            conf.localconf = self.CreateLocalConf(self.dataFile)
         except:
             # Nice exception printing
             inf = sys.exc_info()
@@ -1200,13 +1125,12 @@ Homepage: http://xrced.sourceforge.net\
             self.domCopy = None
             self.SetModified(False)
             panel.SetModified(False)
-            conf.localconf.Flush()
         except:
             inf = sys.exc_info()
             wxLogError(traceback.format_exception(inf[0], inf[1], None)[-1])
             wxLogError('Error writing file: %s' % path)
             raise
-            
+
     def AskSave(self):
         if not (self.modified or panel.IsModified()): return True
         flags = wxICON_EXCLAMATION | wxYES_NO | wxCANCEL | wxCENTRE
@@ -1214,7 +1138,6 @@ Homepage: http://xrced.sourceforge.net\
                                'Save before too late?', flags )
         say = dlg.ShowModal()
         dlg.Destroy()
-        wxYield()
         if say == wxID_YES:
             self.OnSaveOrSaveAs(wxCommandEvent(wxID_SAVE))
             # If save was successful, modified flag is unset
@@ -1228,72 +1151,6 @@ Homepage: http://xrced.sourceforge.net\
     def SaveUndo(self):
         pass                            # !!!
 
-################################################################################
-
-class PythonOptions(wx.Dialog):
-
-    def __init__(self, parent, cfg, dataFile):
-        pre = wx.PreDialog()
-        g.frame.res.LoadOnDialog(pre, parent, "PYTHON_OPTIONS")
-        self.PostCreate(pre)
-
-        self.cfg = cfg
-        self.dataFile = dataFile
-
-        self.AutoGenerateCB = XRCCTRL(self, "AutoGenerateCB")
-        self.EmbedCB = XRCCTRL(self, "EmbedCB")
-        self.GettextCB = XRCCTRL(self, "GettextCB")
-        self.MakeXRSFileCB = XRCCTRL(self, "MakeXRSFileCB")
-        self.FileNameTC = XRCCTRL(self, "FileNameTC")
-        self.BrowseBtn = XRCCTRL(self, "BrowseBtn")
-        self.GenerateBtn = XRCCTRL(self, "GenerateBtn")
-        self.SaveOptsBtn = XRCCTRL(self, "SaveOptsBtn")
-
-        self.Bind(wx.EVT_BUTTON, self.OnBrowse, self.BrowseBtn)
-        self.Bind(wx.EVT_BUTTON, self.OnGenerate, self.GenerateBtn)
-        self.Bind(wx.EVT_BUTTON, self.OnSaveOpts, self.SaveOptsBtn)
-
-        if self.cfg.Read("filename", "") != "":
-            self.FileNameTC.SetValue(self.cfg.Read("filename"))
-        else:
-            name = os.path.splitext(dataFile)[0]
-            name += '_xrc.py'
-            self.FileNameTC.SetValue(name)
-        self.AutoGenerateCB.SetValue(self.cfg.ReadBool("autogenerate", False))
-        self.EmbedCB.SetValue(self.cfg.ReadBool("embedResource", False))
-        self.MakeXRSFileCB.SetValue(self.cfg.ReadBool("makeXRS", False))
-        self.GettextCB.SetValue(self.cfg.ReadBool("genGettext", False))
-        
-                  
-    def OnBrowse(self, evt):
-        path = self.FileNameTC.GetValue()
-        dirname = os.path.abspath(os.path.dirname(path))
-        name = os.path.split(path)[1]
-        dlg = wxFileDialog(self, 'Save As', dirname, name, '*.py',
-                               wxSAVE | wxOVERWRITE_PROMPT)
-        if dlg.ShowModal() == wxID_OK:
-            path = dlg.GetPath()
-            self.FileNameTC.SetValue(path)
-        dlg.Destroy()
-    
-
-    def OnGenerate(self, evt):
-        pypath = self.FileNameTC.GetValue()
-        embed = self.EmbedCB.GetValue()
-        frame.GeneratePython(self.dataFile, pypath, embed)
-        self.OnSaveOpts()
-
-    
-    def OnSaveOpts(self, evt=None):
-        self.cfg.Write("filename", self.FileNameTC.GetValue())
-        self.cfg.WriteBool("autogenerate", self.AutoGenerateCB.GetValue())
-        self.cfg.WriteBool("embedResource", self.EmbedCB.GetValue())
-        self.cfg.WriteBool("makeXRS", self.MakeXRSFileCB.GetValue())
-        self.cfg.WriteBool("genGettext", self.GettextCB.GetValue())
-
-        self.EndModal(wx.ID_OK)
-    
-        
 ################################################################################
 
 def usage():
@@ -1331,7 +1188,6 @@ Please upgrade wxWindows to %d.%d.%d or higher.''' % MinWxVersion)
         # Settings
         global conf
         conf = g.conf = wxConfig(style = wxCONFIG_USE_LOCAL_FILE)
-        conf.localconf = None
         conf.autoRefresh = conf.ReadInt('autorefresh', True)
         pos = conf.ReadInt('x', -1), conf.ReadInt('y', -1)
         size = conf.ReadInt('width', 800), conf.ReadInt('height', 600)
@@ -1354,6 +1210,7 @@ Please upgrade wxWindows to %d.%d.%d or higher.''' % MinWxVersion)
         conf.panic = not conf.HasEntry('nopanic')
         # Add handlers
         wxFileSystem_AddHandler(wxMemoryFSHandler())
+        wxInitAllImageHandlers()
         # Create main frame
         frame = Frame(pos, size)
         frame.Show(True)
@@ -1368,7 +1225,7 @@ Please upgrade wxWindows to %d.%d.%d or higher.''' % MinWxVersion)
     def OnExit(self):
         # Write config
         global conf
-        wc = conf
+        wc = wxConfigBase_Get()
         wc.WriteInt('autorefresh', conf.autoRefresh)
         wc.WriteInt('x', conf.x)
         wc.WriteInt('y', conf.y)

@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.02.99
-// RCS-ID:      $Id: datetime.h,v 1.74 2006/04/02 00:54:57 VZ Exp $
+// RCS-ID:      $Id: datetime.h,v 1.71 2006/01/10 19:39:28 ABX Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -704,7 +704,6 @@ public:
                                      Month month = Inv_Month,
                                      int year = Inv_Year);
 
-#if WXWIN_COMPATIBILITY_2_6
         // sets the date to the given day of the given week in the year,
         // returns true on success and false if given date doesn't exist (e.g.
         // numWeek is > 53)
@@ -717,7 +716,6 @@ public:
     wxDEPRECATED( wxDateTime GetWeek(wxDateTime_t numWeek,
                                      WeekDay weekday = Mon,
                                      WeekFlags flags = Monday_First) const );
-#endif // WXWIN_COMPATIBILITY_2_6
 
         // returns the date corresponding to the given week day of the given
         // week (in ISO notation) of the specified year
@@ -1114,12 +1112,8 @@ public:
     // constructors
     // ------------------------------------------------------------------------
 
-        // return the timespan for the given number of milliseconds
-    static wxTimeSpan Milliseconds(wxLongLong ms) { return wxTimeSpan(0, 0, 0, ms); }
-    static wxTimeSpan Millisecond() { return Milliseconds(1); }
-
         // return the timespan for the given number of seconds
-    static wxTimeSpan Seconds(wxLongLong sec) { return wxTimeSpan(0, 0, sec); }
+    static wxTimeSpan Seconds(long sec) { return wxTimeSpan(0, 0, sec); }
     static wxTimeSpan Second() { return Seconds(1); }
 
         // return the timespan for the given number of minutes
@@ -1146,8 +1140,8 @@ public:
         // milliseconds)
     inline wxTimeSpan(long hours,
                       long minutes = 0,
-                      wxLongLong seconds = 0,
-                      wxLongLong milliseconds = 0);
+                      long seconds = 0,
+                      long milliseconds = 0);
 
         // default copy ctor is ok
 
@@ -1897,8 +1891,8 @@ wxDateTime::FromTimezone(const wxDateTime::TimeZone& tz, bool noDST) const
 
 inline wxTimeSpan::wxTimeSpan(long hours,
                               long minutes,
-                              wxLongLong seconds,
-                              wxLongLong milliseconds)
+                              long seconds,
+                              long milliseconds)
 {
     // assign first to avoid precision loss
     m_diff = hours;

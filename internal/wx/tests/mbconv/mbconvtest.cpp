@@ -3,7 +3,7 @@
 // Purpose:     wxMBConv unit test
 // Author:      Vadim Zeitlin, Mike Wetherell, Vince Harron
 // Created:     14.02.04
-// RCS-ID:      $Id: mbconvtest.cpp,v 1.9 2006/04/05 21:03:25 VZ Exp $
+// RCS-ID:      $Id: mbconvtest.cpp,v 1.8 2005/09/10 21:21:27 MW Exp $
 // Copyright:   (c) 2003 TT-Solutions, (c) 2005 Mike Wetherell, Vince Harron
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -212,7 +212,7 @@ private:
 CPPUNIT_TEST_SUITE_REGISTRATION( MBConvTestCase );
 
 // also include in it's own registry so that these tests can be run alone
-CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MBConvTestCase, "MBConv" );
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MBConvTestCase, "MBConvTestCase" );
 
 void MBConvTestCase::WC2CP1250()
 {

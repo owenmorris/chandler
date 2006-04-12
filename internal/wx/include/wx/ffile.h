@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     14.07.99
-// RCS-ID:      $Id: ffile.h,v 1.26 2006/04/05 14:37:37 VZ Exp $
+// RCS-ID:      $Id: ffile.h,v 1.25 2005/09/25 20:49:24 MW Exp $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,6 @@
 
 #include  "wx/string.h"
 #include  "wx/filefn.h"
-#include  "wx/convauto.h"
 
 #include <stdio.h>
 
@@ -55,14 +54,14 @@ public:
 
   // read/write (unbuffered)
     // read all data from the file into a string (useful for text files)
-  bool ReadAll(wxString *str, const wxMBConv& conv = wxConvAuto());
+  bool ReadAll(wxString *str, wxMBConv& conv = wxConvUTF8);
     // returns number of bytes read - use Eof() and Error() to see if an error
     // occurred or not
   size_t Read(void *pBuf, size_t nCount);
     // returns the number of bytes written
   size_t Write(const void *pBuf, size_t nCount);
     // returns true on success
-  bool Write(const wxString& s, const wxMBConv& conv = wxConvAuto())
+  bool Write(const wxString& s, wxMBConv& conv = wxConvUTF8)
   {
       const wxWX2MBbuf buf = s.mb_str(conv);
       size_t size = strlen(buf);

@@ -58,8 +58,7 @@ bool DocumentAccessor::Match(int pos, const char *s) {
 }
 
 char DocumentAccessor::StyleAt(int position) {
-	// Mask off all bits which aren't in the 'mask'.
-	return static_cast<char>(pdoc->StyleAt(position) & mask);
+	return pdoc->StyleAt(position);
 }
 
 int DocumentAccessor::GetLine(int position) {
@@ -89,8 +88,6 @@ int DocumentAccessor::SetLineState(int line, int state) {
 }
 
 void DocumentAccessor::StartAt(unsigned int start, char chMask) {
-	// Store the mask specified for use with StyleAt.
-	mask = chMask;
 	pdoc->StartStyling(start, chMask);
 	startPosStyling = start;
 }

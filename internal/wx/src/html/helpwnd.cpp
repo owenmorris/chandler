@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/html/helpwnd.cpp
+// Name:        helpwnd.cpp
 // Purpose:     wxHtmlHelpWindow
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpwnd.cpp,v 1.5 2006/03/27 12:36:11 ABX Exp $
+// RCS-ID:      $Id: helpwnd.cpp,v 1.2 2006/01/11 09:00:33 JS Exp $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -342,13 +342,13 @@ bool wxHtmlHelpWindow::Create(wxWindow* parent, wxWindowID id,
     // The sizer for the whole top-level window.
     wxSizer *topWindowSizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(topWindowSizer);
-    SetAutoLayout(true);
+    SetAutoLayout(TRUE);
 
 #if wxUSE_TOOLBAR
     // toolbar?
     if (helpStyle & (wxHF_TOOLBAR | wxHF_FLAT_TOOLBAR))
     {
-        wxToolBar *toolBar = new wxToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        wxToolBar *toolBar = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize,
                                            wxNO_BORDER | wxTB_HORIZONTAL |
                                            wxTB_DOCKABLE | wxTB_NODIVIDER |
                                            (helpStyle & wxHF_FLAT_TOOLBAR ? wxTB_FLAT : 0));
@@ -874,7 +874,7 @@ bool wxHtmlHelpWindow::KeywordSearch(const wxString& keyword,
         }
 
         m_SearchButton->Enable();
-        m_SearchText->SetSelection(0, keyword.length());
+        m_SearchText->SetSelection(0, keyword.Length());
         m_SearchText->SetFocus();
     }
     else if (mode == wxHELP_SEARCH_INDEX)
@@ -885,7 +885,8 @@ bool wxHtmlHelpWindow::KeywordSearch(const wxString& keyword,
         m_IndexButtonAll->Disable();
         m_IndexText->SetValue(keyword);
 
-        DoIndexFind();
+        wxCommandEvent dummy;
+        OnIndexFind(dummy); // what a hack...
         m_IndexButton->Enable();
         m_IndexButtonAll->Enable();
         foundcnt = m_IndexList->GetCount();
@@ -1503,9 +1504,7 @@ void wxHtmlHelpWindow::OnToolbar(wxCommandEvent& event)
                 {
                     m_BookmarksNames.RemoveAt(pos);
                     m_BookmarksPages.RemoveAt(pos);
-                    pos = m_Bookmarks->GetSelection();
-                    wxASSERT_MSG( pos != wxNOT_FOUND , wxT("Unknown bookmark position") ) ;
-                    m_Bookmarks->Delete((unsigned int)pos);
+                    m_Bookmarks->Delete(m_Bookmarks->GetSelection());
                 }
             }
             break;
@@ -1585,18 +1584,13 @@ void wxHtmlHelpWindow::OnIndexSel(wxCommandEvent& WXUNUSED(event))
         DisplayIndexItem(it);
 }
 
-void wxHtmlHelpWindow::OnIndexFind(wxCommandEvent& WXUNUSED(event))
-{
-    DoIndexFind();
-}
-
-void wxHtmlHelpWindow::DoIndexFind()
+void wxHtmlHelpWindow::OnIndexFind(wxCommandEvent& event)
 {
     wxString sr = m_IndexText->GetLineText(0);
     sr.MakeLower();
     if (sr == wxEmptyString)
     {
-        DoIndexAll();
+        OnIndexAll(event);
     }
     else
     {
@@ -1660,17 +1654,12 @@ void wxHtmlHelpWindow::DoIndexFind()
         cnttext.Printf(_("%i of %i"), displ, cnt);
         m_IndexCountInfo->SetLabel(cnttext);
 
-        m_IndexText->SetSelection(0, sr.length());
+        m_IndexText->SetSelection(0, sr.Length());
         m_IndexText->SetFocus();
     }
 }
 
 void wxHtmlHelpWindow::OnIndexAll(wxCommandEvent& WXUNUSED(event))
-{
-    DoIndexAll();
-}
-
-void wxHtmlHelpWindow::DoIndexAll()
 {
     wxBusyCursor bcur;
 
@@ -1720,11 +1709,11 @@ void wxHtmlHelpWindow::OnSearch(wxCommandEvent& WXUNUSED(event))
 
 void wxHtmlHelpWindow::OnBookmarksSel(wxCommandEvent& WXUNUSED(event))
 {
-    wxString str = m_Bookmarks->GetStringSelection();
-    int idx = m_BookmarksNames.Index(str);
-    if (!str.empty() && str != _("(bookmarks)") && idx != wxNOT_FOUND)
+    wxString sr = m_Bookmarks->GetStringSelection();
+
+    if (sr != wxEmptyString && sr != _("(bookmarks)"))
     {
-       m_HtmlWin->LoadPage(m_BookmarksPages[(size_t)idx]);
+       m_HtmlWin->LoadPage(m_BookmarksPages[m_BookmarksNames.Index(sr)]);
        NotifyPageChanged();
     }
 }

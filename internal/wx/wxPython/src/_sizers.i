@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     18-Sept-1999
-// RCS-ID:      $Id: _sizers.i,v 1.41 2006/02/24 01:12:40 RD Exp $
+// RCS-ID:      $Id: _sizers.i,v 1.40 2006/02/09 16:09:16 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -1179,25 +1179,6 @@ define extra space between all children.", "");
         int , GetHGap(),
         "Returns the horizontal gap (in pixels) between cells in the sizer.", "");
 
-    %pythoncode {
-        def CalcRowsCols(self):
-            """
-            CalcRowsCols() -> (rows, cols)
-
-            Calculates how many rows and columns will be in the sizer based
-            on the current number of items and also the rows, cols specified
-            in the constructor.
-            """
-            nitems = len(self.GetChildren())
-            rows = self.GetRows()
-            cols = self.GetCols()
-            assert rows != 0 or cols != 0, "Grid sizer must have either rows or columns fixed"
-            if cols != 0:
-                rows = (nitems + cols - 1) / cols
-            elif rows != 0:
-                cols = (nitems + rows - 1) / rows
-            return (rows, cols)
-    }
 };
 
 //---------------------------------------------------------------------------

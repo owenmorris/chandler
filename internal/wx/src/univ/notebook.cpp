@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.02.01
-// RCS-ID:      $Id: notebook.cpp,v 1.38 2006/03/27 09:35:39 JJ Exp $
+// RCS-ID:      $Id: notebook.cpp,v 1.37 2005/10/26 12:44:26 ABX Exp $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,6 +16,10 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
+
+#ifdef __VMS
+#pragma message disable unscomzer
+#endif
 
 #include "wx/wxprec.h"
 

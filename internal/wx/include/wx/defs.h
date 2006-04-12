@@ -4,7 +4,7 @@
 *  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
-*  RCS-ID:      $Id: defs.h,v 1.536 2006/04/08 15:32:18 SC Exp $
+*  RCS-ID:      $Id: defs.h,v 1.529 2006/02/12 12:16:34 MW Exp $
 *  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */
@@ -76,7 +76,7 @@
     /* For VC++ 5.0 for release mode, the warning 'C4702: unreachable code */
     /* is buggy, and occurs for code that does actually get executed */
 #   if !defined __WXDEBUG__ && __VISUALC__ <= 1100
-#       pragma warning(disable:4702)    /* unreachable code */
+#       pragma warning(disable:4702)    /* unreachable code */ 
 #   endif
 
 /* Deprecated functions such as sprintf, localtime */
@@ -1034,7 +1034,7 @@ inline void *wxUIntToPtr(wxUIntPtr p)
 
     #define wxHAS_INT64 1
 
-#else /* !wxUSE_LONGLONG */
+#else // !wxUSE_LONGLONG
 
     #define wxHAS_INT64 0
 
@@ -1526,11 +1526,9 @@ enum wxBorder
 /*  always show an entire number of rows */
 #define wxLB_INT_HEIGHT     0x0800
 
-#if WXWIN_COMPATIBILITY_2_6
-    /*  deprecated synonyms */
-    #define wxPROCESS_ENTER   0x0400  /*  wxTE_PROCESS_ENTER */
-    #define wxPASSWORD        0x0800  /*  wxTE_PASSWORD */
-#endif
+/*  deprecated synonyms */
+#define wxPROCESS_ENTER     0x0400  /*  wxTE_PROCESS_ENTER */
+#define wxPASSWORD          0x0800  /*  wxTE_PASSWORD */
 
 /*
  * wxComboBox style flags
@@ -1656,8 +1654,6 @@ enum wxBorder
  * wxStaticText flags
  */
 #define wxST_NO_AUTORESIZE    0x0001
-#define wxST_DOTS_MIDDLE      0x0002
-#define wxST_DOTS_END         0x0004
 
 /*
  * wxStaticBitmap flags
@@ -2088,6 +2084,8 @@ enum wxKeyCode
     WXK_MENU,
     WXK_PAUSE,
     WXK_CAPITAL,
+    WXK_PRIOR,  /*  Page up */
+    WXK_NEXT,   /*  Page down */
     WXK_END,
     WXK_HOME,
     WXK_LEFT,
@@ -2144,10 +2142,6 @@ enum wxKeyCode
     WXK_SCROLL,
     WXK_PAGEUP,
     WXK_PAGEDOWN,
-#if WXWIN_COMPATIBILITY_2_6
-    WXK_PRIOR = WXK_PAGEUP,
-    WXK_NEXT  = WXK_PAGEDOWN,
-#endif
 
     WXK_NUMPAD_SPACE,
     WXK_NUMPAD_TAB,
@@ -2161,12 +2155,10 @@ enum wxKeyCode
     WXK_NUMPAD_UP,
     WXK_NUMPAD_RIGHT,
     WXK_NUMPAD_DOWN,
+    WXK_NUMPAD_PRIOR,
     WXK_NUMPAD_PAGEUP,
+    WXK_NUMPAD_NEXT,
     WXK_NUMPAD_PAGEDOWN,
-#if WXWIN_COMPATIBILITY_2_6
-    WXK_NUMPAD_PRIOR = WXK_NUMPAD_PAGEUP,
-    WXK_NUMPAD_NEXT  = WXK_NUMPAD_PAGEDOWN,
-#endif
     WXK_NUMPAD_END,
     WXK_NUMPAD_BEGIN,
     WXK_NUMPAD_INSERT,
@@ -2881,11 +2873,6 @@ typedef GtkWidget *WXWidget;
 #ifdef __WXGTK20__
 #define G_DISABLE_DEPRECATED
 #define PANGO_DISABLE_DEPRECATED
-#define GDK_PIXBUF_DISABLE_DEPRECATED
-#ifndef __VMS
-/* GtkCombo is not defined on VMS if this is defined */
-# define GTK_DISABLE_DEPRECATED
-#endif
 #endif
 
 #endif /*  __WXGTK__ */

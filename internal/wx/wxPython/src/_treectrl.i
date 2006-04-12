@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _treectrl.i,v 1.29 2006/03/25 00:13:32 RD Exp $
+// RCS-ID:      $Id: _treectrl.i,v 1.28 2006/01/29 02:09:21 RD Exp $
 // Copyright:   (c) 2002 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -346,7 +346,7 @@ public:
 
     
     // get the total number of items in the control
-    unsigned int GetCount() const;
+    size_t GetCount() const;
 
     // indent is the number of pixels the children are indented relative to
     // the parents position. SetIndent() also redraws the control

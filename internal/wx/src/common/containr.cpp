@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: containr.cpp,v 1.43 2006/03/23 00:47:01 VZ Exp $
+// RCS-ID:      $Id: containr.cpp,v 1.40 2005/10/23 10:58:02 JS Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -302,7 +302,7 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
     }
 
     // where are we going?
-    const bool forward = event.GetDirection();
+    bool forward = event.GetDirection();
 
     // the node of the children list from which we should start looking for the
     // next acceptable child
@@ -319,8 +319,11 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
 
         // start from first or last depending on where we're going
         node = forward ? children.GetFirst() : children.GetLast();
+
+        // we want to cycle over all nodes
+        start_node = wxWindowList::compatibility_iterator();
     }
-    else // going up
+    else
     {
         // try to find the child which has the focus currently
 
@@ -346,6 +349,10 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
             // ok, we found the focus - now is it our child?
             start_node = children.Find( winFocus );
         }
+        else
+        {
+            start_node = wxWindowList::compatibility_iterator();
+        }
 
         if ( !start_node && m_winLastFocused )
         {
@@ -366,24 +373,14 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
     }
 
     // we want to cycle over all elements passing by NULL
-    for ( ;; )
+    while ( node != start_node )
     {
-        // don't go into infinite loop
-        if ( start_node && node && node == start_node )
-            break;
-
         // Have we come to the last or first item on the panel?
         if ( !node )
         {
-            if ( !start_node )
-            {
-                // exit now as otherwise we'd loop forever
-                break;
-            }
-
             if ( !goingDown )
             {
-                // Check if our (maybe grand) parent is another panel: if this
+                // Check if our (may be grand) parent is another panel: if this
                 // is the case, they will know what to do with this navigation
                 // key and so give them the chance to process it instead of
                 // looping inside this panel (normally, the focus will go to

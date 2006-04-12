@@ -5,7 +5,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: checklst.h,v 1.14 2006/03/23 22:04:36 VZ Exp $
+// RCS-ID:      $Id: checklst.h,v 1.13 2005/09/27 16:54:32 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,16 +56,16 @@ public:
         const wxString& name = wxListBoxNameStr);
 
     // items may be checked
-    bool IsChecked(unsigned int uiIndex) const;
-    void Check(unsigned int uiIndex, bool bCheck = true);
+    bool IsChecked(size_t uiIndex) const;
+    void Check(size_t uiIndex, bool bCheck = true);
 
     // override base class functions
     virtual int DoAppend(const wxString& item);
     virtual int FindString(const wxString& s, bool bCase = false) const;
-    virtual void SetString(unsigned int n, const wxString& s);
-    virtual wxString GetString(unsigned int n) const;
+    virtual void SetString(int n, const wxString& s);
+    virtual wxString GetString(int n) const;
 
-    virtual void DoInsertItems(const wxArrayString& items, unsigned int pos);
+    virtual void DoInsertItems(const wxArrayString& items, int pos);
     virtual void DoSetItems(const wxArrayString& items, void **clientData);
 private:
     void DoToggleItem( int item, int x );

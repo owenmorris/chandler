@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxTextBuffer class
 // Created:     14.11.01
 // Author:      Morten Hanssen, Vadim Zeitlin
-// RCS-ID:      $Id: textbuf.cpp,v 1.17 2006/04/05 14:37:43 VZ Exp $
+// RCS-ID:      $Id: textbuf.cpp,v 1.14 2005/11/10 16:16:05 ABX Exp $
 // Copyright:   (c) 1998-2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -132,8 +132,6 @@ wxString wxTextBuffer::Translate(const wxString& text, wxTextFileType type)
 
 #if wxUSE_TEXTBUFFER
 
-wxString wxTextBuffer::ms_eof;
-
 // ----------------------------------------------------------------------------
 // ctors & dtor
 // ----------------------------------------------------------------------------
@@ -181,14 +179,14 @@ bool wxTextBuffer::Create()
     return true;
 }
 
-bool wxTextBuffer::Open(const wxString& strBufferName, const wxMBConv& conv)
+bool wxTextBuffer::Open(const wxString& strBufferName, wxMBConv& conv)
 {
     m_strBufferName = strBufferName;
 
     return Open(conv);
 }
 
-bool wxTextBuffer::Open(const wxMBConv& conv)
+bool wxTextBuffer::Open(wxMBConv& conv)
 {
     // buffer name must be either given in ctor or in Open(const wxString&)
     wxASSERT( !m_strBufferName.empty() );
@@ -270,13 +268,15 @@ wxTextFileType wxTextBuffer::GuessType() const
 
 bool wxTextBuffer::Close()
 {
-    Clear();
+    m_aTypes.Clear();
+    m_aLines.Clear();
+    m_nCurLine = 0;
     m_isOpened = false;
 
     return true;
 }
 
-bool wxTextBuffer::Write(wxTextFileType typeNew, const wxMBConv& conv)
+bool wxTextBuffer::Write(wxTextFileType typeNew, wxMBConv& conv)
 {
     return OnWrite(typeNew, conv);
 }

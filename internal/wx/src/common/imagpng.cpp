@@ -2,7 +2,7 @@
 // Name:        src/common/imagepng.cpp
 // Purpose:     wxImage PNG handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagpng.cpp,v 1.62 2006/03/22 16:21:55 vell Exp $
+// RCS-ID:      $Id: imagpng.cpp,v 1.60 2006/01/22 21:59:00 vell Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -179,14 +179,12 @@ PNGLINKAGEMODE wx_png_warning(png_structp png_ptr, png_const_charp message)
 // from pngerror.c
 // so that the libpng doesn't send anything on stderr
 void
-PNGLINKAGEMODE wx_png_error(png_structp png_ptr, png_const_charp message)
+PNGLINKAGEMODE wx_png_error(png_structp WXUNUSED(png_ptr), png_const_charp message)
 {
+    // JS: deliver it to wx_png_warning and don't perform any more actions:
+    // libpng will jump back to the calling function (LoadFile and SaveFile)
+    // and allow it to handle the error
     wx_png_warning(NULL, message);
-
-    // we're not using libpng built-in jump buffer (see comment before
-    // wxPNGInfoStruct above) so we have to return ourselves, otherwise libpng
-    // would just abort
-    longjmp(WX_PNG_INFO(png_ptr)->jmpbuf, 1);
 }
 
 } // extern "C"
@@ -508,15 +506,12 @@ wxPNGHandler::LoadFile(wxImage *image,
                        bool verbose,
                        int WXUNUSED(index))
 {
-    // VZ: as this function uses setjmp() the only fool-proof error handling
+    // VZ: as this function uses setjmp() the only fool proof error handling
     //     method is to use goto (setjmp is not really C++ dtors friendly...)
 
     unsigned char **lines = NULL;
     png_infop info_ptr = (png_infop) NULL;
     wxPNGInfoStruct wxinfo;
-
-    png_uint_32 i, width, height = 0;
-    int bit_depth, color_type, interlace_type;
 
     wxinfo.verbose = verbose;
     wxinfo.stream.in = &stream;
@@ -543,6 +538,9 @@ wxPNGHandler::LoadFile(wxImage *image,
 
     if (setjmp(wxinfo.jmpbuf))
         goto error;
+
+    png_uint_32 i, width, height;
+    int bit_depth, color_type, interlace_type;
 
     png_read_info( png_ptr, info_ptr );
     png_get_IHDR( png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, (int*) NULL, (int*) NULL );
@@ -603,9 +601,6 @@ error:
 
     if ( lines )
     {
-        for ( unsigned int n = 0; n < height; n++ )
-            free( lines[n] );
-
         free( lines );
     }
 

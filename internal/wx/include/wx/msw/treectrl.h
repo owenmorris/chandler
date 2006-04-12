@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10/10/98
 // Created:     01/02/97
-// RCS-ID:      $Id: treectrl.h,v 1.88 2006/03/28 13:11:16 ABX Exp $
+// RCS-ID:      $Id: treectrl.h,v 1.86 2006/02/08 21:46:23 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,14 +34,13 @@ class  WXDLLEXPORT wxImageList;
 class  WXDLLEXPORT wxDragImage;
 struct WXDLLEXPORT wxTreeViewItem;
 
-#if WXWIN_COMPATIBILITY_2_6
-    // NB: all the following flags are for compatbility only and will be removed in the
-    //     next versions
-    // flags for deprecated InsertItem() variant (their values are the same as of
-    // TVI_FIRST and TVI_LAST)
-    #define wxTREE_INSERT_FIRST 0xFFFF0001
-    #define wxTREE_INSERT_LAST  0xFFFF0002
-#endif
+// NB: all the following flags are for compatbility only and will be removed in the
+//     next versions
+
+// flags for deprecated InsertItem() variant (their values are the same as of
+// TVI_FIRST and TVI_LAST)
+#define wxTREE_INSERT_FIRST 0xFFFF0001
+#define wxTREE_INSERT_LAST  0xFFFF0002
 
 // hash storing attributes for our items
 WX_DECLARE_EXPORTED_VOIDPTR_HASH_MAP(wxTreeItemAttr *, wxMapTreeAttr);
@@ -79,7 +78,7 @@ public:
     // implement base class pure virtuals
     // ----------------------------------
 
-    virtual unsigned int GetCount() const;
+    virtual size_t GetCount() const;
 
     virtual unsigned int GetIndent() const;
     virtual void SetIndent(unsigned int indent);
@@ -196,7 +195,7 @@ public:
         // Use base class GetImageList()
     wxDEPRECATED( void SetImageList(wxImageList *imageList, int) );
 
-        // use Set/GetItemImage directly
+    // use Set/GetItemImage directly
     wxDEPRECATED( int GetItemSelectedImage(const wxTreeItemId& item) const );
     wxDEPRECATED( void SetItemSelectedImage(const wxTreeItemId& item, int image) );
 

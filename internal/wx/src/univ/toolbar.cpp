@@ -4,7 +4,7 @@
 // Author:      Robert Roebling, Vadim Zeitlin (universalization)
 // Modified by:
 // Created:     20.02.02
-// Id:          $Id: toolbar.cpp,v 1.38 2006/03/11 14:49:03 JS Exp $
+// Id:          $Id: toolbar.cpp,v 1.36 2005/11/20 21:55:28 DS Exp $
 // Copyright:   (c) 2001 Robert Roebling,
 //              (c) 2002 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -649,17 +649,6 @@ bool wxToolBar::PerformAction(const wxControlAction& action,
         PerformAction( wxACTION_BUTTON_RELEASE, numArg );
 
         PerformAction( wxACTION_BUTTON_CLICK, numArg );
-                        
-        // Write by Danny Raynor to change state again.                
-        // Check button still pressed or not
-        if( tool->IsInverted() )
-        {        
-            PerformAction( wxACTION_TOOLBAR_RELEASE, numArg );      
-        }
-    
-        // Set mouse leave toolbar button range (If still in the range,
-        // toolbar button would get focus again
-        PerformAction( wxACTION_TOOLBAR_LEAVE, numArg );
     }
     else if ( action == wxACTION_TOOLBAR_PRESS )
     {

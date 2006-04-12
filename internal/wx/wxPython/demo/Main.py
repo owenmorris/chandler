@@ -6,7 +6,7 @@
 # Author:       Robin Dunn
 #
 # Created:      A long time ago, in a galaxy far, far away...
-# RCS-ID:       $Id: Main.py,v 1.174 2006/03/15 23:22:52 RD Exp $
+# RCS-ID:       $Id: Main.py,v 1.173 2006/02/13 19:20:24 RD Exp $
 # Copyright:    (c) 1999 by Total Control Software
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------
@@ -47,8 +47,6 @@ import images
 _treeList = [
     # new stuff
     ('Recent Additions/Updates', [
-        'AnalogClock',
-        'CheckListCtrlMixin',
         'Treebook',
         'Toolbook',
         'FoldPanelBar',
@@ -139,7 +137,7 @@ _treeList = [
         ]),
 
     ('Custom Controls', [
-        'AnalogClock',
+        'AnalogClockWindow',
         'ColourSelect',
         'Editor',
         'GenericButtons',
@@ -160,7 +158,6 @@ _treeList = [
         #'RightTextCtrl',     deprecated as we have wxTE_RIGHT now.
         'Calendar',
         'CalendarCtrl',
-        'CheckListCtrlMixin',
         'ContextHelp',
         'DatePickerCtrl',
         'DynamicSashWindow',

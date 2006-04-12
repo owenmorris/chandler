@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: treectlg.h,v 1.59 2006/03/28 13:11:07 ABX Exp $
+// RCS-ID:      $Id: treectlg.h,v 1.57 2005/10/17 19:31:37 VZ Exp $
 // Copyright:   (c) 1997,1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -69,7 +69,7 @@ public:
     // implement base class pure virtuals
     // ----------------------------------
 
-    virtual unsigned int GetCount() const;
+    virtual size_t GetCount() const;
 
     virtual unsigned int GetIndent() const { return m_indent; }
     virtual void SetIndent(unsigned int indent);
@@ -377,3 +377,4 @@ public:
 #endif // wxUSE_TREECTRL
 
 #endif // _GENERIC_TREECTRL_H_
+

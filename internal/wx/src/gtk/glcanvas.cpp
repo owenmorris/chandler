@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     17/08/98
-// RCS-ID:      $Id: glcanvas.cpp,v 1.32 2006/03/10 00:05:02 RD Exp $
+// RCS-ID:      $Id: glcanvas.cpp,v 1.30 2006/02/04 01:49:25 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,7 +29,6 @@ extern "C"
 }
 
 #include "wx/gtk/win_gtk.h"
-#include "wx/gtk/private.h"
 
 // DLL options compatibility check:
 #include "wx/build.h"
@@ -46,6 +45,12 @@ int wxGLCanvas::m_glxVersion = 0;
 //---------------------------------------------------------------------------
 
 XVisualInfo *g_vi = (XVisualInfo*) NULL;
+//-----------------------------------------------------------------------------
+// idle system
+//-----------------------------------------------------------------------------
+
+extern void wxapp_install_idle_handler();
+extern bool g_isIdle;
 
 //---------------------------------------------------------------------------
 // wxGLContext

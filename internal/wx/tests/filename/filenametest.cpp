@@ -3,7 +3,7 @@
 // Purpose:     wxFileName unit test
 // Author:      Vadim Zeitlin
 // Created:     2004-07-25
-// RCS-ID:      $Id: filenametest.cpp,v 1.9 2006/04/02 15:02:56 VZ Exp $
+// RCS-ID:      $Id: filenametest.cpp,v 1.8 2005/05/23 16:53:30 ABX Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -86,7 +86,6 @@ public:
 private:
     CPPUNIT_TEST_SUITE( FileNameTestCase );
         CPPUNIT_TEST( TestConstruction );
-        CPPUNIT_TEST( TestComparison );
         CPPUNIT_TEST( TestSplit );
         CPPUNIT_TEST( TestSetPath );
         CPPUNIT_TEST( TestStrip );
@@ -96,7 +95,6 @@ private:
     CPPUNIT_TEST_SUITE_END();
 
     void TestConstruction();
-    void TestComparison();
     void TestSplit();
     void TestSetPath();
     void TestStrip();
@@ -140,13 +138,6 @@ void FileNameTestCase::TestConstruction()
                                              fni.format) );
         }
     }
-}
-
-void FileNameTestCase::TestComparison()
-{
-    wxFileName fn1(wxT("/tmp"));
-    wxFileName fn2(wxT("/tmp/"));
-    assert(fn1.SameAs(fn2));
 }
 
 void FileNameTestCase::TestSplit()

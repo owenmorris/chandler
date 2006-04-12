@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.10.99
-// RCS-ID:      $Id: init.cpp,v 1.62 2006/04/06 12:38:31 VZ Exp $
+// RCS-ID:      $Id: init.cpp,v 1.60 2006/02/12 12:16:41 MW Exp $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -179,8 +179,7 @@ static void ConvertArgsToUnicode(int argc, char **argv)
     gs_initData.argv = new wchar_t *[argc + 1];
     for ( int i = 0; i < argc; i++ )
     {
-        wxWCharBuffer buf(wxConvLocal.cMB2WX(argv[i]));
-        gs_initData.argv[i] = buf ? wxStrdup(buf) : NULL;
+        gs_initData.argv[i] = wxStrdup(wxConvLocal.cMB2WX(argv[i]));
     }
 
     gs_initData.argc = argc;
@@ -356,6 +355,8 @@ static void DoCommonPreCleanup()
 static void DoCommonPostCleanup()
 {
     wxModule::CleanUpModules();
+
+    wxClassInfo::CleanUp();
 
     // we can't do this in wxApp itself because it doesn't know if argv had
     // been allocated

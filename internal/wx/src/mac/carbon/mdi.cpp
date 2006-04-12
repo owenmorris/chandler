@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: mdi.cpp,v 1.43 2006/03/22 16:45:17 JS Exp $
+// RCS-ID:      $Id: mdi.cpp,v 1.42 2006/01/06 21:17:18 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -302,7 +302,7 @@ bool wxMDIParentFrame::ShouldBeVisible() const
         if ( win->IsShown()
                 && !wxDynamicCast(win, wxMDIChildFrame)
 #if wxUSE_STATUSBAR
-                && win != (wxWindow*) GetStatusBar()
+                && win != GetStatusBar()
 #endif
                 && win != GetClientWindow() )
         {

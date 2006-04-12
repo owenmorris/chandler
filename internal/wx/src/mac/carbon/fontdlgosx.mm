@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-10-03
-// RCS-ID:      $Id: fontdlgosx.mm,v 1.10 2006/03/17 20:51:38 SC Exp $
+// RCS-ID:      $Id: fontdlgosx.mm,v 1.6 2005/07/28 22:08:10 VZ Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,168 +26,14 @@
 // implementation
 // ============================================================================
 
-
-#include "wx/cocoa/autorelease.h"
-#include "wx/cocoa/string.h"
-
-#if wxMAC_USE_EXPERIMENTAL_FONTDIALOG
-
-#import <Foundation/Foundation.h>
-#import <AppKit/AppKit.h>
-
-#include "wx/mac/uma.h"
-#include "wx/intl.h"
-
-@interface wxMacFontPanelAccView : NSView
-{   
-    BOOL m_okPressed ;
-    BOOL m_shouldClose ;
-    NSButton* m_cancelButton ;
-    NSButton* m_okButton ;
-}
-
-- (IBAction)cancelPressed:(id)sender;
-- (IBAction)okPressed:(id)sender;
-- (void)resetFlags;
-- (BOOL)closedWithOk;
-- (BOOL)shouldCloseCarbon;
-- (NSButton*)okButton;
-@end
-
-@implementation wxMacFontPanelAccView : NSView
-- (id)initWithFrame:(NSRect)rectBox
-{
-    [super initWithFrame:rectBox];
-    
-    wxMacCFStringHolder cfOkString( wxT("OK"), wxLocale::GetSystemEncoding() );
-    wxMacCFStringHolder cfCancelString( wxT("Cancel"), wxLocale::GetSystemEncoding() );
-
-    NSRect rectCancel = NSMakeRect( 10.0 , 10.0 , 82  , 24 );
-    NSRect rectOK = NSMakeRect( 100.0 , 10.0 , 82  , 24 );
-    
-    NSButton* cancelButton = [[NSButton alloc] initWithFrame:rectCancel];
-    [cancelButton setTitle:(NSString*)cfCancelString.Detach()];
-    [cancelButton setBezelStyle:NSRoundedBezelStyle];
-    [cancelButton setButtonType:NSMomentaryPushInButton];
-    [cancelButton setAction:@selector(cancelPressed:)];
-    [cancelButton setTarget:self];
-    m_cancelButton = cancelButton ;
-    
-    NSButton* okButton = [[NSButton alloc] initWithFrame:rectOK];
-    [okButton setTitle:(NSString*)cfOkString.Detach()];
-    [okButton setBezelStyle:NSRoundedBezelStyle];
-    [okButton setButtonType:NSMomentaryPushInButton];
-    [okButton setAction:@selector(okPressed:)];
-    [okButton setTarget:self];
-    // doesn't help either, the button is not highlighted after a color dialog has been used
-    // [okButton setKeyEquivalent:@"\r"];
-    m_okButton = okButton ;
-
-
-    [self addSubview:cancelButton];
-    [self addSubview:okButton];
-    
-    [self resetFlags];
-    return self;
-}
-
-- (void)resetFlags
-{
-    m_okPressed = NO ;
-    m_shouldClose = NO ;    
-}
-
-- (IBAction)cancelPressed:(id)sender
-{
-    m_shouldClose = YES ;
-    [NSApp stopModal];
-}
-
-- (IBAction)okPressed:(id)sender
-{
-    m_okPressed = YES ;
-    m_shouldClose = YES ;
-    [NSApp stopModal];
-}
-
--(BOOL)closedWithOk
-{
-    return m_okPressed ;
-}
-
--(BOOL)shouldCloseCarbon
-{
-    return m_shouldClose ;
-}
-
--(NSButton*)okButton
-{
-    return m_okButton ;
-}
-@end
-
-
-extern "C" int RunMixedFontDialog(wxFontDialog* dialog) ;
-
-int RunMixedFontDialog(wxFontDialog* dialog)
-{
-    int retval = wxID_CANCEL ;
-
-    bool cocoaLoaded = NSApplicationLoad();
-    wxASSERT_MSG(cocoaLoaded,wxT("Couldn't load Cocoa in Carbon Environment")) ;
-
-    wxAutoNSAutoreleasePool pool;
-
-    // setting up the ok/cancel buttons
-    NSFontPanel* fontPanel = [NSFontPanel sharedFontPanel] ;
-
-    // adjust modality for carbon environment
-    WindowRef carbonWindowRef = (WindowRef)[fontPanel windowRef] ;
-    SetWindowModality(carbonWindowRef, kWindowModalityAppModal , 0) ;
-    SetWindowGroup(carbonWindowRef , GetWindowGroupOfClass(kMovableModalWindowClass));
-    
-    [fontPanel setFloatingPanel:NO] ;
-    [[fontPanel standardWindowButton:NSWindowCloseButton] setEnabled:NO] ;
-    
-    wxMacFontPanelAccView* accessoryView = (wxMacFontPanelAccView*) [fontPanel accessoryView] ;
-    if ( accessoryView == nil)
-    {
-        NSRect rectBox = NSMakeRect( 0 , 0 , 192 , 40 );
-        accessoryView = [[wxMacFontPanelAccView alloc] initWithFrame:rectBox];
-        [fontPanel setAccessoryView:accessoryView];
-        
-        [fontPanel setDefaultButtonCell:[[accessoryView okButton] cell]] ;
-    }
-
-    [accessoryView resetFlags];
-    
-    NSModalSession session = [NSApp beginModalSessionForWindow:fontPanel];
-
-    [NSApp runModalSession:session];
-
-    [NSApp endModalSession:session];
-
-    // if we don't reenable it, FPShowHideFontPanel does not work
-    [[fontPanel standardWindowButton:NSWindowCloseButton] setEnabled:YES] ;
-    if( FPIsFontPanelVisible())
-        FPShowHideFontPanel() ;
-    
-    if ( [accessoryView closedWithOk])
-    {
-        retval = wxID_OK ;
-    }
-
-
-    return retval ;
-}
-
-#else
-
+//Mac OSX 10.2+ only
 #if USE_NATIVE_FONT_DIALOG_FOR_MACOSX
 
 IMPLEMENT_DYNAMIC_CLASS(wxFontDialog, wxDialog)
 
 // Cocoa headers
+#include "wx/cocoa/autorelease.h"
+#include "wx/cocoa/string.h"
 
 #import <AppKit/NSFont.h>
 #import <AppKit/NSFontManager.h>
@@ -521,5 +367,3 @@ bool wxFontDialog::IsShown() const
 }
 
 #endif // 10.2+
-
-#endif

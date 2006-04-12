@@ -4,7 +4,7 @@
  * Author:      Joel Farley, Ove Kåven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: wxchar.h,v 1.192 2006/03/21 15:43:46 VZ Exp $
+ * RCS-ID:      $Id: wxchar.h,v 1.189 2006/01/18 12:45:24 JS Exp $
  * Copyright:   (c) 1998-2002 Joel Farley, Ove Kåven, Robert Roebling, Ron Lee
  * Licence:     wxWindows licence
  */
@@ -232,8 +232,7 @@
     #if !wxUSE_UNICODE
         #define _T(x) x
     #else /* Unicode */
-        /* use wxCONCAT_HELPER so that x could be expanded if it's a macro */
-        #define _T(x) wxCONCAT_HELPER(L, x)
+        #define _T(x) L ## x
     #endif /* ASCII/Unicode */
 #endif /* !defined(_T) */
 
@@ -242,20 +241,20 @@
 /* and _() in wxWidgets sources */
 #define wxT(x)       _T(x)
 
-/* a helper macro allowing to make another macro Unicode-friendly, see below */
-#define wxAPPLY_T(x) _T(x)
-
 /* Unicode-friendly __FILE__, __DATE__ and __TIME__ analogs */
 #ifndef __TFILE__
-    #define __TFILE__ wxAPPLY_T(__FILE__)
+    #define __XFILE__(x) wxT(x)
+    #define __TFILE__ __XFILE__(__FILE__)
 #endif
 
 #ifndef __TDATE__
-    #define __TDATE__ wxAPPLY_T(__DATE__)
+    #define __XDATE__(x) wxT(x)
+    #define __TDATE__ __XDATE__(__DATE__)
 #endif
 
 #ifndef __TTIME__
-    #define __TTIME__ wxAPPLY_T(__TIME__)
+    #define __XTIME__(x) wxT(x)
+    #define __TTIME__ __XTIME__(__TIME__)
 #endif
 
 /*
@@ -880,8 +879,7 @@ WXDLLIMPEXP_BASE bool wxOKlibc(); /* for internal use */
         #if defined(HAVE__VSNWPRINTF)
             #define wxVsnprintf_    _vsnwprintf
         /* MinGW?MSVCRT has the wrong vswprintf */
-		/* Mac OS X has a somehow buggy vswprintf */
-        #elif defined(HAVE_VSWPRINTF) && !defined(__MINGW32__) && !defined(__DARWIN__)
+        #elif defined(HAVE_VSWPRINTF) && !defined(__MINGW32__)
             #define wxVsnprintf_    vswprintf
         #endif
     #else /* ASCII */

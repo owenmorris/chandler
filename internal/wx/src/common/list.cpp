@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     04/01/98
-// RCS-ID:      $Id: list.cpp,v 1.63 2006/03/23 02:01:25 VZ Exp $
+// RCS-ID:      $Id: list.cpp,v 1.61 2006/02/03 18:26:55 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ////////////////////////////////////////////////////////////////////////////////
@@ -742,14 +742,12 @@ void wxStringList::Sort()
 
 wxNode *wxStringList::Add(const wxChar *s)
 {
-    return (wxNode *)(wxStringListBase::Node *)
-            wxStringListBase::Append(MYcopystring(s));
+    return (wxNode *)wxStringListBase::Append(MYcopystring(s));
 }
 
 wxNode *wxStringList::Prepend(const wxChar *s)
 {
-    return (wxNode *)(wxStringListBase::Node *)
-            wxStringListBase::Insert(MYcopystring(s));
+    return (wxNode *)wxStringListBase::Insert(MYcopystring(s));
 }
 
 #endif // wxLIST_COMPATIBILITY
@@ -760,7 +758,7 @@ wxNode *wxStringList::Prepend(const wxChar *s)
     WX_DEFINE_LIST(wxObjectList)
 
 // with wxUSE_STL wxStringList contains wxString objects, not pointers
-void _WX_LIST_HELPER_wxStringListBase::DeleteFunction( wxString WXUNUSED(X) )
+void wxStringListBase::DeleteFunction( wxString WXUNUSED(X) )
 {
 }
 

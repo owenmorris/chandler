@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        src/msw/fontenum.cpp
+// Name:        msw/fontenum.cpp
 // Purpose:     wxFontEnumerator class for Windows
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to add support for font encodings
 // Created:     04/01/98
-// RCS-ID:      $Id: fontenum.cpp,v 1.43 2006/03/09 23:36:32 ABX Exp $
+// RCS-ID:      $Id: fontenum.cpp,v 1.42 2005/09/23 12:54:57 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -158,10 +158,8 @@ void wxFontEnumeratorHelper::DoEnumerate()
     HDC hDC = ::GetDC(NULL);
 
 #ifdef __WXWINCE__
-    ::EnumFontFamilies(hDC,
-                       m_facename.empty() ? NULL : m_facename.c_str(),
-                       (wxFONTENUMPROC)wxFontEnumeratorProc,
-                       (LPARAM)this) ;
+    ::EnumFontFamilies(hDC, m_facename, (wxFONTENUMPROC)wxFontEnumeratorProc,
+                         (LPARAM)this) ;
 #else // __WIN32__
     LOGFONT lf;
     lf.lfCharSet = (BYTE)m_charset;

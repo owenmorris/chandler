@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004-04-11
-// RCS-ID:      $Id: libraries.h,v 1.12 2006/03/16 11:01:35 JS Exp $
+// RCS-ID:      $Id: libraries.h,v 1.11 2005/07/21 17:44:06 ABX Exp $
 // Copyright:   (c) 2004 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,12 +22,8 @@
 //     including libraries in project files.
 
 #if defined(__VISUALC__) && defined(__WXWINCE__)
-
 #if (_WIN32_WCE >= 400) || defined(__POCKETPC__)
-    // No commdlg.lib in Mobile 5.0 Smartphone
-#if !(defined(__SMARTPHONE__) && _WIN32_WCE >= 1200)
     #pragma comment(lib,"commdlg.lib")
-#endif
 #endif
 
 #if (_WIN32_WCE >= 400) && !defined(wxNO_RTTI)

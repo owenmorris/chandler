@@ -73,11 +73,6 @@ public:
 	virtual wxSize DoGetMinSize( void ) const;
 
 	wxSize CalculateDefaultSize( void ) const;
-	wxSize CalculateDefaultItemSize( void ) const;
-
-	wxSize GetDefaultItemSize( void ) const;
-	void SetDefaultItemSize( int width, int height );
-
 	long GetTotalUIExtent( void ) const;
 	bool ResizeToFit( void );
 	bool RescaleToFit(
@@ -258,14 +253,12 @@ protected:
 
 protected:
 	wxRect					m_NativeBoundsR;
-	wxSize				m_defaultItemSize;
 	wxFont				m_Font;
 	wxColour				m_SelectionColour;
 	wxColumnHeaderItem		**m_ItemList;
 	long					m_ItemCount;
 	long					m_ItemSelected;
 	long					m_SelectionDrawStyle;
-	bool					m_BUseVerticalOrientation; 	// false is horizontal (default)
 	bool					m_BUseUnicode;			// set by compile flag, but not necessarily so - cannot be reset
 	bool					m_BUseGenericRenderer;		// Mac,MSW: either true or false; otherwise: always true
 	bool					m_BFixedHeight;			// Mac,MSW: always true; otherwise: false

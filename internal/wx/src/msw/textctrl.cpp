@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: textctrl.cpp,v 1.259 2006/03/08 00:23:36 VZ Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.258 2006/02/06 22:09:19 vell Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1800,15 +1800,16 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
     switch ( event.GetKeyCode() )
     {
         case WXK_RETURN:
+            if ( !HasFlag(wxTE_MULTILINE) )
             {
                 wxCommandEvent event(wxEVT_COMMAND_TEXT_ENTER, m_windowId);
                 InitCommandEvent(event);
                 event.SetString(GetValue());
                 if ( GetEventHandler()->ProcessEvent(event) )
-                if ( !HasFlag(wxTE_MULTILINE) )
                     return;
-                //else: multiline controls need Enter for themselves
             }
+            //else: multiline controls need Enter for themselves
+
             break;
 
         case WXK_TAB:

@@ -6,11 +6,10 @@ include ../Makefile.inc
 
 # version info 
 VERSION=2.6.2.0
-VERSION_REVISION_INDEX=39
+VERSION_REVISION_INDEX=36
 WX_VERSION_NODOT=26
 
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)$(VERSION_REVISION_INDEX)
-TARBALL=wxPython-$(SNAP)-$(RELVER).tar.gz
 
 SRC=$(INTERNAL)/wx
 SWIG_OPTION=1
@@ -76,20 +75,16 @@ $(SRC)/include/wx/msw/setup.h:
 
 setup: $(SRC)/include/wx/msw/setup.h
 
-installDLLs:
+wxWidgets: setup
+	cd $(SRC); \
+		export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
+		devenv.com build/msw/wx_osaf.sln /build $(W32_BUILD_TYPE)
 	mkdir -p $(PREFIX)/$(SITE)/wx
 	install $(SRC)/lib/vc_dll/*$(WX_VERSION_NODOT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc*.dll $(PREFIX)/$(SITE)/wx
 	if [ -f "$(SRC)/lib/vc_dll/wxbase$(WX_VERSION_NODOT)$(UNICODE_SUFFIX)$(SUFFIX)_vc_custom.bsc" ]; \
 	then \
 		install $(SRC)/lib/vc_dll/*.bsc $(PREFIX)/$(SITE)/wx; \
 	fi
-
-
-wxWidgets: setup
-	cd $(SRC); \
-		export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
-		devenv.com build/msw/wx_osaf.sln /build $(W32_BUILD_TYPE)
-	installDLLs
 
 wxPython:
 	cd $(SRC)/wxPython; \
@@ -243,21 +238,13 @@ build: wxWidgets wxPython
 realclean: clean
 	rm -f wxPython-debug-*.tar.gz* wxPython-release-*.tar.gz*
 
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
+upload: wxPython-$(SNAP)-$(RELVER).tar.gz
+	scp wxPython-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 
-snap: cleanmanifest strip
+snap: cleanmanifest
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(SRC)/$(TARBALL) $(MANIFEST)
+	tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 
 install:
-	# this section operates correctly when run from "external/",
-	# but appears to fail when run from "internal/wx/"
-	# SO:
-	# if you're building wx with incremental builds,
-	# then comment out line 1
-	# and uncomment lines 2-3
-	# and then "cd ../chandler" make DEBUG=[1,0] install"
-	cp $(TARBALL) $(CHANDLERARCHIVES)
-#	cp $(TARBALL) ../../downloads
-#	rm -f ../../chandler/$(SNAP)/$(TARBALL).inst
+	cd $(BUILD_ROOT); \
+	tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -

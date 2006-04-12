@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetime.cpp,v 1.151 2006/03/30 14:04:13 ABX Exp $
+// RCS-ID:      $Id: datetime.cpp,v 1.148 2006/02/05 14:10:51 rgammans Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -204,8 +204,13 @@ struct tm *wxGmtime_r(const time_t* ticks, struct tm* temp)
 // ----------------------------------------------------------------------------
 
 // debugging helper: just a convenient replacement of wxCHECK()
-#define wxDATETIME_CHECK(expr, msg) \
-    wxCHECK2_MSG(expr, *this = wxInvalidDateTime; return *this, msg)
+#define wxDATETIME_CHECK(expr, msg)     \
+        if ( !(expr) )                  \
+        {                               \
+            wxFAIL_MSG(msg);            \
+            *this = wxInvalidDateTime;  \
+            return *this;               \
+        }
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -1811,7 +1816,6 @@ wxDateTime::SetToWeekOfYear(int year, wxDateTime_t numWeek, WeekDay wd)
     return dt;
 }
 
-#if WXWIN_COMPATIBILITY_2_6
 // use a separate function to avoid warnings about using deprecated
 // SetToTheWeek in GetWeek below
 static wxDateTime
@@ -1849,7 +1853,6 @@ wxDateTime wxDateTime::GetWeek(wxDateTime_t numWeek,
 {
     return ::SetToTheWeek(GetYear(), numWeek, weekday, flags);
 }
-#endif // WXWIN_COMPATIBILITY_2_6
 
 wxDateTime& wxDateTime::SetToLastMonthDay(Month month,
                                           int year)
@@ -3819,11 +3822,9 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
                 }
                 else // may be either day or year
                 {
-                    // use a leap year if we don't have the year yet to allow
-                    // dates like 2/29/1976 which would be rejected otherwise
                     wxDateTime_t max_days = (wxDateTime_t)(
                         haveMon
-                        ? GetNumOfDaysInMonth(haveYear ? year : 1976, mon)
+                        ? GetNumOfDaysInMonth(haveYear ? year : Inv_Year, mon)
                         : 31
                     );
 
@@ -3976,7 +3977,7 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
     {
         wxLogDebug(_T("ParseDate: no day, no weekday hence no date."));
 
-        return NULL;
+        return (wxChar *)NULL;
     }
 
     if ( haveWDay && (haveMon || haveYear || haveDay) &&
@@ -3985,7 +3986,7 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
         // without adjectives (which we don't support here) the week day only
         // makes sense completely separately or with the full date
         // specification (what would "Wed 1999" mean?)
-        return NULL;
+        return (wxChar *)NULL;
     }
 
     if ( !haveWDay && haveYear && !(haveDay && haveMon) )
@@ -4015,7 +4016,7 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
             // if we give the year, month and day must be given too
             wxLogDebug(_T("ParseDate: day and month should be specified if year is."));
 
-            return NULL;
+            return (wxChar *)NULL;
         }
     }
 
@@ -4031,11 +4032,6 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
 
     if ( haveDay )
     {
-        // normally we check the day above but the check is optimistic in case
-        // we find the day before its month/year so we have to redo it now
-        if ( day > GetNumOfDaysInMonth(year, mon) )
-            return NULL;
-
         Set(day, mon, year);
 
         if ( haveWDay )

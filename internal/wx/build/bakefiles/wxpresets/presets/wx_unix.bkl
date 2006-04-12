@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: wx_unix.bkl,v 1.6 2006/03/29 16:48:46 VS Exp $ -->
+<!-- $Id: wx_unix.bkl,v 1.3 2005/09/25 11:21:48 VZ Exp $ -->
 
 <!--
 Presents for building wxWidgets applications using Autoconf or GNU toosets.
@@ -30,7 +30,6 @@ Format-specific notes:
         <option name="WX_CXXFLAGS"/>
         <option name="WX_CPPFLAGS"/>
         <option name="WX_LIBS"/>
-        <option name="WX_RESCOMP"/>
     </if>
 
     <!-- ============================================================== -->
@@ -38,9 +37,8 @@ Format-specific notes:
     <!-- ============================================================== -->
 
     <if cond="FORMAT=='gnu'">
-        <set var="WX_CONFIG_DEFAULT" overwrite="0">wx-config</set>
         <option name="WX_CONFIG">
-            <default-value>$(WX_CONFIG_DEFAULT)</default-value>
+            <default-value>wx-config</default-value>
             <description>Location and arguments of wx-config script</description>
         </option>
         <option name="WX_CFLAGS">
@@ -59,10 +57,6 @@ Format-specific notes:
             <default-value>`$(DOLLAR)(WX_CONFIG) --libs`</default-value>
             <description>wxWidgets libraries to link against</description>
         </option>
-        <option name="WX_RESCOMP">
-            <default-value>`$(DOLLAR)(WX_CONFIG) --rescomp`</default-value>
-            <description>wxWidgets resource compiler and flags</description>
-        </option>
 
         <!-- we need this but the trick used in default-values above
              prevents bakefile from detecting it: -->
@@ -78,24 +72,6 @@ Format-specific notes:
             Don't include presets/wx_unix.bkl directly, use presets/wx.bkl.
         </error>
     </if>
-
-    <!--
-         We need to re-define the resource compiler, used by bakefile when compiling
-         resources, to the resource compiler returned by 'wx-config &#45;-rescomp' since
-         'wx-config &#45;-rescomp' returns both the name of the resource compiler to use
-         and the flags required for that compiler (rcflags are rccompiler-specific
-         and thus it would be wrong to use them with other resource compilers).
-
-         This line typically does something *only* when the Makefile.in generated
-         using this bakefile, is used on Windows with MSYS (when using Cygwin, resources
-         are not compiled at all).
-
-         NOTE: overwriting the RESCOMP variable we modify the entire Bakefile behaviour
-               for resource compilation; this could be a problem if the bakefile which
-               includes this file needs the standard Bakefile resource compiler to
-               build a non wx-based application.
-    -->
-    <set var="RESCOMP">$(WX_RESCOMP)</set>
 
     <template id="wx-lib">
         <cxxflags>$(WX_CXXFLAGS)</cxxflags>

@@ -2,7 +2,7 @@
 // Name:        htmlwin.cpp
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML (implementation)
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.cpp,v 1.115 2006/03/21 14:05:11 VZ Exp $
+// RCS-ID:      $Id: htmlwin.cpp,v 1.113 2006/01/18 16:47:42 VZ Exp $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -237,29 +237,30 @@ void wxHtmlWindow::SetRelatedStatusBar(int bar)
 
 void wxHtmlWindow::SetFonts(const wxString& normal_face, const wxString& fixed_face, const int *sizes)
 {
-    m_Parser->SetFonts(normal_face, fixed_face, sizes);
+    wxString op = m_OpenedPage;
 
-    // re-layout the page after changing fonts:
-    DoSetPage(*(m_Parser->GetSource()));
+    m_Parser->SetFonts(normal_face, fixed_face, sizes);
+    // fonts changed => contents invalid, so reload the page:
+    SetPage(wxT("<html><body></body></html>"));
+    if (!op.empty())
+        LoadPage(op);
 }
 
 void wxHtmlWindow::SetStandardFonts(int size,
                                     const wxString& normal_face,
                                     const wxString& fixed_face)
 {
-    m_Parser->SetStandardFonts(size, normal_face, fixed_face);
+    wxString op = m_OpenedPage;
 
-    // re-layout the page after changing fonts:
-    DoSetPage(*(m_Parser->GetSource()));
+    m_Parser->SetStandardFonts(size, normal_face, fixed_face);
+    // fonts changed => contents invalid, so reload the page:
+    SetPage(wxT("<html><body></body></html>"));
+    if (!op.empty())
+        LoadPage(op);
 }
+
 
 bool wxHtmlWindow::SetPage(const wxString& source)
-{
-    m_OpenedPage = m_OpenedAnchor = m_OpenedPageTitle = wxEmptyString;
-    return DoSetPage(source);
-}
-
-bool wxHtmlWindow::DoSetPage(const wxString& source)
 {
     wxString newsrc(source);
 
@@ -274,10 +275,8 @@ bool wxHtmlWindow::DoSetPage(const wxString& source)
         wxHtmlProcessorList::compatibility_iterator nodeL, nodeG;
         int prL, prG;
 
-        if ( m_Processors )
-            nodeL = m_Processors->GetFirst();
-        if ( m_GlobalProcessors )
-            nodeG = m_GlobalProcessors->GetFirst();
+        nodeL = (m_Processors) ? m_Processors->GetFirst() : wxHtmlProcessorList::compatibility_iterator();
+        nodeG = (m_GlobalProcessors) ? m_GlobalProcessors->GetFirst() : wxHtmlProcessorList::compatibility_iterator();
 
         // VS: there are two lists, global and local, both of them sorted by
         //     priority. Since we have to go through _both_ lists with
@@ -308,7 +307,7 @@ bool wxHtmlWindow::DoSetPage(const wxString& source)
     dc->SetMapMode(wxMM_TEXT);
     SetBackgroundColour(wxColour(0xFF, 0xFF, 0xFF));
     SetBackgroundImage(wxNullBitmap);
-
+    m_OpenedPage = m_OpenedAnchor = m_OpenedPageTitle = wxEmptyString;
     m_Parser->SetDC(dc);
     if (m_Cell)
     {
@@ -327,7 +326,7 @@ bool wxHtmlWindow::DoSetPage(const wxString& source)
 
 bool wxHtmlWindow::AppendToPage(const wxString& source)
 {
-    return DoSetPage(*(GetParser()->GetSource()) + source);
+    return SetPage(*(GetParser()->GetSource()) + source);
 }
 
 bool wxHtmlWindow::LoadPage(const wxString& location)

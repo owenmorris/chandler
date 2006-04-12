@@ -2,7 +2,7 @@
 /** @file LexBash.cxx
  ** Lexer for Bash.
  **/
-// Copyright 2004-2005 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 2004 by Neil Hodgson <neilh@scintilla.org>
 // Adapted from LexPerl by Kein-Hong Man <mkh@pl.jaring.my> 2004
 // The License.txt file describes the conditions under which this software may be distributed.
 
@@ -144,9 +144,6 @@ static void ColouriseBashDoc(unsigned int startPos, int length, int initStyle,
 		char *Delimiter;	// the Delimiter, 256: sizeof PL_tokenbuf
 		HereDocCls() {
 			State = 0;
-            Quote = 0;
-            Quoted = false;
-            Indent = 0;
 			DelimiterLength = 0;
 			Delimiter = new char[HERE_DELIM_MAX];
 			Delimiter[0] = '\0';
@@ -445,7 +442,7 @@ static void ColouriseBashDoc(unsigned int startPos, int length, int initStyle,
 					HereDoc.Quoted = false;
 					HereDoc.DelimiterLength = 0;
 					HereDoc.Delimiter[HereDoc.DelimiterLength] = '\0';
-					if (chNext == '\'' || chNext == '\"') {	// a quoted here-doc delimiter (' or ")
+					if (chNext == '\'') {	// a quoted here-doc delimiter (' only)
 						i++;
 						ch = chNext;
 						chNext = chNext2;
@@ -454,9 +451,8 @@ static void ColouriseBashDoc(unsigned int startPos, int length, int initStyle,
 						HereDoc.Indent = true;
 						HereDoc.State = 0;
 					} else if (isalpha(chNext) || chNext == '_' || chNext == '\\'
-						|| chNext == '-' || chNext == '+' || chNext == '!') {
+						|| chNext == '-' || chNext == '+') {
 						// an unquoted here-doc delimiter, no special handling
-                        // TODO check what exactly bash considers part of the delim
 					} else if (chNext == '<') {	// HERE string <<<
 						i++;
 						ch = chNext;
@@ -490,7 +486,7 @@ static void ColouriseBashDoc(unsigned int startPos, int length, int initStyle,
 							HereDoc.Delimiter[HereDoc.DelimiterLength] = '\0';
 						}
 					} else { // an unquoted here-doc delimiter
-						if (isalnum(ch) || ch == '_' || ch == '-' || ch == '+' || ch == '!') {
+						if (isalnum(ch) || ch == '_' || ch == '-' || ch == '+') {
 							HereDoc.Delimiter[HereDoc.DelimiterLength++] = ch;
 							HereDoc.Delimiter[HereDoc.DelimiterLength] = '\0';
 						} else if (ch == '\\') {
@@ -586,19 +582,6 @@ static void ColouriseBashDoc(unsigned int startPos, int length, int initStyle,
 	styler.ColourTo(lengthDoc - 1, state);
 }
 
-static bool IsCommentLine(int line, Accessor &styler) {
-	int pos = styler.LineStart(line);
-	int eol_pos = styler.LineStart(line + 1) - 1;
-	for (int i = pos; i < eol_pos; i++) {
-		char ch = styler[i];
-		if (ch == '#')
-			return true;
-		else if (ch != ' ' && ch != '\t')
-			return false;
-	}
-	return false;
-}
-
 static void FoldBashDoc(unsigned int startPos, int length, int, WordList *[],
                             Accessor &styler) {
 	bool foldComment = styler.GetPropertyInt("fold.comment") != 0;
@@ -616,16 +599,16 @@ static void FoldBashDoc(unsigned int startPos, int length, int, WordList *[],
 		int style = styleNext;
 		styleNext = styler.StyleAt(i + 1);
 		bool atEOL = (ch == '\r' && chNext != '\n') || (ch == '\n');
-        // Comment folding
-		if (foldComment && atEOL && IsCommentLine(lineCurrent, styler))
-        {
-            if (!IsCommentLine(lineCurrent - 1, styler)
-                && IsCommentLine(lineCurrent + 1, styler))
-                levelCurrent++;
-            else if (IsCommentLine(lineCurrent - 1, styler)
-                     && !IsCommentLine(lineCurrent+1, styler))
-                levelCurrent--;
-        }
+		if (foldComment && (style == SCE_SH_COMMENTLINE)) {
+			if ((ch == '/') && (chNext == '/')) {
+				char chNext2 = styler.SafeGetCharAt(i + 2);
+				if (chNext2 == '{') {
+					levelCurrent++;
+				} else if (chNext2 == '}') {
+					levelCurrent--;
+				}
+			}
+		}
 		if (style == SCE_C_OPERATOR) {
 			if (ch == '{') {
 				levelCurrent++;

@@ -4,7 +4,7 @@
 %% Author:      Ryan Norton <wxprojects@comcast.net>
 %% Modified by:
 %% Created:     01/30/2005
-%% RCS-ID:      $Id: activexevt.tex,v 1.3 2006/03/14 00:24:53 MR Exp $
+%% RCS-ID:      $Id: activexevt.tex,v 1.1 2006/02/10 19:37:25 VZ Exp $
 %% Copyright:   (c) Ryan Norton
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -40,28 +40,28 @@ recieves an activex event.}
 
 \membersection{wxActiveXEvent::ParamCount}\label{wxactivexeventparamcount}
 
-\constfunc{size\_t}{ParamCount}{\void}
+\constfunc{int}{ParamCount}{\void}
 
 Obtains the number of parameters passed through the activex event.
 
 
 \membersection{wxActiveXEvent::ParamType}\label{wxactivexeventparamtype}
 
-\constfunc{wxString}{ParamType}{\param{size\_t }{idx}}
+\constfunc{wxString}{ParamType}{\param{int }{idx}}
 
 Obtains the param type of the param number idx specifies as a string.
 
 
 \membersection{wxActiveXEvent::ParamName}\label{wxactivexeventparamname}
 
-\constfunc{wxString}{ParamName}{\param{size\_t }{idx}}
+\constfunc{wxString}{ParamName}{\param{int }{idx}}
 
 Obtains the param name of the param number idx specifies as a string.
 
 
 \membersection{wxActiveXEvent::operator[]}\label{wxactivexeventoparray}
 
-\func{wxVariant&}{operator[]}{\param{size\_t }{idx}}
+\func{wxVariant&}{operator[]}{\param{int }{idx}}
 
 Obtains the actual parameter value specified by idx.
 
@@ -72,3 +72,4 @@ Obtains the actual parameter value specified by idx.
 
 Returns the dispatch id of this activex event. This is the numeric value from
 the .idl file specified by the id().
+

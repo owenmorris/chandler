@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     01/29/05
-// RCS-ID:      $Id: mediactrl_am.cpp,v 1.2 2006/03/23 10:11:00 ABX Exp $
+// RCS-ID:      $Id: mediactrl_am.cpp,v 1.1 2006/02/10 19:37:36 VZ Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<!-- $Id: files.bkl,v 1.319 2006/04/05 14:37:47 VZ Exp $ -->
+<!-- $Id: files.bkl,v 1.307 2006/02/10 19:37:21 VZ Exp $ -->
 <makefile>
 
 <!--
@@ -290,7 +290,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/common/clntdata.cpp
     src/common/cmdline.cpp
     src/common/config.cpp
-    src/common/convauto.cpp
     src/common/datetime.cpp
     src/common/datstrm.cpp
     src/common/dircmn.cpp
@@ -363,7 +362,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/cmdline.h
     wx/confbase.h
     wx/config.h
-    wx/convauto.h
     wx/containr.h
     wx/datetime.h
     wx/datstrm.h
@@ -723,7 +721,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/validate.h
     wx/valtext.h
     wx/window.h
-    wx/wupdlock.h
 
     wx/accel.h
     wx/access.h
@@ -745,7 +742,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/dialup.h
     wx/dirctrl.h
     wx/display.h
-    wx/display_impl.h
     wx/dnd.h
     wx/docmdi.h
     wx/docview.h
@@ -837,6 +833,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/generic/caret.h
     wx/unix/fontutil.h
     wx/unix/utilsx11.h
+    wx/unix/displayx11.h
 </set>
 
 
@@ -940,7 +937,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/gtk/frame.cpp
     src/gtk/gauge.cpp
     src/gtk/gnome/gprint.cpp
-    src/gtk/gnome/gvfs.cpp
     src/gtk/listbox.cpp
     src/gtk/mdi.cpp
     src/gtk/menu.cpp
@@ -960,7 +956,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/gtk/tbargtk.cpp
     src/gtk/textctrl.cpp
     src/gtk/tglbtn.cpp
-    src/gtk/treeentry_gtk.c
     src/gtk/utilsres.cpp
 </set>
 <set var="GTK_HDR" hints="files">
@@ -985,7 +980,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/gtk/frame.h
     wx/gtk/gauge.h
     wx/gtk/gnome/gprint.h
-    wx/gtk/gnome/gvfs.h
     wx/gtk/listbox.h
     wx/gtk/mdi.h
     wx/gtk/menu.h
@@ -1007,7 +1001,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/gtk/textctrl.h
     wx/gtk/tglbtn.h
     wx/gtk/treectrl.h
-    wx/gtk/treeentry_gtk.h
 </set>
 
 
@@ -1353,6 +1346,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/x11/gdiobj.cpp
     src/x11/gsockx11.cpp
     src/x11/icon.cpp
+    src/x11/main.cpp
     src/x11/minifram.cpp
     src/x11/nanox.c
     src/x11/palette.cpp
@@ -1654,7 +1648,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 <set var="WINCE_SRC" hints="files">
     src/generic/dirdlgg.cpp
     src/generic/fdrepdlg.cpp
-    src/generic/filedlgg.cpp
     src/generic/fontdlgg.cpp
     src/msw/wince/checklst.cpp
     src/msw/wince/choicece.cpp
@@ -1668,7 +1661,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 </set>
 <set var="WINCE_HDR" hints="files">
     wx/generic/fdrepdlg.h
-    wx/generic/filedlgg.h
     wx/generic/fontdlgg.h
     wx/msw/wince/checklst.h
     wx/msw/wince/choicece.h
@@ -1785,6 +1777,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/os2/dcprint.cpp
     src/os2/dcscreen.cpp
     src/os2/dialog.cpp
+    src/os2/display.cpp
     src/os2/dnd.cpp
     src/os2/evtloop.cpp
     src/os2/filedlg.cpp
@@ -1866,6 +1859,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/os2/dcprint.h
     wx/os2/dcscreen.h
     wx/os2/dialog.h
+    wx/os2/display.h
     wx/os2/dnd.h
     wx/os2/filedlg.h
     wx/os2/font.h
@@ -2061,6 +2055,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/mac/dcscreen.h
     wx/mac/dialog.h
     wx/mac/dirdlg.h
+    wx/mac/display.h
     wx/mac/dnd.h
     wx/mac/evtloop.h
     wx/mac/filedlg.h
@@ -2148,6 +2143,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/mac/carbon/dcscreen.h
     wx/mac/carbon/dialog.h
     wx/mac/carbon/dirdlg.h
+    wx/mac/carbon/display.h
     wx/mac/carbon/dnd.h
     wx/mac/carbon/evtloop.h
     wx/mac/carbon/filedlg.h
@@ -2259,7 +2255,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/cocoa/dcmemory.mm
     src/cocoa/dcscreen.cpp
     src/cocoa/dialog.mm
-    src/cocoa/dirdlg.mm
     src/cocoa/display.mm
     src/cocoa/drawer.mm
     src/cocoa/evtloop.mm
@@ -2305,6 +2300,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/generic/accel.cpp
     src/generic/caret.cpp
     src/generic/colrdlgg.cpp
+    src/generic/dirdlgg.cpp
     src/generic/fdrepdlg.cpp
     src/generic/fontdlgg.cpp
     src/generic/imaglist.cpp
@@ -2353,7 +2349,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/cocoa/dcmemory.h
     wx/cocoa/dcscreen.h
     wx/cocoa/dialog.h
-    wx/cocoa/dirdlg.h
+    wx/cocoa/display.h
     wx/cocoa/drawer.h
     wx/cocoa/filedlg.h
     wx/cocoa/font.h
@@ -2389,6 +2385,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/cocoa/window.h
     <!-- Generic implementations used by wxCocoa: -->
     wx/generic/caret.h
+    wx/generic/dirdlgg.h
     wx/generic/fdrepdlg.h
     wx/generic/fontdlgg.h
     wx/generic/imaglist.h
@@ -2514,9 +2511,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 <!-- ====================================================================== -->
 
 <set var="ADVANCED_CMN_SRC" hints="files">
-    src/common/datavcmn.cpp
     src/generic/calctrl.cpp
-    src/generic/datavgen.cpp
     src/generic/datectlg.cpp
     src/generic/minical.cpp
     src/generic/colheader.cpp
@@ -2539,7 +2534,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
 <set var="ADVANCED_CMN_HDR" hints="files">
     wx/calctrl.h
-    wx/dataview.h
     wx/dateevt.h
     wx/dcbuffer.h
     wx/generic/calctrl.h
@@ -2576,7 +2570,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
 <set var="ADVANCED_CMN_NATIVE_HDR" hints="files">
     wx/datectrl.h
-    wx/dataview.h
 </set>
 
 <set var="ADVANCED_MSW_SRC" hints="files">
@@ -2652,7 +2645,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
 <set var="ADVANCED_GTK_SRC" hints="files">
     src/gtk/taskbar.cpp
-    src/gtk/dataview.cpp
     src/gtk/eggtrayicon.c
 </set>
 <set var="ADVANCED_GTK1_SRC" hints="files">

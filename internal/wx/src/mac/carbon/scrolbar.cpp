@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: scrolbar.cpp,v 1.42 2006/03/22 17:39:33 JS Exp $
+// RCS-ID:      $Id: scrolbar.cpp,v 1.40 2006/02/08 17:46:09 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,6 @@
     #include "wx/log.h"
 #endif
 
-#include "wx/settings.h"
 #include "wx/scrolbar.h"
 #include "wx/mac/uma.h"
 
@@ -219,24 +218,4 @@ wxInt32 wxScrollBar::MacControlHit( WXEVENTHANDLERREF handler, WXEVENTREF mevent
         GetEventHandler()->ProcessEvent( event );
 
     return noErr;
-}
-
-
-wxSize wxScrollBar::DoGetBestSize() const
-{
-    int w = 100;
-    int h = 100;
-
-    if ( IsVertical() )
-    {
-        w = wxSystemSettings::GetMetric(wxSYS_VSCROLL_X);
-    }
-    else
-    {
-        h = wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y);
-    }
-
-    wxSize best(w, h);
-    CacheBestSize(best);
-    return best;  
 }

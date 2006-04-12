@@ -36,6 +36,13 @@ WXWIN=`cygpath -w $WXDIR`
 export WXWIN
 
 
+# # Fix the PATH.  (Why is this needed??)
+# PATH=/usr/local/bin:/usr/bin:/bin:/usr/X11R6/bin:/home/robind/bin:.:$WXDIR/lib/vc_dll:$PATH
+# export PATH
+# echo "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
+# echo $PATH
+# echo "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
+# exit 0
 
 # setup the compiler
 if [ $PYVER = 2.3 ]; then
@@ -82,7 +89,7 @@ s/wxUSE_POSTSCRIPT *0/wxUSE_POSTSCRIPT 1/g
 s/wxUSE_AFM_FOR_POSTSCRIPT *1/wxUSE_AFM_FOR_POSTSCRIPT 0/g
 s/wxUSE_DISPLAY *0/wxUSE_DISPLAY 1/g
 s/wxUSE_DIB_FOR_BITMAP *0/wxUSE_DIB_FOR_BITMAP 1/g
-s/wxUSE_DEBUGREPORT *1/wxUSE_DEBUGREPORT 0/g
+s/wxUSE_DEBUGREPORT *1/wxUSE_DEBUGREPORRT 0/g
 EOF
 cat $WXDIR/include/wx/msw/setup0.h | sed -f .my.sedexpr > $WXDIR/include/wx/msw/setup.h
 rm .my.sedexpr
@@ -108,9 +115,9 @@ mkdir -p dist
 
 for ver in $PYVER; do
     echo $ver
-    b $ver d UNICODE=0 USE_SWIG=0
-    b $ver h UNICODE=0 USE_SWIG=0 EP_ADD_OPTS=1
-    b $ver r UNICODE=0 USE_SWIG=0
+    b $ver d USE_SWIG=0
+    b $ver h USE_SWIG=0 EP_ADD_OPTS=1
+    b $ver r USE_SWIG=0
     b $ver d UNICODE=1 USE_SWIG=0
     b $ver h UNICODE=1 USE_SWIG=0 EP_ADD_OPTS=1
     b $ver r UNICODE=1 USE_SWIG=0

@@ -282,7 +282,7 @@ void LineMarker::Draw(Surface *surface, PRectangle &rcWhole, Font &fontForCharac
 			surface->LineTo(right - 5, centreY + 5);
 			right += 4;
 		}
-	} else if (markType == SC_MARK_SHORTARROW) {
+	} else { // SC_MARK_SHORTARROW
 		Point pts[] = {
 			Point(centreX, centreY + dimOn2),
 			Point(centreX + dimOn2, centreY),
@@ -295,7 +295,5 @@ void LineMarker::Draw(Surface *surface, PRectangle &rcWhole, Font &fontForCharac
 		};
 		surface->Polygon(pts, sizeof(pts) / sizeof(pts[0]),
 				fore.allocated, back.allocated);
-	} else { // SC_MARK_FULLRECT
-		surface->FillRectangle(rcWhole, back.allocated);
 	}
 }

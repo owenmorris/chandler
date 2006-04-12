@@ -103,11 +103,6 @@ void XPM::Init(const char * const *linesForm) {
 	height = atoi(line0);
 	line0 = NextField(line0);
 	nColours = atoi(line0);
-	line0 = NextField(line0);
-	if (atoi(line0) != 1) {
-		// Only one char per pixel is supported
-		return;
-	}
 	codes = new char[nColours];
 	colours = new ColourPair[nColours];
 
@@ -266,7 +261,6 @@ void XPMSet::Add(int id, const char *textForm) {
 	for (int i = 0; i < len; i++) {
 		if (set[i]->GetId() == id) {
 			set[i]->Init(textForm);
-			set[i]->CopyDesiredColours();
 			return;
 		}
 	}

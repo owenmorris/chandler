@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.05.02
-// RCS-ID:      $Id: fontdlg.h,v 1.32 2006/03/30 14:03:56 ABX Exp $
+// RCS-ID:      $Id: fontdlg.h,v 1.30 2006/01/23 03:27:32 MR Exp $
 // Copyright:   (c) 1997-2002 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -43,12 +43,12 @@ public:
     const wxFontData& GetFontData() const { return m_fontData; }
     wxFontData& GetFontData() { return m_fontData; }
 
-#if WXWIN_COMPATIBILITY_2_6
     // deprecated interface, for compatibility only, don't use
-    wxDEPRECATED( wxFontDialogBase(wxWindow *parent, const wxFontData *data) );
+    wxFontDialogBase(wxWindow *parent, const wxFontData *data)
+        { m_parent = parent; InitFontData(data); }
 
-    wxDEPRECATED( bool Create(wxWindow *parent, const wxFontData *data) );
-#endif // WXWIN_COMPATIBILITY_2_6
+    bool Create(wxWindow *parent, const wxFontData *data)
+        { InitFontData(data); return Create(parent); }
 
 protected:
     virtual bool DoCreate(wxWindow *parent) { m_parent = parent; return true; }
@@ -60,15 +60,6 @@ protected:
 
     DECLARE_NO_COPY_CLASS(wxFontDialogBase)
 };
-
-#if WXWIN_COMPATIBILITY_2_6
-    // deprecated interface, for compatibility only, don't use
-inline wxFontDialogBase::wxFontDialogBase(wxWindow *parent, const wxFontData *data)
-{ m_parent = parent; InitFontData(data); }
-
-inline bool wxFontDialogBase::Create(wxWindow *parent, const wxFontData *data)
-{ InitFontData(data); return Create(parent); }
-#endif // WXWIN_COMPATIBILITY_2_6
 
 // ----------------------------------------------------------------------------
 // platform-specific wxFontDialog implementation
@@ -84,6 +75,9 @@ inline bool wxFontDialogBase::Create(wxWindow *parent, const wxFontData *data)
 
 #if defined(__WXUNIVERSAL__) || \
     defined(__WXMOTIF__)     || \
+    (defined(__WXMAC__) && !defined(__WXMAC_OSX__))  || \
+    (defined(__WXMAC__) && !USE_NATIVE_FONT_DIALOG_FOR_MACOSX)  || \
+    (defined(__WXMAC_OSX__) && ( MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_2 ) ) || \
     defined(__WXCOCOA__)     || \
     defined(__WXWINCE__)     || \
     defined(__WXGPE__)

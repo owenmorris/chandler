@@ -31,6 +31,8 @@ class TestPanel(wx.Panel):
         t = wx.StaticText(self, -1, "PopupMenu")
         t.SetFont(bf)
         box.Add(t, 0, wx.CENTER|wx.ALL, 5)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnRightClick)
+
 
         box.Add(wx.StaticLine(self, -1), 0, wx.EXPAND)
         box.Add((10,20))
@@ -38,15 +40,14 @@ class TestPanel(wx.Panel):
         t = wx.StaticText(self, -1, text)
         t.SetFont(nf)
         box.Add(t, 0, wx.CENTER|wx.ALL, 5)
-        t.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
 
         self.SetSizer(box)
 
-        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnRightClick)
 
 
-    def OnContextMenu(self, event):
-        self.log.WriteText("OnContextMenu\n")
+    def OnRightClick(self, event):
+        self.log.WriteText("OnRightClick\n")
 
         # only do this part the first time so the events are only bound once
         #

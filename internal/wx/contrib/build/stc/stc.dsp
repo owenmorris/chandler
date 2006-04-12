@@ -528,10 +528,6 @@ SOURCE=../../src/stc\scintilla\src\LexBash.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=../../src/stc\scintilla\src\LexBasic.cxx
-# End Source File
-# Begin Source File
-
 SOURCE=../../src/stc\scintilla\src\LexBullant.cxx
 # End Source File
 # Begin Source File
@@ -548,19 +544,11 @@ SOURCE=../../src/stc\scintilla\src\LexCSS.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=../../src/stc\scintilla\src\LexCaml.cxx
-# End Source File
-# Begin Source File
-
 SOURCE=../../src/stc\scintilla\src\LexConf.cxx
 # End Source File
 # Begin Source File
 
 SOURCE=../../src/stc\scintilla\src\LexCrontab.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=../../src/stc\scintilla\src\LexCsound.cxx
 # End Source File
 # Begin Source File
 
@@ -573,10 +561,6 @@ SOURCE=../../src/stc\scintilla\src\LexEiffel.cxx
 # Begin Source File
 
 SOURCE=../../src/stc\scintilla\src\LexErlang.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=../../src/stc\scintilla\src\LexFlagship.cxx
 # End Source File
 # Begin Source File
 
@@ -593,10 +577,6 @@ SOURCE=../../src/stc\scintilla\src\LexGui4Cli.cxx
 # Begin Source File
 
 SOURCE=../../src/stc\scintilla\src\LexHTML.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=../../src/stc\scintilla\src\LexHaskell.cxx
 # End Source File
 # Begin Source File
 
@@ -668,10 +648,6 @@ SOURCE=../../src/stc\scintilla\src\LexPython.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=../../src/stc\scintilla\src\LexRebol.cxx
-# End Source File
-# Begin Source File
-
 SOURCE=../../src/stc\scintilla\src\LexRuby.cxx
 # End Source File
 # Begin Source File
@@ -684,15 +660,7 @@ SOURCE=../../src/stc\scintilla\src\LexScriptol.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=../../src/stc\scintilla\src\LexSmalltalk.cxx
-# End Source File
-# Begin Source File
-
 SOURCE=../../src/stc\scintilla\src\LexSpecman.cxx
-# End Source File
-# Begin Source File
-
-SOURCE=../../src/stc\scintilla\src\LexTADS3.cxx
 # End Source File
 # Begin Source File
 

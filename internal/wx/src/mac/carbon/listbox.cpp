@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox.cpp,v 1.111 2006/03/23 22:05:05 VZ Exp $
+// RCS-ID:      $Id: listbox.cpp,v 1.106 2006/01/04 11:49:01 SC Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ static pascal void DataBrowserItemNotificationProc(ControlRef browser, DataBrows
     {
         wxListBox* list = wxDynamicCast( (wxObject*) ref , wxListBox ) ;
         int i = itemID - 1 ;
-        if (i >= 0 && i < (int)list->GetCount() )
+        if (i >= 0 && i < list->GetCount() )
         {
             bool trigger = false ;
             wxCommandEvent event( wxEVT_COMMAND_LISTBOX_SELECTED, list->GetId() );
@@ -119,7 +119,7 @@ static pascal OSStatus ListBoxGetSetItemData(ControlRef browser,
                 {
                     wxListBox* list = wxDynamicCast( (wxObject*) ref , wxListBox ) ;
                     int i = itemID - 1 ;
-                    if (i >= 0 && i < (int)list->GetCount() )
+                    if (i >= 0 && i < list->GetCount() )
                     {
                         wxMacCFStringHolder cf( list->GetString( i ) , list->GetFont().GetEncoding() ) ;
                         verify_noerr( ::SetDataBrowserItemDataText( itemData , cf ) ) ;
@@ -326,7 +326,7 @@ void wxListBox::FreeData()
 {
     if ( HasClientObjectData() )
     {
-        for ( unsigned int n = 0; n < m_noItems; n++ )
+        for ( size_t n = 0; n < (size_t)m_noItems; n++ )
         {
             delete GetClientObject( n );
         }
@@ -345,9 +345,9 @@ void wxListBox::DoSetFirstItem(int n)
     MacScrollTo( n ) ;
 }
 
-void wxListBox::Delete(unsigned int n)
+void wxListBox::Delete(int n)
 {
-    wxCHECK_RET( IsValid(n),
+    wxCHECK_RET( n >= 0 && n < m_noItems,
                  wxT("invalid index in wxListBox::Delete") );
 
     if ( HasClientObjectData() )
@@ -364,7 +364,7 @@ int wxListBox::DoAppend(const wxString& item)
 {
     InvalidateBestSize();
 
-    unsigned int index = m_noItems ;
+    int index = m_noItems ;
     m_stringArray.Add( item ) ;
     m_dataArray.Add( NULL );
     m_noItems++;
@@ -377,9 +377,9 @@ int wxListBox::DoAppend(const wxString& item)
 void wxListBox::DoSetItems(const wxArrayString& choices, void** clientData)
 {
     Clear() ;
-    unsigned int n = choices.GetCount();
+    int n = choices.GetCount();
 
-    for ( size_t i = 0 ; i < n ; ++i )
+    for ( int i = 0 ; i < n ; ++i )
     {
         if ( clientData )
             Append( choices[i] , clientData[i] ) ;
@@ -392,28 +392,28 @@ int wxListBox::FindString(const wxString& s, bool bCase) const
 {
     if ( s.Right(1) == wxT("*") )
     {
-        wxString search = s.Left( s.length() - 1 ) ;
-        int len = search.length() ;
+        wxString search = s.Left( s.Length() - 1 ) ;
+        int len = search.Length() ;
         Str255 s1 , s2 ;
         wxMacStringToPascal( search , s2 ) ;
 
-        for ( unsigned int i = 0 ; i < m_noItems ; ++ i )
+        for ( int i = 0 ; i < m_noItems ; ++ i )
         {
             wxMacStringToPascal( m_stringArray[i].Left( len ) , s1 ) ;
 
             if ( EqualString( s1 , s2 , bCase , false ) )
-                return (int)i;
+                return i ;
         }
 
-        if ( s.Left(1) == wxT("*") && s.length() > 1 )
+        if ( s.Left(1) == wxT("*") && s.Length() > 1 )
         {
             wxString st = s ;
             st.MakeLower() ;
 
-            for ( unsigned int i = 0 ; i < m_noItems ; ++i )
+            for ( int i = 0 ; i < m_noItems ; ++i )
             {
-                if (GetString(i).Lower().Matches(st) )
-                    return (int)i ;
+                if ( GetString( i ).Lower().Matches(st) )
+                    return i ;
             }
         }
     }
@@ -423,12 +423,12 @@ int wxListBox::FindString(const wxString& s, bool bCase) const
 
         wxMacStringToPascal( s , s2 ) ;
 
-        for ( unsigned int i = 0 ; i < m_noItems ; ++ i )
+        for ( int i = 0 ; i < m_noItems ; ++ i )
         {
             wxMacStringToPascal( m_stringArray[i] , s1 ) ;
 
             if ( EqualString( s1 , s2 , bCase , false ) )
-                return (int)i ;
+                return i ;
         }
     }
 
@@ -446,7 +446,7 @@ void wxListBox::Clear()
 
 void wxListBox::DoSetSelection(int n, bool select)
 {
-    wxCHECK_RET( n == wxNOT_FOUND || IsValid(n) ,
+    wxCHECK_RET( n == wxNOT_FOUND || (n >= 0 && n < m_noItems) ,
         wxT("invalid index in wxListBox::SetSelection") );
 
     if ( n == wxNOT_FOUND )
@@ -457,39 +457,39 @@ void wxListBox::DoSetSelection(int n, bool select)
 
 bool wxListBox::IsSelected(int n) const
 {
-    wxCHECK_MSG( IsValid(n), false,
+    wxCHECK_MSG( n >= 0 && n < m_noItems, false,
         wxT("invalid index in wxListBox::Selected") );
 
     return MacIsSelected( n ) ;
 }
 
-void *wxListBox::DoGetItemClientData(unsigned int n) const
+void *wxListBox::DoGetItemClientData(int n) const
 {
-    wxCHECK_MSG( IsValid(n), NULL, wxT("invalid index in wxListBox::GetClientData"));
-
-    wxASSERT_MSG( m_dataArray.GetCount() >= (unsigned int) n , wxT("invalid client_data array") ) ;
+    wxCHECK_MSG( n >= 0 && n < m_noItems, NULL,
+        wxT("invalid index in wxListBox::GetClientData"));
 
     return (void *)m_dataArray[n];
 }
 
-wxClientData *wxListBox::DoGetItemClientObject(unsigned int n) const
+wxClientData *wxListBox::DoGetItemClientObject(int n) const
 {
     return (wxClientData *) DoGetItemClientData( n ) ;
 }
 
-void wxListBox::DoSetItemClientData(unsigned int n, void *clientData)
+void wxListBox::DoSetItemClientData(int n, void *clientData)
 {
-    wxCHECK_RET( IsValid(n), wxT("invalid index in wxListBox::SetClientData") );
+    wxCHECK_RET( n >= 0 && n < m_noItems,
+        wxT("invalid index in wxListBox::SetClientData") );
 
-    wxASSERT_MSG( m_dataArray.GetCount() >= (unsigned int) n , wxT("invalid client_data array") ) ;
+    wxASSERT_MSG( m_dataArray.GetCount() >= (size_t) n , wxT("invalid client_data array") ) ;
 
-    if ( m_dataArray.GetCount() > (unsigned int) n )
+    if ( m_dataArray.GetCount() > (size_t) n )
         m_dataArray[n] = (char*)clientData ;
     else
         m_dataArray.Add( (char*)clientData ) ;
 }
 
-void wxListBox::DoSetItemClientObject(unsigned int n, wxClientData* clientData)
+void wxListBox::DoSetItemClientObject(int n, wxClientData* clientData)
 {
     DoSetItemClientData(n, clientData);
 }
@@ -507,24 +507,24 @@ int wxListBox::GetSelection() const
 }
 
 // Find string for position
-wxString wxListBox::GetString(unsigned int n) const
+wxString wxListBox::GetString(int n) const
 {
-    wxCHECK_MSG( IsValid(n), wxEmptyString,
+    wxCHECK_MSG( n >= 0 && n < m_noItems, wxEmptyString,
                  wxT("invalid index in wxListBox::GetString") );
 
     return m_stringArray[n]  ;
 }
 
-void wxListBox::DoInsertItems(const wxArrayString& items, unsigned int pos)
+void wxListBox::DoInsertItems(const wxArrayString& items, int pos)
 {
-    wxCHECK_RET( IsValidInsert(pos),
+    wxCHECK_RET( pos >= 0 && pos <= m_noItems,
         wxT("invalid index in wxListBox::InsertItems") );
 
     InvalidateBestSize();
 
-    unsigned int nItems = items.GetCount();
+    int nItems = items.GetCount();
 
-    for ( unsigned int i = 0 ; i < nItems ; i++ )
+    for ( int i = 0 ; i < nItems ; i++ )
     {
         m_stringArray.Insert( items[i] , pos + i ) ;
         m_dataArray.Insert( NULL , pos + i ) ;
@@ -533,7 +533,7 @@ void wxListBox::DoInsertItems(const wxArrayString& items, unsigned int pos)
     }
 }
 
-void wxListBox::SetString(unsigned int n, const wxString& s)
+void wxListBox::SetString(int n, const wxString& s)
 {
     m_stringArray[n] = s ;
     MacSet( n , s ) ;
@@ -563,9 +563,9 @@ wxSize wxListBox::DoGetBestSize() const
         }
 
         // Find the widest line
-        for (unsigned int i = 0; i < GetCount(); i++)
+        for (int i = 0; i < GetCount(); i++)
         {
-            wxString str(GetString(i));
+            wxString str( GetString( i ) );
 
 #if wxUSE_UNICODE
             Point bounds = {0, 0} ;
@@ -581,7 +581,7 @@ wxSize wxListBox::DoGetBestSize() const
                 &baseline );
             wLine = bounds.h ;
 #else
-            wLine = ::TextWidth( str.c_str() , 0 , str.length() ) ;
+            wLine = ::TextWidth( str.c_str() , 0 , str.Length() ) ;
 #endif
 
             lbWidth = wxMax( lbWidth, wLine );
@@ -603,7 +603,7 @@ wxSize wxListBox::DoGetBestSize() const
     return wxSize( lbWidth, lbHeight );
 }
 
-unsigned int wxListBox::GetCount() const
+int wxListBox::GetCount() const
 {
     return m_noItems;
 }
@@ -638,7 +638,7 @@ void wxListBox::MacDelete( int n )
     UInt32 id = m_noItems + 1 ;
 
     verify_noerr( m_peer->RemoveItems( kDataBrowserNoItem , 1 , (UInt32*) &id , kDataBrowserItemNoProperty ) ) ;
-    for ( unsigned int i = 0 ; i < selectionBefore.GetCount() ; ++i )
+    for ( size_t i = 0 ; i < selectionBefore.GetCount() ; ++i )
     {
         int current = selectionBefore[i] ;
         if ( current == n )
@@ -737,7 +737,7 @@ bool wxListBox::MacIsSelected( int n ) const
 
 int wxListBox::MacGetSelection() const
 {
-    for ( unsigned int i = 0 ; i < GetCount() ; ++i )
+    for ( int i = 0 ; i < GetCount() ; ++i )
     {
         if ( m_peer->IsItemSelected( i + 1 ) )
             return i ;
@@ -780,109 +780,6 @@ void wxListBox::MacScrollTo( int n )
 {
     UInt32 id = n + 1 ;
     verify_noerr( m_peer->RevealItem( id , kTextColumnId , kDataBrowserRevealWithoutSelecting ) ) ;
-}
-
-int wxListBox::DoListHitTest(const wxPoint& inpoint) const
-{
-    OSErr err;
-
-    // There are few reasons why this is complicated:
-    // 1) There is no native hittest function for mac
-    // 2) GetDataBrowserItemPartBounds only works on visible items
-    // 3) We can't do it through GetDataBrowserTableView[Item]RowHeight
-    //    because what it returns is basically inaccurate in the context
-    //    of the coordinates we want here, but we use this as a guess
-    //    for where the first visible item lies
-
-    wxPoint point = inpoint;
-    // interestingly enough 10.2 (and below?) have GetDataBrowserItemPartBounds
-    // giving root window coordinates but 10.3 and above give client coordinates
-    // so we only compare using root window coordinates on 10.3 and up
-    if ( UMAGetSystemVersion() < 0x1030 )
-        MacClientToRootWindow(&point.x, &point.y);
-
-    // get column property id (req. for call to itempartbounds)
-    DataBrowserTableViewColumnID colId = 0;
-    err = GetDataBrowserTableViewColumnProperty(m_peer->GetControlRef(), 0, &colId);
-    wxCHECK_MSG(err == noErr, wxNOT_FOUND, wxT("Unexpected error from GetDataBrowserTableViewColumnProperty"));
-
-    // OK, first we need to find the first visible item we have -
-    // this will be the "low" for our binary search. There is no real
-    // easy way around this, as we will need to do a SLOW linear search
-    // until we find a visible item, but we can do a cheap calculation
-    // via the row height to speed things up a bit
-    UInt32 scrollx, scrolly;
-    err = GetDataBrowserScrollPosition(m_peer->GetControlRef(), &scrollx, &scrolly);
-    wxCHECK_MSG(err == noErr, wxNOT_FOUND, wxT("Unexpected error from GetDataBrowserScrollPosition"));
-
-    UInt16 height;
-    err = GetDataBrowserTableViewRowHeight(m_peer->GetControlRef(), &height);
-    wxCHECK_MSG(err == noErr, wxNOT_FOUND, wxT("Unexpected error from GetDataBrowserTableViewRowHeight"));
-
-    // these indices are 0-based, as usual, so we need to add 1 to them when
-    // passing them to data browser functions which use 1-based indices
-    int low = scrolly / height,
-        high = GetCount() - 1;
-
-
-    // search for the first visible item (note that the scroll guess above
-    // is the low bounds of where the item might lie so we only use that as a
-    // starting point - we should reach it within 1 or 2 iterations of the loop)
-    while ( low <= high )
-    {
-        Rect bounds;
-        err = GetDataBrowserItemPartBounds(m_peer->GetControlRef(), low + 1, colId,
-                                           kDataBrowserPropertyEnclosingPart,
-                                           &bounds); //note +1 to trans to mac id
-        if ( err == noErr )
-            break;
-
-        // errDataBrowserItemNotFound is expected as it simply means that the
-        // item is not currently visible -- but other errors are not
-        wxCHECK_MSG( err == errDataBrowserItemNotFound, wxNOT_FOUND,
-                     wxT("Unexpected error from GetDataBrowserItemPartBounds") );
-
-        low++;
-    }
-
-    // NOW do a binary search for where the item lies, searching low again if
-    // we hit an item that isn't visible
-    while ( low <= high )
-    {
-        int mid = (low + high) / 2;
-
-        Rect bounds;
-        err = GetDataBrowserItemPartBounds(m_peer->GetControlRef(), mid + 1, colId,
-                                           kDataBrowserPropertyEnclosingPart,
-                                           &bounds); //note +1 to trans to mac id
-        wxCHECK_MSG( err == noErr || err == errDataBrowserItemNotFound,
-                     wxNOT_FOUND,
-                     wxT("Unexpected error from GetDataBrowserItemPartBounds") );
-
-        if ( err == errDataBrowserItemNotFound )
-        {
-            // item not visible, attempt to find a visible one
-            high = mid - 1; // search lower
-        }
-        else // visible item, do actual hitttest
-        {
-            // if point is within the bounds, return this item (since we assume
-            // all x coords of items are equal we only test the x coord in
-            // equality)
-            if( (point.x >= bounds.left && point.x <= bounds.right) &&
-                (point.y >= bounds.top && point.y <= bounds.bottom) )
-            {
-                return mid;     // found!
-            }
-
-            if ( point.y < bounds.top )
-                high = mid - 1; // index(bounds) greater then key(point)
-            else
-                low = mid + 1;  // index(bounds) less then key(point)
-        }
-    }
-
-    return wxNOT_FOUND;
 }
 
 #if !TARGET_API_MAC_OSX
@@ -956,7 +853,7 @@ void wxListBox::OnChar(wxKeyEvent& event)
                 event.SetClientObject( GetClientObject( n ) );
             else if ( HasClientUntypedData() )
                 event.SetClientData( GetClientData( n ) );
-            event.SetString(GetString(n));
+            event.SetString( GetString( n ) );
         }
         else
         {
@@ -988,8 +885,8 @@ void wxListBox::OnChar(wxKeyEvent& event)
                     event.SetClientObject( GetClientObject( line ) );
                 else if ( HasClientUntypedData() )
                     event.SetClientData( GetClientData( line ) );
-                event.SetString(GetString(line));
-                event.SetInt(line);
+                event.SetString( GetString( line ) );
+                event.SetInt( line );
 
                 GetEventHandler()->ProcessEvent(event);
             }

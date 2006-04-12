@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dialog.cpp,v 1.128 2006/03/31 18:07:12 ABX Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.127 2005/09/25 11:13:35 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -83,14 +83,10 @@ wxBEGIN_FLAGS( wxDialogStyle )
     wxFLAGS_MEMBER(wxWS_EX_VALIDATE_RECURSIVELY)
     wxFLAGS_MEMBER(wxSTAY_ON_TOP)
     wxFLAGS_MEMBER(wxCAPTION)
-#if WXWIN_COMPATIBILITY_2_6
     wxFLAGS_MEMBER(wxTHICK_FRAME)
-#endif // WXWIN_COMPATIBILITY_2_6
     wxFLAGS_MEMBER(wxSYSTEM_MENU)
     wxFLAGS_MEMBER(wxRESIZE_BORDER)
-#if WXWIN_COMPATIBILITY_2_6
     wxFLAGS_MEMBER(wxRESIZE_BOX)
-#endif // WXWIN_COMPATIBILITY_2_6
     wxFLAGS_MEMBER(wxCLOSE_BOX)
     wxFLAGS_MEMBER(wxMAXIMIZE_BOX)
     wxFLAGS_MEMBER(wxMINIMIZE_BOX)
@@ -608,3 +604,4 @@ WXLRESULT wxDialog::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPar
 
     return rc;
 }
+

@@ -5,8 +5,8 @@ based on wxPython's wxStyledTextCtrl.
 Sponsored by Orbtech - Your source for Python programming expertise."""
 
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
-__cvsid__ = "$Id: shell.py,v 1.17 2006/03/06 20:19:25 RD Exp $"
-__revision__ = "$Revision: 1.17 $"[11:-2]
+__cvsid__ = "$Id: shell.py,v 1.14 2006/02/03 23:06:28 RD Exp $"
+__revision__ = "$Revision: 1.14 $"[11:-2]
 
 import wx
 from wx import stc
@@ -147,9 +147,10 @@ Ctrl+[            Decrease font size.
 Ctrl+=            Default font size.
 Ctrl-Space        Show Auto Completion.
 Ctrl-Alt-Space    Show Call Tip.
+Alt+Shift+C       Clear Screen.
 Shift+Enter       Complete Text from History.
-Ctrl+F            Search 
-F3                Search next
+Ctrl+F            Search (backwards) TODO: regexp-wholeWords-...
+Ctrl+G            Search next
 Ctrl+H            "hide" lines containing selection / "unhide"
 F12               on/off "free-edit" mode
 """
@@ -168,7 +169,6 @@ class ShellFacade:
         d = self.__dict__
         d['other'] = other
         d['helpText'] = HELP_TEXT
-        d['this'] = other.this
 
     def help(self):
         """Display some useful information about how to use the shell."""
@@ -321,11 +321,6 @@ class Shell(editwindow.EditWindow):
         wx.CallAfter(self.ScrollToLine, 0)
 
 
-    def clearHistory(self):
-        self.history = []
-        self.historyIndex = -1
-        dispatcher.send(signal="Shell.clearHistory")
-
 
     def destroy(self):
         del self.interp
@@ -421,7 +416,7 @@ Platform: %s""" % \
         currpos = self.GetCurrentPos()
         stoppos = self.promptPosEnd
         # Return (Enter) needs to be ignored in this handler.
-        if key in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
+        if key == wx.WXK_RETURN:
             pass
         elif key in self.autoCompleteKeys:
             # Usually the dot (period) key activates auto completion.
@@ -517,17 +512,17 @@ Platform: %s""" % \
 
         # Return (Enter) is used to submit a command to the
         # interpreter.
-        if (not controlDown and not shiftDown and not altDown) and key in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
+        if (not controlDown and not shiftDown and not altDown) and key == wx.WXK_RETURN:
             if self.CallTipActive():
                 self.CallTipCancel()
             self.processLine()
             
         # Complete Text (from already typed words)    
-        elif shiftDown and key in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
+        elif shiftDown and key == wx.WXK_RETURN:
             self.OnShowCompHistory()
             
         # Ctrl+Return (Ctrl+Enter) is used to insert a line break.
-        elif controlDown and key in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
+        elif controlDown and key == wx.WXK_RETURN:
             if self.CallTipActive():
                 self.CallTipCancel()
             if currpos == endpos:
@@ -545,10 +540,6 @@ Platform: %s""" % \
                 event.Skip()
             else:
                 self.clearCommand()
-
-        # Clear the current command
-        elif key == wx.WXK_BACK and controlDown and shiftDown:
-            self.clearCommand()
 
         # Increase font size.
         elif controlDown and key in (ord(']'), wx.WXK_NUMPAD_ADD):
@@ -923,7 +914,6 @@ Platform: %s""" % \
         if command != '' \
         and (len(self.history) == 0 or command != self.history[0]):
             self.history.insert(0, command)
-            dispatcher.send(signal="Shell.addHistory", command=command)
 
     def write(self, text):
         """Display text in the shell.

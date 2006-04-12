@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.05.03
-// RCS-ID:      $Id: vlbox.cpp,v 1.25 2006/03/24 04:14:27 RD Exp $
+// RCS-ID:      $Id: vlbox.cpp,v 1.24 2006/01/17 16:00:43 JS Exp $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -538,11 +538,13 @@ void wxVListBox::OnKeyDown(wxKeyEvent& event)
             break;
 
         case WXK_PAGEDOWN:
+        case WXK_NEXT:
             PageDown();
             current = GetFirstVisibleLine();
             break;
 
         case WXK_PAGEUP:
+        case WXK_PRIOR:
             if ( m_current == (int)GetFirstVisibleLine() )
             {
                 PageUp();

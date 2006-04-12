@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05/25/99
-// RCS-ID:      $Id: dc.h,v 1.74 2006/03/14 16:04:32 VZ Exp $
+// RCS-ID:      $Id: dc.h,v 1.73 2006/02/12 01:57:22 VZ Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -119,7 +119,6 @@ public:
         , m_logicalFunction(wxCOPY)
         , m_backgroundMode(wxTRANSPARENT)
         , m_mappingMode(wxMM_TEXT)
-        , m_antiAliasing(false)
         , m_pen()
         , m_brush()
         , m_backgroundBrush(*wxTRANSPARENT_BRUSH)
@@ -557,9 +556,6 @@ public:
     int GetLogicalFunction() const { return m_logicalFunction; }
     virtual void SetLogicalFunction(int function) = 0;
 
-    bool GetAntiAliasing() const { return m_antiAliasing; }
-    virtual void SetAntiAliasing(bool isAntiAliased) { m_antiAliasing = isAntiAliased; }
-
 #if WXWIN_COMPATIBILITY_2_4
     virtual void SetOptimization(bool WXUNUSED(opt)) { }
     virtual bool GetOptimization() { return false; }
@@ -653,6 +649,17 @@ public:
         if (w) *w = ww;
         if (h) *h = hh;
     }
+
+    // Reserved for future use
+    virtual void ReservedDCFunc1() {}
+    virtual void ReservedDCFunc2() {}
+    virtual void ReservedDCFunc3() {}
+    virtual void ReservedDCFunc4() {}
+    virtual void ReservedDCFunc5() {}
+    virtual void ReservedDCFunc6() {}
+    virtual void ReservedDCFunc7() {}
+    virtual void ReservedDCFunc8() {}
+    virtual void ReservedDCFunc9() {}
 
 protected:
     // the pure virtual functions which should be implemented by wxDC
@@ -796,7 +803,6 @@ protected:
     int m_logicalFunction;
     int m_backgroundMode;
     int m_mappingMode;
-    bool m_antiAliasing;
 
     // GDI objects
     wxPen             m_pen;

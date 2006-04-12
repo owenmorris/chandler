@@ -6,7 +6,7 @@
 # Author:      Robin Dunn
 #
 # Created:     9-Dec-1999
-# RCS-ID:      $Id: buttons.py,v 1.14 2006/04/06 00:12:11 RD Exp $
+# RCS-ID:      $Id: buttons.py,v 1.13 2006/01/17 05:42:21 RD Exp $
 # Copyright:   (c) 1999 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -31,8 +31,8 @@ import imageutils
 
 class GenButtonEvent(wx.PyCommandEvent):
     """Event sent from the generic buttons when the button is activated. """
-    def __init__(self, eventType, id):
-        wx.PyCommandEvent.__init__(self, eventType, id)
+    def __init__(self, eventType, ID):
+        wx.PyCommandEvent.__init__(self, eventType, ID)
         self.isDown = False
         self.theButton = None
 
@@ -56,14 +56,14 @@ class GenButton(wx.PyControl):
 
     labelDelta = 1
 
-    def __init__(self, parent, id=-1, label='',
+    def __init__(self, parent, ID, label,
                  pos = wx.DefaultPosition, size = wx.DefaultSize,
                  style = 0, validator = wx.DefaultValidator,
                  name = "genbutton"):
         cstyle = style
         if cstyle == 0:
             cstyle = wx.BORDER_NONE
-        wx.PyControl.__init__(self, parent, id, pos, size, cstyle, validator, name)
+        wx.PyControl.__init__(self, parent, ID, pos, size, cstyle, validator, name)
 
         self.up = True
         self.hasFocus = False
@@ -335,14 +335,18 @@ class GenButton(wx.PyControl):
 
     def OnGainFocus(self, event):
         self.hasFocus = True
-        self.Refresh()
-        self.Update()
+        dc = wx.ClientDC(self)
+        w, h = self.GetClientSizeTuple()
+        if self.useFocusInd:
+            self.DrawFocusIndicator(dc, w, h)
 
 
     def OnLoseFocus(self, event):
         self.hasFocus = False
-        self.Refresh()
-        self.Update()
+        dc = wx.ClientDC(self)
+        w, h = self.GetClientSizeTuple()
+        if self.useFocusInd:
+            self.DrawFocusIndicator(dc, w, h)
 
 
     def OnKeyDown(self, event):
@@ -365,7 +369,7 @@ class GenButton(wx.PyControl):
 class GenBitmapButton(GenButton):
     """A generic bitmap button."""
 
-    def __init__(self, parent, id=-1, bitmap=wx.NullBitmap,
+    def __init__(self, parent, ID, bitmap,
                  pos = wx.DefaultPosition, size = wx.DefaultSize,
                  style = 0, validator = wx.DefaultValidator,
                  name = "genbutton"):
@@ -373,7 +377,7 @@ class GenBitmapButton(GenButton):
         self.bmpFocus = None
         self.bmpSelected = None
         self.SetBitmapLabel(bitmap)
-        GenButton.__init__(self, parent, id, "", pos, size, style, validator, name)
+        GenButton.__init__(self, parent, ID, "", pos, size, style, validator, name)
 
 
     def GetBitmapLabel(self):
@@ -440,11 +444,11 @@ class GenBitmapButton(GenButton):
 
 class GenBitmapTextButton(GenBitmapButton):
     """A generic bitmapped button with text label"""
-    def __init__(self, parent, id=-1, bitmap=wx.NullBitmap, label='',
+    def __init__(self, parent, ID, bitmap, label,
                  pos = wx.DefaultPosition, size = wx.DefaultSize,
                  style = 0, validator = wx.DefaultValidator,
                  name = "genbutton"):
-        GenBitmapButton.__init__(self, parent, id, bitmap, pos, size, style, validator, name)
+        GenBitmapButton.__init__(self, parent, ID, bitmap, pos, size, style, validator, name)
         self.SetLabel(label)
 
 

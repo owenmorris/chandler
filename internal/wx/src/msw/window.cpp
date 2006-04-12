@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp,v 1.677 2006/03/27 12:25:04 ABX Exp $
+// RCS-ID:      $Id: window.cpp,v 1.670 2006/02/15 15:04:04 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -110,12 +110,6 @@
 
 #if defined(__WXWINCE__)
     #include "wx/msw/wince/missing.h"
-#ifdef __POCKETPC__
-    #include <windows.h>
-    #include <shellapi.h>
-    #include <ole2.h>
-    #include <aygshell.h>
-#endif
 #endif
 
 #if defined(TME_LEAVE) && defined(WM_MOUSELEAVE)
@@ -493,10 +487,6 @@ void wxWindowMSW::Init()
 
     m_pendingPosition = wxDefaultPosition;
     m_pendingSize = wxDefaultSize;
-
-#ifdef __POCKETPC__
-    m_contextMenuEnabled = false;
-#endif
 }
 
 // Destructor
@@ -798,10 +788,22 @@ bool wxWindowMSW::SetCursor(const wxCursor& cursor)
         return false;
     }
 
-    // don't "overwrite" busy cursor
-    if ( m_cursor.Ok() && !wxIsBusy() )
+    if ( m_cursor.Ok() )
     {
-        ::SetCursor(GetHcursorOf(m_cursor));
+        HWND hWnd = GetHwnd();
+
+        // Change the cursor NOW if we're within the correct window
+        POINT point;
+#ifdef __WXWINCE__
+        ::GetCursorPosWinCE(&point);
+#else
+        ::GetCursorPos(&point);
+#endif
+
+        RECT rect = wxGetWindowRect(hWnd);
+
+        if ( ::PtInRect(&rect, point) && !wxIsBusy() )
+            ::SetCursor(GetHcursorOf(m_cursor));
     }
 
     return true;
@@ -1143,9 +1145,6 @@ void wxWindowMSW::SetWindowStyleFlag(long flags)
     if ( !GetHwnd() )
         return;
 
-    // we may need to call SetWindowPos() when we change some styles
-    bool callSWP = false;
-
     WXDWORD exstyle, exstyleOld;
     long style = MSWGetStyle(flags, &exstyle),
          styleOld = MSWGetStyle(flagsOld, &exstyleOld);
@@ -1161,40 +1160,17 @@ void wxWindowMSW::SetWindowStyleFlag(long flags)
         styleReal |= style;
 
         ::SetWindowLong(GetHwnd(), GWL_STYLE, styleReal);
-
-        // If any of the style changes changed any of the frame styles:
-        // MSDN: SetWindowLong:
-        //       Certain window data is cached, so changes you make using
-        //       SetWindowLong will not take effect until you call the
-        //       SetWindowPos function. Specifically, if you change any of
-        //       the frame styles, you must call SetWindowPos with the
-        //       SWP_FRAMECHANGED flag for the cache to be updated properly.
-
-        callSWP = ((styleOld ^ style ) & (WS_BORDER |
-                                      WS_THICKFRAME |
-                                      WS_CAPTION |
-                                      WS_DLGFRAME |
-                                      WS_MAXIMIZEBOX |
-                                      WS_MINIMIZEBOX |
-                                      WS_SYSMENU) ) != 0;
     }
 
     // and the extended style
-    long exstyleReal = ::GetWindowLong(GetHwnd(), GWL_EXSTYLE);
-
     if ( exstyle != exstyleOld )
     {
+        long exstyleReal = ::GetWindowLong(GetHwnd(), GWL_EXSTYLE);
         exstyleReal &= ~exstyleOld;
         exstyleReal |= exstyle;
 
         ::SetWindowLong(GetHwnd(), GWL_EXSTYLE, exstyleReal);
 
-        // ex style changes don't take effect without calling SetWindowPos
-        callSWP = true;
-    }
-
-    if ( callSWP )
-    {
         // we must call SetWindowPos() to flush the cached extended style and
         // also to make the change to wxSTAY_ON_TOP style take effect: just
         // setting the style simply doesn't work
@@ -1202,7 +1178,7 @@ void wxWindowMSW::SetWindowStyleFlag(long flags)
                              exstyleReal & WS_EX_TOPMOST ? HWND_TOPMOST
                                                          : HWND_NOTOPMOST,
                              0, 0, 0, 0,
-                             SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED) )
+                             SWP_NOMOVE | SWP_NOSIZE) )
         {
             wxLogLastError(_T("SetWindowPos"));
         }
@@ -1971,7 +1947,7 @@ bool wxWindowMSW::DoPopupMenu(wxMenu *menu, int x, int y)
 #if defined(__WXWINCE__)
     UINT flags = 0;
 #else
-    UINT flags = TPM_RIGHTBUTTON | TPM_RECURSE;
+    UINT flags = TPM_RIGHTBUTTON;
 #endif
     ::TrackPopupMenu(hMenu, flags, point.x, point.y, 0, hWnd, NULL);
 
@@ -2606,36 +2582,6 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
                     wxCHECK_MSG( win, 0,
                                  _T("FindWindowForMouseEvent() returned NULL") );
                 }
-#ifdef __POCKETPC__
-                if (IsContextMenuEnabled() && message == WM_LBUTTONDOWN)
-                {
-                    SHRGINFO shrgi = {0};
-
-                    shrgi.cbSize = sizeof(SHRGINFO);
-                    shrgi.hwndClient = (HWND) GetHWND();
-                    shrgi.ptDown.x = x;
-                    shrgi.ptDown.y = y;
-
-                    shrgi.dwFlags = SHRG_RETURNCMD;
-                    // shrgi.dwFlags = SHRG_NOTIFYPARENT;
-
-                    if (GN_CONTEXTMENU == ::SHRecognizeGesture(&shrgi))
-                    {
-                        wxPoint pt(x, y);
-                        pt = ClientToScreen(pt);
-
-                        wxContextMenuEvent evtCtx(wxEVT_CONTEXT_MENU, GetId(), pt);
-
-                        evtCtx.SetEventObject(this);
-                        if (GetEventHandler()->ProcessEvent(evtCtx))
-                        {
-                            processed = true;
-                            return true;
-                        }
-                    }
-                }
-#endif
-
 #else // !__WXWINCE__
                 wxWindowMSW *win = this;
 #endif // __WXWINCE__/!__WXWINCE__
@@ -2901,10 +2847,6 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
 
         case WM_CAPTURECHANGED:
             processed = HandleCaptureChanged((WXHWND) (HWND) lParam);
-            break;
-
-        case WM_SETTINGCHANGE:
-            processed = HandleSettingChange(wParam, lParam);
             break;
 
         case WM_QUERYNEWPALETTE:
@@ -3989,30 +3931,6 @@ bool wxWindowMSW::HandleCaptureChanged(WXHWND hWndGainedCapture)
     event.SetEventObject(this);
 
     return GetEventHandler()->ProcessEvent(event);
-}
-
-bool wxWindowMSW::HandleSettingChange(WXWPARAM wParam, WXLPARAM lParam)
-{
-    // despite MSDN saying "(This message cannot be sent directly to a window.)"
-    // we need to send this to child windows (it is only sent to top-level
-    // windows) so {list,tree}ctrls can adjust their font size if necessary
-    // this is exactly how explorer does it to enable the font size changes
-
-    wxWindowList::compatibility_iterator node = GetChildren().GetFirst();
-    while ( node )
-    {
-        // top-level windows already get this message from the system
-        wxWindow *win = node->GetData();
-        if ( !win->IsTopLevel() )
-        {
-            ::SendMessage(GetHwndOf(win), WM_SETTINGCHANGE, wParam, lParam);
-        }
-
-        node = node->GetNext();
-    }
-
-    // let the system handle it
-    return false;
 }
 
 bool wxWindowMSW::HandleQueryNewPalette()
@@ -5380,10 +5298,10 @@ int wxCharCodeMSWToWX(int keySym, WXLPARAM lParam)
 
         // handle extended keys
         case VK_PRIOR:
-            id = ChooseNormalOrExtended(lParam, WXK_NUMPAD_PAGEUP, WXK_PAGEUP);
+            id = ChooseNormalOrExtended(lParam, WXK_NUMPAD_PRIOR, WXK_PRIOR);
             break;
         case VK_NEXT:
-            id = ChooseNormalOrExtended(lParam, WXK_NUMPAD_PAGEDOWN, WXK_PAGEDOWN);
+            id = ChooseNormalOrExtended(lParam, WXK_NUMPAD_NEXT, WXK_NEXT);
             break;
         case VK_END:
             id = ChooseNormalOrExtended(lParam, WXK_NUMPAD_END, WXK_END);
@@ -5435,8 +5353,8 @@ WXWORD wxCharCodeWXToMSW(int id, bool *isVirtual)
     case WXK_ALT:       keySym = VK_MENU; break;
     case WXK_PAUSE:     keySym = VK_PAUSE; break;
     case WXK_CAPITAL:   keySym = VK_CAPITAL; break;
-    case WXK_PAGEUP:    keySym = VK_PRIOR; break;
-    case WXK_PAGEDOWN:  keySym = VK_NEXT; break;
+    case WXK_PRIOR:     keySym = VK_PRIOR; break;
+    case WXK_NEXT :     keySym = VK_NEXT; break;
     case WXK_END:       keySym = VK_END; break;
     case WXK_HOME :     keySym = VK_HOME; break;
     case WXK_LEFT :     keySym = VK_LEFT; break;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: frame.cpp,v 1.197 2006/03/31 18:07:13 ABX Exp $
+// RCS-ID:      $Id: frame.cpp,v 1.196 2006/01/23 16:38:07 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -115,14 +115,10 @@ wxBEGIN_FLAGS( wxFrameStyle )
     // frame styles
     wxFLAGS_MEMBER(wxSTAY_ON_TOP)
     wxFLAGS_MEMBER(wxCAPTION)
-#if WXWIN_COMPATIBILITY_2_6
     wxFLAGS_MEMBER(wxTHICK_FRAME)
-#endif // WXWIN_COMPATIBILITY_2_6
     wxFLAGS_MEMBER(wxSYSTEM_MENU)
     wxFLAGS_MEMBER(wxRESIZE_BORDER)
-#if WXWIN_COMPATIBILITY_2_6
     wxFLAGS_MEMBER(wxRESIZE_BOX)
-#endif // WXWIN_COMPATIBILITY_2_6
     wxFLAGS_MEMBER(wxCLOSE_BOX)
     wxFLAGS_MEMBER(wxMAXIMIZE_BOX)
     wxFLAGS_MEMBER(wxMINIMIZE_BOX)

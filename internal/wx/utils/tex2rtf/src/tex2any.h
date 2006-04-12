@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     7.9.93
-// RCS-ID:      $Id: tex2any.h,v 1.22 2006/03/16 13:06:39 ABX Exp $
+// RCS-ID:      $Id: tex2any.h,v 1.21 2005/08/24 17:56:28 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,8 +14,6 @@
 #include "wx/list.h"
 #include "wx/hash.h"
 #include "wx/tokenzr.h"
-#include "wx/wfstream.h"
-#include "wx/txtstrm.h"
 #include "wxhlpblk.h"
 
 /*
@@ -178,7 +176,7 @@ extern wxPathList TexPathList;      // Path list, can be used for file searching
 extern bool StringMatch(const wxChar *one, const wxChar *two, bool subString = true, bool exact = false);
 
 // Define a variable value from the .ini file
-wxChar *RegisterSetting(const wxString& settingName, const wxString& settingValue, bool interactive = true);
+wxChar *RegisterSetting(wxChar *settingName, wxChar *settingValue, bool interactive = true);
 
 // Major document styles
 #define LATEX_REPORT    1
@@ -502,23 +500,23 @@ extern wxList CustomMacroList;
 
 class CustomMacro: public wxObject
 {
-public:
-    wxChar *macroName;
-    wxChar *macroBody;
-    int noArgs;
-    inline CustomMacro(const wxChar *name, int args, wxChar *body)
-    {
-        noArgs = args;
-        macroName = wxStrcpy(new wxChar[wxStrlen(name) + 1], name);
-        if (body)
-            macroBody = wxStrcpy(new wxChar[wxStrlen(body) + 1], body);
-        else
-            macroBody = NULL;
-    }
-    ~CustomMacro();
+ public:
+  wxChar *macroName;
+  wxChar *macroBody;
+  int noArgs;
+  inline CustomMacro(wxChar *name, int args, wxChar *body)
+  {
+    noArgs = args;
+    macroName = wxStrcpy(new wxChar[wxStrlen(name) + 1], name);
+    if (body)
+      macroBody = wxStrcpy(new wxChar[wxStrlen(body) + 1], body);
+    else
+      macroBody = NULL;
+  }
+  ~CustomMacro();
 };
 
-bool ReadCustomMacros(const wxString& filename);
+bool ReadCustomMacros(wxChar *filename);
 void ShowCustomMacros(void);
 CustomMacro *FindCustomMacro(wxChar *name);
 wxChar *ParseMultifieldString(wxChar *s, int *pos);
@@ -1068,3 +1066,6 @@ extern void InitialiseColourTable(void);
 #define ltTOPLEVEL          15000
 #define ltCUSTOM_MACRO      15001
 #define ltSOLO_BLOCK        15002
+
+
+

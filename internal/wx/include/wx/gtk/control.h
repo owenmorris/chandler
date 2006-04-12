@@ -2,7 +2,7 @@
 // Name:        control.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: control.h,v 1.32 2006/03/12 14:21:15 VZ Exp $
+// Id:          $Id: control.h,v 1.31 2005/12/18 16:37:51 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -66,11 +66,8 @@ protected:
     // sets the label to the given string and also sets it for the given widget
     void GTKSetLabelForLabel(GtkLabel *w, const wxString& label);
 
-    // GtkFrame helpers
-    GtkWidget* GTKCreateFrame(const wxString& label);
+    // as GTKSetLabelForLabel() but for a GtkFrame widget
     void GTKSetLabelForFrame(GtkFrame *w, const wxString& label);
-    void GTKFrameApplyWidgetStyle(GtkFrame* w, GtkRcStyle* rc);
-    void GTKFrameSetMnemonicWidget(GtkFrame* w, GtkWidget* widget);
 
     // remove mnemonics ("&"s) from the label
     static wxString GTKRemoveMnemonics(const wxString& label);

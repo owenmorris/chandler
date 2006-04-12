@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Ron Lee
 // Created:     04/01/98
-// RCS-ID:      $Id: object.cpp,v 1.99 2006/03/27 00:53:57 VZ Exp $
+// RCS-ID:      $Id: object.cpp,v 1.98 2006/02/12 12:16:41 MW Exp $
 // Copyright:   (c) 1998 Julian Smart
 //              (c) 2001 Ron Lee <ron@debian.org>
 // Licence:     wxWindows licence
@@ -205,6 +205,15 @@ wxClassInfo *wxClassInfo::FindClass(const wxChar *className)
         }
 
         return NULL;
+    }
+}
+
+void wxClassInfo::CleanUp()
+{
+    if ( sm_classTable )
+    {
+        delete sm_classTable;
+        sm_classTable = NULL;
     }
 }
 

@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Sept-2000
-// RCS-ID:      $Id: _filesys.i,v 1.11 2006/03/24 00:12:12 RD Exp $
+// RCS-ID:      $Id: _filesys.i,v 1.10 2005/03/09 22:28:41 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,6 @@ class wxFileSystemHandler //: public wxObject
 {
 public:
     //wxFileSystemHandler();
-    ~wxFileSystemHandler();
 };
 
 
@@ -139,10 +138,7 @@ public:
     wxString FindFirst(const wxString& spec, int flags = 0);
     wxString FindNext();
 
-    %disownarg(wxFileSystemHandler *handler);
     static void AddHandler(wxFileSystemHandler *handler);
-    %cleardisown(wxFileSystemHandler *handler);
-    
     static void CleanUpHandlers();
 
     // Returns the file URL for a native path

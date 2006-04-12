@@ -3,7 +3,7 @@
 // Purpose:     Generic list control
 // Author:      Robert Roebling
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h,v 1.109 2006/03/30 14:04:01 ABX Exp $
+// RCS-ID:      $Id: listctrl.h,v 1.105 2006/02/13 00:49:20 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,6 @@
 #include "wx/scrolwin.h"
 #include "wx/settings.h"
 #include "wx/listbase.h"
-#include "wx/textctrl.h"
 
 #if wxUSE_DRAG_AND_DROP
 class WXDLLEXPORT wxDropTarget;
@@ -100,7 +99,6 @@ public:
     int  GetItemState( long item, long stateMask ) const;
     bool SetItemState( long item, long state, long stateMask);
     bool SetItemImage( long item, int image, int selImage = -1 );
-    bool SetItemColumnImage( long item, long column, int image );
     wxString GetItemText( long item ) const;
     void SetItemText( long item, const wxString& str );
     wxUIntPtr GetItemData( long item ) const;
@@ -140,10 +138,8 @@ public:
 
     void SetItemCount(long count);
 
-    wxTextCtrl *EditLabel(long item,
-                          wxClassInfo* textControlClass = CLASSINFO(wxTextCtrl));
-    wxTextCtrl* GetEditControl() const;
-    void Edit( long item ) { EditLabel(item); }
+    void EditLabel( long item ) { Edit(item); }
+    void Edit( long item );
 
     bool EnsureVisible( long item );
     long FindItem( long start, const wxString& str, bool partial = false );
@@ -177,10 +173,9 @@ public:
     void RefreshItem(long item);
     void RefreshItems(long itemFrom, long itemTo);
 
-#if WXWIN_COMPATIBILITY_2_6
     // obsolete, don't use
     wxDEPRECATED( int GetItemSpacing( bool isSmall ) const );
-#endif // WXWIN_COMPATIBILITY_2_6
+
 
     virtual wxVisualAttributes GetDefaultAttributes() const
     {
@@ -245,7 +240,7 @@ protected:
     virtual wxString OnGetItemText(long item, long column) const;
 
     // return the icon for the given item. In report view, OnGetItemImage will
-    // only be called for the first column. See OnGetItemColumnImage for
+    // only be called for the first column. See OnGetItemColumnImage for 
     // details.
     virtual int OnGetItemImage(long item) const;
 

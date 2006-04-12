@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/gtk/textctrl.cpp
+// Name:        textctrl.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: textctrl.cpp,v 1.229 2006/03/28 11:02:29 ABX Exp $
+// Id:          $Id: textctrl.cpp,v 1.225 2006/02/09 03:53:16 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin, 2005 Mart Raudsepp
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,6 +27,13 @@
 
 #include "wx/gtk/private.h"
 #include <gdk/gdkkeysyms.h>
+
+//-----------------------------------------------------------------------------
+// idle system
+//-----------------------------------------------------------------------------
+
+extern void wxapp_install_idle_handler();
+extern bool g_isIdle;
 
 //-----------------------------------------------------------------------------
 // data
@@ -85,19 +92,6 @@ static void wxGtkTextApplyTagsFromAttr(GtkTextBuffer *text_buffer,
                                               NULL );
         gtk_text_buffer_apply_tag (text_buffer, tag, start, end);
         g_free (font_string);
-
-        if (attr.GetFont().GetUnderlined())
-        {
-            g_snprintf(buf, sizeof(buf), "WXFONTUNDERLINE");
-            tag = gtk_text_tag_table_lookup( gtk_text_buffer_get_tag_table( text_buffer ),
-                                             buf );
-            if (!tag)
-                tag = gtk_text_buffer_create_tag( text_buffer, buf,
-                                                  "underline-set", TRUE,
-                                                  "underline", PANGO_UNDERLINE_SINGLE,
-                                                  NULL );
-            gtk_text_buffer_apply_tag (text_buffer, tag, start, end);
-        }
     }
 
     if (attr.HasTextColour())
@@ -954,44 +948,16 @@ int wxTextCtrl::GetLineLength(long lineNo) const
     else
     {
         wxString str = GetLineText (lineNo);
-        return (int) str.length();
+        return (int) str.Length();
     }
 }
 
 int wxTextCtrl::GetNumberOfLines() const
 {
-    if ( m_windowStyle & wxTE_MULTILINE )
-    {
-        GtkTextIter iter;
-        gtk_text_buffer_get_iter_at_offset( m_buffer, &iter, 0 );
-
-        // move forward by one display line until the end is reached
-        int lineCount = 1;
-        while ( gtk_text_view_forward_display_line(GTK_TEXT_VIEW(m_text), &iter) )
-        {
-            lineCount++;
-        }
-
-        // If the last character in the text buffer is a newline,
-        // gtk_text_view_forward_display_line() will return false without that
-        // line being counted. Must add one manually in that case.
-        GtkTextIter lastCharIter;
-        gtk_text_buffer_get_iter_at_offset
-        (
-            m_buffer,
-            &lastCharIter,
-            gtk_text_buffer_get_char_count(m_buffer) - 1
-        );
-        gchar lastChar = gtk_text_iter_get_char( &lastCharIter );
-        if ( lastChar == wxT('\n') )
-            lineCount++;
-
-        return lineCount;
-    }
-    else // single line
-    {
+    if (m_windowStyle & wxTE_MULTILINE)
+        return gtk_text_buffer_get_line_count( m_buffer );
+    else
         return 1;
-    }
 }
 
 void wxTextCtrl::SetInsertionPoint( long pos )
@@ -1152,7 +1118,7 @@ void wxTextCtrl::SetSelection( long from, long to )
     if (from == -1 && to == -1)
     {
         from = 0;
-        to = GetValue().length();
+        to = GetValue().Length();
     }
 
     if (m_windowStyle & wxTE_MULTILINE)
@@ -1412,7 +1378,7 @@ void wxTextCtrl::OnChar( wxKeyEvent &key_event )
 {
     wxCHECK_RET( m_text != NULL, wxT("invalid text ctrl") );
 
-    if ((key_event.GetKeyCode() == WXK_RETURN) && (m_windowStyle & wxTE_PROCESS_ENTER))
+    if ((key_event.GetKeyCode() == WXK_RETURN) && (m_windowStyle & wxPROCESS_ENTER))
     {
         wxCommandEvent event(wxEVT_COMMAND_TEXT_ENTER, m_windowId);
         event.SetEventObject(this);

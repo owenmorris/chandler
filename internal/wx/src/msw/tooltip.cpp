@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.01.99
-// RCS-ID:      $Id: tooltip.cpp,v 1.44 2006/03/11 14:22:55 JS Exp $
+// RCS-ID:      $Id: tooltip.cpp,v 1.43 2005/06/14 17:43:45 ABX Exp $
 // Copyright:   (c) 1999 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -244,9 +244,8 @@ wxToolTip::wxToolTip(const wxString &tip)
 
 wxToolTip::~wxToolTip()
 {
-    // the tooltip has to be removed before deleting. Otherwise, if it is visible
-	// while being deleted, there will be a delay before it goes away.
-	Remove();
+    // there is no need to Remove() this tool - it will be done automatically
+    // anyhow
 }
 
 // ----------------------------------------------------------------------------

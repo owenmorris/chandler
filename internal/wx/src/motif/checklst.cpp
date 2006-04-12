@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: checklst.cpp,v 1.23 2006/03/23 22:05:11 VZ Exp $
+// RCS-ID:      $Id: checklst.cpp,v 1.22 2005/09/27 17:05:12 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,8 +15,6 @@
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
-
-#if wxUSE_CHECKLISTBOX
 
 #include "wx/defs.h"
 
@@ -118,12 +116,12 @@ bool wxCheckListBox::Create(wxWindow *parent, wxWindowID id,
 // check items
 // -----------
 
-bool wxCheckListBox::IsChecked(unsigned int uiIndex) const
+bool wxCheckListBox::IsChecked(size_t uiIndex) const
 {
     return ::IsChecked(wxListBox::GetString(uiIndex));
 }
 
-void wxCheckListBox::Check(unsigned int uiIndex, bool bCheck)
+void wxCheckListBox::Check(size_t uiIndex, bool bCheck)
 {
     wxString label = wxListBox::GetString(uiIndex);
     if(::IsChecked(label) == bCheck) return;
@@ -147,7 +145,7 @@ void wxCheckListBox::DoToggleItem( int n, int x )
         event.SetInt(n);
         event.SetExtraLong(true);
         event.SetEventObject(this);
-        event.SetString(GetString(n));
+        event.SetString( GetString( n ) );
 
         GetEventHandler()->ProcessEvent(event);
     }
@@ -172,17 +170,17 @@ int wxCheckListBox::FindString(const wxString& s, bool bCase) const
     return min;
 }
 
-void wxCheckListBox::SetString(unsigned int n, const wxString& s)
+void wxCheckListBox::SetString(int n, const wxString& s)
 {
-    wxListBox::SetString(n, Prefix(IsChecked(n)) + s);
+    wxListBox::SetString( n, Prefix(IsChecked(n)) + s );
 }
 
-wxString wxCheckListBox::GetString(unsigned int n) const
+wxString wxCheckListBox::GetString(int n) const
 {
     return wxListBox::GetString(n).substr(4);
 }
 
-void wxCheckListBox::DoInsertItems(const wxArrayString& items, unsigned int pos)
+void wxCheckListBox::DoInsertItems(const wxArrayString& items, int pos)
 {
     wxArrayString copy;
     CopyStringsAddingPrefix(items, copy);
@@ -195,5 +193,3 @@ void wxCheckListBox::DoSetItems(const wxArrayString& items, void **clientData)
     CopyStringsAddingPrefix(items, copy);
     wxListBox::DoSetItems(copy, clientData);
 }
-
-#endif // wxUSE_CHECKLISTBOX

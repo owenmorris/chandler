@@ -133,8 +133,6 @@ static inline double dmin(double a, double b) { return a < b ? a : b; }
 static inline double dmax(double a, double b) { return a > b ? a : b; }
 static inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
-#pragma mark -
-
 //-----------------------------------------------------------------------------
 // device context implementation
 //
@@ -1212,18 +1210,6 @@ void wxDC::SetLogicalFunction( int function )
     else
         CGContextSetBlendMode( cgContext, kCGBlendModeNormal ) ;
 #endif
-}
-
-void wxDC::SetAntiAliasing( bool isAntiAliased )
-{
-    // make sure parent class maintains state
-    wxDCBase::SetAntiAliasing( isAntiAliased );
-
-    // actually change the CGContext
-    CGContextRef cgContext = ((wxMacCGContext*)(m_graphicContext))->GetNativeContext();
-
-    // use GetAntiAliasing() in case the parent class decided not to set it or something
-    CGContextSetShouldAntialias( cgContext, GetAntiAliasing() );
 }
 
 extern bool wxDoFloodFill(wxDC *dc, wxCoord x, wxCoord y,

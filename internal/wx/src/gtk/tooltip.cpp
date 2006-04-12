@@ -2,7 +2,7 @@
 // Name:        src/gtk/tooltip.cpp
 // Purpose:     wxToolTip implementation
 // Author:      Robert Roebling
-// Id:          $Id: tooltip.cpp,v 1.25 2006/02/20 21:28:53 MR Exp $
+// Id:          $Id: tooltip.cpp,v 1.24 2006/01/26 16:01:37 ABX Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -68,18 +68,11 @@ void wxToolTip::Enable( bool flag )
         gtk_tooltips_disable( ss_tooltips );
 }
 
-G_BEGIN_DECLS
-void gtk_tooltips_set_delay (GtkTooltips *tooltips,
-                             guint delay);
-G_END_DECLS
-
 void wxToolTip::SetDelay( long msecs )
 {
     if (!ss_tooltips)
         return;
 
-    // FIXME: This is a deprecated function and might not even have an effect.
-    // Try to not use it, after which remove the prototype above.
     gtk_tooltips_set_delay( ss_tooltips, (int)msecs );
 }
 

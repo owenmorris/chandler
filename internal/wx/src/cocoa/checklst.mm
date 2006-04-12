@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/cocoa/checklst.mm
+// Name:        cocoa/checklst.mm
 // Purpose:     wxCheckListBox
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/03/18
-// RCS-ID:      $Id: checklst.mm,v 1.8 2006/03/23 22:04:50 VZ Exp $
+// RCS-ID:      $Id: 
 // Copyright:   (c) 2003 David Elliott
-// Licence:     wxWidgets licence
+// Licence:   	wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
@@ -58,13 +58,13 @@ wxCheckListBox::~wxCheckListBox()
 {
 }
 
-bool wxCheckListBox::IsChecked(unsigned int item) const
+bool wxCheckListBox::IsChecked(size_t item) const
 {
     return false;
 }
 
 
-void wxCheckListBox::Check(unsigned int item, bool check)
+void wxCheckListBox::Check(size_t item, bool check)
 {
 }
 

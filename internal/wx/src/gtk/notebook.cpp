@@ -2,7 +2,7 @@
 // Name:        notebook.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: notebook.cpp,v 1.135 2006/03/09 13:36:51 VZ Exp $
+// Id:          $Id: notebook.cpp,v 1.131 2006/02/03 23:39:48 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,12 +22,6 @@
 #include "wx/bitmap.h"
 #include "wx/fontutil.h"
 
-// FIXME: Use GtkImage instead of GtkPixmap. Don't use gtk_container_border_width
-#include <gtk/gtkversion.h>
-#ifdef GTK_DISABLE_DEPRECATED
-#undef GTK_DISABLE_DEPRECATED
-#endif
-
 #include "wx/gtk/private.h"
 #include "wx/gtk/win_gtk.h"
 
@@ -41,6 +35,13 @@
 
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING)
+
+//-----------------------------------------------------------------------------
+// idle system
+//-----------------------------------------------------------------------------
+
+extern void wxapp_install_idle_handler();
+extern bool g_isIdle;
 
 //-----------------------------------------------------------------------------
 // data
@@ -88,7 +89,7 @@ WX_DEFINE_LIST(wxGtkNotebookPagesList)
 extern "C" {
 static void gtk_notebook_page_change_callback(GtkNotebook *WXUNUSED(widget),
                                               GtkNotebookPage *WXUNUSED(page),
-                                              guint page,
+                                              gint page,
                                               wxNotebook *notebook )
 {
     // are you trying to call SetSelection() from a notebook event handler?
@@ -168,7 +169,7 @@ static void gtk_page_size_callback( GtkWidget *WXUNUSED(widget), GtkAllocation* 
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static void
+static gint
 gtk_notebook_realized_callback( GtkWidget * WXUNUSED(widget), wxWindow *win )
 {
     if (g_isIdle)
@@ -177,6 +178,8 @@ gtk_notebook_realized_callback( GtkWidget * WXUNUSED(widget), wxWindow *win )
     /* GTK 1.2 up to version 1.2.5 is broken so that we have to call a queue_resize
        here in order to make repositioning before showing to take effect. */
     gtk_widget_queue_resize( win->m_widget );
+
+    return FALSE;
 }
 }
 
@@ -185,10 +188,7 @@ gtk_notebook_realized_callback( GtkWidget * WXUNUSED(widget), wxWindow *win )
 //-----------------------------------------------------------------------------
 
 extern "C" {
-static gboolean
-gtk_notebook_key_press_callback( GtkWidget   *widget,
-                                 GdkEventKey *gdk_event,
-                                 wxNotebook  *notebook )
+static gint gtk_notebook_key_press_callback( GtkWidget *widget, GdkEventKey *gdk_event, wxNotebook *notebook )
 {
     if (g_isIdle)
         wxapp_install_idle_handler();
@@ -741,7 +741,7 @@ int wxNotebook::HitTest(const wxPoint& pt, long *flags) const
     size_t i = 0;
 
     GtkNotebook * notebook = GTK_NOTEBOOK(m_widget);
-    if (gtk_notebook_get_scrollable(notebook))
+    if (gtk_notebook_get_scrollable(notebook));
         i = g_list_position( notebook->children, notebook->first_tab );
 
     for ( ; i < count; i++ )

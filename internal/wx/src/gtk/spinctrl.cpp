@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/gtk/spinbutt.cpp
+// Name:        spinbutt.cpp
 // Purpose:     wxSpinCtrl
 // Author:      Robert
 // Modified by:
-// RCS-ID:      $Id: spinctrl.cpp,v 1.47 2006/03/28 11:02:28 ABX Exp $
+// RCS-ID:      $Id: spinctrl.cpp,v 1.45 2006/01/22 23:28:56 MR Exp $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,6 +24,9 @@
 //-----------------------------------------------------------------------------
 // idle system
 //-----------------------------------------------------------------------------
+
+extern void wxapp_install_idle_handler();
+extern bool g_isIdle;
 
 static const float sensitivity = 0.02;
 
@@ -98,14 +101,14 @@ bool wxSpinCtrl::Create(wxWindow *parent, wxWindowID id,
                         int min, int max, int initial,
                         const wxString& name)
 {
-    m_needParent = true;
-    m_acceptsFocus = true;
+    m_needParent = TRUE;
+    m_acceptsFocus = TRUE;
 
     if (!PreCreation( parent, pos, size ) ||
         !CreateBase( parent, id, pos, size, style, wxDefaultValidator, name ))
     {
         wxFAIL_MSG( wxT("wxSpinCtrl creation failed") );
-        return false;
+        return FALSE;
     }
 
     m_oldPos = initial;
@@ -125,7 +128,7 @@ bool wxSpinCtrl::Create(wxWindow *parent, wxWindowID id,
 
     SetValue( value );
 
-    return true;
+    return TRUE;
 }
 
 void wxSpinCtrl::GtkDisableEvents()
@@ -267,7 +270,7 @@ void wxSpinCtrl::OnChar( wxKeyEvent &event )
         }
     }
 
-    if ((event.GetKeyCode() == WXK_RETURN) && (m_windowStyle & wxTE_PROCESS_ENTER))
+    if ((event.GetKeyCode() == WXK_RETURN) && (m_windowStyle & wxPROCESS_ENTER))
     {
         wxCommandEvent evt( wxEVT_COMMAND_TEXT_ENTER, m_windowId );
         evt.SetEventObject(this);
@@ -282,11 +285,11 @@ void wxSpinCtrl::OnChar( wxKeyEvent &event )
 
 bool wxSpinCtrl::IsOwnGtkWindow( GdkWindow *window )
 {
-    if (GTK_SPIN_BUTTON(m_widget)->entry.text_area == window) return true;
+    if (GTK_SPIN_BUTTON(m_widget)->entry.text_area == window) return TRUE;
 
-    if (GTK_SPIN_BUTTON(m_widget)->panel == window) return true;
+    if (GTK_SPIN_BUTTON(m_widget)->panel == window) return TRUE;
 
-    return false;
+    return FALSE;
 }
 
 wxSize wxSpinCtrl::DoGetBestSize() const

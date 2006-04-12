@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     25-Nov-1998
-// RCS-ID:      $Id: _datetime.i,v 1.24 2006/04/06 02:35:05 RD Exp $
+// RCS-ID:      $Id: _datetime.i,v 1.22 2006/01/20 18:11:53 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -426,7 +426,6 @@ public:
                                      wxDateTime_t minute = 0,
                                      wxDateTime_t second = 0,
                                      wxDateTime_t millisec = 0));
-    %RenameCtor(DateTimeFromDateTime, wxDateTime(const wxDateTime& date));
             
     ~wxDateTime();
 
@@ -895,16 +894,9 @@ public:
 class wxTimeSpan
 {
 public:
-
-    // TODO:  Need an input typemap for wxLongLong...
-    
-    
-        // return the timespan for the given number of milliseconds
-    static wxTimeSpan Milliseconds(/*wxLongLong*/ long ms);
-    static wxTimeSpan Millisecond(); 
     
         // return the timespan for the given number of seconds
-    static wxTimeSpan Seconds(/*wxLongLong*/ long sec);
+    static wxTimeSpan Seconds(long sec);
     static wxTimeSpan Second();
 
         // return the timespan for the given number of minutes
@@ -931,8 +923,8 @@ public:
         // milliseconds)
     wxTimeSpan(long hours = 0,
                long minutes = 0,
-               /*wxLongLong*/ long seconds = 0,
-               /*wxLongLong*/ long milliseconds = 0);
+               long seconds = 0,
+               long milliseconds = 0);
 
     ~wxTimeSpan();
 

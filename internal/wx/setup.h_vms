@@ -3,7 +3,7 @@
  * Template for the set.h file for VMS                                       *
  * Created from setup.h_in                                                   *
  * Author : J.Jansen (joukj@hrem.nano.tudelft.nl)                            *
- * Date : 15 February 2006                                                    *
+ * Date : 9 February 2006                                                    *
  *                                                                           *
  *****************************************************************************/
 
@@ -370,7 +370,7 @@ typedef pid_t GPid;
 
 #define wxUSE_CARET         1
 
-#define wxUSE_DISPLAY       0
+#define wxUSE_DISPLAY       1
 
 #define wxUSE_GEOMETRY            1
 
@@ -543,8 +543,6 @@ typedef pid_t GPid;
 #define wxUSE_RICHEDIT2 0
 #endif
 
-#define wxUSE_INKEDIT 1
-
 #define wxUSE_UNICODE_MSLU 0
 
 #define wxUSE_DC_CACHEING 1
@@ -630,10 +628,6 @@ typedef pid_t GPid;
  * Use GNOME print for printing under GTK+ 2.0
  */
 #define wxUSE_LIBGNOMEPRINT 0
-/*
- * Use GNOME VFS for MIME types
- */
-#define wxUSE_LIBGNOMEVFS 0
 /*
  * Use the Hildon framework
  */

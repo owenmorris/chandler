@@ -2,7 +2,7 @@
 // Name:        frame.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: frame.cpp,v 1.209 2006/03/09 13:36:50 VZ Exp $
+// Id:          $Id: frame.cpp,v 1.208 2006/02/04 02:10:53 MR Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,6 +47,13 @@
 
 const int wxSTATUS_HEIGHT  = 25;
 const int wxPLACE_HOLDER   = 0;
+
+// ----------------------------------------------------------------------------
+// idle system
+// ----------------------------------------------------------------------------
+
+extern void wxapp_install_idle_handler();
+extern bool g_isIdle;
 
 // ----------------------------------------------------------------------------
 // event tables

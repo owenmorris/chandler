@@ -5,7 +5,7 @@
 // Author:      Robin Dunn
 //
 // Created:     10-June-1998
-// RCS-ID:      $Id: _radio.i,v 1.17 2006/03/24 00:08:44 RD Exp $
+// RCS-ID:      $Id: _radio.i,v 1.15 2005/05/27 00:53:05 RD Exp $
 // Copyright:   (c) 2003 by Total Control Software
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ public:
     virtual bool SetStringSelection(const wxString& s);
 
     // string access
-    virtual size_t GetCount() const;
+    virtual int GetCount() const;
     virtual int FindString(const wxString& s) const;
     
     virtual wxString GetString(int n) const;
@@ -68,17 +68,23 @@ public:
     %pythoncode { SetItemLabel = SetString };
 
     // change the individual radio button state
-    %Rename(EnableItem,  virtual void, Enable(unsigned int n, bool enable = true));
-    %Rename(ShowItem,  virtual void, Show(unsigned int n, bool show = true));
-    virtual bool IsItemEnabled(unsigned int n) const;
-    virtual bool IsItemShown(unsigned int n) const;
+    %Rename(EnableItem,  virtual void, Enable(int n, bool enable = true));
+    %Rename(ShowItem,  virtual void, Show(int n, bool show = true));
 
+#ifndef __WXGTK__
     // layout parameters
-    virtual unsigned int GetColumnCount() const;
-    virtual unsigned int GetRowCount() const;
+    virtual int GetColumnCount() const;
+    virtual int GetRowCount() const;
 
     // return the item above/below/to the left/right of the given one
     int GetNextItem(int item, wxDirection dir, long style) const;
+#else
+    %extend {
+        int GetColumnCount() const { return -1; }
+        int GetRowCount() const { return -1; }
+        int GetNextItem(int item, wxDirection dir, long style) const { return -1; }
+    }
+#endif
 
 //    bool IsValid(int n) const;  ** not public
         

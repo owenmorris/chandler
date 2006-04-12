@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h,v 1.62 2006/03/10 21:26:53 RD Exp $
+// RCS-ID:      $Id: listctrl.h,v 1.61 2006/02/14 03:49:20 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -157,7 +157,6 @@ public:
 
     // Sets the item image
     bool SetItemImage(long item, int image, int selImage = -1) ;
-    bool SetItemColumnImage(long item, long column, int image);
 
     // Gets the item text
     wxString GetItemText(long item) const ;

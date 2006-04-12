@@ -3,7 +3,7 @@
 // Purpose:     Information window when app is busy
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
-// RCS-ID:      $Id: busyinfo.cpp,v 1.22 2006/03/31 18:07:08 ABX Exp $
+// RCS-ID:      $Id: busyinfo.cpp,v 1.21 2006/01/26 18:59:49 ABX Exp $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -39,7 +39,7 @@ wxInfoFrame::wxInfoFrame(wxWindow *parent, const wxString& message)
            : wxFrame(parent, wxID_ANY, wxT("Busy"),
                      wxDefaultPosition, wxDefaultSize,
 #if defined(__WXX11__)
-                     wxRESIZE_BORDER
+                     wxTHICK_FRAME
 #else
                      wxSIMPLE_BORDER
 #endif

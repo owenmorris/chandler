@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:		src/generic/colheader.cpp
+// Name:		generic/colheader.cpp
 // Purpose:	2-platform (Mac,MSW) + generic implementation of a native-appearance column header
 // Author:	David Surovell
 // Modified by:
@@ -8,6 +8,14 @@
 // Copyright:
 // License:
 ///////////////////////////////////////////////////////////////////////////////
+
+// ============================================================================
+// declarations
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// headers
+// ----------------------------------------------------------------------------
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
@@ -152,16 +160,11 @@ void wxColumnHeader::Init( void )
 	m_NativeBoundsR.width =
 	m_NativeBoundsR.height = 0;
 
-	m_defaultItemSize.x =
-	m_defaultItemSize.y = 0;
-
 	m_ItemList = NULL;
 	m_ItemCount = 0;
 	m_ItemSelected = CH_HITTEST_NoPart;
 
 	m_SelectionColour.Set( 0x66, 0x66, 0x66 );
-
-	m_BUseVerticalOrientation = false;
 
 #if wxUSE_UNICODE
 	m_BUseUnicode = true;
@@ -208,28 +211,13 @@ bool			bResultV;
 
 	localName = name;
 
-//	if ((m_defaultItemSize.x <= 0) || (m_defaultItemSize.y <= 0))
-	m_defaultItemSize = CalculateDefaultItemSize();
-
 	actualSize = size;
-#if 1
 	if (m_BFixedHeight)
 	{
 		actualSize = CalculateDefaultSize();
 		if (size.x > 0)
 			actualSize.x = size.x;
 	}
-#else
-	if ((actualSize.x <= 0) || (m_BFixedHeight && (actualSize.x > 0)))
-		actualSize.x = m_defaultItemSize.x;
-	if (actualSize.y <= 0)
-		actualSize.y = m_defaultItemSize.y;
-#endif
-
-	// NB: we're stealing the style argument from Win32 and wx to support ListHeader attributes
-	if (style & (1 << CH_ATTR_VerticalOrientation))
-		m_BUseVerticalOrientation = true;
-	style = 0;
 
 	// NB: the CreateControl call crashes on MacOS
 #if defined(__WXMSW__)
@@ -371,35 +359,43 @@ wxSize	targetSize;
 wxSize wxColumnHeader::CalculateDefaultSize( void ) const
 {
 wxWindow	*parentW;
-wxSize		bestSize, itemSize, parentSize;
-bool		bIsVertical;
+wxSize		bestSize;
 
-	bestSize.x =
-	bestSize.y = 0;
-
-	parentSize.x =
-	parentSize.y = 0;
-
-	// "best" width is parent's width;
-	// height is (relatively) invariant,
-	// as determined by native (HI/CommonControls) drawing routines
+	// best width is parent's width; height is fixed by native drawing routines
 	parentW = GetParent();
 	if (parentW != NULL)
-		parentW->GetClientSize( &(parentSize.x), &(parentSize.y) );
-
-	itemSize = GetDefaultItemSize();
-
-	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
-	if (bIsVertical)
-	{
-		bestSize.x = itemSize.x;
-		bestSize.y = parentSize.y;
-	}
+		parentW->GetClientSize( &(bestSize.x), &(bestSize.y) );
 	else
+		// FIXME: ugly
+		bestSize.x = 0;
+	bestSize.y = 20;
+
+#if defined(__WXMSW__)
 	{
-		bestSize.x = parentSize.x;
-		bestSize.y = itemSize.y;
+	HDLAYOUT	hdl;
+	WINDOWPOS	wp;
+	HWND		targetViewRef;
+	RECT		boundsR;
+
+		targetViewRef = GetHwnd();
+		boundsR.left = boundsR.top = 0;
+		boundsR.right = bestSize.x;
+		boundsR.bottom = bestSize.y;
+		hdl.prc = &boundsR;
+		hdl.pwpos = &wp;
+		if (Header_Layout( targetViewRef, (LPARAM)&hdl ) != 0)
+			bestSize.y = wp.cy;
 	}
+
+#elif defined(__WXMAC__)
+	{
+	SInt32		standardHeight;
+	OSStatus		errStatus;
+
+		errStatus = GetThemeMetric( kThemeMetricListHeaderHeight, &standardHeight );
+		bestSize.y = standardHeight;
+	}
+#endif
 
 #if 0
 	if (! HasFlag( wxBORDER_NONE ))
@@ -411,80 +407,6 @@ bool		bIsVertical;
 #endif
 
 	return bestSize;
-}
-
-wxSize wxColumnHeader::CalculateDefaultItemSize( void ) const
-{
-wxWindow	*parentW;
-wxSize		targetSize, minSize, parentSize;
-
-	minSize.x = 100;
-	minSize.y = 10;
-
-	targetSize.x =
-	targetSize.y = 0;
-
-	parentSize.x =
-	parentSize.y = 0;
-
-	// "best" width is parent's width;
-	// height is (relatively) invariant,
-	// as determined by native (HI/CommonControls) drawing routines
-	parentW = GetParent();
-	if (parentW != NULL)
-		parentW->GetClientSize( &(parentSize.x), &(parentSize.y) );
-
-	// get (platform-dependent) height
-#if defined(__WXMSW__)
-	{
-	HDLAYOUT	hdl;
-	WINDOWPOS	wp;
-	HWND		targetViewRef;
-	RECT		boundsR;
-
-		targetViewRef = GetHwnd();
-		boundsR.left = boundsR.top = 0;
-		boundsR.right = targetSize.x;
-		boundsR.bottom = targetSize.y;
-
-		ZeroMemory( &hdl, sizeof(hdl) );
-		hdl.prc = &boundsR;
-		hdl.pwpos = &wp;
-		if (Header_Layout( targetViewRef, (LPARAM)&hdl ) != 0)
-		{
-			targetSize.x = wp.cx;
-			targetSize.y = wp.cy;
-		}
-	}
-
-#elif defined(__WXMAC__)
-	{
-	SInt32		standardHeight;
-	OSStatus		errStatus;
-
-		errStatus = GetThemeMetric( kThemeMetricListHeaderHeight, &standardHeight );
-		if (errStatus == noErr)
-			targetSize.y = standardHeight;
-	}
-#endif
-
-	targetSize.x = ((parentSize.x > minSize.x) ? parentSize.x : minSize.x);
-	targetSize.y = ((targetSize.y > minSize.y) ? targetSize.y : minSize.y);
-
-	return targetSize;
-}
-
-wxSize wxColumnHeader::GetDefaultItemSize( void ) const
-{
-	return m_defaultItemSize;
-}
-
-void wxColumnHeader::SetDefaultItemSize( int width, int height )
-{
-	if (width > 0)
-		m_defaultItemSize.x = width;
-	if (height > 0)
-		m_defaultItemSize.y = height;
 }
 
 // virtual
@@ -685,10 +607,6 @@ bool			bResult;
 
 	switch (flagEnum)
 	{
-	case CH_ATTR_VerticalOrientation:
-		bResult = m_BUseVerticalOrientation;
-		break;
-
 	case CH_ATTR_Unicode:
 		bResult = m_BUseUnicode;
 		break;
@@ -722,13 +640,8 @@ bool			bResult;
 
 	switch (flagEnum)
 	{
-	case CH_ATTR_VerticalOrientation:
-		// NB: runtime assignment not (currently) supported
-		// m_BUseVerticalOrientation = bFlagValue;
-		break;
-
 	case CH_ATTR_Unicode:
-		// NB: runtime assignment not (currently) supported
+		// NB: runtime set not allowed
 		// m_BUseUnicode = bFlagValue;
 		break;
 
@@ -782,17 +695,17 @@ bool			bResult;
 
 long wxColumnHeader::GetTotalUIExtent( void ) const
 {
-long		extentDim, i;
+long		extentX, i;
 
-	extentDim = 0;
+	extentX = 0;
 	if (m_ItemList != NULL)
 		for (i=0; i<m_ItemCount; i++)
 		{
 			if (m_ItemList[i] != NULL)
-				extentDim += m_ItemList[i]->m_ExtentX;
+				extentX += m_ItemList[i]->m_ExtentX;
 		}
 
-	return extentDim;
+	return extentX;
 }
 
 bool wxColumnHeader::RescaleToFit(
@@ -800,14 +713,8 @@ bool wxColumnHeader::RescaleToFit(
 {
 long		scaleItemCount, scaleItemAmount, i;
 long		deltaX, summerX, resultX, originX, incX;
-bool		bIsVertical;
 
 	if ((newWidth <= 0) || (m_ItemList == NULL))
-		return false;
-
-	// FIXME: needs work for vertical row headers
-	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
-	if (bIsVertical)
 		return false;
 
 	// count non-fixed-width items and tabulate size
@@ -835,7 +742,6 @@ bool		bIsVertical;
 
 		// move to new origin
 		m_ItemList[i]->m_OriginX = originX;
-//		m_ItemList[i]->m_Origin = origin;
 
 		// resize item, if non-fixed
 		if (! m_ItemList[i]->m_BFixedWidth)
@@ -869,12 +775,7 @@ bool		bIsVertical;
 bool wxColumnHeader::ResizeToFit( void )
 {
 long		extentX;
-bool		bScaling, bIsVertical;
-
-	// FIXME: needs work for vertical row headers
-	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
-	if (bIsVertical)
-		return false;
+bool		bScaling;
 
 	// temporarily turn off proportional resizing
 	bScaling = m_BProportionalResizing;
@@ -883,8 +784,7 @@ bool		bScaling, bIsVertical;
 	extentX = GetTotalUIExtent();
 	DoSetSize( m_NativeBoundsR.x, m_NativeBoundsR.y, extentX, m_NativeBoundsR.height, 0 );
 
-	if (bScaling)
-		m_BProportionalResizing = true;
+	m_BProportionalResizing = true;
 
 	return true;
 }
@@ -895,15 +795,8 @@ bool wxColumnHeader::ResizeDivision(
 {
 wxColumnHeaderItem		*itemRef1, *itemRef2;
 long					deltaV, newExtent1, newExtent2;
-bool					bIsVertical;
 
 	if ((itemIndex <= 0) || (itemIndex >= m_ItemCount))
-		return false;
-
-	// FIXME: needs work for vertical row headers;
-	// may not be meaningful because Y dimension is assumed to be invariant
-	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
-	if (bIsVertical)
 		return false;
 
 	itemRef1 = GetItemRef( itemIndex - 1 );
@@ -911,16 +804,8 @@ bool					bIsVertical;
 	if ((itemRef1 == NULL) || (itemRef2 == NULL))
 		return false;
 
-//	if (bIsVertical)
-//	{
-//		if ((originY <= itemRef1->m_OriginY) || (originY >= itemRef2->m_OriginY + itemRef2->m_ExtentY))
-//			return false;
-//	}
-//	else
-	{
-		if ((originX <= itemRef1->m_OriginX) || (originX >= itemRef2->m_OriginX + itemRef2->m_ExtentX))
-			return false;
-	}
+	if ((originX <= itemRef1->m_OriginX) || (originX >= itemRef2->m_OriginX + itemRef2->m_ExtentX))
+		return false;
 
 	deltaV = itemRef2->m_OriginX - originX;
 	newExtent1 = itemRef1->m_ExtentX - deltaV;
@@ -1229,8 +1114,6 @@ void wxColumnHeader::AddItem(
 wxColumnHeaderItem		itemInfo;
 wxSize					targetExtent;
 long					originX;
-bool					bIsVertical;
-
 
 	// set invariant values
 	itemInfo.m_BEnabled = true;
@@ -1250,18 +1133,9 @@ bool					bIsVertical;
 	// determine new item origin
 	if (beforeIndex > 0)
 	{
-		bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
-
-		if (bIsVertical)
-		{
-			itemInfo.m_OriginX = 0;
-		}
-		else
-		{
-			targetExtent = GetUIExtent( beforeIndex - 1 );
-			originX = ((targetExtent.x > 0) ? targetExtent.x : 0);
-			itemInfo.m_OriginX = originX + targetExtent.y;
-		}
+		targetExtent = GetUIExtent( beforeIndex - 1 );
+		originX = ((targetExtent.x > 0) ? targetExtent.x : 0);
+		itemInfo.m_OriginX = originX + targetExtent.y;
 	}
 	else
 		itemInfo.m_OriginX = 0;
@@ -1398,57 +1272,31 @@ bool wxColumnHeader::GetItemBounds(
 	wxRect				*boundsR ) const
 {
 wxColumnHeaderItem		*itemRef;
-bool					bResultV, bIsVertical;
+bool					bResultV;
 
 	if (boundsR == NULL)
 		return false;
 
-	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
-
 	itemRef = GetItemRef( itemIndex );
 	bResultV = (itemRef != NULL);
 
-	if (bIsVertical)
+	// is this item beyond the right edge?
+	if (bResultV)
+		bResultV = (itemRef->m_OriginX < m_NativeBoundsR.width);
+
+	if (bResultV)
 	{
-		// is this item beyond the bottom edge?
-//		if (bResultV)
-//			bResultV = (itemRef->m_OriginX < m_NativeBoundsR.height);
+		boundsR->x = itemRef->m_OriginX;
+		boundsR->y = 0; // m_NativeBoundsR.y;
+		boundsR->width = itemRef->m_ExtentX + 1;
+		boundsR->height = m_NativeBoundsR.height;
 
-		if (bResultV)
-		{
-			boundsR->x = 0;
-			boundsR->y = m_defaultItemSize.y * itemIndex;
-			boundsR->width = m_defaultItemSize.x;
-			boundsR->height = m_defaultItemSize.y;
+		if (boundsR->width > m_NativeBoundsR.width - itemRef->m_OriginX)
+			boundsR->width = m_NativeBoundsR.width - itemRef->m_OriginX;
 
-//			if (boundsR->height > m_NativeBoundsR.height - itemRef->m_OriginX)
-//				boundsR->height = m_NativeBoundsR.height - itemRef->m_OriginX;
-
-			bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
-		}
+		bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
 	}
 	else
-	{
-		// is this item beyond the right edge?
-		if (bResultV)
-			bResultV = (itemRef->m_OriginX < m_NativeBoundsR.width);
-
-		if (bResultV)
-		{
-			boundsR->x = itemRef->m_OriginX;
-			boundsR->y = 0; // m_NativeBoundsR.y;
-			boundsR->width = itemRef->m_ExtentX + 1;
-			boundsR->height = m_NativeBoundsR.height;
-
-			if (boundsR->width > m_NativeBoundsR.width - itemRef->m_OriginX)
-				boundsR->width = m_NativeBoundsR.width - itemRef->m_OriginX;
-
-			bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
-		}
-	}
-
-
-	if (! bResultV)
 	{
 		boundsR->x =
 		boundsR->y =
@@ -1707,31 +1555,8 @@ wxColumnHeaderHitTestResult wxColumnHeader::HitTest(
 	const wxPoint		&locationPt )
 {
 wxColumnHeaderHitTestResult		resultV;
-bool					bIsVertical;
 
 	resultV = CH_HITTEST_NoPart;
-
-	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
-	if (bIsVertical)
-	{
-	wxRect	boundsR;
-	long		i;
-
-		for (i=0; i<m_ItemCount; i++)
-		{
-			if (GetItemBounds( i, &boundsR ))
-			{
-				if ((locationPt.x >= boundsR.x) && (locationPt.x < boundsR.x + boundsR.width)
-					&& (locationPt.y >= boundsR.y) && (locationPt.y < boundsR.y + boundsR.height))
-				{
-					resultV = (wxColumnHeaderHitTestResult)i;
-					break;
-				}
-			}
-		}
-
-		return resultV;
-	}
 
 #if defined(__WXMSW__)
 RECT		boundsR;
@@ -1943,19 +1768,15 @@ wxSize	itemExtent;
 void wxColumnHeader::RecalculateItemExtents( void )
 {
 long		originX, i;
-bool		bIsVertical;
 
 	if (m_ItemList != NULL)
 	{
 		originX = 0;
-		bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
-
 		for (i=0; i<m_ItemCount; i++)
 			if (m_ItemList[i] != NULL)
 			{
 				m_ItemList[i]->m_OriginX = originX;
-				if (! bIsVertical)
-					originX += m_ItemList[i]->m_ExtentX;
+				originX += m_ItemList[i]->m_ExtentX;
 			}
 	}
 }
@@ -2030,22 +1851,16 @@ WXDWORD wxColumnHeader::MSWGetStyle(
 	WXDWORD			*exstyle ) const
 {
 WXDWORD		msStyle;
-bool			bIsVertical;
 
 	style = (style & ~wxBORDER_MASK) | wxBORDER_NONE;
 
 	msStyle = wxControl::MSWGetStyle( style, exstyle );
 
 	// NB: no HDS_DRAGDROP, HDS_FILTERBAR, HDS_FULLDRAG, HDS_HOTTRACK
-	msStyle |= HDS_BUTTONS | HDS_FLAT;
+	msStyle |= HDS_BUTTONS | HDS_FLAT | HDS_HORZ;
 
 	// FIXME: is WS_CLIPSIBLINGS necessary ???
 	msStyle |= WS_CLIPSIBLINGS;
-
-	// if specified, set horizontal orientation flag
-	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
-	if (! bIsVertical)
-		msStyle |= HDS_HORZ;
 
 	return msStyle;
 }
@@ -2552,7 +2367,8 @@ Rect					qdBoundsR;
 bool					bSelected, bHasButtonArrow, bHasBitmap;
 OSStatus				errStatus;
 
-	if ((boundsR == NULL) || boundsR->IsEmpty())
+//	if ((boundsR == NULL) || boundsR->IsEmpty())
+	if (boundsR == NULL)
 		return (-1L);
 
 	errStatus = noErr;
@@ -2566,6 +2382,11 @@ OSStatus				errStatus;
 	bSelected = m_BSelected && bVisibleSelection;
 	bHasButtonArrow = (m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None);
 	bHasBitmap = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
+
+	// a broken, dead attempt to tinge the background
+// Collection	origCol, newCol;
+// RGBColor	tintRGB = { 0xFFFF, 0x0000, 0xFFFF };
+//	errStatus = SetAppearanceTintColor( &tintRGB, origCol, newCol );
 
 	if (m_BEnabled)
 		drawInfo.state = (bSelected && bVisibleSelection ? kThemeStateActive: kThemeStateInactive);
@@ -2591,6 +2412,9 @@ OSStatus				errStatus;
 	else
 		// FIXME: should have HIDrawThemeButton version for CORE_GRAPHICS build
 		errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
+
+	// end of the dead attempt to tinge the background
+//	errStatus = RestoreTheme( origCol, newCol );
 
 	// as specified, render (justified) either: button arrow, bitmap or label text
 	if (bHasButtonArrow)
@@ -2660,7 +2484,7 @@ OSStatus				errStatus;
 			}
 		}
 
-//		if (errStatus != noErr)
+//		if (errStatus != 0)
 //			wxLogDebug(
 //				wxT("wxColumnHeaderItem::MacDraw(%s: %s) failure [%ld]"),
 //				bUseUnicode ? wxT("unicode") : wxT("ascii"), targetStr.c_str(), (long)errStatus );
@@ -2684,7 +2508,8 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 
 	wxUnusedVar( bUseUnicode );
 
-	if ((boundsR == NULL) || boundsR->IsEmpty())
+//	if ((boundsR == NULL) || boundsR->IsEmpty())
+	if (boundsR == NULL)
 		return (-1L);
 
 	if ((parentW == NULL) || (dc == NULL))
@@ -2724,8 +2549,8 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 			descentY = (localBoundsR.height - m_LabelTextExtent.y) / 2;
 
 			// FIXME: why is this needed? The previous calculation should be exact.
-//			if ( ! ((wxColumnHeader*)parentW)->m_BUseGenericRenderer)
-//				descentY--;
+			if ( ! ((wxColumnHeader*)parentW)->m_BUseGenericRenderer)
+				descentY--;
 		}
 
 		if (m_LabelTextExtent.x <= maxExtentX)

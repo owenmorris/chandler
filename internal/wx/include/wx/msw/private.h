@@ -6,7 +6,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: private.h,v 1.152 2006/03/09 13:18:46 VZ Exp $
+// RCS-ID:      $Id: private.h,v 1.151 2006/02/08 22:32:42 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -896,9 +896,9 @@ inline void *wxSetWindowUserData(HWND hwnd, void *data)
 
 // note that the casts to LONG_PTR here are required even on 32-bit machines
 // for the 64-bit warning mode of later versions of MSVC (C4311/4312)
-inline WNDPROC wxGetWindowProc(HWND hwnd)
+inline void *wxGetWindowProc(HWND hwnd)
 {
-    return (WNDPROC)(LONG_PTR)::GetWindowLong(hwnd, GWL_WNDPROC);
+    return (void *)(LONG_PTR)::GetWindowLong(hwnd, GWL_WNDPROC);
 }
 
 inline void *wxGetWindowUserData(HWND hwnd)

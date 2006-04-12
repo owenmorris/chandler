@@ -2,7 +2,7 @@
 #                                                                            *
 # Make file for VMS                                                          *
 # Author : J.Jansen (joukj@hrem.nano.tudelft.nl)                             *
-# Date : 20 March 2006                                                       *
+# Date : 13 February 2006                                                    *
 #                                                                            *
 #*****************************************************************************
 .first
@@ -39,7 +39,6 @@ OBJECTS = \
 	bitmap.obj,\
 	brush.obj,\
 	clipbrd.obj,\
-	colordlg.obj,\
 	colour.obj,\
 	cursor.obj,\
 	data.obj,\
@@ -101,8 +100,7 @@ OBJECTS0= \
 	tbargtk.obj,\
 	textctrl.obj,\
 	tglbtn.obj,\
-	msgdlg.obj,\
-	treeentry_gtk.obj
+	msgdlg.obj
 
 SOURCES =\
 	app.cpp,\
@@ -115,7 +113,6 @@ SOURCES =\
 	checklst.cpp,\
 	choice.cpp,\
 	clipbrd.cpp,\
-	colordlg.cpp,\
 	colour.cpp,\
         combobox.cpp,\
 	control.cpp,\
@@ -170,8 +167,7 @@ SOURCES =\
 	utilsgtk.cpp,\
 	utilsres.cpp,\
         win_gtk.c,\
-	window.cpp,\
-	treeentry_gtk.c
+	window.cpp
    
 all : $(SOURCES)
 	$(MMS)$(MMSQUALIFIERS) $(OBJECTS)
@@ -202,7 +198,6 @@ checkbox.obj : checkbox.cpp
 checklst.obj : checklst.cpp
 choice.obj : choice.cpp
 clipbrd.obj :clipbrd.cpp
-colordlg.obj : colordlg.cpp
 colour.obj : colour.cpp
 combobox.obj : combobox.cpp
 control.obj : control.cpp
@@ -258,4 +253,3 @@ utilsgtk.obj : utilsgtk.cpp
 utilsres.obj : utilsres.cpp
 win_gtk.obj : win_gtk.c
 window.obj : window.cpp
-treeentry_gtk.obj : treeentry_gtk.c

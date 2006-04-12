@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        src/mac/corefoundation/hid.cpp
+// Name:        hid.cpp
 // Purpose:     DARWIN HID layer for WX Implementation
 // Author:      Ryan Norton
 // Modified by:
 // Created:     11/11/2003
-// RCS-ID:      $Id: hid.cpp,v 1.18 2006/03/27 12:24:59 ABX Exp $
+// RCS-ID:      $Id: hid.cpp,v 1.16 2005/11/02 15:21:30 SC Exp $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -208,7 +208,7 @@ USB Product Name
     return true;
 }//end Create()
 
-size_t wxHIDDevice::GetCount (int nClass, int nType)
+int wxHIDDevice::GetCount (int nClass, int nType)
 {
     mach_port_t             m_pPort;
 
@@ -248,7 +248,7 @@ size_t wxHIDDevice::GetCount (int nClass, int nType)
     //Now we iterate through them
     io_object_t pObject;
 
-    size_t nCount = 0;
+    int nCount = 0;
 
     while ( (pObject = IOIteratorNext(pIterator)) != 0)
         ++nCount;
@@ -440,13 +440,13 @@ void wxHIDKeyboard::BuildCookies(wxCFArray& Array)
                 AddCookie(Array[i], WXK_SPACE);
                 break;
             case kHIDUsage_KeyboardPageUp:
-                AddCookie(Array[i], WXK_PAGEUP);
+                AddCookie(Array[i], WXK_PRIOR);
                 break;
             case kHIDUsage_KeyboardEnd:
                 AddCookie(Array[i], WXK_END);
                 break;
             case kHIDUsage_KeyboardPageDown:
-                AddCookie(Array[i], WXK_PAGEDOWN);
+                AddCookie(Array[i], WXK_NEXT);
                 break;
             case kHIDUsage_KeyboardRightArrow:
                 AddCookie(Array[i], WXK_RIGHT);

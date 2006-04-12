@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dialog.cpp,v 1.45 2006/03/10 16:04:31 SC Exp $
+// RCS-ID:      $Id: dialog.cpp,v 1.44 2006/01/07 06:01:50 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,13 +64,11 @@ bool wxDialog::Create( wxWindow *parent,
 
     if ( !wxTopLevelWindow::Create( parent, id, title, pos, size, style, name ) )
         return false;
-   
-#if TARGET_API_MAC_OSX
+
     HIViewRef growBoxRef = 0 ;
     OSStatus err = HIViewFindByID( HIViewGetRoot( (WindowRef)m_macWindow ), kHIViewWindowGrowBoxID, &growBoxRef  );
     if ( err == noErr && growBoxRef != 0 )
         HIGrowBoxViewSetTransparent( growBoxRef, true ) ;
-#endif
 
     return true;
 }

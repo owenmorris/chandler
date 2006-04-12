@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: mdi.cpp,v 1.136 2006/03/31 18:07:13 ABX Exp $
+// RCS-ID:      $Id: mdi.cpp,v 1.135 2006/02/08 15:41:45 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -752,7 +752,7 @@ bool wxMDIChildFrame::Create(wxMDIParentFrame *parent,
     msflags |= WS_MINIMIZEBOX;
   if (style & wxMAXIMIZE_BOX)
     msflags |= WS_MAXIMIZEBOX;
-  if (style & wxRESIZE_BORDER)
+  if (style & wxTHICK_FRAME)
     msflags |= WS_THICKFRAME;
   if (style & wxSYSTEM_MENU)
     msflags |= WS_SYSMENU;

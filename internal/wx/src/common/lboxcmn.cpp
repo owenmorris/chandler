@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:        src/common/lboxcmn.cpp
+// Name:        common/lboxcmn.cpp
 // Purpose:     wxListBox class methods common to all platforms
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.10.99
-// RCS-ID:      $Id: lboxcmn.cpp,v 1.16 2006/03/23 22:04:52 VZ Exp $
+// RCS-ID:      $Id: lboxcmn.cpp,v 1.15 2005/09/23 12:53:01 MR Exp $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,10 +45,10 @@ wxListBoxBase::~wxListBoxBase()
 // adding items
 // ----------------------------------------------------------------------------
 
-void wxListBoxBase::InsertItems(unsigned int nItems, const wxString *items, unsigned int pos)
+void wxListBoxBase::InsertItems(int nItems, const wxString *items, int pos)
 {
     wxArrayString aItems;
-    for ( unsigned int n = 0; n < nItems; n++ )
+    for ( int n = 0; n < nItems; n++ )
     {
         aItems.Add(items[n]);
     }

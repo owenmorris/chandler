@@ -15,7 +15,7 @@
 # Author:      Robin Dunn
 #
 # Created:     23-March-2004
-# RCS-ID:      $Id: config.py,v 1.84 2006/03/23 15:56:22 RD Exp $
+# RCS-ID:      $Id: config.py,v 1.80 2006/01/29 17:35:38 vell Exp $
 # Copyright:   (c) 2004 by Total Control Software
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
@@ -434,18 +434,6 @@ def run_swig(files, dir, gendir, package, USE_SWIG, force, swig_args,
     return sources
 
 
-def swig_version():
-    # It may come on either stdout or stderr, depending on the
-    # version, so read both.
-    i, o, e = os.popen3(SWIG + ' -version', 't')
-    stext = o.read() + e.read()
-    import re
-    match = re.search(r'[0-9]+\.[0-9]+\.[0-9]+$', stext, re.MULTILINE)
-    if not match:
-        raise 'NotFound'
-    SVER = match.group(0)
-    return SVER
-
 
 # Specializations of some distutils command classes
 class wx_smart_install_data(distutils.command.install_data.install_data):
@@ -725,9 +713,6 @@ if os.name == 'nt':
     if not FINAL or HYBRID:
         defines.append( ('__WXDEBUG__', None) )
 
-    if UNICODE:
-        defines.append( ('wxUSE_UNICODE', 1) )
-
     libdirs = [ opj(WXDIR, 'lib', 'vc_dll') ]
     if MONOLITHIC:
         libs = makeLibName('')
@@ -895,16 +880,6 @@ swig_args = ['-c++',
              '-modern',
              '-D'+WXPLAT,
              ] + i_files_includes
-
-if USE_SWIG:
-    SVER = swig_version()
-    if int(SVER[-2:]) >= 29:
-        swig_args += [ '-fastdispatch',
-                       '-fvirtual',
-                       '-fastinit',
-                       '-fastunpack',
-                       #'-outputtuple',  Currently setting this with a -D define above
-                       ]
              
 if UNICODE:
     swig_args.append('-DwxUSE_UNICODE')
@@ -1051,6 +1026,7 @@ class BuildRenamers:
         # do a depth first iteration over what's left
         for node in topnode:
             doRename = False
+            doPtr = False
             addWX = False
             revOnly = False
     
@@ -1059,6 +1035,7 @@ class BuildRenamers:
                 lastClassName = name = self.GetAttr(node, "name")
                 lastClassSymName = sym_name = self.GetAttr(node, "sym_name")
                 doRename = True
+                doPtr = True
                 if sym_name != name:
                     name = sym_name
                     addWX = True
@@ -1116,6 +1093,8 @@ class BuildRenamers:
                 if addWX and not old.startswith('wx'):
                     old = 'wx'+old
                 pyFile.write("%s = wx.%s.%s\n" % (old, modname, new))
+                if doPtr:
+                    pyFile.write("%sPtr = wx.%s.%sPtr\n" % (old, modname, new))
                 
     
     #---------------------------------------------------------------------------

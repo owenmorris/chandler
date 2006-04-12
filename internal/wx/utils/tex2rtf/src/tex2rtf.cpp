@@ -5,7 +5,7 @@
 // Modified by: Wlodzimiez ABX Skiba 2003/2004 Unicode support
 //              Ron Lee
 // Created:     7.9.93
-// RCS-ID:      $Id: tex2rtf.cpp,v 1.55 2006/03/16 13:06:39 ABX Exp $
+// RCS-ID:      $Id: tex2rtf.cpp,v 1.54 2005/09/23 12:56:34 MR Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -402,7 +402,7 @@ bool MyApp::OnInit()
 
     wxString path = TexPathList.FindValidPath(MacroFile);
     if (!path.empty())
-        ReadCustomMacros(path);
+      ReadCustomMacros((wxChar *)path.c_str());
 
 #if wxUSE_STATUSBAR
     wxString inStr(_T("In "));
@@ -444,7 +444,7 @@ bool MyApp::OnInit()
 
     wxString path = TexPathList.FindValidPath(MacroFile);
     if (!path.empty())
-        ReadCustomMacros(path);
+        ReadCustomMacros((wxChar*)path.c_str());
 
     Go();
     if (runTwice)
@@ -758,7 +758,7 @@ void MyFrame::OnLoadMacros(wxCommandEvent& WXUNUSED(event))
     if (!s.empty() && wxFileExists(s))
     {
         MacroFile = copystring(s);
-        ReadCustomMacros(s);
+        ReadCustomMacros((wxChar *)s.c_str());
         ShowCustomMacros();
     }
 #endif // wxUSE_FILEDLG

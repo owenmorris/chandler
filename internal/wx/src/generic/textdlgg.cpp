@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: textdlgg.cpp,v 1.39 2006/03/31 18:07:08 ABX Exp $
+// RCS-ID:      $Id: textdlgg.cpp,v 1.38 2006/01/15 10:06:15 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ wxTextEntryDialog::wxTextEntryDialog(wxWindow *parent,
                                      long style,
                                      const wxPoint& pos)
                  : wxDialog(parent, wxID_ANY, caption, pos, wxDefaultSize,
-                            wxDEFAULT_DIALOG_STYLE),
+                            wxDEFAULT_DIALOG_STYLE | wxDIALOG_MODAL),
                    m_value(value)
 {
     m_dialogStyle = style;

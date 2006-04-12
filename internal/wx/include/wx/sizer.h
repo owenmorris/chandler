@@ -4,7 +4,7 @@
 // Author:      Robert Roebling and Robin Dunn
 // Modified by: Ron Lee, Vadim Zeitlin (wxSizerFlags)
 // Created:
-// RCS-ID:      $Id: sizer.h,v 1.82 2006/03/31 11:13:03 ABX Exp $
+// RCS-ID:      $Id: sizer.h,v 1.81 2006/02/09 15:25:18 VZ Exp $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -229,11 +229,9 @@ public:
     bool IsSizer() const { return m_kind == Item_Sizer; }
     bool IsSpacer() const { return m_kind == Item_Spacer; }
 
-#if WXWIN_COMPATIBILITY_2_6
     // Deprecated in 2.6, use {G,S}etProportion instead.
     wxDEPRECATED( void SetOption( int option ) );
     wxDEPRECATED( int GetOption() const );
-#endif // WXWIN_COMPATIBILITY_2_6
 
     void SetProportion( int proportion )
         { m_proportion = proportion; }
@@ -411,12 +409,9 @@ public:
     inline wxSizerItem* PrependStretchSpacer(int prop = 1);
 
 
-#if WXWIN_COMPATIBILITY_2_6
     // Deprecated in 2.6 since historically it does not delete the window,
     // use Detach instead.
     wxDEPRECATED( virtual bool Remove( wxWindow *window ) );
-#endif // WXWIN_COMPATIBILITY_2_6
-
     virtual bool Remove( wxSizer *sizer );
     virtual bool Remove( int index );
 
@@ -770,9 +765,7 @@ class WXDLLEXPORT wxBookCtrlBase;
 class WXDLLEXPORT wxBookCtrlSizer : public wxSizer
 {
 public:
-#if WXWIN_COMPATIBILITY_2_6
     wxDEPRECATED( wxBookCtrlSizer(wxBookCtrlBase *bookctrl) );
-#endif // WXWIN_COMPATIBILITY_2_6
 
     wxBookCtrlBase *GetControl() const { return m_bookctrl; }
 
@@ -801,9 +794,7 @@ class WXDLLEXPORT wxNotebook;
 class WXDLLEXPORT wxNotebookSizer : public wxBookCtrlSizer
 {
 public:
-#if WXWIN_COMPATIBILITY_2_6
     wxDEPRECATED( wxNotebookSizer(wxNotebook *nb) );
-#endif // WXWIN_COMPATIBILITY_2_6
 
     wxNotebook *GetNotebook() const { return (wxNotebook *)m_bookctrl; }
 

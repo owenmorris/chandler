@@ -2,7 +2,7 @@
 // Name:        cursor.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: cursor.cpp,v 1.52 2006/04/04 18:19:55 MR Exp $
+// Id:          $Id: cursor.cpp,v 1.48 2006/02/09 00:49:18 VZ Exp $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,10 +14,15 @@
 #include "wx/utils.h"
 #include "wx/app.h"
 
-#include "wx/gtk/private.h" //for idle stuff
-
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
+
+//-----------------------------------------------------------------------------
+// idle system
+//-----------------------------------------------------------------------------
+
+extern void wxapp_install_idle_handler();
+extern bool g_isIdle;
 
 //-----------------------------------------------------------------------------
 // wxCursor
@@ -40,7 +45,7 @@ wxCursorRefData::wxCursorRefData()
 
 wxCursorRefData::~wxCursorRefData()
 {
-    if (m_cursor) gdk_cursor_unref( m_cursor );
+    if (m_cursor) gdk_cursor_destroy( m_cursor );
 }
 
 //-----------------------------------------------------------------------------
@@ -144,8 +149,8 @@ wxCursor::wxCursor(const char bits[], int width, int  height,
                  data, mask, fg->GetColor(), bg->GetColor(),
                  hotSpotX, hotSpotY );
 
-    g_object_unref (G_OBJECT (data));
-    g_object_unref (G_OBJECT (mask));
+    gdk_bitmap_unref( data );
+    gdk_bitmap_unref( mask );
 }
 
 #if wxUSE_IMAGE
@@ -296,8 +301,8 @@ wxCursor::wxCursor( const wxImage & image )
                                 hotSpotX, hotSpotY
                              );
 
-    g_object_unref (G_OBJECT (data));
-    g_object_unref (G_OBJECT (mask));
+    gdk_bitmap_unref( data );
+    gdk_bitmap_unref( mask );
     delete [] bits;
     delete [] maskBits;
 }

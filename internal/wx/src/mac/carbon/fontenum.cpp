@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: fontenum.cpp,v 1.18 2006/03/22 16:45:17 JS Exp $
+// RCS-ID:      $Id: fontenum.cpp,v 1.16 2006/02/15 16:31:05 vell Exp $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,6 @@
 #include "wx/fontmap.h"
 #include "wx/fontutil.h"
 #include "wx/encinfo.h"
-#include "wx/intl.h"
 
 #include "wx/mac/private.h"
 
@@ -89,6 +88,7 @@ bool wxFontEnumeratorHelper::SetEncoding(wxFontEncoding encoding)
 void wxFontEnumeratorHelper::DoEnumerate()
 {
     MenuHandle    menu;
+    Str255        p_name;
     short         lines;
 
     menu = NewMenu( 32000, "\pFont" );
@@ -97,19 +97,8 @@ void wxFontEnumeratorHelper::DoEnumerate()
 
     for ( int i = 1; i < lines + 1; i ++ )
     {
-        wxString c_name ;
-#if TARGET_API_MAC_CARBON
-        CFStringRef menutext ;
-        c_name = wxEmptyString ;
-        if ( CopyMenuItemTextAsCFString (menu, i, &menutext) == noErr )
-        {
-            c_name = wxMacCFStringHolder(menutext).AsString(wxLocale::GetSystemEncoding());
-        }
-#else
-        Str255        p_name;
         GetMenuItemText( menu, i, p_name );
-        c_name = wxMacMakeStringFromPascal( p_name );
-#endif
+        wxString c_name = wxMacMakeStringFromPascal( p_name );
 
 #if 0
         if ( m_fixedOnly )
