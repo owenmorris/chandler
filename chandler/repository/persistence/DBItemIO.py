@@ -955,7 +955,7 @@ class DBItemVMergeReader(DBItemMergeReader):
         flags = ord(data[offset])
         offset += 1
 
-        if flags & DBItemWriter.LIST:
+        if flags & (DBItemWriter.LIST | DBItemWriter.SET):
             return offset, Nil
 
         if flags & DBItemWriter.NONE:
