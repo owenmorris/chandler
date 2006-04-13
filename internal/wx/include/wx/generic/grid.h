@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by:
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.h,v 1.151 2006/02/12 12:16:38 MW Exp $
+// RCS-ID:      $Id: grid.h,v 1.152 2006/04/09 00:09:35 RD Exp $
 // Copyright:   (c) Michael Bedward
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1987,6 +1987,14 @@ public:
     bool        MetaDown() { return m_meta; }
     bool        ShiftDown() { return m_shift; }
     bool        AltDown() { return m_alt; }
+    bool        CmdDown() 
+    {
+#if defined(__WXMAC__) || defined(__WXCOCOA__)
+        return MetaDown();
+#else
+        return ControlDown();
+#endif
+    }
 
 protected:
     int         m_row;
@@ -2021,6 +2029,14 @@ public:
     bool        MetaDown() { return m_meta; }
     bool        ShiftDown() { return m_shift; }
     bool        AltDown() { return m_alt; }
+    bool        CmdDown() 
+    {
+#if defined(__WXMAC__) || defined(__WXCOCOA__)
+        return MetaDown();
+#else
+        return ControlDown();
+#endif
+    }
 
 protected:
     int         m_rowOrCol;
@@ -2068,6 +2084,14 @@ public:
     bool        MetaDown()     { return m_meta; }
     bool        ShiftDown()    { return m_shift; }
     bool        AltDown()      { return m_alt; }
+    bool        CmdDown() 
+    {
+#if defined(__WXMAC__) || defined(__WXCOCOA__)
+        return MetaDown();
+#else
+        return ControlDown();
+#endif
+    }
 
 protected:
     wxGridCellCoords  m_topLeft;

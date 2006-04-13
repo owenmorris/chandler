@@ -5045,7 +5045,7 @@ void wxGrid::ProcessRowLabelMouseEvent( wxMouseEvent& event )
             if ( row >= 0  &&
                  !SendEvent( wxEVT_GRID_LABEL_LEFT_CLICK, row, -1, event ) )
             {
-                if ( !event.ShiftDown() && !event.ControlDown() )
+                if ( !event.ShiftDown() && !event.CmdDown() )
                     ClearSelection();
                 if ( m_selection )
                 {
@@ -5270,7 +5270,7 @@ void wxGrid::ProcessColLabelMouseEvent( wxMouseEvent& event )
             if ( col >= 0  &&
                  !SendEvent( wxEVT_GRID_LABEL_LEFT_CLICK, -1, col, event ) )
             {
-                if ( !event.ShiftDown() && !event.ControlDown() )
+                if ( !event.ShiftDown() && !event.CmdDown() )
                     ClearSelection();
                 if ( m_selection )
                 {
@@ -5560,7 +5560,7 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
 
             if ( coords != wxGridNoCellCoords )
             {
-                if ( event.ControlDown() )
+                if ( event.CmdDown() )
                 {
                     if ( m_selectingKeyboard == wxGridNoCellCoords)
                         m_selectingKeyboard = coords;
@@ -5663,7 +5663,7 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                        coords.GetCol(),
                        event ) )
         {
-            bool clearSelection = !event.ControlDown();
+            bool clearSelection = !event.CmdDown();
             if ( event.ShiftDown() )
             {
                 if ( m_selection )
@@ -5684,7 +5684,7 @@ wxLogDebug( wxT("wxGrid-ProcessGridCellMouseEvent(mouse-down: T) : entering") );
                 DisableCellEditControl();
                 MakeCellVisible( coords );
 
-                if ( event.ControlDown() )
+                if ( event.CmdDown() )
                 {
                     if ( m_selection )
                     {
