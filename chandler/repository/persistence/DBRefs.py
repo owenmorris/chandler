@@ -585,6 +585,10 @@ class DBNumericIndex(NumericIndex):
     def _clear_(self):
 
         super(DBNumericIndex, self)._clear_()
+
+        self._uuid = UUID()
+        self.__init()
+
         self._clearDirties()
 
     def _clearDirties(self):
