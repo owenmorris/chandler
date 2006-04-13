@@ -134,7 +134,7 @@ else
 
 ifeq ($(OS),Darwin)
 
-$(SRC)/$(BUILD)/Makefile:
+$(SRC)/$(BUILD)/Makefile: $(SRC)/Makefile.in
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) ../configure --prefix=$(PREFIX) $(CONF_OPT) \
 		--enable-monolithic \
@@ -149,7 +149,9 @@ $(SRC)/$(BUILD)/Makefile:
 
 wxPython:
 	cd $(SRC)/wxPython; \
-        MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
+        MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
+        DYLD_FRAMEWORK_PATH=$(PREFIX)/Library/Frameworks \
+	$(PYTHON) setup.py \
                 UNICODE=1 BUILD_OGL=0 BUILD_GLCANVAS=0 \
                 USE_SWIG=$(SWIG_OPTION) \
                 SWIG=$(SWIG) \
@@ -174,7 +176,7 @@ cleanmanifest:
 
 else
 
-$(SRC)/$(BUILD)/Makefile:
+$(SRC)/$(BUILD)/Makefile: $(SRC)/Makefile.in
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../configure --prefix=$(PREFIX) $(CONF_OPT) \
 		--enable-monolithic \
