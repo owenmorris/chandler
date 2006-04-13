@@ -379,7 +379,8 @@ class Block(schema.Item):
         """
           When our item collection has changed, we need to synchronize
         """
-        if hasattr(self, 'widget') and not self.ignoreNotifications:
+        if (hasattr(self, 'widget') and not self.ignoreNotifications
+           and self.itsView is wx.GetApp().UIRepositoryView):
             onItemNotification = getattr(self.widget, 'onItemNotification', None)
             if onItemNotification is not None:
                 onItemNotification('collectionChange', (op, collection, name, other))
