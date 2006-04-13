@@ -31,7 +31,7 @@ allTests = [
                 "TestNewTask.py",
                 "TestNewNote.py",
                 "TestStamping.py", 
-                "TestSharing.py", #cosmo bug 5339 requires this be ahead of the recurence tests for now
+                "TestSharing.py", #cosmo bug 5643 is blocking this test from passing
                 "TestMoveToTrash.py", 
                 "TestDeleteCollection.py",
                 "TestNewCollNoteStampMulti.py", 
@@ -69,7 +69,7 @@ exclusions = {
     'all':(        
         "TestAllDayEvent.py", #test not functioning bug#5110
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
-        "TestSharing.py", #Cosmo bug#5630
+        "TestSharing.py", #Cosmo bug#5643
         )
 }
 
