@@ -232,7 +232,11 @@ class UnionCollection(ContentCollection):
                 
     def _sourcesChanged(self):
 
-        if len(self.sources) == 2:
+        sourceCount = len(self.sources)
+
+        if sourceCount == 1:
+            set = Set(self.sources[0])
+        elif sourceCount == 2:
             a, b = self.sources
             set = Union(a, b)
         else:
