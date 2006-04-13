@@ -1099,8 +1099,14 @@ public:
     void SetSelectionMode(wxGrid::wxGridSelectionModes selmode);
     wxGrid::wxGridSelectionModes GetSelectionMode() const;
 
-    bool HasCursor() const { return m_hasCursor; }
+    bool HasCursor() const { return m_hasCursor; };
     void EnableCursor( bool enableCursor );
+
+    void ScaleWidthToFit( bool scale = true );
+    bool GetScaleWidthToFit() const { return m_scaleWidthToFit; };
+
+    void ScaleColumn( int col, bool scale = true );
+    bool GetScaleColumn ( int col ) const;
 
     // ------ grid dimensions
     //
@@ -1363,6 +1369,7 @@ public:
     void     SetDefaultColSize( int width, bool resizeExistingCols = false );
 
     void     SetColSize( int col, int width );
+    void     SetScaledColSize( int col, int width );
 
     // automatically size the column or row to fit to its contents, if
     // setAsMin is true, this optimal width will also be set as minimal width
@@ -1732,6 +1739,7 @@ public:
 
 protected:
     virtual wxSize DoGetBestSize() const;
+    virtual void NormalizeColumnWidths();
 
     bool m_created;
 
@@ -1907,6 +1915,21 @@ protected:
     bool       m_editable;              // applies to whole grid
     bool       m_cellEditCtrlEnabled;   // is in-place edit currently shown?
     bool       m_hasCursor;
+ 
+    // Information necessary when columns are scaled.
+    wxArrayInt m_unscaledColWidths;     // stores widths before scaling
+
+    enum ScaleMode
+    {
+        WXGRID_COLUMN_SCALABLE,
+        WXGRID_COLUMN_FIXED_SIZE,
+        WXGRID_CURSOR_SCALED_TO_MINIMUM_SIZE,
+    };
+
+    wxArrayShort m_scaleColumn;         // keeps track of which columns are scaled
+    bool       m_scaleWidthToFit;       // scale the width to fit the window
+    int        m_totalScaledWidth;      // total column width of all non-scaled columns
+    int        m_totalUnscaledWidth;    // total column width of all scaled columns
 
     int m_scrollLineX; // X scroll increment
     int m_scrollLineY; // Y scroll increment

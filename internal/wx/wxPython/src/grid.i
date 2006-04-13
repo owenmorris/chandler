@@ -1622,6 +1622,10 @@ public:
 
     bool HasCursor();
     void EnableCursor( bool enableCursor );
+    void ScaleWidthToFit( bool scale = true );
+    bool GetScaleWidthToFit() const { return m_scaleWidthToFit; }
+    void ScaleColumn( int col, bool scale = true );
+    bool GetScaleColumn ( int col ) const;
 
     // ------ grid dimensions
     //
@@ -1864,6 +1868,7 @@ public:
     void     SetDefaultColSize( int width, bool resizeExistingCols = false );
 
     void     SetColSize( int col, int width );
+    void     SetScaledColSize( int col, int width );
 
     // automatically size the column or row to fit to its contents, if
     // setAsMin is True, this optimal width will also be set as minimal width

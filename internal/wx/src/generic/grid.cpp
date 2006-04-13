@@ -3941,7 +3941,7 @@ wxEND_HANDLERS_TABLE()
 wxCONSTRUCTOR_5( wxGrid , wxWindow* , Parent , wxWindowID , Id , wxPoint , Position , wxSize , Size , long , WindowStyle )
 
 /*
- TODO : Expose more information of a list's layout etc. via appropriate objects (à la NotebookPageInfo)
+ TODO : Expose more information of a list's layout etc. via appropriate objects (?à la NotebookPageInfo)
 */
 #else
 IMPLEMENT_DYNAMIC_CLASS( wxGrid, wxScrolledWindow )
@@ -4176,6 +4176,63 @@ wxGrid::wxGridSelectionModes wxGrid::GetSelectionMode() const
     return m_selection->GetSelectionMode();
 }
 
+void wxGrid::ScaleWidthToFit( bool scale )
+{
+    if ( scale != m_scaleWidthToFit )
+    {
+        m_scaleWidthToFit = scale;
+
+        if ( scale )
+        {
+            if (m_unscaledColWidths.IsEmpty())
+                NormalizeColumnWidths();
+        } else
+            m_unscaledColWidths.Clear();
+
+        CalcDimensions();
+    }
+}
+
+void wxGrid::ScaleColumn( int col, bool scale )
+{
+    int newValue;
+
+    if ( m_scaleColumn.IsEmpty() )
+    {
+        m_scaleColumn.Alloc( m_numCols );
+        m_scaleColumn.Add( WXGRID_COLUMN_SCALABLE, m_numCols );
+    }
+
+    if (scale)
+        newValue = WXGRID_COLUMN_SCALABLE;
+    else
+        newValue = WXGRID_COLUMN_FIXED_SIZE;
+ 
+    if (m_scaleColumn [col] != newValue)
+    {
+        m_scaleColumn [col] = newValue;
+
+        if (!m_unscaledColWidths.IsEmpty())
+            if (scale == WXGRID_COLUMN_SCALABLE)
+            {
+                m_totalScaledWidth += m_unscaledColWidths [col];
+                m_totalUnscaledWidth -= m_colWidths [col];
+            } else
+            {
+                m_totalScaledWidth -= m_unscaledColWidths [col];
+                m_totalUnscaledWidth += m_colWidths [col];
+            }
+    }
+}
+
+bool wxGrid::GetScaleColumn ( int col ) const
+{
+    if ( m_scaleColumn.IsEmpty() )
+        return true;
+    else
+        return m_scaleColumn [col] == WXGRID_COLUMN_SCALABLE;
+}
+
 void wxGrid::EnableCursor( bool enableCursor )
 {
     if ( enableCursor != m_hasCursor )
@@ -4308,6 +4365,9 @@ void wxGrid::Init()
 
     m_editable = true;  // default for whole grid
     m_hasCursor = true;
+    m_scaleWidthToFit = false;
+    m_totalScaledWidth = 0;
+    m_totalUnscaledWidth = 0;
 
     m_inOnKeyDown = false;
     m_batchCount = 0;
@@ -4402,7 +4462,7 @@ int wxGrid::GetRowBottom(int row) const
 
 void wxGrid::CalcDimensions()
 {
-    int cw, ch;
+    int cw, ch, scrollLineX;
     GetClientSize( &cw, &ch );
 
     if ( m_rowLabelWin->IsShown() )
@@ -4410,12 +4470,66 @@ void wxGrid::CalcDimensions()
     if ( m_colLabelWin->IsShown() )
         ch -= m_colLabelHeight;
 
+    if (m_scaleWidthToFit)
+    {
+        int         totalScaledWidth = m_totalScaledWidth;
+        int         totalUnscaledWidth = m_totalUnscaledWidth;
+        int         col, width;
+
+        if (m_unscaledColWidths.IsEmpty())
+            NormalizeColumnWidths();
+
+        do
+        {
+
+            double scaleFactor = double (cw - totalUnscaledWidth) / double (totalScaledWidth);
+
+            col = 0;
+            while (col < m_numCols)
+            {
+                if ( m_scaleColumn [col] == WXGRID_COLUMN_SCALABLE )
+                {
+                    int width = int ((double (m_unscaledColWidths [col]) * scaleFactor) + 0.5);
+
+                    if ( width > m_minAcceptableColWidth )
+                        m_colWidths [col] = width;
+                    else
+                    {
+                        m_scaleColumn [col] = WXGRID_CURSOR_SCALED_TO_MINIMUM_SIZE;
+                        m_colWidths [col] = m_minAcceptableColWidth;
+                        totalScaledWidth -= m_unscaledColWidths [col];
+                        totalUnscaledWidth += m_minAcceptableColWidth;
+                        break;
+                    }
+                }
+                col ++;
+            }
+        } while (col < m_numCols);
+
+        width = 0;
+        for ( int col = 0;  col < m_numCols;  col++ )
+        {
+            width = width + m_colWidths [col];
+            if (m_colRights [col] != width)
+            {
+                m_colRights [col] = width;
+                if (m_scaleColumn [col] == WXGRID_CURSOR_SCALED_TO_MINIMUM_SIZE)
+                    m_scaleColumn [col] = WXGRID_COLUMN_SCALABLE;
+                if (IsCellEditControlShown())
+                    {
+                        HideCellEditControl();
+                        SaveEditControlValue();
+                    }
+            }
+        }
+    }
+
     // grid total size
     int w = m_numCols > 0 ? GetColRight(m_numCols - 1) + m_extraWidth + 1 : 0;
     int h = m_numRows > 0 ? GetRowBottom(m_numRows - 1) + m_extraHeight + 1 : 0;
 
     // take into account editor if shown
-    if ( IsCellEditControlShown() )
+    if ( IsCellEditControlShown() && !m_scaleWidthToFit)
     {
       int w2, h2;
       int r = m_currentCellCoords.GetRow();
@@ -4437,20 +4551,15 @@ void wxGrid::CalcDimensions()
       attr->DecRef();
     }
 
-    // preserve (more or less) the previous position
-    int x, y;
-    GetViewStart( &x, &y );
+    m_targetWindow->SetVirtualSize( w , h );
 
-    // ensure the position is valid for the new scroll ranges
-    if ( x >= w )
-        x = wxMax( w - 1, 0 );
-    if ( y >= h )
-        y = wxMax( h - 1, 0 );
-
-    // do set scrollbar parameters
-    SetScrollbars( m_scrollLineX, m_scrollLineY,
-                   GetScrollX(w), GetScrollY(h), x, y,
-                   GetBatchCount() != 0);
+    // Use SetVertualSize, instead of SetScrollbars
+    // otherwise extra space will appear beyond the table
+    if (m_scaleWidthToFit)
+        scrollLineX = 0;
+    else
+        scrollLineX = m_scrollLineX;
+    SetScrollRate( scrollLineX, m_scrollLineY );
 
     // if our OnSize() hadn't been called (it would if we have scrollbars), we
     // still must reposition the children
@@ -4482,9 +4591,6 @@ void wxGrid::CalcWindowSizes()
 }
 
 
-// this is called when the grid table sends a message to say that it
-// has been redimensioned
-//
 bool wxGrid::Redimension( wxGridTableMessage& msg )
 {
     int i;
@@ -4669,6 +4775,16 @@ bool wxGrid::Redimension( wxGridTableMessage& msg )
                     m_colRights[i] = right;
                 }
             }
+
+            if ( !m_scaleColumn.IsEmpty() )
+                m_scaleColumn.Insert( WXGRID_COLUMN_SCALABLE, pos, numCols );
+
+            if ( !m_unscaledColWidths.IsEmpty() )
+            {
+                m_unscaledColWidths.Insert( m_defaultColWidth, pos, numCols );
+                NormalizeColumnWidths();
+            }
+
             if ( m_currentCellCoords == wxGridNoCellCoords )
             {
                 // if we have just inserted cols into an empty grid the current
@@ -4711,6 +4827,16 @@ bool wxGrid::Redimension( wxGridTableMessage& msg )
                     m_colRights[i] = right;
                 }
             }
+
+            if ( !m_scaleColumn.IsEmpty() )
+                m_scaleColumn.Add( WXGRID_COLUMN_SCALABLE, numCols );
+
+            if ( !m_unscaledColWidths.IsEmpty() )
+            {
+                m_unscaledColWidths.Add( m_defaultColWidth, numCols );
+                NormalizeColumnWidths();
+            }
+
             if ( m_currentCellCoords == wxGridNoCellCoords )
             {
                 // if we have just inserted cols into an empty grid the current
@@ -4745,6 +4871,16 @@ bool wxGrid::Redimension( wxGridTableMessage& msg )
                     m_colRights[i] = w;
                 }
             }
+
+            if ( !m_scaleColumn.IsEmpty() )
+                m_scaleColumn.RemoveAt( pos, numCols );
+
+            if ( !m_unscaledColWidths.IsEmpty() )
+            {
+                m_unscaledColWidths.RemoveAt( pos, numCols );
+                NormalizeColumnWidths();
+            }
+
             if ( !m_numCols )
             {
                 m_currentCellCoords = wxGridNoCellCoords;
@@ -5993,10 +6129,13 @@ void wxGrid::DoEndDragResizeCol()
         HideCellEditControl();
         SaveEditControlValue();
 
-        int colLeft = GetColLeft(m_dragRowOrCol);
-        SetColSize( m_dragRowOrCol,
-                    wxMax( m_dragLastPos - colLeft,
-                           GetColMinimalWidth(m_dragRowOrCol) ) );
+        int newWidth = wxMax( m_dragLastPos - GetColLeft(m_dragRowOrCol),
+                              GetColMinimalWidth(m_dragRowOrCol) );
+
+        if (!m_scaleWidthToFit)
+            SetColSize( m_dragRowOrCol, newWidth );
+        else
+            SetScaledColSize( m_dragRowOrCol, newWidth );
 
         if ( !GetBatchCount() )
         {
@@ -6431,10 +6570,14 @@ void wxGrid::Refresh(bool eraseb, const wxRect* rect)
 void wxGrid::OnSize( wxSizeEvent& event )
 {
     // position the child windows
-    CalcWindowSizes();
 
-    // don't call CalcDimensions() from here, the base class handles the size
-    // changes itself
+    // don't call CalcDimensions() from here unless we're scaling columns
+    // to fit, since the base class handles the size changes itself
+    if (m_scaleWidthToFit)
+        CalcDimensions();
+    else
+        CalcWindowSizes();
+
     event.Skip();
 }
 
@@ -8360,13 +8503,7 @@ bool wxGrid::MoveCursorUp( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetRow() > 0 )
-        {
-            int row = m_currentCellCoords.GetRow() - 1;
-            int col = m_currentCellCoords.GetCol();
-            ClearSelection();
-            MakeCellVisible( row, col );
-            SetCurrentCell( row, col );
-        }
+            SelectCell( m_currentCellCoords.GetRow() - 1, m_currentCellCoords.GetCol() );
         else
             return false;
 
@@ -8395,13 +8532,7 @@ bool wxGrid::MoveCursorDown( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetRow() < m_numRows - 1 )
-        {
-            int row = m_currentCellCoords.GetRow() + 1;
-            int col = m_currentCellCoords.GetCol();
-            ClearSelection();
-            MakeCellVisible( row, col );
-            SetCurrentCell( row, col );
-        }
+            SelectCell( m_currentCellCoords.GetRow() + 1, m_currentCellCoords.GetCol() );
         else
             return false;
 
@@ -8429,13 +8560,7 @@ bool wxGrid::MoveCursorLeft( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetCol() > 0 )
-        {
-            int row = m_currentCellCoords.GetRow();
-            int col = m_currentCellCoords.GetCol() - 1;
-            ClearSelection();
-            MakeCellVisible( row, col );
-            SetCurrentCell( row, col );
-        }
+            SelectCell( m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol() - 1 );
         else
             return false;
 
@@ -8463,13 +8588,7 @@ bool wxGrid::MoveCursorRight( bool expandSelection )
             }
         }
         else if ( m_currentCellCoords.GetCol() < m_numCols - 1 )
-        {
-            int row = m_currentCellCoords.GetRow();
-            int col = m_currentCellCoords.GetCol() + 1;
-            ClearSelection();
-            MakeCellVisible( row, col );
-            SetCurrentCell( row, col );
-        }
+            SelectCell( m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol() + 1 );
         else
             return false;
 
@@ -9817,6 +9936,74 @@ void wxGrid::SetDefaultColSize( int width, bool resizeExistingCols )
     }
 }
 
+
+void wxGrid::NormalizeColumnWidths()
+{
+    wxASSERT_MSG(m_scaleWidthToFit, wxT("Can't call NormalizeColumnWidth unless scaling column widths!"));
+
+    m_totalScaledWidth = 0;
+    m_totalUnscaledWidth = 0;
+
+    if ( m_colWidths.IsEmpty() )
+        InitColWidths();
+
+    if ( m_unscaledColWidths.IsEmpty() )
+        m_unscaledColWidths.SetCount( m_numCols );
+
+    if ( m_scaleColumn.IsEmpty() )
+    {
+        m_scaleColumn.Alloc( m_numCols );
+        m_scaleColumn.Add( WXGRID_COLUMN_SCALABLE, m_numCols );
+    }
+
+    for ( int col = 0;  col < m_numCols;  col++ )
+    {
+        int width = m_colWidths [col];
+
+        m_unscaledColWidths [col] = width;
+        if ( m_scaleColumn [col] == WXGRID_COLUMN_SCALABLE )
+            m_totalScaledWidth += width;
+        else
+            m_totalUnscaledWidth += width;
+    }
+}
+
+
+void wxGrid::SetScaledColSize( int col, int width )
+{
+    int i, extraSpace, delta;
+
+    extraSpace = 0;
+    for ( i = col + 1;  i < m_numCols;  i++ )
+        extraSpace += m_colWidths[i] - GetColMinimalWidth(i);
+
+    delta = wxMin(width - m_colWidths[col], extraSpace);
+
+    m_colWidths[col] += delta;
+    m_colRights[col] += delta;
+
+    for ( i = col + 1;  i < m_numCols;  i++ )
+    {
+        if (delta != 0)
+        {
+            int columnDelta;
+            int oldWidth = m_colWidths[i];
+            int minimumWidth = GetColMinimalWidth(i);
+
+            if (oldWidth - delta > minimumWidth)
+                columnDelta = delta;
+            else
+                columnDelta = oldWidth - minimumWidth;
+            
+            delta -= columnDelta;
+            m_colWidths[i] -= columnDelta;
+        }
+
+        m_colRights[i] = m_colRights[i - 1] + m_colWidths[i];
+    }
+    NormalizeColumnWidths();
+}
+
 void wxGrid::SetColSize( int col, int width )
 {
     wxCHECK_RET( col >= 0 && col < m_numCols, _T("invalid column index") );
@@ -10650,4 +10837,3 @@ wxGridEditorCreatedEvent::wxGridEditorCreatedEvent(int id, wxEventType type,
 }
 
 #endif // wxUSE_GRID
-

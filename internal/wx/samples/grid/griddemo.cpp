@@ -87,10 +87,13 @@ BEGIN_EVENT_TABLE( GridFrame, wxFrame )
     EVT_MENU( ID_DELETEROW, GridFrame::DeleteSelectedRows )
     EVT_MENU( ID_DELETECOL, GridFrame::DeleteSelectedCols )
     EVT_MENU( ID_CLEARGRID, GridFrame::ClearGrid )
+    EVT_MENU( ID_FIXEDCOL, GridFrame::SetSelectedColsNonScalable )
+    EVT_MENU( ID_SCALECOL, GridFrame::SetSelectedColsScalable )
     EVT_MENU( ID_SELCELLS,  GridFrame::SelectCells )
     EVT_MENU( ID_SELROWS,  GridFrame::SelectRows )
     EVT_MENU( ID_SELCOLS,  GridFrame::SelectCols )
     EVT_MENU( ID_TOGGLEHASCURSOR,  GridFrame::ToggleHasCursor )
+    EVT_MENU( ID_TOGGLESCALEWIDTHTOFIT,  GridFrame::ToggleScaleWidthToFit )
 
     EVT_MENU( ID_SET_CELL_FG_COLOUR, GridFrame::SetCellFgColour )
     EVT_MENU( ID_SET_CELL_BG_COLOUR, GridFrame::SetCellBgColour )
@@ -155,6 +158,7 @@ GridFrame::GridFrame()
     viewMenu->Append( ID_AUTOSIZECOLS, _T("&Auto-size cols") );
     viewMenu->Append( ID_CELLOVERFLOW, _T("&Overflow cells"), wxEmptyString, wxITEM_CHECK );
     viewMenu->Append( ID_RESIZECELL, _T("&Resize cell (7,1)"), wxEmptyString, wxITEM_CHECK );
+    viewMenu->Append( ID_TOGGLESCALEWIDTHTOFIT,  _T("Scale W&idth"), wxEmptyString, wxITEM_CHECK );
 
     wxMenu *rowLabelMenu = new wxMenu;
 
@@ -188,6 +192,8 @@ GridFrame::GridFrame()
     editMenu->Append( ID_DELETEROW, _T("Delete selected ro&ws") );
     editMenu->Append( ID_DELETECOL, _T("Delete selected co&ls") );
     editMenu->Append( ID_CLEARGRID, _T("Cl&ear grid cell contents") );
+    editMenu->Append( ID_FIXEDCOL, _T("Set selected columns fixed width") );
+    editMenu->Append( ID_SCALECOL, _T("Set selected columns scalable") );
 
     wxMenu *selectMenu = new wxMenu;
     selectMenu->Append( ID_SELECT_UNSELECT, _T("Add new cells to the selection"),
@@ -383,6 +389,7 @@ void GridFrame::SetDefaults()
     GetMenuBar()->Check( ID_TOGGLEGRIDLINES, true );
     GetMenuBar()->Check( ID_CELLOVERFLOW, true );
     GetMenuBar()->Check( ID_TOGGLEHASCURSOR, true );
+    GetMenuBar()->Check( ID_TOGGLESCALEWIDTHTOFIT, false );
 }
 
 
@@ -692,6 +699,36 @@ void GridFrame::DeleteSelectedCols( wxCommandEvent& WXUNUSED(ev) )
 }
 
 
+void GridFrame::SetSelectedColsScalable( wxCommandEvent& WXUNUSED(ev) )
+{
+    if ( grid->IsSelection() )
+    {
+        grid->BeginBatch();
+        for ( int n = 0; n < grid->GetNumberCols(); n++)
+        {
+            if ( grid->IsInSelection( 0 , n ) )
+                grid->ScaleColumn( n );
+        }
+        grid->EndBatch();
+    }
+}
+
+
+void GridFrame::SetSelectedColsNonScalable( wxCommandEvent& WXUNUSED(ev) )
+{
+    if ( grid->IsSelection() )
+    {
+        grid->BeginBatch();
+        for ( int n = 0; n < grid->GetNumberCols(); n++)
+        {
+            if ( grid->IsInSelection( 0 , n ) )
+                grid->ScaleColumn( n, false );
+        }
+        grid->EndBatch();
+    }
+}
+
+
 void GridFrame::ClearGrid( wxCommandEvent& WXUNUSED(ev) )
 {
     grid->ClearGrid();
@@ -717,6 +754,13 @@ void GridFrame::ToggleHasCursor( wxCommandEvent& WXUNUSED(ev) )
 {
     grid->EnableCursor(
         GetMenuBar()->IsChecked( ID_TOGGLEHASCURSOR ) );
+}
+
+
+void GridFrame::ToggleScaleWidthToFit( wxCommandEvent& WXUNUSED(ev) )
+{
+    grid->ScaleWidthToFit(
+        GetMenuBar()->IsChecked( ID_TOGGLESCALEWIDTHTOFIT ) );
 }
 
 

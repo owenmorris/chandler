@@ -60,10 +60,13 @@ class GridFrame : public wxFrame
     void DeleteSelectedRows( wxCommandEvent& );
     void DeleteSelectedCols( wxCommandEvent& );
     void ClearGrid( wxCommandEvent& );
+    void SetSelectedColsNonScalable( wxCommandEvent& );
+    void SetSelectedColsScalable( wxCommandEvent& );
     void SelectCells( wxCommandEvent& );
     void SelectRows( wxCommandEvent& );
     void SelectCols( wxCommandEvent& );
     void ToggleHasCursor( wxCommandEvent& );
+    void ToggleScaleWidthToFit( wxCommandEvent& );
 
     void DeselectCell(wxCommandEvent& event);
     void DeselectCol(wxCommandEvent& event);
@@ -129,11 +132,14 @@ public:
         ID_DELETEROW,
         ID_DELETECOL,
         ID_CLEARGRID,
+        ID_FIXEDCOL,
+        ID_SCALECOL,
         ID_CHANGESEL,
         ID_SELCELLS,
         ID_SELROWS,
         ID_SELCOLS,
         ID_TOGGLEHASCURSOR,
+        ID_TOGGLESCALEWIDTHTOFIT,
         ID_SET_CELL_FG_COLOUR,
         ID_SET_CELL_BG_COLOUR,
         ID_VTABLE,
