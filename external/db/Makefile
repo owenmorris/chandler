@@ -35,6 +35,11 @@ clean:
 	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
+# do not remove the cd $(BUILD_ROOT); and try to replace 
+# it with a -C $(BUILD_ROOT) -- this will fail because the
+# shell will expand the wildcards *before* tar will change
+# the directory.  I (bear) have now made this mistake 3 times
+# with the last one getting into the source tree
 binaries: strip
 	cd $(BUILD_ROOT); tar -cvzf $(DB)/$(TARBALL) \
                                     $(SNAP)/bin/libdb*.dll \
