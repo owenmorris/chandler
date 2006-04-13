@@ -983,7 +983,11 @@ class KindSet(Set):
         kind = self._view[self._extent].kind
 
         if isuuid(item):
-            return kind.isKeyForInstance(item, self._recursive)
+            instance = self._view.find(item, False)
+            if instance is None:
+                return kind.isKeyForInstance(item, self._recursive)
+            else:
+                item = instance
 
         if self._recursive:
             contains = item.isItemOf(kind)
