@@ -36,7 +36,9 @@ clean:
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 binaries: strip
-	tar -C $(BUILD_ROOT) -cvzf $(DB)/$(TARBALL) $(SNAP)/bin/libdb*.dll $(SNAP)/bin/db/db_*.exe
+	cd $(BUILD_ROOT); tar -cvzf $(TARBALL) \
+                                    $(SNAP)/bin/libdb*.dll \
+                                    $(SNAP)/bin/db/db_*.exe
 
 else
 
