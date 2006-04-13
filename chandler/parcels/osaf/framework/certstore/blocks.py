@@ -44,14 +44,15 @@ def installParcel(parcel, oldVersion=None):
     addCertificateToSidebarEvent = Block.AddToSidebarEvent.update(
         parcel, 'addCertificateToSidebarEvent',
         blockName = 'addCertificateToSidebarEvent',
-        items = [certStore])
+        items = [certStore],
+        copyItems = False,
+        disambiguateDisplayName = False)
 
     certMenu = blocks.Menu.update(
         parcel, "CertificateTestMenu",
         blockName = "CertificateTestMenu",
         title = _(u"Certificates"),
-        parentBlock = main.TestMenu,
-        )
+        parentBlock = main.TestMenu)
 
     blocks.MenuItem.update(
         parcel, "CertificateView",

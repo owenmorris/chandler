@@ -500,8 +500,6 @@ class Block(schema.Item):
             # Exit. If it returns something else, add that to the collection
 
             if event.disambiguateDisplayName:
-                # You can only change the name if you make a copy or create a new item
-                assert self.copy or onNewItemMethod != None
                 displayName = item.displayName
                 newDisplayName = displayName
                 suffix = 1;
