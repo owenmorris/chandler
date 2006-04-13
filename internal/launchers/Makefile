@@ -19,9 +19,8 @@ ifeq ($(OS),Darwin)
 LAUNCHER_FILES=
 LIB_FILES=
 
-# Nothing to be done for clean
 clean:
-
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 build:
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
@@ -43,6 +42,7 @@ ARCHIVE: $(LAUNCHERS)/win/
 
 clean:
 	$(MAKE) -C win -k DEBUG=$(DEBUG) clean
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 build: 
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
@@ -64,8 +64,8 @@ LIB_FILES=
 
 ARCHIVE: $(LAUNCHERS)/linux/
 
-# Nothing to be done for clean
 clean:
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 build:
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)

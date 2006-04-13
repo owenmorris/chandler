@@ -30,6 +30,8 @@ build:
 ifneq (/,$(CHANDLERDB)/$(BUILD))
 clean:
 	rm -rf $(BUILD)
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
+
 endif
 
 realclean: clean
