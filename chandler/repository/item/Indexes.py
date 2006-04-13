@@ -468,7 +468,13 @@ class AttributeIndex(SortedIndex):
         self._valueMap = valueMap
 
         if not kwds.get('loading', False):
-            self._attribute = kwds.pop('attribute')
+            attributes = kwds.pop('attributes', None)
+            if attributes is None:
+                attributes = kwds.pop('attribute')
+            if isinstance(attributes, basestring):
+                self._attributes = attributes.split(',')
+            else:
+                self._attributes = attributes
 
     def getIndexType(self):
 
@@ -477,50 +483,60 @@ class AttributeIndex(SortedIndex):
     def getInitKeywords(self):
 
         kwds = super(AttributeIndex, self).getInitKeywords()
-        kwds['attribute'] = self._attribute
+        kwds['attributes'] = self._attributes
 
         return kwds
 
     def compare(self, k0, k1):
 
         valueMap = self._valueMap
-        attribute = self._attribute
+        i0 = valueMap[k0]
+        i1 = valueMap[k1]
 
-        v0 = getattr(valueMap[k0], attribute, None)
-        v1 = getattr(valueMap[k1], attribute, None)
+        for attribute in self._attributes:
+            v0 = getattr(i0, attribute, None)
+            v1 = getattr(i1, attribute, None)
 
-        if v0 is v1:
-            return 0
+            if v0 is v1:
+                continue
 
-        if v0 is None:
-            return 1
+            if v0 is None:
+                return 1
 
-        if v1 is None:
+            if v1 is None:
+                return -1
+
+            if v0 == v1:
+                continue
+
+            if v0 > v1:
+                return 1
+
             return -1
 
-        if v0 == v1:
-            return 0
-
-        if v0 > v1:
-            return 1
-
-        return -1
+        return 0
 
     def _xmlValues(self, generator, version, attrs, mode):
 
-        attrs['attribute'] = self._attribute
+        attrs['attributes'] = ','.join(self._attributes)
         super(AttributeIndex, self)._xmlValues(generator, version, attrs, mode)
 
     def _writeValue(self, itemWriter, buffer, version):
 
         super(AttributeIndex, self)._writeValue(itemWriter, buffer, version)
-        itemWriter.writeSymbol(buffer, self._attribute)
+        itemWriter.writeShort(buffer, len(self._attributes))
+        for attribute in self._attributes:
+            itemWriter.writeSymbol(buffer, attribute)
 
     def _readValue(self, itemReader, offset, data):
 
         offset = super(AttributeIndex, self)._readValue(itemReader,
                                                         offset, data)
-        offset, self._attribute = itemReader.readSymbol(offset, data)
+        offset, len = itemReader.readShort(offset, data)
+        self._attributes = []
+        for i in xrange(len):
+            offset, attribute = itemReader.readSymbol(offset, data)
+            self._attributes.append(attribute)
 
         return offset
 
@@ -530,27 +546,29 @@ class ValueIndex(AttributeIndex):
     def compare(self, k0, k1):
 
         view = self._valueMap._getView()
-        attribute = self._attribute
 
-        v0 = view.findValue(k0, attribute, None)
-        v1 = view.findValue(k1, attribute, None)
+        for attribute in self._attributes:
+            v0 = view.findValue(k0, attribute, None)
+            v1 = view.findValue(k1, attribute, None)
 
-        if v0 is v1:
-            return 0
+            if v0 is v1:
+                continue
 
-        if v0 is None:
-            return 1
+            if v0 is None:
+                return 1
 
-        if v1 is None:
+            if v1 is None:
+                return -1
+
+            if v0 == v1:
+                continue
+
+            if v0 > v1:
+                return 1
+
             return -1
 
-        if v0 == v1:
-            return 0
-
-        if v0 > v1:
-            return 1
-
-        return -1
+        return 0
 
     def getIndexType(self):
 
@@ -598,21 +616,29 @@ class StringIndex(AttributeIndex):
     def compare(self, k0, k1):
 
         valueMap = self._valueMap
-        attribute = self._attribute
+        i0 = valueMap[k0]
+        i1 = valueMap[k1]
 
-        v0 = getattr(valueMap[k0], attribute, None)
-        v1 = getattr(valueMap[k1], attribute, None)
+        for attribute in self._attributes:
+            v0 = getattr(i0, attribute, None)
+            v1 = getattr(i1, attribute, None)
 
-        if v0 is v1:
-            return 0
+            if v0 is v1:
+                continue
 
-        if v0 is None:
-            return 1
+            if v0 is None:
+                return 1
 
-        if v1 is None:
-            return -1
+            if v1 is None:
+                return -1
 
-        return self._collator.compare(v0, v1)
+            res = self._collator.compare(v0, v1)
+            if res == 0:
+                continue
+
+            return res
+
+        return 0
 
     def _xmlValues(self, generator, version, attrs, mode):
 

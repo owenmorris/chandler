@@ -97,9 +97,10 @@ class Indexed(object):
             - C{numeric}: a simple index reflecting the sequence of mutation
               operations.
 
-            - C{attribute}: an index sorted on the value of an attribute
-              of items in the collection. The name of the attribute is
-              provided via the C{attribute} keyword.
+            - C{attribute}: an index sorted on the value of one or more
+              attributes of items in the collection. The name of the
+              attribute(s) is provided via the C{attribute} or C{attributes}
+              keyword.
 
             - C{string}: an index sorted by locale-specific collation on the
               value of a string attribute of items in the collection. The
@@ -159,10 +160,19 @@ class Indexed(object):
                     
             elif indexType in ('attribute', 'value', 'string'):
                 from repository.item.Monitors import Monitors
-                Monitors.attach(item, '_reIndex',
-                                'set', kwds['attribute'], name, indexName)
-                Monitors.attach(item, '_reIndex',
-                                'remove', kwds['attribute'], name, indexName)
+                attributes = kwds.get('attributes', None)
+                if attributes is not None:
+                    for attribute in attributes:
+                        Monitors.attach(item, '_reIndex',
+                                        'set', attribute, name, indexName)
+                        Monitors.attach(item, '_reIndex',
+                                        'remove', attribute, name, indexName)
+                else:
+                    attribute = kwds['attribute']
+                    Monitors.attach(item, '_reIndex',
+                                    'set', attribute, name, indexName)
+                    Monitors.attach(item, '_reIndex',
+                                    'remove', attribute, name, indexName)
 
         self._indexes[indexName] = index
         return index

@@ -44,8 +44,9 @@ class RepositoryView(CView):
     # 0.6.1: watcherDispatch layout changed
     # 0.6.2: added 'notify' aspect
     # 0.6.3: added Collection 'export' cloud with 'subscribers' endpoint
+    # 0.6.4: changed format of some indexes to accept one or more attributes
     
-    CORE_SCHEMA_VERSION = 0x00060300
+    CORE_SCHEMA_VERSION = 0x00060400
 
     def __init__(self, repository, name, version):
         """

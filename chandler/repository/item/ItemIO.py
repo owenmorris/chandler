@@ -56,6 +56,9 @@ class ItemWriter(object):
     def writeBoolean(self, buffer, value):
         raise NotImplementedError, "%s.writeBoolean" %(type(self))
 
+    def writeShort(self, buffer, value):
+        raise NotImplementedError, "%s.writeShort" %(type(self))
+
     def writeInteger(self, buffer, value):
         raise NotImplementedError, "%s.writeInteger" %(type(self))
 
