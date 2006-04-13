@@ -52,7 +52,7 @@ def makeSummaryBlocks(parcel):
                                   width = 130,
                                   readOnly = True),
                     Column.update(parcel, 'SumColAbout',
-                                  heading = _(u'About'),
+                                  heading = _(u'Title'),
                                   attributeName = 'about',
                                   width = 130),
                     Column.update(parcel, 'SumColCalendarEvent',

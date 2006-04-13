@@ -247,7 +247,7 @@ class CalendarEventMixin(RemindableMixin):
 
     startTime = schema.One(
         schema.DateTimeTZ,
-        displayName=_(u"Start-Time/Do-on"),
+        displayName=_(u"Start Time"),
         indexed=True,
         doc="For items that represent *only* Tasks, this attribute serves as "
             "the 'Do-on' attribute. For items that represent only Calendar "

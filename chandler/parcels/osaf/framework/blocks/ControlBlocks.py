@@ -355,17 +355,23 @@ class AttributeDelegate (ListDelegate):
                 # We don't need to redirect non-Chandler attributes (eg, itsKind).
                 heading = col.heading
             else:
-                heading = attribute.getItemDisplayName()
                 redirect = item.getAttributeAspect(attributeName, 'redirectTo')
                 if redirect is not None:
                     names = redirect.split('.')
                     for name in names [:-1]:
                         item = item.getAttributeValue (name)
                     actual = item.itsKind.getAttribute (names[-1]).getItemDisplayName()
-                    heading = _(u"%(heading)s (%(actual)s)") % {
-                        'heading':heading,
-                        'actual':actual }
+                    if col.heading == actual:
+                        heading = col.heading
+                    else:
+                        heading = _(u"%(heading)s (%(actual)s)") % {
+                            'heading':col.heading,
+                            'actual':actual }
+                else:
+                    # non-redirecting attribute, use that title
+                    heading = attribute.getItemDisplayName()
         else:
+            # no such attribute, use the column heading
             heading = col.heading
         return heading
     

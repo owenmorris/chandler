@@ -99,7 +99,7 @@ class ContentItem(schema.Item):
 
     modifiedOn = schema.One(
         schema.DateTimeTZ,
-        displayName=_(u"Last Modified On"),
+        displayName=_(u"Last Modified"),
         doc="DateTime this item was last modified"
     )
 
@@ -140,7 +140,7 @@ class ContentItem(schema.Item):
 
     createdOn = schema.One(
         schema.DateTimeTZ,
-        displayName=_(u"created"),
+        displayName=_(u"Created"),
         doc="DateTime this item was created"
     )
 

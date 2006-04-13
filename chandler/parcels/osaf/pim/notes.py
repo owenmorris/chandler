@@ -26,12 +26,13 @@ class Note(items.ContentItem):
         schema.Text,
         initialValue = u"",
         indexed = True,
+        displayName = _(u"Who"),
     )
 
     # redirections
     about = schema.One(redirectTo = "displayName")
 
-    date = schema.One(redirectTo = "createdOn")
+    date = schema.One(redirectTo = "modifiedOn")
 
 
     def InitOutgoingAttributes (self):
