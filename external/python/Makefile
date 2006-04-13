@@ -111,6 +111,7 @@ clean:
 	rm -rf zlib-$(ZLIBVERSION)/$(BUILD) zlib-$(ZLIBVERSION)/zlib$(SUFFIX).lib
 	cd $(SRC)/PCbuild; devenv.com pcbuild.sln /clean $(Snap); echo ok
 	rm -f $(SRC)/PCbuild/pcbuild.sln
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 binaries: strip
 	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.pyc" | xargs rm -f

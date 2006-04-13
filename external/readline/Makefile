@@ -25,6 +25,7 @@ ifneq (/,$(READLINE)/$(BUILD))
 clean:
 	rm -rf $(READLINE)/$(BUILD)
 	rm -f $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 endif
 
 ifeq ($(OS_MAJOR_VER),8)

@@ -3,7 +3,7 @@ VERSION=4.4.20
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
 DB=$(BUILD_ROOT)/db
 SRC=$(DB)/db-$(VERSION)
-TARBALL=$(DB)/db-$(SNAP)-$(RELVER).tar.gz
+TARBALL=db-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -33,10 +33,10 @@ clean:
 	cd $(SRC)/$(BUILD); \
       devenv.com Berkeley_DB.sln /project build_all /clean $(Snap)
 	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 binaries: strip
-	cd $(BUILD_ROOT); \
-    tar -cvzf $(TARBALL) $(SNAP)/bin/libdb*.dll $(SNAP)/bin/db/db_*.exe
+    tar -C $(BUILD_ROOT) -cvzf $(DB)/$(TARBALL) $(SNAP)/bin/libdb*.dll $(SNAP)/bin/db/db_*.exe
 
 else
 
@@ -59,12 +59,14 @@ $(SRC)/$(BUILD)/Makefile:
 build: expand apply $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
-	cd $(SRC); rm -rf $(BUILD)
+	rm -rf $(SRC)/$(BUILD)
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
+endif
 
 binaries: strip
-	cd $(BUILD_ROOT); \
-    tar -cvzf $(TARBALL) \
+	tar -C $(BUILD_ROOT) -cvzf $(DB)/$(TARBALL) \
         --exclude '*.a' \
         $(SNAP)/db/bin $(SNAP)/db/lib
 
@@ -87,3 +89,4 @@ expand: db-$(VERSION)-expanded
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
+	

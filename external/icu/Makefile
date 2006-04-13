@@ -33,6 +33,7 @@ clean:
 	rm -rf $(SRC)/$(BUILD)
 	cd $(SRC)/icu/source/allinone; MAKEFLAGS=; \
         devenv.com allinone.sln /clean $(Snap)
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 binaries: strip
 	cd $(BUILD_ROOT); \
@@ -66,8 +67,11 @@ build: expand $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)
 	$(MAKE) -C $(SRC)/$(BUILD) install
 
+ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
+endif
 
 binaries: strip
 	cd $(BUILD_ROOT); \

@@ -77,6 +77,7 @@ clean-astng:
 ifneq (/,$(SRC)/$(BUILD))
 clean: clean-common clean-astng
 	rm -rf $(SRC)/$(BUILD)
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 endif
 
 upload-common:

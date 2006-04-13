@@ -48,4 +48,5 @@ install: $(TARBALL)
 ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 endif

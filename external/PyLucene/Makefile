@@ -125,6 +125,7 @@ test:
 
 clean:
 	$(MAKE) -C $(SRC) clean
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 binaries:
 	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) $(MANIFEST)
