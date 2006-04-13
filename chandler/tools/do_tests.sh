@@ -123,12 +123,21 @@ if [ ! -d "$PC_DIR" ]; then
     mkdir -p $PC_DIR
 fi
 
-  # if the debug/ path is not found, then avoid debug tests
+  # Run debug if we have that, and release if we have that
+MODE_DEBUG="debug"
+MODE_RELEASE="release"
 if [ ! -d $CHANDLERBIN/debug ]; then
-    MODES="release"
+    MODE_DEBUG=""
     echo Skipping debug tests as $CHANDLERBIN/debug does not exist | tee -a $TESTLOG
-else
-    MODES="debug release"
+fi
+if [ ! -d $CHANDLERBIN/release ]; then
+    MODE_RELEASE=""
+    echo Skipping release tests as $CHANDLERBIN/release does not exist | tee -a $TESTLOG
+fi
+MODES="$MODE_DEBUG $MODE_RELEASE"
+if [ "$MODES" == " " ]; then
+	echo Both debug and release directories are missing, cannot run.
+	exit 1
 fi
 
   # each directory to exclude should be place in the EXCLUDES array
