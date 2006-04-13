@@ -128,7 +128,7 @@ if [ ! -d $CHANDLERBIN/debug ]; then
     MODES="release"
     echo Skipping debug tests as $CHANDLERBIN/debug does not exist | tee -a $TESTLOG
 else
-    MODES="release debug"
+    MODES="debug release"
 fi
 
   # each directory to exclude should be place in the EXCLUDES array
