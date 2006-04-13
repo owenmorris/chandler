@@ -10,7 +10,7 @@ class CryptoTestCase(unittest.TestCase):
             pass
     
     def setUp(self):
-        u = u"profileDir_(\xc3\xbc)" # u umlaut
+        u = u"profileDir_(\u00FC)" # u umlaut
         self.path = os.path.join(os.path.dirname(__file__),
                                  u.encode(sys.getfilesystemencoding()))
         
