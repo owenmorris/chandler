@@ -64,7 +64,7 @@ BUILD=build_$(SNAP)
 
 ifeq ($(OS),Cygwin)
 
-$(SRC)/include/wx/msw/setup.h:
+$(SRC)/include/wx/msw/setup.h: $(SRC)/include/wx/msw/setup0.h
 	cd $(SRC); \
 	sed -e "s/#define wxUSE_UNICODE 0/#define wxUSE_UNICODE 1/" include/wx/msw/setup0.h | \
 	sed -e "s/#define wxUSE_DIALUP_MANAGER   1/#define wxUSE_DIALUP_MANAGER 0/" | \

@@ -491,11 +491,14 @@ enum {
 
 
 //---------------------------------------------------------------------------
-// wxGridCellRenderer is an ABC, and several derived classes are available.
-// Classes implemented in Python should be derived from wxPyGridCellRenderer.
 
+// TODO: Use these to have SWIG automatically handle the IncRef/DecRef calls:
+// 
+//        %ref   wxGridCellWorker "$this->IncRef();";
+//        %unref wxGridCellWorker "$this->DecRef();";
+//
 
-class wxGridCellRenderer
+class  wxGridCellWorker
 {
 public:
     %extend {
@@ -503,12 +506,25 @@ public:
             if (!self->GetClientObject())
                 self->SetClientObject(new wxPyOORClientData(_self));
         }
+
+        // A dummy dtor to shut up SWIG.  (The real one is protected and can
+        // only be called by DecRef)
+        ~wxGridCellWorker() {
+        }
     }
 
     void SetParameters(const wxString& params);
     void IncRef();
     void DecRef();
+};
 
+
+
+// wxGridCellRenderer is an ABC, and several derived classes are available.
+// Classes implemented in Python should be derived from wxPyGridCellRenderer.
+
+class wxGridCellRenderer : public wxGridCellWorker
+{
     virtual void Draw(wxGrid& grid,
                       wxGridCellAttr& attr,
                       wxDC& dc,
@@ -703,26 +719,15 @@ public:
 // wxGridCellEditor is an ABC, and several derived classes are available.
 // Classes implemented in Python should be derived from wxPyGridCellEditor.
 
-class  wxGridCellEditor
+class  wxGridCellEditor : public wxGridCellWorker
 {
 public:
-    %extend {
-        void _setOORInfo(PyObject* _self) {
-            if (!self->GetClientObject())
-                self->SetClientObject(new wxPyOORClientData(_self));
-        }
-    }
-
     bool IsCreated();
     wxControl* GetControl();
     void SetControl(wxControl* control);
 
     wxGridCellAttr* GetCellAttr();
     void SetCellAttr(wxGridCellAttr* attr);
-
-    void SetParameters(const wxString& params);
-    void IncRef();
-    void DecRef();
 
     virtual void Create(wxWindow* parent,
                         wxWindowID id,
@@ -991,6 +996,13 @@ public:
     %pythonAppend wxGridCellAttr  "self._setOORInfo(self)"
 
     wxGridCellAttr(wxGridCellAttr *attrDefault = NULL);
+
+    %extend {
+        // A dummy dtor to shut up SWIG.  (The real one is protected and can
+        // only be called by DecRef)
+        ~wxGridCellAttr() {
+        }
+    }
     
     wxGridCellAttr *Clone() const;
     void MergeWith(wxGridCellAttr *mergefrom);
@@ -1112,7 +1124,7 @@ class wxGridTableBase : public wxObject
 {
 public:
     // wxGridTableBase();   This is an ABC
-    //~wxGridTableBase();
+    ~wxGridTableBase();
 
     %extend {
         void _setOORInfo(PyObject* _self) {
@@ -1621,9 +1633,12 @@ public:
 
 
     wxGridTableBase * GetTable() const;
+
+    %disownarg(wxGridTableBase *);
     bool SetTable( wxGridTableBase *table, bool takeOwnership=false,
                    WXGRIDSELECTIONMODES selmode =
                    wxGrid::wxGridSelectCells );
+    %cleardisown(wxGridTableBase *);
 
     void ClearGrid();
     bool InsertRows( int pos = 0, int numRows = 1, bool updateLabels=true );

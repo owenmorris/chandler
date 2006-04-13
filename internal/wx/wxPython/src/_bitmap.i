@@ -211,13 +211,14 @@ file or explpicitly set for the bitmap.
 
     // MSW only?    wxBitmap GetMaskBitmap() const;
 
+    %disownarg(wxMask*);
     DocDeclStr(
         virtual void , SetMask(wxMask* mask),
         "Sets the mask for this bitmap.
 
 :see: `GetMask`, `wx.Mask`
 ", "");
-    
+    %cleardisown(wxMask*);
     
     %extend {
         DocStr(SetMaskColour,
@@ -338,7 +339,7 @@ passed then BLACK is used.
         }
     }
     
-    //~wxMask();
+    ~wxMask();
 };
 
 %pythoncode { MaskColour = wx._deprecated(Mask, "wx.MaskColour is deprecated, use `wx.Mask` instead.") }

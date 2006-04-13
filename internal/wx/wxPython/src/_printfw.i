@@ -414,10 +414,14 @@ MustHaveApp(wxPyPrintout);
 class wxPyPrintout  : public wxObject {
 public:
     %pythonAppend wxPyPrintout   "self._setCallbackInfo(self, Printout)"
+    %typemap(out) wxPyPrintout*;    // turn off this typemap
 
     wxPyPrintout(const wxString& title = wxPyPrintoutTitleStr);
-    //~wxPyPrintout();      wxPrintPreview object takes ownership...
+    ~wxPyPrintout();      
     
+    // Turn it back on again
+    %typemap(out) wxPyPrintout* { $result = wxPyMake_wxObject($1, $owner); }
+
     void _setCallbackInfo(PyObject* self, PyObject* _class);
 
     
@@ -491,13 +495,16 @@ MustHaveApp(wxPreviewFrame);
 
 class wxPreviewFrame : public wxFrame {
 public:
+    %disownarg(wxPrintPreview*);
+    
     %pythonAppend wxPreviewFrame   "self._setOORInfo(self)"
-
     wxPreviewFrame(wxPrintPreview* preview, wxFrame* parent, const wxString& title,
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize&  size = wxDefaultSize,
                    long style = wxDEFAULT_FRAME_STYLE,
                    const wxString& name = wxPyFrameNameStr);
+
+    %cleardisown(wxPrintPreview*);
 
     void Initialize();
     void CreateControlBar();
@@ -562,6 +569,8 @@ MustHaveApp(wxPrintPreview);
 
 class wxPrintPreview : public wxObject {
 public:
+    %disownarg(wxPyPrintout*);
+    
     %nokwargs wxPrintPreview;
     wxPrintPreview(wxPyPrintout* printout,
                    wxPyPrintout* printoutForPrinting,
@@ -570,6 +579,8 @@ public:
                   wxPyPrintout* printoutForPrinting,
                   wxPrintData* data);
 
+    ~wxPrintPreview();
+    
     virtual bool SetCurrentPage(int pageNum);
     int GetCurrentPage();
 
@@ -577,6 +588,8 @@ public:
     wxPyPrintout *GetPrintout();
     wxPyPrintout *GetPrintoutForPrinting();
 
+    %cleardisown(wxPyPrintout*);
+    
     void SetFrame(wxFrame *frame);
     void SetCanvas(wxPreviewCanvas *canvas);
 
@@ -695,6 +708,8 @@ MustHaveApp(wxPyPrintPreview);
 class wxPyPrintPreview : public wxPrintPreview
 {
 public:
+    %disownarg(wxPyPrintout*);
+
     %pythonAppend wxPyPrintPreview   "self._setCallbackInfo(self, PyPrintPreview)"
     %nokwargs wxPyPrintPreview;
     wxPyPrintPreview(wxPyPrintout* printout,
@@ -704,6 +719,8 @@ public:
                      wxPyPrintout* printoutForPrinting,
                      wxPrintData* data);
 
+    %cleardisown(wxPyPrintout*);
+    
     void _setCallbackInfo(PyObject* self, PyObject* _class);
     
     bool SetCurrentPage(int pageNum);
