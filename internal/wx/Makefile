@@ -107,6 +107,7 @@ wxPython:
 MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest $(SNAP)/bin/python$(PYTHON_SUFFIX).exe.manifest
 
 clean:
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 	rm -rf $(CLEANITEMSALL)
 	rm -rf $(SRC)/build/msw/vc_msw$(UNICODE_SUFFIX)$(SUFFIX)dll
 	rm -rf $(SRC)/contrib/build/animate/vc_msw$(UNICODE_SUFFIX)$(SUFFIX)dll
@@ -174,6 +175,7 @@ cleanmanifest:
 	find $(SNAP)/$(SITE)/wxPython -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/wx -name "*.pyo" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/wxPython -name "*.pyo" | xargs rm -f
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 else
 
@@ -216,6 +218,7 @@ cleanmanifest:
 	find $(SNAP)/$(SITE)/wxPython -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/wx -name "*.pyo" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/wxPython -name "*.pyo" | xargs rm -f
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 endif
 
@@ -233,6 +236,7 @@ clean:
 	rm -rf $(CLEANITEMSALL)
 	rm -rf $(SRC)/wxPython/$(BUILD)*
 	rm -rf $(SRC)/$(BUILD)
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 endif
 
