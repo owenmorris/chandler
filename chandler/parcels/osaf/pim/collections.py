@@ -582,7 +582,10 @@ class IndexedSelectionCollection(ContentCollection):
             if indexName == "__adhoc__":
                 self.addIndex(indexName, 'numeric')
             else:
-                self.addIndex(indexName, 'attribute', attribute=indexName)
+                # for 0.7alpha2, hardcode 'date' as a secondary sort
+                # for any query
+                self.addIndex(indexName, 'attribute',
+                              attributes=(indexName, 'date'))
             self.setRanges(indexName, [])
         return self.getIndex(indexName)
 
