@@ -36,7 +36,7 @@ clean:
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 binaries: strip
-    tar -C $(BUILD_ROOT) -cvzf $(DB)/$(TARBALL) $(SNAP)/bin/libdb*.dll $(SNAP)/bin/db/db_*.exe
+	tar -C $(BUILD_ROOT) -cvzf $(DB)/$(TARBALL) $(SNAP)/bin/libdb*.dll $(SNAP)/bin/db/db_*.exe
 
 else
 
@@ -89,4 +89,4 @@ expand: db-$(VERSION)-expanded
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
-	
+
