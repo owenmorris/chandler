@@ -1,6 +1,6 @@
 --- PyLucene-src-1.9rc1-2/Makefile	2005-12-12 15:06:00.000000000 -0800
 +++ PyLucene-src-1.9rc1-2-patched/Makefile	2005-12-12 15:11:53.000000000 -0800
-@@ -728,6 +728,9 @@
+@@ -734,6 +734,9 @@
  	mkdir -p $(PREFIX_DB)/lib
  	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/lib
  endif
@@ -10,7 +10,7 @@
  else
  
  ifeq ($(OS),FreeBSD)
-@@ -742,7 +747,8 @@
+@@ -748,7 +753,8 @@
  install::
  	install $(GCJ_HOME)/bin/libiconv-2.dll $(PYTHON_SITE)
  ifdef DB
