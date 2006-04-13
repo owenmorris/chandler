@@ -302,9 +302,10 @@ def importCertificate(x509, fingerprint, trust, repView, typeHint=None):
                        asText=text)
 
     repView.commit()
-    log.debug('Imported certificate: CN=%s, type=%s, fp=%s' % (commonName,
-                                                               type,
-                                                               fingerprint))
+    
+    log.info('Imported certificate: CN=%s, type=%s, fp=%s' % (commonName,
+                                                              type,
+                                                              fingerprint))
 
 
 def importCertificateDialog(repView):
