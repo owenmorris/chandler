@@ -475,7 +475,7 @@ class IndexContainer(FileContainer):
     def searchDocuments(self, version, query, attribute=None):
 
         searcher = self.getIndexSearcher()
-        query = QueryParser.parse(query, "contents", StandardAnalyzer())
+        query = QueryParser("contents", StandardAnalyzer()).parse(query)
 
         docs = {}
         for i, doc in searcher.search(query):
