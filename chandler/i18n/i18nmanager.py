@@ -195,7 +195,7 @@ class I18nManager(object):
             # start of the defaultText block. However, if the text contains
             # accelerator key info or Date info return the default as changing it will
             # raise errors.
-            return u"(ü): %s"% defaultText
+            return u"(\u00FC): %s"% defaultText
 
         return defaultText
 

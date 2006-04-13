@@ -10,7 +10,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import random
 
 from datetime import datetime, timedelta
-from PyICU import ICUtzinfo, UnicodeString
+from PyICU import ICUtzinfo
 from osaf import pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
@@ -18,7 +18,7 @@ import i18n
 from application import schema
 
 TEST_I18N = 'test' in i18n.getLocaleSet()
-I18N_SEED = UnicodeString(u"йδ")
+I18N_SEED = u"\u0439\u03b4"
 
 HEADLINES = [u"Dinner", u"Lunch", u"Meeting", u"Movie", u"Games"]
 
@@ -30,9 +30,10 @@ def addSurrogatePairToText(text):
     #One in two chance. If the rand int return equals 1
     #then add a surrogate pair at the start and end of the text
     if random.randrange(2) == 1:
-        start = random.randrange(I18N_SEED.length())
-        end   = random.randrange(I18N_SEED.length())
-        return  u"%s%s%s" % (I18N_SEED.charAt(start), text, I18N_SEED.charAt(end))
+        size = len(I18N_SEED)
+        start = random.randrange(size)
+        end   = random.randrange(size)
+        return  u"%s%s%s" % (I18N_SEED[start], text, I18N_SEED[end])
     return text
 
 
