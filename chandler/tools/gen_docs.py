@@ -124,8 +124,9 @@ def RenderKinds(view, urlRoot):
 
     def ofKind(kindName, recursive=True):
         kind = getKind(kindName)
-        for item in kind.iterItems(recursive=recursive):
-            yield item
+        if kind is not None:
+            for item in kind.iterItems(recursive=recursive):
+                yield item
 
     result = ""
     items  = {}
