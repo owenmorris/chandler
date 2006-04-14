@@ -21,7 +21,6 @@ _prefix=$(PREFIX)
 _chandlerbin=$(CHANDLERBIN)
 endif
 
-
 build:
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
         PREFIX=$(_prefix) \
@@ -38,15 +37,15 @@ endif
 
 realclean: clean
 
-snap: strip
+$(TARBALL): strip
 	cd $(BUILD_ROOT); \
 	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
 	find $(MANIFEST) -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(CHANDLERDB)/$(TARBALL) $(MANIFEST)
 
-binaries: snap
+binaries: $(TARBALL)
 
-$(TARBALL): snap
+snap: $(TARBALL)
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
