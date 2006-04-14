@@ -1116,6 +1116,12 @@ class RepositoryView(CView):
                         if watch == 'item' and not watchers:
                             item._status &= ~CItem.T_WATCHED
 
+    def _unregisterWatches(self, item):
+
+        dispatch = self._watcherDispatch
+        if dispatch:
+            dispatch.pop(item.itsUUID, None)
+
     def watchItem(self, watcher, item, methodName):
         self._registerWatch(watcher, item, None, 'item', methodName)
 

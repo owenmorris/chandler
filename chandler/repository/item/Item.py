@@ -1394,6 +1394,7 @@ class Item(CItem):
 
             view = self.itsView
             refs = self._references
+            values = self._values
 
             if hasattr(type(self), 'onItemDelete'):
                 self.onItemDelete(view)
@@ -1404,6 +1405,10 @@ class Item(CItem):
 
             for child in self.iterChildren():
                 child.delete(True, deletePolicy)
+
+            if 'watcherDispatch' in values:
+                del values['watcherDispatch']
+            view._unregisterWatches(self)
 
             if 'monitors' in refs:
                 for monitor in self.monitors:
