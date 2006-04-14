@@ -253,39 +253,3 @@ def formatTime(dt, tzinfo=None):
     formattable = PyICU.Formattable(dt, PyICU.Formattable.kIsDate)
 
     return unicode(format.format([formattable], PyICU.FieldPosition()))
-
-TIMEZONE_OTHER_FLAG = -1
-
-def buildTZChoiceList(view, control, selectedTZ=None):
-    """
-    Take a wx.Choice control and a timezone to select.  Populate the control
-    with the appropriate timezones, plus an Other option, whose value is
-    TIMEZONE_OTHER_FLAG.
-
-    Default selection is ICUtzinfo.default.
-    
-    """
-    control.Clear()
-    selectIndex = -1
-    info = TimeZoneInfo.get(view)
-    if selectedTZ is None:
-        selectedTZ = PyICU.ICUtzinfo.default
-    canonicalTimeZone = info.canonicalTimeZone(selectedTZ)
-
-    # rebuild the list of choices
-    for name, zone in info.iterTimeZones():
-        if canonicalTimeZone == zone:
-            selectIndex = control.Append(name, clientData=selectedTZ)
-        else:
-            control.Append(name, clientData=zone)
-
-    # Always add the Other option
-    control.Append(OSAFMessageFactory(u"Other..."),
-                   clientData=TIMEZONE_OTHER_FLAG)
-
-    if selectIndex is -1:
-        control.Insert(unicode(selectedTZ), 0, clientData=selectedTZ)
-        selectIndex = 0
-        
-    if selectIndex != -1:
-        control.Select(selectIndex)

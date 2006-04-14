@@ -15,11 +15,11 @@ from chandlerdb.item.ItemError import NoSuchItemInCollectionError
 from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
 
-from osaf.pim.calendar import (Calendar, TimeZoneInfo, formatTime, DateTimeUtil,
-                               buildTZChoiceList, TIMEZONE_OTHER_FLAG)
+from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime, DateTimeUtil
 from osaf.pim import ContentCollection
 from osaf.usercollections import UserCollection
 from application.dialogs import RecurrenceDialog, Util, TimeZoneList
+
 from osaf.sharing import ChooseFormat
 
 from osaf.framework.blocks import (
@@ -603,11 +603,11 @@ class CalendarEventHandler(object):
             view = self.blockItem.itsView
             
             newTZ = control.GetClientData(choiceIndex)
-            if newTZ == AttributeEditors.TIMEZONE_OTHER_FLAG:
+            if newTZ == TimeZoneList.TIMEZONE_OTHER_FLAG:
                 newTZ = TimeZoneList.pickTimeZone()
                 if newTZ is None:
                     newTZ = TimeZoneInfo.get(view).default
-                    buildTZChoiceList(view, control, newTZ)
+                    TimeZoneList.buildTZChoiceList(view, control, newTZ)
 
             if newTZ != TimeZoneInfo.get(view).default:
                 TimeZoneInfo.get(view).default = newTZ
@@ -1798,7 +1798,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # self.blockItem hasn't been set yet, because
         # CalendarControl.instantiateWidget() hasn't returned.
         # So, we get the repo view from our parent's blockItem.
-        buildTZChoiceList(self.GetParent().blockItem.itsView, tzChoice)
+        TimeZoneList.buildTZChoiceList(self.GetParent().blockItem.itsView,
+                                       tzChoice)
 
         self.Bind(wx.EVT_CHOICE, self.OnTZChoice, tzChoice)
 

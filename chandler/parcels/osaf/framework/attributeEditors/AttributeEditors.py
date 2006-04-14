@@ -13,8 +13,7 @@ from osaf.pim.tasks import TaskMixin
 import osaf.pim as pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
-from osaf.pim.calendar import (TimeZoneInfo, buildTZChoiceList,
-                               TIMEZONE_OTHER_FLAG)
+from osaf.pim.calendar import TimeZoneInfo
 
 import repository.item.ItemHandler as ItemHandler
 from repository.util.Lob import Lob
@@ -28,6 +27,7 @@ from osaf.framework.blocks.Block import (ShownSynchronizer,
 from osaf.pim.items import ContentItem
 from application import schema
 from application.dialogs import RecurrenceDialog, TimeZoneList
+
 from i18n import OSAFMessageFactory as _
 from osaf import messages
 
@@ -2139,7 +2139,8 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             value = control.GetClientData(choiceIndex)
             
             # handle the "Other..." option
-            if not self._ignoreChanges and value == TIMEZONE_OTHER_FLAG:
+            if not self._ignoreChanges and \
+               value == TimeZoneList.TIMEZONE_OTHER_FLAG:
                 # Opening the pickTimeZone dialog will trigger lose focus, don't
                 # process changes to this AE while the dialog is up
                 self._ignoreChanges = True
@@ -2150,7 +2151,8 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
                     dt = getattr(self.item, self.attributeName, None)
                     if dt is not None:
                         newTimeZone = dt.tzinfo
-                buildTZChoiceList(self.item.itsView, control, newTimeZone)
+                TimeZoneList.buildTZChoiceList(self.item.itsView, control,
+                                               newTimeZone)
                 return newTimeZone
             else:
                 return value
@@ -2166,7 +2168,7 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
         if existingValue is None or existingValue != value:
-            buildTZChoiceList(self.item.itsView, control, value)
+            TimeZoneList.buildTZChoiceList(self.item.itsView, control, value)
 
 class TriageAttributeEditor(ChoiceAttributeEditor):
     """
