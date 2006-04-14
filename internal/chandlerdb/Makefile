@@ -1,10 +1,10 @@
 
-include ../Makefile.inc
-
 RELVER=0.6-$(BRANCH_REV_PREFIX)19
 CHANDLERDB=$(INTERNAL)/chandlerdb
 DB_VER=4.4
 TARBALL=chandlerdb-$(SNAP)-$(RELVER).tar.gz
+
+include ../Makefile.inc
 
 SRC=$(CHANDLERDB)
 BUILD=build_$(SNAP)
@@ -14,9 +14,11 @@ MANIFEST=$(SNAP)/$(SITE)/chandlerdb
 ifeq ($(OS),Cygwin)
 _swig=`cygpath -aw $(SWIG)`
 _prefix=`cygpath -aw $(PREFIX)`
+_chandlerbin=`cygpath -au $(CHANDLERBIN)`
 else
 _swig=$(SWIG)
 _prefix=$(PREFIX)
+_chandlerbin=$(CHANDLERBIN)
 endif
 
 
@@ -30,14 +32,11 @@ build:
 ifneq (/,$(CHANDLERDB)/$(BUILD))
 clean:
 	rm -rf $(BUILD)
-	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
+	rm -f $(_chandlerbin)/$(SNAP)/$(TARBALL).inst
 
 endif
 
 realclean: clean
-
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
 
 snap: strip
 	cd $(BUILD_ROOT); \
@@ -45,8 +44,9 @@ snap: strip
 	find $(MANIFEST) -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(CHANDLERDB)/$(TARBALL) $(MANIFEST)
 
+binaries: snap
+
+$(TARBALL): snap
+
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
-
-drop:
-	tar -C $(BUILD_ROOT) -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
