@@ -10,7 +10,6 @@ import osaf.sharing
 from  osaf.sharing.ICalendar import importICalendarFile, ImportError
 from time import time
 import application.Globals as Globals
-import osaf.framework.blocks.Block as Block
 from osaf.pim.calendar.TimeZone import TimeZoneInfo, coerceTimeZone
 
 logger = logging.getLogger(__name__)

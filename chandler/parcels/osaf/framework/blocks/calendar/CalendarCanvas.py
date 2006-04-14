@@ -15,10 +15,11 @@ from chandlerdb.item.ItemError import NoSuchItemInCollectionError
 from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
 
-from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime, DateTimeUtil
+from osaf.pim.calendar import (Calendar, TimeZoneInfo, formatTime, DateTimeUtil,
+                               buildTZChoiceList, TIMEZONE_OTHER_FLAG)
 from osaf.pim import ContentCollection
 from osaf.usercollections import UserCollection
-from application.dialogs import RecurrenceDialog, Util
+from application.dialogs import RecurrenceDialog, Util, TimeZoneList
 from osaf.sharing import ChooseFormat
 
 from osaf.framework.blocks import (
@@ -599,14 +600,21 @@ class CalendarEventHandler(object):
         control = event.GetEventObject()
         choiceIndex = control.GetSelection()
         if choiceIndex != -1:
-            newTZ = control.GetClientData(choiceIndex)
-
             view = self.blockItem.itsView
-            TimeZoneInfo.get(view).default = newTZ
-            view.commit()
             
-            self.blockItem.postEventByName("TimeZoneChange",
-                                            {'tzinfo':newTZ})
+            newTZ = control.GetClientData(choiceIndex)
+            if newTZ == AttributeEditors.TIMEZONE_OTHER_FLAG:
+                newTZ = TimeZoneList.pickTimeZone()
+                if newTZ is None:
+                    newTZ = TimeZoneInfo.get(view).default
+                    buildTZChoiceList(view, control, newTZ)
+
+            if newTZ != TimeZoneInfo.get(view).default:
+                TimeZoneInfo.get(view).default = newTZ
+                view.commit()
+                
+                self.blockItem.postEventByName("TimeZoneChange",
+                                                {'tzinfo':newTZ})
 
 class CalendarNotificationHandler(object):
     """
@@ -1790,23 +1798,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # self.blockItem hasn't been set yet, because
         # CalendarControl.instantiateWidget() hasn't returned.
         # So, we get the repo view from our parent's blockItem.
-        view = self.GetParent().blockItem.itsView
-        info = TimeZoneInfo.get(view)
-        defaultTzinfo = info.canonicalTimeZone(ICUtzinfo.default)
-        
-        # Now, populate the wxChoice with TimeZoneInfo.knownTimeZones
-        selectIndex = -1
-        for name, zone in info.iterTimeZones(withFloating=False):
-            index = tzChoice.Append(name, clientData=zone)
-            
-            if selectIndex == -1 and defaultTzinfo == zone:
-                selectIndex = index
-        
-        if selectIndex is -1: # @@@ this should never happen
-            tzChoice.Insert(unicode(defaultTzinfo), 0, clientData=zone)
-            selectIndex = 0
-
-        tzChoice.Select(selectIndex)
+        buildTZChoiceList(self.GetParent().blockItem.itsView, tzChoice)
 
         self.Bind(wx.EVT_CHOICE, self.OnTZChoice, tzChoice)
 

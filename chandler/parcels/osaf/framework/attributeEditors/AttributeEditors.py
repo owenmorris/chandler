@@ -13,7 +13,8 @@ from osaf.pim.tasks import TaskMixin
 import osaf.pim as pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
-from osaf.pim.calendar.TimeZone import TimeZoneInfo
+from osaf.pim.calendar import (TimeZoneInfo, buildTZChoiceList,
+                               TIMEZONE_OTHER_FLAG)
 
 import repository.item.ItemHandler as ItemHandler
 from repository.util.Lob import Lob
@@ -26,7 +27,7 @@ from osaf.framework.blocks.Block import (ShownSynchronizer,
                                          wxRectangularChild, debugName)
 from osaf.pim.items import ContentItem
 from application import schema
-from application.dialogs import RecurrenceDialog
+from application.dialogs import RecurrenceDialog, TimeZoneList
 from i18n import OSAFMessageFactory as _
 from osaf import messages
 
@@ -2105,20 +2106,24 @@ class ChoiceAttributeEditor(BasePermanentAttributeEditor):
         self.attributeName = attributeName
         super(ChoiceAttributeEditor, self).BeginControlEdit(item, attributeName, control)
 
-
 class TimeZoneAttributeEditor(ChoiceAttributeEditor):
     """ A pop-up control for the tzinfo field of a datetime. The list of
     choices comes from the calendar.TimeZone module """
     
+    def __init__(self, *args, **kwargs):
+        super(TimeZoneAttributeEditor, self).__init__(*args, **kwargs)
+        self._ignoreChanges = False
+    
     def SetAttributeValue(self, item, attributeName, tzinfo):
-        oldValue = getattr(item, attributeName, None)
-
-        if oldValue is not None and tzinfo != oldValue.tzinfo:
-            # Something changed.                
-            value = oldValue.replace(tzinfo=tzinfo)
-            setattr(item, attributeName, value)
-                        
-            self.AttributeChanged()
+        if not self._ignoreChanges:
+            oldValue = getattr(item, attributeName, None)
+    
+            if oldValue is not None and tzinfo != oldValue.tzinfo:
+                # Something changed.                
+                value = oldValue.replace(tzinfo=tzinfo)
+                setattr(item, attributeName, value)
+                            
+                self.AttributeChanged()
             
     def GetAttributeValue(self, item, attributeName):
         value = getattr(item, attributeName, None)
@@ -2131,7 +2136,24 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
         """ Get the selected choice's time zone """
         choiceIndex = control.GetSelection()
         if choiceIndex != -1:
-            return control.GetClientData(choiceIndex)
+            value = control.GetClientData(choiceIndex)
+            
+            # handle the "Other..." option
+            if not self._ignoreChanges and value == TIMEZONE_OTHER_FLAG:
+                # Opening the pickTimeZone dialog will trigger lose focus, don't
+                # process changes to this AE while the dialog is up
+                self._ignoreChanges = True
+                newTimeZone = TimeZoneList.pickTimeZone()
+                self._ignoreChanges = False
+                # no timezone returned, set the choice back to the item's tzinfo
+                if newTimeZone is None:
+                    dt = getattr(self.item, self.attributeName, None)
+                    if dt is not None:
+                        newTimeZone = dt.tzinfo
+                buildTZChoiceList(self.item.itsView, control, newTimeZone)
+                return newTimeZone
+            else:
+                return value
         else:
             return None
 
@@ -2144,26 +2166,7 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
         if existingValue is None or existingValue != value:
-            control.Clear()
-
-            selectIndex = -1
-            info = TimeZoneInfo.get(self.item.itsView)
-            
-            canonicalTimeZone = info.canonicalTimeZone(value)
-
-            # rebuild the list of choices
-            for name, zone in info.iterTimeZones():
-                if canonicalTimeZone == zone:
-                    selectIndex = control.Append(name, clientData=value)
-                else:
-                    control.Append(name, clientData=zone)
-
-            if selectIndex is -1:
-                control.Insert(unicode(value), 0, clientData=value)
-                selectIndex = 0
-                
-            if selectIndex != -1:
-                control.Select(selectIndex)
+            buildTZChoiceList(self.item.itsView, control, value)
 
 class TriageAttributeEditor(ChoiceAttributeEditor):
     """

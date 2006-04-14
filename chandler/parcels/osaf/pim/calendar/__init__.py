@@ -17,4 +17,5 @@ Issues:
 from Calendar import Calendar as __Calendar
 from Calendar import CalendarEvent, CalendarEventMixin, Location, RecurrencePattern
 
-from TimeZone import TimeZoneInfo, formatTime
+from TimeZone import (TimeZoneInfo, formatTime, buildTZChoiceList, 
+                      TIMEZONE_OTHER_FLAG)
