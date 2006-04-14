@@ -735,9 +735,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         return True
         
     def OnEndResizeItem(self):
+        # get canvasItem before FinishDrag sets self.dragState to None
+        canvasItem = self.dragState.originalDragBox
         self.FinishDrag()
         self.StopDragTimer()
-        self.dragState.originalDragBox.ResetResizeMode()
+        canvasItem.ResetResizeMode()
         
     def OnResizingItem(self, unscrolledPosition):
         self.RefreshCanvasItems(resort=False)
