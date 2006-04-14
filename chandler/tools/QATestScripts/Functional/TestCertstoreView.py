@@ -17,21 +17,23 @@ try:
     # force sidebar to update
     User.idle()
     
-    # confirm that the entry in the sidebar exists
-    # This is from TestFlickr.py
-    def sidebarCollectionNamed(name):
+    # confirm that exactly one entry in the sidebar exists
+    def exactlyOneSidebarCollectionNamed(name):
         """
         Look for a sidebar collection with name, otherwise return False
         """
+        entries = []
         sidebarWidget = app_ns().sidebar.widget
         for i in range(sidebarWidget.GetNumberRows()):
             collection = sidebarWidget.GetTable().GetValue(i,0)[0]
             if collection.displayName == name:
-                return collection
-        return False
-    col = sidebarCollectionNamed("Certificate Store")
-    if not col:
-        logger.ReportFailure("Certificate Store not in sidebar")
+                entries.append(collection)
+        if len(entries) == 0:
+            logger.ReportFailure("Certificate Store not in sidebar")
+        if len(entries) > 1:
+            logger.ReportFailure("More than one Certificate Store not in sidebar")
+
+    exactlyOneSidebarCollectionNamed("Certificate Store")
 
     # 2. confirm that the view is the All view
     if not app_ns().appbar.pressed(name='ApplicationBarAllButton'):
@@ -98,19 +100,25 @@ try:
     User.idle()
     cert.CheckEditableBlock('TrustAttribute', 'trust', '0')
 
-    # XXX 6. switch to second certificate in the summary
-    # confirm that certificate changed in detail view
-    # XXX 7. switch back to first certificate
-    # confirm that the detail view changed back, and that the changed values
-    # persisted
+    # Switch back to calendar view
+    app_ns().appbar.press(name="ApplicationBarEventButton")
+    wx.GetApp().Yield()        
+    # Add certstore to sidebar again
+    app_ns().root.addCertificateToSidebarEvent()
+    # force sidebar to update
+    User.idle()
+    # 6. Check that we still have just one certificate store in the sidebar
+    exactlyOneSidebarCollectionNamed("Certificate Store")
+
+    # 7. Check that we still have the same first cert and the changed value
+    # was persisted
+    cert.CheckEditableBlock('FingerprintLabel', 'fingerprint', '0x4463C531D7CCC1006794612BB656D3BF8257846FL')
+    cert.CheckEditableBlock('TrustAttribute', 'trust', '0')
     
     # Switch to calendar view
-    # XXX 8. Add certstore to sidebar again
-    # confirm that the old certstore was selected and tests in 1.
-    # confirm that no new sidebar entry was created
-
-    # Switch to calendar view
-    # XXX 9. import certificate
+    app_ns().appbar.press(name="ApplicationBarEventButton")
+    wx.GetApp().Yield()        
+    # XXX 8. import certificate
     # confirm that we switched to all view, and the newly added cert is
     # selected in summary view and displayed correctly in detail view
 
