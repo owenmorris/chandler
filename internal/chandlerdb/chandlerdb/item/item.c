@@ -1115,7 +1115,15 @@ static int __t_item__itemChanged(t_item *self, PyObject *dispatch,
                 }
 
                 if (!watcher)
+                {
+                    /* kludge until watchers use bi-refs */
+                    if (PyErr_Occurred() == PyExc_KeyError)
+                    {
+                        PyErr_Clear();
+                        continue;
+                    }
                     return -1;
+                }
 
                 methName = PyTuple_GetItem(key, 2);
                 result = PyObject_CallMethodObjArgs(watcher, methName, 

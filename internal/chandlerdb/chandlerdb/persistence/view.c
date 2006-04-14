@@ -834,7 +834,14 @@ static int _t_view_invokeWatchers(t_view *self, PyObject *watchers,
         }
 
         if (!watcher)
+        {
+            if (PyErr_Occurred() == PyExc_KeyError)
+            {
+                PyErr_Clear();
+                continue;
+            }
             return -1;
+        }
 
         if (!PyObject_Compare(watch, set_NAME))
         {
