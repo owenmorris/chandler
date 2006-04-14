@@ -326,6 +326,10 @@ class wxTable(DragAndDrop.DraggableWidget,
             ChooseFormat.importFile(filename, self.blockItem.itsView,
                                     selectedCollection=True)
 
+    def OnEmailPaste(self, text):
+        ChooseFormat.importEmail(text, self.blockItem.itsView,
+                                 selectedCollection=True)
+
     def wxSynchronizeWidget(self, useHints=False):
         """
           A Grid can't easily redisplay its contents, so we write the following

@@ -45,13 +45,17 @@ def importFileAsFormat(format, filename, view, coll=None,
         return None
     elif format == EMAIL_FORMAT:
         fp = file(filename)
-        body = fp.read()
+        text = fp.read()
         fp.close()
-        item = osaf.mail.message.messageTextToKind(view, body)
-        if selectedCollection or coll is None:
-            coll = Globals.views[0].getSidebarSelectedCollection()
+        return importEmail(text, view, coll, selectedCollection)
+
+def importEmail(text, view, coll=None, selectedCollection=False):
+    item = osaf.mail.message.messageTextToKind(view, text)
+    if selectedCollection or coll is None:
+        coll = Globals.views[0].getSidebarSelectedCollection()
+    if item is not None:
         coll.add(item)
-        return item
+    return item
 
 def importFile(filename, view, coll=None, selectedCollection=False):
     """

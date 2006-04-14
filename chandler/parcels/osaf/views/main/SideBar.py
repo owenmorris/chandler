@@ -328,6 +328,11 @@ class wxSidebar(wxTable):
         self.Update()
 
     def OnFilePaste(self):
+        coll = self.getCollectionDroppedOn()
+        for filename in self.fileDataObject.GetFilenames():
+            ChooseFormat.importFile(filename, self.blockItem.itsView, coll)
+
+    def getCollectionDroppedOn(self):
         whereToDropItem = getattr (self, 'whereToDropItem', None)
         if whereToDropItem is None:
             coll = None
@@ -335,9 +340,11 @@ class wxSidebar(wxTable):
             coll = self.blockItem.contents[whereToDropItem]
             self.SetRowHighlight(self.whereToDropItem, False)
             del self.whereToDropItem
+        return coll
 
-        for filename in self.fileDataObject.GetFilenames():
-            ChooseFormat.importFile(filename, self.blockItem.itsView, coll)
+    def OnEmailPaste(self, text):
+        coll = self.getCollectionDroppedOn()
+        ChooseFormat.importEmail(text, self.blockItem.itsView, coll)
 
 class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
     """

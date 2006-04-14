@@ -480,6 +480,8 @@ class ItemClipboardHandler(_ClipboardHandler):
             return self.ImportClipboardItems(rawData)
 
 
+OUTLOOK_EXPRESS_DRAG_FORMAT = 'Internet Message (rfc822/rfc1522)'
+
 class FileOrItemClipboardHandler(ItemClipboardHandler):
     """
     An experimental class.  Ultimately this should probably turn into a
@@ -493,18 +495,31 @@ class FileOrItemClipboardHandler(ItemClipboardHandler):
         # why is ClipboardDataObject a method and not an attribute?
         if getattr(self, 'clipboard', None) is None:
             self.clipboard = wx.DataObjectComposite()
+
     
             self.fileDataObject = wx.FileDataObject()
             self.fileFormat = self.fileDataObject.GetFormat()
             
             self.itemFormat = wx.CustomDataFormat(self.ClipboardDataFormat())
-            self.itemDataObject = wx.CustomDataObject(self.itemFormat)
+            self.itemDataObject = wx.CustomDataObject(self.itemFormat)    
             
             self.clipboard.Add(self.itemDataObject)
             self.clipboard.Add(self.fileDataObject)
+
+            self.dataFormats = {}
+            self.dataObjects = {}
+            
+            def addCustom(name):
+                format = self.dataFormats[name] = wx.CustomDataFormat(name)            
+                obj = self.dataObjects[name] = wx.CustomDataObject(format)
+                self.clipboard.Add(obj)
+                self.clipboard.SetData(format, '')
+            
+            map(addCustom, [OUTLOOK_EXPRESS_DRAG_FORMAT])
             
             # for some reason compositeObject starts non-empty, empty it
             self.clipboard.SetData(self.itemFormat, '')
+
         return self.clipboard
 
     def PasteData(self, data):
@@ -515,10 +530,13 @@ class FileOrItemClipboardHandler(ItemClipboardHandler):
         for format in data.GetAllFormats():
             if data.GetDataSize(format) > 0:
                 dataFormat = format
-                break
         if dataFormat is not None:
             if dataFormat.GetType() == self.fileFormat.GetType():
                 self.OnFilePaste()
+            elif dataFormat.GetType() == \
+                 self.dataFormats[OUTLOOK_EXPRESS_DRAG_FORMAT].GetType():
+                self.OnEmailPaste(
+                    self.dataObjects[OUTLOOK_EXPRESS_DRAG_FORMAT].GetData())
             else:
                 self.OnItemPaste()
                 
@@ -527,7 +545,7 @@ class FileOrItemClipboardHandler(ItemClipboardHandler):
             # composite data objects don't empty their last dragged item,
             # so their data needs to be set to '' by hand.
             data.SetData(dataFormat, '')
-            
+
     def OnItemPaste(self):
         rawData = self.itemDataObject.GetData()
         itemList = self.ImportClipboardItems(rawData)
@@ -538,3 +556,8 @@ class FileOrItemClipboardHandler(ItemClipboardHandler):
         """Override to implement drag and drop file import."""
         print "Format is file"
         print "filenames are: ", self.fileDataObject.GetFilenames()
+        
+    def OnEmailPaste(self, text):
+        """Override to implement drag and drop email import."""
+        print "Format is email"
+        print "email is: ", text

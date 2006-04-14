@@ -1015,20 +1015,28 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         self.editor.SetItem(canvasItem.item, position, size, styles.eventLabelFont.GetPointSize())
 
     def OnFilePaste(self):
-        eventKind = Calendar.CalendarEventMixin.getKind(self.blockItem.itsView)
-        
         for filename in self.fileDataObject.GetFilenames():
             item = ChooseFormat.importFile(filename, self.blockItem.itsView,
                                            selectedCollection=True)
-            if not item.isItemOf(eventKind) and \
-               getattr(self, 'fileDragPosition', None) is not None:
-                startTime = self.getDateTimeFromPosition(self.fileDragPosition)
-                item.StampKind('add', eventKind)
-                # make the event's middle happen at startTime
-                item.startTime = startTime - timedelta(minutes=30)
-                item.duration = timedelta(hours=1)
-                item.allDay = item.anyTime = False
+            self.StampDraggedItem(item)
 
+    def OnEmailPaste(self, text):
+        item = ChooseFormat.importEmail(text, self.blockItem.itsView,
+                                        selectedCollection=True)
+        self.StampDraggedItem(item)
+        
+
+    def StampDraggedItem(self, item):
+        eventKind = Calendar.CalendarEventMixin.getKind(self.blockItem.itsView)
+        if not item.isItemOf(eventKind) and \
+           getattr(self, 'fileDragPosition', None) is not None:
+            startTime = self.getDateTimeFromPosition(self.fileDragPosition)
+            item.StampKind('add', eventKind)
+            # make the event's middle happen at startTime
+            item.startTime = startTime - timedelta(minutes=30)
+            item.duration = timedelta(hours=1)
+            item.allDay = item.anyTime = False
+                
     def GrabFocusHack(self):
         if self.editor.IsShown():
             self.editor.SaveAndHide()
