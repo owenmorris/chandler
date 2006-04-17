@@ -2144,7 +2144,7 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
                 # Opening the pickTimeZone dialog will trigger lose focus, don't
                 # process changes to this AE while the dialog is up
                 self._ignoreChanges = True
-                newTimeZone = TimeZoneList.pickTimeZone()
+                newTimeZone = TimeZoneList.pickTimeZone(self.item.itsView)
                 self._ignoreChanges = False
                 # no timezone returned, set the choice back to the item's tzinfo
                 if newTimeZone is None:

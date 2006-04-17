@@ -63,16 +63,12 @@ class TimeZoneInfo(schema.Item):
             _ = lambda x: x
 
             wellKnownIDs = [
-                _(u'US/Eastern'),
-                _(u'US/Central'),
-                _(u'US/Mountain'),
-                _(u'US/Pacific'),
                 _(u'US/Hawaii'),
-                _(u'Europe/London'),
-                _(u'Europe/Paris'),
-                _(u'Asia/Shanghai'),
-                _(u'Asia/Calcutta'),
-                _(u'Australia/Sydney'),
+                _(u'US/Alaska'),                  
+                _(u'US/Pacific'),
+                _(u'US/Mountain'),
+                _(u'US/Central'),
+                _(u'US/Eastern'),     
                 _(u'World/Floating'),
             ]
             result = cls.update(namespace.parcel, 'defaultInfo',

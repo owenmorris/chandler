@@ -604,10 +604,10 @@ class CalendarEventHandler(object):
             
             newTZ = control.GetClientData(choiceIndex)
             if newTZ == TimeZoneList.TIMEZONE_OTHER_FLAG:
-                newTZ = TimeZoneList.pickTimeZone()
+                newTZ = TimeZoneList.pickTimeZone(view)
                 if newTZ is None:
                     newTZ = TimeZoneInfo.get(view).default
-                    TimeZoneList.buildTZChoiceList(view, control, newTZ)
+                TimeZoneList.buildTZChoiceList(view, control, newTZ)
 
             if newTZ != TimeZoneInfo.get(view).default:
                 TimeZoneInfo.get(view).default = newTZ
