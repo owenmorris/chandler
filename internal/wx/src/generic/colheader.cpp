@@ -291,42 +291,45 @@ bool		bResultV;
 // virtual
 void wxColumnHeader::DumpInfo( void )
 {
-#define wxDebugLogRect(rectArg)	\
-	wxLogDebug( wxT("%s [%d, %d; %d, %d]"), \
+#if defined(__WXDEBUG__)
+#define PRINTFLOGPROC wxLogDebug
+#define wxLogRect(rectArg)	\
+	PRINTFLOGPROC( wxT("%s [%d, %d; %d, %d]"), \
 	wxT(#rectArg), (rectArg).x, (rectArg).y, (rectArg).width, (rectArg).height )
-#define wxDebugLogSize(sizeArg)	\
-	wxLogDebug( wxT("%s [%d, %d]"), \
+#define wxLogSize(sizeArg)	\
+	PRINTFLOGPROC( wxT("%s [%d, %d]"), \
 	wxT(#sizeArg), (sizeArg).x, (sizeArg).y )
-#define wxDebugLogLong(longArg)	\
-	wxLogDebug( wxT("%s [%ld]"), wxT(#longArg), (longArg) )
-#define wxDebugLogString(strArg)	\
-	wxLogDebug( wxT("%s [%s]"), wxT(#strArg), strArg.c_str() )
-#define wxDebugLogBool(boolArg)	\
-	wxLogDebug( wxT("%s [%s]"), wxT(#boolArg), (boolArg) ? wxT("T") : wxT("F") )
+#define wxLogLong(longArg)	\
+	PRINTFLOGPROC( wxT("%s [%ld]"), wxT(#longArg), (longArg) )
+#define wxLogString(strArg)	\
+	PRINTFLOGPROC( wxT("%s [%s]"), wxT(#strArg), strArg.c_str() )
+#define wxLogBool(boolArg)	\
+	PRINTFLOGPROC( wxT("%s [%s]"), wxT(#boolArg), (boolArg) ? wxT("T") : wxT("F") )
 
 wxColumnHeaderItem	*itemRef;
 wxString	msgStr;
 long		i;
 
-	wxDebugLogRect( m_NativeBoundsR );
-	wxDebugLogSize( m_DefaultItemSize );
-	wxDebugLogLong( m_ItemCount );
-	wxDebugLogLong( m_ItemSelected );
-	wxDebugLogLong( m_SelectionDrawStyle );
-	wxDebugLogBool( m_BUseVerticalOrientation );
-	wxDebugLogBool( m_BUseUnicode );
-	wxDebugLogBool( m_BUseGenericRenderer );
-	wxDebugLogBool( m_BFixedHeight );
-	wxDebugLogBool( m_BProportionalResizing );
+	wxLogRect( m_NativeBoundsR );
+	wxLogSize( m_DefaultItemSize );
+	wxLogLong( m_ItemCount );
+	wxLogLong( m_ItemSelected );
+	wxLogLong( m_SelectionDrawStyle );
+	wxLogBool( m_BUseVerticalOrientation );
+	wxLogBool( m_BUseUnicode );
+	wxLogBool( m_BUseGenericRenderer );
+	wxLogBool( m_BFixedHeight );
+	wxLogBool( m_BProportionalResizing );
 
 	for (i=0; i<m_ItemCount; i++)
 	{
 		itemRef = GetItemRef( i );
-		wxDebugLogString( itemRef->m_LabelTextRef );
-		wxDebugLogSize( itemRef->m_LabelTextExtent );
+		wxLogString( itemRef->m_LabelTextRef );
+		wxLogSize( itemRef->m_LabelTextExtent );
 	}
 
-	wxLogDebug( wxT("") );
+	PRINTFLOGPROC( wxT("") );
+#endif
 }
 
 // virtual
