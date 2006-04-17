@@ -293,8 +293,10 @@ void wxColumnHeader::DumpInfo( void )
 {
 //
 // this routine produces ugly output; I'll rewrite it... "soon"
+// NB: cannot build this in non-debug wxGTK target, so disabling for the time being...
 //
-#if (defined(__WXMSW__) || defined(__WXMAC__)) && defined(__WXDEBUG__) && __WXDEBUG__
+//#if (defined(__WXMSW__) || defined(__WXMAC__)) && defined(__WXDEBUG__) && __WXDEBUG__
+#if 0
 #define PRINTFLOGPROC wxLogDebug
 
 #define wxLogRect(rectArg)	\
