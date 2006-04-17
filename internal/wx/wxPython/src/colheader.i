@@ -38,6 +38,7 @@ enum wxColumnHeaderHitTestResult
 
 enum wxColumnHeaderAttribute
 {
+    CH_ATTR_VerticalOrientation,
     CH_ATTR_Unicode,
     CH_ATTR_GenericRenderer,
     CH_ATTR_VisibleSelection,
@@ -130,6 +131,8 @@ public:
 
     virtual bool Destroy( void );
 
+    virtual void DumpInfo( void );
+
     virtual void DoMoveWindow( int x, int y, int width, int height );
     virtual bool Enable( bool bEnable = true );
     virtual bool Show( bool bShow = true );
@@ -138,6 +141,11 @@ public:
     virtual wxSize DoGetMinSize( void ) const;
 
     wxSize CalculateDefaultSize( void ) const;
+    wxSize CalculateDefaultItemSize( void ) const;
+
+    wxSize GetDefaultItemSize( void ) const;
+    void SetDefaultItemSize( int width, int height );
+
     long GetTotalUIExtent( void ) const;
     bool ResizeToFit( void );
     bool RescaleToFit(

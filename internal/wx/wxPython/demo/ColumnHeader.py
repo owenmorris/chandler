@@ -35,6 +35,7 @@ class TestPanel( wx.Panel ):
         for v in dow:
             ch1.AddItem( -1, v, wx.colheader.CH_JUST_Center, 50, 0, 0, 1 )
         ch1.SetSelectedItem( 0 )
+
         self.ch1 = ch1
         self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnClickColumnHeader, ch1 )
         #ch1.SetToolTipString( "ColumnHeader (%d)" %(self.baseCntlID) )
@@ -52,6 +53,22 @@ class TestPanel( wx.Panel ):
         self.ch2 = ch2
         self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnClickColumnHeader, ch2 )
         #ch2.SetToolTipString( "ColumnHeader (%d)" %(cntlID) )
+
+        # row header (in progress)
+        # "no" to sort arrows for this list
+        prompt = "RowHeader (%d)" %(self.baseCntlID + 2)
+        l3 = wx.StaticText( self, -1, prompt, (self.colStartX + 400, self.colStartY), (200, 20) )
+
+        ch3 = wx.colheader.ColumnHeader( self, self.baseCntlID + 2, (self.colStartX + 400, self.colStartY + 20), (100, 5 * self.colHeight), 1 )
+        fancifulRowNames = [ "Stacked", "Tower", "Big", "Babylon", "Story" ]
+        for i, v in enumerate( fancifulRowNames ):
+            ch3.AddItem( -1, v, wx.colheader.CH_JUST_Center, 100, 0, 0, 1 )
+        ch3.ResizeToFit()
+        ch3.SetSelectedItem( 2 )
+
+        self.ch3 = ch3
+        self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnClickColumnHeader, ch3 )
+        #ch3.SetToolTipString( "RowHeader (%d)" %(cntlID) )
 
         # add demo UI controls
         miscControlsY = 190
@@ -94,6 +111,9 @@ class TestPanel( wx.Panel ):
 
         btn = wx.Button( self, -1, "Resize Division", (10, self.colStartY + 80 + 5 + 30) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeDivision, btn )
+
+        btn = wx.Button( self, -1, "Dump Info", (10, self.colStartY + 80 + 5 + 55) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonDumpInfo, btn )
 
         self.colStartX += 165
 
@@ -157,7 +177,14 @@ class TestPanel( wx.Panel ):
     def OnButtonTestDeselect( self, event ):
         self.ch1.SetSelectedItem( -1 )
         self.ch2.SetSelectedItem( -1 )
+        self.ch3.SetSelectedItem( -1 )
         self.l0.SetLabel( "(both): deselected items" )
+
+    def OnButtonDumpInfo( self, event ):
+        self.ch1.DumpInfo()
+        self.ch2.DumpInfo()
+        self.ch3.DumpInfo()
+        # self.log.write( "OnButtonDumpInfo" )
 
     def OnButtonTestAddBitmapItem( self, event ):
         ch = self.ch2
@@ -192,6 +219,7 @@ class TestPanel( wx.Panel ):
         curEnabled = not curEnabled
         self.ch1.Enable( curEnabled )
         self.ch2.Enable( curEnabled )
+        self.ch3.Enable( curEnabled )
         self.l0.SetLabel( "enabled (%d)" %(curEnabled) )
 
     def OnTestGenericRendererCheckBox( self, event ):
@@ -199,6 +227,7 @@ class TestPanel( wx.Panel ):
         curEnabled = not curEnabled
         self.ch1.SetAttribute( wx.colheader.CH_ATTR_GenericRenderer, curEnabled )
         self.ch2.SetAttribute( wx.colheader.CH_ATTR_GenericRenderer, curEnabled )
+        self.ch3.SetAttribute( wx.colheader.CH_ATTR_GenericRenderer, curEnabled )
         self.l0.SetLabel( "generic renderer (%d)" %(curEnabled) )
 
     def OnTestVisibleSelectionCheckBox( self, event ):
@@ -206,6 +235,7 @@ class TestPanel( wx.Panel ):
         curEnabled = not curEnabled
         self.ch1.SetAttribute( wx.colheader.CH_ATTR_VisibleSelection, curEnabled )
         self.ch2.SetAttribute( wx.colheader.CH_ATTR_VisibleSelection, curEnabled )
+        self.ch3.SetAttribute( wx.colheader.CH_ATTR_VisibleSelection, curEnabled )
         self.l0.SetLabel( "selection visible (%d)" %(curEnabled) )
 
     def OnTestProportionalResizingCheckBox( self, event ):
@@ -213,12 +243,14 @@ class TestPanel( wx.Panel ):
         curEnabled = not curEnabled
         self.ch1.SetAttribute( wx.colheader.CH_ATTR_ProportionalResizing, curEnabled )
         self.ch2.SetAttribute( wx.colheader.CH_ATTR_ProportionalResizing, curEnabled )
+        self.ch3.SetAttribute( wx.colheader.CH_ATTR_ProportionalResizing, curEnabled )
         self.l0.SetLabel( "proportional resizing (%d)" %(curEnabled) )
 
     def OnEvtChoiceSelectionStyle( self, event ):
         ch = event.GetEventObject()
         self.ch1.SetSelectionDrawStyle( event.GetSelection() )
         self.ch2.SetSelectionDrawStyle( event.GetSelection() )
+        self.ch3.SetSelectionDrawStyle( event.GetSelection() )
         self.l0.SetLabel( "SelectionDrawStyle item (%d - %s)" %(event.GetSelection(), event.GetString()) )
 
     def OnEvtChoiceArrowButton( self, event ):
