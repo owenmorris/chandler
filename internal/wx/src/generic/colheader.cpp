@@ -2755,7 +2755,7 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 	// draw column header background:
 	// leverage native (GTK?) wxRenderer
 	localBoundsR = *boundsR;
-	localBoundsR.Deflate( 1, 1 );
+	localBoundsR.Deflate( 0, 1 );
 	drawFlags = 0;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR, drawFlags );
 
@@ -2775,15 +2775,9 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 		CalculateTextExtent( dc, false );
 		GetTextUIExtent( startX, originX, maxExtentX );
 
-		descentY = 1;
+		descentY = 0;
 		if ((m_LabelTextExtent.y > 0) && (m_LabelTextExtent.y < localBoundsR.height))
-		{
 			descentY = (localBoundsR.height - m_LabelTextExtent.y) / 2;
-
-			// FIXME: why is this needed? The previous calculation should be exact.
-//			if ( ! ((wxColumnHeader*)parentW)->m_BUseGenericRenderer)
-//				descentY--;
-		}
 
 		if (m_LabelTextExtent.x <= maxExtentX)
 		{
