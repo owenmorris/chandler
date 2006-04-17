@@ -292,9 +292,9 @@ bool		bResultV;
 void wxColumnHeader::DumpInfo( void )
 {
 //
-// this produces ugly output; I'll rewrite it... "soon"
+// this routine produces ugly output; I'll rewrite it... "soon"
 //
-#if defined(__WXDEBUG__) && __WXDEBUG__
+#if (defined(__WXMSW__) || defined(__WXMAC__)) && defined(__WXDEBUG__) && __WXDEBUG__
 #define PRINTFLOGPROC wxLogDebug
 
 #define wxLogRect(rectArg)	\
