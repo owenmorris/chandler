@@ -71,8 +71,8 @@ class TestPanel( wx.Panel ):
         #ch3.SetToolTipString( "RowHeader (%d)" %(cntlID) )
 
         # add demo UI controls
-        miscControlsY = 190
         self.colStartX = 10
+        miscControlsY = 190
 
         cb1 = wx.CheckBox( self, -1, "Enable", (self.colStartX, miscControlsY), (100, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableCheckBox, cb1 )
@@ -89,7 +89,7 @@ class TestPanel( wx.Panel ):
         self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb3 )
         cb3.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_VisibleSelection ) )
 
-        cb4 = wx.CheckBox( self, -1, "Proportional Resizing", (self.colStartX, miscControlsY + 75), (200, 20), wx.NO_BORDER )
+        cb4 = wx.CheckBox( self, -1, "Proportional Resizing", (self.colStartX, miscControlsY + 75), (165, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestProportionalResizingCheckBox, cb4 )
         cb4.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_ProportionalResizing ) )
 
@@ -140,7 +140,7 @@ class TestPanel( wx.Panel ):
         self.Bind( wx.EVT_CHOICE, self.OnEvtChoiceArrowButton, choice )
         self.choiceAB = choice
 
-        self.colStartX = 175
+        self.colStartX = 200
 
     def OnClickColumnHeader( self, event ):
         ch = event.GetEventObject()

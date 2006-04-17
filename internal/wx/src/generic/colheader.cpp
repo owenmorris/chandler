@@ -419,7 +419,7 @@ wxSize		targetSize, itemSize, minSize, parentSize;
 bool		bIsVertical;
 
 	minSize.x = 100;
-	minSize.y = 10;
+	minSize.y = 20;
 
 	targetSize.x =
 	targetSize.y = 0;
@@ -469,7 +469,7 @@ wxWindow	*parentW;
 wxSize		targetSize, minSize, parentSize;
 
 	minSize.x = 100;
-	minSize.y = 10;
+	minSize.y = 20;
 
 	targetSize.x =
 	targetSize.y = 0;
