@@ -291,8 +291,12 @@ bool		bResultV;
 // virtual
 void wxColumnHeader::DumpInfo( void )
 {
-#if defined(__WXDEBUG__)
+//
+// this produces ugly output; I'll rewrite it... "soon"
+//
+#if defined(__WXDEBUG__) && __WXDEBUG__
 #define PRINTFLOGPROC wxLogDebug
+
 #define wxLogRect(rectArg)	\
 	PRINTFLOGPROC( wxT("%s [%d, %d; %d, %d]"), \
 	wxT(#rectArg), (rectArg).x, (rectArg).y, (rectArg).width, (rectArg).height )
