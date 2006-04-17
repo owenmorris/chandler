@@ -1,18 +1,19 @@
+#-*- Mode: Makefile; -*-
 #
-# wx/Makefile
+# internal/wx
 #
-
-include ../Makefile.inc
-
 # version info 
 VERSION=2.6.2.0
 VERSION_REVISION_INDEX=41
 WX_VERSION_NODOT=26
 
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)$(VERSION_REVISION_INDEX)
+SRC=$(INTERNAL)/wx
+BUILD=build_$(SNAP)
 TARBALL=wxPython-$(SNAP)-$(RELVER).tar.gz
 
-SRC=$(INTERNAL)/wx
+include ../Makefile.inc
+
 SWIG_OPTION=1
 UNICODE_SUFFIX=u
 
@@ -46,19 +47,24 @@ endif
 
 
 # auto-generated items list (all platforms)
+# this is called as "rm -f $(CLEANITEMSALL)" so be
+# careful with your wildcards
 CLEANITEMSALL= \
+	$(SRC)/wxPython/build_options.py* \
 	$(SRC)/wxPython/docs/xml-raw/*.xml \
-	$(SRC)/wxPython/src/$(OSTAG)/*.py \
-	$(SRC)/wxPython/src/$(OSTAG)/*_wrap.cpp \
-	$(SRC)/wxPython/contrib/gizmos/$(OSTAG)/gizmos.py \
-	$(SRC)/wxPython/contrib/gizmos/$(OSTAG)/gizmos_wrap.cpp \
-	$(SRC)/wxPython/contrib/stc/$(OSTAG)/stc.py \
-	$(SRC)/wxPython/contrib/stc/$(OSTAG)/stc_wrap.cpp
+	$(SRC)/wxPython/src/$(OSTAG)/* \
+	$(SRC)/wxPython/wx/build/build_options.py \
+	$(SRC)/wxPython/wx/build/config.py \
+	$(SRC)/wxPython/contrib/activex/activex.py \
+	$(SRC)/wxPython/include/wx/wxPython/swigver.h \
+	$(SRC)/wxPython/contrib/activex/activex_wrap.py \
+	$(SRC)/wxPython/contrib/animate/$(OSTAG)/* \
+	$(SRC)/wxPython/contrib/gizmos/$(OSTAG)/* \
+	$(SRC)/wxPython/contrib/glcanvas/$(OSTAG)/* \
+	$(SRC)/wxPython/contrib/stc/$(OSTAG)/*
 
 
 # the working guts
-
-BUILD=build_$(SNAP)
 
 .PHONY: wxWidgets wxPython
 
@@ -112,7 +118,8 @@ MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest $(SNAP)/bin/python
 
 clean:
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
-	rm -rf $(CLEANITEMSALL)
+	rm -f $(CLEANITEMSALL)
+	find $(SRC)/wxPython/wx -maxdepth 1 -type f -print | xargs rm -f
 	rm -rf $(SRC)/build/msw/vc_msw$(UNICODE_SUFFIX)$(SUFFIX)dll
 	rm -rf $(SRC)/contrib/build/animate/vc_msw$(UNICODE_SUFFIX)$(SUFFIX)dll
 	rm -rf $(SRC)/contrib/build/animate/wxPythonAnimate/Debug
@@ -124,6 +131,10 @@ clean:
 	rm -rf $(SRC)/contrib/build/stc/wxPythonStc/Debug
 	rm -rf $(SRC)/contrib/build/stc/wxPythonStc/Release
 	rm -rf $(SRC)/wxPython/$(BUILD)*
+	rm -rf $(SRC)/build/msw/vc_msw$(UNICODE_SUFFIX)dll
+	rm -rf $(SRC)/contrib/build/gizmos/vc_msw$(UNICODE_SUFFIX)dll
+	rm -rf $(SRC)/contrib/build/stc/vc_msw$(UNICODE_SUFFIX)dll
+	rm -rf $(SRC)/contrib/build/animate/vc_msw$(UNICODE_SUFFIX)dll
 	rm -f $(SRC)/include/wx/msw/setup.h
 	rm -f $(SRC)/lib/vc_dll/*.bsc
 	rm -f $(SRC)/lib/vc_dll/msw$(UNICODE_SUFFIX)$(SUFFIX)/setup.h
@@ -237,7 +248,8 @@ wxWidgets: $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/stc install
 
 clean:
-	rm -rf $(CLEANITEMSALL)
+	rm -f $(CLEANITEMSALL)
+	find $(SRC)/wxPython/wx -maxdepth 1 -type f -print | xargs rm -f
 	rm -rf $(SRC)/wxPython/$(BUILD)*
 	rm -rf $(SRC)/$(BUILD)
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
@@ -248,9 +260,6 @@ build: wxWidgets wxPython
 
 realclean: clean
 	rm -f wxPython-debug-*.tar.gz* wxPython-release-*.tar.gz*
-
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
 
 snap: cleanmanifest strip
 	cd $(BUILD_ROOT); \
