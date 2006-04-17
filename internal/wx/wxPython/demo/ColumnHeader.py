@@ -112,9 +112,6 @@ class TestPanel( wx.Panel ):
         btn = wx.Button( self, -1, "Resize Division", (10, self.colStartY + 80 + 5 + 30) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeDivision, btn )
 
-        btn = wx.Button( self, -1, "Dump Info", (10, self.colStartY + 80 + 5 + 55) )
-        self.Bind( wx.EVT_BUTTON, self.OnButtonDumpInfo, btn )
-
         self.colStartX += 165
 
         btn = wx.Button( self, -1, "Deselect", (self.colStartX, miscControlsY) )
@@ -122,6 +119,9 @@ class TestPanel( wx.Panel ):
 
         btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 30) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
+
+        btn = wx.Button( self, -1, "Dump Info", (self.colStartX,miscControlsY + 60) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonDumpInfo, btn )
 
         self.colStartX += 150
 
@@ -181,10 +181,13 @@ class TestPanel( wx.Panel ):
         self.l0.SetLabel( "(both): deselected items" )
 
     def OnButtonDumpInfo( self, event ):
-        self.ch1.DumpInfo()
-        self.ch2.DumpInfo()
-        self.ch3.DumpInfo()
         # self.log.write( "OnButtonDumpInfo" )
+        self.log.write( "Control %d:" %(self.ch1.GetId()) )
+        self.ch1.DumpInfo()
+        self.log.write( "Control %d:" %(self.ch2.GetId()) )
+        self.ch2.DumpInfo()
+        self.log.write( "Control %d:" %(self.ch3.GetId()) )
+        self.ch3.DumpInfo()
 
     def OnButtonTestAddBitmapItem( self, event ):
         ch = self.ch2
