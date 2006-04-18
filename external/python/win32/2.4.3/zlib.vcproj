@@ -128,11 +128,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
-				Name="VCPreLinkEventTool"
-				Description="Checking static zlib has been built"
-				CommandLine="cd ..\..\zlib-1.2.3
-nmake -nologo -f win32\Makefile.msc zlib.lib
-"/>
+				Name="VCPreLinkEventTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
@@ -206,11 +202,7 @@ nmake -nologo -f win32\Makefile.msc zlib.lib
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
-				Name="VCPreLinkEventTool"
-				Description="Checking static zlib has been built"
-				CommandLine="cd ..\..\zlib-1.2.3
-nmake -nologo -f win32\Makefile.msc zlib.lib
-"/>
+				Name="VCPreLinkEventTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"

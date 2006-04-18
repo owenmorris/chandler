@@ -128,10 +128,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
-				Name="VCPreLinkEventTool"
-				CommandLine="cd ..\..\bzip2-1.0.3
-nmake /nologo /f makefile.msc lib
-"/>
+				Name="VCPreLinkEventTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
@@ -205,10 +202,7 @@ nmake /nologo /f makefile.msc lib
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
-				Name="VCPreLinkEventTool"
-				CommandLine="cd ..\..\bzip2-1.0.3
-nmake /nologo /f makefile.msc lib
-"/>
+				Name="VCPreLinkEventTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
