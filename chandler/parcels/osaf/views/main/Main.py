@@ -154,13 +154,11 @@ class MainView(View):
 
         collection = event.collection
         if collection is None:
-            sidebar = Block.findBlockByName("Sidebar")
-    
+            
             # if the collection is read-only, then jump to the
             # all collection
-            collection = sidebar.selectedItemToView
-            isReadOnly = getattr(collection, 'isReadOnly', None)
-            if (isReadOnly and isReadOnly() or
+            collection = self.getSidebarSelectedCollection()
+            if (collection is None or collection.isReadOnly() or
                 not UserCollection(collection).canAdd):
                 # Tell the sidebar we want to go to the All collection
                 allCollection = schema.ns('osaf.pim', self).allCollection
@@ -173,6 +171,7 @@ class MainView(View):
 
         # If the event cannot be displayed in this viewer,
         # we need to switch to the all view
+        sidebar = Block.findBlockByName("Sidebar")
         viewFilter = sidebar.filterKind
         if not kindParam.isKindOf(viewFilter):
             self.postEventByName ('ApplicationBarAll', { })
@@ -400,11 +399,17 @@ class MainView(View):
         Will not return private collections (whose "private" attribute
         is True) unless you pass private=True.
         """
-        item = Block.findBlockByName ("Sidebar").selectedItemToView
-        if not isinstance (item, ContentCollection):
-            item = None
-        elif private == False and item.private:
-            item = None
+        sidebar = Block.findBlockByName ("Sidebar")
+        selectedRanges = sidebar.contents.getSelectionRanges()
+        if (selectedRanges is None or
+            len(selectedRanges) != 1):
+            return None
+
+        item = sidebar.contents.getFirstSelectedItem()
+        if (not isinstance (item, ContentCollection) or
+            private == False and item.private):
+            return None
+        
         return item
 
     def _logChange(self, item, version, status, values, references):
@@ -467,9 +472,16 @@ class MainView(View):
             self.setStatusMessage(_(u"Import completed"))
         dialog.Destroy()
 
+    def onExportIcalendarEventUpdateUI(self, event):
+        collection = self.getSidebarSelectedCollection()
+        if collection is None:
+            event.arguments['Enable'] = False
+
     def onExportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" Menu
-        collection = Block.findBlockByName("Sidebar").selectedItemToView
+        collection = self.getSidebarSelectedCollection()
+        if collection is None:
+            return
 
         options = [dict(name='reminders', checked = True, label = _(u"Export reminders")),
                    dict(name='transparency', checked = True, label = _(u"Export event status"))]

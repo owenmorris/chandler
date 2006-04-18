@@ -64,16 +64,18 @@ class wxSidebar(wxTable):
         return cellRect
 
     def wxSynchronizeWidget(self, useHints=False):
+        # clear out old 'checked' items
         sidebar = self.blockItem
+        
         # sidebar.checkedItems is a python set,
         # it cannot be modified while iterating
         for checkedItem in list(sidebar.checkedItems):
             if checkedItem not in sidebar.contents:
                 sidebar.checkedItems.remove (checkedItem)
-        super (wxSidebar, self).wxSynchronizeWidget()
+        super (wxSidebar, self).wxSynchronizeWidget(useHints)
 
-    @classmethod
-    def GetRectFromOffsets (theClass, rect, offsets):
+    @staticmethod
+    def GetRectFromOffsets (rect, offsets):
         def GetEdge (rect, offset):
             if offset >= 0:
                 edge = rect.GetLeft()
@@ -196,8 +198,9 @@ class wxSidebar(wxTable):
                                 checked = not method (pressedButton, item)
                                 pressedButton.setChecked (item, checked)
                                 pressedButton.buttonState['screenMouseDown'] = checked
+                                selectedItems = list(blockItem.contents.iterSelection())
                                 blockItem.postEventByName ("SelectItemsBroadcast",
-                                                           {'items':[blockItem.selectedItemToView]})
+                                                           {'items':selectedItems})
                                 wx.GetApp().UIRepositoryView.commit()
                             else:
                                 pressedButton.buttonState['screenMouseDown'] = False
@@ -371,7 +374,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             if sidebarBPB is not None:
                 filteredCollection = sidebarBPB.delegate.\
                                    _mapItemToCacheKeyItem(item, {
-                                       "getOnlySelectedCollection": True
+                                       "getOnlySelectedCollection": True,
                                     })
                 if filteredCollection.isEmpty():
                     dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
@@ -753,7 +756,7 @@ class SidebarBlock(Table):
                     break
             self.widget.Refresh()
             self.postEventByName("SelectItemsBroadcast",
-                                 {'items':[self.selectedItemToView]})
+                                 {'items':list(self.contents.iterSelection())})
 
     def onKindParameterizedEventUpdateUI (self, event):
         # check the appropriate menu item
@@ -831,10 +834,16 @@ class SidebarBlock(Table):
         this is enabled if any user item is selected in the sidebar
         """
         # can remove anything except library collections
-        event.arguments['Enable'] = \
-            (self.selectedItemToView is not None) and \
-            (not UserCollection(self.selectedItemToView).outOfTheBoxCollection)
-
+        if self.contents.isSelectionEmpty():
+            enable = False
+        else:
+            for selectedItem in self.contents.iterSelection():
+                if UserCollection(selectedItem).outOfTheBoxCollection:
+                    enable = False
+                    break
+            else:
+                enable = True
+        event.arguments['Enable'] = enable
 
     def ClearCollectionContents(self, collection):
         """
@@ -886,26 +895,39 @@ class SidebarBlock(Table):
             DoDeleteAction(item)
         
     def onCollectionColorEvent(self, event):
-        if (self.selectedItemToView is not None and
-            isinstance(self.selectedItemToView, ContentCollection)):
-            UserCollection(self.selectedItemToView).color = event.color
+        assert (self.contents.getSelectionRanges() is not None and
+                len(self.contents.getSelectionRanges()) == 1)
+
+        selectedItem = self.contents.getFirstSelectedItem()
+        if (selectedItem is not None and
+            isinstance(selectedItem, ContentCollection)):
+            UserCollection(selectedItem).color = event.color
         
     def onCollectionColorEventUpdateUI(self, event):
         # color of the selected collection
-        event.arguments['Enable'] = self.selectedItemToView is not None
-        if not isinstance(self.selectedItemToView, ContentCollection):
-            return
+        selectedRanges = self.contents.getSelectionRanges()
+        if selectedRanges is None or len(selectedRanges) != 1:
+            event.arguments['Enable'] = False
+        else:
+            selectedItem = self.contents.getFirstSelectedItem()
+            
+            if not isinstance(selectedItem, ContentCollection):
+                event.arguments['Enable'] = False
+                return
         
-        color = getattr(UserCollection(self.selectedItemToView), 'color', None)
+            color = getattr(UserCollection(selectedItem), 'color', None)
 
-        # the event contains the color, so we need to look at that
-        # the only way to test for equality is by converting both
-        # ColorType's to tuples
-        event.arguments['Check'] = color is not None and color.toTuple() == event.color.toTuple()
+            # the event contains the color, so we need to look at that
+            # the only way to test for equality is by converting both
+            # ColorType's to tuples
+            event.arguments['Check'] = (color is not None and
+                                        color.toTuple() == event.color.toTuple())
 
     def canRenameSelection(self):
-        return (self.selectedItemToView is not None and
-                getattr(self.selectedItemToView, 'renameable', True))
+        selectionRanges = self.contents.getSelectionRanges()
+        return (selectionRanges is not None and 
+                len(self.contents.getSelectionRanges()) == 1 and
+                getattr(self.contents.getFirstSelectedItem(), 'renameable', True))
 
     def onRenameEventUpdateUI (self, event):
         event.arguments['Enable'] = self.canRenameSelection()
@@ -914,21 +936,29 @@ class SidebarBlock(Table):
         self.widget.EnableCellEditControl()
 
     def onToggleMineEvent(self, event):
-        if self.selectedItemToView is not None:
+
+        assert len(list(self.contents.iterSelection())) == 1
+        for item in self.contents.iterSelection():
             notMine = schema.ns('osaf.pim', self.itsView).notMine
-            if self.selectedItemToView in notMine.sources:
-                notMine.removeSource(self.selectedItemToView)
+            if item in notMine.sources:
+                notMine.removeSource(item)
             else:
-                notMine.addSource(self.selectedItemToView)
+                notMine.addSource(item)
 
     def onToggleMineEventUpdateUI(self, event):
-        isCollection = (self.selectedItemToView is not None and
-                        isinstance (self.selectedItemToView, ContentCollection))
+        selectionRanges = self.contents.getSelectionRanges()
+        if selectionRanges is None or len(selectionRanges) != 1:
+            event.arguments['Enable'] = False
+            return
+
+        selectedItem = self.contents.getFirstSelectedItem()
+        isCollection = (selectedItem is not None and
+                        isinstance (selectedItem, ContentCollection))
         if isCollection:
-            if hasattr (UserCollection(self.selectedItemToView), "displayNameAlternatives"):
-                collectionName = self.getNameAlternative (self.selectedItemToView)
+            if hasattr (UserCollection(selectedItem), "displayNameAlternatives"):
+                collectionName = self.getNameAlternative (selectedItem)
             else:
-                collectionName = self.selectedItemToView.getItemDisplayName()
+                collectionName = selectedItem.getItemDisplayName()
         else:
             collectionName = ""
 
@@ -938,13 +968,13 @@ class SidebarBlock(Table):
         if not isCollection:
             enabled = False
             menuTitle = _(u'Keep out of %(kind)s') % arguments
-        elif UserCollection(self.selectedItemToView).outOfTheBoxCollection:
+        elif UserCollection(selectedItem).outOfTheBoxCollection:
             enabled = False
             menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
         else:
             enabled = True
             notMine = schema.ns('osaf.pim', self.itsView).notMine
-            if self.selectedItemToView in notMine.sources:
+            if selectedItem in notMine.sources:
                 menuTitle = _(u'Add "%(collection)s" to %(kind)s') % arguments
             else:
                 menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
@@ -1041,7 +1071,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                                                     source=key)
                 if len (newKey) > 0:
                     newKey.addSelectionRange (0)
-                UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
+                UserCollection(newKey).dontDisplayAsCalendar = \
+                    UserCollection(key).dontDisplayAsCalendar
                 key = newKey
 
                 key.displayName = displayName
@@ -1057,12 +1088,13 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 looking up a collection that isn't displayed in the
                 summary view.
                 """
-                if sidebar.selectedItemToView is item:
-                    for new, old in map (None, key.collectionList, collectionList):
+                if item in sidebar.contents.iterSelection():
+                    for new, old in zip(key.collectionList, collectionList):
                         if new is not old:
                             key.collectionList = collectionList
-                            # Force setContents to be true even it the contents hasn't
-                            # changed since the order of collectionList has changed
+                            # Force setContents to be true even if the
+                            # contents hasn't changed since the order
+                            # of collectionList has changed
                             hints["sendSetContents"] = True
                             break
         return key

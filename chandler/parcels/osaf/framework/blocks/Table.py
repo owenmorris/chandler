@@ -219,10 +219,19 @@ class wxTable(DragAndDrop.DraggableWidget,
             indexEnd = self.RowToIndex(lastRow)
 
             postSelection = True
+            selectionChanged = False
+
             if event.Selecting():
-                contents.addSelectionRange((indexStart, indexEnd))
+                if not contents.isSelected((indexStart, indexEnd)):
+                    selectionChanged = True
+                    contents.addSelectionRange((indexStart, indexEnd))
             else:
+                if contents.isSelected((indexStart, indexEnd)):
+                    selectionChanged = True
+                    
+                # we always want to remove the old selection
                 contents.removeSelectionRange((indexStart, indexEnd))
+                    
                 if (firstRow == 0 and
                     lastRow != 0 and lastRow == self.GetNumberRows()-1):
                     # this is a special "deselection" event that the
@@ -235,22 +244,12 @@ class wxTable(DragAndDrop.DraggableWidget,
                     # one item to another.
                     postSelection = False
 
-            selectedItem = None
-            selectedRanges = contents.getSelectionRanges()
-            if (len(selectedRanges) == 1 and
-                selectedRanges[0][0] == selectedRanges[0][1]):
-                selectedItem = contents.getFirstSelectedItem()
-
-            # now update the selectedItemToView, and possibly
-            # broadcast the "new" selection
-            if selectedItem is not blockItem.selectedItemToView:
-                blockItem.selectedItemToView = selectedItem
-
-                if postSelection:
-                    gridTable = self.GetTable()
-                    for columnIndex in xrange (gridTable.GetNumberCols()):
-                        self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                    blockItem.PostSelectItems()
+            # possibly broadcast the "new" selection
+            if selectionChanged and postSelection:
+                gridTable = self.GetTable()
+                for columnIndex in xrange (gridTable.GetNumberCols()):
+                    self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
+                blockItem.PostSelectItems()
         finally:
             blockItem.startNotificationDirt()
 
@@ -346,12 +345,8 @@ class wxTable(DragAndDrop.DraggableWidget,
 
     def EditAttribute(self, attrName):
         contents = self.blockItem.contents
-        selectedItemToView = self.blockItem.selectedItemToView
 
-        if selectedItemToView is None:
-            return
-
-        index = contents.index (selectedItemToView)
+        index = contents.index(contents.getFirstSelectedItem())
         cursorRow = self.IndexToRow(index)
         
         if cursorRow == -1:
@@ -470,14 +465,6 @@ class wxTable(DragAndDrop.DraggableWidget,
             self.SelectBlock (rowStart, 0,
                               rowEnd, columns, True)
 
-        # make sure selectedItemToView is current
-        selection = contents.getSelectionRanges()
-        if (len(selection) == 1 and
-            selection[0][0] == selection[0][1]):
-            self.blockItem.selectedItemToView = contents.getFirstSelectedItem()
-        else:
-            self.blockItem.selectedItemToView = None
-            
         # now auto-select a row if necessary
         if newRowSelection != -1:
             itemIndex = self.RowToIndex(newRowSelection)
@@ -497,12 +484,10 @@ class wxTable(DragAndDrop.DraggableWidget,
         blockItem = self.blockItem
         if item is not None:
             blockItem.contents.addSelectionRange (index)
-            blockItem.selectedItemToView = item
             self.SelectBlock (row, 0, row, self.GetColumnCount() - 1)
             self.MakeCellVisible (row, 0)
         else:
             blockItem.contents.clearSelection()
-            blockItem.selectedItemToView = None
             self.ClearSelection()
         self.blockItem.PostSelectItems()
 
@@ -567,13 +552,12 @@ class wxTable(DragAndDrop.DraggableWidget,
                 newSelectedItemIndex = itemIndex
         
         blockItem.contents.clearSelection()
-        blockItem.selectedItemToView = None
         blockItem.itsView.commit()
         
         # now select the "next" item
         """
           We call wxSynchronizeWidget here because the postEvent
-          causes the DetailView to call it's wxSynchrnoizeWidget,
+          causes the DetailView to call it's wxSynchronizeWidget,
           which calls layout, which causes us to redraw the table,
           which hasn't had time to get it's notificaitons so its data
           is out of synch and chandler Crashes. So I think the long
@@ -703,7 +687,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
     columns = schema.Sequence(Column, required=True)
     
     elementDelegate = schema.One(schema.Text, initialValue = '')
-    selectedItemToView = schema.One(schema.Item, initialValue = None)
     defaultEditableAttribute = \
         schema.One(schema.Text,
                    doc="The default attribute to edit, for instance if "
@@ -716,7 +699,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byRef=[characterStyle,headerCharacterStyle,selectedItemToView,columns],
+            byRef=[characterStyle,headerCharacterStyle,columns],
         )
     )
 
@@ -766,8 +749,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
     def onSelectItemsEvent (self, event):
         items = event.arguments ['items']
         self.selectItems (items)
-        if len(items)==1:
-            self.selectedItemToView = items[0]
             
         editAttributeNamed = event.arguments.get ('editAttributeNamed')
         if editAttributeNamed is not None:

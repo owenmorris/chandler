@@ -99,10 +99,23 @@ class BranchPointBlock(BoxContainer):
         """
         If necessary, replace our children with a tree of blocks appropriate 
         for our content.
+
+        Four steps:
+        1) map the selected item to a cache key
+        2) Use the cache key to get the appropriate tree of blocks
+        3) Set contents on that new tree of blocks
+        4) Render the tree of blocks
         """
+
+        # Get a cache key from self.selectedItem using the delegate
         hints = {}
         keyItem = self.delegate._mapItemToCacheKeyItem(
             self.selectedItem, hints)
+
+        # Ask the delegate for the right tree of blocks
+        
+        # (actually there is only implmentation of this function,
+        # should probably be rolled into BranchParentBlock eventually)
         newView = self.delegate.getBranchForKeyItem(keyItem)
         if keyItem is None:
             detailItem = None
@@ -118,6 +131,9 @@ class BranchPointBlock(BoxContainer):
         detailItemChanged = self.detailItem is not detailItem
             
         self.detailItem = detailItem
+
+        # Set contents on the root of the tree of blocks
+        
         # For bug 4269 in 0.6: If we've been given a contents collection,
         # it's so that we can put our detailItem in it, to get a notification
         # when that item is deleted. Update the collection if necessary.
@@ -130,6 +146,7 @@ class BranchPointBlock(BoxContainer):
         oldView = self.childrenBlocks.first()
         treeChanged = newView is not oldView
 
+        # Render or rerender as necessary
         if treeChanged:
             # get rid of the old view
             if oldView is not None:

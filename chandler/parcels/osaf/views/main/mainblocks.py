@@ -57,7 +57,6 @@ def makeMainView (parcel):
         editRectOffsets = [17, -17, 0],
         buttons = [IconButton, SharingButton],
         contents = sidebarSelectionCollection,
-        selectedItemToView = pim_ns.allCollection,
         elementDelegate = 'osaf.views.main.SideBar.SidebarElementDelegate',
         hideColumnHeadings = True,
         defaultEditableAttribute = u'displayName',
