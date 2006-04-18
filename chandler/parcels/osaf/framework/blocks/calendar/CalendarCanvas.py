@@ -1576,13 +1576,19 @@ class CalendarControl(CalendarBlock):
         # transitent subscription since its only valid when we're rendered
         tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
         self.itsView.watchItem(self, tzPrefs, 'onTZPrefChange')
-        
-
+        timezones = TimeZoneInfo.get(self.itsView)
+        self.itsView.watchItem(self, timezones, 'onTZListChange')        
+ 
     def onDestroyWidget(self, *args, **kwds):
         tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
         self.itsView.unwatchItem(self, tzPrefs, 'onTZPrefChange')
+        timezones = TimeZoneInfo.get(self.itsView)
+        self.itsView.unwatchItem(self, timezones, 'onTZListChange')          
         
         super(CalendarControl, self).onDestroyWidget(*args, **kwds)
+
+    def onTZListChange(self, *args, **kwargs):
+        TimeZoneList.buildTZChoiceList(self.itsView, self.widget.tzChoice)        
         
     def onSelectedDateChangedEvent(self, event):
         super(CalendarControl, self).onSelectedDateChangedEvent(event)
