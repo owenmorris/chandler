@@ -21,8 +21,7 @@ if __name__=='__main__':
     else:
         # Set up a 90 second maximum timeout
         def timeout(*args):
-            alarm(12)
-            raise AssertionError("Timeout occurred")
+            raise KeyboardInterrupt("Timeout occurred")
         signal(SIGALRM, timeout)
         alarm(90)
 
