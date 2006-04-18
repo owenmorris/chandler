@@ -1010,17 +1010,29 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         """
         collectionList should be in the order that the source items
         are overlayed in the Calendar view
+
+        'item' in this case is more or less only used to determine
+        order. We're not so much mapping item => cacheKeyItem, but
+        rather mapping the sidebar's current state to a cacheKeyItem.
         """
         if not hints.get ("getOnlySelectedCollection", False):
-            collectionList = [theItem for theItem in sidebar.contents
-                              if ((theItem in sidebar.checkedItems) and
-                                  (theItem is not item))]
+            checkedCollections = set(theItem for theItem in sidebar.contents
+                                     if (theItem in sidebar.checkedItems))
+            selectedCollections = set(sidebar.contents.iterSelection())
+            collectionList = list(selectedCollections.union(checkedCollections))
+            # make sure 'item' is at the front of the list so that
+            # consumers know what the 'primary' collection is.
+            try:
+                itemIndex = collectionList.index(item)
+                if itemIndex != 0:
+                    del collectionList[itemIndex]
+                    collectionList.insert(0, item)
+            except ValueError:
+                # ignore - just means the item wasn't in the
+                # collection, for whatever reason.
+                pass
         else:
             collectionList = []
-
-        # the current item goes at the head of the list
-        if isinstance (item, ContentCollection):
-            collectionList.insert (0, item)
 
         if len (collectionList) > 0:
             """
