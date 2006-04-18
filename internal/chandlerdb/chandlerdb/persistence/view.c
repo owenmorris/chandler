@@ -8,6 +8,7 @@
 
 #include <Python.h>
 #include "structmember.h"
+#include "frameobject.h"
 
 #include "c.h"
 #include "../util/singleref.h"
@@ -48,6 +49,7 @@ static PyObject *t_view_getSingleton(t_view *self, PyObject *key);
 static PyObject *t_view_setSingleton(t_view *self, PyObject *args);
 static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args);
 static PyObject *t_view_invokeWatchers(t_view *self, PyObject *args);
+static PyObject *t_view_debugOn(t_view *self, PyObject *arg);
 
 static int t_view_dict_length(t_view *self);
 static PyObject *t_view_dict_get(t_view *self, PyObject *key);
@@ -78,6 +80,7 @@ static PyMemberDef t_view_members[] = {
     { "_deletedRegistry", T_OBJECT, offsetof(t_view, deletedRegistry), 0, "" },
     { "_monitors", T_OBJECT, offsetof(t_view, monitors), 0, "" },
     { "_watcherDispatch", T_OBJECT, offsetof(t_view, watcherDispatch), 0, "" },
+    { "_debugOn", T_OBJECT, offsetof(t_view, debugOn), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -102,6 +105,7 @@ static PyMethodDef t_view_methods[] = {
     { "setSingleton", (PyCFunction) t_view_setSingleton, METH_VARARGS, "" },
     { "invokeMonitors", (PyCFunction) t_view_invokeMonitors, METH_VARARGS, "" },
     { "invokeWatchers", (PyCFunction) t_view_invokeWatchers, METH_VARARGS, "" },
+    { "debugOn", (PyCFunction) t_view_debugOn, METH_O, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -195,6 +199,7 @@ static int t_view_traverse(t_view *self, visitproc visit, void *arg)
     Py_VISIT(self->monitors);
     Py_VISIT(self->singletons);
     Py_VISIT(self->watcherDispatch);
+    Py_VISIT(self->debugOn);
 
     return 0;
 }
@@ -210,6 +215,7 @@ static int t_view_clear(t_view *self)
     Py_CLEAR(self->monitors);
     Py_CLEAR(self->singletons);
     Py_CLEAR(self->watcherDispatch);
+    Py_CLEAR(self->debugOn);
 
     return 0;
 }
@@ -246,6 +252,7 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
     self->monitors = NULL;
     self->singletons = PyDict_New();
     self->watcherDispatch = NULL;
+    self->debugOn = NULL;
 
     return 0;
 }
@@ -935,6 +942,50 @@ static PyObject *t_view_invokeWatchers(t_view *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static int _debugOn(PyObject *obj, PyFrameObject *frame,
+                    int what, PyObject *arg)
+{
+    if (what == PyTrace_EXCEPTION)
+    {
+        PyObject *exc_type = PyTuple_GET_ITEM(arg, 0);
+
+        if (PyErr_GivenExceptionMatches(exc_type, ((t_view *) obj)->debugOn))
+        {
+            PyObject *m = PyImport_ImportModule("chandlerdb.util.debugger");
+            PyObject *fn = PyObject_GetAttrString(m, "set_trace");
+            PyObject *result = PyObject_CallFunctionObjArgs(fn, obj, NULL);
+
+            Py_XDECREF(result);
+            Py_DECREF(fn);
+            Py_DECREF(m);
+        }
+    }
+
+    return 0;
+}
+
+static PyObject *t_view_debugOn(t_view *self, PyObject *arg)
+{
+    PyObject *debugOn = self->debugOn;
+
+    if (arg == Py_None)
+    {
+        self->debugOn = NULL;
+        PyEval_SetTrace(NULL, NULL);
+    }
+    else
+    {
+        Py_INCREF(arg);
+        self->debugOn = arg;
+        PyEval_SetTrace(_debugOn, (PyObject *) self);
+    }
+
+    if (debugOn)
+        return debugOn;
+
+    Py_RETURN_NONE;
+}
+
 
 void _init_view(PyObject *m)
 {
@@ -984,3 +1035,4 @@ void _init_view(PyObject *m)
         }
     }
 }
+

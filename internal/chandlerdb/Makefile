@@ -1,5 +1,5 @@
 
-RELVER=0.6-$(BRANCH_REV_PREFIX)19
+RELVER=0.6-$(BRANCH_REV_PREFIX)20
 CHANDLERDB=$(INTERNAL)/chandlerdb
 DB_VER=4.4
 TARBALL=chandlerdb-$(SNAP)-$(RELVER).tar.gz
@@ -49,3 +49,7 @@ snap: $(TARBALL)
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
+
+
+plop:
+	tar -C $(BUILD_ROOT) -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -

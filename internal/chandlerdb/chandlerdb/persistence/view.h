@@ -22,6 +22,7 @@ typedef struct {
     PyObject *monitors;
     PyObject *singletons;
     PyObject *watcherDispatch;
+    PyObject *debugOn;
 } t_view;
 
 enum {

@@ -17,6 +17,7 @@ def main():
     modules = ['chandlerdb.__init__',
                'chandlerdb.util.__init__',
                'chandlerdb.util.lock',
+               'chandlerdb.util.debugger',
                'chandlerdb.schema.__init__',
                'chandlerdb.item.__init__',
                'chandlerdb.item.ItemError',
