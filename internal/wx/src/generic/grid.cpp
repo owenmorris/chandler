@@ -4513,14 +4513,14 @@ void wxGrid::CalcDimensions()
             if (m_colRights [col] != width)
             {
                 m_colRights [col] = width;
-                if (m_scaleColumn [col] == WXGRID_CURSOR_SCALED_TO_MINIMUM_SIZE)
-                    m_scaleColumn [col] = WXGRID_COLUMN_SCALABLE;
                 if (IsCellEditControlShown())
                     {
                         HideCellEditControl();
                         SaveEditControlValue();
                     }
             }
+            if (m_scaleColumn [col] == WXGRID_CURSOR_SCALED_TO_MINIMUM_SIZE)
+                m_scaleColumn [col] = WXGRID_COLUMN_SCALABLE;
         }
     }
 

@@ -87,15 +87,15 @@ buildDLLs: setup
 		export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
 		devenv.com build/msw/wx_osaf.sln /build $(W32_BUILD_TYPE)
 
-installDLLs: buildDLLs
+wxWidgets: installDLLs buildDLLs 
+
+installDLLs:
 	mkdir -p $(PREFIX)/$(SITE)/wx
 	install $(SRC)/lib/vc_dll/*$(WX_VERSION_NODOT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc*.dll $(PREFIX)/$(SITE)/wx
 	if [ -f "$(SRC)/lib/vc_dll/wxbase$(WX_VERSION_NODOT)$(UNICODE_SUFFIX)$(SUFFIX)_vc_custom.bsc" ]; \
 	then \
 		install $(SRC)/lib/vc_dll/*.bsc $(PREFIX)/$(SITE)/wx; \
 	fi
-
-wxWidgets: installDLLs
 
 wxPython:
 	cd $(SRC)/wxPython; \
