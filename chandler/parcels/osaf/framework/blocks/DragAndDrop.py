@@ -530,6 +530,7 @@ class FileOrItemClipboardHandler(ItemClipboardHandler):
         for format in data.GetAllFormats():
             if data.GetDataSize(format) > 0:
                 dataFormat = format
+                break
         if dataFormat is not None:
             if dataFormat.GetType() == self.fileFormat.GetType():
                 self.OnFilePaste()
