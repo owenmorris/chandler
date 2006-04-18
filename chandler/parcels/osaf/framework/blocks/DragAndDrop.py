@@ -533,8 +533,7 @@ class FileOrItemClipboardHandler(ItemClipboardHandler):
         if dataFormat is not None:
             if dataFormat.GetType() == self.fileFormat.GetType():
                 self.OnFilePaste()
-            elif dataFormat.GetType() == \
-                 self.dataFormats[OUTLOOK_EXPRESS_DRAG_FORMAT].GetType():
+            elif dataFormat == self.dataFormats[OUTLOOK_EXPRESS_DRAG_FORMAT]:
                 self.OnEmailPaste(
                     self.dataObjects[OUTLOOK_EXPRESS_DRAG_FORMAT].GetData())
             else:
