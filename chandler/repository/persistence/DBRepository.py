@@ -246,9 +246,10 @@ class DBRepository(OnDemandRepository):
         if not self.isOpen():
             raise RepositoryError, 'Repository is not open'
 
-        env = self._env
-        env.txn_checkpoint(0, 0, DBEnv.DB_FORCE)
-        env.log_archive(DBEnv.DB_ARCH_REMOVE)
+        if self._status & Repository.RAMDB == 0:
+            env = self._env
+            env.txn_checkpoint(0, 0, DBEnv.DB_FORCE)
+            env.log_archive(DBEnv.DB_ARCH_REMOVE)
 
     def backup(self, dbHome=None):
 

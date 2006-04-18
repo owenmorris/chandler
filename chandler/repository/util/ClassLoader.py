@@ -12,9 +12,16 @@ class ClassLoader(object):
     def loadClass(cls, name, module=None):
 
         if module is None:
-            lastDot = name.rindex('.')
-            module = name[:lastDot]
-            name = name[lastDot+1:]
+            try:
+                lastDot = name.rindex('.')
+            except ValueError:
+                try:
+                    return __builtins__[name]
+                except KeyError:
+                    raise ImportError, "Class %s unknown" %(name)
+            else:
+                module = name[:lastDot]
+                name = name[lastDot+1:]
 
         try:
             m = __import__(module, globals(), locals(), ['__name__'])

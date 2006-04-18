@@ -17,6 +17,7 @@ from osaf.pim.calendar import TimeZoneInfo
 
 import repository.item.ItemHandler as ItemHandler
 from repository.util.Lob import Lob
+from chandlerdb.item.c import Nil
 from osaf.framework.blocks import DragAndDrop, DrawingUtilities, Styles
 import logging
 from operator import itemgetter
@@ -1483,21 +1484,18 @@ class StringAttributeEditor (BaseAttributeEditor):
 
     def GetAttributeValue(self, item, attributeName):
         """ Get the attribute's current value """
-        try:
-            theValue = getattr(item, attributeName)
-        except AttributeError:
+        theValue = getattr(item, attributeName, Nil)
+        if theValue is Nil:
             valueString = u""
         else:
-            try:
-                cardinality = item.getAttributeAspect (attributeName, "cardinality")
-            except AttributeError:
-                cardinality = "single"
+            cardinality = item.getAttributeAspect(attributeName, 'cardinality',
+                                                  True, None, 'single')
             if cardinality == "single":
                 if theValue is None:
                     valueString = u""
                 else:
                     valueString = unicode(theValue)
-            elif cardinality == "list" or cardinality == "set":
+            elif cardinality in ("list", "set"):
                 valueString = _(u", ").join([unicode(part) for part in theValue])
 
         return valueString
@@ -1748,40 +1746,25 @@ class RepositoryAttributeEditor (StringAttributeEditor):
 
     def GetAttributeValue (self, item, attributeName):
         # attempt to access as a Chandler attribute first
-        try:
-            attrType = item.getAttributeAspect (attributeName, "type")
-        except:
-            # attempt to access as a plain Python attribute
-            try:
-                value = getattr (item, attributeName)
-            except AttributeError:
+        attrType = item.getAttributeAspect(attributeName, 'type', True)
+        value = getattr(item, attributeName, Nil)
+        if value is Nil:
+            if attrType is None:
                 valueString = "no value"
             else:
-                valueString = str (value)
-        else:
-            value = item.getAttributeValue (attributeName)
-            try:
-                valueString = attrType.makeString (value)
-            except:
                 valueString = "no value (%s)" % attrType.itsName
+        elif attrType is None:
+            valueString = str(value)
+        else:
+            valueString = attrType.makeString(value)
+
         return valueString
 
     def SetAttributeValue (self, item, attributeName, valueString):
         # attempt access as a Chandler attribute first
-        try:
-            attrType = item.getAttributeAspect (attributeName, "type")
-        except:
-            # attempt access as a plain Python attribute
-            try:
-                value = getattr (item, attributeName)
-            except AttributeError:
-                # attribute currently has no value, can't figure out the type
-                setattr (item, attributeName, valueString) # hope that a string will work
-                self.AttributeChanged()
-                return
-            else:
-                # ask the repository for the type associated with this value
-                attrType = ItemHandler.ItemHandler.typeHandler (item.itsView, value)
+        attrType = item.getAttributeAspect(attributeName, "type", True)
+        if attrType is None:
+            attrType = ItemHandler.ItemHandler.typeHandler(item.itsView, value)
 
         # now we can convert the string to the right type
         value = attrType.makeValue (valueString)
@@ -1798,10 +1781,7 @@ class LocationAttributeEditor (StringAttributeEditor):
         else:
             # lookup an existing item by name, if we can find it, 
             newValue = Calendar.Location.getLocation (item.itsView, valueString)
-            try:
-                oldValue = getattr(item, attributeName)
-            except AttributeError:
-                oldValue = None
+            oldValue = getattr(item, attributeName, None)
             if oldValue is newValue:
                 return # no change
             setattr (item, attributeName, newValue)

@@ -1307,10 +1307,17 @@ class AEBlock(BoxContainer):
 
         # Ask the schema for the attribute's type first
         cardinality = 'single'
-        try:
-            theType = item.getAttributeAspect(self.attributeName, "type")
-            cardinality = item.getAttributeAspect(self.attributeName, "cardinality")
-        except:
+        attribute = item.itsKind.getAttribute(self.attributeName, True)
+        if attribute is not None:
+            theType = attribute.getAspect('type')
+            cardinality = attribute.getAspect('cardinality')
+
+            if theType is None:
+                typeName = "NoneType"
+            else:
+                typeName = theType.itsName
+
+        else:
             # If the repository doesn't know about it (it might be a property),
             # see if it's one of our type-friendly Calculated properties
             try:
@@ -1327,12 +1334,6 @@ class AEBlock(BoxContainer):
                     typeName = type(attrValue).__name__
             else:
                 # Got the computed property's type - get its name
-                typeName = theType.itsName
-        else:
-            # Got the repository type (maybe) - get its name
-            if theType is None:
-                typeName = "NoneType"
-            else:
                 typeName = theType.itsName
         
         return (typeName, cardinality)

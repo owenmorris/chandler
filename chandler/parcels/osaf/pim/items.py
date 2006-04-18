@@ -599,16 +599,14 @@ class ContentItem(schema.Item):
         """ Determine the schema attributes that affect this attribute
         (which might be a redirectTo or a Calculated attribute) """
         # Recurse to handle redirection if necessary
-        try:
-            redirect = self.getAttributeAspect(attribute, 'redirectTo')
-        except AttributeError:
-            pass
-        else:
+        attr = self.itsKind.getAttribute(attribute, True)
+        if attr is not None:
+            redirect = attr.getAspect('redirectTo')
             if redirect is not None:
                 item = self
                 names = redirect.split('.')
-                for name in names [:-1]:
-                    item = item.getAttributeValue (name)
+                for name in names[:-1]:
+                    item = getattr(item, name)
                 return item.getBasedAttributes(names[-1])
         
         # Not redirected. If it's Calculated, see what it's based on; 

@@ -139,7 +139,7 @@ def initOptions(**kwds):
         'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
         'create':     ('-c', '--create',     'b', False, "CREATE", 'Force creation of a new repository'),
         'askCreate':  ('',   '--askCreate',  'b', False, None, 'Offer to create a new repository'),
-        'ramdb':      ('-d', '--ramdb',      'b', False, None, ''),
+        'ramdb':      ('-m', '--ramdb',      'b', False, None, ''),
         'restore':    ('-r', '--restore',    's', None,  None, 'repository backup to restore from before repository open'),
         'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
         'nocatch':    ('-n', '--nocatch',    'b', False, 'CHANDLERNOCATCH', ''),
@@ -151,10 +151,11 @@ def initOptions(**kwds):
         'nosplash':   ('-N', '--nosplash',   'b', False, 'CHANDLERNOSPLASH', ''),
         'logging':    ('-L', '--logging',    's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),
         'createData': ('-C', '--createData', 's', None,  None, 'csv file with items definition to load after startup'),
-        'verbose':    ('-v', '--verbose',    'b', False,  None, 'Verbosity option (currently just for run_tests.py)'),
-        'quiet':      ('-q', '--quiet',      'b', False,  None, 'Quiet option (currently just for run_tests.py)'),
+        'verbose':    ('-v', '--verbose',    'b', False, None, 'Verbosity option (currently just for run_tests.py)'),
+        'quiet':      ('-q', '--quiet',      'b', False, None, 'Quiet option (currently just for run_tests.py)'),
         'verify':     ('-V', '--verify-assignments', 
-                                             'b', False,  None, 'Verify attribute assignments against schema'),
+                                             'b', False, None, 'Verify attribute assignments against schema'),
+        'debugOn':    ('-d', '--debugOn',    's', None,  None, 'Enter PDB upon this exception being raised'),
         'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, 'Parcel that defines the core application'),
         'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
     }
@@ -351,6 +352,11 @@ def initRepository(directory, options, allowSchemaView=False):
     if isinstance(schema.reset(view), NullRepositoryView):
         if not allowSchemaView:
             raise AssertionError, "schema.py was used before it was initialized here causing it to setup a NullRepositoryView"
+
+    if options.debugOn:
+        from repository.util.ClassLoader import ClassLoader
+        debugOn = ClassLoader.loadClass(options.debugOn)
+        view.debugOn(debugOn)
 
     return view
 
