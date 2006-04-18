@@ -252,7 +252,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             return
 
         proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.item,
-                                          endCallback=self.RefreshCanvasItems)
+                                          endCallback=self.wxSynchronizeWidget)
         
         (startTime, endTime) = self.GetDragAdjustedTimes()
         duration = endTime - startTime

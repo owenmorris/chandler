@@ -1332,7 +1332,8 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         if ((self.item != None) and (not self.IsBeingDeleted())):
             if self.item.displayName != self.GetValue():
                 parentBlock = self.GetParent()
-                proxy = RecurrenceDialog.getProxy(u'ui', self.item, endCallback=parentBlock.RefreshCanvasItems)
+                proxy = RecurrenceDialog.getProxy(u'ui', self.item,
+                                    endCallback=parentBlock.wxSynchronizeWidget)
                 proxy.displayName = self.GetValue()
 
     def ResetFocus(self):
