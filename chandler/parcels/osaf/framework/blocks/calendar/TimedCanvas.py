@@ -711,7 +711,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         firstHit = None
         contents = CalendarSelection(self.blockItem.contents)
         for canvasItem in reversed(self.canvasItemList):
-            if canvasItem.isHit(unscrolledPosition):
+            if canvasItem.isHit(unscrolledPosition) and \
+               canvasItem.item in contents:
                 # this one is in the selection, so we can return
                 # immediately
                 item = canvasItem.item
