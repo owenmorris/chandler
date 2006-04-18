@@ -1138,7 +1138,9 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
 
     def getBoundedPosition(self, position, drawInfo, mustBeInBounds=True):
         # first make sure we're within the top left boundaries
-        yPosition = max(position.y, 0)
+        yPosition = position.y
+        if mustBeInBounds:
+            yPosition = max(yPosition, 0)
         if mustBeInBounds:
             xPosition = max(position.x, drawInfo.xOffset)
         else:       
@@ -1172,7 +1174,8 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         
         position = self.dragState.currentPosition - (dx, dy)
 
-        result = self.getDateTimeFromPosition(position, tzinfo=tzinfo)
+        result = self.getDateTimeFromPosition(position, tzinfo=tzinfo,
+                                              mustBeInBounds=False)
         
         if tzinfo is None:
             result = result.replace(tzinfo=None)

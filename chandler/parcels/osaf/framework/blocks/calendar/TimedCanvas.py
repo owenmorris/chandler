@@ -149,8 +149,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.Refresh()
 
         if numAdded == 1 and \
-           getattr(self, 'justCreatedCanvasItem', False):
-            self.justCreatedCanvasItem = False
+           getattr(self, 'justCreatedCanvasItem', None):
+            self.OnSelectItem(self.justCreatedCanvasItem.item)
+            self.justCreatedCanvasItem = None
             self.EditCurrentItem()
 
     def OnSize(self, event):
@@ -645,7 +646,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         # set a flag so when wxSynchronizeWidgets happens, the newly created
         # item is edited
-        self.justCreatedCanvasItem = True
+        self.justCreatedCanvasItem = canvasItem
         
         # only problem here is that we haven't checked for conflicts
         canvasItem.UpdateDrawingRects()
