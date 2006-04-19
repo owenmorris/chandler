@@ -510,7 +510,6 @@ bool			bIsVertical;
 wxSize wxColumnHeader::CalculateDefaultItemSize(
 	wxSize		maxSize ) const
 {
-wxWindow	*parentW;
 wxSize		targetSize, minSize, parentSize;
 
 	targetSize.x =
@@ -524,8 +523,6 @@ wxSize		targetSize, minSize, parentSize;
 	// as determined by native (HI/CommonControls) drawing routines
 	parentSize = maxSize;
 	targetSize.x = parentSize.x;
-	if (targetSize.x <= 0)
-		targetSize.x = 102;
 
 	// get (platform-dependent) height
 #if defined(__WXMSW__)
@@ -2796,6 +2793,16 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 	if ((parentW == NULL) || (dc == NULL))
 		return (-1L);
 
+	// calculate actual rendering area:
+	// tweak left side of left-most items
+	localBoundsR = *boundsR;
+	if (localBoundsR.x == 0)
+	{
+		localBoundsR.x++;
+		localBoundsR.width--;
+	}
+	localBoundsR.Deflate( 0, 1 );
+
 	// determine selection and bitmap rendering conditions
 	bSelected = m_BSelected && bVisibleSelection;
 	bHasButtonArrow = (m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None);
@@ -2803,19 +2810,17 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 
 	// draw column header background:
 	// leverage native (GTK?) wxRenderer
-	localBoundsR = *boundsR;
-	localBoundsR.Deflate( 0, 1 );
 	drawFlags = 0;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR, drawFlags );
 
 	// as specified, render (justified) either: button arrow, bitmap or label text
 	if (bHasButtonArrow)
 	{
-		DrawButtonArrow( dc, boundsR );
+		DrawButtonArrow( dc, &localBoundsR );
 	}
 	else if (bHasBitmap)
 	{
-		GenericGetBitmapItemBounds( boundsR, m_BitmapJust, m_BitmapRef, &subItemBoundsR );
+		GenericGetBitmapItemBounds( &localBoundsR, m_BitmapJust, m_BitmapRef, &subItemBoundsR );
 		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
 	else if (! m_LabelTextRef.IsEmpty())
@@ -2826,7 +2831,7 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 
 		descentY = 0;
 		if ((m_LabelTextExtent.y > 0) && (m_LabelTextExtent.y < localBoundsR.height))
-			descentY = (localBoundsR.height - m_LabelTextExtent.y) / 2;
+			descentY = ((localBoundsR.height - m_LabelTextExtent.y) / 2) - 1;
 
 		if (m_LabelTextExtent.x <= maxExtentX)
 		{
@@ -3108,8 +3113,8 @@ void wxColumnHeaderItem::GenericDrawSelection(
 	long					drawStyle )
 {
 wxPen			targetPen( *wxLIGHT_GREY, 1, wxSOLID );
+wxRect		localBoundsR;
 long			borderWidth, offsetY;
-
 
 	if ((dc == NULL) || (boundsR == NULL))
 		return;
@@ -3122,6 +3127,8 @@ long			borderWidth, offsetY;
 		wxT("GenericDrawSelection: [%ld, %ld, %ld, %ld]"),
 		boundsR->x, boundsR->y, boundsR->width, boundsR->height );
 #endif
+
+	localBoundsR = *boundsR;
 
 	switch (drawStyle)
 	{
@@ -3145,11 +3152,12 @@ long			borderWidth, offsetY;
 		dc->SetPen( targetPen );
 		dc->SetBrush( *wxTRANSPARENT_BRUSH );
 
+		localBoundsR.Deflate( 1, 1 );
 		dc->DrawRectangle(
-			boundsR->x,
-			boundsR->y,
-			boundsR->width - borderWidth,
-			boundsR->height );
+			localBoundsR.x,
+			localBoundsR.y,
+			localBoundsR.width,
+			localBoundsR.height );
 		break;
 
 	case CH_SELECTIONDRAWSTYLE_Underline:
@@ -3163,13 +3171,14 @@ long			borderWidth, offsetY;
 
 		offsetY = 1;
 		if (drawStyle == CH_SELECTIONDRAWSTYLE_Underline)
-			offsetY += boundsR->height - borderWidth;
+			offsetY += localBoundsR.height - borderWidth;
 
+		borderWidth = 1;
 		dc->DrawLine(
-			boundsR->x,
-			boundsR->y + offsetY,
-			boundsR->x + boundsR->width - borderWidth,
-			boundsR->y + offsetY );
+			localBoundsR.x,
+			localBoundsR.y + offsetY,
+			localBoundsR.x + localBoundsR.width - borderWidth,
+			localBoundsR.y + offsetY );
 		break;
 	}
 }
