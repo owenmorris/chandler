@@ -644,7 +644,7 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         if event.GetKeyCode() in (wx.WXK_DELETE, wx.WXK_BACK):
             return False
 
-        return super(GridCellAttributeEditor, self).IsAcceptedKey()
+        return super(GridCellAttributeEditor, self).IsAcceptedKey(event)
 
 
 class Table (PimBlocks.FocusEventHandlers, RectangularChild):
