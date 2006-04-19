@@ -89,7 +89,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
 
         # Ignore notifications during stamping or deleting
         item = self.item
-        if item is None or item.isMutating() or item.isDeleting():
+        if item is not None and (item.isMutating() or item.isDeleting()):
             logger.debug("%s: ignoring kind change to %s during stamping or deletion.", 
                          debugName(self), debugName(self.item))
             return
