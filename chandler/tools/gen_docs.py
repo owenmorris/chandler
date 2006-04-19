@@ -109,30 +109,11 @@ def generateTimestamp():
 
 
 def RenderKinds(view, urlRoot):
-    def getKind(kindName):
-        kindKind = view.findPath("//Schema/Core/Kind")
-        matching = []
-
-        for kind in kindKind.iterItems():
-            if kind.itsName == kindName:
-                matching.append(kind)
-
-        if len(matching) == 0:
-            return None
-
-        return matching[0]
-
-    def ofKind(kindName, recursive=True):
-        kind = getKind(kindName)
-        if kind is not None:
-            for item in kind.iterItems(recursive=recursive):
-                yield item
-
     result = ""
     items  = {}
     tree   = {}
 
-    for item in ofKind('Kind'):
+    for item in view.findPath("//Schema/Core/Kind").iterItems():
         items[item.itsPath] = item
         _insertItem(tree, item.itsPath[1:], item)
 
