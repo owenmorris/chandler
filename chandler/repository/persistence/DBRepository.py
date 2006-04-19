@@ -358,10 +358,6 @@ class DBRepository(OnDemandRepository):
 
                 store.commitTransaction(None, txnStatus)
 
-                txnStart = store.startTransaction(None, True)
-                store.compact()
-                store.commitTransaction(None, txnStatus)
-
             except DBLockDeadlockError:
                 self.logger.info('retrying compact aborted by deadlock')
                 store.abortTransaction(None, txnStatus)
@@ -371,6 +367,8 @@ class DBRepository(OnDemandRepository):
                 raise
             else:
                 break
+
+        store.compact()
 
         return (itemCount, valueCount, refCount, lobCount, blockCount,
                 nameCount, indexCount, documentCount)
@@ -663,17 +661,50 @@ class DBStore(Store):
 
     def compact(self):
 
-        txn = self.txn
+        logger = self.repository.logger
 
-        self._items.compact(txn)
-        self._values.compact(txn)
-        self._refs.compact(txn)
-        self._names.compact(txn)
-        self._lobs.compact(txn)
-        self._blocks.compact(txn)
-        self._index.compact(txn)
-        self._acls.compact(txn)
-        self._indexes.compact(txn)
+        def compact(db):
+            while True:
+                try:
+                    txnStatus = self.startTransaction(None, True)
+                    db.compact(self.txn)
+                    self.commitTransaction(None, txnStatus)
+
+                except DBLockDeadlockError:
+                    logger.info('retrying compact aborted by deadlock')
+                    self.abortTransaction(None, txnStatus)
+                    continue
+
+                except MemoryError:
+                    self.abortTransaction(None, txnStatus)
+                    logger.info('compact ran out of memory')
+                    logger.info('retrying non-transacted in the background')
+
+                    class runnable(object):
+                        def __call__(_self):
+                            db.compact(None)
+                            logger.info('background compact completed')
+
+                    thread = Thread(target=runnable())
+                    thread.setDaemon(True)
+                    thread.start()
+
+                except:
+                    self.abortTransaction(None, txnStatus)
+                    raise
+
+                else:
+                    break
+
+        compact(self._items)
+        compact(self._values)
+        compact(self._refs)
+        compact(self._names)
+        compact(self._lobs)
+        compact(self._blocks)
+        compact(self._index)
+        compact(self._acls)
+        compact(self._indexes)
 
     def loadItem(self, view, version, uuid):
 
