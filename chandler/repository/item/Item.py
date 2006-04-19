@@ -1395,16 +1395,20 @@ class Item(CItem):
             view = self.itsView
             refs = self._references
             values = self._values
+            others = []
 
             if hasattr(type(self), 'onItemDelete'):
                 self.onItemDelete(view)
 
             self.setDirty(Item.NDIRTY)
             self._status |= Item.DELETING
-            others = []
 
             for child in self.iterChildren():
                 child.delete(True, deletePolicy)
+
+            if self.isWatched():
+                view._notifyChange(self._itemChanged, 'remove', ('itsKind',))
+                self._status &= ~Item.WATCHED
 
             if 'watcherDispatch' in values:
                 del values['watcherDispatch']

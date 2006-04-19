@@ -80,6 +80,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             self.itsView.unwatchItem(self, item, 'onItemKindChanged')
 
     def onItemKindChanged(self, op, uuid, attributes):
+
         # Ignore notifications for attributes we don't care about
         if 'itsKind' not in attributes:
             #logger.debug("%s: ignoring changes to %s.", 
@@ -87,7 +88,8 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             return
 
         # Ignore notifications during stamping or deleting
-        if self.item is not None and self.item.isMutating():
+        item = self.item
+        if item is None or item.isMutating() or item.isDeleting():
             logger.debug("%s: ignoring kind change to %s during stamping or deletion.", 
                          debugName(self), debugName(self.item))
             return
@@ -457,7 +459,8 @@ class DetailSynchronizer(Item):
 
     def onWatchedItemChanged(self, op, uuid, attributes):
         # Ignore notifications during stamping or deleting
-        if self.item is None or self.item.isMutating():
+        item = self.item
+        if item is None or item.isMutating() or item.isDeleting():
             #logger.debug("%s: ignoring changes to %s during stamping or deletion.", 
                          #debugName(self), attributes)
             return
