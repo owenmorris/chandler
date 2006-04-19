@@ -16,7 +16,7 @@ from Block import (
     IgnoreSynchronizeWidget
     )
 
-from ControlBlocks import Column, columnType
+from ControlBlocks import Column
 
 import Styles
 import DragAndDrop
@@ -102,13 +102,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.EnableDragCell(True)
         self.DisableDragRowSize()
         self.SetDefaultCellBackgroundColour(wx.WHITE)
-        """
-          Big fat hack. Since the grid is a scrolled window we set a border equal to the size
-        of the scrollbar so the scroll bars won't show. Instead we should consider modifying
-        grid adding a new style for not showing scrollbars.  Bug #2375
-        """
-        self.SetMargins(-wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
-                        -wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y))
         self.EnableCursor (False)
         background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
         self.SetLightSelectionBackground()
@@ -257,33 +250,13 @@ class wxTable(DragAndDrop.DraggableWidget,
 
     @WithoutSynchronizeWidget
     def OnSize(self, event):
-        size = event.GetSize()
-        widthMinusLastColumn = 0
-
-        assert self.GetNumberCols() > 0, "We're assuming that there is at least one column"
-        lastColumnIndex = self.GetNumberCols() - 1
-        for column in xrange (lastColumnIndex):
-            widthMinusLastColumn += self.GetColSize (column)
-        lastColumnWidth = size.width - widthMinusLastColumn
-        """
-          This is a temporary fix to get around an apparent bug in
-          grids.  We only want to adjust for scrollbars if they
-          are present.  The -2 is a hack, without which the
-          sidebar will grow indefinitely when resizing the window.
-        """
-        if (self.GetSize() == self.GetVirtualSize()):
-            lastColumnWidth = lastColumnWidth - 2
-        else:
-            lastColumnWidth = lastColumnWidth - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) - 1
-        if lastColumnWidth > 0:
-            self.SetColSize (lastColumnIndex, lastColumnWidth)
-            self.ForceRefresh()
+        # Don't call SynchronizeWidget when we're resising the window
         event.Skip()
 
     @WithoutSynchronizeWidget
     def OnColumnDrag(self, event):
-        columnIndex = event.GetRowOrCol()
-        self.blockItem.columns[columnIndex].width = self.GetColSize (columnIndex)
+        for index, column in enumerate(self.blockItem.columns):
+            column.width = self.GetColSize (index)
 
     def OnItemDrag(self, event):
 
@@ -412,7 +385,14 @@ class wxTable(DragAndDrop.DraggableWidget,
         assert (self.GetNumberCols() == gridTable.GetNumberCols() and
                 self.GetNumberRows() == gridTable.GetNumberRows())
 
-        self.UpdateColumnWidths(newColumns)
+        # Update column widths
+
+        for index, column in enumerate(self.blockItem.columns):
+            self.SetColSize (index, column.width)
+            self.ScaleColumn (index, column.scaleColumn)
+
+        self.ScaleWidthToFit (self.blockItem.scaleWidthsToFit)
+
         self.UpdateSelection(newColumns)
         self.EndBatch()
 
@@ -422,21 +402,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.ProcessTableMessage (message)
         self.ForceRefresh () 
 
-    def UpdateColumnWidths(self, columns):
-        # update all column widths but the last one
-        widthMinusLastColumn = 0
-        for columnIndex in xrange (columns - 1):
-            widthMinusLastColumn += self.blockItem.columns[columnIndex].width
-            self.SetColSize (columnIndex, self.blockItem.columns[columnIndex].width)
-
-        # update the last column to fill the rest of the widget
-        remaining = self.GetSize().width - widthMinusLastColumn
-        # Adjust for scrollbar if it is present
-        if (self.GetSize() != self.GetVirtualSize()):
-            remaining = remaining - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) - 1
-        if remaining > 0:
-            self.SetColSize(columns - 1, remaining)
-    
     def UpdateSelection(self, columns):
         """
         Update the grid's selection based on the collection's selection.
@@ -696,6 +661,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
     characterStyle = schema.One(Styles.CharacterStyle)
     headerCharacterStyle = schema.One(Styles.CharacterStyle)
     hasGridLines = schema.One(schema.Boolean, initialValue = False)
+    scaleWidthsToFit = schema.One(schema.Boolean, defaultValue = False)
 
     schema.addClouds(
         copying = schema.Cloud(

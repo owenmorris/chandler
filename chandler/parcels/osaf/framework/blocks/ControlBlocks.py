@@ -202,10 +202,11 @@ class Column(schema.Item):
     kind = schema.One(schema.Kind, doc="The Kind used "
                       "for 'kind' columns")
 
-    width = schema.One(schema.Integer, required=True,
+    width = schema.One(schema.Integer,  defaultValue = 20,
                        doc="The width of the column, "
                        "relative to other columns")
 
+    scaleColumn = schema.One(schema.Boolean, defaultValue = False)
     readOnly = schema.One(schema.Boolean, initialValue=False)
     
     schema.addClouds(

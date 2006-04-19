@@ -48,11 +48,12 @@ def makeMainView (parcel):
     Sidebar = SidebarBlock.template(
         'Sidebar',
         characterStyle = globalBlocks.SidebarRowStyle,
-        columns = [
-            Column.update(parcel, 'SidebarColName',
-                          heading = u'',
-                          attributeName = u'displayName')],
+        columns = [Column.update(parcel, 'SidebarColName',
+                                 heading = u'',
+                                 scaleColumn = True,
+                                 attributeName = u'displayName')],
                           
+        scaleWidthsToFit = True,
         border = RectType(0, 0, 4, 0),
         editRectOffsets = [17, -17, 0],
         buttons = [IconButton, SharingButton],
