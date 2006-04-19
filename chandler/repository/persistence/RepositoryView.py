@@ -1282,6 +1282,7 @@ class OnDemandRepositoryView(RepositoryView):
             count = len(heap) - int(size * 0.9)
             if count > 0:
                 self.logger.info('pruning %d items', count)
+                debug = self.isDebug()
 
                 if self.isRefCounted():
                     for i in xrange(count):
@@ -1290,10 +1291,10 @@ class OnDemandRepositoryView(RepositoryView):
                         pythonRefs = sys.getrefcount(item)
                         if pythonRefs - itemRefs <= 3:
                             item._unloadItem(False, self)
-                        else:
-                            self.logger.warn('not pruning %s (refCount %d)',
-                                             item._repr_(),
-                                             pythonRefs - itemRefs)
+                        elif debug:
+                            self.logger.debug('not pruning %s (refCount %d)',
+                                              item._repr_(),
+                                              pythonRefs - itemRefs)
                 else:
                     for i in xrange(count):
                         registry[heapq.heappop(heap)[1]]._unloadItem(False, self)
