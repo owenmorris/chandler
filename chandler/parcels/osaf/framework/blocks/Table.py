@@ -59,7 +59,7 @@ class wxTableData(wx.grid.PyGridTableBase):
         return self.GetView().GetElementType (row, column)
 
     def GetAttr (self, row, column, kind):
-        attribute = self.base_GetAttr (row, column, kind)
+        attribute = super(wxTableData, self).GetAttr (row, column, kind)
         if attribute is None:
             type = self.GetTypeName (row, column)
             delegate = AttributeEditors.getSingleton (type)
