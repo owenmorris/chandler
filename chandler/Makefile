@@ -29,7 +29,7 @@ BUILD_PLUGINS=Chandler-HelloWorldPlugin Chandler-FeedsPlugin
 ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.6-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)20.tar.gz \
          $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)3.tar.gz \
-         $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)6.tar.gz \
+         $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)7.tar.gz \
          $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.7i-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-310-$(BP)5.tar.gz \
