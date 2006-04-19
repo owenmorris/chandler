@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        colheader.i
+// Name:        wxPython/src/colheader.i
 // Purpose:    SWIG definitions for the wxColumnHeader wxWidget
 //
 // Author:      David Surovell
@@ -141,10 +141,11 @@ public:
     virtual wxSize DoGetMinSize( void ) const;
 
     wxSize CalculateDefaultSize( void ) const;
-    wxSize CalculateDefaultItemSize( void ) const;
-
+    wxSize CalculateDefaultItemSize(
+        wxSize    maxSize ) const;
     wxSize GetDefaultItemSize( void ) const;
-    void SetDefaultItemSize( int width, int height );
+    void SetDefaultItemSize(
+        wxSize    targetSize );
 
     long GetTotalUIExtent( void ) const;
     bool ResizeToFit( void );

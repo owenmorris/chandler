@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:		generic/colheader.h
+// Name:		include/wx/generic/colheader.h
 // Purpose:	data definitions for a 2-platform (Mac,MSW) + generic native-appearance column header
 // Author:	David Surovell
 // Modified by:
@@ -78,9 +78,11 @@ public:
 
 	// size calcluations (needs refactoring)
 	wxSize CalculateDefaultSize( void ) const;
-	wxSize CalculateDefaultItemSize( void ) const;
+	wxSize CalculateDefaultItemSize(
+		const wxSize		 maxSize ) const;
 	wxSize GetDefaultItemSize( void ) const;
-	void SetDefaultItemSize( int width, int height );
+	void SetDefaultItemSize(
+		const wxSize		targetSize );
 
 	long GetTotalUIExtent( void ) const;
 	bool ResizeToFit( void );

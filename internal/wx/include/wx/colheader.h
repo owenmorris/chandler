@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Name:		wx/colheader.h
-// Purpose:	public definitions for a native-appearance column header
+// Name:		include/wx/colheader.h
+// Purpose:	public definitions for a native-appearance column/row header
 // Author:	David Surovell
 // Modified by:
 // Created:	01.01.2005

@@ -203,13 +203,12 @@ bool wxColumnHeader::Create(
 	const wxString		&name )
 {
 wxString		localName;
-wxSize			actualSize;
+wxSize		actualSize;
 bool			bResultV;
 
 	localName = name;
 
-//	if ((m_DefaultItemSize.x <= 0) || (m_DefaultItemSize.y <= 0))
-	m_DefaultItemSize = CalculateDefaultItemSize();
+	m_DefaultItemSize = CalculateDefaultItemSize( size );
 
 	actualSize = size;
 #if 1
@@ -292,55 +291,88 @@ bool		bResultV;
 void wxColumnHeader::DumpInfo( void )
 {
 //
-// this routine produces ugly output; I'll rewrite it... "soon"
-// NB: cannot build this in non-debug wxGTK target, so disabling for the time being...
+// NB: cannot build this in non-debug wxGTK target, so disabling it for the time being...
 //
-//#if 0
 #if (defined(__WXMSW__) || defined(__WXMAC__)) && defined(__WXDEBUG__) && __WXDEBUG__
-#define PRINTFLOGPROC wxLogDebug
+#define PRINTFProc Printf
+#define LOGProc(A) wxLogDebug((A).c_str())
 
-#define wxLogRect(rectArg)	\
-	PRINTFLOGPROC( wxT("%s: [%d, %d; %d, %d]"), \
+#define wxFormatRect(resultArg,rectArg)	\
+	(resultArg).PRINTFProc( wxT("%s: [%d, %d; %d, %d]"), \
 	wxT(#rectArg), (rectArg).x, (rectArg).y, (rectArg).width, (rectArg).height )
-#define wxLogSize(sizeArg)	\
-	PRINTFLOGPROC( wxT("%s: [%d, %d]"), \
+#define wxFormatSize(resultArg,sizeArg)	\
+	(resultArg).PRINTFProc( wxT("%s: [%d, %d]"), \
 	wxT(#sizeArg), (sizeArg).x, (sizeArg).y )
-#define wxLogLong(longArg)	\
-	PRINTFLOGPROC( wxT("%s: [%ld]"), wxT(#longArg), (longArg) )
-#define wxLogString(strArg)	\
-	PRINTFLOGPROC( wxT("%s: [%s]"), wxT(#strArg), strArg.c_str() )
-#define wxLogBool(boolArg)	\
-	PRINTFLOGPROC( wxT("%s: [%s]"), wxT(#boolArg), (boolArg) ? wxT("T") : wxT("F") )
+#define wxFormatLong(resultArg,longArg)	\
+	(resultArg).PRINTFProc( wxT("%s: [%ld]"), wxT(#longArg), (longArg) )
+#define wxFormatString(resultArg,strArg)	\
+	(resultArg).PRINTFProc( wxT("%s: [%s]"), wxT(#strArg), strArg.c_str() )
+#define wxFormatBool(resultArg,boolArg)	\
+	(resultArg).PRINTFProc( wxT("%s: [%s]"), wxT(#boolArg), (boolArg) ? wxT("T") : wxT("F") )
 
 wxColumnHeaderItem	*itemRef;
-wxString	msgStr;
+wxString	msgStr, itemStr, dividerStr;
 long		i;
 
-	wxLogRect( m_NativeBoundsR );
-	wxLogSize( m_DefaultItemSize );
-	wxLogLong( m_ItemCount );
-	wxLogLong( m_ItemSelected );
-	wxLogLong( m_SelectionDrawStyle );
-	wxLogBool( m_BUseVerticalOrientation );
-	wxLogBool( m_BUseUnicode );
-	wxLogBool( m_BUseGenericRenderer );
-	wxLogBool( m_BFixedHeight );
-	wxLogBool( m_BProportionalResizing );
+	wxFormatRect( msgStr, m_NativeBoundsR );
+	LOGProc( msgStr );
+
+	wxFormatSize( msgStr, m_DefaultItemSize );
+	LOGProc( msgStr );
+
+	wxFormatLong( msgStr, m_ItemCount );
+	LOGProc( msgStr );
+
+	wxFormatLong( msgStr, m_ItemSelected );
+	LOGProc( msgStr );
+
+	wxFormatLong( msgStr, m_SelectionDrawStyle );
+	LOGProc( msgStr );
+
+	wxFormatBool( msgStr, m_BUseVerticalOrientation );
+	LOGProc( msgStr );
+
+	wxFormatBool( msgStr, m_BUseUnicode );
+	LOGProc( msgStr );
+
+	wxFormatBool( msgStr, m_BUseGenericRenderer );
+	LOGProc( msgStr );
+
+	wxFormatBool( msgStr, m_BFixedHeight );
+	LOGProc( msgStr );
+
+	wxFormatBool( msgStr, m_BProportionalResizing );
+	LOGProc( msgStr );
+
+	itemStr = wxT("# name textSize origin extent");
+	LOGProc( itemStr );
+
+	dividerStr = wxT("===============");
+	LOGProc( dividerStr );
 
 	for (i=0; i<m_ItemCount; i++)
 	{
 		itemRef = GetItemRef( i );
-		if (itemRef == NULL)
-			continue;
-
-		wxLogLong( i );
-		wxLogString( itemRef->m_LabelTextRef );
-		wxLogSize( itemRef->m_Origin );
-		wxLogSize( itemRef->m_Extent );
-		wxLogSize( itemRef->m_LabelTextExtent );
+		if (itemRef != NULL)
+		{
+			msgStr.Printf(
+				wxT("%ld: [%s] [%ld, %ld] [%ld, %ld] [%ld, %ld]"),
+				i, itemRef->m_LabelTextRef.c_str(),
+				itemRef->m_LabelTextExtent.x, itemRef->m_LabelTextExtent.y,
+				itemRef->m_Origin.x, itemRef->m_Origin.y,
+				itemRef->m_Extent.x, itemRef->m_Extent.y );
+		}
+		else
+		{
+			msgStr.Printf( wxT("%ld: [NULL]"), i );
+		}
+		LOGProc( msgStr );
 	}
 
-	PRINTFLOGPROC( wxT("") );
+	LOGProc( dividerStr );
+
+	msgStr = wxT("");
+	LOGProc( msgStr );
 #endif
 }
 
@@ -428,7 +460,7 @@ wxSize wxColumnHeader::CalculateDefaultSize( void ) const
 {
 wxWindow	*parentW;
 wxSize		targetSize, itemSize, minSize, parentSize;
-bool		bIsVertical;
+bool			bIsVertical;
 
 	targetSize.x =
 	targetSize.y = 0;
@@ -451,7 +483,7 @@ bool		bIsVertical;
 	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
 	if (bIsVertical)
 	{
-		targetSize.x = itemSize.x;
+		targetSize.x = parentSize.x;
 		targetSize.y = parentSize.y;
 	}
 	else
@@ -475,7 +507,8 @@ bool		bIsVertical;
 	return targetSize;
 }
 
-wxSize wxColumnHeader::CalculateDefaultItemSize( void ) const
+wxSize wxColumnHeader::CalculateDefaultItemSize(
+	wxSize		maxSize ) const
 {
 wxWindow	*parentW;
 wxSize		targetSize, minSize, parentSize;
@@ -486,15 +519,13 @@ wxSize		targetSize, minSize, parentSize;
 	minSize.x = 16;
 	minSize.y = 17;
 
-	parentSize.x =
-	parentSize.y = 0;
-
 	// "best" width is parent's width;
 	// height is (relatively) invariant,
 	// as determined by native (HI/CommonControls) drawing routines
-	parentW = GetParent();
-	if (parentW != NULL)
-		parentW->GetClientSize( &(parentSize.x), &(parentSize.y) );
+	parentSize = maxSize;
+	targetSize.x = parentSize.x;
+	if (targetSize.x <= 0)
+		targetSize.x = 102;
 
 	// get (platform-dependent) height
 #if defined(__WXMSW__)
@@ -531,7 +562,7 @@ wxSize		targetSize, minSize, parentSize;
 	}
 #endif
 
-	targetSize.x = ((parentSize.x > minSize.x) ? parentSize.x : minSize.x);
+	targetSize.x = ((targetSize.x > minSize.x) ? targetSize.x : minSize.x);
 	targetSize.y = ((targetSize.y > minSize.y) ? targetSize.y : minSize.y);
 
 	return targetSize;
@@ -542,12 +573,13 @@ wxSize wxColumnHeader::GetDefaultItemSize( void ) const
 	return m_DefaultItemSize;
 }
 
-void wxColumnHeader::SetDefaultItemSize( int width, int height )
+void wxColumnHeader::SetDefaultItemSize(
+	wxSize		targetSize )
 {
-	if (width > 0)
-		m_DefaultItemSize.x = width;
-	if (height > 0)
-		m_DefaultItemSize.y = height;
+	if (targetSize.x > 0)
+		m_DefaultItemSize.x = targetSize.x;
+	if (targetSize.y > 0)
+		m_DefaultItemSize.y = targetSize.y;
 }
 
 // virtual
@@ -1307,6 +1339,16 @@ bool					bIsVertical;
 	itemInfo.m_Origin.y = 0;
 	itemInfo.m_Extent.y = 0;
 
+	// set default-specified values
+	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+	if (extentX < 0)
+	{
+		if (!bIsVertical)
+			extentX = m_DefaultItemSize.y;
+		else
+			extentX = m_DefaultItemSize.x;
+	}
+
 	// set specified values
 	itemInfo.m_LabelTextRef = textBuffer;
 	itemInfo.m_TextJust = textJust;
@@ -1315,14 +1357,12 @@ bool					bIsVertical;
 	itemInfo.m_BSortEnabled = bSortEnabled;
 	itemInfo.m_BSortAscending = bSortAscending;
 
-	if ((beforeIndex < 0) || (beforeIndex > m_ItemCount))
-		beforeIndex = m_ItemCount;
-
 	// determine new item origin
 	itemInfo.m_Origin.x = 0;
+	if ((beforeIndex < 0) || (beforeIndex > m_ItemCount))
+		beforeIndex = m_ItemCount;
 	if (beforeIndex > 0)
 	{
-		bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
 		if (!bIsVertical)
 		{
 			// ALERT: GetUIExtent returns (x = origin, y = extent), which will change
