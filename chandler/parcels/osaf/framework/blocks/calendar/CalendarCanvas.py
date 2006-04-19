@@ -1834,7 +1834,19 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.weekColumnHeader.Thaw()
 
     def OnSize(self, event):
+        sizeChanged = getattr(self, 'size', None) != self.GetSize()
         self._doDrawingCalculations()
+        if sizeChanged:
+            # the event canvases base their geometry on the calendar control's
+            # size.  On Win32, the calendar control receives OnSize before
+            # the canvases do, but on Mac, the canvases calculate their geometry
+            # inaccurately.  Refreshing twice is expensive, so it might be
+            # preferable for canvases to be more independent about their
+            # geometry calculations, but until resize speed is an issue, this
+            # is an easy fix.
+            self.blockItem.parentBlock.getTimedBlock().widget.RefreshCanvasItems()
+            self.blockItem.parentBlock.getAllDayBlock().widget.RefreshCanvasItems()
+
         self.ResizeHeader()
         event.Skip()
 
