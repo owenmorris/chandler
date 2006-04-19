@@ -884,6 +884,17 @@ colour.
     
 
     DocDeclStr(
+        bool , GetAntiAliasing() const,
+        "Gets the current anti-aliasing state. True means anti-aliasing is enabled.", "");
+    
+    DocDeclStr(
+        virtual void , SetAntiAliasing(bool isAntiAliased),
+        "Sets the current anti-aliasing state. True means any future drawing in the
+context will be anti-aliased. False means it will not be anti-aliased.
+", "");
+    
+
+    DocDeclStr(
         void , ComputeScaleAndOrigin(),
         "Performs all necessary computations for given platform and context
 type after each change of scale and origin parameters. Usually called

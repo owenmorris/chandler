@@ -127,6 +127,9 @@ public:
     virtual void SetTextBackground(const wxColour& colour);
 
     virtual void ComputeScaleAndOrigin();
+#if wxMAC_USE_CORE_GRAPHICS
+    virtual void SetAntiAliasing(bool isAntiAliased);
+#endif
 
 public:
     wxCoord XDEV2LOG(wxCoord x) const

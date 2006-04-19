@@ -4,7 +4,7 @@
 #
 # version info 
 VERSION=2.6.2.0
-VERSION_REVISION_INDEX=41
+VERSION_REVISION_INDEX=42
 WX_VERSION_NODOT=26
 
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)$(VERSION_REVISION_INDEX)
@@ -87,13 +87,15 @@ buildDLLs: setup
 		export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
 		devenv.com build/msw/wx_osaf.sln /build $(W32_BUILD_TYPE)
 
-installDLLs: buildDLLs
+installDLLs:
 	mkdir -p $(PREFIX)/$(SITE)/wx
 	install $(SRC)/lib/vc_dll/*$(WX_VERSION_NODOT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc*.dll $(PREFIX)/$(SITE)/wx
 	if [ -f "$(SRC)/lib/vc_dll/wxbase$(WX_VERSION_NODOT)$(UNICODE_SUFFIX)$(SUFFIX)_vc_custom.bsc" ]; \
 	then \
 		install $(SRC)/lib/vc_dll/*.bsc $(PREFIX)/$(SITE)/wx; \
 	fi
+
+wxWidgets: buildDLLs
 
 wxWidgets: installDLLs
 
