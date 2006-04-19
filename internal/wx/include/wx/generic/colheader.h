@@ -71,13 +71,14 @@ public:
 	virtual void DoMoveWindow( int x, int y, int width, int height );
 	virtual bool Enable( bool bEnable = true );
 	virtual bool Show( bool bShow = true );
+
 	virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
 	virtual wxSize DoGetBestSize( void ) const;
 	virtual wxSize DoGetMinSize( void ) const;
 
+	// size calcluations (needs refactoring)
 	wxSize CalculateDefaultSize( void ) const;
 	wxSize CalculateDefaultItemSize( void ) const;
-
 	wxSize GetDefaultItemSize( void ) const;
 	void SetDefaultItemSize( int width, int height );
 
@@ -256,8 +257,8 @@ protected:
 	void OnClick( wxMouseEvent &event );
 	void OnDoubleClick( wxMouseEvent &event );
 
-	// event generator
-	void GenerateEvent( wxEventType eventType );
+	// event generator for "private" events
+	void GenerateSelfEvent( wxEventType eventType );
 
 protected:
 	wxRect					m_NativeBoundsR;
@@ -275,6 +276,7 @@ protected:
 	bool					m_BProportionalResizing;
 	bool					m_BVisibleSelection;
 
+	// NB: same as wxGrid[Row/Col]LabelWindow
 	DECLARE_DYNAMIC_CLASS(wxColumnHeader)
 	DECLARE_EVENT_TABLE()
 	DECLARE_NO_COPY_CLASS(wxColumnHeader)
@@ -415,8 +417,8 @@ protected:
 	wxBitmap				*m_BitmapRef;
 	long					m_BitmapJust;
 	long					m_ButtonArrowStyle;
-	long					m_OriginX;
-	long					m_ExtentX;
+	wxSize				m_Origin;
+	wxSize				m_Extent;
 	bool					m_BEnabled;
 	bool					m_BSelected;
 	bool					m_BSortEnabled;

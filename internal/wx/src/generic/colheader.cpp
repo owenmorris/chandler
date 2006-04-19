@@ -295,22 +295,22 @@ void wxColumnHeader::DumpInfo( void )
 // this routine produces ugly output; I'll rewrite it... "soon"
 // NB: cannot build this in non-debug wxGTK target, so disabling for the time being...
 //
-//#if (defined(__WXMSW__) || defined(__WXMAC__)) && defined(__WXDEBUG__) && __WXDEBUG__
-#if 0
+//#if 0
+#if (defined(__WXMSW__) || defined(__WXMAC__)) && defined(__WXDEBUG__) && __WXDEBUG__
 #define PRINTFLOGPROC wxLogDebug
 
 #define wxLogRect(rectArg)	\
-	PRINTFLOGPROC( wxT("%s [%d, %d; %d, %d]"), \
+	PRINTFLOGPROC( wxT("%s: [%d, %d; %d, %d]"), \
 	wxT(#rectArg), (rectArg).x, (rectArg).y, (rectArg).width, (rectArg).height )
 #define wxLogSize(sizeArg)	\
-	PRINTFLOGPROC( wxT("%s [%d, %d]"), \
+	PRINTFLOGPROC( wxT("%s: [%d, %d]"), \
 	wxT(#sizeArg), (sizeArg).x, (sizeArg).y )
 #define wxLogLong(longArg)	\
-	PRINTFLOGPROC( wxT("%s [%ld]"), wxT(#longArg), (longArg) )
+	PRINTFLOGPROC( wxT("%s: [%ld]"), wxT(#longArg), (longArg) )
 #define wxLogString(strArg)	\
-	PRINTFLOGPROC( wxT("%s [%s]"), wxT(#strArg), strArg.c_str() )
+	PRINTFLOGPROC( wxT("%s: [%s]"), wxT(#strArg), strArg.c_str() )
 #define wxLogBool(boolArg)	\
-	PRINTFLOGPROC( wxT("%s [%s]"), wxT(#boolArg), (boolArg) ? wxT("T") : wxT("F") )
+	PRINTFLOGPROC( wxT("%s: [%s]"), wxT(#boolArg), (boolArg) ? wxT("T") : wxT("F") )
 
 wxColumnHeaderItem	*itemRef;
 wxString	msgStr;
@@ -330,7 +330,13 @@ long		i;
 	for (i=0; i<m_ItemCount; i++)
 	{
 		itemRef = GetItemRef( i );
+		if (itemRef == NULL)
+			continue;
+
+		wxLogLong( i );
 		wxLogString( itemRef->m_LabelTextRef );
+		wxLogSize( itemRef->m_Origin );
+		wxLogSize( itemRef->m_Extent );
 		wxLogSize( itemRef->m_LabelTextExtent );
 	}
 
@@ -424,11 +430,11 @@ wxWindow	*parentW;
 wxSize		targetSize, itemSize, minSize, parentSize;
 bool		bIsVertical;
 
-	minSize.x = 100;
-	minSize.y = 20;
-
 	targetSize.x =
 	targetSize.y = 0;
+
+	minSize.x = 16;
+	minSize.y = 17;
 
 	parentSize.x =
 	parentSize.y = 0;
@@ -474,11 +480,11 @@ wxSize wxColumnHeader::CalculateDefaultItemSize( void ) const
 wxWindow	*parentW;
 wxSize		targetSize, minSize, parentSize;
 
-	minSize.x = 100;
-	minSize.y = 20;
-
 	targetSize.x =
 	targetSize.y = 0;
+
+	minSize.x = 16;
+	minSize.y = 17;
 
 	parentSize.x =
 	parentSize.y = 0;
@@ -499,14 +505,15 @@ wxSize		targetSize, minSize, parentSize;
 	RECT		boundsR;
 
 		targetViewRef = GetHwnd();
-		boundsR.left = boundsR.top = 0;
-		boundsR.right = targetSize.x;
-		boundsR.bottom = targetSize.y;
+		boundsR.left =
+		boundsR.top = 0;
+		boundsR.right = parentSize.x;
+		boundsR.bottom = parentSize.y;
 
 		ZeroMemory( &hdl, sizeof(hdl) );
 		hdl.prc = &boundsR;
 		hdl.pwpos = &wp;
-		if (Header_Layout( targetViewRef, (LPARAM)&hdl ) != 0)
+		if (Header_Layout( targetViewRef, (LPARAM)&hdl ))
 		{
 			targetSize.x = wp.cx;
 			targetSize.y = wp.cy;
@@ -616,7 +623,7 @@ long		itemIndex;
 		OnClick( event );
 
 		// NB: unused for the present
-		//GenerateEvent( wxEVT_COLUMNHEADER_DOUBLECLICKED );
+		//GenerateSelfEvent( wxEVT_COLUMNHEADER_DOUBLECLICKED );
 	}
 	else
 	{
@@ -638,7 +645,7 @@ long		itemIndex;
 			if (IsEnabled())
 			{
 				OnClick_SelectOrToggleSort( itemIndex, true );
-				GenerateEvent( wxEVT_COLUMNHEADER_SELCHANGED );
+				GenerateSelfEvent( wxEVT_COLUMNHEADER_SELCHANGED );
 			}
 			break;
 		}
@@ -848,7 +855,7 @@ long		extentDim, i;
 		for (i=0; i<m_ItemCount; i++)
 		{
 			if (m_ItemList[i] != NULL)
-				extentDim += m_ItemList[i]->m_ExtentX;
+				extentDim += m_ItemList[i]->m_Extent.x;
 		}
 
 	return extentDim;
@@ -878,7 +885,7 @@ bool		bIsVertical;
 			continue;
 
 		scaleItemCount++;
-		scaleItemAmount += m_ItemList[i]->m_ExtentX;
+		scaleItemAmount += m_ItemList[i]->m_Extent.x;
 	}
 
 	// determine width delta
@@ -893,7 +900,7 @@ bool		bIsVertical;
 			continue;
 
 		// move to new origin
-		m_ItemList[i]->m_OriginX = originX;
+		m_ItemList[i]->m_Origin.x = originX;
 //		m_ItemList[i]->m_Origin = origin;
 
 		// resize item, if non-fixed
@@ -902,20 +909,20 @@ bool		bIsVertical;
 			scaleItemCount--;
 
 			if (scaleItemCount > 0)
-				incX = (deltaX * m_ItemList[i]->m_ExtentX) / scaleItemAmount;
+				incX = (deltaX * m_ItemList[i]->m_Extent.x) / scaleItemAmount;
 			else
 				incX = summerX;
 
 			if (incX != 0)
 			{
-				resultX = m_ItemList[i]->m_ExtentX + incX;
+				resultX = m_ItemList[i]->m_Extent.x + incX;
 				m_ItemList[i]->ResizeToWidth( resultX );
 			}
 
 			summerX -= incX;
 		}
 
-		originX += m_ItemList[i]->m_ExtentX;
+		originX += m_ItemList[i]->m_Extent.x;
 	}
 
 	for (i=0; i<m_ItemCount; i++)
@@ -981,15 +988,15 @@ bool					bIsVertical;
 //	}
 //	else
 	{
-		if ((originX <= itemRef1->m_OriginX) || (originX >= itemRef2->m_OriginX + itemRef2->m_ExtentX))
+		if ((originX <= itemRef1->m_Origin.x) || (originX >= itemRef2->m_Origin.x + itemRef2->m_Extent.x))
 			return false;
 	}
 
-	deltaV = itemRef2->m_OriginX - originX;
-	newExtent1 = itemRef1->m_ExtentX - deltaV;
-	newExtent2 = itemRef2->m_ExtentX + deltaV;
+	deltaV = itemRef2->m_Origin.x - originX;
+	newExtent1 = itemRef1->m_Extent.x - deltaV;
+	newExtent2 = itemRef2->m_Extent.x + deltaV;
 
-	itemRef2->m_OriginX = itemRef1->m_OriginX + newExtent1;
+	itemRef2->m_Origin.x = itemRef1->m_Origin.x + newExtent1;
 	itemRef1->ResizeToWidth( newExtent1 );
 	itemRef2->ResizeToWidth( newExtent2 );
 
@@ -1294,15 +1301,16 @@ wxSize					targetExtent;
 long					originX;
 bool					bIsVertical;
 
-
 	// set invariant values
 	itemInfo.m_BEnabled = true;
 	itemInfo.m_BitmapJust = CH_JUST_Center;
+	itemInfo.m_Origin.y = 0;
+	itemInfo.m_Extent.y = 0;
 
 	// set specified values
 	itemInfo.m_LabelTextRef = textBuffer;
 	itemInfo.m_TextJust = textJust;
-	itemInfo.m_ExtentX = extentX;
+	itemInfo.m_Extent.x = extentX;
 	itemInfo.m_BSelected = ((m_ItemSelected < 0) ? bSelected : false);
 	itemInfo.m_BSortEnabled = bSortEnabled;
 	itemInfo.m_BSortAscending = bSortAscending;
@@ -1311,23 +1319,18 @@ bool					bIsVertical;
 		beforeIndex = m_ItemCount;
 
 	// determine new item origin
+	itemInfo.m_Origin.x = 0;
 	if (beforeIndex > 0)
 	{
 		bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
-
-		if (bIsVertical)
+		if (!bIsVertical)
 		{
-			itemInfo.m_OriginX = 0;
-		}
-		else
-		{
+			// ALERT: GetUIExtent returns (x = origin, y = extent), which will change
 			targetExtent = GetUIExtent( beforeIndex - 1 );
 			originX = ((targetExtent.x > 0) ? targetExtent.x : 0);
-			itemInfo.m_OriginX = originX + targetExtent.y;
+			itemInfo.m_Origin.x = originX + targetExtent.y;
 		}
 	}
-	else
-		itemInfo.m_OriginX = 0;
 
 	AddItemList( &itemInfo, 1, beforeIndex );
 }
@@ -1372,7 +1375,7 @@ bool				bIsSelected;
 #if defined(__WXMSW__)
 		MSWItemInsert(
 			targetIndex,
-			m_ItemList[targetIndex]->m_ExtentX,
+			m_ItemList[targetIndex]->m_Extent.x,
 			m_ItemList[targetIndex]->m_LabelTextRef.c_str(),
 			m_ItemList[targetIndex]->m_TextJust,
 			m_BUseUnicode,
@@ -1475,7 +1478,7 @@ bool					bResultV, bIsVertical;
 	{
 		// is this item beyond the bottom edge?
 //		if (bResultV)
-//			bResultV = (itemRef->m_OriginX < m_NativeBoundsR.height);
+//			bResultV = (itemRef->m_Origin.x < m_NativeBoundsR.height);
 
 		if (bResultV)
 		{
@@ -1484,8 +1487,8 @@ bool					bResultV, bIsVertical;
 			boundsR->width = m_DefaultItemSize.x;
 			boundsR->height = m_DefaultItemSize.y;
 
-//			if (boundsR->height > m_NativeBoundsR.height - itemRef->m_OriginX)
-//				boundsR->height = m_NativeBoundsR.height - itemRef->m_OriginX;
+//			if (boundsR->height > m_NativeBoundsR.height - itemRef->m_Origin.x)
+//				boundsR->height = m_NativeBoundsR.height - itemRef->m_Origin.x;
 
 			bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
 		}
@@ -1494,17 +1497,17 @@ bool					bResultV, bIsVertical;
 	{
 		// is this item beyond the right edge?
 		if (bResultV)
-			bResultV = (itemRef->m_OriginX < m_NativeBoundsR.width);
+			bResultV = (itemRef->m_Origin.x < m_NativeBoundsR.width);
 
 		if (bResultV)
 		{
-			boundsR->x = itemRef->m_OriginX;
+			boundsR->x = itemRef->m_Origin.x;
 			boundsR->y = 0; // m_NativeBoundsR.y;
-			boundsR->width = itemRef->m_ExtentX + 1;
+			boundsR->width = itemRef->m_Extent.x + 1;
 			boundsR->height = m_NativeBoundsR.height;
 
-			if (boundsR->width > m_NativeBoundsR.width - itemRef->m_OriginX)
-				boundsR->width = m_NativeBoundsR.width - itemRef->m_OriginX;
+			if (boundsR->width > m_NativeBoundsR.width - itemRef->m_Origin.x)
+				boundsR->width = m_NativeBoundsR.width - itemRef->m_Origin.x;
 
 			bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
 		}
@@ -2016,9 +2019,9 @@ bool		bIsVertical;
 		for (i=0; i<m_ItemCount; i++)
 			if (m_ItemList[i] != NULL)
 			{
-				m_ItemList[i]->m_OriginX = originX;
+				m_ItemList[i]->m_Origin.x = originX;
 				if (! bIsVertical)
-					originX += m_ItemList[i]->m_ExtentX;
+					originX += m_ItemList[i]->m_Extent.x;
 			}
 	}
 }
@@ -2204,7 +2207,7 @@ BOOL					bHasButtonArrow;
 	}
 
 	// FIXME: the first item lines up short, so hack-fix it
-	nWidth = itemRef->m_ExtentX;
+	nWidth = itemRef->m_Extent.x;
 	if (itemIndex <= 0)
 		nWidth += 2;
 
@@ -2268,7 +2271,7 @@ BOOL					bHasButtonArrow;
 #pragma mark -
 #endif
 
-void wxColumnHeader::GenerateEvent(
+void wxColumnHeader::GenerateSelfEvent(
 	wxEventType		eventType )
 {
 wxColumnHeaderEvent	event( this, eventType );
@@ -2309,8 +2312,8 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 	, m_BitmapRef( NULL )
 	, m_BitmapJust( 0 )
 	, m_ButtonArrowStyle( 0 )
-	, m_OriginX( 0 )
-	, m_ExtentX( 0 )
+	, m_Origin( 0, 0 )
+	, m_Extent( 0, 0 )
 	, m_BEnabled( false )
 	, m_BSelected( false )
 	, m_BSortEnabled( false )
@@ -2327,8 +2330,8 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 	, m_BitmapRef( NULL )
 	, m_BitmapJust( 0 )
 	, m_ButtonArrowStyle( 0 )
-	, m_OriginX( 0 )
-	, m_ExtentX( 0 )
+	, m_Origin( 0, 0 )
+	, m_Extent( 0, 0 )
 	, m_BEnabled( false )
 	, m_BSelected( false )
 	, m_BSortEnabled( false )
@@ -2356,8 +2359,8 @@ void wxColumnHeaderItem::GetItemData(
 	info->m_LabelTextExtent = m_LabelTextExtent;
 	info->m_LabelTextVisibleCharCount = m_LabelTextVisibleCharCount;
 	info->m_ButtonArrowStyle = m_ButtonArrowStyle;
-	info->m_OriginX = m_OriginX;
-	info->m_ExtentX = m_ExtentX;
+	info->m_Origin = m_Origin;
+	info->m_Extent = m_Extent;
 	info->m_BEnabled = m_BEnabled;
 	info->m_BSelected = m_BSelected;
 	info->m_BSortEnabled = m_BSortEnabled;
@@ -2382,8 +2385,8 @@ void wxColumnHeaderItem::SetItemData(
 	m_LabelTextExtent = info->m_LabelTextExtent;
 	m_LabelTextVisibleCharCount = info->m_LabelTextVisibleCharCount;
 	m_ButtonArrowStyle = info->m_ButtonArrowStyle;
-	m_OriginX = info->m_OriginX;
-	m_ExtentX = info->m_ExtentX;
+	m_Origin = info->m_Origin;
+	m_Extent = info->m_Extent;
 	m_BEnabled = info->m_BEnabled;
 	m_BSelected = info->m_BSelected;
 	m_BSortEnabled = info->m_BSortEnabled;
@@ -2490,8 +2493,8 @@ void wxColumnHeaderItem::GetUIExtent(
 	long				&originX,
 	long				&extentX ) const
 {
-	originX = m_OriginX;
-	extentX = m_ExtentX;
+	originX = m_Origin.x;
+	extentX = m_Extent.x;
 }
 
 void wxColumnHeaderItem::SetUIExtent(
@@ -2501,8 +2504,8 @@ void wxColumnHeaderItem::SetUIExtent(
 	wxUnusedVar( originX );
 
 	// NB: not currently permitted
-//	if ((originX >= 0) && (m_OriginX != originX))
-//		m_OriginX = originX;
+//	if ((originX >= 0) && (m_Origin.x != originX))
+//		m_Origin.x = originX;
 
 	ResizeToWidth( extentX );
 }
@@ -2510,9 +2513,9 @@ void wxColumnHeaderItem::SetUIExtent(
 void wxColumnHeaderItem::ResizeToWidth(
 	long				extentX )
 {
-	if ((extentX >= 0) && (m_ExtentX != extentX))
+	if ((extentX >= 0) && (m_Extent.x != extentX))
 	{
-		m_ExtentX = extentX;
+		m_Extent.x = extentX;
 		InvalidateTextExtent();
 	}
 }
@@ -2597,7 +2600,7 @@ long wxColumnHeaderItem::HitTest(
 long		targetX, resultV;
 
 	targetX = locationPt.x;
-	resultV = ((targetX >= m_OriginX) && (targetX < m_OriginX + m_ExtentX));
+	resultV = ((targetX >= m_Origin.x) && (targetX < m_Origin.x + m_Extent.x));
 
 	return resultV;
 }
@@ -2952,11 +2955,11 @@ long		insetX;
 		break;
 	}
 
-	originX = m_OriginX + leftInsetX;
-	if (originX > m_OriginX + m_ExtentX)
-		originX = m_OriginX + m_ExtentX;
+	originX = m_Origin.x + leftInsetX;
+	if (originX > m_Origin.x + m_Extent.x)
+		originX = m_Origin.x + m_Extent.x;
 
-	extentX = m_ExtentX - (leftInsetX + rightInsetX);
+	extentX = m_Extent.x - (leftInsetX + rightInsetX);
 	if (extentX < 0)
 		extentX = 0;
 
