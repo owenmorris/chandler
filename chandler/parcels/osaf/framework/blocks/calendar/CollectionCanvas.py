@@ -303,6 +303,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvent)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
 
         self.dragState = self.draggedOutState = None
         self.coercedCanvasItem = None
@@ -577,11 +578,19 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                     
                 self.dragState.HandleDragEnd()
                 self.dragState = None
-        
-        elif event.RightUp():
-            self.ContextMenu(position)
+        else:
+            # Pass right clicks, etc onto wx, which can generate
+            # EVT_CONTEXT_MENU as appropriate.
+            event.Skip()
 
-    def ContextMenu(self, position):
+    def OnContextMenu(self, event):
+    
+        # Event's position is in screen co-ordinates, so convert it
+        position = self.ScreenToClient(event.GetPosition())
+
+        # When doing calculations w.r.t. item positions on the
+        # canvas, we want to use the unscrolled position. The
+        # only place we use position is in the call to PopupMenu.
         unscrolledPosition = self.CalcUnscrolledPosition(position)
 
         data = {'collection' : self.blockItem.contentsCollection.displayName}
@@ -595,7 +604,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         menu.AppendItem(menuItem)
         menuItem.Enable(self.blockItem.CanAdd())
         eventcallback = lambda event: self.OnCreateItem(unscrolledPosition)
-        menu.Bind(wx.EVT_MENU, eventcallback, menuItem)        
+        menu.Bind(wx.EVT_MENU, eventcallback, menuItem)
         
         if canvasItem:
             item = canvasItem.item
