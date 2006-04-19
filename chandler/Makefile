@@ -196,7 +196,7 @@ ifeq ($(OS),Cygwin)
 manifest_exe:
 	if [ -f "$(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest" ]; \
 	then \
-	    chmod +x $(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest; \
+	    chmod +x `cygpath -u $(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest`; \
 	fi
 else
 manifest_exe:
