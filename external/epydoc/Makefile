@@ -1,13 +1,12 @@
 
 VERSION=2.1
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)6
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)7
 EPYDOC=$(BUILD_ROOT)/epydoc
 SRC=$(EPYDOC)/epydoc-$(VERSION)
+BUILD=build_$(SNAP)
 TARBALL=epydoc-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
-
-BUILD=build_$(SNAP)
 
 .PHONY: patches-$(VERSION)
 
