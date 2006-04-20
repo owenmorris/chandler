@@ -22,6 +22,8 @@ class TestPanel( wx.Panel ):
         self.colStartX = 175
         self.colStartY = 20
 
+        resizeColStartX = self.colStartX
+
         self.stepSize = 0
         self.stepDir = -1
 
@@ -120,7 +122,10 @@ class TestPanel( wx.Panel ):
         btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 30) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
 
-        btn = wx.Button( self, -1, "Dump Info", (self.colStartX,miscControlsY + 60) )
+        btn = wx.Button( self, -1, "Resize To Fit", (self.colStartX, miscControlsY + 60) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeToFit, btn )
+
+        btn = wx.Button( self, -1, "Dump Info", (self.colStartX, miscControlsY + 90) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonDumpInfo, btn )
 
         self.colStartX += 150
@@ -140,7 +145,7 @@ class TestPanel( wx.Panel ):
         self.Bind( wx.EVT_CHOICE, self.OnEvtChoiceArrowButton, choice )
         self.choiceAB = choice
 
-        self.colStartX = 200
+        self.colStartX = resizeColStartX
 
     def OnClickColumnHeader( self, event ):
         ch = event.GetEventObject()
@@ -163,6 +168,12 @@ class TestPanel( wx.Panel ):
         newSize = self.baseWidth2 + 40 * self.stepSize
         ch.DoSetSize( self.colStartX, self.colStartY + 100, newSize, 20, 0 )
         self.l0.SetLabel( "(both): resized bounds by (%d)" %(40 * self.stepSize) )
+
+    def OnButtonTestResizeToFit( self, event ):
+        self.ch1.ResizeToFit()
+        self.ch2.ResizeToFit()
+        self.ch3.ResizeToFit()
+        self.l0.SetLabel( "(both): resized and refitted!" )
 
     def OnButtonTestDeleteItem( self, event ):
         ch = self.ch1
