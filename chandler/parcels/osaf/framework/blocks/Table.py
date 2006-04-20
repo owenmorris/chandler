@@ -105,6 +105,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.EnableCursor (False)
         background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
         self.SetLightSelectionBackground()
+        self.SetScrollLineY (self.GetDefaultRowSize())
 
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
