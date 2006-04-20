@@ -168,6 +168,10 @@ class ListCollection(ContentCollection):
         for item in self:
             item.delete(True)
 
+    def onItemCopy(self, view, original):
+        if original == schema.ns('osaf.pim', view).trashCollection:
+            print "Copying Trash %s -> %s!" % (original, self)
+
 
 class DifferenceCollection(ContentCollection):
     """
@@ -372,7 +376,7 @@ class SmartCollection(ContentCollection):
 
     inclusions = schema.One(ContentCollection)
     exclusions = schema.One(ContentCollection)
-    sources = schema.Sequence(ContentCollection, initialValue=[])
+    #sources = schema.Sequence(ContentCollection, initialValue=[])
     trash = schema.One(ListCollection, otherName='trashFor', initialValue=None)
 
     # __collection__ denotes a bi-ref set, 
@@ -380,7 +384,7 @@ class SmartCollection(ContentCollection):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byCloud=[inclusions, exclusions, sources],
+            byCloud=[inclusions, exclusions],
             byRef=[trash, __collection__]
         ),
     )
@@ -511,9 +515,7 @@ class SmartCollection(ContentCollection):
         if source is None:
             innerSource = self.inclusions
         else:
-            innerSource = UnionCollection(itsParent=self,
-                                          displayName=u"(Union of source and inclusions)",
-                                          sources=[source, self.inclusions])
+            innerSource = Union(source, self.inclusions)
 
         # Typically we will create an exclusions ListCollection; however,
         # a collection like 'All' will instead want to use the Trash collection
@@ -534,17 +536,14 @@ class SmartCollection(ContentCollection):
         #   be moved to the trash if it doesn't appear in any collection which
         #   shares that trash
 
+        set = Difference(innerSource, exclusions)
         if trash is not None:
-            outerSource = DifferenceCollection(itsParent=self,
-                                               displayName=u"(Difference between source and trash)",
-                                               sources=[innerSource, trash])
+            set = Difference(set, trash)
             self.trash = trash
         else:
-            outerSource = innerSource
             self.trash = exclusions
 
-        self.sources = [outerSource, exclusions]
-        setattr(self, self.__collection__, Difference(outerSource, exclusions))
+        setattr(self, self.__collection__, set)
 
 class IndexedSelectionCollection(ContentCollection):
     """

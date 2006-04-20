@@ -22,7 +22,7 @@ from repository.persistence.RepositoryError import \
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "184" # twl: change body type to schema.Text, bug 3531
+SCHEMA_VERSION = "185" # alecf: remove extraneous Collection items from SmartCollection
 
 logger = None # initialized in initLogging()
 
