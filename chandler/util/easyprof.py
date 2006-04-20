@@ -9,14 +9,14 @@ class Profile(object):
 
     Simple use::
 
-        p = Profile('mymethods.prof')
+        profiled = Profile('mymethods.prof')
 
         class A(object)::
-            @p.profiled
-            def SomeMethod(self, ...)
+            @profiled
+            def SomeMethod(self, ...):
 
-            @p.profiled
-            def AnotherMethod(self, ...)
+            @profiled
+            def AnotherMethod(self, ...):
     """
     
     def __init__(self, profilefile):
@@ -24,7 +24,7 @@ class Profile(object):
         self.profiler = hotshot.Profile(profilefile)
         self.profiler_active = False
 
-    def profiled(self, method):
+    def __call__(self, method):
         def profile_me(*args, **kwds):
             # Make sure we actually return the original
             # method's return value.
