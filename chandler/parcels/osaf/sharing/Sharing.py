@@ -2632,6 +2632,13 @@ class CloudXMLFormat(ImportExportFormat):
                         attrValue = attrValue.replace('<', '&lt;')
                         attrValue = attrValue.replace('>', '&gt;')
 
+                        # @@@MOR: Temporary hack for backwards compatbility:
+                        # Pretend body is a Lob for the benefit of 0.6 clients
+                        if attrName == 'body':
+                            mimeType = "text/plain"
+                            encoding = "utf-8"
+                            attrValue = base64.b64encode(attrValue)
+
                         if mimeType:
                             result += " mimetype='%s'" % mimeType
 
@@ -2833,12 +2840,15 @@ class CloudXMLFormat(ImportExportFormat):
                             indexed = mimeType == "text/plain"
                             value = base64.b64decode(unicode(attrElement.text
                                 or u""))
-                            value = utils.dataToBinary(item, attrName, value,
-                                mimeType=mimeType, indexed=indexed)
 
-                            encoding = attrElement.get('encoding')
-                            if encoding:
-                                value.encoding = encoding
+                            # @@@MOR Temporary hack for backwards compatbility:
+                            # Because body changed from Lob to Text:
+                            if attrName != "body":
+                                value = utils.dataToBinary(item, attrName,
+                                    value, mimeType=mimeType, indexed=indexed)
+                                encoding = attrElement.get('encoding')
+                                if encoding:
+                                    value.encoding = encoding
 
                         else:
                             content = unicode(attrElement.text or u"")
