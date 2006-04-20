@@ -54,14 +54,18 @@ class DatetimeFormatter(object):
         else:
             self.dateFormat.setTimeZone(tzinfo.timezone)
         
-        timestamp = self.dateFormat.parse(string)
+        self.dateFormat.parse(string)
+        calendar = self.dateFormat.getCalendar()
         
-        if tzinfo is None:
-            # We started with a naive datetime, so return one
-            return datetime.fromtimestamp(timestamp)
-        else:
-            # Similarly, return a naive datetime
-            return datetime.fromtimestamp(timestamp, tzinfo)
+        return datetime(
+            calendar.get(PyICU.Calendar.YEAR),
+            calendar.get(PyICU.Calendar.MONTH) + 1,
+            calendar.get(PyICU.Calendar.DATE),
+            calendar.get(PyICU.Calendar.HOUR_OF_DAY),
+            calendar.get(PyICU.Calendar.MINUTE),
+            calendar.get(PyICU.Calendar.SECOND),
+            calendar.get(PyICU.Calendar.MILLISECOND) * 1000,
+            tzinfo)
         
     def format(self, datetime):
         """
