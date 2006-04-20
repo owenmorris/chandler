@@ -596,6 +596,9 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         self.control.ActivateInPlace()
 
     def EndEdit (self, row, column, grid):
+        if not hasattr(self, "editingCell"):
+            return
+        
         assert self.editingCell == (row, column)
         self.editingCell = None
         if hasattr (grid, "editAttributeNamed"):
