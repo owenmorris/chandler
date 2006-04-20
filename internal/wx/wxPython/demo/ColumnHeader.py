@@ -277,17 +277,19 @@ overview = """<html><body>
 
 <p>A ColumnHeader control displays a set of joined, native-appearance button-ish things.</p>
 
-<p>Native column headers can be found in many views, most notably in a folder Details view.</p>
+<p>RowHeaders (vertical orientation) are also supported.</p>
+
+<p>Native column (and row) headers can be found in many views, most notably in a folder Details view.</p>
 
 <p>This control embodies the native look and feel to the greatest practical degree, and fills in some holes to boot.</p>
 
-<p>Selections, bitmaps, button arrows and sort arrows are optional</p>
+<p>Selections, bitmaps, button arrows and sort arrows are optional.</p>
 
-<p>NB: not all of the selection styles are implemented</p>
+<p>NB-1: a limitation - text and bitmaps are mutually exclusive.</p>
 
-<p>A limitation: text and bitmaps are mutually exclusive.</p>
+<p>NB-2: not all of the selection styles are implemented.</p>
 
-<p>The MSW version of this control will have a persistant selection indicator. The native MSW control has no canonical selection UI, instead using a sort arrow to serve double-duty as a selection indicator; nonetheless, it has a rollover indicator.</p>
+<p>The MSW version of this control has a persistant selection indicator. The native MSW control has no canonical selection UI, instead using a sort arrow to serve double-duty as a selection indicator; nonetheless, it has a rollover indicator.</p>
 
 <p>The GTK framework lacks, or appears to lack, a native control: a simple bevel button shall suffice for the theme background.</p>
 
