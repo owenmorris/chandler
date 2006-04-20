@@ -3,11 +3,12 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks"
 
 import sys
-from Block import Block, IgnoreSynchronizeWidget
+from Block import Block, IgnoreSynchronizeWidget, debugName
 from ContainerBlocks import wxBoxContainer, BoxContainer
 from repository.item.Item import Item
 from application import schema
 import wx
+import logging
 
 """
 Classes for dynamically substituting child trees-of-blocks.
@@ -19,6 +20,8 @@ synchronizeWidget happens, the appropriate set of child blocks will be swapped
 in. This mechanism is managed by a BranchPointDelegate object, which can be
 subclassed and/or configured from parcel XML to customize its behavior. 
 """
+
+logger = logging.getLogger(__name__)
 
 class BranchSubtree(schema.Annotation):
     """
@@ -145,7 +148,10 @@ class BranchPointBlock(BoxContainer):
 
         oldView = self.childrenBlocks.first()
         treeChanged = newView is not oldView
-
+        
+        logger.debug("installTreeOfBlocks %s: treeChanged=%s, detailItemChanged=%s, detailItem=%s",
+                     debugName(self), treeChanged, detailItemChanged, debugName(detailItem))
+        
         # Render or rerender as necessary
         if treeChanged:
             # get rid of the old view

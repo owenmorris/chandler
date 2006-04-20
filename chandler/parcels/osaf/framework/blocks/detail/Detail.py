@@ -80,18 +80,19 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             self.itsView.unwatchItem(self, item, 'onItemKindChanged')
 
     def onItemKindChanged(self, op, uuid, attributes):
-
-        # Ignore notifications for attributes we don't care about
-        if 'itsKind' not in attributes:
-            #logger.debug("%s: ignoring changes to %s.", 
-                         #debugName(self), attributes)
+        # Ignore notifications during stamping (but not deleting,
+        # for which we do want our parent to resync)
+        item = self.item
+        if item is None or item.isMutating():
+            logger.debug("%s: ignoring kind change to %s during stamping ", 
+                         debugName(self), debugName(self.item))
             return
 
-        # Ignore notifications during stamping or deleting
-        item = self.item
-        if item is not None and (item.isMutating() or item.isDeleting()):
-            logger.debug("%s: ignoring kind change to %s during stamping or deletion.", 
-                         debugName(self), debugName(self.item))
+        # Ignore notifications for attributes we don't care about,
+        # unless the item's being deleted.
+        if not ('itsKind' in attributes or item.isDeleting()):
+            logger.debug("%s: ignoring changes to %s.", 
+                         debugName(self), attributes)
             return
         
         # It's for us - tell our parent to resync.
@@ -285,7 +286,7 @@ class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
         """ 
         Overrides to use the item's kind as our cache key
         """
-        if item is None:
+        if item is None or item.isDeleting():
             # We use Block's kind itself as the key for displaying "nothing";
             # Mimi wants a particular look when no item is selected; we've got a 
             # particular tree of blocks defined in parcel.xml for this Kind,
