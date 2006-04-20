@@ -85,7 +85,7 @@ This is the body"""
         m.dateSent = datetime.fromtimestamp(emailUtils.mktime_tz(emailUtils.parsedate_tz(dateString)), ICUtzinfo.getInstance("Etc/GMT-7"))
         m.dateSentString = dateString
 
-        m.body = utils.unicodeToText(m, "body", u"This is the body")
+        m.body = u"This is the body"
         m.rfc2822Message = utils.dataToBinary(m, "rfc2822Message", self.__mail)
 
         self.__mailMessage = m
@@ -139,7 +139,7 @@ This is the body"""
         self.assertEquals(mOne.headers['Content-Type'], mTwo.headers['Content-Type'])
         self.assertEquals(mOne.headers['Content-Transfer-Encoding'], mTwo.headers['Content-Transfer-Encoding'])
         self.assertEquals(mOne.headers['Mime-Version'], mTwo.headers['Mime-Version'])
-        self.assertEquals(utils.textToUnicode(mOne.body), utils.textToUnicode(mTwo.body))
+        self.assertEquals(mOne.body, mTwo.body)
         self.assertEquals(utils.binaryToData(mOne.rfc2822Message), utils.binaryToData(mTwo.rfc2822Message))
 
 

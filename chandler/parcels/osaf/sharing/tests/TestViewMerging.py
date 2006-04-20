@@ -90,7 +90,7 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
             c.startTime=datetime.datetime(2005, 10, 31, 12, 0, 0, 0, tzinfo)
             c.duration=datetime.timedelta(minutes=60)
             c.anyTime=False
-            c.body = lob.makeValue("test", mimetype="text/plain")
+            c.body = "test"
             self.uuids[c.itsUUID] = c.displayName
             coll.add(c)
 
@@ -304,8 +304,8 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         lob0 = view0.findPath("//Schema/Core/Lob")
         lob1 = view1.findPath("//Schema/Core/Lob")
 
-        item0.body = lob0.makeValue("view0 change", mimetype="text/plain")
-        item1.body = lob1.makeValue("view1 change", mimetype="text/plain")
+        item0.body = "view0 change"
+        item1.body = "view1 change"
 
         stats = sharing.sync(coll0)
         printStats(view0, stats)
@@ -333,12 +333,10 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
 
         # Since we sync'd coll0 first, its change wins out over coll1
-        item0body = item0.body.getInputStream().read()
-        self.assertEqual(item0body, "view0 change",
-         u"item0 body is %s" % item0body)
-        item1body = item1.body.getInputStream().read()
-        self.assertEqual(item1body, "view0 change",
-         u"item1 body is %s" % item1body)
+        self.assertEqual(item0.body, "view0 change",
+         u"item0 body is %s" % item0.body)
+        self.assertEqual(item1.body, "view0 change",
+         u"item1 body is %s" % item1.body)
 
 
 

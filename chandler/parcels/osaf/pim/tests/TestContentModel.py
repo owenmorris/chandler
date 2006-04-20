@@ -77,7 +77,6 @@ class ContentItemTest(ContentModelTestCase):
         self.assertEqual(genericContentItem.getItemDisplayName(), u"Test Content Item")
         
         # Test Calculated basedOn
-        self.assertEqual(genericContentItem.getBasedAttributes('bodyString'), ('body',))
         self.assertEqual(genericContentItem.getBasedAttributes('body'), ('body',))
                          
         genericProject.name = "Test Project"

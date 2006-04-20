@@ -21,7 +21,7 @@ import constants as constants
 __all__ = ['log', 'trace', 'disableTwistedTLS', 'loadMailTests', 'getEmptyDate',
            'dateIsEmpty', 'alert', 'alertMailError', 'NotifyUIAsync', 'displaySSLCertDialog',
            'displayIgnoreSSLErrorDialog', 'dateTimeToRFC2882Date', 'createMessageID',
-           'hasValue', 'isString', 'unicodeToText', 'textToUnicode', 'dataToBinary',
+           'hasValue', 'isString', 'dataToBinary',
            'binaryToData']
 
 
@@ -199,29 +199,6 @@ def isString(var):
 
     return False
 
-def unicodeToText(contentItem, attribute, unicodeString, indexText=False,
-                  encoding=constants.DEFAULT_CHARSET, replaceError=True,
-                  compression='bz2'):
-    """Converts a C{unicode} string  to {Lob}.
-    """
-    assert isinstance(unicodeString, unicode), "Only Unicode string may be passed to this method"
-
-    lobType = contentItem.getAttributeAspect(attribute, 'type')
-    return lobType.makeValue(unicodeString, indexed=indexText,
-                             encoding=encoding, replace=replaceError,
-                             compression=compression)
-
-
-def textToUnicode(text):
-    """Converts a text C{Lob} to a C{unicode} String"""
-    assert isinstance(text, Lob), "Must pass a Lob instance"
-    assert text.encoding, "Encoding must not be None for reader API"
-
-    reader = text.getReader()
-    uStr = reader.read()
-    reader.close()
-
-    return uStr
 
 def dataToBinary(contentItem, attribute, data,
                  mimeType="application/octet-stream",

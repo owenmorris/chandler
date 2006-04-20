@@ -297,8 +297,7 @@ def messageObjectToKind(view, messageObject, messageText=None,
     if eventDescriptionLength and isinstance(m, Mail.MailMessageMixin):
         body = body[eventDescriptionLength:]
         
-    m.body = unicodeToText(m, "body", body,
-                           indexText=indexText, compression=compression)
+    m.body = body
 
     __parseHeaders(view, messageObject, m)
 
@@ -336,7 +335,7 @@ def kindToMessageObject(mailMessage):
     populateHeader(messageObject, 'Subject', mailMessage.about, encode=True)
 
     try:
-        payload = textToUnicode(mailMessage.body).encode('utf8')
+        payload = mailMessage.body.encode('utf8')
 
     except AttributeError:
         payload = ""
@@ -771,9 +770,7 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
             mimeText.lang = lang
 
         #XXX: This may cause issues since Note no longer a parent
-        mimeText.body = unicodeToText(mimeText, "body",
-                                      getUnicodeValue(body, charset),
-                                      indexText=False, compression=compression)
+        mimeText.body = getUnicodeValue(body, charset)
 
         parentMIMEContainer.mimeParts.append(mimeText)
         parentMIMEContainer.hasMimeParts = True

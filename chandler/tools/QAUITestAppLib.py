@@ -892,7 +892,7 @@ class UITestItem(object):
                 else:
                     if self.logger: self.logger.ReportPass("(On location Checking)")
             elif field == "body": # body checking
-                body = "%s" %self.item.bodyString
+                body = "%s" %self.item.body
                 if not dict[field] == body :
                     if self.logger: self.logger.ReportFailure("(On body Checking) || object body = %s ; expected body = %s" %(body, dict[field]))
                 else:

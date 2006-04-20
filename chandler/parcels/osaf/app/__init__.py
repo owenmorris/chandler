@@ -239,8 +239,7 @@ The Chandler Team""")
     scripting.Script.update(parcel, 'Block Inspector',
                             displayName=_(u"F2 - Block under cursor"),
                             fkey=_(u"F2"),
-                            creator = osafDev,
-                            bodyString=scripting.script_file(u"BlockInspector.py", Scripts.__file__)
+                            creator = osafDev, body=scripting.script_file(u"BlockInspector.py", Scripts.__file__)
                             )
 
     # Item Inspector
@@ -248,7 +247,7 @@ The Chandler Team""")
                             displayName=_(u"F3 - Item selected"),
                             fkey=_(u"F3"),
                             creator = osafDev,
-                            bodyString=scripting.script_file(u"ItemInspector.py", Scripts.__file__)
+                            body=scripting.script_file(u"ItemInspector.py", Scripts.__file__)
                             )
 
     # Browse selected item
@@ -256,7 +255,7 @@ The Chandler Team""")
                             displayName=_(u"F4 - Browse selected item"),
                             fkey=_(u"F4"),
                             creator = osafDev,
-                            bodyString=scripting.script_file(u"BrowseSelected.py", Scripts.__file__)
+                            body=scripting.script_file(u"BrowseSelected.py", Scripts.__file__)
                             )
 
     # Scripts whose name starts with "test" can all be run through a command-line option
@@ -264,21 +263,21 @@ The Chandler Team""")
                             displayName=_(u"Test - Reload Parcels"),
                             #test=True, # @@@ reenable this line when bug 4554 is fixed
                             creator = osafDev,
-                            bodyString=scripting.script_file(u"ReloadParcels.py", Scripts.__file__)
+                            body=scripting.script_file(u"ReloadParcels.py", Scripts.__file__)
                             )
 
     scripting.Script.update(parcel, 'Event Timing',
                             displayName=_(u"Test - Event timing example"),
                             test=True,
                             creator = osafDev,
-                            bodyString=scripting.script_file(u"EventTiming.py", Scripts.__file__)
+                            body=scripting.script_file(u"EventTiming.py", Scripts.__file__)
                             )
 
     # The cleanup script, run after all the test scripts
     scripting.Script.update(parcel, 'CleanupAfterTests',
                             displayName=_(u"CleanupAfterTests"),
                             creator = osafDev,
-                            bodyString=scripting.script_file(u"CleanupAfterTests.py", Scripts.__file__)
+                            body=scripting.script_file(u"CleanupAfterTests.py", Scripts.__file__)
                             )
 
     # Script to paste the clipboard into a new menu item

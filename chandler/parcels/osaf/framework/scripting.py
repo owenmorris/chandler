@@ -108,7 +108,7 @@ def installParcel(parcel, oldVersion=None):
                                 ]).install(parcel)
 
     scriptTextArea = detail.makeEditor(parcel, 'NotesBlock',
-                                       viewAttribute=u'bodyString',
+                                       viewAttribute=u'body',
                                        presentationStyle={'lineStyleEnum': 'MultiLine',
                                                           'format': 'fileSynchronized'},
                                        position=0.9).install(parcel)
@@ -203,7 +203,7 @@ class Script(pim.ContentItem):
     date = schema.One(redirectTo = 'lastRan')
 
     def __init__(self, itsName=None, itsParent=None, itsKind=None, itsView=None,
-                 bodyString=None, *args, **keys):
+                 body=None, *args, **keys):
         defaultName = messages.UNTITLED
         if itsName is not None:
             defaultName = unicode(itsName)
@@ -213,20 +213,20 @@ class Script(pim.ContentItem):
         )
         self.lastRan = datetime.now()
         self.lastSync = self.lastRan
-        if bodyString is not None:
-            self.bodyString = bodyString # property for the body LOB
+        if body is not None:
+            self.body = body # property for the body LOB
         self.private = False # can share scripts
 
     def execute(self):
         self.sync_file_with_model()
         self.lastRan = datetime.now()
-        run_script(self.bodyString, fileName=self.filePath)
+        run_script(self.body, fileName=self.filePath)
 
     def set_body_quietly(self, newValue):
-        if newValue != self.bodyString:
+        if newValue != self.body:
             oldQuiet = getattr(self, '_change_quietly', False)
             self._change_quietly = True
-            self.bodyString = newValue
+            self.body = newValue
             self._change_quietly = oldQuiet
 
     def onValueChanged(self, name):
@@ -266,7 +266,7 @@ class Script(pim.ContentItem):
                             "recent edits of this script?")
                     if not Util.yesNo(wx.GetApp().mainFrame, caption, msg):
                         return
-                self.write_file(self.bodyString)
+                self.write_file(self.body)
                 fileModTime = datetime.fromtimestamp(os.stat(self.filePath)[8])
             # now the file and model match
             self.lastSync = self.modelModTime = fileModTime
@@ -299,7 +299,7 @@ class Script(pim.ContentItem):
         fileName = fileName.encode(sys.getfilesystemencoding())
         #Convert the filePath bytes to unicode for storage
         filePath = unicode(os.path.join(os.path.dirname(siblingPath), fileName), sys.getfilesystemencoding())
-        self.bodyString = self.file_contents(filePath)
+        self.body = self.file_contents(filePath)
         self.filePath = filePath
 
 class FileSynchronizedAttributeEditor(AttributeEditors.StringAttributeEditor):
@@ -339,14 +339,14 @@ class OpenFileButton(Detail.DetailSynchronizer, ControlBlocks.Button):
     """
     def shouldShow(self, item):
         self._item = item
-        return len(item.bodyString) == 0
+        return len(item.body) == 0
 
     def onSaveFileEvent(self, event):
         """
         Open a file to associate with this script, or save an existing
         script to a file.
         """
-        if not self._item.bodyString:
+        if not self._item.body:
             # no script body, open and overwrite existing model data
             title = _(u"Open a script file")
             message = _(u"Open an existing script file, or choose a name\n"
@@ -382,7 +382,7 @@ class OpenFileButton(Detail.DetailSynchronizer, ControlBlocks.Button):
         cmd, dir, fileName = result
 
         if cmd == wx.ID_OK:
-            preferFile = len(self._item.bodyString) == 0
+            preferFile = len(self._item.body) == 0
             writeFile = not preferFile
             self._item.filePath = os.path.join(dir, fileName)
             self._item.sync_file_with_model(preferFile=preferFile)
@@ -397,7 +397,7 @@ class SaveFileButton(OpenFileButton):
     """
     def shouldShow(self, item):
         self._item = item
-        return len(item.bodyString) > 0 and len(item.filePath) == 0
+        return len(item.body) > 0 and len(item.filePath) == 0
 
 class SaveAsFileButton(OpenFileButton):
     """
@@ -406,7 +406,7 @@ class SaveAsFileButton(OpenFileButton):
     """
     def shouldShow(self, item):
         self._item = item
-        return len(item.bodyString) > 0 and len(item.filePath) > 0
+        return len(item.body) > 0 and len(item.filePath) > 0
 
 
 def hotkey_script(event, view):

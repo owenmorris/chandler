@@ -384,7 +384,7 @@ def makeNoteSubtree(parcel, oldVersion):
 
     # Then, the Note AEBlock
     notesBlock = makeEditor(parcel, 'NotesBlock',
-                            viewAttribute=u'bodyString',
+                            viewAttribute=u'body',
                             presentationStyle={'lineStyleEnum': 'MultiLine'},
                             position=0.9).install(parcel)
 

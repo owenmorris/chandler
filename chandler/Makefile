@@ -18,7 +18,7 @@ endif
 BP=
 
 BUNDLED_PLUGINS=Chandler_HelloWorldPlugin-0.1-py2.4.egg \
-                Chandler_FeedsPlugin-0.1-py2.4.egg
+                Chandler_FeedsPlugin-0.2-py2.4.egg
 
 BUILD_PLUGINS=Chandler-HelloWorldPlugin Chandler-FeedsPlugin
 

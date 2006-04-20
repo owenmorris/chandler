@@ -115,7 +115,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
                 pass
 
         try:
-            comp.add('description').value = item.body.getReader().read()
+            comp.add('description').value = item.body
         except AttributeError:
             pass
         
@@ -561,7 +561,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                 
                 # DESCRIPTION <-> body  
                 if description is not None:
-                    change('body', textKind.makeValue(description))
+                    change('body', description)
                 
                 if location:
                     change('location', Calendar.Location.getLocation(view,

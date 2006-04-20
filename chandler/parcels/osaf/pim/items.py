@@ -80,7 +80,7 @@ class ContentItem(schema.Item):
 
     displayName = schema.One(schema.Text, displayName=_(u"Title"), indexed=True)
     body = schema.One(
-        schema.Lob,
+        schema.Text,
         displayName=_(u"Body"),
         indexed = True,
         doc="All Content Items may have a body to contain notes.  It's "
@@ -509,38 +509,6 @@ class ContentItem(schema.Item):
         except AttributeError:
             return u''
         return unicode (whoFrom)
-
-    def ItemBodyString (self):
-        """
-        return unicode(item.body) converts from text lob to unicode
-        """
-        try:
-            noteBody = self.body
-        except AttributeError:
-            noteBody = u''
-        else:
-            if isinstance(noteBody, Lob):
-                # Read the unicode stream from the XML
-                noteBody = noteBody.getPlainTextReader().read()
-        return noteBody
-
-    def SetItemBodyString (self, value):
-        try:
-            lob = self.body
-        except AttributeError:
-            lobType = self.getAttributeAspect ('body', 'type')
-            self.body = lobType.makeValue(value, indexed=True)
-        else:
-            writer = lob.getWriter()
-            try:
-                writer.write(value)
-            finally:
-                writer.close()
-
-    bodyString = Calculated(schema.Text, u"bodyString",
-                            basedOn=('body',),
-                            fget=ItemBodyString, fset=SetItemBodyString,
-                            doc="body attribute as a string")
 
     def ItemAboutString (self):
         """

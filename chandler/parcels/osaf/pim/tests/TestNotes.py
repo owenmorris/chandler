@@ -25,10 +25,8 @@ class NotesTest(TestContentModel.ContentModelTestCase):
             self.assertEqual(note.displayName, u"sample note")
             self.assertEqual(note.getBasedAttributes('about'), ('displayName',))
 
-            reader = note.body.getReader()
-            self.assertEqual(reader.read(),
+            self.assertEqual(note.body, 
                              "more elaborate sample note body")
-            reader.close()
 
         # Test the globals
         notesPath = Path('//parcels/osaf/pim')

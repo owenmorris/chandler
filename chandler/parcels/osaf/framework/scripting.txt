@@ -67,9 +67,9 @@ to bring scripts in to our application from the "scripts" directory::
 Script Kind
 -----------
 Most of the API goes through the Script Kind.  You can create scripts
-by passing in a bodyString for the script, and then calling execute()::
+by passing in a body for the script, and then calling execute()::
 
-    >>> myScript = Scripting.Script(itsView=rv, bodyString="t = 'New Task'; print t")
+    >>> myScript = Scripting.Script(itsView=rv, body="t = 'New Task'; print t")
     >>> myScript.execute()
     New Task
 

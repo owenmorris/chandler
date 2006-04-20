@@ -104,7 +104,7 @@ class Certificate(pim.ContentItem):
         """
         return self.asText.getPlainTextReader().read()
 
-    asTextAsString = pim.Calculated(schema.Text, u"bodyString",
+    asTextAsString = pim.Calculated(schema.Text, u"body",
         basedOn=('asText',),
         fget=getAsTextAsString,
         doc="asText attribute as a string")

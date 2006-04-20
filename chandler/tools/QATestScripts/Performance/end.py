@@ -3,6 +3,9 @@
 # Start Chandler 3 times with: time chandler -f end.py
 # Pick the run whose time was in the middle (the "real" time row)
 
+import tools.QAUITestAppLib as QAUITestAppLib
+
+QAUITestAppLib.App_ns.root.Quit()
 
 import sys;
 sys.exit(0)

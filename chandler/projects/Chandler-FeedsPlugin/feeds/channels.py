@@ -264,8 +264,7 @@ class FeedChannel(pim.ListCollection):
         data = feedparser.parse(rawData)
 
         # For fun, keep the latest copy of the feed inside the channel item
-        self.body = self.getAttributeAspect('body', 'type').makeValue(rawData,
-            indexed=False)
+        self.body = unicode(rawData, 'utf-8')
 
         return self.fillAttributes(data)
 

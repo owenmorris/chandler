@@ -19,8 +19,7 @@ try:
     #write some stuff in the event to make it unique
     event.SetAttr(displayName="Original Event", startDate="01/01/2001", startTime="12:00 AM", body="This is the original event")
     logger.ReportPass("Create Event to Export")
-    
-    
+
     #export the event
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
     filename = 'tempOverwriteTest.ics'
@@ -44,18 +43,18 @@ try:
     #change the event after exporting
     event.SetAttr(displayName="Changed Event",  body="This event has been changed")
     logger.ReportPass("modifing event")
-    
+
     #import the original event
 
     share = Sharing.OneTimeFileSystemShare(path, u'tempOverwriteTest.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
     share.get()
     wx.GetApp().Yield()
     logger.ReportPass("importing event")
-    
+
     #check if changed attributes have reverted to original values
         #find imported event by UUID
     found = App_ns.view.findUUID(event_UUID)
-    if found.bodyString == 'This is the original event' and  found.displayName == 'Original Event':
+    if found.body == 'This is the original event' and  found.displayName == 'Original Event':
         logger.ReportPass("Event overwriten")
     else:
         logger.ReportFailure('Event not overwriten')
