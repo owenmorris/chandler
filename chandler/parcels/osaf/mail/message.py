@@ -720,7 +720,7 @@ def __handleBinary(view, mimePart, parentMIMEContainer,
 
     """Get the attachments data"""
     data = mimePart.get_payload(decode=1)
-    assert body is not None, "__handleBinary body is None"
+    assert data is not None, "__handleBinary data is None"
 
     mimeBinary.filesize = len(data)
     mimeBinary.filename = __getFileName(mimePart, counter)
