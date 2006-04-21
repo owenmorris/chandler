@@ -10,7 +10,6 @@ Chandler startup
 import os, PyLucene
 import application.Globals as Globals
 import application.Utility as Utility
-from i18n import OSAFMessageFactory as _
 
 
 def main():
@@ -89,6 +88,8 @@ def main():
 
         except Exception, e:
             import sys, traceback
+            from i18n import OSAFMessageFactory as _
+
             type, value, stack = sys.exc_info()
             backtrace = traceback.format_exception(type, value, stack)
 
@@ -101,11 +102,15 @@ def main():
             if os.linesep != '\n':
                 longMessage = longMessage.replace ('\n', os.linesep)
 
-            wx.TheClipboard.SetData (wx.TextDataObject (longMessage))
+            # If we manage to have created the clipboard, copy the backtrace to it.
+            if hasattr (wx.TheClipboard, 'SetData'):
+                wx.TheClipboard.SetData (wx.TextDataObject (longMessage))
+                line3 = _(u"The clipboard contains the stack trace.\n")
+            else:
+                line3 = ""
 
             frames = 8
             line2 = _(u"Here are the bottom %(frames)s frames of the stack:\n") % {'frames': frames - 1}
-            line3 = _(u"The clipboard contains the stack trace.\n")
             shortMessage = "".join ([line1, line2, "\n"] + backtrace[-frames:] + ["\n", line3])
 
             if wx.GetApp() is None:
