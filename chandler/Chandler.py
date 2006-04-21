@@ -86,35 +86,45 @@ def main():
         except Utility.SchemaMismatchError:
             logging.info("User chose not to clear the repository.  Exiting.")
 
-        except Exception, e:
+        except:
             import sys, traceback
-            from i18n import OSAFMessageFactory as _
+            
+            frames = 8
+            try:
+                from i18n import OSAFMessageFactory as _
+                line1 = _(u"Chandler encountered an unexpected problem while trying to start.\n")
+                line2 = _(u"Here are the bottom %(frames)s frames of the stack:\n") % {'frames': frames - 1}
+                line3 = _(u"The clipboard contains the stack trace.\n")
+            except:
+                # We might end up here if the repository is corrupted, 
+                # for example. But we really want to notify the user, so we
+                # just put up an English error message and hope the
+                # user can make something out of it.
+                line1 = u"Chandler encountered an unexpected problem while trying to start.\n"
+                line2 = u"Here are the bottom %(frames)s frames of the stack:\n" % {'frames': frames - 1}
+                line3 = u"The clipboard contains the stack trace.\n"
 
             type, value, stack = sys.exc_info()
             backtrace = traceback.format_exception(type, value, stack)
 
-            line1 = _(u"Chandler encountered an unexpected problem while trying to start.\n")
-
             longMessage = "".join([line1, "\n"] + backtrace)
 
-            logging.error (longMessage)
-
-            if os.linesep != '\n':
-                longMessage = longMessage.replace ('\n', os.linesep)
-
-            # If we manage to have created the clipboard, copy the backtrace to it.
-            if hasattr (wx.TheClipboard, 'SetData'):
-                wx.TheClipboard.SetData (wx.TextDataObject (longMessage))
-                line3 = _(u"The clipboard contains the stack trace.\n")
-            else:
-                line3 = ""
-
-            frames = 8
-            line2 = _(u"Here are the bottom %(frames)s frames of the stack:\n") % {'frames': frames - 1}
-            shortMessage = "".join ([line1, line2, "\n"] + backtrace[-frames:] + ["\n", line3])
+            logging.error(longMessage)
 
             if wx.GetApp() is None:
                 app = wx.PySimpleApp()
+
+            if os.linesep != '\n':
+                longMessage = longMessage.replace('\n', os.linesep)
+
+            # If we manage to have created the clipboard, copy the backtrace
+            # to it.
+            try:
+                wx.TheClipboard.SetData(wx.TextDataObject(longMessage))
+            except:
+                line3 = ""
+
+            shortMessage = "".join([line1, line2, "\n"] + backtrace[-frames:] + ["\n", line3])
 
             dialog = wx.MessageDialog(None, shortMessage, "Chandler", 
                                       wx.OK | wx.ICON_INFORMATION)
