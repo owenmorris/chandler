@@ -126,9 +126,9 @@ class SubscribeDialog(wx.Dialog):
                 return
 
             # Keep this collection out of "My items" if checked:
-            if self.checkboxKeepOut.GetValue():
+            if not self.checkboxKeepOut.GetValue():
                 logger.info(_(u'Moving collection out of My Items'))
-                schema.ns('osaf.pim', view).notMine.addSource(collection)
+                schema.ns('osaf.pim', view).mine.addSource(collection)
 
             schema.ns("osaf.app", view).sidebarCollection.add (collection)
             # Need to SelectFirstItem -- DJA

@@ -496,9 +496,8 @@ class Block(schema.Item):
         def addItem (self, item):
             if isinstance(item, ContentCollection):
                 UserCollection(item).ensureColor()
-            # Call the item's onAddToCollection method if it has one. If it returns None
-            # Exit. If it returns something else, add that to the collection
 
+            # Create a unique display name
             if event.disambiguateDisplayName:
                 displayName = item.displayName
                 newDisplayName = displayName
@@ -515,6 +514,11 @@ class Block(schema.Item):
             
             collection.add (item)
             items.append (item)
+
+            # Add to to the approprate sphere, if any
+            sphereCollection = getattr(event, "sphereCollection", None)
+            if sphereCollection is not None:
+                sphereCollection.addSource(item)
 
             # Optionally select the item in a named block and possibly edit
             # an attribute on it
@@ -1043,8 +1047,10 @@ class AddToViewableCollectionEvent(BlockEvent):
     selectInBlockNamed = schema.One(schema.Text, initialValue = "Sidebar")
     editAttributeNamed = schema.One(schema.Text)
     disambiguateDisplayName = schema.One(schema.Boolean, defaultValue=True)
+    sphereCollection = schema.One(ContentCollection)
+    
     schema.addClouds(
-        copying = schema.Cloud(byRef=[items])
+        copying = schema.Cloud(byRef=[items,sphereCollection])
     )
 
 AddToSidebarEvent = AddToViewableCollectionEvent

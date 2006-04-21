@@ -264,6 +264,7 @@ def GenerateContact(view):
 
 def GenerateCollection(view, postToView=None, existingNames=None):
     collection = pim.SmartCollection(itsView=view)
+    schema.ns('osaf.pim', view).mine.addSource(collection)
     
     while True:
         # Find a name that isn't already in use

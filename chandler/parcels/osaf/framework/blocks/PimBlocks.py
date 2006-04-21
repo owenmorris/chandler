@@ -266,10 +266,10 @@ class FocusEventHandlers(Item):
 
         # for OOTB collections, you can only remove not-mine items
         if UserCollection(selectedCollection).outOfTheBoxCollection:
-            return AllItemsInCollection(selection, pim_ns.notMine)
+            return not AllItemsInCollection(selection, pim_ns.mine)
 
         # For "mine" collections, item is always removable
-        isMineCollection = selectedCollection not in pim_ns.notMine.sources
+        isMineCollection = selectedCollection in pim_ns.mine.sources
         if isMineCollection:
             return True
 

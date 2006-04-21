@@ -772,12 +772,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             if getattr(item, 'displayName', "") == "":
                 item.displayName = unicode(calname)
 
-            # don't explicitly add items to allCollection, they're already
-            # there.  This fails if items are already in a not-mine collection,
-            # that's a general problem that needs to be solved
-            if item is not schema.ns("osaf.pim", view).allCollection:
-                for event in events:
-                    item.add(event.getMaster())
+            # finally, add each new event to the collection
+            for event in events:
+                item.add(event.getMaster())
 
             return item
 

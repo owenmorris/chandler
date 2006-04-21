@@ -80,23 +80,24 @@ def installParcel(parcel, oldVersion=None):
         kind = Note.getKind(view),
         recursive = True)
 
+    mine = UnionCollection.update(parcel, 'mine')
+
+    # it would be nice to get rid of these intermediate fully-fledged
+    # item collections, and replace them with lower level Set objects
+    mineNotes = IntersectionCollection.update(parcel, 'mineNotes',
+                                              sources=[mine, notes])
+
     nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
-        source=notes,
+        source=mineNotes,
         # filter(None, values) will filter out all non True values
         filterExpression=u"not filter(None, view.findValues(uuid, ('isGenerated', False), ('modificationFor', None)))",
         filterAttributes=['isGenerated', 'modificationFor']
     )
 
-    notMine = UnionCollection.update(parcel, 'notMine')
-
-    mine = DifferenceCollection.update(parcel, 'mine',
-        sources=[nonRecurringNotes, notMine]
-    )
-
-    # the "All" collection
+    # the "All" / "My" collection
     allCollection = SmartCollection.update(parcel, 'allCollection',
         displayName=_(u"My items"),
-        source=mine,
+        source=nonRecurringNotes,
         exclusions=trashCollection,
         trash=None,
     )

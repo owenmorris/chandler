@@ -759,6 +759,7 @@ class MainView(View):
             # later we'll skip this step if there are no results
             results = pim.SmartCollection(itsView=view,
                 displayName=_(u"Search: %(query)s") % {'query' : query})
+            schema.ns("osaf.pim", self.itsView).mine.addSource(results)
             
             for item in search.processResults(searchResults):
                 results.add(item)

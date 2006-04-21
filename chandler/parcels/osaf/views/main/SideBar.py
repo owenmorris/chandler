@@ -674,7 +674,8 @@ class SSSidebarSharingButton (SSSidebarButton):
                 iconName = shared + partial
         
         # We need an indication of NotMine
-        if item in schema.ns('osaf.pim', self.itsView).notMine.sources:
+        mine = schema.ns('osaf.pim', self.itsView).mine
+        if item not in mine.sources and not UserCollection(item).outOfTheBoxCollection:
             iconName += "NotMine"
 
         # First lookup full image name
@@ -796,9 +797,9 @@ class SidebarBlock(Table):
         # if we should be deleting the entire collection including the
         # items, or just some things
         shouldClearCollection = True
-        notMine = schema.ns('osaf.pim', self.itsView).notMine
+        mine = schema.ns('osaf.pim', self.itsView).mine
         for collection in self.contents.iterSelection():
-            if collection not in notMine.sources:
+            if collection in mine.sources:
                 # we found a "mine" collection, so prompt the user
                 shouldClearCollection = \
                     promptYesNoCancel(_(u'Do you also want to delete the items in this collection?'),
@@ -856,7 +857,7 @@ class SidebarBlock(Table):
         app_ns = schema.ns('osaf.app', self.itsView)
         pim_ns = schema.ns('osaf.pim', self.itsView)
         sidebarCollections = app_ns.sidebarCollection
-        notMine = pim_ns.notMine
+        mine = pim_ns.mine
         trash = pim_ns.trashCollection
         
         # filter out the usable collections
@@ -883,7 +884,7 @@ class SidebarBlock(Table):
             # just want to delete it. But not-mine events shouldn't
             # all end up the trash, we just want to get rid of them
             # entirely
-            if item in notMine:
+            if item not in mine:
                 item.delete()
                 return
             
@@ -938,12 +939,12 @@ class SidebarBlock(Table):
     def onToggleMineEvent(self, event):
 
         assert len(list(self.contents.iterSelection())) == 1
+        mine = schema.ns('osaf.pim', self.itsView).mine
         for item in self.contents.iterSelection():
-            notMine = schema.ns('osaf.pim', self.itsView).notMine
-            if item in notMine.sources:
-                notMine.removeSource(item)
+            if item in mine.sources:
+                mine.removeSource(item)
             else:
-                notMine.addSource(item)
+                mine.addSource(item)
 
     def onToggleMineEventUpdateUI(self, event):
         selectionRanges = self.contents.getSelectionRanges()
@@ -973,8 +974,8 @@ class SidebarBlock(Table):
             menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
         else:
             enabled = True
-            notMine = schema.ns('osaf.pim', self.itsView).notMine
-            if selectedItem in notMine.sources:
+            mine = schema.ns('osaf.pim', self.itsView).mine
+            if selectedItem not in mine.sources:
                 menuTitle = _(u'Add "%(collection)s" to %(kind)s') % arguments
             else:
                 menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments

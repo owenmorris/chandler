@@ -551,16 +551,19 @@ class CollectionTests(CollectionTestCase):
         notes = KindCollection(itsView=self.view,
                                kind=pim.Note.getKind(self.view),
                                recursive=True)
-        notMine = UnionCollection(itsView=self.view)
-        mine = DifferenceCollection(itsView=self.view,
-            sources=[notes, notMine]
-        )
-        all = SmartCollection(itsView=self.view, source=mine,
+        mine = UnionCollection(itsView=self.view)
+        myNotes = IntersectionCollection(itsView=self.view, sources=(mine, notes))
+        
+        all = SmartCollection(itsView=self.view, source=myNotes,
             exclusions=trash, trash=None)
+
+        # coll2 and coll3 are 'mine', coll1 is not
         coll1 = SmartCollection(itsView=self.view, trash=trash)
         coll2 = SmartCollection(itsView=self.view, trash=trash)
+        mine.addSource(coll2)
         coll3 = SmartCollection(itsView=self.view, trash=trash)
-        notMine.addSource(coll1)
+        mine.addSource(coll3)
+        
         note = pim.Note(itsView=self.view)
 
         # note is only in a not-mine collection, so removing it from that
@@ -573,14 +576,14 @@ class CollectionTests(CollectionTestCase):
         self.assert_(note not in all)
         self.assert_(note in trash)
 
-        # note is in two collections, one of them a not-mine, so it shouldn't
-        # be in either trash nor all
+        # note is in two collections, one of them a not-mine, so it
+        # should appear in 'all' and not the trash
         coll1.add(note)
         coll2.add(note)
         self.assert_(note in coll1)
         self.assert_(note in coll2)
         self.assert_(note not in trash)
-        self.assert_(note not in all)
+        self.assert_(note in all)
 
         # removing note from the only not-mine collection should not move the
         # item to trash, and the item should appear in all
@@ -592,21 +595,21 @@ class CollectionTests(CollectionTestCase):
 
         # removing note from one not-mine collection, but having it still
         # remain in another not-mine collection should not have the item go
-        # to trash, nor appear in all
+        # to trash, but it will appear in all
         coll1.add(note)
         coll3.add(note)
-        notMine.addSource(coll3)
+        mine.removeSource(coll3)
         self.assert_(note in coll1)
         self.assert_(note in coll2)
         self.assert_(note in coll3)
         self.assert_(note not in trash)
-        self.assert_(note not in all)
+        self.assert_(note in all)
         coll3.remove(note)
         self.assert_(note in coll1)
         self.assert_(note in coll2)
         self.assert_(note not in coll3)
         self.assert_(note not in trash)
-        self.assert_(note not in all)
+        self.assert_(note in all)
 
 
 if __name__ == "__main__":

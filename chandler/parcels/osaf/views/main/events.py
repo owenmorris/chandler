@@ -223,6 +223,7 @@ def makeMainEvents(parcel):
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
     repositoryViewer = schema.ns("osaf.views.repositoryviewer", repositoryView)
+    
     AddToSidebarEvent.update(
         parcel, 'AddCPIAView',
         blockName = 'AddCPIAView',
@@ -319,6 +320,7 @@ def makeMainEvents(parcel):
         parcel, 'NewCollection',
         blockName = 'NewCollection',
         editAttributeNamed = 'displayName',
+        sphereCollection = schema.ns('osaf.pim', repositoryView).mine,
         items = [untitledCollection])
         
     BlockEvent.template(

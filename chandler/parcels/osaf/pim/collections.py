@@ -168,11 +168,6 @@ class ListCollection(ContentCollection):
         for item in self:
             item.delete(True)
 
-    def onItemCopy(self, view, original):
-        if original == schema.ns('osaf.pim', view).trashCollection:
-            print "Copying Trash %s -> %s!" % (original, self)
-
-
 class DifferenceCollection(ContentCollection):
     """
     A ContentCollection containing the set theoretic difference of two
