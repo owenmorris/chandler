@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.8-$(BRANCH_REV_PREFIX)1
+RELVER=0.8-$(BRANCH_REV_PREFIX)2
 LAUNCHERS=$(INTERNAL)/launchers
 SRC=$(LAUNCHERS)
 TARBALL=Launchers-$(SNAP)-$(RELVER).tar.gz

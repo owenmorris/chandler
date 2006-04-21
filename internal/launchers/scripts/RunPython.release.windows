@@ -2,11 +2,14 @@
 setlocal
 if "%CHANDLERHOME%"=="" set CHANDLERHOME=.
 if "%CHANDLERBIN%"=="" set CHANDLERBIN="%CHANDLERHOME%"
-if "%CHANDLERNOOPTIMIZE%"=="" set OPTIMIZE=-O
+
 echo CHANDLERHOME is "%CHANDLERHOME%"
 echo CHANDLERBIN is "%CHANDLERBIN%"
+echo Using "%CHANDLERBIN%"\release\bin\python.exe %*
+
 path "%CHANDLERBIN%"\release\bin
-set PYTHONPATH="%CHANDLERHOME%";%CHANDLERHOME%\parcels
+set PYTHONPATH="%CHANDLERHOME%";"%CHANDLERHOME%"\parcels
 if not "%PARCELPATH%"=="" set PYTHONPATH="%PYTHONPATH%";"%PARCELPATH%"
-"%CHANDLERBIN%\release\bin\python.exe" %OPTIMIZE% %*
+
+"%CHANDLERBIN%"\release\bin\python.exe %*
 endlocal

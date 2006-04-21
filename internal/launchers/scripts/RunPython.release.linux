@@ -10,19 +10,10 @@ then
     export CHANDLERBIN="$CHANDLERHOME"
 fi
 
-if [ "$CHANDLERNOOPTIMIZE" = "" ]
+if [ -f "$CHANDLERBIN"/release/bin/python ]
 then
-    OPTIMIZE=-O
-fi
-
-if [ -d "$CHANDLERHOME" -a -f "$CHANDLERBIN"/release/bin/python ]
-then
-    echo "Using $CHANDLERBIN/release/bin/python"
-    echo ""
+    echo "Using $CHANDLERBIN/release/bin/python $@"
 else
-    echo "Error:  Please set CHANDLERHOME environment variable to point"
-    echo "        to the directory that contains the release "
-    echo "        subdirectory, then rerun RunPython"
     echo "Error:  Please unset the CHANDLERBIN environment variable or "
     echo "        set it to point to the directory that contains the debug "
     echo "        subdirectory, then rerun RunPython"
@@ -38,4 +29,4 @@ then
     export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
 fi
 
-"$CHANDLERBIN"/release/bin/python $OPTIMIZE "$@"
+"$CHANDLERBIN"/release/bin/python "$@"

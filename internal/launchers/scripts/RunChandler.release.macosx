@@ -10,4 +10,13 @@ then
     CHANDLERBIN="$CHANDLERHOME"
 fi
 
-"$CHANDLERBIN"/release/RunPython "$CHANDLERHOME"/Chandler.py "$@"
+if [ -f "$CHANDLERHOME"/Chandler.py ]
+then
+    echo "Chandler directory is $CHANDLERHOME"
+else
+    echo "Error:  Please unset the CHANDLERHOME environment variable or"
+    echo "        set it to point to the directory that contains Chandler.py"
+    exit 1
+fi
+
+"$CHANDLERBIN"/release/RunPython ${OPTIMIZE-"-O"}  "$CHANDLERHOME"/Chandler.py "$@"

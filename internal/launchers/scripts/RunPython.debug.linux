@@ -10,14 +10,10 @@ then
     export CHANDLERBIN="$CHANDLERHOME"
 fi
 
-if [ -d "$CHANDLERHOME" -a -f "$CHANDLERBIN"/debug/bin/python_d ]
+if [ -f "$CHANDLERBIN"/debug/bin/python_d ]
 then
-    echo "Using $CHANDLERBIN/debug/bin/python_d"
-    echo ""
+    echo "Using $CHANDLERBIN/debug/bin/python_d $@"
 else
-    echo "Error:  Please set CHANDLERHOME environment variable to point"
-    echo "        to the directory that contains the debug "
-    echo "        subdirectory, then rerun RunPython"
     echo "Error:  Please unset the CHANDLERBIN environment variable or "
     echo "        set it to point to the directory that contains the debug "
     echo "        subdirectory, then rerun RunPython"

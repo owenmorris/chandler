@@ -2,7 +2,7 @@
 
 if [ "$CHANDLERHOME" = "" ]
 then
-    export CHANDLERHOME=`pwd`
+    export CHANDLERHOME=$(dirname "$(dirname "${0}")")
 fi
 
 if [ "$CHANDLERBIN" = "" ]
@@ -15,40 +15,27 @@ then
     PYTHON_VER=2.4
 fi
 
-if [ "$CHANDLERNOOPTIMIZE" = "" ]
-then
-    OPTIMIZE=-O
-fi
+export PYTHONHOME=$CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
+export PYTHONBIN="$PYTHONHOME"/Resources/Python.app/Contents/MacOS/Python
 
-if [ -f "$CHANDLERBIN"/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python ]
+if [ -f "$PYTHONBIN" ]
 then
-    export PYTHONHOME="$CHANDLERBIN"/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
-    export DYLD_LIBRARY_PATH="$CHANDLERBIN"/release/lib:"$CHANDLERBIN"/release/db/lib:"$CHANDLERBIN"/release/icu/lib
-    export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/release/Library/Frameworks
-    export PYTHONBIN="$CHANDLERBIN"/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
+    echo "Using $PYTHONBIN $@"
 else
-    if [ -f "$CHANDLERBIN"/../MacOS/python ]
-    then
-        export PYTHONHOME="$CHANDLERBIN"/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
-        export DYLD_LIBRARY_PATH="$CHANDLERBIN"/lib
-        export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/Library/Frameworks
-        export PYTHONBIN="$CHANDLERBIN"/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
-    else
-        echo "Error:  Please unset the CHANDLERBIN environment variable or "
-        echo "        set it to point to the directory that contains the release "
-        echo "        subdirectory, then rerun RunPython"
-        exit 1
-    fi
+    echo "Error:  Please unset the CHANDLERBIN environment variable or "
+    echo "        set it to point to the directory that contains the release "
+    echo "        subdirectory, then rerun RunPython"
+    exit 1
 fi
 
 export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
+export DYLD_LIBRARY_PATH="$CHANDLERBIN"/release/lib:"$CHANDLERBIN"/release/db/lib:"$CHANDLERBIN"/release/icu/lib
+export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/release/Library/Frameworks
 
 if [ "$PARCELPATH" != "" ]
 then
     export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
 fi
-
-echo Using "$PYTHONBIN"
 
 if [ "$GDB" != "" ]
 then
@@ -56,7 +43,7 @@ then
     exec gdb "$PYTHONBIN"
 elif [ "$PDB" != "" ]
 then
-    exec "$PYTHONBIN" $OPTIMIZE -m pdb "$@"
+    exec "$PYTHONBIN" -m pdb "$@"
 else
-    exec "$PYTHONBIN" $OPTIMIZE "$@"
+    exec "$PYTHONBIN" "$@"
 fi

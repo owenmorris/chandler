@@ -15,35 +15,27 @@ then
     PYTHON_VER=2.4
 fi
 
-if [ -f "$CHANDLERBIN"/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python ]
+export PYTHONHOME="$CHANDLERBIN"/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
+export PYTHONBIN="$PYTHONHOME"/Resources/Python.app/Contents/MacOS/Python
+
+if [ -f "$PYTHONBIN" ]
 then
-    export PYTHONHOME="$CHANDLERBIN"/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
-    export DYLD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib
-    export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/debug/Library/Frameworks
-    export PYTHONBIN="$CHANDLERBIN"/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
+    echo "Using $PYTHONBIN $@"
 else
-    if [ -f "$CHANDLERBIN"/../MacOS/python ]
-    then
-        export PYTHONHOME="$CHANDLERBIN"/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
-        export DYLD_LIBRARY_PATH="$CHANDLERBIN"/lib
-        export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/Library/Frameworks
-        export PYTHONBIN="$CHANDLERBIN"/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python
-    else
-        echo "Error:  Please unset the CHANDLERBIN environment variable or "
-        echo "        set it to point to the directory that contains the debug "
-        echo "        subdirectory, then rerun RunPython"
-        exit 1
-    fi
+    echo "Error:  Please unset the CHANDLERBIN environment variable or "
+    echo "        set it to point to the directory that contains the debug "
+    echo "        subdirectory, then rerun RunPython"
+    exit 1
 fi
 
 export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
+export DYLD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib
+export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/debug/Library/Frameworks
 
 if [ "$PARCELPATH" != "" ]
 then
     export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
 fi
-
-echo Using "$PYTHONBIN"
 
 if [ "$GDB" != "" ]
 then
