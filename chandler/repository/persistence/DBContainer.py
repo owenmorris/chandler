@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import sys, threading
+import sys, threading, time
 
 from struct import pack, unpack
 
@@ -157,6 +157,7 @@ class DBContainer(object):
     def _logDL(self, n):
 
         self.store.repository.logger.info('detected deadlock: %d', n)
+        time.sleep(1)
 
     def _readValue(self, value, offset):
 
