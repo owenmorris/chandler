@@ -132,6 +132,9 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
         busyFractions = {}
         defaultTzinfo = ICUtzinfo.default
         
+        tzEnabled = schema.ns('osaf.app',
+                              self.blockItem.itsView).TimezonePrefs.showUI
+        
         # The exact algorithm for the busy state is yet to be determined.
         # For now, just  get the confirmed items on a given day and calculate
         # their total duration.  As long as there is at least one event the
@@ -153,10 +156,15 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                     # @@@ Wrong for multiday events -- Grant
                     hours = event.duration.seconds / (60 * 60)
 
-                if start.tzinfo is not None:
+                assert(start.tzinfo is not None)
+                
+                # If timezones are enabled, we need to convert to the
+                # default tzinfo here, so that date() below refers to
+                # the correct timezone.
+                if tzEnabled:
                     start = start.astimezone(defaultTzinfo)
             
-                # @@@ Again, multiday events -- Grant???
+                # @@@ [grant] Again, multiday events
                 offset = (start.date() - startDate).days
                 
                 # We set a minimum "Busy" value of 0.25 for any
@@ -198,46 +206,52 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
             events = self.blockItem.contents
             view = self.blockItem.itsView            
             
-            tzprefs = schema.ns('osaf.app', view).TimezonePrefs
-            def shift(dt):
-                if tzprefs.showUI:
-                    return dt
-                else:
-                    return dt.replace(tzinfo=None)
-                
             for item in Calendar.eventsInRange(view, startDatetime, endDatetime,
                                                events):                                                
-                    updateBusy(item, shift(item.startTime))
+                    updateBusy(item, item.startTime)
     
             # Next, try to find all generated events in the given
             # datetime range
             
-            # The following iteration over keys comes from CalendarCanvas.py
 
-            
-            allEvents = schema.ns('osaf.pim', view).events
-            masterEvents = schema.ns('osaf.pim', view).masterEvents
+           # The following iteration over keys comes from Calendar.py
+
+            pimNs = schema.ns('osaf.pim', view)
+            allEvents = pimNs.events
+            masterEvents = pimNs.masterEvents
+
+            tzprefs = schema.ns('osaf.app', view).TimezonePrefs
+            if tzprefs.showUI:
+                startIndex = 'effectiveStart'
+                endIndex   = 'recurrenceEnd'
+            else:
+                startIndex = 'effectiveStartNoTZ'
+                endIndex   = 'recurrenceEndNoTZ'
     
-            keys = Calendar.getKeysInRange(view, startDatetime, 
-                    'effectiveStartTime', 'effectiveStart', allEvents,
-                    endDatetime, 'recurrenceEnd', 'recurrenceEnd', masterEvents,
-                    events, '__adhoc__')
-            
+    
+            keys = Calendar.getKeysInRange(view,
+                    startDatetime, 'effectiveStartTime', startIndex, allEvents,
+                    endDatetime, 'recurrenceEnd', endIndex, masterEvents,
+                    events, '__adhoc__',
+                    tzprefs.showUI)
+
+    
             for key in keys:
                 masterEvent = view[key]
                 rruleset = masterEvent.createDateUtilFromRule()
                 
-                # We need to make sure that we hand off events with
-                # the same tzinfo to rruleset.between, because dateutil's
-                # datetime comparisons aren't safe with naive and non-naive
-                # datetimes.
+                # If timezones have been disabled in the UI, we want to
+                # use the event's timezone for comparisons, since that
+                # timezone determines what date each occurrence occurs on.
                 tzinfo = masterEvent.effectiveStartTime.tzinfo
-                startDatetime = startDatetime.replace(tzinfo=tzinfo)
-                endDatetime = endDatetime.replace(tzinfo=tzinfo)
+                if not tzEnabled:
+                    startDatetime = startDatetime.replace(tzinfo=tzinfo)
+                    endDatetime = endDatetime.replace(tzinfo=tzinfo)
                 
                 modifications = list(masterEvent.modifications or [])
                 
-                for recurDatetime in rruleset.between(startDatetime, endDatetime, True):
+                for recurDatetime in rruleset.between(startDatetime, endDatetime,
+                                                      True):
                     # Now see if recurDatetime matches any of our modifications
                     matchingMod = None
                     

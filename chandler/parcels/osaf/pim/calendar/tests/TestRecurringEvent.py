@@ -9,6 +9,7 @@ import unittest, os
 from datetime import datetime, timedelta
 import dateutil.rrule
 
+from application import schema
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.tasks import TaskMixin
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
@@ -594,6 +595,123 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         second.changeThisAndFuture('startTime',
                                    self.start + timedelta(minutes=30))
         self.failIf(second.rruleset.rrules.first().hasLocalAttributeValue('until'))
+        
+class NaiveTimeZoneRecurrenceTest(TestContentModel.ContentModelTestCase):
+    """Test of recurring events that have startTimes that occur on different
+       dates depending on whether timezone UI is enabled"""
+
+    tzinfo = ICUtzinfo.getInstance("US/Pacific")
+    enableTimeZones = False
+    
+    def setUp(self):
+        # We want to set up the default timezone, and whether we're
+        # in timezone-free mode, so that these tests are predictable.
+        # In order to make subsequent tests predictable -- i.e., not
+        # dependent on the order in which tests are run -- we
+        # need to save this global state at test start, and
+        # restore it once we're done (i.e. in tearDown()).
+        super(NaiveTimeZoneRecurrenceTest, self).setUp()
+        
+        tzPrefs = schema.ns('osaf.app', self.rep.view).TimezonePrefs
+        
+        # Stash away the global values
+        self._saveTzinfo = ICUtzinfo.default
+        self._saveTzEnabled = tzPrefs.showUI
+        
+        # ... and set up the values we want to run the test with
+        ICUtzinfo.default = self.tzinfo
+        tzPrefs.showUI = self.enableTimeZones
+        
+        # 2006/04/09 05:00 Europe/London == 2006/04/08 US/Pacific
+        start = datetime(2006, 4, 9, 5, 0,
+                          tzinfo = ICUtzinfo.getInstance("Europe/London"))
+                              
+        # Make a weekly event with the above as the startTime, and
+        # stash it in self.event
+        self.event = Calendar.CalendarEvent(None, itsView=self.rep.view)
+        self.event.startTime = start
+        self.event.duration = timedelta(hours=2)
+        self.event.anyTime = False
+        self.event.displayName = u"Sneaky recurring event"
+
+        ruleItem = RecurrenceRule(None, itsView=self.rep.view, freq='weekly')
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
+        ruleSetItem.addRule(ruleItem)
+        self.event.rruleset = ruleSetItem
+        
+    def tearDown(self):
+        tzPrefs = schema.ns('osaf.app', self.rep.view).TimezonePrefs
+
+        # Put everything back nicely....
+        ICUtzinfo.default = self._saveTzinfo
+        tzPrefs.showUI = self._saveTzEnabled
+        
+        # ... and tip-toe out the room. Move along, nothing to see here.
+        super(NaiveTimeZoneRecurrenceTest, self).tearDown()
+        
+        
+    def testEdgeCases(self):
+        
+        oneWeek = timedelta(weeks=1)
+
+        # OK, start on April 9, and get the occurrences in the next week.
+        # (Since timezones are disabled here, we are supposed to be ignoring
+        # them in comparisons, and expect self.event to appear here).
+        rangeStart = datetime(2006, 4, 9, tzinfo=ICUtzinfo.floating)
+        
+        occurrences = self.event.getOccurrencesBetween(rangeStart,
+                                                       rangeStart + oneWeek)
+        self.failUnlessEqual(occurrences, [self.event])
+
+        # Check that no events occur in the week preceding April 9 ...
+        occurrences = self.event.getOccurrencesBetween(rangeStart - oneWeek,
+                                                       rangeStart)
+        self.failUnlessEqual(occurrences, [])
+        
+        # ... and lastly check that 1 event occurs in the week after April
+        # 9, and that its startTime is exactly a week after the starting
+        # event.
+        occurrences = self.event.getOccurrencesBetween(rangeStart + oneWeek,
+                                                       rangeStart + 2*oneWeek)
+        self.failUnlessEqual(len(occurrences), 1)
+        self.failUnlessEqual(occurrences[0].startTime,
+                             self.event.startTime + oneWeek)
+
+
+class TimeZoneEnabledRecurrenceTest(NaiveTimeZoneRecurrenceTest):
+    """Just like NaiveTimeZoneRecurrenceTest, but tests with timezones
+       enabled"""
+
+    # OK, turn time zones on for this test
+    enableTimeZones = True
+
+    def testEdgeCases(self):
+        
+        rangeStart = datetime(2006, 4, 9, tzinfo=ICUtzinfo.floating)
+        oneWeek = timedelta(weeks=1)
+        
+        # Here, we expect events to occur according to the usual
+        # rules of datetime objects. So, in the week of April 9,
+        # there will be an occurrence on the 15th (i.e. which occurs
+        # at 5 a.m. on the 16th in Europe/London).
+        occurrences = self.event.getOccurrencesBetween(rangeStart,
+                                                       rangeStart + oneWeek)
+        
+        self.failUnlessEqual(len(occurrences), 1)
+        self.failUnlessEqual(occurrences[0].startTime,
+                             self.event.startTime + oneWeek)
+
+        # self.event occurs in the week preceding April 9th (i.e.
+        # on April 8th, US/Pacific).
+        occurrences = self.event.getOccurrencesBetween(rangeStart - oneWeek,
+                                                       rangeStart)
+        self.failUnlessEqual(occurrences, [self.event])
+        
+        # Lastly, make sure no events occur in the week preceding April 2nd.
+        occurrences = self.event.getOccurrencesBetween(rangeStart - oneWeek,
+                                                       rangeStart - 2*oneWeek)
+        self.failUnlessEqual(occurrences, [])
+
 
 #tests to write:
 """

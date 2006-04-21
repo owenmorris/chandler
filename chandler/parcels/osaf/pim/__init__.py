@@ -19,7 +19,7 @@ from application.Parcel import Reference
 from collections import KindCollection, ContentCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \
      FilteredCollection, ListCollection, SmartCollection, \
-     IndexedSelectionCollection, InclusionExclusionCollection
+     IndexedSelectionCollection
 
 import tasks, mail, calendar.Calendar
 from i18n import OSAFMessageFactory as _
@@ -149,6 +149,9 @@ def installParcel(parcel, oldVersion=None):
         filterAttributes = ['occurrences', 'rruleset'])
 
     masterEvents.addIndex("recurrenceEnd", 'compare', compare='cmpRecurEnd',
+                          monitor=('recurrenceEnd'))
+
+    masterEvents.addIndex("recurrenceEndNoTZ", 'compare', compare='cmpRecurEndNoTZ',
                           monitor=('recurrenceEnd'))
 
     locations = KindCollection.update(

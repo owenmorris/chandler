@@ -194,11 +194,20 @@ def recurringEventsInRange(view, start, end, filterColl = None,
     """
     Yield all recurring events between start and end that appear in filterColl.   
     """
+
+    tzprefs = schema.ns('osaf.app', view).TimezonePrefs
+    if tzprefs.showUI:
+        startIndex = 'effectiveStart'
+        endIndex   = 'recurrenceEnd'
+    else:
+        startIndex = 'effectiveStartNoTZ'
+        endIndex   = 'recurrenceEndNoTZ'    
+    
     pim_ns = schema.ns("osaf.pim", view)
     allEvents = pim_ns.events
     masterEvents = pim_ns.masterEvents
-    keys = getKeysInRange(view, start, 'effectiveStartTime', 'effectiveStart',
-                          allEvents, end, 'recurrenceEnd', 'recurrenceEnd',
+    keys = getKeysInRange(view, start, 'effectiveStartTime', startIndex,
+                          allEvents, end, 'recurrenceEnd', endIndex,
                           masterEvents, filterColl, '__adhoc__')
     for key in keys:
         masterEvent = view[key]
@@ -684,7 +693,30 @@ class CalendarEventMixin(RemindableMixin):
             return self
         else:
             return self.occurrenceFor.getMaster()
-            
+    
+    def __getDatetimePrepFunction(self):
+        """
+        This method returns a function that prepares datetimes for comparisons
+        according to the user's global timezone preference settings. This
+        is important because "naive timezone mode" can re-order events; e.g.
+        in US timezones, an event that falls at 2AM GMT Sunday will be treated
+        as occurring on Sunday in naive mode, but Saturday in non-naive.
+        [cf Bug 5598].
+        """
+        
+        if schema.ns('osaf.app', self.itsView).TimezonePrefs.showUI:
+            # If timezones are enabled, just return the original
+            # datetime.
+            def prepare(dt):
+                return dt
+        else:
+            # If timezones are disabled, convert all timezones to
+            # floating.
+            def prepare(dt):
+                return dt.replace(tzinfo=ICUtzinfo.floating)
+                
+        return prepare
+
 
     def isBetween(self, after=None, before=None, inclusive = True):
         """Whether self is between after and before.
@@ -702,15 +734,17 @@ class CalendarEventMixin(RemindableMixin):
         @rtype: C{bool}
         
         """
+        prepDatetime = self.__getDatetimePrepFunction()
+            
         if inclusive:
-            # could just say compare = datetime.__le__ here
             def compare(dt1, dt2):
-                return dt1 <= dt2
+                return prepDatetime(dt1) <= prepDatetime(dt2)
         else:
             def compare(dt1, dt2):
-                return dt1 < dt2
+                return prepDatetime(dt1) < prepDatetime(dt2)
+            
         return ((before is None or compare(self.startTime, before)) and
-               (after is None or (self.endTime >= after)))
+               (after is None or (prepDatetime(self.endTime) >= prepDatetime(after))))
 
     def createDateUtilFromRule(self, ignoreIsCount = True, convertFloating=False):
         """Construct a dateutil.rrule.rruleset from self.rruleset.
@@ -788,6 +822,9 @@ class CalendarEventMixin(RemindableMixin):
         @type  before: C{datetime} or C{None}
         
         """
+        
+        prepDatetime = self.__getDatetimePrepFunction()
+        
         # helper function
         def checkModifications(first, before, nextEvent = None):
             """Look for modifications or a master event before nextEvent,
@@ -818,27 +855,30 @@ class CalendarEventMixin(RemindableMixin):
         # main getNextOccurrence logic
         if self.rruleset is None:
             return None
-
+        
         first = self.getMaster()        
         exact = after is not None and after == before
 
         # take duration into account if after is set
         if not exact and after is not None:
-            start = after - first.duration
+            start = prepDatetime(after) - first.duration
         else:
-            start = self.startTime 
+            start = prepDatetime(self.startTime)
+            
+        if before is not None:
+            before = prepDatetime(before)
 
         ruleset = self.createDateUtilFromRule()
-        try:
-            start = coerceTimeZone(start, ruleset[0].tzinfo)
-        except IndexError:
-            start = coerceTimeZone(start, self.startTime.tzinfo)
+        
 
         for recurrenceID in ruleset:
-            if (recurrenceID < start or (not exact and recurrenceID == start)):
+            
+            preparedRID = prepDatetime(recurrenceID)
+            
+            if (preparedRID < start or (not exact and preparedRID == start)):
                 continue
             
-            if before is not None and recurrenceID > before:
+            if before is not None and preparedRID > before:
                 return checkModifications(first, before)
 
             calculated = self.getExistingOccurrence(recurrenceID)
@@ -893,10 +933,13 @@ class CalendarEventMixin(RemindableMixin):
         # check for modifications taking place before first, but only if
         # if we're actually interested in dates before first (i.e., the
         # after argument is None or less than first.startTime)
+        
+        prepDatetime = self.__getDatetimePrepFunction()
+            
         if (first.modifications is not None and
-            (after is None or after < first.startTime)):
+            (after is None or prepDatetime(after) < prepDatetime(first.startTime))):
             for mod in first.modifications:
-                if mod.startTime <= event.startTime:
+                if prepDatetime(mod.startTime) <= prepDatetime(event.startTime):
                     event = mod
                 
         if not event.isBetween(after, before):
@@ -1496,6 +1539,9 @@ class CalendarEventMixin(RemindableMixin):
 
     def cmpEndTimeNoTZ(self, item):
         return self.cmpTimeAttribute(item, 'effectiveEndTime', False)
+
+    def cmpRecurEndNoTZ(self, item):
+        return self.cmpTimeAttribute(item, 'recurrenceEnd', False)
 
 class CalendarEvent(CalendarEventMixin, Note):
     """An unstamped event."""
