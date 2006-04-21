@@ -296,7 +296,7 @@ def messageObjectToKind(view, messageObject, messageText=None,
         "EventDescriptionLength"), "0"))
     if eventDescriptionLength and isinstance(m, Mail.MailMessageMixin):
         body = body[eventDescriptionLength:]
-        
+
     m.body = body
 
     __parseHeaders(view, messageObject, m)
@@ -719,10 +719,10 @@ def __handleBinary(view, mimePart, parentMIMEContainer,
     mimeBinary = Mail.MIMEBinary(itsView=view)
 
     """Get the attachments data"""
-    body = mimePart.get_payload(decode=1)
+    data = mimePart.get_payload(decode=1)
     assert body is not None, "__handleBinary body is None"
 
-    mimeBinary.filesize = len(body)
+    mimeBinary.filesize = len(data)
     mimeBinary.filename = __getFileName(mimePart, counter)
     mimeBinary.mimeType = contype
 
@@ -734,7 +734,7 @@ def __handleBinary(view, mimePart, parentMIMEContainer,
         if result[0] is not None:
             mimeBinary.mimeType = result[0]
 
-    mimeBinary.body = dataToBinary(mimeBinary, "body", body,
+    mimeBinary.data = dataToBinary(mimeBinary, "data", data,
                                    mimeBinary.mimeType, compression)
 
     parentMIMEContainer.mimeParts.append(mimeBinary)
@@ -769,7 +769,6 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
         if lang:
             mimeText.lang = lang
 
-        #XXX: This may cause issues since Note no longer a parent
         mimeText.body = getUnicodeValue(body, charset)
 
         parentMIMEContainer.mimeParts.append(mimeText)

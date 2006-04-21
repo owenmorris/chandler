@@ -553,7 +553,7 @@ class MailMessageMixin(MIMEContainer):
         AccountBase, initialValue = None, inverse = AccountBase.mailMessages,
     )
     spamScore = schema.One(schema.Float, initialValue = 0.0)
-    rfc2822Message = schema.One(schema.Lob, indexed=True)
+    rfc2822Message = schema.One(schema.Lob, indexed=False)
     dateSentString = schema.One(schema.Text, initialValue = '')
     dateSent = schema.One(schema.DateTimeTZ, displayName=_(u"Sent"), indexed=True)
     messageId = schema.One(schema.Text, initialValue = '')
@@ -726,6 +726,7 @@ class MailMessage(MailMessageMixin, notes.Note):
 class MIMEBinary(MIMENote):
 
     schema.kindInfo(displayName = u"MIME Binary Kind")
+    data = schema.One(schema.Lob, indexed=False)
 
 
 class MIMEText(MIMENote):
@@ -1070,10 +1071,10 @@ class EmailAddress(items.ContentItem):
                     return 0
                 return cmp(partialAddress, attrValue)   
             firstUUID = collection.findInIndex(indexName, 'first', _compare)
-    
+
             if firstUUID is None:
                 continue
-            
+
             lastUUID = collection.findInIndex(indexName, 'last', _compare)
             for uuid in collection.iterindexkeys(indexName, firstUUID, lastUUID):
                 yield view[uuid]
