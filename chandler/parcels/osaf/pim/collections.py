@@ -545,7 +545,7 @@ class SmartCollection(ContentCollection):
 
         setattr(self, self.__collection__, set)
 
-class InclusionExclusionCollection(ContentCollection):
+class InclusionExclusionCollection(SmartCollection):
     """
     For backwards compatibility with 0.6 clients.
     """
