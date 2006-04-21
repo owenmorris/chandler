@@ -10,6 +10,7 @@ Chandler startup
 import os, PyLucene
 import application.Globals as Globals
 import application.Utility as Utility
+from i18n import OSAFMessageFactory as _
 
 
 def main():
@@ -90,18 +91,27 @@ def main():
             import sys, traceback
             type, value, stack = sys.exc_info()
             backtrace = traceback.format_exception(type, value, stack)
-            frames = 8
-            formattedBacktrace = "".join(backtrace[-frames:])
 
-            # XXX [i18n] Dunno how this could be translated
-            message = ("Chandler encountered an unexpected problem while trying to start.\n" + \
-                      "Here are the bottom %s frames of the stack:\n%s") % (frames - 1, formattedBacktrace)
-            logging.error(message)
+            line1 = _(u"Chandler encountered an unexpected problem while trying to start.\n")
+
+            longMessage = "".join([line1, "\n"] + backtrace)
+
+            logging.error (longMessage)
+
+            if os.linesep != '\n':
+                longMessage = longMessage.replace ('\n', os.linesep)
+
+            wx.TheClipboard.SetData (wx.TextDataObject (longMessage))
+
+            frames = 8
+            line2 = _(u"Here are the bottom %(frames)s frames of the stack:\n") % {'frames': frames - 1}
+            line3 = _(u"The clipboard contains the stack trace.\n")
+            shortMessage = "".join ([line1, line2, "\n"] + backtrace[-frames:] + ["\n", line3])
 
             if wx.GetApp() is None:
                 app = wx.PySimpleApp()
 
-            dialog = wx.MessageDialog(None, message, "Chandler", 
+            dialog = wx.MessageDialog(None, shortMessage, "Chandler", 
                                       wx.OK | wx.ICON_INFORMATION)
             dialog.ShowModal()
             dialog.Destroy()
