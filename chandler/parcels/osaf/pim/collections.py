@@ -545,6 +545,13 @@ class SmartCollection(ContentCollection):
 
         setattr(self, self.__collection__, set)
 
+class InclusionExclusionCollection(ContentCollection):
+    """
+    For backwards compatibility with 0.6 clients.
+    """
+    # @@@MOR 0.6 sharing compatibility
+    pass
+
 class IndexedSelectionCollection(ContentCollection):
     """
     A collection that adds an index, e.g.for sorting items, a

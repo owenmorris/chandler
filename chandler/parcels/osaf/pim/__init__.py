@@ -19,7 +19,7 @@ from application.Parcel import Reference
 from collections import KindCollection, ContentCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \
      FilteredCollection, ListCollection, SmartCollection, \
-     IndexedSelectionCollection
+     IndexedSelectionCollection, InclusionExclusionCollection
 
 import tasks, mail, calendar.Calendar
 from i18n import OSAFMessageFactory as _

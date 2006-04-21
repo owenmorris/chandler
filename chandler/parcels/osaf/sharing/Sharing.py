@@ -2263,6 +2263,7 @@ def serializeLiteral(attrValue, attrType):
     if type(attrValue) is unicode:
         attrValue = attrValue.encode('utf-8')
     elif type(attrValue) is datetime.datetime:
+        # @@@MOR 0.6 sharing compatibility
         # For backwards compatibility with 0.6 clients: since 0.6 doesn't
         # know about 'World/Floating' timezone, strip out the timezone when
         # exporting
@@ -2632,7 +2633,7 @@ class CloudXMLFormat(ImportExportFormat):
                         attrValue = attrValue.replace('<', '&lt;')
                         attrValue = attrValue.replace('>', '&gt;')
 
-                        # @@@MOR: Temporary hack for backwards compatbility:
+                        # @@@MOR 0.6 sharing compatibility
                         # Pretend body is a Lob for the benefit of 0.6 clients
                         if attrName == 'body':
                             mimeType = "text/plain"
