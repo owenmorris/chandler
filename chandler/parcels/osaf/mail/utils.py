@@ -206,6 +206,7 @@ def dataToBinary(contentItem, attribute, data,
     """Converts non-string data to a C{TLob}
     """
     lobType = contentItem.getAttributeAspect(attribute, 'type')
+    assert lobType.itsName == 'Lob', "The attribute must be of type Lob"
 
     return lobType.makeValue(data, mimetype=mimeType, indexed=indexed,
                              compression=compression)
