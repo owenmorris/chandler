@@ -560,7 +560,7 @@ class References(Values):
         if not (other is None or isuuid(other)):
             value = self.get(name, None)
             if value is None or value is other:
-                self[name] = other._uuid
+                self[name] = other.itsUUID
             elif value._isRefs():
                 value._unloadRef(other)
             elif isuuid(value) and value == other._uuid:

@@ -740,6 +740,11 @@ class Kind(Item):
         if 'schemaHash' in self._values:
             del self.schemaHash
 
+    def _unloadItem(self, reloadable, view, clean=True):
+
+        self.flushCaches(None)
+        super(Kind, self)._unloadItem(reloadable, view, clean)
+
     # begin typeness of Kind as SingleRef
     
     def isValueReady(self, itemHandler):

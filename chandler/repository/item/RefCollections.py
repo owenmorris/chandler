@@ -715,6 +715,6 @@ class TransientRefList(RefList):
             if link is not None:
                 if link.alias is not None:
                     del self._aliases[link.alias]
-                    self._remove(key)                   
+                self._remove(key)                   
             else:
                 raise AssertionError, '%s: unloading non-loaded ref %s' %(self, item._repr_())

@@ -110,7 +110,7 @@ class PersistentRefs(object):
 
     def _unloadRef(self, item):
 
-        key = item._uuid
+        key = item.itsUUID
 
         if self.has_key(key, False):
             link = self._get(key, False)
