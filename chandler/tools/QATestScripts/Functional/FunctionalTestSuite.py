@@ -32,6 +32,7 @@ allTests = [
                 "TestNewNote.py",
                 "TestStamping.py", 
                 "TestSharing.py", #cosmo bug 5643 is blocking this test from passing
+                "TestEditModeOnEnter.py",
                 "TestMoveToTrash.py", 
                 "TestDeleteCollection.py",
                 "TestNewCollNoteStampMulti.py", 
@@ -70,6 +71,7 @@ exclusions = {
         "TestAllDayEvent.py", #test not functioning bug#5110
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
         "TestSharing.py", #Cosmo bug#5643
+        "TestEditModeOnEnter.py" #Chandler bug 5744
         )
 }
 
