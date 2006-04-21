@@ -914,50 +914,84 @@ class DBItemVMergeReader(DBItemMergeReader):
                afterLoadHooks):
 
         value = Nil
-        if name in self.dirties:
-            offset, value = super(DBItemVMergeReader, self)._value(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
-            item = self.item
-            reason = MergeError.VALUE
+        item = self.item
+        itsKind = item.itsKind
+
+        dirtyName = name in self.dirties
+        dirtyKind = kind is not itsKind
+
+        if dirtyName or dirtyKind:
             originalValues = item._values
-            if originalValues._isDirty(name):
-                originalValue = originalValues.get(name, Nil)
-                if value == originalValue:
-                    value = Nil
 
-                elif (isinstance(originalValue, AbstractSet) and
-                      originalValue._merge(value)):
-                    value = originalValue
+            def onItemMerge(reason, value):
+                mergedValue = item.onItemMerge(reason, name, value)
+                if mergedValue is Default:
+                    self._e_4_overlap(reason, item, name)
+                return mergedValue
 
-                elif self.mergeFn is not None:
-                    mergedValue = self.mergeFn(reason, item, name, value)
-                    if mergedValue is Default:
-                        if hasattr(type(item), 'onItemMerge'):
-                            mergedValue = item.onItemMerge(reason, name, value)
-                            if mergedValue is Default:
-                                self._e_4_overlap(reason, item, name)
-                            else:
-                                value = mergedValue
-                        else:
-                            self._e_3_overlap(reason, item, name)
-                    else:
-                        value = mergedValue
+            def mergeFn(reason, value):
+                mergedValue = self.mergeFn(reason, item, name, value)
+                if mergedValue is Default:
+                    if hasattr(type(item), 'onItemMerge'):
+                        return onItemMerge(reason, value)
+                    self._e_3_overlap(reason, item, name)
+                return mergedValue
+
+            if dirtyName:
+                offset, value = super(DBItemVMergeReader, self)._value(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
+
+                if originalValues._isDirty(name):
+                    reason = MergeError.VALUE
+                    originalValue = originalValues.get(name, Nil)
+                    if value == originalValue:
+                        value = Nil
+
+                    elif (isinstance(originalValue, AbstractSet) and
+                          originalValue._merge(value)):
+                        value = originalValue
+
+                    elif self.mergeFn is not None:
+                        value = mergeFn(reason, value)
                             
-                elif hasattr(type(item), 'onItemMerge'):
-                    mergedValue = item.onItemMerge(reason, name, value)
-                    if mergedValue is Default:
-                        self._e_4_overlap(reason, item, name)
-                    else:
-                        value = mergedValue
+                    elif hasattr(type(item), 'onItemMerge'):
+                        value = onItemMerge(reason, value)
                     
+                    else:
+                        self._e_1_overlap(reason, item, name)
+
+            elif dirtyKind:
+                if itsKind is None or kind is None:
+                    value = Nil
                 else:
-                    self._e_1_overlap(reason, item, name)
+                    offset, value = super(DBItemVMergeReader, self)._value(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
+
+                    attribute = kind.getAttribute(name, True)
+                    itsAttribute = itsKind.getAttribute(name, True)
+
+                    if attribute is not itsAttribute:
+                        reason = MergeError.KIND
+
+                        if self.mergeFn is not None:
+                            mergeFn(reason, value)
+                            value = Nil
+
+                        elif hasattr(type(item), 'onItemMerge'):
+                            onItemMerge(reason, value)
+                            value = Nil
+                    
+                        else:
+                            self._e_1_overlap(reason, item, name)
 
         return offset, value
     
     def _ref(self, offset, data, kind, withSchema, attribute, view, name,
              afterLoadHooks):
 
-        if name not in self.dirties:
+        itsKind = self.item.itsKind
+        dirtyName = name in self.dirties
+        dirtyKind = kind is not itsKind
+
+        if not dirtyName or dirtyKind:
             return offset, Nil
 
         flags = ord(data[offset])
@@ -977,7 +1011,7 @@ class DBItemVMergeReader(DBItemMergeReader):
         origItem = self.item
         origRef = origItem._references.get(name, None)
 
-        if self.item._references._isDirty(name):
+        if dirtyName and origItem._references._isDirty(name):
             if origRef is not None:
                 if isuuid(origRef):
                     if origRef == itemRef:
@@ -991,6 +1025,13 @@ class DBItemVMergeReader(DBItemMergeReader):
 
             elif itemRef is None:
                 return offset, Nil
+
+        elif dirtyKind:
+            attribute = kind.getAttribute(name, True)
+            itsAttribute = itsKind.getAttribute(name, True)
+
+            if attribute is not itsAttribute:
+                itemRef = Nil
 
         if origRef is not None:
             if not (isitem(origRef) and origRef._uuid == itemRef or
@@ -1048,7 +1089,11 @@ class DBItemRMergeReader(DBItemMergeReader):
     def _ref(self, offset, data, kind, withSchema, attribute, view, name,
              afterLoadHooks):
 
-        if name in self.dirties:
+        itsKind = self.item.itsKind
+        dirtyName = name in self.dirties
+        dirtyKind = kind is not itsKind
+
+        if dirtyName:
             flags = ord(data[offset])
 
             if flags & DBItemWriter.LIST:
@@ -1081,6 +1126,13 @@ class DBItemRMergeReader(DBItemMergeReader):
                 return offset, value
 
             # else skip, not a collection of refs
+
+        elif dirtyKind:
+            attribute = kind.getAttribute(name, True)
+            itsAttribute = itsKind.getAttribute(name, True)
+
+            if attribute is not itsAttribute:
+                raise NotImplementedError, 'refs merge with kind change'
 
         return offset, Nil
 

@@ -212,7 +212,7 @@ class PersistentRefs(object):
                 elif ref is None:           # removed item
                     op, oldAlias = self._changedRefs.get(item, (-1, None))
                     if item in self:
-                        del self[item]
+                        self._removeRef_(item)
 
                 else:
                     previousKey, nextKey, alias = ref
@@ -220,33 +220,37 @@ class PersistentRefs(object):
 
                     if op == 1:
                         self._e_2_remove(item)
-
-                    try:
-                        link = self._get(item)
-                        if link.alias != alias:
-                            if oldAlias is not None:
-                                self._e_1_renames(oldAlias, link.alias, alias)
-                            else:
-                                if alias is not None:
-                                    key = self.resolveAlias(alias)
-                                    if key is not None:
-                                        self._e_2_renames(key, alias, item)
-                                self.setAlias(item, alias)
-
-                    except KeyError:
-                        if alias is not None:
-                            key = self.resolveAlias(alias)
-                            if key is not None:
-                                self._e_names(item, key, alias)
-                        self._setFuture(item, alias)
-
-                    if previousKey is None or self.has_key(previousKey):
-                        self.place(item, previousKey)
+                        #pass
                     else:
-                        moves[previousKey] = item
+                        try:
+                            link = self._get(item)
+                            if link.alias != alias:
+                                if oldAlias is not None:
+                                    self._e_1_renames(oldAlias, link.alias, alias)
+                                else:
+                                    if alias is not None:
+                                        key = self.resolveAlias(alias)
+                                        if key is not None:
+                                            self._e_2_renames(key, alias, item)
+                                    self.setAlias(item, alias)
+
+                        except KeyError:
+                            if alias is not None:
+                                key = self.resolveAlias(alias)
+                                if key is not None:
+                                    self._e_names(item, key, alias)
+                            self._setFuture(item, alias)
+
+                        if previousKey is None or previousKey in self:
+                            self.place(item, previousKey)
+                        else:
+                            moves[previousKey] = item
 
         for previousKey, item in moves.iteritems():
-            self.place(item, previousKey)
+            if item in self:
+                if previousKey not in self:
+                    previousKey = self._lastKey
+                self.place(item, previousKey)
 
     def _e_1_remove(self, *args):
         raise MergeError, (type(self).__name__, self._item, 'modified element %s was removed in other view' %(args), MergeError.MOVE)
@@ -305,7 +309,7 @@ class DBRefList(RefList, PersistentRefs):
     def _removeRef_(self, other):
 
         link = RefList._removeRef_(self, other)
-        PersistentRefs._removeRef_(self, other._uuid, link)
+        PersistentRefs._removeRef_(self, other.itsUUID, link)
 
     def _setOwner(self, item, name):
 
@@ -662,8 +666,12 @@ class DBChildren(Children, PersistentRefs):
     
     def __delitem__(self, key):
 
+        self._removeRef_(key)
+
+    def _removeRef_(self, key):
+        
         link = super(DBChildren, self).__delitem__(key)
-        self._removeRef_(key, link)
+        PersistentRefs._removeRef_(self, key, link)
 
     def _append(self, child):
 

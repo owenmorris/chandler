@@ -8,7 +8,7 @@ from datetime import timedelta
 from time import time
 
 from chandlerdb.item.c import CItem
-from chandlerdb.util.c import isuuid, issingleref
+from chandlerdb.util.c import isuuid
 from chandlerdb.persistence.c import DBLockDeadlockError
 
 from repository.item.RefCollections import RefList, TransientRefList
@@ -34,7 +34,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         super(DBRepositoryView, self).openView()
 
     def _logItem(self, item):
-        
+
         if super(DBRepositoryView, self)._logItem(item):
             self._log.add(item)
             return True
@@ -48,53 +48,6 @@ class DBRepositoryView(OnDemandRepositoryView):
     def hasDirtyItems(self):
 
         return len(self._log) > 0
-
-
-__revision__  = "$Revision$"
-__date__      = "$Date$"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
-
-from datetime import timedelta
-from time import time
-
-from chandlerdb.item.c import CItem
-from chandlerdb.util.c import isuuid, issingleref
-from chandlerdb.persistence.c import DBLockDeadlockError
-
-from repository.item.RefCollections import RefList, TransientRefList
-from repository.persistence.RepositoryError \
-     import RepositoryError, MergeError, VersionConflictError
-from repository.persistence.RepositoryView \
-     import RepositoryView, OnDemandRepositoryView
-from repository.persistence.Repository import Repository
-from repository.persistence.DBLob import DBLob
-from repository.persistence.DBRefs import DBRefList, DBChildren, DBNumericIndex
-from repository.persistence.DBContainer import HashTuple
-from repository.persistence.DBItemIO \
-     import DBItemWriter, DBItemVMergeReader, DBItemRMergeReader
-
-
-class DBRepositoryView(OnDemandRepositoryView):
-
-    def openView(self):
-
-        self._log = set()
-        self._indexWriter = None
-
-        super(DBRepositoryView, self).openView()
-
-    def _logItem(self, item):
-        
-        if super(DBRepositoryView, self)._logItem(item):
-            self._log.add(item)
-            return True
-        
-        return False
-
-    def dirtyItems(self):
-
-        return iter(self._log)
 
     def dirlog(self):
 
@@ -315,8 +268,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                 if watchers:
                     if names is None:
                         names = dirtyNames()
-                    for watcher, watch, methodName in watchers:
-                        getattr(self[watcher], methodName)('refresh', uItem, names)
+                    for watcher, watch, methodName in list(watchers):
+                        watcher = self.find(watcher)
+                        if watcher is not None:
+                            getattr(watcher, methodName)('refresh', uItem, names)
 
     def _dispatchChanges(self, changes):
 
@@ -375,7 +330,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     # unload items unchanged until changed by merging
                     for item in self._log:
                         item.setDirty(0)
-                        unloads[item._uuid] = item
+                        unloads[item.itsUUID] = item
             finally:
                 self._log = _log
 
@@ -394,6 +349,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                 item = self.find(uuid)
                 if item is not None:
                     item._afterMerge()
+
+            #if merges:
+            #    print 'CHECK', self.check()
 
             if notify:
                 before = time()
@@ -617,6 +575,15 @@ class DBRepositoryView(OnDemandRepositoryView):
             
                 item = self.find(uItem, False)
                 newDirty = item.getDirty()
+
+                if oldDirty & CItem.KDIRTY:
+                    raise NotImplementedError, 'merge with refresh kind change'
+
+                if newDirty & CItem.KDIRTY:
+                    if newDirty & CItem.VDIRTY:
+                        oldDirty |= CItem.VDIRTY
+                    if newDirty & CItem.RDIRTY:
+                        oldDirty |= CItem.RDIRTY
 
                 if newDirty & oldDirty & CItem.NDIRTY:
                     item._status |= CItem.NMERGED

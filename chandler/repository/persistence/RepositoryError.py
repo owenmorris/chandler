@@ -84,13 +84,15 @@ class MergeError(VersionConflictError):
     NAME   = 3
     VALUE  = 4
     REF    = 5
+    KIND   = 6
     
     codeNames = { BUG: 'BUG',
                   RENAME: 'RENAME',
                   MOVE: 'MOVE',
                   NAME: 'NAME',
                   VALUE: 'VALUE',
-                  REF: 'REF' }
+                  REF: 'REF',
+                  KIND: 'KIND' }
 
 
 class LoadError(RepositoryError):
