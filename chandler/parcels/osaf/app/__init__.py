@@ -130,6 +130,7 @@ def installParcel(parcel, oldVersion=None):
             displayName=u"Open Source Applications Foundation"
         ),
     )
+    schema.ns('osaf.pim', parcel.itsView).allCollection.add(WelcomeEvent)
 
     body = _(u"""Welcome to the Chandler 0.6 Release!
 
