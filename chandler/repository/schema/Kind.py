@@ -708,6 +708,7 @@ class Kind(Item):
         The caches of the subKinds of this kind are flushed recursively.
         """
         c = self.c
+        stale = self.isStale()
 
         if c.attributesCached:
             self._allAttributes.clear()
@@ -715,7 +716,8 @@ class Kind(Item):
             self._notifyAttributes.clear()
             c.attributesCached = False
 
-        self.inheritedSuperKinds.clear()
+        if not stale:
+            self.inheritedSuperKinds.clear()
         c.superKindsCached = False
 
         self._inheritedAttributes.clear()
@@ -728,9 +730,10 @@ class Kind(Item):
             self._values._clearTransient('classes')
             del self._values['classes']
 
-        for subKind in self.getAttributeValue('subKinds', self._references,
-                                              None, []):
-            subKind.flushCaches(reason)
+        if not stale:
+            for subKind in self.getAttributeValue('subKinds', self._references,
+                                                  None, []):
+                subKind.flushCaches(reason)
 
         if reason is not None:
             logger = self.itsView.logger
@@ -742,8 +745,8 @@ class Kind(Item):
 
     def _unloadItem(self, reloadable, view, clean=True):
 
-        self.flushCaches(None)
         super(Kind, self)._unloadItem(reloadable, view, clean)
+        self.flushCaches(None)
 
     # begin typeness of Kind as SingleRef
     

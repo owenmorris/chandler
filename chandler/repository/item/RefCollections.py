@@ -689,7 +689,7 @@ class TransientRefList(RefList):
     def __init__(self, item, name, otherName, readOnly):
 
         super(TransientRefList, self).__init__(item, name, otherName, readOnly,
-                                               LinkedMap.NEW | LinkedMap.LOAD)
+                                               LinkedMap.NEW)
 
     def _setOwner(self, item, name):
 
@@ -715,6 +715,7 @@ class TransientRefList(RefList):
     def _unloadRef(self, item):
 
         key = item.itsUUID
+        self._flags |= LinkedMap.LOAD
 
         if self.has_key(key, False):
             link = self._get(key, False)
