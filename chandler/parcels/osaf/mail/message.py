@@ -249,12 +249,12 @@ def messageObjectToKind(view, messageObject, messageText=None,
                         m.StampKind('add', Mail.MailMessageMixin.getKind(view)) 
                     return m
         return None
-    
+
     m = importIcalendarPayload(messageObject)
     if m is None and messageObject.is_multipart():
         for mimePart in messageObject.get_payload():
             if mimePart.get_content_type() == "text/calendar":
-                m = importIcalendarPayload(mimePart.get_payload())
+                m = importIcalendarPayload(mimePart)
                 if m is not None:
                     break
 
@@ -359,6 +359,7 @@ def kindToMessageObject(mailMessage):
         # completely on some clients...
         # @@@ In formatting the prepended description, I'm adding an extra newline
         # at the end so that Apple Mail will display the .ics attachment on its own line.
+        #XXX Location is an issue for localization
         location = unicode(getattr(mailMessage, 'location', u''))
         if len(location) > 0:
             location = _(u"\n%(locationLabel)s: %(locationValue)s") \
