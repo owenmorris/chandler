@@ -119,13 +119,16 @@ class TestPanel( wx.Panel ):
         btn = wx.Button( self, -1, "Deselect", (self.colStartX, miscControlsY) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestDeselect, btn )
 
-        btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 30) )
+        btn = wx.Button( self, -1, "Scroll", (self.colStartX, miscControlsY + 30) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestScroll, btn )
+
+        btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 60) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
 
-        btn = wx.Button( self, -1, "Resize To Fit", (self.colStartX, miscControlsY + 60) )
+        btn = wx.Button( self, -1, "Resize To Fit", (self.colStartX, miscControlsY + 90) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeToFit, btn )
 
-        btn = wx.Button( self, -1, "Dump Info", (self.colStartX, miscControlsY + 90) )
+        btn = wx.Button( self, -1, "Dump Info", (self.colStartX, miscControlsY + 120) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonDumpInfo, btn )
 
         self.colStartX += 150
@@ -153,6 +156,23 @@ class TestPanel( wx.Panel ):
         if (ch.GetId() == self.baseCntlID + 1):
             self.choiceAB.SetSelection( self.ch2.GetArrowButtonStyle( ch.GetSelectedItem() ) )
         # self.log.write( "Click! (%ld)\n" % event.GetEventType() )
+
+    def OnButtonTestDeselect( self, event ):
+        self.ch1.SetSelectedItem( -1 )
+        self.ch2.SetSelectedItem( -1 )
+        self.ch3.SetSelectedItem( -1 )
+        self.l0.SetLabel( "(all): deselected items" )
+
+    def OnButtonTestScroll( self, event ):
+        curBase = self.ch1.GetBaseVisibleItem()
+        if (curBase == 0):
+            curBase = 1
+        else:
+            curBase = 0
+        self.ch1.SetBaseVisibleItem( curBase )
+        self.ch2.SetBaseVisibleItem( curBase )
+        self.ch3.SetBaseVisibleItem( curBase )
+        self.l0.SetLabel( "(all): scrolled items" )
 
     def OnButtonTestResizeBounds( self, event ):
         if (self.stepSize == 1):
@@ -184,12 +204,6 @@ class TestPanel( wx.Panel ):
             self.l0.SetLabel( "(%d): deleted item (%d)" %(ch.GetId(), itemIndex) )
         else:
             self.l0.SetLabel( "(%d): no item selected" %(ch.GetId()) )
-
-    def OnButtonTestDeselect( self, event ):
-        self.ch1.SetSelectedItem( -1 )
-        self.ch2.SetSelectedItem( -1 )
-        self.ch3.SetSelectedItem( -1 )
-        self.l0.SetLabel( "(both): deselected items" )
 
     def OnButtonDumpInfo( self, event ):
         # self.log.write( "OnButtonDumpInfo" )

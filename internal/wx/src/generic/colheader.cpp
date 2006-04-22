@@ -1519,11 +1519,17 @@ bool					bResultV;
 bool wxColumnHeader::GetItemVisibility(
 	long				itemIndex )
 {
-wxColumnHeaderItem	*itemRef;
-bool			bResultV;
+wxColumnHeaderItem		*itemRef;
+bool				bResultV;
 
 	itemRef = GetItemRef( itemIndex );
 	bResultV = (itemRef != NULL);
+
+	// ALERT: need implementation
+	if (bResultV)
+	{
+		bResultV = (itemIndex >= m_ItemVisibleBase);
+	}
 
 	return bResultV;
 }
@@ -1532,8 +1538,8 @@ bool wxColumnHeader::GetItemBounds(
 	long				itemIndex,
 	wxRect				*boundsR ) const
 {
-wxColumnHeaderItem	*itemRef;
-bool			bResultV, bIsVertical;
+wxColumnHeaderItem		*itemRef;
+bool				bResultV, bIsVertical;
 
 	if (boundsR == NULL)
 		return false;
@@ -1940,7 +1946,7 @@ long		resultV, i;
 		dc.DestroyClippingRegion();
 
 		for (i=0; i<m_ItemCount; i++)
-			if (GetItemBounds( i, &boundsR ))
+			if ((i >= m_ItemVisibleBase) && GetItemBounds( i, &boundsR ))
 			{
 				dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
 
@@ -1974,13 +1980,13 @@ long		resultV, i;
 			{
 				itemRef = GetItemRef( i );
 				if ((itemRef != NULL) && (itemRef->m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None))
-					if (GetItemBounds( i, &boundsR ))
+					if ((i >= m_ItemVisibleBase) && GetItemBounds( i, &boundsR ))
 						itemRef->DrawButtonArrow( &dc, &boundsR );
 			}
 
 			// wxMSW case - add selection indicator - no appropriate native adornment exists
 			if (m_BVisibleSelection && (m_ItemSelected >= 0))
-				if (GetItemBounds( m_ItemSelected, &boundsR ))
+				if ((m_ItemSelected >= m_ItemVisibleBase) && GetItemBounds( m_ItemSelected, &boundsR ))
 				{
 					dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
 
@@ -2013,7 +2019,7 @@ long		resultV, i;
 		dc.DestroyClippingRegion();
 
 		for (i=0; i<m_ItemCount; i++)
-			if (GetItemBounds( i, &boundsR ))
+			if ((i >= m_ItemVisibleBase) && GetItemBounds( i, &boundsR ))
 			{
 				dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
 
