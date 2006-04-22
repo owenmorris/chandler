@@ -306,7 +306,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         def _refresh(items):
             for item in items():
-                item._unloadItem(refCounted or item.isPinned(), self)
+                item._unloadItem(refCounted or item.isPinned(), self, False)
             for item in items():
                 if refCounted or item.isPinned():
                     if item.isSchema():

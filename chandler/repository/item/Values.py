@@ -563,7 +563,7 @@ class References(Values):
                 self[name] = other.itsUUID
             elif value._isRefs():
                 value._unloadRef(other)
-            elif isuuid(value) and value == other._uuid:
+            elif isuuid(value) and value == other.itsUUID:
                 pass
             else:
                 raise BadRefError, (self._item, name, other, value)
