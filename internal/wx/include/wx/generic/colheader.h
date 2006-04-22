@@ -118,6 +118,10 @@ public:
 	void SetSelectedItem(
 		long				itemIndex );
 
+	long GetBaseVisibleItem( void ) const;
+	void SetBaseVisibleItem(
+		long				itemIndex );
+
 	void DeleteItem(
 		long				itemIndex );
 	void AppendItem(
@@ -209,6 +213,8 @@ protected:
 	bool SetItemData(
 		long							itemIndex,
 		const wxColumnHeaderItem		*info );
+	bool GetItemVisibility(
+		long				itemIndex );
 	bool GetItemBounds(
 		long				itemIndex,
 		wxRect			*boundsR ) const;
@@ -269,6 +275,7 @@ protected:
 	wxColour				m_SelectionColour;
 	wxColumnHeaderItem		**m_ItemList;
 	long					m_ItemCount;
+	long					m_ItemVisibleBase;
 	long					m_ItemSelected;
 	long					m_SelectionDrawStyle;
 	bool					m_BUseVerticalOrientation; 	// false is horizontal (default)

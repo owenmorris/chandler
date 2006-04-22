@@ -172,6 +172,9 @@ public:
     long GetSelectedItem( void ) const;
     void SetSelectedItem(
         long            itemIndex );
+    long GetBaseVisibleItem( void ) const;
+    void SetBaseVisibleItem(
+        long            itemIndex );
     wxColumnHeaderHitTestResult HitTest(
         const wxPoint    &locationPt );
     void AppendItem(

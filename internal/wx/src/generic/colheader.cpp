@@ -157,6 +157,7 @@ void wxColumnHeader::Init( void )
 
 	m_ItemList = NULL;
 	m_ItemCount = 0;
+	m_ItemVisibleBase = 0;
 	m_ItemSelected = CH_HITTEST_NoPart;
 
 	m_SelectionColour.Set( 0x66, 0x66, 0x66 );
@@ -321,6 +322,9 @@ long		i;
 	LOGProc( msgStr );
 
 	wxFormatLong( msgStr, m_ItemCount );
+	LOGProc( msgStr );
+
+	wxFormatLong( msgStr, m_ItemVisibleBase );
 	LOGProc( msgStr );
 
 	wxFormatLong( msgStr, m_ItemSelected );
@@ -1264,6 +1268,22 @@ bool		bSelected;
 	}
 }
 
+long wxColumnHeader::GetBaseVisibleItem( void ) const
+{
+	return m_ItemVisibleBase;
+}
+
+void wxColumnHeader::SetBaseVisibleItem(
+	long			itemIndex )
+{
+	if (m_ItemVisibleBase != itemIndex)
+	{
+		m_ItemVisibleBase = itemIndex;
+
+		SetViewDirty();
+	}
+}
+
 void wxColumnHeader::DeleteItem(
 	long			itemIndex )
 {
@@ -1496,12 +1516,24 @@ bool					bResultV;
 	return bResultV;
 }
 
+bool wxColumnHeader::GetItemVisibility(
+	long				itemIndex )
+{
+wxColumnHeaderItem	*itemRef;
+bool			bResultV;
+
+	itemRef = GetItemRef( itemIndex );
+	bResultV = (itemRef != NULL);
+
+	return bResultV;
+}
+
 bool wxColumnHeader::GetItemBounds(
 	long				itemIndex,
 	wxRect				*boundsR ) const
 {
-wxColumnHeaderItem		*itemRef;
-bool					bResultV, bIsVertical;
+wxColumnHeaderItem	*itemRef;
+bool			bResultV, bIsVertical;
 
 	if (boundsR == NULL)
 		return false;
