@@ -194,11 +194,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if not hasattr(self, 'lastHover'):
             self.lastHover = epochtime() - 1 # one second ago
         if epochtime() > self.lastHover + .05: # 20 scrolls a second
-            windowHeight = self.GetSize().GetHeight()
-            if y < self.hourHeight:
-                self.ScaledScroll(0, (y - self.hourHeight))
-            elif windowHeight - y < self.hourHeight:
-                self.ScaledScroll(0, y - windowHeight + self.hourHeight)
+            self.ScrollIntoView(wx.Point(x, y), self.hourHeight)
         
         return super(wxTimedEventsCanvas, self).OnHover(x, y, dragResult)
 
@@ -752,7 +748,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         if self.dragState is not None:
             scrolledPosition = self.CalcScrolledPosition(self.dragState.currentPosition)
-            self.ScrollIntoView(scrolledPosition)
+            self.ScrollIntoView(scrolledPosition, self.hourHeight)
     
     def StartDragTimer(self):
         self.scrollTimer = wx.PyTimer(self.OnDragTimer)
