@@ -115,13 +115,13 @@ class PersistentRefs(object):
         if self.has_key(key, False):
             link = self._get(key, False)
             if link is not None:
-                if link.alias is not None:
-                    del self._aliases[link.alias]
                 op, alias = self._changedRefs.get(key, (-1, link.alias))
                 if op == 0:
                     link.value = key
                 else:
                     self._remove(key)                   
+                    if link.alias is not None:
+                        del self._aliases[link.alias]
             else:
                 raise AssertionError, '%s: unloading non-loaded ref %s' %(self, item._repr_())
 
@@ -683,7 +683,7 @@ class DBChildren(Children, PersistentRefs):
 
     def _setFuture(self, key, alias):
         
-        self[key] = CLink(self, None, None, None, alias)
+        self[key] = CLink(self, key, None, None, alias)
     
     def _saveValues(self, version):
 

@@ -66,7 +66,7 @@ class MergeError(VersionConflictError):
     __doc__ = "(%s) merging %s failed because %s, reason code: %s"
 
     def __str__(self):
-        return self.__doc__ %(self.args[0], self.args[1].itsPath, self.args[2],
+        return self.__doc__ %(self.args[0], self.args[1], self.args[2],
                               self.getReasonCodeName())
 
     def getReasonCode(self):
@@ -85,6 +85,7 @@ class MergeError(VersionConflictError):
     VALUE  = 4
     REF    = 5
     KIND   = 6
+    CHANGE = 7
     
     codeNames = { BUG: 'BUG',
                   RENAME: 'RENAME',
@@ -92,7 +93,8 @@ class MergeError(VersionConflictError):
                   NAME: 'NAME',
                   VALUE: 'VALUE',
                   REF: 'REF',
-                  KIND: 'KIND' }
+                  KIND: 'KIND',
+                  CHANGE: 'CHANGE' }
 
 
 class LoadError(RepositoryError):

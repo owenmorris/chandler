@@ -691,7 +691,7 @@ class Kind(Item):
                     if not isNew:   # __setKind case
                         item.setDirty(Item.RDIRTY, name, references, True)
 
-    def flushCaches(self, reason, silent=False):
+    def flushCaches(self, reason):
         """
         Flush the caches setup on this Kind and its subKinds.
 
@@ -730,7 +730,7 @@ class Kind(Item):
 
         for subKind in self.getAttributeValue('subKinds', self._references,
                                               None, []):
-            subKind.flushCaches(reason, silent)
+            subKind.flushCaches(reason)
 
         if reason is not None:
             logger = self.itsView.logger

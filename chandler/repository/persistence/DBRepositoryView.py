@@ -309,6 +309,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                 item._unloadItem(refCounted or item.isPinned(), self)
             for item in items():
                 if refCounted or item.isPinned():
+                    if item.isSchema():
+                        self.find(item.itsUUID)
+            for item in items():
+                if refCounted or item.isPinned():
                     self.find(item.itsUUID)
 
         if newVersion > self._version:
@@ -567,6 +571,14 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                 elif item.itsVersion < version:
                     unloads[uItem] = item
+
+            elif uItem in self._deletedRegistry:
+                kind = self.find(uKind, False)
+                if kind is None:
+                    self._e_1_delete(uItem, uKind, oldVersion, version)
+                else:
+                    self._e_1_delete(uItem, kind, oldVersion, version)
+
             else:
                 also.add(uItem)
                     
@@ -671,8 +683,12 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def _e_1_rename(self, item, parentId, newParentId):
 
-        raise MergeError, ('rename', item, 'item %s moved to %s and %s' %(item._uuid, parentId, newParentId), MergeError.MOVE)
+        raise MergeError, ('rename', item, 'item %s moved to %s and %s' %(item.itsUUID, parentId, newParentId), MergeError.MOVE)
 
     def _e_2_rename(self, item, name):
 
-        raise MergeError, ('rename', item, 'item %s renamed to %s and %s' %(item._uuid, item._name, name), MergeError.RENAME)
+        raise MergeError, ('rename', item, 'item %s renamed to %s and %s' %(item.itsUUID, item.itsName, name), MergeError.RENAME)
+
+    def _e_1_delete(self, uItem, uKind, oldVersion, newVersion):
+
+        raise MergeError, ('delete', uItem, 'item %s was deleted in this version (%d) but has later changes in version (%d) where it is of kind %s' %(uItem, oldVersion, newVersion, uKind), MergeError.CHANGE)

@@ -219,7 +219,7 @@ class LinkedMap(CLinkedMap):
         nextKey = firstKey or self._firstKey
         while nextKey != lastKey:
             key = nextKey
-            nextKey = self._get(nextKey)._nextKey
+            nextKey = self._get(key)._nextKey
 
             yield key
 

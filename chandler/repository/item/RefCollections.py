@@ -689,7 +689,13 @@ class TransientRefList(RefList):
     def __init__(self, item, name, otherName, readOnly):
 
         super(TransientRefList, self).__init__(item, name, otherName, readOnly,
-                                               LinkedMap.NEW)
+                                               LinkedMap.NEW | LinkedMap.LOAD)
+
+    def _setOwner(self, item, name):
+
+        super(TransientRefList, self)._setOwner(item, name)
+        if item is not None:
+            self.view = item.itsView
 
     def linkChanged(self, link, key):
         pass
@@ -713,8 +719,6 @@ class TransientRefList(RefList):
         if self.has_key(key, False):
             link = self._get(key, False)
             if link is not None:
-                if link.alias is not None:
-                    del self._aliases[link.alias]
-                self._remove(key)                   
+                link.value = key
             else:
                 raise AssertionError, '%s: unloading non-loaded ref %s' %(self, item._repr_())

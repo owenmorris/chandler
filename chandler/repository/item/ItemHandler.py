@@ -603,7 +603,7 @@ class ItemHandler(ValueHandler):
     def setupClass(self, view):
 
         if self.update and isinstance(self.item, Kind):
-            self.item.flushCaches('attributes', True)
+            self.item.flushCaches('attributes')
         elif self.kind is not None:
             self.kind._setupClass(type(self.item))
 

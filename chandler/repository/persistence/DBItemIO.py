@@ -1018,7 +1018,7 @@ class DBItemVMergeReader(DBItemMergeReader):
                         return offset, Nil
                     origRef = origItem._references._getRef(name, origRef)
 
-                elif origRef._uuid == itemRef:
+                elif origRef.itsUUID == itemRef:
                     return offset, Nil
 
                 self._e_2_overlap(MergeError.REF, self.item, name)
