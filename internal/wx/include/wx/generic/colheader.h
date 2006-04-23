@@ -216,7 +216,7 @@ protected:
 		long							itemIndex,
 		const wxColumnHeaderItem		*info );
 	bool GetItemVisibility(
-		long				itemIndex );
+		long				itemIndex ) const;
 	bool GetItemBounds(
 		long				itemIndex,
 		wxRect			*boundsR ) const;

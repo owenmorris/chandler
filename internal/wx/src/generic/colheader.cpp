@@ -1477,6 +1477,7 @@ void wxColumnHeader::SetBaseVisibleItem(
 				m_ItemVisibleBaseOrigin = itemRef->m_Origin.x;
 		}
 
+		RecalculateItemExtents();
 		SetViewDirty();
 	}
 }
@@ -1714,7 +1715,7 @@ bool					bResultV;
 }
 
 bool wxColumnHeader::GetItemVisibility(
-	long				itemIndex )
+	long				itemIndex ) const
 {
 wxColumnHeaderItem		*itemRef;
 bool				bResultV;
@@ -1738,50 +1739,55 @@ bool				bResultV, bIsVertical;
 	if (boundsR == NULL)
 		return false;
 
-	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
-
-	itemRef = GetItemRef( itemIndex );
-	bResultV = (itemRef != NULL);
-
-	if (bIsVertical)
+	bResultV = GetItemVisibility( itemIndex );
+	if (bResultV)
 	{
-		// is this item beyond the bottom edge?
-//		if (bResultV)
-//			bResultV = (itemRef->m_Origin.x < m_NativeBoundsR.height);
-
-		if (bResultV)
-		{
-			boundsR->x = 0;
-			boundsR->y = m_DefaultItemSize.y * (itemIndex - m_ItemVisibleBaseIndex);
-			boundsR->width = m_DefaultItemSize.x;
-			boundsR->height = m_DefaultItemSize.y;
-
-//			if (boundsR->height > m_NativeBoundsR.height - itemRef->m_Origin.x)
-//				boundsR->height = m_NativeBoundsR.height - itemRef->m_Origin.x;
-
-			bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
-		}
-	}
-	else
-	{
-		// is this item beyond the right edge?
-		if (bResultV)
-			bResultV = (itemRef->m_Origin.x < m_NativeBoundsR.width);
-
-		if (bResultV)
-		{
-			boundsR->x = itemRef->m_Origin.x - m_ItemVisibleBaseOrigin;
-			boundsR->y = 0; // m_NativeBoundsR.y;
-			boundsR->width = itemRef->m_Extent.x + 1;
-			boundsR->height = m_NativeBoundsR.height;
-
-			if (boundsR->width > m_NativeBoundsR.width - itemRef->m_Origin.x)
-				boundsR->width = m_NativeBoundsR.width - itemRef->m_Origin.x;
-
-			bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
-		}
+		itemRef = GetItemRef( itemIndex );
+		bResultV = (itemRef != NULL);
 	}
 
+	if (bResultV)
+	{
+		bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
+		if (bIsVertical)
+		{
+			// is this item beyond the bottom edge?
+//			if (bResultV)
+//				bResultV = (itemRef->m_Origin.x < m_NativeBoundsR.height);
+
+			if (bResultV)
+			{
+				boundsR->x = 0;
+				boundsR->y = m_DefaultItemSize.y * (itemIndex - m_ItemVisibleBaseIndex);
+				boundsR->width = m_DefaultItemSize.x;
+				boundsR->height = m_DefaultItemSize.y;
+
+//				if (boundsR->height > m_NativeBoundsR.height - itemRef->m_Origin.x)
+//					boundsR->height = m_NativeBoundsR.height - itemRef->m_Origin.x;
+
+				bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
+			}
+		}
+		else
+		{
+			// is this item beyond the right edge?
+			if (bResultV)
+				bResultV = (itemRef->m_Origin.x < m_NativeBoundsR.width);
+
+			if (bResultV)
+			{
+				boundsR->x = itemRef->m_Origin.x;
+				boundsR->y = 0; // m_NativeBoundsR.y;
+				boundsR->width = itemRef->m_Extent.x + 1;
+				boundsR->height = m_NativeBoundsR.height;
+
+				if (boundsR->width > m_NativeBoundsR.width - itemRef->m_Origin.x)
+					boundsR->width = m_NativeBoundsR.width - itemRef->m_Origin.x;
+
+				bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
+			}
+		}
+	}
 
 	if (! bResultV)
 	{
@@ -2242,6 +2248,9 @@ void wxColumnHeader::RefreshItem(
 	long				itemIndex,
 	bool				bForceRedraw )
 {
+	if (!GetItemVisibility( itemIndex ))
+		return;
+
 #if defined(__WXMSW__)
 	if (! m_BUseGenericRenderer)
 	{
@@ -2277,18 +2286,19 @@ wxSize	itemExtent;
 
 void wxColumnHeader::RecalculateItemExtents( void )
 {
-long		originX, i;
+long		originX, baseOriginX, i;
 bool		bIsVertical;
 
 	if (m_ItemList != NULL)
 	{
 		originX = 0;
+		baseOriginX = m_ItemVisibleBaseOrigin;
 		bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
 
 		for (i=0; i<m_ItemCount; i++)
 			if (m_ItemList[i] != NULL)
 			{
-				m_ItemList[i]->m_Origin.x = originX;
+				m_ItemList[i]->m_Origin.x = originX - baseOriginX;
 				if (! bIsVertical)
 					originX += m_ItemList[i]->m_Extent.x;
 			}
