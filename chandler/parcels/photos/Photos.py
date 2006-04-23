@@ -2,13 +2,15 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "photos"
 
-import urllib, time, datetime, cStringIO, logging, mimetypes, sys
+import urllib, time, cStringIO, logging, mimetypes, sys
+from datetime import datetime
 from osaf import pim
 from repository.util.URL import URL
 from repository.util.Streams import BlockInputStream
 from application import schema
 import EXIF
 from i18n import OSAFMessageFactory as _
+from PyICU import ICUtzinfo
 
 logger = logging.getLogger(__name__)
 
@@ -66,8 +68,15 @@ class PhotoMixin(pim.ContentItem):
         try:
             exif = EXIF.process_file(stream)
 
-            # Warning, serious nesting ahead
-            self.dateTaken = datetime.datetime.fromtimestamp(time.mktime(time.strptime(str(exif['Image DateTime']), "%Y:%m:%d %H:%M:%S")))
+            # First try DateTimeOriginal, falling back to DateTime
+            takenString = str(exif.get('EXIF DateTimeOriginal',
+                              exif['Image DateTime']))
+
+            timestamp = time.mktime(time.strptime(takenString,
+                "%Y:%m:%d %H:%M:%S"))
+            self.dateTaken = datetime.fromtimestamp(timestamp)
+            if self.dateTaken.tzinfo is None:
+                self.dateTaken = self.dateTaken.replace(tzinfo=ICUtzinfo.default)
 
             self.exif = {}
             for (key, value) in exif.iteritems():
