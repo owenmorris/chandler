@@ -47,7 +47,7 @@
 #include "wx/grid.h"
 
 // ----------------------------------------------------------------------------
-// wxWin macros
+// wx binding macros
 // ----------------------------------------------------------------------------
 
 #if wxUSE_EXTENDED_RTTI
@@ -140,8 +140,9 @@ wxChandlerGridLabelWindow::wxChandlerGridLabelWindow(
 	const wxSize &size,
 	long styleVariant )
 	:
-	wxWindow( parent, id, pos, size, styleVariant | wxWANTS_CHARS | wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE )
-//	wxColumnHeader( parent, id, pos, size, styleVariant | wxWANTS_CHARS | wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE )
+	wxClassParent_ChandlerGridLabelWindow(
+		parent, id, pos, size,
+		styleVariant | wxWANTS_CHARS | wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE )
 {
 	m_owner = parent;
 	m_styleVariant = styleVariant;
@@ -331,7 +332,8 @@ void wxColumnHeader::Init( void )
 
 	m_ItemList = NULL;
 	m_ItemCount = 0;
-	m_ItemVisibleBase = 0;
+	m_ItemVisibleBaseIndex = 0;
+	m_ItemVisibleBaseOrigin = 0;
 	m_ItemSelected = CH_HITTEST_NoPart;
 
 	m_SelectionColour.Set( 0x66, 0x66, 0x66 );
@@ -501,7 +503,10 @@ long		i;
 	wxFormatLong( msgStr, m_ItemCount );
 	LOGProc( msgStr );
 
-	wxFormatLong( msgStr, m_ItemVisibleBase );
+	wxFormatLong( msgStr, m_ItemVisibleBaseIndex );
+	LOGProc( msgStr );
+
+	wxFormatLong( msgStr, m_ItemVisibleBaseOrigin );
 	LOGProc( msgStr );
 
 	wxFormatLong( msgStr, m_ItemSelected );
@@ -1447,15 +1452,30 @@ bool		bSelected;
 
 long wxColumnHeader::GetBaseVisibleItem( void ) const
 {
-	return m_ItemVisibleBase;
+	return m_ItemVisibleBaseIndex;
 }
 
 void wxColumnHeader::SetBaseVisibleItem(
 	long			itemIndex )
 {
-	if (m_ItemVisibleBase != itemIndex)
+	if ((itemIndex < 0) || (itemIndex >= m_ItemCount))
+		return;
+
+	if (m_ItemVisibleBaseIndex != itemIndex)
 	{
-		m_ItemVisibleBase = itemIndex;
+		m_ItemVisibleBaseIndex = itemIndex;
+
+		m_ItemVisibleBaseOrigin = 0;
+		if (itemIndex > 0)
+		{
+		wxColumnHeaderItem		*itemRef;
+
+			// cache the value of the starting left/top edge
+			// in order to simplify item bounds calculations
+			itemRef = GetItemRef( itemIndex );
+			if (itemRef != NULL)
+				m_ItemVisibleBaseOrigin = itemRef->m_Origin.x;
+		}
 
 		SetViewDirty();
 	}
@@ -1699,14 +1719,11 @@ bool wxColumnHeader::GetItemVisibility(
 wxColumnHeaderItem		*itemRef;
 bool				bResultV;
 
+	if (itemIndex < m_ItemVisibleBaseIndex)
+		return false;
+
 	itemRef = GetItemRef( itemIndex );
 	bResultV = (itemRef != NULL);
-
-	// ALERT: need implementation
-	if (bResultV)
-	{
-		bResultV = (itemIndex >= m_ItemVisibleBase);
-	}
 
 	return bResultV;
 }
@@ -1735,7 +1752,7 @@ bool				bResultV, bIsVertical;
 		if (bResultV)
 		{
 			boundsR->x = 0;
-			boundsR->y = m_DefaultItemSize.y * itemIndex;
+			boundsR->y = m_DefaultItemSize.y * (itemIndex - m_ItemVisibleBaseIndex);
 			boundsR->width = m_DefaultItemSize.x;
 			boundsR->height = m_DefaultItemSize.y;
 
@@ -1753,7 +1770,7 @@ bool				bResultV, bIsVertical;
 
 		if (bResultV)
 		{
-			boundsR->x = itemRef->m_Origin.x;
+			boundsR->x = itemRef->m_Origin.x - m_ItemVisibleBaseOrigin;
 			boundsR->y = 0; // m_NativeBoundsR.y;
 			boundsR->width = itemRef->m_Extent.x + 1;
 			boundsR->height = m_NativeBoundsR.height;
@@ -2123,7 +2140,7 @@ long		resultV, i;
 		dc.DestroyClippingRegion();
 
 		for (i=0; i<m_ItemCount; i++)
-			if ((i >= m_ItemVisibleBase) && GetItemBounds( i, &boundsR ))
+			if ((i >= m_ItemVisibleBaseIndex) && GetItemBounds( i, &boundsR ))
 			{
 				dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
 
@@ -2157,13 +2174,13 @@ long		resultV, i;
 			{
 				itemRef = GetItemRef( i );
 				if ((itemRef != NULL) && (itemRef->m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None))
-					if ((i >= m_ItemVisibleBase) && GetItemBounds( i, &boundsR ))
+					if ((i >= m_ItemVisibleBaseIndex) && GetItemBounds( i, &boundsR ))
 						itemRef->DrawButtonArrow( &dc, &boundsR );
 			}
 
 			// wxMSW case - add selection indicator - no appropriate native adornment exists
 			if (m_BVisibleSelection && (m_ItemSelected >= 0))
-				if ((m_ItemSelected >= m_ItemVisibleBase) && GetItemBounds( m_ItemSelected, &boundsR ))
+				if ((m_ItemSelected >= m_ItemVisibleBaseIndex) && GetItemBounds( m_ItemSelected, &boundsR ))
 				{
 					dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
 
@@ -2196,7 +2213,7 @@ long		resultV, i;
 		dc.DestroyClippingRegion();
 
 		for (i=0; i<m_ItemCount; i++)
-			if ((i >= m_ItemVisibleBase) && GetItemBounds( i, &boundsR ))
+			if ((i >= m_ItemVisibleBaseIndex) && GetItemBounds( i, &boundsR ))
 			{
 				dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
 

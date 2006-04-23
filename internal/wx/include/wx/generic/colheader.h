@@ -277,7 +277,8 @@ protected:
 	wxColour				m_SelectionColour;
 	wxColumnHeaderItem		**m_ItemList;
 	long					m_ItemCount;
-	long					m_ItemVisibleBase;
+	long					m_ItemVisibleBaseIndex;
+	long					m_ItemVisibleBaseOrigin;
 	long					m_ItemSelected;
 	long					m_SelectionDrawStyle;
 	bool					m_BUseVerticalOrientation; 	// false is horizontal (default)
