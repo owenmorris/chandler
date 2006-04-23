@@ -24,6 +24,7 @@
 	#endif
 
 	#include <commctrl.h>
+
 #elif defined(__WXMAC__)
 	#include <TextEdit.h>
 #endif
@@ -43,23 +44,18 @@
 
 #include "wx/renderer.h"
 #include "wx/colheader.h"
+#include "wx/grid.h"
 
 // ----------------------------------------------------------------------------
 // wxWin macros
 // ----------------------------------------------------------------------------
-
-BEGIN_EVENT_TABLE(wxColumnHeader, wxControl)
-	EVT_PAINT(wxColumnHeader::OnPaint)
-	EVT_LEFT_DOWN(wxColumnHeader::OnClick)
-	EVT_LEFT_DCLICK(wxColumnHeader::OnDoubleClick)
-END_EVENT_TABLE()
 
 #if wxUSE_EXTENDED_RTTI
 WX_DEFINE_FLAGS( wxColumnHeaderStyle )
 
 wxBEGIN_FLAGS( wxColumnHeaderStyle )
 	// new style border flags:
-	// we put them first to use them for streaming out
+	// put them first to use them for streaming out
 	wxFLAGS_MEMBER(wxBORDER_SIMPLE)
 	wxFLAGS_MEMBER(wxBORDER_SUNKEN)
 	wxFLAGS_MEMBER(wxBORDER_DOUBLE)
@@ -97,10 +93,18 @@ wxBEGIN_HANDLERS_TABLE(wxColumnHeader)
 wxEND_HANDLERS_TABLE()
 
 wxCONSTRUCTOR_5( wxColumnHeader, wxWindow*, Parent, wxWindowID, Id, wxPoint, Position, wxSize, Size, long, WindowStyle )
+
 #else
 IMPLEMENT_DYNAMIC_CLASS(wxColumnHeader, wxControl)
 #endif
+
 IMPLEMENT_DYNAMIC_CLASS(wxColumnHeaderEvent, wxCommandEvent)
+
+BEGIN_EVENT_TABLE( wxColumnHeader, wxControl )
+	EVT_PAINT( wxColumnHeader::OnPaint )
+	EVT_LEFT_DOWN( wxColumnHeader::OnClick )
+	EVT_LEFT_DCLICK( wxColumnHeader::OnDoubleClick )
+END_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // events
@@ -112,6 +116,175 @@ DEFINE_EVENT_TYPE(wxEVT_COLUMNHEADER_DOUBLECLICKED)
 // ============================================================================
 // implementation
 // ============================================================================
+
+// ----------------------------------------------------------------------------
+// wxChandlerGridLabelWindow
+// ----------------------------------------------------------------------------
+
+IMPLEMENT_DYNAMIC_CLASS( wxChandlerGridLabelWindow, wxWindow )
+
+BEGIN_EVENT_TABLE( wxChandlerGridLabelWindow, wxWindow )
+    EVT_PAINT( wxChandlerGridLabelWindow::OnPaint )
+    EVT_MOUSEWHEEL( wxChandlerGridLabelWindow::OnMouseWheel )
+    EVT_MOUSE_EVENTS( wxChandlerGridLabelWindow::OnMouseEvent )
+    EVT_KEY_DOWN( wxChandlerGridLabelWindow::OnKeyDown )
+    EVT_KEY_UP( wxChandlerGridLabelWindow::OnKeyUp )
+    EVT_CHAR( wxChandlerGridLabelWindow::OnChar )
+END_EVENT_TABLE()
+
+
+wxChandlerGridLabelWindow::wxChandlerGridLabelWindow(
+    wxGrid *parent,
+    wxWindowID id,
+    const wxPoint& pos,
+    const wxSize &size,
+    long styleVariant )
+    :
+    wxWindow( parent, id, pos, size, wxWANTS_CHARS | wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE )
+{
+    m_owner = parent;
+    m_styleVariant = styleVariant;
+}
+
+wxChandlerGridLabelWindow::~wxChandlerGridLabelWindow()
+{
+}
+
+// ================
+#if 0
+#pragma mark -
+#endif
+
+void wxChandlerGridLabelWindow::GetLabelValue( bool isColumn, int index, wxString& value )
+{
+    if (isColumn)
+        value = m_owner->GetColLabelValue( index );
+    else
+        value = m_owner->GetRowLabelValue( index );
+}
+
+void wxChandlerGridLabelWindow::SetLabelValue( bool isColumn, int index, const wxString& value )
+{
+    if (isColumn)
+        m_owner->SetColLabelValue( index, value );
+    else
+        m_owner->SetRowLabelValue( index, value );
+}
+
+void wxChandlerGridLabelWindow::GetLabelSize( bool isColumn, int index, int& value )
+{
+// WXUNUSED( index )
+
+    if (isColumn)
+        value = m_owner->GetColLabelSize();
+    else
+        value = m_owner->GetRowLabelSize();
+}
+
+void wxChandlerGridLabelWindow::SetLabelSize( bool isColumn, int index, int value )
+{
+// WXUNUSED( index )
+
+    if (isColumn)
+        m_owner->SetColLabelSize( value );
+    else
+        m_owner->SetRowLabelSize( value );
+}
+
+void wxChandlerGridLabelWindow::GetLabelAlignment( bool isColumn, int index, int& hAlign, int& vAlign )
+{
+// WXUNUSED( index )
+
+    if (isColumn)
+        m_owner->GetColLabelAlignment( &hAlign, &vAlign );
+    else
+        m_owner->GetRowLabelAlignment( &hAlign, &vAlign );
+}
+
+void wxChandlerGridLabelWindow::SetLabelAlignment( bool isColumn, int index, int hAlign, int vAlign )
+{
+// WXUNUSED( index )
+
+    if (isColumn)
+        m_owner->SetColLabelAlignment( hAlign, vAlign );
+    else
+        m_owner->SetRowLabelAlignment( hAlign, vAlign );
+}
+
+// ================
+#if 0
+#pragma mark -
+#endif
+
+void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
+{
+    if (m_owner == NULL)
+        return;
+
+    wxPaintDC dc( this );
+
+    // NO - don't do this because it will set both the x and y origin
+    // coords to match the parent scrolled window and we just want to
+    // set the x coord  - MB
+    //
+    // m_owner->PrepareDC( dc );
+
+    int x, y;
+
+    m_owner->CalcUnscrolledPosition( 0, 0, &x, &y );
+    if (m_styleVariant == 0)
+    {
+        dc.SetDeviceOrigin( -x, 0 );
+        wxArrayInt cols = m_owner->CalcColLabelsExposed( GetUpdateRegion() );
+        m_owner->DrawColLabels( dc, cols );
+    }
+    else
+    {
+        dc.SetDeviceOrigin( 0, -y );
+        wxArrayInt rows = m_owner->CalcRowLabelsExposed( GetUpdateRegion() );
+        m_owner->DrawRowLabels( dc, rows );
+    }
+}
+
+void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
+{
+    if (m_owner == NULL)
+        return;
+
+    if (m_styleVariant == 0)
+        m_owner->ProcessColLabelMouseEvent( event );
+    else
+        m_owner->ProcessRowLabelMouseEvent( event );
+}
+
+void wxChandlerGridLabelWindow::OnMouseWheel( wxMouseEvent& event )
+{
+    if (m_owner == NULL)
+        return;
+
+    m_owner->GetEventHandler()->ProcessEvent( event );
+}
+
+// This seems to be required for wxMotif otherwise the mouse
+// cursor must be in the cell edit control to get key events
+//
+void wxChandlerGridLabelWindow::OnKeyDown( wxKeyEvent& event )
+{
+    if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
+        event.Skip();
+}
+
+void wxChandlerGridLabelWindow::OnKeyUp( wxKeyEvent& event )
+{
+    if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
+        event.Skip();
+}
+
+void wxChandlerGridLabelWindow::OnChar( wxKeyEvent& event )
+{
+    if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
+        event.Skip();
+}
 
 // ----------------------------------------------------------------------------
 // wxColumnHeader
