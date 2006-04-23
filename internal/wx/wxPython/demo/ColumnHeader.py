@@ -61,7 +61,7 @@ class TestPanel( wx.Panel ):
         prompt = "RowHeader (%d)" %(self.baseCntlID + 2)
         l3 = wx.StaticText( self, -1, prompt, (self.colStartX + 400, self.colStartY), (200, 20) )
 
-        ch3 = wx.colheader.ColumnHeader( self, self.baseCntlID + 2, (self.colStartX + 400, self.colStartY + 20), (100, 5 * self.colHeight), 1 )
+        ch3 = wx.colheader.ColumnHeader( self, self.baseCntlID + 2, (self.colStartX + 400, self.colStartY + 20), (100, 5 * self.colHeight), wx.colheader.CH_STYLE_HeaderIsVertical )
         fancifulRowNames = [ "Stacked", "Tower", "Big", "Babylon", "Story" ]
         for i, v in enumerate( fancifulRowNames ):
             ch3.AddItem( -1, v, wx.colheader.CH_JUST_Center, -1, 0, 0, 1 )

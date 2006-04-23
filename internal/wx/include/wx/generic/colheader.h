@@ -27,50 +27,6 @@ class wxColumnHeaderItem;
 // ----------------------------------------------------------------------------
 // private data definitions
 // ----------------------------------------------------------------------------
-
-class WXDLLIMPEXP_ADV wxChandlerGridLabelWindow : public wxWindow
-{
-public:
-    wxChandlerGridLabelWindow()
-    {
-        m_owner = (wxGrid*)NULL;
-        m_styleVariant = 0;
-    }
-
-    wxChandlerGridLabelWindow(
-        wxGrid *parent,
-        wxWindowID id,
-        const wxPoint& pos,
-        const wxSize &size,
-        long styleVariant );
-
-    ~wxChandlerGridLabelWindow();
-
-    // new routines
-    void GetLabelValue( bool isColumn, int index, wxString& value );
-    void SetLabelValue( bool isColumn, int index, const wxString& value );
-    void GetLabelSize( bool isColumn, int index, int& value );
-    void SetLabelSize( bool isColumn, int index, int value );
-    void GetLabelAlignment( bool isColumn, int index, int& hAlign, int& vAlign );
-    void SetLabelAlignment( bool isColumn, int index, int hAlign, int vAlign );
-
-private:
-    wxGrid   *m_owner;
-    long    m_styleVariant;
-
-    void OnPaint( wxPaintEvent& event );
-    void OnMouseEvent( wxMouseEvent& event );
-    void OnMouseWheel( wxMouseEvent& event );
-    void OnKeyDown( wxKeyEvent& event );
-    void OnKeyUp( wxKeyEvent& );
-    void OnChar( wxKeyEvent& );
-
-    DECLARE_DYNAMIC_CLASS(wxChandlerGridLabelWindow)
-    DECLARE_EVENT_TABLE()
-    DECLARE_NO_COPY_CLASS(wxChandlerGridLabelWindow)
-};
-
-
 typedef enum
 {
 	wxCH_kMetricInsetX				= 4,
@@ -90,17 +46,19 @@ public:
 	// construction
 	wxColumnHeader(
 		wxWindow		*parent,
-		wxWindowID		id = -1,
+		wxWindowID		id = wxID_ANY,
 		const wxPoint	&pos = wxDefaultPosition,
 		const wxSize	&size = wxDefaultSize,
 		long			style = 0,
 		const wxString	&name = wxColumnHeaderNameStr );
+
 	wxColumnHeader();
+
 	virtual ~wxColumnHeader();
 
 	bool Create(
 		wxWindow		*parent,
-		wxWindowID		id = -1,
+		wxWindowID		id = wxID_ANY,
 		const wxPoint	&pos = wxDefaultPosition,
 		const wxSize	&size = wxDefaultSize,
 		long			style = 0,
@@ -478,5 +436,51 @@ protected:
 	bool					m_BSortAscending;
 	bool					m_BFixedWidth;
 };
+
+#define wxClassParent_ChandlerGridLabelWindow	wxWindow
+//#define wxClassParent_ChandlerGridLabelWindow	wxColumnHeader
+
+class WXDLLIMPEXP_ADV wxChandlerGridLabelWindow : public wxClassParent_ChandlerGridLabelWindow
+{
+public:
+    wxChandlerGridLabelWindow()
+    {
+        m_owner = (wxGrid*)NULL;
+        m_styleVariant = 0;
+    }
+
+    wxChandlerGridLabelWindow(
+        wxGrid *parent,
+        wxWindowID id,
+        const wxPoint& pos,
+        const wxSize &size,
+        long styleVariant );
+
+    ~wxChandlerGridLabelWindow();
+
+    // new routines
+    void GetLabelValue( bool isColumn, int index, wxString& value );
+    void SetLabelValue( bool isColumn, int index, const wxString& value );
+    void GetLabelSize( bool isColumn, int index, int& value );
+    void SetLabelSize( bool isColumn, int index, int value );
+    void GetLabelAlignment( bool isColumn, int index, int& hAlign, int& vAlign );
+    void SetLabelAlignment( bool isColumn, int index, int hAlign, int vAlign );
+
+private:
+    wxGrid   *m_owner;
+    long    m_styleVariant;
+
+    void OnPaint( wxPaintEvent& event );
+    void OnMouseEvent( wxMouseEvent& event );
+    void OnMouseWheel( wxMouseEvent& event );
+    void OnKeyDown( wxKeyEvent& event );
+    void OnKeyUp( wxKeyEvent& );
+    void OnChar( wxKeyEvent& );
+
+    DECLARE_DYNAMIC_CLASS(wxChandlerGridLabelWindow)
+    DECLARE_EVENT_TABLE()
+    DECLARE_NO_COPY_CLASS(wxChandlerGridLabelWindow)
+};
+
 
 #endif // _WX_GENERIC_COLUMNHEADER_H

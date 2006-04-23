@@ -121,29 +121,30 @@ DEFINE_EVENT_TYPE(wxEVT_COLUMNHEADER_DOUBLECLICKED)
 // wxChandlerGridLabelWindow
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS( wxChandlerGridLabelWindow, wxWindow )
+IMPLEMENT_DYNAMIC_CLASS( wxChandlerGridLabelWindow, wxClassParent_ChandlerGridLabelWindow )
 
-BEGIN_EVENT_TABLE( wxChandlerGridLabelWindow, wxWindow )
-    EVT_PAINT( wxChandlerGridLabelWindow::OnPaint )
-    EVT_MOUSEWHEEL( wxChandlerGridLabelWindow::OnMouseWheel )
-    EVT_MOUSE_EVENTS( wxChandlerGridLabelWindow::OnMouseEvent )
-    EVT_KEY_DOWN( wxChandlerGridLabelWindow::OnKeyDown )
-    EVT_KEY_UP( wxChandlerGridLabelWindow::OnKeyUp )
-    EVT_CHAR( wxChandlerGridLabelWindow::OnChar )
+BEGIN_EVENT_TABLE( wxChandlerGridLabelWindow, wxClassParent_ChandlerGridLabelWindow )
+	EVT_PAINT( wxChandlerGridLabelWindow::OnPaint )
+	EVT_MOUSEWHEEL( wxChandlerGridLabelWindow::OnMouseWheel )
+	EVT_MOUSE_EVENTS( wxChandlerGridLabelWindow::OnMouseEvent )
+	EVT_KEY_DOWN( wxChandlerGridLabelWindow::OnKeyDown )
+	EVT_KEY_UP( wxChandlerGridLabelWindow::OnKeyUp )
+	EVT_CHAR( wxChandlerGridLabelWindow::OnChar )
 END_EVENT_TABLE()
 
 
 wxChandlerGridLabelWindow::wxChandlerGridLabelWindow(
-    wxGrid *parent,
-    wxWindowID id,
-    const wxPoint& pos,
-    const wxSize &size,
-    long styleVariant )
-    :
-    wxWindow( parent, id, pos, size, wxWANTS_CHARS | wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE )
+	wxGrid *parent,
+	wxWindowID id,
+	const wxPoint& pos,
+	const wxSize &size,
+	long styleVariant )
+	:
+	wxWindow( parent, id, pos, size, styleVariant | wxWANTS_CHARS | wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE )
+//	wxColumnHeader( parent, id, pos, size, styleVariant | wxWANTS_CHARS | wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE )
 {
-    m_owner = parent;
-    m_styleVariant = styleVariant;
+	m_owner = parent;
+	m_styleVariant = styleVariant;
 }
 
 wxChandlerGridLabelWindow::~wxChandlerGridLabelWindow()
@@ -157,58 +158,58 @@ wxChandlerGridLabelWindow::~wxChandlerGridLabelWindow()
 
 void wxChandlerGridLabelWindow::GetLabelValue( bool isColumn, int index, wxString& value )
 {
-    if (isColumn)
-        value = m_owner->GetColLabelValue( index );
-    else
-        value = m_owner->GetRowLabelValue( index );
+	if (isColumn)
+		value = m_owner->GetColLabelValue( index );
+	else
+		value = m_owner->GetRowLabelValue( index );
 }
 
 void wxChandlerGridLabelWindow::SetLabelValue( bool isColumn, int index, const wxString& value )
 {
-    if (isColumn)
-        m_owner->SetColLabelValue( index, value );
-    else
-        m_owner->SetRowLabelValue( index, value );
+	if (isColumn)
+		m_owner->SetColLabelValue( index, value );
+	else
+		m_owner->SetRowLabelValue( index, value );
 }
 
 void wxChandlerGridLabelWindow::GetLabelSize( bool isColumn, int index, int& value )
 {
 // WXUNUSED( index )
 
-    if (isColumn)
-        value = m_owner->GetColLabelSize();
-    else
-        value = m_owner->GetRowLabelSize();
+	if (isColumn)
+		value = m_owner->GetColLabelSize();
+	else
+		value = m_owner->GetRowLabelSize();
 }
 
 void wxChandlerGridLabelWindow::SetLabelSize( bool isColumn, int index, int value )
 {
 // WXUNUSED( index )
 
-    if (isColumn)
-        m_owner->SetColLabelSize( value );
-    else
-        m_owner->SetRowLabelSize( value );
+	if (isColumn)
+		m_owner->SetColLabelSize( value );
+	else
+		m_owner->SetRowLabelSize( value );
 }
 
 void wxChandlerGridLabelWindow::GetLabelAlignment( bool isColumn, int index, int& hAlign, int& vAlign )
 {
 // WXUNUSED( index )
 
-    if (isColumn)
-        m_owner->GetColLabelAlignment( &hAlign, &vAlign );
-    else
-        m_owner->GetRowLabelAlignment( &hAlign, &vAlign );
+	if (isColumn)
+		m_owner->GetColLabelAlignment( &hAlign, &vAlign );
+	else
+		m_owner->GetRowLabelAlignment( &hAlign, &vAlign );
 }
 
 void wxChandlerGridLabelWindow::SetLabelAlignment( bool isColumn, int index, int hAlign, int vAlign )
 {
 // WXUNUSED( index )
 
-    if (isColumn)
-        m_owner->SetColLabelAlignment( hAlign, vAlign );
-    else
-        m_owner->SetRowLabelAlignment( hAlign, vAlign );
+	if (isColumn)
+		m_owner->SetColLabelAlignment( hAlign, vAlign );
+	else
+		m_owner->SetRowLabelAlignment( hAlign, vAlign );
 }
 
 // ================
@@ -218,51 +219,51 @@ void wxChandlerGridLabelWindow::SetLabelAlignment( bool isColumn, int index, int
 
 void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 {
-    if (m_owner == NULL)
-        return;
+	if (m_owner == NULL)
+		return;
 
-    wxPaintDC dc( this );
+	wxPaintDC dc( this );
 
-    // NO - don't do this because it will set both the x and y origin
-    // coords to match the parent scrolled window and we just want to
-    // set the x coord  - MB
-    //
-    // m_owner->PrepareDC( dc );
+	// NO - don't do this because it will set both the x and y origin
+	// coords to match the parent scrolled window and we just want to
+	// set the x coord  - MB
+	//
+	// m_owner->PrepareDC( dc );
 
-    int x, y;
+	int x, y;
 
-    m_owner->CalcUnscrolledPosition( 0, 0, &x, &y );
-    if (m_styleVariant == 0)
-    {
-        dc.SetDeviceOrigin( -x, 0 );
-        wxArrayInt cols = m_owner->CalcColLabelsExposed( GetUpdateRegion() );
-        m_owner->DrawColLabels( dc, cols );
-    }
-    else
-    {
-        dc.SetDeviceOrigin( 0, -y );
-        wxArrayInt rows = m_owner->CalcRowLabelsExposed( GetUpdateRegion() );
-        m_owner->DrawRowLabels( dc, rows );
-    }
+	m_owner->CalcUnscrolledPosition( 0, 0, &x, &y );
+	if (m_styleVariant == 0)
+	{
+		dc.SetDeviceOrigin( -x, 0 );
+		wxArrayInt cols = m_owner->CalcColLabelsExposed( GetUpdateRegion() );
+		m_owner->DrawColLabels( dc, cols );
+	}
+	else
+	{
+		dc.SetDeviceOrigin( 0, -y );
+		wxArrayInt rows = m_owner->CalcRowLabelsExposed( GetUpdateRegion() );
+		m_owner->DrawRowLabels( dc, rows );
+	}
 }
 
 void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
 {
-    if (m_owner == NULL)
-        return;
+	if (m_owner == NULL)
+		return;
 
-    if (m_styleVariant == 0)
-        m_owner->ProcessColLabelMouseEvent( event );
-    else
-        m_owner->ProcessRowLabelMouseEvent( event );
+	if (m_styleVariant == 0)
+		m_owner->ProcessColLabelMouseEvent( event );
+	else
+		m_owner->ProcessRowLabelMouseEvent( event );
 }
 
 void wxChandlerGridLabelWindow::OnMouseWheel( wxMouseEvent& event )
 {
-    if (m_owner == NULL)
-        return;
+	if (m_owner == NULL)
+		return;
 
-    m_owner->GetEventHandler()->ProcessEvent( event );
+	m_owner->GetEventHandler()->ProcessEvent( event );
 }
 
 // This seems to be required for wxMotif otherwise the mouse
@@ -270,20 +271,20 @@ void wxChandlerGridLabelWindow::OnMouseWheel( wxMouseEvent& event )
 //
 void wxChandlerGridLabelWindow::OnKeyDown( wxKeyEvent& event )
 {
-    if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
-        event.Skip();
+	if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
+		event.Skip();
 }
 
 void wxChandlerGridLabelWindow::OnKeyUp( wxKeyEvent& event )
 {
-    if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
-        event.Skip();
+	if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
+		event.Skip();
 }
 
 void wxChandlerGridLabelWindow::OnChar( wxKeyEvent& event )
 {
-    if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
-        event.Skip();
+	if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
+		event.Skip();
 }
 
 // ----------------------------------------------------------------------------
@@ -399,10 +400,13 @@ bool			bResultV;
 		actualSize.y = m_DefaultItemSize.y;
 #endif
 
-	// NB: we're stealing the style argument from Win32 and wx to support ListHeader attributes
-	if (style & (1 << CH_ATTR_VerticalOrientation))
+	// NB: we're stealing a bit in the style argument from Win32 and wx to support ListHeader attributes
+	// assumes CH_STYLE_HeaderIsVertical is integral power of two value
+	if (style & CH_STYLE_HeaderIsVertical)
+	{
 		m_BUseVerticalOrientation = true;
-	style = 0;
+		style &= ~CH_STYLE_HeaderIsVertical;
+	}
 
 	// NB: the CreateControl call crashes on MacOS
 #if defined(__WXMSW__)

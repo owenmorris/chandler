@@ -34,6 +34,12 @@ wxColumnHeaderHitTestResult;
 
 typedef enum
 {
+	CH_STYLE_HeaderIsVertical	= (1L << 23)
+}
+wxColumnHeaderStyle;
+
+typedef enum
+{
 	CH_ATTR_VerticalOrientation,
 	CH_ATTR_Unicode,
 	CH_ATTR_GenericRenderer,

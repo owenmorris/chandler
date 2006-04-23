@@ -36,6 +36,11 @@ enum wxColumnHeaderHitTestResult
     CH_HITTEST_ItemZero        = 0        // any other (non-negative) value is a sub-item
 };
 
+enum wxColumnHeaderStyle
+{
+    CH_STYLE_HeaderIsVertical        = (1L << 23)
+};
+
 enum wxColumnHeaderAttribute
 {
     CH_ATTR_VerticalOrientation,
@@ -118,7 +123,7 @@ public:
 
     wxColumnHeader(
         wxWindow        *parent,
-        wxWindowID        id = -1,
+        wxWindowID        id = wxID_ANY,
         const wxPoint        &pos = wxDefaultPosition,
         const wxSize        &size = wxDefaultSize,
         long                style = 0,
