@@ -226,14 +226,14 @@ void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 
 	// NO - don't do this because it will set both the x and y origin
 	// coords to match the parent scrolled window and we just want to
-	// set the x coord  - MB
+	// set the x coord - MB
 	//
 	// m_owner->PrepareDC( dc );
 
 	int x, y;
 
 	m_owner->CalcUnscrolledPosition( 0, 0, &x, &y );
-	if (m_styleVariant == 0)
+	if ((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
 	{
 		dc.SetDeviceOrigin( -x, 0 );
 		wxArrayInt cols = m_owner->CalcColLabelsExposed( GetUpdateRegion() );
@@ -252,7 +252,7 @@ void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
 	if (m_owner == NULL)
 		return;
 
-	if (m_styleVariant == 0)
+	if ((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
 		m_owner->ProcessColLabelMouseEvent( event );
 	else
 		m_owner->ProcessRowLabelMouseEvent( event );
@@ -271,19 +271,19 @@ void wxChandlerGridLabelWindow::OnMouseWheel( wxMouseEvent& event )
 //
 void wxChandlerGridLabelWindow::OnKeyDown( wxKeyEvent& event )
 {
-	if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
+	if ((m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ))
 		event.Skip();
 }
 
 void wxChandlerGridLabelWindow::OnKeyUp( wxKeyEvent& event )
 {
-	if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
+	if ((m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ))
 		event.Skip();
 }
 
 void wxChandlerGridLabelWindow::OnChar( wxKeyEvent& event )
 {
-	if ( (m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ) )
+	if ((m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ))
 		event.Skip();
 }
 
