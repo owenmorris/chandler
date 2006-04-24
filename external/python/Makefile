@@ -1,6 +1,6 @@
 
 VERSION=2.4.2
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)4
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)5
 BZIP2VERSION=1.0.3
 ZLIBVERSION=1.2.3
 
@@ -140,8 +140,10 @@ $(SRC)/$(BUILD)/Makefile:
                        --disable-ipv6
 
 build: expand apply $(SRC)/$(BUILD)/Makefile
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) frameworkinstallframework
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) frameworkinstallapps
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) SNAP=$(SNAP) \
+        $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) frameworkinstallframework
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) SNAP=$(SNAP) \
+        $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) frameworkinstallapps
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 binaries: strip

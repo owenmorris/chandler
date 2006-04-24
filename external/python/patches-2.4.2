@@ -58,7 +58,38 @@
  libinstall:	$(BUILDPYTHON) $(srcdir)/Lib/$(PLATDIR)
 --- Python-2.4.2/setup.py	2005-03-09 14:27:24.000000000 -0800
 +++ Python-2.4.2-patched/setup.py	2006-01-10 22:40:03.970713392 -0800
-@@ -489,8 +489,8 @@
+@@ -420,9 +420,13 @@
+             # Read SGI RGB image files (but coded portably)
+             exts.append( Extension('rgbimg', ['rgbimgmodule.c']) )
+ 
+         # readline
+-        if self.compiler.find_library_file(lib_dirs, 'readline'):
++        build_root   = os.path.join(os.environ.get('BUILD_ROOT'), os.environ.get('SNAP'))
++        readline_inc = [os.path.join(build_root, 'include')]
++        readline_lib = [os.path.join(build_root, 'lib')]
++
++        if self.compiler.find_library_file(lib_dirs + readline_lib, 'readline'):
+             readline_libs = ['readline']
+             if self.compiler.find_library_file(lib_dirs,
+                                                  'ncurses'):
+                 readline_libs.append('ncurses')
+@@ -432,10 +436,13 @@
+                                                ['/usr/lib/termcap'],
+                                                'termcap'):
+                 readline_libs.append('termcap')
+             exts.append( Extension('readline', ['readline.c'],
+-                                   library_dirs=['/usr/lib/termcap'],
++                                   library_dirs=['/usr/lib/termcap', 
++                                                 os.path.join(build_root, 'lib')],
++                                   include_dirs=readline_inc,
+                                    libraries=readline_libs) )
++
+         if platform not in ['mac']:
+             # crypt module.
+ 
+             if self.compiler.find_library_file(lib_dirs, 'crypt'):
+@@ -488,10 +495,10 @@
+         # of available releases can be found at
          #
          # http://www.sleepycat.com/update/index.html
  
@@ -69,3 +100,4 @@
          db_setup_debug = False   # verbose debug prints from this script?
  
          # construct a list of paths to look for the header file in on
+         # top of the normal inc_dirs.
