@@ -775,6 +775,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.item,
                                           endCallback=self.wxSynchronizeWidget)
+        self.activeProxy = proxy
         
         (startTime, endTime) = self.GetDragAdjustedTimes()
         duration = endTime - startTime
@@ -977,12 +978,18 @@ class TimedCanvasItem(CalendarCanvasItem):
 
         # allow caller to override start/end time
         item = self.item
-        
+        if item == self._calendarCanvas.activeProxy:
+            # items and proxies compare as equal, but they're not quite
+            item = self._calendarCanvas.activeProxy        
+
         if not startTime:
             startTime = item.startTime
             
         if not endTime:
-            endTime = item.endTime
+            # We're not using the calculated attribute (self.endTime), because
+            # proxy handling of changed attributes isn't smart enough to handle
+            # calculated attributes
+            endTime = startTime + item.duration
        
         if self._calendarCanvas.blockItem.dayMode:
             # in day mode, canvasitems are drawn side-by-side

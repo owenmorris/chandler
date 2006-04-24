@@ -297,6 +297,10 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         #   to the topmose items
         self.canvasItemList = []
 
+        # activeProxy is used to track changes to one recurring event without
+        # having to wrap all canvas items in proxies
+        self.activeProxy = None
+
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         
