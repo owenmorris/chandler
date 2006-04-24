@@ -2844,7 +2844,9 @@ class CloudXMLFormat(ImportExportFormat):
 
                             # @@@MOR Temporary hack for backwards compatbility:
                             # Because body changed from Lob to Text:
-                            if attrName != "body":
+                            if attrName == "body": # Store as unicode
+                                value = unicode(value)
+                            else: # Store it as a Lob
                                 value = utils.dataToBinary(item, attrName,
                                     value, mimeType=mimeType, indexed=indexed)
                                 encoding = attrElement.get('encoding')
