@@ -95,7 +95,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             date, nextDate = (fixTimezone(d) for d in currentRange)
 
 
-            primaryCollection = self.blockItem.contents.collectionList[0]
+            primaryCollection = self.blockItem.contentsCollection
             
             def insertInSortedList(eventList, newElement):
                 # insertInSortedList serves two functions, membership testing
@@ -206,7 +206,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         return super(wxTimedEventsCanvas, self).OnLeave()
 
     def makeCoercedCanvasItem(self, x, y, item):
-        primaryCollection = self.blockItem.contents.collectionList[0]
+        primaryCollection = self.blockItem.contentsCollection
         collection = self.blockItem.getContainingCollection(item)
         canvasItem = TimedCanvasItem(collection, primaryCollection, item, self)        
 
@@ -992,12 +992,17 @@ class TimedCanvasItem(CalendarCanvasItem):
                 rect.width /= (maxDepth + 1)
                 rect.x += rect.width * indentLevel
         else:
-            # in week mode, stagger the canvasitems by 5 pixels            
-            indent = self.GetIndentLevel() * 10
-            widthAdjust = self.GetMaxDepth() * 10
+            # in week mode, if there is a conflict, make the event be
+            # 80% of the available width
+            newWidthPercent = .80
+            indentPercent = 1-newWidthPercent
+            
+            indent = self.GetIndentLevel() * indentPercent
+            conflicts = self.GetMaxDepth()
             def UpdateForConflicts(rect):
-                rect.width -= widthAdjust
-                rect.x += indent
+                if conflicts > 0:
+                    rect.x += rect.width * indent / conflicts
+                    rect.width *= newWidthPercent 
 
         self._boundsRects = \
             list(self._calendarCanvas.GenerateBoundsRects(startTime, endTime))
