@@ -86,8 +86,10 @@ public:
 	void SetDefaultItemSize(
 		const wxSize		targetSize );
 
-	long GetTotalUIExtent( void ) const;
-	bool ResizeToFit( void );
+	long GetTotalUIExtent(
+		long				itemCount = (-1) ) const;
+	bool ResizeToFit(
+		long				itemCount = (-1) );
 	bool RescaleToFit(
 		long				newWidth );
 	bool ResizeDivision(

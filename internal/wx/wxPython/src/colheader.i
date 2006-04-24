@@ -138,22 +138,35 @@ public:
 
     virtual void DumpInfo( void );
 
-    virtual void DoMoveWindow( int x, int y, int width, int height );
-    virtual bool Enable( bool bEnable = true );
-    virtual bool Show( bool bShow = true );
-    virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
+    virtual void DoMoveWindow(
+        int x,
+        int y,
+        int width,
+        int height );
+    virtual bool Enable(
+        bool bEnable = true );
+    virtual bool Show(
+        bool bShow = true );
+    virtual void DoSetSize(
+        int x,
+        int y,
+        int width,
+        int height,
+        int sizeFlags );
     virtual wxSize DoGetBestSize( void ) const;
     virtual wxSize DoGetMinSize( void ) const;
 
     wxSize CalculateDefaultSize( void ) const;
     wxSize CalculateDefaultItemSize(
-        wxSize    maxSize ) const;
+        wxSize        maxSize ) const;
     wxSize GetDefaultItemSize( void ) const;
     void SetDefaultItemSize(
-        wxSize    targetSize );
+        wxSize        targetSize );
 
-    long GetTotalUIExtent( void ) const;
-    bool ResizeToFit( void );
+    long GetTotalUIExtent(
+        long            itemCount = (-1) ) const;
+    bool ResizeToFit(
+        long            itemCount = (-1) );
     bool RescaleToFit(
         long            newWidth );
     bool ResizeDivision(

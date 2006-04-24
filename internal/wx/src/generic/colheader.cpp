@@ -1061,13 +1061,17 @@ bool			bResult;
 // utility
 // ----------------------------------------------------------------------------
 
-long wxColumnHeader::GetTotalUIExtent( void ) const
+long wxColumnHeader::GetTotalUIExtent(
+	long				itemCount ) const
 {
 long		extentDim, i;
 
+	if ((itemCount < 0) || (itemCount > m_ItemCount))
+		itemCount = m_ItemCount;
+
 	extentDim = 0;
 	if (m_ItemList != NULL)
-		for (i=0; i<m_ItemCount; i++)
+		for (i=0; i<itemCount; i++)
 		{
 			if (m_ItemList[i] != NULL)
 				extentDim += m_ItemList[i]->m_Extent.x;
@@ -1147,15 +1151,19 @@ bool		bIsVertical;
 	return true;
 }
 
-bool wxColumnHeader::ResizeToFit( void )
+bool wxColumnHeader::ResizeToFit(
+	long				itemCount )
 {
 long		extentV;
 bool		bIsVertical, bScaling;
 
+	if ((itemCount < 0) || (itemCount > m_ItemCount))
+		itemCount = m_ItemCount;
+
 	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
 	if (bIsVertical)
 	{
-		extentV = m_ItemCount * m_DefaultItemSize.y;
+		extentV = itemCount * m_DefaultItemSize.y;
 		DoSetSize( m_NativeBoundsR.x, m_NativeBoundsR.y, m_DefaultItemSize.x, extentV, 0 );
 	}
 	else
@@ -1164,7 +1172,7 @@ bool		bIsVertical, bScaling;
 		bScaling = m_BProportionalResizing;
 		m_BProportionalResizing = false;
 
-		extentV = GetTotalUIExtent();
+		extentV = GetTotalUIExtent( itemCount );
 		DoSetSize( m_NativeBoundsR.x, m_NativeBoundsR.y, extentV, m_NativeBoundsR.height, 0 );
 
 		if (bScaling)
