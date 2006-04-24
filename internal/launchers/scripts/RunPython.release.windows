@@ -1,15 +1,15 @@
 @echo off
 setlocal
 if "%CHANDLERHOME%"=="" set CHANDLERHOME=.
-if "%CHANDLERBIN%"=="" set CHANDLERBIN="%CHANDLERHOME%"
+if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
 
 echo CHANDLERHOME is "%CHANDLERHOME%"
 echo CHANDLERBIN is "%CHANDLERBIN%"
-echo Using "%CHANDLERBIN%"\release\bin\python.exe %*
+echo Using %CHANDLERBIN%\release\bin\python.exe %*
 
-path "%CHANDLERBIN%"\release\bin
-set PYTHONPATH="%CHANDLERHOME%";"%CHANDLERHOME%"\parcels
-if not "%PARCELPATH%"=="" set PYTHONPATH="%PYTHONPATH%";"%PARCELPATH%"
+path %CHANDLERBIN%\release\bin
+set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels
+if not "%PARCELPATH%"=="" set PYTHONPATH=%PYTHONPATH%;%PARCELPATH%
 
-"%CHANDLERBIN%"\release\bin\python.exe %*
+"%CHANDLERBIN%\release\bin\python.exe" %*
 endlocal
