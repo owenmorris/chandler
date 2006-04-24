@@ -40,42 +40,7 @@ class TimeZoneInfo(schema.Item):
            this will be stored as ICU's default time zone.
        """
 
-        # Get our parcel's namespace
-        namespace = schema.ns(__name__, view)
-
-        # Make sure it has a 'default' attribute (alternatively
-        # we could make the.update() call below inside installParcel()
-        # in __init__.py).
-        try:
-            result = namespace.defaultInfo
-        except AttributeError:
-            # This is a little cheesy...
-
-            # We define _() here so that the wellKnownIDs
-            # strings below are picked up for translation by
-            # pygettext.py.
-            #
-            # By having _ return the original string, we store
-            # (untranslated) TZIDs in the repository. This is
-            # actually what we want, since ICU would have no idea
-            # how to look up timezones based on the translated
-            # names.
-            _ = lambda x: x
-
-            wellKnownIDs = [
-                _(u'US/Hawaii'),
-                _(u'US/Alaska'),                  
-                _(u'US/Pacific'),
-                _(u'US/Mountain'),
-                _(u'US/Central'),
-                _(u'US/Eastern'),     
-                _(u'World/Floating'),
-            ]
-            result = cls.update(namespace.parcel, 'defaultInfo',
-                                wellKnownIDs=wellKnownIDs)
-
-
-        return result
+        return schema.ns(__name__, view).defaultInfo
 
     def __init__(self, *args, **keywds):
         
@@ -160,6 +125,38 @@ class TimeZoneInfo(schema.Item):
             # This next if is required to avoid an infinite recursion!
             if canonicalDefault is not default:
                 self.default = canonicalDefault
+                
+def installParcel(parcel, oldVersion = None):
+    # Get our parcel's namespace
+    namespace = schema.ns(__name__, parcel.itsView)
+
+    # This is a little cheesy...
+
+    # We define _() here so that the wellKnownIDs
+    # strings below are picked up for translation by
+    # pygettext.py.
+    #
+    # By having _ return the original string, we store
+    # (untranslated) TZIDs in the repository. This is
+    # actually what we want, since ICU would have no idea
+    # how to look up timezones based on the translated
+    # names.
+    _ = lambda x: x
+
+    wellKnownIDs = [
+        _(u'US/Hawaii'),
+        _(u'US/Alaska'),
+        _(u'US/Pacific'),
+        _(u'US/Mountain'),
+        _(u'US/Central'),
+        _(u'US/Eastern'),
+        _(u'World/Floating'),
+    ]
+    
+    # Set up our parcel's 'defaultInfo' attribute
+    TimeZoneInfo.update(namespace.parcel, 'defaultInfo',
+                        wellKnownIDs=wellKnownIDs)
+
 
 def stripTimeZone(dt):
     """

@@ -9,6 +9,7 @@ from notes import Note
 from contacts import Contact, ContactName
 from calendar.Calendar import CalendarEvent, CalendarEventMixin
 from calendar.Calendar import Calendar, Location, RecurrencePattern
+from calendar.TimeZone import installParcel as tzInstallParcel
 from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat, 
      monthNames, sampleDate, sampleTime, shortDateFormat, shortTimeFormat, 
      weekdayNames, weekdayName)
@@ -66,7 +67,6 @@ def installParcel(parcel, oldVersion=None):
     view = parcel.itsView
 
 
-    collections.installParcel(parcel, oldVersion)
     Reference.update(parcel, 'currentContact')
     Reference.update(parcel, 'currentMailAccount')
     Reference.update(parcel, 'currentSMTPAccount')
@@ -213,6 +213,8 @@ def installParcel(parcel, oldVersion=None):
         displayName=_(u"Notifications"),
         kind=UserNotification.getKind(view),
         recursive=True).addIndex('timestamp', 'value', attribute='timestamp')
+        
+    tzInstallParcel(parcel)
 
 del schema  # don't leave this lying where others might accidentally import it
 

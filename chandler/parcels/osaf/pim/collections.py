@@ -135,13 +135,6 @@ class KindCollection(ContentCollection):
         setattr(self, self.__collection__, KindSet(self.kind, self.recursive))
 
 
-def installParcel(parcel, old_version = None):
-    """
-    Parcel install time hook
-    """
-    pass
-
-
 class ListCollection(ContentCollection):
     """
     A ContentCollection that contains only those items that are explicitly
