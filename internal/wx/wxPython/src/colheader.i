@@ -164,7 +164,8 @@ public:
         wxSize        targetSize );
 
     long GetTotalUIExtent(
-        long            itemCount = (-1) ) const;
+        long            itemCount = (-1),
+        bool            bStartAtBase = false ) const;
     bool ResizeToFit(
         long            itemCount = (-1) );
     bool RescaleToFit(
@@ -186,15 +187,17 @@ public:
         wxColumnHeaderAttribute        flagEnum,
         bool                        bFlagValue );
 
+    wxColumnHeaderHitTestResult HitTest(
+        const wxPoint    &locationPt );
     long GetItemCount( void ) const;
     long GetSelectedItem( void ) const;
     void SetSelectedItem(
         long            itemIndex );
-    long GetBaseVisibleItem( void ) const;
-    void SetBaseVisibleItem(
+    long GetBaseViewItem( void ) const;
+    void SetBaseViewItem(
         long            itemIndex );
-    wxColumnHeaderHitTestResult HitTest(
-        const wxPoint    &locationPt );
+    void DeleteItem(
+        long                itemIndex );
     void AppendItem(
         const wxString        &textBuffer,
         long                textJust,
@@ -210,8 +213,12 @@ public:
         bool                bSelected = false,
         bool                bSortEnabled = true,
         bool                bSortAscending = false );
-    void DeleteItem(
-        long                itemIndex );
+
+    bool GetItemVisibility(
+        long                itemIndex ) const;
+    void SetItemVisibility(
+        long                itemIndex,
+        bool                bVisible );
     long GetArrowButtonStyle(
         long                itemIndex ) const;
     void SetArrowButtonStyle(
@@ -238,11 +245,13 @@ public:
     void SetLabelJustification(
         long                itemIndex,
         long                textJust );
+
     wxSize GetUIExtent(
         long                itemIndex ) const;
     void SetUIExtent(
         long                itemIndex,
         wxSize            &extentPt );
+
     bool GetItemAttribute(
         long                            itemIndex,
         wxColumnHeaderItemAttribute    flagEnum ) const;

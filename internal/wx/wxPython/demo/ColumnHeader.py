@@ -119,16 +119,19 @@ class TestPanel( wx.Panel ):
         btn = wx.Button( self, -1, "Deselect", (self.colStartX, miscControlsY) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestDeselect, btn )
 
-        btn = wx.Button( self, -1, "Scroll", (self.colStartX, miscControlsY + 30) )
+        btn = wx.Button( self, -1, "Hide Selection", (self.colStartX, miscControlsY + 30) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestShowHide, btn )
+
+        btn = wx.Button( self, -1, "Scroll", (self.colStartX, miscControlsY + 60) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestScroll, btn )
 
-        btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 60) )
+        btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 90) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
 
-        btn = wx.Button( self, -1, "Resize To Fit", (self.colStartX, miscControlsY + 90) )
+        btn = wx.Button( self, -1, "Resize To Fit", (self.colStartX, miscControlsY + 120) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeToFit, btn )
 
-        btn = wx.Button( self, -1, "Dump Info", (self.colStartX, miscControlsY + 120) )
+        btn = wx.Button( self, -1, "Dump Info", (self.colStartX, miscControlsY + 150) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonDumpInfo, btn )
 
         self.colStartX += 150
@@ -163,15 +166,33 @@ class TestPanel( wx.Panel ):
         self.ch3.SetSelectedItem( -1 )
         self.l0.SetLabel( "(all): deselected items" )
 
+    def OnButtonTestShowHide( self, event ):
+        curSelected = self.ch1.GetSelectedItem()
+        if (curSelected < 0):
+            isVisible = 1
+        else:
+            isVisible = 0
+        if (isVisible):
+            # @@@ change to show all items
+            self.ch1.SetItemVisibility( curSelected, isVisible )
+            self.ch2.SetItemVisibility( curSelected, isVisible )
+            self.ch3.SetItemVisibility( curSelected, isVisible )
+            self.l0.SetLabel( "(all): show (all) hidden item(s)" )
+        else:
+            self.ch1.SetItemVisibility( curSelected, isVisible )
+            self.ch2.SetItemVisibility( curSelected, isVisible )
+            self.ch3.SetItemVisibility( curSelected, isVisible )
+            self.l0.SetLabel( "(all): hide selected items" )
+
     def OnButtonTestScroll( self, event ):
-        curBase = self.ch1.GetBaseVisibleItem()
+        curBase = self.ch1.GetBaseViewItem()
         if (curBase == 0):
             curBase = 1
         else:
             curBase = 0
-        self.ch1.SetBaseVisibleItem( curBase )
-        self.ch2.SetBaseVisibleItem( curBase )
-        self.ch3.SetBaseVisibleItem( curBase )
+        self.ch1.SetBaseViewItem( curBase )
+        self.ch2.SetBaseViewItem( curBase )
+        self.ch3.SetBaseViewItem( curBase )
         self.l0.SetLabel( "(all): scrolled items" )
 
     def OnButtonTestResizeBounds( self, event ):

@@ -87,7 +87,8 @@ public:
 		const wxSize		targetSize );
 
 	long GetTotalUIExtent(
-		long				itemCount = (-1) ) const;
+		long				itemCount = (-1),
+		bool				bStartAtBase = false ) const;
 	bool ResizeToFit(
 		long				itemCount = (-1) );
 	bool RescaleToFit(
@@ -122,8 +123,8 @@ public:
 	void SetSelectedItem(
 		long				itemIndex );
 
-	long GetBaseVisibleItem( void ) const;
-	void SetBaseVisibleItem(
+	long GetBaseViewItem( void ) const;
+	void SetBaseViewItem(
 		long				itemIndex );
 
 	void DeleteItem(
@@ -143,6 +144,12 @@ public:
 		bool				bActive,
 		bool				bSortEnabled,
 		bool				bSortAscending );
+
+	bool GetItemVisibility(
+		long				itemIndex ) const;
+	void SetItemVisibility(
+		long				itemIndex,
+		bool				bVisible );
 
 	long GetArrowButtonStyle(
 		long				itemIndex ) const;
@@ -178,6 +185,7 @@ public:
 	void SetUIExtent(
 		long				itemIndex,
 		wxSize			&extentPt );
+
 	bool GetItemAttribute(
 		long						itemIndex,
 		wxColumnHeaderItemAttribute	flagEnum ) const;
@@ -217,7 +225,7 @@ protected:
 	bool SetItemData(
 		long							itemIndex,
 		const wxColumnHeaderItem		*info );
-	bool GetItemVisibility(
+	bool ItemInView(
 		long				itemIndex ) const;
 	bool GetItemBounds(
 		long				itemIndex,
@@ -279,18 +287,18 @@ protected:
 	wxColour				m_SelectionColour;
 	wxColumnHeaderItem		**m_ItemList;
 	long					m_ItemCount;
-	long					m_ItemVisibleBaseIndex;
-	long					m_ItemVisibleBaseOrigin;
+	long					m_ItemViewBaseIndex;
+	long					m_ItemViewBaseOrigin;
 	long					m_ItemSelected;
 	long					m_SelectionDrawStyle;
-	bool					m_BUseVerticalOrientation; 	// false is horizontal (default)
+	bool					m_BUseVerticalOrientation;	// false is horizontal (default)
 	bool					m_BUseUnicode;			// set by compile flag, but not necessarily so - cannot be reset
 	bool					m_BUseGenericRenderer;		// Mac,MSW: either true or false; otherwise: always true
 	bool					m_BFixedHeight;			// Mac,MSW: always true; otherwise: false
 	bool					m_BProportionalResizing;
 	bool					m_BVisibleSelection;
 
-	// NB: same as wxGrid[Row/Col]LabelWindow
+	// NB: same as wxGrid[Row,Col]LabelWindow
 	DECLARE_DYNAMIC_CLASS(wxColumnHeader)
 	DECLARE_EVENT_TABLE()
 	DECLARE_NO_COPY_CLASS(wxColumnHeader)
@@ -433,6 +441,7 @@ protected:
 	long					m_ButtonArrowStyle;
 	wxSize				m_Origin;
 	wxSize				m_Extent;
+	bool					m_BVisible;
 	bool					m_BEnabled;
 	bool					m_BSelected;
 	bool					m_BSortEnabled;
@@ -446,43 +455,46 @@ protected:
 class WXDLLIMPEXP_ADV wxChandlerGridLabelWindow : public wxClassParent_ChandlerGridLabelWindow
 {
 public:
-    wxChandlerGridLabelWindow()
-    {
-        m_owner = (wxGrid*)NULL;
-        m_styleVariant = 0;
-    }
+	wxChandlerGridLabelWindow()
+	{
+		m_owner = (wxGrid*)NULL;
+		m_styleVariant = 0;
+	}
 
-    wxChandlerGridLabelWindow(
-        wxGrid *parent,
-        wxWindowID id,
-        const wxPoint& pos,
-        const wxSize &size,
-        long styleVariant );
+	wxChandlerGridLabelWindow(
+		wxGrid *parent,
+		wxWindowID id,
+		const wxPoint& pos,
+		const wxSize &size,
+		long styleVariant );
 
-    ~wxChandlerGridLabelWindow();
+	~wxChandlerGridLabelWindow();
 
-    // new routines
-    void GetLabelValue( bool isColumn, int index, wxString& value );
-    void SetLabelValue( bool isColumn, int index, const wxString& value );
-    void GetLabelSize( bool isColumn, int index, int& value );
-    void SetLabelSize( bool isColumn, int index, int value );
-    void GetLabelAlignment( bool isColumn, int index, int& hAlign, int& vAlign );
-    void SetLabelAlignment( bool isColumn, int index, int hAlign, int vAlign );
+	// new routines
+	void GetLabelValue( bool isColumn, int index, wxString& value );
+	void SetLabelValue( bool isColumn, int index, const wxString& value );
+	void GetLabelSize( bool isColumn, int index, int& value );
+	void SetLabelSize( bool isColumn, int index, int value );
+	void GetLabelAlignment( bool isColumn, int index, int& hAlign, int& vAlign );
+	void SetLabelAlignment( bool isColumn, int index, int hAlign, int vAlign );
+
+public:
+	static void GetDefaultLabelValue( bool isColumn, int index, wxString& value );
 
 private:
-    wxGrid   *m_owner;
-    long    m_styleVariant;
+	wxGrid   *m_owner;
+	long	m_styleVariant;
 
-    void OnPaint( wxPaintEvent& event );
-    void OnMouseEvent( wxMouseEvent& event );
-    void OnMouseWheel( wxMouseEvent& event );
-    void OnKeyDown( wxKeyEvent& event );
-    void OnKeyUp( wxKeyEvent& );
-    void OnChar( wxKeyEvent& );
+	void OnPaint( wxPaintEvent& event );
+	void OnMouseEvent( wxMouseEvent& event );
+	void OnMouseWheel( wxMouseEvent& event );
+	void OnKeyDown( wxKeyEvent& event );
+	void OnKeyUp( wxKeyEvent& );
+	void OnChar( wxKeyEvent& );
 
-    DECLARE_DYNAMIC_CLASS(wxChandlerGridLabelWindow)
-    DECLARE_EVENT_TABLE()
-    DECLARE_NO_COPY_CLASS(wxChandlerGridLabelWindow)
+	DECLARE_DYNAMIC_CLASS(wxChandlerGridLabelWindow)
+	DECLARE_EVENT_TABLE()
+	DECLARE_NO_COPY_CLASS(wxChandlerGridLabelWindow)
 };
 
 
