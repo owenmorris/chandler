@@ -162,6 +162,9 @@ public:
     wxSize GetDefaultItemSize( void ) const;
     void SetDefaultItemSize(
         wxSize        targetSize );
+    long GetExpectedItemCount( void ) const;
+    void SetExpectedItemCount(
+        long            targetCount );
 
     long GetTotalUIExtent(
         long            itemCount = (-1),
@@ -201,17 +204,17 @@ public:
     void AppendItem(
         const wxString        &textBuffer,
         long                textJust,
-        long                extentX,
+        long                extentX = (-1),
         bool                bSelected = false,
-        bool                bSortEnabled = true,
+        bool                bSortEnabled = false,
         bool                bSortAscending = false );
     void AddItem(
         long                beforeIndex,
         const wxString        &textBuffer,
         long                textJust,
-        long                extentX,
+        long                extentX = (-1),
         bool                bSelected = false,
-        bool                bSortEnabled = true,
+        bool                bSortEnabled = false,
         bool                bSortAscending = false );
 
     bool GetItemVisibility(

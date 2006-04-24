@@ -359,6 +359,7 @@ void wxColumnHeader::Init( void )
 
 	m_ItemList = NULL;
 	m_ItemCount = 0;
+	m_ExpectedItemCount = 0;
 	m_ItemViewBaseIndex = 0;
 	m_ItemViewBaseOrigin = 0;
 	m_ItemSelected = CH_HITTEST_NoPart;
@@ -528,6 +529,9 @@ long		i;
 	LOGProc( msgStr );
 
 	wxFormatLong( msgStr, m_ItemCount );
+	LOGProc( msgStr );
+
+	wxFormatLong( msgStr, m_ExpectedItemCount );
 	LOGProc( msgStr );
 
 	wxFormatLong( msgStr, m_ItemViewBaseIndex );
@@ -768,6 +772,9 @@ wxSize		targetSize, minSize, parentSize;
 	// as determined by native (HI/CommonControls) drawing routines
 	parentSize = maxSize;
 	targetSize.x = parentSize.x;
+	if (m_ExpectedItemCount > 1)
+		targetSize.x /= m_ExpectedItemCount;
+
 
 	// get (platform-dependent) height
 #if defined(__WXMSW__)
@@ -822,6 +829,20 @@ void wxColumnHeader::SetDefaultItemSize(
 		m_DefaultItemSize.x = targetSize.x;
 	if (targetSize.y > 0)
 		m_DefaultItemSize.y = targetSize.y;
+}
+
+long wxColumnHeader::GetExpectedItemCount( void ) const
+{
+	return m_ExpectedItemCount;
+}
+
+void wxColumnHeader::SetExpectedItemCount(
+	long			targetCount )
+{
+	if (targetCount < 0)
+		targetCount = 0;
+
+	m_ExpectedItemCount = targetCount;
 }
 
 // static
@@ -1628,7 +1649,7 @@ wxSize					targetExtent;
 long					originX;
 bool					bIsVertical;
 
-	// set invariant values
+	// set (initially) invariant values
 	itemInfo.m_BVisible = true;
 	itemInfo.m_BEnabled = true;
 	itemInfo.m_BitmapJust = CH_JUST_Center;
@@ -1650,7 +1671,7 @@ bool					bIsVertical;
 	itemInfo.m_TextJust = textJust;
 	itemInfo.m_Extent.x = extentX;
 	itemInfo.m_BSelected = ((m_ItemSelected < 0) ? bSelected : false);
-	itemInfo.m_BSortEnabled = bSortEnabled;
+	itemInfo.m_BSortEnabled = bSortEnabled && !bIsVertical;
 	itemInfo.m_BSortAscending = bSortAscending;
 
 	// determine new item origin

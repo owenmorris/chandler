@@ -116,26 +116,6 @@ class TestPanel( wx.Panel ):
 
         self.colStartX += 165
 
-        btn = wx.Button( self, -1, "Deselect", (self.colStartX, miscControlsY) )
-        self.Bind( wx.EVT_BUTTON, self.OnButtonTestDeselect, btn )
-
-        btn = wx.Button( self, -1, "Hide Selection", (self.colStartX, miscControlsY + 30) )
-        self.Bind( wx.EVT_BUTTON, self.OnButtonTestShowHide, btn )
-
-        btn = wx.Button( self, -1, "Scroll", (self.colStartX, miscControlsY + 60) )
-        self.Bind( wx.EVT_BUTTON, self.OnButtonTestScroll, btn )
-
-        btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 90) )
-        self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
-
-        btn = wx.Button( self, -1, "Resize To Fit", (self.colStartX, miscControlsY + 120) )
-        self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeToFit, btn )
-
-        btn = wx.Button( self, -1, "Dump Info", (self.colStartX, miscControlsY + 150) )
-        self.Bind( wx.EVT_BUTTON, self.OnButtonDumpInfo, btn )
-
-        self.colStartX += 150
-
         styleList = ['None', 'Native', 'BoldLabel', 'ColourLabel', 'Grey', 'InvertBevel', 'Underline', 'Overline', 'Frame', 'Bullet']
         wx.StaticText( self, -1, "Selection Style:", (self.colStartX, miscControlsY + 0), (150, -1) )
         choice = wx.Choice( self, -1, (self.colStartX, miscControlsY + 20), choices = styleList )
@@ -150,6 +130,26 @@ class TestPanel( wx.Panel ):
             choice.SetSelection( self.ch2.GetArrowButtonStyle( itemIndex ) )
         self.Bind( wx.EVT_CHOICE, self.OnEvtChoiceArrowButton, choice )
         self.choiceAB = choice
+
+        self.colStartX += 175
+
+        btn = wx.Button( self, -1, "Deselect", (self.colStartX, miscControlsY) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestDeselect, btn )
+
+        btn = wx.Button( self, -1, "Show/Hide Selection", (self.colStartX, miscControlsY + 30) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestShowHide, btn )
+
+        btn = wx.Button( self, -1, "Scroll", (self.colStartX, miscControlsY + 60) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestScroll, btn )
+
+        btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 90) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
+
+        btn = wx.Button( self, -1, "Resize To Fit", (self.colStartX, miscControlsY + 120) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeToFit, btn )
+
+        btn = wx.Button( self, -1, "Dump Info", (self.colStartX, miscControlsY + 150) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonDumpInfo, btn )
 
         self.colStartX = resizeColStartX
 

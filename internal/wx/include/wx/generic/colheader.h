@@ -85,6 +85,9 @@ public:
 	wxSize GetDefaultItemSize( void ) const;
 	void SetDefaultItemSize(
 		const wxSize		targetSize );
+	long GetExpectedItemCount( void ) const;
+	void SetExpectedItemCount(
+		long			targetCount );
 
 	long GetTotalUIExtent(
 		long				itemCount = (-1),
@@ -96,9 +99,6 @@ public:
 	bool ResizeDivision(
 		long				itemIndex,
 		long				originX );
-
-	void OnMouseEvent( wxMouseEvent &event );
-	void ProcessLabelMouseEvent( wxMouseEvent &event );
 
 	void GetSelectionColour(
 		wxColour			&targetColour ) const;
@@ -132,18 +132,18 @@ public:
 	void AppendItem(
 		const wxString		&textBuffer,
 		long				textJust,
-		long				extentX,
-		bool				bActive,
-		bool				bSortEnabled,
-		bool				bSortAscending );
+		long				extentX = (-1),
+		bool				bSelected = false,
+		bool				bSortEnabled = false,
+		bool				bSortAscending = false );
 	void AddItem(
 		long				beforeIndex,
 		const wxString		&textBuffer,
 		long				textJust,
-		long				extentX,
-		bool				bActive,
-		bool				bSortEnabled,
-		bool				bSortAscending );
+		long				extentX = (-1),
+		bool				bSelected = false,
+		bool				bSortEnabled = false,
+		bool				bSortAscending = false );
 
 	bool GetItemVisibility(
 		long				itemIndex ) const;
@@ -277,6 +277,9 @@ protected:
 	void OnClick( wxMouseEvent &event );
 	void OnDoubleClick( wxMouseEvent &event );
 
+	void OnMouseEvent( wxMouseEvent &event );
+	void ProcessLabelMouseEvent( wxMouseEvent &event );
+
 	// event generator for "private" events
 	void GenerateSelfEvent( wxEventType eventType );
 
@@ -287,6 +290,7 @@ protected:
 	wxColour				m_SelectionColour;
 	wxColumnHeaderItem		**m_ItemList;
 	long					m_ItemCount;
+	long					m_ExpectedItemCount;
 	long					m_ItemViewBaseIndex;
 	long					m_ItemViewBaseOrigin;
 	long					m_ItemSelected;
