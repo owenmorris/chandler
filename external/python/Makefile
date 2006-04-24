@@ -78,7 +78,7 @@ build: expand apply compile installext
 compile: bzip2 zlib
 	(cd win32/$(VERSION); \
       tar -cf - *.sln *.vcproj) | tar -C $(SRC)/PCbuild -xf -
-	cd $(SRC)/PCbuild; devenv.com pcbuild.sln /build $(Snap)
+	cd $(SRC)/PCbuild; SNAP=$(SNAP) devenv.com pcbuild.sln /build $(Snap)
 
 installext:
 	mkdir -p $(BINDIR)/DLLs $(BINDIR)/Include $(BINDIR)/Lib $(BINDIR)/libs
@@ -169,7 +169,7 @@ bzip2-$(BZIP2VERSION)/libbz2.a:
 build: expand bzip2-$(BZIP2VERSION)/libbz2.a apply $(SRC)/$(BUILD)/Makefile
 	install -D bzip2-$(BZIP2VERSION)/libbz2.a $(PREFIX)/lib/libbz2.a
 	install -D bzip2-$(BZIP2VERSION)/bzlib.h $(PREFIX)/include/bzlib.h
-	$(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) install
+	SNAP=$(SNAP) $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) install
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 binaries: strip
