@@ -4,6 +4,6 @@ if "%CHANDLERHOME%"=="" set CHANDLERHOME=%cd%
 if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
 if not defined OPTIMIZE set OPTIMIZE=-O
 cd "%CHANDLERHOME%"
-path "%CHANDLERBIN%"\release\bin
+path %CHANDLERBIN%\release\bin
 "%CHANDLERBIN%"\release\bin\python.exe %OPTIMIZE% "%CHANDLERHOME%"\Chandler.py %*
 endlocal
