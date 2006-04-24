@@ -818,9 +818,14 @@ class User(object):
             return True
 
     @classmethod
-    def emulate_sidebarClick(cls, sidebar, cellName, double=False):
-        ''' Process a left click on the given cell in the given sidebar'''
-        # for All, In, Out, Trash collection find by item rather than itemName
+    def emulate_sidebarClick(cls, sidebar, cellName, double=False, overLay=False):
+        ''' Process a left click on the given cell in the given sidebar
+            if overLay is true the overLay disk next to the collection name is checked
+            otherwise the collection is selected'''
+        #determine x coordinate offset based on overLay value
+        xOffset = 24
+        if overLay: xOffset=3 
+        # for All,c In, Out, Trash collection find by item rather than itemName
         chandler_collections = {"All":schema.ns('osaf.pim', Globals.mainViewRoot).allCollection,
                                 "Out":schema.ns('osaf.pim', Globals.mainViewRoot).outCollection,
                                 "In":schema.ns('osaf.pim', Globals.mainViewRoot).inCollection,
@@ -838,7 +843,7 @@ class User(object):
             # events processing
             gw = sidebar.widget.GetGridWindow()
             # +3 work around for the sidebar bug
-            cls.emulate_click(gw, x=cellRect.GetX()+3, y=cellRect.GetY()+3, double=double)
+            cls.emulate_click(gw, x=cellRect.GetX()+xOffset, y=cellRect.GetY()+3, double=double)
             return True
         else:
             return False
