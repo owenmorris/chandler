@@ -1049,4 +1049,7 @@ class DelegateDescriptor(object):
 
     def __get__(self, obj, type=None):
 
+        if obj is None:
+            return self
+
         return getattr(getattr(obj, self.delegate), self.name)
