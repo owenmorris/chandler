@@ -605,7 +605,10 @@ long		i;
 	LOGProc( dividerStr );
 
 	if (m_ItemCount <= 0)
-		LOGProc( "<no items>" );
+	{
+		itemStr = wxT("<no items>");
+		LOGProc( itemStr );
+	}
 
 	for (i=0; i<m_ItemCount; i++)
 	{
