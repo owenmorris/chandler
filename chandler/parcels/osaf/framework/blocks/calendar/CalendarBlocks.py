@@ -54,11 +54,10 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     def wxSynchronizeWidget(self, useHints=False):
-        style = minical.CAL_SHOW_SURROUNDING_WEEKS | minical.CAL_SHOW_BUSY
         if '__WXMAC__' in wx.PlatformInfo:
-            style |= wx.BORDER_SIMPLE
+            style = wx.BORDER_SIMPLE
         else:
-            style |= wx.BORDER_STATIC
+            style = wx.BORDER_STATIC
         
         if isMainCalendarVisible() and not self.blockItem.dayMode:
             style |= minical.CAL_HIGHLIGHT_WEEK
@@ -560,8 +559,6 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         dc = wx.ClientDC(self)
         drawnHeight = self.Draw(dc)
 
-        print "Setting new height to %s (%s)" % (drawnHeight + (2*self.vMargin),
-                                                 drawnHeight)
         if drawnHeight == 0:
             newHeight = 0
         else:

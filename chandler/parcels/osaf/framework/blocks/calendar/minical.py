@@ -26,13 +26,9 @@ CAL_HITTEST_DECMONTH = 5
 CAL_HITTEST_SURROUNDING_WEEK = 6
 
 
-CAL_SHOW_SURROUNDING_WEEKS = 0x0002 # show the neighbouring weeks in
-                                    # the previous and next
-                                    # month
 CAL_SHOW_PREVIEW           = 0x0004 # show a preview of events on the 
                                     # selected day
 CAL_HIGHLIGHT_WEEK         = 0x0008 # select an entire week at a time
-CAL_SHOW_BUSY              = 0x0010 # show busy bars
 
 def MonthDelta(dt, months):
     """
@@ -308,16 +304,11 @@ class PyMiniCalendar(wx.PyControl):
         if clickDate.month != targetMonth:
             return (CAL_HITTEST_NOWHERE, None)
 
-        if self.IsDateShown(clickDate):
-
-            if clickDate.month == self.firstVisibleDate.month:
-                return (CAL_HITTEST_DAY, clickDate)
-            else:
-                return (CAL_HITTEST_SURROUNDING_WEEK, clickDate)
-
+        if clickDate.month == self.firstVisibleDate.month:
+            return (CAL_HITTEST_DAY, clickDate)
         else:
-            return (CAL_HITTEST_NOWHERE, None)
-        
+            return (CAL_HITTEST_SURROUNDING_WEEK, clickDate)
+
 
     # get the date from which we start drawing days
     def GetStartDate(self):
@@ -346,7 +337,6 @@ class PyMiniCalendar(wx.PyControl):
         self.RecalcGeometry()
     
     # event handlers
-    @QuickProfile("minical-paint.prof")
     def OnMiniCalPaint(self, event):
         dc = wx.PaintDC(self)
 
@@ -532,10 +522,7 @@ class PyMiniCalendar(wx.PyControl):
         self.widthCol += 8
         self.heightRow += 6
 
-        if self.GetWindowStyle() & CAL_SHOW_PREVIEW:
-            self.heightPreview = NUMBER_TO_PREVIEW * self.heightRow
-        else:
-            self.heightPreview = 0
+        self.heightPreview = 0
 
         self.rowOffset = self.heightRow * 2
         self.todayHeight = self.heightRow + 2
@@ -609,104 +596,100 @@ class PyMiniCalendar(wx.PyControl):
 
             for weekDay in xrange(DAYS_PER_WEEK):
 
-                if self.IsDateShown(weekDate):
+                dayStr = str(weekDate.day)
+                width, height = dc.GetTextExtent(dayStr)
 
-                    dayStr = str(weekDate.day)
-                    width, height = dc.GetTextExtent(dayStr)
-                    
-                    changedColours = False
-                    changedFont = False
-                    
-                    x = weekDay * self.widthCol + (self.widthCol - width) / 2
+                changedColours = False
+                changedFont = False
 
-                    if highlightDate:
-                        # either highlight the selected week or the
-                        # selected day depending upon the style
-                        highlightWeek = (self.GetWindowStyle() &
-                                         CAL_HIGHLIGHT_WEEK) != 0
-                            
-                        if ((weekDate.month == startDate.month) and   # Only highlight days that fall in the current month
-                            ((highlightWeek and                        # Highlighting week and the week we are drawing matches
-                              (self.GetWeek(weekDate, False) ==        # the currently selected week
-                               self.GetWeek(self.selectedDate, False))) or
-                             (not highlightWeek and                # Highlighting a single day
-                              (weekDate == self.selectedDate)))):
+                x = weekDay * self.widthCol + (self.widthCol - width) / 2
 
-                            startX = weekDay * self.widthCol
-                            if weekDay == 0:
-                                startX += SEPARATOR_MARGIN
+                if highlightDate:
+                    # either highlight the selected week or the
+                    # selected day depending upon the style
+                    highlightWeek = (self.GetWindowStyle() &
+                                     CAL_HIGHLIGHT_WEEK) != 0
 
-                            width = self.widthCol
+                    if ((weekDate.month == startDate.month) and   # Only highlight days that fall in the current month
+                        ((highlightWeek and                        # Highlighting week and the week we are drawing matches
+                          (self.GetWeek(weekDate, False) ==        # the currently selected week
+                           self.GetWeek(self.selectedDate, False))) or
+                         (not highlightWeek and                # Highlighting a single day
+                          (weekDate == self.selectedDate)))):
 
-                            if weekDay == DAYS_PER_WEEK-1:
-                                width -= (SEPARATOR_MARGIN)
+                        startX = weekDay * self.widthCol
+                        if weekDay == 0:
+                            startX += SEPARATOR_MARGIN
 
-                            dc.SetTextBackground(self.highlightColour)
-                            dc.SetBrush(self.highlightColourBrush)
+                        width = self.widthCol
 
-                            if '__WXMAC__' in wx.PlatformInfo:
-                                dc.SetPen(wx.TRANSPARENT_PEN)
-                            else:
-                                dc.SetPen(self.highlightColourPen)
+                        if weekDay == DAYS_PER_WEEK-1:
+                            width -= (SEPARATOR_MARGIN)
 
-                            dc.DrawRectangle(startX, y, width, self.heightRow) 
-
-                            changedColours = True
-
-                    # draw free/busy indicator
-                    if (self.GetWindowStyle() & CAL_SHOW_BUSY and
-                        weekDate.month == startDate.month):
-                        busyPercentage = self.GetBusy(weekDate)
-                        if '__WXMAC__' in wx.PlatformInfo:
-                            YAdjust = 7
-                        else:
-                            YAdjust = 6
-                        height = (self.heightRow - YAdjust) * busyPercentage
-
-                        dc.SetTextBackground(self.busyColour)
-                        dc.SetBrush(self.busyColourBrush)
+                        dc.SetTextBackground(self.highlightColour)
+                        dc.SetBrush(self.highlightColourBrush)
 
                         if '__WXMAC__' in wx.PlatformInfo:
                             dc.SetPen(wx.TRANSPARENT_PEN)
                         else:
-                            dc.SetPen(self.busyColourPen)
+                            dc.SetPen(self.highlightColourPen)
 
-                        dc.DrawRectangle(x-3, y + self.heightRow - height - 2, 2, height)
+                        dc.DrawRectangle(startX, y, width, self.heightRow) 
+
                         changedColours = True
 
-                    if (weekDate.month != startDate.month or
-                        not self.IsDateInRange(weekDate)):
-                        # surrounding week or out-of-range
-                        # draw "disabled"
-                        dc.SetTextForeground(self.lightColour)
-                        changedColours = True
+                # draw free/busy indicator
+                if weekDate.month == startDate.month:
+                    busyPercentage = self.GetBusy(weekDate)
+                    if '__WXMAC__' in wx.PlatformInfo:
+                        YAdjust = 7
                     else:
-                        dc.SetBrush(wx.BLACK_BRUSH)
-                        dc.SetPen(wx.BLACK_PEN)
+                        YAdjust = 6
+                    height = (self.heightRow - YAdjust) * busyPercentage
 
-                        # today should be printed as bold
-                        if weekDate == date.today():
-                            dc.SetFont(self.boldFont)
-                            dc.SetTextForeground(wx.BLACK)
-                            changedFont = True
-                            changedColours = True
+                    dc.SetTextBackground(self.busyColour)
+                    dc.SetBrush(self.busyColourBrush)
 
                     if '__WXMAC__' in wx.PlatformInfo:
-                        YAdjust = 2
+                        dc.SetPen(wx.TRANSPARENT_PEN)
                     else:
-                        YAdjust = 1
-                    dc.DrawText(dayStr, x, y + YAdjust)
+                        dc.SetPen(self.busyColourPen)
 
-                    dc.SetBrush(wx.TRANSPARENT_BRUSH)
+                    dc.DrawRectangle(x-3, y + self.heightRow - height - 2, 2, height)
+                    changedColours = True
 
-                    if changedColours:
-                        dc.SetTextForeground(self.mainColour)
-                        dc.SetTextBackground(self.GetBackgroundColour())
+                if (weekDate.month != startDate.month or
+                    not self.IsDateInRange(weekDate)):
+                    # surrounding week or out-of-range
+                    # draw "disabled"
+                    dc.SetTextForeground(self.lightColour)
+                    changedColours = True
+                else:
+                    dc.SetBrush(wx.BLACK_BRUSH)
+                    dc.SetPen(wx.BLACK_PEN)
 
-                    if changedFont:
-                        dc.SetFont(self.normalFont)
+                    # today should be printed as bold
+                    if weekDate == date.today():
+                        dc.SetFont(self.boldFont)
+                        dc.SetTextForeground(wx.BLACK)
+                        changedFont = True
+                        changedColours = True
 
-                #else: just don't draw it
+                if '__WXMAC__' in wx.PlatformInfo:
+                    YAdjust = 2
+                else:
+                    YAdjust = 1
+                dc.DrawText(dayStr, x, y + YAdjust)
+
+                dc.SetBrush(wx.TRANSPARENT_BRUSH)
+
+                if changedColours:
+                    dc.SetTextForeground(self.mainColour)
+                    dc.SetTextBackground(self.GetBackgroundColour())
+
+                if changedFont:
+                    dc.SetFont(self.normalFont)
+
                 weekDate += timedelta(days=1)
 
             # draw lines between each set of weeks
@@ -804,15 +787,6 @@ class PyMiniCalendar(wx.PyControl):
         targetDate = self.FirstDayOfWeek(targetDate)
         (year, week, day) = targetDate.isocalendar()
         return week
-
-    def IsDateShown(self, date):
-        """
-        is this date shown?
-        """
-        if not (self.GetWindowStyle() & CAL_SHOW_SURROUNDING_WEEKS):
-            return date.month == self.firstVisibleDate.month
-        
-        return True
 
     def IsDateInRange(self, date):
         """
