@@ -55,6 +55,11 @@ class TimedEventsCanvas(CalendarBlock):
         super(TimedEventsCanvas, self).instantiateWidget()
         return wxTimedEventsCanvas(self.parentBlock.widget)
 
+    def setRange(self, date):
+        super(TimedEventsCanvas, self).setRange(date)
+        if getattr(self, 'widget', None):
+            self.widget.orderLast = []
+
 
 class wxTimedEventsCanvas(wxCalendarCanvas):
     def __init__(self, parent, *arguments, **keywords):
@@ -69,6 +74,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # determines if we're dragging the start or the end of an event, usually
         # the end
         self._bgSelectionDragEnd = True
+        
+        self.orderLast = []
 
     def wxSynchronizeWidget(self, useHints=False):
         currentRange = self.GetCurrentDateRange()
@@ -488,13 +495,14 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         unselectedBoxes = []
         selectedBoxes = []
+        orderLastMap = {}
         contents = CalendarSelection(self.blockItem.contents)
 
         draggedOutItem = self._getHiddenOrClearDraggedOut()
 
         for canvasItem in self.canvasItemList:
             item = canvasItem.item
-            if item == draggedOutItem:
+            if item == draggedOutItem or item.isStale():
                 # don't render items we're dragging out of the canvas
                 continue
 
@@ -505,10 +513,15 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             if item in contents:
                 if contents.isItemSelected(item):
                     selectedBoxes.append(canvasItem)
+                elif item in self.orderLast:
+                    orderLastMap[item] = canvasItem
                 else:
                     unselectedBoxes.append(canvasItem)
                     
+        orderLastBoxes = [orderLastMap.get(i) for i in self.orderLast if \
+                          orderLastMap.get(i) is not None]
         drawCanvasItems(unselectedBoxes, False)
+        drawCanvasItems(orderLastBoxes, False)        
         drawCanvasItems(selectedBoxes, True)
 
     def CheckConflicts(self):
@@ -530,7 +543,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if item:
             # clear background selection when an existing item is selected
             self._bgSelectionStartTime = self._bgSelectionEndTime = None
-        
+            # put recently selected items in a list of items to be displayed 
+            # on top of other items
+            if item in self.orderLast:
+                self.orderLast.remove(item)
+            self.orderLast.append(item)
+            
         super(wxTimedEventsCanvas, self).OnSelectItem(item)
         
     def OnSelectNone(self, unscrolledPosition):
