@@ -28,6 +28,14 @@ class RepositoryPasswordError(RepositoryError):
     pass
 
 
+class RepositoryOpenError(RepositoryError):
+    pass
+
+
+class RepositoryRestoreError(RepositoryError):
+    pass
+
+
 class VersionConflictError(RepositoryError):
     __doc__ = "Another view changed %s and saved those changes before this view - %s - got a chance to do so. These changes conflict with this thread's changes, the item cannot be saved (0x%0.4x/0x%0.4x)."
 

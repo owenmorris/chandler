@@ -386,20 +386,26 @@ class DBRepository(OnDemandRepository):
             exclusive = kwds.get('exclusive', False)
             restore = kwds.get('restore', None)
 
-            if restore is not None and os.path.isdir(restore):
-                if os.path.exists(self.dbHome):
-                    self.delete()
-                if not os.path.exists(self.dbHome):
-                    os.mkdir(self.dbHome)
-                for f in os.listdir(restore):
-                    if (f.endswith('.db') or
-                        f.startswith('log.') or
-                        f in ('DB_CONFIG', 'DB_VERSION')):
-                        path = os.path.join(restore, f)
-                        if not os.path.isdir(path):
-                            self.logger.info(path)
-                            shutil.copy2(path, os.path.join(self.dbHome, f))
-                recover = True
+            if restore is not None:
+                if os.path.isdir(restore):
+                    if os.path.exists(self.dbHome):
+                        self.delete()
+                    if not os.path.exists(self.dbHome):
+                        os.mkdir(self.dbHome)
+                    for f in os.listdir(restore):
+                        if (f.endswith('.db') or
+                            f.startswith('log.') or
+                            f in ('DB_CONFIG', 'DB_VERSION')):
+                            path = os.path.join(restore, f)
+                            if not os.path.isdir(path):
+                                self.logger.info(path)
+                                shutil.copy2(path, os.path.join(self.dbHome, f))
+                    recover = True
+                else:
+                    raise RepositoryRestoreError, (restore, 'is not a directory')
+
+            elif kwds.get('create', False) and not os.path.exists(self.dbHome):
+                return self.create(**kwds)
 
             self._lockOpen()
             self._env = self._createEnv(False, kwds)
