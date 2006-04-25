@@ -26,7 +26,6 @@ import chandlerdb
 
 import zanshin, M2Crypto, twisted, re
 
-
 import wx          # For the dialogs, but perhaps this is better accomplished
 import application # via callbacks
 
@@ -437,12 +436,8 @@ def publish(collection, account, classesToInclude=None,
 
 def deleteShare(share):
     # Remove from server (or disk, etc.)
-    try:
-        if share.exists():
-            share.destroy()
-    except CouldNotConnect, e:
-        pass
-        # @@@MOR what sort of UI do we want in this case?
+    if share.exists():
+        share.destroy()
 
     # Clean up sharing-related objects
     share.conduit.delete(True)

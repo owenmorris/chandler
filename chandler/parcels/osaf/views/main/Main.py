@@ -23,7 +23,8 @@ import osaf.pim.generate as generate
 
 from osaf.mail import constants
 import osaf.mail.sharing as MailSharing
-from osaf.sharing import ICalendar
+from osaf.sharing import ICalendar, Sharing
+import twisted.internet.error
 
 from photos import Photo
 from util import GenerateItemsFromFile
@@ -876,12 +877,32 @@ class MainView(View):
                 wx.TheClipboard.Close()
 
     def onSharingUnpublishFreeBusyEvent(self, event):
-        sharing.unpublishFreeBusy(schema.ns('osaf.pim', self).allCollection)
-
+        try:
+            sharing.unpublishFreeBusy(schema.ns('osaf.pim', self).allCollection)
+        except (Sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
+            msg = _(u"Unpublish failed, could not connect to server")
+            self.setStatusMessage(msg)
+        except:
+            msg = _(u"Unpublish failed, unknown error")
+            self.setStatusMessage(msg)
+        else:
+            msg = _("Unpublish succeeded")
+            self.setStatusMessage(msg)
+            
     def onUnpublishSidebarCollectionEvent(self, event):
-        collection = self.getSidebarSelectedCollection ()
-        if collection is not None:
-            sharing.unpublish(collection)
+        try:
+            collection = self.getSidebarSelectedCollection ()
+            if collection is not None:
+                sharing.unpublish(collection)
+        except (Sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
+            msg = _(u"Unpublish failed, could not connect to server")
+            self.setStatusMessage(msg)
+        except:
+            msg = _(u"Unpublish failed, unknown error")
+            self.setStatusMessage(msg)
+        else:
+            msg = _("Unpublish succeeded")
+            self.setStatusMessage(msg)
 
     def onUnpublishSidebarCollectionEventUpdateUI(self, event):
         collection = self.getSidebarSelectedCollection ()
