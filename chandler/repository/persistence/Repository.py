@@ -100,13 +100,19 @@ class Repository(CRepository):
     def _init(self, **kwds):
 
         self._status = Repository.CLOSED
-
         self.logger = logging.getLogger(__name__)
+
+        def addHandler():
+            for handler in self.logger.handlers:
+                if isinstance(handler, logging.StreamHandler):
+                    return
+            self.logger.addHandler(logging.StreamHandler())
+
         if not kwds.get('logged', False):
             self.logger.setLevel(logging.INFO)
-            self.logger.addHandler(logging.StreamHandler())
+            addHandler()
         elif kwds.get('stderr', False):
-            self.logger.addHandler(logging.StreamHandler())
+            addHandler()
 
         if kwds.get('refcounted', False):
             self._status |= Repository.REFCOUNTED
