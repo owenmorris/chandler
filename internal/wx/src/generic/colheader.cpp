@@ -157,6 +157,87 @@ wxChandlerGridLabelWindow::~wxChandlerGridLabelWindow()
 #pragma mark -
 #endif
 
+void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
+{
+#if 0
+	// wxColumnHeader (inherited) method
+	Draw();
+#else
+	// wxGrid method
+	if (m_owner == NULL)
+		return;
+
+	wxPaintDC dc( this );
+
+	// NO - don't do this because it will set both the x and y origin
+	// coords to match the parent scrolled window and we just want to
+	// set the x coord - MB
+	//
+	// m_owner->PrepareDC( dc );
+
+	int x, y;
+
+	m_owner->CalcUnscrolledPosition( 0, 0, &x, &y );
+	if ((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
+	{
+		dc.SetDeviceOrigin( -x, 0 );
+		wxArrayInt cols = m_owner->CalcColLabelsExposed( GetUpdateRegion() );
+		m_owner->DrawColLabels( dc, cols );
+	}
+	else
+	{
+		dc.SetDeviceOrigin( 0, -y );
+		wxArrayInt rows = m_owner->CalcRowLabelsExposed( GetUpdateRegion() );
+		m_owner->DrawRowLabels( dc, rows );
+	}
+#endif
+}
+
+void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
+{
+	if (m_owner == NULL)
+		return;
+
+	if ((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
+		m_owner->ProcessColLabelMouseEvent( event );
+	else
+		m_owner->ProcessRowLabelMouseEvent( event );
+}
+
+void wxChandlerGridLabelWindow::OnMouseWheel( wxMouseEvent& event )
+{
+	if (m_owner == NULL)
+		return;
+
+	m_owner->GetEventHandler()->ProcessEvent( event );
+}
+
+// This seems to be required for wxMotif otherwise the mouse
+// cursor must be in the cell edit control to get key events
+//
+void wxChandlerGridLabelWindow::OnKeyDown( wxKeyEvent& event )
+{
+	if ((m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ))
+		event.Skip();
+}
+
+void wxChandlerGridLabelWindow::OnKeyUp( wxKeyEvent& event )
+{
+	if ((m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ))
+		event.Skip();
+}
+
+void wxChandlerGridLabelWindow::OnChar( wxKeyEvent& event )
+{
+	if ((m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ))
+		event.Skip();
+}
+
+// ================
+#if 0
+#pragma mark -
+#endif
+
 void wxChandlerGridLabelWindow::GetLabelValue( bool isColumn, int index, wxString& value )
 {
 	if (isColumn)
@@ -218,12 +299,6 @@ void wxChandlerGridLabelWindow::GetDefaultLabelValue( bool isColumn, int index, 
 {
 	if (isColumn)
 	{
-		// RD: Starting the rows at zero confuses users,
-		// no matter how much it makes sense to geeks.
-		value << index + 1;
-	}
-	else
-	{
 		wxString s;
 		unsigned int i, n;
 		for (n = 1; index >= 0; n++)
@@ -235,84 +310,15 @@ void wxChandlerGridLabelWindow::GetDefaultLabelValue( bool isColumn, int index, 
 
 		// reverse the string
 		value = wxEmptyString;
-		for (i = 0;  i < n;  i++)
+		for (i = 0; i < n; i++)
 			value += s[n - i - 1];
 	}
-}
-
-// ================
-#if 0
-#pragma mark -
-#endif
-
-void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
-{
-	if (m_owner == NULL)
-		return;
-
-	wxPaintDC dc( this );
-
-	// NO - don't do this because it will set both the x and y origin
-	// coords to match the parent scrolled window and we just want to
-	// set the x coord - MB
-	//
-	// m_owner->PrepareDC( dc );
-
-	int x, y;
-
-	m_owner->CalcUnscrolledPosition( 0, 0, &x, &y );
-	if ((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
-	{
-		dc.SetDeviceOrigin( -x, 0 );
-		wxArrayInt cols = m_owner->CalcColLabelsExposed( GetUpdateRegion() );
-		m_owner->DrawColLabels( dc, cols );
-	}
 	else
 	{
-		dc.SetDeviceOrigin( 0, -y );
-		wxArrayInt rows = m_owner->CalcRowLabelsExposed( GetUpdateRegion() );
-		m_owner->DrawRowLabels( dc, rows );
+		// RD: Starting the rows at zero confuses users,
+		// no matter how much it makes sense to geeks.
+		value << index + 1;
 	}
-}
-
-void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
-{
-	if (m_owner == NULL)
-		return;
-
-	if ((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
-		m_owner->ProcessColLabelMouseEvent( event );
-	else
-		m_owner->ProcessRowLabelMouseEvent( event );
-}
-
-void wxChandlerGridLabelWindow::OnMouseWheel( wxMouseEvent& event )
-{
-	if (m_owner == NULL)
-		return;
-
-	m_owner->GetEventHandler()->ProcessEvent( event );
-}
-
-// This seems to be required for wxMotif otherwise the mouse
-// cursor must be in the cell edit control to get key events
-//
-void wxChandlerGridLabelWindow::OnKeyDown( wxKeyEvent& event )
-{
-	if ((m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ))
-		event.Skip();
-}
-
-void wxChandlerGridLabelWindow::OnKeyUp( wxKeyEvent& event )
-{
-	if ((m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ))
-		event.Skip();
-}
-
-void wxChandlerGridLabelWindow::OnChar( wxKeyEvent& event )
-{
-	if ((m_owner == NULL) || !m_owner->GetEventHandler()->ProcessEvent( event ))
-		event.Skip();
 }
 
 // ================
