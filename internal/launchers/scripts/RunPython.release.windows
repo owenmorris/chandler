@@ -1,6 +1,6 @@
 @echo off
 setlocal
-if "%CHANDLERHOME%"=="" set CHANDLERHOME=.
+if "%CHANDLERHOME%"=="" set CHANDLERHOME=%cd%
 if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
 
 echo CHANDLERHOME is "%CHANDLERHOME%"
