@@ -126,7 +126,7 @@ public:
         wxWindowID        id = wxID_ANY,
         const wxPoint        &pos = wxDefaultPosition,
         const wxSize        &size = wxDefaultSize,
-        long                style = 0,
+        long                styleVariant = 0,
         const wxString        &name = wxColumnHeaderNameStr );
 
     // NB: is this proper? What about the dtor?
@@ -139,20 +139,20 @@ public:
     virtual void DumpInfo( void );
 
     virtual void DoMoveWindow(
-        int x,
-        int y,
-        int width,
-        int height );
+        int    x,
+        int    y,
+        int    width,
+        int    height );
     virtual bool Enable(
-        bool bEnable = true );
+        bool    bEnable = true );
     virtual bool Show(
-        bool bShow = true );
+        bool    bShow = true );
     virtual void DoSetSize(
-        int x,
-        int y,
-        int width,
-        int height,
-        int sizeFlags );
+        int    x,
+        int    y,
+        int    width,
+        int    height,
+        int    sizeFlags );
     virtual wxSize DoGetBestSize( void ) const;
     virtual wxSize DoGetMinSize( void ) const;
 
@@ -199,6 +199,10 @@ public:
     long GetBaseViewItem( void ) const;
     void SetBaseViewItem(
         long            itemIndex );
+
+    void DeleteItems(
+        long                itemIndex,
+        long                itemCount );
     void DeleteItem(
         long                itemIndex );
     void AppendItem(
@@ -208,6 +212,9 @@ public:
         bool                bSelected = false,
         bool                bSortEnabled = false,
         bool                bSortAscending = false );
+    void AddEmptyItems(
+        long                beforeIndex,
+        long                itemCount );
     void AddItem(
         long                beforeIndex,
         const wxString        &textBuffer,

@@ -248,10 +248,14 @@ void wxChandlerGridLabelWindow::GetLabelValue( bool isColumn, int index, wxStrin
 
 void wxChandlerGridLabelWindow::SetLabelValue( bool isColumn, int index, const wxString& value )
 {
+#if defined(__GRID_LABELS_ARE_COLHEADERS__)
+	SetLabelText( index, value );
+#else
 	if (isColumn)
 		m_owner->SetColLabelValue( index, value );
 	else
 		m_owner->SetRowLabelValue( index, value );
+#endif
 }
 
 void wxChandlerGridLabelWindow::GetLabelSize( bool isColumn, int index, int& value )
@@ -268,10 +272,19 @@ void wxChandlerGridLabelWindow::SetLabelSize( bool isColumn, int index, int valu
 {
 // WXUNUSED( index )
 
+#if defined(__GRID_LABELS_ARE_COLHEADERS__)
+wxSize	sizeV;
+
+	// y is ignored
+	sizeV.x = value;
+	sizeV.y = 0;
+	SetUIExtent( index, sizeV );
+#else
 	if (isColumn)
 		m_owner->SetColLabelSize( value );
 	else
 		m_owner->SetRowLabelSize( value );
+#endif
 }
 
 void wxChandlerGridLabelWindow::GetLabelAlignment( bool isColumn, int index, int& hAlign, int& vAlign )
@@ -288,10 +301,13 @@ void wxChandlerGridLabelWindow::SetLabelAlignment( bool isColumn, int index, int
 {
 // WXUNUSED( index )
 
+#if defined(__GRID_LABELS_ARE_COLHEADERS__)
+#else
 	if (isColumn)
 		m_owner->SetColLabelAlignment( hAlign, vAlign );
 	else
 		m_owner->SetRowLabelAlignment( hAlign, vAlign );
+#endif
 }
 
 // static
@@ -299,6 +315,10 @@ void wxChandlerGridLabelWindow::GetDefaultLabelValue( bool isColumn, int index, 
 {
 	if (isColumn)
 	{
+		// default column labels are:
+		// columns 0 to 25: A-Z
+		// columns 26 to 675: AA-ZZ
+		// and so on
 		wxString s;
 		unsigned int i, n;
 		for (n = 1; index >= 0; n++)
@@ -315,7 +335,7 @@ void wxChandlerGridLabelWindow::GetDefaultLabelValue( bool isColumn, int index, 
 	}
 	else
 	{
-		// RD: Starting the rows at zero confuses users,
+		// starting the rows at zero confuses users,
 		// no matter how much it makes sense to geeks.
 		value << index + 1;
 	}
@@ -1589,6 +1609,16 @@ void wxColumnHeader::SetBaseViewItem(
 	}
 }
 
+void wxColumnHeader::DeleteItems(
+	long			itemIndex,
+	long			itemCount )
+{
+long		i;
+
+	for (i=0; i<itemCount; i++)
+		DeleteItem( itemIndex );
+}
+
 void wxColumnHeader::DeleteItem(
 	long			itemIndex )
 {
@@ -1639,6 +1669,16 @@ void wxColumnHeader::AppendItem(
 	bool				bSortAscending )
 {
 	AddItem( -1, textBuffer, textJust, extentX, bSelected, bSortEnabled, bSortAscending );
+}
+
+void wxColumnHeader::AddEmptyItems(
+	long				beforeIndex,
+	long				itemCount )
+{
+long		i;
+
+	for (i=0; i<itemCount; i++)
+		AddItem( beforeIndex, wxEmptyString, CH_JUST_Left, -1, false, true, true );
 }
 
 void wxColumnHeader::AddItem(

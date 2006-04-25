@@ -127,6 +127,9 @@ public:
 	void SetBaseViewItem(
 		long				itemIndex );
 
+	void DeleteItems(
+		long				itemIndex,
+		long				itemCount );
 	void DeleteItem(
 		long				itemIndex );
 	void AppendItem(
@@ -136,6 +139,9 @@ public:
 		bool				bSelected = false,
 		bool				bSortEnabled = false,
 		bool				bSortAscending = false );
+	void AddEmptyItems(
+		long				beforeIndex,
+		long				itemCount );
 	void AddItem(
 		long				beforeIndex,
 		const wxString		&textBuffer,
@@ -453,8 +459,12 @@ protected:
 	bool					m_BFixedWidth;
 };
 
+//#define __GRID_LABELS_ARE_COLHEADERS__
+#if defined(__GRID_LABELS_ARE_COLHEADERS__)
+#define wxClassParent_ChandlerGridLabelWindow	wxColumnHeader
+#else
 #define wxClassParent_ChandlerGridLabelWindow	wxWindow
-//#define wxClassParent_ChandlerGridLabelWindow	wxColumnHeader
+#endif
 
 class WXDLLIMPEXP_ADV wxChandlerGridLabelWindow : public wxClassParent_ChandlerGridLabelWindow
 {
