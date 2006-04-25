@@ -63,9 +63,9 @@ enum wxColumnHeaderJustification
 {
     // NB: 1) wxID_JUSTIFY_ values enum as: center, fill, right, left
     // NB: 2) existing Wx justification enum has (too) many inapplicable elements
-    CH_JUST_Left,
-    CH_JUST_Center,
-    CH_JUST_Right
+    CH_JUST_Left = wxID_JUSTIFY_LEFT,
+    CH_JUST_Center = wxID_JUSTIFY_CENTER,
+    CH_JUST_Right = wxID_JUSTIFY_RIGHT
 };
 
 enum wxColumnHeaderSelectionDrawStyle
@@ -136,7 +136,8 @@ public:
 
     virtual bool Destroy( void );
 
-    virtual void DumpInfo( void );
+    virtual void DumpInfo(
+        const wxString&    titleStr = wxEmptyString ) const;
 
     virtual void DoMoveWindow(
         int    x,

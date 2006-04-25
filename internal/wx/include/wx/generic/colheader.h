@@ -12,11 +12,23 @@
 #if !defined(_WX_GENERIC_COLUMNHEADER_H)
 #define _WX_GENERIC_COLUMNHEADER_H
 
-#include "wx/control.h"			// the base class
+#include "wx/control.h"			// wxColumnHeader base class
 #include "wx/dcclient.h"
 #include "wx/font.h"
 #include "wx/colour.h"
 #include "wx/bitmap.h"
+
+
+// transitory build flag:
+//
+// #define __GRID_LABELS_ARE_COLHEADERS__
+#if defined(__GRID_LABELS_ARE_COLHEADERS__)
+// chandler native render + wx standard behaviors
+#define wxClassParent_ChandlerGridLabelWindow	wxColumnHeader
+#else
+// wx standard behavior only
+#define wxClassParent_ChandlerGridLabelWindow	wxWindow
+#endif
 
 
 // forward decls
@@ -61,20 +73,32 @@ public:
 		wxWindowID		id = wxID_ANY,
 		const wxPoint	&pos = wxDefaultPosition,
 		const wxSize	&size = wxDefaultSize,
-		long			style = 0,
+		long			styleVariant = 0,
 		const wxString	&name = wxColumnHeaderNameStr );
 
 	virtual bool Destroy( void );
 
 	// debug utilities
-	virtual void DumpInfo( void );
+	virtual void DumpInfo(
+		const wxString&	titleStr = wxEmptyString ) const;
 
 	// embellish (override) some base class virtuals
-	virtual void DoMoveWindow( int x, int y, int width, int height );
-	virtual bool Enable( bool bEnable = true );
-	virtual bool Show( bool bShow = true );
+	virtual void DoMoveWindow( 
+		int	x,
+		int	y,
+		int	width,
+		int	height );
+	virtual bool Enable(
+		bool bEnable = true );
+	virtual bool Show(
+		bool bShow = true );
 
-	virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
+	virtual void DoSetSize(
+		int	x,
+		int	y,
+		int	width,
+		int	height,
+		int	sizeFlags );
 	virtual wxSize DoGetBestSize( void ) const;
 	virtual wxSize DoGetMinSize( void ) const;
 
@@ -458,13 +482,6 @@ protected:
 	bool					m_BSortAscending;
 	bool					m_BFixedWidth;
 };
-
-//#define __GRID_LABELS_ARE_COLHEADERS__
-#if defined(__GRID_LABELS_ARE_COLHEADERS__)
-#define wxClassParent_ChandlerGridLabelWindow	wxColumnHeader
-#else
-#define wxClassParent_ChandlerGridLabelWindow	wxWindow
-#endif
 
 class WXDLLIMPEXP_ADV wxChandlerGridLabelWindow : public wxClassParent_ChandlerGridLabelWindow
 {

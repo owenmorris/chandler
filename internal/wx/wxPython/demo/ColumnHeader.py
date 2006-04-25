@@ -48,8 +48,9 @@ class TestPanel( wx.Panel ):
 
         ch2 = wx.colheader.ColumnHeader( self, self.baseCntlID + 1, (self.colStartX, self.colStartY + 100), (self.baseWidth2, self.colHeight), 0 )
         coffeeNames = [ "Juan", "Valdez", "coffee guy" ]
+        textJusts = [ wx.colheader.CH_JUST_Left, wx.colheader.CH_JUST_Center, wx.colheader.CH_JUST_Right ]
         for i, v in enumerate( coffeeNames ):
-            ch2.AddItem( -1, v, wx.colheader.CH_JUST_Left + i, 90, 0, 1, 1 )
+            ch2.AddItem( -1, v, textJusts[i], 90, 0, 1, 1 )
         ch2.SetSelectedItem( 0 )
 
         self.ch2 = ch2
@@ -228,12 +229,9 @@ class TestPanel( wx.Panel ):
 
     def OnButtonDumpInfo( self, event ):
         # self.log.write( "OnButtonDumpInfo" )
-        self.log.write( "Control %d:" %(self.ch1.GetId()) )
-        self.ch1.DumpInfo()
-        self.log.write( "Control %d:" %(self.ch2.GetId()) )
-        self.ch2.DumpInfo()
-        self.log.write( "Control %d:" %(self.ch3.GetId()) )
-        self.ch3.DumpInfo()
+        self.ch1.DumpInfo( "Control %d:" %(self.ch1.GetId()) )
+        self.ch2.DumpInfo( "Control %d:" %(self.ch2.GetId()) )
+        self.ch3.DumpInfo( "Control %d:" %(self.ch3.GetId()) )
 
     def OnButtonTestAddBitmapItem( self, event ):
         ch = self.ch2

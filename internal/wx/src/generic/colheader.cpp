@@ -159,7 +159,7 @@ wxChandlerGridLabelWindow::~wxChandlerGridLabelWindow()
 
 void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 {
-#if 0
+#if defined(__GRID_LABELS_ARE_COLHEADERS__)
 	// wxColumnHeader (inherited) method
 	Draw();
 #else
@@ -195,6 +195,13 @@ void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 
 void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
 {
+#if 0 && __WXDEBUG__
+DumpInfo(
+	((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
+	? wxT("Row LH")
+	: wxT("Column LH") );
+#endif
+
 	if (m_owner == NULL)
 		return;
 
@@ -522,7 +529,8 @@ bool		bResultV;
 }
 
 // virtual
-void wxColumnHeader::DumpInfo( void )
+void wxColumnHeader::DumpInfo(
+	const wxString&	titleStr ) const
 {
 //
 // NB: cannot build this in non-debug wxGTK target, so disabling it for the time being...
@@ -547,6 +555,9 @@ void wxColumnHeader::DumpInfo( void )
 wxColumnHeaderItem	*itemRef;
 wxString	msgStr, itemStr, dividerStr;
 long		i;
+
+	if (!titleStr.IsEmpty())
+		LOGProc( titleStr );
 
 	wxFormatRect( msgStr, m_NativeBoundsR );
 	LOGProc( msgStr );
@@ -592,6 +603,9 @@ long		i;
 
 	dividerStr = wxT("===============");
 	LOGProc( dividerStr );
+
+	if (m_ItemCount <= 0)
+		LOGProc( "<no items>" );
 
 	for (i=0; i<m_ItemCount; i++)
 	{
