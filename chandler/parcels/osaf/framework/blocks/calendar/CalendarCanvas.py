@@ -2139,7 +2139,7 @@ class CalendarPrefs(Preferences):
         elif self.hourHeightMode == "pixelSize":
             return self.hourPixelSize
         else:
-            return (fontHeight+6) * 2
+            return (fontHeight+8) * 2
 
 class VisibleHoursEvent(BlockEvent):
     """
