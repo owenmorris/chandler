@@ -559,8 +559,14 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         self.currentDaysItems.sort(cmp = self.SortForPreview)
         dc = wx.ClientDC(self)
         drawnHeight = self.Draw(dc)
-        
-        self.ChangeHeightAndAdjustContainers(drawnHeight + (2 * self.vMargin))
+
+        print "Setting new height to %s (%s)" % (drawnHeight + (2*self.vMargin),
+                                                 drawnHeight)
+        if drawnHeight == 0:
+            newHeight = 0
+        else:
+            newHeight = drawnHeight + 2*self.vMargin
+        self.ChangeHeightAndAdjustContainers(newHeight)
 
 
     @staticmethod
