@@ -17,6 +17,8 @@ try:
     # Its currently important to do this after we load due
     # to a linux bug (4461)-- we want to make sure we have a scrollbar
     App_ns.root.ApplicationBarAll()
+
+    User.emulate_sidebarClick(App_ns.sidebar, "Generated3000")
     
     # Process idle and paint cycles, make sure we're only
     # measuring scrolling performance, and not accidentally
