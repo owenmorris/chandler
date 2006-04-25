@@ -6,8 +6,6 @@ from PyICU import DateFormatSymbols, GregorianCalendar
 from datetime import date, timedelta
 import calendar
 
-from util.easyprof import QuickProfile
-
 VERT_MARGIN = 5
 EXTRA_MONTH_HEIGHT = 4                  # space between month title and days
 SEPARATOR_MARGIN = 3                    # left and right margins
@@ -26,8 +24,6 @@ CAL_HITTEST_DECMONTH = 5
 CAL_HITTEST_SURROUNDING_WEEK = 6
 
 
-CAL_SHOW_PREVIEW           = 0x0004 # show a preview of events on the 
-                                    # selected day
 CAL_HIGHLIGHT_WEEK         = 0x0008 # select an entire week at a time
 
 def MonthDelta(dt, months):
