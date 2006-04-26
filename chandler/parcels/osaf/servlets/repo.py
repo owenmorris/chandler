@@ -18,6 +18,10 @@ from repository.util.URL import URL
 from repository.schema.Attribute import Attribute
 from repository.schema.Cloud import Cloud, Endpoint
 from repository.item.RefCollections import RefList
+from repository.item.Sets import \
+    Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \
+    KindSet, FilteredSet
+
 
 class RepoResource(webserver.AuthenticatedResource):
     isLeaf = True
@@ -956,36 +960,107 @@ def RenderItem(repoView, item):
 
     return result
 
+class HTMLCollectionFormatter(object):
+    joinSymbols = { "Union" : "&cup;",
+                    "Intersection" : "&cap;",
+                    "Difference" : "-",
+                    "Set": "[S]"}
+
+    def __init__(self, view):
+        self.view = view
+
+    def formatCollection(self, collection, childstring):
+        result = ('<div class="set-item">\n'
+                  '  <div class="set-title">' +
+                  collection.getItemDisplayName() + '</div>\n' +
+                  '  <div class="set-box">' +
+                  childstring + '</div>\n'
+                  '</div>\n')
+        
+        return result
+    
+    def formatMultiSource(self, type, hasItem, childstrings):
+        if len(childstrings) == 0:
+            return "empty %s" % self.joinSymbols[type]
+        else:
+            # wrap each item with set-box
+            symbol = '</div><div class="operator">%s</div><div class="set-box">\n' % self.joinSymbols[type]
+            result = '<div class="set-box">%s</div>\n' % symbol.join(childstrings)
+            # if we're not inside an item, we'll need our own item...
+            if not hasItem:
+                result = '<div class="set-item">%s</div>\n' % result
+            return result
+
+    def formatRefList(self, refList):
+        return "[%s]" % refList.__class__.__name__
+
+    def formatFilteredSet(self, filteredSet, childstring):
+        return ('<div class="operator"><abbr title="%s">filter</title></div>\n%s' % (filteredSet.filterExpression, childstring))
+
+    def formatKindSet(self, cls):
+        return "[all <em>%s</em>s]" % cls.__name__
+
+    def formatUnknown(self, s):
+        return "[Unknown: %s]" % (s,)
+
 def _getSourceTree(coll, depth=0):
     result = ""
 
-    indent = depth * "&nbsp; &nbsp; &nbsp; |"
+    view = coll.itsView
+    formatter = HTMLCollectionFormatter(view)
 
-    result += indent
+    joinTypes = { Difference: 'Difference',
+                  Union: 'Union',
+                  Intersection: 'Intersection',
+                  MultiUnion: 'Union',
+                  MultiIntersection: 'Intersection',
+                  Set: 'Set' }
 
-    info = ""
-    if isinstance(coll, pim.KindCollection):
-        info = u", kind=%s" % coll.kind.itsName
-    if isinstance(coll, pim.FilteredCollection):
-        info = u", filter='%s'" % coll.filterExpression
+    def getstring(s, hasItem=False):
 
-    kindInfo = coll.itsKind.itsName
-    if coll.itsKind.isMixin():
-        kindInfo = "Mix of: "
-        for kind in coll.itsKind.superKinds:
-            kindInfo += "%s " % kind.itsName
+        if isinstance(s, pim.ContentCollection):
+            set = getattr(s, s.__collection__)
+            result = formatter.formatCollection(s, getstring(set, True))
+        
+        elif isinstance(s, tuple):
+            collection = view[s[0]]
+            set = getattr(collection, collection.__collection__)
+            result = formatter.formatCollection(collection, getstring(set, True))
+            
+        elif s.__class__ in joinTypes:
+            if hasattr(s, '_sources'):
+                result = formatter.formatMultiSource(joinTypes[s.__class__],
+                                                     hasItem,
+                                                   map(getstring, s._sources))
+            elif hasattr(s, '_left'):
+                result = formatter.formatMultiSource(joinTypes[s.__class__],
+                                                     hasItem,
+                                                   (getstring(s._left),
+                                                    getstring(s._right)))
+            elif hasattr(s, '_source'):
+                result = formatter.formatMultiSource(joinTypes[s.__class__],
+                                                     hasItem,
+                                                     (getstring(s._source),))
+            else:
+                result = "???"
+        
+        elif isinstance(s, RefList):
+            result = formatter.formatRefList(s)
+        
+        elif isinstance(s, FilteredSet):
+            result = formatter.formatFilteredSet(s, getstring(s._source))
+        
+        elif isinstance(s, KindSet):
+            cls = view[s._extent].kind.classes['python']
+            result = formatter.formatKindSet(cls)
+        
+        else:
+            result = formatter.formatUnknown(s)
 
-    result += "- <a href=%s>%s</a> (%s%s)<br>\n" % (toLink(coll.itsPath), coll.getItemDisplayName(), kindInfo, info)
+        return result
 
-    sources = []
-    if hasattr(coll, 'sources'):
-        sources = coll.sources
-    elif hasattr(coll, 'source'):
-        sources = [coll.source]
-    for source in sources:
-        result += _getSourceTree(source, depth+1)
-
-    return result
+    # now look at the actual set structure
+    return getstring(coll)
 
 indexRE = re.compile(r"(.*)\[(\d+)\]")
 
