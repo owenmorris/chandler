@@ -148,10 +148,10 @@ def populateHeader(messageObject, param, var, hType='String', encode=False):
         if hasValue(var):
             if encode:
                 messageObject[param] = Header.Header(var).encode()
-              
+
             else:
                 messageObject[param] = var
-              
+
     elif(hType == 'EmailAddress'):
         if var is not None and hasValue(var.emailAddress):
             messageObject[param] = Mail.EmailAddress.format(var, encode=True)
@@ -340,11 +340,17 @@ def kindToMessageObject(mailMessage):
     # @@@ This probably isn't the right place to do this (since it couples the
     # email service to events and ICalendarness), but until we resolve the architectural
     # questions around stamping, it's good enough.
+
+    try:
+        bodyText = mailMessage.body
+    except AttributeError:
+        bodyText = u""
+
     try:
         timeDescription = mailMessage.getTimeDescription()
     except AttributeError:
         # Not an event - just add the body as-is.
-        messageObject.set_payload(mailMessage.body.encode('utf-8'))
+        messageObject.set_payload(bodyText.encode('utf-8'))
     else:
         # It's an event - prepend the description to the body, make the
         # message multipart, and add the body & ICS event as parts. Also,
@@ -366,7 +372,7 @@ def kindToMessageObject(mailMessage):
 
         payload = _(u"%(eventDescription)s\n\n%(bodyText)s\n") \
                    % {'eventDescription': evtDesc,
-                      'bodyText': mailMessage.body
+                      'bodyText': bodyText
                      }
 
         messageObject.set_type("multipart/mixed")
@@ -384,7 +390,9 @@ def kindToMessageObject(mailMessage):
         # Attach the ICalendar object
         icsPayload = MIMENonMultipart('text', 'calendar', 
                                       method='REQUEST', charset='utf-8')
-        icsPayload.add_header("Content-Disposition", "attachment", filename=_(u"event.ics"))
+
+        fname = Header.Header(_(u"event.ics")).encode()
+        icsPayload.add_header("Content-Disposition", "attachment", filename=fname)
         icsPayload.set_payload(ics)
         messageObject.attach(icsPayload)
 
