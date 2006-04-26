@@ -960,7 +960,7 @@ def RenderItem(repoView, item):
 
     return result
 
-class HTMLCollectionFormatter(object):
+class HTMLCollectionRenderer(object):
     joinSymbols = { "Union" : "&cup;",
                     "Intersection" : "&cap;",
                     "Difference" : "-",
@@ -972,7 +972,9 @@ class HTMLCollectionFormatter(object):
     def formatCollection(self, collection, childstring):
         result = ('<div class="set-item">\n'
                   '  <div class="set-title">' +
-                  collection.getItemDisplayName() + '</div>\n' +
+                  '  <a href="%s">%s</a>' % (toLink(collection.itsPath),
+                                             collection.getItemDisplayName()) +
+                  '  </div>\n' +
                   '  <div class="set-box">' +
                   childstring + '</div>\n'
                   '</div>\n')
@@ -1007,7 +1009,7 @@ def _getSourceTree(coll, depth=0):
     result = ""
 
     view = coll.itsView
-    formatter = HTMLCollectionFormatter(view)
+    formatter = HTMLCollectionRenderer(view)
 
     joinTypes = { Difference: 'Difference',
                   Union: 'Union',
@@ -1188,10 +1190,4 @@ def toLink(path):
 def clean(s):
     s = unicode(s)
     return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
-
-def indent(depth):
-    result = ""
-    for i in range(depth):
-        result += "&nbsp;&nbsp;&nbsp;&nbsp;"
-    return result
 
