@@ -36,7 +36,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)5.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.5-58-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0rc1-5-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.2-$(BP)4.tar.gz \
+         $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.2-$(BP)5.tar.gz \
          $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.2.0-$(BP)43.tar.gz \
          $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)1.tar.gz \
