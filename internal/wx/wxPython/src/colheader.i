@@ -273,6 +273,11 @@ public:
         long                            itemIndex,
         wxColumnHeaderItemAttribute        flagEnum,
         bool                        bFlagValue );
+
+    static void GetDefaultLabelValue(
+        bool                isColumn,
+        int                index,
+        wxString&        value );
 };
 
 //---------------------------------------------------------------------------

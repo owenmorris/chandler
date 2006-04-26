@@ -195,7 +195,7 @@ void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 
 void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
 {
-#if 1 && __WXDEBUG__
+#if 0 && __WXDEBUG__
         if ( event.LeftIsDown() )
 		DumpInfo(
 			((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
@@ -316,37 +316,6 @@ void wxChandlerGridLabelWindow::SetLabelAlignment( bool isColumn, int index, int
 	else
 		m_owner->SetRowLabelAlignment( hAlign, vAlign );
 #endif
-}
-
-// static
-void wxChandlerGridLabelWindow::GetDefaultLabelValue( bool isColumn, int index, wxString& value )
-{
-	if (isColumn)
-	{
-		// default column labels are:
-		// columns 0 to 25: A-Z
-		// columns 26 to 675: AA-ZZ
-		// and so on
-		wxString s;
-		unsigned int i, n;
-		for (n = 1; index >= 0; n++)
-		{
-			s += (wxChar)(wxT('A') + (wxChar)(index % 26));
-			index /= 26;
-			index--;
-		}
-
-		// reverse the string
-		value = wxEmptyString;
-		for (i = 0; i < n; i++)
-			value += s[n - i - 1];
-	}
-	else
-	{
-		// starting the rows at zero confuses users,
-		// no matter how much it makes sense to geeks.
-		value << index + 1;
-	}
 }
 
 // ================
@@ -872,6 +841,40 @@ void wxColumnHeader::SetDefaultItemSize(
 		m_DefaultItemSize.x = targetSize.x;
 	if (targetSize.y > 0)
 		m_DefaultItemSize.y = targetSize.y;
+}
+
+// static
+void wxColumnHeader::GetDefaultLabelValue(
+	bool			isColumn,
+	int			index,
+	wxString&	value )
+{
+	if (isColumn)
+	{
+		// default column labels are:
+		// columns 0 to 25: A-Z
+		// columns 26 to 675: AA-ZZ
+		// and so on
+		wxString s;
+		unsigned int i, n;
+		for (n = 1; index >= 0; n++)
+		{
+			s += (wxChar)(wxT('A') + (wxChar)(index % 26));
+			index /= 26;
+			index--;
+		}
+
+		// reverse the string
+		value = wxEmptyString;
+		for (i = 0; i < n; i++)
+			value += s[n - i - 1];
+	}
+	else
+	{
+		// starting the rows at zero confuses users,
+		// no matter how much it makes sense to geeks.
+		value << index + 1;
+	}
 }
 
 // static

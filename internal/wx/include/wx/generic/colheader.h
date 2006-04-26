@@ -242,6 +242,11 @@ public:
 	static wxVisualAttributes GetClassDefaultAttributes(
 		wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL );
 
+	static void GetDefaultLabelValue(
+		bool				isColumn,
+		int				index,
+		wxString&		value );
+
 protected:
 	void AddItemList(
 		const wxColumnHeaderItem		*itemList,
@@ -511,9 +516,6 @@ public:
 	void SetLabelSize( bool isColumn, int index, int value );
 	void GetLabelAlignment( bool isColumn, int index, int& hAlign, int& vAlign );
 	void SetLabelAlignment( bool isColumn, int index, int hAlign, int vAlign );
-
-public:
-	static void GetDefaultLabelValue( bool isColumn, int index, wxString& value );
 
 private:
 	wxGrid   *m_owner;
