@@ -5,7 +5,7 @@ import osaf.mail.message
 import osaf.sharing.ICalendar
 import application.Globals as Globals
 
-EMAIL_FORMAT, ICALENDAR_FORMAT = range(2)
+EMAIL_FORMAT, EMAILX_FORMAT, ICALENDAR_FORMAT = range(3)
 
 def guessFormat(stream):
     """
@@ -31,6 +31,16 @@ def guessFormat(stream):
             return EMAIL_FORMAT
     except:
         pass
+
+    stream.seek(start)    
+    try:
+        stream.readline()
+        msg = email.message_from_file(stream)
+        if msg['From'] is not None:
+            return EMAILX_FORMAT
+    except:
+        pass
+    
     
     return None
 
@@ -43,9 +53,15 @@ def importFileAsFormat(format, filename, view, coll=None,
         osaf.sharing.ICalendar.importICalendarFile(filename, view, coll,
                                         selectedCollection = selectedCollection)
         return None
-    elif format == EMAIL_FORMAT:
+    elif format in (EMAIL_FORMAT, EMAILX_FORMAT):
         fp = file(filename)
-        text = fp.read()
+        size = -1
+        if format == EMAILX_FORMAT:
+            # Apple's .emlx takes an rfc822 message, prepends a line with the
+            # length of the normal message, and appends metadata in XML we don't
+            # care about
+            size = int(fp.readline())
+        text = fp.read(size)
         fp.close()
         return importEmail(text, view, coll, selectedCollection)
 
