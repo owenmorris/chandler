@@ -413,7 +413,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if resort:
             self.visibleItems.sort(self.sortByStartTime)
         
-        self.canvasItemList = []
+        canvasItemList = []
         
         dragState = self.dragState
         if (dragState and
@@ -429,7 +429,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             collection = self.blockItem.getContainingCollection(item)
             canvasItem = TimedCanvasItem(collection, primaryCollection,
                                          item, self)
-            self.canvasItemList.append(canvasItem)
+            canvasItemList.append(canvasItem)
 
             # if we're dragging, update the drag state to reflect the
             # newly rebuild canvasItem
@@ -438,8 +438,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 dragState.currentDragBox = canvasItem
 
         if self.coercedCanvasItem is not None:
-            self.canvasItemList.append(self.coercedCanvasItem)
+            canvasItemList.append(self.coercedCanvasItem)
             dragState.currentDragBox = self.coercedCanvasItem
+
+        # have to do this last, because MakeCanvasItems occasionally recurses
+        self.canvasItemList = canvasItemList
 
                 
     def RealignCanvasItems(self):
