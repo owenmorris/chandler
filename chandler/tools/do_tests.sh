@@ -180,7 +180,7 @@ if [ -n "$TEST_TO_RUN" ]; then
                 cd $C_DIR
 
                 if echo "$TESTNAME" | grep -q "QATestScripts" ; then
-                    $CHANDLERBIN/$mode/$RUN_CHANDLER --create --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                    $CHANDLERBIN/$mode/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
                     SUCCESS="#TINDERBOX# Status = PASSED"
                 else
                     $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $C_DIR/test.log
