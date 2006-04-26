@@ -955,7 +955,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         selection = blockItem.GetSelection()
         selection.unselectItem(item)
         
-        blockItem.selection.remove(item)
+        #blockItem.selection.remove(item)
         blockItem.postSelectItemsBroadcast()
         blockItem.synchronizeWidget()
         
@@ -1004,10 +1004,14 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
         # the sidebar
         contentsCollection = contents.collectionList[0]
         self.setContentsOnBlock(contents, contentsCollection)
-#         for item in self.selection:
-#             if (item is not None and
-#                 item not in self.contents):
-#                 self.selection.remove(item)
+
+        # bug 5613, when a new collection is selected, items in overlaid
+        # collections should be unselected
+        selection = self.GetSelection()
+        for item in selection:
+            if (item is not None and
+                item not in self.contentsCollection):
+                selection.unselectItem(item)
         self.synchronizeWidget()
 
 

@@ -191,6 +191,10 @@ class CalendarSelection(schema.Annotation):
     def __contains__(self, item):
         return self.itsItem.__contains__(item.getMaster())
     
+    def __iter__(self):
+        for child in chain(self.itsItem, self.selectedOccurrences):
+            yield child
+    
     # these mimic the behavior of the collection
 
     def _cleanSelection(self):
