@@ -54,7 +54,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         self.sectionRows = []
         self.sectionLabels = []
         self.sectionIndexes = []
-        self.totalRows = len(self.blockItem.contents)
+        self.totalRows = 0
         
         dashboardPrefs = schema.ns('osaf.views.main',
                                    self.blockItem.itsView).dashboardPrefs

@@ -32,7 +32,7 @@ class Note(items.ContentItem):
     # redirections
     about = schema.One(redirectTo = "displayName")
 
-    date = schema.One(redirectTo = "modifiedOn")
+    date = schema.One(redirectTo = "createdOn")
 
 
     def InitOutgoingAttributes (self):
