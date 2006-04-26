@@ -293,54 +293,60 @@ def makeMarkupBar(parcel, oldVersion):
     mailMessageButton = \
         MailMessageButtonBlock.template('MailMessageButton',
                                         title=messages.STAMP_MAIL,
-                                        buttonKind="Stamp",
-                                        icon="MarkupMail",
+                                        bitmap="MarkupBarMail.png",
+                                        toolbarItemKind='Button',
+                                        toggle=True,
                                         helpString=messages.STAMP_MAIL_HELP,
                                         event=buttonPressed)
-
+    
     taskStamp = \
         TaskStampBlock.template('TaskStamp',
                                 title=messages.STAMP_TASK,
-                                buttonKind="Stamp",
-                                icon="MarkupTask",
+                                bitmap="MarkupBarTask.png",
+                                toolbarItemKind='Button',
+                                toggle=True,
                                 helpString=messages.STAMP_TASK_HELP,
                                 event=buttonPressed)
-
+                        
     calendarStamp = \
         CalendarStampBlock.template('CalendarStamp',
                                     title=messages.STAMP_CALENDAR,
-                                    buttonKind="Stamp",
-                                    icon="MarkupEvent",
+                                    bitmap="MarkupBarEvent.png",
+                                    toolbarItemKind='Button',
+                                    toggle=True,
                                     helpString=messages.STAMP_CALENDAR_HELP,
                                     event=buttonPressed)
 
     privateSwitchButton = \
         PrivateSwitchButtonBlock.template('PrivateSwitchButton',
                                     title=messages.PRIVATE,
-                                    buttonKind="Stamp",
-                                    icon="MarkupPrivate",
+                                    bitmap="MarkupBarPrivate.png",
+                                    toolbarItemKind='Button',
+                                    toggle=True,
                                     helpString=messages.PRIVATE,
                                     event=buttonPressed)
 
     readOnlyIcon = \
         ReadOnlyIconBlock.template('ReadOnlyIcon',
                                     title=messages.READONLY,
-                                    buttonKind="Stamp",
-                                    icon="MarkupReadOnly",
+                                    bitmap="MarkupBarReadOnly.png",
+                                    disabledBitmap="MarkupBarReadWrite.png",
+                                    toolbarItemKind='Status',
                                     helpString=messages.READONLY,
                                     event=buttonPressed)
 
-    markupBar = ControlBlocks.ContentItemDetail.template('MarkupBar',
+    # Finally, do the bar itself.
+    markupBar = MenusAndToolbars.Toolbar.template('MarkupBar',
                                     childrenBlocks=[mailMessageButton,
                                                     taskStamp,
                                                     calendarStamp,
                                                     privateSwitchButton,
                                                     readOnlyIcon],
                                     position=0.0,
-                                    toolSize=SizeType(30, 17),
+                                    toolSize=SizeType(20, 20),
                                     separatorWidth=16,
                                     stretchFactor=0.0).install(parcel)
-
+    
 def makeNoteSubtree(parcel, oldVersion):
     """ Build the subtree (and related stuff) for Note """
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)

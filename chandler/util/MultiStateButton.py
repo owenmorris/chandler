@@ -77,7 +77,7 @@ class MultiStateButton(GenBitmapButton):
     Obviously this latter method is a lot more verbose
 
     """
-    def __init__(self, parent, ID, pos, size, style, multibitmaps=(),
+    def __init__(self, parent, ID=-1, multibitmaps=(),
                 bitmapProvider=wx.Image, *args, **kwds):
         """
         Initialize the button to the usual button states, plus a list of
@@ -104,7 +104,7 @@ class MultiStateButton(GenBitmapButton):
         self.currentState = None
         self.bitmapProvider = bitmapProvider
 
-        super(MultiStateButton, self).__init__(parent, ID, None, pos, size, style, *args, **kwds)
+        super(MultiStateButton, self).__init__(parent, ID, None, *args, **kwds)
         firstStateName = self.AddStates(multibitmaps)
         assert firstStateName is not None
         self.SetState(firstStateName)
@@ -225,31 +225,23 @@ class MultiStateButton(GenBitmapButton):
         Find the named bitmap, checking various file type extensions (are
         these available inside wx.Image somewhere?)
         
-        The design decision here is that the specific type of the image
+        The design decision here is that the speicifc type of the image
         is not as important as its name. Indeed, the type of the image can
         change over time to accomodate new technologies. By leaving the
         type unspecified, code does not have to change whenever the file
         format changes.
         """
         bitmap = None
-        ##rae
-        # is there a more robust list of image types? I made this list up myself..
         for ext in ("png", "gif", "jpg", "tiff", "psd"):
             try:
                 img = self.bitmapProvider("%s.%s" % (bitmapName, ext))
-                convert = getattr(img, "ConvertToBitmap", None)
-                if convert is not None:
-                    bitmap = convert(img)
-                else:
-                    bitmap = img
-                if bitmap is not None:
-                    # stop when the bitmap is found
-                    break
+                bitmap = img.ConvertToBitmap()
+                assert bitmap.GetWidth() > 0
+                break
             except IOError:
                 # file was not found
                 pass
-        if bitmap is not None:
-            assert bitmap.GetWidth() > 0
+        assert bitmap is not None
         return bitmap
  
 # execute with execfile("/Users/rae/work/osaf/rae-button/MultiStateButton.py", { "__name__" :"__main__" })

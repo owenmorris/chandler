@@ -36,7 +36,6 @@ from PyICU import ICUError
 from datetime import datetime, time, timedelta
 from i18n import OSAFMessageFactory as _
 from osaf import messages
-from util import MultiStateButton
 
 """
 Detail.py
@@ -99,7 +98,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         # It's for us - tell our parent to resync.
         logger.debug("%s: Resyncing parent block due to kind change on %s", 
                      debugName(self), debugName(self.item))
-        self.parentBlock.synchronizeSoon()
+        self.parentBlock.synchronizeWidget()
         
     def unRender(self):
         # There's a wx bug on Mac (2857) that causes EVT_KILL_FOCUS events to happen
@@ -579,7 +578,7 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
     def OnFinishChangesEvent (self, event):
         self.saveValue(validate=True)
 
-class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
+class DetailStampButton(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
     """
       Common base class for the stamping buttons in the Markup Bar
     """
@@ -599,11 +598,8 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
              item.__class__.__name__, 
              item.itsKind.itsName,
              mixinClass.__name__, 
-             mixinKind.itsName)
-        if(shouldToggleBasedOnKind):
-            self.widget.SetState("stamped")
-        else:
-            self.widget.SetState("normal")
+             mixinKind.itsName)            
+        self.parentBlock.widget.ToggleTool(self.toolID, shouldToggleBasedOnKind)
         return False
 
     def onButtonPressedEvent (self, event):
@@ -655,44 +651,34 @@ class TaskStampBlock(DetailStampButton):
     def stampMixinClass(self):
         return TaskMixin
 
-class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.Button):
+class PrivateSwitchButtonBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
     """
       "Never share" button in the Markup Bar
     """
     def synchronizeItemDetail (self, item):
         # toggle this button to reflect the privateness of the selected item        
-        if item.private:
-            self.widget.SetState("stamped")
-        else:
-            self.widget.SetState("normal")
+        self.parentBlock.widget.ToggleTool(self.toolID, item.private)
         return False
 
     def onButtonPressedEvent(self, event):
         item = self.item            
         self.postEventByName("FocusTogglePrivate", {'items': [item]})
         tool = event.arguments['sender']
-        # in case the user canceled the dialog, reset markupbar buttons
-        if item.private:
-            self.widget.SetState("stamped")
-        else:
-            self.widget.SetState("normal")
+        self.parentBlock.widget.ToggleTool(tool.toolID, item.private) # in case the user canceled the dialog, reset markupbar buttons
 
     def onButtonPressedEventUpdateUI(self, event):
         item = self.item            
         enable = item is not None and item.isAttributeModifiable('displayName')
         event.arguments ['Enable'] = enable
 
-class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.Button):
+class ReadOnlyIconBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
     """
       "Read Only" icon in the Markup Bar
     """
     def synchronizeItemDetail (self, item):
         # toggle this icon to reflect the read only status of the selected item
         enable = ( item.getSharedState() == ContentItem.READONLY )
-        if enable:
-            self.widget.SetState("stamped")
-        else:
-            self.widget.SetState("normal")
+        self.parentBlock.widget.EnableTool(self.toolID, enable)
         return False
 
     def onButtonPressedEvent(self, event):
