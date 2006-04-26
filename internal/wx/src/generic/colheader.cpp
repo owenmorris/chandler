@@ -195,11 +195,12 @@ void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 
 void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
 {
-#if 0 && __WXDEBUG__
-DumpInfo(
-	((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
-	? wxT("Row LH")
-	: wxT("Column LH") );
+#if 1 && __WXDEBUG__
+        if ( event.LeftIsDown() )
+		DumpInfo(
+			((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
+			? wxT("Row LH")
+			: wxT("Column LH") );
 #endif
 
 	if (m_owner == NULL)
@@ -277,8 +278,6 @@ void wxChandlerGridLabelWindow::GetLabelSize( bool isColumn, int index, int& val
 
 void wxChandlerGridLabelWindow::SetLabelSize( bool isColumn, int index, int value )
 {
-// WXUNUSED( index )
-
 #if defined(__GRID_LABELS_ARE_COLHEADERS__)
 wxSize	sizeV;
 
@@ -287,6 +286,8 @@ wxSize	sizeV;
 	sizeV.y = 0;
 	SetUIExtent( index, sizeV );
 #else
+// WXUNUSED( index )
+
 	if (isColumn)
 		m_owner->SetColLabelSize( value );
 	else
@@ -818,7 +819,6 @@ wxSize		targetSize, minSize, parentSize;
 	if (m_ExpectedItemCount > 1)
 		targetSize.x /= m_ExpectedItemCount;
 
-
 	// get (platform-dependent) height
 #if defined(__WXMSW__)
 	{
@@ -872,20 +872,6 @@ void wxColumnHeader::SetDefaultItemSize(
 		m_DefaultItemSize.x = targetSize.x;
 	if (targetSize.y > 0)
 		m_DefaultItemSize.y = targetSize.y;
-}
-
-long wxColumnHeader::GetExpectedItemCount( void ) const
-{
-	return m_ExpectedItemCount;
-}
-
-void wxColumnHeader::SetExpectedItemCount(
-	long			targetCount )
-{
-	if (targetCount < 0)
-		targetCount = 0;
-
-	m_ExpectedItemCount = targetCount;
 }
 
 // static
@@ -1529,11 +1515,6 @@ bool					bIsVertical;
 #pragma mark -
 #endif
 
-long wxColumnHeader::GetItemCount( void ) const
-{
-	return (long)m_ItemCount;
-}
-
 long wxColumnHeader::GetSelectedItem( void ) const
 {
 	return m_ItemSelected;
@@ -1624,6 +1605,44 @@ void wxColumnHeader::SetBaseViewItem(
 		RecalculateItemExtents();
 		SetViewDirty();
 	}
+}
+
+// ================
+#if 0
+#pragma mark -
+#endif
+
+// NB: hinting - unused
+//
+long wxColumnHeader::GetExpectedItemCount( void ) const
+{
+	return m_ExpectedItemCount;
+}
+
+void wxColumnHeader::SetExpectedItemCount(
+	long			itemCount )
+{
+	if (itemCount < 0)
+		itemCount = 0;
+
+	m_ExpectedItemCount = itemCount;
+}
+
+long wxColumnHeader::GetItemCount( void ) const
+{
+	return (long)m_ItemCount;
+}
+
+void wxColumnHeader::SetItemCount(
+	long			itemCount )
+{
+	if (itemCount < 0)
+		itemCount = 0;
+
+	if (itemCount > m_ItemCount)
+		AddEmptyItems( -1, itemCount - m_ItemCount );
+	else if (itemCount < m_ItemCount)
+		DeleteItems( itemCount, m_ItemCount - itemCount );
 }
 
 void wxColumnHeader::DeleteItems(
@@ -1849,6 +1868,11 @@ long		i;
 	m_ItemCount = 0;
 	m_ItemSelected = CH_HITTEST_NoPart;
 }
+
+// ================
+#if 0
+#pragma mark -
+#endif
 
 bool wxColumnHeader::GetItemData(
 	long							itemIndex,

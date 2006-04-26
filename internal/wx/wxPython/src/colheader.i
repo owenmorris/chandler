@@ -163,9 +163,6 @@ public:
     wxSize GetDefaultItemSize( void ) const;
     void SetDefaultItemSize(
         wxSize        targetSize );
-    long GetExpectedItemCount( void ) const;
-    void SetExpectedItemCount(
-        long            targetCount );
 
     long GetTotalUIExtent(
         long            itemCount = (-1),
@@ -193,13 +190,19 @@ public:
 
     wxColumnHeaderHitTestResult HitTest(
         const wxPoint    &locationPt );
-    long GetItemCount( void ) const;
     long GetSelectedItem( void ) const;
     void SetSelectedItem(
         long            itemIndex );
     long GetBaseViewItem( void ) const;
     void SetBaseViewItem(
         long            itemIndex );
+
+    long GetExpectedItemCount( void ) const;
+    void SetExpectedItemCount(
+        long            itemCount );
+    long GetItemCount( void ) const;
+    void SetItemCount(
+        long            itemCount );
 
     void DeleteItems(
         long                itemIndex,

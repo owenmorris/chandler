@@ -21,7 +21,7 @@
 
 // transitory build flag:
 //
-// #define __GRID_LABELS_ARE_COLHEADERS__
+//#define __GRID_LABELS_ARE_COLHEADERS__
 #if defined(__GRID_LABELS_ARE_COLHEADERS__)
 // chandler native render + wx standard behaviors
 #define wxClassParent_ChandlerGridLabelWindow	wxColumnHeader
@@ -109,9 +109,6 @@ public:
 	wxSize GetDefaultItemSize( void ) const;
 	void SetDefaultItemSize(
 		const wxSize		targetSize );
-	long GetExpectedItemCount( void ) const;
-	void SetExpectedItemCount(
-		long			targetCount );
 
 	long GetTotalUIExtent(
 		long				itemCount = (-1),
@@ -142,7 +139,6 @@ public:
 	wxColumnHeaderHitTestResult HitTest(
 		const wxPoint		&locationPt );
 
-	long GetItemCount( void ) const;
 	long GetSelectedItem( void ) const;
 	void SetSelectedItem(
 		long				itemIndex );
@@ -150,6 +146,13 @@ public:
 	long GetBaseViewItem( void ) const;
 	void SetBaseViewItem(
 		long				itemIndex );
+
+	long GetExpectedItemCount( void ) const;
+	void SetExpectedItemCount(
+		long				itemCount );
+	long GetItemCount( void ) const;
+	void SetItemCount(
+		long				itemCount );
 
 	void DeleteItems(
 		long				itemIndex,
