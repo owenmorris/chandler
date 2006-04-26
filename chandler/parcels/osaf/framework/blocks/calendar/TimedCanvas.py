@@ -447,9 +447,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 
     def RealignCanvasItems(self):
         """
-        Takes the existing self.canvasItemList, and realigns the
-        rectangles to deal with conflicts and the current drag state,
-        and then resorts it to be in drawing order.
+        Takes the existing self.canvasItemList and realigns the
+        rectangles to deal with conflicts and the current drag state.
+        
         """
         if self.dragState is not None:
             currentDragBox = self.dragState.currentDragBox
@@ -474,14 +474,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 canvasItem.UpdateDrawingRects(newStartTime, newEndTime)
             else:
                 canvasItem.UpdateDrawingRects()
-            
-        # canvasItemList has to be sorted by depth
-        # should be relatively quick because the canvasItemList is already
-        # sorted by startTime. If no conflicts, this is an O(n) operation
-        # (note that as of Python 2.4, sorts are stable, so this remains safe)
-        self.canvasItemsByDate = self.canvasItemList
-        self.canvasItemList = sorted(self.canvasItemsByDate,
-                                     key=TimedCanvasItem.GetDrawingOrderKey)
+
 
     def DrawCells(self, dc):
         styles = self.blockItem.calendarContainer
@@ -490,15 +483,22 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         dc.SetTextForeground(wx.BLACK)
         dc.SetBrush(wx.WHITE_BRUSH)
 
-        # finally, draw the items
+        contents = CalendarSelection(self.blockItem.contents)
 
-        def drawCanvasItems(canvasItems, selected):
-            for canvasItem in canvasItems:
-                canvasItem.Draw(dc, styles, selected)
+        for canvasItem in self.drawOrderedCanvasItems():
+            selected = contents.isItemSelected(canvasItem.item)
+            canvasItem.Draw(dc, styles, selected)
 
-        unselectedBoxes = []
+    def drawOrderedCanvasItems(self):
+        """
+        Calculate the order of canvas items, taking selection, history, and
+        active collection into account.
+        
+        """
+        ordered       = []
         selectedBoxes = []
-        orderLastMap = {}
+        activeBoxes   = []
+        orderLastMap  = {}
         contents = CalendarSelection(self.blockItem.contents)
 
         draggedOutItem = self._getHiddenOrClearDraggedOut()
@@ -506,26 +506,26 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         for canvasItem in self.canvasItemList:
             item = canvasItem.item
             if item == draggedOutItem or item.isStale():
-                # don't render items we're dragging out of the canvas
+                # don't render deleted items or items we're dragging out of the
+                # canvas
                 continue
 
-            # for some reason, we're getting paint events before
-            # widget synchronize events, so item isn't always in contents
-
-            # save the selected box to be drawn last
             if item in contents:
                 if contents.isItemSelected(item):
                     selectedBoxes.append(canvasItem)
                 elif item in self.orderLast:
                     orderLastMap[item] = canvasItem
+                elif canvasItem.isActive:
+                    activeBoxes.append(canvasItem)
                 else:
-                    unselectedBoxes.append(canvasItem)
-                    
-        orderLastBoxes = [orderLastMap.get(i) for i in self.orderLast if \
-                          orderLastMap.get(i) is not None]
-        drawCanvasItems(unselectedBoxes, False)
-        drawCanvasItems(orderLastBoxes, False)        
-        drawCanvasItems(selectedBoxes, True)
+                    ordered.append(canvasItem)
+
+        ordered.extend(activeBoxes)
+        ordered.extend(orderLastMap.get(i) for i in self.orderLast if \
+                       orderLastMap.get(i) is not None)
+        ordered.extend(selectedBoxes)
+        
+        return ordered
 
     def CheckConflicts(self):
         assert sorted(self.visibleItems, self.sortByStartTime) == self.visibleItems
@@ -573,7 +573,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
     def OnNavigateItem(self, direction):
 
         # no items to select
-        if len(self.canvasItemsByDate) == 0:
+        if len(self.canvasItemList) == 0:
             return
 
         # find the first selected canvas item:
@@ -581,16 +581,14 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if currentCanvasItem is None:
             # nothing currently selected, just select the middle item
             # (should probably select one that is guaranteed to be visible)
-            middle = len(self.canvasItemsByDate)/2
-            currentCanvasItem = self.canvasItemsByDate[middle]
+            middle = len(self.canvasItemList)/2
+            currentCanvasItem = self.canvasItemList[middle]
             self.OnSelectItem(currentCanvasItem.item)
             return
 
         newItemIndex = -1
-        canvasItemIndex = self.canvasItemsByDate.index(currentCanvasItem)
+        canvasItemIndex = self.canvasItemList.index(currentCanvasItem)
 
-        # Using canvasItemsByDate rather than drawing-order-based
-        # canvasItemList
         if direction == "UP":
             newItemIndex = canvasItemIndex - 1
         elif direction == "DOWN":
@@ -604,13 +602,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 searchEnd = -1
             else:                       # "RIGHT"
                 delta = 1
-                searchEnd = len(self.canvasItemsByDate)
+                searchEnd = len(self.canvasItemList)
                 
             newItemIndex = canvasItemIndex + delta
             foundDecentItem = False
             
             for idx in range(newItemIndex, searchEnd, delta):
-                newCanvasItem = self.canvasItemsByDate[idx]
+                newCanvasItem = self.canvasItemList[idx]
                 newDate = newCanvasItem.item.startTime.date()
                 
                 if foundDecentItem:
@@ -641,8 +639,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                     timeDiff = abs(newCanvasItem.item.startTime - bestTime)
                 
 
-        if 0 <= newItemIndex < len(self.canvasItemsByDate):
-            self.OnSelectItem(self.canvasItemsByDate[newItemIndex].item)
+        if 0 <= newItemIndex < len(self.canvasItemList):
+            self.OnSelectItem(self.canvasItemList[newItemIndex].item)
             
     def OnCreateItem(self, unscrolledPosition, displayName = None):
         
@@ -725,26 +723,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         into account, because sometimes items on the bottom of a stack
         of conflicting events is the currently selected one.
         """
-        firstHit = None
-        contents = CalendarSelection(self.blockItem.contents)
-        for canvasItem in reversed(self.canvasItemList):
-            if canvasItem.isHit(unscrolledPosition) and \
-               canvasItem.item in contents:
-                # this one is in the selection, so we can return
-                # immediately
-                item = canvasItem.item
-                if contents.isItemSelected(item):
-                    return canvasItem
-                
-                # otherwise, save the first hit for later, in case we
-                # don't hit a selected item
-                if not firstHit:
-                    firstHit = canvasItem
+        for canvasItem in reversed(self.drawOrderedCanvasItems()):
+            if canvasItem.isHit(unscrolledPosition):
+                return canvasItem
 
-        # if we got this far, none of the items at unscrolledPosition
-        # were selected, so we can just return the first one we hit,
-        # if any
-        return firstHit
 
     def OnBeginResizeItem(self):
         if not self.dragState.currentDragBox.CanDrag():
@@ -1182,9 +1164,3 @@ class TimedCanvasItem(CalendarCanvasItem):
         if self._beforeConflicts:
             maxparents = max([parent.GetIndentLevel() for parent in self._beforeConflicts])
         return max(self.GetIndentLevel(), maxchildren, maxparents)
-
-    def GetDrawingOrderKey(self):
-        """
-        Drawing order defined first by activeness, then level of indent
-        """
-        return (self.isActive, self.GetIndentLevel())
