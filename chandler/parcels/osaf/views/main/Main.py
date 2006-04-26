@@ -142,40 +142,60 @@ class MainView(View):
         AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame,
                                                         rv=self.itsView)
 
-    def onNewEvent (self, event):
+    def onNewItemEvent (self, event):
         # Create a new Content Item
-        # Triggered from "File | New Item" menu, for any of the item kinds.
-        try:
-            kindParam = event.kindParameter
-        except AttributeError:
-            kindParam = pim.Note.getKind(self.itsView) # default kind for "New"
-        newItem = kindParam.newItem (None, None)
-        newItem.InitOutgoingAttributes ()
-        self.RepositoryCommitWithStatus ()
+
+        allCollection = schema.ns('osaf.pim', self).allCollection
+        sidebar = Block.findBlockByName ("Sidebar")
+        kindParameter = getattr (event, "kindParameter", None)
+
+        # onNewItem method takes precedence of kindParameter
+        onNewItemMethod = getattr (type (event), "onNewItem", None)
+        if onNewItemMethod:
+            newItem = onNewItemMethod (event)
+            if newItem is None:
+                return
+        else:
+            # A kindParameter of None stamps a Note with the sidebar's filterKind
+            if kindParameter is None:
+                kindToCreate = pim.Note.getKind(self.itsView)
+            else:
+                kindToCreate = kindParameter
+
+            newItem = kindToCreate.newItem (None, None)
+
+            if (kindParameter is None and sidebar.filterKind is not None):
+                newItem.StampKind ('add', sidebar.filterKind)
+            
+            newItem.InitOutgoingAttributes ()
 
         collection = event.collection
+        selectedCollection = self.getSidebarSelectedCollection()
         if collection is None:
-            
-            # if the collection is read-only, then jump to the
-            # all collection
-            collection = self.getSidebarSelectedCollection()
-            if (collection is None or collection.isReadOnly() or
-                not UserCollection(collection).canAdd):
-                # Tell the sidebar we want to go to the All collection
-                allCollection = schema.ns('osaf.pim', self).allCollection
-                self.postEventByName ('RequestSelectSidebarItem',
-                                      {'item': allCollection})
-                collection = None
+            # If collection is None use the selected collection
+            collection = selectedCollection
 
-        if collection is not None and hasattr(collection, 'add'):
-            collection.add(newItem)
+        # If we can't add items to the collection use the All collection
+        if (collection is None or
+            collection.isReadOnly() or
+            not UserCollection(collection).canAdd):
+            # Tell the sidebar we want to go to the All collection
+            collection = allCollection
+        
+        # The kindParameter is used to specify the viewer
+        if kindParameter is not None:
+            sidebar.setPreferredKind (kindParameter)
 
-        # If the event cannot be displayed in this viewer,
-        # we need to switch to the all view
-        sidebar = Block.findBlockByName("Sidebar")
-        viewFilter = sidebar.filterKind
-        if not kindParam.isKindOf(viewFilter):
-            self.postEventByName ('ApplicationBarAll', { })
+        if collection is not selectedCollection:
+            sidebar.postEventByName("SelectItemsBroadcast", {'items':[collection]})
+
+        # repository collection implements add to print an error that
+        # says add isn't implemented, so we can't just call add if
+        # the add method exists.
+        try:
+            collection.add (newItem)
+        except NotImplementedError:
+            pass
 
         # Tell the ActiveView to select our new item
         self.postEventByName ('SelectItemsBroadcastInsideActiveView',
@@ -401,11 +421,6 @@ class MainView(View):
         is True) unless you pass private=True.
         """
         sidebar = Block.findBlockByName ("Sidebar")
-        selectedRanges = sidebar.contents.getSelectionRanges()
-        if (selectedRanges is None or
-            len(selectedRanges) != 1):
-            return None
-
         item = sidebar.contents.getFirstSelectedItem()
         if (not isinstance (item, ContentCollection) or
             private == False and item.private):

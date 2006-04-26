@@ -746,15 +746,19 @@ class SidebarBlock(Table):
 
     def setPreferredKind (self, filterKind):
         if self.filterKind != filterKind:
-            self.filterKind = filterKind
+            newFilterKind = None
             # We need to update the click state of the toolbar as well
             toolbar = Block.Block.findBlockByName("ApplicationBar")
             for button in toolbar.childrenBlocks:
                 buttonEvent = getattr (button, 'event', None)
-                if (isinstance (buttonEvent, KindParameterizedEvent) and
-                    buttonEvent.kindParameter == filterKind):
-                    button.widget.selectTool()
-                    break
+                if isinstance (buttonEvent, KindParameterizedEvent):
+                    if ( (filterKind is None and buttonEvent.kindParameter is None) or
+                         (filterKind is not None and filterKind.isKindOf (buttonEvent.kindParameter)) ):
+                        newFilterKind = buttonEvent.kindParameter
+                        button.widget.selectTool()
+                        break
+
+            self.filterKind = newFilterKind
             self.widget.Refresh()
             self.postEventByName("SelectItemsBroadcast",
                                  {'items':list(self.contents.iterSelection())})

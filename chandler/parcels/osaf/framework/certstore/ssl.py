@@ -340,6 +340,7 @@ def askTrustSiteCertificate(repositoryView, pem, reconnect):
                                                   constants.TRUST_AUTHENTICITY,
                                                   repositoryView,
                                                   typeHint=constants.TYPE_SITE)
+                    repositoryView.commit()
 
             reconnect()
     finally:

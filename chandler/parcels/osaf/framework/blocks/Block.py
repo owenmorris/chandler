@@ -1024,14 +1024,19 @@ class ColorEvent(BlockEvent):
 class KindParameterizedEvent(BlockEvent):
     kindParameter = schema.One(
         schema.TypeReference('//Schema/Core/Kind'),
-        required = True,
+        defaultValue = None
     )
     schema.addClouds(
         copying = schema.Cloud(byRef=[kindParameter])
     )
     
-class NewEvent(KindParameterizedEvent):
+class NewItemEvent(KindParameterizedEvent):
     collection = schema.One(ContentCollection, defaultValue = None)
+    methodName = schema.One(schema.Text, initialValue = 'onNewItemEvent')
+    commitAfterDispatch = schema.One(schema.Boolean, initialValue = True)
+    dispatchEnum = schema.One(
+        dispatchEnumType, initialValue = 'ActiveViewBubbleUp',
+    )
 
 class AddToViewableCollectionEvent(BlockEvent):
     dispatchEnum = schema.One(

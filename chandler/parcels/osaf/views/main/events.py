@@ -19,12 +19,14 @@ def makeMainEvents(parcel):
         # because of a circular dependence
         ).install(parcel)
     
-    NewEvent.template(
-        'NewNote',
-        methodName = 'onNewEvent',
-        kindParameter = osaf.pim.notes.Note.getKind(repositoryView),
-        commitAfterDispatch = True,
-        dispatchEnum = 'ActiveViewBubbleUp').install(parcel)
+    NewItemEvent.update(
+        parcel, 'NewItem',
+        blockName = 'NewItem')
+
+    NewItemEvent.update(
+        parcel, 'NewNote',
+        blockName = 'NewNote',
+        kindParameter = osaf.pim.notes.Note.getKind(repositoryView))
 
     BlockEvent.template(
         'RunSelectedScript',
@@ -196,12 +198,10 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)
 
-    NewEvent.template(
-        'NewMailMessage',
-        methodName = 'onNewEvent',
-        kindParameter = osaf.pim.mail.MailMessage.getKind(repositoryView),
-        commitAfterDispatch = True,
-        dispatchEnum = 'ActiveViewBubbleUp').install(parcel)
+    NewItemEvent.update(
+        parcel, 'NewMailMessage',
+        blockName = 'NewMailMessage',
+        kindParameter = osaf.pim.mail.MailMessage.getKind(repositoryView))
 
     KindParameterizedEvent.template(
         'ApplicationBarEvent',
@@ -210,12 +210,10 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)
 
-    NewEvent.template(
-        'NewCalendar',
-        methodName = 'onNewEvent',
-        kindParameter = osaf.pim.calendar.Calendar.CalendarEvent.getKind(repositoryView),
-        commitAfterDispatch = True,
-        dispatchEnum = 'ActiveViewBubbleUp').install(parcel)
+    NewItemEvent.update(
+        parcel, 'NewCalendar',
+        blockName = 'NewCalendar',
+        kindParameter = osaf.pim.calendar.Calendar.CalendarEvent.getKind(repositoryView))
 
     BlockEvent.template(
         'Delete',
@@ -276,12 +274,10 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'ApplicationBar').install(parcel)
 
-    NewEvent.template(
-        'NewTask',
-        methodName = 'onNewEvent',
-        kindParameter = osaf.pim.tasks.Task.getKind(repositoryView),
-        commitAfterDispatch = True,
-        dispatchEnum = 'ActiveViewBubbleUp').install(parcel)
+    NewItemEvent.update(
+        parcel, 'NewTask',
+        blockName = 'NewTask',
+        kindParameter = osaf.pim.tasks.Task.getKind(repositoryView))
 
     BlockEvent.template(
         'GenerateContentItems',

@@ -5,7 +5,7 @@ import wx
 
 
 from Block import (
-    RectangularChild, BlockEvent, NewEvent, ChoiceEvent, ColorEvent,
+    RectangularChild, BlockEvent, NewItemEvent, ChoiceEvent, ColorEvent,
     KindParameterizedEvent, AddToSidebarEvent, EventList, debugName,
     getProxiedItem, WithoutSynchronizeWidget, IgnoreSynchronizeWidget
 )

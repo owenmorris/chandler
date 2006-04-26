@@ -300,12 +300,11 @@ def importCertificate(x509, fingerprint, trust, repView, typeHint=None):
                        displayName=unicode(commonName),
                        pem=pem,
                        asText=text)
-
-    repView.commit()
     
     log.info('Imported certificate: CN=%s, type=%s, fp=%s' % (commonName,
                                                               type,
                                                               fingerprint))
+    return cert
 
 
 def importCertificateDialog(repView):
@@ -313,6 +312,7 @@ def importCertificateDialog(repView):
     Let the user import a certificate. First brings up a file selection
     dialog, then asks for trust settings for the certificate being imported.
     """
+    certificate = None
     app = wx.GetApp()
     res = Util.showFileDialog(app.mainFrame,
                               _(u"Choose a certificate to import"),
@@ -323,49 +323,42 @@ def importCertificateDialog(repView):
 
     (cmd, dir, filename) = res
 
-    if cmd  != wx.ID_OK:
-        return
-
-    # dir and filename are unicode
-    path = os.path.join(dir, filename)
-
-    try: 
-        x509 = X509.load_cert(path)
-
-        fprint = utils.fingerprint(x509)
-        type = certificateType(x509)
-        # Note: the order of choices must match the selections code below
-        choices = [_(u"Trust the authenticity of this certificate.")]
-        if type == constants.TYPE_ROOT:
-            choices += [_(u"Trust this certificate to sign site certificates.")]
-
-        dlg = dialogs.ImportCertificateDialog(app.mainFrame,
-                                   type,
-                                   fprint,
-                                   x509,
-                                   choices)
-        trust = 0
-        if dlg.ShowModal() == wx.ID_OK:
-            selections = dlg.GetSelections()
+    if cmd  == wx.ID_OK:
+        # dir and filename are unicode
+        path = os.path.join(dir, filename)
+    
+        try: 
+            x509 = X509.load_cert(path)
+    
+            fprint = utils.fingerprint(x509)
+            type = certificateType(x509)
+            # Note: the order of choices must match the selections code below
+            choices = [_(u"Trust the authenticity of this certificate.")]
+            if type == constants.TYPE_ROOT:
+                choices += [_(u"Trust this certificate to sign site certificates.")]
+    
+            dlg = dialogs.ImportCertificateDialog(app.mainFrame,
+                                       type,
+                                       fprint,
+                                       x509,
+                                       choices)
+            trust = 0
+            if dlg.ShowModal() == wx.ID_OK:
+                selections = dlg.GetSelections()
+                # Note: this code must match the choices above
+                for sel in selections:
+                    if sel == 0:
+                        trust |= constants.TRUST_AUTHENTICITY
+                    if sel == 1:
+                        trust |= constants.TRUST_SITE
+                certificate = importCertificate(x509, fprint, trust, repView)
             dlg.Destroy()
-            # Note: this code must match the choices above
-            for sel in selections:
-                if sel == 0:
-                    trust |= constants.TRUST_AUTHENTICITY
-                if sel == 1:
-                    trust |= constants.TRUST_SITE
-        else:
-            dlg.Destroy()
-            return
-
-        importCertificate(x509, fprint, trust, repView)
-
-    except utils.CertificateException, e:
-        application.dialogs.Util.ok(app.mainFrame, messages.ERROR, e.__unicode__())
-        return
-
-    except Exception, e:
-        log.exception(e)
-        application.dialogs.Util.ok(app.mainFrame, messages.ERROR,
-            _(u"Could not add certificate from: %(path)s\nCheck the path and try again.") % {'path': path})
-        return
+    
+        except utils.CertificateException, e:
+            application.dialogs.Util.ok(app.mainFrame, messages.ERROR, e.__unicode__())
+    
+        except Exception, e:
+            log.exception(e)
+            application.dialogs.Util.ok(app.mainFrame, messages.ERROR,
+                _(u"Could not add certificate from: %(path)s\nCheck the path and try again.") % {'path': path})
+    return certificate

@@ -7,17 +7,24 @@ Certificate store UI.
 
 from i18n import OSAFMessageFactory as _
 
-from osaf.framework.blocks import Block
+from osaf.framework.blocks import Block, NewItemEvent
 from osaf.framework.blocks.detail import Detail
 from osaf.framework.attributeEditors import AttributeEditorMapping
 from osaf.pim.structs import SizeType, RectType
 from osaf.pim import KindCollection
 from osaf.usercollections import UserCollection
+from osaf.framework.certstore import certificate
 
-class _CertificateImportController(Block.Block):
-    def onCertificateImportBlockEvent(self, event):
-        from osaf.framework.certstore import certificate
-        certificate.importCertificateDialog(self.itsView)
+
+class ImportCertificateEvent(NewItemEvent):
+    """
+    An event used to import a new Certificate.
+    """
+    def onNewItem (self):
+        """
+        Called to create a new Item.
+        """
+        return certificate.importCertificateDialog(self.itsView)
 
 def installParcel(parcel, oldVersion=None):
     from application import schema
@@ -32,19 +39,19 @@ def installParcel(parcel, oldVersion=None):
     certstore = schema.ns("osaf.framework.certstore", parcel)
     detail    = schema.ns("osaf.framework.blocks.detail", parcel)
 
-    certStore = KindCollection.update(
+    certificateCollection = KindCollection.update(
         parcel, 'CertificateStore',
         displayName = _(u"Certificate Store"),
         kind = certstore.Certificate.getKind(parcel.itsView),
         recursive = True)
     
     #setting the preferredKind to None is a hint to display it in the All View
-    UserCollection (certStore).preferredKind = None
+    UserCollection (certificateCollection).preferredKind = None
 
     addCertificateToSidebarEvent = Block.AddToSidebarEvent.update(
         parcel, 'addCertificateToSidebarEvent',
         blockName = 'addCertificateToSidebarEvent',
-        items = [certStore],
+        items = [certificateCollection],
         copyItems = False,
         disambiguateDisplayName = False)
 
@@ -66,24 +73,18 @@ def installParcel(parcel, oldVersion=None):
 
     # Import
   
-    import_controller = _CertificateImportController.update(
-        parcel, "CertificateImportController"
-    )
-
-    CertificateImportEvent = blocks.BlockEvent.update(
-        parcel, "CertificateImportEvent",
-        blockName = "CertificateImportBlock",
-        dispatchEnum = "SendToBlockByReference",
-        destinationBlockReference = import_controller,
-        commitAfterDispatch = True,
-    )
+    importCertificateEvent = ImportCertificateEvent.update(
+        parcel, 'importCertificateEvent',
+        blockName = 'importCertificateEvent',
+        collection = certificateCollection,
+        kindParameter = certstore.Certificate.getKind(parcel.itsView))
 
     blocks.MenuItem.update(
         parcel, "CertificateImport",
         blockName = "CertificateImport",
         title = _(u"Import Certificate"),
-        event = CertificateImportEvent,
-        eventsForNamedLookup = [CertificateImportEvent],
+        event = importCertificateEvent,
+        eventsForNamedLookup = [importCertificateEvent],
         parentBlock = certMenu,
     )
 

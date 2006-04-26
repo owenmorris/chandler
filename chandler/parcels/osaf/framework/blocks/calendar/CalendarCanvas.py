@@ -1502,17 +1502,16 @@ class CalendarContainer(BoxContainer):
 
         return w
 
-    def onNewEvent(self, event):
+    def onNewItemEvent(self, event):
         """
         Create a new event from the menu - try to use contextual information
         from the view to create it in a normal place
         """
-        ourKind = Calendar.CalendarEvent.getKind(self.itsView)
-        kindParam = getattr(event, 'kindParameter', ourKind)
-        # if we're not creating our own kind, let someone else handle it
-        if kindParam is not ourKind:
-            event.arguments['continueBubbleUp'] = True
-        else:
+        calendarKind = Calendar.CalendarEvent.getKind(self.itsView)
+        kindParameter = event.kindParameter
+        
+        # if it's one of ours or None we'll handle it otherwise bubble it up
+        if kindParameter is calendarKind or kindParameter is None:
             timedEventsCanvas = self.getTimedBlock().widget
     
             startTime, duration = timedEventsCanvas.GetNewEventTime()
@@ -1522,6 +1521,8 @@ class CalendarContainer(BoxContainer):
             
             # return the list of items created
             return [newEvent]
+        else:
+            event.arguments['continueBubbleUp'] = True
 
     def getTimedBlock(self):
         # this is a little bit of a hack, because we know we want to get

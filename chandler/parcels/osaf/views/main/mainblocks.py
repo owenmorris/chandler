@@ -106,7 +106,7 @@ def makeMainView (parcel):
                 toolbarItemKind = 'Button',
                 helpString = _(u'Get new Mail and synchronize with other Chandler users')),
             ToolbarItem.template('ApplicationBarNewButton',
-                event = main.NewNote,
+                event = main.NewItem,
                 bitmap = 'ApplicationBarNew.png',
                 title = _(u'New'),
                 toolbarItemKind = 'Button',
