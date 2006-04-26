@@ -334,11 +334,6 @@ def kindToMessageObject(mailMessage):
     populateHeaders(mailMessage, messageObject)
     populateHeader(messageObject, 'Subject', mailMessage.about, encode=True)
 
-    try:
-        payload = mailMessage.body.encode('utf8')
-
-    except AttributeError:
-        payload = ""
 
     # If this message is an event, prepend the event description to the body,
     # and add the event data as an attachment.
@@ -349,7 +344,7 @@ def kindToMessageObject(mailMessage):
         timeDescription = mailMessage.getTimeDescription()
     except AttributeError:
         # Not an event - just add the body as-is.
-        messageObject.set_payload(payload)
+        messageObject.set_payload(mailMessage.body.encode('utf-8'))
     else:
         # It's an event - prepend the description to the body, make the
         # message multipart, and add the body & ICS event as parts. Also,
@@ -359,23 +354,25 @@ def kindToMessageObject(mailMessage):
         # completely on some clients...
         # @@@ In formatting the prepended description, I'm adding an extra newline
         # at the end so that Apple Mail will display the .ics attachment on its own line.
-        #XXX Location is an issue for localization
         location = unicode(getattr(mailMessage, 'location', u''))
-        if len(location) > 0:
-            location = _(u"\n%(locationLabel)s: %(locationValue)s") \
-                     % { 'locationLabel': _(u"Where"),
-                         'locationValue': location }
-        eventDescription = _(u"%(whenLabel)s: %(whenValue)s%(locationPair)s\n\n") \
-                  % { 'whenLabel': _(u"When"),
-                      'whenValue': timeDescription, 
-                      'locationPair': location }
-        payload = _(u"%(eventDescription)s%(body)s\n") \
-                  % { 'eventDescription': eventDescription,
-                      'body': payload }
+        if len(location.strip()) > 0:
+            evtDesc =  _(u"When: %(whenValue)s\nWhere: %(locationValue)s") \
+                       % { 'whenValue': timeDescription,
+                           'locationValue': location
+                         }
+        else:
+            evtDesc =  _(u"When: %(whenValue)s") \
+                       % { 'whenValue': timeDescription }
+
+        payload = _(u"%(eventDescription)s\n\n%(bodyText)s\n") \
+                   % {'eventDescription': evtDesc,
+                      'bodyText': mailMessage.body
+                     }
+
         messageObject.set_type("multipart/mixed")
-        messageObject.attach(MIMEText(payload))
+        messageObject.attach(MIMEText(payload.encode('utf-8'), _charset='utf-8'))
         messageObject.add_header(createChandlerHeader("EventDescriptionLength"),
-                                 unicode(len(eventDescription)))
+                                 str(len(evtDesc)))
 
         # Format this message as an ICalendar object
         import osaf.sharing.ICalendar as ICalendar
