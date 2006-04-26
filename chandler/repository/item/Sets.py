@@ -119,6 +119,10 @@ class AbstractSet(ItemValue, Indexed):
         else:
             yield (self._view[source[0]], source[1])
 
+    def _inspect__(self, indent):
+
+        return "%s<%s>\n" %('  ' * indent, type(self).__name__)
+
     def dir(self):
         """
         Debugging: print all items referenced in this set
@@ -139,7 +143,7 @@ class AbstractSet(ItemValue, Indexed):
         if isinstance(source, AbstractSet):
             return source._view, source
         elif isinstance(source, Collection):
-            return source.itsView, (source.itsUUID, source.__collection__)
+            return source.getSourceCollection()
         elif isuuid(source[0]):
             return None, source
         else:
@@ -347,6 +351,13 @@ class AbstractSet(ItemValue, Indexed):
 
         return clone
 
+    def copy(self):
+
+        copy = eval(self._repr_())
+        copy._setView(self._view)
+        
+        return copy
+
     def _merge(self, value):
 
         if (type(value) is type(self) and
@@ -529,6 +540,11 @@ class Set(AbstractSet):
         if isinstance(self._source, AbstractSet):
             yield self._source
 
+    def _inspect_(self, indent):
+
+        return '%s%s' %(self._inspect__(indent),
+                        self._inspectSource(self._source, indent + 1))
+
 
 class BiSet(AbstractSet):
 
@@ -573,7 +589,7 @@ class BiSet(AbstractSet):
             if op == 'refresh':
                 op = self._op(leftOp, rightOp, other) or 'refresh'
             else:
-                op = self._op(leftOp, rightOp, other)                
+                op = self._op(leftOp, rightOp, other)
 
         elif change == 'notification':
             if other not in self:
@@ -600,8 +616,9 @@ class BiSet(AbstractSet):
 
     def _inspect_(self, indent):
 
-        return '\n%s' %('\n'.join([self._inspectSource(self._left, indent),
-                                   self._inspectSource(self._right, indent)]))
+        return '%s%s' %(self._inspect__(indent),
+                        '\n'.join([self._inspectSource(self._left, indent + 1),
+                                   self._inspectSource(self._right, indent + 1)]))
 
 
 class Union(BiSet):
@@ -824,7 +841,8 @@ class MultiSet(AbstractSet):
 
     def _inspect_(self, indent):
 
-        return '\n%s' %('\n'.join([self._inspectSource(source, indent)
+        return '%s%s' %(self._inspect__(indent),
+                        '\n'.join([self._inspectSource(source, indent + 1)
                                    for source in self._sources]))
 
 
@@ -1049,7 +1067,8 @@ class KindSet(Set):
 
     def _inspect_(self, indent):
 
-        return "\n%skind: %s" %('  ' * indent,
+        return "%s%skind: %s" %(self._inspect__(indent),
+                                '  ' * (indent + 1),
                                 self._view[self._extent].kind.itsPath)
 
 
@@ -1066,8 +1085,8 @@ class FilteredSet(Set):
     def _repr_(self, replace=None):
 
         return "%s(%s, \"\"\"%s\"\"\", %s)" %(type(self).__name__,
-                                      self._reprSource(self._source, replace),
-                                      self.filterExpression, self.attributes)
+                                              self._reprSource(self._source, replace),
+                                              self.filterExpression, self.attributes)
 
     def __contains__(self, item, excludeMutating=False):
 
@@ -1164,4 +1183,5 @@ class FilteredSet(Set):
 
     def _inspect_(self, indent):
 
-        return "\n%sfilter: %s\n%s attrs: %s\n%s" %('  ' * indent, self.filterExpression, '  ' * indent, ', '.join(str(a) for a in self.attributes), self._inspectSource(self._source, indent))
+        i = indent + 1
+        return "%s%sfilter: %s\n%s attrs: %s\n%s" %(self._inspect__(indent), '  ' * i, self.filterExpression, '  ' * i, ', '.join(str(a) for a in self.attributes), self._inspectSource(self._source, i))

@@ -116,3 +116,7 @@ class Collection(Item):
 
         if subscriber in self.subscribers:
             self.subscribers.remove(subscriber)
+
+    def getSourceCollection(self):
+
+        return self.itsView, (self.itsUUID, self.__collection__)

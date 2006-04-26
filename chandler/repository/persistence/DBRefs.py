@@ -220,7 +220,7 @@ class PersistentRefs(object):
 
                     if op == 1:
                         #self._e_2_remove(item)
-                        self.view.logger.info("%s force merging remove %d",
+                        self.view.logger.info("%s force merging remove %s",
                                               self.view, item)
                         pass
                     else:

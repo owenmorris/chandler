@@ -1393,16 +1393,16 @@ class Item(CItem):
                 raise RecursiveDeleteError, self
 
             view = self.itsView
-            deferring = view.isDeferringDelete()
 
-            if hasattr(type(self), 'onItemDelete'):
-                self.onItemDelete(view, deferring)
-
-            if deferring:
+            if view.isDeferringDelete():
                 self._status |= Item.DEFERRING
-                if recursive:
-                    for child in self.iterChildren():
-                        child.delete(True, deletePolicy)
+
+                if hasattr(type(self), 'onItemDelete'):
+                    self.onItemDelete(view, True)
+
+                for child in self.iterChildren():
+                    child.delete(True, deletePolicy)
+
                 if not self.isDeferred():
                     self._status |= Item.DEFERRED
                     self.setDirty(Item.NDIRTY)
@@ -1411,6 +1411,7 @@ class Item(CItem):
                         if tuple[0] is self:
                             view._deferredDeletes.remove(tuple)
                             break
+
                 view._deferredDeletes.append((self, deletePolicy))
                 self._status &= ~Item.DEFERRING
             
@@ -1422,9 +1423,11 @@ class Item(CItem):
                 self.setDirty(Item.NDIRTY)
                 self._status |= Item.DELETING
 
-                if recursive:
-                    for child in self.iterChildren():
-                        child.delete(True, deletePolicy)
+                if hasattr(type(self), 'onItemDelete'):
+                    self.onItemDelete(view, False)
+
+                for child in self.iterChildren():
+                    child.delete(True, deletePolicy)
 
                 if self.isWatched():
                     view._notifyChange(self._itemChanged, 'remove',
@@ -2333,9 +2336,9 @@ class Item(CItem):
         else:
             indexes = ', '.join((str(t) for t in indexes.iteritems()))
 
-        return "%s%s\n%s  indexes: %s%s" %('  ' * indent, self._repr_(),
-                                           '  ' * indent, indexes,
-                                           collection._inspect_(indent + 1))
+        return "%s%s\n%s  indexes: %s\n%s" %('  ' * indent, self._repr_(),
+                                             '  ' * indent, indexes,
+                                             collection._inspect_(indent + 1))
 
     def _afterMerge(self):
 
