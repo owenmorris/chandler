@@ -65,6 +65,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         self._instanceRegistry.update(self._deletedRegistry)
         self._log.update(self._deletedRegistry.itervalues())
         self._deletedRegistry.clear()
+        self.cancelDelete()
 
         for item in self._log:
             if not item.isNew():
@@ -180,7 +181,8 @@ class DBRepositoryView(OnDemandRepositoryView):
             try:
                 self._indexWriter.close()
             except:
-                self.logger.exception('Ignorable exception while closing indexWriter during _abortTransaction')
+                pass
+                #self.logger.exception('Ignorable exception while closing indexWriter during _abortTransaction')
             self._indexWriter = None
             
         self.store.abortTransaction(self, status)
@@ -414,6 +416,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                     try:
                         self.refresh(mergeFn, None, notify)
 
+                        if self.isDeferringDelete():
+                            self.logger.info('%s effecting deferred deletes', self)
+                            self.effectDelete()
+
                         count = len(self._log) + len(self._deletedRegistry)
                         if count > 500:
                             self.logger.info('%s committing %d items...',
@@ -440,13 +446,13 @@ class DBRepositoryView(OnDemandRepositoryView):
                         break
 
                     except DBLockDeadlockError:
-                        self.logger.info('retrying commit aborted by deadlock')
+                        self.logger.info('%s retrying commit aborted by deadlock', self)
                         txnStatus = finish(txnStatus, False)
                         continue
 
                     except:
                         if txnStatus:
-                            self.logger.exception('aborting transaction (%d kb)', size >> 10)
+                            self.logger.exception('%s aborting transaction (%d kb)', self, size >> 10)
                         txnStatus = finish(txnStatus, False)
                         raise
 
@@ -476,7 +482,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     except ZeroDivisionError:
                         iSpeed = dSpeed = 'speed could not be measured'
 
-                    self.logger.info('%s committed %d items (%d kbytes) in %s, %s (%s), version: %d', self, count, size >> 10, timedelta(seconds=duration), iSpeed, dSpeed, newVersion)
+                    self.logger.info('%s committed %d items (%d kbytes) in %s, %s (%s)', self, count, size >> 10, timedelta(seconds=duration), iSpeed, dSpeed)
 
             finally:
                 self._status &= ~RepositoryView.COMMITTING

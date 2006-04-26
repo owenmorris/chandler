@@ -126,7 +126,7 @@ class Type(Item):
     def onItemUnload(self, view, clean):
         self._unregisterTypeHandler(self.getImplementationType(), view)
 
-    def onItemDelete(self, view):
+    def onItemDelete(self, view, deferred):
         self._unregisterTypeHandler(self.getImplementationType(), view)
 
     def onItemCopy(self, view, orig):
@@ -242,9 +242,9 @@ class String(StringType):
         super(String, self).onItemUnload(view, clean)
         self._unregisterTypeHandler(str, view)
 
-    def onItemDelete(self, view):
+    def onItemDelete(self, view, deferred):
 
-        super(String, self).onItemDelete(view)
+        super(String, self).onItemDelete(view, deferred)
         self._unregisterTypeHandler(str, view)
 
     def onItemCopy(self, view, orig):

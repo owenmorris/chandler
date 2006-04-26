@@ -219,8 +219,10 @@ class PersistentRefs(object):
                     op, oldAlias = self._changedRefs.get(item, (0, None))
 
                     if op == 1:
-                        self._e_2_remove(item)
-                        #pass
+                        #self._e_2_remove(item)
+                        self.view.logger.info("%s force merging remove %d",
+                                              self.view, item)
+                        pass
                     else:
                         try:
                             link = self._get(item)

@@ -353,7 +353,8 @@ class TestMerge(RepositoryTestCase):
             #print e
             self.assert_(e.getReasonCode() == MergeError.MOVE)
         else:
-            self.assert_(False)
+            self.assert_(main.check())
+            #self.assert_(False)
 
     def testRemove1Change1(self):
 

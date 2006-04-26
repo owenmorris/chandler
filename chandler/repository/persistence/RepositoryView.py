@@ -71,10 +71,6 @@ class RepositoryView(CView):
                                              RepositoryView.itsUUID)
         self.openView()
         
-    def __repr__(self):
-
-        return "<%s: %s>" %(type(self).__name__, self.name)
-
     def setCurrentView(self):
         """
         Make this view the current view for the current thread.

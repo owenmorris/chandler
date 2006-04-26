@@ -1383,8 +1383,8 @@ class Item(CItem):
             clouds = self._kind.getClouds(cloudAlias)
             for cloud in clouds:
                 cloud.deleteItems(self, recursive, cloudAlias)
-            
-        elif not self._status & (Item.DELETED | Item.DELETING):
+
+        elif not self._status & (Item.DELETED | Item.DELETING | Item.DEFERRING):
 
             if self.isStale():
                 raise StaleItemError, self
@@ -1393,54 +1393,75 @@ class Item(CItem):
                 raise RecursiveDeleteError, self
 
             view = self.itsView
-            refs = self._references
-            values = self._values
-            others = []
+            deferring = view.isDeferringDelete()
 
             if hasattr(type(self), 'onItemDelete'):
-                self.onItemDelete(view)
+                self.onItemDelete(view, deferring)
 
-            self.setDirty(Item.NDIRTY)
-            self._status |= Item.DELETING
+            if deferring:
+                self._status |= Item.DEFERRING
+                if recursive:
+                    for child in self.iterChildren():
+                        child.delete(True, deletePolicy)
+                if not self.isDeferred():
+                    self._status |= Item.DEFERRED
+                    self.setDirty(Item.NDIRTY)
+                else:
+                    for tuple in view._deferredDeletes:
+                        if tuple[0] is self:
+                            view._deferredDeletes.remove(tuple)
+                            break
+                view._deferredDeletes.append((self, deletePolicy))
+                self._status &= ~Item.DEFERRING
+            
+            else:
+                refs = self._references
+                values = self._values
+                others = []
 
-            for child in self.iterChildren():
-                child.delete(True, deletePolicy)
+                self.setDirty(Item.NDIRTY)
+                self._status |= Item.DELETING
 
-            if self.isWatched():
-                view._notifyChange(self._itemChanged, 'remove', ('itsKind',))
-                self._status &= ~Item.WATCHED
+                if recursive:
+                    for child in self.iterChildren():
+                        child.delete(True, deletePolicy)
 
-            if 'watcherDispatch' in values:
-                del values['watcherDispatch']
-            view._unregisterWatches(self)
+                if self.isWatched():
+                    view._notifyChange(self._itemChanged, 'remove',
+                                       ('itsKind',))
+                    self._status &= ~Item.WATCHED
 
-            if 'monitors' in refs:
-                for monitor in self.monitors:
-                    monitor.delete(True, None, None, True)
+                if 'watcherDispatch' in values:
+                    del values['watcherDispatch']
+                view._unregisterWatches(self)
 
-            for name in refs.keys():
-                policy = (deletePolicy or
-                          self.getAttributeAspect(name, 'deletePolicy',
-                                                  False, None, 'remove'))
-                if policy == 'cascade':
-                    value = refs._getRef(name)
-                    if value is not None:
-                        if value._isRefs():
-                            others.extend(value)
-                        else:
-                            others.append(value)
+                if 'monitors' in refs:
+                    for monitor in self.monitors:
+                        monitor.delete(True, None, None, True)
 
-            for other in others:
-                if other.refCount(True) == 0:
-                    other.delete(recursive, deletePolicy)
+                for name in refs.keys():
+                    policy = (deletePolicy or
+                              self.getAttributeAspect(name, 'deletePolicy',
+                                                      False, None, 'remove'))
+                    if policy == 'cascade':
+                        value = refs._getRef(name)
+                        if value is not None:
+                            if value._isRefs():
+                                others.extend(value)
+                            else:
+                                others.append(value)
 
-            self._setKind(None, _noMonitors)
+                for other in others:
+                    if other.refCount(True) == 0:
+                        other.delete(recursive, deletePolicy)
 
-            self.itsParent._removeItem(self)
-            self._setRoot(None, view)
+                self._setKind(None, _noMonitors)
 
-            self._status |= Item.DELETED | Item.STALE
-            self._status &= ~Item.DELETING
+                self.itsParent._removeItem(self)
+                self._setRoot(None, view)
+
+                self._status |= Item.DELETED | Item.STALE
+                self._status &= ~(Item.DELETING | Item.DEFERRED)
 
     def _copyExport(self, view, cloudAlias, matches):
 

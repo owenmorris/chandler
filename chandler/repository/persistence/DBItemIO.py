@@ -6,6 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from struct import pack, unpack
 
+from chandlerdb.persistence.c import DBLockDeadlockError
 from chandlerdb.util.c import UUID, _hash, isuuid
 from chandlerdb.item.c import Nil, Default, isitem, CValues
 from chandlerdb.item.ItemValue import ItemValue
@@ -297,6 +298,8 @@ class DBItemWriter(ItemWriter):
             elif attrCard == 'dict':
                 self.writeDict(buffer, item, version,
                                value, withSchema, attrType)
+        except DBLockDeadlockError:
+            raise
         except Exception, e:
             raise SaveValueError, (item, name, e)
 

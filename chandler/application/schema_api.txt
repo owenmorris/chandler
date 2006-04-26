@@ -945,7 +945,7 @@ loaded::
     the named module is returned instead::
 
         >>> schema.reset()
-        <NullRepositoryView: null view>
+        <NullRepositoryView: null view (0)>
 
         >>> application.tests.__parcel__ = "__builtin__"
         >>> schema.parcel_for_module("application.tests", schema._get_nrv())
@@ -953,7 +953,7 @@ loaded::
 
         >>> del application.tests.__parcel__    # clean up after the above test
         >>> schema.reset()
-        <NullRepositoryView: null view>
+        <NullRepositoryView: null view (0)>
 
     If the module has no ``__parcel__``, but it has an ``installParcel()``
     function, it will be called::
@@ -977,7 +977,7 @@ loaded::
 
         >>> # clean up dummy parcel setup
         >>> schema.reset()
-        <NullRepositoryView: null view>
+        <NullRepositoryView: null view (0)>
         >>> del application.tests.installParcel
 
     Finally, in order to support defining core schema kinds using the schema
@@ -993,7 +993,7 @@ loaded::
 
         >>> del application.tests.__parcel__    # clean up after the above test
         >>> schema.reset()
-        <NullRepositoryView: null view>
+        <NullRepositoryView: null view (0)>
 
 
 ``itemFor(obj, rv)``
