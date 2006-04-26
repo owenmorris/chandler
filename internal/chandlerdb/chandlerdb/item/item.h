@@ -70,6 +70,8 @@ enum {
     KDIRTY     = 0x00800000,          /* kind changed */
     P_WATCHED  = 0x01000000,          /* watched, persistently */
     T_WATCHED  = 0x02000000,          /* watched, transiently  */
+    DEFERRED   = 0x04000000,          /* delete deferred until commit */
+    DEFERRING  = 0x08000000,          /* deferring delete */
 };
 
 enum {

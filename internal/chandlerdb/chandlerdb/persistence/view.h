@@ -23,6 +23,7 @@ typedef struct {
     PyObject *singletons;
     PyObject *watcherDispatch;
     PyObject *debugOn;
+    PyObject *deferredDeletes;
 } t_view;
 
 enum {
@@ -35,6 +36,7 @@ enum {
     MONITORING = 0x0040,
     /* STALE   = 0x0080, from CItem */
     /* CDIRTY  = 0x0200, from CItem */
+    DEFERDEL   = 0x0400,
 
     VERIFY     = 0x1000,
     DEBUG      = 0x2000,

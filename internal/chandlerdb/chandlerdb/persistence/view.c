@@ -18,18 +18,23 @@ static int t_view_traverse(t_view *self, visitproc visit, void *arg);
 static int t_view_clear(t_view *self);
 static PyObject *t_view_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_view_init(t_view *self, PyObject *args, PyObject *kwds);
-static PyObject *t_view__isRepository(t_view *self, PyObject *args);
-static PyObject *t_view__isView(t_view *self, PyObject *args);
-static PyObject *t_view__isItem(t_view *self, PyObject *args);
-static PyObject *t_view__isRecording(t_view *self, PyObject *args);
-static PyObject *t_view_isNew(t_view *self, PyObject *args);
-static PyObject *t_view_isStale(t_view *self, PyObject *args);
-static PyObject *t_view_isRefCounted(t_view *self, PyObject *args);
-static PyObject *t_view_isLoading(t_view *self, PyObject *args);
+static PyObject *t_view_repr(t_view *self);
+static PyObject *t_view__isRepository(t_view *self);
+static PyObject *t_view__isView(t_view *self);
+static PyObject *t_view__isItem(t_view *self);
+static PyObject *t_view__isRecording(t_view *self);
+static PyObject *t_view_isNew(t_view *self);
+static PyObject *t_view_isStale(t_view *self);
+static PyObject *t_view_isRefCounted(t_view *self);
+static PyObject *t_view_isLoading(t_view *self);
 static PyObject *t_view__setLoading(t_view *self, PyObject *loading);
-static PyObject *t_view_isOpen(t_view *self, PyObject *args);
-static PyObject *t_view_isDebug(t_view *self, PyObject *args);
-static PyObject *t_view__isVerify(t_view *self, PyObject *args);
+static PyObject *t_view_isDeferringDelete(t_view *self);
+static PyObject *t_view_deferDelete(t_view *self);
+static PyObject *t_view_effectDelete(t_view *self);
+static PyObject *t_view_cancelDelete(t_view *self);
+static PyObject *t_view_isOpen(t_view *self);
+static PyObject *t_view_isDebug(t_view *self);
+static PyObject *t_view__isVerify(t_view *self);
 static PyObject *t_view__setVerify(t_view *self, PyObject *args);
 static PyObject *t_view_getLogger(t_view *self, PyObject *args);
 static PyObject *t_view__notifyChange(t_view *self, PyObject *args,
@@ -55,6 +60,7 @@ static int t_view_dict_length(t_view *self);
 static PyObject *t_view_dict_get(t_view *self, PyObject *key);
 
 static PyObject *refresh_NAME;
+static PyObject *delete_NAME;
 static PyObject *logger_NAME;
 static PyObject *_loadItem_NAME;
 static PyObject *_readItem_NAME;
@@ -81,6 +87,7 @@ static PyMemberDef t_view_members[] = {
     { "_monitors", T_OBJECT, offsetof(t_view, monitors), 0, "" },
     { "_watcherDispatch", T_OBJECT, offsetof(t_view, watcherDispatch), 0, "" },
     { "_debugOn", T_OBJECT, offsetof(t_view, debugOn), 0, "" },
+    { "_deferredDeletes", T_OBJECT, offsetof(t_view, deferredDeletes), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -94,6 +101,10 @@ static PyMethodDef t_view_methods[] = {
     { "isRefCounted", (PyCFunction) t_view_isRefCounted, METH_NOARGS, "" },
     { "isLoading", (PyCFunction) t_view_isLoading, METH_NOARGS, "" },
     { "_setLoading", (PyCFunction) t_view__setLoading, METH_O, "" },
+    { "isDeferringDelete", (PyCFunction) t_view_isDeferringDelete, METH_NOARGS, "" },
+    { "deferDelete", (PyCFunction) t_view_deferDelete, METH_NOARGS, "" },
+    { "effectDelete", (PyCFunction) t_view_effectDelete, METH_NOARGS, "" },
+    { "cancelDelete", (PyCFunction) t_view_cancelDelete, METH_NOARGS, "" },
     { "isOpen", (PyCFunction) t_view_isOpen, METH_NOARGS, "" },
     { "isDebug", (PyCFunction) t_view_isDebug, METH_NOARGS, "" },
     { "_isVerify", (PyCFunction) t_view__isVerify, METH_NOARGS, "" },
@@ -148,7 +159,7 @@ static PyTypeObject ViewType = {
     0,                                                   /* tp_getattr */
     0,                                                   /* tp_setattr */
     0,                                                   /* tp_compare */
-    0,                                                   /* tp_repr */
+    (reprfunc)t_view_repr,                               /* tp_repr */
     0,                                                   /* tp_as_number */
     0,                                                   /* tp_as_sequence */
     &t_view_as_mapping,                                  /* tp_as_mapping */
@@ -200,6 +211,7 @@ static int t_view_traverse(t_view *self, visitproc visit, void *arg)
     Py_VISIT(self->singletons);
     Py_VISIT(self->watcherDispatch);
     Py_VISIT(self->debugOn);
+    Py_VISIT(self->deferredDeletes);
 
     return 0;
 }
@@ -216,6 +228,7 @@ static int t_view_clear(t_view *self)
     Py_CLEAR(self->singletons);
     Py_CLEAR(self->watcherDispatch);
     Py_CLEAR(self->debugOn);
+    Py_CLEAR(self->deferredDeletes);
 
     return 0;
 }
@@ -253,27 +266,44 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
     self->singletons = PyDict_New();
     self->watcherDispatch = NULL;
     self->debugOn = NULL;
+    self->deferredDeletes = PyList_New(0);
 
     return 0;
 }
 
+static PyObject *t_view_repr(t_view *self)
+{
+    PyObject *format = PyString_FromString("<%s: %s (%d)>");
+    PyObject *typeName = PyObject_GetAttrString((PyObject *) self->ob_type,
+                                                "__name__");
+    PyObject *version = PyLong_FromLongLong(self->version);
+    PyObject *args = PyTuple_Pack(3, typeName, self->name, version);
+    PyObject *repr = PyString_Format(format, args);
 
-static PyObject *t_view__isRepository(t_view *self, PyObject *args)
+    Py_DECREF(args);
+    Py_DECREF(version);
+    Py_DECREF(typeName);
+    Py_DECREF(format);
+
+    return repr;
+}
+
+static PyObject *t_view__isRepository(t_view *self)
 {
     Py_RETURN_FALSE;
 }
 
-static PyObject *t_view__isView(t_view *self, PyObject *args)
+static PyObject *t_view__isView(t_view *self)
 {
     Py_RETURN_TRUE;
 }
 
-static PyObject *t_view__isItem(t_view *self, PyObject *args)
+static PyObject *t_view__isItem(t_view *self)
 {
     Py_RETURN_FALSE;
 }
 
-static PyObject *t_view__isRecording(t_view *self, PyObject *args)
+static PyObject *t_view__isRecording(t_view *self)
 {
     if (self->status & RECORDING)
         Py_RETURN_TRUE;
@@ -281,17 +311,17 @@ static PyObject *t_view__isRecording(t_view *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_view_isNew(t_view *self, PyObject *args)
+static PyObject *t_view_isNew(t_view *self)
 {
     Py_RETURN_FALSE;
 }
 
-static PyObject *t_view_isStale(t_view *self, PyObject *args)
+static PyObject *t_view_isStale(t_view *self)
 {
     Py_RETURN_FALSE;
 }
 
-static PyObject *t_view_isRefCounted(t_view *self, PyObject *args)
+static PyObject *t_view_isRefCounted(t_view *self)
 {
     if (self->status & REFCOUNTED)
         Py_RETURN_TRUE;
@@ -299,7 +329,7 @@ static PyObject *t_view_isRefCounted(t_view *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_view_isLoading(t_view *self, PyObject *args)
+static PyObject *t_view_isLoading(t_view *self)
 {
     if (self->status & LOADING)
         Py_RETURN_TRUE;
@@ -320,7 +350,77 @@ static PyObject *t_view__setLoading(t_view *self, PyObject *loading)
     return wasLoading;
 }
 
-static PyObject *t_view_isOpen(t_view *self, PyObject *args)
+static PyObject *t_view_isDeferringDelete(t_view *self)
+{
+    if (self->status & DEFERDEL)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject *t_view_deferDelete(t_view *self)
+{
+    if (self->status & COMMITTING)
+    {
+        PyErr_SetString(PyExc_ValueError, "Cannot defer deletes during commit");
+        return NULL;
+    }
+
+    self->status |= DEFERDEL;
+    Py_RETURN_NONE;
+}
+
+static PyObject *t_view_effectDelete(t_view *self)
+{
+    if (self->status & DEFERDEL)
+    {
+        PyObject *items = self->deferredDeletes;
+        int len = PyList_GET_SIZE(items);
+        int i = -1;
+
+        self->status &= ~DEFERDEL;
+
+        while (++i < len) {
+            PyObject *tuple = PyList_GET_ITEM(items, i);
+            PyObject *item = PyTuple_GET_ITEM(tuple, 0);
+            PyObject *deletePolicy = PyTuple_GET_ITEM(tuple, 1);
+            PyObject *result =
+                PyObject_CallMethodObjArgs(item, delete_NAME, Py_False,
+                                           deletePolicy, NULL);
+            if (!result)
+                return NULL;
+            Py_DECREF(result);
+        }
+
+        PyList_SetSlice(items, 0, len, NULL);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *t_view_cancelDelete(t_view *self)
+{
+    if (self->status & DEFERDEL)
+    {
+        PyObject *items = self->deferredDeletes;
+        int len = PyList_GET_SIZE(items);
+        int i = -1;
+
+        self->status &= ~DEFERDEL;
+
+        while (++i < len) {
+            PyObject *tuple = PyList_GET_ITEM(items, i);
+            t_item *item = (t_item *) PyTuple_GET_ITEM(tuple, 0);
+            item->status &= ~DEFERRED;
+        }
+
+        PyList_SetSlice(items, 0, len, NULL);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *t_view_isOpen(t_view *self)
 {
     if (self->status & OPEN &&
         ((t_repository *) self->repository)->status & OPEN)
@@ -329,7 +429,7 @@ static PyObject *t_view_isOpen(t_view *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_view_isDebug(t_view *self, PyObject *args)
+static PyObject *t_view_isDebug(t_view *self)
 {
     if (((t_repository *) self->repository)->status & DEBUG)
         Py_RETURN_TRUE;
@@ -337,7 +437,7 @@ static PyObject *t_view_isDebug(t_view *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_view__isVerify(t_view *self, PyObject *args)
+static PyObject *t_view__isVerify(t_view *self)
 {
     if (self->status & VERIFY)
         Py_RETURN_TRUE;
@@ -1004,11 +1104,13 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "REFCOUNTED", REFCOUNTED);
             PyDict_SetItemString_Int(dict, "LOADING", LOADING);
             PyDict_SetItemString_Int(dict, "COMMITTING", COMMITTING);
+            PyDict_SetItemString_Int(dict, "DEFERDEL", DEFERDEL);
             PyDict_SetItemString_Int(dict, "FDIRTY", FDIRTY);
             PyDict_SetItemString_Int(dict, "RECORDING", RECORDING);
             PyDict_SetItemString_Int(dict, "VERIFY", VERIFY);
 
             refresh_NAME = PyString_FromString("refresh");
+            delete_NAME = PyString_FromString("delete");
             logger_NAME = PyString_FromString("logger");
             _loadItem_NAME = PyString_FromString("_loadItem");
             _readItem_NAME = PyString_FromString("_readItem");

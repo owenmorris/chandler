@@ -21,27 +21,29 @@ static int t_item_clear(t_item *self);
 static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_item_init(t_item *self, PyObject *args, PyObject *kwds);
 static PyObject *t_item_repr(t_item *self);
-static PyObject *t_item_isNew(t_item *self, PyObject *args);
-static PyObject *t_item_isDeleting(t_item *self, PyObject *args);
-static PyObject *t_item_isDeleted(t_item *self, PyObject *args);
-static PyObject *t_item_isStale(t_item *self, PyObject *args);
-static PyObject *t_item_isPinned(t_item *self, PyObject *args);
-static PyObject *t_item_isSchema(t_item *self, PyObject *args);
-static PyObject *t_item_isDirty(t_item *self, PyObject *args);
+static PyObject *t_item_isNew(t_item *self);
+static PyObject *t_item_isDeleting(t_item *self);
+static PyObject *t_item_isDeleted(t_item *self);
+static PyObject *t_item_isDeferring(t_item *self);
+static PyObject *t_item_isDeferred(t_item *self);
+static PyObject *t_item_isStale(t_item *self);
+static PyObject *t_item_isPinned(t_item *self);
+static PyObject *t_item_isSchema(t_item *self);
+static PyObject *t_item_isDirty(t_item *self);
 static PyObject *t_item_getDirty(t_item *self, PyObject *args);
-static PyObject *t_item__isNDirty(t_item *self, PyObject *args);
-static PyObject *t_item__isKDirty(t_item *self, PyObject *args);
-static PyObject *t_item__isNoDirty(t_item *self, PyObject *args);
-static PyObject *t_item__isCopyExport(t_item *self, PyObject *args);
-static PyObject *t_item__isImporting(t_item *self, PyObject *args);
-static PyObject *t_item_isMutating(t_item *self, PyObject *args);
-static PyObject *t_item__isRepository(t_item *self, PyObject *args);
-static PyObject *t_item__isView(t_item *self, PyObject *args);
-static PyObject *t_item__isItem(t_item *self, PyObject *args);
-static PyObject *t_item__isRefs(t_item *self, PyObject *args);
-static PyObject *t_item__isUUID(t_item *self, PyObject *args);
-static PyObject *t_item__isMerged(t_item *self, PyObject *args);
-static PyObject *t_item_isWatched(t_item *self, PyObject *args);
+static PyObject *t_item__isNDirty(t_item *self);
+static PyObject *t_item__isKDirty(t_item *self);
+static PyObject *t_item__isNoDirty(t_item *self);
+static PyObject *t_item__isCopyExport(t_item *self);
+static PyObject *t_item__isImporting(t_item *self);
+static PyObject *t_item_isMutating(t_item *self);
+static PyObject *t_item__isRepository(t_item *self);
+static PyObject *t_item__isView(t_item *self);
+static PyObject *t_item__isItem(t_item *self);
+static PyObject *t_item__isRefs(t_item *self);
+static PyObject *t_item__isUUID(t_item *self);
+static PyObject *t_item__isMerged(t_item *self);
+static PyObject *t_item_isWatched(t_item *self);
 static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args);
 static PyObject *t_item_hasLocalAttributeValue(t_item *self, PyObject *args);
 static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args);
@@ -116,6 +118,8 @@ static PyMethodDef t_item_methods[] = {
     { "isNew", (PyCFunction) t_item_isNew, METH_NOARGS, NULL },
     { "isDeleting", (PyCFunction) t_item_isDeleting, METH_NOARGS, NULL },
     { "isDeleted", (PyCFunction) t_item_isDeleted, METH_NOARGS, NULL },
+    { "isDeferring", (PyCFunction) t_item_isDeferring, METH_NOARGS, NULL },
+    { "isDeferred", (PyCFunction) t_item_isDeferred, METH_NOARGS, NULL },
     { "isStale", (PyCFunction) t_item_isStale, METH_NOARGS, NULL },
     { "isPinned", (PyCFunction) t_item_isPinned, METH_NOARGS, NULL },
     { "isSchema", (PyCFunction) t_item_isSchema, METH_NOARGS, "" },
@@ -289,6 +293,8 @@ static PyObject *t_item_repr(t_item *self)
 
         if (self->status & DELETED)
             status = " (deleted)";
+        else if (self->status & DEFERRED)
+            status = " (deferred)";
         else if (self->status & STALE)
             status = " (stale)";
         else if (self->status & NEW)
@@ -319,7 +325,7 @@ static PyObject *t_item_repr(t_item *self)
     }
 }
 
-static PyObject *t_item_isNew(t_item *self, PyObject *args)
+static PyObject *t_item_isNew(t_item *self)
 {
     if (self->status & NEW)
         Py_RETURN_TRUE;
@@ -327,7 +333,7 @@ static PyObject *t_item_isNew(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item_isDeleting(t_item *self, PyObject *args)
+static PyObject *t_item_isDeleting(t_item *self)
 {
     if (self->status & DELETING)
         Py_RETURN_TRUE;
@@ -335,7 +341,7 @@ static PyObject *t_item_isDeleting(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
     
-static PyObject *t_item_isDeleted(t_item *self, PyObject *args)
+static PyObject *t_item_isDeleted(t_item *self)
 {
     if (self->status & DELETED)
         Py_RETURN_TRUE;
@@ -343,7 +349,23 @@ static PyObject *t_item_isDeleted(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
     
-static PyObject *t_item_isStale(t_item *self, PyObject *args)
+static PyObject *t_item_isDeferring(t_item *self)
+{
+    if (self->status & DEFERRING)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+    
+static PyObject *t_item_isDeferred(t_item *self)
+{
+    if (self->status & DEFERRED)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+    
+static PyObject *t_item_isStale(t_item *self)
 {
     if (self->status & STALE)
         Py_RETURN_TRUE;
@@ -351,7 +373,7 @@ static PyObject *t_item_isStale(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
     
-static PyObject *t_item_isPinned(t_item *self, PyObject *args)
+static PyObject *t_item_isPinned(t_item *self)
 {
     if (self->status & PINNED)
         Py_RETURN_TRUE;
@@ -359,7 +381,7 @@ static PyObject *t_item_isPinned(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item_isSchema(t_item *self, PyObject *args)
+static PyObject *t_item_isSchema(t_item *self)
 {
     if (self->status & SCHEMA)
         Py_RETURN_TRUE;
@@ -367,7 +389,7 @@ static PyObject *t_item_isSchema(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item_isDirty(t_item *self, PyObject *args)
+static PyObject *t_item_isDirty(t_item *self)
 {
     if (self->status & DIRTY)
         Py_RETURN_TRUE;
@@ -380,7 +402,7 @@ static PyObject *t_item_getDirty(t_item *self, PyObject *args)
     return PyInt_FromLong(self->status & DIRTY);
 }
 
-static PyObject *t_item__isNDirty(t_item *self, PyObject *args)
+static PyObject *t_item__isNDirty(t_item *self)
 {
     if (self->status & NDIRTY)
         Py_RETURN_TRUE;
@@ -388,7 +410,7 @@ static PyObject *t_item__isNDirty(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isKDirty(t_item *self, PyObject *args)
+static PyObject *t_item__isKDirty(t_item *self)
 {
     if (self->status & KDIRTY)
         Py_RETURN_TRUE;
@@ -396,7 +418,7 @@ static PyObject *t_item__isKDirty(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isNoDirty(t_item *self, PyObject *args)
+static PyObject *t_item__isNoDirty(t_item *self)
 {
     if (self->status & NODIRTY)
         Py_RETURN_TRUE;
@@ -404,7 +426,7 @@ static PyObject *t_item__isNoDirty(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isCopyExport(t_item *self, PyObject *args)
+static PyObject *t_item__isCopyExport(t_item *self)
 {
     if (self->status & COPYEXPORT)
         Py_RETURN_TRUE;
@@ -412,7 +434,7 @@ static PyObject *t_item__isCopyExport(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isImporting(t_item *self, PyObject *args)
+static PyObject *t_item__isImporting(t_item *self)
 {
     if (self->status & IMPORTING)
         Py_RETURN_TRUE;
@@ -420,7 +442,7 @@ static PyObject *t_item__isImporting(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item_isMutating(t_item *self, PyObject *args)
+static PyObject *t_item_isMutating(t_item *self)
 {
     if (self->status & MUTATING)
         Py_RETURN_TRUE;
@@ -428,17 +450,17 @@ static PyObject *t_item_isMutating(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isRepository(t_item *self, PyObject *args)
+static PyObject *t_item__isRepository(t_item *self)
 {
     Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isView(t_item *self, PyObject *args)
+static PyObject *t_item__isView(t_item *self)
 {
     Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isItem(t_item *self, PyObject *args)
+static PyObject *t_item__isItem(t_item *self)
 {
     if (PyObject_TypeCheck(self, &ItemType))
         Py_RETURN_TRUE;
@@ -446,17 +468,17 @@ static PyObject *t_item__isItem(t_item *self, PyObject *args)
     Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isRefs(t_item *self, PyObject *args)
+static PyObject *t_item__isRefs(t_item *self)
 {
     Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isUUID(t_item *self, PyObject *args)
+static PyObject *t_item__isUUID(t_item *self)
 {
     Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isMerged(t_item *self, PyObject *args)
+static PyObject *t_item__isMerged(t_item *self)
 {
     if (self->status & MERGED)
         Py_RETURN_TRUE;
@@ -464,7 +486,7 @@ static PyObject *t_item__isMerged(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item_isWatched(t_item *self, PyObject *args)
+static PyObject *t_item_isWatched(t_item *self)
 {
     if (self->status & WATCHED)
         Py_RETURN_TRUE;
@@ -1428,8 +1450,10 @@ void _init_item(PyObject *m)
             PyModule_AddObject(m, "Default", Default);
 
             PyDict_SetItemString_Int(dict, "DELETED", DELETED);
+            PyDict_SetItemString_Int(dict, "DEFERRED", DEFERRED);
             PyDict_SetItemString_Int(dict, "VDIRTY", VDIRTY);
             PyDict_SetItemString_Int(dict, "DELETING", DELETING);
+            PyDict_SetItemString_Int(dict, "DEFERRING", DEFERRING);
             PyDict_SetItemString_Int(dict, "RAW", RAW);
             PyDict_SetItemString_Int(dict, "FDIRTY", FDIRTY);
             PyDict_SetItemString_Int(dict, "SCHEMA", SCHEMA);
