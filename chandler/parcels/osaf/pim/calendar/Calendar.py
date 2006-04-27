@@ -950,7 +950,7 @@ class CalendarEventMixin(RemindableMixin):
             # included in our recurrence rule.
             rruleset = self.createDateUtilFromRule()
             
-            if not event.startTime in rruleset:
+            if not event.recurrenceID in rruleset:
                 event = event.getNextOccurrence()
         
             
