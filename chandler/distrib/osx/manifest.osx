@@ -33,6 +33,8 @@ dest=Contents/Resources
 glob=*.dylib,*.r,*.rsrc,*.jnilib,*.la
 lib
 src=chandler/release/db
+glob=*.la,*.dylib,db_*
+bin
 lib
 
 # Grab icu libs

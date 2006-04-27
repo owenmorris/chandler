@@ -28,6 +28,11 @@ icutu34d.dll
 icule34d.dll
 icuuc34d.dll
 
+# grab DB binaries
+src=chandler/debug/bin
+dest=debug/bin
+glob=db*.exe
+db
 
 # Grab all py, pyc, etc. from debug/bin/DLLs
 src=chandler/debug/bin

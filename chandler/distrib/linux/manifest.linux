@@ -69,8 +69,9 @@ dest=release/db/lib
 src=chandler/release/db/lib
 libdb-4.4.so
 libdb_java-4.4.so
-src=chandler/release/lib
-dest=release/lib
+dest=release/db
+src=chandler/release/db
+bin
 
 # Grab the gcc 3.4.x runtime libs
 src=chandler/release/lib

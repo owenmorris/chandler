@@ -27,6 +27,12 @@ icutu34.dll
 icule34.dll
 icuuc34.dll
 
+# grab DB binaries
+src=chandler/release/bin
+dest=release/bin
+glob=db*.exe
+db
+
 # Grab all py, pyc, etc. from release/bin/DLLs
 src=chandler/release/bin
 dest=release/bin
