@@ -198,7 +198,7 @@ void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 
 void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
 {
-#if 1 && __WXDEBUG__
+#if 0 && __WXDEBUG__
         if ( event.LeftIsDown() )
 		DumpInfo(
 			((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
