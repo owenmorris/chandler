@@ -1031,7 +1031,32 @@ class KindParameterizedEvent(BlockEvent):
     )
     
 class NewItemEvent(KindParameterizedEvent):
+    """
+    Creates a new Item, adds it to a C{collection} and displays it properly.
+
+    If the NewItemEvent implements the C{onNewItem} method it will be called to
+    create the item. This is handy if you want to use a dialog to get some
+    information to create the item. If C{onNewItem} returns None, no Item will
+    be created.
+      
+    If you don't implement C{onNewItem} an Item of C{kindParamter} Kind is
+    created. If C{kindParamter} is None, a Kind matching the ApplicationBar is
+    created, e.g. if you're in Calendar View you'll get a Calendar Item. If
+    you're in All you'll get a Note.
+
+    The view in the sidebar is switched to match the kind, e.g. if you create a
+    CalendarItem, you'll switch to the Calendar View. If there isn't a
+    kind specific view, you'll switch to All view.
+
+    If the C{collection} is None or it's not a UserCollection, the Item will be
+    added to the all collection.
+    
+    If you specify a C{collectionAddEvent} that references an AddToSidebarEvent and
+    your C{collection} is not in the Sidebar, it will be used to add your
+    C{collection} if it's not in the sidebar.
+    """
     collection = schema.One(ContentCollection, defaultValue = None)
+    collectionAddEvent = schema.One("BlockEvent", defaultValue = None)
     methodName = schema.One(schema.Text, initialValue = 'onNewItemEvent')
     commitAfterDispatch = schema.One(schema.Boolean, initialValue = True)
     dispatchEnum = schema.One(

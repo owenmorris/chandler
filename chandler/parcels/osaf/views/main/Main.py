@@ -186,7 +186,10 @@ class MainView(View):
         if kindParameter is not None:
             sidebar.setPreferredKind (kindParameter)
 
-        if collection is not selectedCollection:
+        if not collection in sidebar.contents and event.collectionAddEvent is not None:
+            self.post (event.collectionAddEvent, {})
+
+        if collection in sidebar.contents and collection is not selectedCollection:
             sidebar.postEventByName("SelectItemsBroadcast", {'items':[collection]})
 
         # repository collection implements add to print an error that

@@ -25,12 +25,7 @@ class ImportCertificateEvent(NewItemEvent):
         """
         Called to create a new Item.
         """
-        theCertificate = certificate.importCertificateDialog(self.itsView)
-        # Make sure to add certificate to the sidebar
-        if theCertificate is not None:
-            menuBlock = schema.ns(__name__, self.itsView).CertificateView
-            menuBlock.post (menuBlock.event, {})
-        return theCertificate
+        return certificate.importCertificateDialog(self.itsView)
 
 def installParcel(parcel, oldVersion=None):
     # Register an extra attribute editor mapping for one of our types
@@ -84,6 +79,7 @@ def installParcel(parcel, oldVersion=None):
         parcel, 'importCertificateEvent',
         blockName = 'importCertificateEvent',
         collection = certificateCollection,
+        collectionAddEvent = addCertificateToSidebarEvent,
         kindParameter = certstore.Certificate.getKind(parcel.itsView))
 
     blocks.MenuItem.update(
