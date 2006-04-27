@@ -14,6 +14,7 @@ from osaf.pim.structs import SizeType, RectType
 from osaf.pim import KindCollection
 from osaf.usercollections import UserCollection
 from osaf.framework.certstore import certificate
+from application import schema
 
 
 class ImportCertificateEvent(NewItemEvent):
@@ -24,11 +25,14 @@ class ImportCertificateEvent(NewItemEvent):
         """
         Called to create a new Item.
         """
-        return certificate.importCertificateDialog(self.itsView)
+        theCertificate = certificate.importCertificateDialog(self.itsView)
+        # Make sure to add certificate to the sidebar
+        if theCertificate is not None:
+            menuBlock = schema.ns(__name__, self.itsView).CertificateView
+            menuBlock.post (menuBlock.event, {})
+        return theCertificate
 
 def installParcel(parcel, oldVersion=None):
-    from application import schema
-
     # Register an extra attribute editor mapping for one of our types
     AttributeEditorMapping.register(parcel, 
         { 'typeEnum': 'osaf.framework.attributeEditors.StringAttributeEditor' },
@@ -36,7 +40,10 @@ def installParcel(parcel, oldVersion=None):
 
     blocks    = schema.ns("osaf.framework.blocks", parcel)
     main      = schema.ns("osaf.views.main", parcel)
-    certstore = schema.ns("osaf.framework.certstore", parcel)
+    # The following trick finds the location of the directory containing
+    # this file. This allows us to move the parcel to a new location without
+    # editing any code in it.
+    certstore = schema.ns(__name__[:__name__.rfind('.')], parcel)
     detail    = schema.ns("osaf.framework.blocks.detail", parcel)
 
     certificateCollection = KindCollection.update(
