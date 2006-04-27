@@ -324,9 +324,9 @@ void wxChandlerGridLabelWindow::GetLabelAlignment( bool isColumn, int index, wxS
 
 void wxChandlerGridLabelWindow::SetLabelAlignment( bool isColumn, int index, const wxSize &value )
 {
+#if defined(__GRID_LABELS_ARE_COLHEADERS__)
 // WXUNUSED( isColumn )
 
-#if defined(__GRID_LABELS_ARE_COLHEADERS__)
 	wxClassParent_ChandlerGridLabelWindow::SetLabelAlignment( (long)index, value );
 #else
 // WXUNUSED( index )
@@ -357,12 +357,12 @@ wxColumnHeader::wxColumnHeader(
 	wxWindowID			id,
 	const wxPoint		&pos,
 	const wxSize		&size,
-	long				style,
+	long				styleVariant,
 	const wxString		&name )
 {
 	Init();
 
-	(void)Create( parent, id, pos, size, style, name );
+	(void)Create( parent, id, pos, size, styleVariant, name );
 }
 
 wxColumnHeader::~wxColumnHeader()
@@ -432,7 +432,7 @@ bool wxColumnHeader::Create(
 	wxWindowID			id,
 	const wxPoint		&pos,
 	const wxSize		&size,
-	long				style,
+	long				styleVariant,
 	const wxString		&name )
 {
 wxString		localName;
@@ -458,12 +458,18 @@ bool			bResultV;
 		actualSize.y = m_DefaultItemSize.y;
 #endif
 
-	// NB: we're stealing a bit in the style argument from Win32 and wx to support ListHeader attributes
+	// NB: we're stealing a bit in the styleVariant argument from Win32 and wx to support ListHeader attributes
 	// assumes CH_STYLE_HeaderIsVertical is integral power of two value
-	if (style & CH_STYLE_HeaderIsVertical)
+	if (styleVariant & CH_STYLE_HeaderIsVertical)
 	{
 		m_BUseVerticalOrientation = true;
-		style &= ~CH_STYLE_HeaderIsVertical;
+		styleVariant &= ~CH_STYLE_HeaderIsVertical;
+
+#if defined(__WXMSW__)
+		// NB: the native Win32 ColumnHeader CommonControl implementation
+		// doesn't (currently) support vertical orientation (i.e., row headers)
+		SetAttribute( CH_ATTR_GenericRenderer, true );
+#endif
 	}
 
 	// NB: the CreateControl call crashes on MacOS
@@ -474,13 +480,13 @@ bool			bResultV;
 	bResultV =
 		CreateControl(
 			parent, id, pos, actualSize,
-			style, wxDefaultValidator, localName );
+			styleVariant, wxDefaultValidator, localName );
 
 	if (bResultV)
 	{
 	WXDWORD		msStyle, exstyle;
 
-		msStyle = MSWGetStyle( style, &exstyle );
+		msStyle = MSWGetStyle( styleVariant, &exstyle );
 		bResultV = MSWCreateControl( localName, msStyle, pos, actualSize, wxEmptyString, exstyle );
 	}
 
@@ -488,7 +494,7 @@ bool			bResultV;
 	bResultV =
 		wxControl::Create(
 			parent, id, pos, actualSize,
-			style, wxDefaultValidator, localName );
+			styleVariant, wxDefaultValidator, localName );
 #endif
 
 #if 0
@@ -497,7 +503,7 @@ bool			bResultV;
 		// NB: is any of this necessary??
 
 		// needed to get the arrow keys normally used for dialog navigation
-		SetWindowStyle( style );
+		SetWindowStyle( styleVariant );
 
 		// we need to set the position as well because the main control position is not
 		// the same as the one specified in pos if we have the controls above it
