@@ -22,6 +22,7 @@ reposRoot    = 'http://svn.osafoundation.org/server'
 reposModules = [('cosmo',  'cosmo/trunk',),
                ]
 reposBuild   = [('cosmo',  'clean build'),
+                ('cosmo/migrate', 'javaapp:deploy'),
                ]
 reposTest    = [('cosmo',  'test'),
                ]
@@ -60,6 +61,16 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             moduleSource = moduleSource.replace('/trunk', '/branches/%s' % branchID)
 
         if os.path.exists(moduleDir):
+            log.write("[tbox] Reverting migrate/src/test/previous to prevent local test changes from polluting svn update\n")
+
+            os.chdir(os.path.join(moduleDir, 'migrate', 'src', 'test'))
+
+            cmd = [svnProgram, 'revert', '-R', 'previous']
+
+            outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
+
+            hardhatutil.dumpOutputList(outputList, log) 
+
             log.write("[tbox] Checking for source updates\n")
             print "updating %s" % module
 

@@ -5,15 +5,15 @@ object, log.  True is returned if a new build was created, False is returned
 if no code has changed, and an exception is raised if there are problems.
 """
 
-import os, sys, re, glob
+import os, sys, re, glob, shutil
 import hardhatutil, hardhatlib
 
-path       = os.environ.get('PATH', os.environ.get('path'))
-whereAmI   = os.path.dirname(os.path.abspath(hardhatlib.__file__))
-svnProgram = hardhatutil.findInPath(path, "svn")
-antProgram = hardhatutil.findInPath(path, "maven")
-logPath    = 'hardhat.log'
-separator  = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+path         = os.environ.get('PATH', os.environ.get('path'))
+whereAmI     = os.path.dirname(os.path.abspath(hardhatlib.__file__))
+svnProgram   = hardhatutil.findInPath(path, "svn")
+mavenProgram = hardhatutil.findInPath(path, "maven")
+logPath      = 'hardhat.log'
+separator    = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
 treeName     = "Cosmo"
 sleepMinutes = 30
@@ -21,11 +21,11 @@ sleepMinutes = 30
 reposRoot    = 'http://svn.osafoundation.org/server'
 reposModules = [('scooby',  'scooby/trunk',),
                ]
-reposBuild   = [('scooby',  'clean'),
+reposBuild   = [('scooby',  'dist:clean clean'),
                ]
 reposTest    = [('scooby',  'test'),
                ]
-reposDist    = [('scooby',  'dist:release war:deploy', 'dist',   'scooby*.tar.gz'),
+reposDist    = [('scooby',  'dist:release war:deploy', 'dist', 'scooby*.tar.gz'),
                ]
 
 def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, branchID=None, revID=None):
@@ -115,34 +115,90 @@ def doBuild(workingDir, log):
     for (module, target) in reposBuild:
         moduleDir = os.path.join(workingDir, module)
         mavenDir  = os.path.join(workingDir, '..', 'tbox_maven', module)
+        jarsDir   = os.path.join(workingDir, '..', 'tbox_maven', 'endorsed_jars')
+
+        mavenOptions = '-Dmaven.home.local=%s -Djava.endorsed.dirs=%s' % (mavenDir, jarsDir)
 
         print "Building [%s]" % module
 
         try:
             os.chdir(moduleDir)
 
-            outputList = hardhatutil.executeCommandReturnOutput(
-                            [antProgram,
-                             '-Dmaven.home.local=' + mavenDir,
-                             target])
+            outputList = hardhatutil.executeCommandReturnOutput([mavenProgram, mavenOptions, target])
 
             hardhatutil.dumpOutputList(outputList, log)
 
         except:
             log.write("[tbox] Build failed for [%s]\n" % module)
 
+# Scripts Run :: 9; Script Passes :: 8; Script Failures :: 1; Tests Run :: 126; Test Passes :: 97; Test Failures :: 29
+
+def doFunctionalTests(workingDir, log):
+    log.write("[tbox] Running functional tests\n")
+
+    moduleDir = os.path.join(workingDir, 'scooby')
+
+    setupSnarfInstance(workingDir, log)
+
+    try:
+        os.chdir(moduleDir)
+
+        outputList = hardhatutil.executeCommandReturnOutput([mavenProgram, mavenOptions, target])
+
+        hardhatutil.dumpOutputList(outputList, log)
+
+    except Exception, e:
+        doCopyLog("***Error during tests***", workingDir, logPath, log)
+        return "test_failed"
+    else:
+        doCopyLog("Tests successful", workingDir, logPath, log)
+
+    return "success"
+
+
+def setupSnarfInstance(workingDir, log):
+    log.write('[tbox] finding snarf tarball to run\n')
+
+    snarfDir = os.path.join(workingDir, '..', 'tbox_snarf', 'output')
+
+    dirs   = os.listdir(snarfDir)
+    items  = []
+    result = None
+
+    for dir in dirs:
+        if os.path.isdir(os.path.abspath(dir)):
+            items.append(dir)
+
+    snarfItems = sorted(items)
+
+    if len(snarfItems) > 0:
+        snarfDir = os.path.join(snarfDir, snarfItems[-1])
+
+        tarballs = glob.glob('%s/*.gz' % snarfDir)
+
+        if len(tarballs) > 0:
+            tarball = tarballs[-1]
+
+            shutil.copy(tarball, )
+            os.chdir(workingDir)
+
+
 def doTests(workingDir, log):
     log.write("[tbox] Running unit tests\n")
 
     for (module, target) in reposTest:
         moduleDir = os.path.join(workingDir, module)
+        mavenDir  = os.path.join(workingDir, '..', 'tbox_maven', module)
+        jarsDir   = os.path.join(workingDir, '..', 'tbox_maven', 'endorsed_jars')
+
+        mavenOptions = '-Dmaven.home.local=%s -Djava.endorsed.dirs=%s' % (mavenDir, jarsDir)
 
         print "Testing [%s]" % module
 
         try:
             os.chdir(moduleDir)
 
-            outputList = hardhatutil.executeCommandReturnOutput([antProgram, target])
+            outputList = hardhatutil.executeCommandReturnOutput([mavenProgram, mavenOptions, target])
 
             hardhatutil.dumpOutputList(outputList, log)
 
@@ -160,13 +216,17 @@ def doDistribution(workingDir, log, outputDir, buildVersion, buildVersionEscaped
 
     for (module, target, distSource, fileGlob) in reposDist:
         moduleDir = os.path.join(workingDir, module)
+        mavenDir  = os.path.join(workingDir, '..', 'tbox_maven', module)
+        jarsDir   = os.path.join(workingDir, '..', 'tbox_maven', 'endorsed_jars')
+
+        mavenOptions = '-Dmaven.home.local=%s -Djava.endorsed.dirs=%s' % (mavenDir, jarsDir)
 
         print "Distribution [%s]" % module
 
         try:
             os.chdir(moduleDir)
 
-            outputList = hardhatutil.executeCommandReturnOutput([antProgram, target])
+            outputList = hardhatutil.executeCommandReturnOutput([mavenProgram, mavenOptions, target])
 
             hardhatutil.dumpOutputList(outputList, log)
 
