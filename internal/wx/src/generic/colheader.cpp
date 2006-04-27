@@ -133,6 +133,9 @@ BEGIN_EVENT_TABLE( wxChandlerGridLabelWindow, wxClassParent_ChandlerGridLabelWin
 END_EVENT_TABLE()
 
 
+#define wxCH_minimum_x		16
+
+
 wxChandlerGridLabelWindow::wxChandlerGridLabelWindow(
 	wxGrid *parent,
 	wxWindowID id,
@@ -195,7 +198,7 @@ void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 
 void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
 {
-#if 0 && __WXDEBUG__
+#if 1 && __WXDEBUG__
         if ( event.LeftIsDown() )
 		DumpInfo(
 			((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
@@ -727,7 +730,7 @@ bool			bIsVertical;
 	targetSize.x =
 	targetSize.y = 0;
 
-	minSize.x = 16;
+	minSize.x = wxCH_minimum_x;
 	minSize.y = 17;
 
 	parentSize.x =
@@ -777,7 +780,7 @@ wxSize		targetSize, minSize, parentSize;
 	targetSize.x =
 	targetSize.y = 0;
 
-	minSize.x = 16;
+	minSize.x = wxCH_minimum_x;
 	minSize.y = 17;
 
 	// "best" width is parent's width;
@@ -847,7 +850,7 @@ void wxColumnHeader::SetDefaultItemSize(
 void wxColumnHeader::GetDefaultLabelValue(
 	bool			isColumn,
 	int			index,
-	wxString&	value )
+	wxString		&value )
 {
 	if (isColumn)
 	{
@@ -1643,7 +1646,7 @@ void wxColumnHeader::SetItemCount(
 		itemCount = 0;
 
 	if (itemCount > m_ItemCount)
-		AddEmptyItems( -1, itemCount - m_ItemCount );
+		AddEmptyItems( -1, itemCount - m_ItemCount, true );
 	else if (itemCount < m_ItemCount)
 		DeleteItems( itemCount, m_ItemCount - itemCount );
 }
@@ -1712,12 +1715,18 @@ void wxColumnHeader::AppendItem(
 
 void wxColumnHeader::AddEmptyItems(
 	long				beforeIndex,
-	long				itemCount )
+	long				itemCount,
+	bool				bUseDefaultLabel )
 {
+wxString	labelValue;
 long		i;
 
 	for (i=0; i<itemCount; i++)
-		AddItem( beforeIndex, wxEmptyString, CH_JUST_Left, -1, false, true, true );
+	{
+		if (bUseDefaultLabel)
+			GetDefaultLabelValue( !m_BUseVerticalOrientation, i, labelValue );
+		AddItem( beforeIndex, labelValue, CH_JUST_Left, -1, false, true, true );
+	}
 }
 
 void wxColumnHeader::AddItem(
@@ -1746,9 +1755,9 @@ bool					bIsVertical;
 	if (extentX < 0)
 	{
 		if (!bIsVertical)
-			extentX = m_DefaultItemSize.y;
-		else
 			extentX = m_DefaultItemSize.x;
+		else
+			extentX = m_DefaultItemSize.y;
 	}
 
 	// set specified values

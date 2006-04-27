@@ -168,7 +168,8 @@ public:
 		bool				bSortAscending = false );
 	void AddEmptyItems(
 		long				beforeIndex,
-		long				itemCount );
+		long				itemCount,
+		bool				bUseDefaultLabel = false );
 	void AddItem(
 		long				beforeIndex,
 		const wxString		&textBuffer,
