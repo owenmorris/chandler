@@ -440,6 +440,7 @@ class PublishCollectionDialog(wx.Dialog):
                                                     "PublishedButtonsPanel")
         self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)
 
+        self.Bind(wx.EVT_CLOSE,  self.OnPublishDone)
         self.Bind(wx.EVT_BUTTON, self.OnPublishDone, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCopy,
                   id=wx.xrc.XRCID("BUTTON_CLIPBOARD"))
