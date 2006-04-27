@@ -1770,12 +1770,12 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         #XXX: [i18n] These Header labels need to leverage PyICU for the display names
         headerLabels = [_(u"Week"), "S", "M", "Tu", "W", "Th", "F", "S", '']
         for header in headerLabels:
-            weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center,
+            weekColumnHeader.AppendItem(header, (wx.colheader.CH_ALIGN_Center, wx.colheader.CH_ALIGN_Center),
                                         0, bSortEnabled=False)
             
         expandoColumn = len(headerLabels) - 1
-        weekColumnHeader.SetBitmapJustification(expandoColumn,
-                                                wx.colheader.CH_JUST_Center)
+        weekColumnHeader.SetBitmapAlignment(expandoColumn,
+                                                (wx.colheader.CH_ALIGN_Center, wx.colheader.CH_ALIGN_Center))
         self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED,
                   self.OnDayColumnSelect, weekColumnHeader)
 
@@ -1843,7 +1843,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         drawInfo = self
         self.weekColumnHeader.Freeze()
         for (i,width) in enumerate(drawInfo.columnWidths):
-            self.weekColumnHeader.SetUIExtent(i, (0,width))
+            originPt = (0, 0)
+            extentPt = self.weekColumnHeader.GetUIExtent(i)
+            extentPt.x = width
+            self.weekColumnHeader.SetUIExtent(i, extentPt)
         self.weekColumnHeader.Thaw()
 
     def OnSize(self, event):
@@ -1907,7 +1910,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             currentDate = startDate + timedelta(days=day)
             dayName = u"%s %d" %(shortWeekdays[actualDay + 1],
                                  currentDate.day)
-            self.weekColumnHeader.SetLabelText(day+1, dayName)
+            self.weekColumnHeader.SetLabelText(day + 1, dayName)
         
         startOfDay = time(tzinfo=ICUtzinfo.floating)
         self.currentSelectedDate = datetime.combine(selectedDate, startOfDay)
@@ -1920,7 +1923,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.Refresh()
         
     def OnDayColumnSelect(self, event):
-        
         colIndex = self.weekColumnHeader.GetSelectedItem()
         
         # column 0, week button
@@ -1935,8 +1937,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         # all other cases mean a day was selected
         # OnDaySelect takes a zero-based day, and our first day is in column 1
-        return self.OnDaySelect(colIndex-1)
-
+        return self.OnDaySelect(colIndex - 1)
 
     # Should this height logic should move to wxAllDayEventsCanvas?
     # yes: most of it centers around properties of the all day area

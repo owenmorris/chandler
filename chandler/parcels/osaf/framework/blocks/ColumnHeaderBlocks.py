@@ -49,7 +49,7 @@ class ColumnHeader (RectangularChild):
 
         # add columns.
         for header in self.columnHeadings:
-            wxColHeaderInstance.AppendItem(header, wx.colheader.CH_JUST_Center, 20, bSortEnabled=False)
+            wxColHeaderInstance.AppendItem(header, (wx.colheader.CH_ALIGN_Center, wx.colheader.CH_ALIGN_Center), 20, bSortEnabled=False)
 
         # set a default size-event handler  (this may need to be removed)
         wxColHeaderInstance.Bind(wx.EVT_SIZE, self.defaultOnSize)
