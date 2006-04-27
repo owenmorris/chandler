@@ -326,13 +326,16 @@ class FilteredCollection(ContentCollection):
         displayName=u"FilteredCollection"
     )
 
+    source = schema.One(ContentCollection, initialValue=None)
     filterExpression = schema.One(schema.Text, initialValue="")
     filterAttributes = schema.Sequence(schema.Text, initialValue=[])
 
+    schema.addClouds(
+        copying = schema.Cloud(byCloud=[source]),
+    )
+
     def __init__(self, *args, **kwds):
 
-        source = kwds.pop('source', None)
-        
         super(FilteredCollection, self).__init__(*args, **kwds)
 
         attrTuples = set()
@@ -341,7 +344,7 @@ class FilteredCollection(ContentCollection):
             attrTuples.add((i, "remove"))
 
         setattr(self, self.__collection__,
-                FilteredSet(source, self.filterExpression,
+                FilteredSet(self.source, self.filterExpression,
                             tuple(attrTuples)))
 
 
@@ -457,13 +460,15 @@ class SmartCollection(ContentCollection):
                          self.getItemDisplayName().encode('ascii', 'replace'))
 
 
-    def __init__(self, *args, **kwds):
-        source = kwds.pop('source', None)
-        exclusions = kwds.pop('exclusions', None)
-        trash = kwds.pop('trash', 'default')
-        
-        super(SmartCollection, self).__init__(*args, **kwds)
-        
+    def __init__(self, itsName=None, itsParent=None,
+                 itsKind=None, itsView=None,
+                 source=None, exclusions=None, trash="default",
+                 *args, **kwds):
+        super(SmartCollection, self).__init__(itsName=itsName,
+                                              itsParent=itsParent,
+                                              itsKind=itsKind,
+                                              itsView=itsView,
+                                              *args, **kwds)
         self._setup(source, exclusions, trash)
 
     def _setup(self, source=None, exclusions=None,
@@ -521,12 +526,9 @@ class SmartCollection(ContentCollection):
 
         set = Difference(innerSource, exclusions)
         if trash is not None:
-            # typical case
             set = Difference(set, trash)
             self.trash = trash
         else:
-            # pretty much for 'My Items' so myItems.remove() puts
-            # stuff in the trash
             self.trash = exclusions
 
         setattr(self, self.__collection__, set)

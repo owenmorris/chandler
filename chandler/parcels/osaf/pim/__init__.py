@@ -22,8 +22,6 @@ from collections import KindCollection, ContentCollection, \
      FilteredCollection, ListCollection, SmartCollection, \
      IndexedSelectionCollection
 
-from repository.item.Sets import Intersection, FilteredSet
-
 import tasks, mail, calendar.Calendar
 from i18n import OSAFMessageFactory as _
 
@@ -84,16 +82,17 @@ def installParcel(parcel, oldVersion=None):
 
     mine = UnionCollection.update(parcel, 'mine')
 
-    # We're using raw sets rather than full collections here because
-    # access to these intermediate sets are not needed elsewhere
-    mineNotes = Intersection(mine, notes)
+    # it would be nice to get rid of these intermediate fully-fledged
+    # item collections, and replace them with lower level Set objects
+    mineNotes = IntersectionCollection.update(parcel, 'mineNotes',
+                                              sources=[mine, notes])
 
-    nonRecurringNotes = FilteredSet(mineNotes,
-                                    "not filter(None, view.findValues(uuid, ('isGenerated', False), ('modificationFor', None)))",
-                                    (('isGenerated', 'set'),
-                                     ('isGenerated', 'remove'),
-                                     ('modificationFor', 'set'),
-                                     ('modificationFor', 'remove')))
+    nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
+        source=mineNotes,
+        # filter(None, values) will filter out all non True values
+        filterExpression=u"not filter(None, view.findValues(uuid, ('isGenerated', False), ('modificationFor', None)))",
+        filterAttributes=['isGenerated', 'modificationFor']
+    )
 
     # the "All" / "My" collection
     allCollection = SmartCollection.update(parcel, 'allCollection',
@@ -122,7 +121,6 @@ def installParcel(parcel, oldVersion=None):
 
 
     # bug 4477
-    # it would be nice to make this a FilteredSet.. but we can't yet
     eventsWithRemindersIncludingTrash = FilteredCollection.update(
         parcel, 'eventsWithRemindersIncludingTrash',
         source=events,
