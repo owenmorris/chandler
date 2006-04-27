@@ -46,8 +46,10 @@ enum wxColumnHeaderAttribute
     CH_ATTR_VerticalOrientation,
     CH_ATTR_Unicode,
     CH_ATTR_GenericRenderer,
+    CH_ATTR_FixedHeight,
+    CH_ATTR_ProportionalResizing,
     CH_ATTR_VisibleSelection,
-    CH_ATTR_ProportionalResizing
+    CH_ATTR_MultiItemSelection
 };
 
 enum wxColumnHeaderItemAttribute
@@ -59,13 +61,13 @@ enum wxColumnHeaderItemAttribute
     CH_ITEM_ATTR_FixedWidth
 };
 
-enum wxColumnHeaderJustification
+enum wxColumnHeaderAlignment
 {
     // NB: 1) wxID_JUSTIFY_ values enum as: center, fill, right, left
     // NB: 2) existing Wx justification enum has (too) many inapplicable elements
-    CH_JUST_Left = wxID_JUSTIFY_LEFT,
-    CH_JUST_Center = wxID_JUSTIFY_CENTER,
-    CH_JUST_Right = wxID_JUSTIFY_RIGHT
+    CH_ALIGN_Left = wxID_JUSTIFY_LEFT,
+    CH_ALIGN_Center = wxID_JUSTIFY_CENTER,
+    CH_ALIGN_Right = wxID_JUSTIFY_RIGHT
 };
 
 enum wxColumnHeaderSelectionDrawStyle
@@ -164,7 +166,7 @@ public:
     void SetDefaultItemSize(
         wxSize        targetSize );
 
-    long GetTotalUIExtent(
+    wxSize GetTotalUIExtent(
         long            itemCount = (-1),
         bool            bStartAtBase = false ) const;
     bool ResizeToFit(
@@ -211,7 +213,7 @@ public:
         long                itemIndex );
     void AppendItem(
         const wxString        &textBuffer,
-        long                textJust,
+        const wxSize        &textAlign,
         long                extentX = (-1),
         bool                bSelected = false,
         bool                bSortEnabled = false,
@@ -223,7 +225,7 @@ public:
     void AddItem(
         long                beforeIndex,
         const wxString        &textBuffer,
-        long                textJust,
+        const wxSize        &textAlign,
         long                extentX = (-1),
         bool                bSelected = false,
         bool                bSortEnabled = false,
@@ -245,27 +247,30 @@ public:
     void SetBitmapRef(
         long                itemIndex,
         wxBitmap        &imageRef );
-    long GetBitmapJustification(
+    wxSize GetBitmapAlignment(
         long                itemIndex ) const;
-    void SetBitmapJustification(
+    void SetBitmapAlignment(
         long                itemIndex,
-        long                targetJust );
+        const wxSize        &targetAlign );
     wxString GetLabelText(
         long                itemIndex ) const;
     void SetLabelText(
         long                itemIndex,
         const wxString        &textBuffer );
-    long GetLabelJustification(
+    wxSize GetLabelAlignment(
         long                itemIndex ) const;
-    void SetLabelJustification(
+    void SetLabelAlignment(
         long                itemIndex,
-        long                textJust );
+        const wxSize        &textAlign );
 
-    wxSize GetUIExtent(
-        long                itemIndex ) const;
+    void GetUIExtent(
+        long                itemIndex,
+        wxSize            &originPt,
+        wxSize            &extentPt ) const;
     void SetUIExtent(
         long                itemIndex,
-        wxSize            &extentPt );
+        const wxSize        &originPt,
+        const wxSize        &extentPt );
 
     bool GetItemAttribute(
         long                            itemIndex,

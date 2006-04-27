@@ -110,7 +110,7 @@ public:
 	void SetDefaultItemSize(
 		const wxSize		targetSize );
 
-	long GetTotalUIExtent(
+	wxSize GetTotalUIExtent(
 		long				itemCount = (-1),
 		bool				bStartAtBase = false ) const;
 	bool ResizeToFit(
@@ -161,7 +161,7 @@ public:
 		long				itemIndex );
 	void AppendItem(
 		const wxString		&textBuffer,
-		long				textJust,
+		const wxSize		&textAlign,
 		long				extentX = (-1),
 		bool				bSelected = false,
 		bool				bSortEnabled = false,
@@ -173,7 +173,7 @@ public:
 	void AddItem(
 		long				beforeIndex,
 		const wxString		&textBuffer,
-		long				textJust,
+		const wxSize		&textAlign,
 		long				extentX = (-1),
 		bool				bSelected = false,
 		bool				bSortEnabled = false,
@@ -197,28 +197,31 @@ public:
 	void SetBitmapRef(
 		long				itemIndex,
 		wxBitmap			&bitmapRef );
-	long GetBitmapJustification(
+	wxSize GetBitmapAlignment(
 		long				itemIndex ) const;
-	void SetBitmapJustification(
+	void SetBitmapAlignment(
 		long				itemIndex,
-		long				targetJust );
+		const wxSize		&targetAlign );
 
 	wxString GetLabelText(
 		long				itemIndex ) const;
 	void SetLabelText(
 		long				itemIndex,
 		const wxString		&textBuffer );
-	long GetLabelJustification(
+	wxSize GetLabelAlignment(
 		long				itemIndex ) const;
-	void SetLabelJustification(
+	void SetLabelAlignment(
 		long				itemIndex,
-		long				targetJust );
+		const wxSize		&targetAlign );
 
-	wxSize GetUIExtent(
-		long				itemIndex ) const;
+	void GetUIExtent(
+		long				itemIndex,
+		wxSize			&originPt,
+		wxSize			&extentPt ) const;
 	void SetUIExtent(
 		long				itemIndex,
-		wxSize			&extentPt );
+		const wxSize		&originPt,
+		const wxSize		&extentPt );
 
 	bool GetItemAttribute(
 		long						itemIndex,
@@ -295,7 +298,7 @@ protected:
 		long			iInsertAfter,
 		long			nWidth,
 		const void		*titleText,
-		long			textJust,
+		long			textAlignX,
 		bool			bUseUnicode,
 		bool			bSelected,
 		bool			bSortEnabled,
@@ -325,6 +328,7 @@ protected:
 protected:
 	wxRect					m_NativeBoundsR;
 	wxSize				m_DefaultItemSize;
+	wxSize				m_DefaultItemAlignment;
 	wxFont				m_Font;
 	wxColour				m_SelectionColour;
 	wxColumnHeaderItem		**m_ItemList;
@@ -340,6 +344,7 @@ protected:
 	bool					m_BFixedHeight;			// Mac,MSW: always true; otherwise: false
 	bool					m_BProportionalResizing;
 	bool					m_BVisibleSelection;
+	bool					m_BMultiItemSelection;
 
 	// NB: same as wxGrid[Row,Col]LabelWindow
 	DECLARE_DYNAMIC_CLASS(wxColumnHeader)
@@ -374,24 +379,24 @@ public:
 	void SetBitmapRef(
 		wxBitmap			&bitmapRef,
 		const wxRect		*boundsR );
-	long GetBitmapJustification( void ) const;
-	void SetBitmapJustification(
-		long				targetJust );
+	wxSize GetBitmapAlignment( void ) const;
+	void SetBitmapAlignment(
+		const wxSize		&targetAlign );
 
 	void GetLabelText(
 		wxString			&textBuffer ) const;
 	void SetLabelText(
 		const wxString		&textBuffer );
-	long GetLabelJustification( void ) const;
-	void SetLabelJustification(
-		long				targetJust );
+	wxSize GetLabelAlignment( void ) const;
+	void SetLabelAlignment(
+		const wxSize		&targetAlign );
 
 	void GetUIExtent(
-		long				&originX,
-		long				&extentX ) const;
+		wxSize			&originPt,
+		wxSize			&extentPt ) const;
 	void SetUIExtent(
-		long				originX,
-		long				extentX );
+		const wxSize		&originPt,
+		const wxSize		&extentPt );
 
 	bool GetAttribute(
 		wxColumnHeaderItemAttribute	flagEnum ) const;
@@ -455,7 +460,7 @@ public:
 		wxRect			*targetBoundsR );
 	static void GenericGetBitmapItemBounds(
 		const wxRect		*itemBoundsR,
-		long				targetJustification,
+		wxSize			targetAlign,
 		const wxBitmap	*targetBitmap,
 		wxRect			*targetBoundsR );
 
@@ -470,17 +475,17 @@ public:
 
 	static wxChar * GetEllipsesString( void );
 
-	static long ConvertJustification(
+	static long ConvertAlignment(
 		long				sourceEnum,
 		bool				bToNative );
 
 protected:
 	wxString				m_LabelTextRef;
 	wxSize				m_LabelTextExtent;
+	wxSize				m_TextAlign;
 	long					m_LabelTextVisibleCharCount;
-	long					m_TextJust;
 	wxBitmap				*m_BitmapRef;
-	long					m_BitmapJust;
+	wxSize				m_BitmapAlign;
 	long					m_ButtonArrowStyle;
 	wxSize				m_Origin;
 	wxSize				m_Extent;
@@ -511,12 +516,12 @@ public:
 	~wxChandlerGridLabelWindow();
 
 	// new routines
-	void GetLabelValue( bool isColumn, int index, wxString& value );
-	void SetLabelValue( bool isColumn, int index, const wxString& value );
-	void GetLabelSize( bool isColumn, int index, int& value );
+	void GetLabelValue( bool isColumn, int index, wxString &value );
+	void SetLabelValue( bool isColumn, int index, const wxString &value );
+	void GetLabelSize( bool isColumn, int index, int &value );
 	void SetLabelSize( bool isColumn, int index, int value );
-	void GetLabelAlignment( bool isColumn, int index, int& hAlign, int& vAlign );
-	void SetLabelAlignment( bool isColumn, int index, int hAlign, int vAlign );
+	void GetLabelAlignment( bool isColumn, int index, wxSize &value );
+	void SetLabelAlignment( bool isColumn, int index, const wxSize &value );
 
 private:
 	wxGrid   *m_owner;

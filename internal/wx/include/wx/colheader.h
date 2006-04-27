@@ -43,8 +43,10 @@ typedef enum
 	CH_ATTR_VerticalOrientation,
 	CH_ATTR_Unicode,
 	CH_ATTR_GenericRenderer,
+	CH_ATTR_FixedHeight,
+	CH_ATTR_ProportionalResizing,
 	CH_ATTR_VisibleSelection,
-	CH_ATTR_ProportionalResizing
+	CH_ATTR_MultiItemSelection
 }
 wxColumnHeaderAttribute;
 
@@ -62,11 +64,11 @@ typedef enum
 {
 	// NB: 1) wxID_JUSTIFY_ values enum as: center, fill, right, left
 	// NB: 2) existing Wx justification enum has (too) many inapplicable elements
-	CH_JUST_Left = wxID_JUSTIFY_LEFT,
-	CH_JUST_Center = wxID_JUSTIFY_CENTER,
-	CH_JUST_Right = wxID_JUSTIFY_RIGHT
+	CH_ALIGN_Left = wxID_JUSTIFY_LEFT,
+	CH_ALIGN_Center = wxID_JUSTIFY_CENTER,
+	CH_ALIGN_Right = wxID_JUSTIFY_RIGHT
 }
-wxColumnHeaderJustification;
+wxColumnHeaderAlignment;
 
 typedef enum
 {

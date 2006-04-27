@@ -35,7 +35,7 @@ class TestPanel( wx.Panel ):
         ch1 = wx.colheader.ColumnHeader( self, self.baseCntlID, (self.colStartX, self.colStartY + 20), (self.baseWidth1, self.colHeight), 0 )
         dow = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]
         for v in dow:
-            ch1.AddItem( -1, v, wx.colheader.CH_JUST_Center, 50, 0, 0, 1 )
+            ch1.AddItem( -1, v, (wx.colheader.CH_ALIGN_Center, wx.colheader.CH_ALIGN_Center), 50, 0, 0, 1 )
         ch1.SetSelectedItem( 0 )
 
         self.ch1 = ch1
@@ -48,9 +48,9 @@ class TestPanel( wx.Panel ):
 
         ch2 = wx.colheader.ColumnHeader( self, self.baseCntlID + 1, (self.colStartX, self.colStartY + 100), (self.baseWidth2, self.colHeight), 0 )
         coffeeNames = [ "Juan", "Valdez", "coffee guy" ]
-        textJusts = [ wx.colheader.CH_JUST_Left, wx.colheader.CH_JUST_Center, wx.colheader.CH_JUST_Right ]
+        textAligns = [ wx.colheader.CH_ALIGN_Left, wx.colheader.CH_ALIGN_Center, wx.colheader.CH_ALIGN_Right ]
         for i, v in enumerate( coffeeNames ):
-            ch2.AddItem( -1, v, textJusts[i], 90, 0, 1, 1 )
+            ch2.AddItem( -1, v, (textAligns[i], wx.colheader.CH_ALIGN_Center), 90, 0, 1, 1 )
         ch2.SetSelectedItem( 0 )
 
         self.ch2 = ch2
@@ -65,7 +65,7 @@ class TestPanel( wx.Panel ):
         ch3 = wx.colheader.ColumnHeader( self, self.baseCntlID + 2, (self.colStartX + 400, self.colStartY + 20), (100, 5 * self.colHeight), wx.colheader.CH_STYLE_HeaderIsVertical )
         fancifulRowNames = [ "Stacked", "Tower", "Big", "Babylon", "Story" ]
         for i, v in enumerate( fancifulRowNames ):
-            ch3.AddItem( -1, v, wx.colheader.CH_JUST_Center, -1, 0, 0, 1 )
+            ch3.AddItem( -1, v, (wx.colheader.CH_ALIGN_Center, wx.colheader.CH_ALIGN_Center), -1, 0, 0, 1 )
         ch3.ResizeToFit()
         ch3.SetSelectedItem( 2 )
 
@@ -240,7 +240,7 @@ class TestPanel( wx.Panel ):
              itemIndex = ch.GetSelectedItem()
              if (itemIndex < 0):
                  itemIndex = itemCount
-             ch.AddItem( itemIndex, "", wx.colheader.CH_JUST_Center, 40, 0, 0, 1 )
+             ch.AddItem( itemIndex, "", (wx.colheader.CH_ALIGN_Cente, wx.colheader.CH_ALIGN_Center), 40, 0, 0, 1 )
              ch.SetItemAttribute( itemIndex, wx.colheader.CH_ITEM_ATTR_FixedWidth, 1 )
              testBmp = images.getTest2Bitmap()
              ch.SetBitmapRef( itemIndex, testBmp )
@@ -255,7 +255,7 @@ class TestPanel( wx.Panel ):
         ch = self.ch2
         itemIndex = ch.GetSelectedItem()
         if ((itemIndex > 0) and (itemIndex < ch.GetItemCount())):
-            curExtent = ch.GetUIExtent( itemIndex )
+            ch.GetUIExtent( itemIndex, curOrigin, curExtent )
             ch.ResizeDivision( itemIndex, curExtent.x - 5 )
             self.l0.SetLabel( "(%d): resized btw. %d and %d" %(ch.GetId(), itemIndex - 1, itemIndex) )
         else:
