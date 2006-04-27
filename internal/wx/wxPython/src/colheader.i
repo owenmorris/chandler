@@ -263,14 +263,16 @@ public:
         long                itemIndex,
         const wxSize        &textAlign );
 
-    void GetUIExtent(
+    wxSize GetUIOrigin(
+        long                itemIndex ) const;
+    void SetUIOrigin(
         long                itemIndex,
-        wxSize            &originPt,
-        wxSize            &extentPt ) const;
+        const wxSize        &targetSize );
+    wxSize GetUIExtent(
+        long                itemIndex ) const;
     void SetUIExtent(
         long                itemIndex,
-        const wxSize        &originPt,
-        const wxSize        &extentPt );
+        const wxSize        &targetSize );
 
     bool GetItemAttribute(
         long                            itemIndex,

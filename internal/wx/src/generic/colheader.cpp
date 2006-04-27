@@ -200,7 +200,7 @@ void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
 {
 #if 0 && defined(__WXDEBUG__) && __WXDEBUG__
-        if ( event.LeftIsDown() )
+	if (event.LeftIsDown())
 		DumpInfo(
 			((m_styleVariant & CH_STYLE_HeaderIsVertical) != 0)
 			? wxT("Row LH")
@@ -283,32 +283,32 @@ void wxChandlerGridLabelWindow::GetLabelSize( bool isColumn, int index, int& val
 void wxChandlerGridLabelWindow::SetLabelSize( bool isColumn, int index, int value )
 {
 #if defined(__GRID_LABELS_ARE_COLHEADERS__)
-wxSize	originPt, extentPt;
+wxSize	extentPt;
 
 	if (isColumn && (index == -1))
 	{
 		// array blast
 		for (long i=0; i<m_ItemCount; i++)
 		{
-			GetUIExtent( i, originPt, extentPt );
+			extentPt = GetUIExtent( i );
 			extentPt.x = value;
-			SetUIExtent( i, originPt, extentPt );
+			SetUIExtent( i, extentPt );
 		}
 	}
 	else
 	{
 		// normal (singular) case
-		GetUIExtent( index, originPt, extentPt );
+		extentPt = GetUIExtent( index );
 		extentPt.x = value;
-		SetUIExtent( index, originPt, extentPt );
+		SetUIExtent( index, extentPt );
 	}
 #else
 // WXUNUSED( index )
 
 	if (isColumn)
-		m_owner->SetColLabelSize( value.x );
+		m_owner->SetColLabelSize( value );
 	else
-		m_owner->SetRowLabelSize( value.x );
+		m_owner->SetRowLabelSize( value );
 #endif
 }
 
@@ -1837,7 +1837,8 @@ bool					bIsVertical;
 	{
 		if (!bIsVertical)
 		{
-			GetUIExtent( beforeIndex - 1, targetOrigin, targetExtent );
+			targetOrigin = GetUIOrigin( beforeIndex - 1 );
+			targetExtent = GetUIExtent( beforeIndex - 1 );
 			originX = ((targetExtent.x > 0) ? targetExtent.x : 0);
 			itemInfo.m_Origin.x = originX + targetOrigin.x;
 		}
@@ -2231,40 +2232,76 @@ wxColumnHeaderItem		*itemRef;
 	}
 }
 
-void wxColumnHeader::GetUIExtent(
-	long				itemIndex,
-	wxSize			&originPt,
-	wxSize			&extentPt ) const
+wxSize wxColumnHeader::GetUIOrigin(
+	long				itemIndex ) const
 {
 wxColumnHeaderItem		*itemRef;
+wxSize				resultSize;
 bool					bResultV;
 
 	itemRef = GetItemRef( itemIndex );
 	bResultV = (itemRef != NULL);
 	if (bResultV)
 	{
-		itemRef->GetUIExtent( originPt, extentPt );
+		resultSize = itemRef->GetUIOrigin();
 	}
 	else
 	{
-		originPt.x =
-		originPt.y =
-		extentPt.x =
-		extentPt.y = 0;
+		resultSize.x =
+		resultSize.y = 0;
 	}
+
+	return resultSize;
 }
 
-void wxColumnHeader::SetUIExtent(
+void wxColumnHeader::SetUIOrigin(
 	long				itemIndex,
-	const wxSize			&originPt,
-	const wxSize			&extentPt )
+	const wxSize			&targetSize )
 {
 wxColumnHeaderItem		*itemRef;
 
 	itemRef = GetItemRef( itemIndex );
 	if (itemRef != NULL)
 	{
-		itemRef->SetUIExtent( originPt, extentPt );
+		itemRef->SetUIOrigin( targetSize );
+
+		RecalculateItemExtents();
+		RefreshItem( itemIndex, true );
+	}
+}
+
+wxSize wxColumnHeader::GetUIExtent(
+	long				itemIndex ) const
+{
+wxColumnHeaderItem		*itemRef;
+wxSize				resultSize;
+bool					bResultV;
+
+	itemRef = GetItemRef( itemIndex );
+	bResultV = (itemRef != NULL);
+	if (bResultV)
+	{
+		resultSize = itemRef->GetUIExtent();
+	}
+	else
+	{
+		resultSize.x =
+		resultSize.y = 0;
+	}
+
+	return resultSize;
+}
+
+void wxColumnHeader::SetUIExtent(
+	long				itemIndex,
+	const wxSize			&targetSize )
+{
+wxColumnHeaderItem		*itemRef;
+
+	itemRef = GetItemRef( itemIndex );
+	if (itemRef != NULL)
+	{
+		itemRef->SetUIExtent( targetSize );
 
 		RecalculateItemExtents();
 		RefreshItem( itemIndex, true );
@@ -2548,7 +2585,8 @@ wxSize	itemOrigin, itemExtent;
 #endif
 
 	wxClientR = GetClientRect();
-	GetUIExtent( itemIndex, itemOrigin, itemExtent );
+	itemOrigin = GetUIOrigin( itemIndex );
+	itemExtent = GetUIExtent( itemIndex );
 	wxClientR.x = itemOrigin.x;
 	wxClientR.width = itemExtent.x;
 	Refresh( false, &wxClientR );
@@ -2783,7 +2821,7 @@ BOOL					bHasButtonArrow;
 	bHasButtonArrow = (itemRef->m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None);
 
 	// NB: should sort arrows and bitmaps be MutEx?
-	newFmt = wxColumnHeaderItem::ConvertAlignment( itemRef->m_BitmapAlign, true );
+	newFmt = wxColumnHeaderItem::ConvertAlignment( itemRef->m_BitmapAlign.x, true );
 	if (! bHasButtonArrow)
 	{
 		if (itemRef->ValidBitmapRef( itemRef->m_BitmapRef ))
@@ -2795,7 +2833,7 @@ BOOL					bHasButtonArrow;
 		}
 		else
 		{
-			newFmt = wxColumnHeaderItem::ConvertAlignment( itemRef->m_TextAlign, true );
+			newFmt = wxColumnHeaderItem::ConvertAlignment( itemRef->m_TextAlign.x, true );
 
 			// add string reference
 			newFmt |= HDF_STRING;
@@ -3053,25 +3091,33 @@ void wxColumnHeaderItem::SetLabelAlignment(
 	m_TextAlign = targetAlign;
 }
 
-void wxColumnHeaderItem::GetUIExtent(
-	wxSize			&originPt,
-	wxSize			&extentPt ) const
+wxSize wxColumnHeaderItem::GetUIOrigin( void ) const
 {
-	originPt = m_Origin;
-	extentPt = m_Extent;
+	return m_Origin;
+}
+
+void wxColumnHeaderItem::SetUIOrigin(
+	const wxSize		&targetSize )
+{
+	// NB: not currently permitted
+//	if ((targetSize.x >= 0) && (m_Origin.x != targetSize.x))
+//		m_Origin.x = targetSize.x;
+}
+
+wxSize wxColumnHeaderItem::GetUIExtent( void ) const
+{
+	return m_Extent;
 }
 
 void wxColumnHeaderItem::SetUIExtent(
-	const wxSize		&originPt,
-	const wxSize		&extentPt )
+	const wxSize		&targetSize )
 {
-	wxUnusedVar( originPt );
-
-	// NB: not currently permitted
-//	if ((originX >= 0) && (m_Origin.x != originX))
-//		m_Origin.x = originX;
-
-	ResizeToWidth( extentPt.x );
+	m_Extent = targetSize;
+	if (m_Extent.x < 0)
+		m_Extent.x = 0;
+	if (m_Extent.y < 0)
+		m_Extent.y = 0;
+	InvalidateTextExtent();
 }
 
 void wxColumnHeaderItem::ResizeToWidth(

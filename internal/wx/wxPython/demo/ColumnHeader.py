@@ -255,7 +255,7 @@ class TestPanel( wx.Panel ):
         ch = self.ch2
         itemIndex = ch.GetSelectedItem()
         if ((itemIndex > 0) and (itemIndex < ch.GetItemCount())):
-            ch.GetUIExtent( itemIndex, curOrigin, curExtent )
+            curExtent = ch.GetUIExtent( itemIndex )
             ch.ResizeDivision( itemIndex, curExtent.x - 5 )
             self.l0.SetLabel( "(%d): resized btw. %d and %d" %(ch.GetId(), itemIndex - 1, itemIndex) )
         else:
