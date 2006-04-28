@@ -455,9 +455,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             currentDragBox = self.dragState.currentDragBox
         else:
             currentDragBox = None
-            
+        
         # now generate conflict info
         self.CheckConflicts()
+        self.SetDrawOrder()
 
         # next, generate bounds rectangles for each canvasitem
         for canvasItem in self.canvasItemList:
@@ -485,11 +486,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         contents = CalendarSelection(self.blockItem.contents)
 
-        for canvasItem in self.drawOrderedCanvasItems():
+        for canvasItem in self.drawOrderedCanvasItems:
             selected = contents.isItemSelected(canvasItem.item)
             canvasItem.Draw(dc, styles, selected)
 
-    def drawOrderedCanvasItems(self):
+    def SetDrawOrder(self):
         """
         Calculate the order of canvas items, taking selection, history, and
         active collection into account.
@@ -525,7 +526,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                        orderLastMap.get(i) is not None)
         ordered.extend(selectedBoxes)
         
-        return ordered
+        self.drawOrderedCanvasItems = ordered
 
     def CheckConflicts(self):
         assert sorted(self.visibleItems, self.sortByStartTime) == self.visibleItems
@@ -551,6 +552,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             if item in self.orderLast:
                 self.orderLast.remove(item)
             self.orderLast.append(item)
+            for i, canvasItem in enumerate(self.drawOrderedCanvasItems):
+                if canvasItem.item == item:
+                    del self.drawOrderedCanvasItems[i]
+                    self.drawOrderedCanvasItems.append(canvasItem)
+                    break
             
         super(wxTimedEventsCanvas, self).OnSelectItem(item)
         
@@ -723,7 +729,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         into account, because sometimes items on the bottom of a stack
         of conflicting events is the currently selected one.
         """
-        for canvasItem in reversed(self.drawOrderedCanvasItems()):
+        for canvasItem in reversed(self.drawOrderedCanvasItems):
             if canvasItem.isHit(unscrolledPosition):
                 return canvasItem
 
