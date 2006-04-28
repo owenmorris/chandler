@@ -234,6 +234,11 @@ class Block(schema.Item):
         return BlockTemplate(theClass, blockName,
                              blockName=blockName, **attrs)
 
+    # Controls whether or not notifications will dirty the block.
+    ignoreNotifications = property(
+        lambda self: self.__dict__.get('__ignoreNotifications', 0),
+        lambda self, v: self.__dict__.update(__ignoreNotifications=v)) 
+    
     def stopNotificationDirt (self):
         assert (self.ignoreNotifications >= 0)
         if self.ignoreNotifications == 0:
@@ -253,17 +258,10 @@ class Block(schema.Item):
         A utility routine for onSetContents handlers that sets the
         contents of a block and updates the contents subscribers
         """
+        self.stopWatchingForChanges()
         self.contentsCollection = collection
-
-        # manage subscriptions
-        oldContents = getattr (self, 'contents', None)
-        if oldContents is item:
-            return
-        if isinstance(oldContents, ContentCollection):
-            oldContents.notificationQueueUnsubscribe(self)
-        if isinstance(item, ContentCollection):
-            item.notificationQueueSubscribe(self)
         self.contents = item
+        self.watchForChanges()
 
     def getProxiedContents(self):
         """ Get our 'contents', wrapped in a proxy if appropriate. """
@@ -288,16 +286,12 @@ class Block(schema.Item):
                 method = getattr (type (widget), "OnInit", None)
                 if method:
                     method (widget)
+                    
                 """
-                  For those blocks with Collection contents, we need to subscribe to notice changes
-                to items in the contents.
+                Subscribe to changes on our contents if appropriate.
                 """
-                contents = getattr (self, 'contents', None)
-                if isinstance (contents, ContentCollection):
-                    contents.notificationQueueSubscribe(self)
-                    # Add a non-persistent attribute that controls whether or not
-                    # notifications will dirty the block.
-                    self.ignoreNotifications = 0
+                self.watchForChanges()
+                
                 """
                   Add events to name lookup dictionary.
                 """
@@ -375,25 +369,196 @@ class Block(schema.Item):
         if (len (Globals.views) > 0 and Globals.views[-1] == self):
             Globals.views.pop()
 
+    # We keep track of what items we're watching for which blocks.
+    # watchingItems[itemUUID][attributeName] is a set() of blocks
+    # to be notified when we get a change notification about that
+    # item/attribute.
+    watchingItems = {}
+    if __debug__:
+        @classmethod
+        def dumpWatches(cls):
+            view = wx.GetApp().UIRepositoryView
+            for (uuid, attrDict) in Block.watchingItems.items():
+                i = view.findUUID(uuid, False)
+                print debugName(i or uuid)
+                for (a, blockSet) in attrDict.items():
+                    print "  %s: %s" % (a, ", ".join(map(debugName, blockSet)))
+
+    def whichAttribute(self):
+        # Which attribute is this block concerned with -- ours or our parent's
+        # 'viewAttribute'?
+        # @@@ BJS: this shouldn't need to use our parent's once the remaining old
+        # detail view blocks are rewritten.
+        return getattr(self, 'viewAttribute',
+                       getattr(self.parentBlock, 'viewAttribute', u''))
+
+    def getWatchList(self):
+        """
+        Get the list of item, attributeName tuples 
+        that we'll watch while rendered. By default, it's our
+        'contents' item, and our viewAttribute; if we don't have a 
+        viewAttribute, we return an empty list.
+        """
+        whichAttr = self.whichAttribute()
+        return whichAttr and [ (self.contents, whichAttr) ] or []
+
+    def watchForChanges(self):
+        if not hasattr(self, 'widget'):
+            return
+
+        contents = getattr (self, 'contents', None)
+        if contents is None or contents.isDeleted():
+            return # nothing to watch on
+
+        # If this looks like a collection, we'll subscribe to
+        # collection notifications (independent of whether the block
+        # implements onItemNotification - it probably just wants to be
+        # dirtied when its collection changes.)
+        if isinstance(contents, ContentCollection):
+            self.itsView.notificationQueueSubscribe(contents, self)
+            return
+
+        # It's not a collection. Does this block want item notifications?
+        if not (hasattr(type(self), 'onItemNotification') or
+                hasattr(self.widget, 'onItemNotification')):
+            return # nope - no one to notify
+        
+        # Do item subscription
+        assert not hasattr(self, 'watchedItemAttributes')
+        watchedItemAttributes = set()
+        watchList = self.getWatchList()
+        for (item, attr) in watchList:
+            if attr:
+                watchedItemAttributes.add((item, attr))
+                self.addWatch(item, attr)
+        if len(watchedItemAttributes):
+            self.watchedItemAttributes = watchedItemAttributes
+
+    def addWatch(self, item, *attributeNames):
+        item = getattr(item, 'proxiedItem', item)
+        uuid = item.itsUUID
+        itemDict = Block.watchingItems.setdefault(uuid, {})
+        if len(itemDict) == 0:
+            # We're not watching this item yet - start.
+            self.itsView.watchItem(self, item, 'onWatchNotification')
+        
+        getBasedMethod = getattr(type(item), 'getBasedAttributes', None)
+        if getBasedMethod is not None:
+            realAttributeNames = []
+            for attribute in attributeNames:
+                realAttributeNames.extend(getBasedMethod(item, attribute))
+            attributeNames = realAttributeNames
+            
+        for attributeName in attributeNames:
+            itemDict.setdefault(attributeName, set()).add(self)
+            
+    def stopWatchingForChanges(self):
+        contents = getattr (self, 'contents', None)
+        if contents is None:
+            return
+        
+        if isinstance(contents, ContentCollection):
+            self.itsView.notificationQueueUnsubscribe(contents, self)
+        else: # do item unsubscription
+            try:
+                watchedItemAttributes = self.watchedItemAttributes
+            except AttributeError:
+                pass
+            else:
+                for (item, attr) in watchedItemAttributes:
+                    self.removeWatch(item, attr)
+                del self.watchedItemAttributes         
+            
+    def removeWatch(self, item, *attributeNames):
+        """
+        Stop watching these attributes on this item
+        """
+        item = getattr(item, 'proxiedItem', item)
+        uuid = item.itsUUID
+        itemDict = Block.watchingItems.get(uuid, None)
+        if itemDict is not None:
+            getBasedMethod = getattr(type(item), 'getBasedAttributes', None)
+            if getBasedMethod is not None:
+                realAttributeNames = []
+                for attribute in attributeNames:
+                    realAttributeNames.extend(getBasedMethod(item, attribute))
+                attributeNames = realAttributeNames
+    
+            for attributeName in attributeNames:
+                blockSet = itemDict.get(attributeName, None)
+                if blockSet is not None:
+                    blockSet.discard(self)
+                    if len(blockSet) == 0:
+                        # we're no longer watching this attribute
+                        del itemDict[attributeName]
+
+            if len(itemDict) == 0:
+                # We're no longer watching any attributes on this item.
+                del Block.watchingItems[uuid]
+                self.itsView.unwatchItem(Block, item, 'onWatchNotification')
+        
+    @classmethod
+    def onWatchNotification(cls, op, uuid, names):
+        """
+        When an item someone's watching has changed, we need to synchronize
+        """
+        itemDict = Block.watchingItems.get(uuid, None)
+        if itemDict is not None:
+            notifications = {}
+            # Collect all the blocks we're supposed to notify about
+            # this item and these attributes
+            for attributeName in names:
+                for block in itemDict.get(attributeName, ()):
+                    if not block.ignoreNotifications:
+                        # add to (or start) the list of attributes on
+                        # this block that we need to notify now.
+                        notifications.setdefault(block, [])\
+                                     .append(attributeName)
+            # Do the notifications
+            for (block, attrs) in notifications.items():
+                block._sendItemNotificationAndSynchronize('itemChange',
+                                                          (op, uuid, attrs))
+        
     def onCollectionNotification(self, op, collection, name, other):
         """
           When our item collection has changed, we need to synchronize
         """
-        if (hasattr(self, 'widget') and not self.ignoreNotifications
-           and self.itsView is wx.GetApp().UIRepositoryView):
+        if (not self.ignoreNotifications and
+            self.itsView is wx.GetApp().UIRepositoryView):
+            self._sendItemNotificationAndSynchronize('collectionChange',
+                                                     (op, collection, 
+                                                      name, other))
+
+    def _sendItemNotificationAndSynchronize(self, notificationType, data):
+        # Note that we need to be sync'd at the next idle.
+        # (this is the normal case on receiving a notification like this, though
+        # an onItemNotificationMethod can call markClean if the next-idle
+        # sync isn't necessary) 
+        self.markDirty()
+        
+        # See if we (the block) want to be notified; if not, check our widget.
+        onItemNotification = getattr(type(self), 'onItemNotification', None)
+        if onItemNotification is not None:
+            onItemNotification(self, notificationType, data)
+        elif hasattr(self, 'widget'):
+            # (don't look up on type(self.widget) because it's not an Item,
+            # and so doesn't pay a repository lookup penalty)
             onItemNotification = getattr(self.widget, 'onItemNotification', None)
             if onItemNotification is not None:
-                onItemNotification('collectionChange', (op, collection, name, other))
-            self.synchronizeSoon()
+                onItemNotification(notificationType, data)
+        
+    IdToUUID = []               # A list mapping Ids to UUIDS
+    UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
+    dirtyBlocks = set()         # A set of blocks that need to be redrawn in OnIdle
 
-    def synchronizeSoon(self):
+    def markDirty(self):
         """ Invoke our general deferred-synchronization mechanism """
         # each block should have a hints dictionary
         self.dirtyBlocks.add(self.itsUUID)
 
-    IdToUUID = []               # A list mapping Ids to UUIDS
-    UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
-    dirtyBlocks = set()         # A set of blocks that need to be redrawn in OnIdle
+    def markClean(self):
+        """ Suppress our general deferred-synchronization mechanism """
+        self.dirtyBlocks.discard(self.itsUUID)
 
     @classmethod
     def wxOnDestroyWidget (theClass, widget):
@@ -405,13 +570,7 @@ class Block(schema.Item):
           Called just before a widget is destroyed. It is the opposite of
         instantiateWidget.
         """
-        contents = getattr (self, 'contents', None)
-        if isinstance (contents, ContentCollection):
-            # Remove the non-persistent attribute that controls whether or not
-            # notifications will dirty the block.
-            del self.ignoreNotifications
-            contents.notificationQueueUnsubscribe(self)
-
+        self.stopWatchingForChanges()
 
         eventsForNamedLookup = self.eventsForNamedLookup
         if eventsForNamedLookup is not None:
@@ -421,7 +580,7 @@ class Block(schema.Item):
                                                  self.blockNameToItemUUID)
 
         delattr (self, 'widget')
-        assert self.itsView.isRefCounted(), "respoitory must be opened with refcounted=True"
+        assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
             
         wx.GetApp().needsUpdateUI = True
 
@@ -476,9 +635,9 @@ class Block(schema.Item):
         if onBlock is None:
             onBlock = Block.getFocusBlock()
         if onBlock is not None:
-            saveValueMethod = getattr(onBlock, 'saveValue', None)
+            saveValueMethod = getattr(type(onBlock), 'saveValue', None)
             if saveValueMethod is not None:
-                saveValueMethod()
+                saveValueMethod(onBlock)
         
     def onShowHideEvent(self, event):
         self.isShown = not self.isShown
@@ -534,11 +693,11 @@ class Block(schema.Item):
                 blockItem.postEventByName ("SelectItemsBroadcast", arguments)
                 
                 # Let the block know about the preferred kind
-                method = getattr(blockItem, 'setPreferredKind', None)
+                method = getattr(type(blockItem), 'setPreferredKind', None)
                 if method:
                     preferredKind = getattr(UserCollection (item), 'preferredKind', False)
                     if preferredKind is not False:
-                        method (preferredKind)
+                        method(blockItem, preferredKind)
 
         # You either have something in items or implement onNewItem, but not both
         onNewItemMethod = getattr (type (event), "onNewItem", None)

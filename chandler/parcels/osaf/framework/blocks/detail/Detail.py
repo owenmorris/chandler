@@ -52,53 +52,39 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     """
     def onSetContentsEvent (self, event):
         # logger.debug("DetailRoot.onSetContentsEvent: %s", event.arguments['item'])
-        self.stopWatchingForChanges()
         Block.Block.finishEdits()
         self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
-        self.watchForChanges()
 
+    # This gives us easy access to a proxied version of our contents; where
+    # we want the unproxied version, we'll still use self.contents.
     item = property(fget=Block.Block.getProxiedContents, 
                     doc="Return the selected item, or None")
+
+    def getWatchList(self):
+        # Tell us if this item's kind changes.
+        return [ (self.contents, 'itsKind') ]
     
-    def onDestroyWidget(self):
-        self.stopWatchingForChanges()
-        super(DetailRootBlock, self).onDestroyWidget()
+    def onItemNotification(self, notificationType, data):
+        self.markClean() # we'll do whatever needs to be done here.
 
-    def watchForChanges(self):
-        if self.item is not None:
-            logger.debug('%s: watching for kind change on %s',
-                         debugName(self), debugName(self.item))
-            item = getattr(self.item, 'proxiedItem', self.item)
-            self.itsView.watchItem(self, item, 'onItemKindChanged')
-
-    def stopWatchingForChanges(self):
-        if self.item is not None:
-            logger.debug('%s: stopping watching for kind change on %s',
-                         debugName(self), debugName(self.item))
-            item = getattr(self.item, 'proxiedItem', self.item)
-            self.itsView.unwatchItem(self, item, 'onItemKindChanged')
-
-    def onItemKindChanged(self, op, uuid, attributes):
-        # Ignore notifications during stamping (but not deleting,
-        # for which we do want our parent to resync)
-        item = self.item
-        if item is None or item.isMutating():
-            logger.debug("%s: ignoring kind change to %s during stamping ", 
-                         debugName(self), debugName(self.item))
+        if notificationType != 'itemChange':
             return
-
-        # Ignore notifications for attributes we don't care about,
-        # unless the item's being deleted.
-        if not ('itsKind' in attributes or item.isDeleting()):
-            logger.debug("%s: ignoring changes to %s.", 
-                         debugName(self), attributes)
+        
+        # Ignore notifications during stamping
+        (op, uuid, attributes) = data
+        item = self.itsView.findUUID(uuid, False)
+        if item is None or item.isMutating():
+            #logger.debug("%s: ignoring kind change to %s during stamping.", 
+                         #debugName(self), debugName(item))
             return
         
         # It's for us - tell our parent to resync.
-        logger.debug("%s: Resyncing parent block due to kind change on %s", 
-                     debugName(self), debugName(self.item))
-        self.parentBlock.synchronizeWidget()
+        parentBlock = getattr(self, 'parentBlock', None)
+        if parentBlock is not None:
+            #logger.debug("%s: Resyncing parent block due to kind change on %s", 
+                         #debugName(self), debugName(self.contents))
+            parentBlock.synchronizeWidget()
         
     def unRender(self):
         # There's a wx bug on Mac (2857) that causes EVT_KILL_FOCUS events to happen
@@ -206,7 +192,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
                         reNotifyInside (child, item, indent + '  ')
                 except AttributeError:
                     pass
-            item = self.item
+            item = self.contents
             try:
                 itemDescription = item.itsKind.itsName + ' '
             except AttributeError:
@@ -238,10 +224,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         Return a list containing the item we're displaying. (This gets
         used for Send)
         """
-        if self.item is None:
-            return []
-        # If we've got a proxy, return the real item instead.
-        return [ getattr(self, 'proxiedItem', self.item) ]
+        return self.contents is not None and [ self.contents ] or []
 
     def onResynchronizeEvent(self, event):
         logger.debug("onResynchronizeEvent: resynching")
@@ -358,12 +341,9 @@ class DetailSynchronizer(Item):
         
 
     def onSetContentsEvent (self, event):
-        #logger.debug("DetailSynchronizer %s: onSetContentsEvent",
-                     #getattr(self, 'blockName', '?'))
-        self.stopWatchingForChanges()
+        # logger.debug("%s: onSetContentsEvent", debugName(self))
         self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
-        self.watchForChanges()
 
     item = property(fget=Block.Block.getProxiedContents, 
                     doc="Return the selected item, or None")
@@ -399,92 +379,18 @@ class DetailSynchronizer(Item):
             return True
         return False
 
-    def whichAttribute(self):
-        # define the attribute to be used: ours or our parent's
-        return getattr(self, 'viewAttribute',
-                       getattr(self.parentBlock, 'viewAttribute', u''))
-
-    def attributesToWatch(self):
-        """
-        Get the set of attributes that we'll watch while rendered
-        """
-        return [ self.whichAttribute() ]
-
-    def render(self):
-        super(DetailSynchronizer, self).render()
-        # Start watching the attributes that affect this block
-        item = self.item
-        if self.widget is not None and item is not None and \
-           not item.isDeleted():
-            self.watchForChanges()
-    
-    def onDestroyWidget(self):
-        self.stopWatchingForChanges()
-        super(DetailSynchronizer, self).onDestroyWidget()
-
-    def watchForChanges(self):
-        if not hasattr(self, 'widget'):
-            return
-        assert not hasattr(self.widget, 'watchedAttributes')
-        attrsToWatch = self.attributesToWatch()
-        if attrsToWatch is not None:
-            # Map the attributes to the real attributes they're based on
-            # (this isn't a list comprehension because we're relying on the
-            # list-flattening behavior provided by 'update')
-            watchedAttributes = set()
-            item = getattr(self.item, 'proxiedItem', self.item)
-            for a in attrsToWatch:
-                if a:
-                    watchedAttributes.update(item.getBasedAttributes(a))
-            if len(watchedAttributes):
-                #logger.debug('%s: watching for changes in %s on %s',
-                             #debugName(self), watchedAttributes, 
-                             #debugName(self.item))
-                self.itsView.watchItem(self, item, 'onWatchedItemChanged')
-                self.widget.watchedAttributes = watchedAttributes
-
-    def stopWatchingForChanges(self):
-        try:
-            watchedAttributes = self.widget.watchedAttributes
-        except AttributeError:
-            pass
-        else:
-            if watchedAttributes is not None:
-                #logger.debug('%s: stopping watching for changes in %s on %s',
-                             #debugName(self), watchedAttributes, 
-                             #debugName(self.item))
-                item = getattr(self.item, 'proxiedItem', self.item)
-                if item is not None:
-                    self.itsView.unwatchItem(self, item, 'onWatchedItemChanged')
-                del self.widget.watchedAttributes        
-
-    def onWatchedItemChanged(self, op, uuid, attributes):
-        # Ignore notifications during stamping or deleting
-        item = self.item
-        if item is None or item.isMutating() or item.isDeleting():
-            #logger.debug("%s: ignoring changes to %s during stamping or deletion.", 
-                         #debugName(self), attributes)
-            return
-
-        # Ignore spurious notifications that happen after our widget's been
-        # destroyed
-        try:
-            watchedAttrs = self.widget.watchedAttributes
-        except AttributeError:
-            #logger.debug("%s: ignoring changes to %s, no widget", 
-                         #debugName(self), attributes)
-            return
-
-        # Ignore notifications for attributes we don't care about
-        changedAttributesWeCareAbout = watchedAttrs.intersection(attributes)
-        if len(changedAttributesWeCareAbout) == 0:
-            #logger.debug("%s: ignoring changes to %s.", 
-                         #debugName(self), attributes)
+    def onItemNotification(self, notificationType, data):
+        self.markClean() # we'll do whatever needs to be done here.
+        
+        if notificationType != 'itemChange' or not hasattr(self, 'widget'):
             return
         
-        # It's for us - reload the widget
-        #logger.debug("%s: syncing because of changes to %s on %s", 
-                     #debugName(self), changedAttributesWeCareAbout, debugName(self.item))
+        # Ignore notifications during stamping or deleting
+        (op, uuid, attributes) = data
+        changedItem = self.itsView.findUUID(uuid, False)
+        if changedItem is None or changedItem.isMutating():
+            return
+        
         self.synchronizeWidget()
         if self.synchronizeItemDetail(self.item):
             self.detailRoot().relayoutSizer()
@@ -826,9 +732,9 @@ class AppearsInAttributeEditor(StaticStringAttributeEditor):
         item = getattr(item, 'proxiedItem', item)
         # Likewise, only a recurrence master appears 'in' the collection (for 0.6, anyway)
         # so if this item lets us get its master, do so and use that instead.
-        getMasterMethod = getattr(item, 'getMaster', None)
+        getMasterMethod = getattr(type(item), 'getMaster', None)
         if getMasterMethod is not None:
-            item = getMasterMethod()
+            item = getMasterMethod(item)
         
         # Ask each sidebar collection if this item's in it.
         app = schema.ns('osaf.app', item.itsView)
@@ -882,10 +788,12 @@ class TransparencyConditionalBlock(Item):
         # events, which happen to be anyTime too)
         return not ((item.anyTime and not item.allDay) or not item.duration)
 
-    def attributesToWatch(self):
-        attributes = super(TransparencyConditionalBlock, self).attributesToWatch()
-        attributes.extend(('anyTime', 'allDay', 'duration'))
-        return attributes
+    def getWatchList(self):
+        watchList = super(TransparencyConditionalBlock, self).getWatchList()
+        watchList.extend(((self.item, 'anyTime'), 
+                          (self.item, 'allDay'), 
+                          (self.item, 'duration')))
+        return watchList
 
 class CalendarTransparencySpacerBlock(TransparencyConditionalBlock, 
                                       SynchronizedSpacerBlock):
@@ -904,19 +812,12 @@ class TimeZoneConditionalBlock(Item):
         # Otherwise, it depends on the preference
         tzPrefs = schema.ns('osaf.app', item.itsView).TimezonePrefs
         return tzPrefs.showUI
-    
-    def watchForChanges(self):
-        super(TimeZoneConditionalBlock, self).watchForChanges()
-        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
-        self.itsView.watchItem(self, tzPrefs, 'onTimezonePrefsChanged')
 
-    def stopWatchingForChanges(self):
+    def getWatchList(self):
+        watchList = super(TimeZoneConditionalBlock, self).getWatchList()
         tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
-        self.itsView.unwatchItem(self, tzPrefs, 'onTimezonePrefsChanged')
-
-    def onTimezonePrefsChanged(self, op, uuid, attributes):
-        if self.item is not None and self.synchronizeItemDetail(self.item):
-            self.detailRoot().relayoutSizer()
+        watchList.append((tzPrefs, 'showUI'))
+        return watchList
 
 class CalendarTimeZoneSpacerBlock(TimeZoneConditionalBlock, 
                                   SynchronizedSpacerBlock):

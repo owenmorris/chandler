@@ -186,52 +186,57 @@ class SMTPClient(object):
 
         """If currently sending a message put the next request in the Queue."""
 
-        if self.mailMessage is not None:
-            sending = (self.mailMessage.itsUUID == mailMessageUUID)
-
-            """Check that the mailMessage in not already Queued"""
-            if mailMessageUUID in self.pending:
-                if __debug__:
-                    trace("SMTPClient Queue already contains message: %s" % mailMessageUUID)
-
-            elif sending:
-                """Check that the mailMessage in not currently being sent"""
-                if __debug__:
-                    trace("SMTPClient currently sending message: %s" % mailMessageUUID)
-
-            else:
-                self.pending.insert(0, mailMessageUUID)
-
-                if __debug__:
-                    trace("SMTPClient adding to the Queue message: %s" % mailMessageUUID)
-
-            return
-
-        """ Refresh our view before retrieving Account info"""
-        self.view.refresh()
-
-        """Get the account, get the mail message and hand off to an instance to send
-           if someone already sending them put in a queue"""
-
-        self._getAccount()
-        self.mailMessage = self._getMailMessage(mailMessageUUID)
-
-        self.mailMessage.outgoingMessage(self.account)
-        now = datetime.now(ICUtzinfo.default)
-        self.mailMessage.dateSent = now
-        self.mailMessage.dateSentString = dateTimeToRFC2882Date(now)
-
-        """Clear out any previous DeliveryErrors from a previous attempt"""
-        for item in self.mailMessage.deliveryExtension.deliveryErrors:
-            item.delete()
-
-        """Get the sender's Email Address will either be the Reply-To or From field"""
-        sender = self._getSender()
-
-        if self._mailMessageHasErrors(sender):
-            return
-
-        messageText = kindToMessageText(self.mailMessage)
+        try:
+            if self.mailMessage is not None:
+                sending = (self.mailMessage.itsUUID == mailMessageUUID)
+    
+                """Check that the mailMessage in not already Queued"""
+                if mailMessageUUID in self.pending:
+                    if __debug__:
+                        trace("SMTPClient Queue already contains message: %s" % mailMessageUUID)
+    
+                elif sending:
+                    """Check that the mailMessage in not currently being sent"""
+                    if __debug__:
+                        trace("SMTPClient currently sending message: %s" % mailMessageUUID)
+    
+                else:
+                    self.pending.insert(0, mailMessageUUID)
+    
+                    if __debug__:
+                        trace("SMTPClient adding to the Queue message: %s" % mailMessageUUID)
+    
+                return
+    
+            """ Refresh our view before retrieving Account info"""
+            self.view.refresh()
+    
+            """Get the account, get the mail message and hand off to an instance to send
+               if someone already sending them put in a queue"""
+    
+            self._getAccount()
+            self.mailMessage = self._getMailMessage(mailMessageUUID)
+    
+            self.mailMessage.outgoingMessage(self.account)
+            now = datetime.now(ICUtzinfo.default)
+            self.mailMessage.dateSent = now
+            self.mailMessage.dateSentString = dateTimeToRFC2882Date(now)
+    
+            """Clear out any previous DeliveryErrors from a previous attempt"""
+            for item in self.mailMessage.deliveryExtension.deliveryErrors:
+                item.delete()
+    
+            """Get the sender's Email Address will either be the Reply-To or From field"""
+            sender = self._getSender()
+    
+            if self._mailMessageHasErrors(sender):
+                return
+    
+            messageText = kindToMessageText(self.mailMessage)
+        except Exception, e:
+            if __debug__:
+                trace(e)
+            raise
 
         d = defer.Deferred()
         d.addCallback(self._mailSuccessCheck)

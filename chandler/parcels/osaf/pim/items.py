@@ -579,7 +579,7 @@ class ContentItem(schema.Item):
         
         # Not redirected. If it's Calculated, see what it's based on; 
         # otherwise, just return a list containing its own name.
-        descriptor = getattr(self.__class__, attribute)
+        descriptor = getattr(self.__class__, attribute, None)
         return getattr(descriptor, 'basedOn', (attribute,))
     
     def isAttributeModifiable(self, attribute):

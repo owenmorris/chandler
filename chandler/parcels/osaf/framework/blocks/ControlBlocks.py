@@ -930,7 +930,7 @@ class ReminderTimer(Timer):
         super(ReminderTimer, self).onDestroyWidget(*args, **kwds)
 
     def onRemindersChanged(self, op, item, attribute):
-        self.synchronizeSoon()
+        self.markDirty()
 
     def getPendingReminders (self):
         """ Return a list of all reminder tuples with fire times in the past, 
@@ -1005,7 +1005,7 @@ class ReminderTimer(Timer):
             if createIt:
                 reminderDialog = ReminderDialog.ReminderDialog(wx.GetApp().mainFrame, -1)
                 self.widget.reminderDialog = reminderDialog
-                reminderDialog.dismissCallback = self.synchronizeSoon
+                reminderDialog.dismissCallback = self.markDirty
             else:
                 reminderDialog = None
         return reminderDialog
