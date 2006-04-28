@@ -26,7 +26,7 @@ BUILD_PLUGINS=Chandler-HelloWorldPlugin Chandler-FeedsPlugin
 # When a version changes, the ARCHIVES lists below needs to be updated.
 
 # these get installed into release or debug
-ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)5.tar.gz \
+ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)6.tar.gz \
          $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)21.tar.gz \
          $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)3.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)7.tar.gz \
