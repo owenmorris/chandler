@@ -546,8 +546,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
        
                    # We've found all past and future conflicts of this one,
                    # so count of up the conflicts
-                   if canvasItem.item.displayName == 'Hmm':
-                       print "here"
                    canvasItem.CalculateConflictDepth()
 
     # handle mouse related actions: move, resize, create, select
