@@ -330,7 +330,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         """
         if not seq: return 0
         
-        for index, value in enumerate(seq):
+        for index, value in enumerate(sorted(seq)):
             if index != value:
                 return index
                 

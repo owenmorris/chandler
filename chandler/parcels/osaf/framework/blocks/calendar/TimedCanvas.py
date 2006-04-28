@@ -104,46 +104,41 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
             primaryCollection = self.blockItem.contentsCollection
             
-            def insertInSortedList(eventList, newElement):
-                # insertInSortedList serves two functions, membership testing
-                # and sorted insertion, if it didn't, could use bisect.insort
+            def insertInSortedList(itemList, newElement, attr=None):
+                # iterate over itemList, if attr isn't None, get attr to find
+                # the event to be sorted against. Could do a binary search, too
+                # bad bisect doesn't accept a cmp argument...
                 insertIndex = 0
+
+                new = newElement                
+                if attr is not None:
+                    new = getattr(newElement, attr)
                 
-                for event in eventList:
-                    if event is newElement:
-                        return False
-                    if self.sortByStartTime(event, newElement) > 0:
+                for item in itemList:
+                    if attr is not None:
+                        item = getattr(item, attr)
+                    if self.sortByStartTime(item, new) > 0:
                         break
                     
                     insertIndex += 1
 
-                eventList.insert(insertIndex, newElement)
-                return True
-                
-
-            itemsOnCanvas = [canvasItem.item for canvasItem in self.canvasItemList]
+                itemList.insert(insertIndex, newElement)
+            
+            
             for event in addedEvents:
 
                 # skip all-day items, and items we've already drawn
-                if (Calendar.isDayItem(event) or
-                    event in itemsOnCanvas):
+                if (Calendar.isDayItem(event) or event in self.visibleItems):
                     continue
 
-                if insertInSortedList(self.visibleItems, event):
-                    collection = self.blockItem.getContainingCollection(
-                                                                 event)
-                    canvasItem = TimedCanvasItem(collection, 
-                                    primaryCollection, event, self)
-                    self.canvasItemList.append(canvasItem)
+                insertInSortedList(self.visibleItems, event)
+                collection = self.blockItem.getContainingCollection(event)
+                canvasItem = TimedCanvasItem(collection, primaryCollection,
+                                             event, self)
+                
+                insertInSortedList(self.canvasItemList, canvasItem, 'item')
 
-                    numAdded += 1
-
-
-            if numAdded > 0:
-                # self.canvasItemList is supposed to be in the same
-                # order as self.visibleItems
-                keyFn = (lambda ci: ci.item.startTime)
-                self.canvasItemList.sort(cmp, keyFn)
+                numAdded += 1
 
         else:
             self.ClearPendingNewEvents()
@@ -394,6 +389,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         Comparison function for sorting, mostly by start time
         """
+        if item1.isStale() or item2.isStale():
+            # sort stale or deleted items first, False < True
+            return cmp(not item1.isStale(), not item2.isStale())
+            
         dateResult = cmp(item1.startTime, item2.startTime)
         
         # when two items start at the same time, we actually want to show the
@@ -458,23 +457,25 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         # now generate conflict info
         self.CheckConflicts()
+
         self.SetDrawOrder()
 
         # next, generate bounds rectangles for each canvasitem
         for canvasItem in self.canvasItemList:
-            # drawing rects should be updated to reflect conflicts
-            if (currentDragBox is canvasItem and
-                currentDragBox.CanDrag()):
-
-                (newStartTime, newEndTime) = self.GetDragAdjustedTimes()
-
-                # override the item's start time for when the time string
-                # is actually displayed in the time
-                canvasItem.startTime = newStartTime
-                
-                canvasItem.UpdateDrawingRects(newStartTime, newEndTime)
-            else:
-                canvasItem.UpdateDrawingRects()
+            if not canvasItem.item.isStale():
+                # drawing rects should be updated to reflect conflicts
+                if (currentDragBox is canvasItem and
+                    currentDragBox.CanDrag()):
+    
+                    (newStartTime, newEndTime) = self.GetDragAdjustedTimes()
+    
+                    # override the item's start time for when the time string
+                    # is actually displayed in the time
+                    canvasItem.startTime = newStartTime
+                    
+                    canvasItem.UpdateDrawingRects(newStartTime, newEndTime)
+                else:
+                    canvasItem.UpdateDrawingRects()
 
 
     def DrawCells(self, dc):
@@ -487,6 +488,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         contents = CalendarSelection(self.blockItem.contents)
 
         for canvasItem in self.drawOrderedCanvasItems:
+            # drawOrderedCanvasItems can be out of date if another view deletes
+            # an item (isStale() will be True), or if a RefreshCanvasItems
+            # hasn't yet occurred after a deletion.
+            if canvasItem.item.isStale() or canvasItem.item not in contents:
+                continue
             selected = contents.isItemSelected(canvasItem.item)
             canvasItem.Draw(dc, styles, selected)
 
@@ -531,7 +537,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
     def CheckConflicts(self):
         assert sorted(self.visibleItems, self.sortByStartTime) == self.visibleItems
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
-            if self.coercedCanvasItem is not canvasItem:
+            if self.coercedCanvasItem is not canvasItem \
+               and not canvasItem.item.isStale():
                    # since these are sorted, we only have to check the items 
                    # that come after the current one
                    canvasItem.FindConflicts(islice(self.canvasItemList,
@@ -539,6 +546,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
        
                    # We've found all past and future conflicts of this one,
                    # so count of up the conflicts
+                   if canvasItem.item.displayName == 'Hmm':
+                       print "here"
                    canvasItem.CalculateConflictDepth()
 
     # handle mouse related actions: move, resize, create, select
@@ -730,7 +739,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         of conflicting events is the currently selected one.
         """
         for canvasItem in reversed(self.drawOrderedCanvasItems):
-            if canvasItem.isHit(unscrolledPosition):
+            if not canvasItem.item.isStale() and \
+               canvasItem.isHit(unscrolledPosition):
                 return canvasItem
 
 
@@ -1110,6 +1120,8 @@ class TimedCanvasItem(CalendarCanvasItem):
         the list
         """
         for conflict in possibleConflicts:
+            if conflict.item.isStale():
+                continue
             # we know we're done when we stop hitting conflicts
             # 
             # have a guarantee that conflict.startTime >= item.endTime

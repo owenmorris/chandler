@@ -209,7 +209,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
             # save the selected box to be drawn last
             item = canvasItem.item
-            if item == draggedOutItem:
+            if item == draggedOutItem or item.isStale():
                 # don't render items we're dragging out of the canvas
                 continue      
             
@@ -354,7 +354,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if self.blockItem.dayMode:
             # daymode, just stack all the events
             for row, item in enumerate(self.visibleItems):
-                self.RebuildCanvasItem(item, 0,0, row)
+                if not item.isStale():
+                    self.RebuildCanvasItem(item, 0,0, row)
             self.numEventRows = len(self.visibleItems)
             
         else:
@@ -388,21 +389,23 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                     addCanvasItem(item, newTime, newTime + item.duration)
 
             for item in self.visibleItems:
-                if newTime is not None and \
-                   item is self.dragState.originalDragBox.item:
-
-                    # bounding rules are: at least one cell of the event must stay visible.
-                    if newTime >= self.blockItem.rangeEnd:
-                        newTime = self.blockItem.rangeEnd - timedelta(days=1)
-                    elif newTime + item.duration < self.blockItem.rangeStart:
-                        newTime = self.blockItem.rangeStart - item.duration
-
-                    start = newTime
-                    end   = start + item.duration
-                else:
-                    start, end = item.startTime, item.endTime
-                
-                addCanvasItem(item, start, end)
+                if not item.isStale():
+                    if newTime is not None and \
+                       item is self.dragState.originalDragBox.item:
+    
+                        # bounding rules are: at least one cell of the event
+                        # must stay visible.
+                        if newTime >= self.blockItem.rangeEnd:
+                            newTime = self.blockItem.rangeEnd - timedelta(days=1)
+                        elif newTime + item.duration < self.blockItem.rangeStart:
+                            newTime = self.blockItem.rangeStart - item.duration
+    
+                        start = newTime
+                        end   = start + item.duration
+                    else:
+                        start, end = item.startTime, item.endTime
+                    
+                    addCanvasItem(item, start, end)
 
             self.numEventRows = numEventRows
             
@@ -472,7 +475,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         """
         Comparison callback function for sorting
         """
-
+        if item1.isStale() or item2.isStale():
+            # sort stale or deleted items first, False < True
+            return cmp(not item1.isStale(), not item2.isStale())
+        
         # ORDER BY duration, date
         spanResult = cmp(item2.duration, item1.duration)
         if spanResult != 0:
