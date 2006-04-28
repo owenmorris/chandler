@@ -44,9 +44,9 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)5.tar.gz \
          $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.3.0-r139-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/zanshin-$(SNAP)-141-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/elementtree-$(SNAP)-1.2.6-20050316-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/astng-$(SNAP)-0.14.0-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/common-$(SNAP)-0.13.0-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.9.0-$(BP)1.tar.gz
+         $(CHANDLERARCHIVES)/astng-$(SNAP)-0.16.0-$(BP)1.tar.gz \
+         $(CHANDLERARCHIVES)/common-$(SNAP)-0.15.0-$(BP)2.tar.gz \
+         $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.11.0-$(BP)1.tar.gz
 
 
 # readline is only needed for OSX
