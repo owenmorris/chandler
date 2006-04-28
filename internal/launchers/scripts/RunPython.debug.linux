@@ -10,9 +10,11 @@ then
     export CHANDLERBIN="$CHANDLERHOME"
 fi
 
-if [ -f "$CHANDLERBIN"/debug/bin/python_d ]
+export PYTHONBIN="$CHANDLERBIN"/debug/bin/python_d
+
+if [ -f "$PYTHONBIN" ]
 then
-    echo "Using $CHANDLERBIN/debug/bin/python_d $@"
+    echo "Using $PYTHONBIN $@"
 else
     echo "Error:  Please unset the CHANDLERBIN environment variable or "
     echo "        set it to point to the directory that contains the debug "
@@ -29,4 +31,13 @@ then
     export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
 fi
 
-"$CHANDLERBIN"/debug/bin/python_d "$@"
+if [ "$GDB" != "" ]
+then
+    echo $@
+    exec gdb "$PYTHONBIN"
+elif [ "$PDB" != "" ]
+then
+    exec "$PYTHONBIN" -m pdb "$@"
+else
+    exec "$PYTHONBIN" "$@"
+fi

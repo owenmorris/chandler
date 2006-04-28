@@ -39,11 +39,11 @@ fi
 
 if [ "$GDB" != "" ]
 then
-    echo $OPTIMIZE $@
+    echo $@
     exec gdb "$PYTHONBIN"
 elif [ "$PDB" != "" ]
 then
-    exec "$PYTHONBIN" -m pdb "$@"
+    exec "$PYTHONBIN" -m pdb ${@/${OPTIMIZE-"-O"}/}
 else
     exec "$PYTHONBIN" "$@"
 fi
