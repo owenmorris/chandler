@@ -1,16 +1,13 @@
 import wx
 from wx.lib.filebrowsebutton import FileBrowseButton
 import os, logging
-from osaf import messages, usercollections
 from i18n import OSAFMessageFactory as _
-from application.Utility import getDesktopDir
 from application import schema
 import itertools
 import osaf.sharing
 from  osaf.sharing.ICalendar import importICalendarFile, ImportError
-from time import time
 import application.Globals as Globals
-from osaf.pim.calendar.TimeZone import TimeZoneInfo, coerceTimeZone
+from osaf.pim.calendar.TimeZone import TimeZoneInfo
 
 logger = logging.getLogger(__name__)
 MAX_UPDATE_MESSAGE_LENGTH = 50

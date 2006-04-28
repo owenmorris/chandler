@@ -1,5 +1,4 @@
 import os, sys
-import traceback
 import logging
 import wx
 import wx.xrc

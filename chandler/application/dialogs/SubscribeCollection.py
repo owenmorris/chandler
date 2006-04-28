@@ -1,12 +1,10 @@
 import os, sys
-import traceback
 import logging
 import wx
 import wx.xrc
 from osaf import sharing
 import application.Globals as Globals
 import application.dialogs.Util
-import application.Parcel
 from i18n import OSAFMessageFactory as _
 from application import schema
 from AccountInfoPrompt import PromptForNewAccountInfo

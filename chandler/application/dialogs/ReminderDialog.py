@@ -3,9 +3,8 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, sys, wx
+import sys, wx
 from datetime import datetime, timedelta
-from osaf.pim.calendar import Calendar
 from PyICU import ICUtzinfo
 from i18n import OSAFMessageFactory as _
  	

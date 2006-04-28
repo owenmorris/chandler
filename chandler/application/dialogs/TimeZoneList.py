@@ -1,14 +1,12 @@
 import wx
 import wx.grid
 from i18n import OSAFMessageFactory as _
-from application import schema
-import itertools
 import PyICU
 import datetime
 import bisect
 
 #import application.Globals as Globals
-from osaf.pim.calendar.TimeZone import TimeZoneInfo, coerceTimeZone
+from osaf.pim.calendar.TimeZone import TimeZoneInfo
 
 def pickTimeZone(view):
     dlg = TimeZoneChooser(view)

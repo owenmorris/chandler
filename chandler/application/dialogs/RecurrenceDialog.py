@@ -5,7 +5,6 @@
 # to edit them again in Boa, so it's OK to edit the generated methods.
 
 import wx
-from wx.lib.anchors import LayoutAnchors
 from i18n import OSAFMessageFactory as _
 from osaf import messages
 import logging
@@ -335,8 +334,8 @@ class OccurrenceProxy(object):
             wx.GetApp().PostAsyncEvent(self.runDialog)
         
     def runDialog(self):
-         # Check in case the dialog somehow got cancelled
-         if self.dialogUp:
+        # Check in case the dialog somehow got cancelled
+        if self.dialogUp:
             RecurrenceDialog(wx.GetApp().mainFrame, self, self.endCallbacks)
     
     def propagateBufferChanges(self):

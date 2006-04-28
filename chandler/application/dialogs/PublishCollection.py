@@ -1,14 +1,11 @@
 # The collection publishing dialog
 # Invoke using the ShowPublishDialog( ) method.
 
-import wx, twisted, sys
-import M2Crypto
-import traceback, logging
-import os, urlparse, urllib
-from application import schema, Globals, Utility
+import wx, sys
+import logging
+import os
+from application import schema, Globals
 from osaf import sharing
-import zanshin.webdav
-import zanshin.util
 from i18n import OSAFMessageFactory as _
 import SyncProgress
 

@@ -1,10 +1,9 @@
 import os, sys
-import traceback
 import logging
 import wx
 import wx.xrc
 from osaf import sharing
-from application import Globals, schema
+from application import Globals
 from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
