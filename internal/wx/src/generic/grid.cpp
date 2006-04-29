@@ -4588,7 +4588,7 @@ void wxGrid::CalcDimensions()
         attr->DecRef();
     }
 
-    m_targetWindow->SetVirtualSize( w , h );
+    m_targetWindow->SetVirtualSize( w, h );
 
     // Use SetVirtualSize, instead of SetScrollbars
     // otherwise extra space will appear beyond the table
@@ -4598,8 +4598,8 @@ void wxGrid::CalcDimensions()
         scrollLineX = m_scrollLineX;
     SetScrollRate( scrollLineX, m_scrollLineY );
 
-    // if our OnSize() hadn't been called (it would if we have scrollbars), we
-    // still must reposition the children
+    // if our OnSize() hadn't been called (it would if we have scrollbars),
+    // we still must reposition the children
     CalcWindowSizes();
 }
 
@@ -6166,10 +6166,14 @@ void wxGrid::DoEndDragResizeCol()
         HideCellEditControl();
         SaveEditControlValue();
 
-        int colLeft = GetColLeft(m_dragRowOrCol);
-        SetColSize( m_dragRowOrCol,
-                    wxMax( m_dragLastPos - colLeft,
-                           GetColMinimalWidth(m_dragRowOrCol) ) );
+        int newWidth = wxMax(
+            m_dragLastPos - GetColLeft(m_dragRowOrCol),
+            GetColMinimalWidth(m_dragRowOrCol) );
+
+        if (!m_scaleWidthToFit)
+            SetColSize( m_dragRowOrCol, newWidth );
+        else
+            SetScaledColSize( m_dragRowOrCol, newWidth );
 
         if ( !GetBatchCount() )
         {
@@ -7327,7 +7331,7 @@ void wxGrid::DrawCellHighlight( wxDC& dc, const wxGridCellAttr *attr )
 
     if (penWidth > 0)
     {
-        // The center of th drawn line is where the position/width/height of
+        // The center of the drawn line is where the position/width/height of
         // the rectangle is actually at, (on wxMSW at least,) so we will
         // reduce the size of the rectangle to compensate for the thickness of
         // the line. If this is too strange on non wxMSW platforms then
@@ -8424,11 +8428,11 @@ void wxGrid::MakeCellVisible( int row, int col )
             }
 
             // we divide it later by GRID_SCROLL_LINE, make sure that we don't
-            // have rounding errors (this is important, because if we do, we
-            // might not scroll at all and some cells won't be redrawn)
+            // have rounding errors (this is important, because if we do,
+            // we might not scroll at all and some cells won't be redrawn)
             //
-            // Sometimes GRID_SCROLL_LINE/2 is not enough, so just add a full
-            // scroll unit...
+            // Sometimes GRID_SCROLL_LINE / 2 is not enough,
+            // so just add a full scroll unit...
             ypos += m_scrollLineY;
         }
 
