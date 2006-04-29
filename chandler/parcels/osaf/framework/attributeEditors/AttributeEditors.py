@@ -637,7 +637,9 @@ class DragAndDropTextCtrl(ShownSynchronizer,
         (startSelect, endSelect) = self.GetSelection()
         event.arguments ['Enable'] = startSelect < self.GetLastPosition()
 
-    onDeleteEventUpdateUI = onRemoveEventUpdateUI
+    def onDeleteEventUpdateUI(self, event):
+        """Bug 5717, OnDelete shouldn't be active in a text ctrl on Mac."""
+        event.arguments['Enable'] = '__WXMAC__' not in wx.PlatformInfo
 
     def onRemoveEvent(self, event):
         # I tried the following code, but it didn't work. Perhaps it's
