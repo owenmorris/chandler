@@ -73,7 +73,6 @@ exclusions = {
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
         "TestSharing.py", #Cosmo bug#5643
         "TestEditModeOnEnter.py", #Chandler bug 5744
-        "TestEventStacking.py", #bug 5779
         )
 }
 
