@@ -18,6 +18,7 @@ import wx.html
 import wx.gizmos
 import webbrowser # for opening external links
 import PyICU
+from util import MultiStateButton
 
 import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
@@ -32,7 +33,7 @@ class textAlignmentEnumType(schema.Enumeration):
     values = "Left", "Center", "Right"
 
 class buttonKindEnumType(schema.Enumeration):
-     values = "Text", "Image", "Toggle"
+     values = "Text", "Image", "Toggle", "Stamp"
 
 class Button(RectangularChild):
 
@@ -60,11 +61,37 @@ class Button(RectangularChild):
                                       wx.DefaultPosition,
                                       (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Toggle":
-                button = wx.ToggleButton (parentWidget, 
-                                          id, 
-                                          self.title,
-                                          wx.DefaultPosition,
-                                          (self.minimumSize.width, self.minimumSize.height))
+            button = wx.ToggleButton (parentWidget, 
+                                      id, 
+                                      self.title,
+                                      wx.DefaultPosition,
+                                      (self.minimumSize.width, self.minimumSize.height))
+        elif self.buttonKind == "Stamp":
+            # for a stamp button, we use "self.icon" as the base name of all bitmaps and look for:
+            #
+            #   {icon}Normal, {icon}Stamped, {icon}Rollover, {icon}Pressed, {icon}Disabled
+            #
+            # From these we build two states named "normal" and "stamped", which can
+            # be used the toggle the appearance of the button.
+            #
+            assert len(self.icon) > 0
+            normal = MultiStateButton.BitmapInfo()
+            normal.normal   = "%sNormal" % self.icon
+            normal.rollover = "%sRollover" % self.icon
+            normal.disabled = "%sDisabled" % self.icon
+            normal.selected = "%sPressed" % self.icon
+            normal.stateName = "normal"
+            stamped = MultiStateButton.BitmapInfo()
+            stamped.normal   = "%sStamped" % self.icon
+            stamped.rollover = "%sRollover" % self.icon
+            stamped.disabled = "%sDisabled" % self.icon
+            stamped.selected = "%sPressed" % self.icon
+            stamped.stateName = "stamped"
+            button = wxChandlerMultiStateButton (parentWidget, 
+                                id, 
+                                wx.DefaultPosition,
+                                (self.minimumSize.width, self.minimumSize.height),
+                                multibitmaps=(normal, stamped))
         elif __debug__:
             assert False, "unknown buttonKind"
 
@@ -78,6 +105,22 @@ class Button(RectangularChild):
             pass
         else:
             self.post(event, {'item':self})
+
+
+class wxChandlerMultiStateButton(MultiStateButton.MultiStateButton):
+    """
+    Just like MultiStateButton, except that it uses wx.GetApp().GetImage as the
+    provider of bitmaps, and the button has no border.
+    """
+    def __init__(self, parent, ID, pos, size, multibitmaps, *args, **kwds):
+        super(wxChandlerMultiStateButton, self).__init__(parent,
+                                                        ID,
+                                                        pos,
+                                                        size,
+                                                        wx.BORDER_NONE,
+                                                        multibitmaps = multibitmaps,
+                                                        bitmapProvider = wx.GetApp().GetImage,
+                                                        *args, **kwds)
 
 
 class ContextMenu(RectangularChild):
