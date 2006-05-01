@@ -257,7 +257,7 @@ print-%:
 tests:
 	$(CHANDLERHOME)/tools/do_tests.sh -u
 
-clean: purge
+clean:
 	rm -rf $(CHANDLERBIN)/$(SNAP)
 	rm -rf __repository__
 	rm -f chandler.log randpool.dat
