@@ -17,6 +17,48 @@ endif
 
 BP=
 
+ifeq ($(DEBUG),1)
+SNAP=debug
+DEBUG_SUFFIX=_d
+else
+SNAP=release
+DEBUG_SUFFIX=
+endif
+
+ifeq ($(OS),Darwin)
+PLATFORM=macosx
+else
+ifeq ($(OS),Cygwin)
+PLATFORM=windows
+else
+PLATFORM=linux
+endif
+endif
+
+ifeq ($(CHANDLERHOME),)
+CHANDLERHOME=$(shell pwd)
+endif
+
+ifeq ($(CHANDLERBIN),)
+CHANDLERBIN=$(CHANDLERHOME)
+endif               
+
+ifeq ($(CHANDLERARCHIVES),)
+CHANDLERARCHIVES=../downloads
+endif
+
+# on Windows, CHANDLERHOME and CHANDLERBIN *must* be in Windows style
+# this is because of RunChandler.bat and RunPython.bat
+# so internally we need to convert them to unix style
+
+ifeq ($(OS),Cygwin)
+C_BIN=$(shell cygpath -aw $(CHANDLERBIN))
+C_HOME=$(shell cygpath -aw $(CHANDLERHOME))
+else
+C_BIN=$(CHANDLERBIN)
+C_HOME=$(CHANDLERHOME)
+endif
+
 BUNDLED_PLUGINS=Chandler_HelloWorldPlugin-0.1-py2.4.egg \
                 Chandler_FeedsPlugin-0.2-py2.4.egg
 
@@ -65,71 +107,36 @@ ifeq ($(CURL),)
 CURL=curl $(CHANDLER_CURL_OPTIONS) -f -o
 endif
 
-ifeq ($(DEBUG),1)
-SNAP=debug
-DEBUG_SUFFIX=_d
-else
-SNAP=release
-DEBUG_SUFFIX=
-endif
-
 ifeq ($(OS),Darwin)
-PLATFORM=macosx
-else
-ifeq ($(OS),Cygwin)
-PLATFORM=windows
-else
-PLATFORM=linux
-endif
-endif
-
-ifeq ($(CHANDLERHOME),)
-CHANDLERHOME=.
-endif
-
-ifeq ($(CHANDLERBIN),)
-CHANDLERBIN=$(CHANDLERHOME)
-endif               
-
-ifeq ($(CHANDLERARCHIVES),)
-CHANDLERARCHIVES=../downloads
-endif
-
-ifeq ($(OS),Darwin)
-EASYINSTALL=MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(CHANDLERBIN)/$(SNAP)/easy_install
-PLUGIN_PYTHON=MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME)/../..  $(CHANDLERBIN)/../../$(SNAP)/RunPython
+EASYINSTALL=MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(C_BIN)/$(SNAP)/easy_install
+PLUGIN_PYTHON=MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(C_HOME) $(C_BIN)/$(SNAP)/RunPython
 PLUGIN_ARCHIVES=$(CHANDLERARCHIVES)/
 SED_MODERN=-E
 else
 ifeq ($(OS),Cygwin)
-EASYINSTALL=$(CHANDLERBIN)/$(SNAP)/easy_install
-PLUGIN_PYTHON=CHANDLERHOME=$(CHANDLERHOME) $(shell cygpath -au $(CHANDLERBIN))/$(SNAP)/bin/python$(DEBUG_SUFFIX)
+EASYINSTALL=$(C_BIN)/$(SNAP)/easy_install
+PLUGIN_PYTHON=CHANDLERHOME=$(shell cygpath -aw $(C_HOME)) $(CHANDLERBIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
 PLUGIN_ARCHIVES=$(shell cygpath -aw $(CHANDLERARCHIVES))\\
 SED_MODERN=-r
 else
-EASYINSTALL=$(CHANDLERBIN)/$(SNAP)/easy_install
-PLUGIN_PYTHON=CHANDLERHOME=$(CHANDLERHOME)/../..  $(CHANDLERBIN)/../../$(SNAP)/RunPython
+EASYINSTALL=$(C_BIN)/$(SNAP)/easy_install
+PLUGIN_PYTHON=CHANDLERHOME=$(C_HOME) $(C_BIN)/$(SNAP)/RunPython
 PLUGIN_ARCHIVES=$(CHANDLERARCHIVES)/
 SED_MODERN=-r
 endif
 endif
-
-#ifeq ($(OS),Cygwin)
-#CHANDLERBIN:=$(shell cygpath -au $(CHANDLERBIN))
-#CHANDLERHOME:=$(shell cygpath -au $(CHANDLERHOME))
-#endif
 
 HOST=builds.osafoundation.org
 URL=http://$(HOST)/external/$(PLATFORM)
 
 ARCHIVES_INST = \
     $(addsuffix .inst, \
-                $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
+                $(addprefix $(C_BIN)/$(SNAP)/, \
                             $(notdir $(ARCHIVES))))
 
 PLUGINS_INST = \
     $(addsuffix .inst, \
-                $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
+                $(addprefix $(C_BIN)/$(SNAP)/, \
                             $(notdir $(BUNDLED_PLUGINS))))
 
 PLUGINS_DOWNLOAD = \
@@ -196,7 +203,7 @@ ifeq ($(OS),Cygwin)
 manifest_exe:
 	if [ -f "$(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest" ]; \
 	then \
-	    chmod +x `cygpath -u $(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest`; \
+	    chmod +x $(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest; \
 	fi
 else
 manifest_exe:
@@ -241,15 +248,8 @@ strip:
 endif
 endif
 
-# This should work the same on all platforms, but for some reason
-# kona-win (at least) needs this special treatment
-ifeq ($(OS),Cygwin)
 purge:
-	python `cygpath -w $(CHANDLERHOME)/tools/purge.py` `cygpath -w $(CHANDLERHOME)`
-else
-purge:
-	python $(CHANDLERHOME)/tools/purge.py $(CHANDLERHOME)
-endif
+	$(PYTHON_BIN) $(C_HOME)/tools/purge.py $(C_HOME)
 
 print-%:
 	@echo $* = $($*)
