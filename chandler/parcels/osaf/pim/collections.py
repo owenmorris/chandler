@@ -90,6 +90,14 @@ class ContentCollection(ContentItem, Collection):
         return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
                                 self.itsUUID.str16())
 
+    def withoutTrash(self):
+        """
+        If this collection wraps the trash collection, return an equivalent
+        collection that doesn't.
+        """
+
+        return self
+
     def isReadOnly(self):
         """
         Return True iff participating in only read-only shares
@@ -224,16 +232,18 @@ class UnionCollection(ContentCollection):
                 
     def _sourcesChanged(self):
 
-        sourceCount = len(self.sources)
+        sources = self.sources
+        sourceCount = len(sources)
 
+        # For now, when we join collections with Union, we pull trash
+        # out of the equation with withoutTrash()
         if sourceCount == 1:
-            set = Set(self.sources[0])
+            set = Set(sources[0].withoutTrash())
         elif sourceCount == 2:
-            a, b = self.sources
-            set = Union(a, b)
+            a, b = sources
+            set = Union(a.withoutTrash(), b.withoutTrash())
         else:
-            # (i for i in self.sources) is needed here to extract items
-            set = MultiUnion(*(i for i in self.sources))
+            set = MultiUnion(*(source.withoutTrash() for source in sources))
 
         setattr(self, self.__collection__, set)
 
@@ -532,6 +542,23 @@ class SmartCollection(ContentCollection):
             self.trash = exclusions
 
         setattr(self, self.__collection__, set)
+
+    def withoutTrash(self):
+        """
+        Pull out the non-trash part of SmartCollection
+        """
+        
+        # Smart collections are 'special' - they almost always include
+        # the trash as a part of their structure on the _right side of
+        # their Difference set. This means that when they are hooked
+        # into a larger collection tree, they need to only give out
+        # the _left side, which has no trash.
+        
+        if self.trash is schema.ns('osaf.pim', self.itsView).trashCollection:
+            return self.set._left.copy()
+
+        return self
+
 
 class InclusionExclusionCollection(SmartCollection):
     """
