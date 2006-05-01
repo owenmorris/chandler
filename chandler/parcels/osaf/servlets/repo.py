@@ -972,8 +972,10 @@ class HTMLCollectionRenderer(object):
     def formatCollection(self, collection, childstring):
         result = ('<div class="set-item">\n'
                   '  <div class="set-title">' +
-                  '  <a href="%s">%s</a>' % (toLink(collection.itsPath),
-                                             collection.getItemDisplayName()) +
+                  '  <a href="%s" title="%s">%s</a>' % (
+            toLink(collection.itsPath),
+            collection.__class__.__name__,
+            collection.getItemDisplayName()) +
                   '  </div>\n' +
                   '  <div class="set-box">' +
                   childstring + '</div>\n'
