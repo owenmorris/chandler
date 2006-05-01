@@ -198,3 +198,31 @@ td.rssitem
 .editable { 
   padding-left: 2px;
 }
+
+/* collection display */
+
+.set-title {
+  background-color: #888;
+  color: #fff;
+  padding: 2px;
+  font-weight: bold;
+}
+      
+.set-box {
+  position: relative;
+  margin: 2px;
+}
+
+.set-item {
+  border: 1px solid #888;
+  margin: 2px;
+  float: left;
+}
+
+.operator {
+  margin: 2px;
+  font-size: 200%;
+  float: left;
+  padding-left: 4px;
+  padding-right: 4px; 
+}
