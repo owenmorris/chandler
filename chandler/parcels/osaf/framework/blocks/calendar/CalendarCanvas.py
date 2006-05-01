@@ -194,10 +194,6 @@ class CalendarSelection(schema.Annotation):
     def __contains__(self, item):
         return self.itsItem.__contains__(item.getMaster())
     
-    def __iter__(self):
-        for child in chain(self.itsItem, self.selectedOccurrences):
-            yield child
-    
     # these mimic the behavior of the collection
 
     def _cleanSelection(self):
@@ -233,7 +229,7 @@ class CalendarSelection(schema.Annotation):
     def iterSelection(self):
         self._cleanSelection()
         selectionFromCollection = self.itsItem.iterSelection()
-        return chain(iter(self.selectedOccurrences), self.itsItem.iterSelection())
+        return chain(iter(self.selectedOccurrences), selectionFromCollection)
 
     def clearSelection(self):
         self.itsItem.clearSelection()
