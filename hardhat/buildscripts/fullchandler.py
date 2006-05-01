@@ -371,7 +371,7 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
             # we get here only if the module is chandler or if changes have occurred
             # in external or internal
             if module == 'chandler':
-                makeTargets = dbgStr + " purge " + clean + " install"
+                makeTargets = dbgStr + " " + clean + " install"
             else:
                 makeTargets = dbgStr + " " + clean + " world"
 
