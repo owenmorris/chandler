@@ -103,6 +103,9 @@ def roundToColumnPosition(v, columnList):
 
 class ColorInfo(object):
     def __init__(self, collection):
+        # sometimes this happens when getContainingCollection fails to find a collection
+        assert collection is not None, "Can't get color for None"
+        
         color = UserCollection(collection).ensureColor().color
         self.hue = rgb_to_hsv(*color2rgb(color.red,color.green,color.blue))[0]
     
@@ -942,7 +945,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     def GetCurrentDateRange(self):
         return (self.rangeStart,  self.rangeStart + self.rangeIncrement)
 
-    def getContainingCollection(self, event):
+    def getContainingCollection(self, event, defaultCollection=None):
         """
         Get the collection which contains the event, since it has
         all the right color information.
@@ -966,7 +969,9 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         if firstSpecialCollection:
             return firstSpecialCollection
 
-        assert False, "Don't have color info for %s" % event
+        #assert False, "Don't have color info for %s" % event
+        
+        return defaultCollection
         
     def setCurrentCalendarColor(self, color):
 

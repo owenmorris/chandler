@@ -132,7 +132,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                     continue
 
                 insertInSortedList(self.visibleItems, event)
-                collection = self.blockItem.getContainingCollection(event)
+                collection = self.blockItem.getContainingCollection(event, primaryCollection)
                 canvasItem = TimedCanvasItem(collection, primaryCollection,
                                              event, self)
                 
@@ -209,7 +209,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     def makeCoercedCanvasItem(self, x, y, item):
         primaryCollection = self.blockItem.contentsCollection
-        collection = self.blockItem.getContainingCollection(item)
+        collection = self.blockItem.getContainingCollection(item, primaryCollection)
         canvasItem = TimedCanvasItem(collection, primaryCollection, item, self)        
 
         unscrolledPosition = wx.Point(*self.CalcUnscrolledPosition(x, y))
@@ -425,7 +425,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 
         # First generate a sorted list of TimedCanvasItems
         for item in self.visibleItems:
-            collection = self.blockItem.getContainingCollection(item)
+            collection = self.blockItem.getContainingCollection(item, primaryCollection)
             canvasItem = TimedCanvasItem(collection, primaryCollection,
                                          item, self)
             canvasItemList.append(canvasItem)

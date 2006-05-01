@@ -440,7 +440,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         rect = wx.Rect(startX, self.eventHeight * gridRow,
                        width, self.eventHeight)
 
-        collection = calendarBlock.getContainingCollection(item)
+        collection = calendarBlock.getContainingCollection(item, calendarBlock.contentsCollection)
         return AllDayCanvasItem(collection, calendarBlock.contentsCollection,
                                       rect, item)
     
