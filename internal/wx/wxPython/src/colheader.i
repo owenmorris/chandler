@@ -220,8 +220,7 @@ public:
         bool                bSortAscending = false );
     void AddEmptyItems(
         long                beforeIndex,
-        long                itemCount,
-        bool                bUseDefaultLabel = false );
+        long                itemCount );
     void AddItem(
         long                beforeIndex,
         const wxString        &textBuffer,
@@ -281,6 +280,8 @@ public:
         long                            itemIndex,
         wxColumnHeaderItemAttribute        flagEnum,
         bool                        bFlagValue );
+
+    static long GetFixedHeight( void );
 
     static void GetDefaultLabelValue(
         bool                isColumn,

@@ -61,7 +61,7 @@ public:
 		wxWindowID		id = wxID_ANY,
 		const wxPoint	&pos = wxDefaultPosition,
 		const wxSize	&size = wxDefaultSize,
-		long			style = 0,
+		long			styleVariant = 0,
 		const wxString	&name = wxColumnHeaderNameStr );
 
 	wxColumnHeader();
@@ -168,8 +168,7 @@ public:
 		bool				bSortAscending = false );
 	void AddEmptyItems(
 		long				beforeIndex,
-		long				itemCount,
-		bool				bUseDefaultLabel = false );
+		long				itemCount );
 	void AddItem(
 		long				beforeIndex,
 		const wxString		&textBuffer,
@@ -248,8 +247,10 @@ public:
 	static wxVisualAttributes GetClassDefaultAttributes(
 		wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL );
 
+	static long GetFixedHeight( void );
+
 	static void GetDefaultLabelValue(
-		bool				isColumn,
+		bool				isVertical,
 		int				index,
 		wxString&		value );
 
@@ -518,12 +519,12 @@ public:
 	~wxChandlerGridLabelWindow();
 
 	// new routines
-	void GetLabelValue( bool isColumn, int index, wxString &value );
-	void SetLabelValue( bool isColumn, int index, const wxString &value );
-	void GetLabelSize( bool isColumn, int index, int &value );
-	void SetLabelSize( bool isColumn, int index, int value );
-	void GetLabelAlignment( bool isColumn, int index, wxSize &value );
-	void SetLabelAlignment( bool isColumn, int index, const wxSize &value );
+	void GetLabelValue( bool isVertical, int index, wxString &value );
+	void SetLabelValue( bool isVertical, int index, const wxString &value );
+	void GetLabelSize( bool isVertical, int index, int &value );
+	void SetLabelSize( bool isVertical, int index, int value );
+	void GetLabelAlignment( bool isVertical, int index, wxSize &value );
+	void SetLabelAlignment( bool isVertical, int index, const wxSize &value );
 
 private:
 	wxGrid   *m_owner;

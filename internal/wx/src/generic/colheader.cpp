@@ -250,42 +250,46 @@ void wxChandlerGridLabelWindow::OnChar( wxKeyEvent& event )
 #pragma mark -
 #endif
 
-void wxChandlerGridLabelWindow::GetLabelValue( bool isColumn, int index, wxString& value )
+// NB: unused
+//
+void wxChandlerGridLabelWindow::GetLabelValue( bool isVertical, int index, wxString& value )
 {
-	if (isColumn)
-		value = m_owner->GetColLabelValue( index );
-	else
+	if (isVertical)
 		value = m_owner->GetRowLabelValue( index );
+	else
+		value = m_owner->GetColLabelValue( index );
 }
 
-void wxChandlerGridLabelWindow::SetLabelValue( bool isColumn, int index, const wxString& value )
+void wxChandlerGridLabelWindow::SetLabelValue( bool isVertical, int index, const wxString& value )
 {
 #if defined(__GRID_LABELS_ARE_COLHEADERS__)
 	SetLabelText( index, value );
 #else
-	if (isColumn)
-		m_owner->SetColLabelValue( index, value );
-	else
+	if (isVertical)
 		m_owner->SetRowLabelValue( index, value );
+	else
+		m_owner->SetColLabelValue( index, value );
 #endif
 }
 
-void wxChandlerGridLabelWindow::GetLabelSize( bool isColumn, int index, int& value )
+// NB: unused
+//
+void wxChandlerGridLabelWindow::GetLabelSize( bool isVertical, int index, int& value )
 {
 // WXUNUSED( index )
 
-	if (isColumn)
-		value = m_owner->GetColLabelSize();
-	else
+	if (isVertical)
 		value = m_owner->GetRowLabelSize();
+	else
+		value = m_owner->GetColLabelSize();
 }
 
-void wxChandlerGridLabelWindow::SetLabelSize( bool isColumn, int index, int value )
+void wxChandlerGridLabelWindow::SetLabelSize( bool isVertical, int index, int value )
 {
 #if defined(__GRID_LABELS_ARE_COLHEADERS__)
 wxSize	extentPt;
 
-	if (isColumn && (index == -1))
+	if (isVertical && (index == -1))
 	{
 		// array blast
 		for (long i=0; i<m_ItemCount; i++)
@@ -305,36 +309,38 @@ wxSize	extentPt;
 #else
 // WXUNUSED( index )
 
-	if (isColumn)
-		m_owner->SetColLabelSize( value );
-	else
+	if (isVertical)
 		m_owner->SetRowLabelSize( value );
+	else
+		m_owner->SetColLabelSize( value );
 #endif
 }
 
-void wxChandlerGridLabelWindow::GetLabelAlignment( bool isColumn, int index, wxSize &value )
+// NB: unused
+//
+void wxChandlerGridLabelWindow::GetLabelAlignment( bool isVertical, int index, wxSize &value )
 {
 // WXUNUSED( index )
 
-	if (isColumn)
-		m_owner->GetColLabelAlignment( &(value.x), &(value.y) );
-	else
+	if (isVertical)
 		m_owner->GetRowLabelAlignment( &(value.x), &(value.y) );
+	else
+		m_owner->GetColLabelAlignment( &(value.x), &(value.y) );
 }
 
-void wxChandlerGridLabelWindow::SetLabelAlignment( bool isColumn, int index, const wxSize &value )
+void wxChandlerGridLabelWindow::SetLabelAlignment( bool isVertical, int index, const wxSize &value )
 {
 #if defined(__GRID_LABELS_ARE_COLHEADERS__)
-// WXUNUSED( isColumn )
+// WXUNUSED( isVertical )
 
 	wxClassParent_ChandlerGridLabelWindow::SetLabelAlignment( (long)index, value );
 #else
 // WXUNUSED( index )
 
-	if (isColumn)
-		m_owner->SetColLabelAlignment( value.x, value.y );
-	else
+	if (isVertical)
 		m_owner->SetRowLabelAlignment( value.x, value.y );
+	else
+		m_owner->SetColLabelAlignment( value.x, value.y );
 #endif
 }
 
@@ -877,13 +883,35 @@ void wxColumnHeader::SetDefaultItemSize(
 }
 
 // static
+long wxColumnHeader::GetFixedHeight( void )
+{
+long		resultV;
+
+#if defined(__WXMAC__)
+	resultV = 17;
+#elif defined(__WXMSW__)
+	resultV = 20;
+#else
+	// fixed height doesn't apply
+	resultV = 0;
+#endif
+
+	return resultV;
+}
+
+// static
 void wxColumnHeader::GetDefaultLabelValue(
-	bool			isColumn,
+	bool			isVertical,
 	int			index,
 	wxString		&value )
 {
-	value = wxEmptyString;
-	if (isColumn)
+	if (isVertical)
+	{
+		// starting the rows at zero confuses users,
+		// no matter how much it makes sense to geeks.
+		value.Format( wxT("%d"), index + 1 );
+	}
+	else
 	{
 		// default column labels are:
 		// columns 0 to 25: A-Z
@@ -899,14 +927,9 @@ void wxColumnHeader::GetDefaultLabelValue(
 		}
 
 		// reverse the string
+		value = wxEmptyString;
 		for (i = 0; i < n; i++)
 			value += s[(n - i) - 1];
-	}
-	else
-	{
-		// starting the rows at zero confuses users,
-		// no matter how much it makes sense to geeks.
-		value << index + 1;
 	}
 }
 
@@ -935,7 +958,7 @@ void wxColumnHeader::OnPaint(
 	Draw();
 
 #if 0 && defined(__WXMSW__)
-	// NB: moved all drawing code into (where else?) ::Draw
+	// NB: moved all rendering code into ::Draw
 
 	// these work...
 //	event.Skip();
@@ -1700,7 +1723,7 @@ void wxColumnHeader::SetItemCount(
 		itemCount = 0;
 
 	if (itemCount > m_ItemCount)
-		AddEmptyItems( -1, itemCount - m_ItemCount, true );
+		AddEmptyItems( -1, itemCount - m_ItemCount );
 	else if (itemCount < m_ItemCount)
 		DeleteItems( itemCount, m_ItemCount - itemCount );
 }
@@ -1769,30 +1792,16 @@ void wxColumnHeader::AppendItem(
 
 void wxColumnHeader::AddEmptyItems(
 	long				beforeIndex,
-	long				itemCount,
-	bool				bUseDefaultLabel )
+	long				itemCount )
 {
-wxString	labelValue;
 wxSize	targetAlign;
-long		indexOffset, i;
-
-	if (bUseDefaultLabel)
-	{
-		if ((beforeIndex >= 0) && (beforeIndex < m_ItemCount))
-			indexOffset = beforeIndex;
-		else
-			indexOffset = m_ItemCount;
-	}
+long		i;
 
 	targetAlign.x = CH_ALIGN_Left;
 	targetAlign.y = CH_ALIGN_Center;
 
 	for (i=0; i<itemCount; i++)
-	{
-		if (bUseDefaultLabel)
-			GetDefaultLabelValue( !m_BUseVerticalOrientation, indexOffset + i, labelValue );
-		AddItem( beforeIndex, labelValue, targetAlign, -1, false, true, true );
-	}
+		AddItem( beforeIndex, wxEmptyString, targetAlign, -1, false, true, true );
 }
 
 void wxColumnHeader::AddItem(
@@ -1805,8 +1814,9 @@ void wxColumnHeader::AddItem(
 	bool				bSortAscending )
 {
 wxColumnHeaderItem		itemInfo;
+wxString					labelValue;
 wxSize					targetOrigin, targetExtent;
-long					originX;
+long					curIndex, originX;
 bool					bIsVertical;
 
 	// set (initially) invariant values
@@ -1826,6 +1836,15 @@ bool					bIsVertical;
 		else
 			extentX = m_DefaultItemSize.y;
 	}
+
+	// if needed, determine label value
+	if (textBuffer.IsEmpty())
+	{
+		curIndex = ((beforeIndex >= 0) && (beforeIndex < m_ItemCount)) ? beforeIndex : m_ItemCount;
+		GetDefaultLabelValue( m_BUseVerticalOrientation, beforeIndex, labelValue );
+	}
+	else
+		labelValue = textBuffer;
 
 	// set specified values
 	itemInfo.m_LabelTextRef = textBuffer;
