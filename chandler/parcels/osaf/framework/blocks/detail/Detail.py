@@ -32,7 +32,7 @@ from repository.item.Item import Item
 import wx
 import sets
 import logging
-from PyICU import ICUError
+from PyICU import ICUError, ICUtzinfo
 from datetime import datetime, time, timedelta
 from i18n import OSAFMessageFactory as _
 from osaf import messages
@@ -1287,6 +1287,8 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
                GetAttributeValue(item, attributeName)
         
     def SetAttributeValue(self, item, attributeName, valueString):
+        eventTZ = item.startTime.tzinfo
+        
         if attributeName != 'until':
             attributeName = 'until'        
             try:
@@ -1299,8 +1301,34 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
         if len(newValueString) == 0 and hasattr(item, 'until'):
             del item.until
         else:
-            super(RecurrenceEndsAttributeEditor, self).\
-                 SetAttributeValue(item, attributeName, valueString)
+            try:
+                oldValue = getattr(item, attributeName, None)
+                dateValue = pim.shortDateFormat.parse(newValueString, 
+                                                      referenceDate=oldValue)
+            except (ICUError, ValueError):
+                self._changeTextQuietly(self.control, "%s ?" % newValueString)
+                return
+
+            # set the end timezone to be the same as the event's timezone,
+            # unless it's floating.  Allowing a floating recurrence end timezone 
+            # has the nonsensical result that the number of occurrences depends
+            # on what timezone you view the calendar in if startTime ever 
+            # changes to a non-floating timezone.        
+            if eventTZ == ICUtzinfo.floating:
+                eventTZ == ICUtzinfo.default            
+
+            value = datetime.combine(dateValue.date(), time(0, tzinfo=eventTZ))
+            # don't change the value unless the date the user sees has
+            # changed
+            if oldValue is None or oldValue.date() != value.date():
+                item.untilIsDate = True
+                item.until = value
+                self.AttributeChanged()
+                
+            # Refresh the value in place
+            if not item.isDeleted():
+                self.SetControlValue(self.control, 
+                                     self.GetAttributeValue(item, attributeName))
 
 class OutboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
     """ 
