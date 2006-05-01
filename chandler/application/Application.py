@@ -417,8 +417,8 @@ class wxApplication (wx.App):
                 if isinstance (block, BranchPoint.BranchPointBlock):
                     block.delegate.deleteCache()
 
-            frame = getattr (mainViewRoot, 'frame', None)
             self.UIRepositoryView.refresh()
+            frame = getattr (mainViewRoot, 'frame', None)
             
             deleteAllBranchCaches(mainViewRoot)
 
@@ -461,6 +461,13 @@ class wxApplication (wx.App):
     def UnRenderMainView (self):
         mainViewRoot = Globals.mainViewRoot.unRender()
         assert len (Globals.views) == 0
+        if __debug__:
+            from osaf.framework.blocks.Block import Block
+            for value in self.UIRepositoryView._subscribers.itervalues():
+                for uuid in value:
+                    item = self.UIRepositoryView.findUUID(uuid)
+                    assert not isinstance (item, Block)
+            
         self.mainFrame.SetSizer (None)
 
     if __debug__:
