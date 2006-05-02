@@ -210,10 +210,13 @@ void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
 	if (m_owner == NULL)
 		return;
 
+#if defined(__GRID_LABELS_ARE_COLHEADERS__)
 	// update optional selection highlighting and sort direction indicator
 	if (event.LeftIsDown())
 		wxColumnHeader::OnClick( event );
+#endif
 
+	// allow wxGridWindow to further process mouse event
 	if ((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
 		m_owner->ProcessColLabelMouseEvent( event );
 	else
