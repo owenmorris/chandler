@@ -2148,8 +2148,12 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             value = ICUtzinfo.floating
 
         # We also take this opportunity to populate the menu
-        existingValue = self.GetControlValue(control)
-        if existingValue is None or existingValue != value:
+        # @@@ for now, we always do it, since we can't tell whether we were
+        # called because the prefs changed. This might adversely affect
+        # performance, however, which is why I've added this comment.
+        #existingValue = self.GetControlValue(control)
+        if True: # existingValue is None or existingValue != value:
+            # logger.debug("Rebuilding DV timezone popup again") # see how often this happens.
             TimeZoneList.buildTZChoiceList(self.item.itsView, control, value)
 
 class TriageAttributeEditor(ChoiceAttributeEditor):

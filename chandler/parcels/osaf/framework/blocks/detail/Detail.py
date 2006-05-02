@@ -20,6 +20,7 @@ import osaf.pim.items as items
 from osaf.pim.tasks import TaskMixin
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.calendar.Recurrence as Recurrence
+from osaf.pim.calendar import TimeZoneInfo
 from osaf.pim.contacts import ContactName
 from osaf.pim.collections import ListCollection
 from osaf.pim import ContentItem
@@ -785,6 +786,15 @@ class CalendarTimeAEBlock (DetailSynchronizedAttributeEditorBlock):
         return not item.allDay and \
                (item.isAttributeModifiable('startTime') \
                 or not item.anyTime)
+
+class CalendarTimeZoneAEBlock(DetailSynchronizedAttributeEditorBlock):
+    def getWatchList(self):
+        watchList = super(CalendarTimeZoneAEBlock, self).getWatchList()
+        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        timezones = TimeZoneInfo.get(self.itsView)
+        watchList.extend([ (tzPrefs, 'showUI'), 
+                           (timezones, 'wellKnownIDs') ])
+        return watchList
 
 class CalendarReminderSpacerBlock(SynchronizedSpacerBlock):
     def shouldShow (self, item):

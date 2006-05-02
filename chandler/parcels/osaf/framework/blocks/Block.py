@@ -411,22 +411,21 @@ class Block(schema.Item):
             return # nothing to watch on
 
         # If this looks like a collection, we'll subscribe to
-        # collection notifications (independent of whether the block
-        # implements onItemNotification - it probably just wants to be
-        # dirtied when its collection changes.)
+        # collection notifications.
         if isinstance(contents, ContentCollection):
             self.itsView.notificationQueueSubscribe(contents, self)
-            return
 
-        # It's not a collection. Does this block want item notifications?
+        # Do item subscription, if this block wants us to watch 
+        # something and has an onItemNotification method
         if not (hasattr(type(self), 'onItemNotification') or
                 hasattr(self.widget, 'onItemNotification')):
-            return # nope - no one to notify
+            return # no one to notify
+        watchList = self.getWatchList()
+        if not watchList:
+            return # nothing to watch
         
-        # Do item subscription
         assert not hasattr(self, 'watchedItemAttributes')
         watchedItemAttributes = set()
-        watchList = self.getWatchList()
         for (item, attr) in watchList:
             if attr:
                 watchedItemAttributes.add((item, attr))
@@ -457,17 +456,19 @@ class Block(schema.Item):
         if contents is None:
             return
         
+        # unsubscribe from collection notifications
         if isinstance(contents, ContentCollection):
             self.itsView.notificationQueueUnsubscribe(contents, self)
-        else: # do item unsubscription
-            try:
-                watchedItemAttributes = self.watchedItemAttributes
-            except AttributeError:
-                pass
-            else:
-                for (item, attr) in watchedItemAttributes:
-                    self.removeWatch(item, attr)
-                del self.watchedItemAttributes         
+            
+        # do item notifications, too, if we had any
+        try:
+            watchedItemAttributes = self.watchedItemAttributes
+        except AttributeError:
+            pass
+        else:
+            for (item, attr) in watchedItemAttributes:
+                self.removeWatch(item, attr)
+            del self.watchedItemAttributes
             
     def removeWatch(self, item, *attributeNames):
         """
@@ -502,6 +503,17 @@ class Block(schema.Item):
         """
         When an item someone's watching has changed, we need to synchronize
         """
+        # Ignore notifications for items being stamped. (We get a lot then, 
+        # but the items really aren't consistent. Anyone who cares about an 
+        # item kind change should have another way to hear about it: the 
+        # detail view explicitly monitors itsKind; that notification, as 
+        # well as collection-change notifications that the rest of the app 
+        # uses, happen outside isMutating.
+        repoView = wx.GetApp().UIRepositoryView            
+        item = repoView.find(uuid, False)
+        if item is not None and item.isMutating():
+            return
+                
         itemDict = Block.watchingItems.get(uuid, None)
         if itemDict is not None:
             notifications = {}
@@ -536,11 +548,13 @@ class Block(schema.Item):
         # sync isn't necessary) 
         self.markDirty()
         
-        # See if we (the block) want to be notified; if not, check our widget.
+        # See if the block and/or the widget want to be notified.
+        # (We do both because some of the calendar blocks and widgets both
+        # have handlers)
         onItemNotification = getattr(type(self), 'onItemNotification', None)
         if onItemNotification is not None:
             onItemNotification(self, notificationType, data)
-        elif hasattr(self, 'widget'):
+        if hasattr(self, 'widget'):
             # (don't look up on type(self.widget) because it's not an Item,
             # and so doesn't pay a repository lookup penalty)
             onItemNotification = getattr(self.widget, 'onItemNotification', None)

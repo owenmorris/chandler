@@ -476,7 +476,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                 makeLabel(parcel, _(u'time zone')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditTimeZone',
-                    baseClass=CalendarTimeAEBlock,
+                    baseClass=CalendarTimeZoneAEBlock,
                     viewAttribute=u'startTime',
                     presentationStyle={'format': 'timeZoneOnly'},
                     stretchFactor=0.0,
