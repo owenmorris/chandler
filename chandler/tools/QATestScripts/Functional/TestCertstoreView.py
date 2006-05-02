@@ -48,8 +48,7 @@ try:
     # Since UITestItem does not know about certificate, we need to set
     # the variables ourselves
     cert.logger = logger
-    cert.isNote = cert.isTask = cert.isMessage = cert.isCollection = cert.allDay = cert.recurring = False
-    cert.isEvent = False
+    cert.allDay = cert.recurring = False
     cert.view = app_ns().itsView
     cert.item = app_ns().summary.contents.getFirstSelectedItem() # Dunno how to get it from detail
     

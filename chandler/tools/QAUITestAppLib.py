@@ -50,13 +50,28 @@ def GetCollectionRow(cellName):
             return i
     return False
 
+
+# it would be nice if this were just a list, and we could map type ->
+# 'New' + type.. but at the moment there is no 'NewEvent' - so 'Event'
+# probably needs to be 'CalendarEvent' and 'NewCalendar' should
+# probably be 'NewCalendarEvent'
+
+DataTypes = { 'Event' : 'NewCalendar',
+              'Note' : 'NewNote',
+              'Task' : 'NewTask',
+              'MailMessage' : 'NewMailMessage',
+              'Collection' : 'NewCollection',
+              }
              
 class UITestItem(object):       
     def __init__(self, type, logger=None):
-        if not type in ["Event", "Note", "Task", "MailMessage", "Collection"]:
+        for key in DataTypes.iterkeys():
+            # set isTask, etc
+            setattr(self, 'is' + key, False)
+        
+        if type not in DataTypes:
             # "Copy constructor"
             if isinstance(type,pim.calendar.CalendarEvent):
-                self.isNote = self.isTask = self.isMessage = self.isCollection = self.allDay = self.recurring = False
                 self.isEvent = True
                 self.view = App_ns.itsView
                 self.logger = logger
@@ -64,32 +79,16 @@ class UITestItem(object):
             else:
                 return
         else:
-            self.isNote = self.isEvent = self.isTask = self.isMessage = self.isCollection = self.allDay = self.recurring = False
+            self.allDay = self.recurring = False
             self.view = App_ns.itsView
             self.logger = logger
             if self.logger: self.logger.Start("%s creation" %type)
-            if type == "Event": # New Calendar Event
-                # post the corresponding CPIA-event
-                item = App_ns.root.NewCalendar()[0]
-                self.isEvent = True
-            elif type == "Note": # New Note
-                # post the corresponding CPIA-event
-                item = App_ns.root.NewNote()[0]
-                self.isNote = True
-            elif type == "Task": # New Task
-                # post the corresponding CPIA-event
-                item = App_ns.root.NewTask()[0]
-                self.isTask = True
-            elif type == "MailMessage": # New Mail Message
-                # post the corresponding CPIA-event
-                item = App_ns.root.NewMailMessage()[0]
-                self.isMessage = True
-            elif type == "Collection": # New Collection
-                # post the corresponding CPIA-event
-                item = App_ns.root.NewCollection()[0]
-                self.isCollection = True
-                
-            self.item = item
+            
+            setattr(self, 'is' + type, True)
+            constructorName = DataTypes[type]
+            constructor = getattr(App_ns.root, constructorName)
+            self.item = constructor()[0]
+            
             # Give the Yield
             scripting.User.idle()
             if self.logger: self.logger.Stop()
@@ -98,37 +97,32 @@ class UITestItem(object):
         """
         Set the item attributes in a predefined order (see orderList)
         """
-        methodDict = {
-            'displayName': self.SetDisplayName,
-            'startDate': self.SetStartDate,
-            'startTime': self.SetStartTime,
-            'endDate': self.SetEndDate,
-            'endTime': self.SetEndTime,
-            'location': self.SetLocation,
-            'body': self.SetBody,
-            'status': self.SetStatus,
-            'alarm': self.SetAlarm,
-            'fromAddress': self.SetFromAddress,
-            'toAddress': self.SetToAddress,
-            'allDay': self.SetAllDay,
-            'stampEvent': self.StampAsCalendarEvent,
-            'stampMail': self.StampAsMailMessage,
-            'stampTask': self.StampAsTask,
-            'timeZone': self.SetTimeZone,
-            'recurrence': self.SetRecurrence,
-            'recurrenceEnd': self.SetRecurrenceEnd
-            }
+        methodOrder = (
+            ('displayName', self.SetDisplayName),
+            ('startDate', self.SetStartDate),
+            ('startTime', self.SetStartTime),
+            ('endDate', self.SetEndDate),
+            ('endTime', self.SetEndTime),
+            ('location', self.SetLocation),
+            ('body', self.SetBody),
+            ('status', self.SetStatus),
+            ('alarm', self.SetAlarm),
+            ('fromAddress', self.SetFromAddress),
+            ('toAddress', self.SetToAddress),
+            ('allDay', self.SetAllDay),
+            ('stampEvent', self.StampAsCalendarEvent),
+            ('stampMail', self.StampAsMailMessage),
+            ('stampTask', self.StampAsTask),
+            ('timeZone', self.SetTimeZone),
+            ('recurrence', self.SetRecurrence),
+            ('recurrenceEnd', self.SetRecurrenceEnd),
+            )
         
-        orderList = ['displayName', 'startDate', 'startTime', 'endDate',
-                     'endTime', 'location', 'body', 'status', 'alarm',
-                     'fromAddress', 'toAddress',
-                     'allDay', 'stampEvent', 'stampMail', 'stampTask',
-                     'timeZone', 'recurrence', 'recurrenceEnd']
         self.FocusInDetailView()
         if self.logger: self.logger.Start("Multiple Attribute Setting")
-        for param in orderList:
+        for param, method in methodOrder:
             if param in args:
-                methodDict[param](args[param], timeInfo=False)
+                method(args[param], timeInfo=False)
         if self.logger: self.logger.Stop()
             
     def SetAttrInOrder(self, argList):
@@ -235,7 +229,7 @@ class UITestItem(object):
         """
         #select the item
         self.SelectItem()
-        block = App_ns.__getattr__(menuName)
+        block = getattr(App_ns, menuName)
         list_of_value = []
         for k in range(0,block.widget.GetCount()):
             list_of_value.append(block.widget.GetString(k))
@@ -420,7 +414,7 @@ class UITestItem(object):
         @param toAdd : the new destination address value
         @type timeInfo: boolean
         """
-        if self.isMessage:
+        if self.isMailMessage:
             self.SetEditableBlock("EditMailTo", "to address", toAdd, timeInfo=timeInfo)
         else:
             if self.logger: self.logger.Print("SetToAddress is not available for this kind of item")
@@ -433,7 +427,7 @@ class UITestItem(object):
         @param ccAdd: the new CC address value
         @type timeInfo: boolean
         """
-        if self.isMessage:
+        if self.isMailMessage:
             self.SetEditableBlock("EditMailCc", "cc address", ccAdd, timeInfo=timeInfo)
         else:
             if self.logger: self.logger.Print("SetCcAddress is not available for this kind of item")
@@ -446,7 +440,7 @@ class UITestItem(object):
         @param bccAdd : the new BCC address value
         @type timeInfo: boolean
         """
-        if self.isMessage:
+        if self.isMailMessage:
             self.SetEditableBlock("EditMailBcc", "bcc address", bccAdd, timeInfo=timeInfo)
         else:
             if self.logger: self.logger.Print("SetBccAddress is not available for this kind of item")
@@ -459,7 +453,7 @@ class UITestItem(object):
         @param fromAdd : the new from address value
         @type timeInfo: boolean
         """
-        if self.isMessage:
+        if self.isMailMessage:
             blockName = (self.item.isOutbound and "EditMailOutboundFrom" 
                          or "EditMailInboundFrom")
             self.SetEditableBlock(blockName, "from address", fromAdd, 
@@ -477,13 +471,18 @@ class UITestItem(object):
         @param value : the new stamp value
         @type timeInfo: boolean
         """
-        type_list = ["Mail", "Task", "Event"]
-        if not type in type_list:
+        type_states = {"Mail": dict(isOfType=self.isMailMessage,
+                                    button="MailMessageButton"),
+                       "Task": dict(isOfType=self.isTask,
+                                    button="TaskStamp"),
+                       "Event": dict(isOfType=self.isEvent,
+                                     button="CalendarStamp"),
+                       }
+        if not type in type_states:
             return
-        currentValue = {"Mail": self.isMessage, "Task": self.isTask, "Event": self.isEvent}
-        buttonDict = {"Mail": "MailMessageButton", "Task": "TaskStamp", "Event": "CalendarStamp"}
+
         if not self.isCollection:
-            if currentValue[type] == value: #Nothing to do
+            if type_states[type].isOfValue == value: #Nothing to do
                 return
             else:
                 # select the item
@@ -491,7 +490,7 @@ class UITestItem(object):
                 if timeInfo :
                     if self.logger: self.logger.Start("Change the %s stamp" %type)
                 # markup bar tests disabled for now -- Reid
-#                App_ns.markupbar.press(name=buttonDict[type])
+#                App_ns.markupbar.press(name=type_states[type]['button'])
                 scripting.User.idle()
                 if timeInfo:
                     if self.logger: self.logger.Stop()
@@ -509,7 +508,7 @@ class UITestItem(object):
         """
         self.SetStamp("Mail", stampMail, timeInfo)
         # update the item state
-        self.isMessage = stampMail
+        self.isMailMessage = stampMail
         
     def StampAsTask(self, stampTask, timeInfo=True):
         """
@@ -602,7 +601,7 @@ class UITestItem(object):
         Send a mail message
         @type timeInfo: boolean
         """
-        if self.isMessage:
+        if self.isMailMessage:
             #select the item
             self.SelectItem()
             #Send button is available only when the body is edited
@@ -850,7 +849,7 @@ class UITestItem(object):
         # check the changing values
         for field in dict.keys():
             if field == "displayName": # display name checking
-                if self.isMessage:
+                if self.isMailMessage:
                     d_name = "%s" %self.item.subject
                 else:
                     d_name = "%s" %self.item.displayName
@@ -1020,16 +1019,17 @@ class UITestItem(object):
         if not self.isCollection or collectionName == "Trash":
             if self.logger: self.logger.SetChecked(True)
             # for All, In, Out, Trash collection find by item rather than itemName
-            chandler_collections = {"All":scripting.schema.ns('osaf.pim', Globals.mainViewRoot).allCollection,
-                                    "Out":scripting.schema.ns('osaf.pim', Globals.mainViewRoot).outCollection,
-                                    "In":scripting.schema.ns('osaf.pim', Globals.mainViewRoot).inCollection,
-                                    "Trash":scripting.schema.ns('osaf.pim', Globals.mainViewRoot).trashCollection}
+            pim_ns = scripting.schema.ns('osaf.pim', Globals.mainViewRoot)
+            chandler_collections = {"All":   pim_ns.allCollection,
+                                    "Out":   pim_ns.outCollection,
+                                    "In":    pim_ns.inCollection,
+                                    "Trash": pim_ns.trashCollection}
             if collectionName in chandler_collections.keys():
                 col = chandler_collections[collectionName]
             else:
                 col = App_ns.item_named(pim.ContentCollection, collectionName)
             if col:
-                if col.__contains__(self.item):
+                if self.item in col:
                     value = True
                     description = "item named %s is in %s" %(self.item.displayName, collectionName)
                 else:
