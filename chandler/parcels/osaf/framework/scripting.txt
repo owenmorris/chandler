@@ -141,7 +141,7 @@ get the sidebar you can say::
 
     >>> app_ns = Scripting.app_ns(rv)
     >>> app_ns.summary
-    <...scripting.BlockProxy object at ...>
+    <...scripting.proxy.BlockProxy object at ...>
 
 This BlockProxy object can be used in place of the real summary view.  But it has
 the advantage of always pointing you to the actual summary view that is currently
@@ -150,21 +150,21 @@ rendered.
 Proxy blocks available include the sidebar, calendar, detail, appbar, markupbar::
 
     >>> app_ns.sidebar
-    <...scripting.BlockProxy object at ...>
+    <...scripting.proxy.BlockProxy object at ...>
     >>> app_ns.calendar
-    <...scripting.BlockProxy object at ...>
+    <...scripting.proxy.BlockProxy object at ...>
     >>> app_ns.detail
-    <...scripting.BlockProxy object at ...>
+    <...scripting.proxy.BlockProxy object at ...>
     >>> app_ns.appbar
-    <...scripting.BlockProxy object at ...>
+    <...scripting.proxy.BlockProxy object at ...>
     >>> app_ns.markupbar
-    <...scripting.BlockProxy object at ...>
+    <...scripting.proxy.BlockProxy object at ...>
 
 There's also a root proxy for the Main View Root block.  The proxy for this block 
 also takes on the role of dispatching Chandler events used in Scripting.
 
     >>> app_ns.root
-    <...scripting.RootProxy object at ...>
+    <...scripting.proxy.RootProxy object at ...>
 
 If you want pass "commands" to Chandler, you essentially call methods on the
 root proxy to do this.
