@@ -461,6 +461,8 @@ public:
                          bool shown = true,
 			 wxTreeListColumnAlign alignment = wxTL_ALIGN_LEFT);
 
+    ~wxTreeListColumnInfo();
+
     bool GetShown() const;
     wxTreeListColumnAlign GetAlignment() const;
     wxString GetText() const;
