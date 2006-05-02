@@ -351,7 +351,7 @@ class UITestItem(object):
             self.SelectItem()
             if timeInfo:
                 if self.logger: self.logger.Start("All-day setting")
-            allDayBlock = App_ns.detail.all_day  
+            allDayBlock = App_ns.detail.EditAllDay
             # Emulate the mouse click in the all-day block
             #scripting.User.emulate_click(allDayBlock)
             # work around : (the mouse click has not the good effect)
@@ -605,7 +605,7 @@ class UITestItem(object):
             #select the item
             self.SelectItem()
             #Send button is available only when the body is edited
-            noteArea = App_ns.detail.notes
+            noteArea = App_ns.detail.NotesBlock
             scripting.User.emulate_click(noteArea)
             #Press the Send button
             if timeInfo:

@@ -519,20 +519,18 @@ class BlockProxy(object):
     Since Blocks come and go in CPIA, this proxy helps
     provide a solid reference point for locating the
     currently rendered Block by name.
-    You can construct it with a set of children block
-    attributes which are also located by name.
     """
-    def __init__(self, blockName, app_ns, children={}):
+    def __init__(self, blockName, app_ns):
         # create an attribute that looks up this block by name
         self.proxy = blockName
-        self.children = children
         self.app_ns = app_ns
 
     def __getattr__(self, attr):
         # if it's a block that's our child, return it
-        child_name = self.children.get(attr, None)
-        if child_name:
-            return getattr(self.app_ns, child_name)
+        child = getattr(self.app_ns, attr, None)
+        if child is not None:
+            return child
+        
         # delegate the lookup to our View
         block = getattr(self.app_ns, self.proxy)
         return getattr(block, attr)
@@ -602,26 +600,6 @@ Children to use for the Detail View.
 This is a mapping of the form:
 attribute_name: block_name
 """
-detail_children = {
-    'title': 'HeadlineBlock',
-    'location': 'CalendarLocation',
-    'mail_from_inbound': 'EditMailInboundFrom',
-    'mail_from_outbound': 'EditMailOutboundFrom',
-    'mail_to': 'EditMailTo',
-    'mail_cc': 'EditMailCc',
-    'mail_bcc': 'EditMailBcc',
-    'all_day': 'EditAllDay',
-    'start_date': 'EditCalendarStartDate',
-    'start_time': 'EditCalendarStartTime',
-    'end_date': 'EditCalendarEndDate',
-    'end_time': 'EditCalendarEndTime',
-    'time_zone': 'EditTimeZone',
-    'status': 'EditTransparency',
-    'recurrence': 'EditRecurrence',
-    'reminder': 'EditReminder',
-    'notes': 'NotesBlock',
-    }
-
 class AppProxy(object):
     """
     Proxy for the app namespace, and the items you'd expect
@@ -645,7 +623,7 @@ class AppProxy(object):
         self.sidebar = BlockProxy('Sidebar', self)
         self.calendar = BlockProxy('CalendarSummaryView', self)
         self.summary = BlockProxy('TableSummaryView', self)
-        self.detail = BlockProxy('DetailView', self, children=detail_children)
+        self.detail = BlockProxy('DetailView', self)
 
     def item_named(self, itemClass, itemName):
         for item in itemClass.iterItems(self.itsView):
@@ -653,7 +631,8 @@ class AppProxy(object):
                 return item
         return None
 
-    def _name_of(self, item):
+    @staticmethod
+    def _name_of(item):
         try:
             return item.about
         except AttributeError:
@@ -723,10 +702,12 @@ class User(object):
                     upWorked = widget.ProcessEvent(keyUp)
                     if not (downWorked or upWorked): # key handler worked?
                         # try calling EmulateKeyPress
-                        emulateMethod = getattr(widget, 'EmulateKeyPress', lambda k: False)
-                        if '__WXMSW__' in wx.PlatformInfo:
-                            emulateMethod = lambda k: False
-                        if not emulateMethod(keyPress): # emulate worked?
+                        
+                        emulateMethod = getattr(widget, 'EmulateKeyPress',
+                                                lambda k: False)
+                            
+                        if ('__WXMSW__' in wx.PlatformInfo or
+                            not emulateMethod(keyPress)): # emulate worked?
                             # try calling WriteText
                             writeMethod = getattr(widget, 'WriteText', None)
                             if writeMethod:
@@ -764,10 +745,10 @@ class User(object):
             mouseEnter.m_x = mouseDown.m_x = mouseUp.m_x = x
         if y:
             mouseEnter.m_y = mouseDown.m_y = mouseUp.m_y = y
-        mouseEnter.SetEventObject(widget)
-        mouseDown.SetEventObject(widget)
-        mouseUp.SetEventObject(widget)
-        mouseLeave.SetEventObject(widget)
+
+        for event in (mouseEnter, mouseDown, mouseUp, mouseLeave):
+            event.SetEventObject(widget)
+            
         # events processing
         widget.ProcessEvent(mouseEnter)
         widget.ProcessEvent(mouseDown)
@@ -818,25 +799,27 @@ class User(object):
             return True
 
     @classmethod
-    def emulate_sidebarClick(cls, sidebar, cellName, double=False, overLay=False):
+    def emulate_sidebarClick(cls, sidebar, cellName, double=False, overlay=False):
         ''' Process a left click on the given cell in the given sidebar
-            if overLay is true the overLay disk next to the collection name is checked
+            if overlay is true the overlay disk next to the collection name is checked
             otherwise the collection is selected'''
-        #determine x coordinate offset based on overLay value
+        #determine x coordinate offset based on overlay value
         xOffset = 24
-        if overLay: xOffset=3 
-        # for All,c In, Out, Trash collection find by item rather than itemName
-        chandler_collections = {"All":schema.ns('osaf.pim', Globals.mainViewRoot).allCollection,
-                                "Out":schema.ns('osaf.pim', Globals.mainViewRoot).outCollection,
-                                "In":schema.ns('osaf.pim', Globals.mainViewRoot).inCollection,
-                                "Trash":schema.ns('osaf.pim', Globals.mainViewRoot).trashCollection}
+        if overlay:
+            xOffset=3 
+
+        # find special collections by item because their names may
+        # change (i.e. "All" becomes "My Items" or "My Calendar
+        # Events" etc...
+        pim_ns = schema.ns('osaf.pim', Globals.mainViewRoot)
+        chandler_collections = {"All":pim_ns.allCollection}
         if cellName in chandler_collections.keys():
             cellName = chandler_collections[cellName]
 
         cellRect = None
         for i in range(sidebar.widget.GetNumberRows()):
             item = sidebar.widget.GetTable().GetValue(i,0)[0]
-            if item.displayName == cellName or item == cellName:
+            if item.displayName == cellName or item is cellName:
                 cellRect = sidebar.widget.CalculateCellRect(i)
                 break
         if cellRect:
