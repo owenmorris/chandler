@@ -80,18 +80,44 @@ class _TwistedPOP3Client(pop3.POP3Client):
             self._capCache = disableTwistedTLS(caps, "STLS")
             self.delegate.loginClient()
 
+    def connectionLost(self, reason):
+        if __debug__:
+            trace("connectionLost")
+
+        if self.timeout > 0:
+            self.setTimeout(None)
+
+        if self._timedOut:
+            #The errback was already fired in the timeoutConnection method.
+            return
+
+        #This will fire an errback on all deferred objects in the queue
+        return pop3.POP3Client.connectionLost(self, reason)
+
     def timeoutConnection(self):
         """Called by C{policies.TimeoutMixin} base class.
            The method generates an C{POPException} and
            forward to delegate.catchErrors
         """
-        exc = errors.POPException(errors.STR_TIMEOUT_ERROR)
-        """We have timed out so do not send any more commands to
-           the server just disconnect """
+        if __debug__:
+            trace("timeoutConnection")
+
         self._timedOut = True
         self.factory.timedOut = True
-        self.delegate.catchErrors(exc)
 
+        d = []
+        error = errors.POPException(errors.STR_TIMEOUT_ERROR)
+
+        if self._waiting is not None:
+            d.append(self._waiting)
+            self._waiting = None
+
+        if self._blockedQueue is not None:
+            d.extend([deferred for (deferred, f, a) in self._blockedQueue])
+            self._blockedQueue = None
+
+        for w in d:
+            w.errback(error)
 
 class POPClientFactory(base.AbstractDownloadClientFactory):
     """Inherits from C{base.AbstractDownloadClientFactory}

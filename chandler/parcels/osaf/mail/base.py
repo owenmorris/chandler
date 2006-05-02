@@ -93,6 +93,9 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
 
           @type err: L{twisted.python.failure.Failure}
         """
+        if __debug__:
+            trace("ClientConnectionFailed")
+
         self._processConnectionError(connector, err)
 
     def clientConnectionLost(self, connector, err):
@@ -101,6 +104,9 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
 
           @type err: L{twisted.python.failure.Failure}
         """
+        if __debug__:
+            trace("ClientConnectionLost")
+
         self._processConnectionError(connector, err)
 
 
@@ -117,8 +123,10 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
             if err.check(error.ConnectionDone):
                 err.value = self.exception(errors.STR_CONNECTION_ERROR)
 
-            self.delegate.catchErrors(err)
+            if __debug__:
+                trace("_processConnectionError manual call to catchErrors")
 
+            self.delegate.catchErrors(err)
 
 class AbstractDownloadClient(object):
     """ Base class for Chandler download transports (IMAP, POP, etc.)
@@ -205,9 +213,11 @@ class AbstractDownloadClient(object):
             self.view.refresh()
 
         except VersionConflictError, e:
+            log.exception("Repository raised a VersionConflictError")
             return self.catchErrors(e)
 
         except RepositoryError, e1:
+            log.exception("Repository raised a RepositoryError")
             return self.catchErrors(e1)
 
         """Overidden method"""
@@ -232,27 +242,64 @@ class AbstractDownloadClient(object):
 
     def catchErrors(self, err):
         """
-        This method captures all errors thrown while in the Twisted Reactor Thread.
+        This method captures all errors thrown while in the Twisted Reactor Thread as well
+        as errors raised by non-Twisted code while in the Twisted Reactor Thread.
+        catchErrors will print a stacktrace of C{failure.Failure} objects to the chandler.log.
+        catchErrors also handles c{Exception}s but will not log the stacktrace to the chandler.log
+        since this method is out of the scope of the original c{Exception}. The caller must log 
+        its c{Exception} via the logging.exception method.
+
+        
         @param err: The error thrown
         @type err: C{failure.Failure} or c{Exception}
 
         @return: C{None}
         """
-
         if __debug__:
             trace("catchErrors")
 
+        if self.factory is None:
+            if __debug__:
+                trace("Call to catchErrors when factory equals None: %s" % err)
+            return
+
         if isinstance(err, failure.Failure):
+            if err.check(error.ConnectionDone):
+                if self.factory.retries < self.factory.sendFinished <= 0:
+                    #The error processing for lost connections is in the Factory
+                    #class so return here and let the Factory handle the reconnection logic.
+                    return
+
+                #set the value of the error to something more meaningful than
+                #'Connection closed cleanly.'
+                err.value = self.factory.exception(errors.STR_CONNECTION_ERROR)
+
+            try:
+                err.raiseException()
+            except:
+                log.exception("Exception raised in Twisted Framework Layer. \
+                               More information may be available in the twisted.log.")
+
             err = err.value
 
-
         errorType   = str(err.__class__)
-        errorString = err.__str__()
+
+        #Convert error messages to unicode objects for display
+        try:
+            errorText = unicode(err.__str__(), 'utf8')
+        except UnicodeEncodeError, e:
+            logging.exception("Unable to convert Exception string text to Unicode")
+            errorText = u""
 
         if self.testing:
             reconnect = self.testAccountSettings
         else:
             reconnect = self.getMail
+            #Clear the previous message in the status bar.
+            #But only if we are not in testing mode since it
+            #does not leverage the status bar.
+            NotifyUIAsync(u"")
+
 
         if isinstance(err, Utility.CertificateVerificationError):
             assert err.args[1] == 'certificate verify failed'
@@ -278,7 +325,7 @@ class AbstractDownloadClient(object):
             # Post an asynchronous event to the main thread where
             # we ask the user if they would like to continue even though
             # the certificate identifies a different host.
-            displayIgnoreSSLErrorDialog(err.pem, errorString,#XXX intl
+            displayIgnoreSSLErrorDialog(err.pem, errorText,#XXX intl
                                               reconnect)
 
             self._actionCompleted()
@@ -286,15 +333,15 @@ class AbstractDownloadClient(object):
 
 
         if self.testing:
-            alert(constants.TEST_ERROR, {'accountName': self.account.displayName, 'error': errorString})
+            alert(constants.TEST_ERROR, {'accountName': self.account.displayName, \
+                  'error': errorText})
         else:
-            alertMailError(constants.DOWNLOAD_ERROR, self.account, {'error': errorString})
+            alertMailError(constants.DOWNLOAD_ERROR, self.account, \
+                          {'error': errorText})
 
         self._actionCompleted()
 
-        if __debug__:
-            trace(err)
-
+        return
 
     def loginClient(self):
         """
@@ -304,6 +351,7 @@ class AbstractDownloadClient(object):
         @return: C{None}
         """
         return self._loginClient()
+
 
     def _loginClient(self):
         """Overide this method to place any protocol specific
@@ -336,7 +384,6 @@ class AbstractDownloadClient(object):
 
         if not self.factory.connectionLost and self.proto is not None:
             self.proto.transport.loseConnection()
-
 
     def _commitDownloadedMail(self):
         """Commits mail to the C{Repository}.
@@ -378,9 +425,9 @@ class AbstractDownloadClient(object):
         #XXX: May want to handle the case where the Repository fails
         #     to commit. For example, role back transaction or display
         #     Repository error to the user
-        d.addCallbacks(lambda _: self._postCommit(), self.catchErrors)
+        return d.addCallback(lambda _: self._postCommit()
+                            ).addErrback(self.catchErrors)
 
-        return d
 
     def _postCommit(self):
         if __debug__:
@@ -425,6 +472,7 @@ class AbstractDownloadClient(object):
         d = self._beforeDisconnect()
         d.addBoth(self._disconnect)
         d.addCallback(lambda _: self._resetClient())
+        return d
 
     def _resetClient(self):
         """Resets Client object state variables to

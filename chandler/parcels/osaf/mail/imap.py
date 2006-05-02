@@ -63,31 +63,33 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
         @type caps: C{dict} or C{None}
         @return C{defer.Deferred}
         """
+        if __debug__:
+            trace("serverGreeting")
 
         if caps is None:
             """If no capabilities returned in server greeting then get
                the server capabilities """
             d = self.getCapabilities()
 
-            d.addCallbacks(self._getCapabilities, self.delegate.catchErrors)
-
-            return d
+            return d.addCallback(self._getCapabilities
+                     ).addErrback(self.delegate.catchErrors)
 
         self._getCapabilities(caps)
 
     def _getCapabilities(self, caps):
+        if __debug__:
+            trace("_getCapabilities")
+
         if self.factory.useTLS:
             """The Twisted IMAP4Client will check to make sure the server can STARTTLS
                and raise an error if it can not"""
             d = self.startTLS(self.transport.contextFactory.getContext())
 
-            d.addCallbacks(lambda _: self.delegate.loginClient(), \
-                                     self.delegate.catchErrors)
-            return d
+            return d.addCallback(lambda _: self.delegate.loginClient()
+                                 ).addErrback(self.delegate.catchErrors)
 
         if 'LOGINDISABLED' in caps:
-            e = errors.IMAPException(constants.DOWNLOAD_REQUIRES_TLS)
-            self.delegate.catchErrors(e)
+            self._raiseException(errors.IMAPException(constants.DOWNLOAD_REQUIRES_TLS))
 
         else:
             """Remove the STARTTLS from capabilities"""
@@ -99,12 +101,36 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
            The method generates an C{IMAPException} and
            forward to delegate.catchErrors
         """
-        exc = errors.IMAPException(errors.STR_TIMEOUT_ERROR)
-        """We have timed out so do not send any more commands to
-           the server just disconnect """
-        self.factory.timedOut = True
-        self.delegate.catchErrors(exc)
+        if __debug__:
+            trace("timeoutConnection")
 
+        #"""We have timed out so do not send any more commands to
+        #   the server just disconnect """
+        exc = errors.IMAPException(errors.STR_TIMEOUT_ERROR)
+        self.factory.timedOut = True
+        self._raiseException(exc)
+
+    def _raiseException(self, exception):
+        if __debug__:
+            trace("_raiseException")
+
+        raised = False
+
+        if self._lastCmd and self._lastCmd.defer is not None:
+            d, self._lastCmd.defer = self._lastCmd.defer, None
+            d.errback(exception)
+            raised = True
+
+        if self.queued:
+            for cmd in self.queued:
+                if cmd.defer is not None:
+                    d, cmd.defer = cmd.defer, d
+                    d.errback(exception)
+                    raised = True
+
+        if not raised:
+            d = defer.Deferred().addErrback(self.delegate.catchErrors)
+            d.errback(exception)
 
 class IMAPClientFactory(base.AbstractDownloadClientFactory):
     """Inherits from C{base.AbstractDownloadClientFactory}
@@ -147,7 +173,8 @@ class IMAPClient(base.AbstractDownloadClient):
 
         return self.proto.authenticate(password
                      ).addCallback(self._selectInbox
-                     ).addErrback(self.loginClientInsecure, username, password)
+                     ).addErrback(self.loginClientInsecure, username, password
+                     ).addErrback(self.catchErrors)
 
 
     def loginClientInsecure(self, error, username, password):
@@ -173,13 +200,11 @@ class IMAPClient(base.AbstractDownloadClient):
         if __debug__:
             trace("loginClientInsecure")
 
-        """There was an error during login"""
-        if not isinstance(error.value, imap4.NoSupportedAuthentication):
-            self.catchErrors(error)
-            return
+        error.trap(imap4.NoSupportedAuthentication)
 
         return self.proto.login(username, password
-                          ).addCallbacks(self._selectInbox, self.catchErrors)
+                    ).addCallback(self._selectInbox
+                    ).addErrback(self.catchErrors)
 
 
     def _selectInbox(self, result):
@@ -193,15 +218,18 @@ class IMAPClient(base.AbstractDownloadClient):
 
         NotifyUIAsync(constants.DOWNLOAD_CHECK_MESSAGES)
 
-        d = self.proto.select("INBOX")
-        d.addCallbacks(self._checkForNewMessages, self.catchErrors)
+        d = self.proto.select("INBOX"
+                   ).addCallback(self._checkForNewMessages
+                   ).addErrback(self.catchErrors)
+
+
         return d
 
     def _checkForNewMessages(self, msgs):
         if __debug__:
             trace("_checkForNewMessages")
 
-            #XXX: Need to store and compare UIDVALIDITY
+        #XXX: Need to store and compare UIDVALIDITY
         #if not msgs['UIDVALIDITY']:
         #    print "server: %s has no UUID Validity:\n%s" % (self.account.host, msgs)
 
@@ -214,11 +242,9 @@ class IMAPClient(base.AbstractDownloadClient):
         else:
             msgSet = imap4.MessageSet(self._getNextUID(), None)
 
-        d = self.proto.fetchFlags(msgSet, uid=True)
-
-        d.addCallback(self._getMessagesFlagsUID).addErrback(self.catchErrors)
-
-        return d
+        return self.proto.fetchFlags(msgSet, uid=True
+                   ).addCallback(self._getMessagesFlagsUID
+                   ).addErrback(self.catchErrors)
 
     def _getMessagesFlagsUID(self, msgs):
         if __debug__:
@@ -260,12 +286,13 @@ class IMAPClient(base.AbstractDownloadClient):
             return self._actionCompleted()
 
         if self.numToDownload > self.downloadMax:
-            self.numToDownload =self.downloadMax 
+            self.numToDownload =self.downloadMax
 
         m = self.pending.pop(0)
-        d = self.proto.fetchMessage(str(m[0]), uid=True)
-        d.addCallback(self._fetchMessage, m)
-        d.addErrback(self.catchErrors)
+
+        return self.proto.fetchMessage(str(m[0]), uid=True
+                      ).addCallback(self._fetchMessage, m
+                      ).addErrback(self.catchErrors)
 
 
     def _fetchMessage(self, msgs, curMessage):
@@ -299,9 +326,10 @@ class IMAPClient(base.AbstractDownloadClient):
 
         else:
             m = self.pending.pop(0)
-            d = self.proto.fetchMessage(str(m[0]), uid=True)
-            d.addCallback(self._fetchMessage, m)
-            d.addErrback(self.catchErrors)
+
+            return self.proto.fetchMessage(str(m[0]), uid=True
+                         ).addCallback(self._fetchMessage, m
+                         ).addErrback(self.catchErrors)
 
 
     def _expunge(self, result):
@@ -323,12 +351,11 @@ class IMAPClient(base.AbstractDownloadClient):
         if __debug__:
             trace("_beforeDisconnect")
 
-        if self.factory.connectionLost or self.factory.timedOut:
+        if self.factory is None or self.proto is None or \
+           self.factory.connectionLost or self.factory.timedOut:
             return defer.succeed(True)
 
-        d = self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',)))
-
-        return d
+        return self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',)))
 
     def _getAccount(self):
         """Retrieves a C{Mail.IMAPAccount} instance from its C{UUID}"""
