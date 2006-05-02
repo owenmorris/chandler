@@ -57,8 +57,18 @@ class Collection(Item):
             view = self.itsView
             subscribers = view._subscribers.get(self.itsUUID)
             if subscribers:
+                notFound = None
                 for subscriber in subscribers:
-                    view[subscriber].onCollectionNotification(op, self, name, other)
+                    item = view.findUUID(subscriber)
+                    if item is not None:
+                        item.onCollectionNotification(op, self, name, other)
+                    elif notFound is None:
+                        notFound = [subscriber]
+                    else:
+                        notFound.append(subscriber)
+                if notFound:
+                    for subscriber in notFound:
+                        view.notificationQueueUnsubscribe(self, subscriber)
 
         else:
             view = self.itsView

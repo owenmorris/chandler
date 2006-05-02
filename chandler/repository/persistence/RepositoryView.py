@@ -1064,6 +1064,8 @@ class RepositoryView(CView):
 
         if subscribers and uItem in subscribers:
             subscribers.remove(uItem)
+            if not subscribers:
+                del self._subscribers[uCol]
 
     def _dispatchHistory(self, history, refreshes, oldVersion, newVersion):
 
