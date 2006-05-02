@@ -222,9 +222,8 @@ class BranchPointDelegate(schema.Item):
         branch = None
         if not keyItem is None:
             keyUUID = keyItem.itsUUID
-            try:
-                branch = self.keyUUIDToBranch[keyUUID]
-            except KeyError:
+            branch = self.keyUUIDToBranch.get (keyUUID, None)
+            if branch is None:
                 branch = self._makeBranchForCacheKey(keyItem)
                 self.keyUUIDToBranch[keyUUID] = branch
         return branch
@@ -254,17 +253,11 @@ class BranchPointDelegate(schema.Item):
         If onlyIfReadOnly, we'll return the item as-is if it's already in the
         writeable part of the repository.
         """
-        # Look up the soup in the repository once per run.
-        try:
-            userData = self.userData
-        except AttributeError:
-            userData = self.findPath('//userdata')
-            self.userData = userData
-
-        if onlyIfReadOnly and item.itsParent == userData:
+        defaultParent = item.getDefaultParent (item.itsView)
+        if onlyIfReadOnly and item.itsParent == defaultParent:
             result = item
         else:
-            result = item.copy(parent = userData, cloudAlias="copying")
+            result = item.copy(parent = defaultParent, cloudAlias="copying")
             
         return result
 

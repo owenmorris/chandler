@@ -17,25 +17,30 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
         return element.itsParent
 
     def GetElementChildren(self, element):
-        if element:
-            return element.iterChildren()
-        else:
+        if element is None:
             return wx.GetApp().UIRepositoryView
+        else:
+            return element.iterChildren()
 
     def GetElementValues(self, element):
         cellValues = [element.itsName or '(anonymous)']
-        try:
-            name = element.blockName
-        except AttributeError:
-            try:
-                name = element.getItemDisplayName()
-            except AttributeError:
-                name = u' '
+
+        name = getattr (element, 'blockName', None)
+        if name is None:
+            method = getattr (type (element), 'getItemDisplayName', None)
+            if method is None:
+                name = u''
+            else:
+                name = method (element)
         cellValues.append (name)
-        try:
-            cellValues.append (element.itsKind.itsName)
-        except AttributeError:
-            cellValues.append (' ')
+ 
+        kind = element.itsKind
+        name = getattr (kind, 'itsName', None)
+        if name is None:
+            cellValues.append ('')
+        else:
+            cellValues.append (name)
+
         cellValues.append (unicode (element.itsUUID))
         cellValues.append (unicode (element.itsPath))
         return cellValues
@@ -74,9 +79,8 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
 
         try:
             displayName = item.getItemDisplayName()
-            try:
-                kind = item.itsKind.itsName
-            except AttributeError:
+            kind = getattr (item.itsKind, 'itsName', None)
+            if kind is None:
                 kind = "(kindless)"
 
             HTMLText = u"<html><body><h5>%s: %s</h5><ul>" % (kind, displayName)
@@ -140,28 +144,28 @@ class CPIADelegate (ControlBlocks.ListDelegate):
         if element:
             return element.childrenBlocks
         else:
-            return self.blockItem.findPath('//userdata/MainViewRoot')
+            return [self.blockItem.findPath('//userdata/MainViewRoot')]
 
     def GetElementValues(self, element):
-        try:
-            blockName = element.blockName
-        except AttributeError:
-            blockName = 'None'
+        blockName = getattr (element, 'blockName', None)
+        if blockName is None:
+            blockName = '(anonymous)'
         cellValues = [blockName]
 
-        try:
-            name = element.blockName
-        except AttributeError:
-            try:
-                name = element.getItemDisplayName()
-            except AttributeError:
-                name = u' '
-        cellValues.append (name)
+        method = getattr (type (element), 'getItemDisplayName')
+        if method is None:
+            displayName = u''
+        else:
+            displayName = method (element)
+        cellValues.append (displayName)
+        
+        kind = element.itsKind
+        name = getattr (kind, 'itsName', None)
+        if name is None:
+            cellValues.append ('')
+        else:
+            cellValues.append (name)
 
-        try:
-            cellValues.append (unicode (element.getItemDisplayName()))
-        except AttributeError:
-            cellValues.append (u' ')
         cellValues.append (unicode (element.itsUUID))
         cellValues.append (unicode (element.itsPath))
         return cellValues

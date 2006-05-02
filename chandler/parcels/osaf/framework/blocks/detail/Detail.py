@@ -756,7 +756,7 @@ class AppearsInAttributeEditor(StaticStringAttributeEditor):
         sidebarCollection = app.sidebarCollection
         collectionNames = _(", ").join(sorted([coll.displayName
                                                for coll in sidebarCollection
-                                               if item in coll]))
+                                               if isinstance (item, pim.ContentCollection) and item in coll]))
         # logger.debug("Returning new appearsin list: %s" % collectionNames)
         # @@@ I18N: FYI: I expect the label & names to be separate fields before too long...
         return _(u"Appears in: %(collectionNames)s") \

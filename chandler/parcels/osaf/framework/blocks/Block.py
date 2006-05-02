@@ -667,7 +667,8 @@ class Block(schema.Item):
         by the user interface.
         """
         def addItem (self, item):
-            if isinstance(item, ContentCollection):
+            isUserCollection = isinstance(item, ContentCollection)
+            if isUserCollection:
                 UserCollection(item).ensureColor()
 
             # Create a unique display name
@@ -708,7 +709,7 @@ class Block(schema.Item):
                 
                 # Let the block know about the preferred kind
                 method = getattr(type(blockItem), 'setPreferredKind', None)
-                if method:
+                if method and isUserCollection:
                     preferredKind = getattr(UserCollection (item), 'preferredKind', False)
                     if preferredKind is not False:
                         method(blockItem, preferredKind)

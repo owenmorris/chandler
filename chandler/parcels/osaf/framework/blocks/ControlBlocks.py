@@ -638,8 +638,13 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
         if not child.IsOk():
 
             parentUUID = self.GetItemData(parentId).GetData()
-            app = wx.GetApp()
-            for child in self.GetElementChildren (app.UIRepositoryView [parentUUID]):
+
+            if parentUUID is None:
+                parent = None
+            else:
+                parent = wx.GetApp().UIRepositoryView [parentUUID]
+
+            for child in self.GetElementChildren (parent):
                 cellValues = self.GetElementValues (child)
                 childNodeId = self.AppendItem (parentId,
                                                cellValues.pop(0),
@@ -715,30 +720,26 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
                     ExpandContainer (self, openedContainers, child)
                     child = self.GetNextSibling (child)
 
-        try:
-            self.blockItem.columns
-        except AttributeError:
-            pass # A wx.TreeCtrl won't use columns
-        else:
+        # A wx.TreeCtrl won't use columns
+        columns = getattr (self.blockItem, 'columns', None);
+        if columns is not None:
             for index in xrange(wx.gizmos.TreeListCtrl.GetColumnCount(self)):
                 self.RemoveColumn (0)
     
+            info = wx.gizmos.TreeListColumnInfo()
             for index in xrange (self.GetColumnCount()):
-                info = wx.gizmos.TreeListColumnInfo()
                 info.SetText (self.GetColumnHeading (index, None))
-                info.SetWidth (self.blockItem.columns[index].width)
+                info.SetWidth (columns[index].width)
                 self.AddColumnInfo (info)
 
         self.DeleteAllItems()
 
         root = self.blockItem.rootPath
-        if not root:
-            root = self.GetElementChildren (None)
+        if root is None:
+            root = self.GetElementChildren (None)[0]
         cellValues = self.GetElementValues (root)
-        rootNodeId = self.AddRoot (cellValues.pop(0),
-                                   -1,
-                                   -1,
-                                   wx.TreeItemData (root.itsUUID))        
+        itemData = wx.TreeItemData (root.itsUUID)
+        rootNodeId = self.AddRoot (cellValues.pop(0), -1, -1, itemData)        
         index = 1
         for value in cellValues:
             self.SetItemText (rootNodeId, value, index)
@@ -810,7 +811,7 @@ class Tree(RectangularChild):
     rootPath = schema.One(schema.Item, initialValue = None)
 
     schema.addClouds(
-        copying = schema.Cloud(byRef=[selection])
+        copying = schema.Cloud(byRef=[selection, columns])
     )
 
     def instantiateWidget(self):

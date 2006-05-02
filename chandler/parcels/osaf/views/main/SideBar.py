@@ -1011,109 +1011,103 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
     def _mapItemToCacheKeyItem(self, item, hints):
         key = item
-        sidebar = Block.Block.findBlockByName ("Sidebar")
-        """
-        collectionList should be in the order that the source items
-        are overlayed in the Calendar view
-
-        'item' in this case is more or less only used to determine
-        order. We're not so much mapping item => cacheKeyItem, but
-        rather mapping the sidebar's current state to a cacheKeyItem.
-        """
-        if not hints.get ("getOnlySelectedCollection", False):
-            checkedCollections = set(theItem for theItem in sidebar.contents
-                                     if (theItem in sidebar.checkedItems))
-            selectedCollections = set(sidebar.contents.iterSelection())
-            collectionList = list(selectedCollections.union(checkedCollections))
-            # make sure 'item' is at the front of the list so that
-            # consumers know what the 'primary' collection is.
-            try:
-                itemIndex = collectionList.index(item)
-                if itemIndex != 0:
-                    del collectionList[itemIndex]
-                    collectionList.insert(0, item)
-            except ValueError:
-                # ignore - just means the item wasn't in the
-                # collection, for whatever reason.
-                pass
-        else:
+        if not isinstance (item, Block.Block):
+            sidebar = Block.Block.findBlockByName ("Sidebar")
+            """
+            collectionList should be in the order that the source items
+            are overlayed in the Calendar view
+    
+            'item' in this case is more or less only used to determine
+            order. We're not so much mapping item => cacheKeyItem, but
+            rather mapping the sidebar's current state to a cacheKeyItem.
+            """
             collectionList = []
-
-        if len (collectionList) > 0:
-            """
-            tupleList is sorted so we always end up with on collection
-            for any order of collections in the source
-            """
-            tupleList = [theItem.itsUUID for theItem in collectionList]
-            tupleList.sort()
-
-            filterKind = sidebar.filterKind
-            if not filterKind is None:
-                tupleList.append (filterKind.itsUUID)
-            
-            tupleKey = tuple (tupleList)
-
-            key = self.itemTupleKeyToCacheKey.get (tupleKey, None)
-            if key is None:
-                # we don't have a cached version of this key, so we'll
-                # create a new one
-                if len (collectionList) == 1:
-                    key = collectionList [0]
-                else:
-                    key = UnionCollection(itsView=self.itsView,
-                                          sources=collectionList)
-
-                # create an INTERNAL name for this collection, just
-                # for debugging purposes
-                displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
-
-                # Handle filtered collections by intersecting with
-                # the kind collection
-                if filterKind is not None:
-                    kindCollection = self.kindToKindCollectionCache.get(filterKind, None)
-                    if kindCollection is None:
-                        kindCollection = KindCollection(itsView=self.itsView,
-                                                        kind=filterKind,
-                                                        recursive=True)
-                        self.kindToKindCollectionCache [filterKind] = kindCollection
-                    newKey = IntersectionCollection(itsView=self.itsView,
-                                                    sources=[key, kindCollection])
-                    UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
-                    displayName += u" filtered by " + filterKind.displayName
+            if not hints.get ("getOnlySelectedCollection", False):
+                # make sure 'item' is at the front of the list so that
+                # consumers know what the 'primary' collection is.
+                if item is not None:
+                    collectionList.append (item)
+                for theItem in sidebar.contents:
+                    if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
+                        isinstance (theItem, ContentCollection) and
+                        theItem not in collectionList):
+                        collectionList.append (theItem)
+    
+            if len (collectionList) > 0:
+                """
+                tupleList is sorted so we always end up with on collection
+                for any order of collections in the source
+                """
+                tupleList = [theItem.itsUUID for theItem in collectionList]
+                tupleList.sort()
+    
+                filterKind = sidebar.filterKind
+                if not filterKind is None:
+                    tupleList.append (filterKind.itsUUID)
+                
+                tupleKey = tuple (tupleList)
+    
+                key = self.itemTupleKeyToCacheKey.get (tupleKey, None)
+                if key is None:
+                    # we don't have a cached version of this key, so we'll
+                    # create a new one
+                    if len (collectionList) == 1:
+                        key = collectionList [0]
+                    else:
+                        key = UnionCollection(itsView=self.itsView,
+                                              sources=collectionList)
+    
+                    # create an INTERNAL name for this collection, just
+                    # for debugging purposes
+                    displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
+    
+                    # Handle filtered collections by intersecting with
+                    # the kind collection
+                    if filterKind is not None:
+                        kindCollection = self.kindToKindCollectionCache.get(filterKind, None)
+                        if kindCollection is None:
+                            kindCollection = KindCollection(itsView=self.itsView,
+                                                            kind=filterKind,
+                                                            recursive=True)
+                            self.kindToKindCollectionCache [filterKind] = kindCollection
+                        newKey = IntersectionCollection(itsView=self.itsView,
+                                                        sources=[key, kindCollection])
+                        UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
+                        displayName += u" filtered by " + filterKind.displayName
+                        key = newKey
+    
+                    # Finally, create a UI wrapper collection to manage
+                    # things like selection and sorting
+                    newKey = IndexedSelectionCollection(itsView=self.itsView,
+                                                        source=key)
+                    if len (newKey) > 0:
+                        newKey.addSelectionRange (0)
+                    UserCollection(newKey).dontDisplayAsCalendar = \
+                        UserCollection(key).dontDisplayAsCalendar
                     key = newKey
-
-                # Finally, create a UI wrapper collection to manage
-                # things like selection and sorting
-                newKey = IndexedSelectionCollection(itsView=self.itsView,
-                                                    source=key)
-                if len (newKey) > 0:
-                    newKey.addSelectionRange (0)
-                UserCollection(newKey).dontDisplayAsCalendar = \
-                    UserCollection(key).dontDisplayAsCalendar
-                key = newKey
-
-                key.displayName = displayName
-
-                key.collectionList = collectionList
-                self.itemTupleKeyToCacheKey [tupleKey] = key
-            else: # if key is None
-                """
-                We found the key, but we might still need to reorder
-                collectionList. The list is kept sorted by the order
-                of the collections as they overlay one another in the
-                Calendar.  We don't bother to reorder when we're
-                looking up a collection that isn't displayed in the
-                summary view.
-                """
-                if item in sidebar.contents.iterSelection():
-                    for new, old in zip(key.collectionList, collectionList):
-                        if new is not old:
-                            key.collectionList = collectionList
-                            # Force setContents to be true even if the
-                            # contents hasn't changed since the order
-                            # of collectionList has changed
-                            hints["sendSetContents"] = True
-                            break
+    
+                    key.displayName = displayName
+    
+                    key.collectionList = collectionList
+                    self.itemTupleKeyToCacheKey [tupleKey] = key
+                else: # if key is None
+                    """
+                    We found the key, but we might still need to reorder
+                    collectionList. The list is kept sorted by the order
+                    of the collections as they overlay one another in the
+                    Calendar.  We don't bother to reorder when we're
+                    looking up a collection that isn't displayed in the
+                    summary view.
+                    """
+                    if item in sidebar.contents.iterSelection():
+                        for new, old in zip(key.collectionList, collectionList):
+                            if new is not old:
+                                key.collectionList = collectionList
+                                # Force setContents to be true even if the
+                                # contents hasn't changed since the order
+                                # of collectionList has changed
+                                hints["sendSetContents"] = True
+                                break
         return key
 
     def _makeBranchForCacheKey(self, keyItem):

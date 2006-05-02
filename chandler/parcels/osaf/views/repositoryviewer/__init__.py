@@ -50,7 +50,7 @@ def installParcel(parcel, oldName=None):
                       noLines=False,
                       columns = [
                           Column.update(parcel, 'ColItemName',
-                                        heading='ItemName',
+                                        heading='BlockName',
                                         width=160),
                           Column.update(parcel, 'ColDisplayName',
                                         heading='Display Name',
