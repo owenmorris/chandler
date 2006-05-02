@@ -673,10 +673,12 @@ public:
             return data;
         }
 
+        %disownarg( wxPyTreeItemData* data );
         void SetItemData(const wxTreeItemId& item, wxPyTreeItemData* data) {
             data->SetId(item); // set the id
             self->SetItemData(item, data);
         }
+        %cleardisown(wxPyTreeItemData* data );
 
         // [Get|Set]ItemPyData are short-cuts.  Also made somewhat crash-proof by
         // automatically creating data classes.
@@ -848,6 +850,8 @@ public:
     wxTreeItemId GetNext(const wxTreeItemId& item) const;
 
 
+    %disownarg( wxPyTreeItemData* data );
+
     // add the root node to the tree
     wxTreeItemId AddRoot(const wxString& text,
                          int image = -1, int selectedImage = -1,
@@ -879,6 +883,8 @@ public:
                             const wxString& text,
                             int image = -1, int selectedImage = -1,
                             wxPyTreeItemData *data = NULL);
+
+    %cleardisown(wxPyTreeItemData* data );
 
     // delete this item and associated data if any
     void Delete(const wxTreeItemId& item);
