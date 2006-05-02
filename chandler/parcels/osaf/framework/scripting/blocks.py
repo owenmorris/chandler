@@ -6,13 +6,13 @@ This file provides block instances for the detail view
 """
 
 import wx
+import sys, os
 from i18n import OSAFMessageFactory as _
 
 from application import schema
 from osaf.framework.blocks.detail import Detail
 from osaf.framework.blocks import ControlBlocks
-import osaf.framework.blocks.detail.Detail as Detail
-import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
+from osaf.framework.attributeEditors import AttributeEditors
 
 def installBlocks(parcel, oldVersion=None):
     from osaf.pim import structs

@@ -3,16 +3,15 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import logging
 import wx
-import os, sys
 
 from application import schema, Globals
 
 from osaf import pim
-from osaf.framework.blocks import Block
 from osaf.usercollections import UserCollection
 
 from i18n import OSAFMessageFactory as _
 
+# these are all the sub-modules that come together here
 from script import cats_profiler, hotkey_script, \
      run_script_with_symbols, run_startup_script_with_symbols, \
      Script, script_file
