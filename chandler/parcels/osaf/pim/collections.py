@@ -254,22 +254,20 @@ class UnionCollection(ContentCollection):
             self._sourcesChanged()
 
             view = self.itsView
-            sourceChanged = getattr(self, self.__collection__).sourceChanged
+            notify = getattr(self, self.__collection__)._collectionChanged
             for uuid in source.iterkeys():
-                view._notifyChange(sourceChanged, 'add', 'collection',
-                                   source, source.__collection__, False, uuid)
+                view._notifyChange(notify, 'add', 'collection', uuid)
 
     def removeSource(self, source):
 
         if source in self.sources:
-            view = self.itsView
-            sourceChanged = getattr(self, self.__collection__).sourceChanged
-            for uuid in source.iterkeys():
-                view._notifyChange(sourceChanged, 'remove', 'collection',
-                                   source, source.__collection__, False, uuid)
-
             self.sources.remove(source)
             self._sourcesChanged()
+
+            view = self.itsView
+            notify = getattr(self, self.__collection__)._collectionChanged
+            for uuid in source.iterkeys():
+                view._notifyChange(notify, 'remove', 'collection', uuid)
 
 
 class IntersectionCollection(ContentCollection):

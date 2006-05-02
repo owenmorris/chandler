@@ -349,7 +349,7 @@ class CollectionTests(CollectionTestCase):
 #            print i
         gotChanged = False
         for i in nh3.log[pos:]:
-            if i[0] == 'changed' and i[1] == f2 and i[3] == x.itsUUID:
+            if i[0] == 'changed' and i[1] is f2 and i[3] == x.itsUUID:
                 gotChanged=True
                 break
         self.failUnless(gotChanged)
@@ -389,7 +389,7 @@ class CollectionTests(CollectionTestCase):
         changed = False
         print nh3.log
         for i in nh3.log[::-1]:
-            if i[0] == "changed" and i[1] == f2 and i[3] == self.i.itsUUID:
+            if i[0] == "changed" and i[1] is f2 and i[3] == self.i.itsUUID:
                 changed = True
                 break
         self.failUnless(changed)
