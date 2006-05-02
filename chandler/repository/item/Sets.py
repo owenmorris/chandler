@@ -26,7 +26,8 @@ class AbstractSet(ItemValue, Indexed):
     def __contains__(self, item, excludeMutating=False):
         raise NotImplementedError, "%s.__contains__" %(type(self))
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
+                      source=None):
         raise NotImplementedError, "%s.sourceChanged" %(type(self))
 
     def __repr__(self):
@@ -121,7 +122,7 @@ class AbstractSet(ItemValue, Indexed):
 
     def _inspect__(self, indent):
 
-        return "%s<%s>\n" %('  ' * indent, type(self).__name__)
+        return "\n%s<%s>" %('  ' * indent, type(self).__name__)
 
     def dir(self):
         """
@@ -234,11 +235,15 @@ class AbstractSet(ItemValue, Indexed):
             source._setView(view)
 
     def _sourceChanged(self, source, op, change,
-                       sourceOwner, sourceName, other):
+                       sourceOwner, sourceName, other, actualSource):
 
         if isinstance(source, AbstractSet):
-            op = source.sourceChanged(op, change, sourceOwner, sourceName,
-                                      True, other)
+            if actualSource is not None:
+                if source is not actualSource:
+                    op = None
+            else:
+                op = source.sourceChanged(op, change, sourceOwner, sourceName,
+                                          True, other)
 
         elif (sourceName == source[1] and
               (isuuid(sourceOwner) and sourceOwner == source[0] or
@@ -516,11 +521,12 @@ class Set(AbstractSet):
         super(Set, self)._setView(view)
         self._setSourceView(self._source, view)
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
+                      source=None):
 
         if change == 'collection':
             op = self._sourceChanged(self._source, op, change,
-                                     sourceOwner, sourceName, other)
+                                     sourceOwner, sourceName, other, source)
 
         elif change == 'notification':
             if other not in self:
@@ -579,13 +585,16 @@ class BiSet(AbstractSet):
 
         raise NotImplementedError, "%s._op" %(type(self))
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
+                      source=None):
 
         if change == 'collection':
             leftOp = self._sourceChanged(self._left, op, change,
-                                         sourceOwner, sourceName, other)
+                                         sourceOwner, sourceName, other,
+                                         source)
             rightOp = self._sourceChanged(self._right, op, change,
-                                          sourceOwner, sourceName, other)
+                                          sourceOwner, sourceName, other,
+                                          source)
             if op == 'refresh':
                 op = self._op(leftOp, rightOp, other) or 'refresh'
             else:
@@ -616,9 +625,9 @@ class BiSet(AbstractSet):
 
     def _inspect_(self, indent):
 
-        return '%s%s' %(self._inspect__(indent),
-                        '\n'.join([self._inspectSource(self._left, indent + 1),
-                                   self._inspectSource(self._right, indent + 1)]))
+        return '%s%s%s' %(self._inspect__(indent),
+                          self._inspectSource(self._left, indent + 1),
+                          self._inspectSource(self._right, indent + 1))
 
 
 class Union(BiSet):
@@ -807,12 +816,13 @@ class MultiSet(AbstractSet):
 
         raise NotImplementedError, "%s._op" %(type(self))
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
+                      source=None):
 
         if change == 'collection':
-            ops = [self._sourceChanged(source, op, change,
-                                       sourceOwner, sourceName, other)
-                   for source in self._sources]
+            ops = [self._sourceChanged(_source, op, change,
+                                       sourceOwner, sourceName, other, source)
+                   for _source in self._sources]
             if op == 'refresh':
                 op = self._op(ops, other) or 'refresh'
             else:
@@ -842,8 +852,8 @@ class MultiSet(AbstractSet):
     def _inspect_(self, indent):
 
         return '%s%s' %(self._inspect__(indent),
-                        '\n'.join([self._inspectSource(source, indent + 1)
-                                   for source in self._sources]))
+                        ''.join([self._inspectSource(source, indent + 1)
+                                 for source in self._sources]))
 
 
 class MultiUnion(MultiSet):
@@ -1038,11 +1048,12 @@ class KindSet(Set):
         return "%s(UUID('%s'), %s)" %(type(self).__name__,
                                       self._extent.str64(), self._recursive)
         
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
+                      source=None):
 
         if change == 'collection':
             op = self._sourceChanged(self._source, op, change,
-                                     sourceOwner, sourceName, other)
+                                     sourceOwner, sourceName, other, source)
 
         elif change == 'notification':
             if other not in self:
@@ -1067,9 +1078,9 @@ class KindSet(Set):
 
     def _inspect_(self, indent):
 
-        return "%s%skind: %s" %(self._inspect__(indent),
-                                '  ' * (indent + 1),
-                                self._view[self._extent].kind.itsPath)
+        return "%s\n%skind: %s" %(self._inspect__(indent),
+                                  '  ' * (indent + 1),
+                                  self._view[self._extent].kind.itsPath)
 
 
 class FilteredSet(Set):
@@ -1145,11 +1156,12 @@ class FilteredSet(Set):
 
         return oldItem, oldAttribute
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
+                      source=None):
 
         if change == 'collection':
             op = self._sourceChanged(self._source, op, change,
-                                     sourceOwner, sourceName, other)
+                                     sourceOwner, sourceName, other, source)
 
         elif change == 'notification':
             if other not in self:
@@ -1184,4 +1196,4 @@ class FilteredSet(Set):
     def _inspect_(self, indent):
 
         i = indent + 1
-        return "%s%sfilter: %s\n%s attrs: %s\n%s" %(self._inspect__(indent), '  ' * i, self.filterExpression, '  ' * i, ', '.join(str(a) for a in self.attributes), self._inspectSource(self._source, i))
+        return "%s\n%sfilter: %s\n%s attrs: %s%s" %(self._inspect__(indent), '  ' * i, self.filterExpression, '  ' * i, ', '.join(str(a) for a in self.attributes), self._inspectSource(self._source, i))

@@ -3,11 +3,12 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.pim"
 
 import logging, os
+from itertools import izip
 
 from application import schema
 from repository.item.Sets import \
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \
-    KindSet, FilteredSet
+    KindSet, FilteredSet, AbstractSet
 from repository.item.Collection import Collection
 
 from osaf.pim.items import ContentItem
@@ -247,6 +248,25 @@ class UnionCollection(ContentCollection):
 
         setattr(self, self.__collection__, set)
 
+    def _actualSource(self, source):
+
+        sources = self.sources
+        size = len(sources)
+        set = getattr(self, self.__collection__)
+
+        if size == 1:
+            return set._source
+        elif size == 2:
+            left, right = sources
+            if left is source:
+                return set._left
+            else:
+                return set._right
+        else:
+            for src, _src in izip(sources, set._sources):
+                if src is source:
+                    return _src
+
     def addSource(self, source):
 
         if source not in self.sources:
@@ -254,20 +274,28 @@ class UnionCollection(ContentCollection):
             self._sourcesChanged()
 
             view = self.itsView
-            notify = getattr(self, self.__collection__)._collectionChanged
+            sourceChanged = getattr(self, self.__collection__).sourceChanged
+            actualSource = self._actualSource(source)
+
             for uuid in source.iterkeys():
-                view._notifyChange(notify, 'add', 'collection', uuid)
+                view._notifyChange(sourceChanged, 'add', 'collection',
+                                   source, source.__collection__, False, uuid,
+                                   actualSource)
 
     def removeSource(self, source):
 
         if source in self.sources:
+            view = self.itsView
+            sourceChanged = getattr(self, self.__collection__).sourceChanged
+            actualSource = self._actualSource(source)
+
+            for uuid in source.iterkeys():
+                view._notifyChange(sourceChanged, 'remove', 'collection',
+                                   source, source.__collection__, False, uuid,
+                                   actualSource)
+
             self.sources.remove(source)
             self._sourcesChanged()
-
-            view = self.itsView
-            notify = getattr(self, self.__collection__)._collectionChanged
-            for uuid in source.iterkeys():
-                view._notifyChange(notify, 'remove', 'collection', uuid)
 
 
 class IntersectionCollection(ContentCollection):
