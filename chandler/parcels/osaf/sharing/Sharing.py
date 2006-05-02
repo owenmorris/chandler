@@ -2836,6 +2836,7 @@ class CloudXMLFormat(ImportExportFormat):
                     if cardinality == 'single':
 
                         mimeType = attrElement.get('mimetype')
+                        encoding = attrElement.get('encoding')
 
                         if mimeType: # Lob
                             indexed = mimeType == "text/plain"
@@ -2845,11 +2846,14 @@ class CloudXMLFormat(ImportExportFormat):
                             # @@@MOR Temporary hack for backwards compatbility:
                             # Because body changed from Lob to Text:
                             if attrName == "body": # Store as unicode
-                                value = unicode(value)
+                                if type(value) is not unicode:
+                                    if encoding:
+                                        value = unicode(value, encoding)
+                                    else:
+                                        value = unicode(value) # assume ascii
                             else: # Store it as a Lob
                                 value = utils.dataToBinary(item, attrName,
                                     value, mimeType=mimeType, indexed=indexed)
-                                encoding = attrElement.get('encoding')
                                 if encoding:
                                     value.encoding = encoding
 
