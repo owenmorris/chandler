@@ -482,7 +482,7 @@ class UITestItem(object):
             return
 
         if not self.isCollection:
-            if type_states[type].isOfValue == value: #Nothing to do
+            if type_states[type]['isOfType'] == value: #Nothing to do
                 return
             else:
                 # select the item
@@ -792,47 +792,47 @@ class UITestItem(object):
         if self.logger: self.logger.SetChecked(True)
         self.SelectItem()
         # call the check methods
-        for field in dict.keys():
+        for field,value in dict.iteritems():
             if field == "displayName": # display name checking
-                self.CheckEditableBlock("HeadlineBlock", "display name", dict[field])
+                self.CheckEditableBlock("HeadlineBlock", "display name", value)
             elif field == "startDate": # start date checking
-                self.CheckEditableBlock("EditCalendarStartDate", "start date", self.formatDate(dict[field]))
+                self.CheckEditableBlock("EditCalendarStartDate", "start date", self.formatDate(value))
             elif field == "startTime": # start time checking
-                self.CheckEditableBlock("EditCalendarStartTime", "start time", dict[field])
+                self.CheckEditableBlock("EditCalendarStartTime", "start time", value)
             elif field == "endDate": # end date checking
-                self.CheckEditableBlock("EditCalendarEndDate", "end date", self.formatDate(dict[field]))
+                self.CheckEditableBlock("EditCalendarEndDate", "end date", self.formatDate(value))
             elif field == "endTime": # end time checking
-                self.CheckEditableBlock("EditCalendarEndTime", "end time", dict[field])
+                self.CheckEditableBlock("EditCalendarEndTime", "end time", value)
             elif field == "location": # location checking
-                self.CheckEditableBlock("CalendarLocation", "location", dict[field])
+                self.CheckEditableBlock("CalendarLocation", "location", value)
             elif field == "body": # body checking
-                self.CheckEditableBlock("NotesBlock", "body", dict[field])
+                self.CheckEditableBlock("NotesBlock", "body", value)
             elif field == "fromAddress": # from address checking
-                self.CheckEditableBlock("EditMailFrom", "from address", dict[field])
+                self.CheckEditableBlock("EditMailFrom", "from address", value)
             elif field == "toAddress": # to address checking
-                self.CheckEditableBlock("EditMailTo", "to address", dict[field])
+                self.CheckEditableBlock("EditMailTo", "to address", value)
             elif field == "ccAddress": # cc address checking
-                self.CheckEditableBlock("EditMailCc", "cc address", dict[field])
+                self.CheckEditableBlock("EditMailCc", "cc address", value)
             elif field == "bccAddress": # bcc address checking
-                self.CheckEditableBlock("EditMailBcc", "bcc address", dict[field])
+                self.CheckEditableBlock("EditMailBcc", "bcc address", value)
             elif field == "status": # status checking
-                self.CheckMenuBlock("EditTransparency", "status", dict[field])
+                self.CheckMenuBlock("EditTransparency", "status", value)
             elif field == "timeZone": # time zone checking
-                self.CheckMenuBlock("EditTimeZone", "time-zone", dict[field])
+                self.CheckMenuBlock("EditTimeZone", "time-zone", value)
             elif field == "recurrence": # recurrence checking
-                self.CheckMenuBlock("EditRecurrence", "recurrence", dict[field])
+                self.CheckMenuBlock("EditRecurrence", "recurrence", value)
             elif field == "recurrenceEnd": # recurrence end date checking
-                self.CheckEditableBlock("EditRecurrenceEnd", "recurrence end", self.formatDate(dict[field]))
+                self.CheckEditableBlock("EditRecurrenceEnd", "recurrence end", self.formatDate(value))
             elif field == "alarm": # status checking
-                self.CheckMenuBlock("EditReminder", "alarm", dict[field])
+                self.CheckMenuBlock("EditReminder", "alarm", value)
             elif field == "allDay": # status checking
-                self.CheckEditableBlock("EditAllDay", "all-day", dict[field])
+                self.CheckEditableBlock("EditAllDay", "all-day", value)
             elif field == "stampMail": # Mail stamp checking
-                self.CheckButton("MailMessageButton", "mail stamp", dict[field])
+                self.CheckButton("MailMessageButton", "mail stamp", value)
             elif field == "stampTask": # Task stamp checking
-                self.CheckButton("TaskStamp", "task stamp", dict[field])
+                self.CheckButton("TaskStamp", "task stamp", value)
             elif field == "stampEvent": # Event stamp checking
-                self.CheckButton("CalendarStamp", "calendar stamp", dict[field])
+                self.CheckButton("CalendarStamp", "calendar stamp", value)
             else: # Wrong check => set the report state to unchecked
                 if self.logger: self.logger.SetChecked(False)
                 
@@ -847,20 +847,20 @@ class UITestItem(object):
         """
         if self.logger: self.logger.SetChecked(True)
         # check the changing values
-        for field in dict.keys():
+        for field,value in dict.iteritems():
             if field == "displayName": # display name checking
                 if self.isMailMessage:
                     d_name = "%s" %self.item.subject
                 else:
                     d_name = "%s" %self.item.displayName
-                if not dict[field] == d_name :
-                    if self.logger: self.logger.ReportFailure("(On display name Checking)  || object title = %s ; expected title = %s" %(d_name, dict[field]))
+                if not value == d_name :
+                    if self.logger: self.logger.ReportFailure("(On display name Checking)  || object title = %s ; expected title = %s" %(d_name, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On display name Checking)")
             elif field == "startDate": # start date checking
                 startTime = self.item.startTime
                 s_date = self.formatDate("%s/%s/%s" %(startTime.month, startTime.day, startTime.year) )
-                dictDate = self.formatDate(dict[field])
+                dictDate = self.formatDate(value)
                 if not dictDate == s_date :
                     if self.logger: self.logger.ReportFailure("(On start date Checking) || object start date = %s ; expected start date = %s" %(s_date, dictDate))
                 else:
@@ -868,14 +868,14 @@ class UITestItem(object):
             elif field == "startTime": # start time checking
                 startTime = self.item.startTime
                 s_time = getTime(startTime)
-                if not dict[field] == s_time :
-                    if self.logger: self.logger.ReportFailure("(On start time Checking) || object start time = %s ; expected start time = %s" %(s_time, dict[field]))
+                if not value == s_time :
+                    if self.logger: self.logger.ReportFailure("(On start time Checking) || object start time = %s ; expected start time = %s" %(s_time, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On start time Checking)")
             elif field == "endDate": # end date checking
                 endTime = self.item.endTime
                 e_date = self.formatDate("%s/%s/%s" %(endTime.month, endTime.day, endTime.year))
-                dictDate = self.formatDate(dict[field])
+                dictDate = self.formatDate(value)
                 if not dictDate == e_date :
                     if self.logger: self.logger.ReportFailure("(On end date Checking) || object end date = %s ; expected end date = %s" %(e_date, dictDate))
                 else:
@@ -883,87 +883,84 @@ class UITestItem(object):
             elif field == "endTime": # end time checking
                 endTime = self.item.endTime
                 e_time = getTime(endTime)
-                if not dict[field] == e_time :
-                    if self.logger: self.logger.ReportFailure("(On end time Checking) || object end time = %s ; expected end time = %s" %(e_time, dict[field]))
+                if not value == e_time :
+                    if self.logger: self.logger.ReportFailure("(On end time Checking) || object end time = %s ; expected end time = %s" %(e_time, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On end time Checking)")
             elif field == "location": # location checking
                 loc = "%s" %self.item.location
-                if not dict[field] == loc :
-                    if self.logger: self.logger.ReportFailure("(On location Checking) || object location = %s ; expected location = %s" %(loc, dict[field]))
+                if not value == loc :
+                    if self.logger: self.logger.ReportFailure("(On location Checking) || object location = %s ; expected location = %s" %(loc, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On location Checking)")
             elif field == "body": # body checking
                 body = "%s" %self.item.body
-                if not dict[field] == body :
-                    if self.logger: self.logger.ReportFailure("(On body Checking) || object body = %s ; expected body = %s" %(body, dict[field]))
+                if not value == body :
+                    if self.logger: self.logger.ReportFailure("(On body Checking) || object body = %s ; expected body = %s" %(body, value))
                 else:
                      if self.logger: self.logger.ReportPass("(On body Checking)")
             elif field == "fromAddress": # from address checking
                 f = "%s" %self.item.fromAddress
-                if not dict[field] == f :
-                    if self.logger: self.logger.ReportFailure("(On from address Checking) || object from address = %s ; expected from address = %s" %(f, dict[field]))
+                if not value == f :
+                    if self.logger: self.logger.ReportFailure("(On from address Checking) || object from address = %s ; expected from address = %s" %(f, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On from address Checking)")
             elif field == "toAddress": # to address checking
                 t = "%s" %self.item.toAddress
-                if not dict[field] == t :
-                    if self.logger: self.logger.ReportFailure("(On to address Checking) || object to address = %s ; expected to address = %s" %(t, dict[field]))
+                if not value == t :
+                    if self.logger: self.logger.ReportFailure("(On to address Checking) || object to address = %s ; expected to address = %s" %(t, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On to address Checking)")
             elif field == "status": # status checking
                 status = "%s" %string.upper(self.item.transparency)
-                if not dict[field] == status :
-                    if self.logger: self.logger.ReportFailure("(On status Checking) || object status = %s ; expected status = %s" %(status, dict[field]))
+                if not value == status :
+                    if self.logger: self.logger.ReportFailure("(On status Checking) || object status = %s ; expected status = %s" %(status, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On status Checking)")
             elif field == "timeZone": # time zone checking
                 timeZone = "%s" %self.item.startTime.tzname()
-                if not dict[field] == timeZone :
-                    if self.logger: self.logger.ReportFailure("(On time zone Checking) || object time zone = %s ; expected time zone = %s" %(timeZone, dict[field]))
+                if not value == timeZone :
+                    if self.logger: self.logger.ReportFailure("(On time zone Checking) || object time zone = %s ; expected time zone = %s" %(timeZone, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On time zone Checking)")
             elif field == "alarm": # status checking
                 alarm = self.item.startTime - self.item.reminderTime
-                field = timedelta(minutes = string.atoi(dict[field]))
+                field = timedelta(minutes = string.atoi(value))
                 if not field == alarm :
                     if self.logger: self.logger.ReportFailure("(On alarm Checking) || object alarm = %s ; expected alarm = %s" %(alarm, field))
                 else:
                     if self.logger: self.logger.ReportPass("(On alarm Checking)")
             elif field == "allDay": # status checking
                 allDay = self.item.allDay
-                if not dict[field] == allDay :
-                    if self.logger: self.logger.ReportFailure("(On all Day Checking) || object all day = %s ; expected all day = %s" %(allDay, dict[field]))
+                if not value == allDay :
+                    if self.logger: self.logger.ReportFailure("(On all Day Checking) || object all day = %s ; expected all day = %s" %(allDay, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On all Day Checking)")
             elif field == "stampMail": # Mail stamp checking
-                kind = "%s" %self.item.getKind()
-                if not string.find(kind, "MailMessage") == -1:
+                if "MailMessage" in str(self.item.getKind()):
                     stampMail = True
                 else:
                     stampMail = False
-                if not dict[field] == stampMail :
-                    if self.logger: self.logger.ReportFailure("(On Mail Stamp Checking) || object Mail Stamp = %s ; expected Mail Stamp = %s" %(stampMail, dict[field]))
+                if not value == stampMail :
+                    if self.logger: self.logger.ReportFailure("(On Mail Stamp Checking) || object Mail Stamp = %s ; expected Mail Stamp = %s" %(stampMail, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On Mail Stamp Checking)")
             elif field == "stampTask": # Task stamp checking
-                kind = "%s" %self.item.getKind()
-                if not string.find(kind, "Task") == -1:
+                if "Task" in str(self.item.getKind()):
                     stampTask = True
                 else:
                     stampTask = False
-                if not dict[field] == stampTask :
-                    if self.logger: self.logger.ReportFailure("(On Task Stamp Checking) || object Task Stamp = %s ; expected Task Stamp = %s" %(stampTask, dict[field]))
+                if not value == stampTask :
+                    if self.logger: self.logger.ReportFailure("(On Task Stamp Checking) || object Task Stamp = %s ; expected Task Stamp = %s" %(stampTask, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On Task Stamp Checking)")
             elif field == "stampEvent": # Event stamp checking
-                kind = "%s" %self.item.getKind()
-                if not string.find(kind, "CalendarEvent") == -1:
+                if "CalendarEvent" in str(self.item.getKind()):
                     stampEvent = True
                 else:
                     stampEvent = False
-                if not dict[field] == stampEvent :
-                    if self.logger: self.logger.ReportFailure("(On Event Stamp Checking) || object Event Stamp = %s ; expected Event Stamp = %s" %(stampEvent, dict[field]))
+                if not value == stampEvent :
+                    if self.logger: self.logger.ReportFailure("(On Event Stamp Checking) || object Event Stamp = %s ; expected Event Stamp = %s" %(stampEvent, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On Event Stamp Checking)")
             else: # Wrong check => set the report state to unchecked
@@ -1078,16 +1075,34 @@ class UITestItem(object):
         if self.logger: self.logger.Report("Calendar View")
     
 class UITestAccounts:
+    fieldMap = {
+        'SMTP': {'displayName': 3, 'address': 5, 'host': 7,
+                 'username': 17, 'password': 19, 'security': 9,
+                 'port':13, 'authentication': 15},
+
+        'IMAP': {'displayName': 3, 'email': 5,
+                 'name': 7, 'host': 9, 'username': 11,
+                 'password': 13, 'security': 15, 'port': 19,
+                 'default': 21, 'server': 24},
+
+        'POP': {'displayName': 3, 'email': 5,
+                'name': 7, 'host': 9, 'username': 11,
+                'password': 13, 'security': 15,'port': 19,
+                'leave': 21, 'default': 23, 'server': 26},
+
+        'WebDAV':{'displayName': 3, 'host':5, 'path': 7,
+                  'username':9, 'password':11, 'port': 13, 'ssl': 14,
+                  'default':16},
+        }
+    
+    accountTypeIndex = {'SMTP': 3, 'IMAP': 1, 'POP': 2,
+                        'WebDAV': 4}
+
     def __init__(self, logger=None):
         self.view = App_ns.itsView
         self.logger = logger
         self.window = None
-        self.accountTypeIndex = {'SMTP': 3, 'IMAP': 1, 'POP': 2, 'WebDAV': 4}
-        SMTPfields = {'displayName': 3, 'address': 5, 'host': 7, 'username': 17, 'password': 19, 'security': 9, 'port':13,  'authentication': 15}
-        IMAPfields = {'displayName': 3, 'email': 5, 'name': 7, 'host': 9, 'username': 11, 'password': 13, 'security': 15, 'port': 19, 'default': 21, 'server': 24}
-        POPfields = {'displayName': 3, 'email': 5, 'name': 7, 'host': 9, 'username': 11, 'password': 13, 'security': 15,'port': 19, 'leave': 21,  'default': 23, 'server': 26}
-        DAVfields = {'displayName': 3, 'host':5, 'path': 7, 'username':9, 'password':11, 'port': 13, 'ssl': 14, 'default': 16}
-        self.fieldMap = {'SMTP': SMTPfields, 'IMAP': IMAPfields, 'WebDAV': DAVfields, 'POP': POPfields}        
+        
         
     def Open(self):
         """
