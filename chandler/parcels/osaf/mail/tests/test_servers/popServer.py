@@ -8,7 +8,7 @@ import sys
 USER = "test"
 PASS = "test"
 
-CERT_FILE = "./certs/server.pem"
+CERT_FILE = "./cert/server.pem"
 
 PORT = 1100
 SSL_PORT = 9930

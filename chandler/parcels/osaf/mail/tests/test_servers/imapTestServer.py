@@ -8,7 +8,7 @@ import os
 
 LOGIN_PLAIN = "test test"
 
-CERT_FILE = "./certs/server.pem"
+CERT_FILE = "./cert/server.pem"
 PORT = 1430
 SSL_PORT = 9950
 
