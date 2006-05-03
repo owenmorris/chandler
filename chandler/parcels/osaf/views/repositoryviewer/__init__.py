@@ -35,8 +35,7 @@ def installParcel(parcel, oldName=None):
                   size=SizeType(600,200),
                   minimumSize=SizeType(400,100)),
         RepositoryItemDetail.template('ItemDetail',
-                                      size=SizeType(100,50),
-                                      minimumSize=SizeType(100,50))
+                                      size=SizeType(100,50))
         ]).install(parcel)
         
     SplitterWindow.template('CPIAView',
@@ -67,7 +66,6 @@ def installParcel(parcel, oldName=None):
                           ]),
         
         RepositoryItemDetail.template('CPIAItemDetail',
-                                      size=SizeType(100,50),
-                                      minimumSize=SizeType(100,50))
+                                      size=SizeType(100,50))
         ]).install(parcel)
 

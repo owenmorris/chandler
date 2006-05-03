@@ -843,7 +843,8 @@ class SidebarBlock(Table):
             enable = False
         else:
             for selectedItem in self.contents.iterSelection():
-                if UserCollection(selectedItem).outOfTheBoxCollection:
+                if (isinstance (selectedItem, ContentCollection) and
+                    UserCollection(selectedItem).outOfTheBoxCollection):
                     enable = False
                     break
             else:
