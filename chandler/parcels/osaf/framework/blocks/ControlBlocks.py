@@ -811,7 +811,7 @@ class Tree(RectangularChild):
     rootPath = schema.One(schema.Item, initialValue = None)
 
     schema.addClouds(
-        copying = schema.Cloud(byRef=[selection, columns])
+        copying = schema.Cloud(byCloud=[selection, columns])
     )
 
     def instantiateWidget(self):

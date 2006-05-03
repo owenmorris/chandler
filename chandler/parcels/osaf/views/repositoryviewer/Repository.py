@@ -18,7 +18,7 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
 
     def GetElementChildren(self, element):
         if element is None:
-            return wx.GetApp().UIRepositoryView
+            return [wx.GetApp().UIRepositoryView]
         else:
             return element.iterChildren()
 
@@ -33,13 +33,14 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
             else:
                 name = method (element)
         cellValues.append (name)
- 
-        kind = element.itsKind
-        name = getattr (kind, 'itsName', None)
-        if name is None:
-            cellValues.append ('')
-        else:
-            cellValues.append (name)
+
+        name = u''
+        kind = getattr (element, 'itsKind', None)
+        if kind is not None:
+            itsName = getattr (kind, 'itsName', None)
+            if itsName is not None:
+                name = itsName
+        cellValues.append (name)
 
         cellValues.append (unicode (element.itsUUID))
         cellValues.append (unicode (element.itsPath))
@@ -141,10 +142,10 @@ class CPIADelegate (ControlBlocks.ListDelegate):
         return element.parentBlock
 
     def GetElementChildren(self, element):
-        if element:
-            return element.childrenBlocks
-        else:
+        if element is None:
             return [self.blockItem.findPath('//userdata/MainViewRoot')]
+        else:
+            return element.childrenBlocks
 
     def GetElementValues(self, element):
         blockName = getattr (element, 'blockName', None)
