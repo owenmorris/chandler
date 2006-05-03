@@ -191,6 +191,8 @@ def installParcel(parcel, oldVersion=None):
         trash=trashCollection,
         visible=False)
 
+    mine.addSource(inCollection)
+
     outSource = FilteredCollection.update(parcel, 'outSource',
         source=mailCollection,
         filterExpression=u"view.findValue(uuid, 'isOutbound', False)",
@@ -203,6 +205,8 @@ def installParcel(parcel, oldVersion=None):
         source=outSource,
         trash=trashCollection,
     )
+
+    mine.addSource(outCollection)
 
     allEventsCollection = IntersectionCollection.update(parcel,
         'allEventsCollection',
