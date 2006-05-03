@@ -259,7 +259,7 @@ void wxChandlerGridLabelWindow::OnChar( wxKeyEvent& event )
 
 // NB: unused
 //
-void wxChandlerGridLabelWindow::GetLabelValue( bool isVertical, int index, wxString& value )
+void wxChandlerGridLabelWindow::GetLabelValue( bool isVertical, int index, wxString& value ) const
 {
 	if (isVertical)
 		value = m_owner->GetRowLabelValue( index );
@@ -281,7 +281,7 @@ void wxChandlerGridLabelWindow::SetLabelValue( bool isVertical, int index, const
 
 // NB: unused
 //
-void wxChandlerGridLabelWindow::GetLabelSize( bool isVertical, int index, int& value )
+void wxChandlerGridLabelWindow::GetLabelSize( bool isVertical, int index, int& value ) const
 {
 // WXUNUSED( index )
 
@@ -325,7 +325,7 @@ wxSize	extentPt;
 
 // NB: unused
 //
-void wxChandlerGridLabelWindow::GetLabelAlignment( bool isVertical, int index, wxSize &value )
+void wxChandlerGridLabelWindow::GetLabelAlignment( bool isVertical, int index, wxSize &value ) const
 {
 // WXUNUSED( index )
 
@@ -348,6 +348,27 @@ void wxChandlerGridLabelWindow::SetLabelAlignment( bool isVertical, int index, c
 		m_owner->SetRowLabelAlignment( value.x, value.y );
 	else
 		m_owner->SetColLabelAlignment( value.x, value.y );
+#endif
+}
+
+// NB: unused
+//
+void wxChandlerGridLabelWindow::GetLabelBitmap( bool isVertical, int index, wxBitmap &value ) const
+{
+// WXUNUSED( isVertical )
+
+	GetBitmap( index, value );
+}
+
+void wxChandlerGridLabelWindow::SetLabelBitmap( bool isVertical, int index, const wxBitmap &value )
+{
+#if defined(__GRID_LABELS_ARE_COLHEADERS__)
+// WXUNUSED( isVertical )
+
+	SetBitmap( (long)index, value );
+#else
+// WXUNUSED( index )
+
 #endif
 }
 
@@ -2132,9 +2153,9 @@ wxColumnHeaderItem		*itemRef;
 	}
 }
 
-void wxColumnHeader::GetBitmapRef(
+void wxColumnHeader::GetBitmap(
 	long				itemIndex,
-	wxBitmap			&bitmapRef ) const
+	wxBitmap			&targetBitmap ) const
 {
 wxColumnHeaderItem		*itemRef;
 bool					bResultV;
@@ -2143,17 +2164,17 @@ bool					bResultV;
 	bResultV = (itemRef != NULL);
 	if (bResultV)
 	{
-		itemRef->GetBitmapRef( bitmapRef );
+		itemRef->GetBitmap( targetBitmap );
 	}
 	else
 	{
-//		bitmapRef.SetOK( false );
+//		targetBitmap.SetOK( false );
 	}
 }
 
-void wxColumnHeader::SetBitmapRef(
+void wxColumnHeader::SetBitmap(
 	long				itemIndex,
-	wxBitmap			&bitmapRef )
+	const wxBitmap	&targetBitmap )
 {
 wxColumnHeaderItem		*itemRef;
 wxRect					boundsR;
@@ -2163,7 +2184,7 @@ wxRect					boundsR;
 		itemRef = GetItemRef( itemIndex );
 		if (itemRef != NULL)
 		{
-			itemRef->SetBitmapRef( bitmapRef, &boundsR );
+			itemRef->SetBitmap( targetBitmap, &boundsR );
 			RefreshItem( itemIndex, true );
 		}
 	}
@@ -3005,7 +3026,7 @@ void wxColumnHeaderItem::GetItemData(
 	info->m_BitmapAlign = m_BitmapAlign;
 	if (info->m_BitmapRef != m_BitmapRef)
 		if (info->m_BitmapRef != NULL)
-			GetBitmapRef( *(info->m_BitmapRef) );
+			GetBitmap( *(info->m_BitmapRef) );
 }
 
 void wxColumnHeaderItem::SetItemData(
@@ -3031,7 +3052,7 @@ void wxColumnHeaderItem::SetItemData(
 
 	m_BitmapAlign = info->m_BitmapAlign;
 	if (info->m_BitmapRef != m_BitmapRef)
-		SetBitmapRef( *(info->m_BitmapRef), NULL );
+		SetBitmap( *(info->m_BitmapRef), NULL );
 }
 
 long wxColumnHeaderItem::GetArrowButtonStyle( void ) const
@@ -3045,17 +3066,17 @@ void wxColumnHeaderItem::SetArrowButtonStyle(
 	m_ButtonArrowStyle = targetStyle;
 }
 
-void wxColumnHeaderItem::GetBitmapRef(
-	wxBitmap			&bitmapRef ) const
+void wxColumnHeaderItem::GetBitmap(
+	wxBitmap			&targetBitmap ) const
 {
 	if (m_BitmapRef != NULL)
-		bitmapRef = *m_BitmapRef;
+		targetBitmap = *m_BitmapRef;
 //	else
-//		bitmapRef.SetOK( false );
+//		targetBitmap.SetOK( false );
 }
 
-void wxColumnHeaderItem::SetBitmapRef(
-	wxBitmap			&bitmapRef,
+void wxColumnHeaderItem::SetBitmap(
+	const wxBitmap	&targetBitmap,
 	const wxRect		*boundsR )
 {
 wxRect			targetBoundsR;
@@ -3063,28 +3084,28 @@ wxRect			targetBoundsR;
 	delete m_BitmapRef;
 	m_BitmapRef = NULL;
 
-	if ((boundsR != NULL) && ValidBitmapRef( &bitmapRef ))
+	if ((boundsR != NULL) && ValidBitmapRef( &targetBitmap ))
 	{
 		GenericGetBitmapItemBounds( boundsR, m_BitmapAlign, NULL, &targetBoundsR );
-		if ((bitmapRef.GetWidth() > targetBoundsR.width) || (bitmapRef.GetHeight() > targetBoundsR.height))
+		if ((targetBitmap.GetWidth() > targetBoundsR.width) || (targetBitmap.GetHeight() > targetBoundsR.height))
 		{
 		wxBitmap		localBitmap;
 
 			// copy from the upper left-hand corner
 			targetBoundsR.x = targetBoundsR.y = 0;
-			localBitmap = bitmapRef.GetSubBitmap( targetBoundsR );
+			localBitmap = targetBitmap.GetSubBitmap( targetBoundsR );
 			m_BitmapRef = new wxBitmap( localBitmap );
 		}
 		else
 		{
 			// copy the entire bitmap
-			m_BitmapRef = new wxBitmap( bitmapRef );
+			m_BitmapRef = new wxBitmap( targetBitmap );
 		}
 	}
 	else
 	{
 		// this case is OK - can be used to clear an existing bitmap
-		// wxLogDebug( wxT("wxColumnHeaderItem::SetBitmapRef failed") );
+		// wxLogDebug( wxT("wxColumnHeaderItem::SetBitmap failed") );
 	}
 }
 

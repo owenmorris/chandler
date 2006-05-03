@@ -190,12 +190,12 @@ public:
 		long				itemIndex,
 		long				targetStyle );
 
-	void GetBitmapRef(
+	void GetBitmap(
 		long				itemIndex,
-		wxBitmap			&bitmapRef ) const;
-	void SetBitmapRef(
+		wxBitmap			&targetBitmap ) const;
+	void SetBitmap(
 		long				itemIndex,
-		wxBitmap			&bitmapRef );
+		const wxBitmap	&targetBitmap );
 	wxSize GetBitmapAlignment(
 		long				itemIndex ) const;
 	void SetBitmapAlignment(
@@ -344,7 +344,7 @@ protected:
 	bool					m_BUseVerticalOrientation;	// false is horizontal (default)
 	bool					m_BUseUnicode;			// set by compile flag, but not necessarily so - cannot be reset
 	bool					m_BUseGenericRenderer;		// Mac,MSW: either true or false; otherwise: always true
-	bool					m_BFixedHeight;			// Mac,MSW: always true; otherwise: false
+	bool					m_BFixedHeight;			// Mac,MSW: opposite of m_BUseGenericRenderer; otherwise: always false
 	bool					m_BProportionalResizing;
 	bool					m_BVisibleSelection;
 	bool					m_BMultiItemSelection;
@@ -377,10 +377,10 @@ public:
 	void SetArrowButtonStyle(
 		long				targetStyle );
 
-	void GetBitmapRef(
-		wxBitmap			&bitmapRef ) const;
-	void SetBitmapRef(
-		wxBitmap			&bitmapRef,
+	void GetBitmap(
+		wxBitmap			&targetBitmap ) const;
+	void SetBitmap(
+		const wxBitmap	&targetBitmap,
 		const wxRect		*boundsR );
 	wxSize GetBitmapAlignment( void ) const;
 	void SetBitmapAlignment(
@@ -519,12 +519,14 @@ public:
 	~wxChandlerGridLabelWindow();
 
 	// new routines
-	void GetLabelValue( bool isVertical, int index, wxString &value );
+	void GetLabelValue( bool isVertical, int index, wxString &value ) const;
 	void SetLabelValue( bool isVertical, int index, const wxString &value );
-	void GetLabelSize( bool isVertical, int index, int &value );
+	void GetLabelSize( bool isVertical, int index, int &value ) const;
 	void SetLabelSize( bool isVertical, int index, int value );
-	void GetLabelAlignment( bool isVertical, int index, wxSize &value );
+	void GetLabelAlignment( bool isVertical, int index, wxSize &value ) const;
 	void SetLabelAlignment( bool isVertical, int index, const wxSize &value );
+	void GetLabelBitmap( bool isVertical, int index, wxBitmap &value ) const;
+	void SetLabelBitmap( bool isVertical, int index, const wxBitmap &value );
 
 private:
 	wxGrid   *m_owner;

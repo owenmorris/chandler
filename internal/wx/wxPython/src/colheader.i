@@ -240,12 +240,12 @@ public:
     void SetArrowButtonStyle(
         long                itemIndex,
         long                targetStyle );
-    void GetBitmapRef(
+    void GetBitmap(
         long                itemIndex,
         wxBitmap        &imageRef ) const;
-    void SetBitmapRef(
+    void SetBitmap(
         long                itemIndex,
-        wxBitmap        &imageRef );
+        const wxBitmap        &imageRef );
     wxSize GetBitmapAlignment(
         long                itemIndex ) const;
     void SetBitmapAlignment(
