@@ -36,6 +36,16 @@
 #include "wx/tokenzr.h"
 #include "wx/renderer.h"
 
+
+// OSAF - list header hack flags
+#define __USE_CHANDLER_LIST_HEADERS__
+//#define __USE_NATIVE_LIST_HEADERS__
+
+#if defined(__USE_CHANDLER_LIST_HEADERS__)
+#include "wx/colheader.h"
+#endif
+
+
 #include "wx/grid.h"
 #include "wx/generic/gridsel.h"
 
@@ -4117,10 +4127,31 @@ void wxGrid::Create()
     m_numCols = 0;
     m_currentCellCoords = wxGridNoCellCoords;
 
+    // subwindow components that make up the wxGrid
+#if defined(__USE_CHANDLER_LIST_HEADERS__)
+    m_rowLabelWidth = WXGRID_DEFAULT_ROW_LABEL_WIDTH;
+    if (wxColumnHeader::GetFixedHeight() > 0)
+        m_colLabelHeight = wxColumnHeader::GetFixedHeight();
+    else
+        m_colLabelHeight = WXGRID_DEFAULT_COL_LABEL_HEIGHT;
+
+    m_rowLabelWin = (wxGridRowLabelWindow*) new wxChandlerGridLabelWindow(
+        this,
+        wxID_ANY,
+        wxDefaultPosition,
+        wxDefaultSize,
+        CH_STYLE_HeaderIsVertical );
+
+    m_colLabelWin = (wxGridColLabelWindow*) new wxChandlerGridLabelWindow(
+        this,
+        wxID_ANY,
+        wxDefaultPosition,
+        wxDefaultSize,
+        0 );
+#else
     m_rowLabelWidth = WXGRID_DEFAULT_ROW_LABEL_WIDTH;
     m_colLabelHeight = WXGRID_DEFAULT_COL_LABEL_HEIGHT;
 
-    // subwindow components that make up the wxGrid
     m_rowLabelWin = new wxGridRowLabelWindow( this,
                                               wxID_ANY,
                                               wxDefaultPosition,
@@ -4130,6 +4161,7 @@ void wxGrid::Create()
                                               wxID_ANY,
                                               wxDefaultPosition,
                                               wxDefaultSize );
+#endif
 
     m_cornerLabelWin = new wxGridCornerLabelWindow( this,
                                                     wxID_ANY,
@@ -4327,7 +4359,15 @@ bool wxGrid::SetTable( wxGridTableBase *table, bool takeOwnership,
 void wxGrid::Init()
 {
     m_rowLabelWidth  = WXGRID_DEFAULT_ROW_LABEL_WIDTH;
+
+#if defined(__USE_CHANDLER_LIST_HEADERS__)
+    if (wxColumnHeader::GetFixedHeight() > 0)
+        m_colLabelHeight = wxColumnHeader::GetFixedHeight();
+    else
+        m_colLabelHeight = WXGRID_DEFAULT_COL_LABEL_HEIGHT;
+#else
     m_colLabelHeight = WXGRID_DEFAULT_COL_LABEL_HEIGHT;
+#endif
 
     if ( m_rowLabelWin )
     {
@@ -4358,15 +4398,28 @@ void wxGrid::Init()
     m_colLabelTextOrientation = wxHORIZONTAL;
 
     m_defaultColWidth  = WXGRID_DEFAULT_COL_WIDTH;
-    m_defaultRowHeight = m_gridWin->GetCharHeight();
+    m_minAcceptableColWidth = WXGRID_MIN_COL_WIDTH;
 
-    m_minAcceptableColWidth  = WXGRID_MIN_COL_WIDTH;
+#if defined(__USE_CHANDLER_LIST_HEADERS__)
+    if (wxColumnHeader::GetFixedHeight() > 0)
+    {
+        m_minAcceptableRowHeight =
+        m_defaultRowHeight = wxColumnHeader::GetFixedHeight();
+    }
+    else
+    {
+        m_minAcceptableRowHeight = WXGRID_MIN_ROW_HEIGHT;
+        m_defaultRowHeight = m_gridWin->GetCharHeight();
+    }
+#else
     m_minAcceptableRowHeight = WXGRID_MIN_ROW_HEIGHT;
+    m_defaultRowHeight = m_gridWin->GetCharHeight();
 
 #if defined(__WXMOTIF__) || defined(__WXGTK__)  // see also text ctrl sizing in ShowCellEditControl()
     m_defaultRowHeight += 8;
 #else
     m_defaultRowHeight += 4;
+#endif
 #endif
 
     m_gridLineColour = wxColour( 192,192,192 );
@@ -4601,6 +4654,41 @@ void wxGrid::CalcDimensions()
     // if our OnSize() hadn't been called (it would if we have scrollbars),
     // we still must reposition the children
     CalcWindowSizes();
+
+#if defined(__USE_CHANDLER_LIST_HEADERS__) && defined(__GRID_LABELS_ARE_COLHEADERS__)
+    // redimension list headers and synchronise private data
+    if (m_colLabelWin != NULL)
+    {
+        wxChandlerGridLabelWindow *labelWindow = reinterpret_cast<wxChandlerGridLabelWindow*>(m_colLabelWin);
+        wxString curText;
+
+        labelWindow->SetItemCount( m_numCols );
+        for ( int i = 0; i < m_numCols; i++ )
+        {
+            if (!m_colWidths.IsEmpty())
+                labelWindow->SetLabelSize( false, i, m_colWidths[i] );
+
+            curText = GetColLabelValue( i );
+            labelWindow->SetLabelValue( false, i, curText );
+        }
+    }
+
+    if (m_rowLabelWin != NULL)
+    {
+        wxChandlerGridLabelWindow *labelWindow = reinterpret_cast<wxChandlerGridLabelWindow*>(m_rowLabelWin);
+        wxString curText;
+
+        labelWindow->SetItemCount( m_numRows );
+        for ( int i = 0; i < m_numRows; i++ )
+        {
+            if (!m_rowHeights.IsEmpty())
+                labelWindow->SetLabelSize( true, i, m_rowHeights[i] );
+
+            curText = GetRowLabelValue( i );
+            labelWindow->SetLabelValue( true, i, curText );
+        }
+    }
+#endif
 }
 
 void wxGrid::CalcWindowSizes()
@@ -8992,6 +9080,11 @@ void wxGrid::SetRowLabelSize( int width )
 
 void wxGrid::SetColLabelSize( int height )
 {
+#if defined(__USE_CHANDLER_LIST_HEADERS__)
+    if ((wxColumnHeader::GetFixedHeight() > 0) && (height > 0))
+        height = wxColumnHeader::GetFixedHeight();
+#endif
+
     height = wxMax( height, 0 );
     if ( height != m_colLabelHeight )
     {
@@ -10053,6 +10146,11 @@ void wxGrid::SetColMinimalWidth( int col, int width )
 
 void wxGrid::SetRowMinimalHeight( int row, int width )
 {
+#if defined(__USE_CHANDLER_LIST_HEADERS__)
+    if ((wxColumnHeader::GetFixedHeight() > 0) && (width > 0))
+        width = wxColumnHeader::GetFixedHeight();
+#endif
+
     if (width > GetRowMinimalAcceptableHeight())
     {
         wxLongToLongHashMap::key_type key = (wxLongToLongHashMap::key_type)row;
@@ -10086,6 +10184,11 @@ void wxGrid::SetColMinimalAcceptableWidth( int width )
 
 void wxGrid::SetRowMinimalAcceptableHeight( int height )
 {
+#if defined(__USE_CHANDLER_LIST_HEADERS__)
+    if ((wxColumnHeader::GetFixedHeight() > 0) && (height > 0))
+        height = wxColumnHeader::GetFixedHeight();
+#endif
+
     // We do allow a height of 0 since this gives us
     // an easy way to temporarily hiding rows.
     if ( height >= 0 )

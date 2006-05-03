@@ -21,7 +21,7 @@
 
 // transitory build flag:
 //
-//#define __GRID_LABELS_ARE_COLHEADERS__
+#define __GRID_LABELS_ARE_COLHEADERS__
 #if defined(__GRID_LABELS_ARE_COLHEADERS__)
 // chandler native render + wx standard behaviors
 #define wxClassParent_ChandlerGridLabelWindow	wxColumnHeader
