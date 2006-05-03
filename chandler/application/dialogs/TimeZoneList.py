@@ -25,25 +25,43 @@ def pickTimeZone(view):
                 insertIndex += 1
 
             return insertIndex
+
+        newTZ = None
+        newTZname = None
+        rows = dlg.grid.GetSelectedRows()
+        if len(rows) > 0:
+            name = table.GetValue(rows[0], colData['name']['display'])
+            # the separator row is empty, so if that row is selected, it's
+            # equivalent to having nothing selected
+            if name != '':
+                newTZ = PyICU.ICUtzinfo.getInstance(name)
+                newTZname = name
+                if name not in wellKnowns:
+                    wellKnowns.insert(getInsertIndex(name), name)
+                if newTZ != table.info.default:
+                    table.info.default = newTZ
+
+        # pick a new default TZ if the default should be removed, because
+        # attempting to remove the default from wellKnowns doesn't work
+        if newTZname is None and table.info.default.tzid in table.changed:
+            newdefault = None
+            for tzid in wellKnowns:
+                if tzid not in table.changed:
+                    newdefault = tzid
+                    break
+            if newdefault is not None:
+                table.info.default = PyICU.ICUtzinfo.getInstance(newdefault)
         
         for name, valChanged in table.changed.iteritems():
-            if valChanged:
+            if valChanged and name != newTZname:
                 if name in wellKnowns:
                     wellKnowns.remove(name)
                 else:
                     wellKnowns.insert(getInsertIndex(name), name)
-        
-        rows = dlg.grid.GetSelectedRows()
-        newTZ = None
-        if len(rows) > 0:
-            name = table.GetValue(rows[0], colData['name']['display'])
-            if name != '':
-                newTZ = PyICU.ICUtzinfo.getInstance(name)
-                if name not in wellKnowns:
-                    wellKnowns.insert(getInsertIndex(name), name)
-        
+
         dlg.Destroy()
         return newTZ
+    
     else:
         dlg.Destroy()
         return None
@@ -290,8 +308,7 @@ class CustTableGrid(wx.grid.Grid):
         self.AutoSizeColumn(offsetCol)
         self.AutoSizeColumn(checkedCol)
         
-        # I haven't quite gotten this to work
-        #self.ScaleWidthToFit(True)
+        self.ScaleWidthToFit(True)
 
         self.SetRowLabelSize(0)
         self.SetColLabelSize(18)
@@ -303,9 +320,12 @@ class CustTableGrid(wx.grid.Grid):
 
 
     def OnCellLeftClick(self, evt):
-        if evt.GetCol() == colData['checked']['display']:
-            self.table.Toggle(evt.GetRow())
         self.SelectRow(evt.GetRow())
+        checkedCol = colData['checked']['display']
+        if evt.GetCol() == checkedCol:
+            self.table.Toggle(evt.GetRow())
+            if not self.table.GetValue(evt.GetRow(), checkedCol):
+                self.ClearSelection()
     
     def OnColLeftClick(self, evt):
         pass
