@@ -243,7 +243,7 @@ class TestPanel( wx.Panel ):
              ch.AddItem( itemIndex, "", (wx.colheader.CH_ALIGN_Cente, wx.colheader.CH_ALIGN_Center), 40, 0, 0, 1 )
              ch.SetItemAttribute( itemIndex, wx.colheader.CH_ITEM_ATTR_FixedWidth, 1 )
              testBmp = images.getTest2Bitmap()
-             ch.SetBitmapRef( itemIndex, testBmp )
+             ch.SetBitmap( itemIndex, testBmp )
              ch.SetSelectedItem( itemIndex )
              ch.ResizeToFit()
              self.baseWidth2 += 40
