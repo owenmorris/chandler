@@ -343,6 +343,7 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
 
     def onSelectedDateChangedEvent(self, event):
         self.widget.SetDate(event.arguments['start'].date())
+        self.widget.Refresh()
         
     def onDayModeEvent(self, event):
         self.dayMode = event.arguments['dayMode']
