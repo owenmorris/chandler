@@ -281,9 +281,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                         DateFormat.HOUR_OF_DAY0_FIELD):
 
             hourFP = FieldPosition(fieldID)
-            timeString = timeFormatter.format(datetime.combine(dummyDate,
-                                                               time(hour=16)),
-                                              hourFP)
+            # timeFormatter.format will alter hourFP in place
+            timeFormatter.format(datetime.combine(dummyDate, time(hour=16)),
+                                 hourFP)
             # stop when we get a valid string
             if hourFP.getBeginIndex() != hourFP.getEndIndex():
                 break
@@ -342,6 +342,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                         hour * self.hourHeight,
                         self.size.width+1,
                         hour * self.hourHeight)
+            
+            # Draw a line for noon, bug 5781
+            if hour == 12:
+                dc.DrawLine(10,                       12 * self.hourHeight,
+                            self.xOffset - wText - 8, 12 * self.hourHeight)
 
             # Draw the line between half hours
             dc.SetPen(styles.minorLinePen)
