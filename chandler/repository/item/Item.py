@@ -717,6 +717,8 @@ class Item(CItem):
                 if recursive:
                     check = child.check(True)
                     result = result and check
+                if l == 0:
+                    break
             if l != 0:
                 logger.error("Iterator on children of %s doesn't match length (%d left for %d total)", self._repr_(), l, len(self._children))
                 return False

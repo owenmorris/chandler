@@ -434,8 +434,18 @@ class References(Values):
         if otherValue is not None and otherValue._isRefs():
             view._notifyChange(other._collectionChanged,
                                'add', 'collection', otherName, item.itsUUID)
+
+    def _addRef(self, name, other, otherName, fireChanges=False):
+
+        value = self.get(name, None)
+        if value is None or not value._isRefs() or other.itsUUID not in value:
+            self._setRef(name, other, otherName, None, None, fireChanges)
+            return True
+
+        return False
             
-    def _setRef(self, name, other, otherName, cardinality=None, alias=None):
+    def _setRef(self, name, other, otherName, cardinality=None, alias=None,
+                fireChanges=False):
 
         item = self._item
         value = self.get(name)
@@ -450,11 +460,16 @@ class References(Values):
                 raise ValueError, cardinality
 
         if value is not None and value._isRefs():
-            value._setRef(other, alias)
+            value._setRef(other, alias, fireChanges)
+            if fireChanges:
+                item.itsView._notifyChange(item._collectionChanged,
+                                           'add', 'collection', name,
+                                           other.itsUUID)
+                
         else:
             self[name] = value = other
             if not item.itsView.isLoading():
-                item.setDirty(item.VDIRTY, name, self, True)
+                item.setDirty(item.VDIRTY, name, self, not fireChanges)
 
         return value
 

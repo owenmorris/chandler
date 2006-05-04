@@ -276,10 +276,10 @@ class AbstractSet(ItemValue, Indexed):
                     if not (local or self._otherName is None):
                         refs = self._view[other]._references
                         if op == 'add':
-                            refs._setRef(self._otherName, item, attribute)
+                            refs._addRef(self._otherName, item, attribute, True)
                         else:
                             refs._removeRef(self._otherName, item, True)
-                            
+
                     if self._indexes:
                         dirty = False
 
@@ -432,7 +432,7 @@ class AbstractSet(ItemValue, Indexed):
     def _isUUID(self):
         return False
 
-    def _setRef(self, other, alias=None):
+    def _setRef(self, other, alias=None, ignore=False):
 
         self._item.add(other)
         self._view._notifyChange(self._collectionChanged,

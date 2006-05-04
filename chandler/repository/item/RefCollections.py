@@ -243,7 +243,7 @@ class RefList(LinkedMap, Indexed):
         for item in self:
             print item._repr_()
 
-    def _setRef(self, other, alias=None):
+    def _setRef(self, other, alias=None, fireChanges=False):
 
         key = other.itsUUID
         link = CLink(self, other, None, None, alias);
@@ -253,7 +253,7 @@ class RefList(LinkedMap, Indexed):
             for index in self._indexes.itervalues():
                 index.insertKey(key, link._previousKey)
 
-        self._setDirty(True)
+        self._setDirty(not fireChanges)
 
         return other
 
@@ -631,7 +631,7 @@ class RefList(LinkedMap, Indexed):
 
         key = self.firstKey()
         prevKey = None
-        while key:
+        while key is not None and l > 0:
             try:
                 other = self[key]
                 result = result and refs._checkRef(logger, name, other)

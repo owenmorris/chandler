@@ -594,6 +594,8 @@ class Indexed(object):
                     size = len(index)
                     for key in index:
                         size -= 1
+                        if size == 0:
+                            break
                     if size != 0:
                         logger.error("Iteration of index '%s' (%d) installed on value '%s' of type %s in attribute %s on %s doesn't match length (%d)", name, len(index) - size, self, type(self), attribute, item._repr_(), len(index))
                         result = False
