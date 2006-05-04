@@ -432,8 +432,8 @@ def makeMainMenus(parcel):
                                                             usercollections.collectionHues)),
                     MenuItem.template('RestoreSharesItem',
                         event = main.RestoreShares,
-                        title = u'Restore published shares...',
-                        helpString = u'Restore previously published shares'),
+                        title = _(u'Restore published shares...'),
+                        helpString = _(u'Restore previously published shares')),
                     
                     MenuItem.template('CollectionSeparator2',
                         menuItemKind = 'Separator'),
