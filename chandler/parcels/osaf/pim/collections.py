@@ -163,7 +163,7 @@ class ListCollection(ContentCollection):
         displayName=u"ListCollection"
     )
 
-    trashFor = schema.Sequence('SmartCollection',
+    trashFor = schema.Sequence('AppCollection',
                                otherName='trash', initialValue=[])
 
     def empty(self):
@@ -384,22 +384,21 @@ class FilteredCollection(ContentCollection):
                             tuple(attrTuples)))
 
 
-class SmartCollection(ContentCollection):
+class AppCollection(ContentCollection):
     """
-    SmartCollections implement inclusions, exclusions, source,
+    AppCollections implement inclusions, exclusions, source,
     and trash along with methods for add and remove
     """
 
     __metaclass__ = schema.CollectionClass
     __collection__ = 'set'
 
-    # it involves bi-refs because of 'otherName'
     # it's an AbstractSet because cardinality is 'set' (schema.Many)
-    # it's an AbstractSet of bi-directional references
-    set = schema.Many(otherName='appearsIn')
+    set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
     inclusions = schema.One(ContentCollection)
     exclusions = schema.One(ContentCollection)
+
     #sources = schema.Sequence(ContentCollection, initialValue=[])
     trash = schema.One(ListCollection, otherName='trashFor', initialValue=None)
 
@@ -500,7 +499,7 @@ class SmartCollection(ContentCollection):
                  itsKind=None, itsView=None,
                  source=None, exclusions=None, trash="default",
                  *args, **kwds):
-        super(SmartCollection, self).__init__(itsName=itsName,
+        super(AppCollection, self).__init__(itsName=itsName,
                                               itsParent=itsParent,
                                               itsKind=itsKind,
                                               itsView=itsView,
@@ -511,9 +510,9 @@ class SmartCollection(ContentCollection):
                 trash="default"):
         """
         setup all the extra parts of an
-        SmartCollection. In general nobody should call
+        AppCollection. In general nobody should call
         this but __init__, but unfortunately sharing creates
-        SmartCollections without calling __init__ so it
+        AppCollections without calling __init__ so it
         should be the only caller of _setup.
 
         Sets the source, exclusions and trash collections. 
@@ -571,7 +570,7 @@ class SmartCollection(ContentCollection):
 
     def withoutTrash(self):
         """
-        Pull out the non-trash part of SmartCollection
+        Pull out the non-trash part of AppCollection
         """
         
         # Smart collections are 'special' - they almost always include
@@ -585,6 +584,18 @@ class SmartCollection(ContentCollection):
 
         return self
 
+class SmartCollection(AppCollection):
+    """
+    A SmartCollection is just an AppCollection that is user-facing. 
+    """
+    __metaclass__ = schema.CollectionClass
+    __collection__ = 'set'
+
+    # it involves bi-refs because of 'otherName'
+    # it's an AbstractSet because cardinality is 'set' (schema.Many)
+    # it's an AbstractSet of bi-directional references
+    set = schema.Many(otherName='appearsIn')
+    
 
 class InclusionExclusionCollection(SmartCollection):
     """

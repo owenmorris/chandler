@@ -20,6 +20,7 @@ from application.Parcel import Reference
 from collections import KindCollection, ContentCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \
      FilteredCollection, ListCollection, SmartCollection, \
+     AppCollection, \
      IndexedSelectionCollection
 
 import tasks, mail, calendar.Calendar

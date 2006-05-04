@@ -10,7 +10,7 @@ from osaf.framework.blocks import (
 
 from osaf.pim import (
     ContentCollection, IntersectionCollection, KindCollection,
-    UnionCollection, IndexedSelectionCollection
+    UnionCollection, IndexedSelectionCollection, AppCollection
     )
     
 from osaf.framework.prompts import promptYesNoCancel
@@ -1055,8 +1055,19 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                     if len (collectionList) == 1:
                         key = collectionList [0]
                     else:
-                        key = UnionCollection(itsView=self.itsView,
-                                              sources=collectionList)
+                        # eventually it would be nice to just make a
+                        # Union here, but we need to make sure each
+                        # withoutTrash gets called
+                        combined = UnionCollection(itsView=self.itsView,
+                                                   sources=collectionList)
+                        
+                        # unioning Smart/AppCollections makes them
+                        # lose their trash (which is good) so add it
+                        # back by wrapping with an AppCollection
+                        # (AppCollections are more transitory than
+                        # SmartCollections)
+                        key = AppCollection(itsView=self.itsView,
+                                            source=combined)
     
                     # create an INTERNAL name for this collection, just
                     # for debugging purposes
