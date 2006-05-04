@@ -180,8 +180,9 @@ class ContentItem(schema.Item):
     # ContentItem instances can be put into ListCollections
     collections = schema.Sequence(otherName='refCollection', notify=True)
 
-    # ContentItem instances can be put into SmartCollections
-    appearsIn = schema.Sequence(otherName='set')
+    # ContentItem instances can be put into SmartCollections (which define
+    # the other end of this biref)
+    appearsIn = schema.Sequence()
 
     schema.addClouds(
         sharing = schema.Cloud("displayName", body, createdOn, 'tags',

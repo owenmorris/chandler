@@ -592,7 +592,7 @@ class SmartCollection(AppCollection):
     # it involves bi-refs because of 'otherName'
     # it's an AbstractSet because cardinality is 'set' (schema.Many)
     # it's an AbstractSet of bi-directional references
-    set = schema.Many(otherName='appearsIn')
+    set = schema.Many(inverse=ContentItem.appearsIn)
     
 
 class InclusionExclusionCollection(SmartCollection):

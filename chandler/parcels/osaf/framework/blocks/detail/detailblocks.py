@@ -253,10 +253,10 @@ def registerAttributeEditors(parcel, oldVersion):
         'DateTimeTZ+calendarTimeOnly': 'CalendarTimeAttributeEditor',
         'EmailAddress+outbound': 'OutboundEmailAddressAttributeEditor',
         'NoneType+appearsIn': 'AppearsInAttributeEditor',
-        'ListCollection+appearsIn': 'AppearsInAttributeEditor',
         'RecurrenceRuleSet+custom': 'RecurrenceCustomAttributeEditor',
         'RecurrenceRuleSet+ends': 'RecurrenceEndsAttributeEditor',
         'RecurrenceRuleSet+occurs': 'RecurrenceAttributeEditor',
+        'SmartCollection+appearsIn': 'AppearsInAttributeEditor',
         'TimeDelta+reminder': 'ReminderAttributeEditor',
     }
     AttributeEditorMapping.register(parcel, aeDict, __name__)
@@ -382,26 +382,26 @@ def makeNoteSubtree(parcel, oldVersion):
             position=0.5,
             border=RectType(0,6,0,6)).install(parcel)
 
+    # The Note AEBlock
+    notesBlock = makeEditor(parcel, 'NotesBlock',
+                            viewAttribute=u'body',
+                            presentationStyle={'lineStyleEnum': 'MultiLine'},
+                            position=0.9).install(parcel)
+
     # Appears in block
     appearsInArea = \
         makeArea(parcel, 'AppearsInArea',
-            viewAttribute=u'collections',
+            viewAttribute=u'appearsIn',
             border=RectType(0,0,0,0),
             childrenBlocks=[
                 # (the label is added as part of the string for now)
                 #makeLabel(parcel, _(u'appears in'), borderTop=2),
                 #makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'AppearsIn',
-                           viewAttribute=u'collections',
+                           viewAttribute=u'appearsIn',
                            border=RectType(0,2,2,2),
                            presentationStyle={'format': 'appearsIn'})],
             position=0.9999).install(parcel)    
-
-    # Then, the Note AEBlock
-    notesBlock = makeEditor(parcel, 'NotesBlock',
-                            viewAttribute=u'body',
-                            presentationStyle={'lineStyleEnum': 'MultiLine'},
-                            position=0.9).install(parcel)
 
     # Finally, the subtree
     makeSubtree(parcel, osaf.pim.Note, [

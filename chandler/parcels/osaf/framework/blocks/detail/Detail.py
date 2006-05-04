@@ -739,29 +739,24 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
                 self.widget.SetLabel(_("u(Already sharing this collection)"))
                 enabled = False
         event.arguments['Enable'] = enabled
-
+        
 class AppearsInAttributeEditor(StaticStringAttributeEditor):
     """ A read-only list of collections that this item appears in, for now. """
     def GetAttributeValue(self, item, attributeName):
-        # We'll be doing 'in' tests below, so if this is a proxy, get the real item.
-        item = getattr(item, 'proxiedItem', item)
-        # Likewise, only a recurrence master appears 'in' the collection (for 0.6, anyway)
+        # Only a recurrence master appears 'in' the collection (for 0.6, anyway)
         # so if this item lets us get its master, do so and use that instead.
         getMasterMethod = getattr(type(item), 'getMaster', None)
         if getMasterMethod is not None:
             item = getMasterMethod(item)
+
+        # Collect the names and join them into a list
+        collectionNames = _(", ").join(sorted([coll.displayName 
+                                               for coll in item.appearsIn ]))
         
-        # Ask each sidebar collection if this item's in it.
-        app = schema.ns('osaf.app', item.itsView)
-        sidebarCollection = app.sidebarCollection
-        collectionNames = _(", ").join(sorted([coll.displayName
-                                               for coll in sidebarCollection
-                                               if isinstance (item, pim.ContentCollection) and item in coll]))
         # logger.debug("Returning new appearsin list: %s" % collectionNames)
         # @@@ I18N: FYI: I expect the label & names to be separate fields before too long...
         return _(u"Appears in: %(collectionNames)s") \
                % {'collectionNames': collectionNames }
-
 
 # Classes to support CalendarEvent details - first, areas that show/hide
 # themselves based on readonlyness and attribute values
