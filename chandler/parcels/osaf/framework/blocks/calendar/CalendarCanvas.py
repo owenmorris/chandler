@@ -1796,7 +1796,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.monthText.SetFont(styles.monthLabelFont)
         self.monthText.SetForegroundColour(styles.monthLabelColor)
         
-        self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
+        self.weekColumnHeader.SetBitmap(8, self.allDayCloseArrowImage)
         self.UpdateHeader()
 
         # onetime measurements
@@ -2016,11 +2016,11 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             pass
         elif position - sashsize <= wxAllDay.collapsedHeight:
             wxAllDay.autoExpandMode = False
-            self.weekColumnHeader.SetBitmapRef(8, self.allDayOpenArrowImage)
+            self.weekColumnHeader.SetBitmap(8, self.allDayOpenArrowImage)
             
         elif position - sashsize > wxAllDay.collapsedHeight:
             wxAllDay.autoExpandMode = True
-            self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
+            self.weekColumnHeader.SetBitmap(8, self.allDayCloseArrowImage)
         
     def OnDaySelect(self, day):
         """
