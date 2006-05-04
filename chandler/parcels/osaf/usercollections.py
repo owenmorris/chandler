@@ -67,7 +67,7 @@ class UserCollection(schema.Annotation):
 # in the form 'Color', _('LocalizableColorString'), 360-degree based hue
 import colorsys
 collectionHues = [('Blue', _(u'Blue'), 210),
-                  ('Green', (u'Green'), 120),
+                  ('Green', _(u'Green'), 120),
                   ('Rose', _(u'Rose'), 0),
                   ('Salmon', _(u'Salmon'), 30),
                   ('Purple', _(u'Purple'), 270),
