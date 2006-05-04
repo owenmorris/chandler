@@ -393,13 +393,11 @@ class AppCollection(ContentCollection):
     __metaclass__ = schema.CollectionClass
     __collection__ = 'set'
 
-    # it's an AbstractSet because cardinality is 'set' (schema.Many)
     set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
     inclusions = schema.One(ContentCollection)
     exclusions = schema.One(ContentCollection)
 
-    #sources = schema.Sequence(ContentCollection, initialValue=[])
     trash = schema.One(ListCollection, otherName='trashFor', initialValue=None)
 
     # __collection__ denotes a bi-ref set, 
