@@ -1008,7 +1008,9 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
         # bug 5613, when a new collection is selected, items in overlaid
         # collections should be unselected
         selection = self.GetSelection()
-        for item in selection.iterSelection():
+        # Bug 5817, the iterable returned by iterSelection will complain if an
+        # item is removed, so create a (seemingly useless) list before iterating
+        for item in list(selection.iterSelection()):
             if (item is not None and
                 item not in self.contentsCollection):
                 selection.unselectItem(item)
