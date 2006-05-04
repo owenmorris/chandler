@@ -296,7 +296,9 @@ def makeMarkupBar(parcel, oldVersion):
                                         buttonKind="Stamp",
                                         icon="MarkupMail",
                                         helpString=messages.STAMP_MAIL_HELP,
-                                        event=buttonPressed)
+                                        event=buttonPressed,
+                                        stretchFactor=0.0,
+                                        minimumSize=SizeType(30, 17))
 
     taskStamp = \
         TaskStampBlock.template('TaskStamp',
@@ -304,7 +306,14 @@ def makeMarkupBar(parcel, oldVersion):
                                 buttonKind="Stamp",
                                 icon="MarkupTask",
                                 helpString=messages.STAMP_TASK_HELP,
-                                event=buttonPressed)
+                                event=buttonPressed,
+                                stretchFactor=0.0,
+                                minimumSize=SizeType(30, 17))
+
+    markupSpacer1 = ControlBlocks.StaticText.template('MarkupSpacer1',
+                                    title=u'',
+                                    stretchFactor=0.0,
+                                    minimumSize=SizeType(30, 17))
 
     calendarStamp = \
         CalendarStampBlock.template('CalendarStamp',
@@ -312,7 +321,13 @@ def makeMarkupBar(parcel, oldVersion):
                                     buttonKind="Stamp",
                                     icon="MarkupEvent",
                                     helpString=messages.STAMP_CALENDAR_HELP,
-                                    event=buttonPressed)
+                                    event=buttonPressed,
+                                    stretchFactor=0.0,
+                                    minimumSize=SizeType(30, 17))
+
+    markupSpacer2 = ControlBlocks.StaticText.template('MarkupSpacer2',
+                                    title=u'',
+                                    stretchFactor=1.0)
 
     privateSwitchButton = \
         PrivateSwitchButtonBlock.template('PrivateSwitchButton',
@@ -320,7 +335,9 @@ def makeMarkupBar(parcel, oldVersion):
                                     buttonKind="Stamp",
                                     icon="MarkupPrivate",
                                     helpString=messages.PRIVATE,
-                                    event=buttonPressed)
+                                    event=buttonPressed,
+                                    stretchFactor=0.0,
+                                    minimumSize=SizeType(30, 17))
 
     readOnlyIcon = \
         ReadOnlyIconBlock.template('ReadOnlyIcon',
@@ -328,13 +345,17 @@ def makeMarkupBar(parcel, oldVersion):
                                     buttonKind="Stamp",
                                     icon="MarkupReadOnly",
                                     helpString=messages.READONLY,
-                                    event=buttonPressed)
+                                    event=buttonPressed,
+                                    stretchFactor=0.0,
+                                    minimumSize=SizeType(30, 17))
 
     markupBar = ControlBlocks.ContentItemDetail.template('MarkupBar',
                                     childrenBlocks=[mailMessageButton,
                                                     taskStamp,
                                                     calendarStamp,
+                                                    markupSpacer1,
                                                     privateSwitchButton,
+                                                    markupSpacer2,
                                                     readOnlyIcon],
                                     position=0.0,
                                     toolSize=SizeType(30, 17),
