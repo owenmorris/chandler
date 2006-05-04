@@ -1099,6 +1099,7 @@ public:
     void SetSelectionMode(wxGrid::wxGridSelectionModes selmode);
     wxGrid::wxGridSelectionModes GetSelectionMode() const;
 
+    // OSAF - added
     bool HasCursor() const { return m_hasCursor; };
     void EnableCursor( bool enableCursor );
 
@@ -1107,6 +1108,9 @@ public:
 
     void ScaleColumn( int col, bool scale = true );
     bool GetScaleColumn ( int col ) const;
+
+    // OSAF - added
+    void SetLabelBitmap( bool isRow, int itemIndex, const wxBitmap& b );
 
     // ------ grid dimensions
     //

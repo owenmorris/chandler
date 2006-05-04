@@ -10005,6 +10005,19 @@ void wxGrid::SetRowSize( int row, int height )
         CalcDimensions();
 }
 
+// OSAF - added
+void wxGrid::SetLabelBitmap( bool isRow, int itemIndex, const wxBitmap& b )
+{
+#if defined(__USE_CHANDLER_LIST_HEADERS__)
+    wxChandlerGridLabelWindow *labelWindow =
+    	isRow
+        ? reinterpret_cast<wxChandlerGridLabelWindow*>( m_rowLabelWin )
+        : reinterpret_cast<wxChandlerGridLabelWindow*>( m_colLabelWin );
+    if (labelWindow != NULL)
+        labelWindow->SetLabelBitmap( isRow, itemIndex, b );
+#endif
+}
+
 void wxGrid::SetDefaultColSize( int width, bool resizeExistingCols )
 {
     m_defaultColWidth = wxMax( width, m_minAcceptableColWidth );

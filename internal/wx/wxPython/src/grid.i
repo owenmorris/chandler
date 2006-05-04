@@ -1620,12 +1620,16 @@ public:
     void SetSelectionMode(WXGRIDSELECTIONMODES selmode);
     WXGRIDSELECTIONMODES GetSelectionMode();
 
+    // OSAF - added
     bool HasCursor();
     void EnableCursor( bool enableCursor );
     void ScaleWidthToFit( bool scale = true );
     bool GetScaleWidthToFit() const { return m_scaleWidthToFit; }
     void ScaleColumn( int col, bool scale = true );
     bool GetScaleColumn ( int col ) const;
+
+    // OSAF - added
+    void SetLabelBitmap( bool isRow, int itemIndex, const wxBitmap& b );
 
     // ------ grid dimensions
     //
