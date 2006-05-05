@@ -196,9 +196,13 @@ class Item(CItem):
                 old = _attrDict[name]
                 if old is value:
                     return value
-                if old is not None and old._isRefs():
-                    wasRefs = True
-                    old._removeRefs()
+                if old is not None:
+                    if isItem and isuuid(old):
+                        if old == value.itsUUID:
+                            return value
+                    elif old._isRefs():
+                        wasRefs = True
+                        old._removeRefs()
 
         if isItem or value is None:
             if _attrDict is _values:
