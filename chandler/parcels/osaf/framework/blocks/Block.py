@@ -452,12 +452,9 @@ class Block(schema.Item):
             itemDict.setdefault(attributeName, set()).add(self)
             
     def stopWatchingForChanges(self):
-        contents = getattr (self, 'contents', None)
-        if contents is None:
-            return
-        
         # unsubscribe from collection notifications
-        if isinstance(contents, ContentCollection):
+        contents = getattr (self, 'contents', None)
+        if contents is not None and isinstance(contents, ContentCollection):
             self.itsView.notificationQueueUnsubscribe(contents, self)
             
         # do item notifications, too, if we had any
