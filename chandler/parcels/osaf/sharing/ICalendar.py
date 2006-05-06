@@ -179,11 +179,11 @@ def itemsToFreeBusy(view, start, end, calname = None):
     end.
         
     """
-    # eventsInRange defaults to all events, which is what we want
-    normal    = Calendar.eventsInRange(view, start, end)
-    recurring = Calendar.recurringEventsInRange(view, start, end)
+    all = schema.ns("osaf.pim", view).allCollection
+    normal    = Calendar.eventsInRange(view, start, end, all)
+    recurring = Calendar.recurringEventsInRange(view, start, end, all)
     events = Calendar._sortEvents(itertools.chain(normal, recurring))
-    trash = schema.ns("osaf.pim", view).trashCollection
+    
     
     def toUTC(dt):
         if dt < start: dt = start
@@ -206,9 +206,7 @@ def itemsToFreeBusy(view, start, end, calname = None):
     free = None
     for event in events:
         # ignore anytime events, events with no duration, and fyi events
-        # also ignore any events in the trash
         if (event.transparency == 'fyi' or
-            event in trash or
             ((event.anyTime or event.duration == datetime.timedelta(0)) and 
              not event.allDay)):
             continue
