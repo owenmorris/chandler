@@ -569,6 +569,9 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
     @staticmethod
     def SortForPreview(item1, item2):
+        if item1.isStale() or item2.isStale():
+            # sort stale or deleted items first, False < True
+            return cmp(not item1.isStale(), not item2.isStale())
         if (item1.anyTime or item1.allDay) and (item2.anyTime or item2.allDay):
             return cmp(item1.displayName, item2.displayName)
         if item1.anyTime or item1.allDay:

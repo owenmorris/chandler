@@ -430,6 +430,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 
         # First generate a sorted list of TimedCanvasItems
         for item in self.visibleItems:
+            if item.isStale():
+                continue
             collection = self.blockItem.getContainingCollection(item, primaryCollection)
             canvasItem = TimedCanvasItem(collection, primaryCollection,
                                          item, self)
