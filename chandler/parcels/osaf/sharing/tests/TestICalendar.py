@@ -110,10 +110,12 @@ class ICalendarTestCase(unittest.TestCase):
 
     def ExportFreeBusy(self):
         format = self.Import(self.repo.view, u'AllDay.ics')
+        collection = self.share.contents
+        schema.ns('osaf.pim', self.repo.view).mine.addSource(collection)
         
         start = datetime.datetime(2005,1,1, tzinfo=ICUtzinfo.floating)
         end = start + datetime.timedelta(2)
-        
+
         cal = ICalendar.itemsToFreeBusy(self.repo.view, start, end)
         self.assertEqual(cal.vfreebusy.freebusy.value[0][1], datetime.timedelta(1))
 
