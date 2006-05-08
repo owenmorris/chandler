@@ -472,6 +472,9 @@ class AbstractSet(ItemValue, Indexed):
     def _clear_(self):
         pass
 
+    def clear(self):
+        self._removeRefs()
+
 
 class Set(AbstractSet):
 
