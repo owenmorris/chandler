@@ -120,7 +120,7 @@ class SubscribeDialog(wx.Dialog):
                 self.subscribing = False
                 if self.modal:
                     self.EndModal(True)
-                self.Destory()
+                self.Destroy()
                 return
 
             # Keep this collection out of "My items" if checked:
