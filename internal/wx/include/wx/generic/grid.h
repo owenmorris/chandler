@@ -1107,10 +1107,11 @@ public:
     bool GetScaleWidthToFit() const { return m_scaleWidthToFit; };
 
     void ScaleColumn( int col, bool scale = true );
-    bool GetScaleColumn ( int col ) const;
+    bool GetScaleColumn( int col ) const;
 
-    // OSAF - added
+    void SynchroniseLabelWindows();
     void SetLabelBitmap( bool isRow, int itemIndex, const wxBitmap& b );
+    // OSAF - end added section
 
     // ------ grid dimensions
     //

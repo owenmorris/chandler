@@ -4655,6 +4655,14 @@ void wxGrid::CalcDimensions()
     // we still must reposition the children
     CalcWindowSizes();
 
+#if defined(__USE_CHANDLER_LIST_HEADERS__)
+    SynchroniseLabelWindows();
+#endif
+}
+
+// OSAF - added
+void wxGrid::SynchroniseLabelWindows()
+{
 #if defined(__USE_CHANDLER_LIST_HEADERS__) && defined(__GRID_LABELS_ARE_COLHEADERS__)
     // redimension list headers and synchronise private data
     if (m_colLabelWin != NULL)

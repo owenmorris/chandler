@@ -160,8 +160,6 @@ public:
     virtual wxSize DoGetMinSize( void ) const;
 
     wxSize CalculateDefaultSize( void ) const;
-    wxSize CalculateDefaultItemSize(
-        wxSize        maxSize ) const;
     wxSize GetDefaultItemSize( void ) const;
     void SetDefaultItemSize(
         wxSize        targetSize );
@@ -283,9 +281,12 @@ public:
 
     static long GetFixedHeight( void );
 
+    static wxSize CalculateDefaultItemSize(
+        const wxSize        &maxSize );
+
     static void GetDefaultLabelValue(
         bool                isColumn,
-        int                index,
+        long                itemIndex,
         wxString&        value );
 };
 

@@ -16,9 +16,9 @@ class TestPanel( wx.Panel ):
         # init (non-UI) demo vars
         # NB: should be 17 for Mac; 20 for all other platforms
         # wxColumnHeader can handle it
+        self.colHeight = wx.colheader.ColumnHeader.GetFixedHeight()
         self.baseWidth1 = 350
         self.baseWidth2 = 270
-        self.colHeight = 20
         self.colStartX = 175
         self.colStartY = 20
 
@@ -102,8 +102,11 @@ class TestPanel( wx.Panel ):
             prompt = "ANSI build"
         l1 = wx.StaticText( self, -1, prompt, (self.colStartX, miscControlsY + 150), (150, 20) )
 
-        l0O = wx.StaticText( self, -1, "Last action:", (self.colStartX, miscControlsY + 175), (90, 20) )
-        l0 = wx.StaticText( self, -1, "[result]", (self.colStartX + 95, miscControlsY + 175), (250, 20) )
+        prompt = "Default fixed item size: [%ld]" %(wx.colheader.ColumnHeader.GetFixedHeight())
+        lXX = wx.StaticText( self, -1, prompt, (self.colStartX, miscControlsY + 175), (200, 20) )
+
+        l0O = wx.StaticText( self, -1, "Last action:", (self.colStartX, miscControlsY + 200), (90, 20) )
+        l0 = wx.StaticText( self, -1, "[result]", (self.colStartX + 95, miscControlsY + 200), (250, 20) )
         self.l0 = l0
 
         btn = wx.Button( self, -1, "Delete Selection", (10, self.colStartY + 15) )
@@ -333,7 +336,9 @@ overview = """<html><body>
 
 <p>NB-2: not all of the selection styles are implemented.</p>
 
-<p>The MSW version of this control has a persistant selection indicator. The native MSW control has no canonical selection UI, instead using a sort arrow to serve double-duty as a selection indicator; nonetheless, it has a rollover indicator.</p>
+<p>NB-3: this class has been integrated into wxGrid by means of a shim subclass and 8 tweaks to wxGrid C++.</p>
+
+<p>The MSW version of this control has a persistent selection indicator. The native MSW control has no canonical selection UI, instead using a sort arrow to serve double-duty as a selection indicator; nonetheless, it has a rollover indicator.</p>
 
 <p>The GTK framework lacks, or appears to lack, a native control: a simple bevel button shall suffice for the theme background.</p>
 

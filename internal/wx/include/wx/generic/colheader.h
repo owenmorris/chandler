@@ -46,7 +46,12 @@ typedef enum
 	wxCH_kMetricArrowSizeX		= 8,
 	wxCH_kMetricArrowSizeY		= 8,
 	wxCH_kMetricBitmapSizeX		= 12,
-	wxCH_kMetricBitmapSizeY		= 12
+	wxCH_kMetricBitmapSizeY		= 12,
+
+	// ALERT: these are wrong, for so many reasons
+	wxCH_minimumTotalX			= 16,
+	wxCH_minimumTotalY			= 17
+
 }
 wxColumnHeaderMetric;
 
@@ -104,8 +109,9 @@ public:
 
 	// size calcluations (needs refactoring)
 	wxSize CalculateDefaultSize( void ) const;
-	wxSize CalculateDefaultItemSize(
-		const wxSize		 maxSize ) const;
+	wxSize Deprecated_CalculateDefaultItemSize(
+		const wxSize		&maxSize,
+		bool				&isFixed ) const;
 	wxSize GetDefaultItemSize( void ) const;
 	void SetDefaultItemSize(
 		const wxSize		targetSize );
@@ -249,10 +255,13 @@ public:
 
 	static long GetFixedHeight( void );
 
+	static wxSize CalculateDefaultItemSize(
+		const wxSize		&maxSize );
+
 	static void GetDefaultLabelValue(
 		bool				isVertical,
-		int				index,
-		wxString&		value );
+		long				itemIndex,
+		wxString			&value );
 
 protected:
 	void AddItemList(

@@ -114,12 +114,10 @@ DEFINE_EVENT_TYPE(wxEVT_COLUMNHEADER_SELCHANGED)
 DEFINE_EVENT_TYPE(wxEVT_COLUMNHEADER_DOUBLECLICKED)
 
 
-#define wxCH_minimum_x		16
-
-
 // ============================================================================
 // implementation
 // ============================================================================
+
 
 // ----------------------------------------------------------------------------
 // wxChandlerGridLabelWindow
@@ -199,7 +197,9 @@ void wxChandlerGridLabelWindow::OnPaint( wxPaintEvent& WXUNUSED(event) )
 
 void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
 {
-#if 0 && defined(__WXDEBUG__) && __WXDEBUG__
+#if defined(__WXDEBUG__)
+	// this is here for "convenience",
+	// not for debugging mousedown events in particular!
 	if (event.LeftIsDown())
 		DumpInfo(
 			((m_styleVariant & CH_STYLE_HeaderIsVertical) != 0)
@@ -210,17 +210,17 @@ void wxChandlerGridLabelWindow::OnMouseEvent( wxMouseEvent& event )
 	if (m_owner == NULL)
 		return;
 
-#if defined(__GRID_LABELS_ARE_COLHEADERS__)
-	// update optional selection highlighting and sort direction indicator
-	if (event.LeftIsDown())
-		wxColumnHeader::OnClick( event );
-#endif
-
 	// allow wxGridWindow to further process mouse event
 	if ((m_styleVariant & CH_STYLE_HeaderIsVertical) == 0)
 		m_owner->ProcessColLabelMouseEvent( event );
 	else
 		m_owner->ProcessRowLabelMouseEvent( event );
+
+#if defined(__GRID_LABELS_ARE_COLHEADERS__)
+	// update optional selection highlighting and sort direction indicator
+	if (event.LeftIsDown() && !event.Dragging())
+		wxColumnHeader::OnClick( event );
+#endif
 }
 
 void wxChandlerGridLabelWindow::OnMouseWheel( wxMouseEvent& event )
@@ -475,7 +475,7 @@ bool			bResultV;
 
 	localName = name;
 
-	m_DefaultItemSize = CalculateDefaultItemSize( size );
+	m_DefaultItemSize = wxColumnHeader::CalculateDefaultItemSize( size );
 
 	actualSize = size;
 #if 1
@@ -729,6 +729,11 @@ int		yDiff;
 	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
 }
 
+// ================
+#if 0
+#pragma mark -
+#endif
+
 // virtual
 wxSize wxColumnHeader::DoGetBestSize( void ) const
 {
@@ -792,8 +797,8 @@ bool			bIsVertical;
 	targetSize.x =
 	targetSize.y = 0;
 
-	minSize.x = wxCH_minimum_x;
-	minSize.y = 17;
+	minSize.x = wxCH_minimumTotalX;
+	minSize.y = wxCH_minimumTotalY;
 
 	parentSize.x =
 	parentSize.y = 0;
@@ -834,16 +839,24 @@ bool			bIsVertical;
 	return targetSize;
 }
 
-wxSize wxColumnHeader::CalculateDefaultItemSize(
-	wxSize		maxSize ) const
+// FIXME: this routine should be static, divorced from the necessity of
+// instantiating a native control instance. The Win32 implementation
+// is blocking this goal. The non-deprecated version does in fact
+// meet this criterion; hence, this routine will be excised shortly.
+//
+wxSize wxColumnHeader::Deprecated_CalculateDefaultItemSize(
+	const wxSize		&maxSize,
+	bool				&isFixed ) const
 {
 wxSize		targetSize, minSize, parentSize;
 
 	targetSize.x =
 	targetSize.y = 0;
 
-	minSize.x = wxCH_minimum_x;
-	minSize.y = 17;
+	isFixed = false;
+
+	minSize.x = wxCH_minimumTotalX;
+	minSize.y = wxCH_minimumTotalY;
 
 	// "best" width is parent's width;
 	// height is (relatively) invariant,
@@ -874,6 +887,95 @@ wxSize		targetSize, minSize, parentSize;
 		{
 			targetSize.x = wp.cx;
 			targetSize.y = wp.cy;
+
+			isFixed = true;
+		}
+	}
+
+#elif defined(__WXMAC__)
+	{
+	SInt32		standardHeight;
+	OSStatus		errStatus;
+
+		errStatus = GetThemeMetric( kThemeMetricListHeaderHeight, &standardHeight );
+		if (errStatus == noErr)
+		{
+			targetSize.y = standardHeight;
+			isFixed = true;
+		}
+	}
+#else
+	// ALERT: what to do for the other (esp. wxGTK) platforms?
+	// implied assumption is: non-fixed height
+#endif
+
+	targetSize.x = ((targetSize.x > minSize.x) ? targetSize.x : minSize.x);
+	targetSize.y = ((targetSize.y > minSize.y) ? targetSize.y : minSize.y);
+
+	return targetSize;
+}
+
+// static
+long wxColumnHeader::GetFixedHeight( void )
+{
+wxSize	resultSize, maxSize;
+long		resultV;
+
+	resultV = 0;
+
+	maxSize.x = 
+	maxSize.y = 1 << 10;
+	resultSize = CalculateDefaultItemSize( maxSize );
+	resultV = resultSize.y;
+
+#if 0
+#if defined(__WXMAC__)
+	resultV = 17;
+#elif defined(__WXMSW__)
+	resultV = 20;
+#else
+	// fixed height doesn't apply
+#endif
+#endif
+
+	return resultV;
+}
+
+// static
+wxSize wxColumnHeader::CalculateDefaultItemSize(
+	const wxSize		&maxSize )
+{
+wxSize		targetSize, minSize;
+
+	minSize.x = wxCH_minimumTotalX;
+	minSize.y = wxCH_minimumTotalY;
+
+	// "best" width is parent's width;
+	// height is (relatively) invariant,
+	// as determined by native (HI/CommonControls) drawing routines
+	targetSize.x = (maxSize.x > 0) ? maxSize.x : 0;
+	targetSize.y = 0;
+
+	// get (platform-dependent) height
+#if defined(__WXMSW__)
+	{
+	HTHEME hTheme;
+	HRESULT hr;
+	int value;
+	bool bResultV;
+
+		hr = 0;
+		bResultV = false;
+		hTheme = OpenThemeData( hwndButton, WC_HEADER );
+		if (hTheme != NULL)
+		{
+			hr = GetThemeMetric( hTheme, NULL, HP_HEADERITEM, HIS_NORMAL, TMT_HEIGHT, &value );
+			CloseTheme( hTheme );
+
+			if (hr == 0)
+				targetSize.y = value;
+			else
+				targetSize.y = (-1);
 		}
 	}
 
@@ -885,13 +987,13 @@ wxSize		targetSize, minSize, parentSize;
 		errStatus = GetThemeMetric( kThemeMetricListHeaderHeight, &standardHeight );
 		if (errStatus == noErr)
 			targetSize.y = standardHeight;
+		else
+			targetSize.y = (-1);
 	}
 #else
 	// ALERT: what to do for the other (esp. wxGTK) platforms?
+	// implied assumption is: non-fixed height
 #endif
-
-	targetSize.x = ((targetSize.x > minSize.x) ? targetSize.x : minSize.x);
-	targetSize.y = ((targetSize.y > minSize.y) ? targetSize.y : minSize.y);
 
 	return targetSize;
 }
@@ -911,33 +1013,16 @@ void wxColumnHeader::SetDefaultItemSize(
 }
 
 // static
-long wxColumnHeader::GetFixedHeight( void )
-{
-long		resultV;
-
-#if defined(__WXMAC__)
-	resultV = 17;
-#elif defined(__WXMSW__)
-	resultV = 20;
-#else
-	// fixed height doesn't apply
-	resultV = 0;
-#endif
-
-	return resultV;
-}
-
-// static
 void wxColumnHeader::GetDefaultLabelValue(
 	bool			isVertical,
-	int			index,
+	long			itemIndex,
 	wxString		&value )
 {
 	if (isVertical)
 	{
 		// starting the rows at zero confuses users,
 		// no matter how much it makes sense to geeks.
-		value.Format( wxT("%d"), index + 1 );
+		value.Format( wxT("%ld"), itemIndex + 1 );
 	}
 	else
 	{
@@ -946,18 +1031,22 @@ void wxColumnHeader::GetDefaultLabelValue(
 		// columns 26 to 675: AA-ZZ
 		// and so on
 		wxString s;
-		unsigned int i, n;
-		for (n = 1; index >= 0; n++)
+		long i, n, reverseIndex;
+
+		for (n = 1; itemIndex >= 0; n++)
 		{
-			s += (wxChar)(wxT('A') + (wxChar)(index % 26));
-			index /= 26;
-			index--;
+			s += (wxChar)(wxT('A') + (wxChar)(itemIndex % 26));
+			itemIndex /= 26;
+			itemIndex--;
 		}
 
 		// reverse the string
 		value = wxEmptyString;
 		for (i = 0; i < n; i++)
-			value += s[(n - i) - 1];
+		{
+			reverseIndex = (n - i) - 1L;
+			value += s[(int)reverseIndex];
+		}
 	}
 }
 
@@ -1501,6 +1590,9 @@ bool		bIsVertical;
 
 	// determine width delta
 	deltaX = newWidth - m_NativeBoundsR.width;
+	if ((deltaX == 0) || (scaleItemAmount <= 0))
+		return true;
+
 	summerX = deltaX;
 	originX = 0;
 
@@ -1528,11 +1620,12 @@ bool		bIsVertical;
 			{
 				resultX = m_ItemList[i]->m_Extent.x + incX;
 				m_ItemList[i]->ResizeToWidth( resultX );
-			}
 
-			summerX -= incX;
+				summerX -= incX;
+			}
 		}
 
+		// advance current origin
 		originX += m_ItemList[i]->m_Extent.x;
 	}
 
@@ -2757,6 +2850,7 @@ bool			bIsVertical;
 	bIsVertical = GetAttribute( CH_ATTR_VerticalOrientation );
 	if (! bIsVertical)
 		msStyle |= HDS_HORZ;
+//		msStyle |= CCS_VERT;	// ???
 
 	return msStyle;
 }
