@@ -25,7 +25,9 @@ try:
 
     sidebar = QAUITestAppLib.App_ns.sidebar
     col = QAUITestAppLib.UITestItem("Collection", logger)
-    scripting.User.emulate_sidebarClick(sidebar, 'Untitled')
+    col.SetDisplayName("Trash testing")
+    scripting.User.emulate_sidebarClick(sidebar, 'Trash testing')
+
 
     event = QAUITestAppLib.UITestItem("Event", logger)
 
