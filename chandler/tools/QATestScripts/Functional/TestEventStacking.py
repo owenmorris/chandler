@@ -24,7 +24,7 @@ try:
     QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, "stacked")
     
     #make sure we are on current week
-    view.GoToDate(strftime('%Y-%m-%d',localtime()))
+    view.GoToToday()
     
     # creation
     for i in range(16):

@@ -13,6 +13,7 @@ import osaf.framework.scripting as scripting
 import osaf.sharing.ICalendar as ICalendar
 import os
 import sys
+from itertools import chain
 
 #Global AppProxy instance
 App_ns = scripting.app_ns()
@@ -155,41 +156,45 @@ class UITestItem(object):
             methodDict[key](value, timeInfo=False)
         if self.logger: self.logger.Stop()
 
-    def SelectItem(self):
+    def CalendarVisible(self):
+        """In the calendar view?"""
+        return App_ns.ApplicationBarEventButton.widget.IsToggled()
+
+    def SelectItem(self, catchException=False):
         """
         Select the item in chandler (summary view or calendar view or sidebar selection)
         """
-        if not self.isCollection:
-            # if not in the Calendar view (select in the summary view)
-            # check the button state
-            button = App_ns.ApplicationBarEventButton
-            buttonState = button.widget.IsToggled()
-            if not buttonState:
-                App_ns.summary.select(self.item)
-                App_ns.summary.focus()
-            # if in the Calendar view (select by clicking on the TimedCanvasItem)
-            else:
-                foundItem = False
-                timedCanvas = App_ns.TimedEvents
-                allDayCanvas = App_ns.AllDayEvents
-                for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
-                    if canvasItem.item == self.item:
-                        allDayCanvas.widget.OnSelectItem(canvasItem.item)
-                        foundItem = True
-                        break
-                if not foundItem:
-                    for canvasItem in reversed(timedCanvas.widget.canvasItemList):
+        try:
+            if not self.isCollection:
+                if not self.CalendarVisible():
+                    App_ns.summary.select(self.item)
+                    App_ns.summary.focus()
+                else:
+                    # in the Calendar view, select by selecting the CanvasItem
+                    foundItem = False
+                    timedCanvas = App_ns.TimedEvents
+                    allDayCanvas = App_ns.AllDayEvents
+                    for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
                         if canvasItem.item == self.item:
-                            timedCanvas.widget.OnSelectItem(canvasItem.item)
+                            allDayCanvas.widget.OnSelectItem(canvasItem.item)
                             foundItem = True
                             break
-
-                    
-        else: # the item is a collection (sidebar selection)
-            App_ns.sidebar.select(self.item)
-            App_ns.sidebar.focus()
-            scripting.User.idle()
-           
+                    if not foundItem:
+                        for canvasItem in reversed(timedCanvas.widget.canvasItemList):
+                            if canvasItem.item == self.item:
+                                timedCanvas.widget.OnSelectItem(canvasItem.item)
+                                foundItem = True
+                                break
+    
+                        
+            else: # the item is a collection (sidebar selection)
+                App_ns.sidebar.select(self.item)
+                App_ns.sidebar.focus()
+                scripting.User.idle()
+        except:
+            if not catchException:
+                raise
+            
             
     def SetEditableBlock(self, blockName, description, value, timeInfo):
         """
@@ -675,8 +680,15 @@ class UITestItem(object):
                 if self.logger: self.logger.Print("This item is already in the Trash")
                 return
             # select the item
-            scripting.User.emulate_click(App_ns.summary.widget.GetGridWindow()) #work around for summary.select highlight bug
+            if self.CalendarVisible():
+                scripting.User.emulate_click(App_ns.AllDayEvents.widget)
+            else:
+                scripting.User.emulate_click(App_ns.summary.widget.GetGridWindow()) #work around for summary.select highlight bug
             self.SelectItem()
+            if not self.Check_ItemSelected(report=False):
+                if self.logger: self.logger.Print("Item could not be selected in the calendar")
+                return
+            
             if timeInfo:
                 if self.logger: self.logger.Start("Move the item into the Trash")
             # Processing of the corresponding CPIA event
@@ -1003,6 +1015,38 @@ class UITestItem(object):
         else:
             if self.logger: self.logger.Print("Check_CollectionExistence is not available for this kind of item")
             return False
+
+
+    def Check_ItemSelected(self, expectedResult=True, report=True):
+        """
+        Check if the item is displayed and selected, in the calendar view
+        this means the item must be in the current display range.
+        
+        """
+        if self.isCollection:
+            selected = self.item in App_ns.sidebar.SelectedItems()
+        else:
+            if self.CalendarVisible():
+                selected = self.item in chain(
+                    App_ns.TimedEvents.widget.SelectedItems(),
+                    App_ns.AllDayEvents.widget.SelectedItems()  )
+            else:
+                selected = self.item in App_ns.summary.widget.SelectedItems()
+                
+        if selected:
+            description = "item named %s is selected" % self.item.displayName
+        else:
+            description = "item named %s is not selected" %self.item.displayName
+        if selected == expectedResult:
+            result = True
+            if report:
+                if self.logger: self.logger.ReportPass("(On Selection Checking) - %s" %description)
+        else:
+            result = False
+            if report:
+                if self.logger: self.logger.ReportFailure("(On Selection Checking) - %s" %description)
+        return result                 
+        
         
     def Check_ItemInCollection(self, collectionName, expectedResult=True, report=True):
         """
@@ -1348,12 +1392,15 @@ class UITestView(object):
         if self.logger: self.logger.Report("View")
 
     def GoToDate(self, datestring):
-        # convert to timestamp
-        timestamp = mktime(strptime(datestring, "%Y-%m-%d"))
-        dateToSelect = datetime.fromtimestamp(timestamp).replace(
-                                                   tzinfo=ICUtzinfo.floating) 
+        """
+        Create a GoToDate event.  In the US locale, datestring should
+        be of the form mm/dd/yy.
         
-        App_ns.root.SelectedDateChanged(start=datetime.fromtimestamp(timestamp))
+        """
+        App_ns.root.GoToDate({'DateString' : datestring })
+
+    def GoToToday(self):
+        App_ns.root.GoToToday()
         
     def DoubleClickInCalView(self, x=100, y=100, gotoTestDate=True):
         """
@@ -1373,7 +1420,7 @@ class UITestView(object):
             if gotoTestDate:
                 if gotoTestDate is True:
                     # True sends us to the default test date
-                    gotoTestDate = "2005-12-24" # Dec has some free days
+                    gotoTestDate = "12/24/2005" # Dec has some free days
                 self.GoToDate(gotoTestDate)
 
             self.timedCanvas = App_ns.TimedEvents

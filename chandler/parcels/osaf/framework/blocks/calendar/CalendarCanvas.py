@@ -1625,14 +1625,18 @@ class CalendarControl(CalendarBlock):
         self.widget.onGoToTodayEvent(event)
 
     def onGoToDateEvent(self, event):
-        dateString = Util.promptUser(
-            _(u"Go to date"),
-            _(u"Enter a date in the form %(dateFormat)s") %
-                                     dict(dateFormat=DateTimeUtil.sampleDate))
-        if dateString is None:
-            return
+        newDate = event.arguments.get('DateTime')
+        dateString = event.arguments.get('DateString')
+        if newDate is None and dateString is None:
+            dateString = Util.promptUser(
+                _(u"Go to date"),
+                _(u"Enter a date in the form %(dateFormat)s") %
+                                   dict(dateFormat=DateTimeUtil.sampleDate))
+            if dateString is None:
+                return
 
-        newDate = DateTimeUtil.shortDateFormat.parse(dateString)
+        if newDate is None:
+            newDate = DateTimeUtil.shortDateFormat.parse(dateString)
         self.setRange(newDate)
         self.postDateChanged(self.selectedDate)
         self.synchronizeWidget()
