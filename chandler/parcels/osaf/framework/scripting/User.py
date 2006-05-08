@@ -67,28 +67,37 @@ def emulate_click(block, x=None, y=None, double=False):
         widget =  block.widget
     except AttributeError:
         widget = block
-    # event settings
-    mouseEnter = wx.MouseEvent(wx.wxEVT_ENTER_WINDOW)
-    if double:
-        mouseDown = wx.MouseEvent(wx.wxEVT_LEFT_DCLICK)
-    else:
-        mouseDown = wx.MouseEvent(wx.wxEVT_LEFT_DOWN)
-    mouseUp = wx.MouseEvent(wx.wxEVT_LEFT_UP)
-    mouseLeave = wx.MouseEvent(wx.wxEVT_LEAVE_WINDOW)
-    if x:
-        mouseEnter.m_x = mouseDown.m_x = mouseUp.m_x = x
-    if y:
-        mouseEnter.m_y = mouseDown.m_y = mouseUp.m_y = y
-
-    for event in (mouseEnter, mouseDown, mouseUp, mouseLeave):
-        event.SetEventObject(widget)
-
-    # events processing
-    widget.ProcessEvent(mouseEnter)
-    widget.ProcessEvent(mouseDown)
-    if not double:
-        widget.ProcessEvent(mouseUp)
-    widget.ProcessEvent(mouseLeave)
+        
+    # Checkboxes don't seem to toggle based on manufactured mouse clicks,
+    # (bug 3336) so we fake it.
+    if isinstance(widget, wx.CheckBox):
+        widget.SetValue(not widget.GetValue())
+        clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_CHECKBOX_CLICKED)
+        clickEvent.SetEventObject(widget)
+        widget.ProcessEvent(clickEvent)
+    else: # do it the normal way   
+        # event settings
+        mouseEnter = wx.MouseEvent(wx.wxEVT_ENTER_WINDOW)
+        if double:
+            mouseDown = wx.MouseEvent(wx.wxEVT_LEFT_DCLICK)
+        else:
+            mouseDown = wx.MouseEvent(wx.wxEVT_LEFT_DOWN)
+        mouseUp = wx.MouseEvent(wx.wxEVT_LEFT_UP)
+        mouseLeave = wx.MouseEvent(wx.wxEVT_LEAVE_WINDOW)
+        if x:
+            mouseEnter.m_x = mouseDown.m_x = mouseUp.m_x = x
+        if y:
+            mouseEnter.m_y = mouseDown.m_y = mouseUp.m_y = y
+    
+        for event in (mouseEnter, mouseDown, mouseUp, mouseLeave):
+            event.SetEventObject(widget)
+    
+        # events processing
+        widget.ProcessEvent(mouseEnter)
+        widget.ProcessEvent(mouseDown)
+        if not double:
+            widget.ProcessEvent(mouseUp)
+        widget.ProcessEvent(mouseLeave)
     # Give Yield to the App
     wx.GetApp().Yield()
 

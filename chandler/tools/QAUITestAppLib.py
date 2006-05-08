@@ -94,7 +94,7 @@ class UITestItem(object):
             scripting.User.idle()
             if self.logger: self.logger.Stop()
     
-    def SetAttr(self, **args):
+    def SetAttr(self, msg="Multiple Attribute Setting", **args):
         """
         Set the item attributes in a predefined order (see orderList)
         """
@@ -120,13 +120,13 @@ class UITestItem(object):
             )
         
         self.FocusInDetailView()
-        if self.logger: self.logger.Start("Multiple Attribute Setting")
+        if self.logger: self.logger.Start(msg)
         for param, method in methodOrder:
             if param in args:
                 method(args[param], timeInfo=False)
         if self.logger: self.logger.Stop()
             
-    def SetAttrInOrder(self, argList):
+    def SetAttrInOrder(self, argList, msg="Multiple Attribute Setting In Order"):
         """
         Set the item attributes in the argList order
         """
@@ -151,7 +151,7 @@ class UITestItem(object):
             "recurrenceEnd": self.SetRecurrenceEnd
             }
 
-        if self.logger: self.logger.Start("Multiple Attribute Setting")
+        if self.logger: self.logger.Start(msg)
         for (key, value) in argList:
             methodDict[key](value, timeInfo=False)
         if self.logger: self.logger.Stop()
@@ -354,17 +354,15 @@ class UITestItem(object):
         """
         if self.isEvent:
             self.SelectItem()
-            if timeInfo:
-                if self.logger: self.logger.Start("All-day setting")
-            allDayBlock = App_ns.detail.EditAllDay
-            # Emulate the mouse click in the all-day block
-            #scripting.User.emulate_click(allDayBlock)
-            # work around : (the mouse click has not the good effect)
-            # the bug #3336 appear on linux
-            allDayBlock.widget.SetValue(allDay)
-            if timeInfo:
-                if self.logger: self.logger.Stop()
-            self.allDay = allDay
+            if self.allDay != allDay:
+                if timeInfo:
+                    if self.logger: self.logger.Start("All-day setting")
+                allDayBlock = App_ns.detail.EditAllDay
+                scripting.User.emulate_click(allDayBlock)
+                if timeInfo:
+                    if self.logger: self.logger.Stop()
+                self.allDay = allDay
+            elif self.logger: self.logger.Print("SetAllDay: allDay is already %s" % allDay)
         else:
             if self.logger: self.logger.Print("SetAllDay is not available for this kind of item")
             return
@@ -725,7 +723,35 @@ class UITestItem(object):
             if self.logger: self.logger.Print("Remove is not available for this kind of item")
         confimDialog.askNextTime = True
         return
+
+    def CheckBlockVisibility(self, blockName, shouldBeVisible):
+        """
+        If this block's supposed to be hidden, make sure it is. Otherwise, make
+        sure it's visible.
+        """        
+        # Walk up the block tree until we find a hidden or unrendered block, or
+        # an event boundary. If we get to the event boundary first, consider it
+        # visible; otherwise, not.
+        block = getattr(App_ns, blockName)
+        isVisible = True
+        while block is not None and not block.eventBoundary:
+            widget = getattr(block, 'widget', None)
+            if widget is None or not widget.IsShown():
+                isVisible = False
+                break
+            block = block.parentBlock
         
+        if self.logger: 
+            # Did we get what we wanted?
+            if isVisible != shouldBeVisible:
+                self.logger.ReportFailure("(On %s Visibility)  || detail view "
+                                          "= %s ; expected value = %s" % 
+                                          (blockName, isVisible, 
+                                           shouldBeVisible))
+            else:
+                self.logger.ReportPass("(On %s Visibility)" % blockName)
+        return isVisible
+
     def CheckEditableBlock(self, blockName, description, value):
         """
         Check the value contained in the given editable block
@@ -739,7 +765,10 @@ class UITestItem(object):
         #find the block
         block = getattr(App_ns, blockName)
         #get the editable block value
-        blockValue = block.widget.GetValue()
+        valueMethod = getattr(block.widget, 'GetValue', None)
+        if valueMethod is None:
+            valueMethod = getattr(block.widget, 'GetStringSelection')
+        blockValue = valueMethod()
         if not blockValue == value :
             if self.logger: self.logger.ReportFailure("(On %s Checking)  || detail view value = %s ; expected value = %s" %(description, blockValue, value))
         else:
@@ -794,7 +823,26 @@ class UITestItem(object):
             if self.logger: self.logger.ReportFailure("(On %s Checking) || detail view value = %s ; expected value = %s" %(description, state, value))
         else:
             if self.logger: self.logger.ReportPass("(On %s Checking)" %description)
-        
+    
+    def CheckDisplayedValues(self, **dict):
+        """
+        Check that these blocks have the right values and visibility and values
+        Argument names are block names; values are tuples containing a
+          boolean visibility value and optionally a value to check. If the 
+          value isn't present in the tuple, only the visibility will be tested.
+        Example: item.CheckDisplayedValues(HeadlineBlock=(True, "My Title"),
+                                           AllDayArea=(False,))
+        """
+        if self.logger: self.logger.SetChecked(True)
+        self.SelectItem()
+        for blockName, visValueTuple in dict.items():
+            self.CheckBlockVisibility(blockName, visValueTuple[0])
+            if len(visValueTuple) > 1:
+                self.CheckEditableBlock(blockName, blockName, visValueTuple[1])
+
+        #report the checkings
+        if self.logger: self.logger.Report("Displayed Values")
+
     def Check_DetailView(self, dict):
         """
         Check expected values by comparation to the data diplayed in the detail view
