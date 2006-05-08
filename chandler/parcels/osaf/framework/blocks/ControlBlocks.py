@@ -76,20 +76,24 @@ class Button(RectangularChild):
             #
             assert len(self.icon) > 0
 
-            def mkstate(statename):
-                state = MultiStateButton.BitmapInfo()
-                state.normal   = "%sNormal" % self.icon
-                state.rollover = "%sRollover" % self.icon
-                state.disabled = "%sDisabled" % self.icon
-                state.selected = "%sPressed" % self.icon
-                state.stateName = statename
-                return state
-
+            assert len(self.icon) > 0
+            normal = MultiStateButton.BitmapInfo()
+            normal.normal   = "%sNormal" % self.icon
+            normal.rollover = "%sRollover" % self.icon
+            normal.disabled = "%sDisabled" % self.icon
+            normal.selected = "%sPressed" % self.icon
+            normal.stateName = "normal"
+            stamped = MultiStateButton.BitmapInfo()
+            stamped.normal   = "%sStamped" % self.icon
+            stamped.rollover = "%sRollover" % self.icon
+            stamped.disabled = "%sDisabled" % self.icon
+            stamped.selected = "%sPressed" % self.icon
+            stamped.stateName = "stamped"
             button = wxChandlerMultiStateButton (parentWidget, 
                                 id, 
                                 wx.DefaultPosition,
                                 (self.minimumSize.width, self.minimumSize.height),
-                                multibitmaps=(mkstate("normal"), mkstate("stamped")))
+                                multibitmaps=(normal, stamped))
         elif __debug__:
             assert False, "unknown buttonKind"
 
