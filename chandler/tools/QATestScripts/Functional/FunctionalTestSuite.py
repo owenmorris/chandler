@@ -73,8 +73,6 @@ exclusions = {#tests to exclude on specific platfoms only
         "TestAllDayEvent.py", #test not functioning bug#5110
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
         "TestEditModeOnEnter.py", #Chandler bug 5744
-        "TestStamping.py", #Need to rewrite Markup Bar functional tests to not use Toolbar/ToolbarItem calls
-        "TestNewCollNoteStampMulti.py" #More MarkupBar stamping problems
         )
 }
 

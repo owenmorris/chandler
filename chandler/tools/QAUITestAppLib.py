@@ -493,7 +493,8 @@ class UITestItem(object):
                 if timeInfo :
                     if self.logger: self.logger.Start("Change the %s stamp" %type)
                 # markup bar tests disabled for now -- Reid
-#                App_ns.markupbar.press(name=type_states[type]['button'])
+                buttonBlock = getattr(App_ns, type_states[type]['button'])
+                scripting.User.emulate_click(buttonBlock, 10, 10)
                 scripting.User.idle()
                 if timeInfo:
                     if self.logger: self.logger.Stop()
@@ -816,9 +817,8 @@ class UITestItem(object):
         @param value : expected value to compare
         """
         #get the button state
-        # test disabled for now -- Reid
-#        state = App_ns.markupbar.pressed(name=buttonName)
-        state = value
+        buttonBlock = getattr(App_ns, buttonName)
+        state = buttonBlock.isStamped()
         if not state == value :
             if self.logger: self.logger.ReportFailure("(On %s Checking) || detail view value = %s ; expected value = %s" %(description, state, value))
         else:

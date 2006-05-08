@@ -37,7 +37,6 @@ from PyICU import ICUError, ICUtzinfo
 from datetime import datetime, time, timedelta
 from i18n import OSAFMessageFactory as _
 from osaf import messages
-from util import MultiStateButton
 
 """
 Detail.py
