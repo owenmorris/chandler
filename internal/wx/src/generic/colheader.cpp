@@ -24,6 +24,8 @@
 	#endif
 
 	#include <commctrl.h>
+	#include <uxtheme.h>
+	#include <tmschema.h>
 
 #elif defined(__WXMAC__)
 	#include <TextEdit.h>
@@ -270,6 +272,8 @@ void wxChandlerGridLabelWindow::GetLabelValue( bool isVertical, int index, wxStr
 void wxChandlerGridLabelWindow::SetLabelValue( bool isVertical, int index, const wxString& value )
 {
 #if defined(__GRID_LABELS_ARE_COLHEADERS__)
+// WXUNUSED( isVertical )
+
 	SetLabelText( index, value );
 #else
 	if (isVertical)
@@ -966,11 +970,11 @@ wxSize		targetSize, minSize;
 
 		hr = 0;
 		bResultV = false;
-		hTheme = OpenThemeData( hwndButton, WC_HEADER );
+		hTheme = OpenThemeData( NULL, WC_HEADER );
 		if (hTheme != NULL)
 		{
 			hr = GetThemeMetric( hTheme, NULL, HP_HEADERITEM, HIS_NORMAL, TMT_HEIGHT, &value );
-			CloseTheme( hTheme );
+			CloseThemeData( hTheme );
 
 			if (hr == 0)
 				targetSize.y = value;
