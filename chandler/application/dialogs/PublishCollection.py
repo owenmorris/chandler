@@ -476,8 +476,10 @@ class PublishCollectionDialog(wx.Dialog):
             else:
                 share = sharing.getShare(self.collection)
             urls = sharing.getUrls(share)
-            if len(urls) == 1 or self.publishType == 'freebusy':
+            if len(urls) == 1:
                 urlString = urls[0]
+            elif self.publishType == 'freebusy':
+                urlString = urls[1]
             else:
                 urlString = "Read-write: %s\nRead-only: %s\n" % (urls[0],
                                                                  urls[1])
