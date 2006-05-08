@@ -927,7 +927,7 @@ long		resultV;
 
 	resultV = 0;
 
-	maxSize.x = 
+	maxSize.x =
 	maxSize.y = 1 << 10;
 	resultSize = CalculateDefaultItemSize( maxSize );
 	resultV = resultSize.y;
@@ -976,11 +976,15 @@ wxSize		targetSize, minSize;
 			hr = GetThemeMetric( hTheme, NULL, HP_HEADERITEM, HIS_NORMAL, TMT_HEIGHT, &value );
 			CloseThemeData( hTheme );
 
-			if (hr == 0)
+			if (hr)
 				targetSize.y = value;
 			else
 				targetSize.y = (-1);
 		}
+
+		// FIXME: hack to fix bug in GetThemeMetric call above
+		if (targetSize.y <= 0)
+			targetSize.y = 20;
 	}
 
 #elif defined(__WXMAC__)
@@ -2714,6 +2718,8 @@ void wxColumnHeader::RefreshItem(
 		return;
 
 #if defined(__WXMSW__)
+//	WXUNUSED( bForceRedraw )
+
 	if (! m_BUseGenericRenderer)
 	{
 		// NB: need to update native item
