@@ -13,6 +13,7 @@ from application import schema
 from osaf.framework.blocks.detail import Detail
 from osaf.framework.blocks import ControlBlocks
 from osaf.framework.attributeEditors import AttributeEditors
+from application.dialogs import Util
 
 def installBlocks(parcel, oldVersion=None):
     from osaf.pim import structs
