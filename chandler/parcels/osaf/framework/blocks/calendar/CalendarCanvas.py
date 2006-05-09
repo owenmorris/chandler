@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 
 dateFormatSymbols = DateFormatSymbols()
 
-ENABLE_DEVICE_ORIGIN = True
+ENABLE_DEVICE_ORIGIN = wx.Platform == '__WXGTK__'
 
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
 
