@@ -71,7 +71,6 @@ exclusions = {#tests to exclude on specific platfoms only
     ),
     
     'all':( #tests to exclude on all platforms       
-        "TestAllDayEvent.py", #test not functioning bug#5110
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
         "TestEditModeOnEnter.py", #Chandler bug 5744
         "TestSharing.py", # waiting for cosmo 0.3 to be released/deployed
