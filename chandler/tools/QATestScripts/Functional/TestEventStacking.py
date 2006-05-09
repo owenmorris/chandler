@@ -34,9 +34,6 @@ try:
         #action
         event.SetAttr(displayName=eventName, startDate=today, startTime="12:00 PM", body="Stacked event test")
         
-        #verification
-        event.Check_DetailView({"displayName":eventName,"startDate":today,"endDate":today,"startTime":"12:00 PM","body":"Stacked event test"})
-
 finally:
     #cleaning
     logger.Close()
