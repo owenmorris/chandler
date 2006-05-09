@@ -3,6 +3,8 @@ import osaf.sharing.ICalendar as ICalendar
 import tools.QAUITestAppLib as QAUITestAppLib
 import os, sys
 import osaf.pim as pim
+from datetime import date
+import osaf.framework.scripting as scripting
 
 App_ns = app_ns()
 
@@ -29,9 +31,9 @@ try:
         logger.ReportPass("Importing calendar")
     
     def VerifyEventCreation(title):
-   	global logger
-	global App_ns
-	global pim
+        global logger
+        global App_ns
+        global pim
         testEvent = App_ns.item_named(pim.CalendarEvent, title)
         if testEvent is not None:
             logger.ReportPass("Testing event creation: '%s'" % title)
@@ -43,6 +45,24 @@ try:
     VerifyEventCreation("Monthly Meeting")
     VerifyEventCreation("Multi-All Day")
     VerifyEventCreation("All-day never end")
+    
+    # bug 5593, set an end date for the "Weekly Never End" event
+    sidebar = QAUITestAppLib.App_ns.sidebar
+    scripting.User.emulate_sidebarClick(sidebar, 'TestRecurrence')    
+    
+    view = QAUITestAppLib.UITestView(logger)
+    view.GoToDate('05/01/2006')
+    
+    event = QAUITestAppLib.GetOccurrence('Weekly Never End', date(2006, 5, 1))    
+    QAUITestAppLib.UITestItem(event, logger).SetAttr(recurrenceEnd="05/01/2006")
+    
+    # event has been deleted by changing recurrence, get a new one
+    event = QAUITestAppLib.GetOccurrence('Weekly Never End', date(2006, 5, 1))    
+    testItem = QAUITestAppLib.UITestItem(event, logger)
+    testItem.SelectItem(catchException=True)
+    
+    # Make sure this occurrence exists and was able to be selected
+    testItem.Check_ItemSelected()
     
     logger.SetChecked(True)
     logger.Report()

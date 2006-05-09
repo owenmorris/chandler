@@ -1,5 +1,5 @@
 from QALogger import *
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from time import mktime, strptime
 from PyICU import ICUtzinfo
 from osaf import pim
@@ -51,6 +51,15 @@ def GetCollectionRow(cellName):
             return i
     return False
 
+# this probably shouldn't live here, but it's helpful for finding occurrences
+# of recurring events.  If you can, use event.getNextOccurrence instead.
+def GetOccurrence(name, date):
+    master = App_ns.item_named(pim.CalendarEvent, name).getMaster()
+    start = datetime.combine(date, time(0, tzinfo=ICUtzinfo.floating))
+    end   = start + timedelta(1)
+    occurrences = list(master.getOccurrencesBetween(start,end))
+    if len(occurrences) > 0:
+        return occurrences[0]
 
 # it would be nice if this were just a list, and we could map type ->
 # 'New' + type.. but at the moment there is no 'NewEvent' - so 'Event'
@@ -77,6 +86,7 @@ class UITestItem(object):
                 self.view = App_ns.itsView
                 self.logger = logger
                 self.item = type
+                self.recurring = hasattr(type, 'recurrenceID')
             else:
                 return
         else:
