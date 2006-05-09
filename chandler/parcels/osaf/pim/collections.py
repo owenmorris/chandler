@@ -673,7 +673,9 @@ class IndexedSelectionCollection(ContentCollection):
         elif toggleDescending:
             itemMax = len(self) - 1
             newRanges = []
-            for start,end in self.getSelectionRanges():
+            # build the ranges in reverse, so the resulting ranges are
+            # in order
+            for start,end in reversed(self.getSelectionRanges()):
                 (newStart, newEnd) = (itemMax - end, itemMax - start)
                 newRanges.append((newStart, newEnd))
 
