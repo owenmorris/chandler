@@ -61,12 +61,23 @@ def emulate_tab(shiftFlag=False):
         flags = wx.NavigationKeyEvent.IsForward
     wx.Window_FindFocus().Navigate(flags)
 
-def emulate_click(block, x=None, y=None, double=False):
-    """ Simulates left mouse click on the given block or widget """
+def emulate_click(block, x=None, y=None, double=False, **kwds):
+    """
+    Simulates left mouse click on the given block or widget.
+    
+    You can pass in special keyword parameters like control=True to
+    emulate that certain buttons are down. Supported values are
+    control, shift, meta, and alt
+    """
     try:
         widget =  block.widget
     except AttributeError:
         widget = block
+    # grids have an inner window that recieves the events. Note that
+    # this does NOT allow you to click on the column header. For that
+    # use widget.GetGridColLabelWindow()
+    if isinstance(widget, wx.grid.Grid):
+        widget = widget.GetGridWindow()
         
     # Checkboxes don't seem to toggle based on manufactured mouse clicks,
     # (bug 3336) so we fake it.
@@ -91,6 +102,9 @@ def emulate_click(block, x=None, y=None, double=False):
     
         for event in (mouseEnter, mouseDown, mouseUp, mouseLeave):
             event.SetEventObject(widget)
+            for keyDown in 'control', 'alt', 'shift', 'meta':
+                if kwds.get(keyDown):
+                    setattr(event, 'm_' + keyDown + 'Down', kwds.get(keyDown))
     
         # events processing
         widget.ProcessEvent(mouseEnter)
