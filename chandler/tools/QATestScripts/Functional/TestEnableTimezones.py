@@ -6,6 +6,7 @@ logger = QAUITestAppLib.QALogger(fileName, "TestEnableTimezones")
 
 def testEnabled(event, calendarBlock, logger):
     # Test that the detail view does display the timezone
+    global floatingEvent
     floatingEvent.CheckDisplayedValues(EditTimeZone=(True, 'Floating'))
 
     # Test that the calendar view does display the timezone widget
@@ -25,8 +26,7 @@ def testDisabled(event, calendarBlock, logger):
         logger.ReportPass("Timezone widget correctly not shown when timezones not enabled")
 
 try:
-    app_ns = app_ns()
-    calendarBlock = getattr(app_ns, "MainCalendarControl")
+    calendarBlock = getattr(app_ns(), "MainCalendarControl")
 
     # Before timezones are enabled, create an event
     floatingEvent = QAUITestAppLib.UITestItem("Event", logger)
@@ -34,12 +34,12 @@ try:
     testDisabled(floatingEvent, calendarBlock, logger)
         
     # Enable timezones
-    app_ns.root.EnableTimezones()
+    app_ns().root.EnableTimezones()
 
     testEnabled(floatingEvent, calendarBlock, logger)
 
     # Disable timezones again
-    app_ns.root.EnableTimezones()
+    app_ns().root.EnableTimezones()
 
     testDisabled(floatingEvent, calendarBlock, logger)
 
