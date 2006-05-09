@@ -810,13 +810,18 @@ class Tree(RectangularChild):
 
     columns = schema.Sequence(Column)
 
+    # We currently use Tree to display the repository in the
+    # RepositoryViewer. Since Items in the repository may not
+    # have Kinds and we want to store them in the selection,
+    # we can't specify a kind for the selection. To be consistent
+    # we'll treat rootPath the same way.
     elementDelegate = schema.One(schema.Text, initialValue = '')
-    selection = schema.One(schema.Item, initialValue = None)
+    selection = schema.One(initialValue = None)
     hideRoot = schema.One(schema.Boolean, initialValue = True)
     noLines = schema.One(schema.Boolean, initialValue = True)
     useButtons = schema.One(schema.Boolean, initialValue = True)
     openedContainers = schema.Mapping(schema.Boolean, initialValue = {})
-    rootPath = schema.One(schema.Item, initialValue = None)
+    rootPath = schema.One(initialValue = None)
 
     schema.addClouds(
         copying = schema.Cloud(byCloud=[selection, columns])
@@ -862,7 +867,10 @@ class wxItemDetail(wx.html.HtmlWindow):
 
 class ItemDetail(RectangularChild):
 
-    selection = schema.One(schema.Item, initialValue = None)
+    # We currently use ItemDetail to display the repository in the
+    # RepositoryViewer. Since Items in the repository may not
+    # have Kinds and we want to store them in the selection,
+    selection = schema.One(initialValue = None)
     schema.addClouds(
         copying = schema.Cloud(byRef=[selection])
     )
