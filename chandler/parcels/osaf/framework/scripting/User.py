@@ -81,7 +81,11 @@ def emulate_click(block, x=None, y=None, double=False, **kwds):
         
     # Checkboxes don't seem to toggle based on manufactured mouse clicks,
     # (bug 3336) so we fake it.
-    if isinstance(widget, wx.CheckBox):
+    if isinstance(widget, wx.Button):
+        clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED)
+        clickEvent.SetEventObject(widget)
+        widget.ProcessEvent(clickEvent)
+    elif isinstance(widget, wx.CheckBox):
         widget.SetValue(not widget.GetValue())
         clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_CHECKBOX_CLICKED)
         clickEvent.SetEventObject(widget)

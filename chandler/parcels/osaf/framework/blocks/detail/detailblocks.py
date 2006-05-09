@@ -398,6 +398,7 @@ def makeNoteSubtree(parcel, oldVersion):
                 #makeLabel(parcel, _(u'appears in'), borderTop=2),
                 #makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'AppearsIn',
+                           baseClass=AppearsInAEBlock,
                            viewAttribute=u'appearsIn',
                            border=RectType(0,2,2,2),
                            presentationStyle={'format': 'appearsIn'})],

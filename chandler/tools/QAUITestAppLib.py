@@ -834,7 +834,7 @@ class UITestItem(object):
         else:
             if self.logger: self.logger.ReportPass("(On %s Checking)" %description)
     
-    def CheckDisplayedValues(self, **dict):
+    def CheckDisplayedValues(self, msg="Displayed Values", **dict):
         """
         Check that these blocks have the right values and visibility and values
         Argument names are block names; values are tuples containing a
@@ -851,7 +851,7 @@ class UITestItem(object):
                 self.CheckEditableBlock(blockName, blockName, visValueTuple[1])
 
         #report the checkings
-        if self.logger: self.logger.Report("Displayed Values")
+        if self.logger: self.logger.Report(msg)
 
     def Check_DetailView(self, dict):
         """
