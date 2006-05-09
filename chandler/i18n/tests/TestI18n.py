@@ -12,16 +12,16 @@ class I18nTestCase(unittest.TestCase):
         import i18n
         i18n.setLocaleSet(['en'])
 
-        test = _(u"test is good %s %s") % ("one", "two")
-        self.assertEqual(test, u"test is good one two")
+        test = _(u"\u00FCtest is good %s %s") % ("one", "two")
+        self.assertEqual(test, u"\u00FCtest is good one two")
 
     def testMessageFactory(self):
         from i18n import MessageFactory
         import i18n
         _ = MessageFactory("testDomain")
 
-        test = _(u"test is good %s %s") % ("one", "two")
-        self.assertEqual(test, u"test is good one two")
+        test = _(u"\u00FCtest is good %s %s") % ("one", "two")
+        self.assertEqual(test, u"\u00FCtest is good one two")
 
 if __name__ == "__main__":
     unittest.main()

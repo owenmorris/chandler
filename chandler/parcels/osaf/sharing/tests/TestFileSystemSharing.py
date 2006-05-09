@@ -29,9 +29,10 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
 
         sandbox = view.findPath("//sandbox")
         coll = pim.ListCollection("testCollection", sandbox,
-            displayName="Test Collection")
+            displayName=u"\u00FCTest Collection")
 
         names = [
+            (u"\u00FCnicode Test", u"\u00FCnicode Test", u"unicodetest@example.com"),
             (u"Morgen", u"Sagen", u"morgen@example.com"),
             (u"Ted", u"Leung", u"ted@example.com"),
             (u"Andi", u"Vajda", u"andi@example.com"),
@@ -76,7 +77,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         sandbox0 = view0.findPath("//sandbox")
         coll0 = sandbox0.findPath("testCollection")
         conduit = sharing.FileSystemConduit("conduit", itsView=view0,
-            sharePath=".", shareName="exportedCollection")
+            sharePath=".", shareName=u"\u00FCexportedCollection")
         format = sharing.CloudXMLFormat("format", itsView=view0)
         self.share0 = sharing.Share("share", itsView=view0,
             contents=coll0, conduit=conduit, format=format)
@@ -86,7 +87,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
 
         view1 = self.views[1]
         conduit = sharing.FileSystemConduit("conduit", itsView=view1,
-            sharePath=".", shareName="exportedCollection")
+            sharePath=".", shareName=u"\u00FCexportedCollection")
         format = sharing.CloudXMLFormat("format", itsView=view1)
         self.share1 = sharing.Share("share", itsView=view1,
             conduit=conduit, format=format)
@@ -144,7 +145,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
                 break
 
         item0 = view0.findUUID(uuid)
-        item0.displayName = u"meeting rescheduled"
+        item0.displayName = u"\u00FCmeeting rescheduled"
         oldStart = item0.startTime
 
         tzinfo = ICUtzinfo.default
@@ -159,9 +160,9 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         sharing.sync(coll0)
         time.sleep(1)
 
-        self.assertEqual(item0.displayName, u"meeting rescheduled",
+        self.assertEqual(item0.displayName, u"\u00FCmeeting rescheduled",
          u"displayName is %s" % (item0.displayName))
-        self.assertEqual(item1.displayName, u"meeting rescheduled",
+        self.assertEqual(item1.displayName, u"\u00FCmeeting rescheduled",
          u"displayName is %s" % (item1.displayName))
 
         self.assertEqual(item0.startTime, newStart,
@@ -179,7 +180,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         coll1 = view1.findUUID(coll0.itsUUID)
 
         for item in coll0:
-            if item.displayName == u"meeting rescheduled":
+            if item.displayName == u"\u00FCmeeting rescheduled":
                 uuid = item.itsUUID
                 break
 

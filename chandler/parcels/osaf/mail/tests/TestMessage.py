@@ -117,7 +117,6 @@ This is the body"""
             self.fail(str)
 
     def __compareDateTimes(self, dOne, dTwo):
-        ### XXX: Figure out what datetime object is in Repository
         self.assertNotEqual(dOne, None)
         self.assertNotEqual(dTwo, None)
 

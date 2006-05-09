@@ -22,16 +22,16 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("osaf.pim")
 
         def _verifyNote(note):
-            self.assertEqual(note.displayName, u"sample note")
+            self.assertEqual(note.displayName, u"\u00FCsample note")
             self.assertEqual(note.getBasedAttributes('about'), ('displayName',))
 
             self.assertEqual(note.body, 
-                             "more elaborate sample note body")
+                             u"\u00FCmore elaborate sample note body")
 
         # Test the globals
         notesPath = Path('//parcels/osaf/pim')
         view = self.rep.view
-        
+
         self.assertEqual(pim.Note.getKind(view),
                          view.find(Path(notesPath, 'Note')))
 
@@ -42,13 +42,13 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(noteItem.itsKind, pim.Note.getKind(view))
 
         # Literal properties
-        noteItem.displayName = u"sample note"
+        noteItem.displayName = u"\u00FCsample note"
 
         # Lob property
         lobType = noteItem.getAttributeAspect('body', 'type')
 
         # when data is unicode, encoding defaults to utf-8
-        noteItem.body = lobType.makeValue(u"more elaborate sample note body")
+        noteItem.body = lobType.makeValue(u"\u00FCmore elaborate sample note body")
 
         _verifyNote(noteItem)
 

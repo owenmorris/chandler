@@ -67,24 +67,24 @@ class ContentItemTest(ContentModelTestCase):
                          '//userdata/genericGroup')
 
         # Set and test simple attributes
-        genericContentItem.displayName = u"Test Content Item"
+        genericContentItem.displayName = u"\u00FCTest Content Item"
         genericContentItem.context = "work"
-        genericContentItem.body = "Notes appear in the body"
+        genericContentItem.body = u"\u00FCNotes appear in the body"
 
-        self.assertEqual(genericContentItem.displayName, u"Test Content Item")
+        self.assertEqual(genericContentItem.displayName, u"\u00FCTest Content Item")
         self.assertEqual(genericContentItem.context, "work")
-        self.assertEqual(genericContentItem.body, "Notes appear in the body")
-        self.assertEqual(genericContentItem.getItemDisplayName(), u"Test Content Item")
+        self.assertEqual(genericContentItem.body, u"\u00FCNotes appear in the body")
+        self.assertEqual(genericContentItem.getItemDisplayName(), u"\u00FCTest Content Item")
         
         # Test Calculated basedOn
         self.assertEqual(genericContentItem.getBasedAttributes('body'), ('body',))
                          
-        genericProject.name = "Test Project"
-        genericGroup.name = "Test Group"
+        genericProject.name = u"\u00FCTest Project"
+        genericGroup.name = u"\u00FCTest Group"
 
 
-        self.assertEqual(genericProject.name, "Test Project")
-        self.assertEqual(genericGroup.name, "Test Group")
+        self.assertEqual(genericProject.name, u"\u00FCTest Project")
+        self.assertEqual(genericGroup.name, u"\u00FCTest Group")
 
 
         # Groups and projects aren't currently linked to Content Items

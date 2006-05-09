@@ -22,10 +22,10 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
 
         self.loadParcel("osaf.pim.contacts")
         def _verifyContactName(name):
-            self.assertEqual(name.firstName, u'Sylvia')
-            self.assertEqual(name.getAttributeValue('firstName'),u'Sylvia')
-            self.assertEqual(name.lastName, u'Plath')
-            self.assertEqual(name.getAttributeValue('lastName'), u'Plath')
+            self.assertEqual(name.firstName, u'\u00FCSylvia')
+            self.assertEqual(name.getAttributeValue('firstName'),u'\u00FCSylvia')
+            self.assertEqual(name.lastName, u'\u00FCPlath')
+            self.assertEqual(name.getAttributeValue('lastName'), u'\u00FCPlath')
 
         # Test the globals
         contactsPath = Path('//parcels/osaf/pim/contacts')
@@ -45,8 +45,8 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(contactNameItem.itsKind, ContactName.getKind(view))
 
         # Literal properties
-        contactNameItem.firstName = u"Sylvia"
-        contactNameItem.lastName = u"Plath"
+        contactNameItem.firstName = u"\u00FCSylvia"
+        contactNameItem.lastName = u"\u00FCPlath"
 
         _verifyContactName(contactNameItem)
 

@@ -17,7 +17,7 @@ def printStats(view, stats):
         for opStats in stats:
             share = view.findUUID(opStats['share'])
             print "'%s' %-25s Add: %3d, Mod: %3d, Rm: %3d" % \
-                (opStats['op'], share.conduit.shareName,
+                (opStats['op'], share.conduit.shareName.encode('utf8'),
                  len(opStats['added']),
                  len(opStats['modified']),
                  len(opStats['removed'])
@@ -51,9 +51,10 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
         sandbox = view.findPath("//sandbox")
         coll = pim.ListCollection("testCollection", sandbox,
-            displayName="Test Collection")
+            displayName=u"\u00FCTest Collection")
 
         names = [
+            (u"\u00FCnicode Test", u"\u00FCnicode Test", u"unicodetest@example.com"),
             (u"Morgen", u"Sagen", u"morgen@example.com"),
             (u"Ted", u"Leung", u"ted@example.com"),
             (u"Andi", u"Vajda", u"andi@example.com"),
@@ -76,21 +77,22 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
             u"dinner",
             u"meeting",
             u"movie",
+            u'\u8fd1\u85e4\u6df3\u4e5f\u306e\u65b0\u30cd\u30c3\u30c8\u30b3\u30df\u30e5\u30cb\u30c6\u30a3\u8ad6',
         ]
 
         self.uuids = {}
 
         tzinfo = ICUtzinfo.getDefault()
         lob = view.findPath("//Schema/Core/Lob")
-        for i in xrange(5):
+        for i in xrange(6):
             c = pim.CalendarEvent(itsParent=sandbox)
-            c.displayName = events[i % 5]
+            c.displayName = events[i % 6]
             c.organizer = contacts[0]
             c.participants = [contacts[1], contacts[2]]
             c.startTime=datetime.datetime(2005, 10, 31, 12, 0, 0, 0, tzinfo)
             c.duration=datetime.timedelta(minutes=60)
             c.anyTime=False
-            c.body = "test"
+            c.body = u"\u00FCnicode test"
             self.uuids[c.itsUUID] = c.displayName
             coll.add(c)
 
@@ -103,14 +105,14 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         self.share0 = sharing.Share(itsView=view0,
             contents=coll0,
             conduit=sharing.InMemoryConduit(itsView=view0,
-                                            shareName="viewmerging"),
+                                            shareName=u"\u00FCviewmerging"),
             format=sharing.CalDAVFormat(itsView=view0)
         )
 
         subShare = sharing.Share(itsView=view0,
             contents=coll0,
             conduit=sharing.InMemoryConduit(itsView=view0,
-                                            shareName="viewmerging/.chandler"),
+                                            shareName=u"\u00FCviewmerging/.chandler"),
             format=sharing.CloudXMLFormat(itsView=view0)
         )
         self.share0.follows = subShare
@@ -127,13 +129,13 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
         self.share1 = sharing.Share(itsView=view1,
             conduit=sharing.InMemoryConduit(itsView=view1,
-                                            shareName="viewmerging"),
+                                            shareName=u"\u00FCviewmerging"),
             format=sharing.CalDAVFormat(itsView=view1)
         )
 
         subShare = sharing.Share(itsView=view1,
             conduit=sharing.InMemoryConduit(itsView=view1,
-                                            shareName="viewmerging/.chandler"),
+                                            shareName=u"\u00FCviewmerging/.chandler"),
             format=sharing.CloudXMLFormat(itsView=view1)
         )
         self.share1.follows = subShare
@@ -148,13 +150,14 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         view0 = self.views[0]
         sandbox0 = view0.findPath("//sandbox")
         coll0 = sandbox0.findPath("testCollection")
+
         stats = self.share0.sync()
         printStats(view0, stats)
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0},
-             {'added' : 6, 'modified' : 0, 'removed' : 0},
-             {'added' : 5, 'modified' : 0, 'removed' : 0})),
+             {'added' : 7, 'modified' : 0, 'removed' : 0},
+             {'added' : 6, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
 
 
@@ -162,8 +165,8 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         stats = self.share1.sync()
         printStats(self.share1.itsView, stats)
         self.assert_(checkStats(stats,
-            ({'added' : 6, 'modified' : 0, 'removed' : 0},
-             {'added' : 5, 'modified' : 0, 'removed' : 0},
+            ({'added' : 7, 'modified' : 0, 'removed' : 0},
+             {'added' : 6, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
@@ -210,9 +213,8 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
 
         # Make non-overlapping changes to the item
-
         item0 = view0.findUUID(uuid)
-        item0.displayName = u"meeting rescheduled"
+        item0.displayName = u"\u00FCmeeting rescheduled"
         oldStart = item0.startTime
 
         tzinfo = ICUtzinfo.getDefault()
@@ -245,9 +247,9 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
 
-        self.assertEqual(item0.displayName, u"meeting rescheduled",
+        self.assertEqual(item0.displayName, u"\u00FCmeeting rescheduled",
          u"displayName is %s" % (item0.displayName))
-        self.assertEqual(item1.displayName, u"meeting rescheduled",
+        self.assertEqual(item1.displayName, u"\u00FCmeeting rescheduled",
          u"displayName is %s" % (item1.displayName))
 
         self.assertEqual(item0.startTime, newStart,
@@ -295,17 +297,8 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(item1.startTime, newStart0,
          u"startTime is %s" % (item1.startTime))
 
-
-
-        # Make an overlapping change on a Lob attribute
-
-        # (Not sure if I need view-specific lob items for makeValue( ), but
-        # just to be safe...)
-        lob0 = view0.findPath("//Schema/Core/Lob")
-        lob1 = view1.findPath("//Schema/Core/Lob")
-
-        item0.body = "view0 change"
-        item1.body = "view1 change"
+        item0.body = u"\u00FCview0 change"
+        item1.body = u"\u00FCview1 change"
 
         stats = sharing.sync(coll0)
         printStats(view0, stats)
@@ -333,9 +326,9 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
 
         # Since we sync'd coll0 first, its change wins out over coll1
-        self.assertEqual(item0.body, "view0 change",
+        self.assertEqual(item0.body, u"\u00FCview0 change",
          u"item0 body is %s" % item0.body)
-        self.assertEqual(item1.body, "view0 change",
+        self.assertEqual(item1.body, u"\u00FCview0 change",
          u"item1 body is %s" % item1.body)
 
 
@@ -350,7 +343,7 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         coll1 = view1.findUUID(coll0.itsUUID)
 
         for item in coll0:
-            if item.displayName == u"meeting rescheduled":
+            if item.displayName == u"\u00FCmeeting rescheduled":
                 uuid = item.itsUUID
                 break
 

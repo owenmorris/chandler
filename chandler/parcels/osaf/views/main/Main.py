@@ -767,8 +767,8 @@ class MainView(View):
 
     def onSearchWindowEvent(self, event):
         query = application.dialogs.Util.promptUser(
-            "Search",
-            "Enter your PyLucene query:")
+            _(u"Search"),
+            _(u"Enter your PyLucene query:"))
         if query:
             view = self.itsView
             view.commit() # make sure all changes are searchable

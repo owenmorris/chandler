@@ -28,14 +28,14 @@ class LocationsTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(Calendar.Location.getKind(view),
                          view.find(Path(locationsPath, 'Location')))
 
-        locationNames = ["Alderon", "Atlantis", "Arcadia"]
+        locationNames = [u"\u00FCAlderon", u"\u00FCAtlantis", u"\u00FCArcadia"]
 
         # Construct sample items
         for loc in locationNames:
             # use the factory to create or lookup an item
             aRoom = Calendar.Location.getLocation (view, loc)
             # test that convert to string yeilds the name of the location
-            self.assertEqual (loc, str (aRoom))
+            self.assertEqual (loc, unicode (aRoom))
 
         # call the factory on the last name again, to ensure reuse
         sameLocation = Calendar.Location.getLocation (view, locationNames [-1])
@@ -45,7 +45,7 @@ class LocationsTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(aRoom.itsKind, Calendar.Location.getKind(view))
 
         # Literal properties
-        aRoom.displayName = u"A Nice Place" # change the Location name
+        aRoom.displayName = u"\u00FCA Nice Place" # change the Location name
         # make sure we can get the name, and find it by that name
         sameLocation = Calendar.Location.getLocation (view, aRoom.displayName)
         self.assert_ (aRoom is sameLocation, "Location factory failed to return an identical location!")

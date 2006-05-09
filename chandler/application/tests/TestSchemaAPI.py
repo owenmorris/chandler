@@ -96,8 +96,8 @@ class SchemaTests(SchemaTestCase):
 
     def testAnnotateKind(self):
         kind_kind = schema.itemFor(schema.Kind, self.rv)
-        CoreAnnotation(kind_kind).extraInfo = u"Foo"
-        self.assertEqual(CoreAnnotation(kind_kind).extraInfo, u"Foo")
+        CoreAnnotation(kind_kind).extraInfo = u"\u00FCFoo"
+        self.assertEqual(CoreAnnotation(kind_kind).extraInfo, u"\u00FCFoo")
         parcel = schema.parcel_for_module(__name__, self.rv)
         CoreAnnotation(kind_kind).otherItem = parcel
         self.assertEqual(

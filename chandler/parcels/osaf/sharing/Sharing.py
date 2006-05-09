@@ -72,8 +72,8 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
             "%(attribute)s: %(local)s vs %(remote)s" % {
                 'item' : item,
                 'attribute' : attribute,
-                'local' : str(value),
-                'remote' : str(item.getAttributeValue(attribute)),
+                'local' : unicode(value).encode('utf8'),
+                'remote' : unicode(item.getAttributeValue(attribute)).encode('utf8'),
             })
 
         # @@@MOR Probably not a good idea to create new items inside the

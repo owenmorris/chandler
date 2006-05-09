@@ -89,8 +89,8 @@ class ICalendarTestCase(unittest.TestCase):
     def SummaryAndDateTimeImported(self):
         format = self.Import(self.repo.view, u'Chandler.ics')
         event = Calendar.findUID(self.repo.view, 'BED962E5-6042-11D9-BE74-000A95BB2738')
-        self.assert_(event.displayName == u'3 hour event',
-         "SUMMARY of first VEVENT not imported correctly, displayName is %s"
+        self.assert_(event.displayName == u'3 ho\u00FCr event',
+         u"SUMMARY of first VEVENT not imported correctly, displayName is %s"
          % event.displayName)
         evtime = datetime.datetime(2005,1,1, hour = 23, tzinfo = ICalendar.utc)
         self.assert_(event.startTime == evtime,
@@ -123,7 +123,7 @@ class ICalendarTestCase(unittest.TestCase):
         """Tests itemsToVObject, which converts Chandler items to vobject."""
         event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.anyTime = False
-        event.displayName = u"test"
+        event.displayName = u"\u00FCtest"
         event.startTime = datetime.datetime(2010, 1, 1, 10,
                                             tzinfo=ICUtzinfo.default)
         event.endTime = datetime.datetime(2010, 1, 1, 11,
@@ -131,8 +131,8 @@ class ICalendarTestCase(unittest.TestCase):
 
         cal = ICalendar.itemsToVObject(self.repo.view, [event])
 
-        self.assert_(cal.vevent.summary.value == "test",
-         "summary not set properly, summary is %s"
+        self.assert_(cal.vevent.summary.value == u"\u00FCtest",
+         u"summary not set properly, summary is %s"
          % cal.vevent.summary.value)
 
         start = event.startTime
@@ -141,15 +141,15 @@ class ICalendarTestCase(unittest.TestCase):
          % cal.vevent.summary.value)
 
         event = Calendar.CalendarEvent(itsView = self.repo.view)
-        event.displayName = u"test2"
+        event.displayName = u"\u00FCtest2"
         event.startTime = datetime.datetime(2010, 1, 1, 
                                             tzinfo=ICUtzinfo.floating)
-        event.allDay = True        
+        event.allDay = True
 
         cal = ICalendar.itemsToVObject(self.repo.view, [event])
 
         self.assert_(cal.vevent.dtstart.value == datetime.date(2010,1,1),
-         "dtstart for allDay event not set properly, dtstart is %s"
+         u"dtstart for allDay event not set properly, dtstart is %s"
          % cal.vevent.summary.value)
          # test bug 3509, all day event duration is off by one
          
@@ -182,7 +182,7 @@ class ICalendarTestCase(unittest.TestCase):
         format = self.Import(self.repo.view, u'Recurrence.ics')
         event = Calendar.findUID(self.repo.view, '5B30A574-02A3-11DA-AA66-000A95DA3228')
         third = event.getNextOccurrence().getNextOccurrence()
-        self.assertEqual(third.displayName, u'Changed title')
+        self.assertEqual(third.displayName, u'\u00FCChanged title')
         self.assertEqual(third.recurrenceID, datetime.datetime(2005, 8, 10, 
                                                     tzinfo=ICUtzinfo.floating))
         # while were at it, test bug 3509, all day event duration is off by one
@@ -239,7 +239,7 @@ class ICalendarTestCase(unittest.TestCase):
                          
         event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.anyTime = False
-        event.displayName = u"blah"
+        event.displayName = u"\u00FCblah"
         event.startTime = start
         event.endTime = datetime.datetime(2005,3,1,1, tzinfo = eastern)
         
@@ -275,12 +275,12 @@ class ICalendarTestCase(unittest.TestCase):
                          'EXDATE;TZID=US/Eastern:20050215T000000\r\n')
         vcalendar.behavior.generateImplicitParameters(vcalendar)
         self.assertEqual(vcalendar.vtimezone.tzid.value, "US/Eastern")
-        
-        
-        
-        
 
-         
+
+
+
+
+
 # test import/export unicode
 
 class TimeZoneTestCase(unittest.TestCase):

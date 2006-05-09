@@ -439,7 +439,7 @@ class CalendarEventMixin(RemindableMixin):
         CalendarEventMixin._initMixin(self) # call our init, not the method of a subclass
 
         # New item initialization
-        self.displayName = u"New Event"
+        self.displayName = _(u"New Event")
 
     def _initMixin(self):
         """ 

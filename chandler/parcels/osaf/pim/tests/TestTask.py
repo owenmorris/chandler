@@ -22,12 +22,12 @@ class TaskTest(TestContentModel.ContentModelTestCase):
 
         def _verifyTask(task):
             self.assert_(task != None)
-            self.assertEqual(task.displayName, u"test headline")
-            self.assertEqual(task.getItemDisplayName(), u"test headline")
+            self.assertEqual(task.displayName, u"\u00FCtest headline")
+            self.assertEqual(task.getItemDisplayName(), u"\u00FCtest headline")
 
             self.assertEqual(task.importance, 'important')
             self.assertEqual(task.getAttributeValue('importance'), 'important')
-            self.assertEqual(task.about, "test headline")
+            self.assertEqual(task.about, u"\u00FCtest headline")
         
         self.loadParcel("osaf.pim.tasks")
 
@@ -42,7 +42,7 @@ class TaskTest(TestContentModel.ContentModelTestCase):
 
         # Construct A Sample Item
         taskItem = Task("TestTask", itsView=view)
-        taskItem.displayName = u"test headline"
+        taskItem.displayName = u"\u00FCtest headline"
         taskItem.importance = "important"
 
         self._reopenRepository()
