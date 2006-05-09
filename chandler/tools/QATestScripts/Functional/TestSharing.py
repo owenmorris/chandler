@@ -4,7 +4,7 @@ from application.dialogs.PublishCollection import ShowPublishDialog
 import application.Globals as Globals
 import wx
 from i18n import OSAFMessageFactory as _
-import osaf.sharing.Sharing as Sharing
+from osaf.sharing import Sharing, unpublish 
 import osaf.sharing.ICalendar as ICalendar
 import tools.QAUITestAppLib as QAUITestAppLib
 import osaf.pim as pim
@@ -56,9 +56,7 @@ try:
         logger.Stop()
         logger.ReportPass("Importing calendar")
     
-    
     # Collection selection
-    # at SVN REV 10217 this does not work
     sidebar = App_ns.sidebar
     QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, "testSharing")
     
@@ -85,6 +83,13 @@ try:
         logger.Report("Sharing dialog")
         logger.Stop()
 
+        # cleanup
+        # cosmo can only handle so many shared calendars
+        # so remove this one when done
+        # Note: We don't need a try: here if this raises, the
+        # test has already reported success.
+        unpublish(collection) 
+        
 finally:
     # cleaning
     logger.Close()
