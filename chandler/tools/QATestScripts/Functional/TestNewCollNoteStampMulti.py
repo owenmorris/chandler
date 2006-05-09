@@ -50,10 +50,10 @@ try:
     
     # action -- Create new Collection
     col = QAUITestAppLib.UITestItem("Collection", logger)
-    # verification -- Initial Existense of Collection
-    col.Check_CollectionExistence("Untitled")
     # action -- Set the Display name for new Collection
     col.SetDisplayName("TestCollection")
+    # verification -- Initial Existense of Collection
+    col.Check_CollectionExistence("TestCollection")
     
     # creation
     note = QAUITestAppLib.UITestItem("Note", logger)

@@ -45,8 +45,9 @@ class RepositoryView(CView):
     # 0.6.2: added 'notify' aspect
     # 0.6.3: added Collection 'export' cloud with 'subscribers' endpoint
     # 0.6.4: changed format of some indexes to accept one or more attributes
+    # 0.6.5: changed format of abstract sets to store an optional id
     
-    CORE_SCHEMA_VERSION = 0x00060400
+    CORE_SCHEMA_VERSION = 0x00060500
 
     def __init__(self, repository, name, version):
         """

@@ -1047,7 +1047,23 @@ class UITestItem(object):
         @param expectedResult : expected result of the method
         @return : True if result is the same as the expected
         """
+
         if self.isCollection:
+
+            if self.item.isDeleted():
+                if self.logger:
+                    self.logger.SetChecked(True)
+                    if expectedResult is False:
+                        self.logger.ReportPass("(On collection existence Checking)")
+                        result = True
+                    else:
+                        self.logger.ReportFail("(On collection existence Checking)")
+                        result = False
+                    self.logger.Report("Collection existence")
+                else:
+                    result = True
+                return result
+
             if not expectedName:
                 expectedName = self.item.displayName
             if self.logger: self.logger.SetChecked(True)

@@ -15,13 +15,14 @@ from repository.item.Collection import Collection
 
 class AbstractSet(ItemValue, Indexed):
 
-    def __init__(self, view):
+    def __init__(self, view, id):
 
         super(AbstractSet, self).__init__()
         self._init_indexed()
 
         self._view = view
         self._otherName = None
+        self.id = id
 
     def __contains__(self, item, excludeMutating=False):
         raise NotImplementedError, "%s.__contains__" %(type(self))
@@ -99,6 +100,21 @@ class AbstractSet(ItemValue, Indexed):
 
         return count
 
+    def findSource(self, id):
+
+        raise NotImplementedError, "%s.findSource" %(type(self))
+
+    def _findSource(self, source, id):
+
+        if isinstance(source, AbstractSet):
+            if source.id == id:
+                return source
+
+        elif source[0] == id:
+            return source
+
+        return None
+
     def iterSources(self):
 
         raise NotImplementedError, "%s.iterSources" %(type(self))
@@ -157,7 +173,7 @@ class AbstractSet(ItemValue, Indexed):
 
         if isinstance(source, AbstractSet):
             return item in source
-
+        
         return getattr(self._view[source[0]],
                        source[1]).__contains__(item, excludeMutating)
 
@@ -213,6 +229,18 @@ class AbstractSet(ItemValue, Indexed):
                 source = (replaceItem.itsUUID, source[1])
 
         return "(UUID('%s'), '%s')" %(source[0].str64(), source[1])
+
+    def _reprSourceId(self, replace):
+
+        id = self.id
+        if id is not None:
+            if replace is not None:
+                replaceItem = replace[id]
+                if replaceItem is not Nil:
+                    id = replaceItem.itsUUID
+            return ", id=UUID('%s')" %(id.str64())
+
+        return ''
 
     def _setSourceItem(self, source, item, attribute, oldItem, oldAttribute):
         
@@ -356,10 +384,11 @@ class AbstractSet(ItemValue, Indexed):
 
         return clone
 
-    def copy(self):
+    def copy(self, id=None):
 
         copy = eval(self._repr_())
         copy._setView(self._view)
+        copy.id = id or self.id
         
         return copy
 
@@ -478,10 +507,10 @@ class AbstractSet(ItemValue, Indexed):
 
 class Set(AbstractSet):
 
-    def __init__(self, source):
+    def __init__(self, source, id=None):
 
         view, self._source = self._prepareSource(source)
-        super(Set, self).__init__(view)
+        super(Set, self).__init__(view, id)
 
     def __contains__(self, item, excludeMutating=False):
 
@@ -508,8 +537,9 @@ class Set(AbstractSet):
 
     def _repr_(self, replace=None):
 
-        return "%s(%s)" %(type(self).__name__,
-                          self._reprSource(self._source, replace))
+        return "%s(%s%s)" %(type(self).__name__,
+                            self._reprSource(self._source, replace),
+                            self._reprSourceId(replace))
         
     def _setOwner(self, item, attribute):
 
@@ -540,6 +570,10 @@ class Set(AbstractSet):
 
         return op
 
+    def findSource(self, id):
+
+        return self._findSource(self._source, id)
+
     def iterSources(self):
 
         return self._iterSources(self._source)
@@ -557,18 +591,19 @@ class Set(AbstractSet):
 
 class BiSet(AbstractSet):
 
-    def __init__(self, left, right):
+    def __init__(self, left, right, id=None):
 
         view, self._left = self._prepareSource(left)
         view, self._right = self._prepareSource(right)
 
-        super(BiSet, self).__init__(view)
+        super(BiSet, self).__init__(view, id)
 
     def _repr_(self, replace=None):
 
-        return "%s(%s, %s)" %(type(self).__name__,
-                              self._reprSource(self._left, replace),
-                              self._reprSource(self._right, replace))
+        return "%s(%s, %s%s)" %(type(self).__name__,
+                                self._reprSource(self._left, replace),
+                                self._reprSource(self._right, replace),
+                                self._reprSourceId(replace))
         
     def _setOwner(self, item, attribute):
 
@@ -611,6 +646,18 @@ class BiSet(AbstractSet):
             self._collectionChanged(op, change, other)
 
         return op
+
+    def findSource(self, id):
+
+        source = self._findSource(self._left, id)
+        if source is not None:
+            return source
+
+        source = self._findSource(self._right, id)
+        if source is not None:
+            return source
+
+        return None
 
     def iterSources(self):
 
@@ -785,7 +832,7 @@ class Difference(BiSet):
 
 class MultiSet(AbstractSet):
 
-    def __init__(self, *sources):
+    def __init__(self, *sources, **kwds):
 
         self._sources = []
         view = None
@@ -793,13 +840,14 @@ class MultiSet(AbstractSet):
             view, source = self._prepareSource(source)
             self._sources.append(source)
 
-        super(MultiSet, self).__init__(view)
+        super(MultiSet, self).__init__(view, kwds.get('id', None))
 
     def _repr_(self, replace=None):
 
-        return "%s(%s)" %(type(self).__name__,
-                          ", ".join([self._reprSource(source, replace)
-                                     for source in self._sources]))
+        return "%s(%s%s)" %(type(self).__name__,
+                            ", ".join([self._reprSource(source, replace)
+                                       for source in self._sources]),
+                            self._reprSourceId(replace))
         
     def _setOwner(self, item, attribute):
 
@@ -839,6 +887,15 @@ class MultiSet(AbstractSet):
             self._collectionChanged(op, change, other)
 
         return op
+
+    def findSource(self, id):
+
+        for source in self._sources:
+            src = self._findSource(source, id)
+            if src is not None:
+                return src
+
+        return None
 
     def iterSources(self):
 
@@ -993,7 +1050,7 @@ class MultiIntersection(MultiSet):
 
 class KindSet(Set):
 
-    def __init__(self, kind, recursive=False):
+    def __init__(self, kind, recursive=False, id=None):
 
         # kind is either a Kind item or an Extent UUID
 
@@ -1004,7 +1061,7 @@ class KindSet(Set):
             self._extent = kind.itsUUID
 
         self._recursive = recursive
-        super(KindSet, self).__init__((kind, 'extent'))
+        super(KindSet, self).__init__((kind, 'extent'), id)
 
     def __contains__(self, item, excludeMutating=False):
 
@@ -1048,8 +1105,9 @@ class KindSet(Set):
 
     def _repr_(self, replace=None):
 
-        return "%s(UUID('%s'), %s)" %(type(self).__name__,
-                                      self._extent.str64(), self._recursive)
+        return "%s(UUID('%s'), %s%s)" %(type(self).__name__,
+                                        self._extent.str64(), self._recursive,
+                                        self._reprSourceId(replace))
         
     def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
                       source=None):
@@ -1088,9 +1146,9 @@ class KindSet(Set):
 
 class FilteredSet(Set):
 
-    def __init__(self, source, expr, attrs=None):
+    def __init__(self, source, expr, attrs=None, id=None):
 
-        super(FilteredSet, self).__init__(source)
+        super(FilteredSet, self).__init__(source, id)
 
         self.filterExpression = expr
         self.attributes = attrs
@@ -1098,9 +1156,10 @@ class FilteredSet(Set):
     
     def _repr_(self, replace=None):
 
-        return "%s(%s, \"\"\"%s\"\"\", %s)" %(type(self).__name__,
-                                              self._reprSource(self._source, replace),
-                                              self.filterExpression, self.attributes)
+        return "%s(%s, \"\"\"%s\"\"\", %s%s)" %(type(self).__name__,
+                                                self._reprSource(self._source, replace),
+                                                self.filterExpression, self.attributes,
+                                                self._reprSourceId(replace))
 
     def __contains__(self, item, excludeMutating=False):
 

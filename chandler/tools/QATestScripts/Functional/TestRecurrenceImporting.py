@@ -23,7 +23,7 @@ try:
         collection = share.get()
     except:
         logger.Stop()
-        logger.ReportFailure("Importing calendar: exception raised")
+        logger.ReportException("Importing calendar")
     else:
         App_ns.sidebarCollection.add(collection)
         User.idle()

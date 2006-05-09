@@ -3,7 +3,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.pim"
 
 import logging, os
-from itertools import izip
 
 from application import schema
 from repository.item.Sets import \
@@ -78,6 +77,9 @@ class ContentCollection(ContentItem, Collection):
     # redirections 
     about = schema.Descriptor(redirectTo="displayName")
 
+    # other side of MultiCollection.sources
+    sourceFor = schema.Sequence()
+
     schema.addClouds(
         copying = schema.Cloud(
             invitees,
@@ -90,6 +92,12 @@ class ContentCollection(ContentItem, Collection):
         """ for debugging """
         return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
                                 self.itsUUID.str16())
+
+    # this delete hook is necessary because clearing 'sourceFor' depends on
+    # watchers still be being there.
+    def onItemDelete(self, view, isDeferring):
+        if not isDeferring and hasattr(self, 'sourceFor'):
+            self.sourceFor.clear()
 
     def withoutTrash(self):
         """
@@ -202,36 +210,78 @@ class DifferenceCollection(ContentCollection):
         setattr(self, self.__collection__, Difference(a, b))
 
 
-class UnionCollection(ContentCollection):
+class MultiCollection(ContentCollection):
     """
-    A ContentCollection containing the set theoretic union of at least two
-    ContentCollections.
+    A ContentCollection containing the set theoretic union or intersection
+    of at least two ContentCollections.
 
-    The C{sources} attribute (a list) contains the ContentCollection
-    instances to be unioned.
+    The C{sources} attribute (a ref collection) contains the ContentCollection
+    instances to be combined and can be changed.
     """
-
+    
     __metaclass__ = schema.CollectionClass
     __collection__ = 'set'
 
     set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
-    schema.kindInfo(
-        displayName=u"UnionCollection"
-    )
+    sources = schema.Sequence(ContentCollection,
+                              inverse=ContentCollection.sourceFor,
+                              initialValue=[])
 
-    sources = schema.Sequence(ContentCollection, initialValue=[])
-
-    schema.addClouds(
-        copying = schema.Cloud(byCloud=[sources]),
-    )
+    schema.kindInfo(displayName=u"UnionCollection")
+    schema.addClouds(copying = schema.Cloud(byCloud=[sources]))
 
     def __init__(self, *args, **kwds):
 
-        super(UnionCollection, self).__init__(*args, **kwds)
-        self._sourcesChanged()
-                
-    def _sourcesChanged(self):
+        super(MultiCollection, self).__init__(*args, **kwds)
+
+        self._sourcesChanged_()
+        self.watchCollection(self, 'sources', '_sourcesChanged')
+
+    def _sourcesChanged(self, op, item, attribute, sourceId):
+
+        if op in ('add', 'remove'):
+            view = self.itsView
+            source = view[sourceId]
+
+            if op == 'add':
+                set = self._sourcesChanged_()
+                sourceChanged = set.sourceChanged
+                actualSource = set.findSource(source.itsUUID)
+                assert actualSource is not None
+                for uuid in source.iterkeys():
+                    view._notifyChange(sourceChanged, 'add', 'collection',
+                                       source, source.__collection__,
+                                       False, uuid, actualSource)
+            elif op == 'remove':
+                set = getattr(self, self.__collection__)
+                sourceChanged = set.sourceChanged
+                actualSource = set.findSource(source.itsUUID)
+                assert actualSource is not None
+                for uuid in source.iterkeys():
+                    view._notifyChange(sourceChanged, 'remove', 'collection',
+                                       source, source.__collection__,
+                                       False, uuid, actualSource)
+                set = self._sourcesChanged_()
+
+    def addSource(self, source):
+
+        if source not in self.sources:
+            self.sources.append(source)
+
+    def removeSource(self, source):
+
+        if source in self.sources:
+            self.sources.remove(source)
+
+
+class UnionCollection(MultiCollection):
+    """
+    A ContentCollection containing the set theoretic union of at least two
+    ContentCollections.
+    """
+
+    def _sourcesChanged_(self):
 
         sources = self.sources
         sourceCount = len(sources)
@@ -239,101 +289,44 @@ class UnionCollection(ContentCollection):
         # For now, when we join collections with Union, we pull trash
         # out of the equation with withoutTrash()
         if sourceCount == 1:
-            set = Set(sources[0].withoutTrash())
+            set = Set(sources.first().withoutTrash())
         elif sourceCount == 2:
-            a, b = sources
-            set = Union(a.withoutTrash(), b.withoutTrash())
+            left = sources.first()
+            right = sources.next(left)
+            set = Union(left.withoutTrash(), right.withoutTrash())
         else:
-            set = MultiUnion(*(source.withoutTrash() for source in sources))
+            set = MultiUnion(*(source.withoutTrash()
+                               for source in sources))
 
         setattr(self, self.__collection__, set)
-
-    def _actualSource(self, source):
-
-        sources = self.sources
-        size = len(sources)
-        set = getattr(self, self.__collection__)
-
-        if size == 1:
-            return set._source
-        elif size == 2:
-            left, right = sources
-            if left is source:
-                return set._left
-            else:
-                return set._right
-        else:
-            for src, _src in izip(sources, set._sources):
-                if src is source:
-                    return _src
-
-    def addSource(self, source):
-
-        if source not in self.sources:
-            self.sources.append(source)
-            self._sourcesChanged()
-
-            view = self.itsView
-            sourceChanged = getattr(self, self.__collection__).sourceChanged
-            actualSource = self._actualSource(source)
-
-            for uuid in source.iterkeys():
-                view._notifyChange(sourceChanged, 'add', 'collection',
-                                   source, source.__collection__, False, uuid,
-                                   actualSource)
-
-    def removeSource(self, source):
-
-        if source in self.sources:
-            view = self.itsView
-            sourceChanged = getattr(self, self.__collection__).sourceChanged
-            actualSource = self._actualSource(source)
-
-            for uuid in source.iterkeys():
-                view._notifyChange(sourceChanged, 'remove', 'collection',
-                                   source, source.__collection__, False, uuid,
-                                   actualSource)
-
-            self.sources.remove(source)
-            self._sourcesChanged()
+        return set
 
 
-class IntersectionCollection(ContentCollection):
+class IntersectionCollection(MultiCollection):
     """
     A ContentCollection containing the set theoretic intersection of at
-    least 2 ContentCollections.
-
-    The C{sources} attribute (a list) contains the ContentCollection
-    instances to be intersected.
+    least two ContentCollections.
     """
 
-    __metaclass__ = schema.CollectionClass
-    __collection__ = 'set'
+    def _sourcesChanged_(self):
 
-    set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
+        sources = self.sources
+        sourceCount = len(sources)
 
-    schema.kindInfo(
-        displayName=u"IntersectionCollection"
-    )
-
-    sources = schema.Sequence(ContentCollection, initialValue=[])
-
-    schema.addClouds(
-        copying = schema.Cloud(byCloud=[sources]),
-    )
-
-    def __init__(self, *args, **kwds):
-
-        super(IntersectionCollection, self).__init__(*args, **kwds)
-
-        if len(self.sources) == 2:
-            a, b = self.sources
-            set = Intersection(a, b)
+        # For now, when we join collections with Intersection, we pull trash
+        # out of the equation with withoutTrash()
+        if sourceCount == 1:
+            set = Set(sources.first().withoutTrash())
+        elif sourceCount == 2:
+            left = sources.first()
+            right = sources.next(left)
+            set = Intersection(left.withoutTrash(), right.withoutTrash())
         else:
-            # (i for i in self.sources) is needed here to extract items
-            set = MultiIntersection(*(i for i in self.sources))
+            set = MultiIntersection(*(source.withoutTrash()
+                                      for source in sources))
 
         setattr(self, self.__collection__, set)
+        return set
 
 
 class FilteredCollection(ContentCollection):
@@ -578,7 +571,7 @@ class AppCollection(ContentCollection):
         # the _left side, which has no trash.
         
         if self.trash is schema.ns('osaf.pim', self.itsView).trashCollection:
-            return self.set._left.copy()
+            return self.set._left.copy(self.itsUUID)
 
         return self
 

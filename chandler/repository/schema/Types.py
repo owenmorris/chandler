@@ -1857,8 +1857,8 @@ class AbstractSet(Type):
         return AbstractSetType.makeValue(data)
 
     def makeString(self, value):
-
-        return Sets.AbtractSet.makeString(value)
+        
+        return AbstractSetType.makeString(value)
     
     def recognizes(self, value):
 

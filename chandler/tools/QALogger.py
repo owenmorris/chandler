@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-import os, sys
+import os, sys, traceback
 import time
 import string
 import version
@@ -211,6 +211,9 @@ class TestLogger:
     
     def ReportFailure(self, string):
         self.failureList.append(string)
+
+    def ReportException(self, string):
+        self.ReportFailure("%s, exception raised:\n%s" %(string, ''.join(traceback.format_exception(*sys.exc_info()))))
 
     def ReportPass(self, string):
         self.passedList.append(string)

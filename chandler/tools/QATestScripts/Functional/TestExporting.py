@@ -32,7 +32,7 @@ try:
         share.put()
     except:
         logger.Stop()
-        logger.ReportFailure("Exporting calendar: exception raised")
+        logger.ReportException("Exporting calendar")
     else:
         User.idle()
         logger.Stop()
