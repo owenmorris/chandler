@@ -402,7 +402,7 @@ class CalendarEventMixin(RemindableMixin):
         displayName=u"Recurrence End",
         defaultValue = None,
         doc="End time for recurrence, or None, kept up to date by "
-            "onValueChange.  Note that this attribute is only meaningful "
+            "onValueChanged.  Note that this attribute is only meaningful "
             "on master events")
 
     schema.addClouds(
@@ -1428,7 +1428,7 @@ class CalendarEventMixin(RemindableMixin):
         The resulting event will occur exactly once.
         """
         master = self.getMaster()
-        if master.recurrenceID != master.startTime:
+        if not master.recurrenceID in (None, master.startTime):
             master.changeNoModification('recurrenceID', master.startTime)
         rruleset = master.rruleset
         if rruleset is not None:
