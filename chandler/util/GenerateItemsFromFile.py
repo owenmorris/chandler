@@ -69,7 +69,7 @@ def addSurrogatePairToText(text):
 def GenerateCollection(view, mainView, args):
     """ Generate one Collection Item """
     appNameSpace = schema.ns('osaf.app', self)
-    collection = pim.ListCollection(itsView=view)
+    collection = pim.SmartCollection(itsView=view)
     sidebarCollection = appNameSpace.sidebarCollection
 
     if args[0]=='*': # semi-random data

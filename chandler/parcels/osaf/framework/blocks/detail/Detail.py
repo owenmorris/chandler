@@ -738,7 +738,11 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
                 self.widget.SetLabel(_("u(Already sharing this collection)"))
                 enabled = False
         event.arguments['Enable'] = enabled
-        
+
+class AppearsInAEBlock(DetailSynchronizedAttributeEditorBlock):
+    def shouldShow (self, item):
+        return hasattr(item, 'appearsIn')
+
 class AppearsInAttributeEditor(StaticStringAttributeEditor):
     """ A read-only list of collections that this item appears in, for now. """
     def GetAttributeValue(self, item, attributeName):
@@ -748,9 +752,13 @@ class AppearsInAttributeEditor(StaticStringAttributeEditor):
         if getMasterMethod is not None:
             item = getMasterMethod(item)
 
+        if not hasattr(item, 'appearsIn'):
+            return u"" # we won't be visible if this happens.
+
         # Collect the names and join them into a list
         collectionNames = _(", ").join(sorted([coll.displayName 
-                                               for coll in item.appearsIn ]))
+                                               for coll in item.appearsIn
+                                               if hasattr(coll, 'displayName')]))
         
         # logger.debug("Returning new appearsin list: %s" % collectionNames)
         # @@@ I18N: FYI: I expect the label & names to be separate fields before too long...

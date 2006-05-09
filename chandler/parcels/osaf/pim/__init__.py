@@ -120,16 +120,13 @@ def installParcel(parcel, oldVersion=None):
     
     events.addIndex('icalUID', 'value', attribute='icalUID')
 
-
-    # bug 4477
     eventsWithRemindersIncludingTrash = FilteredCollection.update(
         parcel, 'eventsWithRemindersIncludingTrash',
         source=events,
         filterExpression="getattr(view[uuid], 'reminders', None)",
         filterAttributes=['reminders'])
 
-    # eventsWithReminders should exclude the trash -- bug 5385
-    eventsWithReminders = SmartCollection.update(
+    eventsWithReminders = AppCollection.update(
         parcel, 'eventsWithReminders',
         source=eventsWithRemindersIncludingTrash,
         exclusions=trashCollection,
