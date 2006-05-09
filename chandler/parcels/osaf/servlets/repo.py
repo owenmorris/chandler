@@ -969,13 +969,16 @@ class HTMLCollectionRenderer(object):
     def __init__(self, view):
         self.view = view
 
-    def formatCollection(self, collection, childstring):
+    def formatCollection(self, collection, childstring, attrName = None):
+        linkText = collection.getItemDisplayName()
+        if attrName is not None:
+            linkText = linkText + "." + attrName
         result = ('<div class="set-item">\n'
                   '  <div class="set-title">' +
                   '  <a href="%s" title="%s">%s</a>' % (
             toLink(collection.itsPath),
             collection.__class__.__name__,
-            collection.getItemDisplayName()) +
+            linkText) +
                   '  </div>\n' +
                   '  <div class="set-box">' +
                   childstring + '</div>\n'
@@ -1027,9 +1030,17 @@ def _getSourceTree(coll, depth=0):
             result = formatter.formatCollection(s, getstring(set, True))
         
         elif isinstance(s, tuple):
-            collection = view[s[0]]
-            set = getattr(collection, collection.__collection__)
-            result = formatter.formatCollection(collection, getstring(set, True))
+            item = view.find(s[0], False)
+            if item is None:
+                result = '<em>deleted:</em>(%s, %s)' % (s[0], s[1])
+            else:
+                attribute = s[1]
+                set = getattr(item, attribute)
+                if attribute != getattr(item, '__collection__', None):
+                    result = formatter.formatCollection(item, getstring(set, True),
+                                                        attribute)
+                else:
+                    result = formatter.formatCollection(item, getstring(set, True))
             
         elif s.__class__ in joinTypes:
             if hasattr(s, '_sources'):
