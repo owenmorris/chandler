@@ -327,7 +327,7 @@ class I18nManager(object):
         #    to the error. I.e. they did not pass in an ascii or unicode string
 
         if domain != self._defaultDomain:
-            raise i18n.I18nException("Only OSAF domain supported in .6")
+            raise i18n.I18nException("Only OSAF domain supported in .7")
 
         # For .6 we just get the default resource. In .7 the LocaleSet will determine
         # what localizaed resource is returned
@@ -365,8 +365,7 @@ class I18nManager(object):
             locale.setlocale(locale.LC_ALL, lc)
         except locale.Error:
             if __debug__:
-                # Log the error only in debug mode
-                logging.error("Unable to set Python locale to: '%s'" % lc)
+                logging.debug("Unable to set Python locale to: '%s'" % lc)
             return False
 
         return True
