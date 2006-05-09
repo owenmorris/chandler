@@ -7,10 +7,11 @@ from osaf.usercollections import UserCollection
 
 import evdb, EVDBDialog
 
-class EVDBCollection(pim.ListCollection):
-    schema.kindInfo(displayName=u"Collection of events from EVDB")
-    
-    def onAddToCollection(self, event):
+class AddEVDBCollectionEvent(Block.AddToSidebarEvent):
+    """
+    An event used to add a new EVDBCollection to the sidebar.
+    """
+    def onNewItem (self):
         keywords = EVDBDialog.GetSearchDictFromDialog()
         
         result = None
@@ -23,30 +24,21 @@ class EVDBCollection(pim.ListCollection):
                 _(u"An error occurred while fetching events from EVDB:\n%(error)s\n\nSee chandler.log for details.") % {'error': e})
             else:
                 if len(list(result)) == 0:
+                    result.delete()
+                    result = None
                     Util.ok(None, _(u"EVDB Search"), _(u"No matching events were found."))
             return result
 
 
 def installParcel(parcel, version=None):
 
-    # Make a template, which we'll copy whenever creating
-    # new collections in the sidebar. setting the preferredKind
-    # to None is a hint to display it in the All View
-    EVDBCollectionTemplate = EVDBCollection.update(
-        parcel, 'EVDBCollectionTemplate',
-        displayName = messages.UNTITLED)
-
-    UserCollection (EVDBCollectionTemplate).preferredKind = None
-
     blocks = schema.ns('osaf.framework.blocks', parcel)
     main   = schema.ns('osaf.views.main', parcel)
-    detail = schema.ns('osaf.framework.blocks.detail', parcel)
 
     # Add an event for creating new EVDB collections
-    NewEVDBCollectionEvent = Block.AddToSidebarEvent.update(
+    NewEVDBCollectionEvent = AddEVDBCollectionEvent.update(
         parcel, 'NewEVDBCollectionEvent',
-        blockName = 'newEVDBCollectionEvent',
-        items=[EVDBCollectionTemplate])
+        blockName = 'newEVDBCollectionEvent')
 
     # Add a separator to the "Collection" menu ...
     blocks.MenuItem.update(parcel, 'EVDBParcelSeparator',

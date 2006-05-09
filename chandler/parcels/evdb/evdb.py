@@ -10,8 +10,8 @@ import urllib, logging
 from zanshin.util import blockUntil
 import zanshin.webdav
 import osaf.sharing as sharing
-
 import osaf.pim
+from osaf.usercollections import UserCollection
 
 APP_KEY = 'CtssgKSFQDrFsBVC'
 logger = logging.getLogger(__name__)
@@ -53,6 +53,9 @@ def GetCollectionFromSearch(repoView, searchTerms):
     logger.info('sending query %s', query)
 
     collection = osaf.pim.SmartCollection(itsView=repoView, displayName=displayName)
+
+    # Setting the preferredKind  to None is a hint to display it in the All View
+    UserCollection (collection).preferredKind = None
 
     share = sharing.Share(itsView=repoView, contents=collection)
 
