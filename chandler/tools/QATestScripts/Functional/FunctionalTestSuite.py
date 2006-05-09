@@ -22,6 +22,7 @@ def run_tests(tests):
             traceback.print_exception(type, value, stack, None, sys.stderr)
         
 allTests = [
+                "TestAdditionalViews.py",
                 "TestCreateAccounts.py",
                 "TestAllDayEvent.py", 
                 "TestNewCollection.py",

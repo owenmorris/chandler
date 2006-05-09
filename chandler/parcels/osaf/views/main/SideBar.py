@@ -869,6 +869,7 @@ class SidebarBlock(Table):
         # filter out the usable collections
         def IsValidCollection(col):
             return (col is not collection and
+                    isinstance (col, ContentCollection) and
                     not UserCollection(col).outOfTheBoxCollection)
 
         sidebarCollections = [col for col in sidebarCollections
