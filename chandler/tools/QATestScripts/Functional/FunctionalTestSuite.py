@@ -30,6 +30,7 @@ allTests = [
                 "TestNewMail.py",
                 "TestNewTask.py",
                 "TestNewNote.py",
+                "TestTableSelection.py",
                 "TestStamping.py", 
                 "TestSharing.py", 
                 "TestMoveToTrash.py", 
@@ -58,11 +59,11 @@ else:
     
 exclusions = {#tests to exclude on specific platfoms only
     'other':(
-                
+    "TestTableSelection.py",            # until tested on linux
     ),
     
     'mac':( 
-            
+    "TestTableSelection.py",            # until tested on mac
     ),
     
     'windows':(

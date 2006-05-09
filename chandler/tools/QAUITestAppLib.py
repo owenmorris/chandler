@@ -1165,6 +1165,7 @@ class UITestItem(object):
                 if self.logger: self.logger.ReportFailure("(On %s Checking) || calendar view value = %s ; expected value = %s" % (attrName, getattr(canvasItem, attrName), attrValue))
         if self.logger: self.logger.SetChecked(False)
         if self.logger: self.logger.Report("Calendar View")
+
     
 class UITestAccounts:
     fieldMap = {
@@ -1536,4 +1537,11 @@ class UITestView(object):
             if self.logger: self.logger.Print("DoubleClickInCalView is not available in the current view : %s" %self.state)
             return
 
-   
+    def Check_Equality(self, a, b, message):
+        if self.logger: self.logger.SetChecked(True)
+        
+        if a == b:
+            if self.logger: self.logger.ReportPass(message)
+        else:
+            if self.logger: self.logger.ReportFailure("%s || %s != %s" % (message, a, b))
+    
