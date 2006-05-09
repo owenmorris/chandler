@@ -30,6 +30,7 @@ def switchAndCheck(logger, buttonName, expectedClass):
     newItem = QAUITestAppLib.App_ns.DetailRoot.contents
 
     # Verify we got what we expected
+    global START_ITEM
     if newItem is START_ITEM:
         logger.ReportFailure("Selection in detail view didn't change!")
     elif newItem.__class__ != expectedClass:
