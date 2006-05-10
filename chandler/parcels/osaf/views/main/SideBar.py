@@ -825,7 +825,7 @@ class SidebarBlock(Table):
                 sharing.unsubscribe(collection)
             
             self.contents.remove(collection)
-            collection.delete()
+            collection.delete(True)
 
         self.widget.DeleteSelection(DeleteItemCallback=deleteItem)
 

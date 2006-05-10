@@ -586,7 +586,15 @@ class SmartCollection(AppCollection):
     # it's an AbstractSet because cardinality is 'set' (schema.Many)
     # it's an AbstractSet of bi-directional references
     set = schema.Many(inverse=ContentItem.appearsIn)
-    
+
+    # this delete hook is necessary because clearing the set of bi-refs
+    # may depend on collections that are children of this one
+    def onItemDelete(self, view, isDeferring):
+        super(SmartCollection, self).onItemDelete(view, isDeferring)
+        if not isDeferring:
+            delattr(self, self.__collection__)
+            self.unwatchCollection(self, 'sources', '_sourcesChanged')
+
 
 class InclusionExclusionCollection(SmartCollection):
     """
