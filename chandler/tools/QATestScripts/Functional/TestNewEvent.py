@@ -94,9 +94,9 @@ try:
     User.idle()
 
     # Answer the recurrence question with "just this item"
-    recurrenceDialog = wx.GetActiveWindow()
-    if not isinstance(recurrenceDialog, RecurrenceDialog.RecurrenceDialog):
-        logger.ReportFailure("Didn't see the recurrence dialog when deleting a recurrence")
+    recurrenceDialog = wx.FindWindowByName(u'RecurrenceDialog')
+    if recurrenceDialog is None:
+        logger.ReportFailure("Didn't see the recurrence dialog when deleting a recurrence instance")
     else:
         User.emulate_click(recurrenceDialog.thisButton)
         User.idle()
