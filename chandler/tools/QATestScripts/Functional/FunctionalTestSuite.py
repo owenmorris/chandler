@@ -50,7 +50,7 @@ allTests = [
                 "TestEventStacking.py",
                 "TestRemoveFromTrashOnImport.py",
                 "TestEnableTimezones.py",
-                "TestSwitchTimezone.py"
+                "TestSwitchTimezone.py",
                 "TestBlocks.py", 
                 ]
 
