@@ -61,6 +61,13 @@ def GetOccurrence(name, date):
     if len(occurrences) > 0:
         return occurrences[0]
 
+# Sets the value of a choice widget, propagating the wx event
+def SetChoice(choiceWidget, string):
+    choiceWidget.SetStringSelection(string)
+    selectionEvent = wx.CommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED)
+    selectionEvent.SetEventObject(choiceWidget)
+    choiceWidget.ProcessEvent(selectionEvent)
+
 # it would be nice if this were just a list, and we could map type ->
 # 'New' + type.. but at the moment there is no 'NewEvent' - so 'Event'
 # probably needs to be 'CalendarEvent' and 'NewCalendar' should
@@ -1377,13 +1384,13 @@ class UITestView(object):
                             ICalendar.ICalendarFormat, 
                             itsView=App_ns.itsView)
             try:
-                collection = share.get()
+                self.collection = share.get()
             except:
                 if logger: 
                     logger.Stop()
                     logger.ReportFailure("Importing calendar: exception raised")
             else:
-                App_ns.sidebarCollection.add(collection)
+                App_ns.sidebarCollection.add(self.collection)
                 scripting.User.idle()
                 # do another idle and yield to make sure the calendar is up.
                 scripting.User.idle()

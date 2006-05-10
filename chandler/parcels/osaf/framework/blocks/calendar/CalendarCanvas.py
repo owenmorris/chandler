@@ -1825,7 +1825,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         TimeZoneList.buildTZChoiceList(self.GetParent().blockItem.itsView,
                                        tzChoice)
 
-        self.Bind(wx.EVT_CHOICE, self.OnTZChoice, tzChoice)
+        tzChoice.Bind(wx.EVT_CHOICE, self.OnTZChoice)
 
         return tzChoice
         

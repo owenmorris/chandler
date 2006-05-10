@@ -49,6 +49,8 @@ allTests = [
                 "TestEditModeOnEnter.py",
                 "TestEventStacking.py",
                 "TestBlocks.py",
+                "TestEnableTimezones.py",
+                "TestSwitchTimezone.py"
                 ]
 
 if sys.platform == 'win32': 

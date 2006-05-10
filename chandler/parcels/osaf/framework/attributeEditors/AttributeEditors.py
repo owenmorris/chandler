@@ -2000,6 +2000,9 @@ class AEChoice(ShownSynchronizer, wx.Choice):
 #       scripting.User.emulate_click(self.control, 2, 2)
         pass
 
+    def GetValue(self):
+        return self.GetStringSelection()
+
 class ChoiceAttributeEditor(BasePermanentAttributeEditor):
     """ A pop-up control. The list of choices comes from presentationStyle.choices """        
     def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
