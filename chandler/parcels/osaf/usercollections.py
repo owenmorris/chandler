@@ -33,6 +33,7 @@ class UserCollection(schema.Annotation):
     dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
     outOfTheBoxCollection   = schema.One(schema.Boolean, defaultValue = False)
     canAdd                  = schema.One(schema.Boolean, defaultValue = True)
+    allowOverlay            = schema.One(schema.Boolean, defaultValue = True)
     """
       preferredKind is used as a hint to the user-interface to choose the right
       view for the display, e.g. CalendarView for collections that have a preferredKind
@@ -92,6 +93,7 @@ def installParcel(parcel, oldVersion=None):
     allUC = UserCollection(pim_ns.allCollection)
     allUC.setValues(renameable=False,
                     outOfTheBoxCollection=True,
+                    allowOverlay = False, # bug 5818
                     displayNameAlternatives = \
                     {'None': _(u'My items'),
                      'MailMessageMixin': _(u'My mail'),
@@ -103,6 +105,7 @@ def installParcel(parcel, oldVersion=None):
     trashUC.setValues(renameable=False,
                       dontDisplayAsCalendar=True,
                       outOfTheBoxCollection = True,
+                      allowOverlay = False,
                       canAdd=False)
     trashUC.ensureColor()
 

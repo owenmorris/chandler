@@ -141,7 +141,8 @@ class wxSidebar(wxTable):
         try:
             if (cellRect.InsideXY (x, y) and
                 not self.IsCellEditControlEnabled() and
-                isinstance (item, ContentCollection)):
+                isinstance (item, ContentCollection) and
+                UserCollection(item).allowOverlay):
                     if not hasattr (self, 'hoverImageRow'):
                         gridWindow.CaptureMouse()
         
@@ -173,7 +174,8 @@ class wxSidebar(wxTable):
                     for button in blockItem.buttons:
                         buttonState = button.buttonState
                         if (buttonState['imageRect'].InsideXY (x, y) and
-                            isinstance (item, ContentCollection)):
+                            isinstance (item, ContentCollection)
+                            and UserCollection(item).allowOverlay):
                             
                             event.Skip (False) #Gobble the event
                             self.SetFocus()
@@ -872,6 +874,10 @@ class SidebarBlock(Table):
                     isinstance (col, ContentCollection) and
                     not UserCollection(col).outOfTheBoxCollection)
 
+        # ultimately we'd like to use collection.appearsIn here rather
+        # than sidebarCollections, and this becomes
+        # [col for col in collection.appearsIn
+        #  if not UserCollection(col).outOfTheBoxCollection)]
         sidebarCollections = [col for col in sidebarCollections
                               if IsValidCollection(col)]
         
@@ -895,8 +901,9 @@ class SidebarBlock(Table):
                 item.delete()
                 return
             
+            # finally, 'mine' items that don't exist anywhere else
+            # just get added to the trash
             trash.add(item)
-            return
         
         # here's the meat of it
         for item in collection:
