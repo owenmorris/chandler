@@ -74,6 +74,7 @@ exclusions = {#tests to exclude on specific platfoms only
     'all':( #tests to exclude on all platforms       
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
         "TestEditModeOnEnter.py", #Chandler bug 5744
+        "TestSharing.py",  #cosmo crashed again, don't have a bug# yet for this
         )
 }
 
