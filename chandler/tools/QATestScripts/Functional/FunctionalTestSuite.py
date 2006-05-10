@@ -48,9 +48,10 @@ allTests = [
                 "TestCertstoreView.py",
                 "TestEditModeOnEnter.py",
                 "TestEventStacking.py",
-                "TestBlocks.py",
+                "TestRemoveFromTrashOnImport.py",
                 "TestEnableTimezones.py",
                 "TestSwitchTimezone.py"
+                "TestBlocks.py", 
                 ]
 
 if sys.platform == 'win32': 
@@ -62,7 +63,7 @@ else:
     
 exclusions = {#tests to exclude on specific platfoms only
     'other':(
-    "TestTableSelection.py",            # until tested on linux
+    "TestTableSelection.py",            #bug 5877
     ),
     
     'mac':( 
@@ -76,7 +77,9 @@ exclusions = {#tests to exclude on specific platfoms only
     'all':( #tests to exclude on all platforms       
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
         "TestEditModeOnEnter.py", #Chandler bug 5744
-        "TestSharing.py",  #cosmo crashed again, don't have a bug# yet for this
+        "TestRemoveFromTrashOnImport.py", #not tested on all platforms yet
+        "TestSwitchTimezone.py", #new test not yet working
+        "TestSharing.py", #no bug should enable this once the tboxes go green for a while
         )
 }
 
