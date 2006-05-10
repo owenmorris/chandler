@@ -4,8 +4,67 @@ from application import schema, Globals
 """
 Emulating User-level Actions
 """
+
+def emulate_menu_accelerator(string, ctrlFlag=True, altFlag=False, shiftFlag=False):
+    """
+    Emulate typing a key accelerator that's handled by a menu.
+    This searches through the items in the main frame's menu bar,
+    and tries to find once whose accelerator matches.
+    
+    Unfortunately, just processing a keydown/keyup pair doesn't work,
+    because this doesn't create native OS events, and its the native
+    controls that do the accelerator -> menu item lookup.
+    
+    Returns C{True} if a matching item is found, and it was dispatched
+    successfully, and C{False} otherwise.
+    """
+
+    assert len(string) == 1, "Pass in a single-character string to emulate_menu_accelerator"
+
+    try:
+        menuBar = wx.GetApp().mainFrame.GetMenuBar()
+    except AttributeError:
+        pass
+    else:
+        
+        # Figure out which wx.Accelerator we're trying to match
+        desiredFlags = 0
+        if ctrlFlag: desiredFlags |= wx.ACCEL_CTRL
+        if altFlag: desiredFlags |= wx.ACCEL_ALT
+        if shiftFlag or string.isupper(): desiredFlags |= wx.ACCEL_SHIFT
+
+        # We/wx seem to store all the keycodes in upper-case
+        desiredKeyCode = ord(string.upper())
+        
+        # Start off with the menus in the top-level menu bar
+        menus = list(menuBar.GetMenu(i) for i in xrange(menuBar.GetMenuCount()))
+
+        while menus:
+            
+            thisMenu = menus.pop(0)
+            
+            for item in thisMenu.GetMenuItems():
+                accel = item.GetAccel()
+                
+                if (accel is not None and
+                    desiredKeyCode == accel.GetKeyCode() and
+                    desiredFlags == accel.GetFlags()):
+                    
+                   # OK, we found a match. Create an event ...
+                   event = wx.CommandEvent(commandType=wx.EVT_MENU.evtType[0],
+                                            winid=item.GetId())
+                                           
+                   # ... and dispatch it
+                   return wx.GetApp().ProcessEvent(event)
+                    
+                if item.IsSubMenu():
+                    menus.append(item.GetSubMenu())
+            
+    return False
+    
 def emulate_typing(string, ctrlFlag = False, altFlag = False, shiftFlag = False):
     """ emulate_typing the string into the current focused widget """
+    
     success = True
     def set_event_info(event):
         # setup event info for a keypress event
