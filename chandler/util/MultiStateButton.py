@@ -113,6 +113,11 @@ class MultiStateButton(GenBitmapButton):
         self.Bind(wx.EVT_ENTER_WINDOW, self._RolloverStart)
         self.Bind(wx.EVT_LEAVE_WINDOW, self._RolloverFinish)
 
+        # add the button's tooltip
+        help = kwds.get("helpString")
+        if help is not None:
+            button.SetToolTipString(help)
+
     def AddStates(self, multibitmaps):
         """
         Add more state bitmaps to the button.
@@ -198,10 +203,11 @@ class MultiStateButton(GenBitmapButton):
         """
         Change the state of the button to its possible rollover state.
         """
-        stateBitmaps = self.stateBitmaps[self.currentState]
-        assert stateBitmaps is not None
-        rolloverBitmap = getattr(stateBitmaps, "rollover", None)
-        if rolloverBitmap is not None:
+        if self.IsEnabled():
+            stateBitmaps = self.stateBitmaps[self.currentState]
+            assert stateBitmaps is not None
+            rolloverBitmap = getattr(stateBitmaps, "rollover", None)
+            if rolloverBitmap is not None:
                 self.SetBitmapLabel(rolloverBitmap)
                 self.Refresh()
                 # will the app need this call to Update?
@@ -211,14 +217,15 @@ class MultiStateButton(GenBitmapButton):
         """
         Return the button to its non-rollover state.
         """
-        stateBitmaps = self.stateBitmaps[self.currentState]
-        # only do all this if there was actually a rollover
-        if getattr(stateBitmaps, "rollover", None) is not None:
-            assert getattr(stateBitmaps, "normal", None) is not None, "invalid state '" + inStateName + "' is missing 'normal' bitmap"
-            self.SetBitmapLabel(stateBitmaps.normal)
-            self.Refresh()
-            # will the app need this call to Update?
-            self.Update()
+        if self.IsEnabled():
+            stateBitmaps = self.stateBitmaps[self.currentState]
+            # only do all this if there was actually a rollover
+            if getattr(stateBitmaps, "rollover", None) is not None:
+                assert getattr(stateBitmaps, "normal", None) is not None, "invalid state '" + inStateName + "' is missing 'normal' bitmap"
+                self.SetBitmapLabel(stateBitmaps.normal)
+                self.Refresh()
+                # will the app need this call to Update?
+                self.Update()
 
     def _GetBitmapFor(self, bitmapName):
         """
