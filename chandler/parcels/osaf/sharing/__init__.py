@@ -363,7 +363,13 @@ def publish(collection, account, classesToInclude=None,
                 
                 # tickets after putting 
                 if supportsTickets:
-                    share.conduit.createTickets()
+                    if publishType == 'collection':
+                        share.conduit.createTickets()
+                    elif publishType == 'freebusy':
+                        share.conduit.getTickets()
+                        # reuse existing tickets if possible
+                        if not share.conduit.ticketReadOnly:
+                            share.conduit.createTickets()
 
 
             elif dav is not None:
