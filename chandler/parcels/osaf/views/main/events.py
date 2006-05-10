@@ -1,8 +1,8 @@
 from osaf.usercollections import UserCollection
+from osaf.framework.blocks import *
 
 def makeMainEvents(parcel):
 
-    from osaf.framework.blocks import *
     from application import schema
     import osaf.pim.notes
     import osaf.pim.calendar

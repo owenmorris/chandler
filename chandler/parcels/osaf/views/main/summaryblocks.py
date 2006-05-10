@@ -1,3 +1,4 @@
+from osaf.framework.blocks import *
 
 def makeSummaryBlocks(parcel):
     from application import schema
@@ -8,7 +9,6 @@ def makeSummaryBlocks(parcel):
         )
 
     from osaf import pim
-    from osaf.framework.blocks import *
 
     from Dashboard import DashboardBlock
     
