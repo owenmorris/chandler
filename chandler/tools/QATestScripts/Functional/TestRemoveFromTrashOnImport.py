@@ -50,15 +50,10 @@ try:
     collection.DeleteCollection()
     
     #import event back in
-    try:
-        share = Sharing.OneTimeFileSystemShare(reportDir, u'deleteThenImport.ics', ICalendar.ICalendarFormat, itsView=appView)
-        collection = share.get()
-    except:
-        logger.Stop()
-        logger.ReportFailure("Importing calendar: exception raised")
-    else:
-        App_ns.sidebarCollection.add(collection)
-        User.idle()
+    share = Sharing.OneTimeFileSystemShare(reportDir, u'deleteThenImport.ics', ICalendar.ICalendarFormat, itsView=appView)
+    collection = share.get()
+    App_ns.sidebarCollection.add(collection)
+    User.idle()    
         
     #verify
     ev.Check_ItemInCollection("Trash", expectedResult=False)
