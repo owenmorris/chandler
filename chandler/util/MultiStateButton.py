@@ -104,6 +104,11 @@ class MultiStateButton(GenBitmapButton):
         self.currentState = None
         self.bitmapProvider = bitmapProvider
 
+        # check to see if there is a tooltip
+        help = kwds.get("helpString")
+        if help is not None:
+            del kwds["helpString"]
+
         super(MultiStateButton, self).__init__(parent, ID, None, pos, size, style, *args, **kwds)
         firstStateName = self.AddStates(multibitmaps)
         assert firstStateName is not None
@@ -114,9 +119,8 @@ class MultiStateButton(GenBitmapButton):
         self.Bind(wx.EVT_LEAVE_WINDOW, self._RolloverFinish)
 
         # add the button's tooltip
-        help = kwds.get("helpString")
         if help is not None:
-            button.SetToolTipString(help)
+            self.SetToolTipString(help)
 
     def AddStates(self, multibitmaps):
         """

@@ -43,6 +43,7 @@ class Button(RectangularChild):
     icon = schema.One(schema.Text)
     rightClicked = schema.One(BlockEvent)
     event = schema.One(BlockEvent)
+    helpString = schema.One(schema.Text, initialValue = u'')
 
     def instantiateWidget(self):
         id = self.getWidgetID(self)
@@ -93,6 +94,7 @@ class Button(RectangularChild):
                                 id, 
                                 wx.DefaultPosition,
                                 (self.minimumSize.width, self.minimumSize.height),
+                                helpString = self.helpString,
                                 multibitmaps=(normal, stamped))
         elif __debug__:
             assert False, "unknown buttonKind"
