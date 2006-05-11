@@ -79,7 +79,6 @@ exclusions = {#tests to exclude on specific platfoms only
         "TestEditModeOnEnter.py", #Chandler bug 5744
         "TestRemoveFromTrashOnImport.py", #not tested on all platforms yet
         "TestSwitchTimezone.py", #new test not yet working
-        "TestSharing.py", #no bug should enable this once the tboxes go green for a while
         )
 }
 
