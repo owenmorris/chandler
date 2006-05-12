@@ -281,10 +281,14 @@ class FocusEventHandlers(Item):
         for selectedItem in selection:
             selectedItem = selectedItem.getMembershipItem()
 
+            # after alpha2 this should be
+            # for otherCollection in selectedItem.appearsIn':
+            # ...and exclude allCollection and selectedCollection
             for otherCollection in sidebarCollections:
                 
                 if (otherCollection is selectedCollection or
-                    UserCollection(otherCollection).outOfTheBoxCollection):
+                    (isinstance(otherCollection, ContentCollection) and
+                     UserCollection(otherCollection).outOfTheBoxCollection)):
                     continue
 
                 # found an 'other' collection, stkip ahead to next
