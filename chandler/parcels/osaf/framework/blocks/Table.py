@@ -43,6 +43,26 @@ class wxTableData(wx.grid.PyGridTableBase):
 
     def GetColLabelValue (self, column):
         grid = self.GetView()
+        table = grid.blockItem
+        columnItem = table.columns[column]
+
+        # When wxGrid is used with a wxGridTable, there is no way to
+        # dynamically set the column to a bitmap. Ideally, there would
+        # be a GetColLabelBitmap(), or you could return a bitmap or a
+        # string from GetColLabelValue() instead. For now, we'll just
+        # set the bitmap every time we're asked for the string.
+        if hasattr(columnItem, 'icon'):
+            
+            # we'll cache the bitmap so we're not constantly loading
+            # it from disk
+            bitmap = getattr(self, '_colbitmap%s' % column, None)
+            if bitmap is None:
+                bitmap = wx.GetApp().GetImage(columnItem.icon + ".png")
+                setattr(self, '_colbitmap%s' % column, bitmap)
+                
+            grid.SetLabelBitmap(False, column, bitmap)
+            return '' # no string, just an icon
+            
         item = grid.blockItem.contents.getFirstSelectedItem()
         return grid.GetColumnHeading (column, item)
 
@@ -175,11 +195,6 @@ class wxTable(DragAndDrop.DraggableWidget,
             self.RefreshRect (dirtyRect)
 
     def OnInit (self):
-        elementDelegate = self.blockItem.elementDelegate
-        if not elementDelegate:
-            elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate'
-        mixinAClass (self, elementDelegate)
-        self.InitElementDelegate()
         """
           wxTableData handles the callbacks to display the elements of the
         table. Setting the second argument to True cause the table to be deleted
@@ -188,6 +203,13 @@ class wxTable(DragAndDrop.DraggableWidget,
           We've also got the usual chicken and egg problem: SetTable uses the
         table before initializing it's view so let's first set the view.
         """
+        
+        elementDelegate = self.blockItem.elementDelegate
+        if not elementDelegate:
+            elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate'
+        mixinAClass (self, elementDelegate)
+        self.InitElementDelegate()
+
         gridTable = wxTableData()
         gridTable.SetView (self)
         self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
@@ -683,8 +705,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
                           headerCharacterStyle=getattr(self, "headerCharacterStyle", None))        
         defaultName = "_default"
         widget.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
-        aeKind = AttributeEditors.AttributeEditorMapping.getKind(\
-            wx.GetApp().UIRepositoryView)
+        aeKind = AttributeEditors.AttributeEditorMapping.getKind(self.itsView)
         for ae in aeKind.iterItems():
             key = ae.itsName
             if key != defaultName and not '+' in key:

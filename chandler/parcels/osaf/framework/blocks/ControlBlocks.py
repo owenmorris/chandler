@@ -238,7 +238,7 @@ class columnType(schema.Enumeration):
 
 class Column(schema.Item):
     
-    heading = schema.One(schema.Text, required = True)
+    heading = schema.One(schema.Text, defaultValue="")
 
     valueType = schema.One(columnType, initialValue='attribute',
                            doc="The type of value being displayed in "
@@ -252,6 +252,8 @@ class Column(schema.Item):
                                doc="The attribute used to "
                                "evaluate the column value for the "
                                "item in the row")
+    icon = schema.One(schema.Text, doc="An optional name of an image to display instead of a label")
+    
     kind = schema.One(schema.Kind, doc="The Kind used "
                       "for 'kind' columns")
 
