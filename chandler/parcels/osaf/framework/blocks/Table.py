@@ -46,6 +46,7 @@ class wxTableData(wx.grid.PyGridTableBase):
         table = grid.blockItem
         columnItem = table.columns[column]
 
+        # see bug 1937 / bug 5894
         # When wxGrid is used with a wxGridTable, there is no way to
         # dynamically set the column to a bitmap. Ideally, there would
         # be a GetColLabelBitmap(), or you could return a bitmap or a
