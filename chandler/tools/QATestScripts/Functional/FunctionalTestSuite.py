@@ -63,11 +63,11 @@ else:
     
 exclusions = {#tests to exclude on specific platfoms only
     'other':(
-    "TestTableSelection.py",            #bug 5877
+    "TestTableSelection.py",            #bug 5877 
     ),
     
     'mac':( 
-    "TestTableSelection.py",            # until tested on mac
+    "TestTableSelection.py",            # until tested on mac 
     ),
     
     'windows':(
@@ -79,6 +79,7 @@ exclusions = {#tests to exclude on specific platfoms only
         "TestEditModeOnEnter.py", #Chandler bug 5744
         "TestRemoveFromTrashOnImport.py", #not tested on all platforms yet
         "TestSwitchTimezone.py", #new test not yet working
+        "TestSharing.py", # bug 5889
         )
 }
 
