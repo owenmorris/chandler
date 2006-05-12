@@ -5,7 +5,7 @@ from application import schema, Globals
 Emulating User-level Actions
 """
 
-def emulate_menu_accelerator(string, ctrlFlag=True, altFlag=False, shiftFlag=False):
+def emulate_menu_accelerator(stringOrKeyCode, ctrlFlag=True, altFlag=False, shiftFlag=False):
     """
     Emulate typing a key accelerator that's handled by a menu.
     This searches through the items in the main frame's menu bar,
@@ -15,26 +15,52 @@ def emulate_menu_accelerator(string, ctrlFlag=True, altFlag=False, shiftFlag=Fal
     because this doesn't create native OS events, and its the native
     controls that do the accelerator -> menu item lookup.
     
-    Returns C{True} if a matching item is found, and it was dispatched
+    @param stringOrKeyCode: The keypress to emulate. Either specify one of the
+      constants wx.WXK_* or a single-character str
+    @type stringOrKeyCode: C{int} or C{str}.
+    
+    @param ctrlFlag: C{True} if you want to simulate the Control key
+      being held down during the keypress. (This is the same as holding
+      down the "open apple" key on the Mac).
+    @type ctrlFlag: C{bool}
+    
+    @param altFlag: C{True} if you want to simulate the Alt key
+      being held down during the keypress.
+    @type altFlag: C{bool}
+    
+    @param shiftFlag: C{True} if you want to simulate the Shift key
+      being held down during the keypress. If you pass in an upper-case
+      C{stringOrKeyCode}, this will be set to C{True} automatically.
+    @type shiftFlag: C{bool}
+    
+    @return: C{True} if a matching item is found, and it was dispatched
     successfully, and C{False} otherwise.
+    @rtype: C{bool}
     """
-
-    assert len(string) == 1, "Pass in a single-character string to emulate_menu_accelerator"
 
     try:
         menuBar = wx.GetApp().mainFrame.GetMenuBar()
     except AttributeError:
         pass
     else:
-        
+    
+        try:
+            # We/wx seem to store all the keycodes in upper-case
+            desiredKeyCode = ord(stringOrKeyCode.upper())
+        except AttributeError:
+            # not a str, assume int
+            desiredKeyCode = stringOrKeyCode
+        else:
+            # it was a str
+            assert len(stringOrKeyCode) == 1, "Pass in a single-character string to emulate_menu_accelerator"
+            if stringOrKeyCode.isupper():
+                shiftFlag = True
+            
         # Figure out which wx.Accelerator we're trying to match
         desiredFlags = 0
         if ctrlFlag: desiredFlags |= wx.ACCEL_CTRL
         if altFlag: desiredFlags |= wx.ACCEL_ALT
-        if shiftFlag or string.isupper(): desiredFlags |= wx.ACCEL_SHIFT
-
-        # We/wx seem to store all the keycodes in upper-case
-        desiredKeyCode = ord(string.upper())
+        if shiftFlag: desiredFlags |= wx.ACCEL_SHIFT
         
         # Start off with the menus in the top-level menu bar
         menus = list(menuBar.GetMenu(i) for i in xrange(menuBar.GetMenuCount()))
@@ -50,12 +76,12 @@ def emulate_menu_accelerator(string, ctrlFlag=True, altFlag=False, shiftFlag=Fal
                     desiredKeyCode == accel.GetKeyCode() and
                     desiredFlags == accel.GetFlags()):
                     
-                   # OK, we found a match. Create an event ...
-                   event = wx.CommandEvent(commandType=wx.EVT_MENU.evtType[0],
+                    # OK, we found a match. Create an event ...
+                    event = wx.CommandEvent(commandType=wx.EVT_MENU.evtType[0],
                                             winid=item.GetId())
                                            
-                   # ... and dispatch it
-                   return wx.GetApp().ProcessEvent(event)
+                    # ... and dispatch it
+                    return wx.GetApp().ProcessEvent(event)
                     
                 if item.IsSubMenu():
                     menus.append(item.GetSubMenu())
