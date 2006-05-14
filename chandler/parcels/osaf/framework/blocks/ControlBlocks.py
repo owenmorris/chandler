@@ -6,9 +6,8 @@ import os, sys
 from application.Application import mixinAClass
 from application import schema
 from Block import ( 
-    Block, RectangularChild, BlockEvent, 
-    ShownSynchronizer, lineStyleEnumType, logger, debugName,
-    WithoutSynchronizeWidget, IgnoreSynchronizeWidget
+    Block, RectangularChild, BlockEvent,  ShownSynchronizer, lineStyleEnumType,
+    logger, debugName, WithoutSynchronizeWidget, IgnoreSynchronizeWidget
 )
 from ContainerBlocks import BoxContainer
 import DragAndDrop
@@ -46,7 +45,7 @@ class Button(RectangularChild):
     helpString = schema.One(schema.Text, initialValue = u'')
 
     def instantiateWidget(self):
-        id = self.getWidgetID(self)
+        id = self.getWidgetID()
         parentWidget = self.parentBlock.widget
         if self.buttonKind == "Text":
             button = wx.Button (parentWidget,
@@ -151,7 +150,7 @@ class ContextMenuItem(RectangularChild):
     )
 
     def addItem(self, wxContextMenu, data):
-        id = Block.getWidgetID(self)
+        id = self.getWidgetID()
         self.data = data
         wxContextMenu.Append(id, self.title)
         wxContextMenu.Bind(wx.EVT_MENU, wx.GetApp().OnCommand, id=id)
@@ -215,7 +214,7 @@ class HTML(RectangularChild):
 
     def instantiateWidget (self):
         htmlWindow = wxHTML (self.parentBlock.widget,
-                             Block.getWidgetID(self),
+                             self.getWidgetID(),
                              wx.DefaultPosition,
                              (self.minimumSize.width, self.minimumSize.height))
         if self.url:
@@ -563,7 +562,7 @@ class wxStatusBar (ShownSynchronizer, wx.StatusBar):
 class StatusBar(Block):
     def instantiateWidget (self):
         frame = self.getFrame()
-        widget = wxStatusBar (frame, Block.getWidgetID(self))
+        widget = wxStatusBar (frame, self.getWidgetID())
         frame.SetStatusBar (widget)
         return widget
 
@@ -835,10 +834,10 @@ class Tree(RectangularChild):
         try:
             self.columns
         except AttributeError:
-            tree = wxTree (self.parentBlock.widget, Block.getWidgetID(self), 
+            tree = wxTree (self.parentBlock.widget, self.getWidgetID(), 
                            style=wxTreeAndList.CalculateWXStyle(self))
         else:
-            tree = wxTreeList (self.parentBlock.widget, Block.getWidgetID(self), 
+            tree = wxTreeList (self.parentBlock.widget, self.getWidgetID(), 
                                style=wxTreeAndList.CalculateWXStyle(self))
         return tree
 
@@ -885,7 +884,7 @@ class ItemDetail(RectangularChild):
 
     def instantiateWidget (self):
         return wxItemDetail (self.parentBlock.widget,
-                             Block.getWidgetID(self),
+                             self.getWidgetID(),
                              wx.DefaultPosition,
                              (self.minimumSize.width,
                               self.minimumSize.height))
@@ -915,7 +914,7 @@ class ContentItemDetail(BoxContainer):
     """
     colorStyle = schema.One(Styles.ColorStyle)
     
-class wxPyTimer(wx.PyTimer):
+class wxPyTimer(wx.Timer):
     """ 
     A wx.PyTimer that has an IsShown() method, like all the other widgets
     that blocks deal with; it also generates its own event from Notify
@@ -926,7 +925,7 @@ class wxPyTimer(wx.PyTimer):
     def Notify(self):
         event = wx.PyEvent()
         event.SetEventType(wx.wxEVT_TIMER)
-        event.SetId(Block.getWidgetID(self.blockItem))
+        event.SetId(self.GetId())
         wx.GetApp().OnCommand(event)
 
     def Destroy(self):
@@ -948,7 +947,7 @@ class Timer(Block):
     )
 
     def instantiateWidget (self):
-        timer = wxPyTimer(self.parentBlock.widget)
+        timer = wxPyTimer(self.parentBlock.widget, self.getWidgetID())
         return timer
 
     def setFiringTime(self, when):
@@ -1191,12 +1190,12 @@ class AEBlock(BoxContainer):
         editor = self.lookupEditor()
         if editor is None:
             assert False
-            widget = wx.Panel(self.parentBlock.widget, Block.getWidgetID(self))
+            widget = wx.Panel(self.parentBlock.widget, self.getWidgetID())
             return widget
         
         widget = editor.CreateControl(forEditing, editor.readOnly, 
                                       self.parentBlock.widget, 
-                                      Block.getWidgetID(self), self, font)
+                                      self.getWidgetID(), self, font)
         widget.SetFont(font)
         # logger.debug("Instantiated a %s, forEditing = %s" % (widget, forEditing))
         

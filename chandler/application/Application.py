@@ -524,41 +524,61 @@ class wxApplication (wx.App):
 
         wxID = event.GetId()
 
-        if wxID > wx.ID_HIGHEST:
-            block = Block.widgetIDToBlock (wxID)
-            updateUIEvent = event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
-            blockEvent = getattr (block, 'event', None)
-            # If a block doesn't have an event, it should be an updateUI event
-            assert (blockEvent != None or updateUIEvent)
+        block = Block.idToBlock.get (wxID, None)
+        if block is not None:
 
-            if blockEvent is not None:
-                arguments = {}
-                if updateUIEvent:
-                    arguments ['UpdateUI'] = True
-                else:
-                    eventObject = event.GetEventObject()
-                    if eventObject is not None:
-                        method = getattr (eventObject, "GetToolState", None)
-                        if method is not None:
-                            arguments ['buttonState'] = method (wxID)
- 
-                block.post (blockEvent, arguments)
- 
-                if updateUIEvent:
-                    check = arguments.get ('Check', None)
-                    if check is not None:
-                        event.Check (check)
-                    event.Enable (arguments.get ('Enable', True))
-                    text = arguments.get ('Text', None)
-                    if text != None:
-                        event.SetText (text)
-                        # Some widgets, e.g. wxToolbarItems don't properly handle
-                        # setting the text of buttons, so we'll handle it here by
-                        # looking for the method OnSetTextEvent to handle it
-                        widget = block.widget
-                        method = getattr (widget, "OnSetTextEvent", None)
-                        if method is not None:
-                            method (event)
+            #An interesting problem occurs on Mac (see Bug #219). If a dialog is
+            #the topmost windw, standard events like cut/copy/paste get processed
+            #by this handler instead of the dialog, causing cut/copy/paste to stop
+            #working in dialogs. So, instead, if the dialog handles the event we
+            # don't want to dispatch it through our CPIA event mechanism.
+            #
+            #Unfortunately, it's not possible to know if the dialog can process
+            #the event. So instead we'll just send all events with "standard wx
+            #ids" (e.g. that have an associated block whose wxId is non-zero) to
+            #the dialog. This can be accomplished by not handling the event
+            #here and, instead, calling Skip so it will be passed along to the dialog.
+            #
+            #Telling if a dialog is the topmost windows is also a bit tricky since
+            #dialogs have by default a top level window that is our MainFrame
+            #window. So a dialog is on top when the second window in
+            #wx.TopLevelWindows is a dialog.
+
+            topWindows = wx.GetTopLevelWindows()
+            if not (len (topWindows) > 1 and isinstance (topWindows[1], wx.Dialog)):
+                updateUIEvent = event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
+                blockEvent = getattr (block, 'event', None)
+                # If a block doesn't have an event, it should be an updateUI event
+                assert (blockEvent != None or updateUIEvent)
+    
+                if blockEvent is not None:
+                    arguments = {}
+                    if updateUIEvent:
+                        arguments ['UpdateUI'] = True
+                    else:
+                        eventObject = event.GetEventObject()
+                        if eventObject is not None:
+                            method = getattr (eventObject, "GetToolState", None)
+                            if method is not None:
+                                arguments ['buttonState'] = method (wxID)
+     
+                    block.post (blockEvent, arguments)
+     
+                    if updateUIEvent:
+                        check = arguments.get ('Check', None)
+                        if check is not None:
+                            event.Check (check)
+                        event.Enable (arguments.get ('Enable', True))
+                        text = arguments.get ('Text', None)
+                        if text != None:
+                            event.SetText (text)
+                            # Some widgets, e.g. wxToolbarItems don't properly handle
+                            # setting the text of buttons, so we'll handle it here by
+                            # looking for the method OnSetTextEvent to handle it
+                            widget = block.widget
+                            method = getattr (widget, "OnSetTextEvent", None)
+                            if method is not None:
+                                method (event)
         else:
             event.Skip()
 

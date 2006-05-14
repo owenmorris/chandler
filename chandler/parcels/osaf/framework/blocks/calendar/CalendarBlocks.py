@@ -339,7 +339,7 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         else:
             style = wx.BORDER_STATIC
         return wxMiniCalendar(self.parentBlock.widget,
-                              Block.Block.getWidgetID(self), style=style)
+                              self.getWidgetID(), style=style)
 
     def onSelectedDateChangedEvent(self, event):
         self.widget.SetDate(event.arguments['start'].date())
@@ -390,7 +390,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
             self.setRange( datetime.now().date() )
             self.setHasBeenRendered()        
         return wxPreviewArea(self.parentBlock.widget, 
-                             Block.Block.getWidgetID(self),
+                             self.getWidgetID(),
                              timeCharStyle = self.timeCharacterStyle,
                              eventCharStyle = self.eventCharacterStyle)
 

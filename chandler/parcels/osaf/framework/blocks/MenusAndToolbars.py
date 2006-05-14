@@ -461,7 +461,7 @@ class wxMenuItem (wx.MenuItem):
             kind = wx.ITEM_SEPARATOR
             style = (parentWidget, id, "", "", kind, None)
         else:
-            id = Block.Block.getWidgetID(block)
+            id = block.getWidgetID()
             if block.menuItemKind == "Normal":
                 kind = wx.ITEM_NORMAL
             elif block.menuItemKind == "Check":
@@ -897,7 +897,7 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
         heightGutter = self.buttonsLabeled and 23 or 6
         parentWidget = self.parentBlock.widget
         toolbar = wxToolbar(parentWidget, 
-                            Block.Block.getWidgetID(self),
+                            self.getWidgetID(),
                             wx.DefaultPosition,
                             (-1, self.toolSize.height+heightGutter),
                             style=self.calculate_wxStyle())
@@ -974,7 +974,7 @@ class ToolbarItem(Block.Block, DynamicChild):
             return None
         
         tool = None
-        id = Block.Block.getWidgetID(self)
+        id = self.getWidgetID()
         self.toolID = id
         # Bug 4090 - long help never appears in the status bar
         # for this reason I'm putting the longhelp into shorthelp too.

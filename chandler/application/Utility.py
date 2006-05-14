@@ -22,7 +22,7 @@ from repository.persistence.RepositoryError import \
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "201" # alecf: add new column header images
+SCHEMA_VERSION = "202" # john: added wxId to Block
 
 logger = None # initialized in initLogging()
 

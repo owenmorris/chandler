@@ -139,6 +139,14 @@ class Block(schema.Item):
         )
     )
     
+    #If the widget for your block requires a specific id, e.g. it's a standard
+    #command handled by some standard part of wxWidgets, like a dialog that handles
+    #cut/copy/paste you can specify it here, Also, when a dialog is topmost and
+    #command has a non-zero wxId, it will be sent to the dialog instead of being
+    #propagated like the usual CPIA events.
+    #See Bug #5219
+    wxId = schema.One (schema.Integer, defaultValue=0)
+    
     def post (self, event, arguments):
         """
           Events that are posted by the block pass along the block
@@ -558,8 +566,8 @@ class Block(schema.Item):
             if onItemNotification is not None:
                 onItemNotification(notificationType, data)
         
-    IdToUUID = []               # A list mapping Ids to UUIDS
-    UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
+    idToBlock = {}              # A dictionary mapping wxWidgets Ids to Blocks
+    freeWXIds = []              # A list of unused wxWidgets Ids
     dirtyBlocks = set()         # A set of blocks that need to be redrawn in OnIdle
 
     def markDirty(self):
@@ -590,40 +598,52 @@ class Block(schema.Item):
         self.removeFromNameToItemUUIDDictionary ([self],
                                                  self.blockNameToItemUUID)
 
+        #Remove the reference to the block in idToBlock and add the
+        #id to the list of free ids. Also, if we don't remove the
+        #reference to the block, it will be forced to be memory resident.
+        method = getattr (type (self.widget), 'GetId', None)
+        if method is not None:
+            id = method (self.widget)
+        else:
+            id = -1
+
+        if id > 0:
+            del self.idToBlock[id]
+            if self.wxId == 0:
+                assert (not id in self.freeWXIds)
+                self.freeWXIds.append (id)
+        else:
+            assert (not self.idToBlock.has_key(id))
+
         delattr (self, 'widget')
         assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
-            
+
         wx.GetApp().needsUpdateUI = True
 
-    @classmethod
-    def widgetIDToBlock (theClass, wxID):
+    def getWidgetID (self):
         """
-          Given a wxWindows Id, returns the corresponding Chandler block
-        """
-        return wx.GetApp().UIRepositoryView.find (theClass.IdToUUID [wxID - (wx.ID_HIGHEST + 1)])
- 
-
-    @classmethod
-    def getWidgetID (theClass, object):
-        """
-        wxWindows needs a integer for a id. Commands between
-        wx.ID_LOWEST and wx.ID_HIGHEST are reserved for wxWidgets.
-        Calling wxNewId allocates incremental ids starting at 100.
-        Passing -1 for new IDs starting with -1 and decrementing.
-        Some rouge dialogs use IDs outside wx.ID_LOWEST and wx.ID_HIGHEST.
+        wxWindows needs a integer for a id. Idss between wx.ID_LOWEST
+        and wx.ID_HIGHEST are reserved for wxWidgets. Calling wx.NewId
+        allocates incremental ids starting at 100. Passing -1 for new IDs
+        starting with -1 and decrementing. Some rogue dialogs use IDs
+        outside wx.ID_LOWEST and wx.ID_HIGHEST.
         
-        Use IdToUUID to lookup the Id for a event's UUID. Use UUIDtoIds to
-        lookup the UUID of a block that corresponds to an event id -- DJA
+        idToBlock is used to associate a block with an Id. Blocks contain
+        an attribute, wxId, that allow you to specify a particular id
+        to the block. It defaults to 0, which will use an unused unique
+        idf -- See Bug #5219
         """
-        UUID = object.itsUUID
-        try:
-            id = Block.UUIDtoIds [UUID]
-        except KeyError:
-            length = len (Block.IdToUUID)
-            Block.IdToUUID.append (UUID)
-            id = length + wx.ID_HIGHEST + 1
-            assert not Block.UUIDtoIds.has_key (UUID)
-            Block.UUIDtoIds [UUID] = id
+        id = self.wxId
+        if id == 0:
+            if len (self.freeWXIds) > 0:
+                id = self.freeWXIds.pop(0)
+            else:
+                id = wx.NewId()
+
+        assert (id > 0)
+        
+        assert not self.idToBlock.has_key (id)
+        self.idToBlock [id] = self
         return id
 
     @classmethod

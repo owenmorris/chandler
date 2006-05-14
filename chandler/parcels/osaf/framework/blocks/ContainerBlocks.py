@@ -103,7 +103,7 @@ class BoxContainer(RectangularChild):
     )
 
     def instantiateWidget (self):
-        return wxBoxContainer (self.parentBlock.widget, Block.getWidgetID(self),
+        return wxBoxContainer (self.parentBlock.widget, self.getWidgetID(),
                                wx.DefaultPosition, wx.DefaultSize, style=wxBoxContainer.CalculateWXStyle(self))
     
     
@@ -185,7 +185,7 @@ class LayoutChooser(BoxContainer):
         self.selection = LayoutChooser.NONE_SELECTED
 
         parentWidget = self.parentBlock.widget 
-        return wxLayoutChooser(parentWidget, Block.getWidgetID(self))
+        return wxLayoutChooser(parentWidget, self.getWidgetID())
 
     def changeSelection(self, selectionIndex):
         self.widget.setSelectedChoice(selectionIndex)
@@ -220,7 +220,7 @@ class wxScrolledContainer (wx.ScrolledWindow):
         
 class ScrolledContainer(BoxContainer):
     def instantiateWidget (self):
-        return wxScrolledContainer (self.parentBlock.widget, Block.getWidgetID(self))    
+        return wxScrolledContainer (self.parentBlock.widget, self.getWidgetID())    
 
 #from util.autolog import indentlog
 class wxSplitterWindow(wx.SplitterWindow):
@@ -440,7 +440,7 @@ class SplitterWindow(RectangularChild):
 
     def instantiateWidget (self):
         return wxSplitterWindow (self.parentBlock.widget,
-                                 Block.getWidgetID(self), 
+                                 self.getWidgetID(), 
                                  wx.DefaultPosition,
                                  (self.size.width, self.size.height),
                                  style=wxSplitterWindow.CalculateWXStyle(self))
@@ -526,7 +526,7 @@ class ViewContainer(BoxContainer):
 
         if self.hasTabs:
             return wxTabbedViewContainer (parentWidget, 
-                                          Block.getWidgetID(self),
+                                          self.getWidgetID(),
                                           wx.DefaultPosition,
                                           (self.size.width, self.size.height),
                                           style=wxTabbedViewContainer.CalculateWXStyle(self))
@@ -648,7 +648,7 @@ class TabbedContainer(RectangularChild):
 
     def instantiateWidget (self):
         return wxTabbedContainer (self.parentBlock.widget, 
-                                  Block.getWidgetID(self),
+                                  self.getWidgetID(),
                                   wx.DefaultPosition,
                                   (self.size.width, self.size.height),
                                   style=wxTabbedContainer.CalculateWXStyle(self))
