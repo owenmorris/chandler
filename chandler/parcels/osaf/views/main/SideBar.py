@@ -803,7 +803,9 @@ class SidebarBlock(Table):
         # if we should be deleting the entire collection including the
         # items, or just some things
         shouldClearCollection = True
-        mine = schema.ns('osaf.pim', self.itsView).mine
+        pim_ns = schema.ns('osaf.pim', self.itsView)
+        mine = pim_ns.mine
+        allCollection = pim_ns.allCollection
         for collection in self.contents.iterSelection():
             if collection in mine.sources:
                 # we found a "mine" collection, so prompt the user
@@ -823,10 +825,33 @@ class SidebarBlock(Table):
             if isinstance(collection, ContentCollection):
                 if shouldClearCollection:
                     self.ClearCollectionContents(collection)
+                elif collection in mine.sources:
+
+                    # if the item doesn't exist in any other 'mine'
+                    # collection, we need to manually add it to 'all'
+                    # to keep the item 'mine'.
+
+                    # We don't want to do this blindly though, or
+                    # all's inclusions will get unnecessarily full.
+
+                    # We also don't want to remove collection from
+                    # mine.sources. That will cause a notification
+                    # storm as items temporarily leave and re-enter
+                    # being 'mine'
+                    for item in collection:
+                        for otherCollection in item.appearsIn:
+                            if otherCollection is collection:
+                                continue
+
+                            if otherCollection in mine.sources:
+                                # we found it in another 'mine'
+                                break
+                        else:
+                            # we didn't find it in a 'mine' Collection
+                            allCollection.add(item)
                     
                 sharing.unsubscribe(collection)
             
-            self.contents.remove(collection)
             collection.delete(True)
 
         self.widget.DeleteSelection(DeleteItemCallback=deleteItem)
