@@ -61,10 +61,7 @@ class SplashScreen(wx.Dialog):
         """
         if self.timer != None:
             self.timer.Stop()
-        if self.IsModal():
-            self.EndModal(True)
-        else:
-            self.Destroy()
+        self.Destroy()
         
 class HTMLPanel(wx.html.HtmlWindow):
     """
