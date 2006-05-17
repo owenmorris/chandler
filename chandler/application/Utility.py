@@ -69,7 +69,7 @@ def locateProfileDir():
 
         profileDir = os.path.join(dataDir,
                                   'Open Source Applications Foundation',
-                                  'Chandler')
+                                  'Chandler', '0.7')
 
     elif sys.platform == 'darwin':
         dataDir = os.path.join(os.path.expanduser('~'),
@@ -77,11 +77,11 @@ def locateProfileDir():
                                'Application Support')
         profileDir = os.path.join(dataDir,
                                   'Open Source Applications Foundation',
-                                  'Chandler')
+                                  'Chandler', '0.7')
 
     else:
         dataDir = os.path.expanduser('~')
-        profileDir = os.path.join(dataDir, '.chandler')
+        profileDir = os.path.join(dataDir, '.chandler', '0.7')
 
     # Deal with the random part
     pattern = '%s%s*.default' % (profileDir, os.sep)
