@@ -101,3 +101,18 @@
  
          # construct a list of paths to look for the header file in on
          # top of the normal inc_dirs.
+--- Python-2.4.2/configure.in	2006-05-17 11:20:22.000000000 -0400
++++ Python-2.4.2-patched/configure.in	2006-05-17 11:22:11.000000000 -0400
+@@ -172,9 +172,11 @@
+     fi
+     ;;
+   # On Mac OS X 10.4, defining _POSIX_C_SOURCE or _XOPEN_SOURCE
+   # disables platform specific features beyond repair.
+-  Darwin/8.*)
++  # On Mac OS X 10.3, defining _POSIX_C_SOURCE or _XOPEN_SOURCE
++  # has no effect, don't bother defineing them
++  Darwin/[78].*)
+     define_xopen_source=no
+     ;;
+ 
+ esac
