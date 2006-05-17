@@ -13,11 +13,11 @@
   !define SNAP "release"
 !endif
 
-!define PRODUCT_NAME "Chandler"
+!define PRODUCT_NAME "Chandler 0.7"
 !define PRODUCT_VERSION "${DISTRIB_VERSION}"
 !define PRODUCT_PUBLISHER "Open Source Applications Foundation"
 !define PRODUCT_WEB_SITE "http://osafoundation.org"
-!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_BINARY}"
+!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
 SetCompressor lzma
@@ -60,7 +60,7 @@ Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "Setup.exe"
 Icon "..\..\..\${DISTRIB_DIR}\resources\images\Chandler.ico"
 UninstallIcon "..\..\..\${DISTRIB_DIR}\resources\images\Chandler.ico"
-InstallDir "$PROGRAMFILES\Chandler"
+InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails nevershow
 ShowUnInstDetails nevershow

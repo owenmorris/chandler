@@ -37,9 +37,9 @@ if [ -d "$RPM_PATH/BUILD" ]; then
     cd $RPM_PATH/BUILD/OSAF/usr/local
     echo "Creating build tree from distribution tarball"
     tar xzf $DISTRIB_PATH/$DISTRIB_FILE.tar.gz
-    mv $DISTRIB_FILE chandler
+    mv $DISTRIB_FILE chandler-0.7
     echo "Ensuring all files have a+r set"
-    chmod -R a+r $RPM_PATH/BUILD/OSAF/usr/local/chandler/
+    chmod -R a+r $RPM_PATH/BUILD/OSAF/usr/local/chandler-0.7/
     cd $SPEC_PATH
     echo "Calling rpm -ba $SPEC_FILE"
     rpmbuild -ba --define "_dv $DISTRIB_VERSION" --define "_dr $DISTRIB_RELEASE" $SPEC_FILE
