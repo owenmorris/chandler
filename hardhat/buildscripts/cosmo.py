@@ -24,9 +24,10 @@ reposModules = [('cosmo',  'cosmo/trunk',),
 reposBuild   = [('cosmo',  'clean build'),
                 ('cosmo/migrate', 'javaapp:deploy'),
                ]
-reposTest    = [('cosmo',  'test'),
+reposTest    = [('cosmo',  'clean test'),
                ]
-reposDist    = [('cosmo',  'dist:release war:deploy', 'dist', 'cosmo*.tar.gz'),
+reposDist    = [('cosmo',  'clean dist:release', 'dist', 'cosmo*.tar.gz'),
+                ('cosmo',  'clean war:deploy',   None,   None),
                ]
 
 def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, branchID=None, revID=None):
@@ -200,23 +201,24 @@ def doDistribution(workingDir, log, outputDir, buildVersion, buildVersionEscaped
 
             hardhatutil.dumpOutputList(outputList, log)
 
-            sourceDir = os.path.join(moduleDir, distSource)
-            targetDir = os.path.join(outputDir, buildVersion)
+            if distSource:
+                sourceDir = os.path.join(moduleDir, distSource)
+                targetDir = os.path.join(outputDir, buildVersion)
 
-            if not os.path.exists(targetDir):
-                os.mkdir(targetDir)
+                if not os.path.exists(targetDir):
+                    os.mkdir(targetDir)
 
-            print sourceDir, targetDir
+                print sourceDir, targetDir
 
-            log.write("[tbox] Moving %s to %s\n" % (sourceDir, targetDir))
+                log.write("[tbox] Moving %s to %s\n" % (sourceDir, targetDir))
 
-            hardhatlib.copyFiles(sourceDir, targetDir, fileGlob)
+                hardhatlib.copyFiles(sourceDir, targetDir, fileGlob)
 
-            distributionFiles = glob.glob(os.path.join(targetDir, fileGlob))
+                distributionFiles = glob.glob(os.path.join(targetDir, fileGlob))
 
-            fileOut = file(os.path.join(targetDir, 'developer'), 'w')
-            fileOut.write(os.path.basename(distributionFiles[0]))
-            fileOut.close()
+                fileOut = file(os.path.join(targetDir, 'developer'), 'w')
+                fileOut.write(os.path.basename(distributionFiles[0]))
+                fileOut.close()
 
         except Exception, e:
             doCopyLog("***Error during distribution building process*** ", workingDir, logPath, log)
