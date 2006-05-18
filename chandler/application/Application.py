@@ -579,8 +579,8 @@ class wxApplication (wx.App):
                             method = getattr (widget, "OnSetTextEvent", None)
                             if method is not None:
                                 method (event)
-        else:
-            event.Skip()
+                    return
+        event.Skip()
 
     def OnDestroyWindow(self, event):
         from osaf.framework.blocks.Block import Block
