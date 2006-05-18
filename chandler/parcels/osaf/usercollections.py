@@ -110,10 +110,12 @@ def installParcel(parcel, oldVersion=None):
     trashUC.ensureColor()
 
     inUC = UserCollection(pim_ns.inCollection)
-    inUC.setValues(dontDisplayAsCalendar=True)
+    inUC.setValues(renameable = False,
+                   dontDisplayAsCalendar=True)
 
     outUC = UserCollection(pim_ns.outCollection)
-    outUC.setValues(dontDisplayAsCalendar=True)
+    outUC.setValues(renameable = False,
+                    dontDisplayAsCalendar=True)
     
 
         
