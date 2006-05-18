@@ -621,11 +621,12 @@ class IndexedSelectionCollection(ContentCollection):
 
         super(IndexedSelectionCollection, self).__init__(*args, **kwds)
 
-        if isinstance(self.source, MultiCollection):
+        trash = schema.ns('osaf.pim', self.itsView).trashCollection
+        if (isinstance(self.source, MultiCollection) and
+            trash not in self.source.sources):
             # bug 5899 - alpha2 workaround: When SmartCollections are
             # wrapped with IntersectionCollection/UnionCollection,
             # they drop the trash. So we artificially insert it back
-            trash = schema.ns('osaf.pim', self.itsView).trashCollection
             sourceMinusTrash = Difference(self.source, trash)
             setattr(self, self.__collection__, sourceMinusTrash)
         else:
