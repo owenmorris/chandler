@@ -1333,14 +1333,19 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
             # don't change the value unless the date the user sees has
             # changed
             if oldValue is None or oldValue.date() != value.date():
-                item.untilIsDate = True
-                item.until = value
-                self.AttributeChanged()
-                
-            # Refresh the value in place
-            if not item.isDeleted():
+                # Refresh the value in place
                 self.SetControlValue(self.control, 
-                                     self.GetAttributeValue(item, attributeName))
+                                     pim.shortDateFormat.format(value))
+
+                # Change the value in the content model, asynchronously
+                # (because setting recurrence-end could cause this item
+                # to be destroyed, which'd cause this widget to be deleted,
+                # and we still have references to it in our call stack)
+                def changeRecurrenceEnd(self, item, newEndValue):                    
+                    item.untilIsDate = True
+                    item.until = value
+                    self.AttributeChanged()
+                wx.CallAfter(changeRecurrenceEnd, self, item, value)
 
 class OutboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
     """ 
