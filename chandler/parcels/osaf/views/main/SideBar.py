@@ -29,7 +29,7 @@ class SidebarElementDelegate (ControlBlocks.ListDelegate):
           Second argument should be True if all cells have the first value
         """
         (item, attribute) = self.GetElementValue (row, column)
-        return (isinstance (item, ContentCollection) and not UserCollection (item).renameable), False
+        return not getattr(item, 'renameable', True), False
 
     def GetElementType (self, row, column):
         return "Item"
@@ -970,14 +970,10 @@ class SidebarBlock(Table):
                                         color.toTuple() == event.color.toTuple())
 
     def canRenameSelection(self):
-        result = True
-
         selectionRanges = self.contents.getSelectionRanges()
-        if selectionRanges is not None and len(self.contents.getSelectionRanges()) == 1:
-            item = self.contents.getFirstSelectedItem()
-            result = not isinstance (item, ContentCollection) or UserCollection (item).renameable
-        
-        return result
+        return (selectionRanges is not None and 
+                len(self.contents.getSelectionRanges()) == 1 and
+                getattr(self.contents.getFirstSelectedItem(), 'renameable', True))
 
     def onRenameEventUpdateUI (self, event):
         event.arguments['Enable'] = self.canRenameSelection()
