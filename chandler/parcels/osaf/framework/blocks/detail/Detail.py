@@ -85,7 +85,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         if parentBlock is not None:
             #logger.debug("%s: Resyncing parent block due to kind change on %s", 
                          #debugName(self), debugName(self.contents))
-            parentBlock.markDirty()
+            parentBlock.synchronizeWidget()
         
     def unRender(self):
         # There's a wx bug on Mac (2857) that causes EVT_KILL_FOCUS events to happen

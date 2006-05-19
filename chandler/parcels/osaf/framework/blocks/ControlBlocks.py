@@ -120,6 +120,10 @@ class wxChandlerMultiStateButton(MultiStateButton.MultiStateButton):
     """
     Just like MultiStateButton, except that it uses wx.GetApp().GetImage as the
     provider of bitmaps, and the button has no border.
+    
+    Dispatch notifications at the end of handling the left-up event, because
+    we'll destroy the button in the process of stamping, and the base-class
+    implementation tries to use it again (to Refresh, etc.)
     """
     def __init__(self, parent, ID, pos, size, multibitmaps, *args, **kwds):
         super(wxChandlerMultiStateButton, self).__init__(parent,
@@ -130,6 +134,17 @@ class wxChandlerMultiStateButton(MultiStateButton.MultiStateButton):
                                                         multibitmaps = multibitmaps,
                                                         bitmapProvider = wx.GetApp().GetImage,
                                                         *args, **kwds)
+    def OnLeftUp(self, event):
+        if not self.IsEnabled() or not self.HasCapture():
+            return
+        if self.HasCapture():
+            self.ReleaseMouse()
+            if not self.up:    # if the button was down when the mouse was released...
+                # use wx.CallAfter() in case the button is deleted
+                wx.CallAfter(self.Notify)
+            self.up = True
+            self.Refresh()
+            event.Skip()
 
 
 class ContextMenu(RectangularChild):

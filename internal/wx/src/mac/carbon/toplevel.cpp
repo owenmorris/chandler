@@ -567,7 +567,8 @@ pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , Ev
             wxToolTip::RelayEvent( currentMouseWindow , wxevent );
 #endif
 
-        if ( currentMouseWindow->GetEventHandler()->ProcessEvent(wxevent) )
+        if ( currentMouseWindow->GetEventHandler() != NULL
+            && currentMouseWindow->GetEventHandler()->ProcessEvent(wxevent) )
         {
             if ((currentMouseWindowParent != NULL) &&
                 (currentMouseWindowParent->GetChildren().Find(currentMouseWindow) == NULL))
