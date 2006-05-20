@@ -332,40 +332,44 @@ class wxTable(DragAndDrop.DraggableWidget,
         helper function to readjust everything after the contents change
         """
 
+        def UpdateSelection(columns):
+            """
+            Update the grid's selection based on the collection's selection.
+    
+            If we previously had selected items, but now are not, then we
+            probably just deleted all the selected items so we should try
+            to select the next logical item in the collection.
+            """
+    
+            # remember the first row in the old selection
+            topLeftSelection = self.GetSelectionBlockTopLeft()
+            
+            newRowSelection = -1
+            if len(topLeftSelection) > 0:
+                newRowSelection = topLeftSelection[0][0]
+            
+            # avoid OnRangeSelect
+            IgnoreSynchronizeWidget(True, self.ClearSelection)
+            contents = self.blockItem.contents
+            for rowStart,rowEnd in self.SelectedRowRanges():
+                # since we're selecting something, we don't need to
+                # auto-select any rows
+                newRowSelection = -1
+    
+                # now just do the selection update
+                self.SelectBlock (rowStart, 0,
+                                  rowEnd, columns, True)
+    
+            # now auto-select a row if necessary
+            if newRowSelection != -1:
+                itemIndex = self.RowToIndex(newRowSelection)
+                if itemIndex != -1:
+                    # we need to do this after the current
+                    # wxSynchronizeWidget is over
+                    wx.CallAfter(self.blockItem.PostSelectItems,
+                                 [self.blockItem.contents[itemIndex]])
+                
         self.SynchronizeDelegate()
-
-        self.UpdateRowsAndColumns()
-
-        # Hrm. Why do we need to call this in wxSynchronizeWidget?
-        # Shouldn't this have come in via an event?
-        self.EditIfNecessary()
-
-    def EditAttribute(self, attrName):
-        contents = self.blockItem.contents
-
-        index = contents.index(contents.getFirstSelectedItem())
-        cursorRow = self.IndexToRow(index)
-        
-        if cursorRow == -1:
-            return
-
-        # find the relevant column
-        for colIndex,column in enumerate(self.blockItem.columns):
-            if (column.valueType == 'attribute' and
-                column.attributeName == attrName):
-                break
-        else:
-            return
-
-        self.SetGridCursor (cursorRow, colIndex)
-        self.EnableCellEditControl()
-
-    def EditIfNecessary(self):
-        editAttributeNamed = getattr(self, "editAttributeNamed", None)
-        if editAttributeNamed is not None:
-            self.EditAttribute(editAttributeNamed)
-                    
-    def UpdateRowsAndColumns(self):
 
         #Trim/extend the control's rows and update all values
         if self.blockItem.hideColumnHeadings:
@@ -417,7 +421,7 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         self.ScaleWidthToFit (self.blockItem.scaleWidthsToFit)
 
-        self.UpdateSelection(newColumns)
+        UpdateSelection(newColumns)
         self.EndBatch()
 
         # Update all displayed values
@@ -426,43 +430,32 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.ProcessTableMessage (message)
         self.ForceRefresh () 
 
-    def UpdateSelection(self, columns):
-        """
-        Update the grid's selection based on the collection's selection.
+        editAttributeNamed = getattr(self, "editAttributeNamed", None)
+        if editAttributeNamed is not None:
+            del self.editAttributeNamed
+            self.EditAttribute(editAttributeNamed)
 
-        If we previously had selected items, but now are not, then we
-        probably just deleted all the selected items so we should try
-        to select the next logical item in the collection.
-        """
 
-        # remember the first row in the old selection
-        topLeftSelection = self.GetSelectionBlockTopLeft()
-        
-        newRowSelection = -1
-        if len(topLeftSelection) > 0:
-            newRowSelection = topLeftSelection[0][0]
-        
-        # avoid OnRangeSelect
-        IgnoreSynchronizeWidget(True, self.ClearSelection)
+    def EditAttribute(self, attrName):
         contents = self.blockItem.contents
-        for rowStart,rowEnd in self.SelectedRowRanges():
-            # since we're selecting something, we don't need to
-            # auto-select any rows
-            newRowSelection = -1
 
-            # now just do the selection update
-            self.SelectBlock (rowStart, 0,
-                              rowEnd, columns, True)
+        index = contents.index(contents.getFirstSelectedItem())
+        cursorRow = self.IndexToRow(index)
+        
+        if cursorRow == -1:
+            return
 
-        # now auto-select a row if necessary
-        if newRowSelection != -1:
-            itemIndex = self.RowToIndex(newRowSelection)
-            if itemIndex != -1:
-                # we need to do this after the current
-                # wxSynchronizeWidget is over
-                wx.CallAfter(self.blockItem.PostSelectItems,
-                             [self.blockItem.contents[itemIndex]])
-                
+        # find the relevant column
+        for colIndex,column in enumerate(self.blockItem.columns):
+            if (column.valueType == 'attribute' and
+                column.attributeName == attrName):
+                break
+        else:
+            return
+
+        self.SetGridCursor (cursorRow, colIndex)
+        self.EnableCellEditControl()
+
     def GoToItem(self, item):
         if item != None:
             try:
@@ -625,8 +618,6 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         
         assert self.editingCell == (row, column)
         self.editingCell = None
-        if hasattr (grid, "editAttributeNamed"):
-            del grid.editAttributeNamed
         
         value = self.delegate.GetControlValue (self.control)
         item, attributeName = grid.GetElementValue (row, column)
