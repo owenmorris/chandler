@@ -86,8 +86,9 @@ class wxTableData(wx.grid.PyGridTableBase):
             delegate = AttributeEditors.getSingleton (type)
             attribute = self.defaultROAttribute
             grid = self.GetView()
-            assert (row < self.GetNumberRows() and
-                    column < self.GetNumberCols())
+            if not (row < self.GetNumberRows() and
+                    column < self.GetNumberCols()):
+                return None
 
             if (not grid.blockItem.columns[column].readOnly and
                 not grid.ReadOnly (row, column)[0] and
