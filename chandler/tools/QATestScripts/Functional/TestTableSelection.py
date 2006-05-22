@@ -58,8 +58,10 @@ try:
     # check selected items by collection indexes
     expectedItems = [items[row] for row in rowsToSelect]
     expectedItems.sort(key=lambda x: x.itsUUID)
+    selectionByUUID = list(dashboardBlock.contents.iterSelection())
+    selectionByUUID.sort(key=lambda x: x.itsUUID)
     view.Check_Equality(expectedItems,
-                       list(dashboardBlock.contents.iterSelection()),
+                       selectionByUUID,
                        "Table Selection by Item")
 
     # check the grid widget itself to make sure the right rows are
