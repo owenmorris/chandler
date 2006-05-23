@@ -8,9 +8,8 @@ from struct import pack, unpack
 
 from chandlerdb.persistence.c import DBLockDeadlockError
 from chandlerdb.util.c import UUID, _hash, isuuid
-from chandlerdb.item.c import Nil, Default, isitem, CValues
-from chandlerdb.item.ItemValue import ItemValue
-from repository.item.Item import Item
+from chandlerdb.item.c import Nil, Default, isitem, CItem, CValues
+from chandlerdb.item.ItemValue import Indexable
 from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References
 from repository.item.ItemIO import \
@@ -39,10 +38,10 @@ class DBItemWriter(ItemWriter):
         
         self.uParent = DBItemWriter.NOITEM
 
-        if not ((item._status & (Item.NEW | Item.MERGED)) != 0 or
+        if not ((item._status & (CItem.NEW | CItem.MERGED)) != 0 or
                 item._version == 0):
-            self.oldValues = self.store._items.getItemValues(item._version,
-                                                             item._uuid)
+            self.oldValues = self.store._items.getItemValues(item.itsVersion,
+                                                             item.itsUUID)
             if self.oldValues is None:
                 raise AssertionError, ("Record not found for %s, version %s" %(item._repr_(), item._version))
         else:
@@ -55,9 +54,9 @@ class DBItemWriter(ItemWriter):
 
         size = super(DBItemWriter, self).writeItem(item, version)
         size += self.store._items.saveItem(self.valueBuffer,
-                                           item._uuid, version,
+                                           item.itsUUID, version,
                                            self.uKind, prevKind,
-                                           item._status & Item.SAVEMASK,
+                                           item._status & CItem.SAVEMASK,
                                            self.uParent, self.name,
                                            self.moduleName, self.className,
                                            self.values,
@@ -128,7 +127,7 @@ class DBItemWriter(ItemWriter):
 
     def writeLob(self, buffer, value, indexed):
 
-        self.lobs.append((value, indexed))
+        self.lobs.append(value)
         size = self.writeUUID(buffer, value)
         size += self.writeBoolean(buffer, indexed)
 
@@ -239,7 +238,7 @@ class DBItemWriter(ItemWriter):
     def _acls(self, item, version, all):
 
         size = 0
-        if item._status & Item.ADIRTY:
+        if item._status & CItem.ADIRTY:
             store = self.store
             uuid = item._uuid
             for name, acl in item._acls.iteritems():
@@ -259,27 +258,42 @@ class DBItemWriter(ItemWriter):
 
         self.lobs = []
         self.indexes = []
+        view = item.itsView
 
         uValue = UUID()
         self.values.append((name, uValue))
+
+        if isinstance(value, Indexable):
+            indexed = value.isIndexed()
+            indexable = True
+        else:
+            indexed = None
+            indexable = False
 
         if attribute is None:
             uAttr = DBItemWriter.NOITEM
             attrCard = 'single'
             attrType = None
-            indexed = False
+            if indexed is None:
+                indexed = False
         else:
             uAttr = attribute._uuid
             c = attribute.c
             attrCard = c.cardinality
             attrType = attribute.getAspect('type', None)
-            indexed = c.indexed
+            if indexed is None:
+                indexed = c.indexed
             
         buffer = self.dataBuffer
         del buffer[:]
 
         if indexed:
-            flags |= CValues.INDEXED
+            if view.isBackgroundIndexed():
+                flags |= CValues.TOINDEX
+                item._status |= CItem.TOINDEX
+                indexed = False
+            else:
+                flags |= CValues.INDEXED
         buffer.append(chr(flags))
 
         if withSchema:
@@ -304,20 +318,24 @@ class DBItemWriter(ItemWriter):
             raise SaveValueError, (item, name, e)
 
         if indexed:
-
-            if attrType is None:
-                valueType = TypeHandler.typeHandler(item.itsView, value)
-            elif attrType.isAlias():
-                valueType = attrType.type(value)
+            if indexable:
+                value.indexValue(view, item.itsUUID, attribute.itsUUID, uValue,
+                                 version)
+            elif attrCard == 'single':
+                if attrType is None:
+                    valueType = TypeHandler.typeHandler(view, value)
+                elif attrType.isAlias():
+                    valueType = attrType.type(value)
+                else:
+                    valueType = attrType
+                self.indexValue(view, valueType.makeUnicode(value),
+                                item.itsUUID, attribute.itsUUID, uValue,
+                                version)
             else:
-                valueType = attrType
+                raise NotImplementedError, (attrCard, "full text indexing")
 
-            valueType.indexValue(self, item, attribute, version, value)
-
-        for uuid, indexed in self.lobs:
+        for uuid in self.lobs:
             self.writeUUID(buffer, uuid)
-            self.writeBoolean(buffer, indexed)
-
         for uuid in self.indexes:
             self.writeUUID(buffer, uuid)
 
@@ -327,17 +345,15 @@ class DBItemWriter(ItemWriter):
         return self.store._values.c.saveValue(self.store.txn,
                                               uAttr, uValue, ''.join(buffer))
 
-    def indexValue(self, value, item, attribute, version):
+    def indexValue(self, view, value, uItem, uAttr, uValue, version):
 
-        self.store._index.indexValue(item.itsView._getIndexWriter(),
-                                     value, item.itsUUID, attribute.itsUUID,
-                                     version)
+        self.store._index.indexValue(view._getIndexWriter(),
+                                     value, uItem, uAttr, uValue, version)
 
-    def indexReader(self, reader, item, attribute, version):
+    def indexReader(self, view, reader, uItem, uAttr, uValue, version):
 
-        self.store._index.indexReader(item.itsView._getIndexWriter(),
-                                      reader, item.itsUUID, attribute.itsUUID,
-                                      version)
+        self.store._index.indexReader(view._getIndexWriter(),
+                                      reader, uitem, uAttr, uValue, version)
 
     def _unchangedValue(self, item, name):
 
@@ -468,11 +484,15 @@ class DBValueReader(ValueReader):
         self.uItem = None
         self.name = None
 
-    def readValue(self, view, uValue):
+    def readValue(self, view, uValue, toIndex=False):
 
         store = self.store
         uAttr, vFlags, data = store._values.c.loadValue(store.txn, uValue)
-        withSchema = (self.status & Item.CORESCHEMA) != 0
+
+        if toIndex and not ord(vFlags) & CValues.TOINDEX:
+            return uAttr, Nil
+
+        withSchema = (self.status & CItem.CORESCHEMA) != 0
 
         if withSchema:
             attribute = None
@@ -486,25 +506,25 @@ class DBValueReader(ValueReader):
         if flags & DBItemWriter.VALUE:
             offset, value = self._value(offset, data, None, withSchema,
                                         attribute, view, name, [])
-            return value
+            return uAttr, value
 
         elif flags & DBItemWriter.REF:
             if flags & DBItemWriter.NONE:
-                return None
+                return uAttr, None
 
             elif flags & DBItemWriter.SINGLE:
                 offset, uuid = self.readUUID(offset + 1, data)
-                return uuid
+                return uAttr, uuid
 
             elif flags & DBItemWriter.LIST:
                 offset, uuid = self.readUUID(offset + 1, data)
-                return uuid
+                return uAttr, uuid
 
             elif flags & DBItemWriter.SET:
                 offset, value = self.readString(offset + 1, data)
                 value = AbstractSet.makeValue(value)
                 value._setView(view)
-                return value
+                return uAttr, value
 
             else:
                 raise ValueError, flags
@@ -742,13 +762,13 @@ class DBItemReader(ItemReader, DBValueReader):
     def readItem(self, view, afterLoadHooks):
 
         status = self.status
-        withSchema = (status & Item.CORESCHEMA) != 0
-        isContainer = (status & Item.CONTAINER) != 0
+        withSchema = (status & CItem.CORESCHEMA) != 0
+        isContainer = (status & CItem.CONTAINER) != 0
 
-        status &= (Item.CORESCHEMA | Item.P_WATCHED)
+        status &= (CItem.CORESCHEMA | CItem.P_WATCHED)
         watcherDispatch = view._watcherDispatch
         if watcherDispatch and self.uItem in watcherDispatch:
-            status |= Item.T_WATCHED
+            status |= CItem.T_WATCHED
 
         kind = self._kind(self.uKind, withSchema, view, afterLoadHooks)
         parent = self._parent(self.uParent, withSchema, view, afterLoadHooks)
@@ -792,7 +812,7 @@ class DBItemReader(ItemReader, DBValueReader):
         return self.version
 
     def isDeleted(self):
-        return (self.status & Item.DELETED) != 0
+        return (self.status & CItem.DELETED) != 0
 
     def _kind(self, uuid, withSchema, view, afterLoadHooks):
 
@@ -890,256 +910,6 @@ class DBItemReader(ItemReader, DBValueReader):
                         d._setFlags(name, vFlags)
 
 
-class DBItemMergeReader(DBItemReader):
-
-    def __init__(self, store, item, dirties, mergeFn, *args):
-
-        super(DBItemMergeReader, self).__init__(store, item._uuid, *args)
-
-        self.item = item
-        self.dirties = dirties
-        self.mergeFn = mergeFn
-
-    def readItem(self, view, afterLoadHooks):
-
-        status = self.status
-        withSchema = (status & Item.CORESCHEMA) != 0
-        kind = self._kind(self.uKind, withSchema, view, afterLoadHooks)
-
-        self._values(self.item._values._prepareMerge(),
-                     self.item._references._prepareMerge(),
-                     self.uValues, kind, withSchema, view, afterLoadHooks)
-
-
-class DBItemVMergeReader(DBItemMergeReader):
-
-    def _value(self, offset, data, kind, withSchema, attribute, view, name,
-               afterLoadHooks):
-
-        value = Nil
-        item = self.item
-        itsKind = item.itsKind
-
-        dirtyName = name in self.dirties
-        dirtyKind = kind is not itsKind
-
-        if dirtyName or dirtyKind:
-            originalValues = item._values
-
-            def onItemMerge(reason, value):
-                mergedValue = item.onItemMerge(reason, name, value)
-                if mergedValue is Default:
-                    self._e_4_overlap(reason, item, name)
-                return mergedValue
-
-            def mergeFn(reason, value):
-                mergedValue = self.mergeFn(reason, item, name, value)
-                if mergedValue is Default:
-                    if hasattr(type(item), 'onItemMerge'):
-                        return onItemMerge(reason, value)
-                    self._e_3_overlap(reason, item, name)
-                return mergedValue
-
-            if dirtyName:
-                offset, value = super(DBItemVMergeReader, self)._value(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
-
-                if originalValues._isDirty(name):
-                    reason = MergeError.VALUE
-                    originalValue = originalValues.get(name, Nil)
-                    if value == originalValue:
-                        value = Nil
-
-                    elif (isinstance(originalValue, AbstractSet) and
-                          originalValue._merge(value)):
-                        value = originalValue
-
-                    elif self.mergeFn is not None:
-                        value = mergeFn(reason, value)
-                            
-                    elif hasattr(type(item), 'onItemMerge'):
-                        value = onItemMerge(reason, value)
-                    
-                    else:
-                        self._e_1_overlap(reason, item, name)
-
-            elif dirtyKind:
-                if itsKind is None or kind is None:
-                    value = Nil
-                else:
-                    offset, value = super(DBItemVMergeReader, self)._value(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
-
-                    attribute = kind.getAttribute(name, True)
-                    itsAttribute = itsKind.getAttribute(name, True)
-
-                    if attribute is not itsAttribute:
-                        reason = MergeError.KIND
-
-                        if self.mergeFn is not None:
-                            mergeFn(reason, value)
-                            value = Nil
-
-                        elif hasattr(type(item), 'onItemMerge'):
-                            onItemMerge(reason, value)
-                            value = Nil
-                    
-                        else:
-                            self._e_1_overlap(reason, item, name)
-
-        return offset, value
-    
-    def _ref(self, offset, data, kind, withSchema, attribute, view, name,
-             afterLoadHooks):
-
-        itsKind = self.item.itsKind
-        dirtyName = name in self.dirties
-        dirtyKind = kind is not itsKind
-
-        if not dirtyName or dirtyKind:
-            return offset, Nil
-
-        flags = ord(data[offset])
-        offset += 1
-
-        if flags & (DBItemWriter.LIST | DBItemWriter.SET):
-            return offset, Nil
-
-        if flags & DBItemWriter.NONE:
-            itemRef = None
-        elif flags & DBItemWriter.SINGLE:
-            offset, itemRef = self.readUUID(offset, data)
-        else:
-            raise LoadValueError, (self.name or self.uItem, name,
-                                   "invalid cardinality: 0x%x" %(flags))
-
-        origItem = self.item
-        origRef = origItem._references.get(name, None)
-
-        if dirtyName and origItem._references._isDirty(name):
-            if origRef is not None:
-                if isuuid(origRef):
-                    if origRef == itemRef:
-                        return offset, Nil
-                    origRef = origItem._references._getRef(name, origRef)
-
-                elif origRef.itsUUID == itemRef:
-                    return offset, Nil
-
-                self._e_2_overlap(MergeError.REF, self.item, name)
-
-            elif itemRef is None:
-                return offset, Nil
-
-        elif dirtyKind:
-            attribute = kind.getAttribute(name, True)
-            itsAttribute = itsKind.getAttribute(name, True)
-
-            if attribute is not itsAttribute:
-                itemRef = Nil
-
-        if origRef is not None:
-            if not (isitem(origRef) and origRef._uuid == itemRef or
-                    isuuid(origRef) and origRef == itemRef):
-                if isuuid(origRef):
-                    origRef = origItem._references._getRef(name, origRef)
-                origItem._references._unloadValue(name, origRef,
-                                                  kind.getOtherName(name, None))
-
-        return offset, itemRef
-
-    def _e_1_overlap(self, code, item, name):
-        
-        raise MergeError, ('values', item, 'merging values failed because no onItemMerge callback method was defined on %s and no mergeFn callback was passed to refresh(), overlapping attribute: %s' %(type(item), name), code)
-
-    def _e_2_overlap(self, code, item, name):
-
-        raise MergeError, ('values', item, 'merging refs is not yet implement\
-ed, overlapping attribute: %s' %(name), MergeError.BUG)
-
-    def _e_3_overlap(self, code, item, name):
-        
-        raise MergeError, ('values', item, 'merging values failed because no onItemMerge callback method was defined on %s and the mergeFn callback passed to refresh punted the merge, overlapping attribute: %s' %(type(item), name), code)
-
-    def _e_4_overlap(self, code, item, name):
-        
-        raise MergeError, ('values', item, 'merging values failed because the onItemMerge callback defined on %s the merge, overlapping attribute: %s' %(type(item), name), code)
-
-
-class DBItemRMergeReader(DBItemMergeReader):
-
-    def __init__(self, store, item, dirties, oldVersion, *args):
-
-        super(DBItemRMergeReader, self).__init__(store, item, dirties,
-                                                 None, *args)
-
-        self.merged = []
-        self.oldVersion = oldVersion
-        self.oldDirties = item._references._getDirties()
-
-    def readItem(self, view, afterLoadHooks):
-
-        super(DBItemRMergeReader, self).readItem(view, afterLoadHooks)
-
-        if self.merged:
-            self.dirties = HashTuple(filter(lambda h: h not in self.merged,
-                                            self.dirties))
-        self.item._references._dirties = self.dirties
-
-    def _value(self, offset, data, kind, withSchema, attribute, view, name,
-               afterLoadHooks):
-
-        return offset, Nil
-    
-    def _ref(self, offset, data, kind, withSchema, attribute, view, name,
-             afterLoadHooks):
-
-        itsKind = self.item.itsKind
-        dirtyName = name in self.dirties
-        dirtyKind = kind is not itsKind
-
-        if dirtyName:
-            flags = ord(data[offset])
-
-            if flags & DBItemWriter.LIST:
-                if name in self.oldDirties:
-                    value = self.item._references.get(name, None)
-                    if value is not None and value._isRefs():
-                        value._mergeChanges(self.oldVersion, self.version)
-                        self.merged.append(self.dirties.hash(name))
-
-                        return offset, Nil
-
-                else:
-                    offset, value = super(DBItemRMergeReader, self)._ref(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
-                    value._setOwner(self.item, name)
-    
-                    return offset, value
-
-            elif flags & DBItemWriter.SET:
-                offset, value = super(DBItemRMergeReader, self)._ref(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
-                value._setOwner(self.item, name)
-    
-                if name in self.oldDirties:
-                    originalValue = self.item._references.get(name, None)
-                    if value is not None and value._isRefs():
-                        if originalValue._merge(value):
-                            value = originalValue
-                        else:
-                            raise NotImplementedError, 'bi-directional set merge with mergeFn'
-
-                return offset, value
-
-            # else skip, not a collection of refs
-
-        elif dirtyKind:
-            attribute = kind.getAttribute(name, True)
-            itsAttribute = itsKind.getAttribute(name, True)
-
-            if attribute is not itsAttribute:
-                raise NotImplementedError, 'refs merge with kind change'
-
-        return offset, Nil
-
-
 class DBItemPurger(ItemPurger):
 
     def __init__(self, txn, store, uItem, keepValues,
@@ -1151,8 +921,8 @@ class DBItemPurger(ItemPurger):
         self.keep = set(keepValues)
         self.done = set()
 
-        withSchema = (status & Item.CORESCHEMA) != 0
-        keepOne = (status & Item.DELETED) == 0
+        withSchema = (status & CItem.CORESCHEMA) != 0
+        keepOne = (status & CItem.DELETED) == 0
         keepDocuments = set()
 
         for value in keepValues:
@@ -1167,10 +937,8 @@ class DBItemPurger(ItemPurger):
             offset += 1
 
             if flags & DBItemWriter.VALUE:
-                for uuid, indexed in self.iterLobs(flags, data):
+                for uuid in self.iterLobs(flags, data):
                     self.keep.add(uuid)
-                    if indexed:                     # full text indexed
-                        keepDocuments.add(uAttr)
                 if ord(vFlags) & CValues.INDEXED:   # full text indexed
                     keepDocuments.add(uAttr)
 
@@ -1193,12 +961,11 @@ class DBItemPurger(ItemPurger):
         if flags & DBItemWriter.VALUE:
             lobCount, indexCount = unpack('>HH', data[-4:])
 
-            lobStart = -(lobCount * 17 + indexCount * 16) - 4
+            lobStart = -(lobCount * 16 + indexCount * 16) - 4
             for i in xrange(lobCount):
                 uuid = UUID(data[lobStart:lobStart+16])
-                indexed = data[lobStart+16] == '\1'
-                lobStart += 17
-                yield uuid, indexed
+                lobStart += 16
+                yield uuid
 
     def iterIndexes(self, flags, data):
 
@@ -1223,7 +990,7 @@ class DBItemPurger(ItemPurger):
 
     def purgeItem(self, txn, values, version, status):
 
-        withSchema = (status & Item.CORESCHEMA) != 0
+        withSchema = (status & CItem.CORESCHEMA) != 0
         store = self.store
         keep = self.keep
         done = self.done
@@ -1232,7 +999,6 @@ class DBItemPurger(ItemPurger):
             if not (uValue in keep or uValue in done):
                 uAttr, vFlags, data = store._values.c.loadValue(txn, uValue)
 
-                indexedLob = False
                 if withSchema:
                     offset = self.skipSymbol(0, data)
                 else:
@@ -1242,7 +1008,7 @@ class DBItemPurger(ItemPurger):
                 offset += 1
 
                 if flags & DBItemWriter.VALUE:
-                    for uuid, indexed in self.iterLobs(flags, data):
+                    for uuid in self.iterLobs(flags, data):
                         if not (uuid in keep or uuid in done):
                             count = store._lobs.purgeLob(txn, uuid)
                             self.lobCount += count[0]

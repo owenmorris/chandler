@@ -1637,7 +1637,7 @@ class Item(CItem):
                 else:
                     def removeOrphans(attrDict):
                         for name in attrDict.keys():
-                            curAttr = self._kind.getAttribute(name, False, self)
+                            curAttr = prevKind.getAttribute(name, False, self)
                             newAttr = kind.getAttribute(name, True)
                             if curAttr is not newAttr:
                                 # if it wasn't removed by a reflexive bi-ref
@@ -1825,11 +1825,14 @@ class Item(CItem):
             else:
                 children = parent._roots
 
-            if name is not None and children.resolveAlias(name) is not None:
-                raise ChildNameError, (parent, name)
+            uuid = self.itsUUID
+
+            if name is not None:
+                if children.resolveAlias(name) not in (None, uuid):
+                    raise ChildNameError, (parent, name)
                 
             self._name = name
-            children.setAlias(self._uuid, name)
+            children.setAlias(uuid, name)
 
             self.setDirty(Item.NDIRTY)
                 
@@ -1877,14 +1880,14 @@ class Item(CItem):
 
     def _addItem(self, item):
 
-        name = item._name
+        name = item.itsName
 
         if self._children is not None:
             if name is not None:
                 loading = self.itsView.isLoading()
                 key = self._children.resolveAlias(name, not loading)
                 if not (key is None or key == item.itsUUID):
-                    raise ChildNameError, (self, item.itsName)
+                    raise ChildNameError, (self, name)
 
         else:
             self._children = self.itsView._createChildren(self, True)
@@ -1895,7 +1898,7 @@ class Item(CItem):
 
     def _removeItem(self, item):
 
-        del self._children[item._uuid]
+        del self._children[item.itsUUID]
 
     def _setChildren(self, children):
 
@@ -2194,8 +2197,7 @@ class Item(CItem):
 
             self._parent._unloadChild(self)
             if self._children is not None:
-                self._children._clear_()
-                self._children._item = None
+                self._children.clear()
                 self._children = None
 
             view._unregisterItem(self, reloadable)
@@ -2223,30 +2225,6 @@ class Item(CItem):
         return self.itsView._createRefList(self, name, otherName,
                                            persisted, False, True, None)
 
-    def _commitMerge(self, version):
-
-        self._version = version
-        status = self._status
-
-        if status & Item.CMERGED:
-            self._children._commitMerge()
-        if status & Item.VMERGED:
-            self._values._commitMerge()
-        if status & (Item.RMERGED | Item.VMERGED):
-            self._references._commitMerge()
-
-    def _revertMerge(self):
-
-        status = self._status
-
-        if status & Item.CMERGED:
-            self._children._revertMerge()
-        if status & Item.VMERGED:
-            self._values._revertMerge()
-        if status & (Item.RMERGED | Item.VMERGED):
-            self._references._revertMerge()
-
-        self._status &= ~Item.MERGED
 
     def hashItem(self):
         """
@@ -2342,11 +2320,6 @@ class Item(CItem):
         else:
             indexes = ', '.join((str(t) for t in indexes.iteritems()))
 
-        return "%s%s\n%s  indexes: %s\n%s" %('  ' * indent, self._repr_(),
-                                             '  ' * indent, indexes,
-                                             collection._inspect_(indent + 1))
-
-    def _afterMerge(self):
-
-        self._values._afterMerge()
-        self._references._afterMerge()
+        return "\n%s%s\n%sindexes: %s%s" %('  ' * indent, self._repr_(),
+                                           '  ' * (indent + 1), indexes,
+                                           collection._inspect_(indent + 1))

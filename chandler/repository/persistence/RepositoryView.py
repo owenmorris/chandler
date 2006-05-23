@@ -184,7 +184,7 @@ class RepositoryView(CView):
 
         repository = self.repository
         if repository is not None:
-            if repository._threaded.view is self:
+            if getattr(repository._threaded, 'view', None) is self:
                 del repository._threaded.view
             repository._openViews.remove(self)
 
@@ -394,7 +394,7 @@ class RepositoryView(CView):
                     raise AttributeError, (uItem, name)
                 return default
 
-        return reader.readValue(self, uValue)
+        return reader.readValue(self, uValue)[1]
 
     def findValues(self, uItem, *pairs):
         """
@@ -436,7 +436,7 @@ class RepositoryView(CView):
         values = []
         for uValue, (name, default) in izip(uValues, pairs):
             if uValue is not None:
-                values.append(reader.readValue(self, uValue))
+                values.append(reader.readValue(self, uValue)[1])
             else:
                 values.append(default)
 
@@ -682,7 +682,6 @@ class RepositoryView(CView):
     def _addItem(self, item):
 
         name = item.itsName
-
         if name is not None:
             key = self._roots.resolveAlias(name, not self.isLoading())
             if not (key is None or key == item.itsUUID):
@@ -872,9 +871,9 @@ class RepositoryView(CView):
 
             - the item's committed version for the change
 
-            - the item's committed status bits for the change
-
             - the item's Kind item
+
+            - the item's committed status bits for the change
 
             - a list of changed literal attribute names
 
@@ -907,6 +906,12 @@ class RepositoryView(CView):
             self._status &= ~RepositoryView.RECORDING
             for callable, args, kwds in self._changeNotifications:
                 callable(*args, **kwds)
+            self._changeNotifications = None
+
+    def discardChangeNotifications(self):
+
+        if self._isRecording():
+            self._status &= ~RepositoryView.RECORDING
             self._changeNotifications = None
 
     def _commitMerge(self):

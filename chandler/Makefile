@@ -69,8 +69,8 @@ BUILD_PLUGINS=Chandler-HelloWorldPlugin Chandler-FeedsPlugin
 
 # these get installed into release or debug
 ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)6.tar.gz \
-         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)21.tar.gz \
-         $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)3.tar.gz \
+         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)22.tar.gz \
+         $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)8.tar.gz \
          $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)1.tar.gz \
          $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.7i-$(BP)2.tar.gz \

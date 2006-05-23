@@ -158,6 +158,7 @@ def initOptions(**kwds):
         'debugOn':    ('-d', '--debugOn',    's', None,  None, 'Enter PDB upon this exception being raised'),
         'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, 'Parcel that defines the core application'),
         'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
+        'indexer':    ('-i', '--indexer',    's', 'background', None, 'Run Lucene indexing in the background or foreground'),
     }
 
 
@@ -352,6 +353,12 @@ def initRepository(directory, options, allowSchemaView=False):
     if isinstance(schema.reset(view), NullRepositoryView):
         if not allowSchemaView:
             raise AssertionError, "schema.py was used before it was initialized here causing it to setup a NullRepositoryView"
+
+    if options.indexer == 'background':   # 'background' is the default
+        # don't run PyLucene indexing in the main view
+        view.setBackgroundIndexed(True)
+        # but in the repository's background indexer
+        repository.startIndexer()
 
     if options.debugOn:
         from repository.util.ClassLoader import ClassLoader

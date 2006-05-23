@@ -205,9 +205,6 @@ class Type(Item):
     def hashValue(self, value):
         return _hash(self.makeString(value))
 
-    def indexValue(self, itemWriter, item, attribute, version, value):
-        itemWriter.indexValue(self.makeUnicode(value), item, attribute, version)
-
     NoneString = "__NONE__"
 
 
@@ -1971,8 +1968,3 @@ class Lob(Type):
 
         # for now
         return 0
-
-    def indexValue(self, itemWriter, item, attribute, version, value):
-
-        # done during saving of lob data
-        pass

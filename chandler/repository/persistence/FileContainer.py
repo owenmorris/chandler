@@ -10,7 +10,7 @@ from time import time
 
 from PyLucene import \
     Document, Field, \
-    DbDirectory, StandardAnalyzer, QueryParser, \
+    RAMDirectory, DbDirectory, StandardAnalyzer, QueryParser, \
     IndexReader, IndexWriter, IndexSearcher, Term, TermQuery
 
 from chandlerdb.util.c import UUID
@@ -428,42 +428,59 @@ class IndexContainer(FileContainer):
 
         return IndexReader.open(self.getDirectory())
 
-    def getIndexWriter(self):
-
-        writer = IndexWriter(self.getDirectory(), StandardAnalyzer(), False)
-        writer.setUseCompoundFile(False)
-
-        return writer
-
     def getIndexSearcher(self):
 
         return IndexSearcher(self.getDirectory())
 
-    def indexValue(self, indexWriter, value, owner, attribute, version):
+    def getIndexWriter(self):
+
+        writer = IndexWriter(RAMDirectory(), StandardAnalyzer(), True)
+        writer.setUseCompoundFile(False)
+
+        return writer
+
+    def commitIndexWriter(self, writer):
+
+        writer.close()
+        dbWriter = IndexWriter(self.getDirectory(), StandardAnalyzer(), False)
+        dbWriter.setUseCompoundFile(False)
+        dbWriter.addIndexes([writer.getDirectory()])
+        dbWriter.close()
+        dbWriter.getDirectory().close()
+        writer.getDirectory().close()
+
+    def abortIndexWriter(self, writer):
+
+        writer.close()
+        writer.getDirectory().close()
+
+    def indexValue(self, indexWriter, value, uItem, uAttr, uValue, version):
 
         YES = Field.Store.YES
-        NO = Field.Store.NO
-        UN_TOKENIZED = Field.Index.UN_TOKENIZED
+        NO =  Field.Index.NO
         TOKENIZED = Field.Index.TOKENIZED
+        UN_TOKENIZED = Field.Index.UN_TOKENIZED
 
         doc = Document()
-        doc.add(Field("owner", owner.str64(), YES, UN_TOKENIZED))
-        doc.add(Field("attribute", attribute.str64(), YES, UN_TOKENIZED))
-        doc.add(Field("version", str(version), YES, UN_TOKENIZED))
+        doc.add(Field("item", uItem.str64(), YES, UN_TOKENIZED))
+        doc.add(Field("attribute", uAttr.str64(), YES, NO))
+        doc.add(Field("value", uValue.str64(), YES, NO))
+        doc.add(Field("version", str(version), YES, NO))
         doc.add(Field("contents", value, YES, TOKENIZED))
 
         indexWriter.addDocument(doc)
 
-    def indexReader(self, indexWriter, reader, owner, attribute, version):
+    def indexReader(self, indexWriter, reader, uItem, uAttr, uValue, version):
 
         YES = Field.Store.YES
-        NO = Field.Store.NO
+        NO =  Field.Index.NO
         UN_TOKENIZED = Field.Index.UN_TOKENIZED
 
         doc = Document()
-        doc.add(Field("owner", owner.str64(), YES, UN_TOKENIZED))
-        doc.add(Field("attribute", attribute.str64(), YES, UN_TOKENIZED))
-        doc.add(Field("version", str(version), YES, UN_TOKENIZED))
+        doc.add(Field("item", uItem.str64(), YES, UN_TOKENIZED))
+        doc.add(Field("attribute", uAttr.str64(), YES, NO))
+        doc.add(Field("value", uValue.str64(), YES, NO))
+        doc.add(Field("version", str(version), YES, NO))
         doc.add(Field("contents", reader))
 
         indexWriter.addDocument(doc)
@@ -481,12 +498,12 @@ class IndexContainer(FileContainer):
         for i, doc in searcher.search(query):
             ver = long(doc['version'])
             if ver <= version:
-                uuid = UUID(doc['owner'])
-                dv = docs.get(uuid, None)
+                uItem = UUID(doc['item'])
+                dv = docs.get(uItem, None)
                 if dv is None or dv[0] < ver:
-                    docAttr = UUID(doc['attribute'])
-                    if attribute is None or attribute == docAttr:
-                        docs[uuid] = (ver, docAttr)
+                    uAttr = UUID(doc['attribute'])
+                    if attribute is None or attribute == uAttr:
+                        docs[uItem] = (ver, uAttr, UUID(doc['value']))
 
         searcher.close()
 
@@ -494,13 +511,13 @@ class IndexContainer(FileContainer):
 
     def purgeDocuments(self, indexSearcher, indexReader, uItem, keeps):
 
-        count = 0
-        query = TermQuery(Term("owner", uItem.str64()))
-        hits = indexSearcher.search(query)
+        term = Term("item", uItem.str64())
 
         if keeps:
+            count = 0
             prevs = {}
-            for i, doc in hits:
+
+            for i, doc in indexSearcher.search(TermQuery(term)):
                 id = hits.id(i)
                 uAttr = UUID(doc['attribute'])
 
@@ -520,8 +537,6 @@ class IndexContainer(FileContainer):
                     count += 1
 
         else:
-            for i, doc in hits:
-                indexReader.deleteDocument(hits.id(i))
-                count += 1
+            count = indexReader.deleteDocuments(term)
 
         return count

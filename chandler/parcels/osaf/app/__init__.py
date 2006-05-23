@@ -50,7 +50,7 @@ def installParcel(parcel, oldVersion=None):
     # The Sidebar collection
     sidebarListCollection = pim.ListCollection.update(parcel,
         'sidebarCollection',
-        refCollection=[pim_ns.allCollection, pim_ns.trashCollection]
+        inclusions=[pim_ns.allCollection, pim_ns.trashCollection]
     )
 
 

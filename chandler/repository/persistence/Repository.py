@@ -33,6 +33,7 @@ class Repository(CRepository):
         self.dbHome = dbHome
         self._threaded = threading.local()
         self._openViews = []
+        self._indexer = None
 
     def __repr__(self):
 

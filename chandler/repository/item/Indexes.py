@@ -19,9 +19,7 @@ class Index(dict):
     def __init__(self, **kwds):
 
         super(Index, self).__init__()
-
         self._count = 0
-        self._valid = True
 
     def __iter__(self, firstKey=None, lastKey=None, backwards=False):
 
@@ -106,6 +104,9 @@ class Index(dict):
 
     def _xmlValues(self, generator, version):
         raise NotImplementedError, "%s._xmlValues" %(type(self))
+
+    def _needsReindexing(self):
+        return False
 
 
 class NumericIndex(Index):
@@ -253,11 +254,6 @@ class NumericIndex(Index):
         skipList.remove(key)
         super(NumericIndex, self).removeKey(key)
 
-    def _clear_(self):
-
-        super(NumericIndex, self).clear()
-        self.skipList._clear_()
-
     def clear(self):
 
         key = self.getFirstKey()
@@ -265,14 +261,6 @@ class NumericIndex(Index):
             next = self.getNextKey(key)
             self.removeKey(key)
             key = next
-
-    def invalidate(self):
-
-        self._valid = False
-
-    def validate(self):
-
-        self._valid = True
 
     def _writeValue(self, itemWriter, buffer, version):
 
@@ -339,9 +327,6 @@ class DelegatingIndex(object):
     def _readValue(self, itemReader, offset, data):
         return self._index._readValue(itemReader, offset, data)
 
-    def _clear_(self):
-        return self._index._clear_()
-
 
 class SortedIndex(DelegatingIndex):
 
@@ -367,7 +352,7 @@ class SortedIndex(DelegatingIndex):
 
         raise NotImplementedError, '%s is abstract' % type(self)
 
-    def insertKey(self, key, afterKey):
+    def insertKey(self, key, afterKey=None):
 
         index = self._index
         index.insertKey(key, index.skipList.after(key, self.compare))
@@ -457,6 +442,9 @@ class SortedIndex(DelegatingIndex):
         offset, self._descending = itemReader.readBoolean(offset, data)
 
         return offset
+
+    def _needsReindexing(self):
+        return True
 
 
 class AttributeIndex(SortedIndex):

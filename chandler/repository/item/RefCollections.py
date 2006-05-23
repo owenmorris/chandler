@@ -5,9 +5,9 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from chandlerdb.util.c import UUID, _hash, _combine
+from chandlerdb.util.c import UUID, _hash, _combine, CLink
 from repository.util.Path import Path
-from repository.util.LinkedMap import LinkedMap, CLink
+from repository.util.LinkedMap import LinkedMap
 from repository.item.Indexed import Indexed
 from chandlerdb.item.c import Nil
 from chandlerdb.item.ItemError import *
@@ -44,6 +44,9 @@ class RefList(LinkedMap, Indexed):
     def _isRefs(self):
         return True
     
+    def _isSet(self):
+        return False
+    
     def _isItem(self):
         return False
     
@@ -52,9 +55,6 @@ class RefList(LinkedMap, Indexed):
     
     def _isTransient(self):
         return False
-
-    def iterChanges(self):
-        return iter(())
 
     def _setFlag(self, flag, on):
 

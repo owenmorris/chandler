@@ -35,7 +35,7 @@ class SimpleItem(schema.Item):
     """
 
     label = schema.One(schema.Text, displayName=u"\u00FCMy Label")
-    collections = schema.Sequence(otherName='refCollection')
+    collections = schema.Sequence(otherName='inclusions')
     appearsIn = schema.Sequence(otherName='set')
 
 class ChildSimpleItem(SimpleItem):
@@ -47,7 +47,7 @@ class OtherSimpleItem(schema.Item):
     """
 
     label = schema.One(schema.Text, displayName=u"\u00FCMy Label")
-    collections = schema.Sequence(otherName='refCollection')
+    collections = schema.Sequence(otherName='inclusions')
     appearsIn = schema.Sequence(otherName='set')
 
 

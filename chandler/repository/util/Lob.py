@@ -4,6 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from chandlerdb.item.ItemValue import Indexable
 from repository.util.Streams import BZ2OutputStream, BZ2InputStream
 from repository.util.Streams import ZlibOutputStream, ZlibInputStream
 from repository.util.Streams import RijndaelOutputStream, RijndaelInputStream
@@ -12,11 +13,9 @@ from repository.util.Streams import BufferedOutputStream, BufferedInputStream
 from repository.util.Streams import HTMLReader, Base64InputStream
 
 
-class Lob(object):
+class Lob(Indexable):
 
     def __init__(self, encoding=None, mimetype='text/plain', indexed=None):
-
-        super(Lob, self).__init__()
 
         self.encoding = encoding
         self.mimetype = mimetype.lower()
@@ -27,6 +26,10 @@ class Lob(object):
         self._data = ''
         self._append = False
         self._indexed = indexed
+
+    def isIndexed(self):
+
+        return self._indexed
 
     def getOutputStream(self, compression=None,
                         encryption=None, key=None, iv=None,

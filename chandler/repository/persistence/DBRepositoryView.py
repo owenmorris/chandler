@@ -4,14 +4,17 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from threading import currentThread
 from datetime import timedelta
-from time import time
+from time import time, sleep
 
-from chandlerdb.item.c import CItem
+from chandlerdb.item.c import CItem, Nil, Default, isitem
 from chandlerdb.util.c import isuuid
 from chandlerdb.persistence.c import DBLockDeadlockError
 
 from repository.item.RefCollections import RefList, TransientRefList
+from repository.item.Indexed import Indexed
+from repository.item.Sets import AbstractSet
 from repository.persistence.RepositoryError \
      import RepositoryError, MergeError, VersionConflictError
 from repository.persistence.RepositoryView \
@@ -20,8 +23,7 @@ from repository.persistence.Repository import Repository
 from repository.persistence.DBLob import DBLob
 from repository.persistence.DBRefs import DBRefList, DBChildren, DBNumericIndex
 from repository.persistence.DBContainer import HashTuple
-from repository.persistence.DBItemIO \
-     import DBItemWriter, DBItemVMergeReader, DBItemRMergeReader
+from repository.persistence.DBItemIO import DBItemWriter
 
 
 class DBRepositoryView(OnDemandRepositoryView):
@@ -110,7 +112,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         if uuid in self._registry:
             return self[uuid].itsKind
 
-        uuid = self.store.kindForKey(self, self._version, uuid)
+        uuid = self.store.kindForKey(self, self.itsVersion, uuid)
         if uuid is not None:
             return self[uuid]
 
@@ -118,17 +120,16 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def searchItems(self, query, attribute=None, load=True):
 
-        store = self.store
-        results = []
-        docs = store.searchItems(self, self._version, query,
-                                 attribute and attribute.itsUUID)
-        for uuid, (ver, attribute) in docs.iteritems():
-            if not uuid in self._deletedRegistry:
-                item = self.find(uuid, load)
-                if item is not None:
-                    results.append((item, self[attribute]))
+        if attribute is not None:
+            uAttr = attribute.itsUUID
+        else:
+            uAttr = None
 
-        return results
+        for uItem, uAttr in self.store.searchItems(self, self.itsVersion,
+                                                   query, uAttr):
+            item = self.find(uItem, load)
+            if item is not None:
+                yield item, self[uAttr]
 
     def _createRefList(self, item, name, otherName,
                        persisted, readOnly, new, uuid):
@@ -169,8 +170,7 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _commitTransaction(self, status):
 
         if self._indexWriter is not None:
-            self.store._index.optimizeIndex(self._indexWriter)
-            self._indexWriter.close()
+            self.store._index.commitIndexWriter(self._indexWriter)
             self._indexWriter = None
             
         self.store.commitTransaction(self, status)
@@ -179,7 +179,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         if self._indexWriter is not None:
             try:
-                self._indexWriter.close()
+                self.store._index.abortIndexWriter(self._indexWriter)
             except:
                 pass
                 #self.logger.exception('Ignorable exception while closing indexWriter during _abortTransaction')
@@ -320,44 +320,91 @@ class DBRepositoryView(OnDemandRepositoryView):
         if newVersion > self._version:
             history = []
             refreshes = set()
+            deletes = set()
+            merges = {}
             unloads = {}
-            also = set()
-            _log = self._log
+            dangling = []
 
-            try:
-                self._log = set()
-                try:
-                    merges = self._mergeItems(self._version, newVersion,
-                                              history, refreshes, unloads, also,
-                                              mergeFn)
-                except:
-                    raise
-                else:
-                    # unload items unchanged until changed by merging
-                    for item in self._log:
-                        item.setDirty(0)
-                        unloads[item.itsUUID] = item
-            finally:
-                self._log = _log
-
-            # unload items changed only in the other view whose older version
-            # got loaded as a side-effect of merging
-            for uuid in also:
-                item = self.find(uuid, False)
-                if item is not None:
-                    unloads[uuid] = item
-                    
+            self._refreshItems(self._version, newVersion,
+                               history, refreshes, merges, unloads, deletes)
             oldVersion = self._version
             self._version = newVersion
             _refresh(unloads.itervalues)
 
-            for uuid in merges.iterkeys():
-                item = self.find(uuid)
-                if item is not None:
-                    item._afterMerge()
+            if merges:
+                newChanges = {}
+                changes = {}
+                indexChanges = {}
 
-            #if merges:
-            #    print 'CHECK', self.check()
+                def _unload(keys):
+                    for uItem in keys():
+                        item = self.find(uItem)
+                        item.setDirty(0)
+                        item._unloadItem(True, self, False)
+
+                try:
+                    self.recordChangeNotifications()
+
+                    for uItem, (dirty, uParent, dirties) in merges.iteritems():
+                        item = self.find(uItem, False)
+                        newDirty = item.getDirty()
+                        _newChanges = {}
+                        _changes = {}
+                        _indexChanges = {}
+                        newChanges[uItem] = (newDirty, _newChanges)
+                        changes[uItem] = (dirty, _changes)
+                        self._collectChanges(item, newDirty,
+                                             dirty, HashTuple(dirties),
+                                             oldVersion, newVersion,
+                                             _newChanges, _changes,
+                                             _indexChanges)
+                        if _indexChanges:
+                            indexChanges[uItem] = _indexChanges
+
+                except:
+                    self.discardChangeNotifications()
+                    self._version = oldVersion
+                    _refresh(unloads.itervalues)
+                    raise
+
+                try:
+                    _unload(merges.iterkeys)
+
+                    for uItem, (dirty, uParent, dirties) in merges.iteritems():
+                        item = self.find(uItem)
+                        newDirty, _newChanges = newChanges[uItem]
+                        dirty, _changes = changes[uItem]
+                        self._applyChanges(item, newDirty,
+                                           dirty, HashTuple(dirties),
+                                           oldVersion, newVersion,
+                                           _newChanges, _changes, mergeFn,
+                                           dangling)
+                    self._applyIndexChanges(indexChanges, deletes)
+                    for uItem, name, uRef in dangling:
+                        item = self.find(uItem)
+                        if item is not None:
+                            item._references._removeRef(name, uRef)
+
+                except:
+                    self.discardChangeNotifications()
+                    self._version = oldVersion
+                    _refresh(unloads.itervalues)
+
+                    _unload(merges.iterkeys)
+                    deletes.clear()
+                    del dangling[:]
+
+                    for uItem, (dirty, uParent, dirties) in merges.iteritems():
+                        item = self.find(uItem)
+                        newDirty, _newChanges = newChanges[uItem]
+                        self._applyChanges(item, newDirty, 0, (),
+                                           oldVersion, newVersion,
+                                           _newChanges, None, None, None)
+                    self._applyIndexChanges(indexChanges, deletes)
+                    raise
+
+                else:
+                    self.playChangeNotifications()
 
             if notify:
                 before = time()
@@ -446,8 +493,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                         break
 
                     except DBLockDeadlockError:
-                        self.logger.info('%s retrying commit aborted by deadlock', self)
+                        self.logger.info('%s retrying commit aborted by deadlock (thread: %s)', self, currentThread().getName())
                         txnStatus = finish(txnStatus, False)
+                        sleep(1)
                         continue
 
                     except:
@@ -526,11 +574,11 @@ class DBRepositoryView(OnDemandRepositoryView):
                            item._values._getDirties(), 
                            item._references._getDirties())
     
-    def mapHistory(self, fromVersion=0, toVersion=0, history=None):
+    def mapHistory(self, fromVersion=-1, toVersion=0, history=None):
 
         if history is None:
             store = self.store
-            if fromVersion == 0:
+            if fromVersion == -1:
                 fromVersion = self._version
             if toVersion == 0:
                 toVersion = store.getVersion()
@@ -553,16 +601,17 @@ class DBRepositoryView(OnDemandRepositoryView):
                             values.append(name)
             yield uItem, version, kind, status, values, references, prevKind
 
-    def _mergeItems(self, oldVersion, toVersion, history, refreshes,
-                    unloads, also, mergeFn):
-
-        merges = {}
+    def _refreshItems(self, oldVersion, toVersion,
+                      history, refreshes, merges, unloads, deletes):
 
         for args in self.store._items.iterHistory(self, oldVersion, toVersion):
             uItem, version, uKind, status, uParent, prevKind, dirties = args
 
             history.append(args)
             refreshes.add(uItem)
+
+            if status & CItem.DELETED:
+                deletes.add(uItem)
 
             item = self.find(uItem, False)
             if item is not None:
@@ -585,116 +634,145 @@ class DBRepositoryView(OnDemandRepositoryView):
                 else:
                     self._e_1_delete(uItem, kind, oldVersion, version)
 
+    def _collectChanges(self, item, newDirty, dirty, dirties,
+                        version, newVersion,
+                        newChanges, changes, indexChanges):
+
+        CDIRTY = CItem.CDIRTY
+        NDIRTY = CItem.NDIRTY
+        RDIRTY = CItem.RDIRTY
+        VDIRTY = CItem.VDIRTY
+
+        if newDirty & CDIRTY:
+            children = item._children
+            newChanges[CDIRTY] = dict(children._iterChanges())
+            if dirty & CDIRTY:
+                changes[CDIRTY] = dict(children._iterHistory(version, newVersion))
             else:
-                also.add(uItem)
-                    
-        try:
-            for uItem, (oldDirty, uParent, dirties) in merges.iteritems():
-            
-                item = self.find(uItem, False)
-                newDirty = item.getDirty()
+                changes[CDIRTY] = {}
 
-                if oldDirty & CItem.KDIRTY:
-                    raise NotImplementedError, 'merge with refresh kind change'
+        if newDirty & NDIRTY:
+            newChanges[NDIRTY] = (item.itsParent.itsUUID, item.itsName,
+                                  item.isDeferred())
 
-                if newDirty & CItem.KDIRTY:
-                    if newDirty & CItem.VDIRTY:
-                        oldDirty |= CItem.VDIRTY
-                    if newDirty & CItem.RDIRTY:
-                        oldDirty |= CItem.RDIRTY
+        if newDirty & RDIRTY:
+            newChanges[RDIRTY] = _newChanges = {}
+            changes[RDIRTY] = _changes = {}
+            item._references._collectChanges(self, RDIRTY, dirties,
+                                             _newChanges, _changes,
+                                             indexChanges, version, newVersion)
+                
+        if newDirty & VDIRTY:
+            newChanges[VDIRTY] = _newChanges = {}
+            item._references._collectChanges(self, VDIRTY, dirties,
+                                             _newChanges, None, indexChanges,
+                                             version, newVersion)
+            item._values._collectChanges(self, VDIRTY, dirties,
+                                         _newChanges, None, indexChanges,
+                                         version, newVersion)
 
-                if newDirty & oldDirty & CItem.NDIRTY:
-                    item._status |= CItem.NMERGED
-                    self._mergeNDIRTY(item, uParent, oldVersion, toVersion)
-                    oldDirty &= ~CItem.NDIRTY
+    def _applyChanges(self, item, newDirty, dirty, dirties,
+                      version, newVersion, newChanges, changes, mergeFn,
+                      dangling):
 
-                if newDirty & oldDirty & CItem.CDIRTY:
-                    item._status |= CItem.CMERGED
-                    item._children._mergeChanges(oldVersion, toVersion)
-                    oldDirty &= ~CItem.CDIRTY
+        CDIRTY = CItem.CDIRTY
+        NDIRTY = CItem.NDIRTY
+        RDIRTY = CItem.RDIRTY
+        VDIRTY = CItem.VDIRTY
 
-                if newDirty & oldDirty & CItem.RDIRTY:
-                    item._status |= CItem.RMERGED
-                    self._mergeRDIRTY(item, dirties, oldVersion, toVersion)
-                    oldDirty &= ~CItem.RDIRTY
+        def ask(reason, name, value):
+            mergedValue = Default
+            if mergeFn is not None:
+                mergedValue = mergeFn(reason, item, name, value)
+            if mergedValue is Default:
+                if hasattr(type(item), 'onItemMerge'):
+                    mergedValue = item.onItemMerge(reason, name, value)
+                if mergedValue is Default:
+                    self._e_1_overlap(reason, item, name)
+            return mergedValue
 
-                if newDirty & oldDirty & CItem.VDIRTY:
-                    item._status |= CItem.VMERGED
-                    self._mergeVDIRTY(item, toVersion, dirties, mergeFn)
-                    oldDirty &= ~CItem.VDIRTY
+        if newDirty & CDIRTY:
+            if changes is None:
+                if item._children is None:
+                    item._children = self._createChildren(item, True)
+                item._children._applyChanges(newChanges[CDIRTY], ())
+            else:
+                item._children._applyChanges(newChanges[CDIRTY],
+                                             changes[CDIRTY])
+            dirty &= ~CDIRTY
+            newDirty &= ~CDIRTY
+            item._status |= (CItem.CMERGED | CDIRTY)
 
-                if newDirty & oldDirty == 0:
-                    if oldDirty & CItem.VDIRTY:
-                        item._status |= CItem.VMERGED
-                        self._mergeVDIRTY(item, toVersion, dirties, mergeFn)
-                        oldDirty &= ~CItem.VDIRTY
-                    if oldDirty & CItem.RDIRTY:
-                        item._status |= CItem.RMERGED
-                        self._mergeRDIRTY(item, dirties, oldVersion, toVersion)
-                        oldDirty &= ~CItem.RDIRTY
+        if newDirty & NDIRTY:
+            newParent, newName, isDeferred = newChanges[NDIRTY]
+            if dirty & NDIRTY:
+                if newName != item.itsName:
+                    newName = ask(MergeError.RENAME, 'itsName', newName)
+                if newParent != item.itsParent.itsUUID:
+                    newParent = ask(MergeError.MOVE, 'itsParent',
+                                    self.find(newParent)).itsUUID
+            if newName != item.itsName:
+                item._name = newName
+            if newParent != item.itsParent.itsUUID:
+                item._parent = self[newParent]
+            dirty &= ~NDIRTY
+            newDirty &= ~NDIRTY
+            if isDeferred:
+                item._status |= (CItem.NMERGED | CItem.DEFERRED | NDIRTY)
+            else:
+                item._status |= (CItem.NMERGED | NDIRTY)
 
-                if newDirty and oldDirty:
-                    raise VersionConflictError, (item, newDirty, oldDirty)
+        if newDirty & RDIRTY:
+            item._references._applyChanges(self, RDIRTY, dirties, ask,
+                                           newChanges, changes, dangling)
+            dirty &= ~RDIRTY
+            newDirty &= ~RDIRTY
+            item._status |= (CItem.RMERGED | RDIRTY)
 
-        except VersionConflictError:
-            for uuid in merges.iterkeys():
-                item = self.find(uuid, False)
-                if item._status & CItem.MERGED:
-                    item._revertMerge()
-            raise
+        if newDirty & VDIRTY:
+            item._references._applyChanges(self, VDIRTY, dirties, ask,
+                                           newChanges, None, dangling)
+            item._values._applyChanges(self, VDIRTY, dirties, ask, newChanges)
+            dirty &= ~VDIRTY
+            newDirty &= ~VDIRTY
+            item._status |= (CItem.VMERGED | VDIRTY)
 
-        else:
-            for uuid in merges.iterkeys():
-                item = self.find(uuid, False)
-                if item._status & CItem.MERGED:
-                    item._commitMerge(toVersion)
-                    self._i_merged(item)
-
-            return merges
-
-    def _mergeNDIRTY(self, item, parentId, oldVersion, toVersion):
-
-        newParentId = item.itsParent.itsUUID
-        if parentId != newParentId:
-            p = self.store._items.getItemParentId(self, oldVersion,
-                                                  item.itsUUID)
-            if p != parentId and p != newParentId:
-                self._e_1_rename(item, p, newParentId)
-    
-        refs = self.store._refs
-        p, n, name = refs.loadRef(self, parentId, toVersion, item.itsUUID)
-
-        if name != item._name:
-            self._e_2_rename(item, name)
-
-    def _mergeRDIRTY(self, item, dirties, oldVersion, toVersion):
-
-        dirties = HashTuple(dirties)
-        store = self.store
-        args = store._items.loadItem(self, toVersion, item.itsUUID)
-        DBItemRMergeReader(store, item, dirties,
-                           oldVersion, *args).readItem(self, [])
-
-    def _mergeVDIRTY(self, item, toVersion, dirties, mergeFn):
-
-        dirties = HashTuple(dirties)
-        store = self.store
-        args = store._items.loadItem(self, toVersion, item.itsUUID)
-        DBItemVMergeReader(store, item, dirties,
-                           mergeFn, *args).readItem(self, [])
-
-    def _i_merged(self, item):
+        if dirty and newDirty:
+            raise VersionConflictError, (item, newDirty, dirty)
 
         self.logger.info('%s merged %s with newer versions, merge status: 0x%0.8x', self, item.itsPath, (item._status & CItem.MERGED))
 
-    def _e_1_rename(self, item, parentId, newParentId):
+    def _applyIndexChanges(self, indexChanges, deletes):
 
-        raise MergeError, ('rename', item, 'item %s moved to %s and %s' %(item.itsUUID, parentId, newParentId), MergeError.MOVE)
-
-    def _e_2_rename(self, item, name):
-
-        raise MergeError, ('rename', item, 'item %s renamed to %s and %s' %(item.itsUUID, item.itsName, name), MergeError.RENAME)
+        for uItem, _indexChanges in indexChanges.iteritems():
+            item = self.find(uItem, False)
+            if item is None and uItem not in deletes:
+                raise AssertionError, (uItem, "item not found")
+            for name, __indexChanges in _indexChanges.iteritems():
+                getattr(item, name)._applyIndexChanges(self, __indexChanges,
+                                                       deletes)
 
     def _e_1_delete(self, uItem, uKind, oldVersion, newVersion):
 
         raise MergeError, ('delete', uItem, 'item %s was deleted in this version (%d) but has later changes in version (%d) where it is of kind %s' %(uItem, oldVersion, newVersion, uKind), MergeError.CHANGE)
+
+    def _e_1_name(self, list, key, newName, name):
+        raise MergeError, ('name', type(self).__name__, 'element %s renamed to %s and %s' %(key, newName, name), MergeError.RENAME)
+
+    def _e_2_name(self, list, key, newKey, name):
+        raise MergeError, ('name', type(list).__name__, 'element %s named %s conflicts with element %s of same name' %(newKey, name, key), MergeError.NAME)
+
+    def _e_2_move(self, list, key):
+        raise MergeError, ('move', type(list).__name__, 'removed element %s was modified in other view' %(key), MergeError.MOVE)
+
+    def _e_1_overlap(self, code, item, name):
+        
+        raise MergeError, ('callback', item, 'merging values for %s on %s failed because no merge callback was defined or because the merge callback(s) punted' %(name, item._repr_()), code)
+
+    def _e_2_overlap(self, code, item, name):
+
+        raise MergeError, ('bug', item, 'merging refs is not implemented, attribute: %s' %(name), code)
+
+    def _e_3_overlap(self, code, item, name):
+
+        raise MergeError, ('bug', item, 'this merge not implemented, attribute: %s' %(name), code)

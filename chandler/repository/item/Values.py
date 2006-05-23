@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.c import \
     UUID, SingleRef, _hash, _combine, isuuid, issingleref
-from chandlerdb.item.c import Nil, Default, CValues, CItem
+from chandlerdb.item.c import Nil, Default, CValues, CItem, isitem
 from chandlerdb.item.ItemError import *
 from chandlerdb.item.ItemValue import ItemValue
 
@@ -15,6 +15,7 @@ from repository.util.Lob import Lob
 from repository.item.RefCollections import RefList
 from repository.item.Indexed import Indexed
 from repository.schema.TypeHandler import TypeHandler
+from repository.persistence.RepositoryError import MergeError
 
 
 class Values(CValues):
@@ -258,36 +259,6 @@ class Values(CValues):
 
         return hash
 
-    def _prepareMerge(self):
-
-        if not hasattr(self, '_original'):
-            self._original = self.copy()
-
-        return self
-
-    def _commitMerge(self):
-
-        try:
-            del self._original
-        except AttributeError:
-            pass
-
-    def _revertMerge(self):
-
-        try:
-            self.update(self._original)
-            del self._original
-        except AttributeError:
-            pass
-
-    def _afterMerge(self):
-
-        for key, value in self._dict.iteritems():
-            if isinstance(value, ItemValue):
-                value._setOwner(self._item, key)
-            if isinstance(value, Indexed):
-                value._validateIndexes()
-
     def _checkValue(self, logger, name, value, attrType):
 
         if isinstance(value, ItemValue):
@@ -379,7 +350,37 @@ class Values(CValues):
             for key, value in self._dict.iteritems():
                 if isinstance(value, Lob):
                     item.setAttributeValue(key, value.copy(view), self)
-    
+
+    def _collectChanges(self, view, flag, dirties,
+                        newChanges, changes, indexChanges,
+                        version, newVersion):
+
+        for name in self._getDirties():
+            value = self.get(name, Nil)
+
+            if name in dirties:
+                if value is Nil:
+                    view._e_3_overlap(MergeError.VALUE, self._item, name)
+                newChanges[name] = (False, value)
+            else:
+                newChanges[name] = (False, value)
+
+            if isinstance(value, Indexed):
+                value._collectIndexChanges(name, indexChanges)
+
+    def _applyChanges(self, view, flag, dirties, ask, newChanges):
+
+        for name, (isRef, newValue) in newChanges[flag].iteritems():
+            if not isRef:
+                value = self.get(name, Nil)
+                if newValue != value:
+                    if name in dirties:
+                        newValue = ask(MergeError.VALUE, name, newValue)
+                    if newValue is Nil:
+                        delattr(self._item, name)
+                    else:
+                        setattr(self._item, name, newValue)
+
 
 class References(Values):
 
@@ -435,7 +436,7 @@ class References(Values):
             view._notifyChange(other._collectionChanged,
                                'add', 'collection', otherName, item.itsUUID)
 
-    def _addRef(self, name, other, otherName, fireChanges=False):
+    def _addRef(self, name, other, otherName=None, fireChanges=False):
 
         value = self.get(name, None)
         if value is None or not value._isRefs() or other.itsUUID not in value:
@@ -444,7 +445,7 @@ class References(Values):
 
         return False
             
-    def _setRef(self, name, other, otherName, cardinality=None, alias=None,
+    def _setRef(self, name, other, otherName=None, cardinality=None, alias=None,
                 fireChanges=False):
 
         item = self._item
@@ -864,57 +865,6 @@ class References(Values):
             if value is not None and value._isRefs():
                 value._clearDirties()
 
-    def _commitMerge(self):
-
-        try:
-            del self._original
-        except AttributeError:
-            pass
-
-        try:
-            dirties = self._dirties
-            del self._dirties
-        except AttributeError:
-            dirties = None
-
-        for key, value in self._dict.iteritems():
-            if value is not None and value._isRefs():
-                if dirties is not None and key in dirties:
-                    value._clear_()
-                else:
-                    try:
-                        del value._original
-                    except AttributeError:
-                        pass
-
-    def _revertMerge(self):
-
-        try:
-            original = self._original
-            self.update(original)
-            del self._original
-        except AttributeError:
-            original = self
-
-        try:
-            del self._dirties
-        except AttributeError:
-            pass
-
-        for key, value in original._dict.iteritems():
-            try:
-                if value is not None and value._isRefs():
-                    self[key] = value._original
-                    del value._original
-            except AttributeError:
-                pass
-
-    def _afterMerge(self):
-
-        for key, value in self._dict.iteritems():
-            if isinstance(value, Indexed):
-                value._validateIndexes()
-
     def _checkRef(self, logger, name, other):
 
         if other is not None:
@@ -1059,3 +1009,105 @@ class References(Values):
                         item.removeAttributeValue(key)
                         if localOther is not None:
                             item.setAttributeValue(key, localOther)
+
+    def _collectChanges(self, view, flag, dirties,
+                        newChanges, changes, indexChanges, version, newVersion):
+
+        if flag == CItem.RDIRTY:
+            for name in self._getDirties():
+                value = self.get(name, Nil)
+
+                if name in dirties:
+                    if value is Nil:
+                        view._e_3_overlap(MergeError.REF, self._item, name)
+                    elif value._isRefs():
+                        if value._isSet():
+                            newChanges[name] = (True, value)
+                            changes[name] = {}
+                        else:
+                            newChanges[name] = (False,
+                                                dict(value._iterChanges()))
+                            changes[name] = dict(value._iterHistory(version,
+                                                                    newVersion))
+                        value._collectIndexChanges(name, indexChanges)
+                else:
+                    if value is Nil:
+                        newChanges[name] = (False, Nil)
+                    elif value._isRefs():
+                        if value._isSet():
+                            newChanges[name] = (True, value)
+                        else:
+                            newChanges[name] = (False,
+                                                dict(value._iterChanges()))
+                        value._collectIndexChanges(name, indexChanges)
+
+        elif flag == CItem.VDIRTY:
+            for name in self._getDirties():
+                value = self.get(name, Nil)
+                if isitem(value):
+                    value = value.itsUUID
+                elif not (isuuid(value) or value in (None, Nil)):
+                    continue
+                if value is Nil and name in dirties:
+                    view._e_3_overlap(MergeError.REF, self._item, name)
+                else:
+                    newChanges[name] = (True, value)
+
+    def _applyChanges(self, view, flag, dirties, ask, newChanges, changes,
+                      dangling):
+
+        if flag == CItem.RDIRTY:
+            for name, (isSet, valueChanges) in newChanges[flag].iteritems():
+                value = self.get(name, Nil)
+                if isSet:
+                    if not (changes is None or value == valueChanges):
+                        if name in dirties:
+                            view._e_3_overlap(MergeError.REF, self._item, name)
+                    self[name] = valueChanges
+                    self._setDirty(name)
+                elif name in dirties:
+                    if value is Nil and valueChanges:
+                        view._e_3_overlap(MergeError.REF, self._item, name)
+                    elif valueChanges:
+                        if changes is None:
+                            value._applyChanges(valueChanges, ())
+                        else:
+                            value._applyChanges(valueChanges,
+                                                changes[flag][name])
+                        self._setDirty(name)
+                elif valueChanges is Nil:
+                    if value is not Nil:
+                        self._removeRef(name, value)
+                else:
+                    if value is Nil:
+                        self[name] = value = self._item._refList(name)
+                    value._applyChanges(valueChanges, ())
+                    self._setDirty(name)
+
+        elif flag == CItem.VDIRTY:
+            for name, (isRef, newValue) in newChanges[flag].iteritems():
+                if isRef:
+                    value = self.get(name, Nil)
+                    if isitem(value):
+                        value = value.itsUUID
+                    elif not (isuuid(value) or value is None):
+                        raise AssertionError, value
+                    if newValue != value:
+                        if name in dirties:
+                            item = view[newValue]
+                            if ask(MergeError.REF, name, item) is item:
+                                self._setRef(name, newValue)
+                                self._setDirty(name)
+                                if value is not None:
+                                    _item = self._item
+                                    kind = _item.itsKind
+                                    otherName = kind.getOtherName(name, _item)
+                                    dangling.append((value, otherName,
+                                                     _item.itsUUID))
+                            else:
+                                view._e_2_overlap(MergeError.REF, item, name)
+                        if newValue is Nil:
+                            self._removeRef(name, value)
+                        else:
+                            self._setRef(name, newValue)
+                            self._setDirty(name)

@@ -9,7 +9,7 @@ import sys, threading, time
 from struct import pack, unpack
 
 from chandlerdb.util.c import UUID, _hash, SkipList
-from chandlerdb.item.c import CItem, Nil, Default
+from chandlerdb.item.c import CItem, CValues, Nil, Default
 from chandlerdb.persistence.c import \
     DBSequence, DB, \
     CContainer, CValueContainer, CRefContainer, CItemContainer, \
@@ -156,7 +156,7 @@ class DBContainer(object):
 
     def _logDL(self, n):
 
-        self.store.repository.logger.info('detected deadlock: %d', n)
+        self.store.repository.logger.info('detected deadlock: %d, thread: %s', n, threading.currentThread().getName())
         time.sleep(1)
 
     def _readValue(self, value, offset):
@@ -542,9 +542,6 @@ class NamesContainer(DBContainer):
         if name is None:
             raise ValueError, 'name is None'
         
-        if isinstance(name, unicode):
-            name = name.encode('utf-8')
-
         cursorKey = pack('>16sl', key._uuid, _hash(name))
         store = self.store
         
@@ -1209,15 +1206,33 @@ class ItemContainer(DBContainer):
         self.delete(pack('>16sq', uuid._uuid, ~version), txn)
         return 1
 
-    def findValue(self, view, version, uuid, name):
+    def isValue(self, view, version, uItem, uValue, exact=False):
 
-        version, item = self._findItem(view, version, uuid)
+        if exact:
+            item = self.get(pack('>16sq', uItem._uuid, ~version))
+        else:
+            version, item = self._findItem(view, version, uItem)
+
         if item is not None:
+            uValue = uValue._uuid
+            vCount, dCount = unpack('>ll', item[-8:])
+            pos = -(dCount + 2) * 4 - vCount * 20
 
-            if isinstance(name, unicode):
-                name = name.encode('utf-8')
-            hash = _hash(name)
+            for i in xrange(vCount):
+                if item.startswith(uValue, pos + 4, pos + 20):
+                    return True
+                pos += 20
 
+        return False
+
+    def findValue(self, view, version, uuid, hash, exact=False):
+
+        if exact:
+            item = self.get(pack('>16sq', uuid._uuid, ~version))
+        else:
+            version, item = self._findItem(view, version, uuid)
+
+        if item is not None:
             vCount, dCount = unpack('>ll', item[-8:])
             pos = -(dCount + 2) * 4 - vCount * 20
 
@@ -1231,21 +1246,33 @@ class ItemContainer(DBContainer):
 
         return None, Nil
 
-    def findValues(self, view, version, uuid, pairs):
+    # hashes is a list of attribute name hashes or None (meaning all)
+    # return list may contain None (for deleted or not found values)
+    def findValues(self, view, version, uuid, hashes=None, exact=False):
 
-        version, item = self._findItem(view, version, uuid)
+        if exact:
+            item = self.get(pack('>16sq', uuid._uuid, ~version))
+        else:
+            version, item = self._findItem(view, version, uuid)
+
         if item is not None:
-            uValues = [None] * len(pairs)
-
-            names = [_hash(name) for name, default in pairs]
             vCount, dCount = unpack('>ll', item[-8:])
             pos = -(dCount + 2) * 4 - vCount * 20
 
-            for i in xrange(vCount):
-                h, uValue = unpack('>l16s', item[pos:pos+20])
-                if h in names:
-                    uValues[names.index(h)] = UUID(uValue)
-                pos += 20
+            if hashes is None: # return all values
+                uValues = []
+                for i in xrange(vCount):
+                    h, uValue = unpack('>l16s', item[pos:pos+20])
+                    uValues.append(UUID(uValue))
+                    pos += 20
+
+            else:
+                uValues = [None] * len(hashes)
+                for i in xrange(vCount):
+                    h, uValue = unpack('>l16s', item[pos:pos+20])
+                    if h in hashes:
+                        uValues[hashes.index(h)] = UUID(uValue)
+                    pos += 20
 
             return unpack('>l', item[16:20])[0], uValues
 
@@ -1505,8 +1532,9 @@ class ValueContainer(DBContainer):
     # 0.6.0: version reimplemented as 64 bit sequence, removed value index
     # 0.6.1: version purge support
     # 0.6.2: added KDIRTY flag and storing of previous kind to item record
+    # 0.6.3: changed persisting if a value is full-text indexed
 
-    FORMAT_VERSION = 0x00060200
+    FORMAT_VERSION = 0x00060300
 
     def __init__(self, store):
 
@@ -1537,8 +1565,8 @@ class ValueContainer(DBContainer):
                             DBSequence.DB_CREATE | DBSequence.DB_THREAD)
             versionSeq.get(txn)
             self._version.put(Repository.itsUUID._uuid,
-                              pack('>16sll', versionId._uuid,
-                                   format_version, schema_version), txn)
+                              pack('>16sllQ', versionId._uuid,
+                                   format_version, schema_version, 0), txn)
         else:
             values = self.getVersionInfo(Repository.itsUUID, txn, True)
             if values[2] != format_version:
@@ -1575,12 +1603,26 @@ class ValueContainer(DBContainer):
         if value is None:
             raise AssertionError, 'version record is missing'
 
-        versionId, format, schema = unpack('>16sll', value)
+        versionId, format, schema, indexedVersion = unpack('>16sllQ', value)
         if open:
             versionSeq.open(txn, versionId, DBSequence.DB_THREAD)
         version = self.getVersion()
 
-        return UUID(versionId), version, format, schema
+        return UUID(versionId), version, format, schema, indexedVersion
+
+    def getIndexedVersion(self, uuid):
+
+        value = self._version.get(uuid._uuid, self.store.txn, self._flags)
+        return unpack('>Q', value[-8:])[0]
+
+    def setIndexedVersion(self, uuid, version):
+
+        txn = self.store.txn
+
+        value = self._version.get(uuid._uuid, txn, self._flags)
+        value = pack('>24sQ', value[0:24], version)
+
+        self._version.put(uuid._uuid, value, txn)
         
     def getVersion(self):
 

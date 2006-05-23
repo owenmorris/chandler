@@ -5,6 +5,8 @@ __parcel__ = "osaf.pim"
 import logging, os
 
 from application import schema
+
+from chandlerdb.item.c import Default
 from repository.item.Sets import \
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \
     KindSet, FilteredSet, AbstractSet
@@ -79,6 +81,12 @@ class ContentCollection(ContentItem, Collection):
 
     # other side of MultiCollection.sources
     sourceFor = schema.Sequence()
+
+    # other side of AppCollection.exclusions
+    exclusionsFor = schema.Sequence()
+
+    # other side of AppCollection.trash
+    trashFor = schema.Sequence()
 
     schema.addClouds(
         copying = schema.Cloud(
@@ -163,20 +171,17 @@ class ListCollection(ContentCollection):
     """
 
     __metaclass__ = schema.CollectionClass
-    __collection__ = 'refCollection'
+    __collection__ = 'inclusions'
 
-    refCollection = schema.Sequence(otherName='collections', initialValue=[])
+    # must be named 'inclusions' to match AppCollection
+    inclusions = schema.Sequence(otherName='collections', initialValue=[])
 
-    schema.kindInfo(
-        displayName=u"ListCollection"
-    )
-
-    trashFor = schema.Sequence('AppCollection',
-                               otherName='trash', initialValue=[])
+    schema.kindInfo(displayName=u"ListCollection")
 
     def empty(self):
         for item in self:
             item.delete(True)
+
 
 class DifferenceCollection(ContentCollection):
     """
@@ -388,10 +393,11 @@ class AppCollection(ContentCollection):
 
     set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
-    inclusions = schema.One(ContentCollection)
-    exclusions = schema.One(ContentCollection)
+    # must be named 'inclusions' to match ListCollection
+    inclusions = schema.Sequence(otherName='collections', initialValue=[])
 
-    trash = schema.One(ListCollection, otherName='trashFor', initialValue=None)
+    exclusions = schema.One(inverse=ContentCollection.exclusionsFor)
+    trash = schema.One(inverse=ContentCollection.trashFor, initialValue=None)
 
     # __collection__ denotes a bi-ref set, 
     # therefore it must be added to the copying cloud def for it to be copied.
@@ -403,7 +409,7 @@ class AppCollection(ContentCollection):
         ),
     )
 
-    def add (self, item):
+    def add(self, item):
         """
           Add an item to the collection
         """
@@ -434,7 +440,7 @@ class AppCollection(ContentCollection):
                          item.getItemDisplayName().encode('ascii', 'replace'),
                          self.getItemDisplayName().encode('ascii', 'replace'))
 
-    def remove (self, item):
+    def remove(self, item):
         """
           Remove an item from the collection
         """
@@ -466,13 +472,13 @@ class AppCollection(ContentCollection):
         if DEBUG:
             logger.debug("...adding to exclusions (%s)",
                          self.exclusions.getItemDisplayName().encode('ascii', 'replace'))
-        self.exclusions.add (item)
+        self.exclusions.add(item)
 
         if item in self.inclusions:
             if DEBUG:
                 logger.debug("...removing from inclusions (%s)",
                              self.inclusions.getItemDisplayName().encode('ascii', 'replace'))
-            self.inclusions.remove (item)
+            self.inclusions.remove(item)
 
         if addToTrash:
             if DEBUG:
@@ -488,17 +494,16 @@ class AppCollection(ContentCollection):
 
     def __init__(self, itsName=None, itsParent=None,
                  itsKind=None, itsView=None,
-                 source=None, exclusions=None, trash="default",
+                 source=None, exclusions=None, trash=Default,
                  *args, **kwds):
         super(AppCollection, self).__init__(itsName=itsName,
-                                              itsParent=itsParent,
-                                              itsKind=itsKind,
-                                              itsView=itsView,
-                                              *args, **kwds)
+                                            itsParent=itsParent,
+                                            itsKind=itsKind,
+                                            itsView=itsView,
+                                            *args, **kwds)
         self._setup(source, exclusions, trash)
 
-    def _setup(self, source=None, exclusions=None,
-                trash="default"):
+    def _setup(self, source=None, exclusions=None, trash=Default):
         """
         setup all the extra parts of an
         AppCollection. In general nobody should call
@@ -512,7 +517,7 @@ class AppCollection(ContentCollection):
         collection or None. None indicates that this collection does
         not participate in Trash-based activities.
 
-        The special value of 'default' for trash is only a sentinel to
+        The special value of Default for trash is only a sentinel to
         let us know that nothing has been passed in and that the
         default trash should be looked up in osaf.pim. During parcel
         loading, this allows us to pass the trash into the constructor
@@ -520,16 +525,13 @@ class AppCollection(ContentCollection):
         being loaded.
         """
 
-        if trash=="default":
+        if trash is Default:
             # better hope osaf.pim has been loaded!
             trash = schema.ns('osaf.pim', self.itsView).trashCollection
 
-        self.inclusions = ListCollection(itsParent=self,
-                                         displayName=u"(Inclusions)")
-        if source is None:
-            innerSource = self.inclusions
-        else:
-            innerSource = Union(source, self.inclusions)
+        innerSource = (self, 'inclusions')
+        if source is not None:
+            innerSource = Union(source, innerSource)
 
         # Typically we will create an exclusions ListCollection; however,
         # a collection like 'All' will instead want to use the Trash collection
@@ -575,6 +577,7 @@ class AppCollection(ContentCollection):
 
         return self
 
+
 class SmartCollection(AppCollection):
     """
     A SmartCollection is just an AppCollection that is user-facing. 
@@ -593,7 +596,6 @@ class SmartCollection(AppCollection):
         super(SmartCollection, self).onItemDelete(view, isDeferring)
         if not isDeferring:
             delattr(self, self.__collection__)
-            self.unwatchCollection(self, 'sources', '_sourcesChanged')
 
 
 class InclusionExclusionCollection(SmartCollection):
@@ -602,6 +604,7 @@ class InclusionExclusionCollection(SmartCollection):
     """
     # @@@MOR 0.6 sharing compatibility
     pass
+
 
 class IndexedSelectionCollection(ContentCollection):
     """

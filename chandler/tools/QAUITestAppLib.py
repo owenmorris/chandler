@@ -192,13 +192,13 @@ class UITestItem(object):
                     timedCanvas = App_ns.TimedEvents
                     allDayCanvas = App_ns.AllDayEvents
                     for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
-                        if canvasItem.item == self.item:
+                        if canvasItem.item is self.item:
                             allDayCanvas.widget.OnSelectItem(canvasItem.item)
                             foundItem = True
                             break
                     if not foundItem:
                         for canvasItem in reversed(timedCanvas.widget.canvasItemList):
-                            if canvasItem.item == self.item:
+                            if canvasItem.item is self.item:
                                 timedCanvas.widget.OnSelectItem(canvasItem.item)
                                 foundItem = True
                                 break

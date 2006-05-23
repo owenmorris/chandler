@@ -391,6 +391,7 @@ class wxApplication (wx.App):
     def LoadMainViewRoot (self, delete=False):
         frame = None
         mainViewRoot = self.UIRepositoryView.findPath('//userdata/MainViewRoot')
+
         if mainViewRoot and delete:
             # We need to delete the mainViewRoot. Ideally we'd have automatic
             # garbage colleciton so that all the garbage resulting from the
@@ -418,10 +419,11 @@ class wxApplication (wx.App):
             deleteAllBranchCaches(mainViewRoot)
 
             from osaf.framework.blocks import Block
-            for item in self.UIRepositoryView.findPath('//userdata/').iterChildren():
+
+            for item in self.UIRepositoryView['userdata'].iterChildren():
                 if isinstance (item, Block.Block):
                     item.delete()
-            
+
             self.UIRepositoryView.commit()
             assert self.UIRepositoryView.findPath('//userdata/MainViewRoot') == None
             mainViewRoot = None
@@ -611,10 +613,10 @@ class wxApplication (wx.App):
             # You can choose which view wins by uncommenting the appropriate
             # return statement:
 
-            return value                                # Let changes from
+            return getattr(item, attribute)             # Let changes from
                                                         # other views win
 
-            # return item.getAttributeValue(attribute)  # Let changes from the
+            # return value                              # Let changes from the
                                                         # main view win
 
         # Fire set notifications that require mapChanges

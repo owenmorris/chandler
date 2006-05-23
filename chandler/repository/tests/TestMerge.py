@@ -79,8 +79,8 @@ class TestMerge(RepositoryTestCase):
 
         ic = [c.itsName for c in pm.iterChildren()]
         uc = oc[:]
-        uc.extend([c.itsName for c in ao])
         uc.extend([c.itsName for c in am])
+        uc.extend([c.itsName for c in ao])
         self.assert_(ic == uc)
 
         c = pm._children
@@ -90,15 +90,15 @@ class TestMerge(RepositoryTestCase):
         for i in xrange(1, o):
             self.assert_(c.previousKey(ao[i].itsUUID) == ao[i - 1].itsUUID)
 
-        self.assert_(c.nextKey(ao[o - 1].itsUUID) == am[0].itsUUID)
-        self.assert_(c.previousKey(am[0].itsUUID) == ao[o - 1].itsUUID)
+        self.assert_(c.nextKey(am[m - 1].itsUUID) == ao[0].itsUUID)
+        self.assert_(c.previousKey(ao[0].itsUUID) == am[m - 1].itsUUID)
 
         for i in xrange(m - 1):
             self.assert_(c.nextKey(am[i].itsUUID) == am[i + 1].itsUUID)
         for i in xrange(1, m):
             self.assert_(c.previousKey(am[i].itsUUID) == am[i - 1].itsUUID)
 
-        self.assert_(c.lastKey() == am[m - 1].itsUUID)
+        self.assert_(c.lastKey() == ao[o - 1].itsUUID)
  
     def mergeRefs(self, o, m):
 
@@ -134,8 +134,8 @@ class TestMerge(RepositoryTestCase):
 
         ic = [c.itsName for c in pm.ap]
         uc = oc[:]
-        uc.extend([c.itsName for c in ao])
         uc.extend([c.itsName for c in am])
+        uc.extend([c.itsName for c in ao])
         self.assert_(ic == uc)
 
         c = pm.ap
@@ -145,15 +145,15 @@ class TestMerge(RepositoryTestCase):
         for i in xrange(1, o):
             self.assert_(c.previousKey(ao[i].itsUUID) == ao[i - 1].itsUUID)
 
-        self.assert_(c.nextKey(ao[o - 1].itsUUID) == am[0].itsUUID)
-        self.assert_(c.previousKey(am[0].itsUUID) == ao[o - 1].itsUUID)
+        self.assert_(c.nextKey(am[m - 1].itsUUID) == ao[0].itsUUID)
+        self.assert_(c.previousKey(ao[0].itsUUID) == am[m - 1].itsUUID)
 
         for i in xrange(m - 1):
             self.assert_(c.nextKey(am[i].itsUUID) == am[i + 1].itsUUID)
         for i in xrange(1, m):
             self.assert_(c.previousKey(am[i].itsUUID) == am[i - 1].itsUUID)
 
-        self.assert_(c.lastKey() == am[m - 1].itsUUID)
+        self.assert_(c.lastKey() == ao[o - 1].itsUUID)
  
     def rename(self, o_name, m_name):
 
@@ -320,7 +320,7 @@ class TestMerge(RepositoryTestCase):
         main.commit()
         
         names = [c.itsName for c in pm.iterChildren()]
-        self.assert_(names[0] == 'i1')
+        self.assert_(names[0] == 'i2')
         self.assert_(len(names) == 4)
 
     def testChange1Remove1(self):
@@ -432,6 +432,8 @@ class TestMerge(RepositoryTestCase):
         m = k.movies.first()
         m.writers.clear()
         main.commit()
+
+        self.assert_(main.check(), "main didn't check out")
 
     def testMergeOverlapRefCollections1(self):
 
@@ -614,6 +616,9 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeOverlapV(self):
 
+        def onItemMerge(_self, code, attribute, value):
+            return value
+
         main = self.rep.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
@@ -632,7 +637,10 @@ class TestMerge(RepositoryTestCase):
         k = main.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title in main'
+
+        type(m).onItemMerge = onItemMerge
         main.commit()
+        del type(m).onItemMerge
 
         self.assertEquals(m.title, 'changed title in main')
 
@@ -660,6 +668,63 @@ class TestMerge(RepositoryTestCase):
 
         self.assertEquals(m.title, 'changed title')
 
+    def testMergeOverlapVDifferentNoCallback(self):
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.title = 'changed title'
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.title = 'changed title again'
+
+        try:
+            version = main.itsVersion
+            main.commit()
+        except MergeError:
+            self.assert_(main.check())
+            self.assert_(main.itsVersion == version)
+            self.assertEquals(m.title, 'changed title again')
+
+    def testMergeOverlapVDifferentWithCallback(self):
+
+        def mergeFn(code, item, attribute, value):
+            return item.getAttributeValue(attribute)
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.title = 'changed title'
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.title = 'changed title again'
+
+        main.commit(mergeFn)
+        self.assert_(main.check())
+        self.assertEquals(m.title, 'changed title')
+
     def testMergeOverlapRSame(self):
 
         main = self.rep.view
@@ -685,6 +750,71 @@ class TestMerge(RepositoryTestCase):
         main.commit()
 
         self.assertEquals(m1.director, m2.director)
+        self.assert_(main.check(), 'main view did not check out')
+
+    def testMergeOverlapRDifferent(self):
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m1.director = m2.director
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m3 = k.movies.next(m2)
+        m4 = k.movies.next(m3)
+        m1.director = m4.director
+
+        try:
+            main.commit()
+        except MergeError, e:
+            self.assert_(e.getReasonCode() == MergeError.REF)
+
+        self.assertEquals(m1.director, m4.director)
+        self.assert_(main.check(), 'main view did not check out')
+
+    def testMergeOverlapRDifferentWithCallbackNew(self):
+
+        def mergeFn(code, item, attribute, newValue):
+            return newValue
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m1.director = m2.director
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m3 = k.movies.next(m2)
+        m4 = k.movies.next(m3)
+        m1.director = m4.director
+
+        main.commit(mergeFn)
+        self.assertEquals(m1.director, m4.director)
         self.assert_(main.check(), 'main view did not check out')
 
     def testMergeOverlapIndexes(self):

@@ -177,8 +177,8 @@ class ContentItem(schema.Item):
     branchPointDetailItemOwner = schema.Sequence(otherName="detailItem") # Block
     branchPointSelectedItemOwner = schema.Sequence(otherName="selectedItem") # Block
 
-    # ContentItem instances can be put into ListCollections
-    collections = schema.Sequence(otherName='refCollection', notify=True)
+    # ContentItem instances can be put into ListCollections and AppCollections
+    collections = schema.Sequence(otherName='inclusions', notify=True)
 
     # ContentItem instances can be put into SmartCollections (which define
     # the other end of this biref)

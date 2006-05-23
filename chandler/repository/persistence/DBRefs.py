@@ -5,12 +5,12 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.item.c import Nil
-from chandlerdb.util.c import UUID
+from chandlerdb.util.c import UUID, CLink
 from repository.item.Children import Children
 from repository.item.RefCollections import RefList
 from repository.item.Indexes import NumericIndex
 from repository.persistence.RepositoryError import MergeError
-from repository.util.LinkedMap import LinkedMap, CLink
+from repository.util.LinkedMap import LinkedMap
 
 
 class PersistentRefs(object):
@@ -83,14 +83,33 @@ class PersistentRefs(object):
 
     def _iterChanges(self):
 
-        return self._changedRefs.iterkeys()
+        uuid = self.uuid
+        for key, (op, oldAlias) in self._changedRefs.iteritems():
+            if key != uuid:
+                if op == 0:
+                    link = self._get(key)
+                    assert oldAlias != link.alias
+                    yield key, (op, link._previousKey, link._nextKey,
+                                link.alias, oldAlias)
+                else:
+                    yield key, (op, None, None, None, None)
 
-    def _copy_(self, orig):
+    def _iterHistory(self, fromVersion, toVersion):
 
-        self._changedRefs.clear()
-        if isinstance(orig, PersistentRefs):
-            self._changedRefs.update(orig._changedRefs)
-        self._count = len(orig)
+        uuid = self.uuid
+        oldAliases = {}
+        for (version, (collection, key),
+             ref) in self.store._refs.iterHistory(self.view, uuid,
+                                                  fromVersion, toVersion):
+            if key != uuid:
+                if ref is None:
+                    yield key, (1, None, None, None, None)
+                else:
+                    alias = ref[2]
+                    oldAlias = oldAliases.get(key, Nil)
+                    if oldAlias != alias:
+                        oldAliases[key] = alias
+                    yield key, (0, ref[0], ref[1], alias, oldAlias)
 
     def _setItem(self, item):
 
@@ -100,12 +119,16 @@ class PersistentRefs(object):
             if ref is not None:
                 self._firstKey, self._lastKey, self._count = ref
 
-    def _changeRef(self, key, link):
+    def _changeRef(self, key, link, oldAlias=Nil):
 
         if key is not None and not self.view.isLoading():
-            op, alias = self._changedRefs.get(key, (1, link.alias))
+            op, alias = self._changedRefs.get(key, (1, Nil))
             if op != 0:
-                # changed element: key, maybe old alias: alias
+                if oldAlias is not Nil:
+                    if alias is Nil:
+                        alias = oldAlias
+                    elif alias == oldAlias:
+                        alias = Nil
                 self._changedRefs[key] = (0, alias)
 
     def _unloadRef(self, item):
@@ -128,9 +151,16 @@ class PersistentRefs(object):
     def _removeRef_(self, key, link):
 
         if not self.view.isLoading():
-            op, alias = self._changedRefs.get(key, (0, link.alias))
-            if op != 1:
-                # deleted element: key, maybe old alias: alias
+            op, alias = self._changedRefs.get(key, (-1, Nil))
+            if op == -1:
+                if link.alias is None:
+                    alias = Nil
+                else:
+                    alias = link.alias
+                self._changedRefs[key] = (1, alias)
+            elif op == 0:
+                if alias is Nil and link.alias is not None:
+                    alias = link.alias
                 self._changedRefs[key] = (1, alias)
         else:
             raise ValueError, '_removeRef_ during load'
@@ -169,9 +199,10 @@ class PersistentRefs(object):
         key = None
         if load:
             view = self.view
-            key = self.store.readName(view, view.itsVersion, self.uuid, alias)
+            key = self.store._names.readName(view, view.itsVersion,
+                                             self.uuid, alias)
             if key is not None:
-                op, oldAlias = self._changedRefs.get(key, (0, None))
+                op, oldAlias = self._changedRefs.get(key, (0, Nil))
                 if oldAlias == alias:
                     key = None
 
@@ -196,78 +227,58 @@ class PersistentRefs(object):
 
         return 0
 
-    def _mergeChanges(self, oldVersion, toVersion):
+    def _applyChanges(self, changes, history):
 
         moves = {}
+        done = set()
 
-        for (version, (collection, item),
-             ref) in self.store._refs.iterHistory(self.view, self.uuid,
-                                                  oldVersion, toVersion):
+        def place(k, pK):
+            self.place(k, pK)
+            nK = changes[k][2]
+            while nK in done and self.place(nK, k):
+                k = nK
+                nK = changes[k][2]
 
-            if collection == self.uuid:     # the collection
+        for key, (op, prevKey, nextKey, alias, oldAlias) in changes.iteritems():
+            if key in history:
+                merge = True
+                hOp, hPrevKey, hNextKey, hAlias, hOldAlias = history[key]
+            else:
+                merge = False
 
-                if item == self.uuid:       # the list head
-                    pass
+            if op == 1:
+                #if key in history:
+                #    self.view._e_2_move(self, key)
+                if key in self:
+                    self._removeRef(key)
+            else:
+                if alias is not None:
+                    resolvedKey = self.resolveAlias(alias)
+                    if resolvedKey not in (None, key):
+                        self.view._e_2_name(self, resolvedKey, key, alias)
 
-                elif ref is None:           # removed item
-                    op, oldAlias = self._changedRefs.get(item, (-1, None))
-                    if item in self:
-                        self._removeRef_(item)
-
+                if key in self:
+                    link = self._get(key)
+                    if oldAlias is not Nil:
+                        if link.alias != alias:
+                            if merge and hOldAlias not in (Nil, hAlias):
+                                self.view._e_1_name(self, key, alias, hAlias)
+                            self.setAlias(key, alias)
                 else:
-                    previousKey, nextKey, alias = ref
-                    op, oldAlias = self._changedRefs.get(item, (0, None))
+                    self._setRef(key, alias)
+                    link = self._get(key)
 
-                    if op == 1:
-                        #self._e_2_remove(item)
-                        self.view.logger.info("%s force merging remove %s",
-                                              self.view, item)
-                        pass
+                if link._previousKey != prevKey:
+                    if prevKey is None or prevKey in self:
+                        place(key, prevKey)
                     else:
-                        try:
-                            link = self._get(item)
-                            if link.alias != alias:
-                                if oldAlias is not None:
-                                    self._e_1_renames(oldAlias, link.alias, alias)
-                                else:
-                                    if alias is not None:
-                                        key = self.resolveAlias(alias)
-                                        if key is not None:
-                                            self._e_2_renames(key, alias, item)
-                                    self.setAlias(item, alias)
+                        moves[prevKey] = key
 
-                        except KeyError:
-                            if alias is not None:
-                                key = self.resolveAlias(alias)
-                                if key is not None:
-                                    self._e_names(item, key, alias)
-                            self._setFuture(item, alias)
+                done.add(key)
 
-                        if previousKey is None or previousKey in self:
-                            self.place(item, previousKey)
-                        else:
-                            moves[previousKey] = item
-
-        for previousKey, item in moves.iteritems():
-            if item in self:
-                if previousKey not in self:
-                    previousKey = self._lastKey
-                self.place(item, previousKey)
-
-    def _e_1_remove(self, *args):
-        raise MergeError, (type(self).__name__, self._item, 'modified element %s was removed in other view' %(args), MergeError.MOVE)
-
-    def _e_2_remove(self, *args):
-        raise MergeError, (type(self).__name__, self._item, 'removed element %s was modified in other view' %(args), MergeError.MOVE)
-
-    def _e_1_renames(self, *args):
-        raise MergeError, (type(self).__name__, self._item, 'element %s renamed to %s and %s' %(args), MergeError.RENAME)
-
-    def _e_2_renames(self, *args):
-        raise MergeError, (type(self).__name__, self._item, 'element %s named %s conflicts with element %s of same name' %(args), MergeError.NAME)
-
-    def _e_names(self, *args):
-        raise MergeError, (type(self).__name__, self._item, 'element %s conflicts with other element %s, both are named %s' %(args), MergeError.NAME)
+        for prevKey, key in moves.iteritems():
+            place(key, prevKey)
+                
 
 
 class DBRefList(RefList, PersistentRefs):
@@ -288,10 +299,6 @@ class DBRefList(RefList, PersistentRefs):
 
         return self._iteraliases(firstKey, lastKey)
 
-    def iterChanges(self):
-
-        return self._iterChanges()
-
     def _getView(self):
 
         return self.view
@@ -304,9 +311,9 @@ class DBRefList(RefList, PersistentRefs):
 
         return key
             
-    def linkChanged(self, link, key):
+    def linkChanged(self, link, key, oldAlias=Nil):
 
-        self._changeRef(key, link)
+        self._changeRef(key, link, oldAlias)
         
     def _removeRef_(self, other):
 
@@ -318,10 +325,6 @@ class DBRefList(RefList, PersistentRefs):
         RefList._setOwner(self, item, name)
         PersistentRefs._setItem(self, item)
 
-    def _setFuture(self, key, alias):
-        
-        self[key] = CLink(self, key, None, None, alias)
-    
     def _saveValues(self, version):
 
         store = self.store
@@ -338,6 +341,7 @@ class DBRefList(RefList, PersistentRefs):
 
         size = self._writeRef(uuid, version,
                               self._firstKey, self._lastKey, self._count)
+        nilNone = (Nil, None)
             
         for key, (op, oldAlias) in self._changedRefs.iteritems():
             if op == 0:               # change
@@ -348,7 +352,7 @@ class DBRefList(RefList, PersistentRefs):
                 alias = link.alias
     
                 size += self._writeRef(key, version, previous, next, alias)
-                if (oldAlias is not None and
+                if (oldAlias not in nilNone and
                     oldAlias != alias and
                     oldAlias not in aliases):
                     size += store.writeName(version, uuid, oldAlias, None)
@@ -357,7 +361,7 @@ class DBRefList(RefList, PersistentRefs):
                         
             elif op == 1:             # remove
                 size += self._deleteRef(key, version)
-                if oldAlias is not None and oldAlias not in aliases:
+                if oldAlias not in nilNone and oldAlias not in aliases:
                     size += store.writeName(version, uuid, oldAlias, None)
 
             else:                     # error
@@ -371,35 +375,6 @@ class DBRefList(RefList, PersistentRefs):
 
         PersistentRefs._clearDirties(self)
         self._clearIndexDirties()
-
-    def _copy_(self, orig):
-
-        RefList._copy_(self, orig)
-        PersistentRefs._copy_(self, orig)
-
-    def _clear_(self):
-
-        RefList._clear_(self)
-        PersistentRefs._setItem(self, self._item)
-
-    def _mergeChanges(self, oldVersion, toVersion):
-
-        target = self.view._createRefList(self._item, self._name,
-                                          self._otherName, True, False, False,
-                                          self.uuid)
-
-        target._original = self
-        target._copy_(self)
-        target._indexes = self._indexes
-        target._invalidateIndexes()
-
-        self._item._references[self._name] = target
-
-        try:
-            sd = self._setFlag(RefList.SETDIRTY, False)
-            PersistentRefs._mergeChanges(target, oldVersion, toVersion)
-        finally:
-            self._setFlag(RefList.SETDIRTY, sd)
 
 
 class DBNumericIndex(NumericIndex):
@@ -432,6 +407,16 @@ class DBNumericIndex(NumericIndex):
     def _keyChanged(self, key):
 
         self._changedKeys[key] = self[key]
+
+    def _iterChanges(self):
+
+        uuids = (self._uuid, self._headKey, self._tailKey)
+        for key, node in self._changedKeys.iteritems():
+            if key not in uuids:
+                if node is None:
+                    yield key, None
+                else:
+                    yield key, key
 
     def removeKey(self, key):
 
@@ -495,9 +480,6 @@ class DBNumericIndex(NumericIndex):
             self.skipList._tail = tail
 
     def _loadKey(self, key):
-
-        if not self._valid:
-            return None
 
         node = None
         version = self._version
@@ -588,15 +570,6 @@ class DBNumericIndex(NumericIndex):
 
         return size
 
-    def _clear_(self):
-
-        super(DBNumericIndex, self)._clear_()
-
-        self._uuid = UUID()
-        self.__init()
-
-        self._clearDirties()
-
     def _clearDirties(self):
 
         self._changedKeys.clear()
@@ -632,7 +605,8 @@ class DBChildren(Children, PersistentRefs):
                 if not self._contains_(key):
                     try:
                         loading = self.view._setLoading(True)
-                        self._loadChild(key, child)
+                        if not self._loadChild(key, child):
+                            return False
                     finally:
                         self.view._setLoading(loading, True)
                 return True
@@ -641,13 +615,18 @@ class DBChildren(Children, PersistentRefs):
 
     def _loadChild(self, key, child):
 
-        if key not in self._dict: # setFuture() may have put it here already
-            previousKey, nextKey, alias = self._loadRef(key)
-            self._dict[key] = CLink(self, child, previousKey, nextKey, alias)
+        if not self._contains_(key):
+            ref = self._loadRef(key)
+            if ref is None:  # during merge it may not be there
+                return False
+            prevKey, nextKey, alias = ref
+            self._dict[key] = CLink(self, child, prevKey, nextKey, alias)
             if alias is not None:
                 self._aliases[alias] = key
         else:
             self._dict[key]._value = child
+
+        return True
 
     def resolveAlias(self, alias, load=True):
 
@@ -657,10 +636,10 @@ class DBChildren(Children, PersistentRefs):
 
         return key
             
-    def linkChanged(self, link, key):
+    def linkChanged(self, link, key, oldAlias=Nil):
 
-        super(DBChildren, self).linkChanged(link, key)
-        self._changeRef(key, link)
+        super(DBChildren, self).linkChanged(link, key, oldAlias)
+        self._changeRef(key, link, oldAlias)
 
     def _unloadChild(self, child):
 
@@ -670,10 +649,19 @@ class DBChildren(Children, PersistentRefs):
 
         self._removeRef_(key)
 
+    def _removeRef(self, key):
+        
+        self._removeRef_(key)
+
     def _removeRef_(self, key):
         
         link = super(DBChildren, self).__delitem__(key)
         PersistentRefs._removeRef_(self, key, link)
+
+    def _setRef(self, key, alias=None):
+        
+        link = CLink(self, key, None, None, alias)
+        self[key] = link
 
     def _append(self, child):
 
@@ -683,10 +671,6 @@ class DBChildren(Children, PersistentRefs):
         else:
             self[child.itsUUID] = CLink(self, child, None, None, child.itsName)
 
-    def _setFuture(self, key, alias):
-        
-        self[key] = CLink(self, key, None, None, alias)
-    
     def _saveValues(self, version):
 
         store = self.store
@@ -694,7 +678,7 @@ class DBChildren(Children, PersistentRefs):
         
         size = self._writeRef(self.uuid, version,
                               self._firstKey, self._lastKey, self._count)
-        
+        nilNone = (Nil, None)
         for key, (op, oldAlias) in self._changedRefs.iteritems():
     
             if op == 0:               # change
@@ -704,7 +688,7 @@ class DBChildren(Children, PersistentRefs):
                 alias = link.alias
                     
                 size += self._writeRef(key, version, previous, next, alias)
-                if (oldAlias is not None and
+                if (oldAlias not in nilNone and
                     oldAlias != alias and
                     oldAlias not in self._aliases):
                     size += store.writeName(version, self.uuid, oldAlias, None)
@@ -716,7 +700,7 @@ class DBChildren(Children, PersistentRefs):
 
             elif op == 1:             # remove
                 size += self._deleteRef(key, version)
-                if oldAlias is not None and oldAlias not in self._aliases:
+                if oldAlias not in nilNone and oldAlias not in self._aliases:
                     size += store.writeName(version, self.uuid, oldAlias, None)
 
             else:                     # error
@@ -733,36 +717,3 @@ class DBChildren(Children, PersistentRefs):
 
         self._flags &= ~LinkedMap.NEW
         PersistentRefs._clearDirties(self)
-
-    def _copy_(self, orig):
-
-        Children._copy_(self, orig)
-        PersistentRefs._copy_(self, orig)
-
-    def _clear_(self):
-
-        Children._clear_(self)
-        PersistentRefs._setItem(self, self._item)
-
-    def _commitMerge(self):
-
-        try:
-            del self._original
-        except AttributeError:
-            pass
-
-    def _revertMerge(self):
-
-        try:
-            self._item._setChildren(self._original)
-        except AttributeError:
-            pass
-    
-    def _mergeChanges(self, oldVersion, toVersion):
-
-        target = self.view._createChildren(self._item, False)
-        target._original = self
-        target._copy_(self)
-        self._item._setChildren(target)
-
-        PersistentRefs._mergeChanges(target, oldVersion, toVersion)

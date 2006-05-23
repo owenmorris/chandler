@@ -38,6 +38,22 @@ class AbstractSet(ItemValue, Indexed):
 
         return self._view[uuid]
 
+    def __eq__(self, value):
+
+        if self is value:
+            return True
+
+        return (type(value) is type(self) and
+                list(value.iterSources()) == list(self.iterSources()))
+
+    def __ne__(self, value):
+
+        if self is value:
+            return False
+
+        return not (type(value) is type(self) and
+                    list(value.iterSources()) == list(self.iterSources()))
+
     def __nonzero__(self):
 
         index = self._anIndex()
@@ -392,28 +408,6 @@ class AbstractSet(ItemValue, Indexed):
         
         return copy
 
-    def _merge(self, value):
-
-        if (type(value) is type(self) and
-            list(value.iterSources()) == list(self.iterSources())):
-            if self._indexes:
-                self._invalidateIndexes()
-            return True
-            
-        return False
-
-    def _invalidateIndexes(self):
-
-        super(AbstractSet, self)._invalidateIndexes()
-        for inner in self.iterInnerSets():
-            inner._invalidateIndexes()
-
-    def _validateIndexes(self):
-
-        super(AbstractSet, self)._validateIndexes()
-        for inner in self.iterInnerSets():
-            inner._validateIndexes()
-
     def _check(self, logger, item, attribute):
 
         return (super(AbstractSet, self)._check(logger, item, attribute) and
@@ -453,6 +447,9 @@ class AbstractSet(ItemValue, Indexed):
         return result
 
     def _isRefs(self):
+        return True
+    
+    def _isSet(self):
         return True
     
     def _isItem(self):
@@ -498,11 +495,68 @@ class AbstractSet(ItemValue, Indexed):
     def _clearDirties(self):
         self._clearIndexDirties()
 
-    def _clear_(self):
-        pass
-
     def clear(self):
         self._removeRefs()
+
+
+class EmptySet(AbstractSet):
+
+    def __init__(self, id=None):
+
+        super(EmptySet, self).__init__(None, id)
+
+    def __contains__(self, item, excludeMutating=False):
+
+        return False
+
+    def _itervalues(self):
+
+        return iter(())
+
+    def _iterkeys(self):
+
+        return iter(())
+
+    def _len(self):
+
+        return 0
+
+    def _reprSourceId(self, replace):
+
+        id = self.id
+        if id is not None:
+            if replace is not None:
+                replaceItem = replace[id]
+                if replaceItem is not Nil:
+                    id = replaceItem.itsUUID
+            return "id=UUID('%s')" %(id.str64())
+
+        return ''
+
+    def _repr_(self, replace=None):
+
+        return "%s(%s)" %(type(self).__name__, self._reprSourceId(replace))
+        
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
+                      source=None):
+
+        return None
+
+    def findSource(self, id):
+
+        return None
+
+    def iterSources(self):
+
+        return iter(())
+
+    def iterInnerSets(self):
+
+        return iter(())
+
+    def _inspect_(self, indent):
+
+        return '%s' %(self._inspect__(indent))
 
 
 class Set(AbstractSet):

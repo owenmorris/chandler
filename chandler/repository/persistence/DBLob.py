@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from chandlerdb.item.ItemValue import ItemValue
+from chandlerdb.item.ItemValue import ItemValue, Indexable
 from chandlerdb.util.c import UUID
 
 from repository.util.Lob import Lob
@@ -30,7 +30,7 @@ class DBLob(Lob, ItemValue):
 
         return self.copy(item.itsView, None)
 
-    def _writeData(self, version, store, db):
+    def _writeData(self, version, db):
 
         if self._dirty:
             name = self._uuid._uuid
@@ -45,24 +45,19 @@ class DBLob(Lob, ItemValue):
 
             out.close()
             self._data = ''
-
-            item, attribute = self._getOwner()
-            indexed = self._indexed
-            if indexed is None:
-                indexed = item.getAttributeAspect(attribute, 'indexed',
-                                                  False, None, False)
-            if indexed:
-                reader = self.getPlainTextReader(replace=True)
-                attribute = item.itsKind.getAttribute(attribute, False, item)
-                store._index.indexReader(self._view._getIndexWriter(), reader,
-                                         item.itsUUID, attribute.itsUUID,
-                                         version)
-                reader.close()
-            
             self._dirty = False
+
             return size
 
         return 0
+
+    def indexValue(self, view, uItem, uAttr, uValue, version):
+
+        store = view.repository.store
+        reader = self.getPlainTextReader(replace=True)
+        store._index.indexReader(view._getIndexWriter(), reader,
+                                 uItem, uAttr, uValue, version)
+        reader.close()
 
     def _writeValue(self, itemWriter, buffer, version, withSchema):
 
@@ -74,7 +69,7 @@ class DBLob(Lob, ItemValue):
             self._dirty = True
 
         store = self._view.repository.store
-        size = self._writeData(version, store, store._lobs)
+        size = self._writeData(version, store._lobs)
 
         itemWriter.writeLob(buffer, self._uuid, self._indexed)
         itemWriter.writeString(buffer, self.mimetype)

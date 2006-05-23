@@ -1041,17 +1041,18 @@ class TimedCanvasItem(CalendarCanvasItem):
         for rect in self._boundsRects:
             UpdateForConflicts(rect)
 
-        self._bounds = self._boundsRects[0]
+        if self._boundsRects:   # is empty when events not in calendar range
+            self._bounds = self._boundsRects[0]
 
-        # Store top/bottom resize rects for fast hit-testing to update
-        # the cursor
-        r = self._boundsRects[-1]
-        self._resizeLowBounds = wx.Rect(r.x, r.y + r.height - self.resizeBufferSize,
-                                        r.width, self.resizeBufferSize)
+            # Store top/bottom resize rects for fast hit-testing to update
+            # the cursor
+            r = self._boundsRects[-1]
+            self._resizeLowBounds = wx.Rect(r.x, r.y + r.height - self.resizeBufferSize,
+                                            r.width, self.resizeBufferSize)
         
-        r = self._boundsRects[0]
-        self._resizeTopBounds = wx.Rect(r.x, r.y,
-                                        r.width, self.resizeBufferSize)
+            r = self._boundsRects[0]
+            self._resizeTopBounds = wx.Rect(r.x, r.y,
+                                            r.width, self.resizeBufferSize)
 
     def GetBoundsRects(self):
         return self._boundsRects

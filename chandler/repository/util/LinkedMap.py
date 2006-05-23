@@ -5,38 +5,14 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from chandlerdb.util.c import CLinkedMap, CLink
+from chandlerdb.util.c import CLinkedMap
 
 
 class LinkedMap(CLinkedMap):
 
-    def _clear_(self):
-
-        super(LinkedMap, self).clear()
-
-    def clear(self):
-
-        self._clear_()
-        self._firstKey = None
-        self._lastKey = None
-
     def isEmpty(self):
         
         return len(self) == 0
-
-    def _copy_(self, orig):
-
-        self._clear_()
-        
-        for key, origLink in orig._dict.iteritems():
-            link = CLink(self, origLink.value)
-            link._copy_(origLink)
-            self._dict[key] = link
-
-        self._firstKey = orig._firstKey
-        self._lastKey = orig._lastKey
-        
-        self._aliases.update(orig._aliases)
 
     def _remove(self, key):
 
@@ -46,11 +22,11 @@ class LinkedMap(CLinkedMap):
         "Move a key in this collection after another one."
 
         if key == afterKey:
-            return
+            return False
 
         current = self._get(key)
         if current._previousKey == afterKey:
-            return
+            return False
         if current._previousKey is not None:
             previous = self._get(current._previousKey)
         else:
@@ -79,6 +55,8 @@ class LinkedMap(CLinkedMap):
             after._nextKey = (key, afterKey)
 
         current._previousKey = (afterKey, key)
+
+        return True
             
     def __delitem__(self, key):
 
@@ -192,7 +170,7 @@ class LinkedMap(CLinkedMap):
 
         if oldAlias != alias:
             aliases = self._aliases
-            self.linkChanged(link, key)
+            self.linkChanged(link, key, oldAlias)
 
             if aliases:
                 if oldAlias is not None and oldAlias in aliases:

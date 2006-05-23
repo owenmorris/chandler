@@ -7,21 +7,22 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, shutil, atexit, cStringIO
 
 from threading import Thread, Lock, Condition, local, currentThread
-from datetime import datetime
+from datetime import datetime, timedelta
 from struct import pack
 
 from chandlerdb.util import lock
-from chandlerdb.util.c import UUID
-from chandlerdb.item.c import Nil, Default
+from chandlerdb.util.c import UUID, _hash
+from chandlerdb.item.c import Nil, Default, CItem, CValues
+from chandlerdb.item.ItemValue import Indexable
 from chandlerdb.persistence.c import DBEnv, \
     DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \
     DBLockDeadlockError, \
     DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH
 
-from repository.item.Item import Item
+from repository.schema.TypeHandler import TypeHandler
 from repository.util.SAX import XMLGenerator
 from repository.persistence.Repository import \
-    Repository, OnDemandRepository, Store
+    Repository, OnDemandRepository, Store, RepositoryThread
 from repository.persistence.RepositoryError import *
 from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.persistence.DBContainer import \
@@ -140,6 +141,24 @@ class DBRepository(OnDemandRepository):
             raise RepositoryOpenDeniedError
 
         self._openLock = fd
+        return fd
+
+    def _lockOpenExclusive(self):
+
+        fd = self._openLock
+        if fd is None:
+            fd = self._lockOpen()
+            opened = True
+        else:
+            opened = False
+
+        if not lock.lock(fd, (lock.LOCK_UN | lock.LOCK_EX | lock.LOCK_NB)):
+            if opened:
+                self._lockClose()
+            raise ExclusiveOpenDeniedError
+
+        self._exclusiveLock = fd
+        return fd
 
     def _lockClose(self):
 
@@ -188,11 +207,11 @@ class DBRepository(OnDemandRepository):
             env.set_encrypt(kwds['password'], DBEnv.DB_ENCRYPT_AES)
 
         if create or ramdb:
-            env.lk_detect = DBEnv.DB_LOCK_MINLOCKS
+            env.lk_detect = DBEnv.DB_LOCK_MAXWRITE
             env.lk_max_locks = locks
             env.lk_max_objects = locks
         if create and not ramdb:
-            db_config.write("set_lk_detect DB_LOCK_MINLOCKS\n")
+            db_config.write("set_lk_detect DB_LOCK_MAXWRITE\n")
             db_config.write("set_lk_max_locks %d\n" %(locks))
             db_config.write("set_lk_max_objects %d\n" %(locks))
 
@@ -231,15 +250,20 @@ class DBRepository(OnDemandRepository):
 
     def delete(self):
 
-        for name in os.listdir(self.dbHome):
-            if (name.startswith('__') or
-                name.startswith('log.') or
-                name in ('DB_CONFIG', 'DB_VERSION')):
-                path = os.path.join(self.dbHome, name)
-                if not os.path.isdir(path):
-                    os.remove(path)
+        self._lockOpenExclusive()
 
-        self._clearOpenDir()
+        try:
+            for name in os.listdir(self.dbHome):
+                if (name.startswith('__') or
+                    name.startswith('log.') or
+                    name in ('DB_CONFIG', 'DB_VERSION')):
+                    path = os.path.join(self.dbHome, name)
+                    if not os.path.isdir(path):
+                        os.remove(path)
+            self._clearOpenDir()
+
+        finally:
+            self._lockClose()
 
     def checkpoint(self):
 
@@ -343,7 +367,7 @@ class DBRepository(OnDemandRepository):
                             indexCount += purger.indexCount
                             documentCount += purger.documentCount
                             
-                        if status & Item.DELETED:
+                        if status & CItem.DELETED:
                             purger = DBItemPurger(txn, store, uuid, (),
                                                   indexSearcher, indexReader,
                                                   status)
@@ -392,10 +416,12 @@ class DBRepository(OnDemandRepository):
                         self.delete()
                     if not os.path.exists(self.dbHome):
                         os.mkdir(self.dbHome)
+
+                    # is 'f' in the restore set
                     def restoreTest(f):
-                        """ Return whether this file should be restored """
                         return (f.endswith('.db') or f.startswith('log.') or 
                                 f in ('DB_CONFIG', 'DB_VERSION'))
+
                     if os.path.isdir(restore):
                         # We were given a directory path: we'll restore from the
                         # files in it.
@@ -521,6 +547,8 @@ class DBRepository(OnDemandRepository):
         
         if (status & Repository.CLOSED) == 0:
 
+            self.stopIndexer()
+
             ramdb = status & Repository.RAMDB
             if not ramdb:
                 if self._checkpointThread is not None:
@@ -547,6 +575,23 @@ class DBRepository(OnDemandRepository):
     def createView(self, name=None, version=None):
 
         return DBRepositoryView(self, name, version)
+
+    def startIndexer(self):
+
+        if self._indexer is None:
+            self._indexer = DBIndexerThread(self)
+            self._indexer.start()
+
+    def stopIndexer(self):
+
+        if self._indexer is not None:
+            self._indexer.terminate()
+            self._indexer = None
+
+    def notifyIndexer(self):
+
+        if self._indexer is not None:
+            self._indexer.notify()
 
     openUUID = UUID('c54211ac-131a-11d9-8475-000393db837c')
     OPEN_FLAGS = (DBEnv.DB_INIT_MPOOL | DBEnv.DB_INIT_LOCK |
@@ -744,7 +789,8 @@ class DBStore(Store):
 
     def loadValue(self, view, version, uItem, name):
 
-        status, uValue = self._items.findValue(view, version, uItem, name)
+        status, uValue = self._items.findValue(view, version, uItem,
+                                               _hash(name))
         if uValue in (Nil, Default):
             return None, uValue
 
@@ -752,7 +798,8 @@ class DBStore(Store):
     
     def loadValues(self, view, version, uItem, pairs):
 
-        status, uValues = self._items.findValues(view, version, uItem, pairs)
+        hashes = [_hash(name) for name, default in pairs]
+        status, uValues = self._items.findValues(view, version, uItem, hashes)
         if status is None:
             return None, uValues
 
@@ -760,7 +807,8 @@ class DBStore(Store):
     
     def hasValue(self, view, version, uItem, name):
 
-        status, uValue = self._items.findValue(view, version, uItem, name)
+        status, uValue = self._items.findValue(view, version, uItem,
+                                               _hash(name))
         return uValue not in (Nil, Default)
     
     def loadRef(self, view, version, uItem, uuid, key):
@@ -837,9 +885,12 @@ class DBStore(Store):
 
         return uuid
 
-    def searchItems(self, view, version, query, attribute=None):
+    def searchItems(self, view, version, query, uAttr=None):
 
-        return self._index.searchDocuments(version, query, attribute)
+        matches = self._index.searchDocuments(version, query, uAttr)
+        for uItem, (ver, uAttr, uValue) in matches.iteritems():
+            if self._items.isValue(view, version, uItem, uValue):
+                yield uItem, uAttr
 
     def iterItems(self, view):
 
@@ -860,6 +911,14 @@ class DBStore(Store):
     def getVersionInfo(self):
 
         return self._values.getVersionInfo(self.repository.itsUUID)
+
+    def getIndexedVersion(self):
+
+        return self._values.getIndexedVersion(self.repository.itsUUID)
+
+    def setIndexedVersion(self, version):
+
+        return self._values.setIndexedVersion(self.repository.itsUUID, version)
 
     def startTransaction(self, view, nested=False):
 
@@ -1019,4 +1078,127 @@ class DBCheckpointThread(Thread):
             condition.release()
 
             self._repository.checkpoint()
+            self.join()
+
+
+class DBIndexerThread(RepositoryThread):
+
+    def __init__(self, repository):
+
+        super(DBIndexerThread, self).__init__(name='__indexer__')
+
+        self._repository = repository
+        self._condition = Condition(Lock())
+        self._alive = True
+
+        self.setDaemon(True)
+
+    def run(self):
+
+        repository = self._repository
+        store = repository.store
+        condition = self._condition
+        view = None
+
+        while self._alive and self.isAlive():
+            latestVersion = store.getVersion()
+            indexedVersion = store.getIndexedVersion()
+
+            if indexedVersion < latestVersion:
+                if view is None:
+                    view = repository.createView("Lucene")
+                for version in xrange(indexedVersion, latestVersion):
+                    view.refresh(version=version + 1, notify=False)
+                    self._indexVersion(view, version + 1, store)
+
+            condition.acquire()
+            condition.wait(60.0)
+            condition.release()
+
+        if view is not None:
+            view.closeView()
+
+    def _indexVersion(self, view, version, store):
+
+        items = store._items
+
+        while True:
+            count = 0
+            before = datetime.now()
+            txnStatus = None
+            try:
+                txnStatus = view._startTransaction()
+                
+                for (uItem, ver, uKind, status, uParent, pKind,
+                     dirties) in items.iterHistory(view, version - 1, version):
+                    if status & CItem.TOINDEX:
+                        if status & CItem.NEW:
+                            dirties = None
+                        else:
+                            dirties = list(dirties)
+                        self._indexItem(view, ver, store, uItem, dirties)
+                        items.c.setItemStatus(store.txn, ver, uItem,
+                                              status & ~CItem.TOINDEX)
+                        count += 1
+                store.setIndexedVersion(version)
+            except (DBLockDeadlockError, DBInvalidArgError):
+                view._abortTransaction(txnStatus)
+                items._logDL(33)
+                continue
+            except Exception:
+                if txnStatus is not None:
+                    view._abortTransaction(txnStatus)
+                raise
+            else:
+                view._commitTransaction(txnStatus)
+                if count:
+                    after = datetime.now()
+                    store.repository.logger.info("%s indexed %d items in %s",
+                                                 view, count, after - before)
+                return
+
+    def _indexItem(self, view, version, store, uItem, dirties):
+
+        status, uValues = store._items.findValues(view, version, uItem,
+                                                  dirties, True)
+        reader = DBValueReader(store, status)
+
+        for uValue in uValues:
+            if uValue is not None:
+                uAttr, value = reader.readValue(view, uValue, True)
+                if value is not Nil:
+                    if isinstance(value, Indexable):
+                        value.indexValue(view, uItem, uAttr, uValue, version)
+                    else:
+                        attrType = getattr(view[uAttr], 'type', None)
+                        if attrType is None:
+                            valueType = TypeHandler.typeHandler(view, value)
+                        elif attrType.isAlias():
+                            valueType = attrType.type(value)
+                        else:
+                            valueType = attrType
+                        store._index.indexValue(view._getIndexWriter(),
+                                                valueType.makeUnicode(value),
+                                                uItem, uAttr, uValue, version)
+                    store._values.c.setIndexed(store.txn, uValue)
+
+    def notify(self):
+
+        if self._alive and self.isAlive():
+            condition = self._condition
+
+            condition.acquire()
+            condition.notify()
+            condition.release()
+
+    def terminate(self):
+        
+        if self._alive and self.isAlive():
+            condition = self._condition
+
+            condition.acquire()
+            self._alive = False
+            condition.notify()
+            condition.release()
+
             self.join()

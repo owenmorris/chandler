@@ -81,8 +81,8 @@ class Block(schema.Item):
     # should be declared with schema.Sequence().
     subscribesTo = schema.One(ContentCollection, otherName="subscribers")
 
-    # Blocks instances can be put into ListCollections
-    collections = schema.Sequence(otherName='refCollection')
+    # Blocks instances can be put into ListCollections or AppCollections
+    collections = schema.Sequence(otherName='inclusions')
 
     viewAttribute = schema.One(
         schema.Text,

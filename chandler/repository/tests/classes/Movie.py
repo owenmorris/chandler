@@ -18,10 +18,6 @@ class Movie(Item):
 
         print 'copied', self.title, 'from', original.itsUUID
 
-    def onItemMerge(self, code, attribute, value):
-
-        return self.getAttributeValue(attribute)
-
     def kindChanged(self, op, kind, item):
 
         self.monitorAttribute = 'kind'

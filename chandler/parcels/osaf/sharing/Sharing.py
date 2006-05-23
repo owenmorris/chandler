@@ -69,11 +69,11 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
     def mergeFunction(code, item, attribute, value):
 
         logger.debug("Sharing conflict on item %(item)s, attribute "
-            "%(attribute)s: %(local)s vs %(remote)s" % {
+            "%(attribute)s: %(local)s vs %(remote)s", {
                 'item' : item,
                 'attribute' : attribute,
-                'local' : unicode(value).encode('utf8'),
-                'remote' : unicode(item.getAttributeValue(attribute)).encode('utf8'),
+                'local' : unicode(getattr(item, attribute)).encode('utf8'),
+                'remote' : unicode(value).encode('utf8'),
             })
 
         # @@@MOR Probably not a good idea to create new items inside the
@@ -96,17 +96,17 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
                     {
                        'name' : item.getItemDisplayName(),
                        'attribute' : attribute,
-                       'local' : getattr(item, attribute),
-                       'remote' : value
+                       'local' : value,
+                       'remote' : getattr(item, attribute)
                     }
                 )
             )
 
         LOCAL_CHANGES_WIN = False
         if LOCAL_CHANGES_WIN:
-            return value
+            return getattr(item, attribute)
         else:
-            return item.getAttributeValue(attribute)
+            return value
 
 
     if isinstance(collectionOrShares, list):

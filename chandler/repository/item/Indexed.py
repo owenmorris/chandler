@@ -19,31 +19,6 @@ class Indexed(object):
     def _init_indexed(self):
 
         self._indexes = None
-        self._valid = True
-
-    def _isValid(self):
-
-        return self._valid
-
-    def _invalidateIndexes(self):
-
-        if self._valid:
-            if self._indexes:
-                for index in self._indexes.itervalues():
-                    index.invalidate()
-        self._valid = False
-
-    def _validateIndexes(self):
-
-        if self._indexes:
-            if self._valid:
-                self._restoreIndexes()
-            else:
-                for index in self._indexes.itervalues():
-                    index._clear_()
-                    self.fillIndex(index)
-                    index.validate()
-        self._valid = True
 
     def getIndex(self, indexName):
 
@@ -60,9 +35,8 @@ class Indexed(object):
 
     def _anIndex(self):
 
-        if self._valid:
-            if self._indexes:
-                return self._indexes.itervalues().next()
+        if self._indexes:
+            return self._indexes.itervalues().next()
 
         return None
 
@@ -208,6 +182,39 @@ class Indexed(object):
     def isDescending(self, indexName):
 
         return self.getIndex(indexName).isDescending()
+
+    def _collectIndexChanges(self, name, indexChanges):
+
+        indexes = self._indexes
+        if indexes:
+            _indexChanges = {}
+
+            for indexName, index in indexes.iteritems():
+                if index._needsReindexing():
+                    _indexChanges[indexName] = dict(index._iterChanges())
+
+            if _indexChanges:
+                indexChanges[name] = _indexChanges
+
+    def _applyIndexChanges(self, view, indexChanges, deletes):
+
+        indexes = self._indexes
+        for name, _indexChanges in indexChanges.iteritems():
+            index = indexes[name]
+
+            others = []
+            for key, value in _indexChanges.iteritems():
+                if value is not None:
+                    item = view.find(key)
+                    if item is None:
+                        if key not in deletes:
+                            raise AssertionError, (key, "item not found")
+                    elif item.isDirty():
+                        others.append(key)
+                        if key in index:
+                            index.removeKey(key)
+            for key in others:
+                index.insertKey(key)
 
     def _createIndex(self, indexType, **kwds):
 
@@ -579,10 +586,6 @@ class Indexed(object):
     def _checkIndexes(self, logger, item, attribute):
 
         result = True
-
-        if not self._valid:
-            logger.error("Indexes installed on value '%s' of type %s in attribute %s on %s are invalid (_valid is False)", self, type(self), attribute, item._repr_())
-            result = False
 
         if self._indexes:
             count = len(self)
