@@ -112,6 +112,9 @@ class MainFrame(wx.Frame):
         app.Bind(wx.EVT_IDLE, None)
         app.Bind(wx.EVT_MENU, None, id=-1)
 
+        if wx.Platform == '__WXMAC__':
+            wx.GetApp().Bind(wx.EVT_ACTIVATE_APP, None)
+
         if __debug__:
             busyInfo = wx.BusyInfo (_(u"Checking repository..."))
             app.UIRepositoryView.check()
