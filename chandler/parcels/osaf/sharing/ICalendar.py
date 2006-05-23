@@ -499,7 +499,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                             # creating a modification
                             if eventItem.getMaster() == eventItem:
                                 mod = eventItem._cloneEvent()
-                                mod.modificationFor = mod.occurenceFor = eventItem
+                                mod.modificationFor = mod.occurrenceFor = eventItem
                                 if eventItem.hasLocalAttributeValue('occurrenceFor'):
                                     del eventItem.occurrenceFor
                                 eventItem = mod
