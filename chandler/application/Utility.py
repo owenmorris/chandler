@@ -102,7 +102,8 @@ def getDesktopDir():
     """
     Return a reasonable guess at the desktop folder.
     
-    On Linux, just return the home directory.
+    On Mac, returns '~/Desktop'; on Linux, it'll return '~/Desktop' if it 
+    exists, or just '~' if not.
     """
     if os.name == 'nt':
         if os.environ.has_key('USERPROFILE'):
@@ -111,13 +112,12 @@ def getDesktopDir():
                 return desktop
         return os.path.realpath('.')
 
-    elif sys.platform == 'darwin':
-        return os.path.join(os.path.expanduser('~'), 'Desktop')
-    
-    # Linux
-    else:
-        return os.path.expanduser('~')
-
+    # Linux or Mac.
+    homeDir = os.path.expanduser('~')
+    desktopDir = os.path.join(homeDir, 'Desktop')
+    if (sys.platform == 'darwin' or os.path.isdir(desktopDir)):
+        return desktopDir
+    return homeDir
 
 def initOptions(**kwds):
     """
@@ -138,7 +138,7 @@ def initOptions(**kwds):
         'catsPerfLog':('',   '--catsPerfLog','s', None,  None, 'file to output a performance number'),
         'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
         'create':     ('-c', '--create',     'b', False, "CREATE", 'Force creation of a new repository'),
-        'askCreate':  ('',   '--askCreate',  'b', False, None, 'Offer to create a new repository'),
+        'ask':        ('',   '--ask',        'b', False, None, 'give repository options on startup'),
         'ramdb':      ('-m', '--ramdb',      'b', False, None, ''),
         'restore':    ('-r', '--restore',    's', None,  None, 'repository backup to restore from before repository open'),
         'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),

@@ -221,6 +221,12 @@ class wxApplication (wx.App):
         parcelPath = Utility.initParcelEnv(Globals.chandlerDirectory,
                                            Globals.options.parcelPath)
 
+        # If the magic metakey is down, run the startup options box; it'll
+        # modify Globals.options as necessary.
+        if Globals.options.ask or wx.GetMouseState().ControlDown():
+            from application.dialogs.StartupOptionsDialog import StartupOptionsDialog            
+            StartupOptionsDialog.run()
+
         # Splash Screen:
         # don't show the splash screen when nosplash is set
         splash = None
@@ -242,17 +248,6 @@ class wxApplication (wx.App):
         if splash:
             splash.updateGauge('repository')
         repoDir = Utility.locateRepositoryDirectory(Globals.options.profileDir)
-
-        if Globals.options.askCreate and \
-           not Globals.options.create:
-            dlg = wx.MessageDialog(None, 
-                                   _(u"Destroy existing repository (discarding "
-                                     u"all existing data and preferences) and "
-                                     u"create a new one?"), 
-                                   _(u"You said '--askCreate'..."),
-                                   wx.YES_NO | wx.ICON_QUESTION)
-            Globals.options.create = dlg.ShowModal() == wx.ID_YES
-            dlg.Destroy()
             
         try:
             view = Utility.initRepository(repoDir, Globals.options)
