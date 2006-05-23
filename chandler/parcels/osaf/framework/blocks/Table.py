@@ -762,6 +762,12 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         for item in items:
             if item in self.contents:
                 self.contents.selectItem(item)
+
+    def onSelectAllEventUpdateUI(self, event):
+        event.arguments['Enable'] = len(self.contents) > 0
+        
+    def onSelectAllEvent(self, event):
+        self.PostSelectItems(self.contents)
             
 # Ewww, yuk.  Blocks and attribute editors are mutually interdependent
 import osaf.framework.attributeEditors
