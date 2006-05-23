@@ -441,6 +441,8 @@ static PyObject *t_value_container_loadValue(t_value_container *self,
                                              PyObject *args);
 static PyObject *t_value_container_saveValue(t_value_container *self,
                                              PyObject *args);
+static PyObject *t_value_container_setIndexed(t_value_container *self,
+                                              PyObject *args);
 
 
 static PyMemberDef t_value_container_members[] = {
@@ -452,6 +454,8 @@ static PyMethodDef t_value_container_methods[] = {
       "saveValue" },
     { "saveValue", (PyCFunction) t_value_container_saveValue, METH_VARARGS,
       "saveValue" },
+    { "setIndexed", (PyCFunction) t_value_container_setIndexed, METH_VARARGS,
+      "setIndexed" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -642,6 +646,67 @@ static PyObject *t_value_container_saveValue(t_value_container *self,
 
         return PyInt_FromLong(key.size + data.size);
     }        
+}
+
+static PyObject *t_value_container_setIndexed(t_value_container *self,
+                                              PyObject *args)
+{
+    PyObject *txn, *uValue;
+
+    if (!PyArg_ParseTuple(args, "OO", &txn, &uValue))
+        return NULL;
+
+    if (!PyObject_TypeCheck(txn, CDBTxn))
+    {
+        PyErr_SetObject(PyExc_TypeError, txn);
+        return NULL;
+    }
+
+    if (!PyUUID_Check(uValue))
+    {
+        PyErr_SetObject(PyExc_TypeError, uValue);
+        return NULL;
+    }
+
+    {
+        DB_TXN *db_txn = ((t_txn *) txn)->txn;
+        DB *db = (((t_container *) self)->db)->db;
+        DBT key, data;
+        unsigned char vFlags;
+        int err;
+
+        memset(&key, 0, sizeof(key));
+        key.data = PyString_AS_STRING(((t_uuid *) uValue)->uuid);
+        key.size = PyString_GET_SIZE(((t_uuid *) uValue)->uuid);
+        
+        memset(&data, 0, sizeof(data));
+        data.flags = DB_DBT_USERMEM | DB_DBT_PARTIAL;
+        data.doff = 16;
+        data.dlen = 1;
+        data.ulen = 1;
+        data.data = &vFlags;
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = db->get(db, db_txn, &key, &data, 0);
+        Py_END_ALLOW_THREADS;
+
+        if (!err)
+        {
+            vFlags &= ~V_TOINDEX;
+            vFlags |= V_INDEXED;
+        }
+        else
+            return raiseDBError(err);
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = db->put(db, db_txn, &key, &data, 0);
+        Py_END_ALLOW_THREADS;
+
+        if (!err)
+            Py_RETURN_NONE;
+        else
+            return raiseDBError(err);
+    }
 }
 
 
@@ -1011,11 +1076,13 @@ static void t_item_container_dealloc(t_item_container *self);
 static PyObject *t_item_container_new(PyTypeObject *type,
                                      PyObject *args, PyObject *kwds);
 static int t_item_container_init(t_item_container *self,
-                                PyObject *args, PyObject *kwds);
+                                 PyObject *args, PyObject *kwds);
 static PyObject *t_item_container_associateKind(t_item_container *self,
                                                 PyObject *args);
 static PyObject *t_item_container_associateVersion(t_item_container *self,
                                                    PyObject *args);
+static PyObject *t_item_container_setItemStatus(t_item_container *self,
+                                                PyObject *args);
 
 
 
@@ -1027,6 +1094,8 @@ static PyMethodDef t_item_container_methods[] = {
     { "associateKind", (PyCFunction) t_item_container_associateKind,
       METH_VARARGS, NULL },
     { "associateVersion", (PyCFunction) t_item_container_associateVersion,
+      METH_VARARGS, NULL },
+    { "setItemStatus", (PyCFunction) t_item_container_setItemStatus,
       METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
@@ -1150,6 +1219,71 @@ static PyObject *t_item_container_associateVersion(t_item_container *self,
 {
     return _t_container_associate((t_container *) self, args,
                                   _t_item_container_versionKey);
+}
+
+static PyObject *t_item_container_setItemStatus(t_item_container *self,
+                                                PyObject *args)
+{
+    PyObject *txn, *uItem;
+    unsigned long long version;
+    unsigned int status;
+
+    if (!PyArg_ParseTuple(args, "OKOi", &txn, &version, &uItem, &status))
+        return NULL;
+
+    if (!PyObject_TypeCheck(txn, CDBTxn))
+    {
+        PyErr_SetObject(PyExc_TypeError, txn);
+        return NULL;
+    }
+
+    if (!PyUUID_Check(uItem))
+    {
+        PyErr_SetObject(PyExc_TypeError, uItem);
+        return NULL;
+    }
+
+    {
+        DB_TXN *db_txn = ((t_txn *) txn)->txn;
+        DB *db = (((t_container *) self)->db)->db;
+        DBT key, data;
+        char keyBuffer[24];
+        unsigned int value;
+        int err;
+
+        memcpy(keyBuffer, PyString_AS_STRING(((t_uuid *) uItem)->uuid), 16);
+        *((unsigned long *) (&keyBuffer[16])) = htonl(~(unsigned long) (version >> 32));
+        *((unsigned long *) (&keyBuffer[20])) = htonl(~(unsigned long) version);
+
+        memset(&key, 0, sizeof(key));
+        key.data = keyBuffer;
+        key.size = sizeof(keyBuffer);
+        
+        memset(&data, 0, sizeof(data));
+        data.flags = DB_DBT_USERMEM | DB_DBT_PARTIAL;
+        data.doff = 16;
+        data.dlen = 4;
+        data.ulen = 4;
+        data.data = &value;
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = db->get(db, db_txn, &key, &data, 0);
+        Py_END_ALLOW_THREADS;
+
+        if (!err)
+            value = htonl(status);
+        else
+            return raiseDBError(err);
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = db->put(db, db_txn, &key, &data, 0);
+        Py_END_ALLOW_THREADS;
+
+        if (!err)
+            Py_RETURN_NONE;
+        else
+            return raiseDBError(err);
+    }
 }
 
 

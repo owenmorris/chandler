@@ -37,6 +37,7 @@ enum {
     /* STALE   = 0x0080, from CItem */
     /* CDIRTY  = 0x0200, from CItem */
     DEFERDEL   = 0x0400,
+    BGNDINDEX  = 0x0800,
 
     VERIFY     = 0x1000,
     DEBUG      = 0x2000,

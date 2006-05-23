@@ -76,3 +76,13 @@ class ItemValue(object):
             return False
 
         return True
+
+
+class Indexable(object):
+    'A superclass for values that implement their full text indexing.'    
+
+    def isIndexed(self):
+        raise NotImplementedError, '%s.isIndexed' %(type(self))
+
+    def indexValue(self, view, uItem, uAttribute, uValue, version):
+        raise NotImplementedError, '%s.indexValue' %(type(self))

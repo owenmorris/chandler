@@ -43,6 +43,8 @@ static PyObject *t_env_get_lk_max_objects(t_env *self, void *data);
 static int t_env_set_lk_max_objects(t_env *self, PyObject *value, void *data);
 static PyObject *t_env_get_cachesize(t_env *self, void *data);
 static int t_env_set_cachesize(t_env *self, PyObject *value, void *data);
+static PyObject *t_env_get_lg_bsize(t_env *self, void *data);
+static int t_env_set_lg_bsize(t_env *self, PyObject *value, void *data);
 
 
 static PyMemberDef t_env_members[] = {
@@ -97,6 +99,9 @@ static PyGetSetDef t_env_properties[] = {
     { "cachesize",
       (getter) t_env_get_cachesize, (setter) t_env_set_cachesize,
       "size of shared memory buffer pool", NULL },
+    { "lg_bsize",
+      (getter) t_env_get_lg_bsize, (setter) t_env_set_lg_bsize,
+      "size of transactional log buffer", NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
 
@@ -815,6 +820,55 @@ static int t_env_set_cachesize(t_env *self, PyObject *value, void *data)
     {
         Py_BEGIN_ALLOW_THREADS;
         err = self->db_env->set_cachesize(self->db_env, gbytes, bytes, ncache);
+        Py_END_ALLOW_THREADS;
+    }
+    else
+        err = EINVAL;
+
+    if (err)
+    {
+        raiseDBError(err);
+        return -1;
+    }
+
+    return 0;
+}
+
+
+/* lg_bsize */
+
+static PyObject *t_env_get_lg_bsize(t_env *self, void *data)
+{
+    u_int32_t bytes;
+    int err;
+
+    if (self->db_env)
+    {
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db_env->get_lg_bsize(self->db_env, &bytes);
+        Py_END_ALLOW_THREADS;
+    }
+    else
+        err = EINVAL;
+
+    if (err)
+        return raiseDBError(err);
+
+    return PyInt_FromLong(bytes);
+}
+
+static int t_env_set_lg_bsize(t_env *self, PyObject *value, void *data)
+{
+    u_int32_t bytes = (u_int32_t) PyInt_AsLong(value);
+    int err;
+
+    if (PyErr_Occurred())
+        return -1;
+
+    if (self->db_env)
+    {
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db_env->set_lg_bsize(self->db_env, bytes);
         Py_END_ALLOW_THREADS;
     }
     else

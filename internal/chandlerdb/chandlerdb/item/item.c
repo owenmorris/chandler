@@ -1477,6 +1477,7 @@ void _init_item(PyObject *m)
             PyDict_SetItemString_Int(dict, "MUTATING", MUTATING);
             PyDict_SetItemString_Int(dict, "P_WATCHED", P_WATCHED);
             PyDict_SetItemString_Int(dict, "T_WATCHED", T_WATCHED);
+            PyDict_SetItemString_Int(dict, "TOINDEX", TOINDEX);
             PyDict_SetItemString_Int(dict, "WATCHED", WATCHED);
 
             PyDict_SetItemString_Int(dict, "VRDIRTY", VRDIRTY);

@@ -713,6 +713,9 @@ static PyObject *t_lm_dict_clear(t_lm *self, PyObject *args)
     PyDict_Clear(self->dict);
     PyDict_Clear(self->aliases);
 
+    t_lm___setFirstKey(self, Py_None, NULL);
+    t_lm___setLastKey(self, Py_None, NULL);
+
     Py_RETURN_NONE;
 }
 

@@ -158,7 +158,7 @@ class DanglingRefError(BadRefError):
     __doc__ = "Item %s, attribute '%s': referred item %s not found"
 
     def __str__(self):
-        return self.__doc__ %(self.getItem().itsPath,
+        return self.__doc__ %(self.getItem()._repr_(),
                               self.args[1],
                               self.str(self.args[2]))
 

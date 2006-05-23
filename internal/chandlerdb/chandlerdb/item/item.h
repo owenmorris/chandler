@@ -72,6 +72,7 @@ enum {
     T_WATCHED  = 0x02000000,          /* watched, transiently  */
     DEFERRED   = 0x04000000,          /* delete deferred until commit */
     DEFERRING  = 0x08000000,          /* deferring delete */
+    TOINDEX    = 0x10000000,          /* to be full-text indexed */
 };
 
 enum {
@@ -79,9 +80,24 @@ enum {
     DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY | KDIRTY,
     MERGED     = VMERGED | RMERGED | NMERGED | CMERGED,
     SAVEMASK   = (DIRTY | ADIRTY |
-                  NEW | DELETED | P_WATCHED |
+                  NEW | DELETED | P_WATCHED | TOINDEX |
                   SCHEMA | CORESCHEMA | CONTAINER),
     WATCHED    = P_WATCHED | T_WATCHED,
 };
+
+
+enum {
+    V_READONLY  = 0x0001,        /* value is read-only      */
+
+    /* flags in 0x00f0 are used by the persistence format   */
+    V_INDEXED   = 0x0010,        /* value is indexed        */
+    V_TOINDEX   = 0x0020,        /* value needs indexing    */
+
+    V_DIRTY     = 0x0100,        /* value is dirty          */
+    V_TRANSIENT = 0x0200,        /* value is transient      */
+    V_SAVEMASK  = 0x000f,        /* save these flags        */
+    V_COPYMASK  = V_READONLY | V_TRANSIENT
+};
+
 
 #endif

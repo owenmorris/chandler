@@ -32,6 +32,8 @@ static PyObject *t_view_isDeferringDelete(t_view *self);
 static PyObject *t_view_deferDelete(t_view *self);
 static PyObject *t_view_effectDelete(t_view *self);
 static PyObject *t_view_cancelDelete(t_view *self);
+static PyObject *t_view_isBackgroundIndexed(t_view *self);
+static PyObject *t_view_setBackgroundIndexed(t_view *self, PyObject *arg);
 static PyObject *t_view_isOpen(t_view *self);
 static PyObject *t_view_isDebug(t_view *self);
 static PyObject *t_view__isVerify(t_view *self);
@@ -105,6 +107,8 @@ static PyMethodDef t_view_methods[] = {
     { "deferDelete", (PyCFunction) t_view_deferDelete, METH_NOARGS, "" },
     { "effectDelete", (PyCFunction) t_view_effectDelete, METH_NOARGS, "" },
     { "cancelDelete", (PyCFunction) t_view_cancelDelete, METH_NOARGS, "" },
+    { "isBackgroundIndexed", (PyCFunction) t_view_isBackgroundIndexed, METH_NOARGS, "" },
+    { "setBackgroundIndexed", (PyCFunction) t_view_setBackgroundIndexed, METH_O, "" },
     { "isOpen", (PyCFunction) t_view_isOpen, METH_NOARGS, "" },
     { "isDebug", (PyCFunction) t_view_isDebug, METH_NOARGS, "" },
     { "_isVerify", (PyCFunction) t_view__isVerify, METH_NOARGS, "" },
@@ -418,6 +422,26 @@ static PyObject *t_view_cancelDelete(t_view *self)
     }
 
     Py_RETURN_NONE;
+}
+
+static PyObject *t_view_isBackgroundIndexed(t_view *self)
+{
+    if (self->status & BGNDINDEX)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject *t_view_setBackgroundIndexed(t_view *self, PyObject *arg)
+{
+    PyObject *value = t_view_isBackgroundIndexed(self);
+
+    if (PyObject_IsTrue(arg))
+        self->status |= BGNDINDEX;
+    else
+        self->status &= ~BGNDINDEX;
+
+    return value;
 }
 
 static PyObject *t_view_isOpen(t_view *self)
