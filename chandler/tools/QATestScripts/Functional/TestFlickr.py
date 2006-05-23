@@ -33,6 +33,8 @@ try:
         fc.fillCollectionFromFlickr(repView)
     except socket.timeout:
         logger.ReportPass("Flickr timed out; skipping test")
+    except flickr.flickr.FlickrNotFoundError:
+        logger.ReportPass("Flickr search returned nothing; skipping test")        
     else:
 
         # Add the channel to the sidebar

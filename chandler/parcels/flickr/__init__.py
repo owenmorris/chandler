@@ -4,6 +4,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.dialogs.Util
 from application import schema
 import flickr
+from flickr import FlickrError, FlickrNotFoundError
 from osaf import pim
 from photos import PhotoMixin
 import osaf.framework.blocks.detail.Detail as Detail

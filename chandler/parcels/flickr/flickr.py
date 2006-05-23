@@ -52,6 +52,8 @@ password = None
 
 class FlickrError(Exception): pass
 
+class FlickrNotFoundError(FlickrError): pass
+
 class Photo(object):
     """Represents a Flickr Photo."""
 
@@ -584,7 +586,7 @@ def photos_search(user_id='', auth=False,  tags='', tag_mode='', text='',\
     photos = []
 
     if not hasattr (data.rsp.photos, 'photo'):
-        raise FlickrError, u"No photos with that tag"
+        raise FlickrNotFoundError, u"No photos with that tag"
     
     if isinstance(data.rsp.photos.photo, list):
         for photo in data.rsp.photos.photo:
@@ -616,7 +618,7 @@ def people_getPublicPhotos(user_id, per_page='', page=''):
     photos = []
 
     if not hasattr (data.rsp.photos, 'photo'):
-        raise FlickrError, u"No photos with that user name"
+        raise FlickrNotFoundError, u"No photos with that user name"
     
     if isinstance(data.rsp.photos.photo, list):
         for photo in data.rsp.photos.photo:
