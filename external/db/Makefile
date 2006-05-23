@@ -1,6 +1,6 @@
 
 VERSION=4.4.20
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)4
 DB=$(BUILD_ROOT)/db
 SRC=$(DB)/db-$(VERSION)
 TARBALL=db-$(SNAP)-$(RELVER).tar.gz
@@ -80,6 +80,8 @@ binaries: strip
 endif
 
 apply: expand patches-$(VERSION)
+	cd $(SRC); patch -Np0 < ../patch.$(VERSION).1; echo ok
+	cd $(SRC); patch -Np0 < ../patch.$(VERSION).2; echo ok
 	patch -Nup0 < patches-$(VERSION); echo ok
 
 db-$(VERSION).tar.gz:
@@ -95,5 +97,3 @@ expand: db-$(VERSION)-expanded
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
-
-
