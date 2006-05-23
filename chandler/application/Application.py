@@ -606,22 +606,7 @@ class wxApplication (wx.App):
         finally:
             self.ignoreIdle = False
 
-    def OnIdle(self, event):
-        # Adding a handler for catching a set focus event doesn't catch
-        # every change to the focus. It's difficult to preprocess every event
-        # so we check for focus changes in OnIdle. Also call UpdateUI when
-        # focus changes.
-
-        if not self.__CHANDLER_STARTED_UP: return # workaround for bug 4362
-        if self.ignoreIdle: return                # workaround for bug 4732
-
-        focus = wx.Window_FindFocus()
-        if self.focus != focus:
-            self.focus = focus
-            self.needsUpdateUI = True
-
-        the_view = self.repository.view  # cache the view for performance
-
+    def propagateAsynchronousNotifications (self):
         def mergeFunction(code, item, attribute, value):
             # You can choose which view wins by uncommenting the appropriate
             # return statement:
@@ -633,21 +618,36 @@ class wxApplication (wx.App):
                                                         # main view win
 
         # Fire set notifications that require mapChanges
-        the_view.refresh(mergeFunction) # pickup changes from other threads
+        self.repository.view.refresh (mergeFunction) # pickup changes from other threads
 
-        # Redraw all the blocks dirtied by notifications
-
+        # synchronize dirtied blocks to reflect changes to the data
         from osaf.framework.blocks.Block import Block
-
         # make the list first in case it gets tweaked during synchronizeWidget
         dirtyBlocks = [Globals.mainViewRoot.findUUID(theUUID)
                        for theUUID in Block.dirtyBlocks]
-        
-        # now send out syncs
+
+        # synchronize affected widgets
         for block in dirtyBlocks:
             block.synchronizeWidget(useHints=True)
-            
+
         Block.dirtyBlocks = set()
+
+
+    def OnIdle(self, event):
+        # Adding a handler for catching a set focus event doesn't catch
+        # every change to the focus. It's difficult to preprocess every event
+        # so we check for focus changes in OnIdle. Also call UpdateUI when
+        # focus changes.
+
+        if not self.__CHANDLER_STARTED_UP: return # workaround for bug 4362
+        if self.ignoreIdle: return                # workaround for bug 4732
+
+        self.propagateAsynchronousNotifications()
+
+        focus = wx.Window_FindFocus()
+        if self.focus != focus:
+            self.focus = focus
+            self.needsUpdateUI = True
 
         if self.needsUpdateUI:
             try:

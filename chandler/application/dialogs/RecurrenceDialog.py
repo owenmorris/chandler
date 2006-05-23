@@ -116,6 +116,11 @@ class RecurrenceDialog(wx.Dialog):
         self.proxy.dialogUp = False
         for method in self.endCallbacks:
             method()
+
+        # Propagate synchronous notification required to
+        # update widgets before the screen is readrawn.
+        wx.GetApp().propagateAsynchronousNotifications()
+
         self.Destroy()
         
     def onCancel(self, event):
