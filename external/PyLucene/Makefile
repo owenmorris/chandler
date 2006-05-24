@@ -1,6 +1,6 @@
 
-VERSION=2.0rc1-5
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+VERSION=2.0rc1-10
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-src-$(VERSION)
 BUILD=$(SNAP)
@@ -32,15 +32,9 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/security/classpath.security \
          $(SNAP)/$(SITE)/security/libgcj.security \
          $(SNAP)/bin/libdb_java$(subst .,,$(DB_LIB_VER))$(SUFFIX).dll
+LIB_INSTALL=
+GCJ_STATIC=1
 else
-
-ifeq ($(GCJ_VER),3)
-LIBGCJ_VER=5
-endif
-
-ifeq ($(GCJ_VER),4)
-LIBGCJ_VER=6
-endif
 
 ifeq ($(OS),Darwin)
 PREFIX_PYTHON=$(PREFIX)/$(FRAMEWORK)
@@ -54,8 +48,18 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).la
 ifeq ($(GCJ_VER),3)
 MANIFEST:=$(MANIFEST) \
-         $(SNAP)/lib/libgcc_s.1.0.dylib \
-         $(SNAP)/lib/libstdc++.6.dylib
+         $(SNAP)/lib/libstdc++.6.dylib \
+         $(SNAP)/lib/libgcc_s.1.0.dylib
+LIB_INSTALL=libstdc++.6.dylib libgcc_s.1.0.dylib
+GCJ_STATIC=1
+endif
+ifeq ($(GCJ_VER),4)
+MANIFEST:=$(MANIFEST) \
+         $(SNAP)/lib/libgcj.6.dylib \
+         $(SNAP)/lib/libstdc++.6.dylib \
+         $(SNAP)/lib/libgcc_s.1.0.dylib
+LIB_INSTALL=libgcj.6.dylib libstdc++.6.dylib libgcc_s.1.0.dylib
+GCJ_STATIC=0
 endif
 else
 
@@ -70,8 +74,18 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).so
 ifeq ($(GCJ_VER),3)
 MANIFEST:=$(MANIFEST) \
-         $(SNAP)/lib/libgcc_s.so.1 \
-         $(SNAP)/lib/libstdc++.so.6
+         $(SNAP)/lib/libstdc++.so.6 \
+         $(SNAP)/lib/libgcc_s.so.1
+LIB_INSTALL=libstdc++.so.6 libgcc_s.so.1
+GCJ_STATIC=1
+endif
+ifeq ($(GCJ_VER),4)
+MANIFEST:=$(MANIFEST) \
+         $(SNAP)/lib/libgcj.so.6 \
+         $(SNAP)/lib/libstdc++.so.6 \
+         $(SNAP)/lib/libgcc_s.so.1
+LIB_INSTALL=libgcj.so.6 libstdc++.so.6 libgcc_s.so.1
+GCJ_STATIC=0
 endif
 endif
 endif
@@ -103,8 +117,9 @@ build: expand apply
             PREFIX_FRAMEWORKS=$(PREFIX)/Library/Frameworks \
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             GCJ_HOME=$(GCJ_HOME) \
-            GCJ_VER=$(GCJ_VER) \
-            GCJ_STATIC=1 \
+            GCJ_LIBDIR=$(GCJ_HOME)/lib \
+            GCJ_STATIC=$(GCJ_STATIC) \
+            LIB_INSTALL="$(LIB_INSTALL)" \
             PYDBG=$(PYDBG) \
             _SUFFIX=$(_SUFFIX) \
             CC=$(PYLUCENE_CC) \
