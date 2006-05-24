@@ -134,7 +134,7 @@ else
 ifeq ($(OS),Darwin)
 
 $(SRC)/$(BUILD)/Makefile: patches-$(VERSION)-$(OS)
-	patch -Nup0 < patches-$(VERSION)-$(OS)
+	patch -Nup0 < patches-$(VERSION)-$(OS); echo ok
 	mkdir -p $(SRC)/$(BUILD)
 	cd $(SRC)/$(BUILD); \
       MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
