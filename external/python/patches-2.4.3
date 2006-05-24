@@ -66,7 +66,7 @@
  case $ac_sys_system/$ac_sys_release in
    Darwin/[01234567].*)
 -    LIBTOOL_CRUFT="-framework System -lcc_dynamic -arch_only ppc"
-+    LIBTOOL_CRUFT="-framework System -lcc_dynamic -arch_only $(ARCH)"
++    LIBTOOL_CRUFT='-framework System -lcc_dynamic -arch_only $(ARCH)'
      LIBTOOL_CRUFT=$LIBTOOL_CRUFT' -install_name $(PYTHONFRAMEWORKINSTALLDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
      LIBTOOL_CRUFT=$LIBTOOL_CRUFT' -compatibility_version $(VERSION) -current_version $(VERSION)';;
    Darwin/*)
