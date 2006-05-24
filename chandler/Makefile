@@ -78,7 +78,6 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)6.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)5.tar.gz \
          $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.5-62-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0rc1-10-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.2-$(BP)6.tar.gz \
          $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.2.0-$(BP)46.tar.gz \
          $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)2.tar.gz \
@@ -93,7 +92,10 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)6.tar.gz \
 
 # readline is only needed for OSX
 ifeq ($(OS),Darwin)
-ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.0-$(BP)1.tar.gz
+ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.1-$(BP)1.tar.gz
+ARCHIVES += $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.3-$(BP)1.tar.gz
+else
+ARCHIVES += $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.2-$(BP)6.tar.gz
 endif
 
 # We download some pretty big files, which can clog your network. You can now
@@ -127,7 +129,12 @@ endif
 endif
 
 HOST=builds.osafoundation.org
+ifeq ($(OS),Darwin)
+ARCH=$(shell arch)
+URL=http://$(HOST)/external/$(PLATFORM)/$(ARCH)
+else
 URL=http://$(HOST)/external/$(PLATFORM)
+endif
 
 ARCHIVES_INST = \
     $(addsuffix .inst, \
