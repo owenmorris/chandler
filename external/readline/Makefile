@@ -13,10 +13,10 @@ TARBALL=readline-$(SNAP)-$(RELVER).tar.gz
 
 ifeq ($(OS),Darwin)
 
-$(SRC)/Makefile:
+$(SRC_BUILD)/Makefile:
 	cd $(SRC_BUILD); ./configure --prefix=$(PREFIX)
 
-readline: apply $(SRC)/Makefile
+readline: apply $(SRC_BUILD)/Makefile
 	$(MAKE) -C $(SRC_BUILD)
 	$(MAKE) -C $(SRC_BUILD) install
 
@@ -52,7 +52,9 @@ readline-$(VERSION)-$(SNAP)-expanded: readline-$(VERSION).tar.gz
 expand: readline-$(VERSION)-$(SNAP)-expanded
 
 apply: expand
-	cd $(READLINE)/$(BUILD)/readline-$(VERSION); cat $(READLINE)/readline51* | patch
+	cd $(READLINE)/$(BUILD)/readline-$(VERSION); \
+        cat $(READLINE)/readline51* | patch -N; \
+        echo ok
 
 else
 
