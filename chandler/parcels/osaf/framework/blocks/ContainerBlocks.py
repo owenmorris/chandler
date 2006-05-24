@@ -43,6 +43,7 @@ class wxBoxContainer (wxRectangularChild):
                            childBlock.stretchFactor, 
                            wxRectangularChild.CalculateWXFlag(childBlock), 
                            wxRectangularChild.CalculateWXBorder(childBlock))
+        sizer.Layout()
         self.Layout()
 
         if self.blockItem.isShown:

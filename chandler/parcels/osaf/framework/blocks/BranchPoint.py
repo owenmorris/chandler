@@ -156,6 +156,10 @@ class BranchPointBlock(BoxContainer):
         if treeChanged:
             # get rid of the old view
             if oldView is not None:
+                # We need to get rid of our sizer that refers to widgets
+                # that are going to get deleted
+                assert hasattr (self, "widget")
+                self.widget.SetSizer (None)
                 oldView.unRender()
 
             # attach the new view
