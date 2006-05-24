@@ -354,11 +354,23 @@ def initRepository(directory, options, allowSchemaView=False):
         if not allowSchemaView:
             raise AssertionError, "schema.py was used before it was initialized here causing it to setup a NullRepositoryView"
 
-    if options.indexer == 'background':   # 'background' is the default
+    if options.indexer == 'background':   # the default
         # don't run PyLucene indexing in the main view
         view.setBackgroundIndexed(True)
         # but in the repository's background indexer
         repository.startIndexer()
+
+    elif options.indexer == 'foreground':
+        # do nothing, indexing happens during commit
+        pass
+
+    elif options.indexer == 'none':
+        # don't run PyLucene indexing in the main view
+        view.setBackgroundIndexed(True)
+        # don't start an indexer
+
+    else:
+        raise ValueError, ("--indexer", options.indexer)
 
     if options.debugOn:
         from repository.util.ClassLoader import ClassLoader
