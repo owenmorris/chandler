@@ -1,6 +1,12 @@
 
+ifeq ($(shell uname),Darwin)
+VERSION=2.4.3
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+else
 VERSION=2.4.2
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)6
+endif
+
 BZIP2VERSION=1.0.3
 ZLIBVERSION=1.2.3
 
@@ -127,7 +133,8 @@ else
 
 ifeq ($(OS),Darwin)
 
-$(SRC)/$(BUILD)/Makefile:
+$(SRC)/$(BUILD)/Makefile: patches-$(VERSION)-$(OS)
+	patch -Nup0 < patches-$(VERSION)-$(OS)
 	mkdir -p $(SRC)/$(BUILD)
 	cd $(SRC)/$(BUILD); \
       MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
@@ -136,14 +143,15 @@ $(SRC)/$(BUILD)/Makefile:
           DYNLOADFILE=dynload_shlib.o \
           ../configure --prefix=$(PREFIX) $(CONF_DBG) \
                        --enable-framework=$(PREFIX)/Library/Frameworks \
-                       --with-readline=$(PREFIX)/lib \
                        --disable-ipv6
 
 build: expand apply $(SRC)/$(BUILD)/Makefile
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) SNAP=$(SNAP) \
-        $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) frameworkinstallframework
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) SNAP=$(SNAP) \
-        $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) frameworkinstallapps
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
+        SNAP=$(SNAP) \
+        ARCH=$(ARCH) \
+        PREFIX=$(PREFIX) \
+        $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) \
+                frameworkinstallframework frameworkinstallapps
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 binaries: strip

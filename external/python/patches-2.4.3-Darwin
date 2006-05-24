@@ -1,0 +1,22 @@
+--- Python-2.4.3/Modules/Setup.dist	2005-12-27 12:37:16.000000000 -0500
++++ Python-2.4.3-patched/Modules/Setup.dist	2006-05-24 18:02:51.000000000 -0400
+@@ -149,7 +149,7 @@
+ # modules are to be built as shared libraries (see above for more
+ # detail; also note that *static* reverses this effect):
+ 
+-#*shared*
++*shared*
+ 
+ # GNU readline.  Unlike previous Python incarnations, GNU readline is
+ # now incorporated in an optional module, configured in the Setup file
+@@ -159,8 +159,9 @@
+ # it, depending on your system -- see the GNU readline instructions.
+ # It's okay for this to be a shared library, too.
+ 
+-#readline readline.c -lreadline -ltermcap
++readline readline.c -I$(PREFIX)/include -L$(PREFIX)/lib -lreadline -ltermcap
+ 
++*static*
+ 
+ # Modules that should always be present (non UNIX dependent):
+ 

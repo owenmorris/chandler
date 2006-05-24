@@ -1,6 +1,8 @@
 #-*- Mode: Makefile; -*-
 OS=$(shell uname)
 OS_VER=$(shell uname -r)
+OS_MAJOR_VER=$(firstword $(subst ., ,$(OS_VER)))
+ARCH=$(shell arch)
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
 OS=Cygwin
@@ -9,8 +11,6 @@ endif
 ifeq ($(findstring WINNT,$(OS)),WINNT)
 OS=Cygwin
 endif
-
-OS_MAJOR_VER=$(firstword $(subst ., ,$(OS_VER)))
 
 ifeq ($(DEBUG),1)
 SNAP=debug
@@ -47,6 +47,7 @@ PLATFORM=windows
 SWIG=$(PREFIX)/bin/swig/swig.exe
 MD5=md5sum.exe
 MD5CHECK=$(MD5) -c
+UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
 else
 ifeq ($(OS),Darwin)
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
@@ -59,6 +60,7 @@ PLATFORM=macosx
 SWIG=$(PREFIX)/bin/swig
 MD5=md5
 MD5CHECK=$(MD5) --check
+UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)/$(ARCH)
 else
 PYTHON:=$(PREFIX)/bin/$(PYTHON)
 SITE=lib/python$(PYTHON_VER)/site-packages
@@ -66,6 +68,7 @@ PLATFORM=linux
 SWIG=$(PREFIX)/bin/swig
 MD5=md5sum
 MD5CHECK=$(MD5) -c
+UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
 endif
 endif
 
@@ -74,15 +77,20 @@ endif
 
 ifndef GCJ_HOME
 ifeq ($(OS),Cygwin)
-GCJ_HOME=$(compiler)
+GCJ_HOME=$(BUILD_ROOT)/mingw-3.1-3.4.2
 GCJ_VER=3
 endif
 ifeq ($(OS),Darwin)
-GCJ_HOME=$(compiler)
+ifeq ($(ARCH),ppc)
+GCJ_HOME=$(BUILD_ROOT)/gcc-3.4.4
 GCJ_VER=3
+else
+GCJ_HOME=$(BUILD_ROOT)/gcc-4.0.2
+GCJ_VER=4
+endif
 endif
 ifeq ($(OS),Linux)
-GCJ_HOME=$(compiler)
+GCJ_HOME=$(BUILD_ROOT)/gcc-3.4.5
 GCJ_VER=3
 endif
 else
@@ -122,8 +130,6 @@ export LIB:=$(shell cygpath -awp $(MSVC_DIR)/atlmfc/lib:$(MSVC_DIR)/LIB:$(MSVC_D
 endif
 endif
 
-UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
-
 .PHONY: default all build compile install clean env realclean _realclean
 
 default: all
@@ -142,6 +148,16 @@ else
 endif
 	@echo CHANDLERBIN is $(CHANDLERBIN)
 	@echo GCJ_HOME is $(GCJ_HOME)
+ifeq ($(OS),Darwin)
+	@if [ "$(ARCH)" = "ppc" ]; then \
+            echo ARCH is $(ARCH); \
+         elif [ "$(ARCH)" = "i386" ]; then \
+            echo ARCH is $(ARCH); \
+         else \
+            echo unsupported ARCH is $(ARCH); \
+            false; \
+        fi
+endif
 ifeq ($(OS),Cygwin)
 	@if [ ! -f $(GCJ_HOME)/bin/gcj.exe ]; then \
             echo GCJ_HOME is incorrect; \
@@ -183,59 +199,52 @@ ifeq ($(OS),Cygwin)
 
 MINGW_VERSION=3.1-3.4.2
 
-compiler=$(BUILD_ROOT)/mingw-$(MINGW_VERSION)
+$(GCJ_HOME): $(notdir $(GCJ_HOME).tar.gz)
+	cd $(BUILD_ROOT); tar -xvzf $<
 
-$(compiler): $(BUILD_ROOT)/mingw-$(MINGW_VERSION).tar.gz
+$(notdir $(GCJ_HOME).tar.gz):
 	cd $(BUILD_ROOT); \
-	tar -xvzf mingw-$(MINGW_VERSION).tar.gz
-
-$(BUILD_ROOT)/mingw-$(MINGW_VERSION).tar.gz:
-	cd $(BUILD_ROOT); \
-	$(CURL) -O $(COMPILERS)/windows/mingw-$(MINGW_VERSION).tar.gz
-	$(CURL) -O $(COMPILERS)/windows/mingw-$(MINGW_VERSION).tar.gz.md5
-
-#	$(MD5CHECK) mingw-$(MINGW_VERSION).tar.gz.md5
+	$(CURL) -O $(COMPILERS)/windows/$@
+	$(CURL) -O $(COMPILERS)/windows/$@.md5
+#	$(MD5CHECK) $@.md5
 
 endif
 
 ifeq ($(OS),Darwin)
 
-ifeq ($(GCJ_VER),3)
-GCC_VERSION=3.4.4
-GCJ_VER=3
-endif
-
-compiler=$(BUILD_ROOT)/gcc-$(GCC_VERSION)
-
-$(compiler): $(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz
+ifeq ($(ARCH),ppc)
+$(GCJ_HOME): $(notdir $(GCJ_HOME).tar.gz)
 	cd $(BUILD_ROOT); \
-	tar xvzf gcc-$(GCC_VERSION).tar.gz
+	tar xvzf $<
 
-$(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz:
+$(notdir $(GCJ_HOME).tar.gz):
 	cd $(BUILD_ROOT);
-	$(CURL) $(COMPILERS)/osx/gcc-$(GCC_VERSION).tar.gz
-	$(CURL) $(COMPILERS)/osx/gcc-$(GCC_VERSION).tar.gz.md5
+	$(CURL) $(COMPILERS)/osx/$(ARCH)/$@
+	$(CURL) $(COMPILERS)/osx/$(ARCH)/$@.md5
+#	$(MD5CHECK) $@.md5
+else
+$(GCJ_HOME): $(notdir $(GCJ_HOME).tar.bz2)
+	cd $(BUILD_ROOT); tar xvjf $<
 
-#	$(MD5CHECK) gcc-$(GCC_VERSION).tar.gz.md5
+$(notdir $(GCJ_HOME).tar.bz2):
+	cd $(BUILD_ROOT);
+	$(CURL) $(COMPILERS)/osx/$(ARCH)/$@
+	$(CURL) $(COMPILERS)/osx/$(ARCH)/$@.md5
+#	$(MD5CHECK) $@.md5
+endif
 
 endif
 
 ifeq ($(OS),Linux)
 
-GCC_VERSION=3.4.3
+$(GCJ_HOME): $(notdir $(GCJ_HOME).tar.gz)
+	cd $(BUILD_ROOT); tar xvzf $<
 
-compiler=$(BUILD_ROOT)/gcc-$(GCC_VERSION)/install
-
-$(compiler): $(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz
+$(notdir $(GCJ_HOME).tar.gz):
 	cd $(BUILD_ROOT); \
-	tar xvzf gcc-$(GCC_VERSION).tar.gz
-
-$(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz:
-	cd $(BUILD_ROOT); \
-	$(CURL) $(COMPILERS)/linux/gcc-$(GCC_VERSION).tar.gz
-	$(CURL) $(COMPILERS)/linux/gcc-$(GCC_VERSION).tar.gz.md5
-
-#	$(MD5CHECK) gcc-$(GCC_VERSION).tar.gz.md5
+	$(CURL) $(COMPILERS)/linux/$@
+	$(CURL) $(COMPILERS)/linux/$@.md5
+#	$(MD5CHECK) $@.md5
 
 endif
 
@@ -260,7 +269,7 @@ strip:
 endif
 endif
 
-compilers: $(compiler)
+compilers: $(GCJ_HOME)/
 
 print-%:
 	@echo $* = $($*)
