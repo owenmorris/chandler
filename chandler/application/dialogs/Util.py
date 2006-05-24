@@ -1,7 +1,7 @@
-__version__ = "$Revision$"
-__date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2004-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 import os, sys, codecs
 import wx
@@ -10,27 +10,30 @@ from osaf import messages
 
 # A helper method and class for allowing the user to modify an item's attributes
 """
-Note: need to migrate translation logic to a base wx dialog class that can handle all the work for sub classes
+Note: need to migrate translation logic to a base wx dialog class that can
+      handle all the work for sub classes
 """
 
 def promptForItemValues(frame, title, item, attrList):
-    """ Given an item and a list of attributes, display a modal dialog with
-        a text field per attribute, with each field populated directly from
-        the item's attribute values.  If the user OK's the dialog, the new
-        values are applied to the item's attributes.
+    """
+    Given an item and a list of attributes, display a modal dialog with
+    a text field per attribute, with each field populated directly from
+    the item's attribute values.  If the user OK's the dialog, the new
+    values are applied to the item's attributes.
 
-        @param frame: A wx parent frame
-        @type frame: wx frame
-        @param title: The title string for the dialog
-        @type title: String
-        @param item:  A chandler item
-        @type item:  Item
-        @param attrList: A list of dictionaries, each one having the following
-         keys::
+    @param frame: A wx parent frame
+    @type frame: wx frame
+    @param title: The title string for the dialog
+    @type title: String
+    @param item:  A chandler item
+    @type item:  Item
+    @param attrList: A list of dictionaries, each one having the following
+     keys::
 
-            "attr": an attribute name
-            "label": a label to display for the field
-            "password": an optional key, set to True if you want this field to be displayed like a password (with asterisks)
+        "attr": an attribute name
+        "label": a label to display for the field
+        "password": an optional key, set to True if you want this field to
+                    be displayed like a password (with asterisks)
 
     """
 
@@ -120,15 +123,15 @@ class ItemValuesDialog(wx.Dialog):
 # A simple "prompt-the-user-for-a-string" dialog
 
 def promptUser(title, message, defaultValue=""):
-    """ Prompt the user to enter in a string.  Return None if cancel is hit.
+    """
+    Prompt the user to enter in a string.  Return None if cancel is hit.
 
-        @param title: The title string for the dialog
-        @type title: String
-        @param message:  A message prompting the user for input
-        @type item:  String
-        @param value:  A value to populate the text field with
-        @type item:  String
-
+    @param title: The title string for the dialog
+    @type title: String
+    @param message:  A message prompting the user for input
+    @type message:  String
+    @param defaultValue:  A value to populate the text field with
+    @type defaultValue:  String
     """
     win = promptUserDialog(None, -1, title, message, defaultValue)
     win.CenterOnScreen()
@@ -341,14 +344,15 @@ class LogWindow(wx.Dialog):
 # A simple "ok/cancel" dialog
 
 def okCancel(parent, caption, message):
-    """ Prompt the user with a Ok/Cancel dialog.  Return True if Ok,
-        False if Cancel.
-        @param parent: A wx parent
-        @type frame: wx frame
-        @param caption: The caption string for the dialog
-        @type caption: String
-        @param message:  A message prompting the user for input
-        @type item:  String
+    """
+    Prompt the user with a Ok/Cancel dialog.  
+    Return True if Ok, False if Cancel.
+    @param parent: A wx parent
+    @type parent: wx frame
+    @param caption: The caption string for the dialog
+    @type caption: String
+    @param message:  A message prompting the user for input
+    @type message:  String
     """
 
     dlg = wx.MessageDialog(parent, message, caption,
@@ -387,13 +391,15 @@ def ShowMessageDialog(parent, message, caption, flags, resultsTable=None):
 
 
 def yesNo(parent, caption, message):
-    """ Prompt the user with a Yes/No dialog.  Return True if Yes, False if No.
-        @param parent: A wx parent
-        @type frame: wx frame
-        @param caption: The caption string for the dialog
-        @type caption: String
-        @param message:  A message prompting the user for input
-        @type item:  String
+    """
+    Prompt the user with a Yes/No dialog.
+    Return True if Yes, False if No.
+    @param parent: A wx parent
+    @type parent: wx frame
+    @param caption: The caption string for the dialog
+    @type caption: String
+    @param message:  A message prompting the user for input
+    @type message:  String
     """
 
     return ShowMessageDialog(parent, message, caption,
@@ -420,7 +426,9 @@ def showFileDialog(parent, message, defaultDir, defaultFile, wildcard, style):
     dlg = wx.FileDialog(parent, message, unicode(defaultDir), unicode(defaultFile),
                         wildcard, style)
 
-    """Blocking call"""
+    """
+    Blocking call
+    """
     cmd = dlg.ShowModal()
     (dir, filename) = os.path.split(dlg.GetPath())
     dlg.Destroy()
@@ -430,12 +438,13 @@ def showFileDialog(parent, message, defaultDir, defaultFile, wildcard, style):
 # A simple alert dialog
 
 def ok(parent, caption, message):
-    """ Display a message dialog with an OK button
-        @param parent: A wx parent
-        @type frame: wx frame
-        @param caption: The caption string for the dialog
-        @type caption: String
-        @param message:  A message
-        @type item:  String
+    """
+    Display a message dialog with an OK button
+    @param parent: A wx parent
+    @type parent: wx frame
+    @param caption: The caption string for the dialog
+    @type caption: String
+    @param message:  A message
+    @type message:  String
     """
     ShowMessageDialog(parent, message, caption, wx.OK)

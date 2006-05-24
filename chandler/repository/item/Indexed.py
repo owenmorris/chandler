@@ -1,8 +1,7 @@
-
-__revision__  = "$Revision: 5719 $"
-__date__      = "$Date: 2005-06-21 13:15:07 -0700 (Tue, 21 Jun 2005) $"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 
 from repository.item.Indexes import \
@@ -309,7 +308,7 @@ class Indexed(object):
         least one argument, a key into the index and must return 0 when
         the corresponding value is 'equal' to the value sought, -1 when the
         value is 'less than' the value sought and 1 otherwise.
-        The comparisons must be consistent with the sort order of the index. 
+        The comparisons must be consistent with the sort order of the index.
 
         @param indexName: the name of the index to search
         @type indexName: a string
@@ -317,7 +316,7 @@ class Indexed(object):
         @type mode: a string
         @param callable: the predicate implementation
         @type callable: a python callable function or method
-        @param *args: extra arguments to pass to the predicate
+        @param args: extra arguments to pass to the predicate
         @return: a C{UUID} key or C{None} if no match was found
         """
 

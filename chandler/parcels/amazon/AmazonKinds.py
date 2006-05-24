@@ -38,46 +38,53 @@ def _showError(errText):
 
 def SearchByKeyword(repView, cpiaView, keywords=None, countryCode=None, category=None):
     """
-    Performs an amazon search by keyword and creates an AmazonCollection containing AmazonItem's for each
-    product found that matches the search criteria (only retrieves the first 10 products).
-    If an AmazonCollection already exists for the search
-    criteria the method creates AmazonItem's for new products and adds them to the existing collection.
+    Performs an amazon search by keyword and creates an AmazonCollection
+    containing AmazonItem's for each product found that matches the search
+    criteria (only retrieves the first 10 products). If an AmazonCollection
+    already exists for the search criteria the method creates AmazonItem's
+    for new products and adds them to the existing collection.
 
-    The method can be used programatically or via user input. If no keywords, countryCode, and category
-    variables are passed in, an Amazon Search By Keyword dialog is displayed for the user to choose the
-    keywords, countryCode, and category.
+    The method can be used programatically or via user input. If no keywords,
+    countryCode, and category variables are passed in, an Amazon Search By
+    Keyword dialog is displayed for the user to choose the keywords,
+    countryCode, and category.
 
-    The method contacts the Amazon site specified by the countryCode and retrieves the products that match
-    the search criteria.
+    The method contacts the Amazon site specified by the countryCode and
+    retrieves the products that match the search criteria.
 
     @type repView: A Repository.view
-    @param repView: The repository view in which to create the AmazonItems' and AmazonCollection
+    @param repView: The repository view in which to create the AmazonItems'
+                    and AmazonCollection
 
-    @type: cpiaView: The Repository.view
-    @param cpiaView: The CPIA Repository.view used to update the status bar message where appropriate
+    @type cpiaView: The Repository.view
+    @param cpiaView: The CPIA Repository.view used to update the status bar
+                     message where appropriate
 
     @type keywords: unicode
-    @param keywords: The keywords to search on. If the value is None a CPIA dialog is displayed for
-                     the user to enter the information.
+    @param keywords: The keywords to search on. If the value is None a CPIA
+                     dialog is displayed for the user to enter the information.
 
     @type countryCode: unicode
-    @param countryCode: The countryCode of the amazon site to contact. If the value is None a CPIA dialog is displayed for
-                     the user to enter the information.
+    @param countryCode: The countryCode of the amazon site to contact.
+                        If the value is None a CPIA dialog is displayed for
+                        the user to enter the information.
 
     @type category: unicode
-    @param category: The category to search in. If the value is None a CPIA dialog is displayed for
-                     the user to enter the information.
+    @param category: The category to search in. If the value is None a CPIA
+                     dialog is displayed for the user to enter the information.
 
     @rtype: AmazonCollection or None
-    @return: An AmazonCollection containing AmazonItem's for each product or None if no products found
-             or an error occurs.
+    @return: An AmazonCollection containing AmazonItem's for each product or
+             None if no products found or an error occurs.
     """
 
     if keywords is None or countryCode is None or category is None:
         keywords, countryCode, category = AmazonDialog.promptKeywords()
 
     if _isEmpty(keywords):
-        """The user did not enter any text to search on or hit the cancel button"""
+        """
+        The user did not enter any text to search on or hit the cancel button
+        """
         return None
 
     try:
@@ -92,33 +99,40 @@ def SearchByKeyword(repView, cpiaView, keywords=None, countryCode=None, category
 
 def SearchWishListByEmail(repView, cpiaView, emailAddr=None, countryCode=None):
     """
-    Retrieves an amazon wishlist by email address and creates an AmazonCollection containing AmazonItem's for each
-    product in the wishlist (only retrieves first 10 products found). If an AmazonCollection already exists for the search
-    criteria the method creates AmazonItem's for new products and adds them to the existing collection.
+    Retrieves an amazon wishlist by email address and creates an
+    AmazonCollection containing AmazonItem's for each product in
+    the wishlist (only retrieves first 10 products found). If an
+    AmazonCollection already exists for the search criteria the
+    method creates AmazonItem's for new products and adds them to
+    the existing collection.
 
-    The method can be used programatically or via user input. If no emailAddr and countryCode
-    variables are passed in, an Amazon WishList By Email dialog is displayed for the user to input the
+    The method can be used programatically or via user input. If no
+    emailAddr and countryCode variables are passed in, an Amazon
+    WishList By Email dialog is displayed for the user to input the
     emailAddr and countryCode.
 
-    The method contacts the Amazon site specified by the countryCode and retrieves the products for the
-    wishlist.
+    The method contacts the Amazon site specified by the countryCode
+    and retrieves the products for the wishlist.
 
     @type repView: A Repository.view
-    @param repView: The repository view in which to create the AmazonItems' and AmazonCollection
+    @param repView: The repository view in which to create the AmazonItems'
+                    and AmazonCollection
 
-    @type: cpiaView: The Repository.view
-    @param cpiaView: The CPIA Repository.view used to update the status bar message where appropriate
+    @type cpiaView: The Repository.view
+    @param cpiaView: The CPIA Repository.view used to update the status bar
+                     message where appropriate
 
     @type emailAddr: unicode
     @param emailAddr: The email address for the user wishlist
 
     @type countryCode: unicode
-    @param countryCode: The countryCode of the amazon site to contact. If the value is None a CPIA dialog is displayed for
-                     the user to enter the information.
+    @param countryCode: The countryCode of the amazon site to contact.
+                        If the value is None a CPIA dialog is displayed for
+                        the user to enter the information.
 
     @rtype: AmazonCollection or None
-    @return: An AmazonCollection containing AmazonItem's for each product or None if no products found
-             or an error occurs.
+    @return: An AmazonCollection containing AmazonItem's for each product or
+             None if no products found or an error occurs.
     """
 
     if emailAddr is None or countryCode is None:
@@ -183,32 +197,35 @@ class AmazonCollection(ListCollection):
     @classmethod
     def getCollection(cls, repView, cpiaView, text, countryCode):
         """
-        Returns an AmazonCollection with a displayName combining the text and
-        country code variables.
+        Returns an AmazonCollection with a displayName combining the text
+        and country code variables.
 
         The method checks to see if a AmazonCollection already exists
         matching the displayName combination of the text and countryCode
         variables. If one exists that collection is returned otherwise
-        an AmazonCollection is created with the text / countryCode displayName
-        and is returned.
+        an AmazonCollection is created with the text / countryCode
+        displayName and is returned.
 
         @type repView: A Repository.view
-        @param repView: The repository view in which to create the AmazonItems' and AmazonCollection
+        @param repView: The repository view in which to create the AmazonItems'
+                        and AmazonCollection
 
-        @type: cpiaView: The Repository.view
-        @param cpiaView: The CPIA Repository.view used to update the status bar message where appropriate
+        @type cpiaView: The Repository.view
+        @param cpiaView: The CPIA Repository.view used to update the status bar
+                         message where appropriate
 
         @type text: unicode
-        @param text: The text to use in combination with the countryCode to create the AmazonCollection
-                     displayName
+        @param text: The text to use in combination with the countryCode to
+                     create the AmazonCollection displayName
 
         @type countryCode: unicode
-        @param countryCode: The countryCode to use in combination with the text to create the AmazonCollection
-                     displayName
+        @param countryCode: The countryCode to use in combination with the text
+                            to create the AmazonCollection displayName
 
         @rtype: AmazonCollection
-        @return: An existing AmazonCollection that matches the text/CountryCode displayName combination or
-                 a new AmazonCollection if no match found.
+        @return: An existing AmazonCollection that matches the text/CountryCode
+                 displayName combination or a new AmazonCollection if no
+                 match is found.
        """
 
 
@@ -242,12 +259,12 @@ class AmazonCollection(ListCollection):
         and countryCode passed in.
 
         @type text: unicode
-        @param text: The text to use in combination with the countryCode to create the AmazonCollection
-                     displayName
+        @param text: The text to use in combination with the countryCode
+                     to create the AmazonCollection displayName
 
         @type countryCode: unicode
-        @param countryCode: The countryCode to use in combination with the text to create the AmazonCollection
-                     displayName
+        @param countryCode: The countryCode to use in combination with the
+                            text to create the AmazonCollection displayName
 
         @rtype: unicode
         @return: The unicode displayName to be used for the AmazonCollection
@@ -350,8 +367,10 @@ class AmazonItem(ContentItem):
 
 
 def _printBag(aBag, level):
-    """This is used for debugging the incoming Amazon XML which is
-       parsed by amazon.py in to c{amazon.Bags}"""
+    """
+    This is used for debugging the incoming Amazon XML which is
+    parsed by amazon.py in to c{amazon.Bags}
+    """
     for at in dir(aBag):
         val = getattr(aBag, at)
 

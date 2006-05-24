@@ -1,5 +1,7 @@
-__copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
-__license__   = "http://osafoundation.orgdler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2005-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 #python imports
 import email as email
@@ -114,13 +116,17 @@ def getUnicodeValue(val, charset=constants.DEFAULT_CHARSET):
         return constants.EMPTY
 
 def createChandlerHeader(postfix):
-    """Creates a chandler header with postfix provided"""
+    """
+    Creates a chandler header with postfix provided.
+    """
     assert isinstance(postfix, str), "You must pass A String"
 
     return constants.CHANDLER_HEADER_PREFIX + postfix
 
 def isChandlerHeader(header):
-    """Returns true if the header is Chandler defined header"""
+    """
+    Returns true if the header is Chandler defined header.
+    """
     assert hasValue(header), "You must pass a String"
 
     if header.startswith(constants.CHANDLER_HEADER_PREFIX):
@@ -129,7 +135,9 @@ def isChandlerHeader(header):
     return False
 
 def populateStaticHeaders(messageObject):
-    """Populates the static mail headers"""
+    """
+    Populates the static mail headers.
+    """
     if not messageObject.has_key('User-Agent'):
         messageObject['User-Agent'] = constants.CHANDLER_USERAGENT
 
@@ -262,7 +270,9 @@ def messageObjectToKind(view, messageObject, messageText=None,
         # Didn't find a parsable ICS attachment: just treat it as a mail msg.
         m = Mail.MailMessage(itsView=view)
 
-    """Save the original message text in a text blob"""
+    """
+    Save the original message text in a text blob
+    """
     if messageText is None:
         messageText = messageObject.as_string()
 
@@ -284,7 +294,9 @@ def messageObjectToKind(view, messageObject, messageText=None,
     __parsePart(view, messageObject, m, bodyBuffer, counter, buf,
                 compression=compression)
 
-    """If the message has attachments set hasMimeParts to True"""
+    """
+    If the message has attachments set hasMimeParts to True
+    """
     if len(m.mimeParts) > 0:
         m.hasMimeParts = True
 
@@ -311,8 +323,8 @@ def kindToMessageObject(mailMessage):
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
 
-    @param messageObject: A C{email.Message} object representation of a mail message
-    @type messageObject: C{email.Message}
+    @param mailMessage: A C{email.Message} object representation of a mail message
+    @type mailMessage: C{email.Message}
 
     @return: C{Message.Message}
     """
@@ -322,7 +334,9 @@ def kindToMessageObject(mailMessage):
 
     messageObject = Message.Message()
 
-    """Create a messageId if none exists"""
+    """
+    Create a messageId if none exists
+    """
     if not hasValue(mailMessage.messageId):
         mailMessage.messageId = createMessageID()
 
@@ -407,10 +421,10 @@ def kindToMessageText(mailMessage, saveMessage=True):
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
 
-    @param messageObject: A C{email.Message} object representation of a mail message
-    @type messageObject: C{email.Message}
-    @param saveMessage: save the message text converted from the C{email.Message} in the mailMessage.rfc2882Message
-                        attribute
+    @param mailMessage: A C{email.Message} object representation of a mail message
+    @type mailMessage: C{email.Message}
+    @param saveMessage: save the message text converted from the C{email.Message}
+                        in the mailMessage.rfc2882Message attribute
     @type saveMessage: C{Boolean}
     @return: C{str}
     """
@@ -438,12 +452,16 @@ def __parseHeaders(view, messageObject, m):
     if date is not None:
         parsed = emailUtils.parsedate_tz(date)
 
-        """It is a non-rfc date string"""
+        """
+        It is a non-rfc date string
+        """
         if parsed is None:
             if __debug__:
                 trace("Message contains a Non-RFC Compliant Date format")
 
-            """Set the sent date to the current Date"""
+            """
+            Set the sent date to the current Date
+            """
             m.dateSent = datetime.now(ICUtzinfo.default)
 
         else:
@@ -465,7 +483,9 @@ def __parseHeaders(view, messageObject, m):
     __assignToKind(view, m.ccAddress, messageObject, 'Cc', 'EmailAddressList')
     __assignToKind(view, m.bccAddress, messageObject, 'Bcc', 'EmailAddressList')
 
-    """Do not decode the message ID as it requires no i18n processing"""
+    """
+    Do not decode the message ID as it requires no i18n processing
+    """
     __assignToKind(view, m, messageObject, 'Message-ID', 'String', 'messageId', False, False)
 
     m.chandlerHeaders = {}
@@ -526,8 +546,10 @@ def __assignToKind(view, kindVar, messageObject, key, hType, attr=None, decode=T
 
 
 def __getEmailAddress(view, name, addr):
-    """ Use any existing EmailAddress, but don't update them
-        because that will cause the item to go stale in the UI thread."""
+    """
+    Use any existing EmailAddress, but don't update them
+    because that will cause the item to go stale in the UI thread.
+    """
     #XXX: This method needs much better performance
     #return Mail.EmailAddress.getEmailAddress(view, addr, name, True)
 
@@ -580,8 +602,10 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer,
     if verbose():
         __trace("message/%s" % subtype, buf, level)
 
-    """If the message is multipart then pass decode=False to
-    get_poyload otherwise pass True"""
+    """
+    If the message is multipart then pass decode=False to
+    get_poyload otherwise pass True.
+    """
     payload = mimePart.get_payload(decode=not multipart)
     assert payload is not None, "__handleMessage payload is None"
 
@@ -607,12 +631,16 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer,
             trace("******WARNING****** message/rfc822 part not Multipart investigate")
 
     elif subtype == "delivery-status":
-        """Add the delivery status info to the message body """
+        """
+        Add the delivery status info to the message body
+        """
         bodyBuffer.append(getUnicodeValue(mimePart.as_string()))
         return
 
     elif subtype == "disposition-notification-to":
-        """Add the disposition-notification-to info to the message body"""
+        """
+        Add the disposition-notification-to info to the message body
+        """
         bodyBuffer.append(getUnicodeValue(mimePart.as_string()))
         return
 
@@ -648,13 +676,17 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer,
     if verbose():
         __trace("multipart/%s" % subtype, buf, level)
 
-    """If the message is multipart then pass decode=False to
-    get_poyload otherwise pass True"""
+    """
+    If the message is multipart then pass decode=False to
+    get_poyload otherwise pass True
+    """
     payload = mimePart.get_payload(decode=not multipart)
     assert payload is not None, "__handleMultipart payload is None"
 
     if subtype == "alternative":
-        """An alternative container should always have at least one part"""
+        """
+        An alternative container should always have at least one part
+        """
         if len(payload) > 0:
             foundText = False
             firstPart = None
@@ -666,15 +698,18 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer,
                     foundText = True
 
                 elif firstPart is None and not foundText and not part.is_multipart():
-                    """A multipart/alternative container should have
-                       at least one part that is not multipart and
-                       is text based (plain, html, rtf) for display
+                    """
+                    A multipart/alternative container should have
+                    at least one part that is not multipart and
+                    is text based (plain, html, rtf) for display
                     """
                     firstPart = part
 
                 elif part.is_multipart():
-                    """If we find a multipart sub-part with in the alternative part handle
-                       it"""
+                    """
+                    If we find a multipart sub-part with in the alternative part handle
+                    it
+                    """
                     __handleMultipart(view, part, parentMIMEContainer, bodyBuffer, \
                                       counter, buf, level+1, compression)
 
@@ -718,13 +753,17 @@ def __handleBinary(view, mimePart, parentMIMEContainer,
     if verbose():
         __trace(contype, buf, level)
 
-    """skip AppleDouble resource files per RFC1740"""
+    """
+    skip AppleDouble resource files per RFC1740
+    """
     if contype == "application/applefile":
         return
 
     mimeBinary = Mail.MIMEBinary(itsView=view)
 
-    """Get the attachments data"""
+    """
+    Get the attachments data
+    """
     data = mimePart.get_payload(decode=1)
     assert data is not None, "__handleBinary data is None"
 
@@ -732,7 +771,9 @@ def __handleBinary(view, mimePart, parentMIMEContainer,
     mimeBinary.filename = __getFileName(mimePart, counter)
     mimeBinary.mimeType = contype
 
-    """Try to figure out what the real mimetype is"""
+    """
+    Try to figure out what the real mimetype is
+    """
     if contype == "application/octet-stream" and \
         not mimeBinary.filename.endswith(".bin"):
         result = mimetypes.guess_type(mimeBinary.filename, strict=False)
@@ -752,7 +793,9 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
     if verbose():
         __trace("text/%s" % subtype, buf, level)
 
-    """Get the attachment data"""
+    """
+    Get the attachment data
+    """
     body = mimePart.get_payload(decode=1)
 
     size = len(body)
@@ -789,7 +832,9 @@ def __getFileName(mimePart, counter):
             return getUnicodeValue(filename)
         return filename
 
-    """No Filename need to create an arbitrary name"""
+    """
+    No Filename need to create an arbitrary name
+    """
     ext = mimetypes.guess_extension(mimePart.get_content_type())
 
     if not ext:
@@ -803,7 +848,9 @@ def __checkForDefects(mimePart):
         handled = False
 
         for defect in mimePart.defects:
-            """Just get the class name strip the package path"""
+            """
+            Just get the class name strip the package path
+            """
             defectName = str(defect.__class__).split(".").pop()
 
             if not handled and \
@@ -812,8 +859,8 @@ def __checkForDefects(mimePart):
                defectName == "StartBoundaryNotFoundDefect"):
 
                 """
-                   The Multipart Body of the message is corrupted or
-                   inaccurate(Spam?) convert the payload to a text part.
+                The Multipart Body of the message is corrupted or
+                inaccurate(Spam?) convert the payload to a text part.
                 """
                 mimePart._payload = "".join(mimePart._payload)
                 mimePart.replace_header("Content-Type", "text/plain")

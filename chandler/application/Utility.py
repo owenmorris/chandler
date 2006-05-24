@@ -1,10 +1,10 @@
 """
 Application utilities.
 
-@date:      $Date: 2005-07-09 11:49:30 -0700 (Sat, 09 Jul 2005) $
-@copyright: Copyright (c) 2003-2005 Open Source Applications Foundation
-@license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
+
 __version__ = "$Revision: 5915 $"
 
 import os, sys, logging, logging.config, logging.handlers, string
@@ -470,9 +470,9 @@ def initCrypto(profileDir):
     Initialize the cryptographic services before doing any other
     cryptographic operations.
     
-    @param profileDir: The profile directory. Additional entropy will be loaded
-                       from a file in this directory. It is not a fatal error
-                       if the file does not exist.
+    @param profileDir: The profile directory. Additional entropy will be
+                       loaded from a file in this directory. It is not a
+                       fatal error if the file does not exist.
     @return:           The number of bytes read from file.
     """
     m2threading.init()
@@ -499,17 +499,17 @@ def stopCrypto(profileDir):
 
 class CertificateVerificationError(Exception):
     """
-    An error that will be raised when, as part of an SSL/TLS connection attempt,
-    the X.509 certificate returned by the peer does not verify.
+    An error that will be raised when, as part of an SSL/TLS connection
+    attempt, the X.509 certificate returned by the peer does not verify.
     """
     def __init__(self, code, message, untrustedCertificates):
         """
         Inialize.
         
-        @param code:                 The error code.
-        @param message:              The error string. 
-        @param untrustedCertificate: List of untrusted certificates in PEM
-                                     format.
+        @param code:                  The error code.
+        @param message:               The error string. 
+        @param untrustedCertificates: List of untrusted certificates in PEM
+                                      format.
         """
         Exception.__init__(self, code, message)
         self.untrustedCertificates = untrustedCertificates
@@ -532,7 +532,9 @@ def stopWakeup():
     pass
 
 class SchemaMismatchError(Exception):
-    """ The schema version in the repository doesn't match the application. """
+    """
+    The schema version in the repository doesn't match the application.
+    """
     pass
 
 # Replacement for logging.config.fileConfig, which doesn't disable loggers:

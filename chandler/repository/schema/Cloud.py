@@ -1,8 +1,8 @@
 
-__revision__  = "$Revision$"
-__date__      = "$Date$"
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2004-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 import re
 
@@ -126,7 +126,7 @@ class Cloud(Item):
         @type parent: an C{Item<repository.item.Item.Item>} instance 
         @param copies: an optional dictionary keyed on the original item
         UUIDs that also received all items copies.
-        @type items: dict
+        @type copies: dict
         @param cloudAlias: the optional alias name to use for C{byCloud}
         policy endpoints where the cloud is unspecified.
         @type cloudAlias: a string

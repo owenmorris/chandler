@@ -1,8 +1,7 @@
-
-__revision__  = "$Revision: 9611 $"
-__date__      = "$Date: 2006-02-24 13:28:58 -0800 (Fri, 24 Feb 2006) $"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 
 from repository.item.Item import Item
@@ -24,8 +23,9 @@ class Collection(Item):
     Collection instances are items wrapping a collection attribute value and
     provide a C{subscribers} ref collection for clients to subscribe to their
     notifications. Subscriber items must provide a C{subscribesTo} inverse
-    attribute and a method of the following signature:
+    attribute and a method of the following signature::
         C{onCollectionNotification(op, collection, name, item)}
+
     where C{op} is one of C{add}, C{remove}, C{refresh} or C{changed},
     C{collection} is the Collection item, C{name} is the attribute
     containing the collection value and C{item} the item in the collection
@@ -34,7 +34,7 @@ class Collection(Item):
     This class is abstract. Base concrete subclasses must use the
     C{CollectionClass} metaclass, must be declared tied to a kind that
     provides the collection attribute, and must declare its name as in the
-    example below:
+    example below::
 
         __metaclass__ = CollectionClass
         __collection__ = 'attrName'

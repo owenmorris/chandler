@@ -1,8 +1,7 @@
-
-__revision__  = "$Revision$"
-__date__      = "$Date$"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 from chandlerdb.util.c import \
     UUID, SingleRef, _hash, _combine, isuuid, issingleref
@@ -23,7 +22,9 @@ from repository.util.LinkedMap import LinkedMap
 
 
 class Item(CItem):
-    'The root class for all items.'
+    """
+    The root class for all items.
+    """
 
     def __init__(self, itsName=None, itsParent=None, itsKind=None,
                  _uuid=None, _noMonitors=False, fireOnValueChanged=True,
@@ -404,8 +405,6 @@ class Item(CItem):
 
         @param name: the name of the attribute
         @type name: a string
-        @param kwds: an optional C{default} key/value pair
-        @type kwds: the value for the C{default} keyword can be of any type
         @return: a value
         """
 
@@ -1701,8 +1700,8 @@ class Item(CItem):
               C{kind}. This operation is only supported when the item is
               already an item of a mixin kind.
 
-        @param *kinds: any number of tuples as described above.
-        @type *kinds: tuple
+        @param kinds: any number of tuples as described above.
+        @type kinds: tuple
         @return: the item's kind after the method completes
         """
 

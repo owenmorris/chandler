@@ -1,5 +1,7 @@
-__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 __parcel__ = "osaf.framework.blocks"
 
 import application.Globals as Globals
@@ -15,7 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 def getProxiedItem(item):
-    """ Given an item, wrap it with a proxy if appropriate. """
+    """
+    Given an item, wrap it with a proxy if appropriate.
+    """
     # @@@ BJS It's probably worthwhile to combine this with 
     # RecurrenceDialog.getProxy, but currently that function doesn't do the 
     # isDeleted -> return None mapping we need here. To avoid risk in 0.6, 
@@ -30,15 +34,15 @@ def getProxiedItem(item):
 
 def WithoutSynchronizeWidget(method):
     """
-    method decorator for making use of 'ignoreSynchronizeWidget' -
+    Method decorator for making use of 'ignoreSynchronizeWidget' -
     usually used in wx event handlers that would otherwise cause
     recursive event calls
-    
-    usage:
-    @WithoutSynchronizeWidget
-    def OnSomeEvent(self,...)
-        self.PostSelectItems(...) # PostSelectItems would normally
-                                  # end up calling OnSomeEvent
+
+    usage::
+        @WithoutSynchronizeWidget
+        def OnSomeEvent(self,...)
+            self.PostSelectItems(...) # PostSelectItems would normally
+                                      # end up calling OnSomeEvent
     """
     def with_sync(*args, **kwds):
         if not wx.GetApp().ignoreSynchronizeWidget:
@@ -48,14 +52,13 @@ def WithoutSynchronizeWidget(method):
 
 def IgnoreSynchronizeWidget(syncValue, method, *args, **kwds):
     """
-    wrapper method to call something while temporarily suspending
+    Wrapper method to call something while temporarily suspending
     or enabling SynchronizeWidget
 
-    usage:
+    usage::
+        IgnoreSyncWidget(True, method, arg1, kw1=blah)
 
-    IgnoreSyncWidget(True, method, arg1, kw1=blah)
-
-    this will block wxSynchronizeWidget calls
+    This will block wxSynchronizeWidget calls
     """
     app = wx.GetApp()
     oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
@@ -149,7 +152,7 @@ class Block(schema.Item):
     
     def post (self, event, arguments):
         """
-          Events that are posted by the block pass along the block
+        Events that are posted by the block pass along the block
         that sent it.
         
         @param event: the event to post
@@ -264,7 +267,7 @@ class Block(schema.Item):
     def setContentsOnBlock (self, item, collection):
         """
         A utility routine for onSetContents handlers that sets the
-        contents of a block and updates the contents subscribers
+        contents of a block and updates the contents subscribers.
         """
         self.stopWatchingForChanges()
         self.contentsCollection = collection
@@ -272,7 +275,9 @@ class Block(schema.Item):
         self.watchForChanges()
 
     def getProxiedContents(self):
-        """ Get our 'contents', wrapped in a proxy if appropriate. """
+        """
+        Get our 'contents', wrapped in a proxy if appropriate.
+        """
         return getProxiedItem(getattr(self, 'contents', None))
 
     def render (self):
@@ -280,7 +285,7 @@ class Block(schema.Item):
         if method:
             widget = IgnoreSynchronizeWidget(True, method, self)
             """
-              Store a non persistent pointer to the widget in the block. Store a pointer to
+            Store a non persistent pointer to the widget in the block. Store a pointer to
             the block in the widget. Undo all this when the widget is destroyed.
             """
             if widget:
@@ -289,7 +294,7 @@ class Block(schema.Item):
                 self.widget = widget
                 widget.blockItem = self
                 """
-                  After the blocks are wired up, call OnInit if it exists.
+                After the blocks are wired up, call OnInit if it exists.
                 """
                 method = getattr (type (widget), "OnInit", None)
                 if method:
@@ -301,7 +306,7 @@ class Block(schema.Item):
                 self.watchForChanges()
                 
                 """
-                  Add events to name lookup dictionary.
+                Add events to name lookup dictionary.
                 """
                 eventsForNamedLookup = self.eventsForNamedLookup
                 if eventsForNamedLookup is not None:
@@ -310,7 +315,7 @@ class Block(schema.Item):
                 self.addToNameToItemUUIDDictionary ([self],
                                                     self.blockNameToItemUUID)
                 """
-                  Keep list of blocks that are have event boundarys in the global list views.
+                Keep list of blocks that are have event boundarys in the global list views.
                 """
                 if self.eventBoundary:
                     self.pushView()
@@ -323,7 +328,7 @@ class Block(schema.Item):
                     child.render()
 
                 """
-                  After the blocks are wired up give the window a chance
+                After the blocks are wired up give the window a chance
                 to synchronize itself to any persistent state.
                 """
                 IgnoreSynchronizeWidget(False, self.synchronizeWidget)
@@ -352,7 +357,7 @@ class Block(schema.Item):
             if method is not None:
                 parent = method (widget)
                 """
-                  Remove child from parent before destroying child.
+                Remove child from parent before destroying child.
                 """
                 if isinstance (widget, wx.Window):
                     parent = widget.GetParent()
@@ -402,9 +407,9 @@ class Block(schema.Item):
 
     def getWatchList(self):
         """
-        Get the list of item, attributeName tuples 
+        Get the list of item, attributeName tuples
         that we'll watch while rendered. By default, it's our
-        'contents' item, and our viewAttribute; if we don't have a 
+        'contents' item, and our viewAttribute; if we don't have a
         viewAttribute, we return an empty list.
         """
         whichAttr = self.whichAttribute()
@@ -477,7 +482,7 @@ class Block(schema.Item):
             
     def removeWatch(self, item, *attributeNames):
         """
-        Stop watching these attributes on this item
+        Stop watching these attributes on this item.
         """
         item = getattr(item, 'proxiedItem', item)
         uuid = item.itsUUID
@@ -506,7 +511,7 @@ class Block(schema.Item):
     @classmethod
     def onWatchNotification(cls, op, uuid, names):
         """
-        When an item someone's watching has changed, we need to synchronize
+        When an item someone's watching has changed, we need to synchronize.
         """
         # Ignore notifications for items being stamped. (We get a lot then, 
         # but the items really aren't consistent. Anyone who cares about an 
@@ -538,7 +543,7 @@ class Block(schema.Item):
         
     def onCollectionNotification(self, op, collection, name, other):
         """
-          When our item collection has changed, we need to synchronize
+        When our item collection has changed, we need to synchronize.
         """
         if (not self.ignoreNotifications and
             self.itsView is wx.GetApp().UIRepositoryView):
@@ -571,12 +576,16 @@ class Block(schema.Item):
     dirtyBlocks = set()         # A set of blocks that need to be redrawn in OnIdle
 
     def markDirty(self):
-        """ Invoke our general deferred-synchronization mechanism """
+        """
+        Invoke our general deferred-synchronization mechanism
+        """
         # each block should have a hints dictionary
         self.dirtyBlocks.add(self.itsUUID)
 
     def markClean(self):
-        """ Suppress our general deferred-synchronization mechanism """
+        """
+        Suppress our general deferred-synchronization mechanism.
+        """
         self.dirtyBlocks.discard(self.itsUUID)
 
     @classmethod
@@ -586,7 +595,7 @@ class Block(schema.Item):
 
     def onDestroyWidget (self):
         """
-          Called just before a widget is destroyed. It is the opposite of
+        Called just before a widget is destroyed. It is the opposite of
         instantiateWidget.
         """
         self.stopWatchingForChanges()
@@ -627,7 +636,7 @@ class Block(schema.Item):
         allocates incremental ids starting at 100. Passing -1 for new IDs
         starting with -1 and decrementing. Some rogue dialogs use IDs
         outside wx.ID_LOWEST and wx.ID_HIGHEST.
-        
+
         idToBlock is used to associate a block with an Id. Blocks contain
         an attribute, wxId, that allow you to specify a particular id
         to the block. It defaults to 0, which will use an unused unique
@@ -641,7 +650,7 @@ class Block(schema.Item):
                 id = wx.NewId()
 
         assert (id > 0)
-        
+
         assert not self.idToBlock.has_key (id)
         self.idToBlock [id] = self
         return id
@@ -660,7 +669,7 @@ class Block(schema.Item):
     @classmethod
     def finishEdits(theClass, onBlock=None):
         """ 
-        If the given block, or the focus block if no block given, has a 
+        If the given block, or the focus block if no block given, has a
         saveValue method, call it to write pending edits back.
         """
         if onBlock is None:
@@ -779,16 +788,17 @@ class Block(schema.Item):
                 IgnoreSynchronizeWidget(True, method, widget, useHints)
 
     def pushView (self):
-        """ 
+        """
         Pushes a new view on to our list of views.
 
         Currently, we're limited to a depth of four nested views
 
+        Globals.mainViewRoot.lastDynamicBlock: the last block synched
+        lastDynamicBlock: C{DynamicBlock}, or C{False} for no previous block,
+        or C{True} for forced resync.
+
         @param self: the new view
-        @type block: C{Block}
-        @param Globals.mainViewRoot.lastDynamicBlock: the last block synched
-        @type lastDynamicBlock: C{DynamicBlock}, or C{False} for no previous block,
-                    or C{True} for forced resync.
+        @type self: C{Block}
         """
         assert len (Globals.views) <= 4
         Globals.views.append (self)
@@ -796,7 +806,7 @@ class Block(schema.Item):
         def synchToDynamicBlock (block, isChild):
             """
             Function to set and remember the dynamic Block we synch to.
-            If it's a child block, it will be used so we must sync, and 
+            If it's a child block, it will be used so we must sync, and
             remember it for later.
             If it's not a child, we only need to sync if we had a different
             block last time.
@@ -812,11 +822,11 @@ class Block(schema.Item):
             block.synchronizeDynamicBlocks ()
 
         """
-          Cruise up the parent hierarchy looking for the first
+        Cruise up the parent hierarchy looking for the first
         block that can act as a DynamicChild or DynamicContainer
-        (Menu, MenuBar, ToolbarItem, etc). 
-        If it's a child, or it's not the same Block found the last time 
-        the focus changed (or if we are forcing a rebuild) then we need 
+        (Menu, MenuBar, ToolbarItem, etc).
+        If it's a child, or it's not the same Block found the last time
+        the focus changed (or if we are forcing a rebuild) then we need
         to rebuild the Dynamic Containers.
         """
         candidate = None
@@ -842,7 +852,7 @@ class Block(schema.Item):
 
     def getFrame(self):
         """
-          Cruse up the tree of blocks looking for the top-most block that
+        Cruise up the tree of blocks looking for the top-most block that
         has a python attribute, which is the wxWidgets wxFrame window.
         """
         block = self
@@ -855,7 +865,7 @@ class Block(schema.Item):
         
         def callProfiledMethod(blockOrWidget, methodName, event):
             """
-            Wrap callNamedMethod with a profiler runcall()
+            Wrap callNamedMethod with a profiler runcall().
             """
             if not Block.__profilerActive:                        
                 # create profiler lazily
@@ -877,7 +887,7 @@ class Block(schema.Item):
                             
         def callNamedMethod (blockOrWidget, methodName, event):
             """
-              Call method named methodName on block or widget
+            Call method named methodName on block or widget.
             """
             member = getattr (type(blockOrWidget), methodName, None)
             if member is None:
@@ -902,7 +912,8 @@ class Block(schema.Item):
 
         def bubbleUpCallMethod (blockOrWidget, methodName, event):
             """
-              Call a method on a block or widget or if it doesn't handle it try it's parents
+            Call a method on a block or widget or if it doesn't handle it
+            try it's parents.
             """
             event.arguments ['continueBubbleUp'] = False # default to stop bubbling
             while (blockOrWidget):
@@ -932,7 +943,7 @@ class Block(schema.Item):
                     broadcast (child, methodName, event, childTest)
 
         """
-          Construct method name based upon the type of the event.
+        Construct method name based upon the type of the event.
         """
         try:
             methodName = event.methodName
@@ -1006,7 +1017,7 @@ class Block(schema.Item):
             """
             FocusBubbleUp dispatches the event bubbling up from focused
             widget, or main view if there isn't a focus widget.
-            
+
             Focused widgets are included so that attribute editors, which
             don't always have block counterparts, get a crack at handling events.
             """
@@ -1047,8 +1058,8 @@ class Block(schema.Item):
 
 def debugName(thing):
     """
-    Debug method to get a useful name for this thing, which can be a 
-    block or a widget, to use in a logging message.      
+    Debug method to get a useful name for this thing, which can be a
+    block or a widget, to use in a logging message.
     """
     if thing is None:
         return '(None)'
@@ -1107,11 +1118,11 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
                     spacerRequired = False
                     break
         """
-          wxWindows sizers only allow borders with the same width, or
-          no width, however blocks allow borders of different sizes
-          for each of the 4 edges, so we need to simulate this by
-          adding spacers. I'm postponing this case for Jed to finish,
-          and until then an assert will catch this case. DJA
+        wxWindows sizers only allow borders with the same width, or
+        no width, however blocks allow borders of different sizes
+        for each of the 4 edges, so we need to simulate this by
+        adding spacers. I'm postponing this case for Jed to finish,
+        and until then an assert will catch this case. DJA
         """
         assert not spacerRequired
         
@@ -1229,7 +1240,7 @@ class NewItemEvent(KindParameterizedEvent):
     create the item. This is handy if you want to use a dialog to get some
     information to create the item. If C{onNewItem} returns None, no Item will
     be created.
-      
+
     If you don't implement C{onNewItem} an Item of C{kindParamter} Kind is
     created. If C{kindParamter} is None, a Kind matching the ApplicationBar is
     created, e.g. if you're in Calendar View you'll get a Calendar Item. If
@@ -1277,33 +1288,33 @@ class AddToViewableCollectionEvent(BlockEvent):
 AddToSidebarEvent = AddToViewableCollectionEvent
 """
     Adds items to the sidebar. The items may be either a collection or tree
-    of blocks.    
-    
+    of blocks.
+
     You can add an item to the sidebar in two different ways: Either add a
     reference to a template item to the C{items} attribute and a copy of
     the template will be added when the event is dispatched. Or implement
     the C{onNewItem} method on your subclass of AddToSidebarEvent and it
     will be called to create the item added to the sidebar. If your method
     returns None then nothing will be added to the sidebar.
-    
+
     By default the item will be selected and it's displayName will be
     disambiguated, i.e. a "-NN" suffix added to make it unique.
-    
+
     By setting the preferredKind UserCollection attribute of your collection,
     it will be displayed in a particular application area as follows:
-    
+
     If preferredKind attribute is absent (the default) then the collection
     will be the current application area.
-    
+
     If preferredKind attribute is None the collection will be viewed in All
-    
+
     if preferredKind attribute is the kind associated with another application
     area it will be displayed in that area. For example if preferredKind is
-    
+
     schema.ns('osaf.pim.calendar.Calendar', theView).CalendarEventMixin.getKind (theView)
-    
+
     it will be displayed in the calendar area.
-    
+
     For more advanced options see AddToViewableCollectionEvent.
 """
 
@@ -1319,7 +1330,7 @@ class lineStyleEnumType(schema.Enumeration):
 # -------------
 class BlockTemplate(object):
     """
-    Template class for easy domain-specific item creation
+    Template class for easy domain-specific item creation.
     In general, this allows a class to make a 'template' wrapper which
     will create all items and their children appropriately.
     """

@@ -1,5 +1,7 @@
-__copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2005-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 #twisted imports
 import twisted.internet.reactor as reactor
@@ -17,31 +19,35 @@ import message
 import utils
 
 """
-TO DO:
- 1. Need to encode Chandler Sharing Header for Transport to account from i18n collection names
- """
+TODO:
+ 1. Need to encode Chandler Sharing Header for Transport to account
+    from i18n collection names
+"""
 
 
 def sendInvitation(repository, url, collection, sendToList):
-    """Sends a sharing invitation via SMTP to a list of recipients
+    """
+    Sends a sharing invitation via SMTP to a list of recipients
 
-       @param repository: The repository we're using
-       @type repository: C{Repository}
+    @param repository: The repository we're using
+    @type repository: C{Repository}
 
-       @param url: The url to share
-       @type url: C{str}
+    @param url: The url to share
+    @type url: C{str}
 
-       @param collection: An ContentCollection Instance
-       @type collection: C{ContentCollection}
+    @param collection: An ContentCollection Instance
+    @type collection: C{ContentCollection}
 
-       @param sendToList: List of EmailAddress Items
-       @type: C{list}
+    @param sendToList: List of EmailAddress Items
+    @type sendToList: C{list}
     """
     SMTPInvitationSender(repository, url, collection, sendToList).sendInvitation()
 
 
 class SMTPInvitationSender(object):
-    """Sends an invitation via SMTP."""
+    """
+    Sends an invitation via SMTP.
+    """
 
     def __init__(self, repository, url, collection, sendToList, account=None):
         assert isinstance(url, basestring), "URL must be a String"
@@ -114,9 +120,11 @@ def makeSharingHeaderValue(url, collectionName):
     return "%s%s%s" % (url, constants.SHARING_DIVIDER, collectionName)
 
 def getSharingHeaderInfo(mailItem):
-    """ 
-    Return the Chandler sharing header's values, split into a handy list: (url, collectionName)
-    Throws KeyError if not present. 
+    """
+    Return the Chandler sharing header's values, split into a
+    handy list: (url, collectionName)
+
+    Throws KeyError if not present.
     Used by Main and the detail view.
     """
     sharingHeaderName = message.createChandlerHeader(constants.SHARING_HEADER)

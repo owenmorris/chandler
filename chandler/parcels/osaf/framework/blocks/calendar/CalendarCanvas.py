@@ -1,9 +1,9 @@
 """
-Canvas for calendaring blocks
-"""
+Canvas for calendaring blocks.
 
-__copyright__ = "Copyright (c) 2004-2005 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+@copyright: Copyright (c) 2004-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 __parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
@@ -86,13 +86,13 @@ def nth(iterable, n):
 
 def roundTo(v, r):
     """
-    round down v to the nearest r
+    Round down v to the nearest r.
     """
     return (v/r)*r
 
 def roundToColumnPosition(v, columnList):
     """
-    round down to the nearest column value
+    Round down to the nearest column value.
     """
     index = bisect(columnList, v)-1
     if index >= 0:
@@ -106,37 +106,37 @@ class ColorInfo(object):
     def __init__(self, collection):
         # sometimes this happens when getContainingCollection fails to find a collection
         assert collection is not None, "Can't get color for None"
-        
+
         color = UserCollection(collection).ensureColor().color
         self.hue = rgb_to_hsv(*color2rgb(color.red,color.green,color.blue))[0]
-    
+
     # to be used like a property, i.e. prop = tintedColor(0.5, 1.0)
     # takes HSV 'S' and 'V' and returns an color based tuple property
     def tintedColor(saturation, value = 1.0):
         def getSaturatedColor(self):
             return rgb2color(*hsv_to_rgb(self.hue, saturation, value))
         return property(getSaturatedColor)
-            
+
     def tupleProperty(*args):
         """
-        untangle a tuple of property objects.
-        
+        Untangle a tuple of property objects.
+
         If you try to just declare a tuple of attributes
         that are property objects, you end up with a tuple
         of property objects, rather than a tuple of evaluated
-        property values
+        property values.
         """
         def demangledTupleGetter(self):
             return tuple([val.fget(self) for val in args])
         return property(demangledTupleGetter)
-        
+
     # these are all for when this calendar is the 'current' one
     gradientLeft = tintedColor(0.4)
     gradientRight = tintedColor(0.2)
     outlineColor = tintedColor(0.6)
     textColor = tintedColor(0.67, 0.6)
     defaultColors = tupleProperty(gradientLeft, gradientRight, outlineColor, textColor)
-    
+
     # when a user selects a calendar event, use these
     selectedGradientLeft = tintedColor(0.15)
     selectedGradientRight = tintedColor(0.05)
@@ -166,16 +166,16 @@ class CalendarSelection(schema.Annotation):
     Then we can just treat selection as the union between the
     ContentCollection (in self.itsItem) and the list of occurrences.
     """
-    
+
     schema.kindInfo(annotates=ContentCollection)
     selectedOccurrences = schema.Many(schema.Item, defaultValue=set())
 
     def delegated(method):
         """
-        method decorator that delegates method calls
-        with the same name, rather than call the function
+        Method decorator that delegates method calls
+        with the same name, rather than call the function.
         """
-            
+
         def ActualMethod(self, item):
             if item.hasTrueAttributeValue('recurrenceID'):
                 return method(self, item)
@@ -185,7 +185,7 @@ class CalendarSelection(schema.Annotation):
                 methodName = method.__name__
                 unboundMethod = getattr(type(self.itsItem), methodName)
                 return unboundMethod(self.itsItem, item)
-                    
+
         return ActualMethod
 
     def __getattr__(self, name):
@@ -194,7 +194,7 @@ class CalendarSelection(schema.Annotation):
     @delegated
     def __contains__(self, item):
         return self.itsItem.__contains__(item.getMaster())
-    
+
     # these mimic the behavior of the collection
 
     def _cleanSelection(self):
@@ -242,9 +242,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
      - editor position & size
      - text wrapping
     """
-    
+
     timeHeight = 0
-    
+
     def __init__(self, collection, primaryCollection, bounds, item, *args, **keywords):
         super(CalendarCanvasItem, self).__init__(bounds, item, *args, **keywords)
 
@@ -258,26 +258,26 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         self.colorInfo = ColorInfo(collection)
 
         self.isActive = primaryCollection is collection
-                        
+
     def GetEditorPosition(self):
         """
-        This returns a location to show the editor. By default it is the same
-        as the default bounding box
+        This returns a location to show the editor. By default it is
+        the same as the default bounding box.
         """
         position = self.GetBoundsRects()[0].GetPosition() + self.textOffset
-                  
+
         # now offset to account for the time
         position += (0, self.timeHeight)
         return position
-                  
+
     def GetMaxEditorSize(self):
         size = self.GetBoundsRects()[0].GetSize()
-       
+
         # now offset to account for the time	
         size -= (13, self.timeHeight + self.textMargin*2)	
         return size
-        
-    
+
+
     def DrawStatusBar(self, dc, color, (x,y1,y2)):
         # probably should use styles to determine a good pen color
         item = self.item
@@ -302,24 +302,24 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
     def getEventColors(self, selected):
         """
-        returns the appropriate tuple of selected, normal, and visible colors
+        Returns the appropriate tuple of selected, normal, and visible colors.
         """
-        
+
         if selected:
             return self.colorInfo.selectedColors
         elif self.isActive:
             return self.colorInfo.defaultColors
-        
+
         return self.colorInfo.visibleColors
-    
+
     def GetAnyTimeOrAllDay(self):	
         item = self.item
         anyTime = getattr(item, 'anyTime', False)
         allDay = getattr(item, 'allDay', False)
-       
+
         return anyTime or allDay
-             
-                
+
+
     @staticmethod
     def FindFirstGapInSequence(seq):
         """
@@ -329,14 +329,14 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
           0,1,2: choose 3        
         """
         if not seq: return 0
-        
+
         for index, value in enumerate(sorted(seq)):
             if index != value:
                 return index
-                
+
         # didn't find any gaps, so just put it one higher
         return index+1
-        
+
     def CanDrag(self):
         item = self.item.getMaster()
         return (item.isAttributeModifiable('startTime') and
@@ -508,9 +508,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                            clipRightSide=False):
         """
         Make a rounded rectangle, optionally specifying if the top and bottom
-        right side of the rectangle should have rounded corners. Uses
-        clip rect tricks to make sure it is drawn correctly
-        
+        right side of the rectangle should have rounded corners.
+        Uses clip rect tricks to make sure it is drawn correctly.
+
         Side effect: Destroys the clipping region.
         """
 
@@ -518,7 +518,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         assert ((hasLeftRounded and
                  hasTopRightRounded and hasBottomRightRounded) or
                 not hasLeftRounded)
-        
+
         radius = 8
         diameter = radius * 2
 
@@ -577,7 +577,7 @@ class CalendarEventHandler(object):
     """
     Mixin to a widget class.
     
-    ASSUMPTION: its blockItem is a CalendarBlock
+    ASSUMPTION: its blockItem is a CalendarBlock.
     """
 
     def onGoToPrevEvent(self, event):
@@ -622,12 +622,12 @@ class CalendarEventHandler(object):
 
 class CalendarNotificationHandler(object):
     """
-    Mixin to a wx class to deal with item notifications
+    Mixin to a wx class to deal with item notifications.
     """
     def __init__(self, *args, **kwds):
         super(CalendarNotificationHandler, self).__init__(*args, **kwds)
         self._pendingNewEvents = set()
-    
+
     def onItemNotification(self, notificationType, data):
         if (notificationType == 'collectionChange'):
             op, coll, name, uuid = data
@@ -695,10 +695,9 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     @type rangeStart: datetime
     @ivar rangeIncrement: increment used to find the next or prev block of time
     @type rangeIncrement: timedelta
-
     """
     # @@@ method capitalization policy is inconsistent!
-    
+
 
     rangeStart = schema.One(schema.DateTime)
     rangeIncrement = schema.One(schema.TimeDelta)
@@ -706,7 +705,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     dayMode = schema.One(schema.Boolean)
     calendarContainer = schema.One(schema.Item, required=True)
 
-    def getRangeEnd(self):	
+    def getRangeEnd(self):
         return self.rangeStart + self.rangeIncrement	
     rangeEnd = property(getRangeEnd)
 
@@ -749,7 +748,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     @classmethod
     def setHasBeenRendered(cls):
         """
-        This says, this class has been rendered during this session
+        This says this class has been rendered during this session.
         """
         cls._beenRendered = True
     @classmethod
@@ -758,14 +757,14 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         Has this class been rendered during this session?
         """
         return cls._beenRendered
-    
+
     @staticmethod
     def startOfToday():
         today = date.today()
         start = time(tzinfo=ICUtzinfo.default)
         return datetime.combine(today, start)
-        
-        
+
+
     def instantiateWidget(self):
         if not self.getHasBeenRendered():
             self.setRange( datetime.now().date() )
@@ -815,10 +814,10 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """
         Sets the selected date range and synchronizes the widget.
 
-        @param event: event sent on selected date changed event
-        @type event: osaf.framework.blocks.Block.BlockEvent
-        @param event.arguments['start']: start of the newly selected date range
-        @type event.arguments['start']: datetime
+        @param event: event sent on selected date changed event.
+                      event.arguments['start']: start of the newly selected date range
+        @type event: osaf.framework.blocks.Block.BlockEvent.
+                     event.arguments['start']: C{datetime}
         """
         self.setRange(event.arguments['start'])
         self.synchronizeWidget()
@@ -864,22 +863,22 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 
     def incrementRange(self):
         """
-        Increments the calendar's current range
+        Increments the calendar's current range.
         """
         self.rangeStart += self.rangeIncrement
 
     def decrementRange(self):
         """
-        Decrements the calendar's current range
+        Decrements the calendar's current range.
         """
         self.rangeStart -= self.rangeIncrement
-        
+
     # Get items from the collection
-    
+
     def itemIsInRange(self, item, start, end):
         """
-        Helpful utility to determine if an item is within a given range
-        Assumes the item has a startTime and endTime attribute
+        Helpful utility to determine if an item is within a given range.
+        Assumes the item has a startTime and endTime attribute.
         """
         tzprefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
         if tzprefs.showUI:
@@ -889,7 +888,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                                 end.replace(tzinfo=None)) and
                       (item.endTime.replace(tzinfo=None) >=
                               start.replace(tzinfo=None)))
-        
+
     def generateItemsInRange(self, date, nextDate, dayItems, timedItems):
         # wish we could put this somewhere more useful, but
         # self.contents can be set upon object initialization
@@ -906,13 +905,13 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         Convenience method to look for the items in the block's contents
         that appear on the given date. We might be able to push this
         to Queries, but itemIsInRange is actually fairly complex.
-        
+
         @type date: datetime
         @type nextDate: datetime
-        
+
         @param dayItems: return day items (items that have no start time)
         @param timedItems: return timed items
-        
+
         @return: the items in this collection that appear within the given range
         @rtype: generator of Items
         """
@@ -986,10 +985,10 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 # instead, to keep them more general
 class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectionCanvas):
     """
-    Base class for all calendar canvases - handles basic item selection, 
-    date ranges, and so forth
+    Base class for all calendar canvases - handles basic item selection,
+    date ranges, and so forth.
 
-    ASSUMPTION: blockItem is a CalendarBlock
+    ASSUMPTION: blockItem is a CalendarBlock.
     """
     legendBorderWidth = 3
     def __init__(self, *arguments, **keywords):
@@ -1068,7 +1067,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
 
     def ShadeToday(self, dc):
         """
-        shade the background of today, if today is in view
+        Shade the background of today, if today is in view.
         """
 
         # don't shade today in day mode
@@ -1095,7 +1094,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
 
     def DrawDayLines(self, dc):
         """
-        Draw lines between days
+        Draw lines between days.
         """
 
         styles = self.blockItem.calendarContainer
@@ -1130,10 +1129,10 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
 
 
     def CreateEmptyEvent(self, **initialValues):
-        """	
-        shared routine to create an event, using the current view	
-        also forces consumers to specify important fields	
-        """	
+        """
+        Shared routine to create an event, using the current view
+        also forces consumers to specify important fields.
+        """
         view = self.blockItem.itsView
 
         event = Calendar.CalendarEvent(itsView=view, **initialValues)
@@ -1141,14 +1140,14 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         # Keep InitOutgoingAttributes from clobbering displayName
         if initialValues.has_key('displayName'):
             event.displayName = initialValues['displayName']
-       
+
         self.blockItem.contentsCollection.add(event)
-        
+
         self.OnSelectItem(event)
 
         self.blockItem.itsView.commit()
-        return event	
-        
+        return event
+
 
     def getBoundedPosition(self, position, drawInfo, mustBeInBounds=True):
         # first make sure we're within the top left boundaries
@@ -1173,34 +1172,34 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         """
         When a moving drag is originated within a canvasItem, the drag
         originates from a point within the canvasItem, represented by
-        dragOffset
+        dragOffset.
 
         During a drag, you need to put a canvasItem at currentPosition,
         but you also want to make sure to round it to the nearest dayWidth,
         so that the event will sort of stick to the current column until
-        it absolutely must move
+        it absolutely must move.
         """
         if self.dragState is None or not hasattr(self.dragState, 'dragOffset'):
             return
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
         dx,dy = self.dragState.dragOffset
         dx = roundToColumnPosition(dx, drawInfo.columnPositions)
-        
+
         position = self.dragState.currentPosition - (dx, dy)
 
         result = self.getDateTimeFromPosition(position, tzinfo=tzinfo,
                                               mustBeInBounds=False)
-        
+
         if tzinfo is None:
             result = result.replace(tzinfo=None)
-            
+
         return result
 
     def getDateTimeFromPosition(self, position, tzinfo=None, mustBeInBounds=True):
         """
-        calculate the date based on the x,y coordinates on the canvas
-        
-        @param mustBeInBounds: if true, restrict to dates the user
+        Calculate the date based on the x,y coordinates on the canvas.
+
+        @param mustBeInBounds: if True, restrict to dates the user
                                currently can see/scroll to.
         """
 
@@ -1260,10 +1259,10 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
 
     def getColumnForDay(self, dayStart, dayEnd=None):
         """
-        returns position,width for the given zero-based day(s)
+        Returns position,width for the given zero-based day(s).
         """
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
-        
+
         if self.blockItem.dayMode:
             return (drawInfo.columnPositions[1], drawInfo.middleWidth)
         else:
@@ -1281,7 +1280,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         # Seeting the insertion point seems to work when several keys are typed
         # before the edit widget is displayed, but perhaps there's a better
         # way to achieve this?
-        
+
         self.editor.SetInsertionPoint(0)
         self.editor.SetValue(key)
         self.editor.SetInsertionPointEnd()
@@ -1376,7 +1375,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
 
     def OnEnterPressed(self, event):
         """
-        for now, no need to display
+        For now, no need to display.
         """
         self.SaveAndHide()
 
@@ -1457,10 +1456,10 @@ class CalendarContainer(BoxContainer):
     eventLabelStyle = schema.One(Styles.CharacterStyle, required=True)
     eventTimeStyle = schema.One(Styles.CharacterStyle, required=True)
     legendStyle = schema.One(Styles.CharacterStyle, required=True)
-    
+
     schema.addClouds(
-        copying = schema.Cloud(byRef = [monthLabelStyle, 
-                                        eventLabelStyle, 
+        copying = schema.Cloud(byRef = [monthLabelStyle,
+                                        eventLabelStyle,
                                         eventTimeStyle,
                                         legendStyle,
                                         ])
@@ -1515,8 +1514,8 @@ class CalendarContainer(BoxContainer):
 
     def onNewItemEvent(self, event):
         """
-        Create a new event from the menu - try to use contextual information
-        from the view to create it in a normal place
+        Create a new event from the menu - try to use contextual
+        information from the view to create it in a normal place.
         """
         calendarKind = Calendar.CalendarEvent.getKind(self.itsView)
         kindParameter = event.kindParameter
@@ -1524,12 +1523,12 @@ class CalendarContainer(BoxContainer):
         # if it's one of ours or None we'll handle it otherwise bubble it up
         if kindParameter is calendarKind or kindParameter is None:
             timedEventsCanvas = self.getTimedBlock().widget
-    
+
             startTime, duration = timedEventsCanvas.GetNewEventTime()
             newEvent = timedEventsCanvas.CreateEmptyEvent(startTime=startTime,
                                                           duration=duration,
                                                           anyTime=False)
-            
+
             # return the list of items created
             return [newEvent]
         else:
@@ -1657,12 +1656,12 @@ class CalendarControl(CalendarBlock):
 
     def setRange(self, date):
         """
-        We need to override CalendarBlock's because the cal ctrl always has
-        its range over an entire week, even if a specific day is selected (and
-        dayMode is true)
+        We need to override CalendarBlock's because the cal ctrl always
+        has its range over an entire week, even if a specific day is
+        selected (and dayMode is true).
         """
         assert self.daysPerView == 7, "daysPerView is a legacy variable, keep it at 7 plz"
-        
+
         date = datetime.combine(date, time(tzinfo=ICUtzinfo.default))
 
         #Set rangeStart
@@ -1691,8 +1690,8 @@ class CalendarControl(CalendarBlock):
 
     def incrementRange(self):
         """
-        need to override block because what we really want to do is
-        increment the selected date and reset the range
+        Need to override block because what we really want to do is
+        increment the selected date and reset the range.
         """
         self.setRange(self.selectedDate + self.rangeIncrement)
 
@@ -1707,18 +1706,18 @@ class CalendarControl(CalendarBlock):
 
         contents = CalendarSelection(self.contents)
         contents.clearSelection()
-            
+
         if newSelection:
             for item in newSelection:
                 contents.selectItem(item)
-            
+
         if hasattr(self, 'widget'):
             self.widget.Refresh()
 
 class wxCalendarControl(wx.Panel, CalendarEventHandler):
     """
     This is the topmost area with the month name, event color selector,
-    week navigation arrows, and the bar of Week/day selector buttons
+    week navigation arrows, and the bar of Week/day selector buttons.
     """
 
     def __init__(self, parent, id, tzCharacterStyle, *arguments, **keywords):
@@ -2035,12 +2034,12 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     def OnDaySelect(self, day):
         """
         Callback when a specific day is selected from column header.
-        
+
         @param day: is 0-6
         """
         startDate = self.blockItem.rangeStart
         selectedDate = startDate + timedelta(days=day)
-        
+
         self.blockItem.postDayMode(True)
         self.blockItem.postDateChanged(selectedDate)
 
@@ -2124,9 +2123,9 @@ class CalendarHourMode(schema.Enumeration):
 class CalendarPrefs(Preferences):
     """
     Calendar preferences - there should be a single global instance of
-    this object accessible at:
+    this object accessible at::
 
-    prefs = schema.ns('osaf.framework.blocks.calendar', view).calendarPrefs
+        prefs = schema.ns('osaf.framework.blocks.calendar', view).calendarPrefs
     """
     hourHeightMode = schema.One(CalendarHourMode, defaultValue="auto",
                                 doc="Chooses which mode to use when setting "
@@ -2137,7 +2136,7 @@ class CalendarPrefs(Preferences):
                                 "pixel size in self.hourPixelSize\n"
                                 "'auto' means to base it on the size of the "
                                 "font used for drawing")
-                                
+
 
     visibleHours = schema.One(schema.Integer, defaultValue = 10,
                               doc="Number of hours visible vertically "

@@ -1,5 +1,7 @@
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 import wx
 import application.Globals as Globals
@@ -10,47 +12,54 @@ Overview of Drag and Drop:
 
 Mixin Classes
 -------------
-Mixin classes are provided that should be mixed in to your widget class:
+Mixin classes are provided that should be mixed in to your widget class::
+
     - Use DraggableWidget for things that export data through Drag & Drop.
     - Use DropReceiveWidget for things that import data through Drag & Drop.
     - Use one of the ClipboardDataHandlers to handle copying data from a
-            widget or pasting data into a widget.
+      widget or pasting data into a widget.
         - TextClipboardHandler handles Text data with EditText widgets
-        - ItemClipboardHandler handles Item data, with help from the Content Model
+        - ItemClipboardHandler handles Item data, with help from the
+          Content Model
 
 Clipboard Handlers
 ------------------
-Since most of Chandler data are Items, most widgets will use the ItemClipboardHandler.
+Since most of Chandler data are Items, most widgets will use the
+ItemClipboardHandler.
 
-Widgets that mix in ItemClipboardHandler should implement:
-    - SelectedItems() to return a list of items currently selected (Copy, Drag)
+Widgets that mix in ItemClipboardHandler should implement::
+
+    - SelectedItems() to return a list of items currently
+      selected (Copy, Drag)
     - AddItems() to insert a list of items (Paste, Drop)
     - DeleteSelection() to remove the selected items (Cut, Move)
 
-It's easy to write new ClipboardHandlers for your own kind of data:
+It's easy to write new ClipboardHandlers for your own kind of data::
+
     - CopyData() - gather data from your widget into a DataObject
     - PasteData() - place data from a DataObject into your widget
     - ClipboardDataFormat() - define the format of your DataObject
     - ClipboardDataObject() - create your data object
     - onCutEventUpdateUI(), onCopyEventUpdateUI(), onPasteEventUpdateUI()
-        used for menu enabling
+      used for menu enabling
     - onCutEvent(), onCopyEvent(), onPasteEvent()
-        interact with the clipboard calling CopyData() or PasteData().
+      interact with the clipboard calling CopyData() or PasteData().
 
 What's going on inside
 ----------------------
-wxWidgets level:
+wxWidgets level::
+
     - wx.DropSource - the window you are dragging from
     - wx.DropTarget - the window you are dragging to
     - wx.DataObject - the stuff being dragged
     - wx.DataFormat - the format of the DataObject
    
-CPIA level:
+CPIA level::
+
     - DraggableWidget - class to mixin that makes widget a DropSource
     - DropReceiveWidget - class to mixin to make a widget a DropTarget
     - _DropTarget - helper object connected to the DropReceiveWidget
-       that converts wxWidget callbacks to CPIA DnD callbacks.
-   
+      that converts wxWidget callbacks to CPIA DnD callbacks.
 """
 
 # Global to remember the widget we dragged from
@@ -63,16 +72,19 @@ class DraggableWidget (object):
     def DoDragAndDrop(self, copyOnly=None, noDelete=False):
         """
         Do a Drag And Drop operation, given the data in the selection.
+
         If you want to disable Move, pass True for copyOnly.  Passing
-           False allows the Move.  Passing None (the default) will
-           allow the Move iff you have a DeleteSelection method.
+        False allows the Move.  Passing None (the default) will
+        allow the Move iff you have a DeleteSelection method.
+
         @param copyOnly: flag to disable a move operation
-        @type copyOnly: C{None} to allow a move based on the presence of a Delete capability
-            C{True} to disallow a move
-            C{False} to allow a move
-        @param copyOnly: flag to disable deletion after a move
-        @type copyOnly: C{True} to disallow deletes
-            C{False} to allow deletes
+        @type copyOnly: C{None} to allow a move based on the presence of
+                        a Delete capability
+                        C{True} to disallow a move
+                        C{False} to allow a move
+        @param noDelete: flag to disable deletion after a move
+        @type noDelete: C{True} to disallow deletes
+                        C{False} to allow deletes
         @return: C{wx.DragResult} - e.g. wx.DragNone if the drag was refused
         """
         global DraggedFromWidget
@@ -132,8 +144,7 @@ class DropReceiveWidget (object):
         
     def OnRequestDrop(self, x, y):
         """
-        Override this to decide whether or not to accept a dropped 
-        item.
+        Override this to decide whether or not to accept a dropped item.
         """
         # default - don't allow drop onto ourself
         result = self.GetDraggedFromWidget() is not self
@@ -145,7 +156,8 @@ class DropReceiveWidget (object):
         """
         Override this to perform an action when a drag enters your widget.
         
-        @return a wxDragResult other than dragResult if you want to change the drag operation
+        @return: A wxDragResult other than dragResult if you want to change
+                 the drag operation
         """
         # default - don't allow dragging to ourself
         if self.GetDraggedFromWidget() is self:
@@ -157,7 +169,8 @@ class DropReceiveWidget (object):
         Override this to perform an action when a drag cursor is
         hovering over the widget.
         
-        @return a wxDragResult other than dragResult if you want to change the drag operation
+        @return: A wxDragResult other than dragResult if you want to change
+                 the drag operation
         """
         # default - don't allow dragging to ourself
         if self.GetDraggedFromWidget() is self:
@@ -203,7 +216,7 @@ class DropSourceWithFeedback(wx.DropSource):
 
     def GiveFeedback(self, effect):
         """
-        Callback from inside wx DropSource::DoDragDrop()
+        Callback from inside wx DropSource::DoDragDrop().
         """
         override = self.customFeedback
         self.customFeedback = wx.DragError # back to normal feedback next time
@@ -278,7 +291,7 @@ class _ClipboardHandler(object):
 
     def GetDragData(self):        
         """
-        Return the data being dragged onto self
+        Return the data being dragged onto self.
         """
         if DraggedFromWidget is None:
             return None
@@ -350,9 +363,9 @@ class ItemClipboardHandler(_ClipboardHandler):
     
     def DeleteSelection(self, cutting=False):
         """
-          Override this to remove the selection.  The optional cutting argument 
-          is needed because cutting is not a simple copy-then-paste operation
-          for recurring items.
+        Override this to remove the selection.  The optional cutting argument
+        is needed because cutting is not a simple copy-then-paste operation
+        for recurring items.
         """
         pass
     
@@ -361,7 +374,7 @@ class ItemClipboardHandler(_ClipboardHandler):
         Called to get a widget's data at the beginning of a Copy or DnD.
         Returns a wxDataObject variant for use in Drag and Drop, or Cut and Paste.
         This implementation deals with Items using UUIDs, using the Content Model
-            to determine what formats to export.
+        to determine what formats to export.
         """
         compositeObject = wx.DataObjectComposite()
 
@@ -553,11 +566,15 @@ class FileOrItemClipboardHandler(ItemClipboardHandler):
             self.AddItems(itemList)
             
     def OnFilePaste(self):
-        """Override to implement drag and drop file import."""
+        """
+        Override to implement drag and drop file import.
+        """
         print "Format is file"
         print "filenames are: ", self.fileDataObject.GetFilenames()
         
     def OnEmailPaste(self, text):
-        """Override to implement drag and drop email import."""
+        """
+        Override to implement drag and drop email import.
+        """
         print "Format is email"
         print "email is: ", text

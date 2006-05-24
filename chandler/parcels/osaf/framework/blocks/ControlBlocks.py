@@ -1,5 +1,7 @@
-__copyright__ = "Copyright (c) 2003-2006 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 __parcel__ = "osaf.framework.blocks"
 
 import os, sys
@@ -118,8 +120,8 @@ class Button(RectangularChild):
 
 class wxChandlerMultiStateButton(MultiStateButton.MultiStateButton):
     """
-    Just like MultiStateButton, except that it uses wx.GetApp().GetImage as the
-    provider of bitmaps, and the button has no border.
+    Just like MultiStateButton, except that it uses wx.GetApp().GetImage
+    as the provider of bitmaps, and the button has no border.
     
     Dispatch notifications at the end of handling the left-up event, because
     we'll destroy the button in the process of stamping, and the base-class
@@ -293,8 +295,10 @@ class Column(schema.Item):
  
 class ListDelegate (object):
     """
-      Default delegate for Lists that use the block's contents. Override
-    to customize your behavior. You must implement GetElementValue.
+    Default delegate for Lists that use the block's contents.
+
+    Override to customize your behavior. You must implement
+    GetElementValue.
     """
     def GetColumnCount (self):
         return len (self.blockItem.columns)
@@ -310,27 +314,27 @@ class ListDelegate (object):
 
     def ReadOnly (self, row, column):
         """
-          Second argument should be True if all cells have the first value
+        Second argument should be C{True} if all cells have the first value.
         """
         return False, True
 
     def RowToIndex(self, tableRow):
         """
-        translates a UI row, such as row 3 in the grid, to the
+        Translates a UI row, such as row 3 in the grid, to the
         appropriate row in the collection.
         """
         return tableRow
 
     def IndexToRow(self, itemIndex):
         """
-        translates an item index, such as item 3 in the collection,
+        Translates an item index, such as item 3 in the collection,
         into a row in the table.
         """
         return itemIndex
 
     def InitElementDelegate(self):
         """
-        Called right after the delegate has been mixed in
+        Called right after the delegate has been mixed in.
         """
         pass
     
@@ -344,12 +348,12 @@ class ListDelegate (object):
 
 class AttributeDelegate (ListDelegate):
     """
-    Overrides certain methods of wx.grid.Grid
+    Overrides certain methods of wx.grid.Grid.
     """
     def GetElementType (self, row, column):
         """
-          An apparent bug in wxWidgets occurs when there are no items in a table,
-        the Table asks for the type of cell 0,0
+        An apparent bug in wxWidgets occurs when there are no items
+        in a table, the Table asks for the type of cell 0,0
         """
         typeName = "_default"
         try:
@@ -511,14 +515,14 @@ class wxList (DragAndDrop.DraggableWidget,
 
     def OnGetItemText (self, row, column):
         """
-          OnGetItemText won't be called if it's in the delegate -- WxPython won't
-        call it if it's in a base class
+        OnGetItemText won't be called if it's in the delegate -- wxPython
+        won't call it if it's in a base class.
         """
         return self.GetElementValue (row, column)
 
     def OnGetItemImage (self, item):
         return -1
-    
+
     def GoToItem(self, item):
         self.Select (self.blockItem.contents.index (item))
 
@@ -583,10 +587,11 @@ class StatusBar(Block):
 
     def setStatusMessage(self, statusMessage, progressPercentage=-1):
         """
-          Allows you to set the message contained in the status bar.  You can also specify 
-        values for the progress bar contained on the right side of the status bar.  If you
-        specify a progressPercentage (as a float 0 to 1) the progress bar will appear.  If 
-        no percentage is specified the progress bar will disappear.
+        Allows you to set the message contained in the status bar.
+        You can also specify values for the progress bar contained on
+        the right side of the status bar.  If you specify a
+        progressPercentage (as a float 0 to 1) the progress bar will appear.
+        If no percentage is specified the progress bar will disappear.
         """
         if progressPercentage == -1:
             if self.widget.GetFieldsCount() != 1:
@@ -606,21 +611,23 @@ class StatusBar(Block):
             self.widget.gauge.SetPosition((rect.x+2, rect.y+2))
                             
 """
-  To use the TreeAndList you must provide a delegate to perform access
-to the data that is displayed. 
-  You might be able to subclass ListDelegate and implement the following methods:
+    To use the TreeAndList you must provide a delegate to perform access
+    to the data that is displayed.
 
-class TreeAndListDelegate (ListDelegate):
+    You might be able to subclass ListDelegate and implement the
+    following methods::
 
-    def GetElementParent(self, element):
+        class TreeAndListDelegate (ListDelegate):
 
-    def GetElementChildren(self, element):
+        def GetElementParent(self, element):
 
-    def GetElementValues(self, element):
+        def GetElementChildren(self, element):
 
-    def ElementHasChildren(self, element):
-        
-    Optionally override GetColumnCount and GetColumnHeading
+        def GetElementValues(self, element):
+
+        def ElementHasChildren(self, element):
+
+    Optionally override GetColumnCount and GetColumnHeading.
 """
 
 
@@ -658,7 +665,7 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
 
     def LoadChildren(self, parentId):
         """
-          Load the items in the tree only when they are visible.
+        Load the items in the tree only when they are visible.
         """
         child, cookie = self.GetFirstChild (parentId)
         if not child.IsOk():
@@ -688,8 +695,8 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
     def OnCollapsing(self, event):
         id = event.GetItem()
         """
-          if the data passed in has a UUID we'll keep track of the
-        state of the opened tree
+        If the data passed in has a UUID we'll keep track of the
+        state of the opened tree.
         """
         del self.blockItem.openedContainers [self.GetItemData(id).GetData()]
         self.DeleteChildren (id)
@@ -865,8 +872,8 @@ class Tree(RectangularChild):
 class wxItemDetail(wx.html.HtmlWindow):
     def OnLinkClicked(self, wx_linkinfo):
         """
-          Clicking on an item changes the selection (post event).
-          Clicking on a URL loads the page in a separate browser.
+        Clicking on an item changes the selection (post event).
+        Clicking on a URL loads the page in a separate browser.
         """
         itemURL = wx_linkinfo.GetHref()
         item = self.blockItem.findPath(itemURL)
@@ -909,7 +916,7 @@ class ItemDetail(RectangularChild):
 
     def onSelectItemsEvent (self, event):
         """
-          Display the item in the wxWidget.
+        Display the item in the wxWidget.
         """
         items = event.arguments['items']
         if len(items)>0:
@@ -918,25 +925,24 @@ class ItemDetail(RectangularChild):
             self.selection = None
         self.synchronizeWidget ()
 
-    
+
 class ContentItemDetail(BoxContainer):
     """
-    ContentItemDetail
     Any container block in the Content Item's Detail View hierarchy.
+
     Not to be confused with ItemDetail (above) which uses an HTML-based widget.
-    Keeps track of the current selected item
-    Supports Color Style
+    Keeps track of the current selected item supports Color Style.
     """
     colorStyle = schema.One(Styles.ColorStyle)
-    
+
 class wxPyTimer(wx.Timer):
     """ 
     A wx.PyTimer that has an IsShown() method, like all the other widgets
-    that blocks deal with; it also generates its own event from Notify
+    that blocks deal with; it also generates its own event from Notify.
     """              
     def IsShown(self):
         return True
-    
+
     def Notify(self):
         event = wx.PyEvent()
         event.SetEventType(wx.wxEVT_TIMER)
@@ -987,7 +993,9 @@ class Timer(Block):
             pass
 
 class ReminderTimer(Timer):
-    """ Watches for reminders & drives the reminder dialog. """
+    """
+    Watches for reminders & drives the reminder dialog.
+    """
     
     def synchronizeWidget (self, *args, **kwds):
         # logger.debug("*** Synchronizing ReminderTimer widget!")
@@ -1011,7 +1019,8 @@ class ReminderTimer(Timer):
         self.markDirty()
 
     def getPendingReminders (self):
-        """ Return a list of all reminder tuples with fire times in the past, 
+        """
+        Return a list of all reminder tuples with fire times in the past, 
         sorted by reminderTime.
 
         Each tuple contains (reminderTime, remindable, reminder).
@@ -1042,7 +1051,9 @@ class ReminderTimer(Timer):
         self.primeReminderTimer(True)
 
     def primeReminderTimer(self, createDialog=False):
-        """ Prime the reminder timer and maybe show or hide the dialog """
+        """
+        Prime the reminder timer and maybe show or hide the dialog
+        """
         mainFrame = wx.GetApp().mainFrame
         if not mainFrame.IsShown():
             # The main window isn't up yet; this happens on Mac when
@@ -1106,14 +1117,14 @@ class PresentationStyle(schema.Item):
     Information that customizes picking or presentation of an attribute
     editor in an L{AEBlock}.
 
-    L{format} is used to influence the picking process; see 
+    L{format} is used to influence the picking process; see
     L{osaf.framework.attributeEditors.AttributeEditors.getAEClass} for
     information on how it's used.
-    
+
     The other settings are used by various attribute editors to customize
     their presentation or behavior.
     """
-    
+
     schema.kindInfo(
         displayName = _(u"Presentation Style")
     )
@@ -1148,8 +1159,8 @@ class AEBlock(BoxContainer):
     Attribute Editor Block: instantiates an Attribute Editor appropriate for
     the value of the specified attribute; the Attribute Editor then creates
     the widget. Issues:
-     - Finalization.  We're relying on EVT_KILL_FOCUS to know when to end 
-       editing.  We know the Detail View doesn't always operate in ways that 
+     - Finalization.  We're relying on EVT_KILL_FOCUS to know when to end
+       editing.  We know the Detail View doesn't always operate in ways that
        cause this to be reliable, but I think these problems can be fixed there.
     """
     schema.kindInfo(
@@ -1161,8 +1172,8 @@ class AEBlock(BoxContainer):
         doc="""an optional CharacterStyle in which this editor should draw""")
     readOnly = schema.One(schema.Boolean, initialValue = False,
         doc="""If True, this editor should never allow editing of its value""")
-    presentationStyle = schema.One(PresentationStyle, 
-        doc="""an optional PresentationStyle to customize 
+    presentationStyle = schema.One(PresentationStyle,
+        doc="""an optional PresentationStyle to customize
                this editor's selection or behavior""")
     changeEvent = schema.One(BlockEvent)
 
@@ -1170,29 +1181,29 @@ class AEBlock(BoxContainer):
         copying = schema.Cloud(byRef=[characterStyle, presentationStyle, 
                                       changeEvent])
     )
-    
+
     def setItem(self, value): 
         assert not value.isDeleted()
         self.contents = value
     item = property(Block.getProxiedContents, setItem, 
                     doc="Safely access the selected item (or None)")
-    
+
     def getAttributeName(self): return getattr(self, 'viewAttribute', None)
     def setAttributeName(self, value): self.viewAttribute = value
     attributeName = property(getAttributeName, setAttributeName, doc=\
                              "Safely access the configured attribute name (or None)")
-    
+
     def instantiateWidget(self):
         """
         Ask our attribute editor to create a widget for us.
-        
+
         @return: the widget
         @rtype: wx.Widget
         """
         existingWidget = getattr(self, 'widget', None) 
         if existingWidget is not None:
             return existingWidget
-        
+
         forEditing = getattr(self, 'forEditing', False)
 
         # Tell the control what font we expect it to use
@@ -1207,27 +1218,27 @@ class AEBlock(BoxContainer):
             assert False
             widget = wx.Panel(self.parentBlock.widget, self.getWidgetID())
             return widget
-        
-        widget = editor.CreateControl(forEditing, editor.readOnly, 
-                                      self.parentBlock.widget, 
+
+        widget = editor.CreateControl(forEditing, editor.readOnly,
+                                      self.parentBlock.widget,
                                       self.getWidgetID(), self, font)
         widget.SetFont(font)
         # logger.debug("Instantiated a %s, forEditing = %s" % (widget, forEditing))
-        
+
         # Cache a little information in the widget.
         widget.editor = editor
-        
+
         widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocusFromWidget)
         widget.Bind(wx.EVT_KEY_UP, self.onKeyUpFromWidget)
         widget.Bind(wx.EVT_LEFT_DOWN, self.onClickFromWidget)
-                    
+
         return widget
-        
+
     def synchronizeWidget (self, useHints=False):
         """
-        Override to call the editor to do the synchronization
-        
-        @param hints: Ignored here for now
+        Override to call the editor to do the synchronization.
+
+        @param useHints: Ignored here for now
         """
         def BeginEdit():
             editor = self.lookupEditor()
@@ -1236,10 +1247,10 @@ class AEBlock(BoxContainer):
 
         if not wx.GetApp().ignoreSynchronizeWidget:
             IgnoreSynchronizeWidget(True, BeginEdit)
-            
+
 
     def onWidgetChangedSize(self):
-        """ 
+        """
         Called by our widget when it changes size.
         Presumes that there's an event boundary at the point where
         we need to resynchronize, so it will work with the Detail View.
@@ -1254,8 +1265,8 @@ class AEBlock(BoxContainer):
 
     def lookupEditor(self):
         """
-        Make sure we've got the right attribute editor for this type
-        
+        Make sure we've got the right attribute editor for this type.
+
         @return: The editor to use for the configured item/attributeName, or None
         @rtype: BaseAttributeEditor
         """
@@ -1319,13 +1330,13 @@ class AEBlock(BoxContainer):
                 self.render()
                 self.onWidgetChangedSize(item)
                 return getattr(self.widget, 'editor', None)
-                    
+
         # We need a new editor - create one.
         #logger.debug("Creating new AE for %s (%s.%s), ro=%s", 
                      #typeName, item, attributeName, readOnly)
         selectedEditor = AttributeEditors.getInstance\
                        (typeName, cardinality, item, attributeName, readOnly, presentationStyle)
-        
+
         # Note the characteristics that made us pick this editor
         selectedEditor.typeName = typeName
         selectedEditor.cardinality = cardinality
@@ -1342,7 +1353,7 @@ class AEBlock(BoxContainer):
     def isReadOnly(self, item, attributeName):
         """
         Are we not supposed to allow editing?
-        
+
         @param item: The item we're operating on
         @type item: Item
         @param attributeName: the name of the attribute from the item
@@ -1353,7 +1364,7 @@ class AEBlock(BoxContainer):
         """
         if self.readOnly: 
             return True
-        
+
         # Return true if the content model says this attribute should be R/O
         # (we might not be editing an item, so we check the method presence)
         try:
@@ -1366,14 +1377,14 @@ class AEBlock(BoxContainer):
         #logger.debug("AEBlock: %s %s readonly", attributeName,
                      #result and "is" or "is not")
         return result
-        
+
     def onSetContentsEvent (self, event):
         self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
         assert not hasattr(self, 'widget')
-            
+
     def getItemAttributeTypeInfo(self):
-        """ 
+        """
         Get the type & cardinality of the current attribute.
         
         @returns: A tuple containing the name of the type and the cardinality
@@ -1420,7 +1431,7 @@ class AEBlock(BoxContainer):
     def onClickFromWidget(self, event):
         """
         The widget got clicked on - make sure we're in edit mode.
-        
+
         @param event: The wx event representing the click
         @type event: wx.Event
         """
@@ -1433,7 +1444,7 @@ class AEBlock(BoxContainer):
         oldFocus = self.getFocusBlock()
         if oldFocus is not self:
             Block.finishEdits(oldFocus) # finish any edits in progress
-        
+
             #logger.debug("Grabbing focus.")
             wx.Window.SetFocus(self.widget)
 
@@ -1442,7 +1453,7 @@ class AEBlock(BoxContainer):
     def onLoseFocusFromWidget(self, event):
         """
         The widget lost focus - we're finishing editing.
-        
+
         @param event: The wx event representing the lose-focus event
         @type event: wx.Event
         """
@@ -1461,9 +1472,9 @@ class AEBlock(BoxContainer):
         self.saveValue()
 
     def saveValue(self, validate=False):
-        """ 
-        Make sure the value is written back to the item. 
-        
+        """
+        Make sure the value is written back to the item.
+
         @param validate: (Ignored here)
         """
         widget = getattr(self, 'widget', None)
@@ -1494,9 +1505,9 @@ class AEBlock(BoxContainer):
         event.Skip()
 
     def onAttributeEditorValueChange(self):
-        """ 
-        Called when the attribute editor changes the value. If we're configured 
-        to send an event when this happens, do so.
+        """
+        Called when the attribute editor changes the value. If we're
+        configured to send an event when this happens, do so.
         """
         item = self.item
         logger.debug("onAttributeEditorValueChange: %s %s", 

@@ -6,13 +6,14 @@ import datetime, time
 
 def execute_command(view, text):
     """
-    parse a piece of text containing a command and execute it in the provided view
+    Parse a piece of text containing a command and execute it in the
+    provided view
 
     /create [note|event|task] "text"
 
     Form of text:
     * For note - [the text of the note]
-    * For an event - [date] [length] [title of the event]
+    * For an event - [date] [length] [title of the event]::
       format for date = '%Y-%m-%dT%H:%M:%S'
       format for length    '%H:%M:%S'
     * For a task - [title of the task]

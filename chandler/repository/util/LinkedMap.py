@@ -1,8 +1,7 @@
-
-__revision__  = "$Revision$"
-__date__      = "$Date$"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 
 from chandlerdb.util.c import CLinkedMap
@@ -19,7 +18,9 @@ class LinkedMap(CLinkedMap):
         del self._dict[key]
 
     def place(self, key, afterKey=None):
-        "Move a key in this collection after another one."
+        """
+        Move a key in this collection after another one.
+        """
 
         if key == afterKey:
             return False
@@ -119,7 +120,7 @@ class LinkedMap(CLinkedMap):
         Get the value referenced through its alias.
         
         @param alias: the alias of the item referenced.
-        @type key: a string
+        @type alias: a string
         @param default: the default value to return if there is no value
         for C{key} in this collection, C{None} by default.
         @type default: anything

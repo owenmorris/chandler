@@ -1,5 +1,9 @@
-__copyright__ = "Copyright (c) 2004-2006 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+Classes for the ContentItem Detail View
+
+@copyright: Copyright (c) 2004-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 __parcel__ = "osaf.framework.blocks.detail"
 
 import sys
@@ -38,10 +42,6 @@ from datetime import datetime, time, timedelta
 from i18n import OSAFMessageFactory as _
 from osaf import messages
 
-"""
-Detail.py
-Classes for the ContentItem Detail View
-"""
 
 logger = logging.getLogger(__name__)
     
@@ -117,7 +117,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
 
         Notify container blocks before their children.
 
-        @@@DLD - find a better way to broadcast inside my boundary.
+        Note: @@@DLD - find a better way to broadcast inside my boundary.
         """
         def reNotifyInside(block, item):
             notifySelf = len(block.childrenBlocks) == 0 # True if no children
@@ -155,17 +155,18 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         else:
             if sizer:
                 sizer.Layout()
-                    
+
     def Layout(self):
         """ 
         Called (by installTreeOfBlocks) when the detail view's contents
-        changes without rerendering
+        changes without rerendering.
         """
         self.synchronizeDetailView(self.item)
 
     if __debug__:
         def dumpShownHierarchy (self, methodName=''):
-            """ Like synchronizeDetailView, but just dumps info about which
+            """
+            Like synchronizeDetailView, but just dumps info about which
             blocks are currently shown.
             """
             def reNotifyInside(block, item, indent):
@@ -222,8 +223,8 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
 
     def SelectedItems(self):
         """ 
-        Return a list containing the item we're displaying. (This gets
-        used for Send)
+        Return a list containing the item we're displaying.
+        (This gets used for Send)
         """
         return self.contents is not None and [ self.contents ] or []
 
@@ -235,14 +236,16 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         pass
 
     def onSendShareItemEvent (self, event):
-        """ Send or Share the current item. """
+        """
+        Send or Share the current item.
+        """
         # finish changes to previous selected item, then do it.
         Block.Block.finishEdits()
         super(DetailRootBlock, self).onSendShareItemEvent(event)
     
     def focus(self):
         """
-        Put the focus into the Detail View
+        Put the focus into the Detail View.
         """
         # Currently, just set the focus to the Title/Headline/Subject
         # Later we may want to support the "preferred" block for
@@ -268,7 +271,7 @@ class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
     def _mapItemToCacheKeyItem(self, item, hints):
         """ 
-        Overrides to use the item's kind as our cache key
+        Overrides to use the item's kind as our cache key.
         """
         if item is None or item.isDeleting():
             # We use Block's kind itself as the key for displaying "nothing";
@@ -283,7 +286,8 @@ class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
     
     def _makeBranchForCacheKey(self, keyItem):
         """ 
-        Handle a cache miss; build and return the detail tree-of-blocks for this keyItem, a Kind. 
+        Handle a cache miss; build and return the detail tree-of-blocks
+        for this keyItem, a Kind.
         """
         # Walk through the keys we have subtrees for, and collect subtrees to use;
         # we decide to use a subtree if _includeSubtree returns True for it.
@@ -328,8 +332,8 @@ class DetailSynchronizer(Item):
     of the blocks in the detail view.
     """
     def detailRoot (self):
-        """ 
-        Cruise up the parents looking for someone who can return the detailRoot
+        """
+        Cruise up the parents looking for someone who can return the detailRoot.
         """
         block = self
         while True:
@@ -397,8 +401,8 @@ class DetailSynchronizer(Item):
             self.detailRoot().relayoutSizer()
 
 class SynchronizedSpacerBlock(DetailSynchronizer, ControlBlocks.StaticText):
-    """ 
-    Generic Spacer Block class 
+    """
+    Generic Spacer Block class.
     """
 
 class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
@@ -423,7 +427,7 @@ class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
 def GetRedirectAttribute(item, defaultAttr):
     """
     Gets redirectTo for an attribute name, or just returns the attribute
-    name if a there is no redirectTo
+    name if a there is no redirectTo.
     """
     attributeName = item.getAttributeAspect(defaultAttr, 'redirectTo');
     if attributeName is None:
@@ -433,7 +437,7 @@ def GetRedirectAttribute(item, defaultAttr):
 
 class StaticRedirectAttribute (StaticTextLabel):
     """
-      Static text label that displays the attribute value
+    Static text label that displays the attribute value.
     """
     def staticTextLabelValue (self, item):
         try:
@@ -445,7 +449,7 @@ class StaticRedirectAttribute (StaticTextLabel):
 
 class StaticRedirectAttributeLabel (StaticTextLabel):
     """
-      Static Text that displays the name of the selected item's Attribute
+    Static Text that displays the name of the selected item's Attribute.
     """
     def staticTextLabelValue (self, item):
         redirectAttr = GetRedirectAttribute(item, self.whichAttribute ())
@@ -456,13 +460,13 @@ class StaticRedirectAttributeLabel (StaticTextLabel):
 
 class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
     """
-      basic class for a block in the detail view typically containing:
-       - a label (e.g. a StaticText with "Title:")
-       - an attribute value (e.g. in an EditText with the value of item.title)
-      
-      it also handles visibility of the block, depending on if the attribute
-      exists on the item or not
-    """ 
+    Basic class for a block in the detail view typically containing:
+     - a label (e.g. a StaticText with "Title:")
+     - an attribute value (e.g. in an EditText with the value of item.title)
+
+    It also handles visibility of the block, depending on if the attribute
+    exists on the item or not.
+    """
     def synchronizeItemDetail(self, item):
         whichAttr = self.viewAttribute
         self.isShown = item is not None and item.itsKind.hasAttribute(whichAttr)
@@ -476,7 +480,7 @@ class DetailSynchronizedContentItemDetail(DetailSynchronizer, ControlBlocks.Cont
 
 class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.AEBlock):
     """
-    A L{ControlBlocks.AEBlock} that participates in detail view synchronization
+    A L{ControlBlocks.AEBlock} that participates in detail view synchronization.
     """
     def OnDataChanged (self):
         # (this is how we find out about drag-and-dropped text changes!)
@@ -487,7 +491,7 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
 
 class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
     """
-      Common base class for the stamping buttons in the Markup Bar
+    Common base class for the stamping buttons in the Markup Bar.
     """
     def stampMixinClass(self):
         # return the class of this stamp's Mixin Kind (bag of kind-specific attributes)
@@ -542,28 +546,28 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
 
 class MailMessageButtonBlock(DetailStampButton):
     """
-      Mail Message Stamping button in the Markup Bar
+    Mail Message Stamping button in the Markup Bar.
     """
     def stampMixinClass(self):
         return Mail.MailMessageMixin
     
 class CalendarStampBlock(DetailStampButton):
     """
-      Calendar button in the Markup Bar
+    Calendar button in the Markup Bar.
     """
     def stampMixinClass(self):
         return Calendar.CalendarEventMixin
 
 class TaskStampBlock(DetailStampButton):
     """
-      Task button in the Markup Bar
+    Task button in the Markup Bar.
     """
     def stampMixinClass(self):
         return TaskMixin
 
 class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.Button):
     """
-      "Never share" button in the Markup Bar
+    "Never share" button in the Markup Bar.
     """
     def synchronizeItemDetail (self, item):
         # toggle this button to reflect the privateness of the selected item        
@@ -590,7 +594,7 @@ class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.Button):
 
 class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.Button):
     """
-      "Read Only" icon in the Markup Bar
+    "Read Only" icon in the Markup Bar.
     """
     def synchronizeItemDetail (self, item):
         # toggle this icon to reflect the read only status of the selected item
@@ -612,7 +616,7 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.Button):
 class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     """
     EditText field connected to some attribute of a ContentItem
-    Override LoadAttributeIntoWidget, SaveAttributeFromWidget in subclasses
+    Override LoadAttributeIntoWidget, SaveAttributeFromWidget in subclasses.
     """
     def instantiateWidget (self):
         widget = super (EditTextAttribute, self).instantiateWidget()
@@ -670,10 +674,12 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
        raise NotImplementedError, "%s.LoadAttributeIntoWidget()" % (type(self))
 
 class AttachmentAreaBlock(DetailSynchronizedLabeledTextAttributeBlock):
-    """ an area visible only when the item (a mail message) has attachments """
+    """
+    An area visible only when the item (a mail message) has attachments.
+    """
     def shouldShow (self, item):
         return item is not None and item.hasAttachments()
-    
+
 class AttachmentTextFieldBlock(EditTextAttribute):
     """
     A read-only list of email attachments, for now.
@@ -744,7 +750,9 @@ class AppearsInAEBlock(DetailSynchronizedAttributeEditorBlock):
         return hasattr(item, 'appearsIn')
 
 class AppearsInAttributeEditor(StaticStringAttributeEditor):
-    """ A read-only list of collections that this item appears in, for now. """
+    """
+    A read-only list of collections that this item appears in, for now.
+    """
     def GetAttributeValue(self, item, attributeName):
         # Only a recurrence master appears 'in' the collection (for 0.6, anyway)
         # so if this item lets us get its master, do so and use that instead.
@@ -1115,7 +1123,9 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
 
 class ReminderAttributeEditor(ChoiceAttributeEditor):
     def GetControlValue (self, control):
-        """ Get the reminder delta value for the current selection """        
+        """
+        Get the reminder delta value for the current selection.
+        """
         # @@@ i18n For now, assumes that the menu will be a number of minutes, 
         # followed by a space (eg, "1 minute", "15 minutes", etc), or something
         # that doesn't match this (eg, "None") for no-alarm.
@@ -1130,7 +1140,9 @@ class ReminderAttributeEditor(ChoiceAttributeEditor):
         return value
 
     def SetControlValue (self, control, value):
-        """ Select the choice that matches this delta value"""
+        """
+        Select the choice that matches this delta value.
+        """
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
         if existingValue != value or control.GetCount() == 0:            
@@ -1151,11 +1163,14 @@ class ReminderAttributeEditor(ChoiceAttributeEditor):
             control.Select(choiceIndex)
 
     def GetAttributeValue (self, item, attributeName):
-        """ Get the value from the specified attribute of the item. """
+        """
+        Get the value from the specified attribute of the item.
+        """
         return item.reminderInterval
 
     def SetAttributeValue (self, item, attributeName, value):
-        """ Set the value of the attribute given by the value. """
+        """Set the value of the attribute given by the value.
+        """
         if not self.ReadOnly((item, attributeName)) and \
            value != self.GetAttributeValue(item, attributeName):
 
@@ -1178,7 +1193,9 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
     
     @classmethod
     def mapRecurrenceFrequency(theClass, item):
-        """ Map the frequency of this item to one of our menu choices """
+        """
+        Map the frequency of this item to one of our menu choices.
+        """
         if item.isCustomRule(): # It's custom if it says it is.
             return RecurrenceAttributeEditor.customIndex
         # Otherwise, try to map its frequency to our menu list
@@ -1224,7 +1241,9 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         return index
     
     def SetAttributeValue(self, item, attributeName, value):
-        """ Set the value of the attribute given by the value. """
+        """
+        Set the value of the attribute given by the value.
+        """
         assert value != RecurrenceAttributeEditor.customIndex
         # Changing the recurrence period on a non-master item could delete 
         # this very 'item'; if it does, we'll bypass the attribute-changed 
@@ -1260,12 +1279,16 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         self.AttributeChanged()
     
     def GetControlValue (self, control):
-        """ Get the value for the current selection """ 
+        """
+        Get the value for the current selection.
+        """ 
         choiceIndex = control.GetSelection()
         return choiceIndex
 
     def SetControlValue (self, control, value):
-        """ Select the choice that matches this index value"""
+        """
+        Select the choice that matches this index value.
+        """
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
         if existingValue != value or control.GetCount() == 0:
@@ -1360,9 +1383,9 @@ class OutboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
         return 'isOutbound'
            
 class InboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
-    """ 
+    """
     This block will only be visible on inbound messages
-    (like the inbound version of 'from')
+    (like the inbound version of 'from'.)
     """
     def shouldShow (self, item):
         return not item.isOutbound
@@ -1371,17 +1394,17 @@ class InboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
         return 'isOutbound'
 
 class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
-    """ 
-    An attribute editor that presents a list of the configured email 
-    accounts. 
-    
-    If no accounts are configured, the only choice will trigger the 
+    """
+    An attribute editor that presents a list of the configured email
+    accounts.
+
+    If no accounts are configured, the only choice will trigger the
     email-account setup dialog.
-    
+
     This editor's value is the email address string itself (though
     the "configure accounts" choice is treated as the special string '').
     """
-    
+
     def CreateControl(self, forEditing, readOnly, parentWidget, 
                       id, parentBlock, font):
         control = super(OutboundEmailAddressAttributeEditor, 
@@ -1400,7 +1423,9 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
             event.Skip()
         
     def GetChoices(self):
-        """ Get the choices we're presenting """
+        """
+        Get the choices we're presenting.
+        """
         choices = []
         for acct in Mail.DownloadAccountBase.getKind(self.item.itsView).iterItems():
             if (acct.isActive and acct.replyToAddress is not None 
@@ -1429,7 +1454,9 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
         return control.GetString(choiceIndex)
 
     def SetControlValue (self, control, value):
-        """ Select the choice with the given text """
+        """
+        Select the choice with the given text.
+        """
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
         if existingValue in (None, u'') or existingValue != value:            
@@ -1499,7 +1526,7 @@ class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
 
 class EmptyPanelBlock(ControlBlocks.ContentItemDetail):
     """
-    A bordered panel, which we use when no item is selected in the calendar
+    A bordered panel, which we use when no item is selected in the calendar.
     """
     def instantiateWidget (self):
         # Make a box with a sunken border - wxBoxContainer will take care of

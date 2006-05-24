@@ -1,5 +1,7 @@
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 __parcel__ = "osaf.pim"
 
 import logging, os
@@ -26,8 +28,9 @@ class ContentCollection(ContentItem, Collection):
     ContentCollection instances are items wrapping a collection value and
     provide a C{subscribers} ref collection for clients to subscribe to their
     notifications. Subscriber items must provide a C{subscribesTo} inverse
-    attribute and a method of the following signature:
+    attribute and a method of the following signature::
         C{onCollectionNotification(op, collection, name, item)}
+
     where C{op} is one of C{add}, C{remove}, C{refresh} or C{changed},
     C{collection} is the Collection item, C{name} is the attribute
     containing the collection value and C{item} the item in the collection
@@ -35,14 +38,14 @@ class ContentCollection(ContentItem, Collection):
 
     This class is abstract. Base concrete subclasses must use the
     C{schema.CollectionClass} metaclass and declare the collection attribute
-    and its name as in the examples below:
+    and its name as in the examples below::
 
         __metaclass__ = schema.CollectionClass
         __collection__ = 'ex1'
 
         ex1 = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
-    or:
+    or::
 
         __metaclass__ = schema.CollectionClass
         __collection__ = 'ex2'
@@ -74,7 +77,7 @@ class ContentCollection(ContentItem, Collection):
             "though an item collection could have multiple shares post-0.5",
         inverse="inviteeOf",
         initialValue=()
-    )   
+    )
 
     # redirections 
     about = schema.Descriptor(redirectTo="displayName")
@@ -97,7 +100,9 @@ class ContentCollection(ContentItem, Collection):
     )
 
     def __str__(self):
-        """ for debugging """
+        """
+        for debugging
+        """
         return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
                                 self.itsUUID.str16())
 
@@ -117,7 +122,7 @@ class ContentCollection(ContentItem, Collection):
 
     def isReadOnly(self):
         """
-        Return True iff participating in only read-only shares
+        Return C{True} iff participating in only read-only shares.
         """
         if not self.shares:
             return False
@@ -163,7 +168,7 @@ class KindCollection(ContentCollection):
 class ListCollection(ContentCollection):
     """
     A ContentCollection that contains only those items that are explicitly
-    added to it. 
+    added to it.
 
     Items in a ContentCollection are iterated over in order of insertion.
 
@@ -223,7 +228,7 @@ class MultiCollection(ContentCollection):
     The C{sources} attribute (a ref collection) contains the ContentCollection
     instances to be combined and can be changed.
     """
-    
+
     __metaclass__ = schema.CollectionClass
     __collection__ = 'set'
 
@@ -385,7 +390,7 @@ class FilteredCollection(ContentCollection):
 class AppCollection(ContentCollection):
     """
     AppCollections implement inclusions, exclusions, source,
-    and trash along with methods for add and remove
+    and trash along with methods for add and remove.
     """
 
     __metaclass__ = schema.CollectionClass
@@ -411,7 +416,7 @@ class AppCollection(ContentCollection):
 
     def add(self, item):
         """
-          Add an item to the collection
+        Add an item to the collection.
         """
         if DEBUG:
             logger.debug("Adding %s to %s...",
@@ -442,7 +447,7 @@ class AppCollection(ContentCollection):
 
     def remove(self, item):
         """
-          Remove an item from the collection
+        Remove an item from the collection.
         """
 
         if DEBUG:
@@ -505,13 +510,12 @@ class AppCollection(ContentCollection):
 
     def _setup(self, source=None, exclusions=None, trash=Default):
         """
-        setup all the extra parts of an
-        AppCollection. In general nobody should call
-        this but __init__, but unfortunately sharing creates
-        AppCollections without calling __init__ so it
-        should be the only caller of _setup.
+        Setup all the extra parts of an AppCollection. In general
+        nobody should call this but __init__, but unfortunately
+        sharing creates AppCollections without calling __init__
+        so it should be the only caller of _setup.
 
-        Sets the source, exclusions and trash collections. 
+        Sets the source, exclusions and trash collections.
 
         In general trash should only be the well known Trash
         collection or None. None indicates that this collection does
@@ -563,7 +567,7 @@ class AppCollection(ContentCollection):
 
     def withoutTrash(self):
         """
-        Pull out the non-trash part of AppCollection
+        Pull out the non-trash part of AppCollection.
         """
         
         # Smart collections are 'special' - they almost always include
@@ -580,7 +584,7 @@ class AppCollection(ContentCollection):
 
 class SmartCollection(AppCollection):
     """
-    A SmartCollection is just an AppCollection that is user-facing. 
+    A SmartCollection is just an AppCollection that is user-facing.
     """
     __metaclass__ = schema.CollectionClass
     __collection__ = 'set'
@@ -608,7 +612,7 @@ class InclusionExclusionCollection(SmartCollection):
 
 class IndexedSelectionCollection(ContentCollection):
     """
-    A collection that adds an index, e.g.for sorting items, a
+    A collection that adds an index, e.g. for sorting items, a
     selection and visibility attribute to another source collection.
     """
 
@@ -664,8 +668,8 @@ class IndexedSelectionCollection(ContentCollection):
         Switches to a different index, bringing over the selection to
         the new index.
 
-        If toggleDescending is True, then when the indexName is set to
-        the current indexName, the sort will toggle its Descending
+        If toggleDescending is C{True}, then when the indexName is set
+        to the current indexName, the sort will toggle its Descending
         status, and reset the selection to match.
         """
 
@@ -674,7 +678,7 @@ class IndexedSelectionCollection(ContentCollection):
 
         newIndex = self.getCollectionIndex(newIndexName)
 
-                
+
         if currentIndexName != newIndexName:
             # new index - bring over the items one by one
             self.setRanges(newIndexName, [])
@@ -695,7 +699,7 @@ class IndexedSelectionCollection(ContentCollection):
 
             self.setDescending (currentIndexName, not self.isDescending(currentIndexName))
             self.setSelectionRanges(newRanges)
-        
+
 
     def __len__(self):
 
@@ -731,24 +735,24 @@ class IndexedSelectionCollection(ContentCollection):
     def getSelectionRanges (self):
         """
         Return the ranges associated with the current index as an
-        array of tuples, where each tuple representsa start and end of
-        the range.
+        array of tuples, where each tuple represents a start and
+        end of the range.
         """
         return self.getCollectionIndex().getRanges()
         
     def setSelectionRanges (self, ranges):
         """
         Sets the ranges associated with the current index with
-        C(ranges) which should be an array of tuples, where each tuple
-        represents a start and end of the range.  The ranges must be
-        sorted ascending, non-overlapping and postive.
+        C{ranges} which should be an array of tuples, where each
+        tuple represents a start and end of the range.  The C{ranges}
+        must be sorted ascending, non-overlapping and postive.
         """
         self.setRanges(self.indexName, ranges)
 
     def isSelected (self, range):
         """
-        Returns True if the C(range) is completely inside the selected
-        ranges of the index.  C(range) may be a tuple: (start, end) or
+        Returns C{True} if the C{range} is completely inside the selected
+        ranges of the index.  C{range} may be a tuple: (start, end) or
         an integer index, where negative indexing works like Python
         indexing.
         """
@@ -756,7 +760,7 @@ class IndexedSelectionCollection(ContentCollection):
 
     def addSelectionRange (self, range):
         """
-        Selects a C(range) of indexes. C(range) may be a tuple:
+        Selects a C{range} of indexes. C{range} may be a tuple:
         (start, end) or an integer index, where negative indexing
         works like Python indexing.
         """
@@ -764,9 +768,9 @@ class IndexedSelectionCollection(ContentCollection):
 
     def removeSelectionRange (self, range):
         """
-        unselects a C(range) of indexes. C(range) may be a tuple:
+        Unselects a C{range} of indexes. C{range} may be a tuple:
         (start, end) or an integer index, where negative indexing
-        works like Python indexing..
+        works like Python indexing.
         """
         self.removeRange(self.indexName, range)
     #
@@ -775,15 +779,15 @@ class IndexedSelectionCollection(ContentCollection):
     
     def setSelectionToItem (self, item):
         """
-        Sets the entire selection to include only the C(item).
+        Sets the entire selection to include only the C{item}.
         """
         index = self.index (item)
         self.setRanges(self.indexName, [(index, index)])
 
     def getFirstSelectedItem (self):
         """
-        Returns the first selected item in the index or None if there
-        is no selection.
+        Returns the first selected item in the index or C{None} if
+        there is no selection.
         """
         index = self.getCollectionIndex()._ranges.firstSelectedIndex()
         if index == None:
@@ -792,13 +796,14 @@ class IndexedSelectionCollection(ContentCollection):
 
     def isItemSelected(self, item):
         """
-        returns True/False based on if the item is actually selected or not
+        Returns C{True}/C{False} based on if the item is actually
+        selected or not
         """
         return self.isSelected(self.index(item))
 
     def iterSelection(self):
         """
-        Generator to get the selection
+        Generator to get the selection.
         """
         ranges = self.getSelectionRanges()
         if ranges is not None:
@@ -808,13 +813,13 @@ class IndexedSelectionCollection(ContentCollection):
 
     def selectItem (self, item):
         """
-        Selects an C(item) in the index.
+        Selects an C{item} in the index.
         """
         self.addSelectionRange (self.index (item))
 
     def unselectItem (self, item):
         """
-        unSelects an C(item) in the index.
+        Unselects an C{item} in the index.
         """
         self.removeSelectionRange (self.index (item))
 
@@ -824,7 +829,7 @@ class IndexedSelectionCollection(ContentCollection):
 
     def __getitem__ (self, index):
         """
-        Support indexing using []
+        Support indexing using [].
         """
         # Get the index. It's necessary to get the length, and if it doesn't exist
         # getCollectionIndex will create it.

@@ -1,5 +1,7 @@
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2004-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 __parcel__ = "osaf.framework.blocks"
 
 import application.Globals as Globals
@@ -13,47 +15,53 @@ import os
 
 class RefCollectionDictionary(schema.Item):
     """
-      Provides dictionary access to a reference collection attribute 
+    Provides dictionary access to a reference collection attribute
     L{RefList<repository.item.RefCollections.RefList>}.
+
     The attribute that contains the reference collection is determined
     through attribute indirection using the collectionSpecifier attribute.
+
     The "itsName" property of the items in the reference collection
     is used for the dictionary lookup by default.  You can override
     the name accessor if you want to use something other than
     itsName to key the items in the collection.
     """
-        
+
     def itemNameAccessor(self, item):
         """
         Name accessor used for RefCollectionDictionary
         subclasses can override this method if they want to
-        use something other than the itsName property to 
+        use something other than the itsName property to
         determine item names.
-        
-        @param item: the item whose name we want.
+
+        @param item: The item whose name we want.
         @type item: C{item}
-        @return: a C{immutable} for the key into the collection
+        @return: A C{immutable} for the key into the collection
         """
         return item.itsName or item.itsUUID.str64()
     
     def getCollectionSpecifier(self):
         """
-        determines which attribute to use for the
-        collectionSpecifier.
-        subclasses can override this method if they want to
-        use something other than collectionSpecifier, 
+        Determines which attribute to use for the collectionSpecifier.
+
+        Subclasses can override this method if they want to
+        use something other than collectionSpecifier,
         which is typlically set up to redirect to the actual
         attribute that contains the collection.
-        @return: a C{String} for the name of the collection attribute
+
+        @return: A C{String} for the name of the collection attribute
         """
         return 'collectionSpecifier' # should be a redirectTo attribute
 
     def _index(self, key):
         """
-        returns a tuple with the item refered to by the key, and the collection
-        @param key: the key used for lookup into the ref collection.
+        Returns a tuple with the item refered to by the key, and the
+        collection.
+
+        @param key: The key used for lookup into the ref collection.
         @type key: C{immutable}, typically C{String} or C{int}
-        @return: a C{Tuple} containing C{(item, collection)} or raises an exception if not found.
+        @return: A C{Tuple} containing C{(item, collection)} or raises an
+                 exception if not found.
         """
         coll = self.getAttributeValue(self.getCollectionSpecifier())
         if isinstance (key, int):
@@ -72,8 +80,9 @@ class RefCollectionDictionary(schema.Item):
         
     def index(self, key):
         """
-        returns the item refered to by the key
-        @param key: the key used for lookup into the ref collection.
+        Returns the item refered to by the key.
+
+        @param key: The key used for lookup into the ref collection.
         @type key: C{immutable}, typically C{String}
         @return: C{item} if found, or C{None} if not found.
         """
@@ -101,7 +110,7 @@ class RefCollectionDictionary(schema.Item):
     
     def has_key(self, key):
         """
-        @param key: the key used for lookup into the ref collection.
+        @param key: The key used for lookup into the ref collection.
         @type key: C{immutable}, typically C{String}
         @return: C{True} if found, or {False} if not found.
         """
@@ -109,8 +118,8 @@ class RefCollectionDictionary(schema.Item):
                                       
     def __contains__(self, item):
         """
-        @param item: an item to find in the ref collection.
-        @type key: C{item}
+        @param item: An item to find in the ref collection.
+        @type item: C{item}
         @return: C{True} if found, or {False} if not found.
         """
         coll = self.getAttributeValue(self.getCollectionSpecifier())
@@ -118,8 +127,9 @@ class RefCollectionDictionary(schema.Item):
     
     def __getitem__(self, key):
         """
-        return the item associated with the key from the ref collection attribute
-        @param key: the key used for lookup into the ref collection.
+        Return the item associated with the key from the ref collection attribute.
+
+        @param key: The key used for lookup into the ref collection.
         @type key: C{immutable}, typically C{String}
         @return: C{item} if found, or raises an exception.
         """
@@ -127,12 +137,16 @@ class RefCollectionDictionary(schema.Item):
     
     def __setitem__(self, key, value):
         """
-        replace the item associated with the key from the ref collection attribute.
-        Note that the new item may have a different key, but it will be placed
-        in the same position in the ref collection, and the keyed item will be removed.
-        @param key: the key used for position lookup into the ref collection.
+        Replace the item associated with the key from the ref collection
+        attribute.
+
+        Note that the new item may have a different key, but it will be
+        placed in the same position in the ref collection, and the keyed
+        item will be removed.
+
+        @param key: The key used for position lookup into the ref collection.
         @type key: C{immutable}, typically C{String}
-        @param value: the C{item} to place into the ref collection.
+        @param value: The C{item} to place into the ref collection.
         @type value: C{item}
         """
         itemIndex, coll = self._index(key) # find the keyed item
@@ -143,9 +157,10 @@ class RefCollectionDictionary(schema.Item):
     def insert(self, index, item):
         """
         Insert item before index in our ref collection.
-        @param index: the position used for insertion into the ref collection.
+
+        @param index: The position used for insertion into the ref collection.
         @type index: C{item} that exists in the ref collection, or C{None} to append.
-        @param item: the C{item} to insert before C{index} in the ref collection.
+        @param item: The C{item} to insert before C{index} in the ref collection.
         @type item: C{item}
         """
         # 
@@ -158,8 +173,9 @@ class RefCollectionDictionary(schema.Item):
     def __delitem__(self, key):
         """
         Delete the keyed item from our ref collection.
-        @param key: the key used for item location in the ref collection.
-            Throws an exception if there is no item associated with the key.
+
+        @param key: The key used for item location in the ref collection.
+                    Throws an exception if there is no item associated with the key.
         @type key: C{immutable}, typically C{String}
         """
         itemIndex, coll = self._index(key)
@@ -167,8 +183,9 @@ class RefCollectionDictionary(schema.Item):
 
 class DynamicBlock(schema.Item):
     """
-      Mixin class for any Dynamic Block, both DynamicContainers
+    Mixin class for any Dynamic Block, both DynamicContainers
     and DynamicChild blocks.
+
     You should mix this class into a Block
     """
     def isDynamicChild (self):
@@ -179,11 +196,13 @@ class DynamicBlock(schema.Item):
 
     def appendDynamicBlocks (self, blockList):
         """
-          Uniquely insert all dynamic blocks recursively to blockList
+        Uniquely insert all dynamic blocks recursively to blockList
         preserving the order of the items.
+
         Note that items need to be inserted at the beginning, because
         we are scanning the tree from the bottom up, and tend to find
         the dynamic additions first, and the static definitions last.
+
         We want the static definitions to come first because the dynamic
         additions override them.
         """
@@ -204,12 +223,14 @@ class DynamicBlock(schema.Item):
     
     def buildDynamicList (self):
         """
-          Build a list of dynamic blocks found starting at self,
-        moving up through the static hierarchy, and tunnelling down inside
-        all dynamic branches found.
+        Build a list of dynamic blocks found starting at self,
+        moving up through the static hierarchy, and tunnelling down
+        inside all dynamic branches found.
+
         We need all Dynamic Containers, and all Dynamic Children
         that have an itemLocation specified.
-        @Return: the list of all Dynamic Blocks.
+
+        @return: The list of all Dynamic Blocks.
         """
         blockList = []
         block = self
@@ -224,11 +245,12 @@ class DynamicBlock(schema.Item):
 
     def rebuildContainers(self, containers):
         """
-          Scan for dynamic containers, registering them in the containers list.
+        Scan for dynamic containers, registering them in the containers list.
         Returns the block list of all dynamic blocks found.
-        @param containers: the containers dictionary.
+
+        @param containers: The containers dictionary.
         @type containers: C{dict} to put all DynamicContainer blocks into.
-        @Return: the list of all Dynamic Blocks.
+        @return: The list of all Dynamic Blocks.
         """
         blockList = self.buildDynamicList ()
         for block in blockList:
@@ -240,25 +262,27 @@ class DynamicBlock(schema.Item):
                                        
     def rebuildChildren(self, containers, blockList):
         """
-          Scan for dynamic children, find their parent, and attach them
+        Scan for dynamic children, find their parent, and attach them
         appropriately to the parent.dynamicChildren attribute.
-        @param containers: the containers dictionary.
+
+        @param containers: The containers dictionary.
         @type containers: C{dict} to put all DynamicContainer blocks into.
-        @param blockList: the list of all Dynamic blocks to consider.
+        @param blockList: The list of all Dynamic blocks to consider.
         @type blockList: C{list} of DynamicBlock objects.
         """
         for child in blockList:
             # pick up children
             if child.isDynamicChild ():
                 """
-                  Use location to look up the container that
-                contains the entry or container
-                
-                  If you get an exception here, it's probably because
+                Use location to look up the container that
+                contains the entry or container.
+
+                If you get an exception here, it's probably because
                 the name of the location isn't the name of an existing
                 bar.
-                  Use 'MenuBar' for the Menu Bar.
-                    """
+
+                Use 'MenuBar' for the Menu Bar.
+                """
                 try:
                     locationName = child.location
                 except AttributeError:
@@ -278,7 +302,7 @@ class DynamicBlock(schema.Item):
                     bar[child.itemLocation] = child
                 elif child.operation == 'Delete':
                     """
-                      If you get an exception here, it's probably because
+                    If you get an exception here, it's probably because
                     you're trying to remove a bar item that doesn't exist.
                     """
                     del bar[child.itemLocation]
@@ -290,8 +314,9 @@ class DynamicBlock(schema.Item):
         synchronizeDynamicBlocks rebuilds the dynamic
         container hierarchy based on the blocks it finds in
         a root section of the static block hierarchy and then
-        calls synchronizeWidget on each container.  Dynamic
-        associations between blocks are done by blockName, 
+        calls synchronizeWidget on each container.
+
+        Dynamic associations between blocks are done by blockName,
         which must be unique.  Upon exit all DynamicContainer
         blocks found will have references to all dynamicChildren
         found, and those blocks will have an inverse reference
@@ -300,24 +325,26 @@ class DynamicBlock(schema.Item):
         The rebuild is done starting at the specified block,
         moving up to the parentBlock, repeating this process
         until reaching the root of the hierarchy.  If we find
-        any dynamic block at any point in the traversal we 
+        any dynamic block at any point in the traversal we
         scan down through all of its children recursively
         as long as dynamic blocks are found.
-        
+
         DynamicContainers and their dynamicChildren are 
         identified by their itemName rather than their UUIDs,
-        to make it easy for third party parcels to add menus. 
+        to make it easy for third party parcels to add menus.
+
         This requires all container names to be unique
         and all names of dynamicChildren to be unique within
-        their container.  
+        their container.
 
-        @param self: the starting block for the scan.
+        @param self: The starting block for the scan.
         @type self: C{DynamicBlock}
         """
 
         containers = {}
         """
-          Rebuild the dynamic container hierarchy.
+        Rebuild the dynamic container hierarchy.
+
         First establish all containers, then insert their children
         so the block declarations can be order-independent.
         """
@@ -325,9 +352,9 @@ class DynamicBlock(schema.Item):
         self.rebuildChildren (containers, allDynamic)
 
         """
-          Now that the we have the new dynamic structure, 
-        update the blocks that have changed and call synchronizeWidget on them
-        so they know to redraw.
+        Now that the we have the new dynamic structure,
+        update the blocks that have changed and call synchronizeWidget
+        on them so they know to redraw.
         """
         for bar in containers.values():
             """
@@ -345,7 +372,8 @@ class operationEnumType(schema.Enumeration):
 
 
 class DynamicChild(DynamicBlock):
-    """Dynamic Children are built dynamically when the Active View changes.
+    """
+    Dynamic Children are built dynamically when the Active View changes.
 
     They include MenuItems, Menus, and ToolbarItems.
     Used as a mixin class for other blocks.
@@ -365,8 +393,9 @@ class DynamicChild(DynamicBlock):
 
 class DynamicContainer(RefCollectionDictionary, DynamicBlock):
     """
-      A block whose children are built dynamically, when the
+    A block whose children are built dynamically, when the
     Active View changes.
+
     This list of children is in "dynamicChildren" and the
     back pointer is in "dynamicParent".
     """
@@ -383,7 +412,7 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
 
     def itemNameAccessor(self, item):
         """
-          Use blockName for the accessor
+        Use blockName for the accessor.
         """
         return item.blockName
     
@@ -398,8 +427,9 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
 
     def ensureDynamicChildren (self):
         """
-          Make sure we have a DynamicChildren hierarchy, since all my
+        Make sure we have a DynamicChildren hierarchy, since all my
         subclasses use that hierarchy when they synchronize.
+
         If there is no DynamicChildren built, then initialize it from
         the childrenBlocks hierarchy.
         """
@@ -431,11 +461,12 @@ class wxMenuItem (wx.MenuItem):
 
     def __cmp__ (self, other):
         """
-          Shouldn't be needed, but wxWidgets will return it's internal
+        Shouldn't be needed, but wxWidgets will return it's internal
         wx.MenuItem when you ask for a menu item, instead of the wxMenuItem
-        subclass that we supply to wx.  So we use this compare to test if 
+        subclass that we supply to wx.  So we use this compare to test if
         the two instances are really the same thing.
-        @@@DLD - remove when wx.MenuItem subclasses are returned by wx.
+
+        Note: @@@DLD - remove when wx.MenuItem subclasses are returned by wx.
         """
         try:
             if self.this == other.this:
@@ -475,7 +506,7 @@ class wxMenuItem (wx.MenuItem):
                 title = title + '\t' + block.accel
             
             """
-              When inserting ourself into a MenuItem, we must actually
+            When inserting ourself into a MenuItem, we must actually
             insert ourself into the submenu of that MenuItem.
             """
             if isinstance (parentWidget, wxMenu):
@@ -523,10 +554,13 @@ class wxMenu(wx.Menu):
 
     def __cmp__ (self, other):
         """
-          CPIA and wxWidgets have different ideas about how submenus work.
+        CPIA and wxWidgets have different ideas about how submenus work.
+
         In CPIA a menu can appear in the menu bar, or inside another menu.
+
         In wxWidgets, only a MenuItem can appear in a Menu, and you have to
         get the "subMenu" out of the MenuItem to deal with it as a Menu.
+
         This method lets us compare a CPIA wxMenu widget with a wx.MenuItem
         and they will be the same if the wx.MenuItem has the right subMenu.
         """
@@ -546,9 +580,9 @@ class wxMenu(wx.Menu):
             return -1
 
     """
-      wxWindows doesn't implement convenient methods for dealing
+    wxWindows doesn't implement convenient methods for dealing
     with menus, so we'll write our own: getMenuItems, removeItem
-    and setMenuItem
+    and setMenuItem.
     """
     def getMenuItems (self):
         return self.GetMenuItems()
@@ -568,7 +602,7 @@ class wxMenu(wx.Menu):
             success = self.InsertItem (index, newItem.widget)
             assert success, "error inserting menu item"
             """
-              Disable menus by default. If they have an event then they will
+            Disable menus by default. If they have an event then they will
             be enabled by an UpdateUIEvent or our command dispatch in Application.py
             """
             self.Enable (newItem.widget.GetId(), False)
@@ -578,14 +612,17 @@ class wxMenu(wx.Menu):
 class wxMenuBar (wx.MenuBar):
     def Destroy(self):
         """
-          We need to override Destroy to remove the MenuBar from mainFrame.
-        We don't need to call wxOnDestroyWidget since wxMenuBar is a subclass of
-        wxWindow, which sends a EVT_WINDOW_DESTROY which ends up calling wxOnDestroyWidget
-        for us.
-          Overriding __del__ doesn't work here since calling SetMenuBar (None) when the
-        menuBar is being destroyed causes the application to crash -- probably because
-        wxWidgets tries to access the MenuBar when it's almost already deleted. Overriding
-        Destroy catches the menuBar before it's deleted instead of just before it's disposed.
+        We need to override Destroy to remove the MenuBar from mainFrame.
+
+        We don't need to call wxOnDestroyWidget since wxMenuBar is a
+        subclass of wxWindow, which sends a EVT_WINDOW_DESTROY which
+        ends up calling wxOnDestroyWidget for us.
+
+        Overriding __del__ doesn't work here since calling SetMenuBar (None)
+        when the menuBar is being destroyed causes the application to crash --
+        probably because wxWidgets tries to access the MenuBar when it's
+        almost already deleted. Overriding Destroy catches the menuBar
+        before it's deleted instead of just before it's disposed.
         """
         self.blockItem.getFrame().SetMenuBar(None)
         super (wxMenuBar, self).Destroy()
@@ -594,9 +631,9 @@ class wxMenuBar (wx.MenuBar):
         self.blockItem.synchronizeItems()
 
     """
-      wxWindows doesn't implement convenient menthods for dealing
+    wxWindows doesn't implement convenient menthods for dealing
     with menus, so we'll write our own: getMenuItems, removeItem
-    and setMenuItem
+    and setMenuItem.
     """
     def getMenuItems (self):
         menuList = []
@@ -659,7 +696,7 @@ class MenuBar (Block.Block, DynamicContainer):
 
     def synchronizeItems(self):
         """
-          Install the menus into supplied menu list, and submenus
+        Install the menus into supplied menu list, and submenus
         into their menu items.
         Used for both Menus and MenuBars.
         """
@@ -712,7 +749,7 @@ class Menu (MenuBar, DynamicChild):
         return wxMenu()
     
 """  
-Toolbar classes
+Toolbar classes.
 """
 
 class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
@@ -801,6 +838,7 @@ class wxToolbarMixin (object):
     (both regular childrenBlocks and dynamicChildren).  But in wxWidgets,
     a ToolbarTool is not a child of the Toolbar, instead it's added to
     the Toolbar with a special method call (either DoAddTool or AddControl).
+
     Because of this, destroying the Toolbar won't automatically destroy
     the widgets associated with each ToolbarItem since they are not
     children of the Toolbar from the wx perspective.  Luckily, about the
@@ -816,8 +854,8 @@ class wxToolbarMixin (object):
 
     def wxSynchronizeWidget(self, useHints=False):
         """
-          Currently, we only synchronize radio buttons, eventually we
-        need to synchronize other kinds, e.g. Text, Combo, and Choice types
+        Currently, we only synchronize radio buttons, eventually we
+        need to synchronize other kinds, e.g. Text, Combo, and Choice types.
         """
         block = self.blockItem
         if block.toolbarItemKind == "Radio":
@@ -837,7 +875,7 @@ class wxToolbarMixin (object):
     
     def OnSetTextEvent (self, event):
         """
-          wxToolbarItems don't properly handle setting the text of buttons, on
+        wxToolbarItems don't properly handle setting the text of buttons, on
         updateUIEvents, so we'll handle it here with the method OnSetTextEvent.
         """
         self.SetLabel (event.GetText())
@@ -845,7 +883,7 @@ class wxToolbarMixin (object):
 
     def selectTool(self):
         """
-          Persist state of ToolbarItems. Currently limited to radio buttons,
+        Persist state of ToolbarItems. Currently limited to radio buttons,
         eventually we need to synchronize other kinds, e.g. Text, Combo, and
         Choice types.
         """
@@ -854,7 +892,7 @@ class wxToolbarMixin (object):
             children = [child for child in block.parentBlock.childrenBlocks]
             blockIndex = children.index (block)
             """
-              Unselect all the items in the radio group before this toolbar item
+            Unselect all the items in the radio group before this toolbar item.
             """
             index = blockIndex - 1
             while index >= 0 and children [index].toolbarItemKind == "Radio":
@@ -862,13 +900,13 @@ class wxToolbarMixin (object):
                 children [index].synchronizeWidget()
                 index -= 1
             """
-              Select this toolbar item
+            Select this toolbar item.
             """
             children [blockIndex].selected = True
             children [blockIndex].synchronizeWidget()
             
             """
-              Unselect all the items in the radio group after this toolbar item
+            Unselect all the items in the radio group after this toolbar item.
             """
             index = blockIndex + 1
             while index < len (children) and children [index].toolbarItemKind == "Radio":
@@ -934,7 +972,7 @@ class toolbarItemKindEnumType(schema.Enumeration):
 
 class ToolbarItem(Block.Block, DynamicChild):
     """
-      Button (or other control) that lives in a Toolbar.
+    Button (or other control) that lives in a Toolbar.
     """
     prototype = schema.One(
         Block.Block, doc = 'The prototype block to be placed in the Toolbar',

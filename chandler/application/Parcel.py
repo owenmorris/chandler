@@ -1,5 +1,5 @@
 """
-@copyright: Copyright (c) 2004 Open Source Applications Foundation
+@copyright: Copyright (c) 2004-2006 Open Source Applications Foundation
 @license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
 __parcel__ = "//Schema/Core"
@@ -14,14 +14,18 @@ import application.Globals as Globals
 logger = logging.getLogger(__name__)
 
 def activate_plugins(dirs, working_set=working_set):
-    """Add plugins from `dirs` to `working_set`"""
+    """
+    Add plugins from `dirs` to `working_set`
+    """
     plugin_env = pkg_resources.Environment(dirs)
     dists, errors = working_set.find_plugins(plugin_env, fallback=False)
     map(working_set.add, dists)
     # XXX log errors
 
 def loadable_parcels(working_set=working_set, env=None, installer=None):
-    """Yield entry points for loadable parcels in `working_set`"""
+    """
+    Yield entry points for loadable parcels in `working_set`
+    """
     for ep in working_set.iter_entry_points('chandler.parcels'):
         try:
             ep.require(env, installer)
@@ -32,7 +36,8 @@ def loadable_parcels(working_set=working_set, env=None, installer=None):
             yield ep
 
 def load_parcel_from_entrypoint(rv,ep):
-    """Load the parcel defined by entrypoint `ep` into repository view `rv`
+    """
+    Load the parcel defined by entrypoint `ep` into repository view `rv`
 
     `ep` should be an entry point yielded by ``loadable_parcels()``, and `rv`
     should be a repository view.  The egg corresponding to the entry point,
@@ -134,12 +139,13 @@ class Manager(schema.Item):
 
 
     def __syncParcel(self, pkg):
-        """Synchronize the specified parcel's Python schema with self.repo
+        """
+        Synchronize the specified parcel's Python schema with self.repo
 
         This will import the corresponding Python module and synchronize its
-        schema with the repository.  If the imported module has a parent module
-        that has not yet been synchronized, this method will load the parent
-        parcel, thereby synchronizing the parent module first.
+        schema with the repository.  If the imported module has a parent
+        module that has not yet been synchronized, this method will load
+        the parent parcel, thereby synchronizing the parent module first.
         """
         if pkg in self._imported:
             return  # skip already-processed parcels
@@ -159,7 +165,9 @@ class Manager(schema.Item):
 
 
     def findPlugins(self):
-        """Yield top-level parcels"""
+        """
+        Yield top-level parcels
+        """
         from glob import glob
         for directory in self.path:
             for initfile in glob(os.path.join(directory,'*','__init__.py')):
@@ -170,12 +178,12 @@ class Manager(schema.Item):
         """
         Load parcel items into the repository.
 
-        The namespaces passed in via the namespaces parameter (a list) are then
-        loaded into the repository.  If that parameter is None, then all parcels
-        are loaded.
+        The namespaces passed in via the namespaces parameter (a list) are
+        then loaded into the repository.  If that parameter is None, then all
+        parcels are loaded.
 
         @param namespaces: The list of namespaces to load
-        @type namespace: list of strings
+        @type namespaces: list of strings
         """
         #@@@Temporary testing tool written by Morgen -- DJA
         if timing: util.timing.begin("Load parcels")

@@ -1,8 +1,7 @@
-
-__revision__  = "$Revision$"
-__date__      = "$Date$"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2004-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 import logging, threading, PyLucene
 
@@ -47,11 +46,6 @@ class Repository(CRepository):
         A number of keywords can be passed to this method. Their support
         depends on the actual implementation chosen for the persistence
         layer.
-        
-        @param ramdb: a keyword argument that causes the repository to be
-        created in memory instead of in the underlying file system.
-        C{False} by default, supported by C{DBRepository} only.
-        @type ramdb: boolean
         """
 
         self._init(**kwds)
@@ -62,25 +56,22 @@ class Repository(CRepository):
 
         A number of keywords can be passed to this method. Their support
         depends on the actual implementation chosen for the persistence
-        layer.
+        layer::
         
-        @param create: a keyword argument that causes the repository to be
-        created if no repository exists in C{self.dbHome}. C{False}, by
-        default.
-        @type create: boolean
-        @param ramdb: a keyword argument that causes the repository to be
-        created in memory instead of using the underlying file system.
-        C{False} by default, supported by C{DBRepository} only.
-        @type ramdb: boolean
-        @param recover: a keyword argument that causes the repository to be
-        opened with recovery. C{False} by default, supported by
-        C{DBRepository} only.
-        @type recover: boolean
-        @param exclusive: a keyword argument that causes the repository to be
-        opened with exclusive access, preventing other processes from
-        opening it until this process closes it. C{False} by default,
-        supported by C{DBRepository} only.
-        @type exclusive: boolean
+            create:    a keyword argument that causes the repository to be
+                       created if no repository exists in C{self.dbHome}.
+                       C{False}, by default.
+            ramdb:     a keyword argument that causes the repository to be
+                       created in memory instead of using the underlying
+                       file system.
+                       C{False} by default, supported by C{DBRepository} only.
+            recover:   a keyword argument that causes the repository to be
+                       opened with recovery.
+                       C{False} by default, supported by C{DBRepository} only.
+            exclusive: a keyword argument that causes the repository to be
+                       opened with exclusive access, preventing other processes
+                       from opening it until this process closes it.
+                       C{False} by default, supported by C{DBRepository} only.
         """
 
         self._init(**kwds)

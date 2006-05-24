@@ -55,9 +55,9 @@ class AttributeEditorMappingCollection(schema.Item):
     
 class AttributeEditorMapping(schema.Item):
     """ 
-    A mapping from a 'type name' (the name of this L{Item}) to a specific 
+    A mapping from a 'type name' (the name of this L{Item}) to a specific
     L{BaseAttributeEditor} subclass.
-    
+
     This item's name is a type name (of an attribute) that'll cause this
     editor to be used to present or edit that attribute's value, optionally
     followed by a '+'-separated list of words that, if present, influence
@@ -75,12 +75,12 @@ class AttributeEditorMapping(schema.Item):
         When we construct an L{AttributeEditorMapping}, we need to make sure
         it gets added to the L{AttributeEditorMappingCollection} that tracks
         them.
-        """        
+        """
         super(AttributeEditorMapping, self).__init__(*args, **kwds)
-      
+
         aeMappings = schema.ns("osaf.framework.attributeEditors", self.itsView).aeMappings
         aeMappings.editors.append(self, alias=self.itsName)
-    
+
     @classmethod
     def register(cls, parcel, aeDict, moduleName):
         for typeName, className in aeDict.items():
@@ -146,13 +146,13 @@ def installParcel(parcel, oldVersion=None):
 _TypeToEditorInstances = {}
 
 def getSingleton (typeName):
-    """ 
-    Get (and cache) a single shared Attribute Editor for this type. 
+    """
+    Get (and cache) a single shared Attribute Editor for this type.
     
     These 'singleton' attribute editor instances are used by the Table block
-    and are moved about to edit different items' values as the user selects 
+    and are moved about to edit different items' values as the user selects
     them. We lazily create one of each at cache it at runtime.
-    
+
     @param typeName: The name of the type of the attribute to be edited
     @type typeName: String
     @return: The attribute editor instance
@@ -167,22 +167,22 @@ def getSingleton (typeName):
     return instance
 
 def getInstance(typeName, cardinality, item, attributeName, readOnly, presentationStyle):
-    """ 
-    Get a new unshared instance of the Attribute Editor for this type (and 
-    optionally, format).
-    
+    """
+    Get a new unshared instance of the Attribute Editor for this type
+    (and optionally, format).
+
     These unshared instances are used in the detail view; we don't cache them.
-    
-    @param typeName: The name of the type of the attribute to be edited, 
+
+    @param typeName: The name of the type of the attribute to be edited,
         optionally including "+"-separated parameters; see L{getAEClass} for
         explanation of how the mechanism works.
     @type typeName: String
     @param item: The item whose attribute is to be edited.
-    @type Item
+    @type item: Item
     @param attributeName: The attributeName of the item to be edited.
-    @type String
+    @type attributeName: String
     @param presentationStyle: Behavior customization for this editor, or None.
-    @type PresentationStyle
+    @type presentationStyle: PresentationStyle
     @return: The attribute editor instance
     @rtype: BaseAttributeEditor
     """
@@ -204,8 +204,8 @@ def getAEClass(typeName, cardinality='single', readOnly=False, format=None):
     Decide which attribute editor class to use for this type.
     
     We'll try several ways to find an appropriate editor, considering
-    cardinality, readonlyness, and format, if any are provided, before 
-    falling back to not considering them. As a last resort, we'll use the 
+    cardinality, readonlyness, and format, if any are provided, before
+    falling back to not considering them. As a last resort, we'll use the
     '_default' one.
 
     @param typeName: The type name (or MIME type) of the type we'll be editing.
@@ -251,15 +251,17 @@ def getAEClass(typeName, cardinality='single', readOnly=False, format=None):
     return aeClass
 
 class BaseAttributeEditor (object):
-    """ Base class for Attribute Editors. """
+    """
+    Base class for Attribute Editors.
+    """
         
     def ReadOnly (self, (item, attribute)):
         """ 
         Should the user be allowed to edit this attribute of this item?
-        
-        By default, everything's editable if the item says it is. Can
-        be overridden to provide more-complex behavior.
-        
+
+        By default, everything's editable if the item says it is.
+        Can be overridden to provide more-complex behavior.
+
         @param item: the item we'll test.
         @type item: Item
         @param attribute: the name of the attribute we'll test.
@@ -287,15 +289,15 @@ class BaseAttributeEditor (object):
         @type rect: Rect
         @param item: the item whose attribute we'll be drawing
         @type item: Item
-        @param isInSelection: True if 
+        @param isInSelection: True if
         @type isInSelection: Boolean
         """
         raise NotImplementedError
-    
+
     def IsFixedWidth(self):
         """
         Should this item keep its size, or be expanded to fill its space?
-        
+
         Most classes that don't use a TextCtrl will be fixed width, so we
         default to "keep its size".
 
@@ -304,17 +306,17 @@ class BaseAttributeEditor (object):
         @rtype: Boolean
         """
         return True
-    
+
     def EditInPlace(self):
-        """ 
+        """
         Will this attribute editor change controls when the user clicks on it?
-        
+
         @return: True if this editor will change controls
         @rtype: Boolean
         """
         return False
-    
-    def CreateControl (self, forEditing, readOnly, parentWidget, 
+
+    def CreateControl (self, forEditing, readOnly, parentWidget,
                        id, parentBlock, font):
         """ 
         Create and return a widget to use for displaying (forEdit=False)
@@ -339,14 +341,16 @@ class BaseAttributeEditor (object):
         raise NotImplementedError
     
     def BeginControlEdit (self, item, attributeName, control):
-        """ 
-        Load this attribute's value into the editing control. 
+        """
+        Load this attribute's value into the editing control.
 
-        Note that the name is a bit of a misnomer; this routine will be called
-        whenever we think the value in the content model needs to be loaded (or
-        re-loaded) into the control - such as when it's changed externally. Don't
-        assume balanced BeginControlEdit/L{EndControlEdit} calls!
-        
+        Note that the name is a bit of a misnomer; this routine will be
+        called whenever we think the value in the content model needs to
+        be loaded (or re-loaded) into the control - such as when it's
+        changed externally.
+
+        Don't assume balanced BeginControlEdit/L{EndControlEdit} calls!
+
         @param item: The Item from which we'll get the attribute value
         @type item: Item
         @param attributeName: the name of the attribute in the item to edit
@@ -358,9 +362,9 @@ class BaseAttributeEditor (object):
 
     def EndControlEdit (self, item, attributeName, control):
         """ 
-        Save the control's value into this attribute. Called whenever we think 
+        Save the control's value into this attribute. Called whenever we think
         it's time to commit the user's edits.
-        
+
         @param item: The Item where we'll store the attribute value
         @type item: Item
         @param attributeName: the name of the attribute in the item
@@ -372,21 +376,21 @@ class BaseAttributeEditor (object):
         pass        
     
     def GetControlValue (self, control):
-        """ 
-        Get the value from the control. 
-        
+        """
+        Get the value from the control.
+
         L{GetControlValue}/L{SetControlValue} and L{GetAttributeValue}/
         L{SetAttributeValue} all work together.
-        
+
         The choice of value type is up to the developer; it just needs to be as
         precise as the value being stored (so that a round-trip is a no-op). See
         various subclass' implementations to help you decide; these are
         interesting:
-         - L{ChoiceAttributeEditor} uses the label string, to avoid relying on 
+         - L{ChoiceAttributeEditor} uses the label string, to avoid relying on
          list indexes that might change if the choices might change
          - L{DateAttributeEditor} uses the formatted date string
          - L{CheckboxAttributeEditor} uses Boolean
-        
+
         @param control: The widget
         @type control: wx.Widget
         @returns: The value, in an appropriate type
@@ -396,8 +400,8 @@ class BaseAttributeEditor (object):
 
     def SetControlValue (self, control, value):
         """ 
-        Set the value in the control. 
-        
+        Set the value in the control.
+
         See L{GetControlValue} for background.
 
         @param control: The widget
@@ -407,14 +411,14 @@ class BaseAttributeEditor (object):
         control.SetValue (value)
 
     def GetAttributeValue (self, item, attributeName):
-        """ 
-        Get the value from the specified attribute of the item. 
-        
+        """
+        Get the value from the specified attribute of the item.
+
         See L{GetControlValue} for background.
-        
+
         @param item: The item to get the value from
         @type item: Item
-        @param attributeName: The name of the attribute whose value we're 
+        @param attributeName: The name of the attribute whose value we're
         operating on
         @type attributeName: String
         @returns: the value in an appropriate type
@@ -422,14 +426,14 @@ class BaseAttributeEditor (object):
         return getattr(item, attributeName, None)
 
     def SetAttributeValue (self, item, attributeName, value):
-        """ 
-        Set the value of the attribute given by the value. 
+        """
+        Set the value of the attribute given by the value.
 
         See L{GetControlValue} for background.
-        
+
         @param item: The item to store the value in
         @type item: Item
-        @param attributeName: The name of the attribute whose value we're 
+        @param attributeName: The name of the attribute whose value we're
         operating on
         @type attributeName: String
         @param value: The value to store, in an appropriate type
@@ -439,10 +443,10 @@ class BaseAttributeEditor (object):
             self.AttributeChanged()
     
     def SetChangeCallback(self, callback):
-        """ 
+        """
         Set the callback function that we'll use to notify about attribute
-        value changes. 
-        
+        value changes.
+
         @param callback: The callback function
         @type callback: callable
         """
@@ -508,7 +512,9 @@ class DragAndDropTextCtrl(ShownSynchronizer,
         event.Skip()        
     
     def OnRightClick(self, event):
-        """ Build and display our context menu """
+        """
+        Build and display our context menu
+        """
         self.SetFocus()
         
         # @@@ In the future, it might be nice to base this menu
@@ -638,7 +644,9 @@ class DragAndDropTextCtrl(ShownSynchronizer,
         event.arguments ['Enable'] = startSelect < self.GetLastPosition()
 
     def onDeleteEventUpdateUI(self, event):
-        """Bug 5717, OnDelete shouldn't be active in a text ctrl on Mac."""
+        """
+        Bug 5717, OnDelete shouldn't be active in a text ctrl on Mac.
+        """
         event.arguments['Enable'] = '__WXMAC__' not in wx.PlatformInfo
 
     def onRemoveEvent(self, event):
@@ -678,23 +686,29 @@ class wxEditText(DragAndDropTextCtrl):
 class AEStaticText(ShownSynchronizer,
                    wx.StaticText):
     """ 
-    For some reason, wx.StaticText uses GetLabel/SetLabel instead of 
-    GetValue/SetValue; also, its Label functions don't display single ampersands
-    'cuz they might be menu accelerators.
+    For some reason, wx.StaticText uses GetLabel/SetLabel instead of
+    GetValue/SetValue; also, its Label functions don't display single
+    ampersands 'cuz they might be menu accelerators.
 
-    To solve both these problems, I've added implementations of 
+    To solve both these problems, I've added implementations of
     GetValue/SetValue that double any embedded ampersands.
     """
     def GetValue(self):
-        """ Get the label, un-doubling any embedded ampersands """
+        """
+        Get the label, un-doubling any embedded ampersands
+        """
         return self.GetLabel().replace(u'&&', u'&')
     
     def SetValue(self, newValue):
-        """ Set the label, doubling any embedded ampersands """
+        """
+        Set the label, doubling any embedded ampersands
+        """
         self.SetLabel(newValue.replace(u'&', u'&&'))
     
 def NotifyBlockToSaveValue(widget):
-    """ Notify this widget's block to save its value when we lose focus """
+    """
+    Notify this widget's block to save its value when we lose focus
+    """
     # We wish there were a cleaner way to do this notification!
     try:
         # if we have a block, and it has a save method, get it
@@ -889,7 +903,7 @@ class AETypeOverTextCtrl(wxRectangularChild):
 
 class wxAutoCompleter(wx.ListBox):
     """
-    A listbox that pops up for autocompletion
+    A listbox that pops up for autocompletion.
     """
     # For now, measuring the font isn't working well;
     # use these 'adjustments'
@@ -931,11 +945,11 @@ class wxAutoCompleter(wx.ListBox):
         eatEvent = lambda event: None
         self.Bind(wx.EVT_RIGHT_DOWN, eatEvent)
         self.Bind(wx.EVT_RIGHT_DCLICK, eatEvent)
-        
+
         self.Raise() # make us appear on top
 
     def reposition(self):
-        """ 
+        """
         Put us in the proper spot, relative to the control we're supposed
         to be adjacent to.
         """
@@ -952,18 +966,18 @@ class wxAutoCompleter(wx.ListBox):
         self.SetPosition(pos)
 
     def resize(self):
-        """ 
+        """
         Make us the proper size, given our current list of choices.
         """
         size = self.GetAdjustedBestSize()
         size.height = ((self.lineHeight + self.unitSlop) * len(self.choices)) \
             + self.totalSlop
         self.SetClientSize(size)
-        
+
     def onListClick(self, event):
         """ 
         Intercept clicks: by handling them 'raw', we prevent the popup
-        from stealing focus
+        from stealing focus.
         """
         # Figure out which entry got hit
         index = event.GetPosition().y / (self.lineHeight + self.unitSlop)
@@ -971,11 +985,11 @@ class wxAutoCompleter(wx.ListBox):
             self.SetSelection(index)
             self.completionCallback(self.GetStringSelection())
         # Eat the event - don't skip.
-    
+
     def processKey(self, keyCode):
-        """ 
-        If this key is useful in autocompletion, process it and return
-        True. Otherwise, return False.
+        """
+        If this key is useful in autocompletion, process it and
+        return True. Otherwise, return False.
         """
         if keyCode == wx.WXK_ESCAPE:
             self.completionCallback(None)
@@ -1011,10 +1025,10 @@ class wxAutoCompleter(wx.ListBox):
 
 class StringAttributeEditor (BaseAttributeEditor):
     """ 
-    Uses a Text Control to edit attributes in string form. 
+    Uses a Text Control to edit attributes in string form.
     Supports sample text.
     """
-    
+
     def EditInPlace(self):
         try:
             editInPlace = self.presentationStyle.editInPlace
@@ -1024,7 +1038,7 @@ class StringAttributeEditor (BaseAttributeEditor):
 
     def IsFixedWidth(self, blockItem):
         """
-        Return True if this control shouldn't be resized to fill its space
+        Return True if this control shouldn't be resized to fill its space.
         """
         try:
             fixedWidth = self.blockItem.stretchFactor == 0.0
@@ -1036,7 +1050,8 @@ class StringAttributeEditor (BaseAttributeEditor):
         """
         Draw this control's value; used only by Grid when the attribute's not
         being edited.
-        @@@ Currently only handles left justified single line text.
+
+        Note: @@@ Currently only handles left justified single line text.
         """
         item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
         #logger.debug("StringAE.Draw: %s, %s of %s; %s in selection",
@@ -1293,7 +1308,9 @@ class StringAttributeEditor (BaseAttributeEditor):
             del self.ignoreTextChanged
 
     def onMove(self, event):
-        """ Reposition any autocompletion popup when we're moved. """
+        """
+        Reposition any autocompletion popup when we're moved.
+        """
         # we seem to be getting extra Size events on Linux... ignore them.
         autocompleter = getattr(self, 'autocompleter', None)
         if autocompleter is not None:
@@ -1301,7 +1318,9 @@ class StringAttributeEditor (BaseAttributeEditor):
         event.Skip()
 
     def onResize(self, event):
-        """ Reposition any autocompletion popup when we're moved. """
+        """
+        Reposition any autocompletion popup when we're moved.
+        """
         autocompleter = getattr(self, 'autocompleter', None)
         if autocompleter is not None:
             autocompleter.reposition()
@@ -1324,12 +1343,12 @@ class StringAttributeEditor (BaseAttributeEditor):
             del self.autocompleter
 
     def findCompletionRange(self, value, insertionPoint):
-        """ 
+        """
         Find the range of characters that autocompletion should replace, given
         the control's current value and the insertion point.
-        
+
         Returns a tuple containing the index of the first character
-        and one past the last character to be replaced.               
+        and one past the last character to be replaced.
         """
         # By default, we'll replace the whole string.
         start = 0
@@ -1383,11 +1402,11 @@ class StringAttributeEditor (BaseAttributeEditor):
                     
     def onKeyDown(self, event):
         """
-        Handle a key pressed in the control, part one: at 'key-down', 
-        we'll note whether we'll be replacing the sample, and if 
-        we're doing autocompletion, we'll look for keys that we 
-        might want to prevent from being processed by the control (the ones 
-        that we want to handle in the completion popup).
+        Handle a key pressed in the control, part one: at 'key-down',
+        we'll note whether we'll be replacing the sample, and if
+        we're doing autocompletion, we'll look for keys that we
+        might want to prevent from being processed by the control
+        (the ones that we want to handle in the completion popup).
         """
         # If we're doing completion, give the autocomplete menu a chance
         # at the keystroke - if it takes it, we won't event.Skip().
@@ -1444,7 +1463,9 @@ class StringAttributeEditor (BaseAttributeEditor):
         event.Skip()
 
     def onClick(self, event):
-        """ Ignore clicks if we're showing the sample """
+        """
+        Ignore clicks if we're showing the sample
+        """
         control = event.GetEventObject()
         if self.showingSample:
             if self._isFocused(control):
@@ -1452,9 +1473,11 @@ class StringAttributeEditor (BaseAttributeEditor):
                 control.SelectAll() # Make sure the whole thing's still selected
         else:
             event.Skip()
-            
+
     def GetSampleText(self, item, attributeName):
-        """ Return this attribute's sample text, or None if there isn't any. """
+        """
+        Return this attribute's sample text, or None if there isn't any.
+        """
         try:
             sampleText = self.presentationStyle.sampleText
         except AttributeError:
@@ -1474,9 +1497,10 @@ class StringAttributeEditor (BaseAttributeEditor):
 
     def HasValue(self, item, attributeName):
         """
-        Return True if a non-default value has been set for this attribute, 
-        or False if this value is the default and deserves the sample text 
-        (if any) instead. (Can be overridden.) """
+        Return True if a non-default value has been set for this attribute,
+        or False if this value is the default and deserves the sample text
+        (if any) instead. (Can be overridden.)
+        """
         try:
             v = getattr(item, attributeName)
         except AttributeError:
@@ -1485,7 +1509,9 @@ class StringAttributeEditor (BaseAttributeEditor):
         return len(unicode(v)) > 0
 
     def GetAttributeValue(self, item, attributeName):
-        """ Get the attribute's current value """
+        """
+        Get the attribute's current value
+        """
         theValue = getattr(item, attributeName, Nil)
         if theValue is Nil:
             valueString = u""
@@ -1544,14 +1570,14 @@ class StringAttributeEditor (BaseAttributeEditor):
 
 class ItemNameAttributeEditor(StringAttributeEditor):
     """
-    The editor used for editing collection names in the sidebar
+    The editor used for editing collection names in the sidebar.
     """
     def allowEmpty(self):
         return False
-    
+
 class StaticStringAttributeEditor(StringAttributeEditor):
     """
-    To be always static, we pretend to be "edit-in-place", but never in 
+    To be always static, we pretend to be "edit-in-place", but never in
     'edit' mode.
     """
     def CreateControl(self, forEditing, readOnly, parentWidget, 
@@ -1723,8 +1749,9 @@ class TimeAttributeEditor(StringAttributeEditor):
         A really simple autocompletion example: if the only entry would
         be a valid hour, provide completion of AM & PM versions of it.
 
-        @@@ This may not be right for the product, but I'm leaving it in for now.
+        Note: @@@ This may not be right for the product, but I'm leaving it in for now.
         """
+
         try:
             hour = int(target)
         except ValueError:
@@ -1742,7 +1769,9 @@ class TimeAttributeEditor(StringAttributeEditor):
         return pim.sampleTime # Get a hint like "hh:mm PM"
 
 class RepositoryAttributeEditor (StringAttributeEditor):
-    """ Uses Repository Type conversion to provide String representation. """
+    """
+    Uses Repository Type conversion to provide String representation.
+    """
     def ReadOnly (self, (item, attribute)):
         return False # Force editability even if we're in the "read-only" part of the repository
 
@@ -1774,7 +1803,9 @@ class RepositoryAttributeEditor (StringAttributeEditor):
         self.AttributeChanged()
 
 class LocationAttributeEditor (StringAttributeEditor):
-    """ Knows that the data Type is a Location. """
+    """
+    Knows that the data Type is a Location.
+    """
     def SetAttributeValue (self, item, attributeName, valueString):
         if not valueString:
             if getattr(item, attributeName, None) is None:
@@ -1812,7 +1843,9 @@ class LocationAttributeEditor (StringAttributeEditor):
                 yield aLoc
 
 class TimeDeltaAttributeEditor (StringAttributeEditor):
-    """ Knows that the data Type is timedelta. """
+    """
+    Knows that the data Type is timedelta.
+    """
 
     zeroHours = pim.durationFormat.parse("0:00")
     dummyDate = datetime(2005,1,1)
@@ -1840,7 +1873,7 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
 
     def _parse(self, inputString):
         """
-          parse the durationString into a timedelta.
+        Parse the durationString into a timedelta.
         """
         seconds = pim.durationFormat.parse(inputString) - self.zeroHours
         theDuration = timedelta(seconds=seconds)
@@ -1927,7 +1960,9 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
         return Mail.EmailAddress.generateMatchingEmailAddresses(view, target)
 
 class BasePermanentAttributeEditor (BaseAttributeEditor):
-    """ Base class for editors that always need controls """
+    """
+    Base class for editors that always need controls.
+    """
     def EditInPlace(self):
         return False
     
@@ -1947,7 +1982,9 @@ class AECheckBox(ShownSynchronizer, wx.CheckBox):
     pass
 
 class CheckboxAttributeEditor (BasePermanentAttributeEditor):
-    """ A checkbox control. """
+    """
+    A checkbox control.
+    """
     def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
         # We have to implement Draw, but we don't need to do anything
         # because we've always got a control to do it for us.
@@ -1983,11 +2020,15 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
                                self.GetControlValue(control))
 
     def GetControlValue (self, control):
-        """ Are we checked? """
+        """
+        Are we checked?
+        """
         return control.IsChecked()
 
     def SetControlValue (self, control, value):
-        """ Set our state """
+        """
+        Set our state.
+        """
         control.SetValue(value)
 
 class AEChoice(ShownSynchronizer, wx.Choice):
@@ -2004,11 +2045,13 @@ class AEChoice(ShownSynchronizer, wx.Choice):
         return self.GetStringSelection()
 
 class ChoiceAttributeEditor(BasePermanentAttributeEditor):
-    """ A pop-up control. The list of choices comes from presentationStyle.choices """        
+    """
+    A pop-up control. The list of choices comes from presentationStyle.choices.
+    """
     def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
         """
         Assumes that the attribute is an enum, and uses that to draw
-        the locale-sensitive string returned from GetChoices()
+        the locale-sensitive string returned from GetChoices().
         """
         item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
         # Erase the bounding box
@@ -2059,11 +2102,15 @@ class ChoiceAttributeEditor(BasePermanentAttributeEditor):
                                newChoice)
 
     def GetChoices(self):
-        """ Get the choices we're presenting """
+        """
+        Get the choices we're presenting
+        """
         return self.presentationStyle.choices
 
     def GetControlValue (self, control):
-        """ Get the selected choice's text """
+        """
+        Get the selected choice's text
+        """
         choiceIndex = control.GetSelection()
         if choiceIndex == -1:
             return None
@@ -2071,7 +2118,9 @@ class ChoiceAttributeEditor(BasePermanentAttributeEditor):
         return value
 
     def SetControlValue (self, control, value):
-        """ Select the choice with the given text """
+        """
+        Select the choice with the given text
+        """
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
         if existingValue is None or existingValue != value:            
@@ -2092,24 +2141,26 @@ class ChoiceAttributeEditor(BasePermanentAttributeEditor):
         super(ChoiceAttributeEditor, self).BeginControlEdit(item, attributeName, control)
 
 class TimeZoneAttributeEditor(ChoiceAttributeEditor):
-    """ A pop-up control for the tzinfo field of a datetime. The list of
-    choices comes from the calendar.TimeZone module """
-    
+    """
+    A pop-up control for the tzinfo field of a datetime. The list of
+    choices comes from the calendar.TimeZone module.
+    """
+
     def __init__(self, *args, **kwargs):
         super(TimeZoneAttributeEditor, self).__init__(*args, **kwargs)
         self._ignoreChanges = False
-    
+
     def SetAttributeValue(self, item, attributeName, tzinfo):
         if not self._ignoreChanges:
             oldValue = getattr(item, attributeName, None)
-    
+
             if oldValue is not None and tzinfo != oldValue.tzinfo:
                 # Something changed.                
                 value = oldValue.replace(tzinfo=tzinfo)
                 setattr(item, attributeName, value)
-                            
+
                 self.AttributeChanged()
-            
+
     def GetAttributeValue(self, item, attributeName):
         value = getattr(item, attributeName, None)
         if value is not None:
@@ -2118,7 +2169,9 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             return None
 
     def GetControlValue (self, control):
-        """ Get the selected choice's time zone """
+        """
+        Get the selected choice's time zone
+        """
         choiceIndex = control.GetSelection()
         if choiceIndex != -1:
             value = control.GetClientData(choiceIndex)
@@ -2145,8 +2198,10 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             return None
 
     def SetControlValue(self, control, value):
-        """ Select the choice with the given time zone """
-        
+        """
+        Select the choice with the given time zone
+        """
+
         if value is None:
             value = ICUtzinfo.floating
 
@@ -2197,9 +2252,10 @@ class IconAttributeEditor (BaseAttributeEditor):
 
 class EnumAttributeEditor (IconAttributeEditor):
     """
-    An attribute editor for enumerated types to be represented as icons. 
-    Uses the attribute name, an underscore, and the value name as the image filename.
-    (An alternative might be to use the enum type name instead of the attribute name...)
+    An attribute editor for enumerated types to be represented as icons.
+    Uses the attribute name, an underscore, and the value name as the
+    image filename. (An alternative might be to use the enum type name
+    instead of the attribute name...)
     """
     def GetAttributeValue (self, item, attributeName):
         try:
@@ -2220,7 +2276,7 @@ class StampAttributeEditor (IconAttributeEditor):
 class IsKindAttributeEditor(IconAttributeEditor):
     """
     A sort of boolean attribute editor - it returns whether or not an
-    item is of the given kind
+    item is of the given kind.
     """
     def GetAttributeValue(self, item, kind):
         if item.isItemOf(kind):

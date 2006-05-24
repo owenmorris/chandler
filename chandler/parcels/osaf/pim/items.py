@@ -22,9 +22,11 @@ from PyICU import ICUtzinfo
 logger = logging.getLogger(__name__)
 
 class ContentKind(Kind):
-    """This kind is a metakind for creating other kinds.  Kinds which are
+    """
+    This kind is a metakind for creating other kinds.  Kinds which are
     an instance of ContentKind will have an attribute 'detailView' of type
-    Block.  We could also make this attribute a bidiref."""
+    Block.  We could also make this attribute a bidiref.
+    """
 
     __metaclass__ = schema.ItemClass
 
@@ -34,7 +36,9 @@ class ContentKind(Kind):
 
 
 class ImportanceEnum(schema.Enumeration):
-    """Importance Enum"""
+    """
+    Importance Enum
+    """
     schema.kindInfo(
         displayName=u"Importance Enum"
     )
@@ -388,14 +392,14 @@ class ContentItem(schema.Item):
 
     def _findStampedKind (self, operation, stampKind):
         """
-           Return the new Kind that results from self being
+        Return the new Kind that results from self being
         stamped with the Mixin Kind specified.
         @param self: an Item that will be stamped
         @type self: C{Item}
         @param operation: 'add' to add the Mixin, 'remove' to remove
         @type operation: C{String}
-        @param mixinKind: the Mixin Kind to be added or removed
-        @type mixinKind: C{Kind} of the Mixin
+        @param stampKind: the Mixin Kind to be added or removed
+        @type stampKind: C{Kind} of the Mixin
         @return: a C{Kind}
         """
         signature = self._computeTargetKindSignature(operation, stampKind)

@@ -1,5 +1,7 @@
-__copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2005-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 #twisted imports
 import twisted.internet.defer as defer
@@ -26,7 +28,7 @@ __all__ = ['IMAPClient']
     TODO:
     2. Keep \\Deleted flags in sync with IMAP Server (Look at best syntax for this)
 
-    TO DO: 
+    TODO:
     1. Look in to pluging the Python email 3.0 Feedparser in to the
        rawDataReceived method of IMAP4Client for better performance.
        Or Twisted Feedparser
@@ -34,23 +36,24 @@ __all__ = ['IMAPClient']
     4. Look at Spambayes for its message parsing python alogrithm,
        Quotient mail parser 
 
-NOTES:
-1. Will need to just get the basic headers of subject, message id, message size
-   to, from, cc. Then have a callback to sync the rest
-   when downloading an individual mail use the feedparser for performance
+    NOTES:
+    1. Will need to just get the basic headers of subject, message id,
+       message size to, from, cc. Then have a callback to sync the rest
+       when downloading an individual mail use the feedparser for performance
 
-3. Fix the getEmailAddress method to be much more performant in content model
-4. Start thinking about offline mode. Does the content model need any changes.
+    3. Fix the getEmailAddress method to be much more performant in content model
+    4. Start thinking about offline mode. Does the content model need any changes.
 """
 
 class _TwistedIMAP4Client(imap4.IMAP4Client):
-    """Overides C{imap4.IMAP4Client} to add
-       Chandler specific functionality including startTLS management
-       and Timeout management"""
+    """
+    Overrides C{imap4.IMAP4Client} to add Chandler specific functionality
+    including startTLS management and Timeout management.
+    """
 
     def serverGreeting(self, caps):
         """
-        This method overides C{imap4.IMAP4Client}.
+        This method overrides C{imap4.IMAP4Client}.
         It assigns itself as the protocol for its delegate.
 
         If caps is None does an explicit request to the
@@ -67,8 +70,10 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
             trace("serverGreeting")
 
         if caps is None:
-            """If no capabilities returned in server greeting then get
-               the server capabilities """
+            """
+            If no capabilities returned in server greeting then get
+            the server capabilities
+            """
             d = self.getCapabilities()
 
             return d.addCallback(self._getCapabilities
@@ -81,8 +86,10 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
             trace("_getCapabilities")
 
         if self.factory.useTLS:
-            """The Twisted IMAP4Client will check to make sure the server can STARTTLS
-               and raise an error if it can not"""
+            """
+            The Twisted IMAP4Client will check to make sure the server can STARTTLS
+            and raise an error if it can not
+            """
             d = self.startTLS(self.transport.contextFactory.getContext())
 
             return d.addCallback(lambda _: self.delegate.loginClient()
@@ -92,14 +99,17 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
             self._raiseException(errors.IMAPException(constants.DOWNLOAD_REQUIRES_TLS))
 
         else:
-            """Remove the STARTTLS from capabilities"""
+            """
+            Remove the STARTTLS from capabilities
+            """
             self._capCache = disableTwistedTLS(caps)
             self.delegate.loginClient()
 
     def timeoutConnection(self):
-        """Called by C{policies.TimeoutMixin} base class.
-           The method generates an C{IMAPException} and
-           forward to delegate.catchErrors
+        """
+        Called by C{policies.TimeoutMixin} base class.
+        The method generates an C{IMAPException} and forward
+        to delegate.catchErrors.
         """
         if __debug__:
             trace("timeoutConnection")
@@ -133,38 +143,51 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
             d.errback(exception)
 
 class IMAPClientFactory(base.AbstractDownloadClientFactory):
-    """Inherits from C{base.AbstractDownloadClientFactory}
-       and overides default protocol and exception values
-       with IMAP specific values"""
+    """
+    Inherits from C{base.AbstractDownloadClientFactory}
+    and overides default protocol and exception values
+    with IMAP specific values
+    """
 
     protocol  = _TwistedIMAP4Client
-    """The exception to raise when an error occurs"""
+    """
+    The exception to raise when an error occurs
+    """
     exception = errors.IMAPException
 
 
 class IMAPClient(base.AbstractDownloadClient):
-    """Provides support for Downloading mail from an
-       IMAP mail 'Inbox' as well as test Account settings.
-       This functionality will be enhanced to be a more
-       robust IMAP client in the near future"""
+    """
+    Provides support for Downloading mail from an
+    IMAP mail 'Inbox' as well as test Account settings.
 
-    """Overides default values in base class to provide
-       IMAP specific functionality"""
+    This functionality will be enhanced to be a more
+    robust IMAP client in the near future
+    """
+
+    """
+    Overides default values in base class to provide
+    IMAP specific functionality
+    """
     accounType  = Mail.IMAPAccount
     clientType  = "IMAPClient"
     factoryType = IMAPClientFactory
     defaultPort = 143
 
     def _loginClient(self):
-        """Logs a client in to an IMAP servier using the CramMD6, Login, or
-           Plain authentication"""
+        """
+        Logs a client in to an IMAP servier using the CramMD6, Login, or
+        Plain authentication
+        """
 
         if __debug__:
             trace("_loginClient")
 
         assert self.account is not None
 
-        """Twisted expects ascii values so encode the utf-8 username and password"""
+        """
+        Twisted expects ascii values so encode the utf-8 username and password
+        """
         username = self.account.username.encode(constants.DEFAULT_CHARSET)
         password = self.account.password.encode(constants.DEFAULT_CHARSET)
 
@@ -178,23 +201,25 @@ class IMAPClient(base.AbstractDownloadClient):
 
 
     def loginClientInsecure(self, error, username, password):
-        """If the IMAP4 Server does not support MD5 or Login authentication
-           will attempt to login in via plain text login.
-           This method is called as a result of a failure to login
-           via an authentication mechanism. If the error.value
-           is not of C{imap4.NoSupportAuthentication} then
-           there was actually an error such as incorrect username
-           or password. In this case the method forward the error to
-           self.catchErrors.
+        """
+        If the IMAP4 Server does not support MD5 or Login authentication
+        will attempt to login in via plain text login.
 
-           @param error: A Twisted Failure
-           @type error: C{failure.Failure}
+        This method is called as a result of a failure to login
+        via an authentication mechanism. If the error.value
+        is not of C{imap4.NoSupportAuthentication} then
+        there was actually an error such as incorrect username
+        or password. In this case the method forward the error to
+        self.catchErrors.
 
-           @param username: The username to log in with
-           @type username: C{str}
+        @param error: A Twisted Failure
+        @type error: C{failure.Failure}
 
-           @param password: The password to log in with
-           @type passord: C{str}
+        @param username: The username to log in with
+        @type username: C{string}
+
+        @param password: The password to log in with
+        @type password: C{string}
         """
 
         if __debug__:
@@ -271,11 +296,13 @@ class IMAPClient(base.AbstractDownloadClient):
         self._getNextMessageSet()
 
     def _getNextMessageSet(self):
-        """Overides base class to add IMAP specific logic.
-           If the pending queue has one or messages to download
-           for n messages up to C{IMAPAccount.downloadMax} fetches
-           the mail from the IMAP server. If no message pending
-           calls actionCompleted() to clean up client resources.
+        """
+        Overides base class to add IMAP specific logic.
+
+        If the pending queue has one or messages to download
+        for n messages up to C{IMAPAccount.downloadMax} fetches
+        the mail from the IMAP server. If no message pending
+        calls actionCompleted() to clean up client resources.
         """
         if __debug__:
             trace("_getNextMessageSet")
@@ -308,10 +335,14 @@ class IMAPClient(base.AbstractDownloadClient):
 
         repMessage = messageObjectToKind(self.view, messageObject, messageText)
 
-        """Set the message as incoming"""
+        """
+        Set the message as incoming
+        """
         repMessage.incomingMessage(self.account)
 
-        """Save IMAP Delivery info in Repository"""
+        """
+        Save IMAP Delivery info in Repository
+        """
         repMessage.deliveryExtension.folder = u"INBOX"
         repMessage.deliveryExtension.uid = curMessage[0]
         repMessage.deliveryExtension.flags = curMessage[1]
@@ -345,8 +376,10 @@ class IMAPClient(base.AbstractDownloadClient):
         self.account.messageDownloadSequence = uid
 
     def _beforeDisconnect(self):
-        """Overides base class to send a IMAP 'LOGOUT' command
-           before disconnecting from the IMAP server"""
+        """
+        Overides base class to send a IMAP 'LOGOUT' command
+        before disconnecting from the IMAP server
+        """
 
         if __debug__:
             trace("_beforeDisconnect")
@@ -358,7 +391,9 @@ class IMAPClient(base.AbstractDownloadClient):
         return self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',)))
 
     def _getAccount(self):
-        """Retrieves a C{Mail.IMAPAccount} instance from its C{UUID}"""
+        """
+        Retrieves a C{Mail.IMAPAccount} instance from its C{UUID}.
+        """
         if self.account is None:
             self.account = self.view.findUUID(self.accountUUID)
 

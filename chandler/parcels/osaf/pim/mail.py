@@ -1,8 +1,10 @@
-""" Classes used for Mail parcel kinds
+"""
+Classes used for Mail parcel kinds.
+
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
 
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 __all__ = [
     'AccountBase', 'DownloadAccountBase', 'EmailAddress', 'IMAPAccount',
@@ -36,10 +38,10 @@ Design Issues:
 
 def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
     """
-        This function returns a tuple containing:
-        1. The an C{SMTPAccount} account
-        2. The ReplyTo C{EmailAddress} associated with the C{SMTPAccounts}
-           parent which will either be a POP or IMAP Acccount.
+    This function returns a tuple containing:
+     1. The an C{SMTPAccount} account
+     2. The ReplyTo C{EmailAddress} associated with the C{SMTPAccounts}
+        parent which will either be a POP or IMAP Acccount.
 
     @param uuid: The C{uuid} of the C{SMTPAccount}. If no C{uuid} passed will return
                  the current  C{SMTPAccount}
@@ -63,14 +65,18 @@ def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
 
         return (smtpAccount, replyToAddress)
 
-    """Get the default Mail Account"""
+    """
+    Get the default Mail Account
+    """
     parentAccount = schema.ns('osaf.pim', view).currentMailAccount.item
 
     if parentAccount is not None:
         if hasattr(parentAccount, 'replyToAddress'):
             replyToAddress = parentAccount.replyToAddress
 
-        """Get the default SMTP Account"""
+        """
+        Get the default SMTP Account
+        """
         try:
             smtpAccount = parentAccount.defaultSMTPAccount
 
@@ -87,7 +93,8 @@ def getCurrentMailAccount(view, uuid=None):
     has the uuid passed.  Otherwise the method will try and retrieve the
     current C{IMAPAccount} or C{POPAccount}.
 
-    @param uuid: The C{uuid} of the account. If no C{uuid} passed will return the current account
+    @param uuid: The C{uuid} of the account.
+                 If no C{uuid} passed will return the current account
     @type uuid: C{uuid}
     @return C{IMAPAccount} or C{POPAccount}
     """
@@ -420,7 +427,7 @@ class SMTPDelivery(MailDeliveryBase):
 
     def sendFailed(self):
         """
-          Called from the Twisted thread to log errors in Send.
+        Called from the Twisted thread to log errors in Send.
         """
         self.history.append("FAILED")
         self.state = "FAILED"
@@ -429,7 +436,7 @@ class SMTPDelivery(MailDeliveryBase):
 
     def sendSucceeded(self):
         """
-          Called from the Twisted thread to log successes in Send.
+        Called from the Twisted thread to log successes in Send.
         """
         self.history.append("SENT")
         self.state = "SENT"
@@ -610,7 +617,8 @@ class MailMessageMixin(MIMEContainer):
     )
 
     def InitOutgoingAttributes(self):
-        """ Init any attributes on ourself that are appropriate for
+        """
+        Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
         try:
@@ -621,7 +629,7 @@ class MailMessageMixin(MIMEContainer):
 
     def _initMixin(self):
         """
-          Init only the attributes specific to this mixin.
+        Init only the attributes specific to this mixin.
         Called when stamping adds these attributes, and from __init__ above.
         """
         # default the fromAddress to "me"
@@ -670,21 +678,27 @@ class MailMessageMixin(MIMEContainer):
         self.parentAccount = account
 
     def getAttachments(self):
-        """ First pass at API will be expanded upon later """
+        """
+        First pass at API will be expanded upon later.
+        """
         return self.mimeParts
 
     def getNumberOfAttachments(self):
-        """ First pass at API will be expanded upon later """
+        """
+        First pass at API will be expanded upon later.
+        """
         return len(self.mimeParts)
 
     def hasAttachments(self):
-        """ First pass at API will be expanded upon later """
+        """
+        First pass at API will be expanded upon later.
+        """
         return self.hasMimeParts
 
 
     def shareSend(self):
         """
-        Share this item, or Send if it's an Email
+        Share this item, or Send if it's an Email.
         We assume we want to send this MailMessage here.
         """
         # message the main view to do the work
@@ -693,9 +707,9 @@ class MailMessageMixin(MIMEContainer):
     def getSendability(self, ignoreAttr=None):
         """
         Return whether this item is ready to send: 'sendable', 'sent',
-        or 'not'. if ignoreAttr is specified, don't verify that value (because
-        it's being edited in the UI and is known to be valid, and will get
-        saved before sending).
+        or 'not'. if ignoreAttr is specified, don't verify that value
+        (because it's being edited in the UI and is known to be valid,
+        and will get saved before sending).
         """
         # Not outbound?
         if not self.isOutbound:
@@ -871,7 +885,7 @@ class EmailAddress(items.ContentItem):
 
     def __unicode__(self):
         """
-          User readable string version of this address
+        User readable string version of this address.
         """
         if self.isStale():
             return super(EmailAddress, self).__unicode__()
@@ -895,8 +909,10 @@ class EmailAddress(items.ContentItem):
         We do look them up in the repository to prevent duplicates, but there's
         nothing to keep bad ones from accumulating, although repository
         garbage collection should eventually remove them.
+
         The "me" entity is used for Items created by the user, and it
         gets a reasonable emailaddress filled in when a send is done.
+
         This code needs to be reworked!
         """
 
@@ -1042,7 +1058,9 @@ class EmailAddress(items.ContentItem):
 
     @classmethod
     def findEmailAddress(cls, view, emailAddress):
-        """ Find a single EmailAddress that exactly matches this one. """
+        """
+        Find a single EmailAddress that exactly matches this one.
+        """
         collection = schema.ns("osaf.pim", view).emailAddressCollection
         emailAddress = emailAddress.lower()
 
@@ -1058,8 +1076,8 @@ class EmailAddress(items.ContentItem):
 
     @classmethod
     def generateMatchingEmailAddresses(cls, view, partialAddress):
-        """ 
-        Generate any EmailAddresses whose emailAddress or fullName starts 
+        """
+        Generate any EmailAddresses whose emailAddress or fullName starts
         with this.
         """
         collection = schema.ns("osaf.pim", view).emailAddressCollection
@@ -1100,7 +1118,7 @@ class EmailAddress(items.ContentItem):
         and 'john@test.com'
 
         @param emailAddress: A string containing a email address to validate.
-        @type addr: C{String}
+        @type emailAddress: C{String}
         @return: C{Boolean}
         """
 
@@ -1151,10 +1169,11 @@ class EmailAddress(items.ContentItem):
         """
         This method tests whether two email addresses are the same.
         Addresses can be in the form john@jones.com or John Jones <john@jones.com>.
-        The method strips off the username and <> brakets if they exist and just compares
-        the actual email addresses for equality. It will not look to see if each
-        address is RFC 822 compliant only that the strings match. Use C{EmailAddress.isValidEmailAddress}
-        to test for validity.
+
+        The method strips off the username and <> brakets if they exist and
+        just compares the actual email addresses for equality. It will not
+        look to see if each address is RFC 822 compliant only that the strings
+        match. Use C{EmailAddress.isValidEmailAddress} to test for validity.
 
         @param emailAddressOne: A string containing a email address to compare.
         @type emailAddressOne: C{String}
@@ -1174,7 +1193,7 @@ class EmailAddress(items.ContentItem):
     @classmethod
     def getCurrentMeEmailAddress(cls, view):
         """
-          Lookup the "me" EmailAddress.
+        Lookup the "me" EmailAddress.
         The "me" EmailAddress is whichever entry is the current IMAP default
         address.
         """

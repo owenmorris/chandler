@@ -1,5 +1,7 @@
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2004-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 from datetime import timedelta
 from time import time
@@ -45,11 +47,11 @@ logger = logging.getLogger(__name__)
 
 class MainView(View):
     """
-      Main Chandler view contains event handlers for Chandler
-    """
-    """
+    Main Chandler view contains event handlers for Chandler.
+
     Can't do any kind of edit operation by default.
     Override the ones that you can do.
+
     The presence of these methods disables the
     associated menu items if the message
     bubbles all the way up to us.  
@@ -71,10 +73,12 @@ class MainView(View):
 
     def displaySMTPSendError (self, mailMessage):
         """
-          Called when the SMTP Send generated an error.
+        Called when the SMTP Send generated an error.
         """
         if mailMessage is not None and mailMessage.isOutbound:
-            """ Maybe we should select the message in CPIA? """
+            """
+            Maybe we should select the message in CPIA?
+            """
 
             errorStrings = []
 
@@ -88,13 +92,15 @@ class MainView(View):
                                   'translatedErrorStrings': u', '.join(errorStrings)}
 
 
-            """Clear the status message"""
+            """
+            Clear the status message.
+            """
             self.setStatusMessage(u'')
             self.displayMailError (errorMessage, mailMessage.parentAccount)
 
     def displaySMTPSendSuccess (self, mailMessage):
         """
-          Called when the SMTP Send was successful.
+        Called when the SMTP Send was successful.
         """
         if mailMessage is not None and mailMessage.isOutbound:
             self.setStatusMessage (_(u'Mail "%(subject)s" sent.') % {'subject': mailMessage.about})
@@ -116,7 +122,7 @@ class MainView(View):
     def onAboutEvent(self, event):
         # The "Help | About Chandler..." menu item
         """
-          Show the splash screen in response to the about command
+        Show the splash screen in response to the about command.
         """
         import version
         html = ''
@@ -241,8 +247,8 @@ class MainView(View):
 
     def onQuitEvent (self, event):
         """
-        Close all the windows. Close the mainFrame last since it's the place we execute all
-        the quitting Chandler code.
+        Close all the windows. Close the mainFrame last since it's the
+        place we execute all the quitting Chandler code.
         """
         mainFrame = wx.GetApp().mainFrame
         for window in wx.GetTopLevelWindows():
@@ -258,7 +264,7 @@ class MainView(View):
 
     def RepositoryCommitWithStatus (self):
         """
-          Do a repository commit with notice posted in the Status bar.
+        Do a repository commit with notice posted in the Status bar.
         """
         self.setStatusMessage (_(u"committing changes to the repository..."))
 
@@ -268,12 +274,12 @@ class MainView(View):
 
     def setStatusMessage (self, statusMessage, progressPercentage=-1):
         """
-          Allows you to set the message contained in the status bar.
-          You can also specify values for the progress bar contained
-          on the right side of the status bar.  If you specify a
-          progressPercentage (as a float 0 to 1) the progress bar will
-          appear.  If no percentage is specified the progress bar will
-          disappear.
+        Allows you to set the message contained in the status bar.
+        You can also specify values for the progress bar contained
+        on the right side of the status bar.  If you specify a
+        progressPercentage (as a float 0 to 1) the progress bar will
+        appear.  If no percentage is specified the progress bar will
+        disappear.
         """
 
         app = wx.GetApp()
@@ -286,19 +292,20 @@ class MainView(View):
         """
         Call any callable. The idea with this method is that any object
         in any view and any thread can put in a request in the application
-        async method list with
-            
-        wxApplication.CallItemMethodAsync(Globals.views[0], 'callAnyCallable',
-                                          withView, myMethod, myArg1, ...)
-                                  
+        async method list with::
+
+            wxApplication.CallItemMethodAsync(Globals.views[0], 
+                                              'callAnyCallable',
+                                              withView, myMethod, myArg1, ...)
+
         and get a method of their choice be called back on the main thread with
         the main repository view (if they so like).
-        
+
         @param withView: Should be true if the first argument for the callable
                          should be the main view, before *args and **kw.
         @param callable: A Python callable
-        @param *args:    Arguments for callable
-        @param **kw:     Keyword arguments for callable
+        @param args:     Arguments for callable
+        @param kw:       Keyword arguments for callable
         """
         if withView:
             return callable(self.itsView, *args, **kw)
@@ -334,7 +341,7 @@ class MainView(View):
 
     def onShareItemEvent (self, event):
         """
-          Share a Collection.
+        Share a Collection.
         """
         itemCollection = event.arguments ['item']
 
@@ -419,7 +426,7 @@ class MainView(View):
 
     def getSidebarSelectedCollection (self, private=False):
         """
-          Return the sidebar's selected item collection.
+        Return the sidebar's selected item collection.
         Will not return private collections (whose "private" attribute
         is True) unless you pass private=True.
         """
@@ -574,8 +581,7 @@ class MainView(View):
 
     def onWxTestHarnessEvent(self, event):
         """
-           This method is for testing and 
-           does not require translation strings
+         This method is for testing and does not require translation strings.
         """
         # Test menu item
         #mainWidget = Globals.views[0].widget
@@ -797,10 +803,10 @@ class MainView(View):
         
     def _onShareOrManageSidebarCollectionEvent(self, event):
         """
-          Share the collection selected in the Sidebar. 
+        Share the collection selected in the Sidebar.
         If the current collection is already shared, then manage the collection.
 
-        The "Collection | Share collection " menu item
+        The "Collection | Share collection " menu item.
         """
 
         if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
@@ -823,7 +829,7 @@ class MainView(View):
 
     def onShareSidebarCollectionEventUpdateUI (self, event):
         """
-        Update the menu to reflect the selected collection name
+        Update the menu to reflect the selected collection name.
         """
         collection = self.getSidebarSelectedCollection ()
 
@@ -939,7 +945,7 @@ class MainView(View):
 
     def onSyncCollectionEventUpdateUI (self, event):
         """
-        Update the menu to reflect the selected collection name
+        Update the menu to reflect the selected collection name.
         """
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
@@ -1019,7 +1025,7 @@ class MainView(View):
     def onSyncAllEvent (self, event):
         """
         Synchronize Mail and all sharing.
-        The "File | Sync | All" menu item, and the Sync All Toolbar button
+        The "File | Sync | All" menu item, and the Sync All Toolbar button.
         """
 
         view = self.itsView
@@ -1059,7 +1065,8 @@ class MainView(View):
     def onSyncWebDAVEvent (self, event):
         """
         Synchronize WebDAV sharing.
-        The "File | Sync | Shares" menu item
+
+        The "File | Sync | Shares" menu item.
         """
 
         view = self.itsView
@@ -1083,7 +1090,8 @@ class MainView(View):
     def onGetNewMailEvent (self, event):
         """
         Fetch Mail.
-        The "File | Sync | Mail" menu item
+        
+        The "File | Sync | Mail" menu item.
         """
 
         view = self.itsView

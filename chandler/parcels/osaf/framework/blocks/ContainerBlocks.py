@@ -1,5 +1,7 @@
-__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 __parcel__ = "osaf.framework.blocks"
 
 from Block import (
@@ -234,41 +236,43 @@ class wxSplitterWindow(wx.SplitterWindow):
                   self.OnSplitChanging,
                   id=self.GetId())
         self.Bind(wx.EVT_SIZE, self.OnSize)
-        
+
         # Setting minimum pane size prevents unsplitting a window by double-clicking
         self.SetMinimumPaneSize(7) #weird number to help debug the weird sizing bug 3497
-        
+
     def Layout(self, *arguments, **keywords):
         #this is here for debugging bug 3497
         return super(wxSplitterWindow, self).Layout(*arguments, **keywords)
-    
+
     def OnInit(self, *arguments, **keywords):
         #vain attempts to solve weird sizing bug
         pass
         #self.Layout()
         #self.Refresh()
-        
+
     def MoveSash(self, position):
-        """sets the sash position, and fires off the appropriate event saying it happened."""
+        """
+        Sets the sash position, and fires off the appropriate event
+        saying it happened.
+        """
         #self.SetSashPosition(position)
         event = wx.SplitterEvent(wx.wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, self)
         event.SetSashPosition(position)
         self.SetSashPosition(position)
-        
+
         self.ProcessEvent(event)
-        
+
         #this should be the async way to do it, but listeners end up receiving
         #a NotifyEvent instead, for some reason.
-        
+
         #self.AddPendingEvent(event)
         #wx.GetApp().Yield()
-        
-        
+
 
     @WithoutSynchronizeWidget
     def OnSize(self, event):
         #indentlog("splitperc: %s" % self.blockItem.splitPercentage)
-            
+
         newSize = self.GetSize()
 
         self.blockItem.size.width = newSize.width
@@ -302,7 +306,7 @@ class wxSplitterWindow(wx.SplitterWindow):
             else:
                 self.blockItem.splitPercentage = position / width
                 #indentlog("%sset splitperc to %s%s" %(util.autolog.BOLDGREEN, self.blockItem.splitPercentage, util.autolog.NORMAL))
-            
+
         event.Skip()
 
     def adjustSplit(self, position):
@@ -355,7 +359,7 @@ class wxSplitterWindow(wx.SplitterWindow):
         # Collect information about the splitter
         oldWindow1 = self.GetWindow1()
         oldWindow2 = self.GetWindow2()
- 
+
         children = iter (self.blockItem.childrenBlocks)
 
         window1 = None
@@ -378,9 +382,10 @@ class wxSplitterWindow(wx.SplitterWindow):
         if not self.IsSplit() and shouldSplit:
             #indentlog("first time splitter creation: 2 win")
             """
-              First time SplitterWindow creation with two windows or going between
-            a split with one window to a split with two windows
-            """            
+            First time SplitterWindow creation with two windows or
+            going between a split with one window to a split with
+            two windows
+            """
             if self.blockItem.orientationEnum == "Horizontal":
                 position = self.blockItem.size.height * self.blockItem.splitPercentage
                 success = self.SplitHorizontally (window1, window2, position)
@@ -390,7 +395,7 @@ class wxSplitterWindow(wx.SplitterWindow):
             assert success
         elif not oldWindow1 and not oldWindow2 and not shouldSplit:
             """
-              First time splitterWindow creation with one window.
+            First time splitterWindow creation with one window.
             """
             if window1:
                 self.Initialize (window1)
@@ -400,14 +405,14 @@ class wxSplitterWindow(wx.SplitterWindow):
             #indentlog("weird else block")
             if self.IsSplit() and not shouldSplit:
                 """
-                  Going from two windows in a split to one window in a split.
+                Going from two windows in a split to one window in a split.
                 """
                 show = oldWindow2.IsShown()
                 success = self.Unsplit()
                 oldWindow2.Show (show)
                 assert success
             """
-              Swap window1 and window2 so we can simplify the we can finish
+            Swap window1 and window2 so we can simplify the we can finish
             our work with only two comparisons.
             """            
             if bool (oldWindow1) ^ bool (window1):
@@ -430,7 +435,9 @@ class wxSplitterWindow(wx.SplitterWindow):
 
  
 class SplitterWindow(RectangularChild):
-    """This block seems to ignore children's stretchFactors."""
+    """
+    This block seems to ignore children's stretchFactors.
+    """
 
     splitPercentage = schema.One(schema.Float, initialValue = 0.5)
     allowResize = schema.One(schema.Boolean, initialValue = True)
@@ -516,8 +523,9 @@ class ViewContainer(BoxContainer):
 
     def instantiateWidget (self):
         """
-          Somewhat of a hack: When the ViewContainer is the root of all the blocks
-        it doesn't have a parent block widget, so in that case we use the mainFrame.
+        Somewhat of a hack: When the ViewContainer is the root of
+        all the blocks it doesn't have a parent block widget, so in
+        that case we use the mainFrame.
         """
         if self.parentBlock:
             parentWidget = self.parentBlock.widget
@@ -548,10 +556,12 @@ class wxFrameWindow (wxViewContainer):
 
 class FrameWindow (ViewContainer):
     """
-      @@@ For now a FrameWindow is just a ViewContainer with added position attributes,
-    but we will want to move a lot of MainFrame code from Application.py into here.
-    Right now we special case MainFrame, but we should better work that into the block
-    framework.
+    Note: @@@ For now a FrameWindow is just a ViewContainer with added
+    position attributes, but we will want to move a lot of MainFrame code
+    from Application.py into here.
+
+    Right now we special case MainFrame, but we should better work that
+    into the block framework.
     """
     position = schema.One(PositionType, initialValue = PositionType(-1, -1))
 
@@ -705,7 +715,7 @@ class TabbedView(TabbedContainer):
 
     def onCloseEvent (self, event):
         """
-          Will either close the current tab (if not data is present
+        Will either close the current tab (if not data is present
         in the sender) or will close the tab specified by data.
         """
         try:

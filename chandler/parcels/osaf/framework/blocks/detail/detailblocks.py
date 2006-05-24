@@ -1,26 +1,26 @@
 """
-
 Detail Blocks - detail view parcel initialization
 
-includes a few public utilities: any detail view client can use these to help
-assure consistent alignment...
+Includes a few public utilities: any detail view client can use these to help
+assure consistent alignment.
 
-More docs to come, but the key points...
- - Adding to the detail view means annotating your Kind with a L{BranchSubtree}, 
-   which adds a list of rootBlocks that should appear if an item of
-   that Kind is displayed.
- - An item can inherit from multiple Kinds; each block in the 
-   L{BranchSubtree}'s rootBlocks list has a 'position' attribute that 
-   determines the ordering in the resulting detail view. 
- - The block hierarchies you create will likely look like:
+More docs to come, but the key points:
+
+ - Adding to the detail view means annotating your Kind with
+   a L{BranchSubtree}, which adds a list of rootBlocks that
+   should appear if an item of that Kind is displayed.
+ - An item can inherit from multiple Kinds; each block in the
+   L{BranchSubtree}'s rootBlocks list has a 'position' attribute
+   that determines the ordering in the resulting detail view.
+ - The block hierarchies you create will likely look like::
      (area)
         (label)
         (spacer)
         (Attribute Editor)
 
-I've created functions (L{makeSubtree}, L{makeArea}, L{makeSpacer}, 
-L{makeEditor}) to simplify the process for the common case; there are lots of 
-examples below in the basic pim Kinds' subtrees.
+I've created functions (L{makeSubtree}, L{makeArea}, L{makeSpacer},
+L{makeEditor}) to simplify the process for the common case; there
+are lots of examples below in the basic pim Kinds' subtrees.
 """
 
 from Detail import *
@@ -36,14 +36,14 @@ def uniqueName(parcel, prefix=''):
     Return an item name unique in this parcel. Used when we don't
     need to refer to an item by name. 
 
-    @@@ pje pointed out that this may still be perilous.
+    Note: @@@ pje pointed out that this may still be perilous.
 
     @param parcel: The parcel we'll create the item in
     @type parcel: Parcel
     @param prefix: A base for the name, to which this method will add a number
-    to make it unique
+                   to make it unique
     @type prefix: String
-    @returns: A name that doesn't currently exist in this parcel's namespace
+    @return: A name that doesn't currently exist in this parcel's namespace
     @rtype: String
     """
     global _uniqueNameIndicies
@@ -59,28 +59,29 @@ def uniqueName(parcel, prefix=''):
 def makeArea(parcel, name, stretchFactor=None, border=None, minimumSize=None, 
              baseClass=ContentItemDetail, **kwds):
     """
-    Make a block template that'll contain one horizontal slice of the detail view
-    
-    Call .install(parcel) on the resulting template, either directly or after
-    building up a list of templates, to actually instantiate the item in the
-    parcel.
+    Make a block template that'll contain one horizontal slice of
+    the detail view.
+
+    Call .install(parcel) on the resulting template, either directly
+    or after building up a list of templates, to actually instantiate
+    the item in the parcel.
     
     @param parcel: The parcel that the block will go into
     @type parcel: Parcel
     @param name: A unique name for this block
     @type name: String
-    @param stretchFactor: Optionally, override the default stretchFactor on 
-    the new block
+    @param stretchFactor: Optionally, override the default stretchFactor
+                          on the new block
     @type stretchFactor: float
     @param border: Optionally, override the default border on the new block
     @type border: Rect
-    @param minimumSize: Optionally, override the default minimumSize of the new 
-    block
+    @param minimumSize: Optionally, override the default minimumSize of
+                        the new block
     @type minimumSize: Size
-    @param baseClass: Optionally, specify the base class of the new block; defaults
-    to ContentItemDetail.
+    @param baseClass: Optionally, specify the base class of the new block;
+                      defaults to ContentItemDetail.
     @type baseClass: class
-    @returns: The new block template.
+    @return: The new block template.
     """
     return baseClass.template(name,
                               stretchFactor=stretchFactor or 0.0,
@@ -92,25 +93,26 @@ def makeLabel(parcel, label=u'', borderTop=5, border=None, width=60):
     """
     Make a StaticText label template for use in the detail view.
     
-    Call .install(parcel) on the resulting template, either directly or after
-    building up a list of templates, to actually instantiate the item in the
-    parcel.
+    Call .install(parcel) on the resulting template, either directly
+    or after building up a list of templates, to actually instantiate
+    the item in the parcel.
     
     @param parcel: The parcel that the label block will go into
     @type parcel: Parcel
-    @param label: The label to be displayed (usually specified as "_(u'something')"
-    to allow internationalization)
+    @param label: The label to be displayed (usually specified as
+                  "_(u'something')" to allow internationalization)
     @type label: Unicode
-    @param borderTop: Optionally, specify a top border of 5, with 0 border on the
-    other sides
+    @param borderTop: Optionally, specify a top border of 5, with 0 border
+                      on the other sides
     @type borderTop: Integer
-    @param border: Optionally, specify all four sides of the border on the new 
-    label block.
+    @param border: Optionally, specify all four sides of the border on
+                   the new label block.
     @type border: Rect
-    @param width: Optionally, override the default width (60) (eventually, 
-    this'll be ignored and the label will measure itself).
+    @param width: Optionally, override the default width (60)
+                  (eventually, this'll be ignored and the label will
+                  measure itself).
     @type width: Integer
-    @returns: The new label block template.
+    @return: The new label block template.
     """
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
     border = border or RectType(borderTop, 0, 0, 0)
@@ -127,27 +129,31 @@ def makeSpacer(parcel, size=None, width=-1, height=-1,
     """
     Make a spacer block template for use in the detail view.
     
-    Call .install(parcel) on the resulting template, either directly or after
-    building up a list of templates, to actually instantiate the item in the
-    parcel.
+    Call .install(parcel) on the resulting template, either directly
+    or after building up a list of templates, to actually instantiate
+    the item in the parcel.
     
     @param parcel: The parcel that the spacer block will go into
     @type parcel: Parcel
-    @param size: The size of the spacer block (handy if you want to specify both 
-    dimensions)
+    @param size: The size of the spacer block (handy if you want to
+                 specify both dimensions)
     @type size: Size
-    @param width: The width of the spacer block (handy if you want the default height)
+    @param width: The width of the spacer block 
+                  (handy if you want the default height)
     @type width: Integer
-    @param height: The height of the spacer block (handy if you want the default width)
+    @param height: The height of the spacer block
+                   (handy if you want the default width)
     @type height: Integer
-    @param name: A unique name within this parcel for the spacer block. One will 
-    be automatically generated if you don't specify one.
+    @param name: A unique name within this parcel for the spacer block.
+                 One will be automatically generated if you don't specify one.
     @type name: String
-    @param baseClass: Optionally, specify the base class of the new block; defaults
-    to StaticText, but a subclass of SynchronizedSpacerBlock can be used if the 
-    spacer's visibility needs to be conditioned on data in the item being displayed.
+    @param baseClass: Optionally, specify the base class of the new block;
+                      defaults to StaticText, but a subclass of
+                      SynchronizedSpacerBlock can be used if the spacer's
+                      visibility needs to be conditioned on data in the
+                      item being displayed.
     @type baseClass: class
-    @returns: The new spacer block template.
+    @return: The new spacer block template.
     """
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
     size = size or SizeType(width, height)
@@ -163,31 +169,37 @@ def makeEditor(parcel, name, viewAttribute, border=None,
                presentationStyle=None, **kwds):
     """
     Make an Attribute Editor block template for the detail view.
-    
-    Call .install(parcel) on the resulting template, either directly or after
-    building up a list of templates, to actually instantiate the item in the
-    parcel.
-    
+
+    Call .install(parcel) on the resulting template, either directly
+    or after building up a list of templates, to actually instantiate
+    the item in the parcel.
+
     @param parcel: The parcel that the L{AEBlock} will go into
     @type parcel: Parcel
     @param name: A unique name within this parcel for the L{AEBlock}.
     @type name: String
-    @param viewAttribute: The name of the attribute to be edited by this editor.
+    @param viewAttribute: The name of the attribute to be edited by
+                          this editor.
     @type viewAttribute: String
-    @param border: Optionally, override the default border on the new block
+    @param border: Optionally, override the default border on
+                   the new block
     @type border: Rect
-    @param baseClass: Optionally, specify the base class of the new block; defaults
-    to L{DetailSynchronizedAttributeEditorBlock}.
+    @param baseClass: Optionally, specify the base class of the new block;
+                      defaults to L{DetailSynchronizedAttributeEditorBlock}.
     @type baseClass: class
-    @param characterStyle: override the default L{CharacterStyle} on the new block.
+    @param characterStyle: Override the default L{CharacterStyle} on
+                           the new block.
     @type characterStyle: CharacterStyle
-    @param presentationStyle: Optional dictionary for customizing the selection of
-    this block's attribute editor, or for customizing the behavior of that editor.
-    This dictionary is processed into a new L{PresentationStyle} instance.
+    @param presentationStyle: Optional dictionary for customizing the
+                              selection of this block's attribute editor,
+                              or for customizing the behavior of that editor.
+                              This dictionary is processed into a new
+                              L{PresentationStyle} instance.
     @type presentationStyle: dict
-    @param kwds: Other keyword arguments to be passed in creation of the new block.
+    @param kwds: Other keyword arguments to be passed in creation of
+                 the new block.
     @type kwds: dict
-    @returns: The new attribute editor block template.
+    @return: The new attribute editor block template.
     """
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
     ps = presentationStyle is not None \
@@ -226,8 +238,10 @@ def makeSubtree(parcel, kindOrClass, rootBlocks):
 # The detail view parcel itself
 #
 def installParcel(parcel, oldVersion=None):
-    """ Instantiate all the blocks, events, etc for the detail view. """
-    
+    """
+    Instantiate all the blocks, events, etc for the detail view.
+    """
+
     # First, register all the custom attribute editors 
     registerAttributeEditors(parcel, oldVersion)
     
@@ -283,8 +297,10 @@ def makeRootStuff(parcel, oldVersion):
     makeSpacer(parcel, width=8, name='HorizontalSpacer').install(parcel)
 
 def makeMarkupBar(parcel, oldVersion):
-    """ Build the markup bar. """
-        
+    """
+    Build the markup bar.
+    """
+
     # Each button just sends this event to itself.
     buttonPressed = BlockEvent.template('ButtonPressed', 
                                         'SendToSender').install(parcel)
@@ -363,7 +379,9 @@ def makeMarkupBar(parcel, oldVersion):
                                     stretchFactor=0.0).install(parcel)
 
 def makeNoteSubtree(parcel, oldVersion):
-    """ Build the subtree (and related stuff) for Note """
+    """
+    Build the subtree (and related stuff) for Note.
+    """
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
 
     # First, the headline AEBlock and the area it sits in
