@@ -1,8 +1,8 @@
 
 include ../Makefile.inc
 
-VERSION=0.9.7i
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+VERSION=0.9.8b
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 OPENSSL=$(BUILD_ROOT)/openssl
 SRC=$(OPENSSL)/openssl-$(VERSION)
 TARBALL=openssl-$(SNAP)-$(RELVER).tar.gz
@@ -24,8 +24,8 @@ endif
 $(SRC)/$(BUILD)/ms/$(DOMASM):
 	cd $(SRC); \
       mkdir $(BUILD); \
-      cp Makefile.org *.h $(BUILD)/; \
-      cp -r crypto ssl apps certs tools util ms include test fips $(BUILD)/; \
+      cp Makefile.org Makefile.shared *.h $(BUILD)/; \
+      cp -r crypto ssl apps certs tools util ms include test config $(BUILD)/; \
       cd $(BUILD); \
       $(MK1MF); \
       chmod a+x ms/$(DOMASM);
@@ -59,7 +59,7 @@ else
 $(SRC)/$(BUILD):
 	cd $(SRC); \
       mkdir $(BUILD); \
-      cp -R -P Configure Makefile.org *.h crypto ssl apps certs tools util doc include fips test $(BUILD)/
+      cp -R -P Configure Makefile.org Makefile.shared *.h crypto ssl apps certs tools util doc include test config $(BUILD)/
 
 openssl: apply $(SRC)/$(BUILD)
 	cd $(SRC)/$(BUILD); ../config shared --openssldir=$(PREFIX) $(CONF_OPT)
@@ -74,10 +74,10 @@ ifeq ($(OS),Darwin)
 
 binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
-          $(SNAP)/lib/libcrypto.0.9.7.dylib \
+          $(SNAP)/lib/libcrypto.0.9.8.dylib \
           $(SNAP)/lib/libcrypto.0.dylib \
           $(SNAP)/lib/libcrypto.dylib \
-          $(SNAP)/lib/libssl.0.9.7.dylib \
+          $(SNAP)/lib/libssl.0.9.8.dylib \
           $(SNAP)/lib/libssl.0.dylib \
           $(SNAP)/lib/libssl.dylib
 
@@ -85,11 +85,9 @@ else
 
 binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
-          $(SNAP)/lib/libcrypto.so.0.9.7 \
-          $(SNAP)/lib/libcrypto.so.0 \
+          $(SNAP)/lib/libcrypto.so.0.9.8 \
           $(SNAP)/lib/libcrypto.so \
-          $(SNAP)/lib/libssl.so.0.9.7 \
-          $(SNAP)/lib/libssl.so.0 \
+          $(SNAP)/lib/libssl.so.0.9.8 \
           $(SNAP)/lib/libssl.so
 
 endif # if OS X or linux

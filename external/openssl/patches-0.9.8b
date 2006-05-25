@@ -1,0 +1,24 @@
+--- openssl-0.9.8b/util/mk1mf.pl	2004-05-16 21:28:30.000000000 -0700
++++ openssl-0.9.8b-patched/util/mk1mf.pl	2005-05-19 14:38:21.618664000 -0700
+@@ -483,16 +483,21 @@
+ # We parse in input file and 'store' info for later printing.
+ open(IN,"<$infile") || die "unable to open $infile:$!\n";
+ $_=<IN>;
+ for (;;)
+ 	{
+ 	chop;
+ 
+ 	($key,$val)=/^([^=]+)=(.*)/;
++	
++	# On some Windows machines, $val has linefeeds at the end, which confuses
++	# subsequent code in this file. So we strip all whitespace at the end.
++	$val =~ s/\s+$//;
++	
+ 	if ($key eq "RELATIVE_DIRECTORY")
+ 		{
+ 		if ($lib ne "")
+ 			{
+ 			$uc=$lib;
+ 			$uc =~ s/^lib(.*)\.a/$1/;
+ 			$uc =~ tr/a-z/A-Z/;
+ 			$lib_nam{$uc}=$uc;
