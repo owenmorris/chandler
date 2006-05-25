@@ -86,10 +86,8 @@ ifeq ($(OS),Darwin)
 binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(OPENSSL)/$(TARBALL) \
           $(SNAP)/lib/libcrypto.0.9.8.dylib \
-          $(SNAP)/lib/libcrypto.0.dylib \
           $(SNAP)/lib/libcrypto.dylib \
           $(SNAP)/lib/libssl.0.9.8.dylib \
-          $(SNAP)/lib/libssl.0.dylib \
           $(SNAP)/lib/libssl.dylib
 
 else
