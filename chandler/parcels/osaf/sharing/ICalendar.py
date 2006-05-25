@@ -108,8 +108,10 @@ def itemsToVObject(view, items, cal=None, filters=None):
         if not filters or "transparency" not in filters:
             try:
                 status = item.transparency.upper()
-                # anytime events should be interpreted as not taking up time
-                if status == 'FYI' or item.anyTime: status = 'CANCELLED'
+                # anytime events should be interpreted as not taking up time,
+                # but all-day shouldn't
+                if status == 'FYI' or (not item.allDay and item.anyTime):
+                    status = 'CANCELLED'
                 comp.add('status').value = status
             except AttributeError:
                 pass
@@ -670,6 +672,10 @@ def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
         calname = calendar.getChildValue('x_wr_calname')
             
         for vfreebusy in calendar.vfreebusy_list:
+            if vfreebusy.behavior is None:
+                vfreebusy.behavior = vobject.icalendar.VFreeBusy
+                vfreebusy.transformToNative()
+
             start = vfreebusy.getChildValue('dtstart')
             end   = vfreebusy.getChildValue('dtend')
             if freebusystart is None or freebusystart > start:
@@ -679,7 +685,7 @@ def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
 
             # create a list of busy blocks tuples sorted by start time
             busyblocks = []
-            for fb in vfreebusy.freebusy_list:
+            for fb in getattr(vfreebusy, 'freebusy_list', []):
                 status = getattr(fb, 'fbtype_param', 'BUSY').upper()
                 for blockstart, duration in fb.value:
                     blockstart = translateToTimezone(blockstart, ICUtzinfo.default)
@@ -848,7 +854,7 @@ class FreeBusyFileFormat(ICalendarFormat):
 
         if item is None:
             item = SmartCollection(itsView=view)
-        elif isinstance(item, Sharing.Share):                        
+        elif isinstance(item, Sharing.Share):
             if item.contents is None:
                 item.contents = \
                     SmartCollection(itsView=view)
@@ -864,7 +870,6 @@ class FreeBusyFileFormat(ICalendarFormat):
             item.displayName = unicode(calname)
 
         return item
-
 
 class ImportError(Exception):
     pass
