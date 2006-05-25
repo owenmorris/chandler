@@ -672,6 +672,10 @@ def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
         calname = calendar.getChildValue('x_wr_calname')
             
         for vfreebusy in calendar.vfreebusy_list:
+            # RPI's server originally didn't put a VERSION:2.0 line in its
+            # freebusy response.  vobject's behavior is set when a VERSION is
+            # found.  Tolerate servers that export technically illegal but still 
+            # readable vfreebusy components
             if vfreebusy.behavior is None:
                 vfreebusy.behavior = vobject.icalendar.VFreeBusy
                 vfreebusy.transformToNative()
