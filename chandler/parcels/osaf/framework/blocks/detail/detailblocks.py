@@ -314,7 +314,7 @@ def makeMarkupBar(parcel, oldVersion):
                                         helpString=messages.STAMP_MAIL_HELP,
                                         event=buttonPressed,
                                         stretchFactor=0.0,
-                                        minimumSize=SizeType(30, 17))
+                                        minimumSize=SizeType(30, 18))
 
     taskStamp = \
         TaskStampBlock.template('TaskStamp',
@@ -324,12 +324,12 @@ def makeMarkupBar(parcel, oldVersion):
                                 helpString=messages.STAMP_TASK_HELP,
                                 event=buttonPressed,
                                 stretchFactor=0.0,
-                                minimumSize=SizeType(30, 17))
+                                minimumSize=SizeType(30, 18))
 
     markupSpacer1 = ControlBlocks.StaticText.template('MarkupSpacer1',
                                     title=u'',
                                     stretchFactor=0.0,
-                                    minimumSize=SizeType(30, 17))
+                                    minimumSize=SizeType(30, 18))
 
     calendarStamp = \
         CalendarStampBlock.template('CalendarStamp',
@@ -339,7 +339,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     helpString=messages.STAMP_CALENDAR_HELP,
                                     event=buttonPressed,
                                     stretchFactor=0.0,
-                                    minimumSize=SizeType(30, 17))
+                                    minimumSize=SizeType(30, 18))
 
     markupSpacer2 = ControlBlocks.StaticText.template('MarkupSpacer2',
                                     title=u'',
@@ -353,7 +353,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     helpString=messages.PRIVATE,
                                     event=buttonPressed,
                                     stretchFactor=0.0,
-                                    minimumSize=SizeType(30, 17))
+                                    minimumSize=SizeType(30, 18))
 
     readOnlyIcon = \
         ReadOnlyIconBlock.template('ReadOnlyIcon',
@@ -363,7 +363,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     helpString=messages.READONLY,
                                     event=buttonPressed,
                                     stretchFactor=0.0,
-                                    minimumSize=SizeType(30, 17))
+                                    minimumSize=SizeType(30, 18))
 
     markupBar = ControlBlocks.ContentItemDetail.template('MarkupBar',
                                     childrenBlocks=[mailMessageButton,
@@ -374,7 +374,7 @@ def makeMarkupBar(parcel, oldVersion):
                                                     markupSpacer2,
                                                     readOnlyIcon],
                                     position=0.0,
-                                    toolSize=SizeType(30, 17),
+                                    toolSize=SizeType(30, 18),
                                     separatorWidth=16,
                                     stretchFactor=0.0).install(parcel)
 
