@@ -10,6 +10,8 @@ from osaf.framework import scripting
 
 from osaf.framework import Preferences
 
+import version
+
 class TZPrefs(Preferences):
     showUI = schema.One(schema.Boolean, initialValue = False)
     
@@ -121,7 +123,7 @@ def installParcel(parcel, oldVersion=None):
         datetime.time(12, tzinfo=ICUtzinfo.floating))
 
     WelcomeEvent = pim.CalendarEvent.update(parcel, 'WelcomeEvent',
-        displayName=_(u'Welcome to Chandler 0.6'),
+        displayName=_(u'Welcome to Chandler %(version)s' % {'version': version.version}),
         startTime=noonToday,
         duration=datetime.timedelta(minutes=120),
         anyTime=False,
@@ -132,7 +134,7 @@ def installParcel(parcel, oldVersion=None):
     )
     schema.ns('osaf.pim', parcel.itsView).allCollection.add(WelcomeEvent)
 
-    body = _(u"""Welcome to the Chandler 0.6 Release!
+    body = _(u"""Welcome to the Chandler %(version)s!
 
 For a wealth of information for end-users and developers, point your browser to:
     http://chandler.osafoundation.org
@@ -142,7 +144,7 @@ There you can see presentations on the Vision of Chandler, details about this re
 This release is focused on "experimentally usable" calendar functionality. It meets the following four goals:
 
 1. Usable Calendar
-We intend to use the 0.6 calendar internally at OSAF on a day-to-day basis in order to experience first hand the features, functionality, limitations, and any bugs in the product. We believe using the product ourselves early on is the best way to ensure superlative design and implementation. The calendar now includes timezones, repeating events, all-day events, multiple overlaying calendars, and shared collaborative (multi-author) group calendars using our new CalDAV-based calendar server.
+We intend to use the %(version)s calendar internally at OSAF on a day-to-day basis in order to experience first hand the features, functionality, limitations, and any bugs in the product. We believe using the product ourselves early on is the best way to ensure superlative design and implementation. The calendar now includes timezones, repeating events, all-day events, multiple overlaying calendars, and shared collaborative (multi-author) group calendars using our new CalDAV-based calendar server.
 
 2. Polished User Interface
 Adding polish to the UI helps calendar usability. To a lesser extent we have also polished other areas of the application UI.
@@ -152,7 +154,7 @@ Adding polish to the UI helps calendar usability. To a lesser extent we have als
 * In addition, this release also includes continuing infrastructure work on email and internationalization.
 
 4. Developer Platform
-* If you are an experienced Python programmer, you should be able to create simple forms-based parcels like the Flickr, Feeds, and Amazon parcels that are included in the 0.6 release.
+* If you are an experienced Python programmer, you should be able to create simple forms-based parcels like the Flickr, Feeds, and Amazon parcels that are included in the %(version)s release.
 * Developer documentation, tutorials, and sample add-in parcels are part of this release.
 
 Please note, this release is still intended to be experimental; do not trust your real data with this version. An experimental file import/export feature is available to back up your calendar data.
@@ -160,7 +162,7 @@ Please note, this release is still intended to be experimental; do not trust you
 Thank you for trying Chandler. Your feedback is welcome on our mail lists:
     http://wiki.osafoundation.org/bin/view/Chandler/OsafMailingLists
 
-The Chandler Team""")
+The Chandler Team""" % {'version': version.version})
 
     WelcomeEvent.body = WelcomeEvent.getAttributeAspect('body', 'type').makeValue(body)
 
