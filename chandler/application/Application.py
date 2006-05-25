@@ -367,7 +367,7 @@ class wxApplication (wx.App):
         # data loading script execution
         if Globals.options.createData:
             import util.GenerateItemsFromFile as GenerateItemsFromFile
-            GenerateItemsFromFile.RunScript(Globals.mainViewRoot.itsView, Globals.views[0])
+            GenerateItemsFromFile.RunScript(self.UIRepositoryView)
         
         self.__CHANDLER_STARTED_UP = True # workaround for bug 4362
 

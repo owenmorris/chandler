@@ -66,7 +66,7 @@ def addSurrogatePairToText(text):
     return text
 
 
-def GenerateCollection(view, mainView, args):
+def GenerateCollection(view, args):
     """ Generate one Collection Item """
     appNameSpace = schema.ns('osaf.app', self)
     collection = pim.SmartCollection(itsView=view)
@@ -79,27 +79,24 @@ def GenerateCollection(view, mainView, args):
              if not collectionsDict.has_key(potentialName):
                  collection.displayName = potentialName
                  collectionsDict[potentialName] = collection
-                 if mainView:
-                     sidebarCollection.add (collection)
+                 sidebarCollection.add (collection)
              break
     elif not args[0]=='':
         collection.displayName = u"%s" %args[0]
         if not collectionsDict.has_key(args[0]):
-            if mainView:
-                sidebarCollection.add (collection)
+            sidebarCollection.add (collection)
             collectionsDict[args[0]]=collection
     else:
         #default value
         collection.displayName = u'Untitled'
         if not collectionsDict.has_key(u'Untitled'):
-            if mainView:
-                sidebarCollection.add (collection)
+            sidebarCollection.add (collection)
             collectionsDict[u'Untitled']=collection
         
     return collection
 
 
-def GenerateNote(view, mainView, args):
+def GenerateNote(view, args):
     """ Generate one Note item """
     note = pim.Note(itsView=view)
     #displayName
@@ -126,13 +123,13 @@ def GenerateNote(view, mainView, args):
             if collectionsDict.has_key(name):
                 collectionsDict[name].add(note)
             else:
-                GenerateCollection(view, mainView, [name])
+                GenerateCollection(view, [name])
                 collectionsDict[name].add(note)
 
     return note
 
 
-def GenerateCalendarEvent(view, mainView, args):
+def GenerateCalendarEvent(view, args):
     """ Generate one calendarEvent item """
     event = Calendar.CalendarEvent(itsView=view)
 
@@ -233,13 +230,13 @@ def GenerateCalendarEvent(view, mainView, args):
             if collectionsDict.has_key(name):
                 collectionsDict[name].add(event)
             else:
-                GenerateCollection(view, mainView, [name])
+                GenerateCollection(view, [name])
                 collectionsDict[name].add(event)
 
     return event
 
 
-def GenerateTask(view, mainView, args):
+def GenerateTask(view, args):
     """ Generate one Task item """
     task = Task(itsView=view)
 
@@ -268,7 +265,7 @@ def GenerateTask(view, mainView, args):
             if collectionsDict.has_key(name):
                 collectionsDict[name].add(task)
             else:
-                GenerateCollection(view, mainView, [name])
+                GenerateCollection(view, [name])
                 collectionsDict[name].add(task)
 
     return task
@@ -324,9 +321,9 @@ def ReturnCompleteDatetime(date, time='', tz=None):
     return result
 
 
-def GenerateEventTask(view, mainView, args):
+def GenerateEventTask(view, args):
     """ Generate one Task/Event stamped item """
-    event = GenerateCalendarEvent(view, mainView, args)
+    event = GenerateCalendarEvent(view, args)
     event.StampKind('add', TaskMixin.getKind(event.itsView))
     return event
 
@@ -347,7 +344,7 @@ def GenerateCalendarParticipant(view, emailAddress):
 
 
 
-def GenerateMailMessage(view, mainView, args):
+def GenerateMailMessage(view, args):
     """ Generate one Mail message item """
 
     message  = Mail.MailMessage(itsView=view)
@@ -435,18 +432,18 @@ def GenerateMailMessage(view, mainView, args):
             if collectionsDict.has_key(name):
                 collectionsDict[name].add(message)
             else:
-                GenerateCollection(view, mainView, [name])
+                GenerateCollection(view, [name])
                 collectionsDict[name].add(message)
 
     return message
 
 
 
-def RunScript(view, mainView=None):
+def RunScript(view):
     """ Run this script (command line invocation) """
     if Globals.options.createData:
         filepath = Globals.options.createData
-        GenerateItems(view, mainView, filepath)
+        GenerateItems(view, filepath)
         Globals.options.createData = None
 
 
@@ -481,7 +478,7 @@ def ComaManager(line):
 
         
 
-def GenerateItems(view, mainView, filepath):
+def GenerateItems(view, filepath):
     """ Generate the Items defined in a csv file """
     if isinstance(filepath, unicode):
         filepath = filepath.encode(sys.getfilesystemencoding())
@@ -511,42 +508,42 @@ def GenerateItems(view, mainView, filepath):
             except IndexError:
                 logger.info("(Line skipped): Line %d of %s don't respect the chandler data format." % (lineNum, filepath))
             else:
-                GenerateCollection(view, mainView, args[1:2])
+                GenerateCollection(view, args[1:2])
         elif (string.upper(args[0])=='NOTE'):
             try:
                 test = args[4]
             except IndexError:
                 logger.info("(Line skipped): Line %d of %s don't respect the chandler data format." % (lineNum, filepath))
             else:
-                GenerateNote(view, mainView, args[1:5])
+                GenerateNote(view, args[1:5])
         elif (string.upper(args[0])=='CALENDAREVENT'):
             try:
                 test = args[10]
             except IndexError:
                 logger.info("(Line skipped): Line %d of %s don't respect the chandler data format." % (lineNum, filepath))
             else:
-                GenerateCalendarEvent(view, mainView, args[1:14])
+                GenerateCalendarEvent(view, args[1:14])
         elif(string.upper(args[0])=='TASK'):
             try:
                 test = args[4]
             except IndexError:
                 logger.info("(Line skipped): Line %d of %s don't respect the chandler data format." % (lineNum, filepath))
             else:
-                GenerateTask(view, mainView, args[1:5])
+                GenerateTask(view, args[1:5])
         elif(string.upper(args[0])=='EVENTTASK'):
             try:
                 test = args[10]
             except IndexError:
                 logger.info("(Line skipped): Line %d of %s don't respect the chandler data format." % (lineNum, filepath))
             else:
-                GenerateEventTask(view, mainView, args[1:14])
+                GenerateEventTask(view, args[1:14])
         elif(string.upper(args[0])=='MAILMESSAGE'):
             try:
                 test = args[10]
             except IndexError:
                 logger.info("(Line skipped): Line %d of %s don't respect the chandler data format." % (lineNum, filepath))
             else:
-                GenerateMailMessage(view, mainView, args[1:11])
+                GenerateMailMessage(view, args[1:11])
                 
     File.close()
     view.commit()
