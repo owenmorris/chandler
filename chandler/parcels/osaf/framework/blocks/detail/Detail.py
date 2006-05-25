@@ -726,8 +726,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
     
         # @@@ Remove this when the sidebar autodetects new collections
         collection = share.contents
-        mainView = application.Globals.views[0]
-        schema.ns("osaf.app", self).sidebarCollection.add (collection)
+        schema.ns("osaf.app", self).sidebarCollection.add (share.contents)
         # Need to SelectFirstItem -- DJA
 
     def onAcceptShareEventUpdateUI(self, event):

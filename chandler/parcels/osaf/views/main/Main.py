@@ -294,7 +294,7 @@ class MainView(View):
         in any view and any thread can put in a request in the application
         async method list with::
 
-            wxApplication.CallItemMethodAsync(Globals.views[0], 
+            wxApplication.CallItemMethodAsync("MainView", 
                                               'callAnyCallable',
                                               withView, myMethod, myArg1, ...)
 

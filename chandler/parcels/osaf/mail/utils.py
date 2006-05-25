@@ -149,7 +149,7 @@ def displaySSLCertDialog(cert, reconnectMethod):
     from osaf.framework.certstore import ssl
     wxApplication = Globals.wxApplication
     if wxApplication is not None: # test framework has no wxApplication
-        wxApplication.CallItemMethodAsync(Globals.views[0], 'callAnyCallable', 
+        wxApplication.CallItemMethodAsync("MainView", 'callAnyCallable', 
                                           ssl.askTrustSiteCertificate, True,
                                           cert, reconnectMethod)
 
@@ -160,7 +160,7 @@ def displayIgnoreSSLErrorDialog(cert, err, reconnectMethod):
     from osaf.framework.certstore import ssl
     wxApplication = Globals.wxApplication
     if wxApplication is not None: # test framework has no wxApplication
-        wxApplication.CallItemMethodAsync(Globals.views[0], 'callAnyCallable',
+        wxApplication.CallItemMethodAsync("MainView", 'callAnyCallable',
                                           ssl.askIgnoreSSLError, False, cert,
                                           err, reconnectMethod)
 
@@ -176,8 +176,7 @@ def NotifyUIAsync(message, logger=None, cl='setStatusMessage', *args, **keys):
     wxApplication = Globals.wxApplication
 
     if wxApplication is not None: # test framework has no wxApplication
-        wxApplication.CallItemMethodAsync(Globals.views[0], cl,
-                                          message, *args, **keys)
+        wxApplication.CallItemMethodAsync("MainView", cl, message, *args, **keys)
 
 
 def dateTimeToRFC2882Date(dt):
