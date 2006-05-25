@@ -25,24 +25,35 @@ $(SRC)/$(BUILD)/ms/$(DOMASM):
 	cd $(SRC); \
       mkdir $(BUILD); \
       cp Makefile.org Makefile.shared *.h $(BUILD)/; \
-      cp -r crypto ssl apps certs tools util ms include test config $(BUILD)/; \
+      cp -r crypto ssl apps certs tools util ms include test config engines $(BUILD)/; \
       cd $(BUILD); \
-      $(MK1MF); \
-      chmod a+x ms/$(DOMASM);
+      $(MK1MF)
+	chmod a+x $(SRC)/$(BUILD)/ms/$(DOMASM)
 
-openssl: apply $(SRC)/$(BUILD)/ms/$(DOMASM)
+config:
 	cd $(SRC)/$(BUILD); \
       MAKEFLAGS=; \
-      perl ../Configure --openssldir=$(PREFIX) --install_prefix=$(PREFIX) $(CONF_OPT) VC-WIN32; \
-      ms/$(DOMASM); \
-      nmake -f ms/ntdll.mak;\
-      cd $(OUT32DLL); \
-      mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto; \
-      cp -f ssleay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto/; \
-      cp -f libeay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto/; \
-      cp -f ssleay32.lib $(PREFIX)/lib/; \
-      cp -f libeay32.lib $(PREFIX)/lib/; \
-      cp -fr  ../inc32/openssl $(PREFIX)/Include
+      perl ../Configure --openssldir=$(PREFIX) --install_prefix=$(PREFIX) $(CONF_OPT) VC-WIN32
+
+masm:
+	cd $(SRC)/$(BUILD); \
+      MAKEFLAGS=; \
+      ms/$(DOMASM)
+
+ntdll:
+	cd $(SRC)/$(BUILD); \
+      MAKEFLAGS=; \
+      nmake -f ms/ntdll.mak
+
+copy:
+	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto
+	cp -f $(SRC)/$(BUILD)/$(OUT32DLL)/ssleay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto/
+	cp -f $(SRC)/$(BUILD)/$(OUT32DLL)/libeay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto/
+	cp -f $(SRC)/$(BUILD)/$(OUT32DLL)/ssleay32.lib $(PREFIX)/lib/
+	cp -f $(SRC)/$(BUILD)/$(OUT32DLL)/libeay32.lib $(PREFIX)/lib/
+	cp -fr $(SRC)/$(BUILD)/inc32/openssl $(PREFIX)/Include
+
+openssl: apply $(SRC)/$(BUILD)/ms/$(DOMASM) config masm ntdll copy
 
 # Need to put the files into M2Crypto dir so that Windows finds our versions
 binaries: strip
@@ -59,7 +70,7 @@ else
 $(SRC)/$(BUILD):
 	cd $(SRC); \
       mkdir $(BUILD); \
-      cp -R -P Configure Makefile.org Makefile.shared *.h crypto ssl apps certs tools util doc include test config $(BUILD)/
+      cp -R -P Configure Makefile.org Makefile.shared *.h crypto ssl apps certs tools util doc include test config engines $(BUILD)/
 
 openssl: apply $(SRC)/$(BUILD)
 	cd $(SRC)/$(BUILD); ../config shared --openssldir=$(PREFIX) $(CONF_OPT)
