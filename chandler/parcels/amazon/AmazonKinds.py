@@ -7,7 +7,7 @@ import sgmllib
 from osaf.pim import ContentItem, ListCollection
 from repository.util.URL import URL
 import wx
-from application import schema, Globals
+from application import schema
 from i18n import OSAFMessageFactory as _
 import string
 import AmazonDialog
@@ -21,22 +21,14 @@ def _isEmpty(text):
 
     return False
 
-def _setStatusMessage(message, view):
-    if Globals.wxApplication is None:
-        return
-
-    Globals.wxApplication.CallItemMethodAsync(view, 'setStatusMessage', message)
-
-
 def _showError(errText):
-    if Globals.wxApplication is None:
-        return
+    theApp = wx.GetApp()
+    if theApp is not None:
+        application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                    _(u"Amazon Error"), errText)
 
-    application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                _(u"Amazon Error"), errText)
 
-
-def SearchByKeyword(repView, cpiaView, keywords=None, countryCode=None, category=None):
+def SearchByKeyword(repView, keywords=None, countryCode=None, category=None):
     """
     Performs an amazon search by keyword and creates an AmazonCollection
     containing AmazonItem's for each product found that matches the search
@@ -56,21 +48,17 @@ def SearchByKeyword(repView, cpiaView, keywords=None, countryCode=None, category
     @param repView: The repository view in which to create the AmazonItems'
                     and AmazonCollection
 
-    @type cpiaView: The Repository.view
-    @param cpiaView: The CPIA Repository.view used to update the status bar
-                     message where appropriate
-
     @type keywords: unicode
-    @param keywords: The keywords to search on. If the value is None a CPIA
+    @param keywords: The keywords to search on. If the value is None a
                      dialog is displayed for the user to enter the information.
 
     @type countryCode: unicode
     @param countryCode: The countryCode of the amazon site to contact.
-                        If the value is None a CPIA dialog is displayed for
+                        If the value is None a dialog is displayed for
                         the user to enter the information.
 
     @type category: unicode
-    @param category: The category to search in. If the value is None a CPIA
+    @param category: The category to search in. If the value is None a
                      dialog is displayed for the user to enter the information.
 
     @rtype: AmazonCollection or None
@@ -89,7 +77,7 @@ def SearchByKeyword(repView, cpiaView, keywords=None, countryCode=None, category
 
     try:
         bags = amazon.searchByKeyword(keywords, locale=countryCode, product_line=category)
-        return _AddToCollection(repView, cpiaView, keywords, countryCode, bags) 
+        return _AddToCollection(repView, keywords, countryCode, bags) 
 
     except (AmazonError, AttributeError), e:
         dt = {'keywords': keywords}
@@ -97,7 +85,7 @@ def SearchByKeyword(repView, cpiaView, keywords=None, countryCode=None, category
         return None
 
 
-def SearchWishListByEmail(repView, cpiaView, emailAddr=None, countryCode=None):
+def SearchWishListByEmail(repView, emailAddr=None, countryCode=None):
     """
     Retrieves an amazon wishlist by email address and creates an
     AmazonCollection containing AmazonItem's for each product in
@@ -118,16 +106,12 @@ def SearchWishListByEmail(repView, cpiaView, emailAddr=None, countryCode=None):
     @param repView: The repository view in which to create the AmazonItems'
                     and AmazonCollection
 
-    @type cpiaView: The Repository.view
-    @param cpiaView: The CPIA Repository.view used to update the status bar
-                     message where appropriate
-
     @type emailAddr: unicode
     @param emailAddr: The email address for the user wishlist
 
     @type countryCode: unicode
     @param countryCode: The countryCode of the amazon site to contact.
-                        If the value is None a CPIA dialog is displayed for
+                        If the value is None a dialog is displayed for
                         the user to enter the information.
 
     @rtype: AmazonCollection or None
@@ -143,7 +127,7 @@ def SearchWishListByEmail(repView, cpiaView, emailAddr=None, countryCode=None):
 
     try:
         customerName, bags = amazon.searchWishListByEmail(emailAddr, locale=countryCode)
-        return _AddToCollection(repView, cpiaView, customerName, countryCode, bags) 
+        return _AddToCollection(repView, customerName, countryCode, bags) 
 
     except (AmazonError, AttributeError), e:
         dt = {'emailAddress': emailAddr}
@@ -151,8 +135,8 @@ def SearchWishListByEmail(repView, cpiaView, emailAddr=None, countryCode=None):
         return None
 
 
-def _AddToCollection(repView, cpiaView, text, countryCode, bags):
-    col, d = AmazonCollection.getCollection(repView, cpiaView, text, countryCode)
+def _AddToCollection(repView, text, countryCode, bags):
+    col, d = AmazonCollection.getCollection(repView, text, countryCode)
 
     counter = 0
 
@@ -171,14 +155,15 @@ def _AddToCollection(repView, cpiaView, text, countryCode, bags):
 
     d = {'collectionName': col.displayName, 'numOf': counter}
 
-    if counter == 0:
-        msg = _(u"No new products were found for collection '%(collectionName)s'") % d
-    elif counter == 1:
-        msg = _(u"Added 1 product to collection '%(collectionName)s'") % d
-    else:
-        msg = _(u"Added %(numOf)s products to collection '%(collectionName)s'") % d
-
-    _setStatusMessage(msg, cpiaView)
+    theApp = wx.GetApp()
+    if theApp is not None:
+        if counter == 0:
+            msg = _(u"No new products were found for collection '%(collectionName)s'") % d
+        elif counter == 1:
+            msg = _(u"Added 1 product to collection '%(collectionName)s'") % d
+        else:
+            msg = _(u"Added %(numOf)s products to collection '%(collectionName)s'") % d
+        theApp.CallItemMethodAsync("MainView", 'setStatusMessage', msg)
 
     repView.commit()
 
@@ -195,7 +180,7 @@ class AmazonCollection(ListCollection):
 
 
     @classmethod
-    def getCollection(cls, repView, cpiaView, text, countryCode):
+    def getCollection(cls, repView, text, countryCode):
         """
         Returns an AmazonCollection with a displayName combining the text
         and country code variables.
@@ -209,10 +194,6 @@ class AmazonCollection(ListCollection):
         @type repView: A Repository.view
         @param repView: The repository view in which to create the AmazonItems'
                         and AmazonCollection
-
-        @type cpiaView: The Repository.view
-        @param cpiaView: The CPIA Repository.view used to update the status bar
-                         message where appropriate
 
         @type text: unicode
         @param text: The text to use in combination with the countryCode to
@@ -230,8 +211,9 @@ class AmazonCollection(ListCollection):
 
 
         displayName = AmazonCollection.makeCollectionName(text, countryCode)
+        sidebarCollection = schema.ns("osaf.app", wx.GetApp().UIRepositoryView).sidebarCollection
 
-        for collection in schema.ns("osaf.app", cpiaView).sidebarCollection:
+        for collection in sidebarCollection:
             if collection.displayName.lower() == displayName.lower():
                 #XXX: Create a dict of the productURL's of all items
                 # of AmazonItem kind. If a url in the dict matches a 
@@ -247,7 +229,7 @@ class AmazonCollection(ListCollection):
 
         collection = AmazonCollection(itsView=repView)
         collection.displayName = displayName
-        schema.ns("osaf.app", cpiaView).sidebarCollection.add (collection)
+        sidebarCollection.add (collection)
 
         return collection, {}
 

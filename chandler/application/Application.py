@@ -707,33 +707,41 @@ class wxApplication (wx.App):
         
         See CallItemMethodAsync() below for calling details.
         
-        Does a repository refresh to get the changes across from the other thread.
+        Do a repository refresh to get the changes across from the other thread.
         """
+        from osaf.framework.blocks.Block import Block
+
         wx.GetApp().UIRepositoryView.refresh () # bring changes across from the other thread/view
 
         # unwrap the target item and find the method to call
-        item = transportItem.unwrap ()
-        try:
-            member = getattr (type(item), methodName)
-        except AttributeError:
+
+        if isinstance (transportItem, TransportWrapper):
+            item = transportItem.unwrap ()
+        else:
+            item = Block.findBlockByName (transportItem)
+            assert item is not None
+
+        method = getattr (type(item), methodName, None)
+        if method is None:
             logger.warning ("CallItemMethodAsync couldn't find method %s on item %s" % (methodName, str (item)))
-            return
-
-        # unwrap the transportArgs
-        args = []
-        for wrapper in transportArgs:
-            args.append (wrapper.unwrap())
-
-        # unwrap the keyword args
-        for key, wrapper in keyArgs.items():
-            keyArgs[key] = wrapper.unwrap()
-
-        # call the member with params
-        member (item, *args, **keyArgs)
+        else:
+            # unwrap the transportArgs
+            args = []
+            for wrapper in transportArgs:
+                args.append (wrapper.unwrap())
+    
+            # unwrap the keyword args
+            for key, wrapper in keyArgs.items():
+                keyArgs[key] = wrapper.unwrap()
+    
+            # call the member with params
+            method (item, *args, **keyArgs)
 
     def CallItemMethodAsync (self, item, methodName, *args, **keyArgs):
         """
         Post an asynchronous event that will call a method by name in an item.
+        If item is a string then the block of that name will be used as the
+        item.
         
         Communication between threads is tricky.  This method will convert
         all parameters into UUIDs for transport during the event posting,
@@ -748,12 +756,13 @@ class wxApplication (wx.App):
         All other args are passed across to the other thread.
         
         @param item: an C{Item} whose method we wish to call
-        @type item: C{Item}
+        @type item: C{Item} or C{String}
         @param methodName: the name of the method to call
         @type methodName: C{String}
         """
         # convert the item whose method we're calling
-        transportItem = TransportWrapper (item)
+        if isinstance (item, schema.Item):
+            item = TransportWrapper (item)
         # convert all the arg items
         transportArgs = []
         for anItem in args:
@@ -761,7 +770,7 @@ class wxApplication (wx.App):
         # convert all dictionary items
         for key,value in keyArgs.items():
             keyArgs[key] = TransportWrapper (value)
-        wx.GetApp().PostAsyncEvent (self._DispatchItemMethod, transportItem, 
+        wx.GetApp().PostAsyncEvent (self._DispatchItemMethod, item, 
                                     methodName, transportArgs, keyArgs)
 
 

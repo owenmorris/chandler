@@ -2,7 +2,6 @@ __parcel__ = "amazon"
 
 import osaf.framework.blocks.Block as Block
 import AmazonKinds
-import application.Globals as Globals
 import osaf.framework.blocks.detail.Detail as Detail
 
 #XXX[i18n] this module sits outsite of OSAF and should have its own translation domain
@@ -19,7 +18,7 @@ class AmazonController(Block.Block):
         @rtype: AmazonCollection or None
         @return: AmazonCollection for the search keyword or None if search results == 0
         """
-        return AmazonKinds.SearchByKeyword(self.itsView, Globals.views[0])
+        return AmazonKinds.SearchByKeyword(self.itsView)
 
     def onNewAmazonWishListEvent(self, event):
         """
@@ -31,7 +30,7 @@ class AmazonController(Block.Block):
         @rtype: AmazonCollection or None
         @return: AmazonCollection for the wishlist or None if search results == 0
         """
-        return AmazonKinds.SearchWishListByEmail(self.itsView, Globals.views[0])
+        return AmazonKinds.SearchWishListByEmail(self.itsView)
 
 class AmazonDetailBlock(Detail.HTMLDetailArea):
     """
