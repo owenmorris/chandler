@@ -1,13 +1,13 @@
 import tools.QAUITestAppLib as QAUITestAppLib
 import os, sys
 from application.dialogs.PublishCollection import ShowPublishDialog
-import application.Globals as Globals
 import wx
 from i18n import OSAFMessageFactory as _
 from osaf.sharing import Sharing, unpublish 
 import osaf.sharing.ICalendar as ICalendar
 import tools.QAUITestAppLib as QAUITestAppLib
 import osaf.pim as pim
+from osaf.framework.blocks.Block import Block
 
 App_ns = app_ns()
 
@@ -62,7 +62,7 @@ try:
     
     # Sharing dialog
     logger.Start("Sharing dialog")
-    collection = Globals.views[0].getSidebarSelectedCollection()
+    collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
     if collection is not None:
         if sidebar.filterKind is None:
             filterClassName = None 

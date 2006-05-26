@@ -1,6 +1,5 @@
 import tools.QAUITestAppLib as QAUITestAppLib
 import flickr
-import application.Globals as Globals
 import socket
 
 # initialization
@@ -23,7 +22,6 @@ try:
 
     # this is what we do instead
     repView = app_ns().itsView
-    cpiaView = Globals.views[0]
     # get a collection of photos from the oscon2005 tag
     fc = flickr.PhotoCollection(itsView = repView)
     fc.tag = flickr.Tag.getTag(repView, "oscon2005")

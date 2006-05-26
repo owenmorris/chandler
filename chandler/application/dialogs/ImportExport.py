@@ -6,8 +6,8 @@ from application import schema
 import itertools
 import osaf.sharing
 from  osaf.sharing.ICalendar import importICalendarFile, ImportError
-import application.Globals as Globals
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
+from osaf.framework.blocks.Block import Block
 
 logger = logging.getLogger(__name__)
 MAX_UPDATE_MESSAGE_LENGTH = 50
@@ -120,7 +120,7 @@ class ImportDialog(FileChooserWithOptions):
 
         sidebarCollection = schema.ns("osaf.app", view).sidebarCollection
         trash             = schema.ns("osaf.pim", view).trashCollection
-        selected = Globals.views[0].getSidebarSelectedCollection()
+        selected = Block.findBlockByName("MainView").getSidebarSelectedCollection()
         
         # create a collection chooser
         gs = wx.FlexGridSizer(2, 2, 2, 2)  # rows, cols, hgap, vgap        

@@ -4,7 +4,6 @@
 """
 __parcel__ = "osaf.framework.blocks"
 
-import application.Globals as Globals
 from application import schema
 from application.Application import mixinAClass
 import Block as Block

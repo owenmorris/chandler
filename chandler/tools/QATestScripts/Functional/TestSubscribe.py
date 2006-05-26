@@ -1,7 +1,6 @@
 import tools.QAUITestAppLib as QAUITestAppLib
 import os
 import application.dialogs.SubscribeCollection as SubscribeCollection
-import application.Globals as Globals
 import wx
 from i18n import OSAFMessageFactory as _
 

@@ -4,7 +4,6 @@
 """
 
 import wx
-import application.Globals as Globals
 
 """
 Overview of Drag and Drop:

@@ -26,7 +26,6 @@ from application import schema
 import itertools
 from i18n import OSAFMessageFactory as _
 import os, logging
-import application.Globals as Globals
 import bisect
 
 FREEBUSY_WEEKS_EXPORTED = 26
@@ -889,9 +888,10 @@ def importICalendarFile(fullpath, view, targetCollection = None,
     created instead.
 
     """
-    import osaf.framework.blocks
+    from osaf.framework.blocks.Block import Block
+
     if selectedCollection:
-        targetCollection = Globals.views[0].getSidebarSelectedCollection()
+        targetCollection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
 
     trash = schema.ns("osaf.pim", view).trashCollection
     if targetCollection == trash:
@@ -925,7 +925,7 @@ def importICalendarFile(fullpath, view, targetCollection = None,
         name = "".join(filename.split('.')[0:-1]) or filename
         collection.displayName = name
         schema.ns("osaf.app", view).sidebarCollection.add(collection)
-        sideBarBlock = osaf.framework.blocks.Block.Block.findBlockByName('Sidebar')
+        sideBarBlock = Block.findBlockByName('Sidebar')
         sideBarBlock.postEventByName ("SelectItemsBroadcast",
                                       {'items':[collection]})
     if logger:
