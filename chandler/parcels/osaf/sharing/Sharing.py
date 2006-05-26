@@ -949,10 +949,6 @@ class ShareConduit(pim.ContentItem):
         # items to add to the collection:
         if isinstance(contents, pim.ContentCollection):
 
-            if isinstance(contents, pim.SmartCollection) and \
-                   not hasattr(contents, 'inclusions'):
-                contents._setup()
-
             filterClasses = self._getFilterClasses()
 
             # If an item is in the manifest but it's no longer in the
@@ -2772,6 +2768,8 @@ class CloudXMLFormat(ImportExportFormat):
                 parent = schema.Item.getDefaultParent(view)
                 item = kind.instantiateItem(None, parent, uuid,
                                             withInitialValues=True)
+                if isinstance(item, pim.SmartCollection):
+                    item._setup()
             else:
                 item = kind.newItem(None, None)
 
