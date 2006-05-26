@@ -82,19 +82,40 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_MOVE, self.OnMove)
-        
-        # Fix for Bug 4156: On the Mac, when the app activates,
-        # un-minimize the main window if necessary
+
+        if '__WXMSW__' in wx.PlatformInfo:
+            # From the wxWidgets documentation:
+            # wxToolBar95: Note that this toolbar paints tools to reflect system-wide colours.
+            # If you use more than 16 colours in your tool bitmaps, you may wish to suppress
+            # this behaviour, otherwise system colours in your bitmaps will inadvertently be
+            # mapped to system colours. To do this, set the msw.remap system option before
+            # creating the toolbar:
+
+            # wxSystemOptions::SetOption(wxT("msw.remap"), 0);
+
+            # If you wish to use 32-bit images (which include an alpha channel for
+            # transparency) use:
+
+            #   wxSystemOptions::SetOption(wxT("msw.remap"), 2);
+
+            # then colour remapping is switched off, and a transparent background used. But
+            # only use this option under Windows XP with true colour:
+
+            #   (wxTheApp->GetComCtl32Version() >= 600 && ::wxDisplayDepth() >= 32)
+            if wx.GetApp().GetComCtl32Version() >= 600 and wx.DisplayDepth() >= 32:
+                value = 2
+            else:
+                value = 0
+            wx.SystemOptions.SetOptionInt ("msw.remap", value)
+
         if wx.Platform == '__WXMAC__':
+            # Fix for Bug 4156: On the Mac, when the app activates,
+            # un-minimize the main window if necessary
             wx.GetApp().Bind(wx.EVT_ACTIVATE_APP, self.OnAppActivate)
- 
+
     def OnAppActivate(self, event):
         if event.GetActive() and self.IsIconized():
             self.Iconize(False)
-
-        # for wxMSW, disable system palette color mapping in toolbar icons
-        if '__WXMSW__' in wx.PlatformInfo:
-            wx.SystemOptions.SetOptionInt( "msw.remap", 0 )
 
     def OnClose(self, event):
         """
