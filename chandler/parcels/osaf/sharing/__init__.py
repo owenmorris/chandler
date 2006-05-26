@@ -29,7 +29,6 @@ import zanshin, M2Crypto, twisted, re
 import wx          # For the dialogs, but perhaps this is better accomplished
 import application # via callbacks
 
-
 from Sharing import *
 from conduits import *
 from WebDAV import *
@@ -329,10 +328,6 @@ def publish(collection, account, classesToInclude=None,
                     # Create a subcollection to contain the cloudXML versions of
                     # the shared items
     
-                    # Since we're publishing twice as many resources:
-                    if progressMonitor:
-                        progressMonitor.totalWork *= 2
-    
                     subShareName = u"%s/%s" % (shareName, SUBCOLLECTION)
     
                     subShare = _newOutboundShare(view, collection,
@@ -354,10 +349,21 @@ def publish(collection, account, classesToInclude=None,
                     if subShare.exists():
                         raise SharingError(_(u"Share already exists"))
     
-                    subShare.create()
-    
-                    # sync the subShare before the CalDAV share
-                    share.follows = subShare
+                    try:
+                        subShare.create()
+
+                        # sync the subShare before the CalDAV share
+                        share.follows = subShare
+
+                        # Since we're publishing twice as many resources:
+                        if progressMonitor:
+                            progressMonitor.totalWork *= 2
+        
+                    except SharingError:
+                        # We're not able to create the subcollection, so
+                        # must be a vanilla CalDAV Server.  Continue on.
+                        subShare.delete(True)
+                        subShare = None
 
                 share.put(updateCallback=callback)
                 
@@ -628,7 +634,7 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
                 logger.exception("Failed to subscribe to %s", url)
                 share.delete(True)
                 raise
-
+            
         if updateCallback:
             updateCallback(msg=_(u"Detecting share settings..."))
 
@@ -664,6 +670,49 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
             logger.debug("Failed to create test subcollection %s; error status %d", testCollName, err.status)
             isReadOnly = True
             shareMode = 'get'
+            
+        # Creating a subcollection failed, but subcollections aren't required
+        # for CalDAV servers.  Before deciding that the collection is really
+        # read-only, try putting an empty event.  This should be replaced with
+        # code that does a PROPFIND on current-user-privilege-set and checks
+        # for the write privilege.
+        if isReadOnly:
+            dummyICS = vobject.iCalendar()
+            vevent = dummyICS.add('vevent')
+            vevent.add('dtstart').value = datetime.datetime.now(vobject.icalendar.utc)
+            vevent.add('duration').value = datetime.timedelta(hours=1)
+            id = str(chandlerdb.util.c.UUID())
+            vevent.add('uid').value = id
+            vevent.add('summary').value = "Test event"
+            
+            dummyPath = location + id + '.ics'
+
+            handle = conduit._getServerHandle()
+
+            dummyResource = handle.getResource(dummyPath)
+            if ticket:
+                dummyResource.ticketId = ticket
+            
+            try:
+                handle.blockUntil(dummyResource.put, dummyICS.serialize(),
+                                  checkETag=False, contentType="text/calendar")
+            except zanshin.http.HTTPError, err:
+                logger.debug("Failed to create dummy event; error status %d",
+                             err.status)
+                
+            else:
+                
+                # succeeded at putting the resource, now delete it
+                try:
+                    handle.blockUntil(dummyResource.delete)
+                except zanshin.webdav.ConnectionError, M2Crypto.BIO.BIOError:
+                    msg = "Failed to delete dummy event, dangling resource " \
+                          "%s left on server!"
+                    logger.debug(msg, dummypath)
+                
+                isReadOnly = False
+                shareMode = 'both'
+
 
         logger.debug('...Read Only?  %s', isReadOnly)
 
