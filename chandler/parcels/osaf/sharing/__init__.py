@@ -34,6 +34,7 @@ from conduits import *
 from WebDAV import *
 from ICalendar import *
 from application.Utility import getDesktopDir
+import vobject
 
 logger = logging.getLogger(__name__)
 
