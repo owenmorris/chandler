@@ -8,6 +8,7 @@ import application.dialogs.Util
 from i18n import OSAFMessageFactory as _
 from application import schema
 from AccountInfoPrompt import PromptForNewAccountInfo
+from osaf.framework.blocks.Block import Block
 
 logger = logging.getLogger(__name__)
 
@@ -132,17 +133,14 @@ class SubscribeDialog(wx.Dialog):
             # Need to SelectFirstItem -- DJA
             share = sharing.getShare(collection)
 
-            event = 'ApplicationBarAll'
             if share.filterClasses and len(share.filterClasses) == 1:
-                filterClass = share.filterClasses[0]
-                if filterClass == 'osaf.pim.calendar.Calendar.CalendarEventMixin':
-                    event = 'ApplicationBarEvent'
-                elif filterClass == 'osaf.pim.tasks.TaskMixin':
-                    event = 'ApplicationBarTask'
-                elif filterClass == 'osaf.pim.mail.MailMessageMixin':
-                    event = 'ApplicationBarMail'
-
-            Globals.views[0].postEventByName(event, {})
+                parts = share.filterClasses[0].split (".")
+                className = parts.pop ()
+                module = __import__ ('.'.join(parts), globals(), locals(), ['__name__'])
+                filterClass = module.__dict__[className].getKind (view)
+            else:
+                filterClass = None
+            Block.findBlockByName ("Sidebar").setPreferredKind(filterClass)
 
             if self.modal:
                 self.EndModal(True)
