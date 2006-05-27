@@ -826,7 +826,7 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         # post the event for the toolbarItem, or toolbarItem located by name
         if toolbarItem is None:
             toolbarItem = self._item_named (name)
-        return toolbarItem.post(toolbarItem.event, {})
+        return Block.Block.post(toolbarItem.event, {}, toolbarItem)
         
 class wxToolbarMixin (object):
     """

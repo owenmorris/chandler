@@ -20,7 +20,6 @@ import application
 from application import schema
 import repository.item.Item as Item
 import items, notes
-import application.Globals as Globals
 import email.Utils as Utils
 import re as re
 import chandlerdb.item.ItemError as ItemError
@@ -694,15 +693,6 @@ class MailMessageMixin(MIMEContainer):
         First pass at API will be expanded upon later.
         """
         return self.hasMimeParts
-
-
-    def shareSend(self):
-        """
-        Share this item, or Send if it's an Email.
-        We assume we want to send this MailMessage here.
-        """
-        # message the main view to do the work
-        Globals.views[0].postEventByName('SendMail', {'item': self})
 
     def getSendability(self, ignoreAttr=None):
         """

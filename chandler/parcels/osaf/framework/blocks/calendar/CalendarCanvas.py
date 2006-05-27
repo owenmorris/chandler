@@ -618,7 +618,7 @@ class CalendarEventHandler(object):
                 view.commit()
                 
                 self.blockItem.postEventByName("TimeZoneChange",
-                                                {'tzinfo':newTZ})
+                                               {'tzinfo':newTZ})
 
 class CalendarNotificationHandler(object):
     """

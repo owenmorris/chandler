@@ -583,7 +583,7 @@ class wxApplication (wx.App):
                             if method is not None:
                                 arguments ['buttonState'] = method (wxID)
      
-                    block.post (blockEvent, arguments)
+                    Block.post (blockEvent, arguments, block)
      
                     if updateUIEvent:
                         check = arguments.get ('Check', None)

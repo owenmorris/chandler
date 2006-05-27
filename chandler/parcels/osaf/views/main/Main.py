@@ -193,7 +193,7 @@ class MainView(View):
             sidebar.setPreferredKind (kindParameter)
 
         if not collection in sidebar.contents and event.collectionAddEvent is not None:
-            self.post (event.collectionAddEvent, {})
+            Block.post (event.collectionAddEvent, {}, self)
 
         if collection in sidebar.contents and collection is not selectedCollection:
             sidebar.postEventByName("SelectItemsBroadcast", {'items':[collection]})

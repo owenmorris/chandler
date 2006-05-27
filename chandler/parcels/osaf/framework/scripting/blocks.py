@@ -14,10 +14,10 @@ from osaf.framework.blocks.detail import Detail
 from osaf.framework.blocks import ControlBlocks
 from osaf.framework.attributeEditors import AttributeEditors
 from application.dialogs import Util
+from osaf.framework.blocks import Block
 
 def installBlocks(parcel, oldVersion=None):
     from osaf.pim import structs
-    from osaf.framework.blocks import Block
     from script import Script
 
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
@@ -205,7 +205,7 @@ class OpenFileButton(Detail.DetailSynchronizer, ControlBlocks.Button):
             self._item.filePath = os.path.join(dir, fileName)
             self._item.sync_file_with_model(preferFile=preferFile)
             resyncEvent = schema.ns('osaf.framework.blocks.detail', self).Resynchronize
-            self.post(resyncEvent, {})
+            Block.Block.post(resyncEvent, {}, self)
             self.postEventByName('ResyncDetailParent', {})
 
 class SaveFileButton(OpenFileButton):

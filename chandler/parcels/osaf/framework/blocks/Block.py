@@ -150,7 +150,8 @@ class Block(schema.Item):
     #See Bug #5219
     wxId = schema.One (schema.Integer, defaultValue=0)
     
-    def post (self, event, arguments):
+    @classmethod
+    def post (self, event, arguments, sender=None):
         """
         Events that are posted by the block pass along the block
         that sent it.
@@ -159,29 +160,41 @@ class Block(schema.Item):
         @type event: a C{BlockEvent}
         @param arguments: arguments to pass to the event
         @type arguments: a C{dict}
+        @param sender: the block that sent the event
+        @type arguments: a C{Block}
         @return: the value returned by the event handler
         """
         try:
-            try:
-                stackedArguments = event.arguments
-            except AttributeError:
-                pass
-            arguments ['sender'] = self
+            stackedArguments = getattr (event, "arguments", None)
+            arguments ['sender'] = sender
             arguments ['results'] = None
             event.arguments = arguments
             self.dispatchEvent (event)
             results = event.arguments ['results']
             return results # return after the finally clause
         finally:
-            try:
-                event.arguments = stackedArguments
-            except UnboundLocalError:
+            if stackedArguments is None:
                 delattr (event, 'arguments')
+            else:
+                event.arguments = stackedArguments
+
+    @classmethod
+    def postEventByNameWithSender (theClass, eventName, args, sender=None):
+        """
+        A variant of post that looks up the event to post by name and
+        includes a sender, which may be None
+        """
+        assert theClass.eventNameToItemUUID.has_key (eventName), "Event name %s not found in %s" % (eventName, self)
+        list = theClass.eventNameToItemUUID [eventName]
+        event = wx.GetApp().UIRepositoryView.findUUID (list [0])
+        return theClass.post (event, args, sender)
 
     def postEventByName (self, eventName, args):
-        assert self.eventNameToItemUUID.has_key (eventName), "Event name %s not found in %s" % (eventName, self)
-        list = self.eventNameToItemUUID [eventName]
-        return self.post (self.find (list [0]), args)
+        """
+        A variant of postEventByNameWithSender that sets the sender to self.
+        """
+        return self.postEventByNameWithSender (eventName, args, sender=self)
+
 
     eventNameToItemUUID = {}           # A dictionary mapping event names to event UUIDS
     blockNameToItemUUID = {}           # A dictionary mapping rendered block names to block UUIDS
@@ -954,16 +967,18 @@ class Block(schema.Item):
             # we want the text to default to the block title
             # this makes sure that if someone modifies Text during UpdateUI
             # that it later can get reset to the default from the block
-            title = getattr(event.arguments['sender'], 'title', '')
-            if title:
-                accel = getattr(event.arguments['sender'], 'accel', '')
-                if accel:
-                    title += '\t' + accel
-                    # this isn't a real wx argument, but is used later
-                    # to re-attach the accelerator after the client has
-                    # updated the 'Text' argument
-                    event.arguments['Accel'] = accel
-                event.arguments['Text'] = title
+            sender = event.arguments['sender']
+            if sender is not None:
+                title = getattr(sender, 'title', None)
+                if title is not None:
+                    accel = getattr(sender, 'accel', None)
+                    if accel is not None:
+                        title += '\t' + accel
+                        # this isn't a real wx argument, but is used later
+                        # to re-attach the accelerator after the client has
+                        # updated the 'Text' argument
+                        event.arguments['Accel'] = accel
+                    event.arguments['Text'] = title
             methodName += 'UpdateUI'
             commitAfterDispatch = False
         else:
@@ -975,6 +990,7 @@ class Block(schema.Item):
 
         elif dispatchEnum == 'SendToSender':
             block = event.arguments['sender']
+            assert block is not None
             callMethod (block, methodName, event)
 
         elif dispatchEnum == 'SendToBlockByName':
@@ -986,6 +1002,7 @@ class Block(schema.Item):
 
         elif dispatchEnum == 'BroadcastInsideMyEventBoundary':
             block = event.arguments['sender']
+            assert block is not None
             while (not block.eventBoundary and block.parentBlock):
                 block = block.parentBlock
                 

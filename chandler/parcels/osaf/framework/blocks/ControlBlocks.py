@@ -115,7 +115,7 @@ class Button(RectangularChild):
         except AttributeError:
             pass
         else:
-            self.post(event, {'item':self})
+            Block.post(event, {'item':self}, self)
 
 
 class wxChandlerMultiStateButton(MultiStateButton.MultiStateButton):
@@ -1517,8 +1517,9 @@ class AEBlock(BoxContainer):
         except AttributeError:
             pass
         else:
-            self.post(event, {'item': item, 
-                              'attribute': self.attributeName })
+            Block.post(event,
+                       {'item': item,  'attribute': self.attributeName },
+                       self)
 
 
 # Ewww, yuk.  Blocks and attribute editors are mutually interdependent

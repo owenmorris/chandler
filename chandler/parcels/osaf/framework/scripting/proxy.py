@@ -94,7 +94,7 @@ class RootProxy(BlockProxy):
         if timing is not None:
             startTime = timing.start_timer()
         # post the event
-        result = Globals.mainViewRoot.post(event, argDict)
+        result = Block.Block.post(event, argDict, Globals.mainViewRoot)
         # finish timing
         if timing is not None:
             timing.end_timer(startTime, eventName)

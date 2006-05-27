@@ -2,7 +2,6 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
-import application.Globals as Globals
 import time
 from osaf import sharing
 import osaf.pim.mail as Mail
@@ -142,7 +141,7 @@ class FocusEventHandlers(Item):
                 if unicode(item.fromAddress).strip() == u'':
                     item.fromAddress = item.getCurrentMeEmailAddress()
 
-            item.shareSend()
+            Block.Block.postEventByNameWithSender('SendMail', {'item': item})
 
     def onFocusTogglePrivateEvent(self, event):
         """
