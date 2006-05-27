@@ -602,8 +602,7 @@ class MainView(View):
         # "Test | Generate Many Content Items" menu items
         count = event.arguments['sender'].blockName == 'GenerateMuchDataItem' and 100 or 4
         sidebarCollection = schema.ns("osaf.app", self.itsView).sidebarCollection
-        mainView = Globals.views[0]
-        return generate.GenerateAllItems(self.itsView, count, mainView, sidebarCollection)
+        return generate.GenerateAllItems(self.itsView, count, sidebarCollection)
 
     def onGenerateContentItemsFromFileEvent(self, event):
         # triggered from "File | Import/Export" menu
@@ -619,8 +618,7 @@ class MainView(View):
             return
 
         self.setStatusMessage (_(u"Importing from %(filename)s")  % {'filename': filename})
-        mainView = Globals.views[0]
-        return GenerateItemsFromFile.GenerateItems(self.itsView, mainView, os.path.join(dir, filename))
+        return GenerateItemsFromFile.GenerateItems(self.itsView, os.path.join(dir, filename))
 
     def onMimeTestEvent (self, event):
         self.__loadMailTests ("mime_tests")

@@ -305,12 +305,12 @@ def GenerateItems(view, count, function, collections=[], *args, **dict):
 
     return results
 
-def GenerateAllItems(view, count, mainView=None, sidebarCollection=None):
+def GenerateAllItems(view, count, sidebarCollection=None):
     """ Generate a bunch of items of several types, for testing. """
     
     # Generate some item collections to put them in.
     existingNames = sidebarCollection is not None and [ existingCollection.displayName for existingCollection in sidebarCollection] or []
-    collections = GenerateItems(view, 6, GenerateCollection, [], mainView, existingNames)
+    collections = GenerateItems(view, 6, GenerateCollection, [], existingNames)
     
     items = []
     defaultTzinfo = ICUtzinfo.default
