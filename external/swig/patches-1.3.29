@@ -1,6 +1,6 @@
 diff -ur swig-1.3.29.orig/Lib/typemaps/exception.swg swig-1.3.29/Lib/typemaps/exception.swg
 --- swig-1.3.29.orig/Lib/typemaps/exception.swg	2006-03-06 16:14:10.000000000 -0800
-+++ swig-1.3.29/Lib/typemaps/exception.swg	2006-03-31 10:54:19.000000000 -0800
++++ swig-1.3.29/Lib/typemaps/exception.swg	2006-05-26 16:40:24.000000000 -0700
 @@ -13,7 +13,7 @@
  /* macros for error manipulation */
  #define %nullref_fmt()                     "invalid null reference "		   
@@ -12,7 +12,7 @@ diff -ur swig-1.3.29.orig/Lib/typemaps/exception.swg swig-1.3.29/Lib/typemaps/ex
  #define %varnullref_fmt(_type,_name)       %nullref_fmt() %varfail_fmt(_type, _name)  		   
 diff -ur swig-1.3.29.orig/Makefile.in swig-1.3.29/Makefile.in
 --- swig-1.3.29.orig/Makefile.in	2006-03-10 14:54:02.000000000 -0800
-+++ swig-1.3.29/Makefile.in	2006-03-31 10:53:53.000000000 -0800
++++ swig-1.3.29/Makefile.in	2006-05-26 16:40:24.000000000 -0700
 @@ -22,7 +22,7 @@
  source:
  	@cd $(SOURCE) && $(MAKE)
@@ -33,7 +33,7 @@ diff -ur swig-1.3.29.orig/Makefile.in swig-1.3.29/Makefile.in
  	echo  "/* and use the command 'make Lib/swigwarn.swg' instead.                 */" >> $@
 diff -ur swig-1.3.29.orig/Source/Modules/python.cxx swig-1.3.29/Source/Modules/python.cxx
 --- swig-1.3.29.orig/Source/Modules/python.cxx	2006-03-15 17:46:50.000000000 -0800
-+++ swig-1.3.29/Source/Modules/python.cxx	2006-03-31 10:54:19.000000000 -0800
++++ swig-1.3.29/Source/Modules/python.cxx	2006-05-26 16:40:24.000000000 -0700
 @@ -40,7 +40,6 @@
  static  File         *f_init = 0;
  static  File         *f_shadow_py = 0;
@@ -92,4 +92,53 @@ diff -ur swig-1.3.29.orig/Source/Modules/python.cxx swig-1.3.29/Source/Modules/p
 +        }
          Printf(doc, "%s ", type);
        }
+ 
+@@ -2794,8 +2790,8 @@
+ 		 class_name, symname, module, Swig_name_member(class_name,symname), class_name);
+ 	}
+       }
+-      Printf(f_shadow_file,"%s_swigregister = %s.%s_swigregister\n", class_name, module, class_name);
+-      Printf(f_shadow_file,"%s_swigregister(%s)\n", class_name, class_name,0);
++
++      Printf(f_shadow_file,"%s.%s_swigregister(%s)\n", module, class_name, class_name);
+       
+       shadow_indent = 0;
+       Printf(f_shadow_file,"%s\n", f_shadow_stubs);
+diff -ur swig-1.3.29.orig/Source/Swig/misc.c swig-1.3.29/Source/Swig/misc.c
+--- swig-1.3.29.orig/Source/Swig/misc.c	2006-03-06 14:51:00.000000000 -0800
++++ swig-1.3.29/Source/Swig/misc.c	2006-05-26 16:40:24.000000000 -0700
+@@ -900,6 +900,24 @@
+ #endif
+ 
+ 
++
++/* -----------------------------------------------------------------------------
++ * Swig_string_wxpy()
++ *
++ * Drop a leading 'wx' for all wxNames, except for wxEVT*
++ * ----------------------------------------------------------------------------- */
++String *Swig_string_wxpy(String *s) {
++  String* ns = NewStringEmpty();
++  char* cptr = Char(s);
++  if (cptr[0] == 'w' && cptr[1] == 'x') {
++    if ( ! (cptr[2] == 'E' && cptr[3] == 'V' && cptr[4] == 'T')) {
++      ns = NewString(&cptr[2]);
++    }
++  }
++  return ns;
++}
++
++
+ /* -----------------------------------------------------------------------------
+  * Swig_init()
+  *
+@@ -929,6 +947,9 @@
+   DohEncoding("firstuppercase", Swig_string_first_upper);
+   DohEncoding("firstlowercase", Swig_string_first_lower);
+ 
++  /* wxPython's rename encoder */
++  DohEncoding("wxpy", Swig_string_wxpy);
++
+   /* Initialize the swig keys */
+   Swig_keys_init();
  
