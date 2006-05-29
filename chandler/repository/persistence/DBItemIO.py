@@ -19,7 +19,6 @@ from repository.item.PersistentCollections \
 from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.RepositoryError \
      import LoadError, LoadValueError, MergeError, SaveValueError
-from repository.persistence.DBContainer import HashTuple
 
 
 class DBItemWriter(ItemWriter):

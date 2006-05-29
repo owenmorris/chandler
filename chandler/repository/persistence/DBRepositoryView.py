@@ -9,7 +9,7 @@ from datetime import timedelta
 from time import time, sleep
 
 from chandlerdb.item.c import CItem, Nil, Default, isitem
-from chandlerdb.util.c import isuuid
+from chandlerdb.util.c import isuuid, HashTuple
 from chandlerdb.persistence.c import DBLockDeadlockError
 
 from repository.item.RefCollections import RefList, TransientRefList
@@ -22,7 +22,6 @@ from repository.persistence.RepositoryView \
 from repository.persistence.Repository import Repository
 from repository.persistence.DBLob import DBLob
 from repository.persistence.DBRefs import DBRefList, DBChildren, DBNumericIndex
-from repository.persistence.DBContainer import HashTuple
 from repository.persistence.DBItemIO import DBItemWriter
 
 
@@ -298,6 +297,32 @@ class DBRepositoryView(OnDemandRepositoryView):
     
     def refresh(self, mergeFn=None, version=None, notify=True):
 
+        if not self._status & RepositoryView.REFRESHING:
+            try:
+                self._status |= RepositoryView.REFRESHING
+                while True:
+                    try:
+                        txnStatus = self._startTransaction(False)
+                        self._refresh(mergeFn, version, notify)
+                    except DBLockDeadlockError:
+                        self.logger.info('%s retrying refresh aborted by deadlock (thread: %s)', self, currentThread().getName())
+                        self._abortTransaction(txnStatus)
+                        sleep(1)
+                        continue
+                    except:
+                        self._abortTransaction(txnStatus)
+                        raise
+                    else:
+                        self._abortTransaction(txnStatus)
+                        return
+            finally:
+                self._status &= ~RepositoryView.REFRESHING
+
+        else:
+            self.logger.warning('%s: skipping recursive refresh', self)
+
+    def _refresh(self, mergeFn=None, version=None, notify=True):
+
         store = self.store
         if not version:
             newVersion = store.getVersion()
@@ -438,9 +463,11 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def commit(self, mergeFn=None, notify=True):
 
-        if not (self._status & RepositoryView.COMMITTING or
-                len(self._log) + len(self._deletedRegistry) == 0):
+        if self._status & RepositoryView.COMMITTING:
+            self.logger.warning('%s: skipping recursive commit', self)
+        elif len(self._log) + len(self._deletedRegistry) > 0:
             try:
+                release = False
                 release = self._acquireExclusive()
                 self._status |= RepositoryView.COMMITTING
                 
@@ -449,19 +476,26 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                 size = 0L
                 txnStatus = 0
-                newVersion = self._version
+                lock = None
 
-                def finish(txnStatus, commit):
+                def finish(commit):
                     if txnStatus:
                         if commit:
                             self._commitTransaction(txnStatus)
                         else:
                             self._abortTransaction(txnStatus)
-                    return 0
+                    return store.releaseLock(lock), 0
         
                 while True:
                     try:
-                        self.refresh(mergeFn, None, notify)
+                        while True:
+                            self.refresh(mergeFn, None, notify)
+                            lock = store.acquireLock()
+                            newVersion = store.getVersion()
+                            if newVersion > self.itsVersion:
+                                lock = store.releaseLock(lock)
+                            else:
+                                break
 
                         if self.isDeferringDelete():
                             self.logger.info('%s effecting deferred deletes', self)
@@ -489,19 +523,19 @@ class DBRepositoryView(OnDemandRepositoryView):
                             if self.isDirty():
                                 size += self._roots._saveValues(newVersion)
 
-                        txnStatus = finish(txnStatus, True)
+                        lock, txnStatus = finish(True)
                         break
 
                     except DBLockDeadlockError:
                         self.logger.info('%s retrying commit aborted by deadlock (thread: %s)', self, currentThread().getName())
-                        txnStatus = finish(txnStatus, False)
+                        lock, txnStatus = finish(False)
                         sleep(1)
                         continue
 
-                    except:
-                        if txnStatus:
-                            self.logger.exception('%s aborting transaction (%d kb)', self, size >> 10)
-                        txnStatus = finish(txnStatus, False)
+                    except Exception, e:
+                        self.logger.warning('%s commit aborted by error: %s',
+                                            self, e)
+                        lock, txnStatus = finish(False)
                         raise
 
                 self._version = newVersion

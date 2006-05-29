@@ -14,7 +14,7 @@ from PyLucene import \
     IndexReader, IndexWriter, IndexSearcher, Term, TermQuery
 
 from chandlerdb.util.c import UUID
-from repository.persistence.DBContainer import DBContainer
+from repository.persistence.DBContainer import DBContainer, ValueContainer
 from repository.persistence.RepositoryError import RepositoryError
 
 
@@ -419,6 +419,18 @@ class IndexContainer(FileContainer):
             indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
             indexWriter.close()
 
+    def getIndexVersion(self):
+
+        value = self.get(ValueContainer.VERSION_KEY)
+        if value is None:
+            return 0L
+        else:
+            return unpack('>q', value)[0]
+
+    def setIndexVersion(self, version):
+
+        self.put(ValueContainer.VERSION_KEY, pack('>q', version))
+        
     def getDirectory(self):
 
         return DbDirectory(self.store.txn, self._db, self.store._blocks._db,

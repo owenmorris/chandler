@@ -8,7 +8,7 @@ import sys, threading, time
 
 from struct import pack, unpack
 
-from chandlerdb.util.c import UUID, _hash, SkipList
+from chandlerdb.util.c import UUID, _hash, SkipList, HashTuple
 from chandlerdb.item.c import CItem, CValues, Nil, Default
 from chandlerdb.persistence.c import \
     DBSequence, DB, \
@@ -416,14 +416,23 @@ class RefContainer(DBContainer):
 
             def __del__(_self):
 
-                try:
+                if _self.cursor is not None:
+                    try:
+                        self.closeCursor(_self.cursor)
+                        store.commitTransaction(view, _self.txnStatus)
+                    except Exception, e:
+                        store.repository.logger.error("in 0 __del__, %s: %s",
+                                                      e.__class__.__name__, e)
+                    _self.cursor = None
+                    _self.txnStatus = 0
+
+            def close(_self):
+
+                if _self.cursor is not None:
                     self.closeCursor(_self.cursor)
                     store.commitTransaction(view, _self.txnStatus)
-                except Exception, e:
-                    store.repository.logger.error("in 0 __del__, %s: %s",
-                                                  e.__class__.__name__, e)
-                _self.cursor = None
-                _self.txnStatus = 0
+                    _self.cursor = None
+                    _self.txnStatus = 0
 
             def next(_self, uRef):
 
@@ -443,7 +452,11 @@ class RefContainer(DBContainer):
 
         iterator = self.refIterator(view, uCol, version)
         if firstKey is None or lastKey is None:
-            _firstKey, _lastKey, alias = iterator.next(uCol)
+            ref = iterator.next(uCol)
+            if ref is None:
+                iterator.close()
+                raise KeyError, ('refIterator', uCol)
+            _firstKey, _lastKey, alias = ref
             if firstKey is None:
                 firstKey = _firstKey
             if lastKey is None:
@@ -452,11 +465,17 @@ class RefContainer(DBContainer):
         nextKey = firstKey
         while nextKey != lastKey:
             key = nextKey
-            previousKey, nextKey, alias = iterator.next(key)
+            ref = iterator.next(key)
+            if ref is None:
+                iterator.close()
+                raise KeyError, ('refIterator', key)
+            previousKey, nextKey, alias = ref
             yield key
 
         if lastKey is not None:
             yield lastKey
+
+        iterator.close()
 
     def purgeRefs(self, txn, uCol, keepOne):
 
@@ -1533,13 +1552,16 @@ class ValueContainer(DBContainer):
     # 0.6.1: version purge support
     # 0.6.2: added KDIRTY flag and storing of previous kind to item record
     # 0.6.3: changed persisting if a value is full-text indexed
+    # 0.6.4: changed version persistence
 
-    FORMAT_VERSION = 0x00060300
+    FORMAT_VERSION = 0x00060400
+
+    SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
+    VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)
 
     def __init__(self, store):
 
         super(ValueContainer, self).__init__(store)
-        self._versionSeq = None
         
     def open(self, name, txn, **kwds):
 
@@ -1548,41 +1570,30 @@ class ValueContainer(DBContainer):
         format_version = ValueContainer.FORMAT_VERSION
         schema_version = RepositoryView.CORE_SCHEMA_VERSION
 
-        try:
-            self._version = self.openDB(txn, name, 'version',
-                                        kwds.get('ramdb', False),
-                                        kwds.get('create', False))
-        except DBNoSuchFileError:
-            # pre 0.6.0
-            raise RepositoryFormatVersionError, (format_version, 'pre 0.6.0')
-
-        self._versionSeq = versionSeq = DBSequence(self._version)
+        self._version = self.openDB(txn, name, 'version',
+                                    kwds.get('ramdb', False),
+                                    kwds.get('create', False))
 
         if kwds.get('create', False):
-            versionId = UUID()
-            versionSeq.initial_value = 0
-            versionSeq.open(txn, versionId._uuid,
-                            DBSequence.DB_CREATE | DBSequence.DB_THREAD)
-            versionSeq.get(txn)
-            self._version.put(Repository.itsUUID._uuid,
-                              pack('>16sllQ', versionId._uuid,
-                                   format_version, schema_version, 0), txn)
+            self._version.put(ValueContainer.SCHEMA_KEY,
+                              pack('>16sll', UUID()._uuid,
+                                   format_version, schema_version), txn)
         else:
-            values = self.getVersionInfo(Repository.itsUUID, txn, True)
-            if values[2] != format_version:
-                raise RepositoryFormatVersionError, (format_version, values[2])
-            if values[3] != schema_version:
-                raise RepositorySchemaVersionError, (schema_version, values[3])
+            try:
+                versionID, format, schema = self.getSchemaInfo(txn, True)
+            except AssertionError:
+                raise RepositoryFormatVersionError, (format_version, '< 0.6.4')
+
+            if format != format_version:
+                raise RepositoryFormatVersionError, (format_version, format)
+            if schema != schema_version:
+                raise RepositorySchemaVersionError, (schema_version, schema)
 
     def openC(self):
 
         self.c = CValueContainer(self._db)
 
     def close(self):
-
-        if self._versionSeq is not None:
-            self._versionSeq.close()
-            self._versionSeq = None
 
         if self._version is not None:
             self._version.close()
@@ -1595,74 +1606,35 @@ class ValueContainer(DBContainer):
         super(ValueContainer, self).compact(txn)
         self._version.compact(txn)
 
-    def getVersionInfo(self, uuid, txn=None, open=False):
+    def getSchemaInfo(self, txn=None, open=False):
 
-        versionSeq = self._versionSeq
-        value = self._version.get(uuid._uuid, txn, self._flags, None)
-
+        value = self._version.get(ValueContainer.SCHEMA_KEY,
+                                  txn, self._flags, None)
         if value is None:
-            raise AssertionError, 'version record is missing'
+            raise AssertionError, 'schema record is missing'
 
-        versionId, format, schema, indexedVersion = unpack('>16sllQ', value)
-        if open:
-            versionSeq.open(txn, versionId, DBSequence.DB_THREAD)
-        version = self.getVersion()
+        versionId, format, schema = unpack('>16sll', value)
 
-        return UUID(versionId), version, format, schema, indexedVersion
-
-    def getIndexedVersion(self, uuid):
-
-        value = self._version.get(uuid._uuid, self.store.txn, self._flags)
-        return unpack('>Q', value[-8:])[0]
-
-    def setIndexedVersion(self, uuid, version):
-
-        txn = self.store.txn
-
-        value = self._version.get(uuid._uuid, txn, self._flags)
-        value = pack('>24sQ', value[0:24], version)
-
-        self._version.put(uuid._uuid, value, txn)
+        return UUID(versionId), format, schema
         
     def getVersion(self):
 
-        store = self.store
-        if store._ramdb:
-            return self._versionSeq.last_value
-        
-        txnStatus = 0
-        while True:
-            try:
-                try:
-                    txnStatus = store.startTransaction(None, True)
-                    return self._versionSeq.get(store.txn) - 1
-                finally:
-                    store.abortTransaction(None, txnStatus)
-            except DBLockDeadlockError:
-                if txnStatus & store.TXN_STARTED:
-                    self._logDL(32)
-                else:
-                    raise
+        value = self._version.get(ValueContainer.VERSION_KEY,
+                                  self.store.txn, self._flags, None)
+        if value is None:
+            return 0L
+        else:
+            return unpack('>q', value)[0]
 
     def nextVersion(self):
 
-        return self._versionSeq.get(self.store.txn)
+        version = self.getVersion() + 1L        
+        self._version.put(ValueContainer.VERSION_KEY, pack('>q', version),
+                          self.store.txn)
+
+        return version
 
     def purgeValue(self, txn, uuid):
 
         self.delete(uuid._uuid, txn)
         return 1
-
-
-class HashTuple(tuple):
-
-    def __contains__(self, name):
-
-        if isinstance(name, unicode):
-            name = name.encode('utf-8')
-
-        return super(HashTuple, self).__contains__(_hash(name))
-
-    def hash(self, name):
-
-        return _hash(name)

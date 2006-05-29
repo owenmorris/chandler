@@ -908,17 +908,17 @@ class DBStore(Store):
 
         return self._values.nextVersion()
 
-    def getVersionInfo(self):
+    def getSchemaInfo(self):
 
-        return self._values.getVersionInfo(self.repository.itsUUID)
+        return self._values.getVersionInfo()
 
-    def getIndexedVersion(self):
+    def getIndexVersion(self):
 
-        return self._values.getIndexedVersion(self.repository.itsUUID)
+        return self._index.getIndexVersion()
 
-    def setIndexedVersion(self, version):
+    def setIndexVersion(self, version):
 
-        return self._values.setIndexedVersion(self.repository.itsUUID, version)
+        return self._index.setIndexVersion(version)
 
     def startTransaction(self, view, nested=False):
 
@@ -1046,7 +1046,9 @@ class DBCheckpointThread(Thread):
     def run(self):
 
         repository = self._repository
+        store = repository.store
         condition = self._condition
+        lock = None
 
         while self._alive:
             condition.acquire()
@@ -1057,15 +1059,12 @@ class DBCheckpointThread(Thread):
                 break
 
             try:
-                for view in repository.getOpenViews():
-                    view._acquireExclusive()
-
+                lock = store.acquireLock()
                 repository.checkpoint()
                 repository.logger.info('%s: %s, completed checkpoint',
                                        repository, datetime.now())
             finally:
-                for view in repository.getOpenViews():
-                    view._releaseExclusive()
+                lock = store.releaseLock(lock)
 
     def terminate(self):
         
@@ -1102,17 +1101,18 @@ class DBIndexerThread(RepositoryThread):
 
         while self._alive and self.isAlive():
             latestVersion = store.getVersion()
-            indexedVersion = store.getIndexedVersion()
+            indexVersion = store.getIndexVersion()
 
-            if indexedVersion < latestVersion:
+            if indexVersion < latestVersion:
                 if view is None:
                     view = repository.createView("Lucene")
-                for version in xrange(indexedVersion, latestVersion):
+                for version in xrange(indexVersion, latestVersion):
                     view.refresh(version=version + 1, notify=False)
                     self._indexVersion(view, version + 1, store)
 
             condition.acquire()
-            condition.wait(60.0)
+            if self._alive:
+                condition.wait(60.0)
             condition.release()
 
         if view is not None:
@@ -1140,7 +1140,7 @@ class DBIndexerThread(RepositoryThread):
                         items.c.setItemStatus(store.txn, ver, uItem,
                                               status & ~CItem.TOINDEX)
                         count += 1
-                store.setIndexedVersion(version)
+                store.setIndexVersion(version)
             except (DBLockDeadlockError, DBInvalidArgError):
                 view._abortTransaction(txnStatus)
                 items._logDL(33)

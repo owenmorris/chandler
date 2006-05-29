@@ -41,7 +41,11 @@ class PersistentRefs(object):
                     refs = self.store._refs
                     refIterator = refs.refIterator(view, self.uuid, version)
 
-                pKey, nKey, alias = refIterator.next(key)
+                ref = refIterator.next(key)
+                if ref is None:
+                    refIterator.close()
+                    raise KeyError, ('refIterator', key)
+                pKey, nKey, alias = ref
                 map[key] = link = CLink(self, key, pKey, nKey, alias)
                 if alias is not None:
                     self._aliases[alias] = key
@@ -51,6 +55,9 @@ class PersistentRefs(object):
 
         if lastKey is not None:
             yield lastKey
+
+        if refIterator is not None:
+            refIterator.close()
 
     def _iteraliases(self, firstKey, lastKey):
 
@@ -70,7 +77,11 @@ class PersistentRefs(object):
                     refs = self.store._refs
                     refIterator = refs.refIterator(view, self.uuid, version)
 
-                pKey, nextKey, alias = refIterator.next(key)
+                ref = refIterator.next(key)
+                if ref is None:
+                    refIterator.close()
+                    raise KeyError, ('refIterator', key)
+                pKey, nextKey, alias = ref
             else:
                 nextKey = link._nextKey
                 alias = link.alias
@@ -80,6 +91,9 @@ class PersistentRefs(object):
 
             if key == lastKey:
                 break
+
+        if refIterator is not None:
+            refIterator.close()
 
     def _iterChanges(self):
 
