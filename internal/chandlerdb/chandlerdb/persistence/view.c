@@ -1131,6 +1131,7 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "DEFERDEL", DEFERDEL);
             PyDict_SetItemString_Int(dict, "FDIRTY", FDIRTY);
             PyDict_SetItemString_Int(dict, "RECORDING", RECORDING);
+            PyDict_SetItemString_Int(dict, "REFRESHING", REFRESHING);
             PyDict_SetItemString_Int(dict, "VERIFY", VERIFY);
 
             refresh_NAME = PyString_FromString("refresh");

@@ -30,6 +30,7 @@ void _init_singleref(PyObject *m);
 void _init_rijndael(PyObject *m);
 void _init_linkedmap(PyObject *m);
 void _init_skiplist(PyObject *m);
+void _init_hashtuple(PyObject *m);
 
 #ifdef WINDOWS
 PyObject *openHFILE(PyObject *self, PyObject *args);

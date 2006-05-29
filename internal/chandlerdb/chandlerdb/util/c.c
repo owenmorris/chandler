@@ -94,6 +94,7 @@ void initc(void)
     _init_rijndael(m);
     _init_linkedmap(m);
     _init_skiplist(m);
+    _init_hashtuple(m);
 #ifdef WINDOWS
     _init_lock(m);
 #endif

@@ -35,14 +35,15 @@ enum {
     RECORDING  = 0x0020,
     MONITORING = 0x0040,
     /* STALE   = 0x0080, from CItem */
+    REFRESHING = 0x0100,
     /* CDIRTY  = 0x0200, from CItem */
     DEFERDEL   = 0x0400,
     BGNDINDEX  = 0x0800,
-
     VERIFY     = 0x1000,
     DEBUG      = 0x2000,
     RAMDB      = 0x4000,
     CLOSED     = 0x8000,
+
     /*
      * merge flags from CItem
      */

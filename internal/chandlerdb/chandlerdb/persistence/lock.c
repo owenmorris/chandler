@@ -86,6 +86,8 @@ int _t_lock_put(t_lock *self)
             raiseDBError(err);
             return -1;
         }
+
+        self->held = 0;
     }
 
     return 0;
@@ -93,8 +95,11 @@ int _t_lock_put(t_lock *self)
 
 static void t_lock_dealloc(t_lock *self)
 {
-    if (self->lock.mode != DB_LOCK_NG)
+    if (self->held == 1)
+    {
         _t_lock_put(self);
+        self->held = 0;
+    }
 
     Py_XDECREF(self->env);
     self->env = NULL;
@@ -125,6 +130,7 @@ int _t_lock_init(t_lock *self, t_env *env, int id, DBT *data,
 
     Py_INCREF(env); Py_XDECREF(self->env);
     self->env = env;
+    self->held = 1;
 
     return 0;
 }

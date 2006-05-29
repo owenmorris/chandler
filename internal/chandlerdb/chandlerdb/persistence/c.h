@@ -65,6 +65,7 @@ typedef struct {
     PyObject_HEAD
     DB_LOCK lock;
     t_env *env;
+    int held;
 } t_lock;
 
 
