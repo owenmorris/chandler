@@ -57,7 +57,7 @@ static PyTypeObject HashTupleType = {
     0,                                /* tp_methods */
     0,                                /* tp_members */
     0,                                /* tp_getset */
-    &PyTuple_Type,                    /* tp_base */
+    0,                                /* tp_base */
     0,                                /* tp_dict */
     0,                                /* tp_descr_get */
     0,                                /* tp_descr_set */
@@ -91,10 +91,7 @@ static int t_hashtuple_contains(PyObject *self, PyObject *arg)
         len = PyString_GET_SIZE(string);
     }
     else
-    {
-        PyErr_SetObject(PyExc_TypeError, arg);
-        return -1;
-    }
+        return 0;
 
     hash = hash_bytes((unsigned char *) data, len);
     Py_XDECREF(string);
@@ -110,6 +107,8 @@ static int t_hashtuple_contains(PyObject *self, PyObject *arg)
 
 void _init_hashtuple(PyObject *m)
 {
+    HashTupleType.tp_base = &PyTuple_Type;
+
     if (PyType_Ready(&HashTupleType) >= 0)
     {
         if (m)
