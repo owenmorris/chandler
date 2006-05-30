@@ -1,11 +1,12 @@
 
 include Makefile.inc
 
+BUILD_ONLY_SYSTEMS=swig
+
 SYSTEMS=db \
-        swig \
         icu \
-        readline \
         openssl \
+        $(READLINE_OSX) \
         python \
         epydoc \
         PyLucene \
@@ -22,7 +23,7 @@ SYSTEMS=db \
 
 .PHONY: systems env binaries sources expand install clean $(SYSTEMS)
 
-$(SYSTEMS):
+$(BUILD_ONLY_SYSTEMS) $(SYSTEMS):
 	$(MAKE) -C $@ DEBUG=$(DEBUG) all
 
 $(addprefix binaries-, $(SYSTEMS)):
@@ -31,56 +32,56 @@ $(addprefix binaries-, $(SYSTEMS)):
 $(addprefix strip-, $(SYSTEMS)):
 	$(MAKE) -C $(subst strip-,,$@) strip
 
-$(addprefix sources-, $(SYSTEMS)):
+$(addprefix sources-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
 	$(MAKE) -C $(subst sources-,,$@) sources
 
-$(addprefix expand-, $(SYSTEMS)):
+$(addprefix expand-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
 	$(MAKE) -C $(subst expand-,,$@) expand
 
 $(addprefix install-, $(SYSTEMS)):
 	$(MAKE) -C $(subst install-,,$@) install
 
-$(addprefix clean-, $(SYSTEMS)):
+$(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
 	$(MAKE) -C $(subst clean-,,$@) clean
 
-$(addprefix realclean-, $(SYSTEMS)):
+$(addprefix realclean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
 	$(MAKE) -C $(subst realclean-,,$@) _realclean
 
 # to start build from a given system instead of from the beginning
 # for example: make from-PyLucene
 # builds PyLucene and all systems from PyLucene onwards
 
-$(addprefix from-, $(SYSTEMS)):
-	$(MAKE) $(shell echo $(SYSTEMS) | sed "s=.*\($(subst from-,,$@).*\)=\1=")
+$(addprefix from-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
+	$(MAKE) $(shell echo $(BUILD_ONLY_SYSTEMS) $(SYSTEMS) | sed "s=.*\($(subst from-,,$@).*\)=\1=")
 
 # to do a build up to a given system instead of until the end
 # for example: make to-PyICU
 # builds all systems up to and including PyICU
 
-$(addprefix to-, $(SYSTEMS)):
-	$(MAKE) $(shell echo $(SYSTEMS) | sed "s=\(.*$(subst to-,,$@)\).*=\1=")
+$(addprefix to-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
+	$(MAKE) $(shell echo $(BUILD_ONLY_SYSTEMS) $(SYSTEMS) | sed "s=\(.*$(subst to-,,$@)\).*=\1=")
 
 env::
 	mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include $(CHANDLERARCHIVES)
 
-systems: $(SYSTEMS)
+systems: $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)
 
 binaries: $(addprefix binaries-, $(SYSTEMS))
 
 strips: $(addprefix strip-, $(SYSTEMS))
 
-sources: $(addprefix sources-, $(SYSTEMS))
+sources: $(addprefix sources-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
 
-expand: $(addprefix expand-, $(SYSTEMS))
+expand: $(addprefix expand-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
 
 install: $(addprefix install-, $(SYSTEMS))
 
-clean: $(addprefix clean-, $(SYSTEMS))
+clean: $(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
 
-realclean: $(addprefix realclean-, $(SYSTEMS))
+realclean: $(addprefix realclean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
 	rm -rf release debug
 
-all: env sources $(SYSTEMS)
+all: env sources $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)
 
 world: all binaries install
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) world
@@ -88,11 +89,11 @@ world: all binaries install
 	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) build-plugins
 	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) bundled-plugins
 
-cleanworld: $(addprefix clean-, $(SYSTEMS))
+cleanworld: $(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) clean
 	$(MAKE) -C ../chandler DEBUG=$(DEBUG) clean
 
-realcleanworld: $(addprefix realclean-, $(SYSTEMS))
+realcleanworld: $(addprefix realclean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) realclean
 	$(MAKE) -C ../chandler DEBUG=$(DEBUG) realclean
 

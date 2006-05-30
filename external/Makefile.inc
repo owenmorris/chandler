@@ -52,8 +52,13 @@ else
 ifeq ($(OS),Darwin)
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
 ifeq ($(MACOSX_DEPLOYMENT_TARGET),)
+ifeq ($(ARCH),ppc)
 MACOSX_DEPLOYMENT_TARGET=10.3
+else
+MACOSX_DEPLOYMENT_TARGET=10.4
 endif
+endif
+READLINE_OSX=readline
 PYTHON:=$(PREFIX)/$(FRAMEWORK)/bin/$(PYTHON)
 SITE=$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
 PLATFORM=macosx
