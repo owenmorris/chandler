@@ -21,7 +21,8 @@ SYSTEMS=db \
         elementtree \
         pylint
 
-.PHONY: systems env binaries sources expand install clean $(SYSTEMS)
+.PHONY: systems env binaries sources expand install clean \
+        $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)
 
 $(BUILD_ONLY_SYSTEMS) $(SYSTEMS):
 	$(MAKE) -C $@ DEBUG=$(DEBUG) all
