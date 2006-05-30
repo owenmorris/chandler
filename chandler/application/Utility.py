@@ -346,7 +346,7 @@ def initRepository(directory, options, allowSchemaView=False):
             del kwds
             break
 
-    view = repository.createView("MainView")
+    view = repository.view
 
     # tell the schema API about this view so that it doesn't setup its own
     # (also load Chandler pack)
