@@ -345,7 +345,7 @@ class RepositoryView(CView):
 
         return self.find(uuid, load)
 
-    def findValue(self, uItem, name, default=Default):
+    def findValue(self, uItem, name, default=Default, version=None):
         """
         Find a value for an item attribute.
 
@@ -376,13 +376,16 @@ class RepositoryView(CView):
         @return: an attribute value or C{default}
         """
 
+        if version is None:
+            version = self.itsVersion
+
         item = self.find(uItem, False)
-        if item is not None:
+        if item is not None and item.itsVersion <= version:
             if default is not Default:
                 return getattr(item, name, default)
             return getattr(item, name)
 
-        reader, uValue = self.repository.store.loadValue(self, self.itsVersion,
+        reader, uValue = self.repository.store.loadValue(self, version,
                                                          uItem, name)
         if reader is None:
             if uValue is Nil:

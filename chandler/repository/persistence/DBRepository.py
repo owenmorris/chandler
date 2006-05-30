@@ -1106,9 +1106,10 @@ class DBIndexerThread(RepositoryThread):
             if indexVersion < latestVersion:
                 if view is None:
                     view = repository.createView("Lucene")
-                for version in xrange(indexVersion, latestVersion):
-                    view.refresh(version=version + 1, notify=False)
-                    self._indexVersion(view, version + 1, store)
+                while indexVersion < latestVersion:
+                    view.refresh(version=indexVersion + 1, notify=False)
+                    self._indexVersion(view, indexVersion + 1, store)
+                    indexVersion += 1
 
             condition.acquire()
             if self._alive:

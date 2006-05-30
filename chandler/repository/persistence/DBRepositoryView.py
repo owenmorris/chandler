@@ -224,7 +224,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 kind.extent._collectionChanged('refresh', 'collection',
                                                'extent', uItem)
                 
-                dispatch = self.findValue(uItem, 'watcherDispatch', None)
+                dispatch = self.findValue(uItem, 'watcherDispatch', None, version)
                 if dispatch:
                     isNew = (status & CItem.NEW) != 0
                     for attribute, watchers in dispatch.iteritems():
@@ -236,7 +236,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                     watcher = self[watcher.itsUUID]
                                     getattr(watcher, methodName)('refresh', uItem, names)
                             elif isNew or attribute in dirties:
-                                value = self.findValue(uItem, attribute, None)
+                                value = self.findValue(uItem, attribute, None, version)
                                 if not isuuid(value):
                                     if isinstance(value, RefList):
                                         value = value.uuid
@@ -247,7 +247,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                         self.invokeWatchers(watchers, 'refresh', 'collection', uItem, attribute, uRef)
 
                 for name in kind._iterNotifyAttributes():
-                    value = self.findValue(uItem, name, None)
+                    value = self.findValue(uItem, name, None, version)
                     if isuuid(value):
                         if kind.getAttribute(name).c.cardinality != 'list':
                             continue
@@ -258,7 +258,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                         continue
                     otherName = kind.getOtherName(name, None)
                     for uRef in refsIterator:
-                        dispatch = self.findValue(uRef, 'watcherDispatch', None)
+                        dispatch = self.findValue(uRef, 'watcherDispatch', None, version)
                         if dispatch:
                             watchers = dispatch.get(otherName, None)
                             if watchers:
@@ -289,7 +289,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     if value is not None and isinstance(value, RefList):
                         otherName = value._otherName
                         for uRef in value.iterkeys():
-                            dispatch = self.findValue(uRef, 'watcherDispatch', None)
+                            dispatch = self.findValue(uRef, 'watcherDispatch', None, version)
                             if dispatch:
                                 watchers = dispatch.get(otherName, None)
                                 if watchers:
@@ -329,32 +329,59 @@ class DBRepositoryView(OnDemandRepositoryView):
         else:
             newVersion = min(long(version), store.getVersion())
         
+        if newVersion > self.itsVersion:
+            if notify:
+                while self.itsVersion < newVersion:
+                    self._refreshForwards(mergeFn, self.itsVersion + 1, True)
+            else:
+                self._refreshForwards(mergeFn, newVersion, False)
+
+            self.prune(10000)
+
+        elif newVersion == self.itsVersion:
+            if notify:
+                self.dispatchNotifications()
+            else:
+                self.flushNotifications()
+
+        else:
+            self.cancel()
+            unloads = [item for item in self._registry.itervalues()
+                       if item.itsVersion > newVersion]
+            self._version = newVersion
+            self._refreshItems(unloads.__iter__)
+            self.flushNotifications()
+
+    def _refreshItems(self, items):
+
         refCounted = self.isRefCounted()
 
-        def _refresh(items):
-            for item in items():
-                item._unloadItem(refCounted or item.isPinned(), self, False)
-            for item in items():
-                if refCounted or item.isPinned():
-                    if item.isSchema():
-                        self.find(item.itsUUID)
-            for item in items():
-                if refCounted or item.isPinned():
+        for item in items():
+            item._unloadItem(refCounted or item.isPinned(), self, False)
+        for item in items():
+            if refCounted or item.isPinned():
+                if item.isSchema():
                     self.find(item.itsUUID)
+        for item in items():
+            if refCounted or item.isPinned():
+                self.find(item.itsUUID)
 
-        if newVersion > self._version:
-            history = []
-            refreshes = set()
-            deletes = set()
-            merges = {}
-            unloads = {}
-            dangling = []
+    def _refreshForwards(self, mergeFn, newVersion, notify):
 
-            self._refreshItems(self._version, newVersion,
-                               history, refreshes, merges, unloads, deletes)
-            oldVersion = self._version
-            self._version = newVersion
-            _refresh(unloads.itervalues)
+        history = []
+        refreshes = set()
+        deletes = set()
+        merges = {}
+        unloads = {}
+        dangling = []
+
+        self._scanHistory(self.itsVersion, newVersion,
+                          history, refreshes, merges, unloads, deletes)
+        oldVersion = self._version
+        self._version = newVersion
+
+        try:
+            self._refreshItems(unloads.itervalues)
 
             if merges:
                 newChanges = {}
@@ -389,7 +416,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 except:
                     self.discardChangeNotifications()
                     self._version = oldVersion
-                    _refresh(unloads.itervalues)
+                    self._refreshItems(unloads.itervalues)
                     raise
 
                 try:
@@ -413,7 +440,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 except:
                     self.discardChangeNotifications()
                     self._version = oldVersion
-                    _refresh(unloads.itervalues)
+                    self._refreshItems(unloads.itervalues)
 
                     _unload(merges.iterkeys)
                     deletes.clear()
@@ -444,22 +471,9 @@ class DBRepositoryView(OnDemandRepositoryView):
             else:
                 self.flushNotifications()
 
-            self.prune(10000)
-
-        elif newVersion == self._version:
-            if notify:
-                self.dispatchNotifications()
-            else:
-                self.flushNotifications()
-
-        elif newVersion < self._version:
-            self.cancel()
-            refCounted = self.isRefCounted()
-            unloads = [item for item in self._registry.itervalues()
-                       if item._version > newVersion]
-            self._version = newVersion
-            _refresh(unloads.__iter__)
-            self.flushNotifications()
+        except:
+            self._version = oldVersion
+            raise
 
     def commit(self, mergeFn=None, notify=True):
 
@@ -635,8 +649,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                             values.append(name)
             yield uItem, version, kind, status, values, references, prevKind
 
-    def _refreshItems(self, oldVersion, toVersion,
-                      history, refreshes, merges, unloads, deletes):
+    def _scanHistory(self, oldVersion, toVersion,
+                     history, refreshes, merges, unloads, deletes):
 
         for args in self.store._items.iterHistory(self, oldVersion, toVersion):
             uItem, version, uKind, status, uParent, prevKind, dirties = args
