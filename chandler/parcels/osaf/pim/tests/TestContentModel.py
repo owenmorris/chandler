@@ -9,6 +9,7 @@ import unittest, os
 
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 import osaf.pim.items as items
+from i18n.tests import uw
 
 class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
@@ -58,7 +59,7 @@ class ContentItemTest(ContentModelTestCase):
         self.assertEqual(genericContentItem.itsParent, contentItemParent)
         self.assertEqual(genericProject.itsParent, contentItemParent)
         self.assertEqual(genericGroup.itsParent, contentItemParent)
-        
+
         self.assertEqual(repr(genericContentItem.itsPath),
                          '//userdata/genericContentItem')
         self.assertEqual(repr(genericProject.itsPath),
@@ -67,24 +68,24 @@ class ContentItemTest(ContentModelTestCase):
                          '//userdata/genericGroup')
 
         # Set and test simple attributes
-        genericContentItem.displayName = u"\u00FCTest Content Item"
-        genericContentItem.context = "work"
-        genericContentItem.body = u"\u00FCNotes appear in the body"
+        genericContentItem.displayName = uw("Test Content Item")
+        genericContentItem.context = uw("work")
+        genericContentItem.body = uw("Notes appear in the body")
 
-        self.assertEqual(genericContentItem.displayName, u"\u00FCTest Content Item")
-        self.assertEqual(genericContentItem.context, "work")
-        self.assertEqual(genericContentItem.body, u"\u00FCNotes appear in the body")
-        self.assertEqual(genericContentItem.getItemDisplayName(), u"\u00FCTest Content Item")
-        
+        self.assertEqual(genericContentItem.displayName, uw("Test Content Item"))
+        self.assertEqual(genericContentItem.context, uw("work"))
+        self.assertEqual(genericContentItem.body, uw("Notes appear in the body"))
+        self.assertEqual(genericContentItem.getItemDisplayName(), uw("Test Content Item"))
+
         # Test Calculated basedOn
         self.assertEqual(genericContentItem.getBasedAttributes('body'), ('body',))
-                         
-        genericProject.name = u"\u00FCTest Project"
-        genericGroup.name = u"\u00FCTest Group"
+
+        genericProject.name = uw("Test Project")
+        genericGroup.name = uw("Test Group")
 
 
-        self.assertEqual(genericProject.name, u"\u00FCTest Project")
-        self.assertEqual(genericGroup.name, u"\u00FCTest Group")
+        self.assertEqual(genericProject.name, uw("Test Project"))
+        self.assertEqual(genericGroup.name, uw("Test Group"))
 
 
         # Groups and projects aren't currently linked to Content Items

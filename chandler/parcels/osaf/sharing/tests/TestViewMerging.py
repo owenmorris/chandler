@@ -7,6 +7,7 @@ from repository.item.Item import Item
 from util import testcase
 from PyICU import ICUtzinfo
 from application import schema
+from i18n.tests import uw
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +52,10 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
         sandbox = view.findPath("//sandbox")
         coll = pim.ListCollection("testCollection", sandbox,
-            displayName=u"\u00FCTest Collection")
+            displayName=uw("Test Collection"))
 
         names = [
-            (u"\u00FCnicode Test", u"\u00FCnicode Test", u"unicodetest@example.com"),
+            (uw("unicode Test"), uw("unicode Test"), u"unicodetest@example.com"),
             (u"Morgen", u"Sagen", u"morgen@example.com"),
             (u"Ted", u"Leung", u"ted@example.com"),
             (u"Andi", u"Vajda", u"andi@example.com"),
@@ -92,7 +93,7 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
             c.startTime=datetime.datetime(2005, 10, 31, 12, 0, 0, 0, tzinfo)
             c.duration=datetime.timedelta(minutes=60)
             c.anyTime=False
-            c.body = u"\u00FCnicode test"
+            c.body = uw("unicode test")
             self.uuids[c.itsUUID] = c.displayName
             coll.add(c)
 
@@ -105,14 +106,14 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         self.share0 = sharing.Share(itsView=view0,
             contents=coll0,
             conduit=sharing.InMemoryConduit(itsView=view0,
-                                            shareName=u"\u00FCviewmerging"),
+                                            shareName=uw("viewmerging")),
             format=sharing.CalDAVFormat(itsView=view0)
         )
 
         subShare = sharing.Share(itsView=view0,
             contents=coll0,
             conduit=sharing.InMemoryConduit(itsView=view0,
-                                            shareName=u"\u00FCviewmerging/.chandler"),
+                                            shareName=uw("viewmerging/.chandler")),
             format=sharing.CloudXMLFormat(itsView=view0)
         )
         self.share0.follows = subShare
@@ -129,13 +130,13 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
         self.share1 = sharing.Share(itsView=view1,
             conduit=sharing.InMemoryConduit(itsView=view1,
-                                            shareName=u"\u00FCviewmerging"),
+                                            shareName=uw("viewmerging")),
             format=sharing.CalDAVFormat(itsView=view1)
         )
 
         subShare = sharing.Share(itsView=view1,
             conduit=sharing.InMemoryConduit(itsView=view1,
-                                            shareName=u"\u00FCviewmerging/.chandler"),
+                                            shareName=uw("viewmerging/.chandler")),
             format=sharing.CloudXMLFormat(itsView=view1)
         )
         self.share1.follows = subShare
@@ -214,7 +215,7 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
         # Make non-overlapping changes to the item
         item0 = view0.findUUID(uuid)
-        item0.displayName = u"\u00FCmeeting rescheduled"
+        item0.displayName = uw("meeting rescheduled")
         oldStart = item0.startTime
 
         tzinfo = ICUtzinfo.getDefault()
@@ -247,9 +248,9 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
 
-        self.assertEqual(item0.displayName, u"\u00FCmeeting rescheduled",
+        self.assertEqual(item0.displayName, uw("meeting rescheduled"),
          u"displayName is %s" % (item0.displayName))
-        self.assertEqual(item1.displayName, u"\u00FCmeeting rescheduled",
+        self.assertEqual(item1.displayName, uw("meeting rescheduled"),
          u"displayName is %s" % (item1.displayName))
 
         self.assertEqual(item0.startTime, newStart,
@@ -297,8 +298,8 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(item1.startTime, newStart0,
          u"startTime is %s" % (item1.startTime))
 
-        item0.body = u"\u00FCview0 change"
-        item1.body = u"\u00FCview1 change"
+        item0.body = uw("view0 change")
+        item1.body = uw("view1 change")
 
         stats = sharing.sync(coll0)
         printStats(view0, stats)
@@ -326,9 +327,9 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
 
         # Since we sync'd coll0 first, its change wins out over coll1
-        self.assertEqual(item0.body, u"\u00FCview0 change",
+        self.assertEqual(item0.body, uw("view0 change"),
          u"item0 body is %s" % item0.body)
-        self.assertEqual(item1.body, u"\u00FCview0 change",
+        self.assertEqual(item1.body, uw("view0 change"),
          u"item1 body is %s" % item1.body)
 
 
@@ -343,7 +344,7 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         coll1 = view1.findUUID(coll0.itsUUID)
 
         for item in coll0:
-            if item.displayName == u"\u00FCmeeting rescheduled":
+            if item.displayName == uw("meeting rescheduled"):
                 uuid = item.itsUUID
                 break
 

@@ -7,6 +7,7 @@ from repository.item.Item import Item
 from util import testcase
 from PyICU import ICUtzinfo
 from application import schema
+from i18n.tests import uw
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +30,10 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
 
         sandbox = view.findPath("//sandbox")
         coll = pim.ListCollection("testCollection", sandbox,
-            displayName=u"\u00FCTest Collection")
+            displayName=uw("Test Collection"))
 
         names = [
-            (u"\u00FCnicode test", u"\u00FCnicode test", u"unicodetest@example.com"),
+            (uw("unicode test"), uw("unicode test"), u"unicodetest@example.com"),
             (u"Morgen", u"Sagen", u"morgen@example.com"),
             (u"Ted", u"Leung", u"ted@example.com"),
             (u"Andi", u"Vajda", u"andi@example.com"),
@@ -78,7 +79,7 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
         sandbox0 = view0.findPath("//sandbox")
         coll0 = sandbox0.findPath("testCollection")
         conduit = sharing.InMemoryConduit("conduit", itsView=view0,
-            shareName=u"\u00FCexportedCollection")
+            shareName=uw("exportedCollection"))
         format = sharing.CloudXMLFormat("format", itsView=view0)
         self.share0 = sharing.Share("share", itsView=view0,
             contents=coll0, conduit=conduit, format=format)
@@ -88,7 +89,7 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
 
         view1 = self.views[1]
         conduit = sharing.InMemoryConduit("conduit", itsView=view1,
-            shareName=u"\u00FCexportedCollection")
+            shareName=uw("exportedCollection"))
         format = sharing.CloudXMLFormat("format", itsView=view1)
         self.share1 = sharing.Share("share", itsView=view1,
             conduit=conduit, format=format)
@@ -146,7 +147,7 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
                 break
 
         item0 = view0.findUUID(uuid)
-        item0.displayName = u"\u00FCmeeting rescheduled"
+        item0.displayName = uw("meeting rescheduled")
         oldStart = item0.startTime
 
         tzinfo = ICUtzinfo.getDefault()
@@ -158,9 +159,9 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
         sharing.sync(coll1)
         sharing.sync(coll0)
 
-        self.assertEqual(item0.displayName, u"\u00FCmeeting rescheduled",
+        self.assertEqual(item0.displayName, uw("meeting rescheduled"),
          u"displayName is %s" % (item0.displayName))
-        self.assertEqual(item1.displayName, u"\u00FCmeeting rescheduled",
+        self.assertEqual(item1.displayName, uw("meeting rescheduled"),
          u"displayName is %s" % (item1.displayName))
 
         self.assertEqual(item0.startTime, newStart,
@@ -178,7 +179,7 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
         coll1 = view1.findUUID(coll0.itsUUID)
 
         for item in coll0:
-            if item.displayName == u"\u00FCmeeting rescheduled":
+            if item.displayName == uw("meeting rescheduled"):
                 uuid = item.itsUUID
                 break
 

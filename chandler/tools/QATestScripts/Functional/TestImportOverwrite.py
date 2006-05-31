@@ -4,6 +4,7 @@ import tools.QAUITestAppLib as QAUITestAppLib
 import os, wx , sys
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import ListCollection
+from i18n.tests import uw
 
 App_ns = app_ns()
 appView = app_ns().itsView
@@ -17,7 +18,7 @@ try:
     event = QAUITestAppLib.UITestItem("Event", logger)
     event_UUID = event.item.itsUUID
     #write some stuff in the event to make it unique
-    event.SetAttr(displayName="Original Event", startDate="01/01/2001", startTime="12:00 AM", body="This is the original event")
+    event.SetAttr(displayName=uw("Original Event"), startDate="01/01/2001", startTime="12:00 AM", body=uw("This is the original event"))
     logger.ReportPass("Create Event to Export")
 
     #export the event
@@ -39,9 +40,9 @@ try:
     share.put()
     wx.GetApp().Yield()
     logger.ReportPass("Exporting event")
-    
+
     #change the event after exporting
-    event.SetAttr(displayName="Changed Event",  body="This event has been changed")
+    event.SetAttr(displayName=uw("Changed Event"),  body=uw("This event has been changed"))
     logger.ReportPass("modifing event")
 
     #import the original event
@@ -54,12 +55,13 @@ try:
     #check if changed attributes have reverted to original values
         #find imported event by UUID
     found = App_ns.view.findUUID(event_UUID)
-    if found.body == 'This is the original event' and  found.displayName == 'Original Event':
+    if found.body == uw('This is the original event') and \
+                     found.displayName == uw('Original Event'):
         logger.ReportPass("Event overwriten")
     else:
         logger.ReportFailure('Event not overwriten')
-   
-    
+
+
 finally: 
     #report results  
     logger.SetChecked(True)
@@ -67,4 +69,4 @@ finally:
     logger.Report()  
     # cleanup
     logger.Close()
-    
+

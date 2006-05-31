@@ -15,27 +15,16 @@ from osaf import pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
 import i18n
+from i18n.tests import uw
 from application import schema
 
 TEST_I18N = 'test' in i18n.getLocaleSet()
-I18N_SEED = u"\u0439\u03b4"
 
-HEADLINES = [u"Dinner", u"Lunch", u"Meeting", u"Movie", u"Games"]
+HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
 
 DURATIONS = [60, 90, 120, 150, 180]
 
 REMINDERS = [None, None, None, None, 1, 10] # The "None"s make only a 30% chance an event will have a reminder...
-
-def addSurrogatePairToText(text):
-    #One in two chance. If the rand int return equals 1
-    #then add a surrogate pair at the start and end of the text
-    if random.randrange(2) == 1:
-        size = len(I18N_SEED)
-        start = random.randrange(size)
-        end   = random.randrange(size)
-        return  u"%s%s%s" % (I18N_SEED[start], text, I18N_SEED[end])
-    return text
-
 
 def GenerateCalendarParticipant(view):
     email = Mail.EmailAddress(itsView=view)
@@ -53,7 +42,7 @@ def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
     event.displayName = random.choice(HEADLINES)
 
     if TEST_I18N:
-        event.displayName = addSurrogatePairToText(event.displayName)
+        event.displayName = uw(event.displayName)
 
     # Choose random days, hours
     startDelta = timedelta(days=random.randint(0, days),
@@ -83,7 +72,7 @@ def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
     # Add a location to 2/3 of the events
     if random.randrange(3) > 0:
         if TEST_I18N:
-            event.location = Calendar.Location.getLocation(view, addSurrogatePairToText(random.choice(LOCATIONS)))
+            event.location = Calendar.Location.getLocation(view, uw(random.choice(LOCATIONS)))
         else:
             event.location = Calendar.Location.getLocation(view, random.choice(LOCATIONS))
 
@@ -125,7 +114,7 @@ def GenerateMailMessage(view, tzinfo=None):
     message.subject  = random.choice(TITLES)
 
     if TEST_I18N:
-        message.subject = addSurrogatePairToText(message.subject)
+        message.subject = uw(message.subject)
 
     message.dateSent = datetime.now(tzinfo)
 
@@ -156,9 +145,9 @@ def GenerateMailMessage(view, tzinfo=None):
         body += M_BOTH
 
     if TEST_I18N:
-        body = addSurrogatePairToText(body)
+        body = uw(body)
 
-    message.body = message.getAttributeAspect('body', 'type').makeValue(body)
+    message.body = body
     message.triageStatus = random.choice(pim.TriageEnum.values)
 
     return message
@@ -169,7 +158,7 @@ def GenerateNote(view, tzinfo=None):
     note.displayName = random.choice(TITLES)
 
     if TEST_I18N:
-        note.displayName = addSurrogatePairToText(note.displayName)
+        note.displayName = uw(note.displayName)
 
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
@@ -186,7 +175,7 @@ def GenerateTask(view, tzinfo=None):
     task.displayName = random.choice(TITLES)
 
     if TEST_I18N:
-        task.displayName = addSurrogatePairToText(task.displayName)
+        task.displayName = uw(task.displayName)
 
     task.triageStatus = random.choice(pim.TriageEnum.values)
     return task
@@ -252,8 +241,8 @@ def GenerateContactName(view):
     name.lastName = random.choice(LASTNAMES)
 
     if TEST_I18N:
-        name.firstName = addSurrogatePairToText(name.firstName)
-        name.lastName = addSurrogatePairToText(name.lastName)
+        name.firstName = uw(name.firstName)
+        name.lastName = uw(name.lastName)
 
     return name
 
@@ -271,7 +260,7 @@ def GenerateCollection(view, postToView=None, existingNames=None):
         potentialName = random.choice(COLLECTION_NAMES)
 
         if TEST_I18N:
-            potentialName = addSurrogatePairToText(potentialName)
+            potentialName = uw(potentialName)
 
         if existingNames is None or potentialName not in existingNames:
             collection.displayName = potentialName

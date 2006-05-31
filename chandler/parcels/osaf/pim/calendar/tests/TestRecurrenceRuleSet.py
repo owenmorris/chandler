@@ -27,18 +27,18 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
                                           tzinfo=ICUtzinfo.default),
                        'start' : self.start,
                        'count' : 20}
-        
+
         self.monthly = {'end'   : datetime(2005, 11, 4, 13,
                                            tzinfo=ICUtzinfo.default),
                        'start' : self.start,
                        'count' : 5}
-        
+
     def _testRRule(self, freq, rrule):
         """Create a simple rrule, make sure it behaves as we expect."""
         self.assertEqual(rrule[0], getattr(self, freq)['start'])
         self.assertEqual(rrule[-1], getattr(self, freq)['end'])
         self.assertEqual(rrule.count(), getattr(self, freq)['count'])
-    
+
     def _testCombined(self, rruleset):
         #not count1 + count2, because the two rules share self.start
         self.assertEqual(rruleset.count(), self.weekly['count'] +
@@ -54,7 +54,7 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         else:
             ruleItem.freq = freq
         return ruleItem
-    
+
     def _createBasicDateUtil(self, freq):
         return dateutil.rrule.rrule(toDateUtil(freq),
                                     count   = getattr(self, freq)['count'],
@@ -63,19 +63,19 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
     def testDateUtilRRules(self):
         for freq in 'weekly', 'monthly':
             self._testRRule(freq, self._createBasicDateUtil(freq))
-        
+
     def testFrequencyEnum(self):
         freqItem = FrequencyEnum()
         self.assert_('yearly' in freqItem.values)
         self.failIf('bicentenially' in freqItem.values)
-    
+
     def testRuleItem(self):
         """Test that transformations of RecurrenceRules work."""
         ruleItem = self._createBasicItem('weekly')
         rrule = ruleItem.createDateUtilFromRule(self.weekly['start'])
         self._testRRule('weekly', rrule)
         self.rep.check()
-        
+
         # Every other week in which Tuesday or Thursday falls on the 5th or 8th
         # of the month, for 4 occurrences.  Yes, this is absurd :)
         complexRule = dateutil.rrule.rrule(WEEKLY, interval=2, count=4, wkst=SU,
@@ -88,13 +88,13 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         # provide an RFC compliant mode, hopefully.
         self.assertNotEqual(complexRule[0], self.start)
         self.assertEqual(complexRule[-1], lastDate)
-        
+
         ruleItem.setRuleFromDateUtil(complexRule)
-        
+
         # make sure isCount was stored and until was set properly
         self.assert_(ruleItem.isCount)
         self.assertEqual(ruleItem.until, lastDate)
-        
+
         # make sure byhour, byminute, and bysecond aren't set
         for ignored in ("byhour", "byminute", "bysecond"):
             self.assertEqual(getattr(ruleItem, ignored), None)
@@ -102,7 +102,7 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         # make sure setRuleFromDateUtil(rrule).createDateUtilFromRule(dtstart)
         # represents the same dates as rrule
         identityTransformedRule = ruleItem.createDateUtilFromRule(self.start, False)
-        
+
         # make sure the transform sets count, not until, since isCount==True
         self.assertEqual(identityTransformedRule._until, None)
         self.assertEqual(identityTransformedRule._count, 4)
@@ -110,7 +110,7 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         # compare datetimes for original rule and identityTransformedRule
         self.assertEqual(list(identityTransformedRule),
                          list(complexRule))
-                         
+
     def testInfiniteRuleItem(self):
         """Test that infinite RecurrenceRules work."""
         ruleItem = RecurrenceRule(None, itsView=self.rep.view)
@@ -118,21 +118,21 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         rule = ruleItem.createDateUtilFromRule(self.start)
         self.assertEqual(rule[149],
                          datetime(2008, 5, 12, 13,  tzinfo=ICUtzinfo.default))
-        
+
     def testTwoRuleSet(self):
         """Test two RecurrenceRules composed into a RuleSet."""
         ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
         ruleItem = self._createBasicItem('weekly')
         ruleSetItem.addRule(ruleItem)
         ruleSet = ruleSetItem.createDateUtilFromRule(self.start)
-        
+
         #rrulesets support the rrule interface
         self._testRRule('weekly', ruleSet)
-        
+
         ruleItem = self._createBasicItem('monthly')
         ruleSetItem.addRule(ruleItem)
         self._testCombined(ruleSetItem.createDateUtilFromRule(self.start))
-        
+
     def testRuleSetFromDateUtil(self):
         ruleSet = dateutil.rrule.rruleset()
         for freq in 'weekly', 'monthly':
@@ -140,11 +140,11 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
         ruleSetItem.setRuleFromDateUtil(ruleSet)
         self._testCombined(ruleSetItem.createDateUtilFromRule(self.start))
-        
+
         # test setting a rule instead of a ruleset
         ruleSetItem.setRuleFromDateUtil(self._createBasicDateUtil('weekly'))
         self._testRRule('weekly',ruleSetItem.createDateUtilFromRule(self.start))
-        
+
         # test raising an exception when setting a non-rrule or rruleset
         self.assertRaises(TypeError, ruleSetItem.setRuleFromDateUtil, 0)
 
@@ -156,9 +156,9 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         ruleSet.rdate(self.start + timedelta(days=2))
         ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
         ruleSetItem.setRuleFromDateUtil(ruleSet)
-        
+
         self.assertEqual(ruleSetItem.rdates[0], self.start + timedelta(days=1))
-        
+
         identityTransformed = ruleSetItem.createDateUtilFromRule(self.start)
         self.assertEqual(identityTransformed[2], self.start + timedelta(days=2))
         self.assertEqual(identityTransformed.count(), self.weekly['count'] +
@@ -174,14 +174,14 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         ruleSetItem.setRuleFromDateUtil(ruleSet)
         identityTransformed = ruleSetItem.createDateUtilFromRule(self.start)
         self.assertNotEqual(self.start, identityTransformed[0])
-        
+
     def testExRule(self):
         ruleSet = dateutil.rrule.rruleset()
         for freq in 'weekly', 'monthly':
             ruleSet.rrule(self._createBasicDateUtil(freq))
         exrule = dateutil.rrule.rrule(WEEKLY, count=10, dtstart=self.start)
         ruleSet.exrule(exrule)
-        
+
         ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
         ruleSetItem.setRuleFromDateUtil(ruleSet)
         identityTransformed = ruleSetItem.createDateUtilFromRule(self.start)
@@ -190,7 +190,7 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(identityTransformed.count(), self.weekly['count'] +
                                                       self.monthly['count'] - 1
                                                       - 10)
-    
+
     def testNoAutoDateUtil(self):
         """dateutil sometimes sets bymonthday, byweekday, and bymonth based on
            dtstart, we want to avoid persisting this spurious data.
@@ -203,7 +203,7 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         monthlyRule = dateutil.rrule.rrule(dateutil.rrule.MONTHLY)
         ruleItem.setRuleFromDateUtil(monthlyRule)
         self.failIf(ruleItem.hasLocalAttributeValue('bymonthday'))
-        
+
         yearlyRule = dateutil.rrule.rrule(dateutil.rrule.YEARLY)
         ruleItem.setRuleFromDateUtil(yearlyRule)
         self.failIf(ruleItem.hasLocalAttributeValue('bymonthday'))

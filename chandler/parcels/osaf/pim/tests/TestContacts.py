@@ -12,6 +12,7 @@ import osaf.pim.generate as generate
 from osaf.pim.contacts import Contact, ContactName
 
 from repository.util.Path import Path
+from i18n.tests import uw
 
 
 class ContactsTest(TestContentModel.ContentModelTestCase):
@@ -22,15 +23,15 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
 
         self.loadParcel("osaf.pim.contacts")
         def _verifyContactName(name):
-            self.assertEqual(name.firstName, u'\u00FCSylvia')
-            self.assertEqual(name.getAttributeValue('firstName'),u'\u00FCSylvia')
-            self.assertEqual(name.lastName, u'\u00FCPlath')
-            self.assertEqual(name.getAttributeValue('lastName'), u'\u00FCPlath')
+            self.assertEqual(name.firstName, uw('Sylvia'))
+            self.assertEqual(name.getAttributeValue('firstName'),uw('Sylvia'))
+            self.assertEqual(name.lastName, uw('Plath'))
+            self.assertEqual(name.getAttributeValue('lastName'), uw('Plath'))
 
         # Test the globals
         contactsPath = Path('//parcels/osaf/pim/contacts')
         view = self.rep.view
-        
+
         self.assertEqual(Contact.getKind(view),
                          view.find(Path(contactsPath, 'Contact')))
         self.assertEqual(ContactName.getKind(view),
@@ -45,8 +46,8 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(contactNameItem.itsKind, ContactName.getKind(view))
 
         # Literal properties
-        contactNameItem.firstName = u"\u00FCSylvia"
-        contactNameItem.lastName = u"\u00FCPlath"
+        contactNameItem.firstName = uw("Sylvia")
+        contactNameItem.lastName = uw("Plath")
 
         _verifyContactName(contactNameItem)
 
@@ -57,7 +58,7 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
 
         contactNameItem = contentItemParent.getItemChild("contactNameItem")
         _verifyContactName(contactNameItem)
-        
+
     def testGeneratedContacts(self):
 
         self.loadParcels(["osaf.pim.contacts", "osaf.pim.mail"])
@@ -65,7 +66,7 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         view = self.rep.view
         generate.GenerateItems(view, 100, generate.GenerateContact)
         view.commit()
-        
+
 
 if __name__ == "__main__":
     unittest.main()

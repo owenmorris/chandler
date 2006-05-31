@@ -19,6 +19,7 @@ import cStringIO
 from PyICU import ICUtzinfo
 from dateutil import tz
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
+from i18n.tests import uw
 
 class ICalendarTestCase(unittest.TestCase):
 
@@ -112,7 +113,7 @@ class ICalendarTestCase(unittest.TestCase):
         format = self.Import(self.repo.view, u'AllDay.ics')
         collection = self.share.contents
         schema.ns('osaf.pim', self.repo.view).mine.addSource(collection)
-        
+
         start = datetime.datetime(2005,1,1, tzinfo=ICUtzinfo.floating)
         end = start + datetime.timedelta(2)
 
@@ -123,7 +124,7 @@ class ICalendarTestCase(unittest.TestCase):
         """Tests itemsToVObject, which converts Chandler items to vobject."""
         event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.anyTime = False
-        event.displayName = u"\u00FCtest"
+        event.displayName = uw("test")
         event.startTime = datetime.datetime(2010, 1, 1, 10,
                                             tzinfo=ICUtzinfo.default)
         event.endTime = datetime.datetime(2010, 1, 1, 11,
@@ -131,7 +132,7 @@ class ICalendarTestCase(unittest.TestCase):
 
         cal = ICalendar.itemsToVObject(self.repo.view, [event])
 
-        self.assert_(cal.vevent.summary.value == u"\u00FCtest",
+        self.assert_(cal.vevent.summary.value == uw("test"),
          u"summary not set properly, summary is %s"
          % cal.vevent.summary.value)
 
@@ -141,7 +142,7 @@ class ICalendarTestCase(unittest.TestCase):
          % cal.vevent.summary.value)
 
         event = Calendar.CalendarEvent(itsView = self.repo.view)
-        event.displayName = u"\u00FCtest2"
+        event.displayName = uw("test2")
         event.startTime = datetime.datetime(2010, 1, 1, 
                                             tzinfo=ICUtzinfo.floating)
         event.allDay = True
@@ -152,7 +153,7 @@ class ICalendarTestCase(unittest.TestCase):
          u"dtstart for allDay event not set properly, dtstart is %s"
          % cal.vevent.summary.value)
          # test bug 3509, all day event duration is off by one
-         
+
     def writeICalendarUnicodeBug3338(self):
         event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.displayName = u"unicode \u0633\u0644\u0627\u0645"
@@ -203,7 +204,7 @@ class ICalendarTestCase(unittest.TestCase):
         format = self.Import(self.repo.view, u'UnusualTzid.ics')
         event = Calendar.findUID(self.repo.view, '42583280-8164-11da-c77c-0011246e17f0')
         self.assertEqual(event.startTime.tzinfo, ICUtzinfo.getInstance('US/Mountain'))
-        
+
     def importReminders(self):
         format = self.Import(self.repo.view, u'RecurrenceWithAlarm.ics')
         future = Calendar.findUID(self.repo.view, 'RecurringAlarmFuture')
@@ -212,19 +213,19 @@ class ICalendarTestCase(unittest.TestCase):
         self.assertEqual(reminder.delta, datetime.timedelta(minutes=-5))
         second = future.getNextOccurrence()
         self.assert_(reminder in second.reminders)
-        
+
         past = Calendar.findUID(self.repo.view, 'RecurringAlarmPast')
         reminder = past.expiredReminders.first()
         self.assertEqual(reminder.delta, datetime.timedelta(hours=-1))
         second = past.getNextOccurrence()
         self.assert_(reminder in second.expiredReminders)
-    
+
     def exportRecurrence(self):
         eastern = ICUtzinfo.getInstance("US/Eastern")
         start = datetime.datetime(2005,2,1, tzinfo = eastern)
         vevent = vobject.icalendar.RecurringComponent(name='VEVENT')
         vevent.behavior = vobject.icalendar.VEvent
-        
+
         vevent.add('dtstart').value = start
 
         # not creating a RuleSetItem, although it would be required for an item
@@ -232,37 +233,37 @@ class ICalendarTestCase(unittest.TestCase):
         ruleItem.freq = 'daily'
         ruleSetItem = RecurrenceRuleSet(None, itsView=self.repo.view)
         ruleSetItem.addRule(ruleItem)
-        
+
         vevent.rruleset = ruleSetItem.createDateUtilFromRule(start)
         self.assertEqual(vevent.rrule.value, 'FREQ=DAILY')
-    
-                         
+
+
         event = Calendar.CalendarEvent(itsView = self.repo.view)
         event.anyTime = False
-        event.displayName = u"\u00FCblah"
+        event.displayName = uw("blah")
         event.startTime = start
         event.endTime = datetime.datetime(2005,3,1,1, tzinfo = eastern)
-        
+
         ruleItem = RecurrenceRule(None, itsView=self.repo.view)
         ruleItem.until = datetime.datetime(2005,3,1, tzinfo = eastern)
         ruleSetItem = RecurrenceRuleSet(None, itsView=self.repo.view)
         ruleSetItem.addRule(ruleItem)
         event.rruleset = ruleSetItem
-        
+
         vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
-        
+
         self.assertEqual(vcalendar.vevent.dtstart.serialize(),
                          'DTSTART;TZID=US/Eastern:20050201T000000\r\n')
         vcalendar.vevent = vcalendar.vevent.transformFromNative()
         self.assertEqual(vcalendar.vevent.rrule.serialize(),
                          'RRULE:FREQ=WEEKLY;UNTIL=20050302T045900Z\r\n')
-        
+
         # move the second occurrence one day later
         nextEvent = event.getNextOccurrence()
         nextEvent.changeThis('startTime',
-                             datetime.datetime(2005,2,9, 
+                             datetime.datetime(2005,2,9,
                                                tzinfo=ICUtzinfo.floating))
-        
+
         nextEvent.getNextOccurrence().deleteThis()
 
         vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
@@ -284,13 +285,13 @@ class ICalendarTestCase(unittest.TestCase):
 # test import/export unicode
 
 class TimeZoneTestCase(unittest.TestCase):
-    
+
     def getICalTzinfo(self, lines):
         fileobj = cStringIO.StringIO("\r\n".join(lines))
         parsed = tz.tzical(fileobj)
 
         return parsed.get()
-    
+
     def runConversionTest(self, expectedZone, icalZone):
         dt = datetime.datetime(2004, 10, 11, 13, 22, 21, tzinfo=icalZone)
         convertedZone = ICalendar.convertToICUtzinfo(dt).tzinfo
@@ -301,7 +302,7 @@ class TimeZoneTestCase(unittest.TestCase):
         convertedZone = ICalendar.convertToICUtzinfo(dt).tzinfo
         self.failUnless(isinstance(convertedZone, ICUtzinfo))
         self.failUnlessEqual(expectedZone, convertedZone)
-    
+
     def testVenezuela(self):
         zone = self.getICalTzinfo([
             "BEGIN:VTIMEZONE",
@@ -320,13 +321,13 @@ class TimeZoneTestCase(unittest.TestCase):
             "TZNAME:VET",
             "END:STANDARD",
             "END:VTIMEZONE"])
-        
+
         self.runConversionTest(
             ICUtzinfo.getInstance("America/Caracas"),
             zone)
-        
+
     def testAustralia(self):
-        
+
         zone = self.getICalTzinfo([
             "BEGIN:VTIMEZONE",
             "TZID:Australia/Sydney",
@@ -344,11 +345,11 @@ class TimeZoneTestCase(unittest.TestCase):
             "TZNAME:EST",
             "END:DAYLIGHT",
             "END:VTIMEZONE"])
-        
+
         self.runConversionTest(
             ICUtzinfo.getInstance("Australia/Sydney"),
             zone)
-        
+
     def testFrance(self):
 
         zone = self.getICalTzinfo([
@@ -372,7 +373,7 @@ class TimeZoneTestCase(unittest.TestCase):
         self.runConversionTest(
             ICUtzinfo.getInstance("Europe/Paris"),
             zone)
-        
+
     def testUS(self):
         zone = self.getICalTzinfo([
             "BEGIN:VTIMEZONE",

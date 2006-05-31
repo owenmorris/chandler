@@ -7,6 +7,7 @@ from osaf.sharing import Sharing, unpublish
 import osaf.sharing.ICalendar as ICalendar
 import tools.QAUITestAppLib as QAUITestAppLib
 import osaf.pim as pim
+from i18n.tests import uw
 from osaf.framework.blocks.Block import Block
 
 App_ns = app_ns()
@@ -14,7 +15,7 @@ App_ns = app_ns()
 # initialization
 fileName = "TestSharing.log"
 logger = QAUITestAppLib.QALogger(fileName, "TestSharing")
-    
+
 try:
     # action
     # Webdav Account Setting
@@ -22,7 +23,7 @@ try:
     ap = QAUITestAppLib.UITestAccounts(logger)
     ap.Open() # first, open the accounts dialog window
     ap.CreateAccount("WebDAV")
-    ap.TypeValue("displayName", "Sharing Test WebDAV")
+    ap.TypeValue("displayName", uw("Sharing Test WebDAV"))
     ap.TypeValue("host", "qacosmo.osafoundation.org")
     ap.TypeValue("path", "cosmo/home/demo1")
     ap.TypeValue("username", "demo1")
@@ -34,16 +35,15 @@ try:
     logger.Stop()
 
     # verification
-    ap.VerifyValues("WebDAV", "Sharing Test WebDAV", displayName = "Sharing Test WebDAV", host = "qacosmo.osafoundation.org", username = "demo1",
-                    password="ad3leib5", port=8080)
-    
-    
+    ap.VerifyValues("WebDAV", uw("Sharing Test WebDAV"), displayName = uw("Sharing Test WebDAV"), host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
+
+
     # import events so test will have something to share even when run by itself
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
     path = unicode(path, sys.getfilesystemencoding())
     share = Sharing.OneTimeFileSystemShare(path, u'testSharing.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
-    
+
     logger.Start("Import testSharing Calendar")
     try:
         collection = share.get()
@@ -55,11 +55,11 @@ try:
         User.idle()
         logger.Stop()
         logger.ReportPass("Importing calendar")
-    
+
     # Collection selection
     sidebar = App_ns.sidebar
     QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, "testSharing")
-    
+
     # Sharing dialog
     logger.Start("Sharing dialog")
     collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
@@ -88,8 +88,8 @@ try:
         # so remove this one when done
         # Note: We don't need a try: here if this raises, the
         # test has already reported success.
-        unpublish(collection) 
-        
+        unpublish(collection)
+
 finally:
     # cleaning
     logger.Close()

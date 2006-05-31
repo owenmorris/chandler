@@ -140,7 +140,12 @@ class Script(pim.ContentItem):
         #Convert fileName with the system charset encoding
         #to bytes to prevent the join function from trying to downcast
         #the unicode fileName to ascii
+
+        if not isinstance(fileName, unicode):
+            fileName = unicode(fileName, "utf8")
+
         fileName = fileName.encode(sys.getfilesystemencoding())
+
         #Convert the filePath bytes to unicode for storage
         filePath = unicode(os.path.join(os.path.dirname(siblingPath), fileName), sys.getfilesystemencoding())
         self.body = self.file_contents(filePath)
@@ -160,6 +165,12 @@ def run_script_with_symbols(scriptText, fileName=u"", profiler=None, builtIns=No
 
     if profiler:
         profiler.stop() # start with the profile turned off
+
+    if not isinstance(fileName, unicode):
+        fileName = unicode(fileName, "utf8")
+
+    if not isinstance(scriptText, unicode):
+        scriptText = unicode(scriptText, "utf8")
 
     scriptText = scriptText.encode(sys.getfilesystemencoding())
     fileName = fileName.encode(sys.getfilesystemencoding())
@@ -263,6 +274,10 @@ def script_file(fileName, siblingPath=None):
     Return the script from the file, given a file name
     and a path to a sibling file.
     """
+
+    if not isinstance(fileName, unicode):
+        fileName = unicode(fileName, "utf8")
+
     #Encode the unicode filename to the system character set encoding
     fileName = fileName.encode(sys.getfilesystemencoding())
 

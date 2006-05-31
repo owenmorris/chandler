@@ -15,14 +15,14 @@ class TimeZoneTestCase(RepositoryTestCase):
 
     def testGetTimeZone(self):
         self.failIfEqual(self.tzInfoItem.default, None)
-        
+
     def testSetTimeZone(self):
         self.tzInfoItem.default = PyICU.ICUtzinfo.getInstance("US/Pacific")
         self.failUnlessEqual(self.tzInfoItem.default.timezone.getID(), "US/Pacific")
 
         self.tzInfoItem.default = PyICU.ICUtzinfo.getInstance("US/Eastern")
         self.failUnlessEqual(self.tzInfoItem.default.timezone.getID(), "US/Eastern")
-        
+
 class DefaultTimeZoneTestCase(TimeZoneTestCase):
     def testGetTimeZone(self):
         super(DefaultTimeZoneTestCase, self).testGetTimeZone()
@@ -31,7 +31,7 @@ class DefaultTimeZoneTestCase(TimeZoneTestCase):
     def testSetTimeZone(self):
         self.tzInfoItem.default = PyICU.ICUtzinfo.getInstance("US/Eastern")
         self.failUnlessEqual(PyICU.ICUtzinfo.default, self.tzInfoItem.default)
-        
+
 class CanonicalTimeZoneTestCase(RepositoryTestCase):
     def setUp(self):
         super(CanonicalTimeZoneTestCase, self).setUp(True)
@@ -40,28 +40,28 @@ class CanonicalTimeZoneTestCase(RepositoryTestCase):
     def testEquivalent(self):
         tz = PyICU.ICUtzinfo.getInstance("PST")
         canonicalTz = TimeZoneInfo.get(self.rep.view).canonicalTimeZone(tz)
-        
+
         self.failUnlessEqual(canonicalTz.tzid, "US/Pacific")
 
     def testNew(self):
         tz = PyICU.ICUtzinfo.getInstance("America/Caracas")
         info = TimeZoneInfo.get(self.rep.view)
         canonicalTz = info.canonicalTimeZone(tz)
-        
+
         self.failUnless(canonicalTz is tz)
         self.failUnless(tz.tzid in info.wellKnownIDs)
-        
+
     def testNone(self):
         info = TimeZoneInfo.get(self.rep.view)
         canonicalTz = info.canonicalTimeZone(None)
-        
+
         self.failUnless(canonicalTz is PyICU.ICUtzinfo.floating)
-        
+
 class KnownTimeZonesTestCase(RepositoryTestCase):
     def setUp(self):
         super(KnownTimeZonesTestCase, self).setUp(True)
         self.info = TimeZoneInfo.get(self.rep.view)
-        
+
     def testKnownTimeZones(self):
         numZones = 0
         for name, tz in self.info.iterTimeZones():
@@ -78,14 +78,14 @@ class PersistenceTestCase(RepositoryTestCase):
     def testGetTimeZone(self):
         # [Bug 5209] The timezone now defaults to floating
         defaultTzItem = TimeZoneInfo.get(self.rep.view)
-        
+
         self.failUnlessEqual(defaultTzItem.default,
                              PyICU.ICUtzinfo.floating)
 
     def testPerView(self):
         defaultTzItemOne = TimeZoneInfo.get(self.rep.view)
         defaultTzItemTwo = TimeZoneInfo.get(self.rep.createView('two'))
-        
+
         self.failIf(defaultTzItemOne is defaultTzItemTwo)
 
     def testTimeZoneSaved(self):
@@ -104,12 +104,12 @@ class PersistenceTestCase(RepositoryTestCase):
 
         # - Change the DefaultTimeZone default timezone
         PyICU.TimeZone.setDefault(PyICU.TimeZone.createTimeZone("US/Pacific"))
-        
+
         # - Reopen the repo
         self._reopenRepository()
         view = self.rep.view
         self.manager = None
-        
+
         # - Now check the default timezone
         defaultTzItem = TimeZoneInfo.get(view)
         # ... see that it changed to what's in the repo
@@ -122,10 +122,10 @@ class PersistenceTestCase(RepositoryTestCase):
 class AbstractTimeZoneTestCase(unittest.TestCase):
     def setUp(self):
         super(AbstractTimeZoneTestCase, self).setUp()
-        
+
         self.oldLocale = PyICU.Locale.getDefault()
         self.oldTzinfo = PyICU.ICUtzinfo.default
-        
+
     def tearDown(self):
         if self.oldLocale is not None:
             PyICU.Locale.setDefault(self.oldLocale)
@@ -178,7 +178,7 @@ class DatetimeFrenchFormatTestCase(AbstractTimeZoneTestCase):
         PyICU.Locale.setDefault(PyICU.Locale.getFrance())
         PyICU.TimeZone.setDefault(
             PyICU.ICUtzinfo.getInstance("Europe/Paris").timezone)
-    
+
 
     def testNoTimeZone(self):
         dt = datetime(1999, 1, 2, 13, 46)
@@ -207,13 +207,13 @@ class StripTimeZoneTestCase(AbstractTimeZoneTestCase):
         super(StripTimeZoneTestCase, self).setUp()
         PyICU.TimeZone.setDefault(
             PyICU.ICUtzinfo.getInstance("US/Pacific").timezone)
-            
+
     def testStripNaiveDatetime(self):
         """ Test that stripTimeZone() works on a naive datetime"""
         dt = datetime(2003, 9, 17, 2, 11, tzinfo = None)
-        
+
         self.failUnlessEqual(stripTimeZone(dt), dt)
-        
+
 
     def testStripOtherDatetime(self):
         """ Test that stripTimeZone() works on a datetime in
@@ -221,11 +221,11 @@ class StripTimeZoneTestCase(AbstractTimeZoneTestCase):
         dt = datetime(2012, 4, 28, 18, 4,
             tzinfo = PyICU.ICUtzinfo.getInstance("Asia/Beijing"))
         strippedDt = stripTimeZone(dt)
-        
+
         self.failUnless(strippedDt.tzinfo is None)
-        
+
         dtInDefault = dt.astimezone(PyICU.ICUtzinfo.default)
-        
+
         self.failUnlessEqual(strippedDt.date(), dtInDefault.date())
         self.failUnlessEqual(strippedDt.time(), dtInDefault.time())
 
@@ -234,7 +234,7 @@ class StripTimeZoneTestCase(AbstractTimeZoneTestCase):
         the default timezone """
         dt = datetime(2012, 4, 28, 18, 4, tzinfo = PyICU.ICUtzinfo.default)
         strippedDt = stripTimeZone(dt)
-        
+
         self.failUnless(strippedDt.tzinfo is None)
         self.failUnlessEqual(strippedDt.date(), dt.date())
         self.failUnlessEqual(strippedDt.time(), dt.time())
@@ -247,14 +247,14 @@ class CoerceTimeZoneTestCase(AbstractTimeZoneTestCase):
 
     def testCoerceNaiveToNaive(self):
         dt = datetime(2014, 10, 28, 2, 11, tzinfo = None)
-        
+
         self.failUnlessEqual(coerceTimeZone(dt, None), dt)
 
     def testCoerceNaiveToDefault(self):
         dt = datetime(2002, 1, 3, 19, 57, 41, tzinfo = None)
         tzinfo = PyICU.ICUtzinfo.default
         coercedDt = coerceTimeZone(dt, tzinfo)
-        
+
         self.failUnlessEqual(coercedDt.tzinfo, tzinfo)
         self.failUnlessEqual(dt.date(), coercedDt.date())
         self.failUnlessEqual(dt.time(), coercedDt.time())
@@ -263,9 +263,9 @@ class CoerceTimeZoneTestCase(AbstractTimeZoneTestCase):
         dt = datetime(2012, 4, 28, 18, 4, tzinfo = None)
         tzinfo = PyICU.ICUtzinfo.getInstance("Asia/Tokyo")
         coercedDt = coerceTimeZone(dt, tzinfo)
-        
+
         self.failUnlessEqual(coercedDt.tzinfo, tzinfo)
-        
+
         compareDt = coercedDt.astimezone(PyICU.ICUtzinfo.default)
         self.failUnlessEqual(dt.date(), compareDt.date())
         self.failUnlessEqual(dt.time(), compareDt.time())
@@ -273,7 +273,7 @@ class CoerceTimeZoneTestCase(AbstractTimeZoneTestCase):
     def testCoerceDefaultToNaive(self):
         dt = datetime(2014, 10, 28, 2, 11,
             tzinfo=PyICU.ICUtzinfo.default)
-        
+
         coercedDt = coerceTimeZone(dt, None)
         self.failUnlessEqual(dt.date(), coercedDt.date())
         self.failUnlessEqual(dt.time(), coercedDt.time())
@@ -283,7 +283,7 @@ class CoerceTimeZoneTestCase(AbstractTimeZoneTestCase):
             tzinfo=PyICU.ICUtzinfo.default)
         tzinfo = PyICU.ICUtzinfo.default
         coercedDt = coerceTimeZone(dt, tzinfo)
-        
+
         self.failUnlessEqual(coercedDt.tzinfo, tzinfo)
         self.failUnlessEqual(coercedDt, dt)
 
@@ -300,10 +300,10 @@ class CoerceTimeZoneTestCase(AbstractTimeZoneTestCase):
     def testCoerceOtherToNaive(self):
         dt = datetime(2014, 10, 28, 2, 11,
             tzinfo=PyICU.ICUtzinfo.getInstance("Africa/Johannesburg"))
-        
+
         coercedDt = coerceTimeZone(dt, None)
         self.failUnless(coercedDt.tzinfo is None)
-        
+
         compareDt = dt.astimezone(PyICU.ICUtzinfo.default)
         self.failUnlessEqual(compareDt.date(), coercedDt.date())
         self.failUnlessEqual(compareDt.time(), coercedDt.time())
@@ -313,7 +313,7 @@ class CoerceTimeZoneTestCase(AbstractTimeZoneTestCase):
             tzinfo=PyICU.ICUtzinfo.getInstance("Africa/Johannesburg"))
         tzinfo = PyICU.ICUtzinfo.default
         coercedDt = coerceTimeZone(dt, tzinfo)
-        
+
         self.failUnlessEqual(coercedDt.tzinfo, tzinfo)
         self.failUnlessEqual(coercedDt, dt)
 
@@ -321,7 +321,7 @@ class CoerceTimeZoneTestCase(AbstractTimeZoneTestCase):
         tzinfo = PyICU.ICUtzinfo.getInstance("Africa/Johannesburg")
         dt = datetime(2002, 1, 3, 19, 57, 41, tzinfo=tzinfo)
         coercedDt = coerceTimeZone(dt, tzinfo)
-        
+
         self.failUnlessEqual(coercedDt.tzinfo, tzinfo)
         self.failUnlessEqual(coercedDt, dt)
 

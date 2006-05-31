@@ -13,6 +13,7 @@ import osaf.pim.mail as Mail
 from datetime import datetime
 from repository.util.Path import Path
 from PyICU import ICUtzinfo
+from i18n.tests import uw
 
 class MailTest(TestContentModel.ContentModelTestCase):
     """ Test Mail Content Model """
@@ -151,7 +152,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
         imapAccountItem = self.__populateAccount(imapAccountItem)
 
         mailDeliveryErrorItem.errorCode = 25
-        mailDeliveryErrorItem.errorString = u"\u00FCTest String"
+        mailDeliveryErrorItem.errorString = uw("Test String")
         mailDeliveryErrorItem.errorDate = datetime.now(ICUtzinfo.default)
 
         smtpDeliveryItem.state = "DRAFT"
@@ -166,7 +167,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
         # Literal properties
         mailMessageItem.dateSent = datetime.now(ICUtzinfo.default)
         mailMessageItem.dateReceived = datetime.now(ICUtzinfo.default)
-        mailMessageItem.subject = u"\u00FCHello"
+        mailMessageItem.subject = uw("Hello")
         mailMessageItem.spamScore = 5
 
         # Item Properties
@@ -189,18 +190,18 @@ class MailTest(TestContentModel.ContentModelTestCase):
         #XXX: i18n usernames and passwords can be non-ascii.
         # Need to investigate how best to deal with this as 
         # there is no standard. It is server implementation dependent.
-        account.username = u"\u00FCtest"
-        account.password = u"\u00FCtest"
-        account.host = u"\u00FCtest"
+        account.username = uw("test")
+        account.password = uw("test")
+        account.host = uw("test")
 
         if type(account) == Mail.AccountBase:
             account.port = 1
             account.connectionSecurity = "NONE"
 
         if type(account) == Mail.SMTPAccount:
-            account.fullName = u"\u00FCtest"
+            account.fullName = uw("test")
             account.replyToAddress = Mail.EmailAddress(itsView=account.itsView)
-            account.replyToAddress.emailAddress = u"test@test.com"
+            account.replyToAddress.emailAddress = "test@test.com"
 
 if __name__ == "__main__":
     unittest.main()

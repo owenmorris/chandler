@@ -1,4 +1,5 @@
 import tools.QAUITestAppLib as QAUITestAppLib
+from i18n.tests import uw
 
 #initialization
 fileName = "TestDates.log"
@@ -36,16 +37,16 @@ try:
         testItems = dateValues[locale]
 
         for test in testItems:
-            s = '%s %s :: %s %s :: %s' % test
+            s = uw('%s %s :: %s %s :: %s' % test)
 
-            event.SetAttr(displayName="Test",
+            event.SetAttr(displayName=uw("Test"),
                           startDate=test[START_DATE],
                           startTime=test[START_TIME],
                           body=s,
                           timeZone=test[TIMEZONE]
                          )
 
-            event.Check_DetailView({"displayName": "Test",
+            event.Check_DetailView({"displayName": uw("Test")),
                                     "startDate":   test[START_DATE],
                                     "endDate":     test[END_DATE],
                                     "startTime":   test[START_TIME],

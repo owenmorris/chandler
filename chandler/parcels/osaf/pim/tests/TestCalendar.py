@@ -15,6 +15,7 @@ import osaf.pim.generate as generate
 import repository.item
 
 from repository.util.Path import Path
+from i18n.tests import uw
 
 
 class CalendarTest(TestContentModel.ContentModelTestCase):
@@ -28,34 +29,34 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("osaf.pim.calendar")
 
         def _verifyCalendarEvent(event):
-            self.assertEqual(event.displayName, u"\u00FCsimple headline")
-            self.assertEqual(event.getItemDisplayName(), u"\u00FCsimple headline")
+            self.assertEqual(event.displayName, uw("simple headline"))
+            self.assertEqual(event.getItemDisplayName(), uw("simple headline"))
 
             self.assertEqual(event.importance, 'fyi')
             self.assertEqual(event.getAttributeValue('importance'), 'fyi')
 
             self.assertEqual(event.transparency, "confirmed")
             self.assertEqual(event.getAttributeValue('transparency'), "confirmed")
-            
+
             self.assertEqual(event.allDay, False)
             self.assertEqual(event.getAttributeValue('allDay'), False)
-            
+
             self.assertEqual(event.anyTime, True)
             self.assertEqual(event.getAttributeValue('anyTime'), True)
 
         def _verifyCalendarItems(calendar, location, recurrence):
-            self.assertEqual(calendar.displayName, u"\u00FCsimple calendar")
+            self.assertEqual(calendar.displayName, uw("simple calendar"))
             self.assertEqual(calendar.getAttributeValue('displayName'),
-                              u"\u00FCsimple calendar")
+                              uw("simple calendar"))
 
-            self.assertEqual(location.displayName, u"\u00FCsimple location")
+            self.assertEqual(location.displayName, uw("simple location"))
             self.assertEqual(location.getAttributeValue('displayName'),
-                              u"\u00FCsimple location")
+                              uw("simple location"))
 
         # Check that the globals got created by the parcel
         calendarPath = Path('//parcels/osaf/pim/calendar')
         view = self.rep.view
-        
+
         self.assertEqual(Calendar.CalendarEvent.getKind(view),
                          view.find(Path(calendarPath, 'CalendarEvent')))
         self.assertEqual(Calendar.Calendar.getKind(view),
@@ -73,14 +74,14 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         recurrenceItem = Calendar.RecurrencePattern("recurrenceItem", itsView=view)
 
         # CalendarEvent properties
-        calendarEventItem.displayName = u"\u00FCsimple headline"
+        calendarEventItem.displayName = uw("simple headline")
         calendarEventItem.importance = "fyi"
         _verifyCalendarEvent(calendarEventItem)
         calendarEventItem.location = locationItem
 
         # Calendar properties
-        calendarItem.displayName = u"\u00FCsimple calendar"
-        locationItem.displayName = u"\u00FCsimple location"
+        calendarItem.displayName = uw("simple calendar")
+        locationItem.displayName = uw("simple location")
         _verifyCalendarItems(calendarItem, locationItem,
                              recurrenceItem)
 

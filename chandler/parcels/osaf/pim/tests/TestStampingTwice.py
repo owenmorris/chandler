@@ -27,7 +27,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         # @@@ Also make sure the default imap account is loaded, in order to
         # have a "me" EmailAddress
         view = self.rep.view
-        
+
         # Get the stamp kinds
         taskMixin = TaskMixin.getKind(view)
         eventMixin = Calendar.CalendarEventMixin.getKind(view)

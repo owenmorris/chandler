@@ -3,6 +3,7 @@ from application import schema
 from application.dialogs import RecurrenceDialog
 import osaf.framework.scripting as scripting
 import wx
+from i18n.tests import uw
 
 evtDate = "4/18/05"
 evtSecondDate = "4/19/05"
@@ -22,17 +23,17 @@ try:
     # Create a vanilla event; leave the timezone alone so we can make sure
     # it's floating.
     event = QAUITestAppLib.UITestItem("Event", logger)
-    event.SetAttr(displayName="Birthday Party", 
-                  startDate=evtDate, 
+    event.SetAttr(displayName=uw("Birthday Party"),
+                  startDate=evtDate,
                   startTime="6:00 PM", 
-                  location="Club101", 
+                  location=uw("Club101"),
                   status="FYI",
-                  body="This is a birthday party invitation")
+                  body=uw("This is a birthday party invitation"))
 
     # Check a few things: that those attributes got set right, plus
     # a few defaulty things worked (timezone, endtime)
     event.CheckDisplayedValues("Checking initial setup",
-        HeadlineBlock=(True, "Birthday Party"),
+        HeadlineBlock=(True, uw("Birthday Party")),
         EditAllDay=(True, False),
         EditCalendarStartDate=(True, evtDate),
         CalendarStartAtLabel=(True,),
@@ -40,15 +41,15 @@ try:
         EditCalendarEndDate=(True, evtDate),
         CalendarEndAtLabel=(True,),
         EditCalendarEndTime=(True, "7:00 PM"),
-        CalendarLocation=(True, "Club101"),
+        CalendarLocation=(True, uw("Club101")),
         EditTransparency=(True, "FYI"),
-        NotesBlock=(True, "This is a birthday party invitation"),
+        NotesBlock=(True, uw("This is a birthday party invitation")),
         EditTimeZone=(False, "Floating")) # Not visible with timezones off
 
     # Toggle allday, then make sure the right changes happened.
-    event.SetAttr("Setting allDay", allDay=True)    
+    event.SetAttr("Setting allDay", allDay=True)
     event.CheckDisplayedValues("Checking allday",
-        HeadlineBlock=(True, "Birthday Party"),
+        HeadlineBlock=(True, uw("Birthday Party")),
         EditAllDay=(True, True),
         EditCalendarStartDate=(True, evtDate),
         CalendarStartAtLabel=(False,),
@@ -64,7 +65,7 @@ try:
               allDay=False,
               timeZone="US/Mountain")
     event.CheckDisplayedValues("Changed Timezone",
-        HeadlineBlock=(True, "Birthday Party"),
+        HeadlineBlock=(True, uw("Birthday Party")),
         EditTimeZone=(True, "US/Mountain"),
         EditCalendarStartDate=(True, evtDate),
         EditCalendarEndDate=(True, evtDate),
@@ -73,7 +74,7 @@ try:
         CalendarStartAtLabel=(True,),
         CalendarEndAtLabel=(True,)
         )
-    
+
     # Make it recur
     event.SetAttr("Making it recur",
                   recurrence="Daily", 
@@ -100,12 +101,12 @@ try:
     else:
         User.emulate_click(recurrenceDialog.thisButton)
         User.idle()
-        
+
     # Make sure the new second occurrence starts on the right date
     thirdEvent = QAUITestAppLib.UITestItem(masterEvent.getNextOccurrence())
     thirdEvent.SelectItem()
     thirdEvent.CheckDisplayedValues("After deleting second occurrence",
-        HeadlineBlock=(True, "Birthday Party"),
+        HeadlineBlock=(True, uw("Birthday Party")),
         EditCalendarStartDate=(True, evtThirdDate),
         )
 

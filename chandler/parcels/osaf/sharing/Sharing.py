@@ -83,8 +83,8 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
         SharingConflictNotification(itsView=item.itsView,
             displayName="Conflict for attribute %s" % attribute,
             attribute=attribute,
-            local=str(getattr(item, attribute, None)),
-            remote=str(value),
+            local=unicode(getattr(item, attribute, None)),
+            remote=unicode(value),
             items=[item])
         """
 
@@ -96,8 +96,8 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
                     {
                        'name' : item.getItemDisplayName(),
                        'attribute' : attribute,
-                       'local' : value,
-                       'remote' : getattr(item, attribute)
+                       'local' : unicode(value),
+                       'remote' : unicode(getattr(item, attribute))
                     }
                 )
             )
@@ -596,7 +596,7 @@ class ShareConduit(pim.ContentItem):
         externalItemExists = self._externalItemExists(item)
 
         logger.debug("Examining for put: %s, version=%d",
-            item.getItemDisplayName().encode('ascii', 'replace'),
+            item.getItemDisplayName().encode('utf8', 'replace'),
             item.getVersion())
 
         if not externalItemExists:
@@ -613,17 +613,17 @@ class ShareConduit(pim.ContentItem):
                     modifiedAttributes = changes[relatedItem.itsUUID]
                     sharedAttributes = \
                         self.share.getSharedAttributes(relatedItem)
-                    logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('ascii', 'replace'), modifiedAttributes)
+                    logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('utf8', 'replace'), modifiedAttributes)
                     for change in modifiedAttributes:
                         if change in sharedAttributes:
-                            logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.getItemDisplayName().encode('ascii', 'replace'))
+                            logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.getItemDisplayName().encode('utf8', 'replace'))
                             needsUpdate = True
                             result = 'modified'
                             break
 
         if needsUpdate:
             logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
-             (item.getItemDisplayName().encode('ascii', 'replace'), item.itsUUID,
+             (item.getItemDisplayName().encode('utf8', 'replace'), item.itsUUID,
               item.getVersion(), self.getMarker.getVersion(), externalItemExists))
 
             if updateCallback and updateCallback(msg="'%s'" %
@@ -1779,7 +1779,7 @@ class WebDAVConduit(ShareConduit):
             raise
         except Exception, e:
             logger.exception("Failed to parse XML for item %s: '%s'" %
-                (itemPath, text.encode('ascii', 'replace')))
+                (itemPath, text.encode('utf8', 'replace')))
             raise TransformationFailed(_(u"%(itemPath)s %(error)s (See chandler.log for text)") % \
                                        {'itemPath': itemPath, 'error': e})
 
@@ -2196,16 +2196,16 @@ def importValue(item, changes, attribute, value, previousView,
             SharingConflictNotification(itsView=item.itsView,
                 displayName="Conflict for attribute %s" % attribute,
                 attribute=attribute,
-                local=str(getattr(item, attribute, None)),
-                remote=str(value),
+                local=unicode(getattr(item, attribute, None)),
+                remote=unicode(value),
                 items=[item])
 
             logger.warning("Sharing conflict: item '%s', attr '%s', "
                 "local '%s', remote '%s'" %
-                (item.getItemDisplayName().encode('ascii', 'replace'),
+                (item.getItemDisplayName().encode('utf8', 'replace'),
                 attribute,
                 getattr(item, attribute, None),
-                value))
+                unicode(value).encode('utf8', 'replace')))
 
             if updateCallback:
                 updateCallback(
@@ -2226,9 +2226,9 @@ def importValue(item, changes, attribute, value, previousView,
                 SharingChangeNotification(itsView=item.itsView,
                     displayName="Changed attribute %s" % attribute,
                     attribute=attribute,
-                    value=str(value),
+                    value=unicode(value),
                     items=[item])
-            logger.info("Sharing change: item '%s', attr '%s', value '%s'" % (item.getItemDisplayName().encode('ascii', 'replace'), attribute, value))
+            logger.info("Sharing change: item '%s', attr '%s', value '%s'" % (item.getItemDisplayName().encode('utf8', 'replace'), attribute, unicode(value).encode('utf8', 'replace')))
 
 
     except Exception, e:
@@ -2892,7 +2892,7 @@ class CloudXMLFormat(ImportExportFormat):
                             values.append(value)
 
                         logger.debug("for %s setting %s to %s" % \
-                            (item.getItemDisplayName().encode('ascii',
+                            (item.getItemDisplayName().encode('utf8',
                             'replace'), attrName, values))
                         setattr(item, attrName, values)
 

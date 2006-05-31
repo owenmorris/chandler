@@ -1,5 +1,6 @@
 import tools.QAUITestAppLib as QAUITestAppLib
 import osaf.framework.scripting as scripting
+from i18n.tests import uw
     
 # initialization
 fileName = "TestCalView.log"
@@ -17,12 +18,12 @@ try:
     # double click one more time => edit the title
     #testView.DoubleClickInCalView()
     # type a new title and return
-    QAUITestAppLib.scripting.User.emulate_typing("Writing tests")
+    QAUITestAppLib.scripting.User.emulate_typing(uw("Writing tests"))
     QAUITestAppLib.scripting.User.emulate_return()
     
     # verification
     # check the detail view of the created event
-    ev.Check_DetailView({"displayName":"Writing tests"})
+    ev.Check_DetailView({"displayName": uw("Writing tests")})
 
 finally:
     # cleaning

@@ -100,17 +100,22 @@ class TestLogger:
         self.nbVerif = 0
         self.failureList = []
         self.passedList = []
-            
+
     def Print(self,string):
         ''' Printing method '''
+
+        if isinstance(string, unicode):
+            string = string.encode(sys.getfilesystemencoding())
+
         if self.inTerminal:
-            print "%s" %string
+            print "%s" % string
         else:
             self.File.write(string+'\n')
             self.File.flush()
 
     def PrintTBOX(self, elapsed, level=None):
         description = string.join(string.split(self.mainDescription, " "), "_")
+
         if level == "Testcase":
             testcaseDesc = string.join(string.split(self.subTestcaseDesc, " "), "_")
             description = "%s.%s" %(description, testcaseDesc)
@@ -123,7 +128,7 @@ class TestLogger:
         elapsed_secs = elapsed.seconds + elapsed.microseconds / 1000000.0
         self.Print("OSAF_QA: %s | %s | %s" %(description, version.revision, elapsed_secs)) 
         print("OSAF_QA: %s | %s | %s" %(description, version.revision, elapsed_secs))
-        
+
     def SuspendProfiling(self):
         """
         Suspend profiling of code between Start()/Stop() calls

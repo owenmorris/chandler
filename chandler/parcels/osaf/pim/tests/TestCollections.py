@@ -2,6 +2,7 @@ import os,unittest
 from osaf.pim.collections import *
 from osaf import pim
 from repository.persistence.DBRepository import DBRepository
+from i18n.tests import uw
 
 class NotifyHandler(schema.Item):
     """
@@ -14,7 +15,7 @@ class NotifyHandler(schema.Item):
     def checkLog(self, op, item, other, index=-1):
         if len(self.log) == 0:
             return False
-        
+
         # skip 'changed' entries unless we are looking for changes
         # this is due to mixing of _dispatchChanges in
         # view.dispatchNotifcations()
@@ -34,19 +35,19 @@ class SimpleItem(schema.Item):
     A dirt simple item -- think content item here, if you like
     """
 
-    label = schema.One(schema.Text, displayName=u"\u00FCMy Label")
+    label = schema.One(schema.Text, displayName=uw("My Label"))
     collections = schema.Sequence(otherName='inclusions')
     appearsIn = schema.Sequence(otherName='set')
 
 class ChildSimpleItem(SimpleItem):
-    childData = schema.One(schema.Text, displayName=u"\u00FCChild data")
+    childData = schema.One(schema.Text, displayName=uw("Child data"))
 
 class OtherSimpleItem(schema.Item):
     """
     Another dirt simple item -- think content item here, if you like
     """
 
-    label = schema.One(schema.Text, displayName=u"\u00FCMy Label")
+    label = schema.One(schema.Text, displayName=uw("My Label"))
     collections = schema.Sequence(otherName='inclusions')
     appearsIn = schema.Sequence(otherName='set')
 
@@ -76,9 +77,14 @@ class CollectionTests(CollectionTestCase):
 
     def setUp(self):
         super(CollectionTests, self).setUp()
-        self.i = SimpleItem('i', label=u'\u00FCi', itsView=self.view)
-        self.i1 = SimpleItem('i1',label=u'\u00FCi2', itsView=self.view)
-        self.i2 = SimpleItem('i2',label=u'\u00FCi3', itsView=self.view)
+
+        #Theses values are used as part of an indexed collection.
+        #Thus the ordering needs to remain the same between runs.
+        #The uw() syntax is not used here since it will change the
+        #comparison sort order from run to run.
+        self.i = SimpleItem('i', label=u"\u00FCi", itsView=self.view)
+        self.i1 = SimpleItem('i1',label=u"\u00FCi2", itsView=self.view)
+        self.i2 = SimpleItem('i2',label=u"\u00FCi3", itsView=self.view)
 
         self.b1 = ListCollection('b1', itsView=self.view)
         self.b2 = ListCollection('b2', itsView=self.view)
@@ -151,7 +157,7 @@ class CollectionTests(CollectionTestCase):
         u.removeSource(self.b2)
         self.view.dispatchNotifications()
         self.failUnless(self.nh.checkLog("remove",u,self.i1.itsUUID))
-        
+
         print [ i for i in u ]
 
     def testDifference(self):
@@ -178,7 +184,7 @@ class CollectionTests(CollectionTestCase):
         self.view.dispatchNotifications()
         self.failUnless(self.nh2.checkLog("add", self.b2, self.i2))
         self.failIf(self.nh1.checkLog("add", d, self.i2))
-        self.failIf(self.nh1.checkLog("remove", d, self.i2))     
+        self.failIf(self.nh1.checkLog("remove", d, self.i2))
 
         self.b2.add(self.i)
         self.view.dispatchNotifications()
@@ -214,9 +220,9 @@ class CollectionTests(CollectionTestCase):
         inclusions.add(it)
         self.view.dispatchNotifications()
         self.failUnless(self.nh.checkLog("add", inclusions, it))
-        self.failUnless(nh3.checkLog("add", ic, it))        
+        self.failUnless(nh3.checkLog("add", ic, it))
 
-        nancy = SimpleItem("nancy", label=u"\u00FCnancy", itsView=self.view)
+        nancy = SimpleItem("nancy", label=uw("nancy"), itsView=self.view)
         self.view.dispatchNotifications()
         self.failUnless(self.nh1.checkLog("add", rule, nancy))
         self.assertEqual(len(list(rule)), 4)
@@ -226,7 +232,7 @@ class CollectionTests(CollectionTestCase):
         self.view.dispatchNotifications()
         self.failUnless(self.nh2.checkLog("add", exclusions, self.i2))
         self.failUnless(nh3.checkLog("remove", ic, self.i2))
-        
+
         exclusions.remove(self.i2)
         self.view.dispatchNotifications()
         self.failUnless(self.nh2.checkLog("remove", exclusions, self.i2))
@@ -288,7 +294,7 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(self.nh.checkLog("add", self.b1, self.i2))
         self.failIf(self.nh1.checkLog("add", f1, self.i2))
 
-        ted = SimpleItem("ted", label=u"\u00FCted", itsView=self.view)
+        ted = SimpleItem("ted", label=uw("ted"), itsView=self.view)
         self.b1.add(ted)
         self.view.dispatchNotifications()
         self.failUnless(self.nh.checkLog("add", self.b1, ted))
@@ -302,29 +308,29 @@ class CollectionTests(CollectionTestCase):
                             kind=self.i.itsKind)
         f2 = FilteredCollection(itsView=self.view,
                                 source=k1,
-                                filterExpression=u"len(view[uuid].label) > 3",
+                                filterExpression=u"len(view[uuid].label) > 4",
                                 filterAttributes=["label"])
         nh3 = NotifyHandler("nh3", itsView=self.view)
 
         k1.notificationQueueSubscribe(self.nh2)
         f2.notificationQueueSubscribe(nh3)
 
-        fred = SimpleItem("fred", label=u"\u00FCfred", itsView=self.view)
+        fred = SimpleItem("fred", label=uw("fred"), itsView=self.view)
         self.view.dispatchNotifications()
         self.failUnless(self.nh2.checkLog("add", k1, fred))
         self.failUnless(nh3.checkLog("add", f2, fred))
 
-        john = SimpleItem("john", label=u"\u00FCjohn", itsView=self.view)
+        john = SimpleItem("john", label=uw("john"), itsView=self.view)
         self.view.dispatchNotifications()
         self.failUnless(self.nh2.checkLog("add", k1, john))
         self.failUnless(nh3.checkLog("add", f2, john))
 
-        karen = SimpleItem("karen", label=u"\u00FCkaren", itsView=self.view)
+        karen = SimpleItem("karen", label=uw("karen"), itsView=self.view)
         self.view.dispatchNotifications()
         self.failUnless(self.nh2.checkLog("add", k1, karen))
         self.failUnless(nh3.checkLog("add", f2, karen))
 
-        x = SimpleItem("x", label=u"\u00FCx", itsView=self.view)
+        x = SimpleItem("x", label=uw("x"), itsView=self.view)
         self.view.dispatchNotifications()
         self.failUnless(self.nh2.checkLog("add", k1, x))
         self.failIf(nh3.checkLog("add", f2, x))
@@ -335,7 +341,7 @@ class CollectionTests(CollectionTestCase):
 #        print nh3.log[-1], len(nh3.log)
 #        print "setting label"
 #        print x.label
-        x.label = u"\u00FCxxxx"
+        x.label = uw("xxxx")
 #        print x.label
 
         pos = len(nh3.log)
@@ -363,7 +369,7 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(x in k1)
         self.failIf(x not in f2)
 
-        x.label=u"\u00FCzzz"
+        x.label=uw("zzz")
 
 
     def testFilteredDelete(self):
@@ -382,7 +388,7 @@ class CollectionTests(CollectionTestCase):
         k1.notificationQueueSubscribe(self.nh2)
         f2.notificationQueueSubscribe(nh3)
 
-        self.i.label = u"\u00FCxxx"
+        self.i.label = uw("xxx")
         print nh3.log
         self.view.dispatchNotifications()
 
@@ -393,7 +399,7 @@ class CollectionTests(CollectionTestCase):
                 changed = True
                 break
         self.failUnless(changed)
-        self.assertEqual(self.i.label,u"\u00FCxxx")
+        self.assertEqual(self.i.label,uw("xxx"))
 
         delattr(self.i,"label")
         self.view.dispatchNotifications()
@@ -410,30 +416,30 @@ class CollectionTests(CollectionTestCase):
 
         f = FilteredCollection(itsView=self.view,
                                source=k,
-                               filterExpression=u"len(view[uuid].label) > 2",
+                               filterExpression=u"len(view[uuid].label) > 3",
                                filterAttributes=["label"])
-        
+
         l = ListCollection(itsView=self.view)
-        
+
         u = UnionCollection(itsView=self.view)
         u.notificationQueueSubscribe(self.nh)
-        
+
         u.addSource(f)
         u.addSource(l)
         self.view.dispatchNotifications()
-        
-        self.i.label = u"\u00FCabcd"
-        self.view.dispatchNotifications()
-        self.failUnless(self.nh.checkLog('add', u, self.i))        
 
-        self.i.label = u"\u00FCdefg"
+        self.i.label = uw("abcd")
         self.view.dispatchNotifications()
-        self.failUnless(self.nh.checkLog('changed', u, self.i))        
+        self.failUnless(self.nh.checkLog('add', u, self.i))
 
-        self.i.label = u"\u00FCa"
+        self.i.label = uw("defg")
         self.view.dispatchNotifications()
-        self.failUnless(self.nh.checkLog('remove', u, self.i))                
-        
+        self.failUnless(self.nh.checkLog('changed', u, self.i))
+
+        self.i.label = uw("a")
+        self.view.dispatchNotifications()
+        self.failUnless(self.nh.checkLog('remove', u, self.i))
+
     def testNumericIndex(self):
         k = KindCollection(itsView=self.view,
                            kind=self.i.itsKind)
@@ -441,7 +447,7 @@ class CollectionTests(CollectionTestCase):
         testCollection = IndexedSelectionCollection(itsView=self.view,
                                                     source=k)
         for i in ["z", "y", "x", "w", "v"]:
-            it = SimpleItem(i, label=u"\u00FC%s" % i, itsView=self.view)
+            it = SimpleItem(i, label=uw(i), itsView=self.view)
 
         #@@@ this is a bug in len -- if you compute the length before you
         #create any indexes, you are out of luck
@@ -459,6 +465,12 @@ class CollectionTests(CollectionTestCase):
 
         testCollection = IndexedSelectionCollection(itsView=self.view,
                                                     source=k)
+
+        #Theses values are used as part of an indexed collection.
+        #Thus the ordering needs to remain the same between runs.
+        #The uw() syntax is not used here since it will change the
+        #comparison sort order from run to run.
+
         for i in ["z", "y", "x", "w", "v"]:
             it = SimpleItem(i, label=u"\u00FC%s" % i, itsView=self.view)
 
@@ -469,7 +481,9 @@ class CollectionTests(CollectionTestCase):
         self.assertEqual([testCollection[i].label for i in xrange(0, len(testCollection))],[u'\u00FCi',u'\u00FCi2',u'\u00FCi3',u'\u00FCv',u'\u00FCw',u'\u00FCx',u'\u00FCy',u'\u00FCz'])
 
         testCollection[len(testCollection)-1].label = u'\u00FCu'
+
         self.assertEqual([testCollection[i].label for i in xrange(0, len(testCollection))],[u'\u00FCi',u'\u00FCi2',u'\u00FCi3',u'\u00FCu',u'\u00FCv',u'\u00FCw',u'\u00FCx',u'\u00FCy'])
+
 
     def testDelayedCreation(self):
         uc = UnionCollection('u', itsView=self.view)
@@ -553,7 +567,7 @@ class CollectionTests(CollectionTestCase):
                                recursive=True)
         mine = UnionCollection(itsView=self.view)
         myNotes = IntersectionCollection(itsView=self.view, sources=(mine, notes))
-        
+
         all = SmartCollection(itsView=self.view, source=myNotes,
             exclusions=trash, trash=None)
 
@@ -563,7 +577,7 @@ class CollectionTests(CollectionTestCase):
         mine.addSource(coll2)
         coll3 = SmartCollection(itsView=self.view, trash=trash)
         mine.addSource(coll3)
-        
+
         note = pim.Note(itsView=self.view)
 
         # note is only in a not-mine collection, so removing it from that

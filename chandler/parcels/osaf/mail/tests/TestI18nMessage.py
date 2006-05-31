@@ -26,22 +26,22 @@ class MessageI18nTest(MailTestCase.MailTestCase):
            are decoded to Unicode, The Body is converted
            from bytes to Unicode, and that the headers and
            Body are properly encoded back to bytes.
-           
+
            A header in a non-ascii charset
            should be encoded for sending. For example:
-               
+
            To: =?utf-8?b?IsSFxI3EmcSXxK/FocWzxavFviDEhMSMxJjElsSuxaDFssWqxb0i?= <testreceive@test.com>
         """
-        
-        msgText = self.__loadTestMessage()  
-        
+
+        msgText = self.__loadTestMessage()
+
         #The message.messageObjectToKind method will
         #remove the headers from the c{email.Message} object
         #as they are encountered. Thus we want to keep a copy
         #of the original in mOne and pass mTmp to the 
         #messageObjectToKind method
         mTmp = email.message_from_string(msgText)
-        mOne = email.message_from_string(msgText)    
+        mOne = email.message_from_string(msgText)
         messageKind = message.messageObjectToKind(self.rep.view, mTmp, msgText)
         mTwo  = message.kindToMessageObject(messageKind)
 
@@ -49,7 +49,7 @@ class MessageI18nTest(MailTestCase.MailTestCase):
         self.assertEquals(mOne['From'], mTwo['From'])
         self.assertEquals(mOne['Subject'], mTwo['Subject'])
         self.assertEquals(mOne.get_payload(), mTwo.get_payload())
-        
+
     def __loadTestMessage(self):
         rootdir = os.environ['CHANDLERHOME']
         testMessage = os.path.join(rootdir, 'parcels', 'osaf', 'mail',
@@ -58,13 +58,13 @@ class MessageI18nTest(MailTestCase.MailTestCase):
         fp = open(testMessage)
         messageText = fp.read()
         fp.close()
-        
+
         return messageText
-    
+
     def setUp(self):
         super(MessageI18nTest, self).setUp()
         self.loadParcel("osaf.pim.mail")
-       
+
 
 if __name__ == "__main__":
    unittest.main()

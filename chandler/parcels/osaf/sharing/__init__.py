@@ -212,7 +212,7 @@ def publish(collection, account, classesToInclude=None,
     handle = conduit._getServerHandle()
     resource = handle.getResource(location)
 
-    logger.debug('Examining %s ...', location.encode('ascii', 'replace'))
+    logger.debug('Examining %s ...', location.encode('utf8', 'replace'))
     exists = handle.blockUntil(resource.exists)
     if not exists:
         logger.debug("...doesn't exist")

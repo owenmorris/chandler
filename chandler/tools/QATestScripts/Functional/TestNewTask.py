@@ -1,4 +1,5 @@
 import tools.QAUITestAppLib as QAUITestAppLib
+from i18n.tests import uw
 
 # initialization
 fileName = "TestNewTask.log"
@@ -9,10 +10,10 @@ try:
     task = QAUITestAppLib.UITestItem("Task", logger)
     
     # action
-    task.SetAttr(displayName="Task of sending birthday invites", body="Send birthday invitations")
+    task.SetAttr(displayName=uw("Task of sending birthday invites"), body=uw("Send birthday invitations"))
     
     # verification
-    task.Check_DetailView({"displayName":"Task of sending birthday invites","body":"Send birthday invitations"})
+    task.Check_DetailView({"displayName":uw("Task of sending birthday invites"),"body":uw("Send birthday invitations")})
 
 finally:
     # cleaning

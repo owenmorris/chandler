@@ -2,6 +2,7 @@ import unittest
 from osaf import pim, sharing
 from application import schema
 from util import testcase
+from i18n.tests import uw
 
 class TestModifiableAttributes(testcase.NRVTestCase):
 
@@ -20,7 +21,7 @@ class TestModifiableAttributes(testcase.NRVTestCase):
 
         # Add the subject to a read-only share:
 
-        share_ro = sharing.Share(itsView=view, displayName=u"\u00FCshare_ro")
+        share_ro = sharing.Share(itsView=view, displayName=uw("share_ro"))
         share_ro.mode = 'get'
 
         e1.sharedIn.append(share_ro)

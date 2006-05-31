@@ -1,6 +1,7 @@
 import tools.QAUITestAppLib as QAUITestAppLib
 import flickr
 import socket
+from i18n.tests import uw
 
 # initialization
 fileName = "TestFlickr.log"
@@ -25,7 +26,7 @@ try:
     # get a collection of photos from the oscon2005 tag
     fc = flickr.PhotoCollection(itsView = repView)
     fc.tag = flickr.Tag.getTag(repView, "oscon2005")
-    fc.displayName = "oscon2005"
+    fc.displayName = uw("oscon2005")
 
     try:
         fc.fillCollectionFromFlickr(repView)
@@ -53,7 +54,7 @@ try:
         User.idle()
 
         # check results
-        col = sidebarCollectionNamed("oscon2005")
+        col = sidebarCollectionNamed(uw("oscon2005"))
         if not col:
             logger.ReportFailure("Flickr Collection wasn't created")
         if col and len(col) != 10:

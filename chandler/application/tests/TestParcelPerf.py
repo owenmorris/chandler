@@ -44,7 +44,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
         view.commit()
         util.timing.end("application.tests.testParcelPerf.testCalendarEvents-commit")
         util.timing.results(verbose=False)
-        
+
 
 
     def testLoadAllParcelItems(self):

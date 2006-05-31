@@ -2,7 +2,7 @@ import tools.QAUITestAppLib as QAUITestAppLib
 import os
 import application.dialogs.SubscribeCollection as SubscribeCollection
 import wx
-from i18n import OSAFMessageFactory as _
+from i18n.tests import uw
 
 App_ns = app_ns()
 
@@ -17,7 +17,7 @@ try:
     ap = QAUITestAppLib.UITestAccounts(logger)
     ap.Open() # first, open the accounts dialog window
     ap.CreateAccount("WebDAV")
-    ap.TypeValue("displayName", "Subscribe Test WebDAV")
+    ap.TypeValue("displayName", uw("Subscribe Test WebDAV"),
     ap.TypeValue("host", "qacosmo.osafoundation.org")
     ap.TypeValue("path", "home/demo1")
     ap.TypeValue("username", "demo1")
@@ -29,9 +29,8 @@ try:
     logger.Stop()
 
     # verification
-    ap.VerifyValues("WebDAV", "Subscribe Test WebDAV", displayName = "Subscribe Test WebDAV", host = "qacosmo.osafoundation.org", username = "demo1",
-                    password="ad3leib5", port=8080)
-    
+    ap.VerifyValues("WebDAV", uw("Subscribe Test WebDAV"), displayName = uw("Subscribe Test WebDAV"), host = "qacosmo.osafoundation.org", path = "home/demo1", username = "demo1", password="ad3leib5", port=8080)
+
     # Subscribe dialog
     logger.Start("Subscribe dialog")
     window = SubscribeCollection.Show(wx.GetApp().mainFrame,

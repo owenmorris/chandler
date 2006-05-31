@@ -1,19 +1,20 @@
 import tools.QAUITestAppLib as QAUITestAppLib
-    
+from i18n.tests import uw
+
 # initialization
 fileName = "TestNewItem.log"
 logger = QAUITestAppLib.QALogger(fileName, "TestNewItem")
 
 START_ITEM = QAUITestAppLib.App_ns.DetailRoot.contents
-    
+
 def switchAndCheck(logger, buttonName, expectedClass):
 
-    name = "TestNewItem(%s)" % (buttonName,)
+    name = uw("TestNewItem(%s)" % (buttonName,))
     logger.Start(name)
 
     # Switch to the requested view...
     QAUITestAppLib.App_ns.appbar.press(name=buttonName)
-    
+ 
     # ... idle() so the app can handle changes
     QAUITestAppLib.scripting.User.idle()
 
@@ -22,7 +23,7 @@ def switchAndCheck(logger, buttonName, expectedClass):
     # simulate a control/cmd-n here)
     QAUITestAppLib.App_ns.MainView.onNewItemEvent(
        QAUITestAppLib.App_ns.NewItemItem.event)
-    
+
     # ... wait again so the app can refresh
     QAUITestAppLib.scripting.User.idle()
 

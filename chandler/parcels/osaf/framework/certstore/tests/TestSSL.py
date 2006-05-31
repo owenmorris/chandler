@@ -23,7 +23,7 @@ class TestSSL(TestContentModel.ContentModelTestCase):
         super(TestSSL, self)._setup()
 
         self.profileDir = os.path.dirname(__file__)
-        Utility.initCrypto(self.profileDir)        
+        Utility.initCrypto(self.profileDir)
         self.testdir = self.profileDir
 
         super(TestSSL, self)._openRepository()
@@ -34,7 +34,7 @@ class TestSSL(TestContentModel.ContentModelTestCase):
     def tearDown(self):
         super(TestSSL, self).tearDown()
         Utility.stopCrypto(self.profileDir)
-    
+
     def testCertificateVerification(self):
         ctx = ssl.getContext(self.rep.view)
         conn1 = SSL.Connection(ctx)
@@ -60,10 +60,10 @@ class TestSSL(TestContentModel.ContentModelTestCase):
             # XXX in a program.
             conn1.setblocking(1)
             #conn2.setblocking(1)
-            
+
         if not self.isOnline():
             return
-            
+
         # We wrap the connect() in try/except and filter some common
         # network errors that are not SSL-related.
         try:
@@ -107,7 +107,7 @@ QzAXPN7hH0vJ3sbpb84tziV5VkvqDT51+WP4MGrk44oVQEjylxnboMkdtCi08Ts5
 QUW4hRYWNNbb
 -----END CERTIFICATE-----'''
         x509 = X509.load_cert_string(pemSite)
-        
+
         factory = protocol.ClientFactory()
         wrapper = ssl.TwistedProtocolWrapper(self.rep.view,
                                              'tlsv1',
@@ -115,7 +115,7 @@ QUW4hRYWNNbb
                                              policies.WrappingFactory(factory),
                                              0,
                                              1)
-        
+
         self.assert_(wrapper.postConnectionVerify(x509, 'bugzilla.osafoundation.org'))
         self.assertRaises(Checker.WrongHost, wrapper.postConnectionVerify, 
                           x509, 'example.com')

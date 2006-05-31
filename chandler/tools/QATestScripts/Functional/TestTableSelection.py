@@ -26,11 +26,11 @@ try:
         mail.SetAttr(displayName="Mail Message %s" % (ITEM_COUNT-i),
                      toAddress = "%s@osafoundation.org" % alpha[i])
         items.append(mail.item)
-        
+
     # action
     dashboardBlock = App_ns.TableSummaryView
     dashboard = dashboardBlock.widget
-    
+
     User.emulate_click(dashboard, 20, 20)
     User.idle()
 
@@ -40,13 +40,13 @@ try:
 
     # select the first row
     User.emulate_click(dashboard, 100, rowsToSelect[0]*rowHeight + rowMiddle)
-                       
+
     # select 3 more rows, with control key down for multi selection
     for row in rowsToSelect[1:]:
         User.emulate_click(dashboard, 100,
                            rowHeight*row + rowMiddle,
                            control=True)
-        
+
     # verification
 
     # check selection indexes
@@ -96,10 +96,10 @@ try:
     newSelectedItems.sort(key=lambda x: x.itsUUID)
     view.Check_Equality(expectedItems, newSelectedItems, "Selection by item after sorting #2")
 
-    
+
     logger.Report("Table Selection")
-    
+
 finally:
     pass
     logger.Close()
-    
+

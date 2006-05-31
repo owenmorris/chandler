@@ -1,5 +1,6 @@
 import unittest
 this_module = "application.tests.TestSchemaAPI"     # change this if it moves
+from i18n.tests import uw
 
 from application import schema, tests
 from repository.schema import Types
@@ -96,8 +97,8 @@ class SchemaTests(SchemaTestCase):
 
     def testAnnotateKind(self):
         kind_kind = schema.itemFor(schema.Kind, self.rv)
-        CoreAnnotation(kind_kind).extraInfo = u"\u00FCFoo"
-        self.assertEqual(CoreAnnotation(kind_kind).extraInfo, u"\u00FCFoo")
+        CoreAnnotation(kind_kind).extraInfo = uw("Foo")
+        self.assertEqual(CoreAnnotation(kind_kind).extraInfo, uw("Foo"))
         parcel = schema.parcel_for_module(__name__, self.rv)
         CoreAnnotation(kind_kind).otherItem = parcel
         self.assertEqual(

@@ -5,7 +5,6 @@ and into the imported collection
 import tools.QAUITestAppLib as QAUITestAppLib
 import os, sys
 from time import localtime, strftime
-from i18n import OSAFMessageFactory as _
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.scripting as scripting
@@ -39,7 +38,7 @@ try:
     if os.path.exists(fullpath):
         os.remove(fullpath)
     reportDir = unicode(reportDir, sys.getfilesystemencoding())
-    
+
     #export
     share = Sharing.OneTimeFileSystemShare(reportDir, u'deleteThenImport.ics', ICalendar.ICalendarFormat, itsView=appView)
     share.contents = collection.item

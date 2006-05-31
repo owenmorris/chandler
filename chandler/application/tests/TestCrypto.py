@@ -1,4 +1,5 @@
 import unittest, os, sys
+from i18n.tests import uw
 
 from application import Utility
 
@@ -8,22 +9,22 @@ class CryptoTestCase(unittest.TestCase):
             os.remove(os.path.join(self.path, 'randpool.dat'))
         except OSError:
             pass
-    
+
     def setUp(self):
-        u = u"profileDir_(\u00FC)" # u umlaut
+        u = uw("profileDir_")
         self.path = os.path.join(os.path.dirname(__file__),
                                  u.encode(sys.getfilesystemencoding()))
-        
+
         try:
             os.makedirs(self.path)
         except OSError:
             pass
-        
+
         self._removePool()
 
     def tearDown(self):
         self._removePool()
-        
+
         try:
             os.rmdir(self.path)
         except OSError:
@@ -35,11 +36,11 @@ class CryptoTestCase(unittest.TestCase):
         self.assert_(r == 0, r)
         r = Utility.stopCrypto(self.path)
         self.assert_(r == 0, r)
-        
+
         # Trick us into thinking we have initialized entropy
         from osaf.framework.certstore import utils
         utils.entropyInitialized = True
-        
+
         # Now we should save 1k on stop, after that loading and saving 1k
         r = Utility.initCrypto(self.path)
         self.assert_(r == 0, r)
@@ -49,7 +50,7 @@ class CryptoTestCase(unittest.TestCase):
         self.assert_(r == 1024, r)
         r = Utility.stopCrypto(self.path)
         self.assert_(r == 1024, r)
-        
+
 
 if __name__=='__main__':
     unittest.main()

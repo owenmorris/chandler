@@ -13,6 +13,7 @@ from osaf.pim.tasks import Task
 import osaf.pim.tests.TestContentModel as TestContentModel
 
 from repository.util.Path import Path
+from i18n.tests import uw
 
 class TaskTest(TestContentModel.ContentModelTestCase):
     """ Test Task """
@@ -22,13 +23,13 @@ class TaskTest(TestContentModel.ContentModelTestCase):
 
         def _verifyTask(task):
             self.assert_(task != None)
-            self.assertEqual(task.displayName, u"\u00FCtest headline")
-            self.assertEqual(task.getItemDisplayName(), u"\u00FCtest headline")
+            self.assertEqual(task.displayName, uw("test headline"))
+            self.assertEqual(task.getItemDisplayName(), uw("test headline"))
 
             self.assertEqual(task.importance, 'important')
             self.assertEqual(task.getAttributeValue('importance'), 'important')
-            self.assertEqual(task.about, u"\u00FCtest headline")
-        
+            self.assertEqual(task.about, uw("test headline"))
+
         self.loadParcel("osaf.pim.tasks")
 
         # Check that the globals got created by the parcel
@@ -42,7 +43,7 @@ class TaskTest(TestContentModel.ContentModelTestCase):
 
         # Construct A Sample Item
         taskItem = Task("TestTask", itsView=view)
-        taskItem.displayName = u"\u00FCtest headline"
+        taskItem.displayName = uw("test headline")
         taskItem.importance = "important"
 
         self._reopenRepository()
