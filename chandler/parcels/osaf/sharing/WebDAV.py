@@ -46,6 +46,12 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
         #self.factory.extraHeaders = { 'Connection' : "close" }
         self.factory.logging = True
 
+    def addRequest(self, request):
+        # Make all requests going through this ServerHandle have a
+        # 2 minute timeout
+        request.timeout = 120 # seconds
+        return super(ChandlerServerHandle, self).addRequest(request)
+
     def blockUntil(self, callable, *args, **keywds):
         # Since there can be several errors in a connection, we must keep 
         # trying until we either get a successful connection or the user 
