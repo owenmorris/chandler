@@ -278,6 +278,9 @@ class PersistentRefs(object):
                             if merge and hOldAlias not in (Nil, hAlias):
                                 self.view._e_1_name(self, key, alias, hAlias)
                             self.setAlias(key, alias)
+                elif merge is True and hOp == 1:
+                    # conflict: the ref was removed, resolve in favor of history
+                    continue
                 else:
                     self._setRef(key, alias)
                     link = self._get(key)
@@ -291,7 +294,8 @@ class PersistentRefs(object):
                 done.add(key)
 
         for prevKey, key in moves.iteritems():
-            place(key, prevKey)
+            if prevKey in self:
+                place(key, prevKey)
                 
 
 

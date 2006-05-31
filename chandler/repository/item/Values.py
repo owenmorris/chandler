@@ -909,6 +909,10 @@ class References(Values):
                     logger.error("%s doesn't contain a reference to %s, yet %s.%s references %s",
                                  otherOther, self._item._repr_(),
                                  self._item._repr_(), otherName, other._repr_())
+                elif isitem(otherOther):
+                    logger.error("%s.%s doesn't reference %s.%s but %s",
+                                 other._repr_(), otherName, self._item._repr_(),
+                                 name, otherOther._repr_())
                 else:
                     logger.error("%s.%s doesn't reference %s.%s but %s",
                                  other._repr_(), otherName, self._item._repr_(),

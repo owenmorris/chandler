@@ -391,8 +391,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                 def _unload(keys):
                     for uItem in keys():
                         item = self.find(uItem)
-                        item.setDirty(0)
-                        item._unloadItem(True, self, False)
+                        if item is not None:
+                            item.setDirty(0)
+                            item._unloadItem(True, self, False)
 
                 try:
                     self.recordChangeNotifications()
@@ -448,10 +449,11 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                     for uItem, (dirty, uParent, dirties) in merges.iteritems():
                         item = self.find(uItem)
-                        newDirty, _newChanges = newChanges[uItem]
-                        self._applyChanges(item, newDirty, 0, (),
-                                           oldVersion, newVersion,
-                                           _newChanges, None, None, None)
+                        if item is not None:
+                            newDirty, _newChanges = newChanges[uItem]
+                            self._applyChanges(item, newDirty, 0, (),
+                                               oldVersion, newVersion,
+                                               _newChanges, None, None, None)
                     self._applyIndexChanges(indexChanges, deletes)
                     raise
 
@@ -512,7 +514,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                                 break
 
                         if self.isDeferringDelete():
-                            self.logger.info('%s effecting deferred deletes', self)
                             self.effectDelete()
 
                         count = len(self._log) + len(self._deletedRegistry)
@@ -788,7 +789,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         if dirty and newDirty:
             raise VersionConflictError, (item, newDirty, dirty)
 
-        self.logger.info('%s merged %s with newer versions, merge status: 0x%0.8x', self, item.itsPath, (item._status & CItem.MERGED))
+        self.logger.info('%s merged %s with newer versions, merge status: 0x%0.8x', self, item._repr_(), (item._status & CItem.MERGED))
 
     def _applyIndexChanges(self, indexChanges, deletes):
 
