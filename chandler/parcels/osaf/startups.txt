@@ -299,7 +299,7 @@ the reactor will not start::
 
     >>> wait_until(
     ...     # wait until only one thread is running
-    ...     lambda: len(threading.enumerate())==1   
+    ...     lambda: len(threading.enumerate())==1
     ... )
 
     >>> print sys.stderr.getvalue()
@@ -469,7 +469,12 @@ and that we can change the interval of a running ``PeriodicTask``, using the
 There's also a ``stop()`` method, which will prevent any further invocations
 from occurring, until/unless you call ``reschedule()`` again.  If you don't
 provide an interval argument to ``reschedule()``, it defaults to the current
-``interval`` of the ``PeriodicTask`` you called it on.
+``interval`` of the ``PeriodicTask`` you called it on::
+
+    >>> counter.stop()
+    >>> counter.reschedule(); wait_until(lambda: run_count==6)
+    run() call 6 running ... in <RepositoryThread(RepositoryPoolThread...)>
+
 
 Anyway, if we turn the ``run_at_startup`` flag back off, it doesn't get a
 ``run()`` call at startup::

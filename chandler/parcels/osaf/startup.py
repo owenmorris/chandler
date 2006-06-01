@@ -157,7 +157,6 @@ class TwistedTask(Startup):
         Run a target in the reactor thread w/a new repository view
         """
         run_reactor()
-        from twisted.internet import reactor
         reactor.callFromThread(target, fork_item(self))
 
 
@@ -176,14 +175,6 @@ class TaskRunner(object):
         self.subject = item.getTarget()(item)
         self.interval = item.interval
         self.runlock = threading.Lock()
-
-        global reactor
-        from twisted.internet import reactor
-
-        if item.run_at_startup:
-            self.run_once()     # run first time immediately
-        else:
-            self.reschedule()   # run first time later
 
     def run_once(self):
         reactor.callInThread(self._run)
@@ -246,21 +237,26 @@ class PeriodicTask(TwistedTask):
         """
         Start our wrapper in the reactor thread
         """
-        self.invokeTarget(lambda self: self.startRunning())
+        run_at_startup = self.run_at_startup
 
-    def startRunning(self):
-        """
-        Set up for running and repeating the task
-        """
-        TaskRunner(self)
+        def start_running(runner):
+            if run_at_startup:
+                runner.run_once()
+            else:
+                runner.reschedule()
+
+        run_reactor()
+        reactor.callFromThread(
+            lambda: start_running(TaskRunner(fork_item(self)))
+        )
 
     def run_once(self):
         """Request to run the task once, immediately"""
-        reactor.callFromThread(self._get_runner().run_once)
+        self._with_runner(lambda r: r.run_once())
 
     def stop(self):
         """Stop running the task until/unless reschedule() is called"""
-        reactor.callFromThread(self._get_runner().stop)
+        self._with_runner(lambda r: r.stop())
 
     def reschedule(self, interval=None):
         """Reschedule the next occurrence of the task"""
@@ -268,10 +264,18 @@ class PeriodicTask(TwistedTask):
             interval = self.interval
         else:
             self.interval = interval
-        reactor.callFromThread(self._get_runner().reschedule, interval)
+        self._with_runner(lambda r: r.reschedule(interval))
 
-    def _get_runner(self):
-        return TaskRunner._cache[self.itsUUID]
+    def _with_runner(self, f):
+        uuid = self.itsUUID
+        def callback():
+            try:
+                runner = TaskRunner._cache[uuid]
+            except KeyError:
+                runner = TaskRunner(fork_item(self))
+            f(runner)
+        reactor.callFromThread(callback)
+
 
 
 
@@ -294,7 +298,7 @@ def run_reactor(in_thread=True):
     """
     Safely run the Twisted reactor
     """
-
+    global reactor
     global _reactor_thread
 
     from osaf.framework.twisted import TwistedThreadPool  # initializes threads
