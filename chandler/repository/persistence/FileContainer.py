@@ -9,11 +9,13 @@ from cStringIO import StringIO
 from time import time
 
 from PyLucene import \
-    Document, Field, \
-    RAMDirectory, DbDirectory, StandardAnalyzer, QueryParser, \
-    IndexReader, IndexWriter, IndexSearcher, Term, TermQuery
+    Document, Field, RAMDirectory, DbDirectory, StandardAnalyzer, \
+    QueryParser, IndexReader, IndexWriter, IndexSearcher, Term, TermQuery, \
+    JavaError
 
 from chandlerdb.util.c import UUID
+from chandlerdb.persistence.c import DBLockDeadlockError
+
 from repository.persistence.DBContainer import DBContainer, ValueContainer
 from repository.persistence.RepositoryError import RepositoryError
 
@@ -453,13 +455,21 @@ class IndexContainer(FileContainer):
 
     def commitIndexWriter(self, writer):
 
-        writer.close()
-        dbWriter = IndexWriter(self.getDirectory(), StandardAnalyzer(), False)
-        dbWriter.setUseCompoundFile(False)
-        dbWriter.addIndexes([writer.getDirectory()])
-        dbWriter.close()
-        dbWriter.getDirectory().close()
-        writer.getDirectory().close()
+        try:
+            writer.close()
+            dbWriter = IndexWriter(self.getDirectory(),
+                                   StandardAnalyzer(), False)
+            dbWriter.setUseCompoundFile(False)
+            dbWriter.addIndexes([writer.getDirectory()])
+            dbWriter.close()
+            dbWriter.getDirectory().close()
+            writer.getDirectory().close()
+        except JavaError, e:
+            e = e.getJavaException()
+            msg = e.getMessage()
+            if msg is not None and msg.find("DB_LOCK_DEADLOCK") >= 0:
+                raise DBLockDeadlockError, e
+            raise
 
     def abortIndexWriter(self, writer):
 

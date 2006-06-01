@@ -309,17 +309,19 @@ class DBRepositoryView(OnDemandRepositoryView):
                         self._abortTransaction(txnStatus)
                         sleep(1)
                         continue
-                    except:
+                    except Exception, e:
+                        self.logger.warning('%s refresh aborted by error: %s',
+                                            self, e)
                         self._abortTransaction(txnStatus)
                         raise
                     else:
                         self._abortTransaction(txnStatus)
-                        return
+                        return self.itsVersion
             finally:
                 self._status &= ~RepositoryView.REFRESHING
 
         else:
-            self.logger.warning('%s: skipping recursive refresh', self)
+            self.logger.warning('%s skipping recursive refresh', self)
 
     def _refresh(self, mergeFn=None, version=None, notify=True):
 
