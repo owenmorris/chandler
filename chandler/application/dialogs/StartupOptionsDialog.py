@@ -21,6 +21,14 @@ class StartupOptionsDialog(wx.Dialog):
     @classmethod
     def run(cls, exception=None):
         dialog = StartupOptionsDialog(exception)
+
+        if Globals.options.create:
+            # if --create was on the cmd line, and we have an existing repo, 
+            # default to that choice.
+            dialog.create.SetValue(True)
+        else:
+            dialog.normalStartup.SetValue(True)
+
         dialog.ShowModal()
         dialog.Destroy()
         
@@ -58,10 +66,6 @@ class StartupOptionsDialog(wx.Dialog):
             _(u"Discard all my data and start from scratch"))
         sizer.Add(self.create, flag=wx.ALL, border=5)
         self.create.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
-
-        if Globals.options.create:
-            # if --create was on the cmd line, default to that choice.
-            self.create.SetValue(True)
             
         repoDir = locateRepositoryDirectory(Globals.options.profileDir)
         repoExists = os.path.exists(repoDir)
@@ -87,7 +91,6 @@ class StartupOptionsDialog(wx.Dialog):
         self.SetAutoLayout(True)
         sizer.Fit(self)
         self.CenterOnScreen()
-        self.Show()
             
     def onButton(self, event):
         buttonID = event.GetEventObject().GetId()
