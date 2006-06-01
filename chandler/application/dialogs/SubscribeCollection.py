@@ -1,4 +1,4 @@
-import os, sys
+import os
 import logging
 import wx
 import wx.xrc
@@ -219,7 +219,7 @@ def Show(parent, view=None, url=None, modal=True):
      'application', 'dialogs', 'SubscribeCollection_wdr.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
-    xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
+    xrcFile = unicode(xrcFile, 'utf8')
     resources = wx.xrc.XmlResource(xrcFile)
     win = SubscribeDialog(parent, _(u"Subscribe to Shared Collection"),
      resources=resources, view=view, url=url, modal=modal)

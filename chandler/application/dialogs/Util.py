@@ -3,7 +3,7 @@
 @license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
 
-import os, sys, codecs
+import os, codecs
 import wx
 from i18n import OSAFMessageFactory as _
 from osaf import messages
@@ -294,7 +294,7 @@ class LogWindow(wx.Dialog):
 
         for log in logList:
             if not isinstance(log, unicode):
-                log = unicode(log, sys.getfilesystemencoding())
+                log = unicode(log, 'utf8')
 
             f = codecs.open(log, encoding='utf-8', mode="r", errors="ignore")
             #combined is a list of unicode text

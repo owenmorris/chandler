@@ -2,7 +2,7 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "photos"
 
-import urllib, time, cStringIO, logging, mimetypes, sys
+import urllib, time, cStringIO, logging, mimetypes
 from datetime import datetime
 from osaf import pim
 from repository.util.URL import URL
@@ -30,7 +30,7 @@ class PhotoMixin(pim.ContentItem):
 
     def importFromFile(self, path):
         if isinstance(path, unicode):
-            path = path.encode(sys.getfilesystemencoding())
+            path = path.encode('utf8')
 
         data = file(path, "rb").read()
         (mimetype, encoding) = mimetypes.guess_type(path)
@@ -47,7 +47,7 @@ class PhotoMixin(pim.ContentItem):
 
     def exportToFile(self, path):
         if isinstance(path, unicode):
-            path = path.encode(sys.getfilesystemencoding())
+            path = path.encode('utf8')
 
         input = self.photoBody.getInputStream()
         data = input.read()

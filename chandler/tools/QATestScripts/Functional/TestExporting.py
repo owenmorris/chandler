@@ -1,7 +1,7 @@
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
 import tools.QAUITestAppLib as QAUITestAppLib
-import os, wx, sys
+import os, wx
 from osaf.pim import ListCollection
 import osaf.pim.calendar.Calendar as Calendar
 
@@ -20,8 +20,8 @@ try:
     
     #Upcast path to unicode since Sharing requires a unicode path
     #for now. This will change in the next few days
-    path = unicode(path, sys.getfilesystemencoding())
-    share = Sharing.OneTimeFileSystemShare(path, u'exportTest.ics', ICalendar.ICalendarFormat, itsView=appView)
+    path = unicode(path, 'utf8')
+    share = Sharing.OneTimeFileSystemShare(path, 'exportTest.ics', ICalendar.ICalendarFormat, itsView=appView)
     
     logger.Start("Export Test Calendar")
     try:

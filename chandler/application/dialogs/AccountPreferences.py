@@ -1,7 +1,7 @@
 # Account Preferences Dialog
 # Invoke this using the ShowAccountPreferencesDialog() method
 
-import os, sys
+import os
 import wx
 import wx.xrc
 import webbrowser
@@ -1215,7 +1215,7 @@ def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
 
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
-    xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
+    xrcFile = unicode(xrcFile, 'utf8')
     resources = wx.xrc.XmlResource(xrcFile)
 
     # Display the dialog:

@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, re, sys
+import os, re
 
 from chandlerdb.util.c import UUID
 from repository.util.Path import Path
@@ -27,8 +27,8 @@ class PackHandler(ContentHandler):
         self.hooks = []
 
         # the xml parser may return unicode for non-ascii paths or names
-        # which need to be encoded according to the system's file system
-        self.fsenc = sys.getfilesystemencoding()
+        # which need to be encoded to utf8
+        self.fsenc = 'utf8'
 
         packs = view.getRoot('Packs')
         if packs is None:

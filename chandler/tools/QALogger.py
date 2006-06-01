@@ -105,7 +105,7 @@ class TestLogger:
         ''' Printing method '''
 
         if isinstance(string, unicode):
-            string = string.encode(sys.getfilesystemencoding())
+            string = string.encode('utf8')
 
         if self.inTerminal:
             print "%s" % string

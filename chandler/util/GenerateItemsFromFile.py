@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Generate sample items from a file
 """
@@ -7,7 +5,6 @@ Generate sample items from a file
 import string
 import random
 import urllib
-import sys
 from datetime import datetime, timedelta
 import logging
 import application.Globals as Globals
@@ -15,8 +12,9 @@ import osaf.pim.calendar.Calendar as Calendar
 from osaf import pim
 from osaf.pim.tasks import Task, TaskMixin
 import osaf.pim.mail as Mail
-from PyICU import UnicodeString, ICUtzinfo
+from PyICU import ICUtzinfo
 import i18n
+from i18n.tests import uw
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 from application import schema
 
@@ -25,10 +23,7 @@ logger = logging.getLogger(__name__)
 collectionsDict={}
 """For .6 the locale 'test' is used to generate translation strings with surrogate pairs as well as trigger the creation of items with surrogate pair text fields in this file"""
 TEST_I18N = 'test' in i18n.getLocaleSet()
-I18N_SEED = UnicodeString(u"йδüήός")
 
-#XXX [i18n] Since this is a test script it will not require translation however
-#    surrogate pair values should be used to test the apps unicode handling
 STATUS = ["confirmed", "tentative", "fyi"]
 RECURRENCES = ["daily", "weekly", "monthly", "yearly"]
 TIMEZONES = [u"US/Pacific", u"US/Central", u"Europe/Paris"]
@@ -54,16 +49,6 @@ LASTNAMES = [u'Anderson', u'Baillie', u'Baker', u'Botz', u'Brown', u'Burgess',
 DOMAIN_LIST = [u'flossrecycling.com', u'flossresearch.org', u'rosegardens.org',
                u'electricbagpipes.com', u'facelessentity.com', u'example.com',
                u'example.org', u'example.net', u'hangarhonchos.org', u'ludditesonline.net']
-
-
-def addSurrogatePairToText(text):
-    #One in three chance. If the rand int return eq 1
-    #then add a surrogate pair at the start and end of the text
-    if random.randrange(3) == 1:
-        start = random.randrange(I18N_SEED.length())
-        end   = random.randrange(I18N_SEED.length())
-        return  u"%s%s%s" % (I18N_SEED.charAt(start), text, I18N_SEED.charAt(end))
-    return text
 
 
 def GenerateCollection(view, args):
@@ -110,7 +95,7 @@ def GenerateNote(view, args):
         note.displayName = u'untitled' #default value which does not require localization since this is a util
 
     if TEST_I18N:
-        note.displayName = addSurrogatePairToText(note.displayName)
+        note.displayName = uw(note.displayName)
 
     #createdOn
     note.createdOn = ReturnCompleteDatetime(args[2],args[3])
@@ -143,7 +128,7 @@ def GenerateCalendarEvent(view, args):
         event.displayName = u'untitled'
 
     if TEST_I18N:
-        event.displayName = addSurrogatePairToText(event.displayName)
+        event.displayName = uw(event.displayName)
 
     #startTime (startDate + startTime) + TimeZone
     event.startTime = ReturnCompleteDatetime(args[2],args[3],tz=args[12])
@@ -196,7 +181,7 @@ def GenerateCalendarEvent(view, args):
         event.location = Calendar.Location.getLocation(view,u"%s"%args[8])    
 
     if TEST_I18N:
-        event.location = addSurrogatePairToText(event.location)
+        event.location = uw(event.location)
 
     #status (only 3 values allowed : 'Confirmed','Tentative','fyi')
     if args[9]=='*': # semi-random data
@@ -251,7 +236,7 @@ def GenerateTask(view, args):
         task.displayName = u'untitled'
 
     if TEST_I18N:
-        task.displayName = addSurrogatePairToText(task.displayName)
+        task.displayName = uw(task.displayName)
 
     #dueDate
     task.dueDate = ReturnCompleteDatetime(args[2],args[3])
@@ -359,7 +344,7 @@ def GenerateMailMessage(view, args):
         message.subject = u'untitled'
 
     if TEST_I18N:
-        message.subject = addSurrogatePairToText(message.subject)
+        message.subject = uw(message.subject)
 
     # dateSent (date + time)
     message.dateSent = ReturnCompleteDatetime(args[2],args[3])
@@ -481,7 +466,7 @@ def ComaManager(line):
 def GenerateItems(view, filepath):
     """ Generate the Items defined in a csv file """
     if isinstance(filepath, unicode):
-        filepath = filepath.encode(sys.getfilesystemencoding())
+        filepath = filepath.encode('utf8')
 
     try:
         File = open(filepath, 'r')

@@ -1,4 +1,4 @@
-import os, sys
+import os
 import logging
 import wx
 import wx.xrc
@@ -205,7 +205,7 @@ def Show(parent, view=None):
      'application', 'dialogs', 'RestoreShares_wdr.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
-    xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
+    xrcFile = unicode(xrcFile, 'utf8')
     resources = wx.xrc.XmlResource(xrcFile)
     win = RestoreSharesDialog(parent, _(u"Restore Shared Collections"),
      resources=resources, view=view)

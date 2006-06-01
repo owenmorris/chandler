@@ -6,7 +6,7 @@ This file provides block instances for the detail view
 """
 
 import wx
-import sys, os
+import os
 from i18n import OSAFMessageFactory as _
 
 from application import schema
@@ -188,7 +188,7 @@ class OpenFileButton(Detail.DetailSynchronizer, ControlBlocks.Button):
             # dirname returns an str of bytes since the __file__ variable is bytes
             path = os.path.dirname(schema.ns('osaf.app', self).scripts.__file__)
             # convert the path bytes to unicode
-            path = unicode(path, sys.getfilesystemencoding())
+            path = unicode(path, 'utf8')
 
         # present the Open/Save dialog
         result = Util.showFileDialog(wx.GetApp().mainFrame, 

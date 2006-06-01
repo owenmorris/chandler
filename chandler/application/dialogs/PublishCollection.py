@@ -1,7 +1,7 @@
 # The collection publishing dialog
 # Invoke using the ShowPublishDialog( ) method.
 
-import wx, sys
+import wx
 import logging
 import os
 from application import schema, Globals
@@ -545,7 +545,7 @@ def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None,
                            'application', 'dialogs', filename)
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
-    xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
+    xrcFile = unicode(xrcFile, 'utf8')
     resources = wx.xrc.XmlResource(xrcFile)
     win = PublishCollectionDialog(parent, title, resources=resources, view=view,
                                   collection=collection,

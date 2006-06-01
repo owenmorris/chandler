@@ -5,7 +5,6 @@ Certificate import on startup
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 from application import schema
-import sys
 
 
 def loadCerts(parcel, moduleName, filename=u'cacert.pem'):
@@ -19,8 +18,7 @@ def loadCerts(parcel, moduleName, filename=u'cacert.pem'):
 
     log = logging.getLogger(__name__)
 
-    #Encode the unicode filename to the system character set encoding
-    filename = filename.encode(sys.getfilesystemencoding())
+    filename = filename.encode('utf8')
 
     chop = -1
 

@@ -1,4 +1,4 @@
-import os, sys
+import os
 import wx
 import wx.xrc
 import application.Globals as Globals
@@ -76,7 +76,7 @@ def PromptForNewAccountInfo(parent, host=None, path=None):
 
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
-    xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
+    xrcFile = unicode(xrcFile, 'utf8')
     resources = wx.xrc.XmlResource(xrcFile)
 
     win = AccountInfoPromptDialog(parent, messages.NEW_ACCOUNT % {'accountType': u''},

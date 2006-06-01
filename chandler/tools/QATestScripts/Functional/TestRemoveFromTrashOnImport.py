@@ -3,7 +3,7 @@ Test that when an event that has been deleted is re-imported that it comes out o
 and into the imported collection
 """
 import tools.QAUITestAppLib as QAUITestAppLib
-import os, sys
+import os
 from time import localtime, strftime
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
@@ -37,7 +37,7 @@ try:
     fullpath = os.path.join(reportDir,colName)
     if os.path.exists(fullpath):
         os.remove(fullpath)
-    reportDir = unicode(reportDir, sys.getfilesystemencoding())
+    reportDir = unicode(reportDir, 'utf8')
 
     #export
     share = Sharing.OneTimeFileSystemShare(reportDir, u'deleteThenImport.ics', ICalendar.ICalendarFormat, itsView=appView)
