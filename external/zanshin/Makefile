@@ -1,5 +1,5 @@
 
-VERSION=141
+VERSION=150
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 
 ZANSHIN=$(BUILD_ROOT)/zanshin
@@ -14,7 +14,7 @@ build: expand
 	cd $(SRC); \
       MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
           build --build-base=$(BUILD) $(DIST_OPT) \
-          install --force
+          install_lib --force
 
 zanshin-$(VERSION).tar.gz:
 	svn export http://svn.osafoundation.org/zanshin/trunk -r $(VERSION) zanshin-$(VERSION)
@@ -32,7 +32,7 @@ binaries: strip
       find $(SNAP)/$(SITE)/zanshin -name "*.pyc" | xargs rm -f; \
       find $(SNAP)/$(SITE)/zanshin -name "*.pyo" | xargs rm -f; \
       tar -cvzf $(ZANSHIN)/$(TARBALL) \
-          --exclude tests \
+          --exclude test \
           $(SNAP)/$(SITE)/zanshin
 
 install: $(TARBALL)
