@@ -13,7 +13,7 @@ class CryptoTestCase(unittest.TestCase):
     def setUp(self):
         u = uw("profileDir_")
         self.path = os.path.join(os.path.dirname(__file__),
-                                 u.encode(sys.getfilesystemencoding()))
+                                 u.encode('utf8'))
 
         try:
             os.makedirs(self.path)
