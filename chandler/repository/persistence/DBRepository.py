@@ -1127,36 +1127,44 @@ class DBIndexerThread(RepositoryThread):
             count = 0
             before = datetime.now()
             txnStatus = None
+            lock = None
+
             try:
-                txnStatus = view._startTransaction()
+                lock = store.acquireLock()
+
+                try:
+                    txnStatus = view._startTransaction()
                 
-                for (uItem, ver, uKind, status, uParent, pKind,
-                     dirties) in items.iterHistory(view, version - 1, version):
-                    if status & CItem.TOINDEX:
-                        if status & CItem.NEW:
-                            dirties = None
-                        else:
-                            dirties = list(dirties)
-                        self._indexItem(view, ver, store, uItem, dirties)
-                        items.c.setItemStatus(store.txn, ver, uItem,
-                                              status & ~CItem.TOINDEX)
-                        count += 1
-                store.setIndexVersion(version)
-            except (DBLockDeadlockError, DBInvalidArgError):
-                view._abortTransaction(txnStatus)
-                items._logDL(33)
-                continue
-            except Exception:
-                if txnStatus is not None:
+                    for (uItem, ver, uKind, status, uParent, pKind,
+                         dirties) in items.iterHistory(view, version - 1,
+                                                       version):
+                        if status & CItem.TOINDEX:
+                            if status & CItem.NEW:
+                                dirties = None
+                            else:
+                                dirties = list(dirties)
+                            self._indexItem(view, ver, store, uItem, dirties)
+                            items.c.setItemStatus(store.txn, ver, uItem,
+                                                  status & ~CItem.TOINDEX)
+                            count += 1
+                    store.setIndexVersion(version)
+                except (DBLockDeadlockError, DBInvalidArgError):
                     view._abortTransaction(txnStatus)
-                raise
-            else:
-                view._commitTransaction(txnStatus)
-                if count:
-                    after = datetime.now()
-                    store.repository.logger.info("%s indexed %d items in %s",
-                                                 view, count, after - before)
+                    items._logDL(33)
+                    continue
+                except Exception:
+                    if txnStatus is not None:
+                        view._abortTransaction(txnStatus)
+                    raise
+                else:
+                    view._commitTransaction(txnStatus)
+                    if count:
+                        after = datetime.now()
+                        store.repository.logger.info("%s indexed %d items in %s", view, count, after - before)
                 return
+
+            finally:
+                lock = store.releaseLock(lock)
 
     def _indexItem(self, view, version, store, uItem, dirties):
 
