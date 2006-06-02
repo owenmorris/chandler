@@ -755,9 +755,9 @@ class AppearsInAttributeEditor(StaticStringAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
         # Only a recurrence master appears 'in' the collection (for 0.6, anyway)
         # so if this item lets us get its master, do so and use that instead.
-        getMasterMethod = getattr(type(item), 'getMaster', None)
+        getMasterMethod = getattr(item, 'getMaster', None)
         if getMasterMethod is not None:
-            item = getMasterMethod(item)
+            item = getMasterMethod()
 
         if not hasattr(item, 'appearsIn'):
             return u"" # we won't be visible if this happens.
