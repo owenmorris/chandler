@@ -83,7 +83,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)6.tar.gz \
          $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.3.0-r139-$(BP)3.tar.gz \
-         $(CHANDLERARCHIVES)/zanshin-$(SNAP)-141-$(BP)2.tar.gz \
+         $(CHANDLERARCHIVES)/zanshin-$(SNAP)-150-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/elementtree-$(SNAP)-1.2.6-20050316-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/astng-$(SNAP)-0.16.0-$(BP)2.tar.gz \
          $(CHANDLERARCHIVES)/common-$(SNAP)-0.15.0-$(BP)3.tar.gz \

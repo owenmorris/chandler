@@ -34,7 +34,6 @@ from conduits import *
 from WebDAV import *
 from ICalendar import *
 from application.Utility import getDesktopDir
-import vobject
 
 logger = logging.getLogger(__name__)
 
@@ -654,66 +653,35 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
             logger.debug("...doesn't exist")
             raise NotFound(message="%s does not exist" % location)
 
-        isReadOnly = False
-        shareMode = 'both'
-
-        # if ticket:
-        # @@@MOR:  Grant -- canWrite( ) would be used here, hint hint
+        isReadOnly = True
+        shareMode = 'get'
+        hasPrivileges = False
 
         logger.debug('Checking for write-access to %s...', location)
-        # Create a random collection name to create
-        testCollName = u'.%s.tmp' % (chandlerdb.util.c.UUID())
         try:
-            child = handle.blockUntil(resource.createCollection,
-                                      testCollName)
-            handle.blockUntil(child.delete)
-        except zanshin.http.HTTPError, err:
-            logger.debug("Failed to create test subcollection %s; error status %d", testCollName, err.status)
-            isReadOnly = True
-            shareMode = 'get'
-            
-        # Creating a subcollection failed, but subcollections aren't required
-        # for CalDAV servers.  Before deciding that the collection is really
-        # read-only, try putting an empty event.  This should be replaced with
-        # code that does a PROPFIND on current-user-privilege-set and checks
-        # for the write privilege.
-        if isReadOnly:
-            dummyICS = vobject.iCalendar()
-            vevent = dummyICS.add('vevent')
-            vevent.add('dtstart').value = datetime.datetime.now(vobject.icalendar.utc)
-            vevent.add('duration').value = datetime.timedelta(hours=1)
-            id = str(chandlerdb.util.c.UUID())
-            vevent.add('uid').value = id
-            vevent.add('summary').value = "Test event"
-            
-            dummyPath = location + id + '.ics'
-
-            handle = conduit._getServerHandle()
-
-            dummyResource = handle.getResource(dummyPath)
-            if ticket:
-                dummyResource.ticketId = ticket
-            
-            try:
-                handle.blockUntil(dummyResource.put, dummyICS.serialize(),
-                                  checkETag=False, contentType="text/calendar")
-            except zanshin.http.HTTPError, err:
-                logger.debug("Failed to create dummy event; error status %d",
-                             err.status)
-                
-            else:
-                
-                # succeeded at putting the resource, now delete it
-                try:
-                    handle.blockUntil(dummyResource.delete)
-                except zanshin.webdav.ConnectionError, M2Crypto.BIO.BIOError:
-                    msg = "Failed to delete dummy event, dangling resource " \
-                          "%s left on server!"
-                    logger.debug(msg, dummypath)
-                
+            privilege_set = handle.blockUntil(resource.getPrivileges)
+            if ('read', 'DAV:') in privilege_set.privileges:
+                hasPrivileges = True            
+            if ('write', 'DAV:') in privilege_set.privileges:
                 isReadOnly = False
-                shareMode = 'both'
+                shareMode = 'both'                
+        except zanshin.http.HTTPError, err:
+            logger.debug("PROPFIND of current-user-privilege-set failed; error status %d", err.status)
 
+
+        if isReadOnly and not hasPrivileges:
+            # Cosmo doesn't support the current-user-privilege-set property yet,
+            # so fall back to trying to create a child collection
+            # Create a random collection name to create
+            testCollName = u'.%s.tmp' % (chandlerdb.util.c.UUID())
+            try:
+                child = handle.blockUntil(resource.createCollection,
+                                          testCollName)
+                handle.blockUntil(child.delete)
+                isReadOnly = False
+                shareMode = 'both'                
+            except zanshin.http.HTTPError, err:
+                logger.debug("Failed to create test subcollection %s; error status %d", testCollName, err.status)
 
         logger.debug('...Read Only?  %s', isReadOnly)
 
