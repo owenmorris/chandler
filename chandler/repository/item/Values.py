@@ -555,7 +555,9 @@ class References(Values):
             del self[name]
             item.setDirty(dirty, name, self, True)
             item._fireChanges('remove', name)
-        elif isuuid(value) and isitem(other) and value == other.itsUUID:
+        elif (isuuid(value) and (value == other or
+                                 isitem(other) and value == other.itsUUID) or
+              isitem(value) and isuuid(other) and value.itsUUID == other):
             del self[name]
             item.setDirty(CItem.VDIRTY, name, self, True)
             item._fireChanges('remove', name)
@@ -1052,10 +1054,7 @@ class References(Values):
                     value = value.itsUUID
                 elif not (isuuid(value) or value in (None, Nil)):
                     continue
-                if value is Nil and name in dirties:
-                    view._e_3_overlap(MergeError.REF, self._item, name)
-                else:
-                    newChanges[name] = (True, value)
+                newChanges[name] = (True, value)
 
     def _applyChanges(self, view, flag, dirties, ask, newChanges, changes,
                       dangling):
@@ -1094,10 +1093,14 @@ class References(Values):
                     value = self.get(name, Nil)
                     if isitem(value):
                         value = value.itsUUID
-                    elif not (isuuid(value) or value is None):
-                        raise AssertionError, value
+                    elif value is Nil and newValue is Nil:
+                        continue
+                    elif not (isuuid(value) or value in (None, Nil)):
+                        raise AssertionError, ("merging %s.%s" %(self._item._repr_(), name), value)
                     if newValue != value:
                         if name in dirties:
+                            if value is Nil:
+                                raise AssertionError, ("merging %s.%s" %(self._item._repr_(), name), value)
                             item = view[newValue]
                             if ask(MergeError.REF, name, item) is item:
                                 self._setRef(name, newValue)
@@ -1110,6 +1113,7 @@ class References(Values):
                                                      _item.itsUUID))
                             else:
                                 view._e_2_overlap(MergeError.REF, item, name)
+
                         if newValue is Nil:
                             self._removeRef(name, value)
                         else:
