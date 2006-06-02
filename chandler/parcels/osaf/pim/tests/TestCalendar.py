@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from PyICU import ICUtzinfo
 
 import osaf.pim.calendar.Calendar as Calendar
-import osaf.pim.tests.TestContentModel as TestContentModel
+import osaf.pim.tests.TestDomainModel as TestDomainModel
 import osaf.pim.generate as generate
 import repository.item
 
@@ -18,8 +18,8 @@ from repository.util.Path import Path
 from i18n.tests import uw
 
 
-class CalendarTest(TestContentModel.ContentModelTestCase):
-    """ Test Calendar Content Model """
+class CalendarTest(TestDomainModel.DomainModelTestCase):
+    """ Test Calendar Domain Model """
 
 
     def testCalendar(self):

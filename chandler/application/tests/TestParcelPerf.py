@@ -48,7 +48,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
 
 
     def testLoadAllParcelItems(self):
-        """ Load the entire content model into the repository and then commit it"""
+        """ Load the entire domain model into the repository and then commit it"""
         def load(parent):
             count = 0
             for child in parent.iterChildren():

@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-import osaf.pim.tests.TestContentModel as TestContentModel
+import osaf.pim.tests.TestDomainModel as TestDomainModel
 import osaf.pim.generate as generate
 from osaf.pim.contacts import Contact, ContactName
 
@@ -15,8 +15,8 @@ from repository.util.Path import Path
 from i18n.tests import uw
 
 
-class ContactsTest(TestContentModel.ContentModelTestCase):
-    """ Test Contacts Content Model """
+class ContactsTest(TestDomainModel.DomainModelTestCase):
+    """ Test Contacts Domain Model """
 
     def testContacts(self):
         """ Simple test for creating instances of contact related kinds """

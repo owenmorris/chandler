@@ -20,10 +20,10 @@ from application.dialogs.RecurrenceDialog import getProxy
 from itertools import chain
 
 import osaf.pim
-import osaf.pim.tests.TestContentModel as TestContentModel
+import osaf.pim.tests.TestDomainModel as TestDomainModel
 from chandlerdb.item.ItemError import NoSuchAttributeError
 
-class RecurringEventTest(TestContentModel.ContentModelTestCase):
+class RecurringEventTest(TestDomainModel.DomainModelTestCase):
     """ Test CalendarEvent Recurrence """
 
     def setUp(self):
@@ -600,7 +600,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
                                    self.start + timedelta(minutes=30))
         self.failIf(second.rruleset.rrules.first().hasLocalAttributeValue('until'))
 
-class NaiveTimeZoneRecurrenceTest(TestContentModel.ContentModelTestCase):
+class NaiveTimeZoneRecurrenceTest(TestDomainModel.DomainModelTestCase):
     """Test of recurring events that have startTimes that occur on different
        dates depending on whether timezone UI is enabled"""
 

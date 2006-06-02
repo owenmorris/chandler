@@ -286,11 +286,11 @@ class FocusEventHandlers(Item):
             for otherCollection in sidebarCollections:
                 
                 if (otherCollection is selectedCollection or
-                    (isinstance(otherCollection, ContentCollection) and
-                     UserCollection(otherCollection).outOfTheBoxCollection)):
+                    not isinstance(otherCollection, ContentCollection) or
+                    UserCollection(otherCollection).outOfTheBoxCollection):
                     continue
 
-                # found an 'other' collection, stkip ahead to next
+                # found an 'other' collection, skip ahead to next
                 # selectedItem
                 if selectedItem in otherCollection:
                     break

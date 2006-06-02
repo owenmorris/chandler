@@ -345,7 +345,7 @@ class BaseAttributeEditor (object):
         Load this attribute's value into the editing control.
 
         Note that the name is a bit of a misnomer; this routine will be
-        called whenever we think the value in the content model needs to
+        called whenever we think the value in the domain model needs to
         be loaded (or re-loaded) into the control - such as when it's
         changed externally.
 
@@ -1549,14 +1549,14 @@ class StringAttributeEditor (BaseAttributeEditor):
             self.AttributeChanged()
         else:
             # The user cleared out the old value, which isn't allowed. 
-            # Reread the old value from the content model.
+            # Reread the old value from the domain model.
             self.SetControlValue(self.control, 
                                  self.GetAttributeValue(item, attributeName))            
 
     def allowEmpty(self):
         """ 
         Return true if this field allows an empty value to be written
-        to the content model. 
+        to the domain model.
         """
         # Defaults to true
         return True

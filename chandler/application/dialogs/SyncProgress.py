@@ -8,9 +8,6 @@ from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
-SHARING = "osaf.sharing"
-CONTENTMODEL = "osaf.pim"
-
 class SyncDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,

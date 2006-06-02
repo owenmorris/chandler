@@ -1,5 +1,5 @@
 """
-Calendar Content Model
+Calendar Domain Model
 
 Kinds and Attributes related to Calendar functionality. This schema is still a
 strawman schema, a starting point.

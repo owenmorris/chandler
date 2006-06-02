@@ -119,7 +119,7 @@ def RenderKinds(view, urlRoot):
 
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
     result += "<tr class='toprow'>\n"
-    result += "<td><b>All kinds defined in the data model and content model:</b></td>\n"
+    result += "<td><b>All kinds defined in the data model and domain model:</b></td>\n"
     result += "</tr>\n"
 
     result += "<tr class='oddrow'>\n"

@@ -12,9 +12,9 @@ import M2Crypto.X509 as X509
 
 from osaf.pim.collections import FilteredCollection
 from osaf.framework.certstore import certificate, utils, constants
-from osaf.pim.tests import TestContentModel
+from osaf.pim.tests import TestDomainModel
 
-class CertificateStoreTestCase(TestContentModel.ContentModelTestCase):
+class CertificateStoreTestCase(TestDomainModel.DomainModelTestCase):
     pemSite = '''-----BEGIN CERTIFICATE-----
 MIID9TCCA16gAwIBAgIBBjANBgkqhkiG9w0BAQQFADCBmjELMAkGA1UEBhMCVVMx
 CzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRowGAYDVQQKExFv

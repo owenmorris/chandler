@@ -41,8 +41,8 @@ __all__ = ['IMAPClient']
        message size to, from, cc. Then have a callback to sync the rest
        when downloading an individual mail use the feedparser for performance
 
-    3. Fix the getEmailAddress method to be much more performant in content model
-    4. Start thinking about offline mode. Does the content model need any changes.
+    3. Fix the getEmailAddress method to be much more performant in domain model
+    4. Start thinking about offline mode. Does the domain model need any changes.
 """
 
 class _TwistedIMAP4Client(imap4.IMAP4Client):

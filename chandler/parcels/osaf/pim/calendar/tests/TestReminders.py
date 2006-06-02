@@ -1,12 +1,12 @@
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 import unittest
 from osaf.pim import CalendarEvent, Reminder
-import osaf.pim.tests.TestContentModel as TestContentModel
+import osaf.pim.tests.TestDomainModel as TestDomainModel
 from PyICU import ICUtzinfo
 import repository.item
 from datetime import datetime, timedelta
 
-class ReminderTestCase(TestContentModel.ContentModelTestCase):
+class ReminderTestCase(TestDomainModel.DomainModelTestCase):
     def testReminders(self):
         # Make an event and add a reminder to it.
         anEvent = CalendarEvent("calendarEventItem", itsView=self.rep.view,

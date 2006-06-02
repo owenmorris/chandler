@@ -14,10 +14,10 @@ from osaf.pim.calendar.Recurrence import \
      FrequencyEnum, RecurrenceRuleSet, RecurrenceRule, toDateUtil
 from PyICU import ICUtzinfo
 
-import osaf.pim.tests.TestContentModel as TestContentModel
+import osaf.pim.tests.TestDomainModel as TestDomainModel
 
-class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
-    """ Test Recurrence Content Model """
+class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
+    """ Test Recurrence Domain Model """
 
     def setUp(self):
         super(RecurrenceRuleTest,self).setUp()

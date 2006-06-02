@@ -16,9 +16,9 @@ import twisted.protocols.policies as policies
 
 import application.Utility as Utility
 from osaf.framework.certstore import ssl
-from osaf.pim.tests import TestContentModel
+from osaf.pim.tests import TestDomainModel
 
-class TestSSL(TestContentModel.ContentModelTestCase):
+class TestSSL(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(TestSSL, self)._setup()
 

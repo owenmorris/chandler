@@ -5,13 +5,13 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 """ Unit test for flickr i18n I/O """
 
 import unittest
-from osaf.pim.tests import TestContentModel
+from osaf.pim.tests import TestDomainModel
 import flickr
 import os
 
 
 
-class TestI18nFlickr(TestContentModel.ContentModelTestCase):
+class TestI18nFlickr(TestDomainModel.DomainModelTestCase):
 
     def setUp(self):
         super(TestI18nFlickr, self)._setup(self)

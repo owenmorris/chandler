@@ -1365,7 +1365,7 @@ class AEBlock(BoxContainer):
         if self.readOnly: 
             return True
 
-        # Return true if the content model says this attribute should be R/O
+        # Return true if the domain model says this attribute should be R/O
         # (we might not be editing an item, so we check the method presence)
         try:
             isAttrModifiable = item.isAttributeModifiable

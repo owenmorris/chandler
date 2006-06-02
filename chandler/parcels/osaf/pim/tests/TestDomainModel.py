@@ -11,14 +11,14 @@ import repository.tests.RepositoryTestCase as RepositoryTestCase
 import osaf.pim.items as items
 from i18n.tests import uw
 
-class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
+class DomainModelTestCase(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
-        super(ContentModelTestCase, self)._setup()
+        super(DomainModelTestCase, self)._setup()
 
         self.testdir = os.path.join(self.rootdir, 'parcels', \
          'osaf', 'pim', 'tests')
 
-        super(ContentModelTestCase, self)._openRepository()
+        super(DomainModelTestCase, self)._openRepository()
 
 
     def isOnline(self):
@@ -29,7 +29,7 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
         except:
             return False
 
-class ContentItemTest(ContentModelTestCase):
+class ContentItemTest(DomainModelTestCase):
 
     def testContentItem(self):
 

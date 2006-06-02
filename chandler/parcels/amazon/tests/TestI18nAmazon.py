@@ -5,7 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 """ Unit test for amazon i18n I/O """
 
 import unittest
-from osaf.pim.tests import TestContentModel
+from osaf.pim.tests import TestDomainModel
 from amazon import AmazonKinds
 import os
 
@@ -15,7 +15,7 @@ import os
 #     which can lead to false positives.
 #     The test will still run using the run_tests framework
 if False:
-    class TestI18nAmazon(TestContentModel.ContentModelTestCase):
+    class TestI18nAmazon(TestDomainModel.DomainModelTestCase):
     
         def setUp(self):
             super(TestI18nAmazon, self)._setup(self)

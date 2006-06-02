@@ -7,15 +7,15 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-import osaf.pim.tests.TestContentModel as TestContentModel
+import osaf.pim.tests.TestDomainModel as TestDomainModel
 from osaf import pim
 
 from repository.util.Path import Path
 from i18n.tests import uw
 
 
-class NotesTest(TestContentModel.ContentModelTestCase):
-    """ Test Notes Content Model """
+class NotesTest(TestDomainModel.DomainModelTestCase):
+    """ Test Notes Domain Model """
 
     def testNotes(self):
         """ Simple test for creating instances of note related kinds """

@@ -1359,7 +1359,7 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
                 self.SetControlValue(self.control, 
                                      pim.shortDateFormat.format(value))
 
-                # Change the value in the content model, asynchronously
+                # Change the value in the domain model, asynchronously
                 # (because setting recurrence-end could cause this item
                 # to be destroyed, which'd cause this widget to be deleted,
                 # and we still have references to it in our call stack)

@@ -87,7 +87,7 @@ class SMTPClient(object):
            @param view: A C{RepositoryView} instance
            @type view: C{RepositoryView}
 
-           @param account: An SMTP Account content model object
+           @param account: An SMTP Account domain model object
            @type account: C{Mail.SMTPAccount}
         """
         assert isinstance(account, Mail.SMTPAccount)
@@ -107,7 +107,7 @@ class SMTPClient(object):
            Sends a mail message via SMTP using the C{SMTPAccount}
            passed to this classes __init__ method
 
-           @param mailMessage: A MailMessage content model object
+           @param mailMessage: A MailMessage domain model object
            @type mailMessage: C{Mail.MailMessageMixin}
 
            @return: C{None}

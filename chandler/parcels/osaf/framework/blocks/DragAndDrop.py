@@ -19,7 +19,7 @@ Mixin classes are provided that should be mixed in to your widget class::
       widget or pasting data into a widget.
         - TextClipboardHandler handles Text data with EditText widgets
         - ItemClipboardHandler handles Item data, with help from the
-          Content Model
+          Domain Model
 
 Clipboard Handlers
 ------------------
@@ -371,8 +371,10 @@ class ItemClipboardHandler(_ClipboardHandler):
     def CopyData(self):
         """
         Called to get a widget's data at the beginning of a Copy or DnD.
-        Returns a wxDataObject variant for use in Drag and Drop, or Cut and Paste.
-        This implementation deals with Items using UUIDs, using the Content Model
+        Returns a wxDataObject variant for use in Drag and Drop, or
+        Cut and Paste.
+        
+        This implementation deals with Items using UUIDs, using the Domain Model
         to determine what formats to export.
         """
         compositeObject = wx.DataObjectComposite()
@@ -398,7 +400,7 @@ class ItemClipboardHandler(_ClipboardHandler):
         return compositeObject
 
     def ExportItemFormat(self, item, format):
-        # Callback for the ContentModel to tell us what format data to export.
+        # Callback for the Domain Model to tell us what format data to export.
         # Builds a dictionary keyed by format with a lists of item UUID strings.
         itemList = self.exportDict.setdefault(format, [])
         itemList.append(item)

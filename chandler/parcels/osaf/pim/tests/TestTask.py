@@ -10,12 +10,12 @@ import unittest, os
 
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.tasks import Task
-import osaf.pim.tests.TestContentModel as TestContentModel
+import osaf.pim.tests.TestDomainModel as TestDomainModel
 
 from repository.util.Path import Path
 from i18n.tests import uw
 
-class TaskTest(TestContentModel.ContentModelTestCase):
+class TaskTest(TestDomainModel.DomainModelTestCase):
     """ Test Task """
 
     def testTask(self):

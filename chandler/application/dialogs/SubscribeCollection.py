@@ -13,8 +13,6 @@ from osaf.framework.blocks.Block import Block
 logger = logging.getLogger(__name__)
 
 MAX_UPDATE_MESSAGE_LENGTH = 50
-SHARING = "osaf.sharing"
-CONTENTMODEL = "osaf.pim"
 
 class SubscribeDialog(wx.Dialog):
 

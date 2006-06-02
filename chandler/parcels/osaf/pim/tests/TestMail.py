@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-import osaf.pim.tests.TestContentModel as TestContentModel
+import osaf.pim.tests.TestDomainModel as TestDomainModel
 import osaf.pim.mail as Mail
 
 from datetime import datetime
@@ -15,8 +15,8 @@ from repository.util.Path import Path
 from PyICU import ICUtzinfo
 from i18n.tests import uw
 
-class MailTest(TestContentModel.ContentModelTestCase):
-    """ Test Mail Content Model """
+class MailTest(TestDomainModel.DomainModelTestCase):
+    """ Test Mail Domain Model """
 
     def testMail(self):
         """ Simple test for creating instances of email related kinds """

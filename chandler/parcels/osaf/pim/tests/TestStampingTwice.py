@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-import osaf.pim.tests.TestContentModel as TestContentModel
+import osaf.pim.tests.TestDomainModel as TestDomainModel
 from osaf.pim.tasks import Task, TaskMixin
 import osaf.pim.mail as Mail
 import osaf.pim.calendar.Calendar as Calendar
@@ -19,10 +19,10 @@ from datetime import datetime
 from repository.util.Path import Path
 
 
-class StampingTest(TestContentModel.ContentModelTestCase):
-    """ Test Stamping in the Content Model """
+class StampingTest(TestDomainModel.DomainModelTestCase):
+    """ Test Stamping in the Domain Model """
     def testStamping(self):
-        # Make sure the contentModel is loaded.
+        # Make sure the domain model is loaded.
         self.loadParcel("osaf.pim")
         # @@@ Also make sure the default imap account is loaded, in order to
         # have a "me" EmailAddress
