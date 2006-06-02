@@ -9,6 +9,7 @@ import wx, Globals, Utility
 from new import classobj
 from i18n import OSAFMessageFactory as _, getImage
 import schema
+from version import version
 
 from repository.persistence.RepositoryError import \
     MergeError, RepositoryVersionError, VersionConflictError
@@ -903,8 +904,6 @@ class TransportWrapper (object):
 
 class StartupSplash(wx.Frame):
     def __init__(self, parent, bmp):
-        height = bmp.GetHeight()
-        width = bmp.GetWidth()
         padding = 7     # padding under and right of the progress percent text (in pixels)
         fontsize = 12   # font size of the progress text (in pixels)
         
@@ -925,31 +924,57 @@ class StartupSplash(wx.Frame):
 
         # Font to be used for the progress text
         font = wx.Font(fontsize, wx.NORMAL, wx.NORMAL, wx.NORMAL)
+        
+        # Add title text
+        titleText = wx.StaticText(self, -1, _(u"Experimentally Usable Calendar"))
+        titleText.SetBackgroundColour(wx.WHITE)
+        sizer.Add(titleText, 1, wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
+        titleText.SetFont(wx.Font(fontsize, wx.NORMAL, wx.NORMAL, wx.NORMAL))
 
-        # Load the splash screen picture. The width of this image will determine
-        # the width of the entire splash screen, no margin added
+        # Load the splash screen picture.
+        # The picture will set the width of the splash screen, 
+        # all other elements are horizontally centered on it (except for the progress "%" display)
         bitmap = wx.StaticBitmap(self, -1, bmp)
-        sizer.Add(bitmap, 0, wx.ALL, 0)
+        sizer.Add(bitmap, 0, wx.ALIGN_CENTER, 0)
+
+        # Add Chandler text
+        text1 = wx.StaticText(self, -1, _(u"Chandler"))
+        text1.SetBackgroundColour(wx.WHITE)
+        sizer.Add(text1, 1,  wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
+        text1.SetFont(wx.Font(16, wx.NORMAL, wx.NORMAL, wx.BOLD))
+
+        # Add Version text
+        text2 = wx.StaticText(self, -1,
+                              _(u"Version %(version)s") % { 'version': version })
+        text2.SetBackgroundColour(wx.WHITE)
+        sizer.Add(text2, 1,  wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
+        text2.SetFont(wx.Font(16, wx.NORMAL, wx.NORMAL, wx.NORMAL))
+
+        # Add OSAF text
+        text3 = wx.StaticText(self, -1, _(u"Open Source Applications Foundation"))
+        text3.SetBackgroundColour(wx.WHITE)
+        sizer.Add(text3, 1,  wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
+        text3.SetFont(wx.Font(10, wx.NORMAL, wx.NORMAL, wx.NORMAL))
 
         # The progress text is in 2 parts: a text indicating the section being initialized
         # and a percent number indicating an approximate value of the total being done
         # Create the text box for the section initialized text
-        self.progressText = wx.StaticText(self, -1, style=wx.ALIGN_CENTER)
+        self.progressText = wx.StaticText(self, -1)
         self.progressText.SetBackgroundColour(wx.WHITE)
 
         progressSizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(progressSizer, 1, wx.EXPAND)
         # In order to center the progress text, we need to add a dummy item on the left
         # that has the same weight as the progress percent on the right
-        progressSizer.Add((padding, padding), 1, wx.EXPAND)
-        progressSizer.Add(self.progressText, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, padding)
+        progressSizer.Add((padding, padding), 1)
+        progressSizer.Add(self.progressText, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
         self.progressText.SetFont(font)
 
         # Create the text box for the "%" display
         self.progressPercent = wx.StaticText(self, -1, style=wx.ALIGN_RIGHT)
         self.progressPercent.SetBackgroundColour(wx.WHITE)
+        progressSizer.Add(self.progressPercent, 1, wx.ALIGN_RIGHT | wx.RIGHT, padding)
         self.progressPercent.SetFont(font)
-        progressSizer.Add(self.progressPercent, 1, wx.BOTTOM | wx.RIGHT, padding)
         
         self.workingTicks = 0
         self.completedTicks = 0
