@@ -14,7 +14,7 @@ from PyLucene import \
     JavaError
 
 from chandlerdb.util.c import UUID
-from chandlerdb.persistence.c import DBLockDeadlockError
+from chandlerdb.persistence.c import DBLockDeadlockError, DBInvalidArgError
 
 from repository.persistence.DBContainer import DBContainer, ValueContainer
 from repository.persistence.RepositoryError import RepositoryError
@@ -465,10 +465,12 @@ class IndexContainer(FileContainer):
             dbWriter.getDirectory().close()
             writer.getDirectory().close()
         except JavaError, e:
-            e = e.getJavaException()
-            msg = e.getMessage()
-            if msg is not None and msg.find("DB_LOCK_DEADLOCK") >= 0:
-                raise DBLockDeadlockError, e
+            msg = e.getJavaException().getMessage()
+            if msg is not None:
+                if msg.find("DB_LOCK_DEADLOCK") >= 0:
+                    raise DBLockDeadlockError, msg
+                elif msg.find("IllegalArgumentException") >= 0:
+                    raise DBInvalidArgError, msg
             raise
 
     def abortIndexWriter(self, writer):
