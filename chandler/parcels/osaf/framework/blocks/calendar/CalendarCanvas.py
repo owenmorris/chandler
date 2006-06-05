@@ -13,7 +13,7 @@ from repository.item.Monitors import Monitors
 from chandlerdb.item.ItemError import NoSuchItemInCollectionError
 
 from datetime import datetime, timedelta, date, time
-from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
+from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo, TimeZone
 
 from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime, DateTimeUtil
 from osaf.pim import ContentCollection
@@ -855,7 +855,12 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             self.rangeStart = date
         else:
             calendar = GregorianCalendar()
-            calendar.setTime(date)
+            # GregorianCalendar has a setTimeZone method, but it doesn't currently
+            # do what I'd expect, after calling it the calendar behaves like
+            # it's still in the system timezone, so convert date to the system
+            # timezone
+            system_tz = ICUtzinfo(TimeZone.createDefault())
+            calendar.setTime(date.replace(tzinfo=system_tz))
             delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
                                     calendar.getFirstDayOfWeek()))
             self.rangeStart = date - delta
@@ -1670,7 +1675,12 @@ class CalendarControl(CalendarBlock):
         #Set rangeStart
         # start at the beginning of the week (Sunday midnight)
         calendar = GregorianCalendar()
-        calendar.setTime(date)
+        # GregorianCalendar has a setTimeZone method, but it doesn't currently
+        # do what I'd expect, after calling it the calendar behaves like
+        # it's still in the system timezone, so convert date to the system
+        # timezone
+        system_tz = ICUtzinfo(TimeZone.createDefault())
+        calendar.setTime(date.replace(tzinfo=system_tz))
         delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
                                 calendar.getFirstDayOfWeek()))
 
