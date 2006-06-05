@@ -168,7 +168,8 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                 
                 # We set a minimum "Busy" value of 0.25 for any
                 # day with a confirmed event.
-                fraction = busyFractions.get(offset, 0.25)
+                fraction = busyFractions.get(offset, 0.0)
+                fraction = max(fraction, 0.25)
                 fraction += (hours / 12.0)
                 
                 busyFractions[offset] = min(fraction, 1.0)
