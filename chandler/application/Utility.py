@@ -22,7 +22,7 @@ from repository.persistence.RepositoryError import \
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "204" # john: fix renamable attributes on UserCollections
+SCHEMA_VERSION = "205" # john: Refactor ImportImage to remove reference to Globals.views
 
 logger = None # initialized in initLogging()
 

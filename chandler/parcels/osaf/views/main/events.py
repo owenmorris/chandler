@@ -319,11 +319,6 @@ def makeMainEvents(parcel):
         sphereCollection = schema.ns('osaf.pim', repositoryView).mine,
         items = [untitledCollection])
         
-    BlockEvent.template(
-        'ImportImage',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
-
     AddToSidebarEvent.update(
         parcel, 'AddAllAdditionalViews',
         blockName = 'AddAllAdditionalViews',

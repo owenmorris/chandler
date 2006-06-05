@@ -127,10 +127,6 @@ def makeMainMenus(parcel):
                                 event = main.ExportIcalendar,
                                 title = _(u'Export Events as iCalendar'),
                                 helpString = _(u'Export Calendar Events to export.ics')),
-                            MenuItem.template('ImportImageItem',
-                                event = main.ImportImage,
-                                title = _(u'Import an image from disk'),
-                                helpString = _(u'Import an image from disk')),
                             ]), # Menu ImportExportMenu
                     Menu.template('SyncMenu',
                         title = _(u'Sync'),

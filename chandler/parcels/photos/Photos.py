@@ -6,11 +6,14 @@ import urllib, time, cStringIO, logging, mimetypes
 from datetime import datetime
 from osaf import pim
 from repository.util.URL import URL
-from repository.util.Streams import BlockInputStream
 from application import schema
 import EXIF
 from i18n import OSAFMessageFactory as _
 from PyICU import ICUtzinfo
+from osaf.framework.blocks import NewItemEvent
+import application.dialogs.Util
+import wx
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -96,3 +99,45 @@ class PhotoMixin(pim.ContentItem):
 
 class Photo(PhotoMixin, pim.Note):
     schema.kindInfo(displayName = u"Photo")
+
+
+class NewImageEvent(NewItemEvent):
+    """
+    An event used to import a new image from disk.
+    """
+    def onNewItem (self):
+        """
+        Called to create a new Photo.
+        """
+        photo = None
+        cmd, dir, filename = application.dialogs.Util.showFileDialog(
+            None,
+            _(u"Choose an image to import"),
+            "",
+            "",
+            _(u"Images|*.jpg;*.gif;*.png|All files (*.*)|*.*"),
+            wx.OPEN
+        )
+
+        theApp = wx.GetApp()
+        if cmd == wx.ID_OK:
+            path = os.path.join(dir, filename)
+
+            # We'll us CallItemMethodAsync, which works from other repository
+            # views, since this code should eventually be run in a background
+            # thread with a non UI repository view. In the mean time we'll
+            # call Yield.
+            theApp.CallItemMethodAsync("MainView",
+                                       'setStatusMessage',
+                                       _(u"Importing %(filePath)s") % {'filePath': path})
+            wx.Yield()
+            photo = Photo(itsView=self.itsView)
+            photo.displayName = filename
+            photo.creator = schema.ns("osaf.pim", self.itsView).currentContact.item
+            photo.importFromFile(path)
+    
+        theApp.CallItemMethodAsync("MainView",
+                                   'setStatusMessage',
+                                   _(u""))
+        return photo
+

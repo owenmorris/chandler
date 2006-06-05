@@ -28,7 +28,6 @@ import osaf.mail.sharing as MailSharing
 from osaf.sharing import ICalendar, Sharing
 import twisted.internet.error
 
-from photos import Photo
 from util import GenerateItemsFromFile
 
 from osaf.framework.blocks.Views import View
@@ -543,38 +542,6 @@ class MainView(View):
                 self.setStatusMessage(_(u"Export failed"))
 
 
-    def onImportImageEvent(self, event):
-        # triggered from "File | Import/Export" Menu
-        res = application.dialogs.Util.showFileDialog(
-            wx.GetApp().mainFrame, _(u"Choose an image to import"), "",
-            "", _(u"Images|*.jpg;*.gif;*.png|All files (*.*)|*.*"),
-            wx.OPEN
-        )
-
-        (cmd, dir, filename) = res
-
-        if cmd != wx.ID_OK:
-            self.setStatusMessage("")
-            return
-
-        path = os.path.join(dir, filename)
-
-        self.setStatusMessage (_(u"Importing %(filePath)s") % {'filePath': path})
-        photo = Photo(itsView=self.itsView)
-        photo.displayName = filename
-        photo.creator = schema.ns("osaf.pim", self.itsView).currentContact.item
-        photo.importFromFile(path)
-        self.setStatusMessage(u"")
-
-        # Tell the sidebar we want to go to the All collection
-        self.postEventByName ('RequestSelectSidebarItem', {'item':schema.ns('osaf.pim', self).allCollection})
-        self.postEventByName ('ApplicationBarAll', { })
-        # Tell the ActiveView to select our new item
-        self.postEventByName ('SelectItemsBroadcastInsideActiveView',
-                              {'items':[photo]})
-        # Make this available to the Photo servlet
-        self.RepositoryCommitWithStatus ()
-
     def onCommitRepositoryEvent(self, event):
         # Test menu item
         self.RepositoryCommitWithStatus ()
@@ -584,7 +551,6 @@ class MainView(View):
          This method is for testing and does not require translation strings.
         """
         # Test menu item
-        #mainWidget = Globals.views[0].widget
         mainWidget = wx.GetApp().mainFrame
         if isinstance(mainWidget, wx.Window):
             # @@@ ForceRedraw works; the other two fail to induce a window update !!!
