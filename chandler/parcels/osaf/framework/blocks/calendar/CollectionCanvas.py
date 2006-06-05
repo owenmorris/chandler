@@ -471,7 +471,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         if self.draggingCoerced():
             source.draggedOutState.hiddenWhileDraggedOut = True
-            source.Refresh()
+            source.RefreshCanvasItems(resort=False)
             self.makeCoercedCanvasItem(x, y, 
                                        source.draggedOutState.draggedOutItem)
 
