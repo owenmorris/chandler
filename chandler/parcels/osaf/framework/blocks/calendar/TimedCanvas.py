@@ -257,7 +257,21 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         scaledY = (scrollY // self._scrollYRate) + rounding
         self.Scroll(scrollX, scaledY)
-        
+
+    def ScrollToEvent(self, event, buffer=10):
+        (startDay, endDay) = self.GetCurrentDateRange()
+
+        # scroll both end and start time into view, if possible
+        if event.endTime < endDay:
+            x,y,width = self.getPositionFromDateTime(event.endTime)
+            self.ScrollIntoView(self.CalcScrolledPosition(wx.Point(x,y)),buffer)
+
+        if event.startTime > startDay:
+            x,y,width = self.getPositionFromDateTime(event.startTime)
+            self.ScrollIntoView(self.CalcScrolledPosition(wx.Point(x,y)),buffer)
+
+
+            
     def _doDrawingCalculations(self):
 
         # @@@ magic numbers
@@ -702,10 +716,16 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
     def GetNewEventTime(self, unscrolledPosition=None):
         """
         Returns a reasonable startTime and duration for creation of an
-        event, taking into account.
+        event, on the hour less than 60 minutes later than the current time,
+        and the current day of the week if in week mode.
         """
-        if (self._bgSelectionStartTime):
-            # first try selection, if any
+        defaultTz = TimeZoneInfo.get(self.blockItem.itsView).default
+        startDay, endDay = self.blockItem.GetCurrentDateRange()
+        
+        if (self._bgSelectionStartTime and 
+            (self._bgSelectionStartTime <= endDay and
+             self._bgSelectionEndTime   >= startDay)):
+            # if any part of selection is visible, use selection
             newTime = self._bgSelectionStartTime
             duration = self._bgSelectionEndTime - newTime
             
@@ -714,25 +734,25 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             duration = timedelta(hours=1)
             
         else:
-            # next try the current time today, if visible
+            # implements bug 5820, use the current time and the currently
+            # displayed day or the appropriate weekday
             duration = timedelta(hours=1)
+
+            now = datetime.now(defaultTz)
             
-            now = datetime.now(ICUtzinfo.default)
-            startDay, endDay = self.blockItem.GetCurrentDateRange()
-            if startDay <= now <= endDay:
-                # if today is in view, try to create the time about an
-                # hour from now.
-                newTime = now + timedelta(hours=1)
-                newTime = newTime.replace(minute=roundTo(now.minute,15))
-            elif self.blockItem.dayMode:
-                # create the time at noon on the current day
-                newTime = startDay + timedelta(hours=12)
-                
+            newTime = datetime.combine(startDay.date(), now.time())
+            newTime += timedelta(minutes=60)
+            newTime = newTime.replace(minute=roundTo(newTime.minute, 60))
+
+            if self.blockItem.dayMode:
+                if newTime.date() != startDay.date():
+                    # this could happen if the current time is, say 11:10PM
+                    datetime.combine(startDay.date(), newTime.time())
             else:
-                # finally, just throw it in the middle of the current view
-                newTime = startDay + timedelta(days=3, hours=12)
-        
-        defaultTz = TimeZoneInfo.get(self.blockItem.itsView).default
+                # move newTime to the appropriate day of the week
+                days = now.isoweekday() - startDay.isoweekday() % 7
+                newTime += timedelta(days)
+                
         newTime = newTime.replace(tzinfo=defaultTz)
                 
         return newTime, duration

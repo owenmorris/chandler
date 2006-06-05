@@ -1529,6 +1529,9 @@ class CalendarContainer(BoxContainer):
                                                           duration=duration,
                                                           anyTime=False)
 
+            timedEventsCanvas.SetPanelFocus()
+            timedEventsCanvas.ScrollToEvent(newEvent)
+
             # return the list of items created
             return [newEvent]
         else:
