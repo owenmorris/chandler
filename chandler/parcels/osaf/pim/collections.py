@@ -455,28 +455,15 @@ class AppCollection(ContentCollection):
                          item.getItemDisplayName().encode('ascii', 'replace'),
                          self.getItemDisplayName().encode('ascii', 'replace'))
 
-        # Before we actually add this item to our exclusions list, let's see
-        # how many other collections (that share our trash) this item is in.
-        # If the item is only in this collection, we'll add it to the trash
-        # later on.  We need to make this check now because in the following
-        # step when we add the item to our exclusions list, that could
-        # immediately add the item to the All collection which would be bad.
-        # Bug 4551
-
-        addToTrash = False
-        if self.trash is not None:
-            for collection in self.trash.trashFor:
-                if collection is not self and item in collection:
-                    # it exists somewhere else, definitely don't add
-                    # to trash
-                    break
-            else:
-                # we couldn't find it anywhere else, so it goes in the trash
-                addToTrash = True
-
         if DEBUG:
             logger.debug("...adding to exclusions (%s)",
                          self.exclusions.getItemDisplayName().encode('ascii', 'replace'))
+        # adding to exclusions before determining if the item should be added to
+        # the trash was a problem at one point (bug 4551), but since the mine/
+        # not-mine mechanism changed, this doesn't seem to be a problem anymore,
+        # and removing from a mine colleciton was actually misbehaving if the
+        # test was done first, so now logic for moving to the trash has moved
+        # back to after addition to exclusions and removal from inclusions.
         self.exclusions.add(item)
 
         if item in self.inclusions:
@@ -485,11 +472,18 @@ class AppCollection(ContentCollection):
                              self.inclusions.getItemDisplayName().encode('ascii', 'replace'))
             self.inclusions.remove(item)
 
-        if addToTrash:
-            if DEBUG:
-                logger.debug("...adding to trash (%s)",
-                             self.trash.getItemDisplayName().encode('ascii', 'replace'))
-            self.trash.add(item)
+        if self.trash is not None:
+            for collection in self.trash.trashFor:
+                if collection is not self and item in collection:
+                    # it exists somewhere else, definitely don't add
+                    # to trash
+                    break
+            else:
+                # we couldn't find it anywhere else, so it goes in the trash
+                if DEBUG:
+                    logger.debug("...adding to trash (%s)",
+                                 self.trash.getItemDisplayName().encode('ascii', 'replace'))
+                self.trash.add(item)
 
         if DEBUG:
             logger.debug("...done removing %s from %s",

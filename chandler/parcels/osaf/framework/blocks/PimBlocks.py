@@ -372,7 +372,7 @@ class FocusEventHandlers(Item):
                 selectedItem.delete()
         else:
             for selectedItem in selection:
-                selectedItem.removeFromCollection(selectedCollection)
+                selectedItem.addToCollection(trash)
 
 def AllItemsInCollection(items, collection):
     """
