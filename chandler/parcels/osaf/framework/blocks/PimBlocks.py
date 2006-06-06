@@ -350,8 +350,13 @@ class FocusEventHandlers(Item):
 
         assert selectedCollection, "Can't remove without a primary collection!"
         
-        for selectedItem in selection:
-            selectedItem.removeFromCollection(selectedCollection)
+        trash = schema.ns('osaf.pim', self.itsView).trashCollection
+        if selectedCollection == trash:
+            for selectedItem in selection:
+                selectedItem.delete()
+        else:
+            for selectedItem in selection:
+                selectedItem.removeFromCollection(selectedCollection)
 
     def onDeleteEvent(self, event):
         # Destructive action, worth an extra assert
@@ -362,8 +367,12 @@ class FocusEventHandlers(Item):
         assert selectedCollection, "Can't delete without a primary collection!"
 
         trash = schema.ns('osaf.pim', self.itsView).trashCollection
-        for selectedItem in selection:
-            selectedItem.addToCollection(trash)
+        if selectedCollection == trash:
+            for selectedItem in selection:
+                selectedItem.delete()
+        else:
+            for selectedItem in selection:
+                selectedItem.removeFromCollection(selectedCollection)
 
 def AllItemsInCollection(items, collection):
     """
