@@ -172,7 +172,7 @@ def makeMainView (parcel):
                                                                           fontSize = 11),
                                                 stretchFactor = 0.0),
                                             MiniCalendar.template('MiniCalendar',
-                                                contents = pim_ns.allEventsCollection,
+                                                contents = pim_ns.allCollection,
                                                 calendarContainer = None,
                                                 stretchFactor = 0.0),
                                             ]) # BoxContainer PreviewAndMiniCalendar
