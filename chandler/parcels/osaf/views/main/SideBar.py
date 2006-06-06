@@ -864,11 +864,10 @@ class SidebarBlock(Table):
 
     onDeleteEvent = onRemoveEvent
 
-    def onDeleteEventUpdateUI(self, event):
+    def onRemoveEventUpdateUI(self, event):
         event.arguments['Enable'] = False
             
-    def onRemoveEventUpdateUI(self, event):
-        event.arguments['Text'] = _(u'Delete Collection')
+    def onDeleteEventUpdateUI(self, event):
         """
         this is enabled if any user item is selected in the sidebar
         """
