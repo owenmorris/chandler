@@ -2322,3 +2322,7 @@ class Item(CItem):
         return "\n%s%s\n%sindexes: %s%s" %('  ' * indent, self._repr_(),
                                            '  ' * (indent + 1), indexes,
                                            collection._inspect_(indent + 1))
+
+
+class MissingClass(Item):
+    pass

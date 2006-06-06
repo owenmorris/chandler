@@ -4,9 +4,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from repository.item.Item import Item
+from chandlerdb.item.c import CItem
 from repository.util.SAX import XMLGenerator
-from repository.util.ClassLoader import ClassLoader
 
 
 class ItemWriter(object):
@@ -14,8 +13,8 @@ class ItemWriter(object):
     def writeItem(self, item, version):
 
         status = item._status
-        withSchema = (status & Item.CORESCHEMA) != 0
-        deleted = (status & Item.DELETED) != 0
+        withSchema = (status & CItem.CORESCHEMA) != 0
+        deleted = (status & CItem.DELETED) != 0
         kind = item.itsKind
         size = 0
 
@@ -39,7 +38,8 @@ class ItemWriter(object):
             size += self._className(None, None)
 
         if not deleted:
-            all = (status & (Item.NEW | Item.MERGED)) != 0 or item._version == 0
+            all = ((status & (CItem.NEW | CItem.MERGED)) != 0 or
+                   item.itsVersion == 0)
             size += self._values(item, version, withSchema, all)
             size += self._references(item, version, withSchema, all)
             size += self._children(item, version, all)
@@ -128,7 +128,7 @@ class XMLItemWriter(ItemWriter):
         attrs = {}
         attrs['uuid'] = item._uuid.str16()
         attrs['version'] = str(version)
-        if (item._status & Item.CORESCHEMA) != 0:
+        if (item._status & CItem.CORESCHEMA) != 0:
             attrs['withSchema'] = 'True'
 
         self.generator.startElement('item', attrs)
@@ -205,11 +205,11 @@ class ItemReader(object):
 
         if className is None:
             if kind is None:
-                return Item
+                return view.classLoader.getItemClass()
             else:
                 return kind.getItemClass()
         else:
-            return ClassLoader.loadClass(className, moduleName)
+            return view.classLoader.loadClass(className, moduleName)
 
     def getUUID(self):
         raise NotImplementedError, "%s.getUUID" %(type(self))

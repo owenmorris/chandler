@@ -7,11 +7,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from chandlerdb.item.c import isitem
 from chandlerdb.util.c import UUID, SingleRef
 from repository.util.Path import Path
-from repository.util.ClassLoader import ClassLoader
 
 
 class TypeHandler(object):
 
+    @classmethod
     def typeHandler(cls, view, value):
 
         try:
@@ -36,34 +36,34 @@ class TypeHandler(object):
             
         raise TypeError, 'No handler for values of type %s' %(type(value))
 
+    @classmethod
     def makeString(cls, view, value):
 
         return cls.typeHandler(view, value).makeString(value)
 
-    def makeValue(cls, typeName, data):
+    @classmethod
+    def makeValue(cls, view, typeName, data):
+
+        if typeName == 'class':
+            return view.classLoader.loadClass(data)
 
         try:
             return cls.typeDispatch[typeName](data)
         except KeyError:
-            raise ValueError, "Unknown type %s for data: %s" %(typeName, data)
+            raise ValueError, "Unknown type '%s' for data: %s" %(typeName, data)
 
+    @classmethod
     def hashValue(cls, view, value):
 
         return cls.typeHandler(view, value).hashValue(value)
 
+    @classmethod
     def clear(cls, view):
 
         try:
             cls.typeHandlers[view].clear()
         except KeyError:
             pass
-
-
-    typeHandler = classmethod(typeHandler)
-    makeString = classmethod(makeString)
-    makeValue = classmethod(makeValue)
-    hashValue = classmethod(hashValue)
-    clear = classmethod(clear)
 
     typeHandlers = {}
     typeDispatch = {
@@ -77,6 +77,5 @@ class TypeHandler(object):
         'long': long,
         'float': float,
         'complex': complex,
-        'class': lambda(data): ClassLoader.loadClass(data),
         'none': lambda(data): None,
     }

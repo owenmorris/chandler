@@ -15,7 +15,9 @@ from chandlerdb.persistence.c import CView
 
 from repository.util.Path import Path
 from repository.util.Lob import Lob
+from repository.util.ClassLoader import ClassLoader
 from repository.persistence.RepositoryError import *
+from repository.item.Item import Item, MissingClass
 from repository.item.Children import Children
 from repository.item.Indexes import NumericIndex
 from repository.item.RefCollections import RefList, TransientRefList
@@ -121,6 +123,8 @@ class RepositoryView(CView):
         self._loadingRegistry = set()
         self._status = ((self._status & RepositoryView.VERIFY) |
                         RepositoryView.OPEN)
+
+        self.classLoader = ClassLoader(Item, MissingClass)
 
         repository = self.repository
         if repository is not None:

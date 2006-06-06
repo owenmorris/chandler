@@ -12,7 +12,7 @@ from chandlerdb.item.c import Nil, Default, isitem
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 from chandlerdb.item.ItemValue import ItemValue
 
-from repository.item.Item import Item
+from repository.item.Item import Item, MissingClass
 from repository.item.RefCollections import RefList
 from repository.item.Sets import AbstractSet
 from repository.item.Monitors import Monitors, Monitor
@@ -258,8 +258,12 @@ class Kind(Item):
         The L{Item<repository.item.Item.Item>} class is returned by default.
         """
 
+        missing = False
         try:
-            return self._values['classes']['python']
+            cls = self._values['classes']['python']
+            if cls is not MissingClass:
+                return cls
+            missing = True
         except KeyError:
             pass
         except TypeError:
@@ -275,7 +279,7 @@ class Kind(Item):
         count = len(superClasses)
 
         if count == 0:
-            c = Item
+            c = self.itsView.classLoader.getItemClass()
         elif count == 1:
             c = superClasses[0]
         else:
@@ -291,6 +295,9 @@ class Kind(Item):
         self._values['classes'] = { 'python': c }
         self._values._setTransient('classes')
         self._setupClass(c)
+
+        if missing:
+            self.itsView.logger.warn('Missing class for Kind %s replaced by %s.%s', self.itsPath, c.__module__, c.__name__)
 
         return c
 

@@ -2,13 +2,15 @@
 
 from application import schema
 from repository.persistence.Repository import RepositoryThread
-import threading, datetime
+import threading, datetime, logging
 from weakref import WeakValueDictionary
 
 __all__ = [
     'Startup', 'Thread', 'TwistedTask', 'PeriodicTask',
     'run_startup', 'get_reactor_thread', 'run_reactor', 'stop_reactor',
 ]
+
+logger = logging.getLogger(__name__)
 
 
 # --------
@@ -87,9 +89,14 @@ class Startup(schema.Item):
             canStart = canStart and item._start(attempted, started)
 
         if canStart:
-            self.onStart()
-            started.add(self)
-            return True
+            try:
+                self.onStart()
+            except ImportError:
+                logger.exception("Starting %s failed", self)
+                return False
+            else:
+                started.add(self)
+                return True
 
         return False
 

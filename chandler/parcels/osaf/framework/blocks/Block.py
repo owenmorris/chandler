@@ -1176,6 +1176,10 @@ class RectangularChild (Block):
             return
         else:
             self.contextMenu.displayContextMenu(self.widget, position, data)
+
+    def instantiateWidget(self):
+        return wxRectangularChild(self.parentBlock.widget, self.getWidgetID(),
+                                  wx.DefaultPosition, wx.DefaultSize)
  
 class dispatchEnumType(schema.Enumeration):
     values = (

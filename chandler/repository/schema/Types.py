@@ -20,7 +20,6 @@ from repository.item.PersistentCollections import \
 from repository.item.ItemHandler import ValueHandler
 from repository.schema.Kind import Kind
 from repository.schema.TypeHandler import TypeHandler
-from repository.util.ClassLoader import ClassLoader
 
 from chandlerdb.util.c import UUID as UUIDType
 from chandlerdb.util.c import SingleRef as SingleRefType
@@ -813,7 +812,7 @@ class Class(Type):
         return 'class'
     
     def makeValue(self, data):
-        return ClassLoader.loadClass(data)
+        return self.itsView.classLoader.loadClass(data)
 
     def makeString(self, value):
         return '.'.join((value.__module__, value.__name__))
@@ -824,7 +823,7 @@ class Class(Type):
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
         offset, string = itemReader.readString(offset, data)
-        return offset, ClassLoader.loadClass(string)
+        return offset, view.classLoader.loadClass(string)
 
     def hashValue(self, value):
         return _combine(_hash(str(self.itsPath)), _hash(self.makeString(value)))

@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.item.c import Nil, isitem
+from chandlerdb.item.c import CItem, Nil, isitem
 from chandlerdb.item.ItemValue import ItemValue
 from chandlerdb.item.ItemError import *
 from chandlerdb.util.c import UUID
@@ -18,7 +18,6 @@ from repository.item.Values import Values, References
 from repository.persistence.RepositoryError import NoSuchItemError
 
 from repository.util.Path import Path
-from repository.util.ClassLoader import ClassLoader
 from repository.util.SAX import ContentHandler
 
 
@@ -73,12 +72,12 @@ class RefArgs(object):
 
 class ValueHandler(ContentHandler, TypeHandler):
 
-    def __init__(self, repository):
+    def __init__(self, view):
 
         ContentHandler.__init__(self)
         TypeHandler.__init__(self)
         
-        self.repository = repository
+        self.view = view
 
     def startDocument(self):
 
@@ -161,7 +160,7 @@ class ValueHandler(ContentHandler, TypeHandler):
         else:
             self.kindRef = Path(self.data)
 
-        self.kind = self.repository._findSchema(self.kindRef, self.withSchema)
+        self.kind = self.view._findSchema(self.kindRef, self.withSchema)
 
     def attributeStart(self, itemHandler, attrs):
 
@@ -226,9 +225,9 @@ class ValueHandler(ContentHandler, TypeHandler):
                 elif typeName == 'tuple':
                     value = PersistentTuple(None, None, self.collections.pop())
                 else:
-                    value = self.makeValue(typeName, self.data)
+                    value = self.makeValue(self.view, typeName, self.data)
                     if attrs.get('eval', 'False') == 'True':
-                        typeHandler = self.typeHandler(self.repository, value)
+                        typeHandler = self.typeHandler(self.view, value)
                         value = typeHandler.eval(value)
             
         if self.delegates:
@@ -264,9 +263,9 @@ class ValueHandler(ContentHandler, TypeHandler):
             elif typeName == 'tuple':
                 value = PersistentTuple(None, None, self.collections.pop())
             else:
-                value = self.makeValue(typeName, self.data)
+                value = self.makeValue(self.view, typeName, self.data)
                 if attrs.get('eval', 'False') == 'True':
-                    typeHandler = self.typeHandler(self.repository, value)
+                    typeHandler = self.typeHandler(self.view, value)
                     value = typeHandler.eval(value)
 
         name = attrs.get('name')
@@ -274,7 +273,7 @@ class ValueHandler(ContentHandler, TypeHandler):
         if name is None:
             self.collections[-1].add(value, False, False)
         else:
-            name = self.makeValue(attrs.get('nameType', 'str'), name)
+            name = self.makeValue(self.view, attrs.get('nameType', 'str'), name)
             self.collections[-1].__setitem__(name, value, False, False)
 
     def getAttribute(self, name):
@@ -302,12 +301,12 @@ class ValueHandler(ContentHandler, TypeHandler):
 
         if attrs.has_key('typeid'):
             try:
-                name = self.repository[UUID(attrs['typeid'])].handlerName()
+                name = self.view[UUID(attrs['typeid'])].handlerName()
             except KeyError:
                 raise TypeError, "Type %s not found" %(attrs['typeid'])
 
         elif attrs.has_key('typepath'):
-            typeItem = self.repository.find(Path(attrs['typepath']))
+            typeItem = self.view.find(Path(attrs['typepath']))
             if typeItem is None:
                 raise TypeError, "Type %s not found" %(attrs['typepath'])
             name = typeItem.handlerName()
@@ -326,7 +325,7 @@ class ValueHandler(ContentHandler, TypeHandler):
 
         if attrs.has_key('typeid'):
             try:
-                attrType = self.repository[UUID(attrs['typeid'])]
+                attrType = self.view[UUID(attrs['typeid'])]
             except KeyError:
                 raise TypeError, "Type %s not found" %(attrs['typeid'])
 
@@ -345,14 +344,14 @@ class ValueHandler(ContentHandler, TypeHandler):
 
         return False
     
-    def xmlValue(cls, repository, name, value, tag, attrType, attrCard, attrId,
+    def xmlValue(cls, view, name, value, tag, attrType, attrCard, attrId,
                  attrs, generator, withSchema):
 
         if name is not None:
             if not isinstance(name, (str, unicode)):
-                attrs['nameType'] = cls.typeHandler(repository,
+                attrs['nameType'] = cls.typeHandler(view,
                                                     value).handlerName()
-                attrs['name'] = cls.makeString(repository, name)
+                attrs['name'] = cls.makeString(view, name)
             else:
                 attrs['name'] = name
 
@@ -368,7 +367,7 @@ class ValueHandler(ContentHandler, TypeHandler):
                 attrs['typeid'] = attrType._uuid.str64()
 
             elif withSchema or attrType is None:
-                attrType = cls.typeHandler(repository, value)
+                attrType = cls.typeHandler(view, value)
                 attrs['typeid'] = attrType._uuid.str64()
 
         else:
@@ -378,8 +377,6 @@ class ValueHandler(ContentHandler, TypeHandler):
 
         if attrCard == 'single':
 
-            from repository.item.Item import Item
-            
             if isitem(value):
                 raise TypeError, "item %s cannot be stored as a literal value" %(value.itsPath)
 
@@ -392,17 +389,17 @@ class ValueHandler(ContentHandler, TypeHandler):
                 else:
                     attrType.typeXML(value, generator, withSchema)
             else:
-                generator.characters(cls.makeString(repository, value))
+                generator.characters(cls.makeString(view, value))
             
         elif attrCard in ('list', 'set'):
             for val in value._itervalues():
-                cls.xmlValue(repository,
+                cls.xmlValue(view,
                              None, val, 'value', attrType, 'single',
                              None, {}, generator, withSchema)
 
         elif attrCard == 'dict':
             for key, val in value._iteritems():
-                cls.xmlValue(repository,
+                cls.xmlValue(view,
                              key, val, 'value', attrType, 'single',
                              None, {}, generator, withSchema)
         else:
@@ -418,11 +415,11 @@ class ItemHandler(ValueHandler):
     A SAX ContentHandler implementation responsible for loading items.
     """
     
-    def __init__(self, repository, parent, afterLoadHooks, new):
+    def __init__(self, view, parent, afterLoadHooks, new):
 
-        super(ItemHandler, self).__init__(repository)
+        super(ItemHandler, self).__init__(view)
 
-        self.loading = repository.isLoading()
+        self.loading = view.isLoading()
         self.parent = parent
         self.afterLoadHooks = afterLoadHooks
         self.item = None
@@ -448,7 +445,7 @@ class ItemHandler(ValueHandler):
             cardinality = self.getCardinality(attribute, attrs)
             if cardinality != 'single':
                 if cardinality == 'dict':
-                    self.repository.logger.warning("Warning, 'dict' cardinality for reference attribute %s on %s is deprecated, use 'list' instead", name, self.name or self.uuid)
+                    self.view.logger.warning("Warning, 'dict' cardinality for reference attribute %s on %s is deprecated, use 'list' instead", name, self.name or self.uuid)
                 self._setupRefList(name, attribute, readOnly, attrs)
 
     def _setupRefList(self, name, attribute, readOnly, attrs):
@@ -465,7 +462,7 @@ class ItemHandler(ValueHandler):
             refList = self.item._references.get(name)
 
         if refList is None:
-            refList = self.repository._createRefList(None, name, otherName,
+            refList = self.view._createRefList(None, name, otherName,
                                                      True, readOnly, self.new,
                                                      uuid)
                 
@@ -523,26 +520,24 @@ class ItemHandler(ValueHandler):
 
     def itemEnd(self, itemHandler, attrs):
 
-        from repository.item.Item import Item
-        
         if self.withSchema:
-            status = Item.CORESCHEMA
+            status = CItem.CORESCHEMA
         else:
             status = 0
 
         cls = self.cls
         if cls is None:
             if self.kind is None:
-                cls = Item
+                cls = self.view.classLoader.getItemClass()
             else:
                 cls = self.kind.getItemClass()
 
-        instance = self.repository._reuseItemInstance(self.uuid)
+        instance = self.view._reuseItemInstance(self.uuid)
         if instance is not None:
             if cls is not type(instance):
                 raise TypeError, 'Class for item has changed from %s to %s' %(type(instance), cls)
             item = self.item = instance
-            status |= item._status & item.PINNED
+            status |= item._status & CItem.PINNED
             instance = None
 
         elif self.update or self.delete:
@@ -552,21 +547,21 @@ class ItemHandler(ValueHandler):
 
             for name, value in self.values._dict.iteritems():
                 values[name] = value
-                item.setDirty(Item.VDIRTY, name, values, True)
+                item.setDirty(CItem.VDIRTY, name, values, True)
             self.values = values
 
             for name, value in self.references._dict.iteritems():
                 if not isinstance(value, dict):
-                    dirty = Item.VDIRTY
+                    dirty = CItem.VDIRTY
                     item.setAttributeValue(name, value, references,
                                            None, False)
                 else:
-                    dirty = Item.RDIRTY
+                    dirty = CItem.RDIRTY
                     references[name] = value
                 item.setDirty(dirty, name, references, True)
             self.references = references
 
-            status = item._status | Item.NDIRTY
+            status = item._status | CItem.NDIRTY
 
         else:
             item = self.item = cls.__new__(cls)
@@ -576,10 +571,10 @@ class ItemHandler(ValueHandler):
                        self.afterLoadHooks, not not self.update)
 
         if self.isContainer and item._children is None:
-            item._children = self.repository._createChildren(item, self.new)
+            item._children = self.view._createChildren(item, self.new)
 
         if not (self.update or self.delete):
-            self.repository._registerItem(item)
+            self.view._registerItem(item)
 
         for refArgs in self.refs:
             other = refArgs._setItem(item)
@@ -588,7 +583,7 @@ class ItemHandler(ValueHandler):
             elif other is None:
                 self.afterLoadHooks.append(refArgs._setValue)
             else:
-                refArgs._setValue(self.repository)
+                refArgs._setValue(self.view)
 
         self.afterLoadHooks.append(self.setupClass)
 
@@ -635,7 +630,7 @@ class ItemHandler(ValueHandler):
             self.parentRef = Path(self.data)
 
         self.isContainer = attrs.get('container', 'False') == 'True'
-        self.parent = self.repository.find(self.parentRef)
+        self.parent = self.view.find(self.parentRef)
 
         if self.parent is None:
             self.afterLoadHooks.append(self._move)
@@ -651,7 +646,7 @@ class ItemHandler(ValueHandler):
 
     def classEnd(self, itemHandler, attrs):
 
-        self.cls = ClassLoader.loadClass(self.data, attrs['module'])
+        self.cls = self.view.classLoader.loadClass(self.data, attrs['module'])
 
     def nameEnd(self, itemHandler, attrs):
 
@@ -714,10 +709,11 @@ class ItemHandler(ValueHandler):
 
     def refName(self, attrs, attr):
 
-        try:
-            return self.makeValue(attrs.get(attr + 'Type', 'str'), attrs[attr])
-        except KeyError:
-            return None
+        data = attrs.get(attrs, Nil)
+        if data is not Nil:
+            return self.makeValue(self.view, attrs.get(attr + 'Type', 'str'),
+                                  data)
+        return None
 
     def getOtherName(self, name, attribute, attrs):
 
@@ -734,11 +730,11 @@ class ItemHandler(ValueHandler):
 
 class ItemsHandler(ContentHandler):
 
-    def __init__(self, repository, parent, afterLoadHooks, new):
+    def __init__(self, view, parent, afterLoadHooks, new):
 
         super(ItemsHandler, self).__init__()
 
-        self.repository = repository
+        self.view = view
         self.parent = parent
         self.afterLoadHooks = afterLoadHooks
         self.new = new
@@ -752,7 +748,7 @@ class ItemsHandler(ContentHandler):
 
         if self.exception is None:
             if tag == 'item':
-                self.itemHandler = ItemHandler(self.repository, self.parent,
+                self.itemHandler = ItemHandler(self.view, self.parent,
                                                self.afterLoadHooks, self.new)
                 self.itemHandler.startDocument()
 
