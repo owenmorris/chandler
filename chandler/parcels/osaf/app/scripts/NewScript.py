@@ -8,5 +8,4 @@ newScript = Script(itsView=App_ns.view)
 if scripting_ns.scriptsCollection in App_ns.sidebar.contents:
     App_ns.root.ApplicationBarAll()
     App_ns.sidebar.select(scripting_ns.scriptsCollection)
-    #App_ns.summary.select(newScript)
-    App_ns.summary.postEventByName('SelectItemsBroadcastInsideActiveView', {'items':[newScript]})
+    App_ns.summary.postEventByName('SelectItemsBroadcast', {'items':[newScript]})
