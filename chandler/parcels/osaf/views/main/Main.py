@@ -205,9 +205,11 @@ class MainView(View):
         except NotImplementedError:
             pass
 
-        # Tell the ActiveView to select our new item
-        self.postEventByName ('SelectItemsBroadcastInsideActiveView',
-                              {'items':[newItem]})
+        # Tell the summary view to select our new item
+        sidebarBPB = self.findBlockByName ("SidebarBranchPointBlock")
+        sidebarBPB.childrenBlocks.first().postEventByName (
+            'SelectItemsBroadcast',
+            {'items':[newItem]})
 
         # Put the focus into the Detail View
         detailRoot = self.findBlockByName("DetailRoot")

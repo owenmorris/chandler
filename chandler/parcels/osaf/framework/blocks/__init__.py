@@ -92,9 +92,6 @@ def installParcel(parcel, oldName=None):
                             'BroadcastInsideMyEventBoundary',
                             methodName='onSelectItemsEvent').install(parcel),
         
-        BlockEvent.template('SelectItemsBroadcastInsideActiveView',
-                            'BroadcastInsideActiveViewEventBoundary',
-                            methodName='onSelectItemsEvent').install(parcel),
         BlockEvent.template('SetContents',
                             'BroadcastInsideMyEventBoundary').install(parcel),
         

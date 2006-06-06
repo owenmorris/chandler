@@ -237,11 +237,11 @@ class Block(schema.Item):
                     del dictionary [name]
 
     @classmethod
-    def template(theClass, blockName, **attrs):
+    def template(theClass, itemName, blockName=None, **attrs):
         """
         Very similar to the default template() routine, except that
         1) childrenBlocks is used for children
-        2) the repository name and blockname are unified
+        2) the repository name and blockname are unified by default
         3) eventsForNamedLookup is automatically populated
         """
         
@@ -255,8 +255,9 @@ class Block(schema.Item):
             # just in case it wasn't there originally
             attrs['eventsForNamedLookup'] = eventsForNamedLookup
             
-        return BlockTemplate(theClass, blockName,
-                             blockName=blockName, **attrs)
+        return BlockTemplate(theClass, itemName,
+                             blockName=blockName or itemName, 
+                             **attrs)
 
     # Controls whether or not notifications will dirty the block.
     ignoreNotifications = property(
@@ -1012,18 +1013,6 @@ class Block(schema.Item):
                        lambda child: (child is not None and 
                                       not child.eventBoundary))
 
-        elif dispatchEnum == 'BroadcastInsideActiveViewEventBoundary':
-            try:
-                block = Globals.views [1]
-            except IndexError:
-                pass
-            else:                
-                broadcast (block,
-                           methodName,
-                           event,
-                           lambda child: (child is not None and 
-                                          not child.eventBoundary))
-
         elif dispatchEnum == 'BroadcastEverywhere':
             broadcast (Globals.views[0],
                        methodName,
@@ -1190,10 +1179,13 @@ class RectangularChild (Block):
  
 class dispatchEnumType(schema.Enumeration):
     values = (
+        "ActiveViewBubbleUp",
         "BroadcastInsideMyEventBoundary",
-        "BroadcastInsideActiveViewEventBoundary",
-        "BroadcastEverywhere", "FocusBubbleUp", "ActiveViewBubbleUp",
-        "SendToBlockByReference", "SendToBlockByName", "SendToSender",
+        "BroadcastEverywhere",
+        "FocusBubbleUp",
+        "SendToBlockByName",
+        "SendToBlockByReference",
+        "SendToSender",
     )
 
 class BlockEvent(schema.Item):
@@ -1223,14 +1215,14 @@ class BlockEvent(schema.Item):
             return super(BlockEvent, self).__repr__()
 
     @classmethod
-    def template(theClass, blockName, dispatchEnum, **attrs):
+    def template(theClass, itemName, dispatchEnum, blockName=None, **attrs):
         """
         Very similar to the default template() routine, except that
-        1) the repository name and blockname are unified
+        1) the repository name and blockname are unified by default
         2) The dispatchEnum is required
         """
-        return BlockTemplate(theClass, blockName,
-                             blockName=blockName,
+        return BlockTemplate(theClass, itemName,
+                             blockName=blockName or itemName,
                              dispatchEnum=dispatchEnum,
                              **attrs)
 class ChoiceEvent(BlockEvent):
