@@ -855,12 +855,8 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             self.rangeStart = date
         else:
             calendar = GregorianCalendar()
-            # GregorianCalendar has a setTimeZone method, but it doesn't currently
-            # do what I'd expect, after calling it the calendar behaves like
-            # it's still in the system timezone, so convert date to the system
-            # timezone
-            system_tz = ICUtzinfo(TimeZone.createDefault())
-            calendar.setTime(date.replace(tzinfo=system_tz))
+            calendar.setTimeZone(ICUtzinfo.default._timezone)
+            calendar.setTime(date)
             delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
                                     calendar.getFirstDayOfWeek()))
             self.rangeStart = date - delta
@@ -1675,12 +1671,8 @@ class CalendarControl(CalendarBlock):
         #Set rangeStart
         # start at the beginning of the week (Sunday midnight)
         calendar = GregorianCalendar()
-        # GregorianCalendar has a setTimeZone method, but it doesn't currently
-        # do what I'd expect, after calling it the calendar behaves like
-        # it's still in the system timezone, so convert date to the system
-        # timezone
-        system_tz = ICUtzinfo(TimeZone.createDefault())
-        calendar.setTime(date.replace(tzinfo=system_tz))
+        calendar.setTimeZone(ICUtzinfo.default._timezone)
+        calendar.setTime(date)
         delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
                                 calendar.getFirstDayOfWeek()))
 
