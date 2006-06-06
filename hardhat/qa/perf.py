@@ -164,24 +164,24 @@ def platforms2GraphData(platforms, acceptable):
     """
     ret = []
     
-    osAvgs = {'win': {}, 'osx': {}, 'linux': {}}
+    osMedians = {'win': {}, 'osx': {}, 'linux': {}}
     
-    def average(values):
+    def median(values):
         """
-        Return the average of the values, but ignore 0s as they signify
-        a non-value. Also, None is returned if the average would be 0, because
+        Return the median of the values, but ignore 0s as they signify
+        a non-value. Also, None is returned if the median would be 0, because
         None is a special value that is ignored by PyChart.
         """
         if len(values) == 0:
-            avg = None
+            median = None
         else:
             values = [x for x in values if x != 0] # Skip 0s
-            s = sum(values)
-            if s == 0:
-                avg = None
+            if len(values) == 0:
+                median = None
             else:
-                avg = s/(len(values)*1.0)
-        return avg
+                values.sort()
+                median = values[len(values)/2]
+        return median
     
     for platform in ('win', 'osx', 'linux'):
         i = 0
@@ -191,32 +191,32 @@ def platforms2GraphData(platforms, acceptable):
         for (time, rev) in platforms[platform]['timesRevs']:
             rev = int(rev)
             if rev != lastRev and lastRev != 0:
-                osAvgs[platform][lastRev] = average(values)
+                osMedians[platform][lastRev] = median(values)
                 values = [platforms[platform]['values'][i]]
             else:
                 values.append(platforms[platform]['values'][i])
             i += 1
             lastRev = rev
         if  len(values) != 0: # Handle the last value separately
-            osAvgs[platform][rev] = average(values)
+            osMedians[platform][rev] = median(values)
             
     # Find out which platforms have values other than None
     plats = ()
     revs = []
-    for value in osAvgs['win'].itervalues():
+    for value in osMedians['win'].itervalues():
         if value is not None:
             plats += ('win',)
-            revs.extend(osAvgs['win'].keys())
+            revs.extend(osMedians['win'].keys())
             break
-    for value in osAvgs['osx'].itervalues():
+    for value in osMedians['osx'].itervalues():
         if value is not None:
             plats += ('osx',)
-            revs.extend(osAvgs['osx'].keys())
+            revs.extend(osMedians['osx'].keys())
             break
-    for value in osAvgs['linux'].itervalues():
+    for value in osMedians['linux'].itervalues():
         if value is not None:
             plats += ('linux',)
-            revs.extend(osAvgs['linux'].keys())
+            revs.extend(osMedians['linux'].keys())
             break
 
     revs = unique(revs)
@@ -225,11 +225,11 @@ def platforms2GraphData(platforms, acceptable):
     for rev in revs:
         item = (rev,)
         if 'win' in plats:
-            item += (osAvgs['win'].get(rev, None), )
+            item += (osMedians['win'].get(rev, None), )
         if 'osx' in plats:
-            item += (osAvgs['osx'].get(rev, None), )
+            item += (osMedians['osx'].get(rev, None), )
         if 'linux' in plats:
-            item += (osAvgs['linux'].get(rev, None), )
+            item += (osMedians['linux'].get(rev, None), )
         item += (acceptable, )
         ret.append(item)
     
@@ -657,7 +657,7 @@ class perf:
           
         testitem = tests[testkey]
 
-        indexpage.append('<h2>%s</h2>\n' % testkey)
+        indexpage.append('<h2 id="%s">%s</h2>\n' % (testkey, testkey))
         detailpage.append('<h2>%s</h2>\n' % testkey)
 
         k_builds = testitem.keys()
