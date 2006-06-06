@@ -155,6 +155,23 @@ def unique(s):
             u.append(x)
     return u
 
+def median(values):
+    """
+    Return the median of the values, but ignore 0s as they signify
+    a non-value. Also, None is returned if the median would be 0, because
+    None is a special value that is ignored by PyChart.
+    """
+    if len(values) == 0:
+        median = None
+    else:
+        values = [x for x in values if x != 0] # Skip 0s
+        if len(values) == 0:
+            median = None
+        else:
+            values.sort()
+            median = values[len(values)/2]
+    return median
+
 def platforms2GraphData(platforms, acceptable):
     """
     Convert the platforms structure and acceptable value into a list of
@@ -165,23 +182,6 @@ def platforms2GraphData(platforms, acceptable):
     ret = []
     
     osMedians = {'win': {}, 'osx': {}, 'linux': {}}
-    
-    def median(values):
-        """
-        Return the median of the values, but ignore 0s as they signify
-        a non-value. Also, None is returned if the median would be 0, because
-        None is a special value that is ignored by PyChart.
-        """
-        if len(values) == 0:
-            median = None
-        else:
-            values = [x for x in values if x != 0] # Skip 0s
-            if len(values) == 0:
-                median = None
-            else:
-                values.sort()
-                median = values[len(values)/2]
-        return median
     
     for platform in ('win', 'osx', 'linux'):
         i = 0
@@ -652,13 +652,13 @@ class perf:
     
     graphDict = {}
     
-    for testkey in tests.keys():
+    for (testkey, testDisplayName) in self.SummaryTests:
       if testkey in graphTests:
           
         testitem = tests[testkey]
 
-        indexpage.append('<h2 id="%s">%s</h2>\n' % (testkey, testkey))
-        detailpage.append('<h2>%s</h2>\n' % testkey)
+        indexpage.append('<h2 id="%s">%s</h2>\n' % (testkey, testDisplayName))
+        detailpage.append('<h2 id="%s">%s</h2>\n' % (testkey, testDisplayName))
 
         k_builds = testitem.keys()
         k_builds.sort()
@@ -703,6 +703,7 @@ class perf:
             day_values[datekey] = (dv_count, dv_total)
 
           (v, n, avg) = self.standardDeviation(values)
+          med = median(values) or 0.0
 
           if self._options['debug']:
             print "std.dev: %02.5f average: %02.3f count: %d" % (v, avg, n)
@@ -715,7 +716,7 @@ class perf:
           k_dates.reverse()
 
           detailpage.append('<h3 id="%s_%s">%s</h3>\n' % (testkey, buildkey, buildkey))
-          detailpage.append('<p>Sample Average is %2.3f and std.dev is %2.3f</p>\n' % (avg, v))
+          detailpage.append('<p>Median is %2.3f and Sample Average is %2.3f and std.dev is %2.3f</p>\n' % (med, avg, v))
           detailpage.append('<!-- avg: %02.5f count: %d stddev: %02.5f -->\n' % (avg, n, v))
 
           for datekey in k_dates:
@@ -736,7 +737,7 @@ class perf:
             graphPlatform[buildkey[2:]][datekey] = dv_avg
             
             tv_dates.append((datekey, dv_avg, c_perc, c_diff))
-
+            
             detailpage.append('<h4>%s-%s-%s</h4>\n' % (datekey[:4], datekey[4:6], datekey[6:8]))
             detailpage.append('<p>%d items in days sample for an average of %2.3f' % (dv_count, dv_avg))
             detailpage.append('<table>\n')
@@ -746,6 +747,8 @@ class perf:
 
             k_hours = dateitem.keys()
             k_hours.sort()
+
+            lastDatapoint = None
 
             for hour in k_hours:
               for datapoint in dateitem[hour]:
@@ -765,12 +768,23 @@ class perf:
                   c_perc = (dv_avg - datapoint[DP_RUNTIME]) / dv_avg
                 c_diff = datapoint[DP_RUNTIME] - dv_avg
 
-                detailpage.append('<tr><td>%02d:%02d:%02d</td><td class="%s">%02.3f</td>' \
-                                  '<td class="number">%d</td><td class="number_left">%02.3f</td><td class="number">%02.3f</td></tr>\n' %
-                                  (datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
-                                   s, datapoint[DP_RUNTIME], perc, c_perc, c_diff))
+                if lastDatapoint is not None:
+                  bonsaiURL = 'http://bonsai.osafoundation.org/svnquery.cgi?treeid=default&module=all&branch=trunk&branchtype=match&sortby=Date&date=explicit&mindate=%4d-%02d-%02d+%02d:%02d:%02d&maxdate=%4d-%02d-%02d+%02d:%02d:%02d&repository=/svn/chandler' % \
+                    (lastDatapoint[1].year, lastDatapoint[1].month, lastDatapoint[1].day, lastDatapoint[1].hour, lastDatapoint[1].minute, lastDatapoint[1].second,
+                     datapoint[1].year, datapoint[1].month, datapoint[1].day, datapoint[1].hour, datapoint[1].minute, datapoint[1].second)
+                  detailpage.append('<tr><td><a href="%s">%02d:%02d:%02d</a></td><td class="%s">%02.3f</td>' \
+                                    '<td class="number">%d</td><td class="number_left">%02.3f</td><td class="number">%02.3f</td></tr>\n' %
+                                    (bonsaiURL, datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
+                                     s, datapoint[DP_RUNTIME], perc, c_perc, c_diff))
+                else:
+                  detailpage.append('<tr><td>%02d:%02d:%02d</td><td class="%s">%02.3f</td>' \
+                                    '<td class="number">%d</td><td class="number_left">%02.3f</td><td class="number">%02.3f</td></tr>\n' %
+                                    (datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
+                                     s, datapoint[DP_RUNTIME], perc, c_perc, c_diff))
                 detailpage.append('<!-- value: %02.5f count: %d avg: %02.5f %02.5f c_perc: %02.5f c_diff: %02.5f -->\n' %
                                   (datapoint[DP_RUNTIME], n, avg, perc, c_perc, c_diff))
+                
+                lastDatapoint = datapoint
 
             detailpage.append('</table>\n')
 
@@ -828,7 +842,7 @@ class perf:
                 graphPlatforms,
                 graphfile, 
                 size=(264, 132), xLabel='Date')
-      trendspage.append('<h2>%s</h2><img src="%s" alt="graph" title="%s">' % (testDisplayName, graphfilename, testDisplayName))
+      trendspage.append('<h2><a href="%s#%s">%s</a></h2><img src="%s" alt="graph" title="%s">' % (detailfilename, test, testDisplayName, graphfilename, testDisplayName))
 
     trendspage.append('</body></html>')
     detailpage.append('</div>\n')
