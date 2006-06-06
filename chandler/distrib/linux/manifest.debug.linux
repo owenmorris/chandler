@@ -74,12 +74,6 @@ dest=debug/db
 src=chandler/debug/db
 bin
 
-# Grab the gcc 3.4.x runtime libs
-src=chandler/debug/lib
-dest=debug/lib
-libstdc++.so.6
-libgcc_s.so.1
-
 # Grab Chandler.py, and others
 src=chandler
 dest=

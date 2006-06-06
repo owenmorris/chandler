@@ -73,12 +73,6 @@ dest=release/db
 src=chandler/release/db
 bin
 
-# Grab the gcc 3.4.x runtime libs
-src=chandler/release/lib
-dest=release/lib
-libstdc++.so.6
-libgcc_s.so.1
-
 # Grab Chandler.py, and others
 src=chandler
 dest=
