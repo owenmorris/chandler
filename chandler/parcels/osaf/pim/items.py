@@ -87,6 +87,7 @@ class ContentItem(schema.Item):
         schema.Text,
         displayName=_(u"Body"),
         indexed = True,
+        defaultValue = _(u""),
         doc="All Content Items may have a body to contain notes.  It's "
             "not decided yet whether this body would instead contain the "
             "payload for resource items such as presentations or "
