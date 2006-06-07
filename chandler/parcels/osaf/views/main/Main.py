@@ -123,11 +123,12 @@ class MainView(View):
         """
         Show the splash screen in response to the about command.
         """
-        import version
+        from version import version
         html = ''
         for line in i18n.getHTML('about.html'):
+            # Substitute the buildid with the correct version number
             if line.find('@@buildid@@') >= 0:
-                line = "Version: %s" % version.version
+                line = line.replace('@@buildid@@',version, 1)
             html += line
         splash = SplashScreen(None, _(u"About Chandler"),
                                    None, html, True, False)
