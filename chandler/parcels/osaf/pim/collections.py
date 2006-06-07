@@ -461,7 +461,7 @@ class AppCollection(ContentCollection):
         # adding to exclusions before determining if the item should be added to
         # the trash was a problem at one point (bug 4551), but since the mine/
         # not-mine mechanism changed, this doesn't seem to be a problem anymore,
-        # and removing from a mine colleciton was actually misbehaving if the
+        # and removing from a mine collection was actually misbehaving if the
         # test was done first, so now logic for moving to the trash has moved
         # back to after addition to exclusions and removal from inclusions.
         self.exclusions.add(item)
