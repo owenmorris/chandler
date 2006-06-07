@@ -226,26 +226,17 @@ class MainView(View):
         self.printEvent(False)
 
     def printEvent(self, isPreview):
-        try:
-            activeView = Globals.views [1]
-        except IndexError:
-            pass
+        block = self.findBlockByName ("TimedEvents")
+        if block is None:
+            message = _(u"Chandler")
+            title = _(u"Printing is currently only supported when viewing in calendar view.")
+            application.dialogs.Util.ok(None, message, title)
         else:
-            for viewChild in activeView.childrenBlocks:
-                if isinstance(viewChild, CalendarCanvas.CalendarContainer):
-                    for calendarChild in viewChild.childrenBlocks:
-                        if isinstance(calendarChild, CalendarCanvas.CanvasSplitterWindow):
-                            window = calendarChild.widget.GetWindow2()
-                    printObject = Printing.Printing(wx.GetApp().mainFrame, window)
-                    if isPreview:
-                        printObject.OnPrintPreview()
-                    else:
-                        printObject.OnPrint()
-                    return
-        message = _(u"Chandler")
-
-        title = _(u"Printing is currently only supported when viewing in calendar view.")
-        application.dialogs.Util.ok(None, message, title)
+            printObject = Printing.Printing(wx.GetApp().mainFrame, block.widget)
+            if isPreview:
+                printObject.OnPrintPreview()
+            else:
+                printObject.OnPrint()
 
     def onQuitEvent (self, event):
         """
