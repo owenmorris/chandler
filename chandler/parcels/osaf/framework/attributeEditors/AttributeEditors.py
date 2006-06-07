@@ -1164,13 +1164,6 @@ class StringAttributeEditor (BaseAttributeEditor):
             bindToControl = control
             bindToControl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
 
-            # hack to work around bug 5669 until the underlying wx bug is fixed.
-            if '__WXMAC__' in wx.PlatformInfo: 
-                def showhide(ctrl):
-                    ctrl.Hide()
-                    ctrl.Show()
-                wx.CallAfter(showhide, control)
-
         bindToControl.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
         if doAutoCompletion: # We only need these if we're autocompleting:
             bindToControl.Bind(wx.EVT_KEY_UP, self.onKeyUp)
