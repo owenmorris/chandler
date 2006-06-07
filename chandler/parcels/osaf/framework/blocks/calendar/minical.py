@@ -442,13 +442,15 @@ class PyMiniCalendar(wx.PyControl):
                     
 
     def OnDClick(self, event):
-        (region, value) = self.HitTest(event.GetPosition())
+        #(region, value) = self.HitTest(event.GetPosition())
 
-        if region == CAL_HITTEST_DAY:
-            event.Skip()
+        #if region == CAL_HITTEST_DAY:
+            #event.Skip()
 
-        else:
-            self.GenerateEvents(EVT_MINI_CALENDAR_DOUBLECLICKED)
+        #else:
+        # it's not clear why one would want to avoid propagating the double
+        # click if it hit a day, so just propagate all doubleclicks
+        self.GenerateEvents(EVT_MINI_CALENDAR_DOUBLECLICKED)
             
 
     # override some base class virtuals
