@@ -7,24 +7,22 @@ import webbrowser
 import wx
 import wx.html
 
-
-class SplashScreen(wx.Dialog):
+class AboutBox(wx.Dialog):
     """
       This class implements an HTML informational screen presented to the user. 
-    Common uses are for splash screens or 'About' pages.
-    The page can be dismissed either by clicking on it or by a timer.
+    Common use is for 'About' pages.
+    The page must be dismissed by clicking on its close button.
     """
-    def __init__(self, parent, title="", pageLocation="", html="",
-                 isModal=False, useTimer=True, timerLength=10000):
+    def __init__(self, parent=None, title="", pageLocation="", html="", isModal=True):
         """
-          Sets up the splash screen and starts its timer.
+          Sets up the about box.
         """
         style = wx.DEFAULT_DIALOG_STYLE
         size =  wx.DefaultSize
         pos = wx.DefaultPosition
-
-        super (SplashScreen, self).__init__ (parent, -1, title, pos, size, style)
-
+        
+        super (AboutBox, self).__init__ (parent, -1, title, pos, size, style)
+                
         defaultWindowWidth = 285
         maxWindowHeight = 600
         self.isModal = isModal
@@ -39,13 +37,7 @@ class SplashScreen(wx.Dialog):
         self.SetClientSize(panel.GetSize())
         
         self.CenterOnScreen()
-        
-        if useTimer:
-            self.timer = SplashTimer(self)
-            self.timer.Start(timerLength)
-        else:
-            self.timer = None
-            
+                    
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         
         # Display the dialog
@@ -57,10 +49,8 @@ class SplashScreen(wx.Dialog):
         
     def OnCloseWindow(self, event):
         """
-          Stops the timer from running and closes the window.
+          Closes the window.
         """
-        if self.timer != None:
-            self.timer.Stop()
         self.Destroy()
         
 class HTMLPanel(wx.html.HtmlWindow):
@@ -82,40 +72,13 @@ class HTMLPanel(wx.html.HtmlWindow):
         
     def OnCellClicked(self, cell, x, y, event):
         """
-          Called whenever the splash screen is clicked.  If a link was
-        clicked, then that link will be opened.  Otherwise, we close the
-        splash screen.
+          Called whenever the about box is clicked.
         """
-        self.linked = False
         wx.html.HtmlWindow.base_OnCellClicked(self, cell, x, y, event)
-#        if not self.linked:
-#            self.parent.Close()
-        
+                
     def OnLinkClicked(self, link):
         """
-          Called whenever a link on the splash screen is clicked.  Opens that
+          Called whenever a link on the about box is clicked.  Opens that
         url in the user's default web browser.
         """
-        self.linked = True
         webbrowser.open(link.GetHref())
-    
-class SplashTimer(wx.Timer):
-    """
-      A timer that keeps track of how long the splash screen has been 
-    displayed.
-    """
-    def __init__(self, window):
-        """
-          Sets up the timer.
-        """
-        super (SplashTimer, self).__init__ ()
-        self.window = window
-        
-    def Notify(self):
-        """
-          When the timer has expired, we notify the splash screen that it is
-        time to close.
-        """
-        self.window.Close()
-        
-        

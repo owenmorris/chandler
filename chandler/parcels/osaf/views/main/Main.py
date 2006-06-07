@@ -9,7 +9,7 @@ import wx, os, sys, traceback, logging
 
 from application import Globals, Printing, schema
 
-from application.SplashScreen import SplashScreen
+from application.AboutBox import AboutBox
 import application.Parcel
 
 import application.dialogs.Util
@@ -121,18 +121,17 @@ class MainView(View):
     def onAboutEvent(self, event):
         # The "Help | About Chandler..." menu item
         """
-        Show the splash screen in response to the about command.
+        Show the about box in response to the about command.
         """
         from version import version
-        html = ''
+        htmltext = ''
         for line in i18n.getHTML('about.html'):
             # Substitute the buildid with the correct version number
             if line.find('@@buildid@@') >= 0:
                 line = line.replace('@@buildid@@',version, 1)
-            html += line
-        splash = SplashScreen(None, _(u"About Chandler"),
-                                   None, html, True, False)
-        return splash
+            htmltext += line
+        about = AboutBox(title=_(u"About Chandler"), html=htmltext)
+        return about
 
     def onEmptyTrashEvent(self, event):
         trash = schema.ns("osaf.pim", self).trashCollection
