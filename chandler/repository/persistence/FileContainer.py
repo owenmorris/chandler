@@ -465,12 +465,12 @@ class IndexContainer(FileContainer):
             dbWriter.getDirectory().close()
             writer.getDirectory().close()
         except JavaError, e:
-            msg = e.getJavaException().getMessage()
-            if msg is not None:
-                if msg.find("DB_LOCK_DEADLOCK") >= 0:
-                    raise DBLockDeadlockError, msg
-                elif msg.find("IllegalArgumentException") >= 0:
-                    raise DBInvalidArgError, msg
+            je = e.getJavaException()
+            msg = je.getMessage()
+            if msg is not None and msg.find("DB_LOCK_DEADLOCK") >= 0:
+                raise DBLockDeadlockError, msg
+            if je.getClass().getName() == 'java.lang.IllegalArgumentException':
+                raise DBInvalidArgError, msg
             raise
 
     def abortIndexWriter(self, writer):
