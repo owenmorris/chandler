@@ -31,8 +31,6 @@ def installParcel(parcel, old_version=None):
     newImageEvent = NewImageEvent.update(
         parcel, 'NewImage',
         blockName = 'NewImage',
-        dispatchToBlockName = 'MainView',
-        dispatchEnum = 'SendToBlockByName',
         kindParameter = Note.getKind (parcel.itsView),
         allCollection = schema.ns ('osaf.pim', parcel.itsView).allCollection)
 

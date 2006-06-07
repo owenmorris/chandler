@@ -1033,18 +1033,13 @@ class Block(schema.Item):
             bubbleUpCallMethod (blockOrWidget, methodName, event)
 
         elif dispatchEnum == 'ActiveViewBubbleUp':
-            try:
-                v = Globals.views [1]
-                # the active view is typically a splitter, so really
-                # we probably want the first child (and even if we
-                # don't, the event will bubble up)
-                
-                # for some reason v.childrenBlocks[0] is busting
-                block = v.childrenBlocks.first()
-            except IndexError:
-                pass
-            else:                
-                bubbleUpCallMethod (block, methodName, event)
+            sidebarBPB = Block.findBlockByName ("SidebarBranchPointBlock")
+            # This is alecf's hackery, which should be fixed:
+            # the active view is typically a splitter, so really
+            # we probably want the first child (and even if we
+            # don't, the event will bubble up)
+            probableMainView = sidebarBPB.childrenBlocks.first().childrenBlocks.first()
+            bubbleUpCallMethod (probableMainView, methodName, event)
 
         elif __debug__:
             assert (False)
@@ -1193,12 +1188,10 @@ class dispatchEnumType(schema.Enumeration):
     )
 
 class BlockEvent(schema.Item):
-    dispatchEnum = schema.One(
-        dispatchEnumType, initialValue = 'SendToBlockByReference',
-    )
+    dispatchEnum = schema.One(dispatchEnumType, initialValue = 'SendToBlockByName')
+    dispatchToBlockName = schema.One(schema.Text, initialValue = 'MainView')
     commitAfterDispatch = schema.One(schema.Boolean, initialValue = False)
     destinationBlockReference = schema.One(Block)
-    dispatchToBlockName = schema.One(schema.Text)
     methodName = schema.One(schema.Text)
     blockName = schema.One(schema.Text)
     schema.addClouds(
@@ -1219,16 +1212,15 @@ class BlockEvent(schema.Item):
             return super(BlockEvent, self).__repr__()
 
     @classmethod
-    def template(theClass, itemName, dispatchEnum, blockName=None, **attrs):
+    def template(theClass, itemName, blockName=None, **attrs):
         """
         Very similar to the default template() routine, except that
-        1) the repository name and blockname are unified by default
-        2) The dispatchEnum is required
+        the repository name and blockname are unified by default
         """
         return BlockTemplate(theClass, itemName,
                              blockName=blockName or itemName,
-                             dispatchEnum=dispatchEnum,
                              **attrs)
+
 class ChoiceEvent(BlockEvent):
     choice = schema.One(schema.Text, required = True)
 
@@ -1274,16 +1266,10 @@ class NewItemEvent(KindParameterizedEvent):
     collectionAddEvent = schema.One("BlockEvent", defaultValue = None)
     methodName = schema.One(schema.Text, initialValue = 'onNewItemEvent')
     commitAfterDispatch = schema.One(schema.Boolean, initialValue = True)
-    dispatchEnum = schema.One(
-        dispatchEnumType, initialValue = 'ActiveViewBubbleUp',
-    )
+    dispatchEnum = schema.One(dispatchEnumType, initialValue = 'ActiveViewBubbleUp')
 
 class AddToViewableCollectionEvent(BlockEvent):
-    dispatchEnum = schema.One(
-        dispatchEnumType, initialValue = 'SendToBlockByName',
-    )
     commitAfterDispatch = schema.One(schema.Boolean, initialValue = True)
-    dispatchToBlockName = schema.One(schema.Text, initialValue = 'MainView')
     methodName = schema.One(schema.Text, initialValue = 'onAddToViewableCollectionEvent')
 
     items = schema.Sequence(schema.Item, initialValue = [])

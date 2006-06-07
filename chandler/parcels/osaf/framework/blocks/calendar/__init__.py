@@ -28,6 +28,6 @@ def installParcel(parcel, oldName=None):
     for eventName in ('GoToNext', 'GoToPrev',
                       'GoToToday', 'GoToDate',
                       'DayView', 'WeekView'):
-        BlockEvent.template(eventName, 'SendToBlockByName',
+        BlockEvent.template(eventName,
                             dispatchToBlockName='MainCalendarControl'
                             ).install(parcel)

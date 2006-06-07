@@ -89,7 +89,7 @@ def makeSummaryBlocks(parcel):
 
     TimeZoneChange = BlockEvent.template(
         'TimeZoneChange',
-        'BroadcastEverywhere').install(parcel)
+        dispatchEnum = 'BroadcastEverywhere').install(parcel)
 
     DefaultCharacterStyle = CharacterStyle.update(
         parcel, 'DefaultCharacterStyle',

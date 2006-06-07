@@ -46,60 +46,66 @@ def installParcel(parcel, oldName=None):
     # specific parcels here.
 
     EventList.update(parcel, 'GlobalEvents',
-                     eventsForNamedLookup=[
-        BlockEvent.template('Undo', 'FocusBubbleUp').install(parcel),
-        
-        BlockEvent.template('Cut', 'FocusBubbleUp',
-                            commitAfterDispatch=True).install(parcel),
+        eventsForNamedLookup=[
+            BlockEvent.template('Undo',
+                                dispatchEnum = 'FocusBubbleUp').install(parcel),
+            
+            BlockEvent.template('Cut',
+                                dispatchEnum = 'FocusBubbleUp',
+                                commitAfterDispatch = True).install(parcel),
+    
+            BlockEvent.template('SelectAll',
+                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+    
+            BlockEvent.template('PrintPreview').install(parcel),
+    
+            BlockEvent.template('Remove',
+                                dispatchEnum = 'FocusBubbleUp',
+                                commitAfterDispatch = True).install(parcel),
+    
+            BlockEvent.template('Clear',
+                                dispatchEnum = 'FocusBubbleUp',
+                                commitAfterDispatch = True).install(parcel),
+    
+            BlockEvent.template('Paste',
+                                dispatchEnum = 'FocusBubbleUp',
+                                commitAfterDispatch = True).install(parcel),
 
-        BlockEvent.template('SelectAll', 'FocusBubbleUp').install(parcel),
-
-        BlockEvent.template('PrintPreview',
-                            'ActiveViewBubbleUp').install(parcel),
-
-        BlockEvent.template('Remove',
-                            'FocusBubbleUp',
-                            commitAfterDispatch=True).install(parcel),
-
-        BlockEvent.template('Clear',
-                            'FocusBubbleUp',
-                            commitAfterDispatch=True).install(parcel),
-
-        BlockEvent.template('Paste',
-                            'FocusBubbleUp',
-                            commitAfterDispatch=True).install(parcel),
-
-        BlockEvent.template('Print',
-                            'ActiveViewBubbleUp').install(parcel),
-
-        BlockEvent.template('Copy', 'FocusBubbleUp',
-                            commitAfterDispatch=True).install(parcel),
-
-        BlockEvent.template('Redo', 'FocusBubbleUp').install(parcel),
-
-        BlockEvent.template('Quit', 'ActiveViewBubbleUp').install(parcel),
-
-        BlockEvent.template('About', 'ActiveViewBubbleUp').install(parcel),
-
-        BlockEvent.template('Close', 'ActiveViewBubbleUp').install(parcel),
-
-        BlockEvent.template('Open', 'ActiveViewBubbleUp').install(parcel),
-
-        BlockEvent.template('Preferences',
-                            'ActiveViewBubbleUp').install(parcel),
-
-        BlockEvent.template('SelectItemsBroadcast',
-                            'BroadcastInsideMyEventBoundary',
-                            methodName='onSelectItemsEvent').install(parcel),
-        
-        BlockEvent.template('SetContents',
-                            'BroadcastInsideMyEventBoundary').install(parcel),
-        
-        BlockEvent.template('Rename', 'FocusBubbleUp').install(parcel),
-
-        BlockEvent.template('EnterPressed',
-                            'BroadcastInsideMyEventBoundary').install(parcel),
-    ])
+            BlockEvent.template('Print',
+                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+    
+            BlockEvent.template('Copy',
+                                dispatchEnum = 'FocusBubbleUp',
+                                commitAfterDispatch = True).install(parcel),
+    
+            BlockEvent.template('Redo',
+                                dispatchEnum = 'FocusBubbleUp').install(parcel),
+    
+            BlockEvent.template('Quit',
+                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+    
+            BlockEvent.template('About',
+                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+    
+            BlockEvent.template('Close',
+                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+    
+            BlockEvent.template('Open',
+                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+    
+            BlockEvent.template('SelectItemsBroadcast',
+                                dispatchEnum = 'BroadcastInsideMyEventBoundary',
+                                methodName='onSelectItemsEvent').install(parcel),
+            
+            BlockEvent.template('SetContents',
+                                dispatchEnum = 'BroadcastInsideMyEventBoundary').install(parcel),
+            
+            BlockEvent.template('Rename',
+                                dispatchEnum = 'FocusBubbleUp').install(parcel),
+    
+            BlockEvent.template('EnterPressed',
+                                dispatchEnum = 'BroadcastInsideMyEventBoundary').install(parcel),
+        ])
 
     # A few specific styles
 

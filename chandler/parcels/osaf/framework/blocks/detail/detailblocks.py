@@ -287,7 +287,6 @@ def makeRootStuff(parcel, oldVersion):
      
     # Our Resynchronize event.
     resyncEvent = BlockEvent.template('Resynchronize',
-                                      dispatchEnum='SendToBlockByName',
                                       dispatchToBlockName='DetailRoot'
                                       ).install(parcel)
 
@@ -302,8 +301,8 @@ def makeMarkupBar(parcel, oldVersion):
     """
 
     # Each button just sends this event to itself.
-    buttonPressed = BlockEvent.template('ButtonPressed', 
-                                        'SendToSender').install(parcel)
+    buttonPressed = BlockEvent.template('ButtonPressed',
+                                        dispatchEnum = 'SendToSender').install(parcel)
 
     # The buttons.
     mailMessageButton = \

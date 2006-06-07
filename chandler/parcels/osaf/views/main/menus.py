@@ -34,7 +34,6 @@ def makeMainMenus(parcel):
 
             colorEvent = ColorEvent.template(
                 shortName + 'CollectionColor',
-                'SendToBlockByName',
                 dispatchToBlockName = 'Sidebar',
                 color = color,
                 methodName = 'onCollectionColorEvent').install (mainParcel)
@@ -70,8 +69,6 @@ def makeMainMenus(parcel):
             eventName = 'VisibleHour' + str(hour)
             event = \
                 VisibleHoursEvent.template(eventName,
-                                           'SendToBlockByName',
-                                           dispatchToBlockName = 'MainView',
                                            methodName = 'onVisibleHoursEvent',
                                            visibleHours = hour)
             event = event.install(parcel)

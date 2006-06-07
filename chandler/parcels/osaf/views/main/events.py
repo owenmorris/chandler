@@ -14,7 +14,7 @@ def makeMainEvents(parcel):
 
     BlockEvent.template(
         'ReminderTime',
-        'SendToBlockByReference'
+        dispatchEnum = 'SendToBlockByReference'
         # destinatinBlockReference is assigned in makeMakeView
         # because of a circular dependence
         ).install(parcel)
@@ -33,68 +33,36 @@ def makeMainEvents(parcel):
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
     # Event to put "Scripts" in the Sidebar
-    BlockEvent.template(
-        'AddScriptsToSidebar',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('AddScriptsToSidebar').install(parcel)
 
-    BlockEvent.template(
-        'BackupRepository',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('BackupRepository').install(parcel)
 
-    BlockEvent.template(
-        'CompactRepository',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('CompactRepository').install(parcel)
 
-    BlockEvent.template(
-        'UnsubscribeSidebarCollection',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('UnsubscribeSidebarCollection').install(parcel)
 
-    BlockEvent.template(
-        'SharingPublishFreeBusy',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('SharingPublishFreeBusy').install(parcel)
 
-    BlockEvent.template(
-        'SharingUnpublishFreeBusy',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('SharingUnpublishFreeBusy').install(parcel)
 
-    BlockEvent.template(
-        'CopyFreeBusyURL',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('CopyFreeBusyURL').install(parcel)
 
-    BlockEvent.template(
-        'ShowPyCrust',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('ShowPyCrust').install(parcel)
 
     KindParameterizedEvent.template(
         'ApplicationBarMail',
         methodName = 'onKindParameterizedEvent',
         kindParameter = osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
-        dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)
 
     BlockEvent.template(
         'ShowHideStatusBar',
         methodName = 'onShowHideEvent',
-        dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'StatusBar').install(parcel)
 
-    BlockEvent.template(
-        'EnableSections',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('EnableSections').install(parcel)
 
-    BlockEvent.template(
-        'EnableTimezones',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('EnableTimezones').install(parcel)
 
     # "Item" menu events
     BlockEvent.template(
@@ -119,83 +87,42 @@ def makeMainEvents(parcel):
         kindParameter = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView),
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    BlockEvent.template(
-        'SharingSubscribeToCollection',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('SharingSubscribeToCollection').install(parcel)
 
-    BlockEvent.template(
-        'CheckRepository',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('CheckRepository').install(parcel)
 
-    BlockEvent.template(
-        'i18nMailTest',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('i18nMailTest').install(parcel)
 
-    BlockEvent.template(
-        'ShowLogWindow',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('ShowLogWindow').install(parcel)
 
-    BlockEvent.template(
-        'ActivateWebserver',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('ActivateWebserver').install(parcel)
 
-    BlockEvent.template(
-        'ActivateBackgroundSyncing',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('ActivateBackgroundSyncing').install(parcel)
 
-    BlockEvent.template(
-        'CommitRepository',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('CommitRepository').install(parcel)
 
-    BlockEvent.template(
-        'GetNewMail',
-        commitAfterDispatch = True,
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('GetNewMail',
+                       commitAfterDispatch = True).install(parcel)
 
-    BlockEvent.template(
-        'ManageSidebarCollection',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('ManageSidebarCollection').install(parcel)
 
-    BlockEvent.template(
-        'StopProfiler',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('StopProfiler').install(parcel)
 
-    BlockEvent.template(
-        'ShowPyShell',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('ShowPyShell').install(parcel)
 
-    BlockEvent.template(
-        'EditAccountPreferences',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('EditAccountPreferences').install(parcel)
 
     BlockEvent.template(
         'ShowHideSidebar',
         methodName = 'onShowHideEvent',
-        dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'SidebarContainer').install(parcel)
 
-    BlockEvent.template(
-        'ReloadParcels',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('ReloadParcels').install(parcel)
 
     KindParameterizedEvent.template(
         'ApplicationBarAll',
         methodName = 'onKindParameterizedEvent',
         kindParameter = None,
-        dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)
 
     NewItemEvent.update(
@@ -207,7 +134,6 @@ def makeMainEvents(parcel):
         'ApplicationBarEvent',
         methodName = 'onKindParameterizedEvent',
         kindParameter = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView),
-        dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)
 
     NewItemEvent.update(
@@ -228,50 +154,27 @@ def makeMainEvents(parcel):
         items = [repositoryViewer.CPIAView],
         copyItems = False)
 
-    BlockEvent.template(
-        'ShareSidebarCollection',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('ShareSidebarCollection').install(parcel)
 
-    BlockEvent.template(
-        'StartProfiler',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('StartProfiler').install(parcel)
 
-    BlockEvent.template(
-        'LoadLoggingConfig',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('LoadLoggingConfig').install(parcel)
 
-    BlockEvent.template(
-        'SearchWindow',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('SearchWindow').install(parcel)
 
-    BlockEvent.template(
-        'RestoreShares',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('RestoreShares').install(parcel)
 
-    BlockEvent.template(
-        'SyncCollection',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('SyncCollection').install(parcel)
 
     BlockEvent.template(
         'ToggleMine',
-        dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)
 
-    BlockEvent.template(
-        'SharingImportDemoCalendar',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('SharingImportDemoCalendar').install(parcel)
 
     BlockEvent.template(
         'ShowHideApplicationBar',
         methodName = 'onShowHideEvent',
-        dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'ApplicationBar').install(parcel)
 
     NewItemEvent.update(
@@ -279,11 +182,8 @@ def makeMainEvents(parcel):
         blockName = 'NewTask',
         kindParameter = osaf.pim.tasks.Task.getKind(repositoryView))
 
-    BlockEvent.template(
-        'GenerateContentItems',
-        commitAfterDispatch = True,
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('GenerateContentItems',
+                        commitAfterDispatch = True).install(parcel)
 
     AddToSidebarEvent.update(
         parcel, 'AddRepositoryView',
@@ -293,20 +193,13 @@ def makeMainEvents(parcel):
 
     ChoiceEvent.template(
         'ChooseChandlerMainView',
-        dispatchEnum = 'SendToBlockByName',
         methodName = 'onChoiceEvent',
         choice = 'MainView',
         dispatchToBlockName = 'MainViewRoot').install(parcel)
 
-    BlockEvent.template(
-        'ExportIcalendar',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('ExportIcalendar').install(parcel)
 
-    BlockEvent.template(
-        'SyncAll',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('SyncAll').install(parcel)
 
     untitledCollection = pim.SmartCollection.update(parcel,
         'untitledCollection',
@@ -325,91 +218,55 @@ def makeMainEvents(parcel):
         items = [repositoryViewer.RepositoryView, repositoryViewer.CPIAView],
         copyItems = False)
 
-    BlockEvent.template(
-        'GenerateContentItemsFromFile',
-        commitAfterDispatch = True,
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('GenerateContentItemsFromFile',
+                       commitAfterDispatch = True).install(parcel)
 
     KindParameterizedEvent.template(
         'ApplicationBarTask',
         methodName = 'onKindParameterizedEvent',
         kindParameter = osaf.pim.tasks.TaskMixin.getKind(repositoryView),
-        dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)
 
-    BlockEvent.template(
-        'EmptyTrash',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('EmptyTrash').install(parcel)
 
-    BlockEvent.template(
-        'UnpublishSidebarCollection',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('UnpublishSidebarCollection').install(parcel)
 
-    BlockEvent.template(
-        'MimeTest',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('MimeTest').install(parcel)
 
-    BlockEvent.template(
-        'SyncWebDAV',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('SyncWebDAV').install(parcel)
 
-    BlockEvent.template(
-        'WxTestHarness',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('WxTestHarness').install(parcel)
 
-    BlockEvent.template(
-        'ImportIcalendar',
-        commitAfterDispatch = True,
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('ImportIcalendar',
+                       commitAfterDispatch = True).install(parcel)
 
-    BlockEvent.template(
-        'CopyCollectionURL',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('CopyCollectionURL').install(parcel)
 
-    BlockEvent.template(
-        'TakeOnlineOffline',
-        dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('TakeOnlineOffline').install(parcel)
 
     ChoiceEvent.template(
         'ChooseCPIATestMainView',
-        dispatchEnum = 'SendToBlockByName',
         methodName = 'onChoiceEvent',
         choice = 'CPIATestMainView',
         dispatchToBlockName = 'MainViewRoot').install(parcel)
 
     BlockEvent.template(
         'RequestSelectSidebarItem',
-        'SendToBlockByName',
         dispatchToBlockName = 'Sidebar').install(parcel)
     
-    BlockEvent.template(
-        'SendMail',
-        'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('SendMail').install(parcel)
                   
     BlockEvent.template(
         'SendShareItem',
-        'FocusBubbleUp').install(parcel)
+        dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    BlockEvent.template(
-        'ShareItem',
-        'SendToBlockByName',
-        dispatchToBlockName = 'MainView').install(parcel)
+    BlockEvent.template('ShareItem').install(parcel)
                   
     BlockEvent.template(
         'SelectedDateChanged',
-        'BroadcastEverywhere').install(parcel)
+        dispatchEnum = 'BroadcastEverywhere').install(parcel)
         
     BlockEvent.template(
         'DayMode',
-        'BroadcastEverywhere').install(parcel)
+        dispatchEnum = 'BroadcastEverywhere').install(parcel)
         
