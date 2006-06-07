@@ -14,7 +14,7 @@
 NO_ARGS=0
 E_OPTERROR=65
 
-USAGE="Usage: `basename $0` -fpu [-t test_name] [chandler-base-path]"
+USAGE="Usage: `basename $0` -fpu [-m debug|release] [-t test_name] [chandler-base-path]"
 
 if [ "$CHANDLER_FUNCTIONAL_TEST" = "yes" ]; then
     RUN_FUNCTIONAL=yes
@@ -34,13 +34,14 @@ fi
 
 hadError=0
 
-while getopts "fput:" Option
+while getopts "fput:m:" Option
 do
   case $Option in
     f ) RUN_FUNCTIONAL=yes;;
     p ) RUN_PERFORMANCE=yes;;
     u ) RUN_UNIT=yes;;
     t ) TEST_TO_RUN=$OPTARG;;
+    m ) MODE_VALUE=$OPTARG;;
     * ) hadError=1
     ;;   # DEFAULT
   esac
@@ -123,21 +124,40 @@ if [ ! -d "$PC_DIR" ]; then
     mkdir -p $PC_DIR
 fi
 
-  # Run debug if we have that, and release if we have that
-MODE_DEBUG="debug"
-MODE_RELEASE="release"
-if [ ! -d $CHANDLERBIN/debug ]; then
-    MODE_DEBUG=""
-    echo Skipping debug tests as $CHANDLERBIN/debug does not exist | tee -a $TESTLOG
+MODES=""
+if [ "$MODE_VALUE" == "debug" ]; then
+    if [ ! -d $CHANDLERBIN/debug ]; then
+        echo $CHANDLERBIN/debug does not exist bug debug mode was explicitly requested | tee -a $TESTLOG
+        exit 1
+    fi
+    MODES="debug"
 fi
-if [ ! -d $CHANDLERBIN/release ]; then
-    MODE_RELEASE=""
-    echo Skipping release tests as $CHANDLERBIN/release does not exist | tee -a $TESTLOG
+if [ "$MODE_VALUE" == "release" ]; then
+    if [ ! -d $CHANDLERBIN/release ]; then
+        echo $CHANDLERBIN/release does not exist bug release mode was explicitly requested | tee -a $TESTLOG
+        exit 1
+    fi
+    MODES="release"
 fi
-MODES="$MODE_DEBUG $MODE_RELEASE"
-if [ "$MODES" == " " ]; then
-	echo Both debug and release directories are missing, cannot run.
-	exit 1
+
+   # if no mode was explicitly requested then check to see what's available
+if [ "$MODES" == "" ]; then
+      # Run debug if we have that, and release if we have that
+    MODE_DEBUG="debug"
+    MODE_RELEASE="release"
+    if [ ! -d $CHANDLERBIN/debug ]; then
+        MODE_DEBUG=""
+        echo Skipping debug tests as $CHANDLERBIN/debug does not exist | tee -a $TESTLOG
+    fi
+    if [ ! -d $CHANDLERBIN/release ]; then
+        MODE_RELEASE=""
+        echo Skipping release tests as $CHANDLERBIN/release does not exist | tee -a $TESTLOG
+    fi
+    MODES="$MODE_DEBUG $MODE_RELEASE"
+    if [ "$MODES" == " " ]; then
+    	echo Both debug and release directories are missing, cannot run.
+    	exit 1
+    fi
 fi
 
   # each directory to exclude should be place in the EXCLUDES array
