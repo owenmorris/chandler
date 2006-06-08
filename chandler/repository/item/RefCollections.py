@@ -491,7 +491,7 @@ class RefList(LinkedMap, Indexed):
 
     def _refCount(self):
 
-        return super(RefList, self).__len__() + 1
+        return len(self._dict) + 1
 
     def _xmlValue(self, name, item, generator, withSchema, version, attrs):
 

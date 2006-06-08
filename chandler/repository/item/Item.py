@@ -1567,7 +1567,8 @@ class Item(CItem):
             count += self._references._refCount()
             if self._children is not None:
                 count += self._children._refCount()
-            count += 1  #parent
+            if not self._parent.isStale():
+                count += 1  #parent
 
         return count
 
@@ -1577,7 +1578,7 @@ class Item(CItem):
             path = Path()
             
         self.itsParent._getPath(path)
-        path.append(self._name or self._uuid)
+        path.append(self.itsName or self.itsUUID)
 
         return path
 

@@ -1284,7 +1284,7 @@ class OnDemandRepositoryView(RepositoryView):
         
         if len(registry) > size * 1.1:
             gc.collect()
-            heap = [(item._lastAccess, item._uuid)
+            heap = [(item._lastAccess, item.itsUUID)
                     for item in registry.itervalues()
                     if not item._status & (item.PINNED | item.DIRTY)]
 

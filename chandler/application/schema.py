@@ -1086,10 +1086,6 @@ class ns(object):
         try:
             return getattr(self.__module,name)
         except AttributeError:
-
-            if self.parcel.isStale():
-                self.parcel = self.view.findUUID(self.parcel.itsUUID)
-
             value = self.parcel.getItemChild(name)
             if value is not None:
                 return value
@@ -1304,8 +1300,6 @@ def itemFor(obj, view):
         pass
     else:
         if item is not None:
-            if item.isStale():
-                item = view.findUUID(item.itsUUID)
             return item
 
     global_lock.acquire()

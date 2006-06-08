@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from chandlerdb.item.c import CItem, Nil
+from chandlerdb.item.c import CItem, Nil, isitem
 from chandlerdb.util.c import CLink
 from repository.util.LinkedMap import LinkedMap
 
@@ -22,19 +22,19 @@ class Children(LinkedMap):
     def _setItem(self, item):
 
         if self._item is not None:
-            assert item._uuid == self._item._uuid
+            assert item.itsUUID == self._item.itsUUID
 
             for link in self._itervalues():
                 link.value._parent = item
 
-        if item is not None and item._isItem():
+        if isitem(item):
             item._status |= CItem.CONTAINER
             
         self._item = item
 
     def _refCount(self):
 
-        return super(Children, self).__len__() + 1
+        return len(self._dict) + 1
         
     def linkChanged(self, link, key, oldAlias=Nil):
 
