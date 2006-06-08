@@ -126,6 +126,7 @@ class PyMiniCalendar(wx.PyControl):
 
         self.normalFont = None
         self.boldFont = None
+        self.lineAboveToday = False
 
         self.Bind(wx.EVT_PAINT, self.OnMiniCalPaint)
         self.Bind(wx.EVT_SIZE, self.OnMiniCalSize)
@@ -347,7 +348,8 @@ class PyMiniCalendar(wx.PyControl):
         dc.SetTextForeground(wx.BLACK)
         dc.SetBrush(wx.TRANSPARENT_BRUSH)
         dc.SetPen(wx.LIGHT_GREY_PEN)
-        #    dc.DrawLine(0, y, GetClientSize().x, y)
+        if self.lineAboveToday:
+            dc.DrawLine(0, y, self.GetClientSize().x, y)
         dc.DrawLine(0, y + self.todayHeight, self.GetClientSize().x, y + self.todayHeight)
         buttonWidth = self.GetClientSize().x / 5
         dc.DrawLine(buttonWidth, y, buttonWidth, y + self.todayHeight)

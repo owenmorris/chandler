@@ -45,6 +45,12 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
 
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
+        
+        # on Linux, because there are no borders around windows, we
+        # want a line separating the minicalendar and preview area,
+        # bug 4273
+        self.lineAboveToday = '__WXGTK__' in wx.PlatformInfo
+        
         self.Bind(minical.EVT_MINI_CALENDAR_SEL_CHANGED,
                   self.OnWXSelectItem)
         self.Bind(minical.EVT_MINI_CALENDAR_DOUBLECLICKED, 
