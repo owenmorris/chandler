@@ -69,30 +69,25 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
                 retry = (lambda: setattr(self, '_retry', True))
     
                 if err.args[0] in ssl.unknown_issuer:
-                    handler = lambda: \
-                        Globals.views[0].callAnyCallable(ssl.askTrustSiteCertificate, 
-                                                         True, 
-                                                         err.untrustedCertificates[0], 
-                                                         retry)
+                    handler = lambda: ssl.askTrustSiteCertificate(
+                        wxGetApp().UIRepositoryView,
+                        err.untrustedCertificates[0], 
+                        retry)
                 else:
-                    handler = lambda: \
-                        Globals.views[0].callAnyCallable(ssl.askIgnoreSSLError,
-                                                         False, 
-                                                         err.untrustedCertificates[0], 
-                                                         err.args[0], 
-                                                         retry)
+                    handler = lambda: ssl.askIgnoreSSLError(
+                        err.untrustedCertificates[0], 
+                        err.args[0], 
+                        retry)
     
                 self._handleSSLError(handler, err, callable, *args, **keywds)
                         
             except M2Crypto.SSL.Checker.WrongHost, err:
                 retry = (lambda: setattr(self, '_retry', True))
     
-                handler = lambda: \
-                    Globals.views[0].callAnyCallable(ssl.askIgnoreSSLError,
-                                                     False,
-                                                     err.pem, 
-                                                     str(err), # XXX intl
-                                                     retry)
+                handler = lambda: ssl.askIgnoreSSLError(
+                    err.pem, 
+                    str(err), # XXX intl
+                    retry)
                 self._handleSSLError(handler, err, callable, *args, **keywds)
     
             except M2Crypto.BIO.BIOError, error:
