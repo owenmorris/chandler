@@ -17,7 +17,6 @@ chandlerDirectory = None      # Directory containing chandler executable
 wxApplication = None          # The application object. Use wx.GetApp() as the prefered
                               # way to get the application object when possible.
 mainViewRoot = None           # The main View
-views = []                    # A list of nested views
 mailService = None            # Mail Service (IMAP, POP, SMTP)
 options = None                # Command line options
 args = None                   # Command line arguments

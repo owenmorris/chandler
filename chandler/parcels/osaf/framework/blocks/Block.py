@@ -393,9 +393,6 @@ class Block(schema.Item):
                             count = list.count (item.itsUUID)
                         assert count == oldCount - 1
 
-        if (len (Globals.views) > 0 and Globals.views[-1] == self):
-            Globals.views.pop()
-
     # We keep track of what items we're watching for which blocks.
     # watchingItems[itemUUID][attributeName] is a set() of blocks
     # to be notified when we get a change notification about that
@@ -678,7 +675,7 @@ class Block(schema.Item):
                 focusWindow = focusWindow.GetParent()
             else:
                 return block
-        return Globals.views[0]
+        return Block.findBlockByName("MainView")
 
     @classmethod
     def finishEdits(theClass, onBlock=None):
@@ -814,9 +811,6 @@ class Block(schema.Item):
         @param self: the new view
         @type self: C{Block}
         """
-        assert len (Globals.views) <= 4
-        Globals.views.append (self)
-
         def synchToDynamicBlock (block, isChild):
             """
             Function to set and remember the dynamic Block we synch to.
@@ -1014,7 +1008,7 @@ class Block(schema.Item):
                                       not child.eventBoundary))
 
         elif dispatchEnum == 'BroadcastEverywhere':
-            broadcast (Globals.views[0],
+            broadcast (Block.findBlockByName("MainView"),
                        methodName,
                        event,
                        lambda child: (child is not None))
@@ -1029,7 +1023,7 @@ class Block(schema.Item):
             """
             blockOrWidget = wx.Window_FindFocus()
             if blockOrWidget is None:
-                blockOrWidget = Globals.views[0]
+                blockOrWidget = Block.findBlockByName("MainView")
             bubbleUpCallMethod (blockOrWidget, methodName, event)
 
         elif dispatchEnum == 'ActiveViewBubbleUp':

@@ -465,7 +465,6 @@ class wxApplication (wx.App):
     def RenderMainView (self):
         mainViewRoot = Globals.mainViewRoot
         mainViewRoot.lastDynamicBlock = False
-        assert len (Globals.views) == 0
         mainViewRoot.render()
 
         # We have to wire up the block mainViewRoot, it's widget and sizer to a new
@@ -482,7 +481,6 @@ class wxApplication (wx.App):
 
     def UnRenderMainView (self):
         mainViewRoot = Globals.mainViewRoot.unRender()
-        assert len (Globals.views) == 0
         if __debug__:
             from osaf.framework.blocks.Block import Block
             for value in self.UIRepositoryView._subscribers.itervalues():
