@@ -47,8 +47,12 @@ logger = logging.getLogger(__name__)
 
 dateFormatSymbols = DateFormatSymbols()
 
-# On Linux, origins for painting gradients are offset
-ENABLE_DEVICE_ORIGIN = wx.Platform == '__WXGTK__'
+# On Mac and Linux, origins for painting gradients have been
+# offset at one time or another.  Most recently Linux was
+# having problems, but now Linux appears to be working correctly,
+# so the code enabled by ENABLE_DEVICE_ORIGIN isn't currently
+# used on any platform
+ENABLE_DEVICE_ORIGIN = False
 
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
 
