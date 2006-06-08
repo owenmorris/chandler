@@ -453,7 +453,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         # after switching to the calendar view the current day often changes
         if item in self.currentDaysItems:
             self.selectedItem = item
-            self.OnPaint(None)
+            self.Refresh()
 
         
 
@@ -466,7 +466,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             sidebarBPB.childrenBlocks.first().postEventByName (
                'SelectItemsBroadcast', {'items':[item]}
                 )
-            self.OnPaint(None)
+            self.Refresh()
 
     def Draw(self, dc):
         """
@@ -664,4 +664,3 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         return (cmp(item1.startTime, item2.startTime)
                or cmp(item1.duration, item2.duration)
                or cmp(item1.displayName, item2.displayName))
-
