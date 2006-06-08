@@ -565,6 +565,7 @@ class FrameWindow (ViewContainer):
     into the block framework.
     """
     position = schema.One(PositionType, initialValue = PositionType(-1, -1))
+    windowTitle = schema.One(schema.Text, defaultValue = '')
 
 
 class wxTabbedContainer(DragAndDrop.DropReceiveWidget, 

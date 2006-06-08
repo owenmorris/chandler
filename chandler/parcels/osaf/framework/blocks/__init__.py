@@ -6,8 +6,9 @@ import wx
 
 from Block import (
     RectangularChild, BlockEvent, NewItemEvent, ChoiceEvent, ColorEvent,
-    KindParameterizedEvent, AddToSidebarEvent, EventList, debugName,
-    getProxiedItem, WithoutSynchronizeWidget, IgnoreSynchronizeWidget
+    KindParameterizedEvent, AddToSidebarEvent, NewBlockWindowEvent, 
+    EventList, debugName, getProxiedItem, WithoutSynchronizeWidget,
+    IgnoreSynchronizeWidget
 )
 
 from ContainerBlocks import (

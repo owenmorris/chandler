@@ -1311,9 +1311,16 @@ AddToSidebarEvent = AddToViewableCollectionEvent
     For more advanced options see AddToViewableCollectionEvent.
 """
 
+class NewBlockWindowEvent(BlockEvent):
+    methodName = schema.One(schema.Text, initialValue = 'onNewBlockWindowEvent')
+    treeOfBlocks = schema.One (Block, required = True)
+
+    schema.addClouds(
+        copying = schema.Cloud(byRef=[treeOfBlocks])
+    )
+
 class EventList(schema.Item):
     eventsForNamedLookup = schema.Sequence(BlockEvent)
-
 
 class lineStyleEnumType(schema.Enumeration):
       values = "SingleLine", "MultiLine"

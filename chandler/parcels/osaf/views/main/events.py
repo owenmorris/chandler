@@ -153,12 +153,6 @@ def makeMainEvents(parcel):
 
     repositoryViewer = schema.ns("osaf.views.repositoryviewer", repositoryView)
     
-    AddToSidebarEvent.update(
-        parcel, 'AddCPIAView',
-        blockName = 'AddCPIAView',
-        items = [repositoryViewer.CPIAView],
-        copyItems = False)
-
     BlockEvent.template('ShareSidebarCollection').install(parcel)
 
     BlockEvent.template('StartProfiler').install(parcel)
@@ -220,7 +214,7 @@ def makeMainEvents(parcel):
     AddToSidebarEvent.update(
         parcel, 'AddAllAdditionalViews',
         blockName = 'AddAllAdditionalViews',
-        items = [repositoryViewer.RepositoryView, repositoryViewer.CPIAView],
+        items = [repositoryViewer.RepositoryView],
         copyItems = False)
 
     BlockEvent.template('GenerateContentItemsFromFile',
@@ -275,3 +269,8 @@ def makeMainEvents(parcel):
         'DayMode',
         dispatchEnum = 'BroadcastEverywhere').install(parcel)
         
+    NewBlockWindowEvent.update(
+        parcel, 'ShowBlockViewer',
+        blockName = 'ShowBlockViewer',
+        treeOfBlocks = repositoryViewer.BlockViewerFrameWindow)
+

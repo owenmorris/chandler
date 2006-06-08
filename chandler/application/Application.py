@@ -68,8 +68,69 @@ class MainThreadCallbackEvent(wx.PyEvent):
         self.args = args
         self.lock = threading.Lock()
 
+class BlockFrameWindow (wx.Frame):
+    def __init__(self, *arguments, **keywords):
+        super (BlockFrameWindow, self).__init__(*arguments, **keywords)
 
-class MainFrame(wx.Frame):
+        self.SetBackgroundColour (wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DFACE))
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_MOVE, self.OnMove)
+ 
+    def ShowTreeOfBlocks (self, treeOfBlocks):
+        if hasattr (self, "treeOfBlocks"):
+            self.treeOfBlocks.unRender()
+            self.SetSizer (None)
+
+        self.treeOfBlocks = treeOfBlocks
+        self.treeOfBlocks.frame = self
+        Globals.viewsHackIgnoreFlag = True
+        try:
+            self.treeOfBlocks.render()
+        finally:
+            Globals.viewsHackIgnoreFlag = False
+
+        sizer = wx.BoxSizer (wx.HORIZONTAL)
+        self.SetSizer (sizer)
+        from osaf.framework.blocks.Block import wxRectangularChild
+        sizer.Add (self.treeOfBlocks.widget,
+                   self.treeOfBlocks.stretchFactor, 
+                   wxRectangularChild.CalculateWXFlag(self.treeOfBlocks), 
+                   wxRectangularChild.CalculateWXBorder(self.treeOfBlocks))
+        sizer.Layout()
+
+    def OnClose (self, event):
+        if hasattr (self, "treeOfBlocks"):
+            Globals.viewsHackFlag = True
+            try:
+                self.treeOfBlocks.unRender()
+            finally:
+                Globals.viewsHackFlag = False
+
+            self.SetSizer (None)
+            event.Skip()
+
+    def OnSize(self, event):
+        # Calling Skip causes wxWindows to continue processing the event, 
+        # which will cause the parent class to get a crack at the event.
+
+        from osaf.pim.structs import SizeType
+        if not wx.GetApp().ignoreSynchronizeWidget:
+            Globals.mainViewRoot.size = SizeType (self.GetSize().x, self.GetSize().y)
+        event.Skip()
+
+    def OnMove(self, event):
+        from osaf.pim.structs import PositionType
+
+        # Calling Skip causes wxWindows to continue processing the event, 
+        # which will cause the parent class to get a crack at the event.
+        
+        if not wx.GetApp().ignoreSynchronizeWidget:
+            Globals.mainViewRoot.position = PositionType(self.GetPosition().x, self.GetPosition().y)
+        event.Skip()
+
+
+class MainFrame (BlockFrameWindow):
     def __init__(self, *arguments, **keywords):
         super (MainFrame, self).__init__(*arguments, **keywords)
 
@@ -79,10 +140,7 @@ class MainFrame(wx.Frame):
         self.icon = wx.Icon("resources/images/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
         self.SetIcon(self.icon)
 
-        self.SetBackgroundColour (wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DFACE))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.Bind(wx.EVT_MOVE, self.OnMove)
 
         if '__WXMSW__' in wx.PlatformInfo:
             # From the wxWidgets documentation:
@@ -186,26 +244,6 @@ class MainFrame(wx.Frame):
         app.ignoreSynchronizeWidget = True
         Globals.mainViewRoot.frame = None
         self.Destroy()
-
-    def OnSize(self, event):
-        # Calling Skip causes wxWindows to continue processing the event, 
-        # which will cause the parent class to get a crack at the event.
-
-        from osaf.pim.structs import SizeType
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            Globals.mainViewRoot.size = SizeType (self.GetSize().x, self.GetSize().y)
-        event.Skip()
-
-    def OnMove(self, event):
-        from osaf.pim.structs import PositionType
-
-        # Calling Skip causes wxWindows to continue processing the event, 
-        # which will cause the parent class to get a crack at the event.
-        
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            Globals.mainViewRoot.position = PositionType(self.GetPosition().x, self.GetPosition().y)
-        event.Skip()
-
 
 class wxApplication (wx.App):
 
@@ -330,7 +368,7 @@ class wxApplication (wx.App):
 
         self.mainFrame = MainFrame(None,
                                    -1,
-                                   u"Chandler",
+                                   mainViewRoot.windowTitle,
                                    pos=(mainViewRoot.position.x, mainViewRoot.position.y),
                                    size=(mainViewRoot.size.width, mainViewRoot.size.height),
                                    style=wx.DEFAULT_FRAME_STYLE)

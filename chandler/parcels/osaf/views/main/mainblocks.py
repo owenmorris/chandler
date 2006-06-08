@@ -200,7 +200,9 @@ def makeMainView (parcel):
     FrameWindow.update(
         parcel, 'MainViewRoot',
         blockName = 'MainViewRoot',
+        windowTitle = _(u"Chandler"),
         size = SizeType(1024,720),
+        eventBoundary=True,
         views = {'MainView' : MainViewInstance,
                  'CPIATestMainView' : CPIATestMainView},
         activeView = MainViewInstance,

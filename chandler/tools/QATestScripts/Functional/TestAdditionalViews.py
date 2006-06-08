@@ -10,11 +10,9 @@ try:
     logger.SetChecked(True)
     app_ns().root.AddRepositoryView()
     logger.ReportPass('AddRepositoryView')
-    app_ns().root.AddCPIAView()
-    logger.ReportPass('AddCPIAView')
     logger.Stop()
 finally:
-    if len(logger.passedList) < 2:
+    if len(logger.passedList) < 1:
         logger.ReportFailure('AdditionalViews')
     logger.Report('AdditionalViews')
     logger.Close()

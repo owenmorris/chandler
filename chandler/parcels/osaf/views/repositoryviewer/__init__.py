@@ -1,7 +1,8 @@
-from Repository import RepositoryItemDetail
+from Repository import RepositoryItemDetail, BlockItemDetail
 from osaf.framework.blocks import Tree, SplitterWindow, Column
 from osaf.pim.structs import SizeType
 from i18n import OSAFMessageFactory as _
+from osaf.framework.blocks import FrameWindow
 
 def installParcel(parcel, oldName=None):
 
@@ -37,35 +38,44 @@ def installParcel(parcel, oldName=None):
         RepositoryItemDetail.template('ItemDetail',
                                       size=SizeType(100,50))
         ]).install(parcel)
-        
-    SplitterWindow.template('CPIAView',
-                            displayName=u'CPIA Viewer',
-                            eventBoundary=True,
-                            splitPercentage=0.4,
-                            childrenBlocks=[
-        Tree.template('CPIATree',
-                      elementDelegate='osaf.views.repositoryviewer.Repository.CPIADelegate',
-                      hideRoot=False,
-                      noLines=False,
-                      columns = [
-                          Column.update(parcel, 'CPIAViewColItemName',
-                                        heading='CPIAViewBlockName',
-                                        width=160),
-                          Column.update(parcel, 'CPIAViewColDisplayName',
-                                        heading='Display Name',
-                                        width=110),
-                          Column.update(parcel, 'CPIAViewColKind',
-                                        heading='Kind',
-                                        width=70),
-                          Column.update(parcel, 'CPIAViewColUUID',
-                                        heading='UUID',
-                                        width=245),
-                          Column.update(parcel, 'CPIAViewColPath',
-                                        heading='Path',
-                                        width=155),
-                          ]),
-        
-        RepositoryItemDetail.template('CPIAItemDetail',
-                                      size=SizeType(100,50))
-        ]).install(parcel)
 
+    FrameWindow.template(
+        'BlockViewerFrameWindow',
+        size=SizeType(768, 512),
+        windowTitle = _(u"Block Viewer"),
+        eventBoundary=True,
+        childrenBlocks = [
+            SplitterWindow.template(
+                'Splitter',
+                eventBoundary=True,
+                splitPercentage=0.4,
+                childrenBlocks=[
+                    Tree.template(
+                        'Tree',
+                        elementDelegate='osaf.views.repositoryviewer.Repository.BlockDelegate',
+                        hideRoot=False,
+                        noLines=False,
+                        columns = [
+                            Column.update(
+                                parcel, 'ColumnBlockName',
+                                heading='BlockName',
+                                width=350),
+                            Column.update(
+                                parcel, 'ColumnKind',
+                                heading='Kind',
+                                width=100),
+                            Column.update(
+                                parcel, 'ColumnWidget',
+                                heading='Widget',
+                                width=280),
+                            Column.update(
+                                parcel, 'ColumnUUID',
+                                heading='UUID',
+                                width=40),
+                            ]),
+                    
+                    BlockItemDetail.template(
+                        'CPIAItemDetail',
+                        size=SizeType(100,50))
+                ])
+        ]).install(parcel)
