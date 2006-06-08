@@ -25,6 +25,11 @@ from PyICU import ICUtzinfo
 from i18n import OSAFMessageFactory as _
 from application import styles
 
+if '__WXMAC__' in wx.PlatformInfo:
+    PLATFORM_BORDER = wx.BORDER_NONE
+else:
+    PLATFORM_BORDER = wx.BORDER_STATIC
+
 class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                      minical.PyMiniCalendar):
 
@@ -48,8 +53,9 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
         
         # on Linux, because there are no borders around windows, we
         # want a line separating the minicalendar and preview area,
-        # bug 4273
-        self.lineAboveToday = '__WXGTK__' in wx.PlatformInfo
+        # bug 4273.  On Mac, the preview area and the minicalendar
+        # don't have their own borders, so also draw the line.
+        self.lineAboveToday = not '__WXMSW__' in wx.PlatformInfo 
         
         self.Bind(minical.EVT_MINI_CALENDAR_SEL_CHANGED,
                   self.OnWXSelectItem)
@@ -60,11 +66,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     def wxSynchronizeWidget(self, useHints=False):
-        if '__WXMAC__' in wx.PlatformInfo:
-            style = wx.BORDER_SIMPLE
-        else:
-            style = wx.BORDER_STATIC
-        
+        style = PLATFORM_BORDER
         if isMainCalendarVisible() and not self.blockItem.dayMode:
             style |= minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
@@ -341,12 +343,8 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         self.widget.wxSynchronizeWidget()
 
     def instantiateWidget(self):
-        if '__WXMAC__' in wx.PlatformInfo:
-            style = wx.BORDER_SIMPLE
-        else:
-            style = wx.BORDER_STATIC
         return wxMiniCalendar(self.parentBlock.widget,
-                              self.getWidgetID(), style=style)
+                              self.getWidgetID(), style=PLATFORM_BORDER)
 
     def onSelectedDateChangedEvent(self, event):
         self.widget.SetDate(event.arguments['start'].date())
@@ -406,7 +404,12 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
     def instantiateWidget(self):
         if not self.getHasBeenRendered():
             self.setRange( datetime.now().date() )
-            self.setHasBeenRendered()        
+            self.setHasBeenRendered()
+        if '__WXMAC__' in wx.PlatformInfo:
+            # on the Mac, borders around the minical and preview area look weird,
+            # but we want one around our parent.  Modifying our parent is quite
+            # a hack, but it works rather nicely.
+	    self.parentBlock.widget.SetWindowStyle(wx.BORDER_SIMPLE)
         return wxPreviewArea(self.parentBlock.widget, 
                              self.getWidgetID(),
                              timeCharStyle = self.timeCharacterStyle,
@@ -427,6 +430,8 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
+        
+        self.SetWindowStyle(PLATFORM_BORDER)
         
         self.timeFont = Styles.getFont(timeCharStyle)
         self.eventFont = Styles.getFont(eventCharStyle)
