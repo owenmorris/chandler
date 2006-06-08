@@ -809,7 +809,6 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             self.setRange(self.rangeStart)
         self.synchronizeWidget()
 
-
     def onSelectedDateChangedEvent(self, event):
         """
         Sets the selected date range and synchronizes the widget.
@@ -1658,6 +1657,35 @@ class CalendarControl(CalendarBlock):
         self.postDayMode(True, self.selectedDate)
         self.widget.UpdateHeader()
 
+    def onGoToCalendarItemEvent(self, event):
+        """
+        Sets the selected date range to include the given calendar event's start
+        time, selects the all collection if the item isn't in the currently
+        overlaid collections, scrolls to put the calendar event in view,
+        and selects the item.
+
+        @param event: event sent on selected date changed event.
+                      event.arguments['item']: item to move to
+        @type event: osaf.framework.blocks.Block.BlockEvent.
+                     event.arguments['item']: C{item}
+        """
+        item = event.arguments['item']
+        self.postDateChanged(item.startTime)
+        
+        if item.getMaster() not in self.contents:
+            allCollection = schema.ns('osaf.pim', self.itsView).allCollection
+            self.SelectCollectionInSidebar(allCollection)
+        
+        if not item.allDay and not item.anyTime:
+            timedEventsCanvas = self.calendarContainer.getTimedBlock().widget
+            timedEventsCanvas.ScrollToEvent(item)
+            timedEventsCanvas.SetPanelFocus()
+        else:
+            self.calendarContainer.getAllDayBlock().widget.SetPanelFocus()
+            
+        self.postEventByName("SelectItemsBroadcast", {'items':[item]})
+
+
     def setRange(self, date):
         """
         We need to override CalendarBlock's because the cal ctrl always
@@ -1714,7 +1742,10 @@ class CalendarControl(CalendarBlock):
 
         if newSelection:
             for item in newSelection:
-                contents.selectItem(item)
+                # Clicks in the preview area may result in selecting an item
+                # not in contents, ignore such items
+                if item in contents:
+                    contents.selectItem(item)
 
         if hasattr(self, 'widget'):
             self.widget.Refresh()

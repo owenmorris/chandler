@@ -612,6 +612,13 @@ class MainView(View):
         theApp.LoadMainViewRoot (delete=True)
         theApp.RenderMainView ()
 
+    def onReloadStylesEvent(self, event):
+        """
+        Reloads styles that should be read from a text file.
+        """
+        import application.styles
+        application.styles.loadConfig()
+
     def TraceMainViewCloud(self, traceItem):
         # for debugging, trace through the mainViewRoot copy cloud
         def commonName(item, showKind=True):

@@ -107,6 +107,10 @@ def installParcel(parcel, oldName=None):
                                 dispatchEnum = 'BroadcastInsideMyEventBoundary').install(parcel),
         ])
 
+    BlockEvent.template(
+        'SelectedItemChanged',
+        dispatchEnum = 'BroadcastEverywhere').install(parcel)    
+
     # A few specific styles
 
     CharacterStyle.update(parcel, "TextStyle", fontFamily="DefaultUIFont")

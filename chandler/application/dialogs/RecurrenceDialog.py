@@ -202,7 +202,9 @@ class OccurrenceProxy(object):
         # information required to propagate the change
         self.changeBuffer = []
         
-    
+    def __ne__(self, other):
+        return self.proxiedItem != other
+
     def __eq__(self, other):
         return self.proxiedItem == other
     

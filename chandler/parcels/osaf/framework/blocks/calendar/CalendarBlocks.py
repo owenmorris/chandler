@@ -23,7 +23,7 @@ import osaf.pim.calendar.Calendar as Calendar
 from datetime import datetime, date, time, timedelta
 from PyICU import ICUtzinfo
 from i18n import OSAFMessageFactory as _
-
+from application import styles
 
 class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                      minical.PyMiniCalendar):
@@ -386,6 +386,17 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
     def onSelectAllEventUpdateUI(self, event):
         event.arguments['Enable'] = False
     
+    def onSelectedItemChangedEvent(self, event):
+        """Called directly by the detail view when the item it displays changes.
+        
+        Really this would make sense to be a BroadcastEverywhere block command,
+        but this is slow.
+        """
+        item = event.arguments['item']
+        if item != self.widget.selectedItem:
+            self.widget.selectedItem = item
+            self.synchronizeWidget()
+    
     def instantiateWidget(self):
         if not self.getHasBeenRendered():
             self.setRange( datetime.now().date() )
@@ -405,15 +416,57 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
                  *arguments, **keywords):
         super(wxPreviewArea, self).__init__(parent, id, *arguments, **keywords)
         self.currentDaysItems = []
+        self.selectedItem = None
+        self._avoidDrawing = False
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
         
         self.timeFont = Styles.getFont(timeCharStyle)
         self.eventFont = Styles.getFont(eventCharStyle)
         self.labelPosition = -1 # Note that we haven't measured things yet.
                 
     def OnPaint(self, event):
-        dc = wx.PaintDC(self)
-        self.Draw(dc)
+        if not self._avoidDrawing:
+            dc = wx.PaintDC(self)
+            self.Draw(dc)
+
+    def _getItem(self, event):
+        pos = min(len(self.currentDaysItems) - 1, 
+                  event.GetPosition().y / self.lineHeight)
+        return self.currentDaysItems[pos]
+
+    def OnDClick(self, event):
+        item = self._getItem(event)
+        self._avoidDrawing = True
+        # Select the calendar filter
+        self.blockItem.postEventByName ('ApplicationBarEvent', {})
+
+        goto = schema.ns('osaf.framework.blocks.calendar',
+                         self.blockItem.itsView).GoToCalendarItem
+
+        # Set the calendar to the clicked day
+        self.blockItem.post(goto, {'item': item})
+
+        self._avoidDrawing = False
+        
+        # after switching to the calendar view the current day often changes
+        if item in self.currentDaysItems:
+            self.selectedItem = item
+            self.OnPaint(None)
+
+        
+
+    def OnClick(self, event):
+        item = self._getItem(event)
+        if self.selectedItem != item:
+            self.selectedItem = item
+            
+            sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
+            sidebarBPB.childrenBlocks.first().postEventByName (
+               'SelectItemsBroadcast', {'items':[item]}
+                )
+            self.OnPaint(None)
 
     def Draw(self, dc):
         """
@@ -422,17 +475,32 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         @return the height of all the text drawn
         """        
         # Set up drawing & clipping
+        
+        unselectedColor = styles.cfg.get('preview', 'UnSelectedText')
+        selectedColor =   styles.cfg.get('preview', 'SelectedText')
+
+        unselectedBackground = styles.cfg.get('preview', 
+                                              'UnSelectedTextBackground')
+        selectedBackground =   styles.cfg.get('preview',
+                                              'SelectedTextBackground')
+
         dc.Clear()
-        dc.SetBackground(wx.WHITE_BRUSH)
-        dc.SetBrush(wx.WHITE_BRUSH)
-        dc.SetPen(wx.WHITE_PEN)
+        brush =  wx.Brush(unselectedBackground, wx.SOLID)
+        dc.SetBackground(brush)
+        dc.SetBrush(brush)
+        dc.SetPen(wx.Pen(unselectedBackground))
         dc.DrawRectangle(*iter(self.GetRect()))
-        dc.SetTextBackground( (255,255,255) )
-        dc.SetTextForeground( (0,0,0) )
+
+
+        dc.SetTextBackground( unselectedBackground )
+        dc.SetTextForeground( unselectedColor )
         r = self.GetRect()
-        dc.SetClippingRegion(self.hMargin, self.vMargin,
-                             r.width - (2 * self.hMargin),
-                             r.height - (2 * self.vMargin))
+        
+        def setClipping():
+            dc.SetClippingRegion(self.hMargin, self.vMargin,
+                                 r.width - (2 * self.hMargin),
+                                 r.height - (2 * self.vMargin))
+        setClipping()
 
         if self.labelPosition == -1:
             # First time - do a little measuring
@@ -471,6 +539,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
                 # OnPaint gets called before wxSynchronizeWidget, so
                 # self.currentDaysItems has deleted items in it.
                 continue
+            
             if i == previewPrefs.maximumEventsDisplayed - 1:
                 numEventsLeft = (len(self.currentDaysItems) - i)
                 if numEventsLeft > 1:
@@ -481,6 +550,15 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
                                 self.hMargin, y + self.eventFontOffset)
                     y += self.lineHeight  #For end calculation
                     break
+
+            if item == self.selectedItem:
+                dc.DestroyClippingRegion()                
+                dc.SetBrush(wx.Brush(selectedBackground, wx.SOLID))
+                dc.DrawRectangle(r.x, y, r.width, self.lineHeight + 2)
+                setClipping()
+                
+                dc.SetTextBackground( selectedBackground )
+                dc.SetTextForeground( selectedColor )
 
             if not (item.allDay or item.anyTime):
                 # Draw the time
@@ -501,7 +579,11 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             dc.DrawText(item.displayName, x, y + self.eventFontOffset)
 
             y += self.lineHeight
-        
+
+            if item == self.selectedItem:
+                dc.SetTextBackground( unselectedBackground )
+                dc.SetTextForeground( unselectedColor )
+            
         dc.DestroyClippingRegion()
         return y - self.vMargin
 

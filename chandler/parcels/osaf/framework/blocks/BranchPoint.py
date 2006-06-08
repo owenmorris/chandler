@@ -85,10 +85,15 @@ class BranchPointBlock(BoxContainer):
         # eventually we might want selectedItem to be an iterable
         # of some kind
         items = event.arguments['items']
+        changeEvent = schema.ns(__parcel__, self).SelectedItemChanged
         if len(items)==1:
-            self.selectedItem = items[0]
+            if self.selectedItem != items[0]:
+                self.post(changeEvent, {'item' : items[0] })
+                self.selectedItem = items[0]
         else:
-            self.selectedItem = None
+            if self.selectedItem is not None:
+                self.post(changeEvent, {'item' : None })
+                self.selectedItem = None
             
         self.detailItemCollection = \
             self.delegate.getContentsCollection(self.selectedItem,

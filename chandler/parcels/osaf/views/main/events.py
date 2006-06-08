@@ -119,6 +119,11 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('ReloadParcels').install(parcel)
 
+    BlockEvent.template(
+        'ReloadStyles',
+        dispatchEnum = 'SendToBlockByName',
+        dispatchToBlockName = 'MainView').install(parcel)
+
     KindParameterizedEvent.template(
         'ApplicationBarAll',
         methodName = 'onKindParameterizedEvent',
@@ -265,7 +270,7 @@ def makeMainEvents(parcel):
     BlockEvent.template(
         'SelectedDateChanged',
         dispatchEnum = 'BroadcastEverywhere').install(parcel)
-        
+    
     BlockEvent.template(
         'DayMode',
         dispatchEnum = 'BroadcastEverywhere').install(parcel)
