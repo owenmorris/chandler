@@ -51,6 +51,7 @@ allTests = [
                 "TestRemoveFromTrashOnImport.py",
                 "TestEnableTimezones.py",
                 "TestSwitchTimezone.py",
+                "TestSubscribe.py",
                 "TestBlocks.py", 
                 ]
 
@@ -80,6 +81,7 @@ exclusions = {#tests to exclude on specific platfoms only
         "TestRemoveFromTrashOnImport.py", #not tested on all platforms yet
         "TestSwitchTimezone.py", #new test not yet working
         "TestSharing.py", # bug 5889
+        "TestSubscribe.py", # new test not yet working
         )
 }
 

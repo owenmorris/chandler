@@ -19,7 +19,6 @@ logger = QAUITestAppLib.QALogger(fileName, "TestSharing")
 try:
     # action
     # Webdav Account Setting
-    logger.Start("WebDAV account setting")
     ap = QAUITestAppLib.UITestAccounts(logger)
     ap.Open() # first, open the accounts dialog window
     ap.CreateAccount("WebDAV")
@@ -32,11 +31,9 @@ try:
     ap.ToggleValue("ssl", False)
     ap.ToggleValue("default", True)
     ap.Ok()
-    logger.Stop()
 
     # verification
     ap.VerifyValues("WebDAV", uw("Sharing Test WebDAV"), displayName = uw("Sharing Test WebDAV"), host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
-
 
     # import events so test will have something to share even when run by itself
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
@@ -44,24 +41,15 @@ try:
     path = unicode(path, 'utf8')
     share = Sharing.OneTimeFileSystemShare(path, u'testSharing.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
 
-    logger.Start("Import testSharing Calendar")
-    try:
-        collection = share.get()
-    except:
-        logger.Stop()
-        logger.ReportException("Importing calendar")
-    else:
-        App_ns.sidebarCollection.add(collection)
-        User.idle()
-        logger.Stop()
-        logger.ReportPass("Importing calendar")
+    collection = share.get()
+    App_ns.sidebarCollection.add(collection)
+    User.idle()
 
     # Collection selection
     sidebar = App_ns.sidebar
     QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, "testSharing")
 
     # Sharing dialog
-    logger.Start("Sharing dialog")
     collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
     if collection is not None:
         if sidebar.filterKind is None:
@@ -80,8 +68,6 @@ try:
         win.OnPublishDone(None)
         wx.GetApp().Yield()
         logger.SetChecked(True)
-        logger.Report("Sharing dialog")
-        logger.Stop()
 
         # cleanup
         # cosmo can only handle so many shared calendars
@@ -92,4 +78,5 @@ try:
 
 finally:
     # cleaning
+    logger.Report('Sharing')
     logger.Close()
