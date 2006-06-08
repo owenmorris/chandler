@@ -257,7 +257,7 @@ class PyMiniCalendar(wx.PyControl):
 
         # Header: Days
         wday = pos.x / self.widthCol
-        initialHeight = self.todayHeight + self.heightPreview
+        initialHeight = self.todayHeight
         monthHeight = (self.rowOffset + 
                        WEEKS_TO_DISPLAY * self.heightRow +
                        EXTRA_MONTH_HEIGHT)
@@ -320,7 +320,7 @@ class PyMiniCalendar(wx.PyControl):
     def GetHeaderSize(self):
 
         width = DAYS_PER_WEEK * self.widthCol
-        height = self.todayHeight + self.heightPreview + VERT_MARGIN
+        height = self.todayHeight + VERT_MARGIN
 
         return wx.Size(width,height)
 
@@ -339,9 +339,6 @@ class PyMiniCalendar(wx.PyControl):
 
         self.SetDeviceFont(dc)
         y = 0
-
-        # draw the preview portion
-        y += self.heightPreview
 
         # draw the sequential month-selector
         dc.SetBackgroundMode(wx.TRANSPARENT)
@@ -459,15 +456,16 @@ class PyMiniCalendar(wx.PyControl):
     def DoGetBestSize(self):
         self.RecalcGeometry()
 
-        width = DAYS_PER_WEEK * self.widthCol
-        height = (self.todayHeight + self.heightPreview + VERT_MARGIN +
+        width = DAYS_PER_WEEK * self.widthCol + 2 * SEPARATOR_MARGIN
+        height = (self.todayHeight + VERT_MARGIN +
                   MONTHS_TO_DISPLAY *
                   (WEEKS_TO_DISPLAY * self.heightRow +
-                   self.rowOffset + EXTRA_MONTH_HEIGHT) + 15)
+                   self.rowOffset + EXTRA_MONTH_HEIGHT) + 17)
 
-        if self.HasFlag(wx.BORDER_NONE):
-            height += 6
+        if "__WXMAC__" in wx.PlatformInfo:
             width += 4
+        elif '__WXMSW__' in wx.PlatformInfo:
+            width += 2
 
         best = wx.Size(width, height)
         self.CacheBestSize(best)
@@ -521,8 +519,6 @@ class PyMiniCalendar(wx.PyControl):
         # leave some margins
         self.widthCol += 8
         self.heightRow += 6
-
-        self.heightPreview = 0
 
         self.rowOffset = self.heightRow * 2
         self.todayHeight = self.heightRow + 2
@@ -601,8 +597,8 @@ class PyMiniCalendar(wx.PyControl):
 
                 changedColours = False
                 changedFont = False
-
-                x = weekDay * self.widthCol + (self.widthCol - width) / 2
+                columnStart = SEPARATOR_MARGIN + weekDay * self.widthCol
+                x = columnStart + (self.widthCol - width) / 2
 
                 if highlightDate:
                     # either highlight the selected week or the
@@ -617,14 +613,9 @@ class PyMiniCalendar(wx.PyControl):
                          (not highlightWeek and                # Highlighting a single day
                           (weekDate == self.selectedDate)))):
 
-                        startX = weekDay * self.widthCol
-                        if weekDay == 0:
-                            startX += SEPARATOR_MARGIN
+                        startX = columnStart
 
                         width = self.widthCol
-
-                        if weekDay == DAYS_PER_WEEK-1:
-                            width -= (SEPARATOR_MARGIN)
 
                         dc.SetTextBackground(self.highlightColour)
                         dc.SetBrush(self.highlightColourBrush)
@@ -655,7 +646,8 @@ class PyMiniCalendar(wx.PyControl):
                     else:
                         dc.SetPen(self.busyColourPen)
 
-                    dc.DrawRectangle(x-3, y + self.heightRow - height - 2, 2, height)
+                    dc.DrawRectangle(columnStart + 1,
+                                     y + self.heightRow - height - 1, 2, height)
                     changedColours = True
 
                 if (weekDate.month != startDate.month or
@@ -696,7 +688,7 @@ class PyMiniCalendar(wx.PyControl):
             if nWeek <= WEEKS_TO_DISPLAY and nWeek != 1:
                 dc.SetPen(self.lineColourPen)
                 dc.DrawLine(SEPARATOR_MARGIN, y - 1,
-                            DAYS_PER_WEEK * self.widthCol - SEPARATOR_MARGIN,
+                            self.GetClientSize().x - SEPARATOR_MARGIN,
                             y - 1)
             y += self.heightRow
         return y
@@ -811,8 +803,7 @@ class PyMiniCalendar(wx.PyControl):
 
         x = 0
         y = (self.heightRow * (self.GetWeek(date) - 1) +
-             self.todayHeight + EXTRA_MONTH_HEIGHT +
-             self.rowOffset + self.heightPreview)
+             self.todayHeight + EXTRA_MONTH_HEIGHT + self.rowOffset)
 
         width = DAYS_PER_WEEK * self.widthCol
         height = self.heightRow
