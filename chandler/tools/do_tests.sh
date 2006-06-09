@@ -97,6 +97,9 @@ HH_DIR=`pwd`
 TESTLOG="$C_DIR/do_tests.log"
 FAILED_TESTS=""
 
+rm -f $TESTLOG
+rm -f $C_DIR/test.log
+
 echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $TESTLOG
 echo Started `date`                                              | tee -a $TESTLOG
 echo Setting up script environment                               | tee -a $TESTLOG
