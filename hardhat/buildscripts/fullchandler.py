@@ -117,7 +117,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             ret = 'success'
         else:
             for releaseMode in releaseModes:
-                ret = doTests(hardhatScript, releaseMode, workingDir,
+                ret = doTests(releaseMode, workingDir,
                               outputDir, buildVersion, log)
                 if ret != 'success':
                     break
@@ -156,7 +156,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             ret = 'success'
         else:
             for releaseMode in releaseModes:   
-                ret = doTests(hardhatScript, releaseMode, workingDir,
+                ret = doTests(releaseMode, workingDir,
                               outputDir, buildVersion, log)
                 if ret != 'success':
                     break
@@ -165,29 +165,26 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
     return (ret + changes, svnRevisions['chandler'])
 
-def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
+def doTests(mode, workingDir, outputDir, buildVersion, log):
 
     testDir = os.path.join(workingDir, "chandler")
     os.chdir(testDir)
 
-    if mode == "debug":
-        dashT = '-dvt'
-    else:
-        dashT = '-vrt'
-    
-    try: # test
+    try:
         print "Testing " + mode
         log.write(separator)
         log.write("Testing " + mode + " ...\n")
-        outputList = hardhatutil.executeCommandReturnOutput([hardhatScript, dashT])
+        outputList = hardhatutil.executeCommandReturnOutput(['./tools/do_tests.sh', '-u', '-m %s' % mode])
         hardhatutil.dumpOutputList(outputList, log)
 
     except Exception, e:
         print "a testing error"
-        doCopyLog("***Error during tests***", workingDir, logPath, log)
+        doCopyLog("***Error during tests***", testDir, 'do_tests.log', log)
+        #doCopyLog("***Error during tests***", workingDir, logPath, log)
         return "test_failed"
     else:
-        doCopyLog("Tests successful", workingDir, logPath, log)
+        doCopyLog("Tests successful", testDir, 'do_tests.log', log)
+        #doCopyLog("Tests successful", workingDir, logPath, log)
 
     return "success"  # end of doTests( )
 
