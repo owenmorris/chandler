@@ -28,6 +28,12 @@ dest=debug
 glob=libicu*
 lib
 
+# Grab the locale files
+src=chandler/debug
+dest=debug
+glob=*
+share
+
 # Grab the OpenSSL libs
 src=chandler/debug
 recursive=no

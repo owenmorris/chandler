@@ -43,6 +43,12 @@ dest=Contents/Resources
 glob=libicu*
 lib
 
+# Grab the locale files
+src=chandler/release
+dest=Contents/Resources
+glob=*
+share
+
 # Grab Chandler.py and others
 src=chandler
 dest=Contents/Resources
