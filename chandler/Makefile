@@ -179,7 +179,7 @@ $(ARCHIVES_INST):
 	tar -C $(CHANDLERBIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
 
-SETUPTOOLS_EGG=$(CHANDLERARCHIVES)/setuptools-0.6a11-py2.4.egg
+SETUPTOOLS_EGG=$(CHANDLERARCHIVES)/setuptools-0.6b3-py2.4.egg
 SETUPTOOLS_INST = \
     $(addsuffix .inst, \
                 $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
