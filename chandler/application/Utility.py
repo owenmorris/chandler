@@ -244,12 +244,7 @@ def initI18n(options):
     # developers as part of the i18n package
     i18nMan = i18n._I18nManager
     i18nMan.setRootPath(locateChandlerDirectory())
-
-    #@bug 5998: The wx localization libraries wxstd.mo need
-    # to be available in builds and svn
-    #
-    # XXX: Uncomment this code when bug 5998 is marked as fixed
-    #      i18nMan.setWxPath(locateWxLocalizationDir())
+    i18nMan.setWxPath(locateWxLocalizationDir())
 
     if options.locale is not None:
         # If a locale is passed in on the command line
