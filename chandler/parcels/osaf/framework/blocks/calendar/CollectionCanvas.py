@@ -208,9 +208,17 @@ class DragState(object):
             return
         
         self._dragStarted = True
+        self.StartDragTimer()
+
+    def StartDragTimer(self):
         self._dragTimer = wx.PyTimer(self.OnDragTimer)
         self._dragTimer.Start(100, wx.TIMER_CONTINUOUS)
 
+    def StopDragTimer(self):
+        if hasattr(self, '_dragTimer'):
+            self._dragTimer.Stop()
+            del self._dragTimer
+                
     def OnDragTimer(self):
         if self._dragDirty:
             self.dragHandler(self.currentPosition)
@@ -239,9 +247,7 @@ class DragState(object):
             return
         
         if self._dragStarted:
-            if hasattr(self, '_dragTimer'):
-                self._dragTimer.Stop()
-                del self._dragTimer
+            self.StopDragTimer()
             self.dragEndHandler()
 
 
@@ -549,6 +555,32 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
         # ignore entering and leaving events
         if (event.Entering() or event.Leaving()):
+            # resize handling should probably be transitioned to using
+            # wx drag and drop, like move.  For now, because CaptureMouse()
+            # inexplicably fails to prevent LeftUp events from being captured by
+            # windows other than the timed canvas, thus leaking PyTimers, manage
+            # creating and deleting timers when entering and leaving.
+            if self.dragState is not None and self.dragState.resize:
+                if event.Leaving():
+                    self.StopDragTimer()
+                    self.dragState.StopDragTimer()
+                    
+                    # it would be nice to do:
+                #elif event.Entering():
+                    #self.StartDragTimer()
+                    #self.dragState.StartDragTimer()
+                    
+                    # Unfortunately, to restart the timers, we need a reliable
+                    # way of determining whether the drag ever stopped.  Since
+                    # CaptureMouse doesn't seem to work reliably, this is hard
+                    # to accomplish.  It seems preferable in the short term to
+                    # avoid crashes by simply aborting resize when leaving.
+                    
+                    self.dragState.ResetDrag()
+                    self.dragState = None
+                    self.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
+                    self.RefreshCanvasItems(resort=False)            
+                    
             event.Skip()
             return
 
@@ -669,7 +701,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         Use the selection to find the currently selected canvas item,
         returning None if there isn't any
         """
-        
         selection = self.SelectedItems()
         # try our best to avoid iterating the entire selection
         try:
@@ -780,6 +811,12 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         return True
         
     def GrabFocusHack(self):
+        pass
+
+    def StartDragTimer(self):
+        pass
+    
+    def StopDragTimer(self):
         pass
 
     def OnNavigateItem(self, direction):
