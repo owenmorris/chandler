@@ -184,8 +184,8 @@ class Block(schema.Item):
         A variant of post that looks up the event to post by name and
         includes a sender, which may be None
         """
-        assert theClass.eventNameToItemUUID.has_key (eventName), "Event name %s not found in %s" % (eventName, self)
-        list = theClass.eventNameToItemUUID [eventName]
+        assert Block.eventNameToItemUUID.has_key (eventName), "Event name %s not found in %s" % (eventName, self)
+        list = Block.eventNameToItemUUID [eventName]
         event = wx.GetApp().UIRepositoryView.findUUID (list [0])
         return theClass.post (event, args, sender)
 
@@ -201,7 +201,7 @@ class Block(schema.Item):
 
     @classmethod
     def findBlockByName (theClass, name):
-        list = theClass.blockNameToItemUUID.get (name, None)
+        list = Block.blockNameToItemUUID.get (name, None)
         if list is not None:
             return wx.GetApp().UIRepositoryView.find (list[0])
         else:
@@ -209,7 +209,7 @@ class Block(schema.Item):
 
     @classmethod
     def findBlockEventByName (theClass, name):
-        list = theClass.eventNameToItemUUID.get (name, None)
+        list = Block.eventNameToItemUUID.get (name, None)
         if list is not None:
             return wx.GetApp().UIRepositoryView.find (list[0])
         else:
@@ -325,9 +325,9 @@ class Block(schema.Item):
                 eventsForNamedLookup = self.eventsForNamedLookup
                 if eventsForNamedLookup is not None:
                     self.addToNameToItemUUIDDictionary (eventsForNamedLookup,
-                                                        self.eventNameToItemUUID)
+                                                        Block.eventNameToItemUUID)
                 self.addToNameToItemUUIDDictionary ([self],
-                                                    self.blockNameToItemUUID)
+                                                    Block.blockNameToItemUUID)
                 """
                 Keep list of blocks that are have event boundarys in the global list views.
                 """
@@ -363,7 +363,7 @@ class Block(schema.Item):
                 if eventsForNamedLookup is not None:
                     oldCounts = []
                     for item in eventsForNamedLookup:
-                        list = self.eventNameToItemUUID.get (item.blockName, None)
+                        list = Block.eventNameToItemUUID.get (item.blockName, None)
                         assert list is not None
                         oldCounts.append (list.count (item.itsUUID))
 
@@ -386,7 +386,7 @@ class Block(schema.Item):
             if __debug__:
                 if eventsForNamedLookup is not None:
                     for item, oldCount in map (None, eventsForNamedLookup, oldCounts):
-                        list = self.eventNameToItemUUID.get (item.blockName, None)
+                        list = Block.eventNameToItemUUID.get (item.blockName, None)
                         if list is None:
                             count = 0
                         else:
@@ -614,9 +614,9 @@ class Block(schema.Item):
         eventsForNamedLookup = self.eventsForNamedLookup
         if eventsForNamedLookup is not None:
             self.removeFromNameToItemUUIDDictionary (eventsForNamedLookup,
-                                                     self.eventNameToItemUUID)
+                                                     Block.eventNameToItemUUID)
         self.removeFromNameToItemUUIDDictionary ([self],
-                                                 self.blockNameToItemUUID)
+                                                 Block.blockNameToItemUUID)
 
         #Remove the reference to the block in idToBlock and add the
         #id to the list of free ids. Also, if we don't remove the

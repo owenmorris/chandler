@@ -151,8 +151,6 @@ def makeMainEvents(parcel):
         commitAfterDispatch = True,
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    repositoryViewer = schema.ns("osaf.views.repositoryviewer", repositoryView)
-    
     BlockEvent.template('ShareSidebarCollection').install(parcel)
 
     BlockEvent.template('StartProfiler').install(parcel)
@@ -184,12 +182,6 @@ def makeMainEvents(parcel):
     BlockEvent.template('GenerateContentItems',
                         commitAfterDispatch = True).install(parcel)
 
-    AddToSidebarEvent.update(
-        parcel, 'AddRepositoryView',
-        blockName = 'AddRepositoryView',
-        items = [repositoryViewer.RepositoryView],
-        copyItems = False)
-
     ChoiceEvent.template(
         'ChooseChandlerMainView',
         methodName = 'onChoiceEvent',
@@ -211,12 +203,6 @@ def makeMainEvents(parcel):
         sphereCollection = schema.ns('osaf.pim', repositoryView).mine,
         items = [untitledCollection])
         
-    AddToSidebarEvent.update(
-        parcel, 'AddAllAdditionalViews',
-        blockName = 'AddAllAdditionalViews',
-        items = [repositoryViewer.RepositoryView],
-        copyItems = False)
-
     BlockEvent.template('GenerateContentItemsFromFile',
                        commitAfterDispatch = True).install(parcel)
 
@@ -269,8 +255,17 @@ def makeMainEvents(parcel):
         'DayMode',
         dispatchEnum = 'BroadcastEverywhere').install(parcel)
         
+    blockViewer = schema.ns("osaf.views.blockviewer", repositoryView)
+    
     NewBlockWindowEvent.update(
         parcel, 'ShowBlockViewer',
         blockName = 'ShowBlockViewer',
-        treeOfBlocks = repositoryViewer.BlockViewerFrameWindow)
+        treeOfBlocks = blockViewer.BlockViewerFrameWindow)
+
+    repositoryViewer = schema.ns("osaf.views.repositoryviewer", repositoryView)
+
+    NewBlockWindowEvent.update(
+        parcel, 'ShowRepositoryViewer',
+        blockName = 'ShowBlockViewer',
+        treeOfBlocks = repositoryViewer.RepositoryViewerFrameWindow)
 

@@ -908,8 +908,8 @@ class ItemDetail(RectangularChild):
         return wxItemDetail (self.parentBlock.widget,
                              self.getWidgetID(),
                              wx.DefaultPosition,
-                             (self.minimumSize.width,
-                              self.minimumSize.height))
+                             (self.size.width,
+                              self.size.height))
 
     def getHTMLText(self, item):
         return u'<body><html><h1>%s</h1></body></html>' % item.getDisplayName()
