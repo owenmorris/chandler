@@ -130,7 +130,7 @@ class MailService(object):
         if account.itsUUID in smtpInstances:
             return smtpInstances.get(account.itsUUID)
 
-        s = SMTPClient(self.__createView(), account)
+        s = SMTPClient(self.__createView("SMTPClient", account), account)
         smtpInstances[account.itsUUID] = s
 
         return s
@@ -152,7 +152,7 @@ class MailService(object):
         if account.itsUUID in imapInstances:
             return imapInstances.get(account.itsUUID)
 
-        i = IMAPClient(self.__createView(), account)
+        i = IMAPClient(self.__createView("IMAPClient", account), account)
         imapInstances[account.itsUUID] = i
 
         return i
@@ -174,7 +174,7 @@ class MailService(object):
         if account.itsUUID in popInstances:
             return popInstances.get(account.itsUUID)
 
-        i = POPClient(self.__createView(), account)
+        i = POPClient(self.__createView("POPClient", account), account)
         popInstances[account.itsUUID] = i
 
         return i
@@ -217,6 +217,8 @@ class MailService(object):
                 a = s > 1 and "accountUUID's" or "accountUUID"
                 trace("removed %s%s with %s %s" % (protocol, c, a, delList))
 
-    def __createView(self):
-        return self.__view.repository.createView()
+    def __createView(self, clientName, account):
+        #Assign a unique name to the view
+        viewName = "%s for account: %s" % (clientName, str(account.itsUUID))
+        return self.__view.repository.createView(viewName)
 
