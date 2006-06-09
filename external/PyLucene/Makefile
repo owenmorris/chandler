@@ -73,10 +73,7 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/security/libgcj.security \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).so
 ifeq ($(GCJ_VER),3)
-MANIFEST:=$(MANIFEST) \
-         $(SNAP)/lib/libstdc++.so.6 \
-         $(SNAP)/lib/libgcc_s.so.1
-LIB_INSTALL=libstdc++.so.6 libgcc_s.so.1
+LIB_INSTALL=
 GCJ_STATIC=1
 endif
 ifeq ($(GCJ_VER),4)
