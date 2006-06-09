@@ -4,7 +4,7 @@ A helper class which sets up and tears down dual RamDB repositories
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import unittest, os
+import unittest, os, sys
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
@@ -75,7 +75,7 @@ class ICalendarTestCase(unittest.TestCase):
                                  'parcels', 'osaf', 'sharing', 'tests')
 
         #sharePath is stored as schema.Text so convert to unicode
-        sharePath = unicode(sharePath, 'utf8')
+        sharePath = unicode(sharePath, sys.getfilesystemencoding())
 
         sandbox = view.findPath("//sandbox")
 

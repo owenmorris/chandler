@@ -1,12 +1,9 @@
 from i18n import OSAFMessageFactory as _
 
+#XXX: Relook at how to leverage wxstd translations
+
 UNTITLED = _(u"Untitled")
 ME = _(u"me")
-
-
-"""Common Button Stuff. This might come directly from WxWidgets"""
-OK = _(u"OK")
-CANCEL = _(u"Cancel")
 
 """Common GUI Stuff. This might come directly from WxWidgets"""
 UNDO   = _(u"Undo")

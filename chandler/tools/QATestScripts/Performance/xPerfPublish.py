@@ -1,5 +1,5 @@
 import tools.QAUITestAppLib as QAUITestAppLib
-import os
+import os, sys
 from application.dialogs.PublishCollection import ShowPublishDialog
 import wx
 from i18n import OSAFMessageFactory as _
@@ -38,7 +38,7 @@ try:
     # import events so test will have something to share even when run by itself
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
-    path = unicode(path, 'utf8')
+    path = unicode(path, sys.getfilesystemencoding())
     share = Sharing.OneTimeFileSystemShare(path, u'testSharing.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
 
     collection = share.get()

@@ -4,8 +4,10 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import webbrowser
-import wx
-import wx.html
+import wx, wx.html, os, sys
+from i18n import OSAFMessageFactory as _
+import i18n
+import Globals
 
 class AboutBox(wx.Dialog):
     """
@@ -13,16 +15,22 @@ class AboutBox(wx.Dialog):
     Common use is for 'About' pages.
     The page must be dismissed by clicking on its close button.
     """
-    def __init__(self, parent=None, title="", pageLocation="", html="", isModal=True):
+    def __init__(self, parent=None, title=None, pageLocation="", html=None, isModal=True):
         """
           Sets up the about box.
         """
         style = wx.DEFAULT_DIALOG_STYLE
         size =  wx.DefaultSize
         pos = wx.DefaultPosition
-        
+
+        if title is None:
+            title = _("About Chandler")
+
+        if html is None:
+            html = _getDefaultHTML()
+
         super (AboutBox, self).__init__ (parent, -1, title, pos, size, style)
-                
+
         defaultWindowWidth = 285
         maxWindowHeight = 600
         self.isModal = isModal
@@ -35,24 +43,24 @@ class AboutBox(wx.Dialog):
             height = maxWindowHeight
         panel.SetSize((width, height))
         self.SetClientSize(panel.GetSize())
-        
+
         self.CenterOnScreen()
-                    
+
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
-        
+
         # Display the dialog
         if isModal:
             self.ShowModal()
         else:
             self.Show()
 
-        
+
     def OnCloseWindow(self, event):
         """
           Closes the window.
         """
         self.Destroy()
-        
+
 class HTMLPanel(wx.html.HtmlWindow):
     """
       Displays the html message.
@@ -69,16 +77,89 @@ class HTMLPanel(wx.html.HtmlWindow):
             self.LoadPage(pageLocation)
         else:
             self.SetPage(html)
-        
+
     def OnCellClicked(self, cell, x, y, event):
         """
           Called whenever the about box is clicked.
         """
         wx.html.HtmlWindow.base_OnCellClicked(self, cell, x, y, event)
-                
+
     def OnLinkClicked(self, link):
         """
           Called whenever a link on the about box is clicked.  Opens that
         url in the user's default web browser.
         """
         webbrowser.open(link.GetHref())
+
+def _getDefaultHTML():
+    from version import version
+
+    replaceValues = {
+
+    "pix": _getRelImagePath("pixel.gif"),
+    "ab":  _getRelImagePath("about.png"),
+    "ver": _("Version: %(versionNumber)s") % {"versionNumber": version},
+    "abt": _("About Chandler"),
+    "ex":  _("Experimentally usable calendar"),
+    "ch":  _("Chandler"),
+    "osa": _("Open Source Applications Foundation"),
+    "loc":  _("For more info: %(chandlerWebURL)s") % \
+           {"chandlerWebURL": "<a href=\"http://chandler.osafoundation.org\">chandler.osafoundation.org</a>"},
+    #This is a bummer the % in the width attribute was causing the
+    #Python string parser to barf. It thought this was a replacable value :(
+    "wid": "100%"
+
+    }
+
+    html = u"""<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>%(abt)s</title>
+</head>
+<body bgcolor="#FFFFFF">
+
+<center>
+<table width="%(wid)s" border="0" cellpadding="0" cellspacing="0">
+<tr><td><img src="%(pix)s" width="1" height="5"></td></tr>
+<tr><td><center><font face="helvetica, arial, sans-serif" size="3" color="black">%(ex)s</font></center></td></tr>
+<tr><td><img src="%(pix)s" width="1" height="10"></td></tr>
+<tr><td><center><img src="%(ab)s" width="64" height="64"></center></td></tr>
+<tr><td><img src="%(pix)s" width="1" height="5"></td></tr>
+<tr><td><center><font face="verdana, arial, helvetica, sans-serif" size="4" color="black"><strong>%(ch)s</strong></font></center></td></tr>
+<tr><td><img src="%(pix)s" width="1" height="15"></td></tr>
+<tr><td><center><font face="helvetica, arial, sans-serif" size="2" color="black">%(ver)s</font></center></td></tr>
+<tr><td><img src="%(pix)s" width="1" height="2"></td></tr>
+<tr><td><center><font face="helvetica, arial, sans-serif" size="2" color="black"> %(loc)s </font></center></td></tr>
+<tr><td><img src="%(pix)s" width="1" height="10"></td></tr>
+<tr><td><center><font face="helvetica, arial, sans-serif" size="2" color="black">
+%(osa)s</font></center></td></tr>
+<tr><td><img src="%(pix)s" width="1" height="10"></td></tr>
+</table>
+</center>
+
+</body>
+</html>""" % replaceValues
+
+    return html
+
+def _getRelImagePath(imgName):
+    f = i18n.getImage(imgName)
+
+    if f is None:
+        return ""
+
+    n = f.name
+
+    if isinstance(n, unicode):
+        n = n.encode(sys.getfilesystemencoding())
+
+    #We want a relative directory so
+    #remove CHANDLERHOME from path
+    p = n.split(Globals.chandlerDirectory)[1]
+
+    #We still want a relative path so strip of the leading
+    #directory path separator
+    if p[0] == os.path.sep:
+        p = p[1:]
+
+    return unicode(p, sys.getfilesystemencoding())

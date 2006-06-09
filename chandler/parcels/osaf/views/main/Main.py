@@ -124,14 +124,7 @@ class MainView(View):
         """
         Show the about box in response to the about command.
         """
-        from version import version
-        htmltext = ''
-        for line in i18n.getHTML('about.html'):
-            # Substitute the buildid with the correct version number
-            if line.find('@@buildid@@') >= 0:
-                line = line.replace('@@buildid@@',version, 1)
-            htmltext += line
-        about = AboutBox(title=_(u"About Chandler"), html=htmltext)
+        about = AboutBox()
         return about
 
     def onEmptyTrashEvent(self, event):
@@ -962,16 +955,16 @@ class MainView(View):
 
     def onTakeOnlineOfflineEventUpdateUI(self, event):
         enable = False
-        menuTitle = _(u"Toggle online/offline")
+        menuTitle = _("Toggle online/offline")
 
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
             if sharing.isShared(collection):
                 enable = True
                 if sharing.isOnline(collection):
-                    menuTitle = "Take offline"
+                    menuTitle = _("Take offline")
                 else:
-                    menuTitle = "Take online"
+                    menuTitle = _("Take online")
 
         event.arguments['Enable'] = enable
         event.arguments ['Text'] = menuTitle

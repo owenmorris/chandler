@@ -26,6 +26,21 @@ SCHEMA_VERSION = "212" # john: refactored repositoryView and blockViewer
 
 logger = None # initialized in initLogging()
 
+def locateWxLocalizationDir():
+    root = locateChandlerDirectory()
+
+    if os.path.isdir(os.path.join(root, "debug")):
+        sub = "debug"
+    else:
+        sub  = "release"
+
+    if os.name == 'nt':
+        return os.path.join(root, sub, "bin", "Lib", \
+                              "site-packages", "wx", "locale")
+
+
+    return os.path.join(root, sub, "share", "locale")
+
 def createProfileDir(profileDir):
     """
     Create the profile directory with the right permissions. 
@@ -225,12 +240,23 @@ def initProfileDir(options):
 
 
 def initI18n(options):
+    # These methods are not exposed to 3rd party
+    # developers as part of the i18n package
+    i18nMan = i18n._I18nManager
+    i18nMan.setRootPath(locateChandlerDirectory())
+
+    #@bug 5998: The wx localization libraries wxstd.mo need
+    # to be available in builds and svn
+    #
+    # XXX: Uncomment this code when bug 5998 is marked as fixed
+    #      i18nMan.setWxPath(locateWxLocalizationDir())
+
     if options.locale is not None:
         # If a locale is passed in on the command line
         # we set it as the root in the localeset.
-        i18n.setLocaleSet([options.locale])
+        i18nMan.setLocaleSet([options.locale])
     else:
-        i18n.discoverLocaleSet()
+        i18nMan.discoverLocaleSet()
 
 
 def initLogging(options):

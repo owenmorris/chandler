@@ -18,7 +18,8 @@ def loadCerts(parcel, moduleName, filename=u'cacert.pem'):
 
     log = logging.getLogger(__name__)
 
-    filename = filename.encode('utf8')
+    if isinstance(filename, unicode):
+        filename = filename.encode('utf8')
 
     chop = -1
 

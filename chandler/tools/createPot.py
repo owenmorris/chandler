@@ -623,10 +623,18 @@ def main():
             expanded.extend(getFilesForName(arg))
     args = expanded
 
-    expanded.extend(getFilesForName('crypto'))
+    osaf = os.path.join("parcels", "osaf")
+
+    #Translations that are not part of Chandler osaf core
+    amazon = os.path.join("parcels", "amazon")
+    evdb = os.path.join("parcels", "evdb")
+    flickr = os.path.join("parcels", "flickr")
+    samples = os.path.join("parcels", "samples")
+    photos = os.path.join("parcels", "photos")
+
     expanded.extend(getFilesForName('application'))
-    expanded.extend(getFilesForName('parcels'))
-    expanded.extend(getFilesForName('samples'))
+    expanded.extend(getFilesForName(osaf))
+    #expanded.extend(getFilesForName('samples'))
 
     # slurp through all the files
     eater = TokenEater(options)

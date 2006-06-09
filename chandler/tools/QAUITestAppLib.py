@@ -11,7 +11,7 @@ import wx
 import string
 import osaf.framework.scripting as scripting
 import osaf.sharing.ICalendar as ICalendar
-import os
+import os, sys
 from itertools import chain
 
 #Global AppProxy instance
@@ -1379,7 +1379,7 @@ class UITestView(object):
         if environmentFile is not None:
             path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
             #Upcast path to unicode since Sharing requires a unicode path
-            path = unicode(path, 'utf8')
+            path = unicode(path, sys.getfilesystemencoding())
             share = Sharing.Sharing.OneTimeFileSystemShare(path, 
                             environmentFile, 
                             ICalendar.ICalendarFormat, 

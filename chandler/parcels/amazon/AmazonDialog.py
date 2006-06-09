@@ -3,7 +3,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
 from i18n import OSAFMessageFactory as _
-from osaf import messages
 import i18n
 
 _SITE_CODES = ['us', 'gb', 'de', 'jp']
@@ -115,11 +114,11 @@ class _promptAmazonDialog(wx.Dialog):
         sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        btn = wx.Button(self, wx.ID_OK, u" " +  messages.OK + u" ")
+        btn = wx.Button(self, wx.ID_OK)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, u" " + messages.CANCEL + u" ")
+        btn = wx.Button(self, wx.ID_CANCEL)
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)

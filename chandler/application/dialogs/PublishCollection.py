@@ -3,7 +3,7 @@
 
 import wx
 import logging
-import os
+import os, sys
 from application import schema, Globals
 from osaf import sharing
 from i18n import OSAFMessageFactory as _
@@ -545,7 +545,7 @@ def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None,
                            'application', 'dialogs', filename)
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
-    xrcFile = unicode(xrcFile, 'utf8')
+    xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
     win = PublishCollectionDialog(parent, title, resources=resources, view=view,
                                   collection=collection,

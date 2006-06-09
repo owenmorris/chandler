@@ -90,9 +90,7 @@ def main():
         except:
             import sys, traceback
             
-            # Not worth the localizing, since we may not have a repository
-            # and this is an error dialog only happen if Chandler is seriously broken
-            line1 = u"Chandler encountered an unexpected problem while trying to start.\n"
+            line1 = "Chandler encountered an unexpected problem while trying to start.\n"
 
             type, value, stack = sys.exc_info()
             backtrace = traceback.format_exception(type, value, stack)

@@ -6,7 +6,6 @@
 
 import wx
 from i18n import OSAFMessageFactory as _
-from osaf import messages
 import logging
 from application import schema
 
@@ -57,8 +56,8 @@ class RecurrenceDialog(wx.Dialog):
         self.SetClientSize(wx.Size(435, 87))
         self.Bind(wx.EVT_CLOSE, self.onCancel)
 
-        self.cancelButton = wx.Button(id=-1,
-              label=u'', name=u'cancelButton', parent=self)
+        self.cancelButton = wx.Button(id=wx.ID_CANCEL,
+              name=u'cancelButton', parent=self)
         self.cancelButton.Bind(wx.EVT_BUTTON, self.onCancel)
 
         self.allButton = wx.Button(id=-1, label=u'',
@@ -66,8 +65,8 @@ class RecurrenceDialog(wx.Dialog):
         self.allButton.Bind(wx.EVT_BUTTON, self.onAll,
               id=-1)
 
-        self.futureButton = wx.Button(id=-1,
-              label=u'', name=u'futureButton', parent=self)
+        self.futureButton = wx.Button(id=-1, label=u'',
+              name=u'futureButton', parent=self)
         self.futureButton.Bind(wx.EVT_BUTTON, self.onFuture,
               id=-1)
 
@@ -79,8 +78,7 @@ class RecurrenceDialog(wx.Dialog):
         self.questionText = wx.StaticText(id=-1,
               label=u'', name=u'questionText', parent=self)
 
-        labels = {self.cancelButton : messages.CANCEL,
-                  self.allButton    : _(u'All events'),
+        labels = {self.allButton    : _(u'All events'),
                   self.futureButton : _(u'All future events'),
                   self.thisButton   : _(u'Just this event')}
 

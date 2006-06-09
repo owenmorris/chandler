@@ -1,4 +1,5 @@
 import wx
+from i18n import OSAFMessageFactory as _
 
 class ErrorDialog(wx.Dialog):
     """
@@ -14,7 +15,7 @@ class ErrorDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(None, -1, u'Chandler', pos, size, style)
+        pre.Create(None, -1, _('Chandler'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)

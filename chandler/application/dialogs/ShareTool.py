@@ -1,4 +1,4 @@
-import os
+import os, sys
 import wx
 import wx.xrc
 from osaf import sharing
@@ -165,7 +165,7 @@ def ShowShareToolDialog(parent, rv=None):
      'application', 'dialogs', 'ShareTool_wdr.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
-    xrcFile = unicode(xrcFile, 'utf8')
+    xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
     win = ShareToolDialog(parent, "Share Tool",
      resources=resources, rv=rv)

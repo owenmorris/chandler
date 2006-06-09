@@ -286,7 +286,7 @@ class AbstractDownloadClient(object):
 
         #Convert error messages to unicode objects for display
         try:
-            errorText = unicode(err.__str__(), 'utf8')
+            errorText = unicode(err.__str__(), 'utf8', 'replace')
         except UnicodeEncodeError, e:
             logging.exception("Unable to convert Exception string text to Unicode")
             errorText = u""

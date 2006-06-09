@@ -1,7 +1,7 @@
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
 import tools.QAUITestAppLib as QAUITestAppLib
-import os
+import os, sys
 import osaf.pim as pim
 from datetime import date
 import osaf.framework.scripting as scripting
@@ -15,7 +15,7 @@ logger = QAUITestAppLib.QALogger(fileName, "TestRecurrenceImporting")
 try:
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
-    path = unicode(path, 'utf8')
+    path = unicode(path, sys.getfilesystemencoding())
     share = Sharing.OneTimeFileSystemShare(path, u'TestRecurrence.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
     
     logger.Start("Import calendar with recurring events")

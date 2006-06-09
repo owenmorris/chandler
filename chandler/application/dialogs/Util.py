@@ -6,7 +6,6 @@
 import os, codecs
 import wx
 from i18n import OSAFMessageFactory as _
-from osaf import messages
 
 # A helper method and class for allowing the user to modify an item's attributes
 """
@@ -93,11 +92,11 @@ class ItemValuesDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, u" " + messages.OK + u" ")
+        btn = wx.Button(self, wx.ID_OK)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, u" " + messages.CANCEL + u" ")
+        btn = wx.Button(self, wx.ID_CANCEL)
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -189,7 +188,7 @@ class mailErrorDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_CANCEL, u" " + messages.OK + u" ")
+        btn = wx.Button(self, wx.ID_CANCEL)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
@@ -243,11 +242,11 @@ class promptUserDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, u" " +  messages.OK + u" ")
+        btn = wx.Button(self, wx.ID_OK)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, u" " + messages.CANCEL + u" ")
+        btn = wx.Button(self, wx.ID_CANCEL)
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -317,7 +316,7 @@ class LogWindow(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, u" " + messages.OK + u" ")
+        btn = wx.Button(self, wx.ID_OK)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
@@ -378,8 +377,8 @@ def ShowMessageDialog(parent, message, caption, flags, resultsTable=None):
         flags |= wx.ICON_INFORMATION
 
     if caption is None:
-        caption = _(u"Chandler")
-        
+        caption = _("Chandler")
+
     dlg = wx.MessageDialog(parent, message, caption, flags)
     val = dlg.ShowModal()
     dlg.Destroy()
