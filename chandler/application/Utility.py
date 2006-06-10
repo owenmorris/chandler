@@ -27,6 +27,18 @@ SCHEMA_VERSION = "212" # john: refactored repositoryView and blockViewer
 logger = None # initialized in initLogging()
 
 def locateWxLocalizationDir():
+    """
+         This is a temporary method to determine the
+         path to the wxstd.mo translation files.
+
+         Wx should know how to find its own translation
+         files at install time and it should not be
+         the job of Chandler to figure this out.
+
+         Brian K will work with Robin D to come up 
+         with a better solution at the WxWidgets layer
+         in the near future.
+    """
     root = os.getenv("CHANDLERBIN") or locateChandlerDirectory()
 
     if os.path.isdir(os.path.join(root, "debug")):
@@ -244,6 +256,9 @@ def initI18n(options):
     # developers as part of the i18n package
     i18nMan = i18n._I18nManager
     i18nMan.setRootPath(locateChandlerDirectory())
+
+    #XXX: Comment out this code if a issue 
+    #     arises with wx translation loading
     i18nMan.setWxPath(locateWxLocalizationDir())
 
     if options.locale is not None:
