@@ -84,11 +84,7 @@ class BlockFrameWindow (wx.Frame):
 
         self.treeOfBlocks = treeOfBlocks
         self.treeOfBlocks.frame = self
-        Globals.viewsHackIgnoreFlag = True
-        try:
-            self.treeOfBlocks.render()
-        finally:
-            Globals.viewsHackIgnoreFlag = False
+        self.treeOfBlocks.render()
 
         sizer = wx.BoxSizer (wx.HORIZONTAL)
         self.SetSizer (sizer)
