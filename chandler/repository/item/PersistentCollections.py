@@ -84,14 +84,17 @@ class PersistentCollection(ItemValue):
 
         item = self._item
         if item is not None and issingleref(value):
-            uuid = value.itsUUID
-            return item.itsView.find(uuid)
+            item = item.itsView.find(value.itsUUID)
+            if item is not None:
+                return item
 
         return value
 
     def _useValue(self, value):
 
         if isinstance(value, PersistentCollection):
+            return value
+        if issingleref(value):
             return value
 
         if isitem(value):
@@ -116,12 +119,12 @@ class PersistentCollection(ItemValue):
             items = {}
         for value in self._itervalues():
             if issingleref(value):
-                value = self._restoreValue(value)
-                if value is not None:
-                    uuid = value.itsUUID
+                item = self._restoreValue(value)
+                if isitem(item):
+                    uuid = item.itsUUID
                     if uuid not in items:
-                        items[uuid] = value
-                        yield value
+                        items[uuid] = item
+                        yield item
             elif isinstance(value, PersistentCollection):
                 for v in value._iterItems(items):
                     yield v

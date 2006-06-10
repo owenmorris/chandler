@@ -5,7 +5,7 @@ __parcel__ = "osaf.framework.blocks"
 import sys
 from Block import Block, IgnoreSynchronizeWidget, debugName
 from ContainerBlocks import wxBoxContainer, BoxContainer
-from repository.item.Item import Item
+from chandlerdb.item.c import isitem
 from application import schema
 import wx
 import logging
@@ -216,7 +216,7 @@ class BranchPointDelegate(schema.Item):
 
     def deleteCache(self):
         for item in self.keyUUIDToBranch.itervalues():
-            if item is not None:
+            if isitem(item):
                 item.delete (cloudAlias="copying")
         self.keyUUIDToBranch = {}
 

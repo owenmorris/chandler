@@ -418,7 +418,9 @@ class Item(CItem):
             value = self._values.get(name, Nil)
             if value is not Nil:
                 if issingleref(value):
-                    value = self.itsView.find(value.itsUUID)
+                    item = self.itsView.find(value.itsUUID)
+                    if item is not None:
+                        return item
                 return value
 
         elif (_attrDict is self._references or
@@ -638,7 +640,9 @@ class Item(CItem):
         if not referencesOnly:
             for name, value in self._values._dict.iteritems():
                 if issingleref(value):
-                    value = self.itsView.find(value.itsUUID)
+                    item = self.itsView.find(value.itsUUID)
+                    if item is not None:
+                        value = item
                 yield name, value
 
         if not valuesOnly:

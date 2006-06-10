@@ -4,15 +4,13 @@
 @license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
 
-import re
-
+from chandlerdb.util.c import issingleref
 from chandlerdb.item.c import Nil, isitem
 from chandlerdb.item.ItemError import RecursiveDeleteError
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
 from repository.item.RefCollections import RefList
 from repository.item.PersistentCollections import PersistentCollection
-from repository.persistence.RepositoryError import NoSuchItemError
 
 
 class Cloud(Item):
@@ -83,7 +81,7 @@ class Cloud(Item):
 
         for alias, endpoint, inCloud in self.iterEndpoints(cloudAlias):
             for other in endpoint.iterValues(item):
-                if other is not None and other._uuid not in items:
+                if other is not None and other.itsUUID not in items:
                     _items = endpoint.getItems(other, cloudAlias,
                                                items, references, trace)
                     if trace is not None:
@@ -381,12 +379,12 @@ class Endpoint(Item):
         results = []
 
         if policy == 'byValue':
-            if not item._uuid in items:
-                items[item._uuid] = item
+            if not item.itsUUID in items:
+                items[item.itsUUID] = item
                 results.append(item)
 
         elif policy == 'byRef':
-            references[item._uuid] = item
+            references[item.itsUUID] = item
 
         elif policy == 'byCloud':
             def getItems(cloud):
@@ -398,7 +396,7 @@ class Endpoint(Item):
             if cloud is not None:
                 getItems(cloud)
             else:
-                kind = item._kind
+                kind = item.itsKind
                 if cloudAlias is None:
                     cloudAlias = getattr(self, 'cloudAlias', None)
                 clouds = kind.getClouds(cloudAlias)
@@ -420,7 +418,7 @@ class Endpoint(Item):
     def iterValues(self, item):
 
         def append(values, value):
-            if value is not None:
+            if not (value is None or issingleref(value)):
                 if isitem(value) or isinstance(value, RefList):
                     values.append(value)
                 elif isinstance(value, PersistentCollection):
@@ -458,7 +456,7 @@ class Endpoint(Item):
                 value = values
             else:
                 value = value.getAttributeValue(name, None, None, None)
-                if value is None:
+                if value is None or issingleref(value):
                     break
                 if not (isitem(value) or
                         isinstance(value, (PersistentCollection,
@@ -476,6 +474,3 @@ class Endpoint(Item):
             return value._iterItems()
 
         return value
-
-
-    kindExp = re.compile('<kind type="uuid">(.*)</kind>')
