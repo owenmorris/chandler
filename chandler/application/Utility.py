@@ -27,7 +27,7 @@ SCHEMA_VERSION = "212" # john: refactored repositoryView and blockViewer
 logger = None # initialized in initLogging()
 
 def locateWxLocalizationDir():
-    root = locateChandlerDirectory()
+    root = os.getenv("CHANDLERBIN") or locateChandlerDirectory()
 
     if os.path.isdir(os.path.join(root, "debug")):
         sub = "debug"
