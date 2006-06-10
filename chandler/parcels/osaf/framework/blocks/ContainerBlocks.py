@@ -524,14 +524,14 @@ class ViewContainer(BoxContainer):
 
     def instantiateWidget (self):
         """
-        Somewhat of a hack: When the ViewContainer is the root of
-        all the blocks it doesn't have a parent block widget, so in
-        that case we use the mainFrame.
+        When the ViewContainer is the root of all the blocks it
+        doesn't have a parent block widget, so in that case we use
+        the block must have a frame and we'll use it.
         """
-        if self.parentBlock:
+        if self.parentBlock is not None:
             parentWidget = self.parentBlock.widget
         else:
-            parentWidget = self.getFrame()
+            parentWidget = self.frame
 
         if self.hasTabs:
             return wxTabbedViewContainer (parentWidget, 

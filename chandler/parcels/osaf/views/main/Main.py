@@ -10,7 +10,7 @@ import wx, os, sys, traceback, logging
 from application import Globals, Printing, schema
 
 from application.AboutBox import AboutBox
-from application.Application import BlockFrameWindow
+from application.Application import wxBlockFrameWindow
 import application.Parcel
 
 import application.dialogs.Util
@@ -1109,16 +1109,16 @@ class MainView(View):
     def onNewBlockWindowEvent(self, event):
         rootBlock = event.treeOfBlocks
         for window in wx.GetTopLevelWindows():
-            if (isinstance (window, BlockFrameWindow) and
+            if (isinstance (window, wxBlockFrameWindow) and
                 window.GetChildren()[0].blockItem is rootBlock):
                 window.Raise()
                 break
         else:
-            window = BlockFrameWindow (None,
-                                       -1, 
-                                       rootBlock.windowTitle,
-                                       pos=(rootBlock.position.x, rootBlock.position.y),
-                                       size=(rootBlock.size.width, rootBlock.size.height),
-                                       style = wx.DEFAULT_FRAME_STYLE)
+            window = wxBlockFrameWindow (None,
+                                         -1, 
+                                         rootBlock.windowTitle,
+                                         pos=(rootBlock.position.x, rootBlock.position.y),
+                                         size=(rootBlock.size.width, rootBlock.size.height),
+                                         style = wx.DEFAULT_FRAME_STYLE)
             window.ShowTreeOfBlocks (rootBlock)
             window.Show (True)

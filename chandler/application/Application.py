@@ -68,9 +68,9 @@ class MainThreadCallbackEvent(wx.PyEvent):
         self.args = args
         self.lock = threading.Lock()
 
-class BlockFrameWindow (wx.Frame):
+class wxBlockFrameWindow (wx.Frame):
     def __init__(self, *arguments, **keywords):
-        super (BlockFrameWindow, self).__init__(*arguments, **keywords)
+        super (wxBlockFrameWindow, self).__init__(*arguments, **keywords)
 
         self.SetBackgroundColour (wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DFACE))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -97,12 +97,7 @@ class BlockFrameWindow (wx.Frame):
 
     def OnClose (self, event):
         if hasattr (self, "treeOfBlocks"):
-            Globals.viewsHackFlag = True
-            try:
-                self.treeOfBlocks.unRender()
-            finally:
-                Globals.viewsHackFlag = False
-
+            self.treeOfBlocks.unRender()
             self.SetSizer (None)
             event.Skip()
 
@@ -110,25 +105,26 @@ class BlockFrameWindow (wx.Frame):
         # Calling Skip causes wxWindows to continue processing the event, 
         # which will cause the parent class to get a crack at the event.
 
-        from osaf.pim.structs import SizeType
         if not wx.GetApp().ignoreSynchronizeWidget:
-            Globals.mainViewRoot.size = SizeType (self.GetSize().x, self.GetSize().y)
+            from osaf.pim.structs import SizeType
+            # Our first child's block is the FrameWindow where we store size and position
+            self.GetChildren()[0].blockItem.size = SizeType (self.GetSize().x, self.GetSize().y)
         event.Skip()
 
     def OnMove(self, event):
-        from osaf.pim.structs import PositionType
-
         # Calling Skip causes wxWindows to continue processing the event, 
         # which will cause the parent class to get a crack at the event.
         
         if not wx.GetApp().ignoreSynchronizeWidget:
-            Globals.mainViewRoot.position = PositionType(self.GetPosition().x, self.GetPosition().y)
+            from osaf.pim.structs import PositionType
+            # Our first child's block is the FrameWindow where we store size and position
+            self.GetChildren()[0].blockItem.position = PositionType(self.GetPosition().x, self.GetPosition().y)
         event.Skip()
 
 
-class MainFrame (BlockFrameWindow):
+class wxMainFrame (wxBlockFrameWindow):
     def __init__(self, *arguments, **keywords):
-        super (MainFrame, self).__init__(*arguments, **keywords)
+        super (wxMainFrame, self).__init__(*arguments, **keywords)
 
         # useful in debugging Mac background drawing problems
         #self.MacSetMetalAppearance(True)
@@ -362,12 +358,12 @@ class wxApplication (wx.App):
         # (correct) size before rendering and resizing. 
         rememberSize = (mainViewRoot.size.width, mainViewRoot.size.height)
 
-        self.mainFrame = MainFrame(None,
-                                   -1,
-                                   mainViewRoot.windowTitle,
-                                   pos=(mainViewRoot.position.x, mainViewRoot.position.y),
-                                   size=(mainViewRoot.size.width, mainViewRoot.size.height),
-                                   style=wx.DEFAULT_FRAME_STYLE)
+        self.mainFrame = wxMainFrame(None,
+                                     -1,
+                                     mainViewRoot.windowTitle,
+                                     pos=(mainViewRoot.position.x, mainViewRoot.position.y),
+                                     size=(mainViewRoot.size.width, mainViewRoot.size.height),
+                                     style=wx.DEFAULT_FRAME_STYLE)
  
         mainViewRoot.frame = self.mainFrame
 
