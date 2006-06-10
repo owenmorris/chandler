@@ -73,6 +73,7 @@ def main():
             libdb_name = 'libdb%sd' %(dbver)
         ext = Extension('chandlerdb.persistence.c',
                         sources=persistence_sources,
+                        extra_compile_args = defines,
                         include_dirs=[os.path.join(PREFIX, 'include', 'db')],
                         library_dirs=[os.path.join(PREFIX, 'lib')],
                         libraries=[libdb_name, 'ws2_32'])

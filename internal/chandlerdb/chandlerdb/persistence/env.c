@@ -61,7 +61,7 @@ static PyMethodDef t_env_methods[] = {
     { "get_flags", (PyCFunction) t_env_get_flags, METH_NOARGS, NULL },
     { "get_open_flags", (PyCFunction) t_env_get_open_flags, METH_NOARGS, NULL },
     { "get_encrypt_flags", (PyCFunction) t_env_get_encrypt_flags, METH_NOARGS, NULL },
-    { "get_home", (PyCFunction) t_env_get_flags, METH_NOARGS, NULL },
+    { "get_home", (PyCFunction) t_env_get_home, METH_NOARGS, NULL },
     { "set_encrypt", (PyCFunction) t_env_set_encrypt, METH_VARARGS, NULL },
     { "lock_detect", (PyCFunction) t_env_lock_detect, METH_VARARGS, NULL },
     { "lock_id", (PyCFunction) t_env_lock_id, METH_NOARGS, NULL },
@@ -207,16 +207,38 @@ static int t_env_init(t_env *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
+/*
+ * input string for db_home must be 'str' encoded in sys.getfilesystemencoding()
+ * on Windows, it gets converted to utf-8 as per Berkeley DB API doc
+ */
 static PyObject *t_env_open(t_env *self, PyObject *args)
 {
     char *db_home;
     int flags = 0, mode = 0;
+#ifdef WINDOWS
+    PyObject *u, *s;
+    int len;
+#endif
 
     if (!self->db_env)
         return raiseDBError(EINVAL);
 
+#ifdef WINDOWS
+    if (!PyArg_ParseTuple(args, "z#|ii", &db_home, &len, &flags, &mode))
+        return NULL;
+
+    u = PyUnicode_Decode(db_home, len, Py_FileSystemDefaultEncoding, "strict");
+    if (!u)
+        return NULL;
+    s = PyUnicode_AsUTF8String(u);
+    Py_DECREF(u);
+    if (!s)
+        return NULL;
+    db_home = PyString_AS_STRING(s);
+#else
     if (!PyArg_ParseTuple(args, "z|ii", &db_home, &flags, &mode))
         return NULL;
+#endif
 
     {
         int err;
@@ -224,6 +246,10 @@ static PyObject *t_env_open(t_env *self, PyObject *args)
         Py_BEGIN_ALLOW_THREADS;
         err = self->db_env->open(self->db_env, db_home, flags, mode);
         Py_END_ALLOW_THREADS;
+
+#ifdef WINDOWS
+        Py_DECREF(s);
+#endif
 
         if (err)
             return raiseDBError(err);
@@ -428,6 +454,9 @@ static PyObject *t_env_get_encrypt_flags(t_env *self, PyObject *args)
     }
 }
 
+/* As per Berkeley DB API doc, API return value is utf-8 encoded on Windows
+ * and needs to be converted back into sys.getfilesystemencoding()
+ */
 static PyObject *t_env_get_home(t_env *self, PyObject *args)
 {
     if (!self->db_env)
@@ -444,8 +473,24 @@ static PyObject *t_env_get_home(t_env *self, PyObject *args)
         if (err)
             return raiseDBError(err);
 
+#ifdef WINDOWS
+        if (home)
+        {
+            PyObject *u = PyUnicode_DecodeUTF8(home, strlen(home), "strict");
+            PyObject *s;
+
+            if (!u)
+                return NULL;
+            s = PyUnicode_AsEncodedString(u, Py_FileSystemDefaultEncoding,
+                                          "strict");
+            Py_DECREF(u);
+
+            return s;
+        }
+#else
         if (home)
             return PyString_FromString(home);
+#endif
 
         Py_RETURN_NONE;
     }
