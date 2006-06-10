@@ -227,14 +227,18 @@ static PyObject *t_env_open(t_env *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "z#|ii", &db_home, &len, &flags, &mode))
         return NULL;
 
-    u = PyUnicode_Decode(db_home, len, Py_FileSystemDefaultEncoding, "strict");
-    if (!u)
-        return NULL;
-    s = PyUnicode_AsUTF8String(u);
-    Py_DECREF(u);
-    if (!s)
-        return NULL;
-    db_home = PyString_AS_STRING(s);
+    if (db_home)
+    {
+        u = PyUnicode_Decode(db_home, len,
+                             Py_FileSystemDefaultEncoding, "strict");
+        if (!u)
+            return NULL;
+        s = PyUnicode_AsUTF8String(u);
+        Py_DECREF(u);
+        if (!s)
+            return NULL;
+        db_home = PyString_AS_STRING(s);
+    }
 #else
     if (!PyArg_ParseTuple(args, "z|ii", &db_home, &flags, &mode))
         return NULL;
