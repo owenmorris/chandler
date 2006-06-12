@@ -159,7 +159,7 @@ def makeMainView (parcel):
                                         orientationEnum = 'Vertical',
                                         childrenBlocks = [
                                             PreviewArea.template('PreviewArea',
-                                                contents = pim_ns.allEventsCollection,
+                                                contents = pim_ns.allCollection,
                                                 calendarContainer = None,
                                                 timeCharacterStyle = \
                                                     CharacterStyle.update(parcel, 
