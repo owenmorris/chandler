@@ -443,8 +443,8 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             self.Draw(dc)
 
     def _getItem(self, event):
-        pos = min(len(self.currentDaysItems) - 1, 
-                  event.GetPosition().y / self.lineHeight)
+        pos = max(0, (event.GetPosition().y - self.vMargin) / self.lineHeight)
+        pos = min(len(self.currentDaysItems) - 1, pos)
         return self.currentDaysItems[pos]
 
     def OnDClick(self, event):
