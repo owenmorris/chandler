@@ -13,10 +13,11 @@ from osaf import messages
 from osaf.usercollections import UserCollection
 from osaf.framework.blocks import Block, BlockEvent, debugName, getProxiedItem
 from application import schema
+from chandlerdb.util.c import issingleref
 
 # hack workaround for bug 4747
-def FilterNone(list):
-    return [x for x in list if x is not None]
+def FilterGone(list):
+    return [x for x in list if not issingleref(x)]
 
 """
 Chandler-specific Blocks
@@ -53,7 +54,7 @@ class FocusEventHandlers(Item):
         if event is not None:
             selectedItems = event.arguments.get('items', None)
             if selectedItems is not None:
-                return FilterNone(selectedItems)
+                return FilterGone(selectedItems)
 
         # Otherwise, try to get it from this block's widget (which will probably 
         # provide it from ItemClipboardHandler)
@@ -61,12 +62,12 @@ class FocusEventHandlers(Item):
         if widget is not None:
             selectedItemsMethod = getattr(type(widget), "SelectedItems", None)
             if selectedItemsMethod is not None:
-                return FilterNone(selectedItemsMethod(widget))
+                return FilterGone(selectedItemsMethod(widget))
         
         # Failing that, we'll use the block ourself.
         selectedItemsMethod = getattr(type(self), "SelectedItems", None)
         if selectedItemsMethod is not None:
-            return FilterNone(selectedItemsMethod(self))
+            return FilterGone(selectedItemsMethod(self))
         
         # Give up and return an empty list
         return []
