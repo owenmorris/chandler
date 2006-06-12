@@ -1225,7 +1225,11 @@ class FilteredSet(Set):
             return item.itsUUID in index
 
         if self._sourceContains(item, self._source, excludeMutating):
-            return self.filter(self._view, item.itsUUID)
+            try:
+                return self.filter(self._view, item.itsUUID)
+            except Exception, e:
+                e.args = ("Error in filter", self.filterExpression) + e.args
+                raise
 
         return False
 
@@ -1233,15 +1237,23 @@ class FilteredSet(Set):
 
         view = self._view
         for uuid in self._iterSourceKeys(self._source):
-            if self.filter(view, uuid):
-                yield uuid
+            try:
+                if self.filter(view, uuid):
+                    yield uuid
+            except Exception, e:
+                e.args = ("Error in filter", self.filterExpression) + e.args
+                raise
 
     def _itervalues(self):
 
         view = self._view
         for item in self._iterSource(self._source):
-            if self.filter(view, item.itsUUID):
-                yield item
+            try:
+                if self.filter(view, item.itsUUID):
+                    yield item
+            except Exception, e:
+                e.args = ("Error in filter", self.filterExpression) + e.args
+                raise
 
     def _len(self):
 
@@ -1286,8 +1298,12 @@ class FilteredSet(Set):
         if op is not None:
             if change == 'collection':
                 if op != 'refresh':
-                    if not (op is None or self.filter(self._view, other)):
-                        op = None
+                    try:
+                        if not (op is None or self.filter(self._view, other)):
+                            op = None
+                    except Exception, e:
+                        e.args = ("Error in filter", self.filterExpression) + e.args
+                        raise
 
             if not (inner is True or op is None):
                 self._collectionChanged(op, change, other)
@@ -1297,7 +1313,11 @@ class FilteredSet(Set):
     def itemChanged(self, other, attribute):
 
         if self._sourceContains(other, self._source):
-            matched = self.filter(self._view, other)
+            try:
+                matched = self.filter(self._view, other)
+            except Exception, e:
+                e.args = ("Error in filter", self.filterExpression) + e.args
+                raise
 
             if self._indexes:
                 contains = other in self._indexes.itervalues().next()
