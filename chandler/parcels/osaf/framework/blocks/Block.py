@@ -332,7 +332,7 @@ class Block(schema.Item):
                 Keep list of blocks that are have event boundarys in the global list views.
                 """
                 if self.eventBoundary:
-                    self.pushView()
+                    self.rebuildDynamicBlocks()
 
                 method = getattr (type (widget), "Freeze", None)
                 if method:
@@ -798,13 +798,9 @@ class Block(schema.Item):
             if method is not None:
                 IgnoreSynchronizeWidget(True, method, widget, useHints)
 
-    def pushView (self):
+    def rebuildDynamicBlocks (self):
         """
-        Pushes a new view on to our list of views.
-
-        Currently, we're limited to a depth of four nested views
-
-        Globals.mainViewRoot.lastDynamicBlock: the last block synched
+        The MainViewRoot's lastDynamicBlock: the last block synched
         lastDynamicBlock: C{DynamicBlock}, or C{False} for no previous block,
         or C{True} for forced resync.
 
@@ -819,11 +815,12 @@ class Block(schema.Item):
             If it's not a child, we only need to sync if we had a different
             block last time.
             """
-            previous = Globals.mainViewRoot.lastDynamicBlock
+            mainViewRoot = Block.findBlockByName ('MainViewRoot')
+            previous = mainViewRoot.lastDynamicBlock
             if isChild:
-                Globals.mainViewRoot.lastDynamicBlock = block
+                mainViewRoot.lastDynamicBlock = block
             elif previous and previous is not block:
-                Globals.mainViewRoot.lastDynamicBlock = False
+                mainViewRoot.lastDynamicBlock = False
             else:
                 return
 

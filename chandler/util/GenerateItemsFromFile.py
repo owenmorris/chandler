@@ -53,7 +53,7 @@ DOMAIN_LIST = [u'flossrecycling.com', u'flossresearch.org', u'rosegardens.org',
 
 def GenerateCollection(view, args):
     """ Generate one Collection Item """
-    appNameSpace = schema.ns('osaf.app', self)
+    appNameSpace = schema.ns('osaf.app', view)
     collection = pim.SmartCollection(itsView=view)
     sidebarCollection = appNameSpace.sidebarCollection
 

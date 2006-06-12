@@ -234,7 +234,7 @@ class wxMainFrame (wxBlockFrameWindow):
         # these changes, since they weren't caused by user actions.
 
         app.ignoreSynchronizeWidget = True
-        Globals.mainViewRoot.frame = None
+
         self.Destroy()
 
 class wxApplication (wx.App):
@@ -364,8 +364,11 @@ class wxApplication (wx.App):
                                      pos=(mainViewRoot.position.x, mainViewRoot.position.y),
                                      size=(mainViewRoot.size.width, mainViewRoot.size.height),
                                      style=wx.DEFAULT_FRAME_STYLE)
- 
+
+        # mainViewRoot needs to refer to its frame and the mainFrame needs to
+        # refert to the mainViewRoot
         mainViewRoot.frame = self.mainFrame
+        self.mainFrame.mainViewRoot = mainViewRoot
 
         # Register to some global events for name lookup.
         if splash:
@@ -489,11 +492,10 @@ class wxApplication (wx.App):
                                           cloudAlias="copying")
             if frame is not None:
                 mainViewRoot.frame = frame
-        Globals.mainViewRoot = mainViewRoot
         return mainViewRoot
 
     def RenderMainView (self):
-        mainViewRoot = Globals.mainViewRoot
+        mainViewRoot = self.mainFrame.mainViewRoot
         mainViewRoot.lastDynamicBlock = False
         mainViewRoot.render()
 
@@ -510,7 +512,7 @@ class wxApplication (wx.App):
         sizer.Layout()
 
     def UnRenderMainView (self):
-        mainViewRoot = Globals.mainViewRoot.unRender()
+        mainViewRoot = self.mainFrame.mainViewRoot.unRender()
         if __debug__:
             from osaf.framework.blocks.Block import Block
             for value in self.UIRepositoryView._subscribers.itervalues():
@@ -678,7 +680,7 @@ class wxApplication (wx.App):
         # synchronize dirtied blocks to reflect changes to the data
         from osaf.framework.blocks.Block import Block
         # make the list first in case it gets tweaked during synchronizeWidget
-        dirtyBlocks = [Globals.mainViewRoot.findUUID(theUUID)
+        dirtyBlocks = [self.UIRepositoryView.findUUID(theUUID)
                        for theUUID in Block.dirtyBlocks]
 
         # synchronize affected widgets
@@ -927,7 +929,7 @@ class TransportWrapper (object):
         except AttributeError:
             return self.nonItem
         else:
-            item = Globals.mainViewRoot.findUUID (theUUID)
+            item = wx.GetApp().UIRepositoryView.findUUID (theUUID)
             return item
 
 class StartupSplash(wx.Frame):

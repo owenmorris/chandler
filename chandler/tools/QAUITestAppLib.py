@@ -722,7 +722,7 @@ class UITestItem(object):
         @type timeInfo: boolean
         """
         #turn off delete confirmation dialog for collection deletion
-        confimDialog=scripting.schema.ns("osaf.views.main",Globals.mainViewRoot).clearCollectionPref
+        confimDialog=scripting.schema.ns("osaf.views.main",wx.GetApp().UIRepositoryView).clearCollectionPref
         confimDialog.askNextTime = False
         confimDialog.response = True
         if self.isCollection:
@@ -1142,7 +1142,7 @@ class UITestItem(object):
         if not self.isCollection or collectionName == "Trash":
             if self.logger: self.logger.SetChecked(True)
             # for All, In, Out, Trash collection find by item rather than itemName
-            pim_ns = scripting.schema.ns('osaf.pim', Globals.mainViewRoot)
+            pim_ns = scripting.schema.ns('osaf.pim', wx.GetApp().UIRepositoryView)
             chandler_collections = {"All":   pim_ns.allCollection,
                                     "Out":   pim_ns.outCollection,
                                     "In":    pim_ns.inCollection,

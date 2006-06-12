@@ -85,7 +85,7 @@ class BranchPointBlock(BoxContainer):
         # eventually we might want selectedItem to be an iterable
         # of some kind
         items = event.arguments['items']
-        changeEvent = schema.ns(__parcel__, self).SelectedItemChanged
+        changeEvent = schema.ns(__parcel__, self.itsView).SelectedItemChanged
         if len(items)==1:
             if self.selectedItem != items[0]:
                 self.post(changeEvent, {'item' : items[0] })

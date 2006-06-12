@@ -94,7 +94,7 @@ class RootProxy(BlockProxy):
         if timing is not None:
             startTime = timing.start_timer()
         # post the event
-        result = Block.Block.post(event, argDict, Globals.mainViewRoot)
+        result = Block.Block.post(event, argDict)
         # finish timing
         if timing is not None:
             timing.end_timer(startTime, eventName)
@@ -110,11 +110,8 @@ class RootProxy(BlockProxy):
             # merge the named parameters, into the dictionary positional arg
             return self.post_script_event(attr, best, argDict, timing=self.timing, **keys)
         best = Block.Block.findBlockEventByName(attr)
-        if best is not None:
-            return scripted_blockEvent
-        else:
-            # delegate the lookup to our View
-            return getattr(Globals.mainViewRoot, attr)
+        assert best is not False, "Your attribute can't be resolved"
+        return scripted_blockEvent
 
 
 """

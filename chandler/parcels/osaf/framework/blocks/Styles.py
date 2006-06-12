@@ -153,7 +153,7 @@ def getMeasurements(font):
 class FontMeasurements(object):
     """ Measurements that we cache with each font """    
     def __init__(self, font):
-        aWidget = Globals.mainViewRoot.widget
+        aWidget = wx.GetApp().mainFrame
         dc = wx.ClientDC(aWidget)
         oldWidgetFont = aWidget.GetFont()
         try:

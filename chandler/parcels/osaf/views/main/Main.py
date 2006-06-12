@@ -603,7 +603,13 @@ class MainView(View):
 
         application.Parcel.Manager.get(self.itsView).loadParcels()
 
-        theApp.LoadMainViewRoot (delete=True)
+        mainViewRoot = theApp.LoadMainViewRoot (delete=True)
+
+        # mainViewRoot needs to refer to its frame and the mainFrame needs to
+        # refert to the mainViewRoot
+        mainViewRoot.frame = theApp.mainFrame
+        theApp.mainFrame.mainViewRoot = mainViewRoot
+
         theApp.RenderMainView ()
 
     def onReloadStylesEvent(self, event):
@@ -630,7 +636,7 @@ class MainView(View):
                 return kindLabel + item.itsName
             return str(item)
 
-        mainViewRoot = Globals.mainViewRoot
+        mainViewRoot = Block.findBlockByName ('MainViewRoot')
         traceData = {}
         mainViewRoot.getItemCloud(cloudAlias="copying", trace=traceData)
         cloud = mainViewRoot.getKind(mainViewRoot.itsView).getClouds("copying")[0]
