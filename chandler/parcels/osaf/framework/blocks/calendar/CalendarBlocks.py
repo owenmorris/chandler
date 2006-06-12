@@ -409,7 +409,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
             # on the Mac, borders around the minical and preview area look weird,
             # but we want one around our parent.  Modifying our parent is quite
             # a hack, but it works rather nicely.
-	    self.parentBlock.widget.SetWindowStyle(wx.BORDER_SIMPLE)
+            self.parentBlock.widget.SetWindowStyle(wx.BORDER_SIMPLE)
         return wxPreviewArea(self.parentBlock.widget, 
                              self.getWidgetID(),
                              timeCharStyle = self.timeCharacterStyle,

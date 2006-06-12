@@ -742,15 +742,20 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             
             newTime = datetime.combine(startDay.date(), now.time())
             newTime += timedelta(minutes=60)
-            newTime = newTime.replace(minute=roundTo(newTime.minute, 60))
+            newTime = newTime.replace(minute=roundTo(newTime.minute, 60),
+                                      second=0, microsecond=0)
 
             if self.blockItem.dayMode:
                 if newTime.date() != startDay.date():
                     # this could happen if the current time is, say 11:10PM
-                    datetime.combine(startDay.date(), newTime.time())
+                    newTime = datetime.combine(startDay.date(), newTime.time())
             else:
                 # move newTime to the appropriate day of the week
                 days = now.isoweekday() - startDay.isoweekday() % 7
+                if newTime.date() != startDay.date() and days == 6:
+                    # transition from one week to the next, move it backwards
+                    # rather than putting it out of view
+                    days -= 7                
                 newTime += timedelta(days)
                 
         newTime = newTime.replace(tzinfo=defaultTz)
