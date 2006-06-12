@@ -359,7 +359,7 @@ def installParcel(parcel, oldVersion=None):
 <p>The commitAfterDispatch attribute on BlockEvent guarantees that the Repository data will be saved after the event has been dispatched. The result of the call to update() is actually a reference to the object itself.</p>
 <p>We're storing the result of BlockEvent.update() in <code>newChannelEvent</code>. This variable will now reference the actual object, whether it was created or updated. We can use this variable later when we want to refer to the actual event object. </p>
 <p>Note that we haven't actually defined acontroller yet. We'll do that next. For now we'll just use a <code>print</code> statement to make sure everything has been hooked up correctly. Add the following code to <code>feeds/blocks.py</code>: </p>
-<pre class="code">from osaf.framework.blocks import Block
+<pre class="code">from osaf.framework.blocks.Block import Block
 
 class FeedController(Block):
     def onNewFeedChannelEvent(self, event):
