@@ -323,6 +323,9 @@ def initLogging(options):
 
         twistedlog = twisted.python.logfile.LogFile("twisted.log", twistedLogDir)
 
+         # By default, twisted.log doesn't include seconds in its dates,
+         # so tweak the format.
+        twisted.python.log.FileLogObserver.timeFormat = '%Y-%m-%d %H:%M:%S'
         twisted.python.log.startLogging(twistedlog, 0)
         logger.warning("Twisted logging output to %s folder" % twistedLogDir)
 
