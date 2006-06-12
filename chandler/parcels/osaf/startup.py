@@ -178,10 +178,12 @@ class TaskRunner(object):
     running = True
 
     def __init__(self, item):
-        self._cache[item.itsUUID] = self
+        self.uuid = item.itsUUID
+        self._cache[self.uuid] = self
         self.subject = item.getTarget()(item)
         self.interval = item.interval
         self.runlock = threading.Lock()
+        self.running = True
 
     def run_once(self):
         reactor.callInThread(self._run)
@@ -203,6 +205,8 @@ class TaskRunner(object):
         self.running = False
         if self.pending and self.pending.active():
             self.pending.cancel()
+        if TaskRunner._cache[self.uuid] is self:
+            del TaskRunner._cache[self.uuid]
 
     def reschedule(self, interval=None):
         if interval is None:
@@ -244,18 +248,16 @@ class PeriodicTask(TwistedTask):
         """
         Start our wrapper in the reactor thread
         """
-        run_at_startup = self.run_at_startup
+        run_at_startup = self.run_at_startup    # don't hold references to item
+        interval = self.interval
 
         def start_running(runner):
+            runner.reschedule(interval)
             if run_at_startup:
                 runner.run_once()
-            else:
-                runner.reschedule()
 
         run_reactor()
-        reactor.callFromThread(
-            lambda: start_running(TaskRunner(fork_item(self)))
-        )
+        self._with_runner(start_running)
 
     def run_once(self):
         """Request to run the task once, immediately"""

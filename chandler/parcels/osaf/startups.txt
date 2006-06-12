@@ -445,7 +445,6 @@ To demonstrate, we'll set the delay interval to a year::
     >>> counter.interval = timedelta(days=365)
     >>> run_count = 0   # reset the counter
     >>> run_startup(rv); wait_until(lambda: run_count)
-    __init__ running ... in <RepositoryThread(reactor,...)>
     run() call 1 running ... in <RepositoryThread(RepositoryPoolThread...)>
 
 Notice that call 1 ran, even though there's a year between runs.
@@ -473,10 +472,11 @@ provide an interval argument to ``reschedule()``, it defaults to the current
 
     >>> counter.stop()
     >>> counter.reschedule(); wait_until(lambda: run_count==6)
+    __init__ running ... in <RepositoryThread(reactor,...)>
     run() call 6 running ... in <RepositoryThread(RepositoryPoolThread...)>
 
 (Note that if you ``stop()`` your periodic task, the task object (e.g. the
-``Counter`` instance in our examples above) *may* be garbage collected by
+``Counter`` instance in our examples above) may be garbage collected by
 Python, if there are no longer any active references to it.  If this is the
 case, your next attempt to ``run_once()``, ``stop()``, or ``reschedule()`` the
 task will create a new instance, such that its ``__init__()`` method is called
@@ -485,6 +485,7 @@ again.)
 Anyway, if we turn the ``run_at_startup`` flag back off, it doesn't get a
 ``run()`` call at startup::
 
+    >>> counter.stop()
     >>> counter.interval = timedelta(days=365)
     >>> counter.run_at_startup = False
     >>> started = 0     # reset the counter
