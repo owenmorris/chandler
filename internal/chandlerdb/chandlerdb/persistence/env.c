@@ -252,7 +252,8 @@ static PyObject *t_env_open(t_env *self, PyObject *args)
         Py_END_ALLOW_THREADS;
 
 #ifdef WINDOWS
-        Py_DECREF(s);
+        if (db_home)
+            Py_DECREF(s);
 #endif
 
         if (err)
