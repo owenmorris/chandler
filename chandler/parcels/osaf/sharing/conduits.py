@@ -79,17 +79,15 @@ class InMemoryConduit(Sharing.ShareConduit):
 
         return etag
 
-    def _getItem(self, itemPath, into=None, changes=None, previousView=None,
-        updateCallback=None):
+    def _getItem(self, contentView, itemPath, into=None, updateCallback=None):
 
         view = self.itsView
         text = shareDict[self.shareName][itemPath][1]
         logger.debug("Getting text %s" % text)
 
         try:
-            item = self.share.format.importProcess(text,
-                item=into, changes=changes, previousView=previousView,
-                updateCallback=updateCallback)
+            item = self.share.format.importProcess(contentView, text,
+                item=into, updateCallback=updateCallback)
         except Exception, e:
             logging.exception(e)
             raise Sharing.TransformationFailed(_(u"Transformation error: see chandler.log for more information"))

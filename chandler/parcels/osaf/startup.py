@@ -185,14 +185,14 @@ class TaskRunner(object):
         self.runlock = threading.Lock()
         self.running = True
 
-    def run_once(self):
-        reactor.callInThread(self._run)
+    def run_once(self, *args, **kwds):
+        reactor.callInThread(self._run, *args, **kwds)
 
-    def _run(self):
+    def _run(self, *args, **kwds):
         """This should only be called from a pool thread"""
         self.runlock.acquire()
         try:
-            if self.subject.run():  # task can stop by returning false
+            if self.subject.run(*args, **kwds):  # task can stop by returning false
                 reactor.callFromThread(self.reschedule_if_running)
         finally:
             self.runlock.release()
@@ -259,9 +259,9 @@ class PeriodicTask(TwistedTask):
         run_reactor()
         self._with_runner(start_running)
 
-    def run_once(self):
+    def run_once(self, *args, **kwds):
         """Request to run the task once, immediately"""
-        self._with_runner(lambda r: r.run_once())
+        self._with_runner(lambda r: r.run_once(*args, **kwds))
 
     def stop(self):
         """Stop running the task until/unless reschedule() is called"""

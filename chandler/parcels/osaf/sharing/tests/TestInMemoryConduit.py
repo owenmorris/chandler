@@ -70,6 +70,7 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
             c.startTime=datetime.datetime(2005, 10, 31, 12, 0, 0, 0, tzinfo)
             c.duration=datetime.timedelta(minutes=60)
             c.anyTime=False
+            c.body = u"Here is the body"
             self.uuids[c.itsUUID] = c.displayName
             coll.add(c)
 
@@ -154,10 +155,20 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
         newStart = datetime.datetime(2005, 11, 1, 12, 0, 0, 0, tzinfo)
         item1 = view1.findUUID(uuid)
         item1.startTime = newStart
+        newBody = "I changed the body"
+        item1.body = newBody
 
+        view0.commit()
         sharing.sync(coll0)
+        view0.refresh()
+
+        view1.commit()
         sharing.sync(coll1)
+        view1.refresh()
+
+        view0.commit()
         sharing.sync(coll0)
+        view0.refresh()
 
         self.assertEqual(item0.displayName, uw("meeting rescheduled"),
          u"displayName is %s" % (item0.displayName))
@@ -168,6 +179,8 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
          u"startTime is %s" % (item0.startTime))
         self.assertEqual(item1.startTime, newStart,
          u"startTime is %s" % (item1.startTime))
+        self.assertEqual(item1.body, newBody,
+         u"body is %s" % (item1.body))
 
     def Remove(self):
 
@@ -188,11 +201,15 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
 
         coll0.remove(item0)
 
+        view0.commit()
         sharing.sync(coll0)
+        view0.refresh()
         time.sleep(1)
 
         self.assert_(item1 in coll1)
+        view1.commit()
         sharing.sync(coll1)
+        view1.refresh()
         self.assert_(item1 not in coll1)
 
 if __name__ == "__main__":

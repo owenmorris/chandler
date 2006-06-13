@@ -542,7 +542,13 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
         
     def _isStampable(self, item):
         # for now, any ContentItem is stampable. This may change if Mixin rules/policy change
-        return item.isItemOf(items.ContentItem.getKind(self.itsView))
+
+        # @@@MOR Until view merging supports kind changes (or until stamping
+        # is accomplished without kind changes), don't allow stamping or
+        # unstamping of shared items:
+
+        return (item.isItemOf(items.ContentItem.getKind(self.itsView)) and
+            (item.getSharedState() == items.ContentItem.UNSHARED))
 
 class MailMessageButtonBlock(DetailStampButton):
     """

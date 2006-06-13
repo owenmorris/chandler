@@ -8,7 +8,7 @@ __all__ = [
 
 import Sharing
 import application.Parcel
-from osaf.pim import ContentCollection, SmartCollection, CalendarEventMixin
+from osaf.pim import ContentCollection, SmartCollection, CalendarEventMixin, CalendarEvent
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet
 import osaf.pim.calendar.TimeZone as TimeZone
@@ -51,6 +51,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
     set all timezones to Pacific.
 
     """
+
     def populate(comp, item):
         """Populate the given vobject vevent with data from item."""
         
@@ -340,13 +341,9 @@ def makeNaiveteMatch(dt, tzinfo):
     return dt
 
 def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
-                     monolithic = True, changes=None, previousView=None,
-                     updateCallback=None):
+                     monolithic = True, updateCallback=None):
     """
     Take a string, create or update items from that stream.
-
-    The updating of items uses Sharing.importValue; changes, previousView and
-    updateCallback are all optional pass-throughs to this function.
 
     The filters argument is an optional sequence of attributes to not populate.
     
@@ -357,7 +354,6 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
     Return is a tuple (itemlist, calname).
 
     """
-    
     newItemParent = view.findPath("//userdata")
     
     eventKind = view.findPath(_calendarEventPath)
@@ -598,13 +594,23 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                         eventItem.removeRecurrence()
 
                     for attr, val in changesDict.iteritems():
-                        Sharing.importValue(eventItem, changes, attr,
-                            val, previousView, updateCallback,
-                            itemChangeCallback)
+
+                        # Only change a datetime if it's really different
+                        # from what the item already has:
+                        if type(val) is datetime.datetime and hasattr(eventItem,
+                            attr):
+                            oldValue = getattr(eventItem, attr)
+                            if (oldValue == val and
+                                oldValue.tzinfo == val.tzinfo):
+                                continue
+
+                        itemChangeCallback(eventItem, attr, val)
+
+
                     for (attr, val) in changeLast:
-                        Sharing.importValue(eventItem, changes, attr,
-                            val, previousView, updateCallback,
-                            itemChangeCallback)
+                        itemChangeCallback(eventItem, attr, val)
+
+
 
                 if DEBUG: logger.debug(u"Imported %s %s" % (eventItem.displayName,
                  eventItem.startTime))
@@ -620,6 +626,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                 
                 # finished creating the item
                 itemlist.append(eventItem)
+
 
             except Sharing.SharingError:
                 raise
@@ -742,8 +749,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
     def acceptsItem(self, item):
         return isinstance(item, (CalendarEventMixin, Sharing.Share))
 
-    def importProcess(self, text, extension=None, item=None, changes=None,
-                      previousView=None, updateCallback=None):
+    def importProcess(self, contentView, text, extension=None, item=None,
+                      updateCallback=None):
         # the item parameter is so that a share item can be passed in for us
         # to populate.
 
@@ -751,14 +758,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         # of events, etc.  Therefore, we want to actually populate the share's
         # 'contents':
 
-        view = self.itsView
+        view = contentView # Use the passed-in view for creating items
         filters = self.share.filterAttributes
         monolithic = self.fileStyle() == self.STYLE_SINGLE
         coerceTzinfo = getattr(self, 'coerceTzinfo', None)
 
         events, calname = itemsFromVObject(view, text, coerceTzinfo, filters,
-                                           monolithic, changes, previousView,
-                                           updateCallback)
+                                           monolithic, updateCallback)
 
         if monolithic:
             if calname is None:
@@ -844,8 +850,8 @@ class FreeBusyFileFormat(ICalendarFormat):
                               calname = self.itsParent.displayName)
         return cal.serialize().encode('utf-8')
 
-    def importProcess(self, text, extension=None, item=None, changes=None,
-                      previousView=None, updateCallback=None):
+    def importProcess(self, contentView, text, extension=None, item=None,
+                      updateCallback=None):
         # the item parameter is so that a share item can be passed in for us
         # to populate.
 
@@ -853,7 +859,7 @@ class FreeBusyFileFormat(ICalendarFormat):
         # of events, etc.  Therefore, we want to actually populate the share's
         # 'contents':
 
-        view = self.itsView
+        view = contentView # Use the passed-in view for creating items
 
         if item is None:
             item = SmartCollection(itsView=view)

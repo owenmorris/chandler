@@ -15,7 +15,7 @@ import application.Parcel
 
 import application.dialogs.Util
 from application.dialogs import ( AccountPreferences, PublishCollection,
-    SubscribeCollection, SyncProgress, RestoreShares
+    SubscribeCollection, SyncProgress, RestoreShares, autosyncprefs
 )
 
 from osaf import pim, sharing, messages, webserver, search
@@ -685,6 +685,28 @@ class MainView(View):
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 
+    def onAddSharingLogToSidebarEvent(self, event):
+        sidebar = Block.findBlockByName ("Sidebar").contents
+        log = schema.ns('osaf.sharing', self.itsView).activityLog
+        # if already present, just select it
+        if log in sidebar:
+            self.postEventByName('RequestSelectSidebarItem', {'item': log})
+        else:
+            schema.ns("osaf.app", self).sidebarCollection.add(log)
+
+        # go to the All application, so we can view the scripts
+        self.postEventByName ('ApplicationBarAll', { })
+
+    def onAddScriptsToSidebarEventUpdateUI(self, event):
+        sidebar = Block.findBlockByName ("Sidebar").contents
+        log = schema.ns('osaf.sharing', self.itsView).activityLog
+        if log in sidebar:
+            menuTitle = u'Show Sharing Activity'
+        else:
+            menuTitle = u'Add sharing sctivity log to Sidebar'
+        event.arguments ['Text'] = menuTitle
+        event.arguments ['Enable'] = True
+
     def onShowPyShellEvent(self, event):
         # Test menu item
         wx.GetApp().ShowPyShell(withFilling=False)
@@ -705,23 +727,19 @@ class MainView(View):
         for server in webserver.Server.iterItems(self.itsView):
             server.startup()
 
-    def onActivateBackgroundSyncingEventUpdateUI (self, event):
-        prefs = schema.ns('osaf.sharing', self.itsView).prefs
-        
-        try:
-            enabled = prefs.background_syncing
-        except AttributeError:
-            logger.exception('*********** Bug 5544\nprefs=%s\nprefs.itsView=%s', prefs, prefs.itsView)
-        else:
-            if enabled:
-                event.arguments['Text'] = _(u'Disable background syncing')
-            else:
-                event.arguments['Text'] = _(u'Enable background syncing')
+    def onBackgroundSyncAllEvent(self, event):
+        rv = self.itsView
+        sharing.scheduleNow(rv)
 
-    def onActivateBackgroundSyncingEvent(self, event):
-        prefs = schema.ns('osaf.sharing', self.itsView).prefs
-        prefs.background_syncing = not prefs.background_syncing
-        self.itsView.commit() # To make the change available to sharing thread
+    def onEditMyNameEvent(self, event):
+        rv = self.itsView
+        application.dialogs.Util.promptForItemValues(None, "Enter your name",
+            schema.ns('osaf.pim', rv).currentContact.item.contactName,
+            ( {'attr':'firstName', 'label':'First name' },
+              {'attr':'lastName', 'label':'Last name' } )
+        )
+        rv.commit()
+
 
     def onShowLogWindowEvent(self, event):
         # Test menu item
@@ -755,8 +773,10 @@ class MainView(View):
                 
             schema.ns("osaf.app", self).sidebarCollection.add(results)
 
+    def onSyncPrefsEvent(self, event):
+        autosyncprefs.Show(self.itsView)
+
     def onRestoreSharesEvent(self, event):
-        # Test menu item
         RestoreShares.Show(wx.GetApp().mainFrame, self.itsView)
 
     def onShareSidebarCollectionEvent(self, event):
@@ -899,13 +919,13 @@ class MainView(View):
             sharedByMe = sharing.isSharedByMe(share)
         event.arguments['Enable'] = collection is not None and sharing.isShared(collection) and sharedByMe
 
+
     def onSyncCollectionEvent (self, event):
-        # Triggered from "Test | Sync collection..."
-        self.itsView.commit() 
-        collection = self.getSidebarSelectedCollection ()
+        rv = self.itsView
+        collection = self.getSidebarSelectedCollection()
         if collection is not None:
-            SyncProgress.Show(wx.GetApp().mainFrame, rv=self.itsView,
-                collection=collection)
+            rv.commit()
+            sharing.scheduleNow(rv, collection=collection)
 
     def onSyncCollectionEventUpdateUI (self, event):
         """
@@ -925,6 +945,7 @@ class MainView(View):
             event.arguments['Enable'] = False
             menuTitle = _(u'Sync a collection')
         event.arguments ['Text'] = menuTitle
+
 
     def onCopyCollectionURLEvent(self, event):
         collection = self.getSidebarSelectedCollection()
@@ -1013,9 +1034,14 @@ class MainView(View):
 
         # find all the shared collections and sync them.
         if activeShares:
-            self.setStatusMessage (_(u"Synchronizing shared collections..."))
-            SyncProgress.Show(wx.GetApp().mainFrame, rv=self.itsView)
-            self.setStatusMessage (_(u"Shared collections synchronized"))
+            # Fire off a background syncAll:
+            view.commit() # To make the change available to sharing thread
+            sharing.scheduleNow(view)
+
+            # Old code:
+            # self.setStatusMessage (_(u"Synchronizing shared collections..."))
+            # SyncProgress.Show(wx.GetApp().mainFrame, rv=self.itsView)
+            # self.setStatusMessage (_(u"Shared collections synchronized"))
         else:
             if DAVReady:
                 self.setStatusMessage (_(u"No shared collections found"))

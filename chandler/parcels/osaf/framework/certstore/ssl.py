@@ -98,7 +98,10 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
     #     Need to expand API.
 
     if verify:
-        repositoryView.refresh()
+        # The main view is now being assigned to repositoryView, so no
+        # refresh or commit should be necessary.
+
+        # repositoryView.refresh()
         loadCertificatesToContext(repositoryView, ctx)
         
         # XXX TODO In some cases, for example when connecting directly
@@ -203,7 +206,9 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
                 # Check permanently trusted certificates
                 # XXX Why does this need to be commit()? refresh() does not
                 # XXX seem pick up changes made in main thread.
-                self.repositoryView.commit()
+                # Perhaps this should just use the main view (or the main
+                # view should be passed in) and not do any refresh or commit
+                # self.repositoryView.commit()
     
                 q = schema.ns('osaf.framework.certstore', 
                               self.repositoryView).sslTrustedSiteCertificatesQuery

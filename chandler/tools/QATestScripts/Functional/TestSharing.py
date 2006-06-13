@@ -62,7 +62,7 @@ try:
                                 filterClassName=filterClassName,
                                 modal=False)
         #Share button call
-        if not win.OnPublish(None):
+        if not win.PublishCollection(blocking=True):
             logger.ReportFailure("(On publish collection)")
         #Done button call
         win.OnPublishDone(None)

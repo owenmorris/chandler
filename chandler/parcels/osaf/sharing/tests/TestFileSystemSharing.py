@@ -153,12 +153,21 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         item1 = view1.findUUID(uuid)
         item1.startTime = newStart
 
+        view0.commit()
         sharing.sync(coll0)
+        view0.refresh()
+
         time.sleep(1)
+
+        view1.commit()
         sharing.sync(coll1)
+        view1.refresh()
+
         time.sleep(1)
+
+        view0.commit()
         sharing.sync(coll0)
-        time.sleep(1)
+        view0.refresh()
 
         self.assertEqual(item0.displayName, uw("meeting rescheduled"),
          "displayName is %s" % (item0.displayName.encode("utf8")))
@@ -189,11 +198,16 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
 
         coll0.remove(item0)
 
+        view0.commit()
         sharing.sync(coll0)
+        view0.refresh()
+
         time.sleep(1)
 
         self.assert_(item1 in coll1)
+        view1.commit()
         sharing.sync(coll1)
+        view1.refresh()
         self.assert_(item1 not in coll1)
 
 if __name__ == "__main__":

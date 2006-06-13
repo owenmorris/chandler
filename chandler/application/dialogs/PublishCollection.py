@@ -6,6 +6,7 @@ import logging
 import os, sys
 from application import schema, Globals
 from osaf import sharing
+from util import task, viewpool
 from i18n import OSAFMessageFactory as _
 import SyncProgress
 
@@ -84,7 +85,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         collName = sharing.getFilteredCollectionDisplayName(self.collection,
                                                             self.filterClasses)
-        
+
         self.currentAccount = schema.ns('osaf.sharing',
             self.view).currentWebDAVAccount.item
 
@@ -322,13 +323,12 @@ class PublishCollectionDialog(wx.Dialog):
             self._showUpdate(msg)
         if percent is not None:
             self.gauge.SetValue(percent)
-        wx.Yield()
-        return self.cancelPressed
 
     def OnPublish(self, evt):
-        # Publish the collection
+        self.PublishCollection(blocking=False)
 
-        self.cancelPressed = False
+    def PublishCollection(self, blocking=False):
+        # Publish the collection
 
         # Update the UI by disabling/hiding various panels, and swapping in a
         # new set of buttons
@@ -346,83 +346,128 @@ class PublishCollectionDialog(wx.Dialog):
         self._resize()
         wx.Yield()
 
+        attrsToExclude = self._getAttributeFilterState()
+        classesToInclude = self.filterClasses
+        accountIndex = self.accountsControl.GetSelection()
+        account = self.accountsControl.GetClientData(accountIndex)
+
+        class ShareTask(task.Task):
+
+            def __init__(task, view, account, collection):
+                super(ShareTask, task).__init__(view)
+                task.accountUUID = account.itsUUID
+                task.collectionUUID = collection.itsUUID
+
+            def error(task, err):
+                self._shareError(err)
+                self.done = True
+                self.success = False
+
+            def success(task, result):
+                self._finishedShare(result)
+                self.done = True
+                self.success = True
+
+            def _updateCallback(task, **kwds):
+                cancel = task.cancelRequested
+                task.callInMainThread(lambda _:self.updateCallback(**_), kwds)
+                return cancel
+
+            def run(task):
+                task.cancelRequested = False
+
+                account = task.view.find(task.accountUUID)
+                collection = task.view.find(task.collectionUUID)
+
+                msg = _(u"Publishing collection to server...")
+                task.callInMainThread(self._showStatus, msg)
+
+                if self.publishType == 'freebusy':
+                    displayName = u"%s FreeBusy" % account.username
+                elif self.collection is schema.ns('osaf.pim',
+                    self.view).allCollection:
+
+                    ext = _(u'items')
+                    if classesToInclude:
+                        classString = classesToInclude[0]
+                        if classString == "osaf.pim.tasks.TaskMixin":
+                            ext = _(u'tasks')
+                        elif classString == "osaf.pim.mail.MailMessageMixin":
+                            ext = _(u'mail')
+                        elif classString == \
+                            "osaf.pim.calendar.Calendar.CalendarEventMixin":
+                            ext = _(u'calendar')
+
+                    args = { 'username' : account.username, 'ext' : ext }
+
+                    displayName = u"%(username)s's %(ext)s" % args
+                else:
+                    displayName = self.collection.displayName
+
+                shares = sharing.publish(collection, account,
+                                         classesToInclude=classesToInclude,
+                                         attrsToExclude=attrsToExclude,
+                                         displayName=displayName,
+                                         publishType=self.publishType,
+                                         updateCallback=task._updateCallback)
+
+                shareUUIDs = [item.itsUUID for item in shares]
+                return shareUUIDs
+
+        # Run this in its own background thread
+        self.view.commit()
+        self.taskView = viewpool.getView(self.view.repository)
+        self.currentTask = ShareTask(self.taskView, account, self.collection)
+        self.done = False
+        self.currentTask.start(inOwnThread=True)
+
+        if blocking:
+            while not self.done:
+                wx.GetApp().Yield()
+            return self.success
+
+    def _shareError(self, e):
+
+        viewpool.releaseView(self.taskView)
+
+        # Display the error
+        self._hideUpdate()
+        logger.exception("Failed to publish collection")
         try:
+            #XXX: [i18n] Will need to capture and translate m2crypto and zanshin errors
+            self._showStatus(_(u"\nSharing error:\n%(error)s\n") % {'error': e})
+        except:
+            self._showStatus(_(u"\nSharing error:\n(Can't display error message;\nSee chandler.log for more details)\n"))
+        # self._showStatus("Exception:\n%s" % traceback.format_exc(10))
 
-            attrsToExclude = self._getAttributeFilterState()
-            classesToInclude = self.filterClasses
-            accountIndex = self.accountsControl.GetSelection()
-            account = self.accountsControl.GetClientData(accountIndex)
+        # Re-enable the main panel and switch back to the "Share" button
+        self.mainPanel.Enable(True)
+        self.buttonPanel.Hide()
+        self.mySizer.Detach(self.buttonPanel)
+        self.buttonPanel = self.resources.LoadPanel(self,
+                                                    "PublishButtonsPanel")
+        self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)
+        self.Bind(wx.EVT_BUTTON, self.OnPublish, id=wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
+        self._resize()
 
-            self._showStatus(_(u"Wait for Sharing URLs...\n"))
-            self._showStatus(_(u"Publishing collection to server..."))
-            
-            if self.publishType == 'freebusy':
-                displayName = u"%s FreeBusy" % account.username
-            elif self.collection is schema.ns('osaf.pim',
-                self.view).allCollection:
+        return False
 
-                ext = _(u'items')
-                if classesToInclude:
-                    classString = classesToInclude[0]
-                    if classString == "osaf.pim.tasks.TaskMixin":
-                        ext = _(u'tasks')
-                    elif classString == "osaf.pim.mail.MailMessageMixin":
-                        ext = _(u'mail')
-                    elif classString == \
-                        "osaf.pim.calendar.Calendar.CalendarEventMixin":
-                        ext = _(u'calendar')
+    def _finishedShare(self, shareUUIDs):
 
-                args = { 'username' : account.username, 'ext' : ext }
+        viewpool.releaseView(self.taskView)
 
-                displayName = u"%(username)s's %(ext)s" % args
-            else:
-                displayName = self.collection.displayName
+        # Pull in the changes from sharing view
+        self.view.refresh(lambda code, item, attr, val: val)
 
-            shares = sharing.publish(self.collection, account,
-                                     classesToInclude = classesToInclude,
-                                     attrsToExclude   = attrsToExclude,
-                                     displayName      = displayName,
-                                     publishType      = self.publishType,
-                                     updateCallback   = self.updateCallback)
-
-            self._showStatus(_(u" done.\n"))
-            self._hideUpdate()
-
-        except Exception, e:
-
-            # except (sharing.SharingError, zanshin.error.Error,
-            #         M2Crypto.SSL.Checker.WrongHost,
-            #         Utility.CertificateVerificationError,
-            #         twisted.internet.error.TimeoutError), e:
-
-            # Display the error
-            self._hideUpdate()
-            logger.exception("Failed to publish collection")
-            try:
-                #XXX: [i18n] Will need to capture and translate m2crypto and zanshin errors
-                self._showStatus(_(u"\nSharing error:\n%(error)s\n") % {'error': e})
-            except:
-                self._showStatus(_(u"\nSharing error:\n(Can't display error message;\nSee chandler.log for more details)\n"))
-            # self._showStatus("Exception:\n%s" % traceback.format_exc(10))
-
-            # Re-enable the main panel and switch back to the "Share" button
-            self.mainPanel.Enable(True)
-            self.buttonPanel.Hide()
-            self.mySizer.Detach(self.buttonPanel)
-            self.buttonPanel = self.resources.LoadPanel(self,
-                                                        "PublishButtonsPanel")
-            self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)
-            self.Bind(wx.EVT_BUTTON, self.OnPublish, id=wx.ID_OK)
-            self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
-            self._resize()
-
-            return False
+        self._showStatus(_(u" done.\n"))
+        self._hideUpdate()
 
         if self.publishType == 'freebusy':
             share = sharing.getFreeBusyShare(self.collection)
         else:
             share = sharing.getShare(self.collection)
-        
+
         urls = sharing.getUrls(share)
         if len(urls) == 1:
             self._showStatus(u"%s\n" % urls[0])
@@ -446,7 +491,7 @@ class PublishCollectionDialog(wx.Dialog):
         return True
 
     def OnStopPublish(self, evt):
-        self.cancelPressed = True
+        self.currentTask.cancelRequested = True
 
     def OnCancel(self, evt):
         if self.modal:
@@ -539,7 +584,7 @@ type_to_xrc_map = {'collection' :
                    ('PublishFreeBusy.xrc', _(u"Publish Free/Busy Information"))}
 
 def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None,
-                      publishType = 'collection', modal=True):
+                      publishType = 'collection', modal=False):
     filename, title = type_to_xrc_map[publishType]
     xrcFile = os.path.join(Globals.chandlerDirectory,
                            'application', 'dialogs', filename)

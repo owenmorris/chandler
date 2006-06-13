@@ -191,7 +191,7 @@ class ContentItem(schema.Item):
 
     schema.addClouds(
         sharing = schema.Cloud("displayName", body, createdOn, 'tags',
-                               "description"),
+                               "description", lastModifiedBy),
         copying = schema.Cloud()
     )
 

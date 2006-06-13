@@ -1,14 +1,13 @@
+
 import os, sys
 import logging
 import wx
 import wx.xrc
 from osaf import sharing
-import application.Globals as Globals
-import application.dialogs.Util
+from util import task, viewpool
+from application import schema, Globals
 from i18n import OSAFMessageFactory as _
-from application import schema
 from AccountInfoPrompt import PromptForNewAccountInfo
-from osaf.framework.blocks.Block import Block
 
 logger = logging.getLogger(__name__)
 
@@ -80,125 +79,145 @@ class SubscribeDialog(wx.Dialog):
             # @@@MOR: This is unicode unsafe:
             if len(msg) > MAX_UPDATE_MESSAGE_LENGTH:
                 msg = "%s..." % msg[:MAX_UPDATE_MESSAGE_LENGTH]
-            self.__showStatus(msg)
+            self._showStatus(msg)
         if percent is not None:
             self.gauge.SetValue(percent)
-        wx.Yield()
-        return self.cancelPressed
+
+    def _finishedShare(self, uuid):
+
+        viewpool.releaseView(self.taskView)
+
+        # Pull in the changes from sharing view
+        self.view.refresh(lambda code, item, attr, val: val)
+
+        collection = self.view[uuid]
+
+        # Put this collection into "My items" if not checked:
+        if not self.checkboxKeepOut.GetValue():
+            logger.info(_(u'Moving collection into My Items'))
+            schema.ns('osaf.pim', self.view).mine.addSource(collection)
+
+        schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
+
+        if self.modal:
+            self.EndModal(True)
+        self.Destroy()
+
+    def _shareError(self, err):
+
+        viewpool.releaseView(self.taskView)
+
+        self.subscribeButton.Enable(True)
+        self.gauge.SetValue(0)
+
+        if isinstance(err, sharing.NotAllowed):
+            self._showAccountInfo()
+        elif isinstance(err, sharing.NotFound):
+            self._showStatus(_(u"That collection was not found"))
+        elif isinstance(err, sharing.AlreadySubscribed):
+            self._showStatus(_(u"You are already subscribed"))
+        else:
+            logger.exception("Error during subscribe")
+            self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})
+
+        self.subscribing = False
+
 
     def OnSubscribe(self, evt):
+
         view = self.view
         url = self.textUrl.GetValue()
         url = url.strip()
         if url.startswith('webcal:'):
             url = 'http:' + url[7:]
 
-        try:
+        if self.accountPanel.IsShown():
+            username = self.textUsername.GetValue()
+            password = self.textPassword.GetValue()
+        else:
+            username = None
+            password = None
 
-            if self.accountPanel.IsShown():
-                username = self.textUsername.GetValue()
-                password = self.textPassword.GetValue()
-            else:
-                username = None
-                password = None
+        self.subscribeButton.Enable(False)
+        self.gauge.SetValue(0)
+        self.subscribing = True
+        self._showStatus(_(u"In progress..."))
+        wx.Yield()
 
-            self.subscribeButton.Enable(False)
-            self.gauge.SetValue(0)
-            self.subscribing = True
-            self.cancelPressed = False
-            self.__showStatus(_(u"In progress..."))
-            wx.Yield()
 
-            collection = sharing.subscribe(view, url,
-                accountInfoCallback=self.accountInfoCallback,
-                updateCallback=self.updateCallback,
-                username=username, password=password)
+        class ShareTask(task.Task):
 
-            if collection is None:
-                # user cancelled out of account dialog
-                self.subscribing = False
-                if self.modal:
-                    self.EndModal(True)
-                self.Destroy()
-                return
+            def __init__(task, view, url, username, password):
+                super(ShareTask, task).__init__(view)
+                task.url = url
+                task.username = username
+                task.password = password
 
-            # Keep this collection out of "My items" if checked:
-            if not self.checkboxKeepOut.GetValue():
-                logger.info(_(u'Moving collection out of My Items'))
-                schema.ns('osaf.pim', view).mine.addSource(collection)
+            def error(task, err):
+                self._shareError(err)
 
-            schema.ns("osaf.app", view).sidebarCollection.add (collection)
-            # Need to SelectFirstItem -- DJA
-            share = sharing.getShare(collection)
+            def success(task, result):
+                self._finishedShare(result)
 
-            if share.filterClasses and len(share.filterClasses) == 1:
-                parts = share.filterClasses[0].split (".")
-                className = parts.pop ()
-                module = __import__ ('.'.join(parts), globals(), locals(), ['__name__'])
-                filterClass = module.__dict__[className].getKind (view)
-            else:
-                filterClass = None
-            Block.findBlockByName ("Sidebar").setPreferredKind(filterClass)
+            def _updateCallback(task, **kwds):
+                cancel = task.cancelRequested
+                task.callInMainThread(lambda _:self.updateCallback(**_), kwds)
+                return cancel
 
-            if self.modal:
-                self.EndModal(True)
-            self.Destroy()
+            def run(task):
+                task.cancelRequested = False
 
-        except Exception, e:
-            self.subscribeButton.Enable(True)
-            self.gauge.SetValue(0)
+                collection = sharing.subscribe(task.view, task.url,
+                    updateCallback=task._updateCallback,
+                    username=task.username, password=task.password)
 
-            if isinstance(e, sharing.NotAllowed):
-                self.__showAccountInfo()
-            elif isinstance(e, sharing.NotFound):
-                self.__showStatus(_(u"That collection was not found"))
-            elif isinstance(e, sharing.AlreadySubscribed):
-                self.__showStatus(_(u"You are already subscribed"))
-            else:
-                logger.exception("Error during subscribe for %s" % url)
-                self.__showStatus(_(u"Sharing Error:\n%(error)s") % {'error': e})
+                return collection.itsUUID
 
-        self.subscribing = False
+        self.view.commit()
+        self.taskView = viewpool.getView(self.view.repository)
+        self.currentTask = ShareTask(self.taskView, url, username, password)
+        self.currentTask.start(inOwnThread=True)
+
 
 
     def OnTyping(self, evt):
-        self.__hideStatus()
-        self.__hideAccountInfo()
+        self._hideStatus()
+        self._hideAccountInfo()
 
-    def __showAccountInfo(self):
-        self.__hideStatus()
+    def _showAccountInfo(self):
+        self._hideStatus()
 
         if not self.accountPanel.IsShown():
             self.mySizer.Add(self.accountPanel, 0, wx.GROW, 5)
             self.accountPanel.Show()
             self.textUsername.SetFocus()
 
-        self.__resize()
+        self._resize()
 
-    def __hideAccountInfo(self):
+    def _hideAccountInfo(self):
 
         if self.accountPanel.IsShown():
             self.accountPanel.Hide()
             self.mySizer.Detach(self.accountPanel)
-            self.__resize()
+            self._resize()
 
-    def __showStatus(self, text):
-        self.__hideAccountInfo()
+    def _showStatus(self, text):
+        self._hideAccountInfo()
 
         if not self.statusPanel.IsShown():
             self.mySizer.Add(self.statusPanel, 0, wx.GROW, 5)
             self.statusPanel.Show()
 
         self.textStatus.SetLabel(text)
-        self.__resize()
+        self._resize()
 
-    def __hideStatus(self):
+    def _hideStatus(self):
         if self.statusPanel.IsShown():
             self.statusPanel.Hide()
             self.mySizer.Detach(self.statusPanel)
-            self.__resize()
+            self._resize()
 
-    def __resize(self):
+    def _resize(self):
         self.mySizer.Layout()
         self.mySizer.SetSizeHints(self)
         self.mySizer.Fit(self)
@@ -206,13 +225,13 @@ class SubscribeDialog(wx.Dialog):
 
     def OnCancel(self, evt):
         if self.subscribing:
-            self.cancelPressed = True
+            self.currentTask.cancelRequested = True
         else:
             if self.modal:
                 self.EndModal(False)
             self.Destroy()
 
-def Show(parent, view=None, url=None, modal=True):
+def Show(parent, view=None, url=None, modal=False):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SubscribeCollection_wdr.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
@@ -220,7 +239,7 @@ def Show(parent, view=None, url=None, modal=True):
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
     win = SubscribeDialog(parent, _(u"Subscribe to Shared Collection"),
-     resources=resources, view=view, url=url, modal=modal)
+                          resources=resources, view=view, url=url, modal=modal)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()

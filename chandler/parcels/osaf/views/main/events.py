@@ -35,6 +35,8 @@ def makeMainEvents(parcel):
     # Event to put "Scripts" in the Sidebar
     BlockEvent.template('AddScriptsToSidebar').install(parcel)
 
+    BlockEvent.template('AddSharingLogToSidebar').install(parcel)
+
     BlockEvent.template('BackupRepository').install(parcel)
 
     BlockEvent.template('CompactRepository').install(parcel)
@@ -97,7 +99,9 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('ActivateWebserver').install(parcel)
 
-    BlockEvent.template('ActivateBackgroundSyncing').install(parcel)
+    BlockEvent.template('BackgroundSyncAll').install(parcel)
+
+    BlockEvent.template('EditMyName').install(parcel)
 
     BlockEvent.template('CommitRepository').install(parcel)
 
@@ -158,6 +162,10 @@ def makeMainEvents(parcel):
     BlockEvent.template('LoadLoggingConfig').install(parcel)
 
     BlockEvent.template('SearchWindow').install(parcel)
+
+    BlockEvent.template('RestoreShares').install(parcel)
+
+    BlockEvent.template('SyncPrefs').install(parcel)
 
     BlockEvent.template('RestoreShares').install(parcel)
 

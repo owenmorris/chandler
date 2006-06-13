@@ -441,6 +441,16 @@ class wxApplication (wx.App):
         # Set focs so OnIdle won't trigger an unnecessary UpdateWindowUI the
         # first time through. -- DJA
         self.focus = wx.Window_FindFocus()
+
+
+        # Register sharing activity to be sent to the status bar
+        from osaf import sharing
+        setStatusMessage = Block.findBlockByName('StatusBar').setStatusMessage
+        def _setStatusMessageCallback(*args, **kwds):
+            if kwds.get('msg', None) is not None:
+                self.PostAsyncEvent(setStatusMessage, kwds['msg'])
+        sharing.register(_setStatusMessageCallback)
+
     
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 

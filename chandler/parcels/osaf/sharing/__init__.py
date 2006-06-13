@@ -14,9 +14,11 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 import logging, urlparse, datetime
+from PyICU import ICUtzinfo
 
-from application import schema, Utility
+from application import schema, Utility, dialogs
 from application.Parcel import Reference
+from application.Utility import getDesktopDir
 from osaf import pim
 from i18n import OSAFMessageFactory as _
 
@@ -26,14 +28,10 @@ import chandlerdb
 
 import zanshin, M2Crypto, twisted, re
 
-import wx          # For the dialogs, but perhaps this is better accomplished
-import application # via callbacks
-
 from Sharing import *
 from conduits import *
 from WebDAV import *
 from ICalendar import *
-from application.Utility import getDesktopDir
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +62,6 @@ PUBLISH_MONOLITHIC_ICS = True
 class SharingPreferences(schema.Item):
     import_dir = schema.One(schema.Text, defaultValue = getDesktopDir())
     import_as_new = schema.One(schema.Boolean, defaultValue = True)
-    background_syncing = schema.One(schema.Boolean, defaultValue = False)
 
 
 def installParcel(parcel, oldVersion=None):
@@ -73,17 +70,112 @@ def installParcel(parcel, oldVersion=None):
     Reference.update(parcel, 'currentWebDAVAccount')
 
     from osaf import startup
-    startup.PeriodicTask.update(parcel, "BackgroundSync",
-        invoke="osaf.sharing.BackgroundSyncTask",
-        run_at_startup=True,
-        interval=datetime.timedelta(seconds=30)
+    startup.PeriodicTask.update(parcel, "sharingTask",
+        invoke="osaf.sharing.BackgroundSyncHandler",
+        run_at_startup=False,
+        active=True,
+        interval=datetime.timedelta(minutes=60)
+    )
+    pim.ListCollection.update(parcel, "activityLog",
+        displayName="Sharing Activity"
     )
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class BackgroundSyncTask:
+PROCEED        = 1
+GRACEFUL_STOP  = 2
+IMMEDIATE_STOP = 3
+interrupt_flag = PROCEED
+
+IDLE           = 1
+RUNNING        = 2
+running_status = IDLE
+
+
+
+def setAutoSyncInterval(rv, minutes):
+    # If minutes is None, that means manual mode only, and we'll set the
+    # interval to a really big number until bug 5903 is fixed.
+
+    task = schema.ns('osaf.sharing', rv).sharingTask
+    if minutes is None:
+        interval = datetime.timedelta(days=365)
+    else:
+        interval = datetime.timedelta(minutes=minutes)
+    task.reschedule(interval)
+
+def getAutoSyncInterval(rv):
+    task = schema.ns('osaf.sharing', rv).sharingTask
+    interval = task.interval
+    if interval == datetime.timedelta(days=365):
+        return None
+    else:
+        return interval.days * 1440 + interval.seconds / 60
+
+def scheduleNow(rv, collection=None):
+    """ Initiate a sync right now, queuing up if one is running already """
+    task = schema.ns('osaf.sharing', rv).sharingTask
+    if collection is not None:
+        task.run_once(collection=collection.itsUUID)
+    else:
+        task.run_once()
+
+def interrupt(rv, graceful=True):
+    """ Stop sync operations; if graceful=True, then the Share being synced
+        at the moment is allowed to complete.  If graceful=False, stop the
+        current Share in the middle of whatever it's doing.
+    """
+    global interrupt_flag
+    if running_status == IDLE:
+        return
+
+    if graceful:
+        interrupt_flag = GRACEFUL_STOP # allow the current sync( ) to complete
+    else:
+        interrupt_flag = IMMEDIATE_STOP # interrupt current sync( )
+
+
+registeredCallbacks = { }
+
+def register(func, *args):
+    global registeredCallbacks
+    if func not in registeredCallbacks:
+        registeredCallbacks[func] = args
+
+def unregister(func):
+    global registeredCallbacks
+    try:
+        del registeredCallbacks[func]
+    except KeyError:
+        pass
+
+def _callCallbacks(**kwds):
+    for (func, args) in registeredCallbacks.items():
+        func(*args, **kwds)
+
+# An example callback which simply prints to stdout:
+# def printIt(*args, **kwds):
+#     print args, kwds
+# register(printIt)
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+def _setError(collection, message):
+    for share in getLinkedShares(collection.shares.first()):
+        share.error = message
+
+def _clearError(collection):
+    for share in getLinkedShares(collection.shares.first()):
+        if hasattr(share, 'error'):
+            del share.error
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+class BackgroundSyncHandler:
 
     def __init__(self, item):
+        global running_status
+
         repo = item.itsView.repository
         for view in repo.views:
             if view.name == 'BackgroundSync':
@@ -92,40 +184,89 @@ class BackgroundSyncTask:
             view = repo.createView('BackgroundSync')
 
         self.rv = view
-        self.busy = False
+        running_status = IDLE
 
-    def run(self):
+    def run(self, *args, **kwds):
+        global interrupt_flag, running_status
 
-        if self.busy:
+        # A callback to allow cancelling of a sync( )
+        def callback(msg=None, work=None, totalWork=None):
+            # print "in run.callback", msg, work, totalWork, interrupt_flag
+            kwds = {'msg':msg, 'work':work, 'totalWork':totalWork}
+            _callCallbacks(**kwds)
+            return interrupt_flag == IMMEDIATE_STOP
+
+        if running_status != IDLE:
+            # busy
             return True
 
+        stats = []
         try:
-            self.busy = True
+            running_status = RUNNING
+
 
             try:
                 self.rv.refresh(notify=False)
 
-                prefs = schema.ns('osaf.sharing', self.rv).prefs
-                enabled = prefs.background_syncing
-                if not enabled:
-                    return True
-
                 collections = []
-                for share in Sharing.Share.iterItems(self.rv):
-                    if(share.active and
-                        share.contents is not None and
-                        share.contents not in collections):
-                        collections.append(share.contents)
 
-                stats = []
+                if 'collection' in kwds:
+                    uuid = kwds['collection']
+                    collection = self.rv.findUUID(uuid)
+                    collections.append(collection)
+
+                else:
+                    for share in Sharing.Share.iterItems(self.rv):
+                        if(share.active and
+                            share.established and
+                            share.contents is not None and
+                            share.contents not in collections):
+                            collections.append(share.contents)
+
                 for collection in collections:
-                    stats.extend(sync(collection, background=True))
+
+                    if interrupt_flag != PROCEED: # interruption
+                        return True
+
+                    _callCallbacks(msg="Syncing collection '%s'" %
+                        collection.displayName)
+                    try:
+                        stats.extend(sync(collection))
+                        _clearError(collection)
+                    except Exception, e:
+                        # print "Exception", e
+                        logger.exception("Error syncing collection")
+                        if hasattr(e, 'message'): # Sharing error
+                            msg = e.message
+                        else:
+                            msg = str(e)
+                        _setError(collection, msg)
+                        stats.extend( { 'collection' : collection.itsUUID,
+                                        'error' : msg } )
+
 
             except Exception, e:
+                # print "Exception", e
                 logger.exception("Background sync error")
 
         finally:
-            self.busy = False
+            interrupt_flag = PROCEED
+            running_status = IDLE
+            _callCallbacks(msg='')
+
+            # Create the sync report event
+            log = schema.ns('osaf.sharing', self.rv).activityLog
+            reportEvent = pim.CalendarEvent(itsView=self.rv,
+                displayName="Sync",
+                startTime=datetime.datetime.now(ICUtzinfo.default),
+                duration=datetime.timedelta(minutes=60),
+                anyTime=False,
+                transparency='fyi',
+                body=str(stats)
+            )
+            log.add(reportEvent)
+
+            self.rv.commit()
 
         return True
 
@@ -138,12 +279,13 @@ class ProgressMonitor:
         self.updateCallback = callback
         self.workDone = 0
 
-    def callback(self, msg=None, work=None, totalWork=None):
+    def callback(self, **kwds):
 
+        totalWork = kwds.get('totalWork', None)
         if totalWork is not None:
             self.totalWork = totalWork
 
-        if work is True:
+        if kwds.get('work', None) is True:
             self.workDone += 1
             try:
                 percent = int(self.workDone * 100 / self.totalWork)
@@ -152,11 +294,13 @@ class ProgressMonitor:
         else:
             percent = None
 
-        return self.updateCallback(msg, percent)
+        msg = kwds.get('msg', None)
+
+        return self.updateCallback(msg=msg, percent=percent)
 
 
 
-def publish(collection, account, classesToInclude=None, 
+def publish(collection, account, classesToInclude=None,
             publishType = 'collection',
             attrsToExclude=None, displayName=None, updateCallback=None):
     """
@@ -270,10 +414,10 @@ def publish(collection, account, classesToInclude=None,
             # determine a share name
             existing = getExistingResources(account)
             displayName = displayName or collection.displayName
-                
+
             shareName = displayName
             alias = 'main'
-            
+
             # See if there are any non-ascii characters, if so, just use UUID
             try:
                 shareName.encode('ascii')
@@ -327,28 +471,27 @@ def publish(collection, account, classesToInclude=None,
                 if publishType == 'collection':
                     # Create a subcollection to contain the cloudXML versions of
                     # the shared items
-    
                     subShareName = u"%s/%s" % (shareName, SUBCOLLECTION)
-    
+
                     subShare = _newOutboundShare(view, collection,
                                                  classesToInclude=classesToInclude,
                                                  shareName=subShareName,
                                                  displayName=displayName,
                                                  account=account)
-    
+
                     if attrsToExclude:
                         subShare.filterAttributes = attrsToExclude
                     else:
                         subShare.filterAttributes = []
-    
+
                     for attr in CALDAVFILTER:
                         subShare.filterAttributes.append(attr)
-    
+
                     shares.append(subShare)
-    
+
                     if subShare.exists():
                         raise SharingError(_(u"Share already exists"))
-    
+
                     try:
                         subShare.create()
 
@@ -358,16 +501,19 @@ def publish(collection, account, classesToInclude=None,
                         # Since we're publishing twice as many resources:
                         if progressMonitor:
                             progressMonitor.totalWork *= 2
-        
+
                     except SharingError:
                         # We're not able to create the subcollection, so
                         # must be a vanilla CalDAV Server.  Continue on.
                         subShare.delete(True)
                         subShare = None
 
+                else:
+                    subShare = None
+
                 share.put(updateCallback=callback)
-                
-                # tickets after putting 
+
+                # tickets after putting
                 if supportsTickets:
                     if publishType == 'collection':
                         share.conduit.createTickets()
@@ -403,7 +549,7 @@ def publish(collection, account, classesToInclude=None,
 
                 share.create()
                 share.put(updateCallback=callback)
-                
+
                 if supportsTickets:
                     share.conduit.createTickets()
 
@@ -415,7 +561,7 @@ def publish(collection, account, classesToInclude=None,
                                              displayName=displayName,
                                              account=account)
                     shares.append(icsShare)
-                    icsShare.follows = share
+                    # icsShare.follows = share
                     icsShare.displayName = u"%s.ics" % displayName
                     icsShare.format = ICalendarFormat(itsParent=icsShare)
                     icsShare.mode = "put"
@@ -482,8 +628,7 @@ def unpublishFreeBusy(collection):
         deleteShare(share)
 
 
-def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
-              username=None, password=None):
+def subscribe(view, url, updateCallback=None, username=None, password=None):
 
     if updateCallback:
         progressMonitor = ProgressMonitor(0, updateCallback)
@@ -516,34 +661,19 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
     else:
         account = WebDAVAccount.findMatchingAccount(view, url)
 
-        # Allow the caller to override (and set) new username/password; helpful
-        # from a 'subscribe' dialog:
+        if account is None:
+            # Create a new account
+            account = WebDAVAccount(itsView=view)
+            account.displayName = url
+            account.host = host
+            account.path = parentPath
+            account.useSSL = useSSL
+            account.port = port
+
         if username is not None:
             account.username = username
         if password is not None:
             account.password = password
-
-
-        if account is None:
-            # Prompt user for account information then create an account
-
-            if accountInfoCallback:
-                # Prompt the user for username/password/description:
-                info = accountInfoCallback(host, path)
-                if info is not None:
-                    (description, username, password) = info
-                    account = WebDAVAccount(itsView=view)
-                    account.displayName = description
-                    account.host = host
-                    account.path = parentPath
-                    account.username = username
-                    account.password = password
-                    account.useSSL = useSSL
-                    account.port = port
-
-        # The user cancelled out of the dialog
-        if account is None:
-            return None
 
         # compute shareName relative to the account path:
         accountPathLen = len(account.path.strip(u"/"))
@@ -561,7 +691,11 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
         location = conduit.getLocation()
         for share in Share.iterItems(view):
             if share.getLocation() == location:
-                raise AlreadySubscribed(_(u"Already subscribed"))
+                if share.established:
+                    raise AlreadySubscribed(_(u"Already subscribed"))
+                else:
+                    share.delete(True)
+                    break
 
 
         # Shortcut: if it's a .ics file we're subscribing to, it's only
@@ -606,7 +740,7 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
             share.conduit = SimpleHTTPConduit(itsParent=share,
                                               host=host,
                                               port=port,
-                                              useSSL=useSSL,                                              
+                                              useSSL=useSSL,
                                               shareName=shareName,
                                               sharePath=parentPath,
                                               account=account)
@@ -648,10 +782,13 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
             resource.ticketId = ticket
 
         logger.debug('Examining %s ...', location)
-        exists = handle.blockUntil(resource.exists)
-        if not exists:
-            logger.debug("...doesn't exist")
-            raise NotFound(message="%s does not exist" % location)
+        try:
+            exists = handle.blockUntil(resource.exists)
+            if not exists:
+                logger.debug("...doesn't exist")
+                raise NotFound(message="%s does not exist" % location)
+        except zanshin.webdav.PermissionsError:
+            raise NotAllowed(_("You don't have permission"))
 
         isReadOnly = True
         shareMode = 'get'
@@ -850,97 +987,6 @@ def subscribe(view, url, accountInfoCallback=None, updateCallback=None,
 def unsubscribe(collection):
     for share in collection.shares:
         share.delete(recursive=True, cloudAlias='copying')
-
-
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-class Task(object):
-    """
-    Task class.
-
-    @ivar running: Whether or not this task is actually running
-    @type running: C{bool}
-    """
-
-    def __init__(self, repo):
-        super(Task, self).__init__()
-        self.view = repo.createView(name=repr(self))
-
-    def start(self, inOwnThread=False):
-        """
-        Launches an activity either in the twisted thread,
-        or in its own background thread.
-
-        @param inOwnThread: If C{True}, this activity runs in its
-           own thread. Otherwise, it is launched in the twisted
-           thread.
-        @type inOwnThread: bool
-        """
-
-        from twisted.internet import reactor
-        if inOwnThread:
-            fn = reactor.callInThread
-        else:
-            fn = reactor.callFromThread
-
-        fn(self.__threadStart)
-
-    def cancel(self):
-        # Note that _callInMainThread() should work from
-        # the main thread!
-        self._callInMainThread(self.error,
-                               SharingError(_(u"Cancelled by user")),
-                               done=True)
-        # XXX: [grant] Does self._error get called? Otherwise self.view
-        # will never get cancelled.
-
-    def __threadStart(self):
-        # Run from background thread
-        self.running = True
-
-        try:
-            self._run()
-        except Exception, e:
-            logger.exception("%s raised an error" % (self,))
-            self._error(e)
-
-    def _callInMainThread(self, f, arg, done=False):
-        if self.running:
-            def mainCallback(x):
-                if self.running:
-                    if done: self.running = False
-                    f(x)
-            wx.GetApp().PostAsyncEvent(mainCallback, arg)
-
-    def _run(self):
-        """Subclass hook; always called from the task's thread"""
-        pass
-
-    def _status(self, msg):
-        """
-        Subclasses can call this to ensure self.status() gets called in
-        the UI thread.
-        """
-
-        self._callInMainThread(self.status, msg)
-
-    def _completed(self, result):
-        """
-        Subclasses can call this to ensure self.completed() gets called in
-        the UI thread.
-        """
-        self.view.commit()
-        self._callInMainThread(self.completed, result, done=True)
-
-    def _error(self, failure):
-        """
-        Subclasses can call this to ensure self.error() gets called in
-        the UI thread
-        """
-        self.view.cancel()
-        self._callInMainThread(self.error, failure, done=True)
-
-    error = completed = status = lambda self, arg : None
 
 
 
@@ -1336,10 +1382,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             msg += _(u" - SMTP (outbound email)\n")
         msg += _(u"\nWould you like to enter account information now?")
 
-        app = wx.GetApp()
-        response = application.dialogs.Util.yesNo(app.mainFrame,
-                                                  _(u"Account set up"),
-                                                  msg)
+        response = dialogs.Util.yesNo(None, _(u"Account set up"), msg)
         if response == False:
             return False
 
@@ -1351,9 +1394,8 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
         else:
             account = schema.ns('osaf.sharing', view).currentWebDAVAccount.item
 
-        response = \
-          application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(
-          app.mainFrame, account=account, rv=view)
+        response = dialogs.AccountPreferences.ShowAccountPreferencesDialog(
+            None, account=account, rv=view)
 
         if response == False:
             return False

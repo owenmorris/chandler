@@ -423,6 +423,7 @@ class CalendarEventMixin(RemindableMixin):
 
     def __init__(self, *args, **kw):
         super(CalendarEventMixin, self).__init__(*args, **kw)
+        import traceback
         self.occurrenceFor = self
         if not kw.has_key('icalUID'):
             self.icalUID = unicode(self.itsUUID)
@@ -1433,9 +1434,16 @@ class CalendarEventMixin(RemindableMixin):
         rruleset = master.rruleset
         if rruleset is not None:
             masterHadModification = False
-            for event in master.occurrences:                
+            for event in master.occurrences:
+
                 if event.recurrenceID != master.startTime:
+                    # Since we're possibly doing delayed deleting (if we're
+                    # in the background sharing mode) let's remove the events
+                    # from occurrences:
+                    master.occurrences.remove(event)
+
                     event.delete()
+
                 elif event != master:
                     # A THIS modification to master, make it the new master
                     self.moveCollections(master, event)
@@ -1447,7 +1455,7 @@ class CalendarEventMixin(RemindableMixin):
                     # sharing crazy, so change icalUID of master
                     event.icalUID = unicode(event.itsUUID)
                     masterHadModification = True
-            
+
             rruleset._ignoreValueChanges = True
             rruleset.delete()
             
@@ -1456,6 +1464,7 @@ class CalendarEventMixin(RemindableMixin):
             else:
                 del master.recurrenceID
                 master.occurrenceFor = master
+
         
                    
     def isCustomRule(self):

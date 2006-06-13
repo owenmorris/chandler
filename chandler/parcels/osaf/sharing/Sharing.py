@@ -6,7 +6,6 @@ import time, urlparse, os, base64, logging, datetime
 from elementtree.ElementTree import ElementTree
 from application import schema
 from osaf import pim, messages, ChandlerException
-import application.dialogs.AccountInfoPrompt as AccountInfoPrompt
 from i18n import OSAFMessageFactory as _
 import osaf.mail.utils as utils
 
@@ -39,13 +38,18 @@ __all__ = [
     'Share',
     'ShareConduit',
     'SharingError',
+    'SharingNotification',
+    'SharingNewItemNotification',
+    'SharingChangeNotification',
+    'SharingConflictNotification',
     'SimpleHTTPConduit',
     'TransformationFailed',
     'WebDAVAccount',
     'WebDAVConduit',
     'changedAttributes',
-    'importValue',
+    'getLinkedShares',
     'isShared',
+    'localChanges',
     'splitUrl',
     'sync',
 ]
@@ -56,17 +60,12 @@ CLOUD_XML_VERSION = '2'
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-USE_VIEW_MERGING = False
 
-def sync(collectionOrShares, modeOverride=None, updateCallback=None,
-         background=False):
-
-    view_merging = USE_VIEW_MERGING # Currently set only by view-merging test
-
-    if background:
-        view_merging = True
+def sync(collectionOrShares, modeOverride=None, updateCallback=None):
 
     def mergeFunction(code, item, attribute, value):
+        # 'value' is the one from the *this* view
+        # getattr(item, attribute) is the value from a different view
 
         logger.debug("Sharing conflict on item %(item)s, attribute "
             "%(attribute)s: %(local)s vs %(remote)s", {
@@ -88,140 +87,76 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
             items=[item])
         """
 
-        if updateCallback:
-            updateCallback(
-                msg=_(u"Conflict for item '%(name)s' "
-                "attribute: %(attribute)s '%(local)s' vs '%(remote)s'") %
-                (
-                    {
-                       'name' : item.getItemDisplayName(),
-                       'attribute' : attribute,
-                       'local' : unicode(value),
-                       'remote' : unicode(getattr(item, attribute))
-                    }
-                )
-            )
+        # if updateCallback:
+        #     updateCallback(
+        #         msg=_(u"Conflict for item '%(name)s' "
+        #         "attribute: %(attribute)s '%(local)s' vs '%(remote)s'") %
+        #         (
+        #             {
+        #                'name' : item.getItemDisplayName(),
+        #                'attribute' : attribute,
+        #                'local' : unicode(value),
+        #                'remote' : unicode(getattr(item, attribute))
+        #             }
+        #         )
+        #     )
 
         LOCAL_CHANGES_WIN = False
         if LOCAL_CHANGES_WIN:
-            return getattr(item, attribute)
+            return getattr(item, attribute) # Change from *other* views
         else:
-            return value
+            return value                    # Change from *this* view
+
 
 
     if isinstance(collectionOrShares, list):
         # a list of Shares
         shares = collectionOrShares
-        view = shares[0].itsView
-        getMarker = shares[0].conduit.getMarker
-        putMarker = shares[0].conduit.putMarker
-        manifestMarker = shares[0].conduit.manifestMarker
+        metaView = shares[0].itsView
+        itemsMarker = shares[0].conduit.itemsMarker
 
     elif isinstance(collectionOrShares, Share):
         # just one Share
         shares = [collectionOrShares]
-        view = collectionOrShares.itsView
-        getMarker = collectionOrShares.conduit.getMarker
-        putMarker = collectionOrShares.conduit.putMarker
-        manifestMarker = collectionOrShares.conduit.manifestMarker
+        metaView = collectionOrShares.itsView
+        itemsMarker = collectionOrShares.conduit.itemsMarker
 
     else:
         # just a collection
         shares = getLinkedShares(collectionOrShares.shares.first())
-        view = collectionOrShares.itsView
-        getMarker = shares[0].conduit.getMarker
-        putMarker = shares[0].conduit.putMarker
-        manifestMarker = shares[0].conduit.manifestMarker
-
-    # Make main view changes available for sharing
-    if not background:
-        if updateCallback:
-            updateCallback(msg=_(u"Saving changes..."))
-        view.commit()
+        metaView = collectionOrShares.itsView
+        itemsMarker = shares[0].conduit.itemsMarker
 
     stats = []
 
+    # Don't commit if we're using a OneTimeShare
+    commit = not isinstance(shares[0], OneTimeShare)
 
-    # previousView will be used by importValue() to look back in time to see
-    # if changes we've received from the server are really new or whether they
-    # are attributes along for the ride when importing a modified resource.
-    previousView = None
+    established = shares[0].established
+    if established:
+        # If established, we'll use our special 'Sharing' view, rolling it back
+        # in history to the way it was at last sync, just after the commit()
+        # that followed the previous GET
 
-    if view_merging:
-
-        if updateCallback:
-            updateCallback(msg=_(u"Using view merging"))
-
-        # Get us to the repository view that contains the state of things
-        # just after the commit() that followed the previous GET
-
-        syncVersion = getMarker.getVersion()
-
-        for existingView in view.repository.views:
+        for existingView in metaView.repository.views:
             if existingView.name == 'Sharing':
-                sharingView = existingView
-                sharingView.itsVersion = syncVersion
+                contentView = existingView
                 logger.debug("Using existing sharing view")
                 break
         else:
-            sharingView = view.repository.createView("Sharing", syncVersion)
+            contentView = metaView.repository.createView("Sharing")
             logger.debug("Created new sharing view")
 
-        logger.debug("Sharing view version: %d" % syncVersion)
+        syncVersion = itemsMarker.getVersion()
+        logger.debug("(Established) Setting version to %d", syncVersion)
 
-        workingShares = []
-        for share in shares:
-            workingShares.append(sharingView.findUUID(share.itsUUID))
+        contentView.refresh(lambda code, item, attr, val: val,
+            version=syncVersion, notify=False)
 
-
-        # If needed, grab the manifest as it was after its last change, and
-        # copy the manifest into the share item which has been rolled back
-        # to the getMarker's version
-
-        manifestVersion = manifestMarker.getVersion()
-
-        if manifestVersion != syncVersion:
-            for existingView in view.repository.views:
-                if existingView.name == 'Manifest':
-                    manifestView = existingView
-                    manifestView.itsVersion = manifestVersion
-                    logger.debug("Using existing manifest view")
-                    break
-            else:
-                manifestView = view.repository.createView("Manifest",
-                    manifestVersion)
-                logger.debug("Created new manifest view")
-
-            logger.debug("Manifest view version: %d" % manifestVersion)
-
-            for share in workingShares:
-                manifestShare = manifestView.findUUID(share.itsUUID)
-                share.conduit.manifest = manifestShare.conduit.manifest.copy()
-
+        contentView.deferDelete()
 
     else:
-        # Not using view merging, but we have another form of merging, via
-        # the importValue( ) method.
-
-        sharingView = view
-        workingShares = shares
-
-        syncVersion = getMarker.getVersion()
-
-        # Here we get a view as things were the last time we synced, so that
-        # importValue( ) can determine whether imported changes are real;
-        # We either create a new view or use our existing one, and set its
-        # version back in time.
-
-        for existingView in view.repository.views:
-            if existingView.name == 'Sharing':
-                previousView = existingView
-
-        if previousView is None:
-            previousView = view.repository.createView("Sharing", syncVersion)
-        else:
-            previousView.itsVersion = syncVersion
-
+        contentView = metaView
 
     try:
 
@@ -231,22 +166,26 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
             # remote changes locally
             contents = None
             filterClasses = None
-            for share in workingShares:
+            for share in shares:
                 if share.active and share.mode in ('get', 'both'):
+                    cvShare = contentView[share.itsUUID]
                     if contents:
                         # If there are multiple shares involved, we take the
                         # resulting contents from the first Share and hand that
                         # to the remaining Shares:
-                        share.contents = contents
+                        cvShare.contents = contents
                     if filterClasses is not None:
                         # like 'contents' above, the filterClasses of a master
                         # share needs to be replicated to the slaves:
-                        share.filterClasses = filterClasses
-                    stat = share.conduit._get(previousView=previousView,
+                        cvShare.filterClasses = filterClasses
+                    stat = share.conduit._get(contentView,
                         updateCallback=updateCallback)
                     stats.append(stat)
-                    contents = share.contents
-                    filterClasses = share.filterClasses
+
+                    # Need to get contents/filterClasses that could have
+                    # changed in the contentView:
+                    contents = cvShare.contents
+                    filterClasses = cvShare.filterClasses
 
             # Bug 4564 -- half baked calendar events (those with .xml resources
             # but not .ics resources)
@@ -260,9 +199,10 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
             #
             halfBakedEvents = []
             for stat in stats:
-                share = sharingView.findUUID(stat['share'])
+                # Get share from metadata view
+                share = metaView.findUUID(stat['share'])
                 for uuid in stat['added']:
-                    item = sharingView.findUUID(uuid)
+                    item = contentView.findUUID(uuid)
                     if isinstance(item, pim.CalendarEventMixin):
                         if not hasattr(item, 'startTime'):
                             if updateCallback:
@@ -274,70 +214,117 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
                             # of the collection:
                             itemPath = share.conduit._getItemPath(item)
                             share.conduit._addToManifest(itemPath, None)
-
-                            # There is another bug we're working around,
-                            # bug 4578, which requires I move the event to
-                            # the trash before deleting it:
-                            if hasattr(share.contents, 'trash'):
-                                share.contents.trash.add(item)
-
                             item.delete(True)
 
-        for share in workingShares:
-            share.conduit.getMarker.setDirty(Item.NDIRTY)
-            share.conduit.manifestMarker.setDirty(Item.NDIRTY)
+        for share in shares:
+            cvShare = contentView[share.itsUUID]
+            cvShare.conduit.itemsMarker.setDirty(Item.NDIRTY)
 
-        # Pull in local changes from other views, and commit
-        if view_merging and updateCallback:
-            updateCallback(msg=_(u"Merging local changes..."))
-        sharingView.commit(mergeFunction)
+        # Remember the version of the itemsMarker -- it marks the starting
+        # point at which to look for changes in the repository history
+        # during the upcoming PUT phase
+        putStartingVersion = cvShare.conduit.itemsMarker.itsVersion
+
+
+        # Here's what we're working around here with
+        # modifiedRecurringEvents:
+        #
+        # 1. client subscribes to a calendar with a recurring event e.
+        #    At sync time, e.occurrences = [e].
+        #
+        # 2. The client displays that calendar in the UI, so a bunch
+        #    of occurrences get added.
+        #
+        # 3. The client syncs, and there's a change in e's rruleset.
+        #    We throw out the old (i.e. delayed delete) and make a new
+        #    one.
+        #
+        # 4. When we merge repository views, e's occurrences will have
+        #    e, and all the occurrences added in step 2. However, those
+        #    events have an rruleset that's about to be deleted (i.e.
+        #    become None, that's the defaultValue of rruleset).
+        #
+        # So, we go through the changed recurring events after refreshing
+        # the view, and make sure their occurrences don't have an isDeferred
+        # rruleset. [grant 2006/05/05].
+        #
+        modifiedRecurringEvents = []
+        for stat in stats:
+            for uuid in stat['modified']:
+                item = contentView.findUUID(uuid)
+                if (isinstance(item, pim.CalendarEventMixin) and
+                    item.rruleset is not None):
+                    modifiedRecurringEvents.append(item)
+
+        if modifiedRecurringEvents:
+            # Refresh so that we can mess up all the occurrences
+            # reflists by adding all the occurrences generated by
+            # the UI
+            contentView.refresh(mergeFunction)
+
+            for event in modifiedRecurringEvents:
+                # We really want to patch up master events here,
+                # since they're the ones that own occurrences.
+                # Syncing may cause an event that was a master to
+                # become a modification, which means we should
+                # call getMaster() here and not earlier when
+                # calculating modifiedRecurringEvents.
+                event = event.getMaster()
+                occurrences = getattr(event, 'occurrences', None)
+
+                if occurrences is not None:
+                    event.occurrences = [x for x in occurrences
+                                            if x.rruleset is not None and
+                                            not x.rruleset.isDeferred()]
+
+
+
+        # Pull in local changes from other views, and commit.  However, in
+        # the case of a first-time publish we skip this commit because we
+        # don't want other views to see the Share item(s) if the put phase
+        # results in an error.
+        if commit and not (not established and modeOverride == 'put'):
+
+            if updateCallback:
+                updateCallback(msg=_(u"Saving..."))
+
+            contentView.commit(mergeFunction)
+
+
+
+        # The version just before the current version marks the ending
+        # point to look for changes in the repository history during
+        # the upcoming PUT phase
+        putEndingVersion = cvShare.conduit.itemsMarker.itsVersion - 1
 
         if not modeOverride or modeOverride == 'put':
 
             # perform the 'put' operations of all associated shares, putting
             # local changes to server
-            for share in workingShares:
+            for share in shares:
                 if share.active and share.mode in ('put', 'both'):
-                    stat = share.conduit._put(updateCallback=updateCallback)
+                    stat = share.conduit._put(contentView,
+                                              putStartingVersion,
+                                              putEndingVersion,
+                                              updateCallback=updateCallback)
+
                     stats.append(stat)
 
-        for share in workingShares:
-            share.conduit.putMarker.setDirty(Item.NDIRTY)
-            share.conduit.manifestMarker.setDirty(Item.NDIRTY)
+        for share in shares:
+            share.established = True
 
-        if updateCallback:
-            updateCallback(msg=_(u"Saving changes..."))
-
-        if view_merging:
-            # Record the post-PUT manifest
-            sharingView.commit()
-            # Pull remote changes into main view
-            if not background:
-                view.refresh()
-        else:
-            # Demarcate the end of sync (bumps up the manifestMarker version)
-            view.commit()
+        # Record the post-PUT manifest
+        if commit:
+            contentView.commit(mergeFunction)
+            metaView.commit(mergeFunction)
 
     except Exception, e:
         logger.exception("Sharing Error: %s" % e)
-
-        sharingView.cancel()
-
-        if view_merging:
-            sharingView.clear()
-
-        for share in shares:
-            if hasattr(e, 'message'): # Sharing Error
-                share.error = e.message
-            else:
-                share.error = str(e)
         raise
 
-    for share in shares:
-        if hasattr(share, 'error'):
-            del share.error
-
     return stats
+
+
 
 def getLinkedShares(share):
 
@@ -392,6 +379,13 @@ class Share(pim.ContentItem):
         doc = "This attribute indicates whether this share should be synced "
               "during a 'sync all' operation.",
         initialValue = True,
+    )
+
+    established = schema.One(
+        schema.Boolean,
+        doc = "This attribute indicates whether the share has been "
+              "successfully subscribed/published at least once.",
+        initialValue = False,
     )
 
     mode = schema.One(
@@ -551,9 +545,7 @@ class ShareConduit(pim.ContentItem):
 
     def __init__(self, *args, **kw):
         super(ShareConduit, self).__init__(*args, **kw)
-        self.getMarker = Item('getMarker', self, None)
-        self.putMarker = Item('putMarker', self, None)
-        self.manifestMarker = Item('manifestMarker', self, None)
+        self.itemsMarker = Item('itemsMarker', self, None)
 
     schema.kindInfo(displayName = u"Share Conduit Kind")
 
@@ -576,14 +568,13 @@ class ShareConduit(pim.ContentItem):
         initialValue = {}
     )
 
-    getMarker = schema.One(schema.SingleRef)
-    putMarker = schema.One(schema.SingleRef)
-    manifestMarker = schema.One(schema.SingleRef)
+    itemsMarker = schema.One(schema.SingleRef)
 
 
 
 
-    def _conditionalPutItem(self, item, changes, updateCallback=None):
+    def _conditionalPutItem(self, contentView, item, changes,
+        updateCallback=None):
         """
         Put an item if it's not on the server or is out of date
         """
@@ -595,9 +586,9 @@ class ShareConduit(pim.ContentItem):
         # Assumes that self.resourceList has been populated:
         externalItemExists = self._externalItemExists(item)
 
-        logger.debug("Examining for put: %s, version=%d",
-            item.getItemDisplayName().encode('utf8', 'replace'),
-            item.getVersion())
+        # logger.debug("Examining for put: %s, version=%d",
+        #     item.getItemDisplayName().encode('utf8', 'replace'),
+        #     item.getVersion())
 
         if not externalItemExists:
             result = 'added'
@@ -624,11 +615,15 @@ class ShareConduit(pim.ContentItem):
         if needsUpdate:
             logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
              (item.getItemDisplayName().encode('utf8', 'replace'), item.itsUUID,
-              item.getVersion(), self.getMarker.getVersion(), externalItemExists))
+              item.getVersion(), self.itemsMarker.getVersion(), externalItemExists))
 
             if updateCallback and updateCallback(msg="'%s'" %
                 item.getItemDisplayName()):
                 raise SharingError(_(u"Cancelled by user"))
+
+            # @@@MOR Disabling this for now
+            # me = schema.ns('osaf.pim', item.itsView).currentContact.item
+            # item.lastModifiedBy = me
 
             data = self._putItem(item)
 
@@ -637,7 +632,8 @@ class ShareConduit(pim.ContentItem):
                 logger.info("...done, data: %s, version: %d" %
                  (data, item.getVersion()))
 
-                self.share.items.append(item)
+                cvSelf = contentView[self.itsUUID]
+                cvSelf.share.items.append(item)
             else:
                 return 'skipped'
 
@@ -651,12 +647,13 @@ class ShareConduit(pim.ContentItem):
 
 
 
-    def _put(self, updateCallback=None):
+    def _put(self, contentView, startVersion, endVersion, updateCallback=None):
         """
         Transfer entire 'contents', transformed, to server.
         """
 
         view = self.itsView
+        cvSelf = contentView[self.itsUUID]
 
         location = self.getLocation()
         logger.info("Starting PUT of %s" % (location))
@@ -709,18 +706,11 @@ class ShareConduit(pim.ContentItem):
                         logger.debug('Removing an unparsable resource from the resourceList: %(path)s' % { 'path' : path })
                         del self.resourceList[path]
 
-            # Build the list of local changes by comparing change history
-            # between the time we last PUT and the commit that happened
-            # *just before* the last time we incorporated changes from other
-            # views.  Therefore, we don't include previous changes from the
-            # server.
-            prevPutVersion = self.putMarker.getVersion()
-            prevLocalVersion = self.manifestMarker.getVersion() - 1
-            changes = localChanges(view, prevPutVersion, prevLocalVersion)
+            changes = localChanges(contentView, startVersion, endVersion)
 
             # If we're sharing a collection, put the collection's items
             # individually:
-            if isinstance(self.share.contents, pim.ContentCollection):
+            if isinstance(cvSelf.share.contents, pim.ContentCollection):
 
                 #
                 # Remove any resources from the server that aren't in
@@ -738,11 +728,11 @@ class ShareConduit(pim.ContentItem):
                     if path in self.resourceList:
                         uuid = record['uuid']
                         if uuid:
-                            item = view.findUUID(uuid)
+                            item = contentView.findUUID(uuid)
 
-                            if item is not self.share and (
+                            if item is not cvSelf.share and (
                                 item is None or
-                                item not in self.share.contents or (
+                                item not in cvSelf.share.contents or (
                                     filterClasses and
                                     not isinstance(item, filterClasses)
                                 )
@@ -763,7 +753,7 @@ class ShareConduit(pim.ContentItem):
                 #     {'manifest':self.manifest})
 
 
-                for item in self.share.contents:
+                for item in cvSelf.share.contents:
 
                     if updateCallback and updateCallback(work=True):
                         raise SharingError(_(u"Cancelled by user"))
@@ -777,15 +767,15 @@ class ShareConduit(pim.ContentItem):
                         continue
 
                     # Put the item
-                    result = self._conditionalPutItem(item, changes,
-                        updateCallback=updateCallback)
+                    result = self._conditionalPutItem(contentView, item,
+                        changes, updateCallback=updateCallback)
                     if result in ('added', 'modified'):
                         stats[result].append(item.itsUUID)
 
 
             # Put the Share item itself
-            result = self._conditionalPutItem(self.share, changes,
-                updateCallback=updateCallback)
+            result = self._conditionalPutItem(contentView, cvSelf.share,
+                changes, updateCallback=updateCallback)
             if result in ('added', 'modified'):
                 stats[result].append(self.share.itsUUID)
 
@@ -794,23 +784,25 @@ class ShareConduit(pim.ContentItem):
             # Put a monolithic file representing the share item.
             #@@@MOR This should be beefed up to only publish if at least one
             # of the items has changed.
-            self._putItem(self.share)
+            self._putItem(cvSelf.share)
 
 
         self.disconnect()
 
-        logger.info("Finished PUT of %s %s", location, stats)
+        logger.info("Finished PUT of %s", location) # , stats)
 
         return stats
 
 
 
-    def _conditionalGetItem(self, itemPath, into=None, changes=None,
-        previousView=None, updateCallback=None):
+    def _conditionalGetItem(self, contentView, itemPath, into=None,
+        updateCallback=None):
         """
         Get an item from the server if we don't yet have it or our copy
         is out of date
         """
+
+        cvSelf = contentView.findUUID(self.itsUUID)
 
         # assumes self.resourceList is populated
 
@@ -822,8 +814,7 @@ class ShareConduit(pim.ContentItem):
             # logger.info("...getting: %s" % itemPath)
 
             try:
-                (item, data) = self._getItem(itemPath, into=into,
-                    changes=changes, previousView=previousView,
+                (item, data) = self._getItem(contentView, itemPath, into=into,
                     updateCallback=updateCallback)
             except TransformationFailed, e:
                 # This has already been logged; catch it and return None
@@ -837,7 +828,7 @@ class ShareConduit(pim.ContentItem):
                  (itemPath, item.getItemDisplayName().encode('ascii',
                     'replace'), item, data))
 
-                self.share.items.append(item)
+                cvSelf.share.items.append(item)
                 if updateCallback and updateCallback(msg="'%s'" %
                     item.getItemDisplayName()):
                     raise SharingError(_(u"Cancelled by user"))
@@ -853,7 +844,10 @@ class ShareConduit(pim.ContentItem):
 
 
 
-    def _get(self, previousView=None, updateCallback=None, getPhrase=None):
+    def _get(self, contentView, updateCallback=None, getPhrase=None):
+
+        # cvSelf (contentViewSelf) is me as I was in the past
+        cvSelf = contentView.findUUID(self.itsUUID)
 
         location = self.getLocation()
         logger.info("Starting GET of %s" % (location))
@@ -880,10 +874,6 @@ class ShareConduit(pim.ContentItem):
             'modified' : [],
             'removed' : []
         }
-
-        # Build the list of local changes
-        prevVersion = self.getMarker.getVersion()
-        changes = localChanges(view, prevVersion, view.itsVersion)
 
         self.connect()
 
@@ -915,9 +905,8 @@ class ShareConduit(pim.ContentItem):
             if updateCallback and updateCallback(work=True):
                 raise SharingError(_(u"Cancelled by user"))
 
-            item = self._conditionalGetItem(itemPath, into=self.share,
-                changes=changes, previousView=previousView,
-                updateCallback=updateCallback)
+            item = self._conditionalGetItem(contentView, itemPath,
+                into=cvSelf.share, updateCallback=updateCallback)
 
             if item is not None:
                 if item.itsVersion > 0 :
@@ -936,14 +925,14 @@ class ShareConduit(pim.ContentItem):
         # Make sure we don't subscribe to a KindCollection, since some evil
         # person could slip you a KindCollection that would fill itself with
         # your items.
-        if isinstance(self.share.contents, pim.KindCollection):
+        if isinstance(cvSelf.share.contents, pim.KindCollection):
             raise SharingError(_(u"Subscribing to KindCollections prohibited"))
 
         # Make sure we have a collection to add items to:
-        if self.share.contents is None:
-            self.share.contents = pim.SmartCollection(itsView=view)
+        if cvSelf.share.contents is None:
+            cvSelf.share.contents = pim.SmartCollection(itsView=contentView)
 
-        contents = self.share.contents
+        contents = cvSelf.share.contents
 
         # If share.contents is an ContentCollection, treat other resources as
         # items to add to the collection:
@@ -960,7 +949,7 @@ class ShareConduit(pim.ContentItem):
                     if uuid:
                         item = view.findUUID(uuid)
                         if item is None or \
-                            item not in self.share.contents:
+                            item not in contents:
                             del self.resourceList[path]
                             self._setSeen(path)
                             logger.debug("Item removed locally, so not "
@@ -974,12 +963,11 @@ class ShareConduit(pim.ContentItem):
                 if updateCallback and updateCallback(work=True):
                     raise SharingError(_(u"Cancelled by user"))
 
-                item = self._conditionalGetItem(itemPath, changes=changes,
-                    previousView=previousView,
+                item = self._conditionalGetItem(contentView, itemPath,
                     updateCallback=updateCallback)
 
                 if item is not None:
-                    self.share.contents.add(item)
+                    cvSelf.share.contents.add(item)
 
                     if item.itsVersion == 0 :
                         stats['added'].append(item.itsUUID)
@@ -989,9 +977,9 @@ class ShareConduit(pim.ContentItem):
                 self._setSeen(itemPath)
 
             # When first importing a collection, name it after the share
-            if not hasattr(self.share.contents, 'displayName'):
-                self.share.contents.displayName = \
-                    self.share.displayName
+            if not hasattr(cvSelf.share.contents, 'displayName'):
+                cvSelf.share.contents.displayName = \
+                    cvSelf.share.displayName
 
             # If an item was previously on the server (it was in our
             # manifest) but is no longer on the server, remove it from
@@ -1000,7 +988,7 @@ class ShareConduit(pim.ContentItem):
             for unseenPath in self._iterUnseen():
                 uuid = self.manifest[unseenPath]['uuid']
                 if uuid:
-                    item = view.findUUID(uuid)
+                    item = contentView.findUUID(uuid)
                     if item is not None:
 
                         # If an item has disappeared from the server, only
@@ -1009,13 +997,13 @@ class ShareConduit(pim.ContentItem):
 
                         if not filterClasses or isinstance(item, filterClasses):
 
-                            SharingNotification(itsView=view,
+                            SharingNotification(itsView=contentView,
                                 displayName="Removed item from collection")
                             logger.info("...removing %s from collection" % item)
-                            if item in self.share.contents:
-                                self.share.contents.remove(item)
+                            if item in cvSelf.share.contents:
+                                cvSelf.share.contents.remove(item)
                             if item in self.share.items:
-                                self.share.items.remove(item)
+                                cvSelf.share.items.remove(item)
                             stats['removed'].append(item.itsUUID)
                             if updateCallback and updateCallback(
                                 msg=_(u"Removing from collection: '%(name)s'")
@@ -1034,7 +1022,7 @@ class ShareConduit(pim.ContentItem):
 
         self.disconnect()
 
-        logger.info("Finished GET of %s %s", location, stats)
+        logger.info("Finished GET of %s", location) # , stats)
 
         return stats
 
@@ -1078,7 +1066,7 @@ class ShareConduit(pim.ContentItem):
     # the item's internal UUID, external UUID, either a last-modified date
     # (if filesystem) or ETAG (if webdav), and the item's version (as in
     # what item.getVersion() returns)
-    # 
+    #
     # If we tried to get an item but the transform failed, we add that resource
     # to the manifest with "" as the uuid
 
@@ -1198,8 +1186,7 @@ class ShareConduit(pim.ContentItem):
         """
         pass
 
-    def _getItem(self, itemPath, into=None, changes=None, previousView=None,
-        updateCallback=None):
+    def _getItem(self, contentView, itemPath, into=None, updateCallback=None):
         """
         Must implement
         """
@@ -1279,11 +1266,11 @@ class FileSystemConduit(ShareConduit):
             return os.path.join(self.sharePath, self.shareName)
         raise Misconfigured(_(u"A misconfiguration error was encountered"))
 
-    def _get(self, previousView=None, updateCallback=None, getPhrase=None):
+    def _get(self, contentView, updateCallback=None, getPhrase=None):
         if getPhrase is None:
             getPhrase = _(u"Importing from %(name)s...")
-        return super(FileSystemConduit, self)._get(previousView, updateCallback,
-                                                   getPhrase)
+        return super(FileSystemConduit, self)._get(contentView,
+            updateCallback, getPhrase)
 
     def _putItem(self, item):
         path = self._getItemFullPath(self._getItemPath(item))
@@ -1308,8 +1295,7 @@ class FileSystemConduit(ShareConduit):
         logger.info("...removing from disk: %s" % path)
         os.remove(path)
 
-    def _getItem(self, itemPath, into=None, changes=None, previousView=None,
-        updateCallback=None):
+    def _getItem(self, contentView, itemPath, into=None, updateCallback=None):
 
         view = self.itsView
 
@@ -1320,9 +1306,8 @@ class FileSystemConduit(ShareConduit):
         text = file(path).read()
 
         try:
-            item = self.share.format.importProcess(text,
-                extension=extension, item=into, changes=changes,
-                previousView=previousView,
+            item = self.share.format.importProcess(contentView, text,
+                extension=extension, item=into,
                 updateCallback=updateCallback)
         except Exception, e:
             logging.exception(e)
@@ -1460,19 +1445,13 @@ class WebDAVConduit(ShareConduit):
 
             # The certstore parcel ends up doing a refresh( ) in the
             # middle of an SSL sync operation, which pollutes the sharing
-            # view.  To work around this, let zanshin/certstore use their
-            # own view.
-            repo = self.itsView.repository
-            for existingView in repo.views:
-                if existingView.name == 'Zanshin':
-                    zanshinView = existingView
-                    break
-            else:
-                zanshinView = repo.createView('Zanshin')
+            # view.  To work around this, pass the main view to certstore,
+            # by way of zanshin.
+            sslView = self.itsView.repository.views[0] # main repo view
 
             self.serverHandle = WebDAV.ChandlerServerHandle(host, port=port,
                 username=username, password=password, useSSL=useSSL,
-                repositoryView=zanshinView)
+                repositoryView=sslView)
 
         return self.serverHandle
 
@@ -1726,7 +1705,7 @@ class WebDAVConduit(ShareConduit):
                 raise NotAllowed(message)
 
         if newResource is None:
-            message = _(u"Not authorized to PUT %(itemName)s") % {'itemName': itemName}
+            message = _(u"Not authorized to PUT %(itemName)s %(body)s") % {'itemName': itemName, 'body' : text}
             raise NotAllowed(message)
 
         etag = newResource.etag
@@ -1746,8 +1725,7 @@ class WebDAVConduit(ShareConduit):
             except M2Crypto.BIO.BIOError, err:
                 raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
-    def _getItem(self, itemPath, into=None, changes=None, previousView=None,
-        updateCallback=None):
+    def _getItem(self, contentView, itemPath, into=None, updateCallback=None):
         view = self.itsView
         resource = self._resourceFromPath(itemPath)
 
@@ -1772,13 +1750,20 @@ class WebDAVConduit(ShareConduit):
         etag = resource.etag
 
         try:
-            item = self.share.format.importProcess(text, item=into,
-                changes=changes, previousView=previousView,
-                updateCallback=updateCallback)
+            item = self.share.format.importProcess(contentView, text,
+                item=into, updateCallback=updateCallback)
         except VersionMismatch:
             raise
         except Exception, e:
-            logger.exception("Failed to parse XML for item %s: '%s'" %
+            if isinstance(text, unicode):
+                text = text.encode('ascii', 'replace')
+            else:
+                print "Failed to parse resource, type(text):", type(text)
+                try:
+                    print "text:", text
+                except Exception, e:
+                    print e
+            logger.exception("Failed to parse resource for item %s: '%s'" %
                 (itemPath, text.encode('utf8', 'replace')))
             raise TransformationFailed(_(u"%(itemPath)s %(error)s (See chandler.log for text)") % \
                                        {'itemPath': itemPath, 'error': e})
@@ -1794,7 +1779,6 @@ class WebDAVConduit(ShareConduit):
         resourceList = {}
 
         style = self.share.format.fileStyle()
-
         if style == ImportExportFormat.STYLE_DIRECTORY:
             shareCollection = self._getContainerResource()
 
@@ -1956,9 +1940,7 @@ class SimpleHTTPConduit(WebDAVConduit):
             'removed' : []
         }
 
-        prevVersion = self.getMarker.getVersion()
         view = self.itsView
-        changes = localChanges(view, prevVersion, view.itsVersion)
 
         location = self.getLocation(privilege='readonly')
         if updateCallback and updateCallback(msg=_(u"Checking for update: '%(location)s'") % { 'location' : location } ):
@@ -2005,7 +1987,6 @@ class SimpleHTTPConduit(WebDAVConduit):
         try:
             text = resp.body
             self.share.format.importProcess(text, item=self.share,
-                changes=changes, previousView=previousView,
                 updateCallback=updateCallback)
 
             # The share maintains bi-di-refs between Share and Item:
@@ -2096,154 +2077,6 @@ def localChanges(view, fromVersion, toVersion):
     return changedItems
 
 
-def importValue(item, changes, attribute, value, previousView,
-    updateCallback=None, setCallback=None):
-    """
-    Conditionally set a value (brought in via the sharing layer) on an item,
-    depending on whether the new value is different than the old one, and
-    whether the value has really changed remotely since the last sync.
-    Conflicts are logged and are passed to the updateCallback, but remote
-    changes win.  setCallback takes an item, an attribute name, and a value.
-    """
-
-    if not isinstance(value, Item):
-        # For literal values, let's see if this is a no-op:
-
-        try:
-            attrType = item.getAttributeAspect(attribute, 'type')
-
-            if type(value) in (str, unicode, int, float):
-                needSerialized = False
-            else:
-                needSerialized = True
-
-                curValue = getattr(item, attribute, "")
-                if curValue is None:
-                    mimeType, encoding, curSerialized = None, None, curValue
-                else:
-                    (mimeType, encoding, curSerialized) = \
-                        serializeLiteral(getattr(item, attribute, ""), attrType)
-
-                (mimeType, encoding, newSerialized) = serializeLiteral(value,
-                    attrType)
-
-        except NoSuchAttributeError:
-            needSerialized = False
-
-        # See if the new value equals the current value.
-        # If it matches, then this is a no-op.
-
-        if hasattr(item, attribute):
-            if needSerialized:
-                if curSerialized == newSerialized:
-                    return
-            else:
-                currentValue = getattr(item, attribute)
-                if currentValue == value:
-                    return
-
-
-    if isinstance(value, Item) or previousView is None:
-        # For non-literals, just go ahead and set the new value; we don't
-        # merge reference changes; if previousView is None, then we must
-        # be trying to use view merging
-
-        if setCallback is None:
-            setattr(item, attribute, value)
-        else:
-            setCallback(item, attribute, value)
-        return
-
-
-    try:
-        conflict = False
-
-        if changes and item.itsUUID in changes:
-            modifiedAttributes = changes[item.itsUUID]
-            if attribute in modifiedAttributes:
-
-                # A potential conflict, but let's see if this wasn't really a
-                # remote change.  What could have happened is the user changed
-                # this attribute locally, but another user changed a different
-                # attribute remotely.  We import the remote resource and start
-                # assigning the attribute values, but we don't know from the server
-                # which attributes were really modified remotely, just that at
-                # least one attribute changed.  Here we can use the previousView
-                # which is turned back in time to how things looked when we last
-                # finished syncing.  We can compare this "new" value with how
-                # things were back then.
-
-                oldItem = previousView.findUUID(item.itsUUID)
-                if oldItem is not None:
-                    oldValue = getattr(oldItem, attribute, None)
-                    # compare oldValue with value
-                    if needSerialized:
-                        (mimeType, encoding, oldSerialized) = \
-                            serializeLiteral(oldValue, attrType)
-                        if oldSerialized == newSerialized:
-                            # there was no change to this value, ignore it
-                            return
-                    else:
-                        if oldValue == value:
-                            # there was no change to this value, ignore it
-                            return
-
-                    conflict = True
-
-
-        if conflict:
-
-            SharingConflictNotification(itsView=item.itsView,
-                displayName="Conflict for attribute %s" % attribute,
-                attribute=attribute,
-                local=unicode(getattr(item, attribute, None)),
-                remote=unicode(value),
-                items=[item])
-
-            logger.warning("Sharing conflict: item '%s', attr '%s', "
-                "local '%s', remote '%s'" %
-                (item.getItemDisplayName().encode('utf8', 'replace'),
-                attribute,
-                getattr(item, attribute, None),
-                unicode(value).encode('utf8', 'replace')))
-
-            if updateCallback:
-                updateCallback(
-                    msg=_(u"Conflict for item '%(name)s' "
-                    "attribute: %(attribute)s '%(local)s' vs '%(remote)s'") %
-                    (
-                        {
-                           'name' : item.getItemDisplayName(),
-                           'attribute' : attribute,
-                           'local' : getattr(item, attribute),
-                           'remote' : value
-                        }
-                    )
-                )
-        else:
-
-            if not item.isNew():
-                SharingChangeNotification(itsView=item.itsView,
-                    displayName="Changed attribute %s" % attribute,
-                    attribute=attribute,
-                    value=unicode(value),
-                    items=[item])
-            logger.info("Sharing change: item '%s', attr '%s', value '%s'" % (item.getItemDisplayName().encode('utf8', 'replace'), attribute, unicode(value).encode('utf8', 'replace')))
-
-
-    except Exception, e:
-        # To be safe, if anything goes wrong then simply continue on and set
-        # the value (just as if importValue( ) weren't being used), logging
-        # the exception:
-        logger.exception(_(u"importValue failed"))
-
-
-    # Currently, set the value regardless of conflict (server wins)
-    if setCallback is None:
-        setattr(item, attribute, value)
-    else:
-        setCallback(item, attribute, value)
-
 
 def serializeLiteral(attrValue, attrType):
 
@@ -2270,7 +2103,6 @@ def serializeLiteral(attrValue, attrType):
         attrValue = attrType.makeString(attrValue)
 
     return (mimeType, encoding, attrValue)
-
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -2508,8 +2340,8 @@ class CloudXMLFormat(ImportExportFormat):
     def shareItemPath(self):
         return "share.xml"
 
-    def importProcess(self, text, extension=None, item=None, changes=None,
-        previousView=None, updateCallback=None):
+    def importProcess(self, contentView, text, extension=None, item=None,
+        updateCallback=None):
         root = ElementTree(file=StringIO(text)).getroot()
         try:
 
@@ -2519,8 +2351,8 @@ class CloudXMLFormat(ImportExportFormat):
 
             # self.itsView.recordChangeNotifications()
 
-            item = self._importElement(root, item=item, changes=changes,
-                previousView=previousView, updateCallback=updateCallback)
+            item = self._importElement(contentView, root, item=item,
+                updateCallback=updateCallback)
 
         finally:
 
@@ -2712,10 +2544,10 @@ class CloudXMLFormat(ImportExportFormat):
         return None
 
 
-    def _importElement(self, element, item=None, changes=None,
-        previousView=None, updateCallback=None):
+    def _importElement(self, contentView, element, item=None,
+        updateCallback=None):
 
-        view = self.itsView
+        view = contentView
         kind = None
         kinds = []
 
@@ -2729,7 +2561,7 @@ class CloudXMLFormat(ImportExportFormat):
             if uuidString:
                 try:
                     uuid = UUID(uuidString)
-                    item = self.itsView.findUUID(uuid)
+                    item = view.findUUID(uuid)
                 except Exception, e:
                     logger.exception("Problem processing uuid %s" % uuidString)
                     return item
@@ -2770,16 +2602,26 @@ class CloudXMLFormat(ImportExportFormat):
                                             withInitialValues=True)
                 if isinstance(item, pim.SmartCollection):
                     item._setup()
+
             else:
                 item = kind.newItem(None, None)
 
-            SharingNewItemNotification(itsView=item.itsView,
-                displayName="New item", items=[item])
+            if isinstance(item, pim.ContentItem):
+                SharingNewItemNotification(itsView=item.itsView,
+                    displayName="New item", items=[item])
 
         else:
+
             # there is a chance that the incoming kind is different than the
             # item's kind
-            item.itsKind = kind
+
+            # @@@MOR Since view merging doesn't support kind changes, don't
+            # change the kind of an existing item (for now):
+
+            # item.itsKind = kind
+            pass
+
+
 
         # we have an item, now set attributes
 
@@ -2811,20 +2653,25 @@ class CloudXMLFormat(ImportExportFormat):
                     if cardinality == 'single':
                         children = attrElement.getchildren()
                         if children:
-                            valueItem = self._importElement(children[0],
-                                changes=changes, previousView=previousView,
-                                updateCallback=updateCallback)
+                            valueItem = self._importElement(contentView,
+                                children[0], updateCallback=updateCallback)
                             if valueItem is not None:
                                 setattr(item, attrName, valueItem)
 
                     elif cardinality == 'list':
+                        count = 0
                         for child in attrElement.getchildren():
-                            valueItem = self._importElement(child,
-                                changes=changes,
-                                previousView=previousView,
-                                updateCallback=updateCallback)
+                            valueItem = self._importElement(contentView,
+                                child, updateCallback=updateCallback)
                             if valueItem is not None:
+                                count += 1
                                 item.addValue(attrName, valueItem)
+                        if not count:
+                            # Only set to an empty ref collection is attrName
+                            # is not already an empty ref collection
+                            if not (hasattr(item, attrName) and
+                                len(getattr(item, attrName)) == 0):
+                                setattr(item, attrName, [])
 
                     elif cardinality == 'dict':
                         pass
@@ -2835,11 +2682,11 @@ class CloudXMLFormat(ImportExportFormat):
 
                         mimeType = attrElement.get('mimetype')
                         encoding = attrElement.get('encoding')
+                        content = unicode(attrElement.text or u"")
 
                         if mimeType: # Lob
                             indexed = mimeType == "text/plain"
-                            value = base64.b64decode(unicode(attrElement.text
-                                or u""))
+                            value = base64.b64decode(content)
 
                             # @@@MOR Temporary hack for backwards compatbility:
                             # Because body changed from Lob to Text:
@@ -2848,7 +2695,7 @@ class CloudXMLFormat(ImportExportFormat):
                                     if encoding:
                                         value = unicode(value, encoding)
                                     else:
-                                        value = unicode(value) # assume ascii
+                                        value = unicode(value)
                             else: # Store it as a Lob
                                 value = utils.dataToBinary(item, attrName,
                                     value, mimeType=mimeType, indexed=indexed)
@@ -2856,14 +2703,21 @@ class CloudXMLFormat(ImportExportFormat):
                                     value.encoding = encoding
 
                         else:
-                            content = unicode(attrElement.text or u"")
                             value = attrType.makeValue(content)
 
 
-                        importValue(item, changes, attrName,
-                            value, previousView=previousView,
-                            updateCallback=updateCallback)
-
+                        # For datetime attributes, even if we set them to
+                        # the same value they have now it's considered a
+                        # change to the repository, so we do an additional
+                        # check ourselves before actually setting a datetime:
+                        if type(value) is datetime.datetime and hasattr(item,
+                            attrName):
+                            oldValue = getattr(item, attrName)
+                            if (oldValue != value or
+                                oldValue.tzinfo != value.tzinfo):
+                                setattr(item, attrName, value)
+                        else:
+                            setattr(item, attrName, value)
 
                     elif cardinality == 'list':
 
