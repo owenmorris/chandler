@@ -134,6 +134,7 @@ if [ "$MODE_VALUE" == "debug" ]; then
         exit 1
     fi
     MODES="debug"
+    echo Running debug mode only | tee -a $TESTLOG
 fi
 if [ "$MODE_VALUE" == "release" ]; then
     if [ ! -d $CHANDLERBIN/release ]; then
@@ -141,6 +142,7 @@ if [ "$MODE_VALUE" == "release" ]; then
         exit 1
     fi
     MODES="release"
+    echo Running release mode only | tee -a $TESTLOG
 fi
 
    # if no mode was explicitly requested then check to see what's available
