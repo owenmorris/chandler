@@ -123,7 +123,7 @@ def installParcel(parcel, oldVersion=None):
     eventsWithRemindersIncludingTrash = FilteredCollection.update(
         parcel, 'eventsWithRemindersIncludingTrash',
         source=events,
-        filterExpression="getattr(view[uuid], 'reminders', None)",
+        filterExpression="view.hasTrueValue(uuid, 'reminders')",
         filterAttributes=['reminders'])
 
     eventsWithReminders = AppCollection.update(
@@ -140,8 +140,7 @@ def installParcel(parcel, oldVersion=None):
                                  monitor=('startTime', 'allDay', 'anyTime'
                                           'reminders'))
 
-    masterFilter = "view[uuid].hasTrueAttributeValue('occurrences') and "\
-                   "view[uuid].hasTrueAttributeValue('rruleset')"
+    masterFilter = "view.hasTrueValues(uuid, 'occurrences', 'rruleset')"
     masterEvents = FilteredCollection.update(parcel, 'masterEvents',
         source = events,
         filterExpression = masterFilter,

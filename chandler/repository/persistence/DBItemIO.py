@@ -475,10 +475,11 @@ class DBItemWriter(ItemWriter):
 
 class DBValueReader(ValueReader):
 
-    def __init__(self, store, status):
+    def __init__(self, store, status, version):
 
         self.store = store
         self.status = status
+        self.version = version
 
         self.uItem = None
         self.name = None
@@ -524,6 +525,52 @@ class DBValueReader(ValueReader):
                 value = AbstractSet.makeValue(value)
                 value._setView(view)
                 return uAttr, value
+
+            else:
+                raise ValueError, flags
+
+        else:
+            raise ValueError, flags
+
+    def hasTrueValue(self, view, uValue):
+
+        store = self.store
+        uAttr, vFlags, data = store._values.c.loadValue(store.txn, uValue)
+
+        withSchema = (self.status & CItem.CORESCHEMA) != 0
+
+        if withSchema:
+            attribute = None
+            offset, name = self.readSymbol(0, data)
+        else:
+            attribute = view[uAttr]
+            offset, name = 0, attribute.itsName
+
+        flags = ord(data[offset])
+
+        if flags & DBItemWriter.VALUE:
+            offset, value = self._value(offset, data, None, withSchema,
+                                        attribute, view, name, [])
+            return not not value
+
+        elif flags & DBItemWriter.REF:
+            if flags & DBItemWriter.NONE:
+                return False
+
+            elif flags & DBItemWriter.SINGLE:
+                offset, uuid = self.readUUID(offset + 1, data)
+                return True
+
+            elif flags & DBItemWriter.LIST:
+                offset, uuid = self.readUUID(offset + 1, data)
+                ref = self.store._refs.loadRef(view, uuid, self.version, uuid)
+                return ref[2] > 0
+
+            elif flags & DBItemWriter.SET:
+                offset, value = self.readString(offset + 1, data)
+                value = AbstractSet.makeValue(value)
+                value._setView(view)
+                return not not value
 
             else:
                 raise ValueError, flags

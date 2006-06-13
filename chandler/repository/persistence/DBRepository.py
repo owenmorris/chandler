@@ -794,16 +794,16 @@ class DBStore(Store):
         if uValue in (Nil, Default):
             return None, uValue
 
-        return DBValueReader(self, status), uValue
+        return DBValueReader(self, status, version), uValue
     
-    def loadValues(self, view, version, uItem, pairs):
+    def loadValues(self, view, version, uItem, names):
 
-        hashes = [_hash(name) for name, default in pairs]
+        hashes = [_hash(name) for name in names]
         status, uValues = self._items.findValues(view, version, uItem, hashes)
         if status is None:
             return None, uValues
 
-        return DBValueReader(self, status), uValues
+        return DBValueReader(self, status, version), uValues
     
     def hasValue(self, view, version, uItem, name):
 
@@ -1176,7 +1176,7 @@ class DBIndexerThread(RepositoryThread):
 
         status, uValues = store._items.findValues(view, version, uItem,
                                                   dirties, True)
-        reader = DBValueReader(store, status)
+        reader = DBValueReader(store, status, version)
 
         for uValue in uValues:
             if uValue is not None:

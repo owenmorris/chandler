@@ -11,12 +11,12 @@ def installParcel(parcel, oldVersion=None):
 
     FilteredCollection.update(parcel, 'sslCertificateQuery',
         source=utils.getExtent(certificate.Certificate, parcel.itsView),
-        filterExpression=u"view.findValue(uuid, 'type') == '%s' and view.findValue(uuid, 'trust') == %d" % (constants.TYPE_ROOT, constants.TRUST_AUTHENTICITY | constants.TRUST_SITE),
+        filterExpression=u"view.findValues(uuid, ('type', None), ('trust', None)) == ('%s', %d)" %(constants.TYPE_ROOT, constants.TRUST_AUTHENTICITY | constants.TRUST_SITE),
         filterAttributes=['type', 'trust']
     )
     
     FilteredCollection.update(parcel, 'sslTrustedSiteCertificatesQuery',
         source=utils.getExtent(certificate.Certificate, parcel.itsView),
-        filterExpression=u"view.findValue(uuid, 'type') == '%s' and view.findValue(uuid, 'trust') == %d" % (constants.TYPE_SITE, constants.TRUST_AUTHENTICITY),
+        filterExpression=u"view.findValues(uuid, ('type', None), ('trust', None)) == ('%s', %d)" %(constants.TYPE_SITE, constants.TRUST_AUTHENTICITY),
         filterAttributes=['type', 'trust']
     )

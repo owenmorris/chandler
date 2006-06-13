@@ -420,25 +420,26 @@ class RepositoryView(CView):
               returned as UUIDs, they are not actually loaded.
 
         If the item does not exist or does not have a value for the given
-        attribute an optional default value is returned or an exception is
-        raised.
+        attribute a default value is returned.
 
         @param uItem: an item UUID
         @param pairs: one or more C{(name, default)} tuples for each
         attribute to retrieve a value for.
-        @return: a list of attribute or default values, matching the order
+        @return: a tuple of attribute or default values, matching the order
         of the given C{(name, default)} pairs.
         """
 
         item = self.find(uItem, False)
         if item is not None:
-            return [getattr(item, name, default) for name, default in pairs]
+            return tuple([getattr(item, name, default)
+                          for name, default in pairs])
 
+        names = (name for name, default in pairs)
         reader, uValues = self.repository.store.loadValues(self,
                                                            self.itsVersion,
-                                                           uItem, pairs)
+                                                           uItem, names)
         if reader is None:
-            return [default for name, default in pairs]
+            return tuple([default for name, default in pairs])
 
         values = []
         for uValue, (name, default) in izip(uValues, pairs):
@@ -447,7 +448,7 @@ class RepositoryView(CView):
             else:
                 values.append(default)
 
-        return values
+        return tuple(values)
 
     def hasValue(self, uItem, name):
         """
@@ -470,6 +471,81 @@ class RepositoryView(CView):
 
         return self.repository.store.hasValue(self, self.itsVersion,
                                               uItem, name)
+
+    def hasTrueValue(self, uItem, name, version=None):
+        """
+        Find a value for an item attribute and check if it's 'True'.
+
+        If the item is already loaded, regular attribute value retrieval is
+        used.
+
+        If the item is not loaded, only the value for the named attribute is
+        returned with the following limitation:
+
+            - only local values are tested, schema-based inheritance is
+              not used to return a non-local value.
+
+        If the item does not exist or does not have a value for the given
+        attribute C{False} is returned.
+
+        @param uItem: an item UUID
+        @param name: an attribute name
+        @return: C{True} or C{False}
+        """
+
+        if version is None:
+            version = self.itsVersion
+
+        item = self.find(uItem, False)
+        if item is not None and item.itsVersion <= version:
+            return item.hasTrueAttributeValue(name)
+
+        reader, uValue = self.repository.store.loadValue(self, version,
+                                                         uItem, name)
+        if reader is None:
+            return False
+
+        return reader.hasTrueValue(self, uValue)
+
+    def hasTrueValues(self, uItem, *names):
+        """
+        Find values for attributes of an item and check if they are 'True'.
+
+        As with L{findValues}, if the item is already loaded, regular
+        attribute value retrieval is used.
+
+        If the item is not loaded, the values for the named attributes are
+        checked, without loading the item, with the following limitations:
+
+            - only local values are returned, schema-based inheritance is
+              not used to return a non-local value.
+
+        If the item does not exist or does not have a value for the given
+        attribute False is returned.
+
+        @param uItem: an item UUID
+        @param names: one or more name for each attribute to check.
+        @return: C{True} if all values are True, C{False} otherwise.
+        """
+
+        item = self.find(uItem, False)
+        if item is not None:
+            for name in names:
+                if not item.hasTrueAttributeValue(name):
+                    return False
+            return True
+
+        reader, uValues = self.repository.store.loadValues(self,
+                                                           self.itsVersion,
+                                                           uItem, names)
+        if reader is None or None in uValues:
+            return False
+
+        for uValue in uValues:
+            if not reader.hasTrueValue(self, uValue):
+                return False
+
+        return True
 
     def findMatch(self, view, matches=None):
 
