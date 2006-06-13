@@ -5,12 +5,6 @@ from i18n import OSAFMessageFactory as _
 UNTITLED = _(u"Untitled")
 ME = _(u"me")
 
-"""Common Button Stuff. This might come directly from WxWidgets"""
-# @@@MOR application/dialogs/autosyncprefs.py is using these.  Let me know
-# if I should be getting these strings from somewhere else:
-OK = _(u"OK")
-CANCEL = _(u"Cancel")
-
 """Common GUI Stuff. This might come directly from WxWidgets"""
 UNDO   = _(u"Undo")
 REDO   = _(u"Redo")

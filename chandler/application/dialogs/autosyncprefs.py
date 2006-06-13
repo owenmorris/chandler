@@ -76,11 +76,11 @@ class AutoSyncPrefs(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, u" " + messages.OK + u" ")
+        btn = wx.Button(self, wx.ID_OK)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, u" " + messages.CANCEL + u" ")
+        btn = wx.Button(self, wx.ID_CANCEL)
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
