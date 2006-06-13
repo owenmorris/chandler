@@ -1,7 +1,7 @@
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import unittest, sys, os, logging, datetime, time
+import unittest, sys, os, logging, datetime, time, os.path
 from osaf import pim, sharing
 from repository.item.Item import Item
 from util import testcase
@@ -15,12 +15,24 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
 
     def runTest(self):
         self.setUp()
-        self.PrepareTestData()
-        self.PrepareShares()
-        self.RoundTrip()
-        self.Modify()
-        self.Remove()
-        self.Unpublish()
+
+        self.sharePath = "."
+        self.shareName = uw("exportedCollection")
+
+        try:
+            self.PrepareTestData()
+            self.PrepareShares()
+            self.RoundTrip()
+            self.Modify()
+            self.Remove()
+            self.Unpublish()
+        finally:
+            pathToClean = os.path.join(self.sharePath, self.shareName)
+            if os.path.isdir(pathToClean):  # The directory is still there
+                for filename in os.listdir(pathToClean):
+                    os.remove(os.path.join(pathToClean, filename))
+                os.rmdir(pathToClean)
+
 
     def PrepareTestData(self):
 
@@ -77,7 +89,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         sandbox0 = view0.findPath("//sandbox")
         coll0 = sandbox0.findPath("testCollection")
         conduit = sharing.FileSystemConduit("conduit", itsView=view0,
-            sharePath=".", shareName=uw("exportedCollection"))
+            sharePath=self.sharePath, shareName=self.shareName)
         format = sharing.CloudXMLFormat("format", itsView=view0)
         self.share0 = sharing.Share("share", itsView=view0,
             contents=coll0, conduit=conduit, format=format)
@@ -87,7 +99,7 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
 
         view1 = self.views[1]
         conduit = sharing.FileSystemConduit("conduit", itsView=view1,
-            sharePath=".", shareName=uw("exportedCollection"))
+            sharePath=self.sharePath, shareName=self.shareName)
         format = sharing.CloudXMLFormat("format", itsView=view1)
         self.share1 = sharing.Share("share", itsView=view1,
             conduit=conduit, format=format)
