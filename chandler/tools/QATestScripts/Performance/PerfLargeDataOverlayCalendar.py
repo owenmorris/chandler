@@ -16,13 +16,13 @@ try:
 
     # Load a large calendar
     # NOTE: Don't do this when we restore from backed up repository
-    testView = QAUITestAppLib.UITestView(logger, u'100Events.ics')
+    testView = QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
     User.idle()
 
     # Test Phase: Action
 
     logger.Start("Overlay calendar")
-    clickSucceeded = User.emulate_sidebarClick(App_ns.sidebar, "100Events", overlay=True)
+    clickSucceeded = User.emulate_sidebarClick(App_ns.sidebar, "Generated3000", overlay=True)
     User.idle()
     logger.Stop()
 
