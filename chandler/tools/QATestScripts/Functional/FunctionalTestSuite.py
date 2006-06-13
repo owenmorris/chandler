@@ -71,7 +71,6 @@ exclusions = {#tests to exclude on specific platfoms only
     ),
     
     'windows':(
-     "TestSharing.py", # bug 5889   
     ),
     
     'all':( #tests to exclude on all platforms       
@@ -80,6 +79,7 @@ exclusions = {#tests to exclude on specific platfoms only
         "TestRemoveFromTrashOnImport.py", #not tested on all platforms yet
         "TestSwitchTimezone.py", #new test not yet working
         "TestSubscribe.py", # new test not yet working
+        "TestSharing.py", # bug 5889
         )
 }
 
