@@ -1,13 +1,12 @@
 
 VERSION=3.1.0c1
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
 ZOPE=$(BUILD_ROOT)/zope
 SRC=$(ZOPE)/ZopeInterface-$(VERSION)
+BUILD=build_$(SNAP)
 TARBALL=zopeinterface-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
-
-BUILD=build_$(SNAP)
 
 .PHONY: patches-$(VERSION)
 

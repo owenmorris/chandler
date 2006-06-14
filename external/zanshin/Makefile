@@ -1,14 +1,13 @@
 
 VERSION=150
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
 
 ZANSHIN=$(BUILD_ROOT)/zanshin
 SRC=$(ZANSHIN)/zanshin-$(VERSION)
+BUILD=build_$(SNAP)
 TARBALL=zanshin-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
-
-BUILD=build_$(SNAP)
 
 build: expand
 	cd $(SRC); \

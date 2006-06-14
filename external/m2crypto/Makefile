@@ -1,12 +1,11 @@
 
 VERSION=310
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)7
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)8
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
+BUILD=build_$(SNAP)
 TARBALL=m2crypto-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
-
-BUILD=build_$(SNAP)
 
 apply: patches
 	patch -Nup0 < patches || true

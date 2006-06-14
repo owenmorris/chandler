@@ -1,14 +1,16 @@
-include ../Makefile.inc
 
 VERSION=0.3.0
 SVN_REVISION=139
-RELVER=$(VERSION)-r$(SVN_REVISION)-$(BRANCH_REV_PREFIX)3
+RELVER=$(VERSION)-r$(SVN_REVISION)-$(BRANCH_REV_PREFIX)4
 VOBJECT=$(BUILD_ROOT)/vobject
-MANIFEST=$(SNAP)/$(SITE)/vobject
-#MANIFEST=$(SNAP)/$(SITE)/vobject-$(VERSION)-py$(PYTHON_VER).egg
 BUILD=build_$(SNAP)
 SRC=vobject-$(RELVER)
 TARBALL=vobject-$(SNAP)-$(RELVER).tar.gz
+
+MANIFEST=$(SNAP)/$(SITE)/vobject
+#MANIFEST=$(SNAP)/$(SITE)/vobject-$(VERSION)-py$(PYTHON_VER).egg
+
+include ../Makefile.inc
 
 .PHONY: patches-$(VERSION)
 

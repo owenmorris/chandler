@@ -2,12 +2,11 @@
 RELVER=0.6-$(BRANCH_REV_PREFIX)25
 CHANDLERDB=$(INTERNAL)/chandlerdb
 DB_VER=4.4
+SRC=$(CHANDLERDB)
+BUILD=build_$(SNAP)
 TARBALL=chandlerdb-$(SNAP)-$(RELVER).tar.gz
 
 include ../Makefile.inc
-
-SRC=$(CHANDLERDB)
-BUILD=build_$(SNAP)
 
 MANIFEST=$(SNAP)/$(SITE)/chandlerdb
 

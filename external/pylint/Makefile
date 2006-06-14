@@ -1,13 +1,12 @@
 
 VERSION=0.11.0
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
 PYLINT=$(BUILD_ROOT)/pylint
 SRC=$(PYLINT)/pylint-$(VERSION)
+BUILD=build_$(SNAP)
 TARBALL=pylint-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
-
-BUILD=build_$(SNAP)
 
 build-common:
 	$(MAKE) -C common DEBUG=$(DEBUG) all

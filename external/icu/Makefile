@@ -1,13 +1,12 @@
 
 VERSION=3.4
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 ICU=$(BUILD_ROOT)/icu
 SRC=$(ICU)/icu-$(VERSION)
+BUILD=build_$(SNAP)
 TARBALL=icu-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
-
-BUILD=build_$(SNAP)
 
 ifeq ($(OS),Cygwin)
 

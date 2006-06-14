@@ -1,13 +1,14 @@
 
-include ../Makefile.inc
-
 VERSION=5.1
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 BUILD=build_$(SNAP)
 READLINE=$(BUILD_ROOT)/readline
 SRC=$(READLINE)/$(BUILD)
 SRC_BUILD=$(SRC)/readline-$(VERSION)
 TARBALL=readline-$(SNAP)-$(RELVER).tar.gz
+
+include ../Makefile.inc
+
 
 .PHONY: readline
 

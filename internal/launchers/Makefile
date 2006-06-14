@@ -1,12 +1,11 @@
 
-include ../Makefile.inc
-
-RELVER=0.8-$(BRANCH_REV_PREFIX)6
+RELVER=0.8-$(BRANCH_REV_PREFIX)7
 LAUNCHERS=$(INTERNAL)/launchers
 SRC=$(LAUNCHERS)
-TARBALL=Launchers-$(SNAP)-$(RELVER).tar.gz
 BUILD=build_$(SNAP)
+TARBALL=Launchers-$(SNAP)-$(RELVER).tar.gz
 
+include ../Makefile.inc
 
 ifeq ($(PLATFORM),windows)
     SCRIPT_EXTENTION=".bat"

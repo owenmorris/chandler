@@ -1,12 +1,13 @@
-include ../Makefile.inc
 
 VERSION=1.1
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
 DATEUTIL=$(BUILD_ROOT)/dateutil
-MANIFEST=$(SNAP)/$(SITE)/dateutil
-BUILD=build_$(SNAP)
 SRC=python-dateutil-$(VERSION)
+BUILD=build_$(SNAP)
 TARBALL=dateutil-$(SNAP)-$(RELVER).tar.gz
+MANIFEST=$(SNAP)/$(SITE)/dateutil
+
+include ../Makefile.inc
 
 $(SRC).tar.bz2:
 	$(CURL) http://builds.osafoundation.org/external/$(SRC).tar.bz2

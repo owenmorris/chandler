@@ -1,13 +1,12 @@
 
 VERSION=r15399
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
 TWISTED=$(BUILD_ROOT)/twisted
 SRC=$(TWISTED)/Twisted-$(VERSION)
+BUILD=build_$(SNAP)
 TARBALL=twisted-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
-
-BUILD=build_$(SNAP)
 
 .PHONY: patches-$(VERSION)
 

@@ -1,13 +1,12 @@
 
-include ../Makefile.inc
-
 VERSION=0.9.8b
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 OPENSSL=$(BUILD_ROOT)/openssl
 SRC=$(OPENSSL)/openssl-$(VERSION)
+BUILD=build_$(SNAP)
 TARBALL=openssl-$(SNAP)-$(RELVER).tar.gz
 
-BUILD=build_$(SNAP)
+include ../Makefile.inc
 
 ifeq ($(OS),Cygwin)
 # Build using Visual C++ compiler

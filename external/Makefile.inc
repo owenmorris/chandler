@@ -1,4 +1,8 @@
 #-*- Mode: Makefile; -*-
+#
+# external
+#
+
 OS=$(shell uname)
 OS_VER=$(shell uname -r)
 OS_MAJOR_VER=$(firstword $(subst ., ,$(OS_VER)))

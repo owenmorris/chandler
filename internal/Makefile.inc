@@ -1,4 +1,7 @@
 #-*- Mode: Makefile; -*-
+#
+# internal
+#
 
 EXTERNAL=$(BUILD_ROOT)
 INTERNAL=$(dir $(BUILD_ROOT))internal

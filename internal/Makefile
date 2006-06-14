@@ -1,3 +1,7 @@
+#-*- Mode: Makefile; -*-
+#
+# internal
+#
 
 include Makefile.inc
 
