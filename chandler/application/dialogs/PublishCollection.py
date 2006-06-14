@@ -325,7 +325,7 @@ class PublishCollectionDialog(wx.Dialog):
             self.gauge.SetValue(percent)
 
     def OnPublish(self, evt):
-        self.PublishCollection(blocking=False)
+        self.PublishCollection()
 
     def PublishCollection(self):
         # Publish the collection
