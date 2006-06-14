@@ -1035,7 +1035,10 @@ class MainView(View):
         # find all the shared collections and sync them.
         if activeShares:
             # Fire off a background syncAll:
-            view.commit() # To make the change available to sharing thread
+
+            # To make the change available to sharing thread
+            self.RepositoryCommitWithStatus ()
+
             sharing.scheduleNow(view)
 
             # Old code:
