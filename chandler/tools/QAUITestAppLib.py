@@ -294,6 +294,9 @@ class UITestItem(object):
             # work around : emulate_return doesn't work
             #scripting.User.emulate_return()
             scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")
+            #check this actually worked
+            assert self.item.displayName == displayName, '%s != %s' % \
+            (self.item.displayName.encode('raw_unicode_escape'), displayName.encode('raw_unicode_escape'))
             if timeInfo:
                 if self.logger: self.logger.Stop()
 
