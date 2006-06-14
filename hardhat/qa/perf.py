@@ -330,6 +330,7 @@ class perf:
          ('scrolling_a_table.scroll_table_25_scroll_units',                      'Scroll table with 3k event calendar'),
          ('jump_from_one_week_to_another.jump_calendar_by_one_week',             'Jump calendar by one week with 3k event calendar'),
          ('overlay_calendar.overlay_calendar',                                   'Overlay calendar with 3k event calendar'),
+         ('switch_calendar.switch_calendar',                                     'Switch calendar with 3k event calendar'),
          #('resize_app_in_calendar_mode.resize_app_in_calendar_mode',             'Resize calendar with 3k event calendar'),
         ]
 
@@ -341,16 +342,17 @@ class perf:
          'importing_3000_event_calendar.import':                                30,
          'startup_with_large_calendar':                                         10,
          'creating_new_event_from_the_file_menu_after_large_data_import.event_creation': 1,
-         'creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view': 1,
+         'creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view': 0.5,
          'creating_a_new_calendar_after_large_data_import.collection_creation': 1,
          'switching_to_all_view_for_performance.switch_to_allview':             1,
          'perf_stamp_as_event.change_the_event_stamp':                          1,
          'switching_view_after_importing_large_data.switch_to_allview':         1,
-         'stamping_after_large_data_import.change_the_event_stamp':             1,
+         'stamping_after_large_data_import.change_the_event_stamp':             0.5,
          'scroll_calendar_one_unit.scroll_calendar_one_unit':                   0.1,
          'scrolling_a_table.scroll_table_25_scroll_units':                      0.1,
-         'jump_from_one_week_to_another.jump_calendar_by_one_week':             1,
+         'jump_from_one_week_to_another.jump_calendar_by_one_week':             0.1,
          'overlay_calendar.overlay_calendar':                                   1,
+         'switch_calendar.switch_calendar':                                     1,
          #'resize_app_in_calendar_mode.resize_app_in_calendar_mode':             0.1,
         }
 
@@ -1212,7 +1214,7 @@ class perf:
 
     tboxfile.write('<div id="tbox">\n')
     tboxfile.write('<table cellspacing="1">\n')
-    tboxfile.write('<tr><th rowspan="2">Test (<a href="%s" target="_new">trends</a>)<br/>Latest results as of %s</th><th rowspan="2">0.6<br/>Target</th>' % ('trends.html', latest))
+    tboxfile.write('<tr><th rowspan="2">Test (<a href="%s" target="_new">trends</a>)<br/>Latest results as of %s</th><th rowspan="2">0.7<br/>Target</th>' % ('trends.html', latest))
     tboxfile.write('<th colspan="4">Windows (r %s vs %s)</th>' % (revisions['win'][0], revisions['win'][1]))
     tboxfile.write('<th colspan="4">OS X (r %s vs %s)</th>' % (revisions['osx'][0], revisions['osx'][1]))
     tboxfile.write('<th colspan="4">Linux (r %s vs %s)</th></tr>\n' % (revisions['linux'][0], revisions['linux'][1]))
