@@ -62,8 +62,14 @@ try:
                                 filterClassName=filterClassName,
                                 modal=False)
         #Share button call
-        if not win.PublishCollection(blocking=True):
+        win.PublishCollection()
+
+        while not win.done:
+            wx.GetApp().Yield()
+
+        if not win.success:
             logger.ReportFailure("(On publish collection)")
+
         #Done button call
         win.OnPublishDone(None)
         wx.GetApp().Yield()

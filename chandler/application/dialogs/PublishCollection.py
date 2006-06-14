@@ -327,7 +327,7 @@ class PublishCollectionDialog(wx.Dialog):
     def OnPublish(self, evt):
         self.PublishCollection(blocking=False)
 
-    def PublishCollection(self, blocking=False):
+    def PublishCollection(self):
         # Publish the collection
 
         # Update the UI by disabling/hiding various panels, and swapping in a
@@ -420,11 +420,6 @@ class PublishCollectionDialog(wx.Dialog):
         self.currentTask = ShareTask(self.taskView, account, self.collection)
         self.done = False
         self.currentTask.start(inOwnThread=True)
-
-        if blocking:
-            while not self.done:
-                wx.GetApp().Yield()
-            return self.success
 
     def _shareError(self, e):
 
@@ -541,7 +536,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.textStatus.SetLabel("%s%s" % (self.textStatus.GetLabel(), msg))
         # self.textStatus.ShowPosition(self.textStatus.GetLastPosition())
         self._resize()
-        wx.Yield()
+        # @@@MOR wx.Yield()
 
     def _hideStatus(self):
         self._clearStatus()
