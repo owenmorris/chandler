@@ -423,7 +423,6 @@ class CalendarEventMixin(RemindableMixin):
 
     def __init__(self, *args, **kw):
         super(CalendarEventMixin, self).__init__(*args, **kw)
-        import traceback
         self.occurrenceFor = self
         if not kw.has_key('icalUID'):
             self.icalUID = unicode(self.itsUUID)
