@@ -1950,20 +1950,26 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         shortWeekdays = dateFormatSymbols.getShortWeekdays()
         firstDay = GregorianCalendar().getFirstDayOfWeek()
 
+        self.Freeze()
+        self.weekColumnHeader.Freeze()
         for day in xrange(7):
             actualDay = ((day + firstDay - 1) % 7)
             currentDate = startDate + timedelta(days=day)
             dayName = u"%s %d" %(shortWeekdays[actualDay + 1],
                                  currentDate.day)
             self.weekColumnHeader.SetLabelText(day + 1, dayName)
-        
+
+        self.weekColumnHeader.Thaw()
+        self.Thaw()
+
         startOfDay = time(tzinfo=ICUtzinfo.floating)
         self.currentSelectedDate = datetime.combine(selectedDate, startOfDay)
         self.currentStartDate = datetime.combine(startDate, startOfDay)
-        
+
         self.Layout()
 
         self.UpdateHeader()
+
         self.weekColumnHeader.Refresh()
         self.Refresh()
         
