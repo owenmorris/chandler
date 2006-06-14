@@ -68,34 +68,34 @@ BUILD_PLUGINS=Chandler-HelloWorldPlugin Chandler-FeedsPlugin
 # When a version changes, the ARCHIVES lists below needs to be updated.
 
 # these get installed into release or debug
-ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)6.tar.gz \
+ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)7.tar.gz \
          $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)25.tar.gz \
-         $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)4.tar.gz \
-         $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)8.tar.gz \
-         $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8b-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-310-$(BP)7.tar.gz \
-         $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)5.tar.gz \
-         $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.5-62-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0rc1-10-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.2.0-$(BP)46.tar.gz \
-         $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.3.0-r139-$(BP)3.tar.gz \
-         $(CHANDLERARCHIVES)/zanshin-$(SNAP)-150-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/elementtree-$(SNAP)-1.2.6-20050316-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/astng-$(SNAP)-0.16.0-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/common-$(SNAP)-0.15.0-$(BP)3.tar.gz \
-         $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.11.0-$(BP)2.tar.gz
+         $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)5.tar.gz \
+         $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)9.tar.gz \
+         $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)2.tar.gz \
+         $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8b-$(BP)2.tar.gz \
+         $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-310-$(BP)8.tar.gz \
+         $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)6.tar.gz \
+         $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.5-62-$(BP)3.tar.gz \
+         $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0rc1-10-$(BP)2.tar.gz \
+         $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)3.tar.gz \
+         $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.2.0-$(BP)47.tar.gz \
+         $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)3.tar.gz \
+         $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)3.tar.gz \
+         $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.3.0-r139-$(BP)4.tar.gz \
+         $(CHANDLERARCHIVES)/zanshin-$(SNAP)-150-$(BP)3.tar.gz \
+         $(CHANDLERARCHIVES)/elementtree-$(SNAP)-1.2.6-20050316-$(BP)3.tar.gz \
+         $(CHANDLERARCHIVES)/astng-$(SNAP)-0.16.0-$(BP)3.tar.gz \
+         $(CHANDLERARCHIVES)/common-$(SNAP)-0.15.0-$(BP)4.tar.gz \
+         $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.11.0-$(BP)3.tar.gz
 
 
 # readline is only needed for OSX
 ifeq ($(OS),Darwin)
-ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.1-$(BP)1.tar.gz
-ARCHIVES += $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.3-$(BP)1.tar.gz
+ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.1-$(BP)2.tar.gz
+ARCHIVES += $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.3-$(BP)2.tar.gz
 else
-ARCHIVES += $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.2-$(BP)6.tar.gz
+ARCHIVES += $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.2-$(BP)7.tar.gz
 endif
 
 # We download some pretty big files, which can clog your network. You can now
