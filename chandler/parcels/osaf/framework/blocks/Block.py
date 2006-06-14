@@ -700,13 +700,26 @@ class Block(schema.Item):
 
     def onAddToViewableCollectionEvent(self, event):
         """
-        Adds items to a collection, typically the sidebarCollection, that is viewed
+        Adds an item to a collection, typically the sidebarCollection, that is viewed
         by the user interface.
         """
-        def addItem (self, item):
-            isUserCollection = isinstance(item, ContentCollection)
-            if isUserCollection:
-                UserCollection(item).ensureColor()
+        # You either have something in item or implement onNewItem, but not both
+        onNewItemMethod = getattr (type (event), "onNewItem", None)
+        assert (event.item is not None) ^ (onNewItemMethod is not None)
+
+        collection = getattr (schema.ns ("osaf.app", self.itsView), event.collectionName)
+        
+        #Scripting expects the event to return the item that were added
+        if onNewItemMethod:
+            item = onNewItemMethod (event)
+        else:
+            item = event.item
+            if event.copyItems:
+                item = item.copy (parent = self.getDefaultParent(self.itsView),
+                                  cloudAlias="copying")
+        if item is not None:
+            assert isinstance(item, ContentCollection) #Currently assumes a UserCollection
+            UserCollection(item).ensureColor()
 
             # Create a unique display name
             if event.disambiguateDisplayName:
@@ -724,7 +737,6 @@ class Block(schema.Item):
                         break
             
             collection.add (item)
-            items.append (item)
 
             # Add to to the approprate sphere, if any
             sphereCollection = getattr(event, "sphereCollection", None)
@@ -746,32 +758,11 @@ class Block(schema.Item):
                 
                 # Let the block know about the preferred kind
                 method = getattr(type(blockItem), 'setPreferredKind', None)
-                if method and isUserCollection:
+                if method is not None:
                     preferredKind = getattr(UserCollection (item), 'preferredKind', False)
                     if preferredKind is not False:
                         method(blockItem, preferredKind)
-
-        # You either have something in items or implement onNewItem, but not both
-        onNewItemMethod = getattr (type (event), "onNewItem", None)
-        assert ((len (event.items) > 0) ^ (onNewItemMethod != None))
-
-        collection = getattr (schema.ns ("osaf.app", self.itsView), event.collectionName)
-        
-        #Scripting expects the event to return a list of items that were added
-        items = []
-
-        if onNewItemMethod:
-            item = onNewItemMethod (event)
-            if item is not None:
-                addItem (self, item)
-        else:
-            for item in event.items:
-                if event.copyItems:
-                    item = item.copy (parent = self.getDefaultParent(self.itsView),
-                                      cloudAlias="copying")
-                addItem (self, item)
-
-        return items
+        return item
 
     def synchronizeWidget (self, useHints=False):
         """
@@ -1263,7 +1254,7 @@ class AddToViewableCollectionEvent(BlockEvent):
     commitAfterDispatch = schema.One(schema.Boolean, initialValue = True)
     methodName = schema.One(schema.Text, initialValue = 'onAddToViewableCollectionEvent')
 
-    items = schema.Sequence(schema.Item, initialValue = [])
+    item = schema.One(schema.Item, defaultValue = None)
     collectionName = schema.One(schema.Text, initialValue = "sidebarCollection")
     copyItems = schema.One(schema.Boolean, defaultValue=True)
     selectInBlockNamed = schema.One(schema.Text, initialValue = "Sidebar")
@@ -1272,16 +1263,15 @@ class AddToViewableCollectionEvent(BlockEvent):
     sphereCollection = schema.One(ContentCollection)
     
     schema.addClouds(
-        copying = schema.Cloud(byRef=[items,sphereCollection])
+        copying = schema.Cloud(byRef=[item,sphereCollection])
     )
 
 AddToSidebarEvent = AddToViewableCollectionEvent
 """
-    Adds items to the sidebar. The items may be either a collection or tree
-    of blocks.
+    Adds item to the sidebar. The item must be a collection.
 
     You can add an item to the sidebar in two different ways: Either add a
-    reference to a template item to the C{items} attribute and a copy of
+    reference to a template item to the C{item} attribute and a copy of
     the template will be added when the event is dispatched. Or implement
     the C{onNewItem} method on your subclass of AddToSidebarEvent and it
     will be called to create the item added to the sidebar. If your method

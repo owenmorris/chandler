@@ -104,7 +104,7 @@ class UITestItem(object):
             setattr(self, 'is' + type, True)
             constructorName = DataTypes[type]
             constructor = getattr(App_ns.root, constructorName)
-            self.item = constructor()[0]
+            self.item = constructor()
             
             # Give the Yield
             scripting.User.idle()

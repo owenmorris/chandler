@@ -1537,7 +1537,7 @@ class CalendarContainer(BoxContainer):
             timedEventsCanvas.ScrollToEvent(newEvent)
 
             # return the list of items created
-            return [newEvent]
+            return newEvent
         else:
             event.arguments['continueBubbleUp'] = True
 

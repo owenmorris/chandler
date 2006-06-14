@@ -29,7 +29,7 @@ class SidebarElementDelegate (ControlBlocks.ListDelegate):
           Second argument should be True if all cells have the first value
         """
         (item, attribute) = self.GetElementValue (row, column)
-        return (isinstance (item, ContentCollection) and not UserCollection (item).renameable), False
+        return (not UserCollection (item).renameable), False
 
     def GetElementType (self, row, column):
         return "Item"
@@ -141,7 +141,6 @@ class wxSidebar(wxTable):
         try:
             if (cellRect.InsideXY (x, y) and
                 not self.IsCellEditControlEnabled() and
-                isinstance (item, ContentCollection) and
                 UserCollection(item).allowOverlay):
                     if not hasattr (self, 'hoverImageRow'):
                         gridWindow.CaptureMouse()
@@ -174,8 +173,7 @@ class wxSidebar(wxTable):
                     for button in blockItem.buttons:
                         buttonState = button.buttonState
                         if (buttonState['imageRect'].InsideXY (x, y) and
-                            isinstance (item, ContentCollection)
-                            and UserCollection(item).allowOverlay):
+                            UserCollection(item).allowOverlay):
                             
                             event.Skip (False) #Gobble the event
                             self.SetFocus()
@@ -368,37 +366,34 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         item, attribute = grid.GetTable().GetValue (row, col)
 
         sidebar = grid.blockItem
-        if isinstance (item, ContentCollection):
-            """
-              Gray text forground color if the collection is empty
-            """
-            sidebarBPB = Block.Block.findBlockByName ("SidebarBranchPointBlock")
-            if sidebarBPB is not None:
-                filteredCollection = sidebarBPB.delegate.\
-                                   _mapItemToCacheKeyItem(item, {
-                                       "getOnlySelectedCollection": True,
-                                    })
-                if filteredCollection.isEmpty():
-                    dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
-            """
-              Confuse user by changing the name to something they won't understand
-            """
-            if hasattr (UserCollection(item), "displayNameAlternatives"):
-                name = sidebar.getNameAlternative (item)
-            else:
-                name = getattr (item, attribute)
-            """
-              Draw the buttons
-            """
-            for button in sidebar.buttons:
-                mouseOver = row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND)
-                image = button.getButtonImage (item, mouseOver)
-                if image is not None:
-                    imageRect = wxSidebar.GetRectFromOffsets (rect, button.buttonOffsets)
-                    dc.DrawBitmap (image, imageRect.GetLeft(), imageRect.GetTop(), True)
-
+        """
+          Gray text forground color if the collection is empty
+        """
+        sidebarBPB = Block.Block.findBlockByName ("SidebarBranchPointBlock")
+        if sidebarBPB is not None:
+            filteredCollection = sidebarBPB.delegate.\
+                               _mapItemToCacheKeyItem(item, {
+                                   "getOnlySelectedCollection": True,
+                                })
+            if filteredCollection.isEmpty():
+                dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
+        """
+          Confuse user by changing the name to something they won't understand
+        """
+        if hasattr (UserCollection(item), "displayNameAlternatives"):
+            name = sidebar.getNameAlternative (item)
         else:
             name = getattr (item, attribute)
+        """
+          Draw the buttons
+        """
+        for button in sidebar.buttons:
+            mouseOver = row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND)
+            image = button.getButtonImage (item, mouseOver)
+            if image is not None:
+                imageRect = wxSidebar.GetRectFromOffsets (rect, button.buttonOffsets)
+                dc.DrawBitmap (image, imageRect.GetLeft(), imageRect.GetTop(), True)
+
 
         textRect = wxSidebar.GetRectFromOffsets (rect, sidebar.editRectOffsets)
         textRect.Inflate (-1, -1)
@@ -828,34 +823,33 @@ class SidebarBlock(Table):
         def deleteItem(collection):
 
             # clear out the collection contents, if appropriate
-            if isinstance(collection, ContentCollection):
-                if shouldClearCollection:
-                    self.ClearCollectionContents(collection)
-                elif collection in mine.sources:
+            if shouldClearCollection:
+                self.ClearCollectionContents(collection)
+            elif collection in mine.sources:
 
-                    # if the item doesn't exist in any other 'mine'
-                    # collection, we need to manually add it to 'all'
-                    # to keep the item 'mine'.
+                # if the item doesn't exist in any other 'mine'
+                # collection, we need to manually add it to 'all'
+                # to keep the item 'mine'.
 
-                    # We don't want to do this blindly though, or
-                    # all's inclusions will get unnecessarily full.
+                # We don't want to do this blindly though, or
+                # all's inclusions will get unnecessarily full.
 
-                    # We also don't want to remove collection from
-                    # mine.sources. That will cause a notification
-                    # storm as items temporarily leave and re-enter
-                    # being 'mine'
-                    for item in collection:
-                        for otherCollection in item.appearsIn:
-                            if otherCollection is collection:
-                                continue
+                # We also don't want to remove collection from
+                # mine.sources. That will cause a notification
+                # storm as items temporarily leave and re-enter
+                # being 'mine'
+                for item in collection:
+                    for otherCollection in item.appearsIn:
+                        if otherCollection is collection:
+                            continue
 
-                            if otherCollection in mine.sources:
-                                # we found it in another 'mine'
-                                break
-                        else:
-                            # we didn't find it in a 'mine' Collection
-                            allCollection.add(item)
-                    
+                        if otherCollection in mine.sources:
+                            # we found it in another 'mine'
+                            break
+                    else:
+                        # we didn't find it in a 'mine' Collection
+                        allCollection.add(item)
+                
                 sharing.unsubscribe(collection)
             
             collection.delete(True)
@@ -876,8 +870,7 @@ class SidebarBlock(Table):
             enable = False
         else:
             for selectedItem in self.contents.iterSelection():
-                if (isinstance (selectedItem, ContentCollection) and
-                    UserCollection(selectedItem).outOfTheBoxCollection):
+                if (UserCollection(selectedItem).outOfTheBoxCollection):
                     enable = False
                     break
             else:
@@ -901,7 +894,6 @@ class SidebarBlock(Table):
         # filter out the usable collections
         def IsValidCollection(col):
             return (col is not collection and
-                    isinstance (col, ContentCollection) and
                     not UserCollection(col).outOfTheBoxCollection)
 
         # ultimately we'd like to use collection.appearsIn here rather
@@ -944,8 +936,7 @@ class SidebarBlock(Table):
                 len(self.contents.getSelectionRanges()) == 1)
 
         selectedItem = self.contents.getFirstSelectedItem()
-        if (selectedItem is not None and
-            isinstance(selectedItem, ContentCollection)):
+        if (selectedItem is not None):
             UserCollection(selectedItem).color = event.color
         
     def onCollectionColorEventUpdateUI(self, event):
@@ -956,10 +947,6 @@ class SidebarBlock(Table):
         else:
             selectedItem = self.contents.getFirstSelectedItem()
             
-            if not isinstance(selectedItem, ContentCollection):
-                event.arguments['Enable'] = False
-                return
-        
             color = getattr(UserCollection(selectedItem), 'color', None)
 
             # the event contains the color, so we need to look at that
@@ -974,7 +961,7 @@ class SidebarBlock(Table):
         selectionRanges = self.contents.getSelectionRanges()
         if selectionRanges is not None and len(self.contents.getSelectionRanges()) == 1:
             item = self.contents.getFirstSelectedItem()
-            result = not isinstance (item, ContentCollection) or UserCollection (item).renameable
+            result = UserCollection (item).renameable
         
         return result
 
@@ -1001,9 +988,7 @@ class SidebarBlock(Table):
             return
 
         selectedItem = self.contents.getFirstSelectedItem()
-        isCollection = (selectedItem is not None and
-                        isinstance (selectedItem, ContentCollection))
-        if isCollection:
+        if selectedItem is not None:
             if hasattr (UserCollection(selectedItem), "displayNameAlternatives"):
                 collectionName = self.getNameAlternative (selectedItem)
             else:
@@ -1014,7 +999,7 @@ class SidebarBlock(Table):
         arguments = {'collection': collectionName,
                      'kind': self.getNameAlternative (schema.ns('osaf.pim', self.itsView).allCollection)}
 
-        if not isCollection:
+        if selectedItem is None:
             enabled = False
             menuTitle = _(u'Keep out of %(kind)s') % arguments
         elif UserCollection(selectedItem).outOfTheBoxCollection:
@@ -1054,132 +1039,128 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
     )
 
     def _mapItemToCacheKeyItem(self, item, hints):
+        assert isinstance (item, ContentCollection) # The sidebar can only contain ContentCollections
         key = item
-        if not isinstance (item, Block.Block):
-            sidebar = Block.Block.findBlockByName ("Sidebar")
+        sidebar = Block.Block.findBlockByName ("Sidebar")
+        """
+        collectionList should be in the order that the source items
+        are overlayed in the Calendar view
+
+        'item' in this case is more or less only used to determine
+        order. We're not so much mapping item => cacheKeyItem, but
+        rather mapping the sidebar's current state to a cacheKeyItem.
+        """
+        collectionList = []
+        if not hints.get ("getOnlySelectedCollection", False):
+            # make sure 'item' is at the front of the list so that
+            # consumers know what the 'primary' collection is.
+            if item is not None:
+                collectionList.append (item)
+            for theItem in sidebar.contents:
+                if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
+                    theItem not in collectionList):
+                    collectionList.append (theItem)
+
+        if len (collectionList) > 0:
             """
-            collectionList should be in the order that the source items
-            are overlayed in the Calendar view
-    
-            'item' in this case is more or less only used to determine
-            order. We're not so much mapping item => cacheKeyItem, but
-            rather mapping the sidebar's current state to a cacheKeyItem.
+            tupleList is sorted so we always end up with on collection
+            for any order of collections in the source
             """
-            collectionList = []
-            if not hints.get ("getOnlySelectedCollection", False):
-                # make sure 'item' is at the front of the list so that
-                # consumers know what the 'primary' collection is.
-                if item is not None:
-                    collectionList.append (item)
-                for theItem in sidebar.contents:
-                    if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
-                        isinstance (theItem, ContentCollection) and
-                        theItem not in collectionList):
-                        collectionList.append (theItem)
-    
-            if len (collectionList) > 0:
-                """
-                tupleList is sorted so we always end up with on collection
-                for any order of collections in the source
-                """
-                tupleList = [theItem.itsUUID for theItem in collectionList]
-                tupleList.sort()
-    
-                filterKind = sidebar.filterKind
-                if not filterKind is None:
-                    tupleList.append (filterKind.itsUUID)
-                
-                tupleKey = tuple (tupleList)
-    
-                key = self.itemTupleKeyToCacheKey.get (tupleKey, None)
-                if key is None:
-                    # we don't have a cached version of this key, so we'll
-                    # create a new one
-                    if len (collectionList) == 1:
-                        key = collectionList [0]
-                    else:
-                        # eventually it would be nice to just make a
-                        # Union here, but we need to make sure each
-                        # withoutTrash gets called
-                        combined = UnionCollection(itsView=self.itsView,
-                                                   sources=collectionList)
-                        
-                        # unioning Smart/AppCollections makes them
-                        # lose their trash (which is good) so add it
-                        # back by wrapping with an AppCollection
-                        # (AppCollections are more transitory than
-                        # SmartCollections)
-                        key = AppCollection(itsView=self.itsView,
-                                            source=combined)
-    
-                    # create an INTERNAL name for this collection, just
-                    # for debugging purposes
-                    displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
-    
-                    # Handle filtered collections by intersecting with
-                    # the kind collection
-                    if filterKind is not None:
-                        kindCollection = self.kindToKindCollectionCache.get(filterKind, None)
-                        if kindCollection is None:
-                            kindCollection = KindCollection(itsView=self.itsView,
-                                                            kind=filterKind,
-                                                            recursive=True)
-                            self.kindToKindCollectionCache [filterKind] = kindCollection
-                        newKey = IntersectionCollection(itsView=self.itsView,
-                                                        sources=[key, kindCollection])
-                        UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
-                        displayName += u" filtered by " + filterKind.displayName
-                        key = newKey
-    
-                    # Finally, create a UI wrapper collection to manage
-                    # things like selection and sorting
-                    newKey = IndexedSelectionCollection(itsView=self.itsView,
-                                                        source=key)
-                    if len (newKey) > 0:
-                        newKey.addSelectionRange (0)
-                    UserCollection(newKey).dontDisplayAsCalendar = \
-                        UserCollection(key).dontDisplayAsCalendar
+            tupleList = [theItem.itsUUID for theItem in collectionList]
+            tupleList.sort()
+
+            filterKind = sidebar.filterKind
+            if not filterKind is None:
+                tupleList.append (filterKind.itsUUID)
+            
+            tupleKey = tuple (tupleList)
+
+            key = self.itemTupleKeyToCacheKey.get (tupleKey, None)
+            if key is None:
+                # we don't have a cached version of this key, so we'll
+                # create a new one
+                if len (collectionList) == 1:
+                    key = collectionList [0]
+                else:
+                    # eventually it would be nice to just make a
+                    # Union here, but we need to make sure each
+                    # withoutTrash gets called
+                    combined = UnionCollection(itsView=self.itsView,
+                                               sources=collectionList)
+                    
+                    # unioning Smart/AppCollections makes them
+                    # lose their trash (which is good) so add it
+                    # back by wrapping with an AppCollection
+                    # (AppCollections are more transitory than
+                    # SmartCollections)
+                    key = AppCollection(itsView=self.itsView,
+                                        source=combined)
+
+                # create an INTERNAL name for this collection, just
+                # for debugging purposes
+                displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
+
+                # Handle filtered collections by intersecting with
+                # the kind collection
+                if filterKind is not None:
+                    kindCollection = self.kindToKindCollectionCache.get(filterKind, None)
+                    if kindCollection is None:
+                        kindCollection = KindCollection(itsView=self.itsView,
+                                                        kind=filterKind,
+                                                        recursive=True)
+                        self.kindToKindCollectionCache [filterKind] = kindCollection
+                    newKey = IntersectionCollection(itsView=self.itsView,
+                                                    sources=[key, kindCollection])
+                    UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
+                    displayName += u" filtered by " + filterKind.displayName
                     key = newKey
-    
-                    key.displayName = displayName
-    
-                    key.collectionList = collectionList
-                    self.itemTupleKeyToCacheKey [tupleKey] = key
-                else: # if key is None
-                    """
-                    We found the key, but we might still need to reorder
-                    collectionList. The list is kept sorted by the order
-                    of the collections as they overlay one another in the
-                    Calendar.  We don't bother to reorder when we're
-                    looking up a collection that isn't displayed in the
-                    summary view.
-                    """
-                    if item in sidebar.contents.iterSelection():
-                        for new, old in zip(key.collectionList, collectionList):
-                            if new is not old:
-                                key.collectionList = collectionList
-                                # Force setContents to be true even if the
-                                # contents hasn't changed since the order
-                                # of collectionList has changed
-                                hints["sendSetContents"] = True
-                                break
+
+                # Finally, create a UI wrapper collection to manage
+                # things like selection and sorting
+                newKey = IndexedSelectionCollection(itsView=self.itsView,
+                                                    source=key)
+                if len (newKey) > 0:
+                    newKey.addSelectionRange (0)
+                UserCollection(newKey).dontDisplayAsCalendar = \
+                    UserCollection(key).dontDisplayAsCalendar
+                key = newKey
+
+                key.displayName = displayName
+
+                key.collectionList = collectionList
+                self.itemTupleKeyToCacheKey [tupleKey] = key
+            else: # if key is None
+                """
+                We found the key, but we might still need to reorder
+                collectionList. The list is kept sorted by the order
+                of the collections as they overlay one another in the
+                Calendar.  We don't bother to reorder when we're
+                looking up a collection that isn't displayed in the
+                summary view.
+                """
+                if item in sidebar.contents.iterSelection():
+                    for new, old in zip(key.collectionList, collectionList):
+                        if new is not old:
+                            key.collectionList = collectionList
+                            # Force setContents to be true even if the
+                            # contents hasn't changed since the order
+                            # of collectionList has changed
+                            hints["sendSetContents"] = True
+                            break
         return key
 
     def _makeBranchForCacheKey(self, keyItem):
-        if isinstance (keyItem, ContentCollection):
-            sidebar = Block.Block.findBlockByName("Sidebar")
-            if (not UserCollection(keyItem).dontDisplayAsCalendar and
-                sidebar.filterKind is schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)):
-                    template = self.findPath (self.calendarTemplatePath)
-                    keyUUID = template.itsUUID
-                    branch = self.keyUUIDToBranch.get (keyUUID, None)
-                    if branch is None:
-                        branch = self._copyItem(template, onlyIfReadOnly=True)
-                        self.keyUUIDToBranch[keyUUID] = branch
-            else:
-                branch = self.findPath (self.tableTemplatePath)
+        sidebar = Block.Block.findBlockByName("Sidebar")
+        if (not UserCollection(keyItem).dontDisplayAsCalendar and
+            sidebar.filterKind is schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)):
+                template = self.findPath (self.calendarTemplatePath)
+                keyUUID = template.itsUUID
+                branch = self.keyUUIDToBranch.get (keyUUID, None)
+                if branch is None:
+                    branch = self._copyItem(template, onlyIfReadOnly=True)
+                    self.keyUUIDToBranch[keyUUID] = branch
         else:
-            branch = keyItem
+            branch = self.findPath (self.tableTemplatePath)
 
         assert isinstance (branch, Block.Block)
         return self._copyItem(branch, onlyIfReadOnly=True)
@@ -1195,18 +1176,14 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         sidebar is also the collection that gets passed down the views
         to the detail view
         """
-        if isinstance(item, ContentCollection):
-            return item
+        return item
 
 class CPIATestSidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
     templatePath = schema.One(schema.Text)
 
     def _makeBranchForCacheKey(self, keyItem):
-        if isinstance (keyItem, ContentCollection):
-            branch = self.findPath (self.templatePath)
-        else:
-            branch = keyItem
+        branch = self.findPath (self.templatePath)
 
         assert isinstance (branch, Block.Block)
         return self._copyItem(branch, onlyIfReadOnly=True)

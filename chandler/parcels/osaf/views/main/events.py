@@ -209,7 +209,7 @@ def makeMainEvents(parcel):
         blockName = 'NewCollection',
         editAttributeNamed = 'displayName',
         sphereCollection = schema.ns('osaf.pim', repositoryView).mine,
-        items = [untitledCollection])
+        item = untitledCollection)
         
     BlockEvent.template('GenerateContentItemsFromFile',
                        commitAfterDispatch = True).install(parcel)

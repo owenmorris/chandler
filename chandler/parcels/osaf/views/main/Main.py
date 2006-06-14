@@ -210,7 +210,7 @@ class MainView(View):
         if detailRoot:
             detailRoot.focus()
 
-        return [newItem]
+        return newItem
 
     def onPrintPreviewEvent (self, event):
         self.printEvent(True)
@@ -418,8 +418,7 @@ class MainView(View):
         """
         sidebar = Block.findBlockByName ("Sidebar")
         item = sidebar.contents.getFirstSelectedItem()
-        if (not isinstance (item, ContentCollection) or
-            private == False and item.private):
+        if (private == False and item.private):
             return None
         
         return item

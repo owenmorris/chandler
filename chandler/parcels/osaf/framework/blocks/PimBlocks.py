@@ -87,9 +87,7 @@ class FocusEventHandlers(Item):
         if collection is None:
             collection = self.contents
 
-        # in some views, self.contents is an item, not a collection!
-        if isinstance(collection, ContentCollection):
-            return collection
+        return collection
 
     def onSendShareItemEventUpdateUI(self, event):
         """ Generically enable Send-ing. """
@@ -287,7 +285,6 @@ class FocusEventHandlers(Item):
             for otherCollection in sidebarCollections:
                 
                 if (otherCollection is selectedCollection or
-                    not isinstance(otherCollection, ContentCollection) or
                     UserCollection(otherCollection).outOfTheBoxCollection):
                     continue
 

@@ -53,7 +53,7 @@ def installParcel(parcel, oldVersion=None):
     addCertificateToSidebarEvent = Block.AddToSidebarEvent.update(
         parcel, 'addCertificateToSidebarEvent',
         blockName = 'addCertificateToSidebarEvent',
-        items = [certificateCollection],
+        item = certificateCollection,
         copyItems = False,
         disambiguateDisplayName = False)
 
