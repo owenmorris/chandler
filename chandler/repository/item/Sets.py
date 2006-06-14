@@ -193,6 +193,13 @@ class AbstractSet(ItemValue, Indexed):
         return getattr(self._view[source[0]],
                        source[1]).__contains__(item, excludeMutating)
 
+    def _getSource(self, source):
+
+        if isinstance(source, AbstractSet):
+            return source
+        
+        return getattr(self._view[source[0]], source[1])
+
     def _inspectSource(self, source, indent):
 
         if isinstance(source, AbstractSet):
@@ -767,8 +774,12 @@ class Union(BiSet):
                 if key not in leftIndex:
                     yield key
         else:
-            for item in self:
-                yield item.itsUUID
+            for key in self._iterSourceKeys(self._left):
+                yield key
+            left = self._getSource(self._left)
+            for key in self._iterSourceKeys(self._right):
+                if key not in left:
+                    yield key
 
     def _op(self, leftOp, rightOp, other):
 
@@ -816,8 +827,10 @@ class Intersection(BiSet):
                 if key in rightIndex:
                     yield key
         else:
-            for item in self:
-                yield item.itsUUID
+            right = self._getSource(self._right)
+            for key in self._iterSourceKeys(self._left):
+                if key in right:
+                    yield key
 
     def _op(self, leftOp, rightOp, other):
 
@@ -865,8 +878,10 @@ class Difference(BiSet):
                 if key not in rightIndex:
                     yield key
         else:
-            for item in self:
-                yield item.itsUUID
+            right = self._getSource(self._right)
+            for key in self._iterSourceKeys(self._left):
+                if key not in right:
+                    yield key
 
     def _op(self, leftOp, rightOp, other):
 
