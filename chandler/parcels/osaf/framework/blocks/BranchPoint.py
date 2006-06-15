@@ -174,7 +174,6 @@ class BranchPointBlock(BoxContainer):
 
         if newView is not None:
             def Rerender():
-                
                 if (detailItemChanged or
                     treeChanged or
                     hints.get ("sendSetContents", False)):
@@ -185,7 +184,9 @@ class BranchPointBlock(BoxContainer):
                 if not hasattr (newView, "widget"):
                     newView.render()
                 elif detailItemChanged or treeChanged:
-                    newView.synchronizeWidgetDeep()
+                    resyncMethod = getattr(newView, 'synchronizeWidgetDeep', None)
+                    if resyncMethod is not None:
+                        resyncMethod()
 
             IgnoreSynchronizeWidget(False, Rerender)
 

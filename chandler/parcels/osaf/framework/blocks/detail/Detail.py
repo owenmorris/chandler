@@ -127,6 +127,20 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             titleBlock.widget.SetFocus()
             titleBlock.widget.SelectAll()
 
+    def synchronizeWidgetDeep(self):
+        """ Do synchronizeWidget recursively, depth-first. """
+        def syncInside(block):
+            # process from the children up
+            map(syncInside, block.childrenBlocks)
+            block.synchronizeWidget()
+
+        self.widget.Freeze()
+        try:
+            syncInside(self)
+        finally:
+            self.widget.Thaw()
+            
+
 class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
     """ 
     Delegate for managing trees of blocks that compose the detail view.
