@@ -181,15 +181,18 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         sharing.sync(coll0)
         view0.refresh()
 
-        self.assertEqual(item0.displayName, uw("meeting rescheduled"),
-         "displayName is %s" % (item0.displayName.encode("utf8")))
-        self.assertEqual(item1.displayName, uw("meeting rescheduled"),
-         "displayName is %s" % (item1.displayName.encode("utf8")))
+        testMessage = uw("meeting rescheduled")
+        self.assertEqual(item0.displayName, testMessage,
+         "displayNames unequal: %s vs %s" % (item0.displayName.encode("utf8"),
+                                             testMessage.encode("utf8")))
+        self.assertEqual(item1.displayName, testMessage,
+         "displayName unequal: %s vs %s" % (item1.displayName.encode("utf8"),
+                                            testMessage.encode("utf8")))
 
         self.assertEqual(item0.startTime, newStart,
-         "startTime is %s" % (item0.startTime))
+         "startTimes unequal: %s vs %s" % (item0.startTime, newStart))
         self.assertEqual(item1.startTime, newStart,
-         "startTime is %s" % (item1.startTime))
+         "startTimes unequal: %s vs %s" % (item1.startTime, newStart))
 
     def Remove(self):
 
