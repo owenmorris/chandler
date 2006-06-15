@@ -72,7 +72,7 @@ def getExports(**kw):
 def go():
 
     print "Igniting Twisted reactor..."
-    if view.itsVersion == 0:
+    if view.isNew():
         view.commit()
     Globals.options.webserver = True
     Utility.initTwisted()
