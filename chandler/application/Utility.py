@@ -261,7 +261,9 @@ def initI18n(options):
 
     #XXX: Comment out this code if a issue 
     #     arises with wx translation loading
-    i18nMan.setWxPath(locateWxLocalizationDir())
+    #     It's causing failure on mac nightly builds, so commenting it out till
+    #     that's fixed, bug 6040
+    #i18nMan.setWxPath(locateWxLocalizationDir())
 
     if options.locale is not None:
         # If a locale is passed in on the command line
