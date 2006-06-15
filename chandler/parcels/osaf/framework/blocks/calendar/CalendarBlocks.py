@@ -225,7 +225,6 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
            # The following iteration over keys comes from Calendar.py
 
             pimNs = schema.ns('osaf.pim', view)
-            allEvents = pimNs.events
             masterEvents = pimNs.masterEvents
 
             tzprefs = schema.ns('osaf.app', view).TimezonePrefs
@@ -238,7 +237,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
     
     
             keys = Calendar.getKeysInRange(view,
-                    startDatetime, 'effectiveStartTime', startIndex, allEvents,
+                    startDatetime, 'effectiveStartTime', startIndex, masterEvents,
                     endDatetime, 'recurrenceEnd', endIndex, masterEvents,
                     events, '__adhoc__',
                     tzprefs.showUI)
