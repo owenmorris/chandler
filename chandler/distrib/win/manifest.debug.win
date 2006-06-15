@@ -77,7 +77,7 @@ Chandler-project.wpr
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
-glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack,*.pem,*.ics,*.js,*.css,*.sh
+glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack,*.pem,*.ics,*.js,*.css,*.sh,*.conf
 application
 parcels
 util
