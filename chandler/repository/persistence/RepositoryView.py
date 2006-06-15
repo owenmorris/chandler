@@ -1247,7 +1247,7 @@ class OnDemandRepositoryView(RepositoryView):
 
     def isNew(self):
 
-        return self._version == 0
+        return self.itsVersion == 0
 
     def _acquireExclusive(self):
 

@@ -1351,14 +1351,14 @@ class MethodFilteredSet(FilteredSet):
     def filter(self, uuid):
 
         view = self._view
-        uuid, methodName = self.filterMethod
+        uItem, methodName = self.filterMethod
 
-        return getattr(view[uuid], methodName)(view, uuid)
+        return getattr(view[uItem], methodName)(view, uuid)
 
     def _repr_(self, replace=None):
 
-        uuid, methodName = self.filterMethod
-        return "%s(%s, (UUID('%s'), '%s'), %s%s)" %(type(self).__name__, self._reprSource(self._source, replace), uuid.str64(), methodName, self.attributes, self._reprSourceId(replace))
+        uItem, methodName = self.filterMethod
+        return "%s(%s, (UUID('%s'), '%s'), %s%s)" %(type(self).__name__, self._reprSource(self._source, replace), uItem.str64(), methodName, self.attributes, self._reprSourceId(replace))
 
     def _inspect_(self, indent):
 
