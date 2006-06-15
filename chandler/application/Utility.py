@@ -423,15 +423,16 @@ def initRepository(directory, options, allowSchemaView=False):
     return view
 
 
-def stopRepository(view):
+def stopRepository(view, commit=True):
 
     if view.repository.isOpen():
         try:
-            try:
-                if view.isOpen():
-                    view.commit()
-            except VersionConflictError, e:
-                logger.exception(e)
+            if commit:
+                try:
+                    if view.isOpen():
+                        view.commit()
+                except VersionConflictError, e:
+                    logger.exception(e)
         finally:
             view.repository.close()
 

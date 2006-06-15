@@ -14,13 +14,18 @@ from repository.persistence.DBRefs import DBRefList
 
 view = None
 app = None
+commitOnExit = True
 
 # This dictionary is a mapping of symbols that other modules might want
 # to use; it's populated by the @exportMethod decorator below.
 exportedSymbols = { }
 
 def startup(**kwds):
-    global view
+    global view, commitOnExit
+
+    if '-A' in sys.argv:
+        commitOnExit = False
+        sys.argv.remove('-A')
 
     Globals.options = Utility.initOptions(**kwds)
     Utility.initProfileDir(Globals.options)
@@ -67,7 +72,8 @@ def getExports(**kw):
 def go():
 
     print "Igniting Twisted reactor..."
-    view.commit()
+    if view.itsVersion == 0:
+        view.commit()
     Globals.options.webserver = True
     Utility.initTwisted()
     Utility.initWakeup(view)
@@ -77,7 +83,7 @@ def go():
 def shutdown():
     Utility.stopWakeup()
     Utility.stopTwisted()
-    Utility.stopRepository(view)
+    Utility.stopRepository(view, commitOnExit)
     Utility.stopCrypto(Globals.options.profileDir)
 
 
