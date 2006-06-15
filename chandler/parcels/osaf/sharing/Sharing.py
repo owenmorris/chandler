@@ -1929,9 +1929,6 @@ class SimpleHTTPConduit(WebDAVConduit):
 
     lastModified = schema.One(schema.Text, initialValue = '')
 
-    # def get(self, updateCallback=None):
-    #     self._get(updateCallback=updateCallback)
-
     def _get(self, contentView, updateCallback=None):
 
         # @@@MOR: we need to have importProcess return stats about what it did.
