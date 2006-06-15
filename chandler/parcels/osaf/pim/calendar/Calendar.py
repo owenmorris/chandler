@@ -76,9 +76,13 @@ def ensureIndexed(coll):
     if not coll.hasIndex('__adhoc__'):
         coll.addIndex('__adhoc__', 'numeric')
 
+zero_delta = timedelta(0)
+REALLY_LONG = timedelta(7)
+
 def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
                          endVal,   endAttrName,   endIndex,   endColl,
-                         filterColl = None, filterIndex = None, useTZ=True):
+                         filterColl = None, filterIndex = None, useTZ=True,
+                         longDelta=None):
     """
     Yield keys for events occurring between startVal and endVal.  Don't load
     items, just yield relevant keys, sorted according to startIndex.
@@ -91,48 +95,67 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
     """
     
     # callbacks to use for searching the indexes
-    def mStart(key):
-        # gets the last item starting before endVal
+    def mStart(key, delta=None):
+        # gets the last item starting before endVal, or before startVal - delta
+        if delta is None:
+            delta = zero_delta
+        else:
+            delta = delta + endVal - startVal
         testVal = getattr(view[key], startAttrName)
         if testVal is None:
             return -1 # interpret None as negative infinity
         # note that we're NOT using >=, if we did, we'd include all day
         # events starting at the beginning of the next week
         if useTZ:
-            if endVal > testVal:
+            if endVal - delta > testVal:
                 return 0
         else:
-            if endVal.replace(tzinfo=None) > testVal.replace(tzinfo=None):
+            if endVal.replace(tzinfo=None) - delta > testVal.replace(tzinfo=None):
                 return 0
         return -1
 
-    def mEnd(key):
-        # gets the first item starting after startVal
+    def mEnd(key, delta=None):
+        # gets the first item ending after startVal, or after endVal + delta
+        if delta is None:
+            delta = zero_delta
+        else:
+            delta = delta + endVal - startVal
         testVal = getattr(view[key], endAttrName)
         if testVal is None:
             return 0 # interpret None as positive infinity, thus, a match
         if useTZ:
-            if startVal < testVal:
+            if startVal + delta < testVal:
                 return 0
         else:
-            if startVal.replace(tzinfo=None) < testVal.replace(tzinfo=None):
+            if startVal.replace(tzinfo=None) + delta < testVal.replace(tzinfo=None):
                 return 0
         return 1
     
     lastStartKey = startColl.findInIndex(startIndex, 'last', mStart)
     if lastStartKey is None:
-        return #there were no keys ending after start
+        return #there were no keys starting after end
+    if longDelta is not None:
+        firstStartKey = startColl.findInIndex(startIndex, 'last',
+                                    lambda key: mStart(key, longDelta))
+    else:
+        firstStartKey = None
+    
     firstEndKey = endColl.findInIndex(endIndex, 'first', mEnd)
     if firstEndKey is None:
-        return #there were no keys ending before end
-
+        return #there were no keys ending before start
+    if longDelta is not None:
+        lastEndKey = endColl.findInIndex(endIndex, 'first',
+                                         lambda key: mEnd(key, longDelta))
+    else:
+        lastEndKey = None
+        
     if filterColl is not None:
         _filterIndex = filterColl.getIndex(filterIndex)
 
-    keys = set(endColl.iterindexkeys(endIndex, firstEndKey, None))
+    keys = set(endColl.iterindexkeys(endIndex, firstEndKey, lastEndKey))
 
     # generate keys, starting from the earliest according to startIndex
-    for key in startColl.iterindexkeys(startIndex, None, lastStartKey):
+    for key in startColl.iterindexkeys(startIndex, firstStartKey, lastStartKey):
         if key in keys and (filterColl is None or key in _filterIndex):
             yield key
 
@@ -183,7 +206,8 @@ def eventsInRange(view, start, end, filterColl = None, dayItems=True,
     allEvents = schema.ns("osaf.pim", view).events
     keys = getKeysInRange(view, start, 'effectiveStartTime', startIndex,
                           allEvents, end,'effectiveEndTime', endIndex,
-                          allEvents, filterColl, '__adhoc__', tzprefs.showUI)
+                          allEvents, filterColl, '__adhoc__', tzprefs.showUI,
+                          longDelta = REALLY_LONG)
     for key in keys:
         if (view[key].rruleset is None and 
             ((dayItems and timedItems) or isDayItem(view[key]) == dayItems)):

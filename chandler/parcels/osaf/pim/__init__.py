@@ -133,6 +133,12 @@ def installParcel(parcel, oldVersion=None):
         trash=None,
     )
 
+    #longFilter = "view.findValue(uuid, 'duration', timedelta(0) > seven_days"
+    #reallyLongEvents = FilteredCollection.update(parcel, 'reallyLongEvents',
+        #source = events,
+        #filterExpression = longFilter,
+        #filterAttributes = ['duration'])
+
     # the monitor list assumes all reminders will be relativeTo
     # effectiveStartTime, which is true in 0.6, but may not be in the future
     eventsWithReminders.addIndex('reminderTime', 'compare',
