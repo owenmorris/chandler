@@ -152,6 +152,13 @@ def installParcel(parcel, oldVersion=None):
     masterEvents.addIndex("recurrenceEndNoTZ", 'compare', compare='cmpRecurEndNoTZ',
                           monitor=('recurrenceEnd'))
 
+    masterEvents.addIndex('effectiveStart', 'subindex',
+                          superindex=(events, events.__collection__,
+                                      'effectiveStart'))
+    masterEvents.addIndex('effectiveStartNoTZ', 'subindex',
+                          superindex=(events, events.__collection__,
+                                      'effectiveStartNoTZ'))
+
     locations = KindCollection.update(
         parcel, 'locations',
         kind = Location.getKind(view),

@@ -330,9 +330,12 @@ class DelegatingIndex(object):
 
 class SortedIndex(DelegatingIndex):
 
-    def __init__(self, index, **kwds):
+    def __init__(self, valueMap, index, **kwds):
         
         super(SortedIndex, self).__init__(index, **kwds)
+
+        self._valueMap = valueMap
+        self._subIndexes = None
 
         if not kwds.get('loading', False):
             self._descending = str(kwds.pop('descending', 'False')) == 'True'
@@ -346,7 +349,11 @@ class SortedIndex(DelegatingIndex):
 
     def getInitKeywords(self):
 
-        return { 'descending': self._descending }
+        if self._subIndexes:
+            return { 'descending': self._descending,
+                     'subindexes': self._subIndexes }
+        else:
+            return { 'descending': self._descending }
 
     def compare(self, k0, k1):
 
@@ -367,6 +374,15 @@ class SortedIndex(DelegatingIndex):
         if key in index:
             index.removeKey(key)
         index.insertKey(key, index.skipList.after(key, self.compare))
+
+        if self._subIndexes:
+            view = self._valueMap._getView()
+            for uuid, attr, name in self._subIndexes:
+                indexed = getattr(view[uuid], attr)
+                index = indexed.getIndex(name)
+                if key in index:
+                    index.moveKey(key, None)
+                    indexed._setDirty(True)
 
     def setDescending(self, descending=True):
 
@@ -429,19 +445,52 @@ class SortedIndex(DelegatingIndex):
 
         if self._descending:
             attrs['descending'] = 'True'
+        if self._subIndexes:
+            attrs['subindexes'] = ','.join(["(%s,%s,%s)" %(uuid.str64(), attr, name) for uuid, attr, name in self._subIndexes])
+
         self._index._xmlValues(generator, version, attrs, mode)
 
     def _writeValue(self, itemWriter, buffer, version):
 
         super(SortedIndex, self)._writeValue(itemWriter, buffer, version)
         itemWriter.writeBoolean(buffer, self._descending)
+        if self._subIndexes:
+            itemWriter.writeShort(buffer, len(self._subIndexes))
+            for uuid, attr, name in self._subIndexes:
+                itemWriter.writeUUID(buffer, uuid)
+                itemWriter.writeSymbol(buffer, attr)
+                itemWriter.writeSymbol(buffer, name)
+        else:
+            itemWriter.writeShort(buffer, 0)
 
     def _readValue(self, itemReader, offset, data):
 
         offset = super(SortedIndex, self)._readValue(itemReader, offset, data)
         offset, self._descending = itemReader.readBoolean(offset, data)
+        offset, count = itemReader.readShort(offset, data)
+
+        if count > 0:
+            self._subIndexes = set()
+            for i in xrange(count):
+                offset, uuid = itemReader.readUUID(offset, data)
+                offset, attr = itemReader.readSymbol(offset, data)
+                offset, name = itemReader.readSymbol(offset, data)
+                self._subIndexes.add((uuid, attr, name))
+        else:
+            self._subIndexes = None
 
         return offset
+
+    def addSubIndex(self, uuid, attr, name):
+
+        if self._subIndexes is None:
+            self._subIndexes = set([(uuid, attr, name)])
+        else:
+            self._subIndexes.add((uuid, attr, name))
+
+    def removeSubIndex(self, uuid, attr, name):
+        
+        self._subIndexes.remove((uuid, attr, name))
 
     def _needsReindexing(self):
         return True
@@ -451,9 +500,7 @@ class AttributeIndex(SortedIndex):
 
     def __init__(self, valueMap, index, **kwds):
 
-        super(AttributeIndex, self).__init__(index, **kwds)
-
-        self._valueMap = valueMap
+        super(AttributeIndex, self).__init__(valueMap, index, **kwds)
 
         if not kwds.get('loading', False):
             attributes = kwds.pop('attributes', None)
@@ -663,8 +710,7 @@ class CompareIndex(SortedIndex):
 
     def __init__(self, valueMap, index, **kwds):
 
-        super(CompareIndex, self).__init__(index, **kwds)
-        self._valueMap = valueMap
+        super(CompareIndex, self).__init__(valueMap, index, **kwds)
 
         if not kwds.get('loading', False):
             self._compare = kwds.pop('compare')
@@ -675,7 +721,7 @@ class CompareIndex(SortedIndex):
     
     def getInitKeywords(self):
 
-        kwds = super(AttributeIndex, self).getInitKeywords()
+        kwds = super(CompareIndex, self).getInitKeywords()
         kwds['compare'] = self._compare
 
         return kwds
@@ -687,7 +733,7 @@ class CompareIndex(SortedIndex):
     def _xmlValues(self, generator, version, attrs, mode):
 
         attrs['compare'] = self._compare
-        super(AttributeIndex, self)._xmlValues(generator, version, attrs, mode)
+        super(CompareIndex, self)._xmlValues(generator, version, attrs, mode)
 
     def _writeValue(self, itemWriter, buffer, version):
 
@@ -698,5 +744,61 @@ class CompareIndex(SortedIndex):
 
         offset = super(CompareIndex, self)._readValue(itemReader, offset, data)
         offset, self._compare = itemReader.readSymbol(offset, data)
+
+        return offset
+
+
+class SubIndex(SortedIndex):
+
+    def __init__(self, valueMap, index, **kwds):
+
+        super(SubIndex, self).__init__(valueMap, index, **kwds)
+
+        if not kwds.get('loading', False):
+            item, attr, name = kwds.pop('superindex')
+            self._super = (item.itsUUID, attr, name)
+
+    def getIndexType(self):
+
+        return 'subindex'
+    
+    def getInitKeywords(self):
+
+        kwds = super(SubIndex, self).getInitKeywords()
+        kwds['superindex'] = self._super
+
+        return kwds
+
+    def compare(self, k0, k1):
+
+        uuid, attr, name = self._super
+        index = getattr(self._valueMap._getView()[uuid], attr).getIndex(name)
+
+        return index.getPosition(k0) - index.getPosition(k1)
+
+    def _xmlValues(self, generator, version, attrs, mode):
+
+        uuid, attr, name = self._super
+        attrs['superindex'] = "%s,%s,%s" %(uuid.str64(), attr, name)
+        super(SubIndex, self)._xmlValues(generator, version, attrs, mode)
+
+    def _writeValue(self, itemWriter, buffer, version):
+
+        super(SubIndex, self)._writeValue(itemWriter, buffer, version)
+
+        uuid, attr, name = self._super
+        itemWriter.writeUUID(buffer, uuid)
+        itemWriter.writeSymbol(buffer, attr)
+        itemWriter.writeSymbol(buffer, name)
+
+    def _readValue(self, itemReader, offset, data):
+
+        offset = super(SubIndex, self)._readValue(itemReader, offset, data)
+
+        offset, uuid = itemReader.readUUID(offset, data)
+        offset, attr = itemReader.readSymbol(offset, data)
+        offset, name = itemReader.readSymbol(offset, data)
+
+        self._super = (uuid, attr, name)
 
         return offset

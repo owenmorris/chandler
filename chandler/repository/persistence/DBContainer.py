@@ -1553,8 +1553,9 @@ class ValueContainer(DBContainer):
     # 0.6.2: added KDIRTY flag and storing of previous kind to item record
     # 0.6.3: changed persisting if a value is full-text indexed
     # 0.6.4: changed version persistence
+    # 0.6.5: added support for sub-indexes
 
-    FORMAT_VERSION = 0x00060400
+    FORMAT_VERSION = 0x00060500
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)

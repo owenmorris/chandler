@@ -5,7 +5,7 @@
 
 
 from repository.item.Indexes import \
-    AttributeIndex, ValueIndex, StringIndex, CompareIndex
+    AttributeIndex, ValueIndex, StringIndex, CompareIndex, SubIndex
 from chandlerdb.item.ItemError import *
 
 
@@ -147,6 +147,12 @@ class Indexed(object):
                     Monitors.attach(item, '_reIndex',
                                     'remove', attribute, name, indexName)
 
+            if indexType == 'subindex':
+                uuid, superName, superIndexName = index._super
+                superIndex = getattr(self._getView()[uuid],
+                                     superName).getIndex(superIndexName)
+                superIndex.addSubIndex(item.itsUUID, name, indexName)
+
         self._indexes[indexName] = index
         return index
 
@@ -236,6 +242,10 @@ class Indexed(object):
             return CompareIndex(self, self._createIndex('numeric', **kwds),
                                 **kwds)
 
+        if indexType == 'subindex':
+            return SubIndex(self, self._createIndex('numeric', **kwds),
+                            **kwds)
+
         raise NotImplementedError, "indexType: %s" %(indexType)
 
     def removeIndex(self, indexName):
@@ -243,6 +253,14 @@ class Indexed(object):
         if self._indexes is None or indexName not in self._indexes:
             item, name = self._getOwner()
             raise NoSuchIndexError, (item, name, indexName)
+
+        index = self._indexes[indexName]
+        if index.getIndexType() == 'subindex':
+            uuid, superName, superIndexName = index._super
+            item, name = self._getOwner()
+            superIndex = getattr(self._getView()[uuid],
+                                 superName).getIndex(superIndexName)
+            superIndex.removeSubIndex(item.itsUUID, name, indexName)
 
         del self._indexes[indexName]
         self._setDirty(True) # noMonitors=True
