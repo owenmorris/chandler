@@ -630,7 +630,7 @@ class perf:
 
     return (stdDev, count, mean)
 
-  def generateDetailPage(self, pagename, tests, startdate, enddate):
+  def generateTrendsLongdetailPages(self, tests, startdate, enddate):
     # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, hour, revision, runs, total, average) ] }}}}
 
       # some 'constants' to make it easier to add items to the data structure
@@ -638,16 +638,9 @@ class perf:
     DP_REVISION = 5
     DP_RUNTIME  = 6
 
-    indexpage  = []
     detailpage = []
 
-    indexpage.append('<h1>Performance Standard Deviation for the previous %d days</h1>\n' % self._options['delta_days'])
-    indexpage.append('<div id="summary">\n')
-    indexpage.append('<p>From %s-%s-%s to %s-%s-%s<br/>\n' % (startdate[:4], startdate[4:6], startdate[6:8],
-                                                              enddate[:4], enddate[4:6], enddate[6:8]))
-    indexpage.append(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>', time.localtime()))
-
-    detailpage.append('<h1>Performance Standard Deviation for the previous 7 days</h1>\n')
+    detailpage.append('<h1>Performance details for the previous %d days</h1>\n' % self._options['delta_days'])
     detailpage.append('<div id="detail">\n')
 
     graphTests = self.SummaryTargets.keys()
@@ -659,17 +652,11 @@ class perf:
           
         testitem = tests[testkey]
 
-        indexpage.append('<h2 id="%s">%s</h2>\n' % (testkey, testDisplayName))
         detailpage.append('<h2 id="%s">%s</h2>\n' % (testkey, testDisplayName))
 
         k_builds = testitem.keys()
         k_builds.sort()
         k_builds.reverse()
-
-        indexpage.append('<table>\n')
-        indexpage.append('<colgroup><col class="build"></col><col></col><col class="size"></col><col class="avg"></col></colgroup>\n')
-        indexpage.append('<tr><th></th><th></th><th colspan="2">Sample</th><th colspan="9">Difference of Sample Average to Prior Day (avg - pd)</th>')
-        indexpage.append('<tr><th>Build</th><th>Std.Dev.</th><th>Count</th><th>Average</th><th>0</th><th>-1</th><th>-2</th><th>-3</th><th>-4</th><th>-5</th><th>-6</th><th>-7</th><th>-8</th></tr>\n')
 
         graphPlatform = {'win':{}, 'osx':{}, 'linux':{}}
 
@@ -702,7 +689,7 @@ class perf:
               for item in date_values:
                 dv_total = dv_total + item
 
-            day_values[datekey] = (dv_count, dv_total)
+            day_values[datekey] = (dv_count, dv_total, date_values)
 
           (v, n, avg) = self.standardDeviation(values)
           med = median(values) or 0.0
@@ -719,12 +706,11 @@ class perf:
 
           detailpage.append('<h3 id="%s_%s">%s</h3>\n' % (testkey, buildkey, buildkey))
           detailpage.append('<p>Median is %2.3f and Sample Average is %2.3f and std.dev is %2.3f</p>\n' % (med, avg, v))
-          detailpage.append('<!-- avg: %02.5f count: %d stddev: %02.5f -->\n' % (avg, n, v))
 
           for datekey in k_dates:
             dateitem = builditem[datekey]
 
-            dv_count, dv_total = day_values[datekey]
+            dv_count, dv_total, date_values = day_values[datekey]
             if dv_count > 0:
               dv_avg = dv_total / dv_count
             else:
@@ -736,81 +722,67 @@ class perf:
               c_perc = 0
             c_diff = avg - dv_avg
 
-            graphPlatform[buildkey[2:]][datekey] = dv_avg
+            graphPlatform[buildkey[2:]][datekey] = median(date_values) or 0.0
             
             tv_dates.append((datekey, dv_avg, c_perc, c_diff))
             
             detailpage.append('<h4>%s-%s-%s</h4>\n' % (datekey[:4], datekey[4:6], datekey[6:8]))
-            detailpage.append('<p>%d items in days sample for an average of %2.3f' % (dv_count, dv_avg))
+            detailpage.append('<p>%d items in days sample for an average of %2.3f, median %2.3f' % (dv_count, dv_avg, graphPlatform[buildkey[2:]][datekey]))
             detailpage.append('<table>\n')
-            detailpage.append('<colgroup><col class="time"></col><col class="run"></col><col class="avg"></col></colgroup>\n')
-            detailpage.append('<tr><th></th><th></th><th></th><th></th><th colspan="2">Change (Day)</th>')
-            detailpage.append('<tr><th>Time</th><th>Run Time</th><th>Percent</th><th>Percent</th><th>Value</th></tr>\n')
+            detailpage.append('<tr><th>Time</th><th>Rev</th><th>Run Time</th><th>&Delta; %</th><th>&Delta; times</th></tr>\n')
 
             k_hours = dateitem.keys()
             k_hours.sort()
 
             lastDatapoint = None
 
+            previousTime = 0
             for hour in k_hours:
               for datapoint in dateitem[hour]:
-                s    = 'ok'
-                perc = 0
 
-                if avg > 0:
-                  perc = abs((avg - datapoint[DP_RUNTIME]) / avg) * 100
+                current  = datapoint[DP_RUNTIME]
 
-                  if perc > 66:
-                    s = 'alert'
-                  else:
-                    if perc > 33:
-                      s = 'warn'
+                if previousTime == 0:
+                  previousTime = current
 
-                if dv_avg <> 0:
-                  c_perc = (dv_avg - datapoint[DP_RUNTIME]) / dv_avg
-                c_diff = datapoint[DP_RUNTIME] - dv_avg
+                c_diff = current - previousTime
 
-                if lastDatapoint is not None:
+                if previousTime != 0:
+                  c_perc = (c_diff / previousTime) * 100
+                else:
+                  c_perc = 0
+
+                s         = colorDelta(current, previousTime, 0.2)
+                timeClass = self.colorTime(testkey, current, 0.2)
+
+                #Time     | Rev # | Run Time | &Delta; % | &Delta; time
+                #======================================================
+                #00:43:49 | 7846  | 0.02s    |           |
+                #01:32:02 | 7856  | 0.01s    | -50%      | -0.01s
+
+                rev = datapoint[DP_REVISION]
+
+                if lastDatapoint is not None and \
+                   lastDatapoint[DP_REVISION] != rev:
+                  # Create Bonsai URL since there was a revision change
                   bonsaiURL = 'http://bonsai.osafoundation.org/svnquery.cgi?treeid=default&module=all&branch=trunk&branchtype=match&sortby=Date&date=explicit&mindate=%4d-%02d-%02d+%02d:%02d:%02d&maxdate=%4d-%02d-%02d+%02d:%02d:%02d&repository=/svn/chandler' % \
                     (lastDatapoint[1].year, lastDatapoint[1].month, lastDatapoint[1].day, lastDatapoint[1].hour, lastDatapoint[1].minute, lastDatapoint[1].second,
                      datapoint[1].year, datapoint[1].month, datapoint[1].day, datapoint[1].hour, datapoint[1].minute, datapoint[1].second)
-                  detailpage.append('<tr><td><a href="%s">%02d:%02d:%02d</a></td><td class="%s">%02.3f</td>' \
-                                    '<td class="number">%d</td><td class="number_left">%02.3f</td><td class="number">%02.3f</td></tr>\n' %
-                                    (bonsaiURL, datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
-                                     s, datapoint[DP_RUNTIME], perc, c_perc, c_diff))
+                  detailpage.append('<tr><td><a href="%s">%02d:%02d:%02d</a></td>' % \
+                                    (bonsaiURL, datapoint[1].hour, datapoint[1].minute, datapoint[1].second))
                 else:
-                  detailpage.append('<tr><td>%02d:%02d:%02d</td><td class="%s">%02.3f</td>' \
-                                    '<td class="number">%d</td><td class="number_left">%02.3f</td><td class="number">%02.3f</td></tr>\n' %
-                                    (datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
-                                     s, datapoint[DP_RUNTIME], perc, c_perc, c_diff))
-                detailpage.append('<!-- value: %02.5f count: %d avg: %02.5f %02.5f c_perc: %02.5f c_diff: %02.5f -->\n' %
-                                  (datapoint[DP_RUNTIME], n, avg, perc, c_perc, c_diff))
+                  detailpage.append('<tr><td>%02d:%02d:%02d</td>' % \
+                                    (datapoint[1].hour, datapoint[1].minute, datapoint[1].second))
                 
+                detailpage.append('<td>%s</td><td class="number%s">%02.2fs</td>' \
+                                  '<td class="%s">%+3.0f%%</td><td class="%s">%+1.2fs</td></tr>\n' %
+                                  (rev, timeClass, current, s, c_perc, s, c_diff))
+                                
                 lastDatapoint = datapoint
+                previousTime  = current
 
             detailpage.append('</table>\n')
 
-          if v > self._options['alert']:
-            s = 'alert'
-          else:
-            if v > self._options['warn']:
-              s = 'warn'
-            else:
-              s = 'ok'
-
-          t  = ''
-          dt = ''
-          for item in tv_dates:
-            dt += '<!-- datekey: %s dv_avg: %02.5f c_perc: %02.5f c_diff %02.5f -->\n' % (item)
-            t  += '<td class="number_left">%02.3f</td>' % item[3]
-
-          indexpage.append('<tr><td><a href="detail_%s_%s.html#%s_%s">%s</a></td><td class="%s" style="border-right: 2px;">%02.3f</td>' \
-                           '<td class="number">%d</td><td class="number">%02.3f</td>%s</tr>\n' %
-                           (startdate, enddate, testkey, buildkey, buildkey, s, v, n, avg, t))
-          indexpage.append(dt)
-
-        indexpage.append('</table>\n')
-        
         graphDict[testkey] = graphPlatform
     
     def plat2data(graphPlatform, acceptable):
@@ -848,22 +820,6 @@ class perf:
 
     trendspage.append('</body></html>')
     detailpage.append('</div>\n')
-    indexpage.append('</div>\n')
-
-    indexfile = file(os.path.join(self._options['html_data'], pagename), 'w')
-
-    if os.path.isfile(os.path.join(self._options['perf_data'], 'index.html.header')):
-      for line in file(os.path.join(self._options['perf_data'], 'index.html.header')):
-        indexfile.write(line)
-
-    for line in indexpage:
-      indexfile.write(line)
-
-    if os.path.isfile(os.path.join(self._options['perf_data'], 'index.html.footer')):
-      for line in file(os.path.join(self._options['perf_data'], 'index.html.footer')):
-        indexfile.write(line)
-
-    indexfile.close()
 
     detailfile = file(os.path.join(self._options['html_data'], detailfilename), 'w')
 
@@ -930,7 +886,7 @@ class perf:
 
       return (line, graph)
 
-  def generateSummaryPage(self, pagename, tests, startdate, enddate):
+  def generateTboxDaydetailDatPages(self, tests, startdate, enddate):
     # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, hour, revision, runtime) ] }}}}
 
     # This code assumes that there will only be a single buildkey (i.e. tinderbox) for each platform
@@ -941,7 +897,6 @@ class perf:
     DP_REVISION = 5
     DP_RUNTIME  = 6
 
-    page   = []
     detail = []
     tbox   = []
     graph  = []
@@ -965,7 +920,7 @@ class perf:
                       'win':   0,
                     }
 
-    detail.append('<h1>Use Case Performance Detail</h1>\n')
+    detail.append('<h1>Performance details for the day</h1>\n')
     detail.append('<div id="detail">\n')
     detail.append('<p>Sample Date: %s-%s-%s<br/>\n' % (enddate[:4], enddate[4:6], enddate[6:8]))
     detail.append(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>', time.localtime()))
@@ -1059,7 +1014,6 @@ class perf:
                 detail.append('<tr><td>%02d:%02d:%02d</td><td>%s</td><td class="number%s">%02.2fs</td><td class="%s">%+3.0f%%</td><td class="%s">%+1.2fs</td></tr>\n' %
                               (datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
                                revision, timeClass, current, deltaClass, c_perc, deltaClass, c_diff))
-                detail.append('<!-- revision %s runtime %02.5f -->\n' % (revision, current))
 
                 if self._options['debug']:
                   print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, current)
@@ -1069,7 +1023,6 @@ class perf:
             (v, n, avg) = self.standardDeviation(platformdata['values'])
 
             #print "average: %02.5f count: %d stddev: %02.5f" % (avg, n, v)
-            page.append('<!-- build: %s avg: %02.5fs count: %d stddev: %02.5fs -->\n' % (buildkey, avg, n, v))
 
             detail.append('</table>\n')
             detail.append('<p>%d items in days sample for an average of %02.2fs and a standard deviation of %02.2fs</p>\n' % (n, avg, v))
@@ -1097,7 +1050,6 @@ class perf:
 
         (summaryline, graphdata) = self._generateSummaryDetailLine(platforms, testkey, enddate, testDisplayName, currentValue, previousValue)
 
-        page.append(summaryline)
         tbox.append(summaryline)
 
         graph += graphdata
@@ -1111,56 +1063,9 @@ class perf:
             pass
         detail.append('</div>')
         
-    page.append('</table>\n')
-                                      
-    page.append('<p>The Test name link will take you to the detail information that was \n')
-    page.append('used to generate the summary numbers for that test<br/>\n')
-    page.append('The original <a href="stddev.html">standard deviation page</a> shows the other test \n')
-    page.append('data that is captured and the standard deviation data for the last 7 days</p>\n')
-
-    page.append('</div>\n')
-
     detail.append('</div>\n')
 
     tbox.append('</table>\n</div>\n')
-
-    pagefile = file(os.path.join(self._options['html_data'], pagename), 'w')
-
-    pagefile.write('<h1>Use Case Performance Summary</h1>\n')
-    pagefile.write('<div id="summary">\n')
-    pagefile.write('<p>Sample Date: %s-%s-%s<br/>\n' % (enddate[:4], enddate[4:6], enddate[6:8]))
-    pagefile.write(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>\n', time.localtime()))
-
-    pagefile.write('<p>This is a summary of the performance totals</p>\n')
-    pagefile.write('<p>The Median is calculated from the total number of \n')
-    pagefile.write('test runs for the given day<br/>\n')
-    pagefile.write('The &Delta; % is measured from the last Milestone.  \n')
-    pagefile.write('All time values use seconds for the unit of measure</p>\n')
-    pagefile.write('<p>Note: a negative &Delta; value means that the current \n')
-    pagefile.write('median value is <strong>slower</strong> than the target value</p>\n')
-
-    pagefile.write('<table>\n')
-    pagefile.write('<tr><th></th>')
-    pagefile.write('<th colspan="5">Windows (r %s)</th>' % revisions['win'][0])
-    pagefile.write('<th colspan="5">OS X (r %s)</th>' % revisions['osx'][0])
-    pagefile.write('<th colspan="5">Linux (r %s)</th></tr>\n' % revisions['linux'][0])
-    pagefile.write('<tr><th>Test</th>')
-    pagefile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
-    pagefile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
-    pagefile.write('<th>Target</th><th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
-
-    if os.path.isfile(os.path.join(self._options['perf_data'], 'index.html.header')):
-      for line in file(os.path.join(self._options['perf_data'], 'index.html.header')):
-        pagefile.write(line)
-
-    for line in page:
-      pagefile.write(line)
-
-    if os.path.isfile(os.path.join(self._options['perf_data'], 'index.html.footer')):
-      for line in file(os.path.join(self._options['perf_data'], 'index.html.footer')):
-        pagefile.write(line)
-
-    pagefile.close()
 
     graphfile = file(os.path.join(self._options['html_data'], 'graph_%s.dat' % (enddate)), 'w')
 
@@ -1232,121 +1137,9 @@ class perf:
 
     tboxfile.close()
 
-
-  def generatePerfDetailPage(self, pagename, tests, startdate, enddate):
-    # tests { testname: { build: { date: { hour: [ (testname, itemDateTime, delta.days, buildname, hour, revision, runtime) ] }}}}
-
-      # some 'constants' to make it easier to add items to the data structure
-      # without having to track down all occurances of 7 to change it to 8 :)
-    DP_REVISION = 5
-    DP_RUNTIME  = 6
-
-    page = []
-
-    page.append('<h1>Performance Detail Summary</h1>\n')
-    page.append('<div id="detail">\n')
-    page.append('<p>Sample Date: %s-%s-%s to %s-%s-%s<br/>\n' % (startdate[:4], startdate[4:6], startdate[6:8],
-                                                                 enddate[:4], enddate[4:6], enddate[6:8]))
-    page.append(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>', time.localtime()))
-
-    for (testkey, testDisplayName) in self.SummaryTests:
-      if testkey in tests.keys():
-        testitem = tests[testkey]
-
-        page.append('<h2 id="%s">%s: %s</h2>\n' % (testkey, testDisplayName, testkey))
-
-        for buildkey in self.PerformanceTBoxes:
-          if buildkey in testitem.keys():
-            builditem = testitem[buildkey]
-
-            if 'osx' in buildkey:
-              platformkey = 'osx'
-            elif 'win' in buildkey:
-              platformkey = 'win'
-            else:
-              platformkey = 'linux'
-
-            page.append('<h3>%s</h3>' % platformkey)
-            page.append('<table>\n')
-            page.append('<tr><th>Time</th><th>Rev #</th><th>Run Time</th><th>&Delta; %</th><th>&Delta; Time</th></tr>\n')
-
-            previousRevision = ''
-            previousTime     = 0
-
-            details = []
-
-            k_dates = builditem.keys()
-            k_dates.sort()
-
-            for datekey in k_dates:
-              dateitem = builditem[datekey]
-
-              k_hours = dateitem.keys()
-              k_hours.sort()
-
-              for hour in k_hours:
-                for datapoint in dateitem[hour]:
-                  revision = datapoint[DP_REVISION]
-                  current  = datapoint[DP_RUNTIME]
-
-                  if previousTime == 0:
-                    previousTime = current
-
-                  c_diff = current - previousTime
-
-                  if previousTime <> 0:
-                    c_perc = (c_diff / previousTime) * 100
-                  else:
-                    c_perc = 0
-
-                  s         = colorDelta(current, previousTime, 0.2)
-                  timeClass = self.colorTime(testkey, current, 0.2)
-
-                    #Time     | Rev # | Run Time | &Delta; % | &Delta; time
-                    #======================================================
-                    #00:43:49 | 7846  | 0.02s    |           |
-                    #01:32:02 | 7856  | 0.01s    | -50%      | -0.01s
-
-                  line =  '<tr><td>%02d:%02d:%02d</td><td>%s</td>' % (datapoint[1].hour,
-                                                                      datapoint[1].minute,
-                                                                      datapoint[1].second, revision)
-                  line += '<td class="number%s">%2.2fs</td>' % (timeClass, current)
-                  line += '<td class="%s">%+3.0f%%</td>' % (s, c_perc)
-                  line += '<td class="%s">%+1.2fs</td>' % (s, c_diff)
-                  line += '</tr>\n'
-
-                  details.append(line)
-
-                  previousTime     = current
-                  previousRevision = revision
-
-            details.reverse()
-            page += details
-
-            page.append('</table>\n')
-                                      
-    page.append('</div>\n')
-
-    pagefile = file(os.path.join(self._options['html_data'], pagename), 'w')
-
-    if os.path.isfile(os.path.join(self._options['perf_data'], 'index.html.header')):
-      for line in file(os.path.join(self._options['perf_data'], 'index.html.header')):
-        pagefile.write(line)
-
-    for line in page:
-      pagefile.write(line)
-
-    if os.path.isfile(os.path.join(self._options['perf_data'], 'index.html.footer')):
-      for line in file(os.path.join(self._options['perf_data'], 'index.html.footer')):
-        pagefile.write(line)
-
-    pagefile.close()
-
-
   def generateOutput(self, tests, startdate, enddate):
-    self.generateDetailPage('stddev.html', tests, startdate, enddate)
-    self.generateSummaryPage('index.html', tests, startdate, enddate)
-    self.generatePerfDetailPage('perfdetail.html', tests, startdate, enddate)
+    self.generateTrendsLongdetailPages(tests, startdate, enddate)
+    self.generateTboxDaydetailDatPages(tests, startdate, enddate)
 
   def process(self):
       # check for new .perf files
