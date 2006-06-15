@@ -593,6 +593,7 @@ class ShareConduit(pim.ContentItem):
         if not externalItemExists:
             result = 'added'
             needsUpdate = True
+            reason = _(u"Not on server")
 
         else:
             needsUpdate = False
@@ -607,15 +608,19 @@ class ShareConduit(pim.ContentItem):
                     logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('utf8', 'replace'), modifiedAttributes)
                     for change in modifiedAttributes:
                         if change in sharedAttributes:
-                            logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.getItemDisplayName().encode('utf8', 'replace'))
+                            logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.getItemDisplayName())
                             needsUpdate = True
                             result = 'modified'
+                            reason = change
                             break
 
         if needsUpdate:
-            logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
-             (item.getItemDisplayName().encode('utf8', 'replace'), item.itsUUID,
-              item.getVersion(), self.itemsMarker.getVersion(), externalItemExists))
+            logger.info("...putting '%s' %s (%d vs %d) (%s)" %
+                (
+                    item.getItemDisplayName(), item.itsUUID, item.getVersion(),
+                    self.itemsMarker.getVersion(), reason
+                )
+            )
 
             if updateCallback and updateCallback(msg="'%s'" %
                 item.getItemDisplayName()):
@@ -2669,8 +2674,14 @@ class CloudXMLFormat(ImportExportFormat):
                         if not count:
                             # Only set to an empty ref collection is attrName
                             # is not already an empty ref collection
-                            if not (hasattr(item, attrName) and
-                                len(getattr(item, attrName)) == 0):
+                            needToSet = True
+                            if hasattr(item, attrName):
+                                try:
+                                    if len(getattr(item, attrName)) == 0:
+                                        needToSet = False
+                                except:
+                                    pass
+                            if needToSet:
                                 setattr(item, attrName, [])
 
                     elif cardinality == 'dict':

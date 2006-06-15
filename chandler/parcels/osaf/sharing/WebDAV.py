@@ -48,8 +48,8 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
 
     def addRequest(self, request):
         # Make all requests going through this ServerHandle have a
-        # 2 minute timeout
-        request.timeout = 120 # seconds
+        # 5 minute timeout
+        request.timeout = 5 * 60 # seconds
         return super(ChandlerServerHandle, self).addRequest(request)
 
     def blockUntil(self, callable, *args, **keywds):
