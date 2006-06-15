@@ -185,9 +185,7 @@ class BranchPointBlock(BoxContainer):
                 if not hasattr (newView, "widget"):
                     newView.render()
                 elif detailItemChanged or treeChanged:
-                    layoutMethod = getattr(newView, 'Layout', None)
-                    if layoutMethod is not None: 
-                        layoutMethod()
+                    newView.synchronizeWidgetDeep()
 
             IgnoreSynchronizeWidget(False, Rerender)
 

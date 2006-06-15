@@ -100,140 +100,12 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         # no-op EVT_KILL_FOCUS.
         super(DetailRootBlock, self).unRender()
         
-    def detailRoot (self):
-        # we are the detail root object
-        return self
-
-    def synchronizeDetailView(self, item):
-        """
-        We have an event boundary inside us, which keeps all
-        the events sent between blocks of the Detail View to
-        ourselves.
-
-        When we get a SelectItem event, we jump across
-        the event boundary and call synchronizeItemDetail on each
-        block to give it a chance to update the widget with data
-        from the Item.
-
-        Notify container blocks before their children.
-
-        Note: @@@DLD - find a better way to broadcast inside my boundary.
-        """
-        def reNotifyInside(block, item):
-            notifySelf = len(block.childrenBlocks) == 0 # True if no children
-            # process from the children up
-            for child in block.childrenBlocks:
-                notifySelf = reNotifyInside(child, item) or notifySelf
-            
-            if notifySelf:
-                #logger.debug("SyncDetailView: syncWidgeting %s",
-                             #getattr(block, 'blockName', '?'))
-                block.synchronizeWidget()
-                
-            syncMethod = getattr(type(block), 'synchronizeItemDetail', None)
-            if syncMethod is not None:
-                #logger.debug("SyncDetailView: syncItemDetailing %s",
-                             #getattr(block, 'blockName', '?'))
-                notifySelf = syncMethod(block, item) or notifySelf
-            return notifySelf
-
-        self.widget.Freeze()
-        needsLayout = False
-        children = self.childrenBlocks
-        for child in children:
-            needsLayout = reNotifyInside(child, item) or needsLayout
-        wx.GetApp().needsUpdateUI = True
-        if needsLayout:
-            self.relayoutSizer()
-        self.widget.Thaw()
-
-    def relayoutSizer(self):
-        try:
-            sizer = self.widget.GetSizer()
-        except AttributeError:
-            pass
-        else:
-            if sizer:
-                sizer.Layout()
-
-    def Layout(self):
-        """ 
-        Called (by installTreeOfBlocks) when the detail view's contents
-        changes without rerendering.
-        """
-        self.synchronizeDetailView(self.item)
-
-    if __debug__:
-        def dumpShownHierarchy (self, methodName=''):
-            """
-            Like synchronizeDetailView, but just dumps info about which
-            blocks are currently shown.
-            """
-            def reNotifyInside(block, item, indent):
-                blockName = getattr(block, 'blockName', '?')
-                vis = block.isShown and '+' or '-'
-                sizerVis = '_'
-                widget = getattr(block, 'widget', None)
-                if widget is not None:
-                    sizer = widget.GetContainingSizer()
-                    if sizer is not None:
-                        sizerItem = sizer.GetItem(widget)
-                        if sizerItem is None:
-                            sizerVis = '?' # weird: didn't find a sizeritem for this widget?
-                        else:
-                            sizerVis = sizerItem.IsShown() and '+' or '-'
-                logger.debug('%s%s%s %s' % (indent, vis, sizerVis, blockName))
-                #if not isinstance(block, MenusAndToolbars.ToolbarItem):
-                    #if block.isShown:
-                        #print indent + '+' + block.blockName
-                    #else:
-                        #print indent + '-' + block.blockName
-                try:
-                    # process from the children up
-                    for child in block.childrenBlocks:
-                        reNotifyInside (child, item, indent + '  ')
-                except AttributeError:
-                    pass
-            item = self.contents
-            try:
-                itemDescription = item.itsKind.itsName + ' '
-            except AttributeError:
-                itemDescription = ''
-            try:
-                itemDescription += str (item)
-            except:
-                itemDescription += str (item.itsName)
-            logger.debug(methodName + " " + itemDescription)
-            logger.debug("-------------------------------")
-            #print methodName + " " + itemDescription
-            #print "-------------------------------"
-            reNotifyInside(self, item, '')
-            logger.debug(" ")
-            #print
-
-    def synchronizeWidget (self, useHints=False):
-        item = self.item
-        # logger.debug("DetailRoot.synchronizeWidget: %s", item)
-        super(DetailRootBlock, self).synchronizeWidget (useHints)
-        self.synchronizeDetailView(item)
-        if __debug__:
-            dumpSynchronizeWidget = False
-            if dumpSynchronizeWidget:
-                self.dumpShownHierarchy ('synchronizeWidget')
-
     def SelectedItems(self):
         """ 
         Return a list containing the item we're displaying.
         (This gets used for Send)
         """
         return self.contents is not None and [ self.contents ] or []
-
-    def onResynchronizeEvent(self, event):
-        logger.debug("onResynchronizeEvent: resynching")
-        self.synchronizeWidget()
-
-    def onResynchronizeEventUpdateUI(self, event):
-        pass
 
     def onSendShareItemEvent (self, event):
         """
@@ -331,20 +203,6 @@ class DetailSynchronizer(Item):
     Mixin class that handles synchronization and notification common to most
     of the blocks in the detail view.
     """
-    def detailRoot (self):
-        """
-        Cruise up the parents looking for someone who can return the detailRoot.
-        """
-        block = self
-        while True:
-            try:
-                return block.parentBlock.detailRoot()
-            except AttributeError:
-                block = block.parentBlock
-        else:
-            assert False, "Detail Synchronizer can't find the DetailRoot!"
-        
-
     def onSetContentsEvent (self, event):
         # logger.debug("%s: onSetContentsEvent", debugName(self))
         self.setContentsOnBlock(event.arguments['item'],
@@ -353,13 +211,9 @@ class DetailSynchronizer(Item):
     item = property(fget=Block.Block.getProxiedContents, 
                     doc="Return the selected item, or None")
 
-    def synchronizeItemDetail (self, item):
-        # if there is an item, we should show ourself, else hide
-        if item is None:
-            shouldShow = False
-        else:
-            shouldShow = self.shouldShow (item)
-        return self.show(shouldShow)
+    def synchronizeWidget(self, useHints=False):
+        super(DetailSynchronizer, self).synchronizeWidget(useHints)
+        self.show(self.shouldShow(self.item))
     
     def shouldShow (self, item):
         return item is not None
@@ -370,19 +224,23 @@ class DetailSynchronizer(Item):
             widget = self.widget
         except AttributeError:
             return False
-        if shouldShow != widget.IsShown():
-            # we have a widget
-            # make sure widget shown state is what we want
-            if shouldShow:
-                widget.Show (shouldShow)
-            else:
-                widget.Hide()
-            self.isShown = shouldShow
-            #logger.debug("DetailSync.show %s: now %s",
-                         #getattr(self, 'blockName', '?'),
-                         #shouldShow and "visible" or "hidden")
-            return True
-        return False
+        if shouldShow == widget.IsShown():
+            return False
+        
+        widget.Show(shouldShow)
+        self.isShown = shouldShow
+        #logger.debug("%s: now %s", debugName(self), 
+                     #shouldShow and "visible" or "hidden")
+        
+        # Re-layout the sizer on the detail view
+        block = self.parentBlock
+        while block is not None and not block.eventBoundary:
+            block = block.parentBlock
+        if block:                
+            sizer = block.widget.GetSizer()
+            if sizer:
+                sizer.Layout()
+        return True
 
     def onItemNotification(self, notificationType, data):
         self.markClean() # we'll do whatever needs to be done here.
@@ -396,9 +254,9 @@ class DetailSynchronizer(Item):
         if changedItem is None or changedItem.isMutating():
             return
         
+        #logger.debug("%s: Resyncing due to change on %s", 
+                     #debugName(self), debugName(changedItem))
         self.synchronizeWidget()
-        if self.synchronizeItemDetail(self.item):
-            self.detailRoot().relayoutSizer()
 
 class SynchronizedSpacerBlock(DetailSynchronizer, ControlBlocks.StaticText):
     """
@@ -417,12 +275,9 @@ class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
             self.widget.SetLabel (value)
         return relayout
 
-    def synchronizeItemDetail (self, item):
-        hasChanged = super(StaticTextLabel, self).synchronizeItemDetail(item)
-        if self.isShown:
-            labelChanged = self.synchronizeLabel(self.staticTextLabelValue(item))
-            hasChanged = hasChanged or labelChanged
-        return hasChanged
+    def synchronizeWidget(self, useHints=False):
+        super(StaticTextLabel, self).synchronizeWidget(useHints)
+        self.synchronizeLabel(self.staticTextLabelValue(self.item))
 
 def GetRedirectAttribute(item, defaultAttr):
     """
@@ -458,23 +313,6 @@ class StaticRedirectAttributeLabel (StaticTextLabel):
             redirectAttr = item.getAttributeAspect (redirectAttr, 'displayName')
         return redirectAttr
 
-class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
-    """
-    Basic class for a block in the detail view typically containing:
-     - a label (e.g. a StaticText with "Title:")
-     - an attribute value (e.g. in an EditText with the value of item.title)
-
-    It also handles visibility of the block, depending on if the attribute
-    exists on the item or not.
-    """
-    def synchronizeItemDetail(self, item):
-        whichAttr = self.viewAttribute
-        self.isShown = item is not None and item.itsKind.hasAttribute(whichAttr)
-        self.synchronizeWidget()
-
-class DetailSynchronizedLabeledTextAttributeBlock (DetailSynchronizer, LabeledTextAttributeBlock):
-    pass
-
 class DetailSynchronizedContentItemDetail(DetailSynchronizer, ControlBlocks.ContentItemDetail):
     pass
 
@@ -497,24 +335,24 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
         # return the class of this stamp's Mixin Kind (bag of kind-specific attributes)
         raise NotImplementedError, "%s.stampMixinClass()" % (type(self))
         
-    def synchronizeItemDetail (self, item):
+    def synchronizeWidget(self, useHints=False):
+        super(DetailStampButton, self).synchronizeWidget(useHints)
+
         # toggle this button to reflect the kind of the selected item
+        item = self.item
         mixinClass = self.stampMixinClass()
         mixinKind = mixinClass.getKind(self.itsView)
-        shouldToggleBasedOnClass = isinstance(item, mixinClass)
-        shouldToggleBasedOnKind = item.isItemOf(mixinKind)
-        assert shouldToggleBasedOnClass == shouldToggleBasedOnKind, \
-            "Class/Kind mismatch! Item is class %s, kind %s; " \
-            "stamping with class %s, kind %s" % (
-             item.__class__.__name__, 
-             item.itsKind.itsName,
-             mixinClass.__name__, 
-             mixinKind.itsName)
-        if(shouldToggleBasedOnKind):
-            self.widget.SetState("stamped")
-        else:
-            self.widget.SetState("normal")
-        return False
+        stamped = item.isItemOf(mixinKind)
+        if __debug__:
+            looksStampedbyClass = isinstance(item, mixinClass)
+            assert looksStampedbyClass == stamped, \
+                "Class/Kind mismatch! Item is class %s, kind %s; " \
+                "stamping with class %s, kind %s" % (
+                 item.__class__.__name__, 
+                 item.itsKind.itsName,
+                 mixinClass.__name__, 
+                 mixinKind.itsName)
+        self.widget.SetState(stamped and "stamped" or "normal")
 
     def onButtonPressedEvent (self, event):
         # Rekind the item by adding or removing the associated Mixin Kind
@@ -524,10 +362,7 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
             return
             
         mixinKind = self.stampMixinClass().getKind(self.itsView)
-        if not item.itsKind.isKindOf(mixinKind):
-            operation = 'add'
-        else:
-            operation = 'remove'
+        operation = item.itsKind.isKindOf(mixinKind) and 'remove' or 'add'
         
         # Now change the kind and class of this item
         #logger.debug("%s: stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
@@ -551,37 +386,23 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
             (item.getSharedState() == items.ContentItem.UNSHARED))
 
 class MailMessageButtonBlock(DetailStampButton):
-    """
-    Mail Message Stamping button in the Markup Bar.
-    """
-    def stampMixinClass(self):
-        return Mail.MailMessageMixin
+    """ Mail Message Stamping button in the Markup Bar. """
+    def stampMixinClass(self): return Mail.MailMessageMixin
     
 class CalendarStampBlock(DetailStampButton):
-    """
-    Calendar button in the Markup Bar.
-    """
-    def stampMixinClass(self):
-        return Calendar.CalendarEventMixin
+    """ Calendar button in the Markup Bar. """
+    def stampMixinClass(self): return Calendar.CalendarEventMixin
 
 class TaskStampBlock(DetailStampButton):
-    """
-    Task button in the Markup Bar.
-    """
-    def stampMixinClass(self):
-        return TaskMixin
+    """ Task button in the Markup Bar. """
+    def stampMixinClass(self): return TaskMixin
 
 class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.Button):
-    """
-    "Never share" button in the Markup Bar.
-    """
-    def synchronizeItemDetail (self, item):
+    """ "Never share" button in the Markup Bar. """
+    def synchronizeWidget(self, useHints=False):
         # toggle this button to reflect the privateness of the selected item        
-        if item.private:
-            self.widget.SetState("stamped")
-        else:
-            self.widget.SetState("normal")
-        return False
+        super(PrivateSwitchButtonBlock, self).synchronizeWidget(useHints)
+        self.widget.SetState(self.item.private and "stamped" or "normal")
 
     def onButtonPressedEvent(self, event):
         item = self.item            
@@ -602,14 +423,12 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.Button):
     """
     "Read Only" icon in the Markup Bar.
     """
-    def synchronizeItemDetail (self, item):
+    def synchronizeWidget(self, useHints=False):
         # toggle this icon to reflect the read only status of the selected item
-        enable = ( item.getSharedState() == ContentItem.READONLY )
-        if enable:
-            self.widget.SetState("stamped")
-        else:
-            self.widget.SetState("normal")
-        return False
+        super(ReadOnlyIconBlock, self).synchronizeWidget(useHints)
+
+        enable = (self.item.getSharedState() == ContentItem.READONLY)
+        self.widget.SetState(enable and "stamped" or "normal")
 
     def onButtonPressedEvent(self, event):
         # We don't actually allow the read only state to be toggled
@@ -667,9 +486,9 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     def OnFinishChangesEvent (self, event):
         self.saveValue(validate=True)
 
-    def synchronizeItemDetail (self, item):
-        self.loadTextValue(item)
-        return super(EditTextAttribute, self).synchronizeItemDetail(item)
+    def synchronizeWidget(self, useHints=False):
+        super(EditTextAttribute, self).synchronizeWidget(useHints)
+        self.loadTextValue(self.item)
             
     def saveAttributeFromWidget (self, item, widget, validate):  
        # subclasses need to override this method
@@ -679,76 +498,77 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
        # subclasses need to override this method
        raise NotImplementedError, "%s.LoadAttributeIntoWidget()" % (type(self))
 
-class AttachmentAreaBlock(DetailSynchronizedLabeledTextAttributeBlock):
-    """
-    An area visible only when the item (a mail message) has attachments.
-    """
-    def shouldShow (self, item):
-        return item is not None and item.hasAttachments()
-
-class AttachmentTextFieldBlock(EditTextAttribute):
-    """
-    A read-only list of email attachments, for now.
-    """
-    def loadAttributeIntoWidget (self, item, widget):
-        # For now, just list the attachments' filenames
-        if item is None or not item.hasAttachments():
-            value = ""
-        else:
-            value = ", ".join([ attachment.filename for attachment in item.getAttachments() if hasattr(attachment, 'filename') ])
-        widget.SetValue(value)
+# @@@ Needs to be rewritten as an attribute editor when attachments become important again.
+#class AttachmentAreaBlock(DetailSynchronizedContentItemDetail):
+    #"""
+    #An area visible only when the item (a mail message) has attachments.
+    #"""
+    #def shouldShow (self, item):
+        #return item is not None and item.hasAttachments()
+#class AttachmentTextFieldBlock(EditTextAttribute):
+    #"""
+    #A read-only list of email attachments, for now.
+    #"""
+    #def loadAttributeIntoWidget (self, item, widget):
+        ## For now, just list the attachments' filenames
+        #if item is None or not item.hasAttachments():
+            #value = ""
+        #else:
+            #value = ", ".join([ attachment.filename for attachment in item.getAttachments() if hasattr(attachment, 'filename') ])
+        #widget.SetValue(value)
     
-    def saveAttributeFromWidget (self, item, widget, validate):  
-        # It's read-only, but we have to override this method.
-        pass
+    #def saveAttributeFromWidget (self, item, widget, validate):  
+        ## It's read-only, but we have to override this method.
+        #pass
     
     
-class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
-    def shouldShow (self, item):
-        showIt = False
-        if item is not None and not item.isOutbound:
-            try:
-                MailSharing.getSharingHeaderInfo(item)
-            except:       
-                pass
-            else:
-                showIt = True
-        # logger.debug("AcceptShareButton.shouldShow = %s", showIt)
-        return showIt
+# @@@ disabled until we start using this UI again
+#class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
+    #def shouldShow (self, item):
+        #showIt = False
+        #if item is not None and not item.isOutbound:
+            #try:
+                #MailSharing.getSharingHeaderInfo(item)
+            #except:       
+                #pass
+            #else:
+                #showIt = True
+        ## logger.debug("AcceptShareButton.shouldShow = %s", showIt)
+        #return showIt
 
-    def onAcceptShareEvent(self, event):
-        url, collectionName = MailSharing.getSharingHeaderInfo(self.item)
-        statusBlock = Block.Block.findBlockByName('StatusBar')
-        statusBlock.setStatusMessage( _(u'Subscribing to collection...') )
-        wx.Yield()
+    #def onAcceptShareEvent(self, event):
+        #url, collectionName = MailSharing.getSharingHeaderInfo(self.item)
+        #statusBlock = Block.Block.findBlockByName('StatusBar')
+        #statusBlock.setStatusMessage( _(u'Subscribing to collection...') )
+        #wx.Yield()
 
-        # If this code is ever revived, it should call sharing.subscribe(),
-        # rather than the following:
-        ## share = sharing.Share(itsView=self.itsView)
-        ## share.configureInbound(url)
-        ## share.get()
+        ## If this code is ever revived, it should call sharing.subscribe(),
+        ## rather than the following:
+        ### share = sharing.Share(itsView=self.itsView)
+        ### share.configureInbound(url)
+        ### share.get()
 
-        statusBlock.setStatusMessage( _(u'Subscribed to collection') )
+        #statusBlock.setStatusMessage( _(u'Subscribed to collection') )
     
-        # @@@ Remove this when the sidebar autodetects new collections
-        collection = share.contents
-        schema.ns("osaf.app", self.itsView).sidebarCollection.add (share.contents)
-        # Need to SelectFirstItem -- DJA
+        ## @@@ Remove this when the sidebar autodetects new collections
+        #collection = share.contents
+        #schema.ns("osaf.app", self.itsView).sidebarCollection.add (share.contents)
+        ## Need to SelectFirstItem -- DJA
 
-    def onAcceptShareEventUpdateUI(self, event):
-        # If we're already sharing it, we should disable the button and change the text.
-        enabled = True
-        item = self.item
-        try:
-            url, collectionName = MailSharing.getSharingHeaderInfo(item)
-            existingSharedCollection = sharing.findMatchingShare(self.itsView, url)
-        except:
-            enabled = True
-        else:
-            if existingSharedCollection is not None:
-                self.widget.SetLabel(_("u(Already sharing this collection)"))
-                enabled = False
-        event.arguments['Enable'] = enabled
+    #def onAcceptShareEventUpdateUI(self, event):
+        ## If we're already sharing it, we should disable the button and change the text.
+        #enabled = True
+        #item = self.item
+        #try:
+            #url, collectionName = MailSharing.getSharingHeaderInfo(item)
+            #existingSharedCollection = sharing.findMatchingShare(self.itsView, url)
+        #except:
+            #enabled = True
+        #else:
+            #if existingSharedCollection is not None:
+                #self.widget.SetLabel(_("u(Already sharing this collection)"))
+                #enabled = False
+        #event.arguments['Enable'] = enabled
 
 class AppearsInAEBlock(DetailSynchronizedAttributeEditorBlock):
     def shouldShow (self, item):
@@ -785,41 +605,57 @@ class CalendarAllDayAreaBlock(DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return item.isAttributeModifiable('allDay')
 
+    def getWatchList(self):
+        watchList = super(CalendarAllDayAreaBlock, self).getWatchList()
+        watchList.append((self.item, 'allDay'))
+        return watchList
+
 class CalendarLocationAreaBlock(DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return item.isAttributeModifiable('location') \
                or hasattr(item, 'location')
 
-class CalendarConditionalLabelBlock(StaticTextLabel):
-    def shouldShow (self, item):
-        return not item.allDay and \
-               (item.isAttributeModifiable('startTime') \
-                or not item.anyTime)
+    def getWatchList(self):
+        watchList = super(CalendarLocationAreaBlock, self).getWatchList()
+        watchList.append((self.item, 'location'))
+        return watchList
         
-class CalendarTimeAEBlock (DetailSynchronizedAttributeEditorBlock):
+class TimeConditionalBlock(Item):
     def shouldShow (self, item):
         return not item.allDay and \
                (item.isAttributeModifiable('startTime') \
                 or not item.anyTime)
 
-class CalendarTimeZoneAEBlock(DetailSynchronizedAttributeEditorBlock):
     def getWatchList(self):
-        watchList = super(CalendarTimeZoneAEBlock, self).getWatchList()
-        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
-        timezones = TimeZoneInfo.get(self.itsView)
-        watchList.extend([ (tzPrefs, 'showUI'), 
-                           (timezones, 'wellKnownIDs') ])
+        watchList = super(TimeConditionalBlock, self).getWatchList()
+        watchList.extend(((self.item, 'allDay'), 
+                          (self.item, 'anyTime')))
         return watchList
 
-class CalendarReminderSpacerBlock(SynchronizedSpacerBlock):
+class CalendarConditionalLabelBlock(TimeConditionalBlock, StaticTextLabel):
+    pass    
+
+class CalendarTimeAEBlock (TimeConditionalBlock,
+                           DetailSynchronizedAttributeEditorBlock):
+    pass
+
+class ReminderConditionalBlock(Item):
     def shouldShow (self, item):
         return item.isAttributeModifiable('reminders') \
                or len(item.reminders) > 0
 
-class CalendarReminderAreaBlock (DetailSynchronizedContentItemDetail):
-    def shouldShow (self, item):
-        return item.isAttributeModifiable('reminders') \
-               or len(item.reminders) > 0
+    def getWatchList(self):
+        watchList = super(ReminderConditionalBlock, self).getWatchList()
+        watchList.append((self.item, 'reminders'))
+        return watchList
+    
+class CalendarReminderSpacerBlock(ReminderConditionalBlock,
+                                  SynchronizedSpacerBlock):
+    pass
+
+class CalendarReminderAreaBlock (ReminderConditionalBlock,
+                                 DetailSynchronizedContentItemDetail):
+    pass
 
 class TransparencyConditionalBlock(Item):
     def shouldShow (self, item):
@@ -855,71 +691,101 @@ class TimeZoneConditionalBlock(Item):
     def getWatchList(self):
         watchList = super(TimeZoneConditionalBlock, self).getWatchList()
         tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
-        watchList.append((tzPrefs, 'showUI'))
+        watchList.extend(((self.item, 'allDay'),
+                          (self.item, 'anyTime'),
+                          (tzPrefs, 'showUI')))
         return watchList
 
 class CalendarTimeZoneSpacerBlock(TimeZoneConditionalBlock, 
                                   SynchronizedSpacerBlock):
     pass
 
-class CalendarTimeZoneAreaBlock (TimeZoneConditionalBlock, 
-                                 DetailSynchronizedContentItemDetail):
+class CalendarTimeZoneAreaBlock(TimeZoneConditionalBlock, 
+                                DetailSynchronizedContentItemDetail):
     pass
 
-# Centralize the recurrence blocks' visibility decisions
-showPopup = 1
-showCustom = 2
-showEnds = 4
-def recurrenceVisibility(item):
-    result = 0
-    freq = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
-    modifiable = item.isAttributeModifiable('rruleset')
-    
-    # Show the popup only if it's modifiable, or if it's not
-    # modifiable but not the default value.
-    if modifiable or (freq != RecurrenceAttributeEditor.onceIndex):
-        result |= showPopup
-            
-    if freq == RecurrenceAttributeEditor.customIndex:
-        # We'll show the "custom" flag only if we're custom, duh.
-        result |= showCustom
-    elif freq != RecurrenceAttributeEditor.onceIndex:
-        # We're not custom and not "once": We'll show "ends" if we're 
-        # modifiable, or if we have an "ends" value.
-        if modifiable:
-            result |= showEnds
-        else:
+class CalendarTimeZoneAEBlock(DetailSynchronizedAttributeEditorBlock):
+    def getWatchList(self):
+        watchList = super(CalendarTimeZoneAEBlock, self).getWatchList()
+        timezones = TimeZoneInfo.get(self.itsView)
+        watchList.append((timezones, 'wellKnownIDs'))
+        return watchList
+
+class RecurrenceConditionalBlock(Item):
+    # Centralize the recurrence blocks' visibility decisions. Subclass will
+    # declare a visibilityFlags class member composed of these bit values:
+    showPopup = 1 # Show the area containing the popup
+    showCustom = 2 # Show the area containing the "custom" static string
+    showEnds = 4 # Show the area containing the end-date editor
+
+    def recurrenceVisibility(self, item):
+        result = 0
+        freq = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
+        modifiable = item.isAttributeModifiable('rruleset')
+        
+        # Show the popup only if it's modifiable, or if it's not
+        # modifiable but not the default value.
+        if modifiable or (freq != RecurrenceAttributeEditor.onceIndex):
+            result |= self.showPopup
+                
+            if freq == RecurrenceAttributeEditor.customIndex:
+                # We'll show the "custom" flag only if we're custom, duh.
+                result |= self.showCustom
+            elif freq != RecurrenceAttributeEditor.onceIndex:
+                # We're not custom and not "once": We'll show "ends" if we're 
+                # modifiable, or if we have an "ends" value.
+                if modifiable:
+                    result |= self.showEnds
+                else:
+                    try:
+                        endDate = item.rruleset.rrules.first().until
+                    except AttributeError:
+                        pass
+                    else:
+                        result |= self.showEnds
+        return result
+
+    def shouldShow(self, item):
+        assert self.visibilityFlags
+        return (self.recurrenceVisibility(item) & self.visibilityFlags) != 0
+        
+    def getWatchList(self):
+        watchList = super(RecurrenceConditionalBlock, self).getWatchList()
+        watchList.append((self.item, 'rruleset'))
+        if self.visibilityFlags & RecurrenceConditionalBlock.showEnds:
             try:
-                endDate = item.rruleset.rrules.first().until
+                firstRRule = self.item.rruleset.rrules.first()
             except AttributeError:
                 pass
             else:
-                result |= showEnds
-    return result
+                watchList.append((firstRRule, 'until'))
+        return watchList
 
-class CalendarRecurrencePopupSpacerBlock(SynchronizedSpacerBlock):
-    def shouldShow (self, item):
-        return (recurrenceVisibility(item) & showPopup) != 0
+class CalendarRecurrencePopupSpacerBlock(RecurrenceConditionalBlock,
+                                         SynchronizedSpacerBlock):
+    visibilityFlags = RecurrenceConditionalBlock.showPopup
     
-class CalendarRecurrencePopupAreaBlock(DetailSynchronizedContentItemDetail):
-    def shouldShow(self, item):
-        return (recurrenceVisibility(item) & showPopup) != 0
+class CalendarRecurrencePopupAreaBlock(RecurrenceConditionalBlock,
+                                       DetailSynchronizedContentItemDetail):
+    visibilityFlags = RecurrenceConditionalBlock.showPopup
 
-class CalendarRecurrenceSpacer2Area(DetailSynchronizer, ControlBlocks.StaticText):
-    def shouldShow(self, item):
-        return (recurrenceVisibility(item) & (showPopup | showEnds)) != 0
+class CalendarRecurrenceSpacer2Area(RecurrenceConditionalBlock,
+                                    DetailSynchronizer, 
+                                    ControlBlocks.StaticText):
+    visibilityFlags = RecurrenceConditionalBlock.showPopup | \
+                    RecurrenceConditionalBlock.showEnds
 
-class CalendarRecurrenceCustomSpacerBlock(SynchronizedSpacerBlock):
-    def shouldShow (self, item):
-        return (recurrenceVisibility(item) & showCustom) != 0
+class CalendarRecurrenceCustomSpacerBlock(RecurrenceConditionalBlock,
+                                          SynchronizedSpacerBlock):
+    visibilityFlags = RecurrenceConditionalBlock.showCustom
 
-class CalendarRecurrenceCustomAreaBlock(DetailSynchronizedContentItemDetail):
-    def shouldShow (self, item):
-        return (recurrenceVisibility(item) & showCustom) != 0
+class CalendarRecurrenceCustomAreaBlock(RecurrenceConditionalBlock,
+                                        DetailSynchronizedContentItemDetail):
+    visibilityFlags = RecurrenceConditionalBlock.showCustom
 
-class CalendarRecurrenceEndAreaBlock(DetailSynchronizedContentItemDetail):
-    def shouldShow (self, item):
-        return (recurrenceVisibility(item) & showEnds) != 0
+class CalendarRecurrenceEndAreaBlock(RecurrenceConditionalBlock,
+                                     DetailSynchronizedContentItemDetail):
+    visibilityFlags = RecurrenceConditionalBlock.showEnds
 
 # Attribute editor customizations
 
@@ -1519,11 +1385,9 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
         
         
 class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
-    def synchronizeItemDetail(self, item):
-        self.selection = item
-        # this ensures that getHTMLText() gets called appropriately on the derived class
-
-        self.synchronizeWidget()
+    def synchronizeWidget(self, useHints=False):
+        super(HTMLDetailArea, self).synchronizeWidget(useHints)
+        self.selection = self.item
 
     def getHTMLText(self, item):
         return u"<html><body>" + item + u"</body></html>"

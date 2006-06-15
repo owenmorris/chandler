@@ -10,9 +10,6 @@ from detailblocks import (
 )
 
 from Detail import (
-    AttachmentAreaBlock, 
-    AttachmentTextFieldBlock, 
-    AcceptShareButtonBlock,
     CalendarAllDayAreaBlock,
     CalendarConditionalLabelBlock,
     CalendarLocationAreaBlock, 
@@ -27,12 +24,10 @@ from Detail import (
     DetailRootBlock, 
     DetailSynchronizedAttributeEditorBlock,
     DetailSynchronizedContentItemDetail,
-    DetailSynchronizedLabeledTextAttributeBlock, 
     DetailBranchPointDelegate, 
     EmptyPanelBlock,
     HTMLDetailArea,
     InboundOnlyAreaBlock,
-    LabeledTextAttributeBlock, 
     MailMessageButtonBlock,
     OutboundOnlyAreaBlock,
     PrivateSwitchButtonBlock, 

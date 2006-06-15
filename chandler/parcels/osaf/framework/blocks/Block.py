@@ -549,6 +549,8 @@ class Block(schema.Item):
                                      .append(attributeName)
             # Do the notifications
             for (block, attrs) in notifications.items():
+                #logger.debug("Sending notification of change to %s",
+                             #", ".join(attrs))
                 block._sendItemNotificationAndSynchronize('itemChange',
                                                           (op, uuid, attrs))
         
@@ -789,6 +791,19 @@ class Block(schema.Item):
             if method is not None:
                 IgnoreSynchronizeWidget(True, method, widget, useHints)
 
+    def synchronizeWidgetDeep(self):
+        """ Do synchronizeWidget recursively, depth-first. """
+        def syncInside(block):
+            # process from the children up
+            map(syncInside, block.childrenBlocks)
+            block.synchronizeWidget()
+
+        self.widget.Freeze()
+        try:
+            syncInside(self)
+        finally:
+            self.widget.Thaw()
+            
     def rebuildDynamicBlocks (self):
         """
         The MainViewRoot's lastDynamicBlock: the last block synched

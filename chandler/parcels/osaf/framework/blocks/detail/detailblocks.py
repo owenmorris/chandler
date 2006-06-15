@@ -209,20 +209,9 @@ def makeEditor(parcel, name, viewAttribute, border=None,
        or None
     border = border or RectType(2, 2, 2, 2)
 
-    # We need to find the Resynchronize event... it's in the given parcel if
-    # we're building the detail view, or we'll get the detail view's namespace
-    # if we're building an editor for another parcel. (We do it this way 'cuz
-    # it'd be bad to schema.ns the detail view while building the detail view.)
-    try:
-        resyncEvent = parcel['Resynchronize']
-    except KeyError:
-        detailParcelPath = '.'.join(__name__.split('.')[:-1])
-        resyncEvent = schema.ns(detailParcelPath, parcel.itsView).Resynchronize
-
     ae = baseClass.template(name, viewAttribute=viewAttribute,
                             characterStyle=characterStyle or blocks.TextStyle,
-                            presentationStyle=ps, border=border, 
-                            changeEvent=resyncEvent, **kwds)
+                            presentationStyle=ps, border=border, **kwds)
     return ae
 
 def makeSubtree(parcel, kindOrClass, rootBlocks):
@@ -284,11 +273,6 @@ def makeRootStuff(parcel, oldVersion):
                                           minimumSize=SizeType(80, 40),
                                           eventBoundary=True)
     detailRoot.install(parcel)
-     
-    # Our Resynchronize event.
-    resyncEvent = BlockEvent.template('Resynchronize',
-                                      dispatchToBlockName='DetailRoot'
-                                      ).install(parcel)
 
     # A few spacer blocks, copied by other parcel.xml blocks.
     # @@@ Should go away when parcel.xml conversion is complete!
@@ -698,40 +682,40 @@ def makeMailSubtree(parcel, oldVersion):
             position=0.112,
             border=RectType(0, 0, 6, 6)).install(parcel)
 
-    acceptShareButton = \
-        AcceptShareButtonBlock.template('AcceptShareButton').install(parcel)
-        # (We'll flesh out this definition below; we predeclare it for the event.)        
-    acceptShareEvent = \
-        BlockEvent.template('AcceptShare',
-            'SendToBlockByReference',
-            destinationBlockReference=acceptShareButton).install(parcel)
+    #acceptShareButton = \
+        #AcceptShareButtonBlock.template('AcceptShareButton').install(parcel)
+        ## (We'll flesh out this definition below; we predeclare it for the event.)        
+    #acceptShareEvent = \
+        #BlockEvent.template('AcceptShare',
+            #'SendToBlockByReference',
+            #destinationBlockReference=acceptShareButton).install(parcel)
 
-    acceptShareButton = \
-        AcceptShareButtonBlock.template('AcceptShareButton',
-            title=_(u'Accept this sharing invitation'),
-            buttonKind='Text',
-            position=0.88,
-            stretchFactor=0.0,
-            size=SizeType(80, 30),
-            minimumSize=SizeType(220, 24),
-            alignmentEnum='alignCenter',
-            event=acceptShareEvent,
-            border=RectType(6, 6, 6, 6)).install(parcel)
+    #acceptShareButton = \
+        #AcceptShareButtonBlock.template('AcceptShareButton',
+            #title=_(u'Accept this sharing invitation'),
+            #buttonKind='Text',
+            #position=0.88,
+            #stretchFactor=0.0,
+            #size=SizeType(80, 30),
+            #minimumSize=SizeType(220, 24),
+            #alignmentEnum='alignCenter',
+            #event=acceptShareEvent,
+            #border=RectType(6, 6, 6, 6)).install(parcel)
     
-    attachmentArea = \
-        makeArea(parcel, 'AttachmentArea',
-            baseClass=AttachmentAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'attachments')),
-                makeSpacer(parcel, width=8),
-                AttachmentTextFieldBlock.template('AttachmentTextField',
-                    characterStyle=blocks.TextStyle,
-                    lineStyleEnum='MultiLine',
-                    readOnly=True,
-                    textAlignmentEnum='Left',
-                    minimumSize=SizeType(100, 48),
-                    border=RectType(2, 2, 2, 2))],
-            position=0.98).install(parcel)
+    #attachmentArea = \
+        #makeArea(parcel, 'AttachmentArea',
+            #baseClass=AttachmentAreaBlock,
+            #childrenBlocks=[
+                #makeLabel(parcel, _(u'attachments')),
+                #makeSpacer(parcel, width=8),
+                #AttachmentTextFieldBlock.template('AttachmentTextField',
+                    #characterStyle=blocks.TextStyle,
+                    #lineStyleEnum='MultiLine',
+                    #readOnly=True,
+                    #textAlignmentEnum='Left',
+                    #minimumSize=SizeType(100, 48),
+                    #border=RectType(2, 2, 2, 2))],
+            #position=0.98).install(parcel)
     
     makeSubtree(parcel, osaf.pim.mail.MailMessageMixin, [
         outboundFromArea, 
@@ -741,7 +725,8 @@ def makeMailSubtree(parcel, oldVersion):
         bccArea,
         # @@@ Disabled until we resume work on sharing invitations
         # acceptShareButton,
-        attachmentArea,
+        # @@@ disabled until we rewrite the attachment AE.
+        # attachmentArea,
     ])
     
 def makeEmptySubtree(parcel, oldVersion):
