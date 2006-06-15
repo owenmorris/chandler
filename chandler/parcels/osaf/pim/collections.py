@@ -11,7 +11,7 @@ from application import schema
 from chandlerdb.item.c import Default
 from repository.item.Sets import \
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \
-    KindSet, FilteredSet, AbstractSet
+    KindSet, ExpressionFilteredSet, MethodFilteredSet
 from repository.item.Collection import Collection
 
 from osaf.pim.items import ContentItem
@@ -82,8 +82,8 @@ class ContentCollection(ContentItem, Collection):
     # redirections 
     about = schema.Descriptor(redirectTo="displayName")
 
-    # other side of MultiCollection.sources
-    sourceFor = schema.Sequence()
+    # other side of 'sources'
+    sourceFor = schema.Sequence(otherName='sources')
 
     # other side of AppCollection.exclusions
     exclusionsFor = schema.Sequence()
@@ -206,7 +206,7 @@ class DifferenceCollection(ContentCollection):
         displayName=u"DifferenceCollection"
     )
 
-    sources = schema.Sequence(ContentCollection, initialValue=[])
+    sources = schema.Sequence(ContentCollection, otherName='sourceFor')
 
     schema.addClouds(
         copying = schema.Cloud(byCloud=[sources]),
@@ -235,8 +235,7 @@ class MultiCollection(ContentCollection):
     set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
     sources = schema.Sequence(ContentCollection,
-                              inverse=ContentCollection.sourceFor,
-                              initialValue=[])
+                              otherName='sourceFor', initialValue=[])
 
     schema.kindInfo(displayName=u"UnionCollection")
     schema.addClouds(copying = schema.Cloud(byCloud=[sources]))
@@ -365,15 +364,21 @@ class FilteredCollection(ContentCollection):
         displayName=u"FilteredCollection"
     )
 
-    source = schema.One(ContentCollection, initialValue=None)
-    filterExpression = schema.One(schema.Text, initialValue="")
-    filterAttributes = schema.Sequence(schema.Text, initialValue=[])
+    sources = schema.Sequence(ContentCollection, otherName='sourceFor')
+
+    filterExpression = schema.One(schema.Text)
+    filterMethod = schema.One(schema.Tuple)
+    filterAttributes = schema.Sequence(schema.Symbol, initialValue=[])
 
     schema.addClouds(
-        copying = schema.Cloud(byCloud=[source]),
+        copying = schema.Cloud(byCloud=[sources]),
     )
 
     def __init__(self, *args, **kwds):
+
+        source = kwds.pop('source', None)
+        if source is not None:
+            kwds['sources'] = [source]
 
         super(FilteredCollection, self).__init__(*args, **kwds)
 
@@ -382,9 +387,15 @@ class FilteredCollection(ContentCollection):
             attrTuples.add((i, "set"))
             attrTuples.add((i, "remove"))
 
-        setattr(self, self.__collection__,
-                FilteredSet(self.source, self.filterExpression,
-                            tuple(attrTuples)))
+        source = self.sources.first()
+        attrs = tuple(attrTuples)
+
+        if 'filterExpression' in kwds:
+            setattr(self, self.__collection__,
+                    ExpressionFilteredSet(source, self.filterExpression, attrs))
+        else:
+            setattr(self, self.__collection__,
+                    MethodFilteredSet(source, self.filterMethod, attrs))
 
 
 class AppCollection(ContentCollection):

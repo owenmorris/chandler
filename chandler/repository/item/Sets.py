@@ -1215,21 +1215,11 @@ class KindSet(Set):
 
 class FilteredSet(Set):
 
-    def __init__(self, source, expr, attrs=None, id=None):
+    def __init__(self, source, attrs=None, id=None):
 
         super(FilteredSet, self).__init__(source, id)
-
-        self.filterExpression = expr
         self.attributes = attrs
-        self.filter = eval("lambda view, uuid: " + self.filterExpression)
     
-    def _repr_(self, replace=None):
-
-        return "%s(%s, \"\"\"%s\"\"\", %s%s)" %(type(self).__name__,
-                                                self._reprSource(self._source, replace),
-                                                self.filterExpression, self.attributes,
-                                                self._reprSourceId(replace))
-
     def __contains__(self, item, excludeMutating=False):
 
         if item is None:
@@ -1240,35 +1230,21 @@ class FilteredSet(Set):
             return item.itsUUID in index
 
         if self._sourceContains(item, self._source, excludeMutating):
-            try:
-                return self.filter(self._view, item.itsUUID)
-            except Exception, e:
-                e.args = ("Error in filter", self.filterExpression) + e.args
-                raise
+            return self.filter(item.itsUUID)
 
         return False
 
     def _iterkeys(self):
 
-        view = self._view
         for uuid in self._iterSourceKeys(self._source):
-            try:
-                if self.filter(view, uuid):
-                    yield uuid
-            except Exception, e:
-                e.args = ("Error in filter", self.filterExpression) + e.args
-                raise
+            if self.filter(uuid):
+                yield uuid
 
     def _itervalues(self):
 
-        view = self._view
         for item in self._iterSource(self._source):
-            try:
-                if self.filter(view, item.itsUUID):
-                    yield item
-            except Exception, e:
-                e.args = ("Error in filter", self.filterExpression) + e.args
-                raise
+            if self.filter(item.itsUUID):
+                yield item
 
     def _len(self):
 
@@ -1313,13 +1289,8 @@ class FilteredSet(Set):
         if op is not None:
             if change == 'collection':
                 if op != 'refresh':
-                    try:
-                        if not (op is None or self.filter(self._view, other)):
-                            op = None
-                    except Exception, e:
-                        e.args = ("Error in filter", self.filterExpression) + e.args
-                        raise
-
+                    if not (op is None or self.filter(other)):
+                        op = None
             if not (inner is True or op is None):
                 self._collectionChanged(op, change, other)
 
@@ -1328,11 +1299,7 @@ class FilteredSet(Set):
     def itemChanged(self, other, attribute):
 
         if self._sourceContains(other, self._source):
-            try:
-                matched = self.filter(self._view, other)
-            except Exception, e:
-                e.args = ("Error in filter", self.filterExpression) + e.args
-                raise
+            matched = self.filter(other)
 
             if self._indexes:
                 contains = other in self._indexes.itervalues().next()
@@ -1344,7 +1311,56 @@ class FilteredSet(Set):
             elif not matched and not contains is False:
                 self._collectionChanged('remove', 'collection', other)
 
+
+class ExpressionFilteredSet(FilteredSet):
+
+    def __init__(self, source, expr, attrs=None, id=None):
+
+        super(ExpressionFilteredSet, self).__init__(source, attrs, id)
+
+        self.filterExpression = expr
+        self._filter = eval("lambda view, uuid: " + self.filterExpression)
+    
+    def filter(self, uuid):
+
+        try:
+            return self._filter(self._view, uuid)
+        except Exception, e:
+            e.args = ("Error in filter", self.filterExpression) + e.args
+            raise
+
+    def _repr_(self, replace=None):
+
+        return "%s(%s, \"\"\"%s\"\"\", %s%s)" %(type(self).__name__, self._reprSource(self._source, replace), self.filterExpression, self.attributes, self._reprSourceId(replace))
+
     def _inspect_(self, indent):
 
         i = indent + 1
         return "%s\n%sfilter: %s\n%s attrs: %s%s" %(self._inspect__(indent), '  ' * i, self.filterExpression, '  ' * i, ', '.join(str(a) for a in self.attributes), self._inspectSource(self._source, i))
+    
+
+class MethodFilteredSet(FilteredSet):
+
+    def __init__(self, source, filterMethod, attrs=None, id=None):
+
+        super(MethodFilteredSet, self).__init__(source, attrs, id)
+
+        item, methodName = filterMethod
+        self.filterMethod = (item.itsUUID, methodName)
+    
+    def filter(self, uuid):
+
+        view = self._view
+        uuid, methodName = self.filterMethod
+
+        return getattr(view[uuid], methodName)(view, uuid)
+
+    def _repr_(self, replace=None):
+
+        uuid, methodName = self.filterMethod
+        return "%s(%s, (UUID('%s'), '%s'), %s%s)" %(type(self).__name__, self._reprSource(self._source, replace), uuid.str64(), methodName, self.attributes, self._reprSourceId(replace))
+
+    def _inspect_(self, indent):
+
+        i = indent + 1
+        return "%s\n%sfilter: %s\n%s attrs: %s%s" %(self._inspect__(indent), '  ' * i, self.filterMethod, '  ' * i, ', '.join(str(a) for a in self.attributes), self._inspectSource(self._source, i))

@@ -48,8 +48,9 @@ class RepositoryView(CView):
     # 0.6.3: added Collection 'export' cloud with 'subscribers' endpoint
     # 0.6.4: changed format of some indexes to accept one or more attributes
     # 0.6.5: changed format of abstract sets to store an optional id
+    # 0.6.6: added support for MethodFilteredSet
     
-    CORE_SCHEMA_VERSION = 0x00060500
+    CORE_SCHEMA_VERSION = 0x00060600
 
     def __init__(self, repository, name, version):
         """

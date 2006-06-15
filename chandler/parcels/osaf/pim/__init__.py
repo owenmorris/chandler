@@ -19,9 +19,9 @@ from mail import EmailAddress
 from application.Parcel import Reference
 from collections import KindCollection, ContentCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \
-     FilteredCollection, ListCollection, SmartCollection, \
-     AppCollection, \
+     FilteredCollection, ListCollection, SmartCollection, AppCollection, \
      IndexedSelectionCollection
+from repository.item.Item import Item
 
 import tasks, mail, calendar.Calendar
 from i18n import OSAFMessageFactory as _
@@ -31,13 +31,13 @@ from i18n import OSAFMessageFactory as _
 
 from application import schema
 
-class MailedTask(tasks.TaskMixin,mail.MailMessage):
+class MailedTask(tasks.TaskMixin, mail.MailMessage):
     schema.kindInfo(
         displayName = u"Mailed Task",
         description = "A Task stamped as a Mail, or vica versa",
     )
 
-class MailedEvent(calendar.Calendar.CalendarEventMixin,mail.MailMessage):
+class MailedEvent(calendar.Calendar.CalendarEventMixin, mail.MailMessage):
     schema.kindInfo(
         displayName = u"Mailed Event",
         description = "An Event stamped as a Mail, or vica versa",
@@ -63,6 +63,16 @@ class MailedEventTask(
         displayName = u"Mailed Event Task",
         description = "A Task stamped as an Event stamped as Mail, in any sequence",
     )
+
+
+class NonRecurringFilter(Item):
+
+    def isNonRecurring(self, view, uuid):
+
+        isGenerated, modificationsFor = view.findValues(uuid, ('isGenerated', False), ('modificationsFor', None))
+
+        return not (isGenerated or modificationsFor)
+
 
 def installParcel(parcel, oldVersion=None):
     view = parcel.itsView
@@ -90,8 +100,7 @@ def installParcel(parcel, oldVersion=None):
 
     nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
         source=mineNotes,
-        # filter(None, values) will filter out all non True values
-        filterExpression=u"not filter(None, view.findValues(uuid, ('isGenerated', False), ('modificationFor', None)))",
+        filterMethod=(NonRecurringFilter(None, parcel), 'isNonRecurring'),
         filterAttributes=['isGenerated', 'modificationFor']
     )
 

@@ -20,7 +20,7 @@ from repository.schema.Cloud import Cloud, Endpoint
 from repository.item.RefCollections import RefList
 from repository.item.Sets import \
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \
-    KindSet, FilteredSet
+    KindSet, ExpressionFilteredSet, MethodFilteredSet
 
 
 class RepoResource(webserver.AuthenticatedResource):
@@ -1001,8 +1001,11 @@ class HTMLCollectionRenderer(object):
     def formatRefList(self, refList):
         return "[%s]" % refList.__class__.__name__
 
-    def formatFilteredSet(self, filteredSet, childstring):
+    def formatExpressionFilteredSet(self, filteredSet, childstring):
         return ('<div class="operator"><abbr title="%s">filter</title></div>\n%s' % (filteredSet.filterExpression, childstring))
+
+    def formatMethodFilteredSet(self, filteredSet, childstring):
+        return ('<div class="operator"><abbr title="%s">filter</title></div>\n%s' % (filteredSet.filterMethod, childstring))
 
     def formatKindSet(self, cls):
         return "[all <em>%s</em>s]" % cls.__name__
@@ -1062,8 +1065,11 @@ def _getSourceTree(coll, depth=0):
         elif isinstance(s, RefList):
             result = formatter.formatRefList(s)
         
-        elif isinstance(s, FilteredSet):
-            result = formatter.formatFilteredSet(s, getstring(s._source))
+        elif isinstance(s, ExpressionFilteredSet):
+            result = formatter.formatExpressionFilteredSet(s, getstring(s._source))
+        
+        elif isinstance(s, MethodFilteredSet):
+            result = formatter.formatMethodFilteredSet(s, getstring(s._source))
         
         elif isinstance(s, KindSet):
             cls = view[s._extent].kind.classes['python']
