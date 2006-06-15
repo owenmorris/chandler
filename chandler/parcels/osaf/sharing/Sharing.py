@@ -1929,10 +1929,10 @@ class SimpleHTTPConduit(WebDAVConduit):
 
     lastModified = schema.One(schema.Text, initialValue = '')
 
-    def get(self, updateCallback=None):
-        self._get(updateCallback=updateCallback)
+    # def get(self, updateCallback=None):
+    #     self._get(updateCallback=updateCallback)
 
-    def _get(self, previousView=None, updateCallback=None):
+    def _get(self, contentView, updateCallback=None):
 
         # @@@MOR: we need to have importProcess return stats about what it did.
         # Otherwise, since this is a monolithic .ics file, we don't know the
@@ -1991,12 +1991,13 @@ class SimpleHTTPConduit(WebDAVConduit):
 
         try:
             text = resp.body
-            self.share.format.importProcess(text, item=self.share,
-                updateCallback=updateCallback)
+            cvSelf = contentView.findUUID(self.itsUUID)
+            self.share.format.importProcess(contentView, text,
+                item=cvSelf.share, updateCallback=updateCallback)
 
             # The share maintains bi-di-refs between Share and Item:
-            for item in self.share.contents:
-                self.share.items.append(item)
+            for item in cvSelf.share.contents:
+                cvSelf.share.items.append(item)
 
         except Exception, e:
             logging.exception(e)
