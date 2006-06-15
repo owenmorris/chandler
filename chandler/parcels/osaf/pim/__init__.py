@@ -7,7 +7,8 @@ from items import (
 )
 from notes import Note
 from contacts import Contact, ContactName
-from calendar.Calendar import CalendarEvent, CalendarEventMixin
+from calendar.Calendar import CalendarEvent, CalendarEventMixin, LONG_TIME, \
+                              zero_delta
 from calendar.Calendar import Calendar, Location, RecurrencePattern
 from calendar.TimeZone import installParcel as tzInstallParcel
 from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat, 
@@ -73,6 +74,10 @@ class NonRecurringFilter(Item):
 
         return not (isGenerated or modificationsFor)
 
+class LongEventFilter(Item):
+
+    def isLongEvent(self, view, uuid):
+        return view.findValue(uuid, 'duration', zero_delta) > LONG_TIME
 
 def installParcel(parcel, oldVersion=None):
     view = parcel.itsView
@@ -142,12 +147,23 @@ def installParcel(parcel, oldVersion=None):
         trash=None,
     )
 
-    #longFilter = "view.findValue(uuid, 'duration', timedelta(0) > seven_days"
-    #reallyLongEvents = FilteredCollection.update(parcel, 'reallyLongEvents',
-        #source = events,
-        #filterExpression = longFilter,
-        #filterAttributes = ['duration'])
-
+    longEvents = FilteredCollection.update(parcel, 'longEvents',
+        source = events,
+        filterMethod= (LongEventFilter(None, parcel), 'isLongEvent'),
+        filterAttributes = ['duration'])
+    longEvents.addIndex('effectiveStart', 'subindex',
+                        superindex=(events, events.__collection__,
+                                    'effectiveStart'))
+    longEvents.addIndex('effectiveStartNoTZ', 'subindex',
+                        superindex=(events, events.__collection__,
+                                    'effectiveStartNoTZ'))
+    longEvents.addIndex('effectiveEnd', 'subindex',
+                        superindex=(events, events.__collection__,
+                                    'effectiveEnd'))
+    longEvents.addIndex('effectiveEndNoTZ', 'subindex',
+                        superindex=(events, events.__collection__,
+                                    'effectiveEndNoTZ'))
+    
     # the monitor list assumes all reminders will be relativeTo
     # effectiveStartTime, which is true in 0.6, but may not be in the future
     eventsWithReminders.addIndex('reminderTime', 'compare',

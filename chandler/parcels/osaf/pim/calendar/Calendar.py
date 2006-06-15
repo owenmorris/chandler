@@ -16,7 +16,6 @@ from osaf.pim.items import Calculated, ContentItem
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
 from application.dialogs import RecurrenceDialog
-
 import wx
 
 from TimeZone import formatTime
@@ -77,12 +76,12 @@ def ensureIndexed(coll):
         coll.addIndex('__adhoc__', 'numeric')
 
 zero_delta = timedelta(0)
-REALLY_LONG = timedelta(7)
+LONG_TIME  = timedelta(7)
 
 def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
                          endVal,   endAttrName,   endIndex,   endColl,
                          filterColl = None, filterIndex = None, useTZ=True,
-                         longDelta=None):
+                         longDelta=None, longCollection=None):
     """
     Yield keys for events occurring between startVal and endVal.  Don't load
     items, just yield relevant keys, sorted according to startIndex.
@@ -90,10 +89,15 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
     endIndex is needed to determine whether or not events starting before
     startVal also end before startVal.
     
-    startIndex, endIndex, and filterIndex are the names (strings) of indexes
-    on the relevant collections.
-    """
+    startIndex, endIndex, and filterIndex are the names (strings) of
+    indexes on the relevant collections.
     
+    If longDelta is present, the range checked will be constrained to look for
+    events within longDelta of (startVal, endVal), supplemented as appropriate
+    with any events in longCollection.  startIndex and endIndex must exist
+    on longCollection.
+    
+    """
     # callbacks to use for searching the indexes
     def mStart(key, delta=None):
         # gets the last item starting before endVal, or before startVal - delta
@@ -153,10 +157,19 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
         _filterIndex = filterColl.getIndex(filterIndex)
 
     keys = set(endColl.iterindexkeys(endIndex, firstEndKey, lastEndKey))
+    ignores = []
+    # first, yield long events, calculated by recursing, look at longCollection
+    if longCollection is not None:
+        for key in getKeysInRange(view, startVal, startAttrName, startIndex,
+                         longCollection, endVal, endAttrName, endIndex,
+                         longCollection, filterColl, filterIndex, useTZ):
+            ignores.append(key)
+            yield key
 
-    # generate keys, starting from the earliest according to startIndex
+    # next, generate normal keys
     for key in startColl.iterindexkeys(startIndex, firstStartKey, lastStartKey):
-        if key in keys and (filterColl is None or key in _filterIndex):
+        if key in keys and (filterColl is None or key in _filterIndex) \
+           and key not in ignores:
             yield key
 
 def isDayItem(item):
@@ -203,11 +216,12 @@ def eventsInRange(view, start, end, filterColl = None, dayItems=True,
         startIndex = 'effectiveStartNoTZ'
         endIndex   = 'effectiveEndNoTZ'
     
-    allEvents = schema.ns("osaf.pim", view).events
+    allEvents  = schema.ns("osaf.pim", view).events
+    longEvents = schema.ns("osaf.pim", view).longEvents
     keys = getKeysInRange(view, start, 'effectiveStartTime', startIndex,
                           allEvents, end,'effectiveEndTime', endIndex,
                           allEvents, filterColl, '__adhoc__', tzprefs.showUI,
-                          longDelta = REALLY_LONG)
+                          longDelta = LONG_TIME, longCollection=longEvents)
     for key in keys:
         if (view[key].rruleset is None and 
             ((dayItems and timedItems) or isDayItem(view[key]) == dayItems)):
