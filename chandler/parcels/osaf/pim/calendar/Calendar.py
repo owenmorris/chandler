@@ -204,10 +204,9 @@ def recurringEventsInRange(view, start, end, filterColl = None,
         endIndex   = 'recurrenceEndNoTZ'    
     
     pim_ns = schema.ns("osaf.pim", view)
-    allEvents = pim_ns.events
     masterEvents = pim_ns.masterEvents
     keys = getKeysInRange(view, start, 'effectiveStartTime', startIndex,
-                          allEvents, end, 'recurrenceEnd', endIndex,
+                          masterEvents, end, 'recurrenceEnd', endIndex,
                           masterEvents, filterColl, '__adhoc__')
     for key in keys:
         masterEvent = view[key]
