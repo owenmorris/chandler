@@ -1,6 +1,7 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import osaf.framework.scripting as scripting
+from i18n.tests import uw
 
 from time import strftime, localtime
 
@@ -11,7 +12,7 @@ class TestMoveToTrash(ChandlerTestCase):
         # creation
         note = QAUITestAppLib.UITestItem("Note", self.logger)
         # actions
-        note.SetAttr(displayName="A note to move to Trash", body="TO MOVE TO TRASH")
+        note.SetAttr(displayName=uw("A note to move to Trash"), body=uw("TO MOVE TO TRASH"))
         note.MoveToTrash()
         # verification
         note.Check_ItemInCollection("Trash")
@@ -25,14 +26,14 @@ class TestMoveToTrash(ChandlerTestCase):
     
         sidebar = QAUITestAppLib.App_ns.sidebar
         col = QAUITestAppLib.UITestItem("Collection", self.logger)
-        col.SetDisplayName("Trash testing")
-        scripting.User.emulate_sidebarClick(sidebar, 'Trash testing')
+        col.SetDisplayName(uw("Trash testing"))
+        scripting.User.emulate_sidebarClick(sidebar, uw('Trash testing'))
     
     
         event = QAUITestAppLib.UITestItem("Event", self.logger)
     
         event.SetAttr(startDate=today, startTime="12:00 PM",
-                      displayName="Ephemeral event")
+                      displayName=uw("Ephemeral event"))
         
         event.SelectItem()
         event.Check_ItemInCollection("All", expectedResult=True)

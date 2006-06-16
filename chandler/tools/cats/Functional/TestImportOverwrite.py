@@ -5,6 +5,7 @@ from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import os, wx , sys
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import ListCollection
+from i18n.tests import uw
 
 class TestImportOverwrite(ChandlerTestCase):
 
@@ -17,7 +18,7 @@ class TestImportOverwrite(ChandlerTestCase):
         event = QAUITestAppLib.UITestItem("Event", self.logger)
         event_UUID = event.item.itsUUID
         #write some stuff in the event to make it unique
-        event.SetAttr(displayName="Original Event", startDate="01/01/2001", startTime="12:00 AM", body="This is the original event")
+        event.SetAttr(displayName=uw("Original Event"), startDate="01/01/2001", startTime="12:00 AM", body=uw("This is the original event"))
         self.logger.addComment("Created Event to Export")
     
         #export the event
@@ -40,7 +41,7 @@ class TestImportOverwrite(ChandlerTestCase):
         self.logger.addComment("Exported event")
         
         #change the event after exporting
-        event.SetAttr(displayName="Changed Event",  body="This event has been changed")
+        event.SetAttr(displayName=uw("Changed Event"),  body=uw("This event has been changed"))
         self.logger.addComment("event changed after export")
     
         #import the original event
@@ -53,7 +54,8 @@ class TestImportOverwrite(ChandlerTestCase):
             #find imported event by UUID
         self.logger.startAction("Verify event overwritten")
         found = self.app_ns.view.findUUID(event_UUID)
-        if found.body == 'This is the original event' and  found.displayName == 'Original Event':
+        if found.body == uw('This is the original event') and \
+                     found.displayName == uw('Original Event'):
             self.logger.endAction(True, "Event overwriten")
         else:
             self.logger.endAction(False, 'Event not overwriten')

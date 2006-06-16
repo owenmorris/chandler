@@ -1,8 +1,8 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import flickr
-import application.Globals as Globals
 import socket
+from i18n.tests import uw
 
 class TestFlickr(ChandlerTestCase):
     
@@ -21,17 +21,18 @@ class TestFlickr(ChandlerTestCase):
     
         # this is what we do instead
         repView = self.app_ns.itsView
-        cpiaView = Globals.views[0]
         # get a collection of photos from the oscon2005 tag
         fc = flickr.PhotoCollection(itsView = repView)
         fc.tag = flickr.Tag.getTag(repView, "oscon2005")
-        fc.displayName = "oscon2005"
+        fc.displayName = uw("oscon2005")
     
         self.logger.startAction('Get a flickr collection by tag')
         try:
             fc.fillCollectionFromFlickr(repView)
         except socket.timeout:
             self.logger.endAction(True, "Flickr timed out; skipping test")
+        except flickr.flickr.FlickrNotFoundError:
+            logger.ReportPass("Flickr search returned nothing; skipping test")
         else:
     
             # Add the channel to the sidebar
@@ -52,7 +53,7 @@ class TestFlickr(ChandlerTestCase):
             self.scripting.User.idle()
     
             # check results
-            col = sidebarCollectionNamed("oscon2005")
+            col = sidebarCollectionNamed(uw("oscon2005"))
             if not col:
                 self.logger.endAction(False, "Flickr Collection wasn't created")
             if col and len(col) != 10:

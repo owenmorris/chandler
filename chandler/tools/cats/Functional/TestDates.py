@@ -1,5 +1,6 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
+from i18n.tests import uw
 
 class TestDates(ChandlerTestCase):
 
@@ -37,16 +38,16 @@ class TestDates(ChandlerTestCase):
             testItems = dateValues[locale]
     
             for test in testItems:
-                s = '%s %s :: %s %s :: %s' % test
+                s = uw('%s %s :: %s %s :: %s' % test)
     
-                event.SetAttr(displayName="Test",
+                event.SetAttr(displayName=uw("Test"),
                               startDate=test[START_DATE],
                               startTime=test[START_TIME],
                               body=s,
                               timeZone=test[TIMEZONE]
                              )
     
-                event.Check_DetailView({"displayName": "Test",
+                event.Check_DetailView({"displayName": uw("Test"),
                                         "startDate":   test[START_DATE],
                                         "endDate":     test[END_DATE],
                                         "startTime":   test[START_TIME],

@@ -1,5 +1,6 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
+from i18n.tests import uw
     
 class TestNewNote(ChandlerTestCase):
     
@@ -8,8 +9,8 @@ class TestNewNote(ChandlerTestCase):
         note = QAUITestAppLib.UITestItem("Note", self.logger)
         
         # action
-        note.SetAttr(displayName="A note to myself about filing taxes", body="FILE TAXES!")
+        note.SetAttr(displayName=uw("A note to myself about filing taxes"), body=uw("FILE TAXES!"))
         
         # verification
-        note.Check_DetailView({"displayName":"A note to myself about filing taxes","body":"FILE TAXES!"})
-        
+        note.Check_DetailView({"displayName":uw("A note to myself about filing taxes"),"body":uw("FILE TAXES!")})
+     

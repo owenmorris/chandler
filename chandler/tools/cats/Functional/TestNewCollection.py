@@ -1,6 +1,7 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import osaf.framework.scripting as scripting
+from i18n.tests import uw
 
 class TestNewCollection(ChandlerTestCase):
     
@@ -12,15 +13,15 @@ class TestNewCollection(ChandlerTestCase):
         col.Check_CollectionExistence("Untitled")
         
         # action
-        col.SetDisplayName("Meeting")
+        col.SetDisplayName(uw("Meeting"))
         # verification
-        col.Check_CollectionExistence("Meeting")
+        col.Check_CollectionExistence(uw("Meeting"))
         
         # action
         note = QAUITestAppLib.UITestItem("Note", self.logger)
-        note.AddCollection("Meeting")
+        note.AddCollection(uw("Meeting"))
         # verification
-        note.Check_ItemInCollection("Meeting")
+        note.Check_ItemInCollection(uw("Meeting"))
         
         # Bug 5803, make sure items in collections that change to not mine
         # are really not in the All collection, and similarly that events
@@ -29,7 +30,7 @@ class TestNewCollection(ChandlerTestCase):
         sidebar = QAUITestAppLib.App_ns.sidebar
     
         # select the Meeting collection
-        scripting.User.emulate_sidebarClick(sidebar, 'Meeting')
+        scripting.User.emulate_sidebarClick(sidebar, uw('Meeting'))
     
         # Switch to the Calendar View
         QAUITestAppLib.App_ns.appbar.press(name="ApplicationBarEventButton")
@@ -38,21 +39,20 @@ class TestNewCollection(ChandlerTestCase):
         QAUITestAppLib.scripting.User.idle()
     
         beforeChangeEvent = QAUITestAppLib.UITestItem("Event", self.logger)
-        beforeChangeEvent.AddCollection("Meeting")
-        
-        beforeChangeEvent.Check_ItemInCollection("Meeting", expectedResult=True)
+        beforeChangeEvent.AddCollection(uw("Meeting"))
+        beforeChangeEvent.Check_ItemInCollection(uw("Meeting"), expectedResult=True)
         beforeChangeEvent.Check_ItemInCollection("All", expectedResult=True)
         
         # Change Meeting to stop being in mine
         sidebar.onToggleMineEvent(QAUITestAppLib.App_ns.ToggleMineItem.event)
         
         afterChangeEvent = QAUITestAppLib.UITestItem("Event", self.logger)
-        afterChangeEvent.AddCollection("Meeting")
+        afterChangeEvent.AddCollection(uw("Meeting"))
     
         # both events should be in Meeting and not in All
-        beforeChangeEvent.Check_ItemInCollection("Meeting", expectedResult=True)
+        beforeChangeEvent.Check_ItemInCollection(uw("Meeting"), expectedResult=True)
         beforeChangeEvent.Check_ItemInCollection("All", expectedResult=False)
     
-        afterChangeEvent.Check_ItemInCollection("Meeting", expectedResult=True)
+       afterChangeEvent.Check_ItemInCollection(uw("Meeting"), expectedResult=True)
         afterChangeEvent.Check_ItemInCollection("All", expectedResult=False)
 

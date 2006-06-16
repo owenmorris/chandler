@@ -1,6 +1,7 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import osaf.framework.scripting as scripting
+from i18n.tests import uw
     
 class TestCalView(ChandlerTestCase):
     
@@ -17,10 +18,10 @@ class TestCalView(ChandlerTestCase):
         # double click one more time => edit the title
         #testView.DoubleClickInCalView()
         # type a new title and return
-        QAUITestAppLib.scripting.User.emulate_typing("Writing tests")
+        QAUITestAppLib.scripting.User.emulate_typing(uw("Writing tests"))
         QAUITestAppLib.scripting.User.emulate_return()
         
         # verification
         # check the detail view of the created event
-        ev.Check_DetailView({"displayName":"Writing tests"})
+        ev.Check_DetailView({"displayName":uw("Writing tests")})
 

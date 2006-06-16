@@ -6,7 +6,6 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import os, sys
 from time import localtime, strftime
-from i18n import OSAFMessageFactory as _
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.scripting as scripting

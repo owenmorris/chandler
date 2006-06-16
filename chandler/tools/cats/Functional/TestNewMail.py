@@ -1,5 +1,6 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
+from i18n.tests import uw
 
 class TestNewMail(ChandlerTestCase):
 
@@ -9,9 +10,8 @@ class TestNewMail(ChandlerTestCase):
         mail = QAUITestAppLib.UITestItem("MailMessage", self.logger)
         
         # action
-        mail.SetAttr(displayName="Invitation Mail", toAddress="demo2@osafoundation.org", body="This is an email to invite you")
+        mail.SetAttr(displayName=uw("Invitation Mail"), toAddress="demo2@osafoundation.org", body=uw("This is an email to invite you"))
         mail.SendMail()
         
         # verification
-        mail.Check_DetailView({"displayName":"Invitation Mail","body":"This is an email to invite you"})
-
+        mail.Check_DetailView({"displayName":uw("Invitation Mail"),"toAddress":"demo2@osafoundation.org","body":uw("This is an email to invite you")})

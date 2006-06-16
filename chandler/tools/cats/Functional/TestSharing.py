@@ -1,7 +1,6 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 import os, sys
 from application.dialogs.PublishCollection import ShowPublishDialog
-import application.Globals as Globals
 import wx
 from i18n import OSAFMessageFactory as _
 from osaf.sharing import Sharing, unpublish 
@@ -9,6 +8,8 @@ import osaf.sharing.ICalendar as ICalendar
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import osaf.pim as pim
+from i18n.tests import uw
+from osaf.framework.blocks.Block import Block
 
 
 class TestSharing(ChandlerTestCase):
@@ -20,7 +21,7 @@ class TestSharing(ChandlerTestCase):
         ap = QAUITestAppLib.UITestAccounts(self.logger)
         ap.Open() # first, open the accounts dialog window
         ap.CreateAccount("WebDAV")
-        ap.TypeValue("displayName", "Sharing Test WebDAV")
+        ap.TypeValue("displayName", uw("Sharing Test WebDAV"))
         ap.TypeValue("host", "qacosmo.osafoundation.org")
         ap.TypeValue("path", "cosmo/home/demo1")
         ap.TypeValue("username", "demo1")
@@ -31,9 +32,7 @@ class TestSharing(ChandlerTestCase):
         ap.Ok()
     
         # verification
-        ap.VerifyValues("WebDAV", "Sharing Test WebDAV", displayName = "Sharing Test WebDAV", host = "qacosmo.osafoundation.org", username = "demo1",
-                        password="ad3leib5", port=8080)
-        
+        ap.VerifyValues("WebDAV", uw("Sharing Test WebDAV"), displayName = uw("Sharing Test WebDAV"), host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
         
         # import events so test will have something to share even when run by itself
         path = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/DataFiles")
@@ -54,7 +53,7 @@ class TestSharing(ChandlerTestCase):
         
         # Sharing dialog
         self.logger.startAction("Sharing dialog")
-        collection = Globals.views[0].getSidebarSelectedCollection()
+        collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
         if collection is not None:
             if sidebar.filterKind is None:
                 filterClassName = None 

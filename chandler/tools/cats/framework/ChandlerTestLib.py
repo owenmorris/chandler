@@ -28,15 +28,15 @@ def getTime(date):
     hour = date.hour
     minute = date.minute
     if minute == 0:
-        minute = "00"
+        minute = u"00"
     else:
-        minute = "%s" %minute
+        minute = "%s" % minute
     if hour > 12:
         hour = hour - 12
         minute = minute + " PM"
     else:
         minute = minute + " AM"
-    return "%s:%s" %(hour, minute)
+    return u"%s:%s" % (hour, minute)
 
 def GetCollectionRow(cellName):
     """
@@ -100,7 +100,7 @@ class UITestItem(object):
             self.allDay = self.recurring = False
             self.view = App_ns.itsView
             self.logger = logger
-            self.logger.startAction("%s creation" %type)
+            self.logger.startAction("%s creation" % type)
             
             setattr(self, 'is' + type, True)
             constructorName = DataTypes[type]
@@ -192,13 +192,13 @@ class UITestItem(object):
                     timedCanvas = App_ns.TimedEvents
                     allDayCanvas = App_ns.AllDayEvents
                     for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
-                        if canvasItem.item == self.item:
+                        if canvasItem.item is self.item:
                             allDayCanvas.widget.OnSelectItem(canvasItem.item)
                             foundItem = True
                             break
                     if not foundItem:
                         for canvasItem in reversed(timedCanvas.widget.canvasItemList):
-                            if canvasItem.item == self.item:
+                            if canvasItem.item is self.item:
                                 timedCanvas.widget.OnSelectItem(canvasItem.item)
                                 foundItem = True
                                 break
@@ -227,7 +227,7 @@ class UITestItem(object):
         #select the item
         self.SelectItem()
         if timeInfo:
-            self.logger.startAction("%s setting" %description)
+            self.logger.startAction("%s setting" % description)
         block = getattr(App_ns, blockName)
         # Emulate the mouse click in the display name block
         scripting.User.emulate_click(block)
@@ -259,7 +259,7 @@ class UITestItem(object):
             return False
         else:
             if timeInfo:
-               self.logger.startAction("%s setting" %menuName)
+               self.logger.startAction("%s setting" % menuName)
             # Emulate the mouse click in the menu
             scripting.User.emulate_click(block)
             block.widget.SetStringSelection(menuChoice)
@@ -506,7 +506,7 @@ class UITestItem(object):
                 # select the item
                 self.SelectItem()
                 if timeInfo :
-                    self.logger.startAction("Change the %s stamp" %type)
+                    self.logger.startAction("Change the %s stamp" % type)
                 # markup bar tests disabled for now -- Reid
                 buttonBlock = getattr(App_ns, type_states[type]['button'])
                 scripting.User.emulate_click(buttonBlock, 10, 10)
@@ -786,9 +786,9 @@ class UITestItem(object):
             valueMethod = getattr(block.widget, 'GetStringSelection')
         blockValue = valueMethod()
         if not blockValue == value :
-            self.logger.report(False, name="CheckEditableBlock", comment="(On %s Checking)  || detail view value = %s ; expected value = %s" %(description, blockValue, value))
+            self.logger.report(False, name="CheckEditableBlock", comment="(On %s Checking)  || detail view value = %s ; expected value = %s" % (description, blockValue, value))
         else:
-            self.logger.report(True, name="CheckEditableBlock", comment="(On %s Checking)" %description)
+            self.logger.report(True, name="CheckEditableBlock", comment="(On %s Checking)" % description)
 
     def CheckMenuBlock(self, blockName, description, value):
         """
@@ -807,7 +807,7 @@ class UITestItem(object):
         if not menuValue == value :
             self.logger.report(False, name="CheckMenuBlock", comment="(On %s Checking)  || detail view value = %s ; expected value = %s" %(description, menuValue, value))
         else:
-            self.logger.report(True, name="CheckMenuBlock", comment="(On %s Checking)" %description)
+            self.logger.report(True, name="CheckMenuBlock", comment="(On %s Checking)" % description)
             
     def formatDate(self, dateStr):
             """if year has 4 digits removes first 2
@@ -835,9 +835,9 @@ class UITestItem(object):
         buttonBlock = getattr(App_ns, buttonName)
         state = buttonBlock.isStamped()
         if not state == value :
-            self.logger.report(False, name="CheckButton", comment="(On %s Checking) || detail view value = %s ; expected value = %s" %(description, state, value))
+            self.logger.report(False, name="CheckButton", comment="(On %s Checking) || detail view value = %s ; expected value = %s" % (description, state, value))
         else:
-            self.logger.report(True, name="CheckButton", comment="(On %s Checking)" %description)
+            self.logger.report(True, name="CheckButton", comment="(On %s Checking)" % description)
     
     def CheckDisplayedValues(self, msg="Displayed Values", **dict):
         """
@@ -923,90 +923,90 @@ class UITestItem(object):
         for field,value in dict.iteritems():
             if field == "displayName": # display name checking
                 if self.isMailMessage:
-                    d_name = "%s" %self.item.subject
+                    d_name = "%s" % self.item.subject
                 else:
-                    d_name = "%s" %self.item.displayName
+                    d_name = "%s" % self.item.displayName
                 if not value == d_name :
-                    self.logger.report(False, name="Check_Object", comment="(On display name Checking)  || object title = %s ; expected title = %s" %(d_name, value))
+                    self.logger.report(False, name="Check_Object", comment="(On display name Checking)  || object title = %s ; expected title = %s" % (d_name, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On display name Checking)")
             elif field == "startDate": # start date checking
                 startTime = self.item.startTime
-                s_date = self.formatDate("%s/%s/%s" %(startTime.month, startTime.day, startTime.year) )
+                s_date = self.formatDate("%s/%s/%s" % (startTime.month, startTime.day, startTime.year) )
                 dictDate = self.formatDate(value)
                 if not dictDate == s_date :
-                    self.logger.report(False, name="Check_Object", comment="(On start date Checking) || object start date = %s ; expected start date = %s" %(s_date, dictDate))
+                    self.logger.report(False, name="Check_Object", comment="(On start date Checking) || object start date = %s ; expected start date = %s" % (s_date, dictDate))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On start date Checking)")
             elif field == "startTime": # start time checking
                 startTime = self.item.startTime
                 s_time = getTime(startTime)
                 if not value == s_time :
-                    self.logger.report(False, name="Check_Object", comment="(On start time Checking) || object start time = %s ; expected start time = %s" %(s_time, value))
+                    self.logger.report(False, name="Check_Object", comment="(On start time Checking) || object start time = %s ; expected start time = %s" % (s_time, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On start time Checking)")
             elif field == "endDate": # end date checking
                 endTime = self.item.endTime
-                e_date = self.formatDate("%s/%s/%s" %(endTime.month, endTime.day, endTime.year))
+                e_date = self.formatDate("%s/%s/%s" % (endTime.month, endTime.day, endTime.year))
                 dictDate = self.formatDate(value)
                 if not dictDate == e_date :
-                    self.logger.report(False, name="Check_Object", comment="(On end date Checking) || object end date = %s ; expected end date = %s" %(e_date, dictDate))
+                    self.logger.report(False, name="Check_Object", comment="(On end date Checking) || object end date = %s ; expected end date = %s" % (e_date, dictDate))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On end date Checking)")
             elif field == "endTime": # end time checking
                 endTime = self.item.endTime
                 e_time = getTime(endTime)
                 if not value == e_time :
-                    self.logger.report(False, name="Check_Object", comment="(On end time Checking) || object end time = %s ; expected end time = %s" %(e_time, value))
+                    self.logger.report(False, name="Check_Object", comment="(On end time Checking) || object end time = %s ; expected end time = %s" % (e_time, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On end time Checking)")
             elif field == "location": # location checking
                 loc = "%s" %self.item.location
                 if not value == loc :
-                    self.logger.report(False, name="Check_Object", comment="(On location Checking) || object location = %s ; expected location = %s" %(loc, value))
+                    self.logger.report(False, name="Check_Object", comment="(On location Checking) || object location = %s ; expected location = %s" % (loc, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On location Checking)")
             elif field == "body": # body checking
                 body = "%s" %self.item.body
                 if not value == body :
-                    self.logger.report(False, name="Check_Object", comment="(On body Checking) || object body = %s ; expected body = %s" %(body, value))
+                    self.logger.report(False, name="Check_Object", comment="(On body Checking) || object body = %s ; expected body = %s" % (body, value))
                 else:
                      self.logger.report(True, name="Check_Object", comment="(On body Checking)")
             elif field == "fromAddress": # from address checking
                 f = "%s" %self.item.fromAddress
                 if not value == f :
-                    self.logger.report(False, name="Check_Object", comment="(On from address Checking) || object from address = %s ; expected from address = %s" %(f, value))
+                    self.logger.report(False, name="Check_Object", comment="(On from address Checking) || object from address = %s ; expected from address = %s" % (f, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On from address Checking)")
             elif field == "toAddress": # to address checking
-                t = "%s" %self.item.toAddress
+                t = "%s" % self.item.toAddress
                 if not value == t :
-                    self.logger.report(False, name="Check_Object", comment="(On to address Checking) || object to address = %s ; expected to address = %s" %(t, value))
+                    self.logger.report(False, name="Check_Object", comment="(On to address Checking) || object to address = %s ; expected to address = %s" % (t, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On to address Checking)")
             elif field == "status": # status checking
-                status = "%s" %string.upper(self.item.transparency)
+                status = "%s" % string.upper(self.item.transparency)
                 if not value == status :
-                    self.logger.report(False, name="Check_Object", comment="(On status Checking) || object status = %s ; expected status = %s" %(status, value))
+                    self.logger.report(False, name="Check_Object", comment="(On status Checking) || object status = %s ; expected status = %s" % (status, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On status Checking)")
             elif field == "timeZone": # time zone checking
-                timeZone = "%s" %self.item.startTime.tzname()
+                timeZone = "%s" % self.item.startTime.tzname()
                 if not value == timeZone :
-                    self.logger.report(False, name="Check_Object", comment="(On time zone Checking) || object time zone = %s ; expected time zone = %s" %(timeZone, value))
+                    self.logger.report(False, name="Check_Object", comment="(On time zone Checking) || object time zone = %s ; expected time zone = %s" % (timeZone, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On time zone Checking)")
             elif field == "alarm": # status checking
                 alarm = self.item.startTime - self.item.reminderTime
                 field = timedelta(minutes = string.atoi(value))
                 if not field == alarm :
-                    self.logger.report(False, name="Check_Object", comment="(On alarm Checking) || object alarm = %s ; expected alarm = %s" %(alarm, field))
+                    self.logger.report(False, name="Check_Object", comment="(On alarm Checking) || object alarm = %s ; expected alarm = %s" % (alarm, field))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On alarm Checking)")
             elif field == "allDay": # status checking
                 allDay = self.item.allDay
                 if not value == allDay :
-                    self.logger.report(False, name="Check_Object", comment="(On all Day Checking) || object all day = %s ; expected all day = %s" %(allDay, value))
+                    self.logger.report(False, name="Check_Object", comment="(On all Day Checking) || object all day = %s ; expected all day = %s" % (allDay, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On all Day Checking)")
             elif field == "stampMail": # Mail stamp checking
@@ -1015,7 +1015,7 @@ class UITestItem(object):
                 else:
                     stampMail = False
                 if not value == stampMail :
-                    self.logger.report(False, name="Check_Object", comment="(On Mail Stamp Checking) || object Mail Stamp = %s ; expected Mail Stamp = %s" %(stampMail, value))
+                    self.logger.report(False, name="Check_Object", comment="(On Mail Stamp Checking) || object Mail Stamp = %s ; expected Mail Stamp = %s" % (stampMail, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On Mail Stamp Checking)")
             elif field == "stampTask": # Task stamp checking
@@ -1024,7 +1024,7 @@ class UITestItem(object):
                 else:
                     stampTask = False
                 if not value == stampTask :
-                    self.logger.report(False, name="Check_Object", comment="(On Task Stamp Checking) || object Task Stamp = %s ; expected Task Stamp = %s" %(stampTask, value))
+                    self.logger.report(False, name="Check_Object", comment="(On Task Stamp Checking) || object Task Stamp = %s ; expected Task Stamp = %s" % (stampTask, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On Task Stamp Checking)")
             elif field == "stampEvent": # Event stamp checking
@@ -1033,7 +1033,7 @@ class UITestItem(object):
                 else:
                     stampEvent = False
                 if not value == stampEvent :
-                    self.logger.report(False, name="Check_Object", comment="(On Event Stamp Checking) || object Event Stamp = %s ; expected Event Stamp = %s" %(stampEvent, value))
+                    self.logger.report(False, name="Check_Object", comment="(On Event Stamp Checking) || object Event Stamp = %s ; expected Event Stamp = %s" % (stampEvent, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On Event Stamp Checking)")
             else: # Wrong check => set the report state to unchecked
@@ -1070,19 +1070,19 @@ class UITestItem(object):
             # check the changing values
             if not GetCollectionRow(self.item.displayName):
                 exist = False
-                description = "%s doesn't exist" %self.item.displayName
+                description = "%s doesn't exist" % self.item.displayName
             else:
                 exist = True
-                description = "%s exists" %self.item.displayName
+                description = "%s exists" % self.item.displayName
             #report the checkings
             if exist == expectedResult and self.item.displayName == expectedName:
-                self.logger.report(True, name="Check_CollectionExistence", comment="(On collection existence Checking) - %s" %description)
+                self.logger.report(True, name="Check_CollectionExistence", comment="(On collection existence Checking) - %s" % description)
                 result = True
             elif not exist == expectedResult:
-                self.logger.report(False, name="Check_CollectionExistence", comment="(On collection existence Checking) - %s" %description)
+                self.logger.report(False, name="Check_CollectionExistence", comment="(On collection existence Checking) - %s" % description)
                 result = False
             else:
-                self.logger.report(False, name="Check_CollectionExistence", comment="(On collection name Checking) - current name = %s ; expected name = %s" %(self.item.displayName, expectedName))
+                self.logger.report(False, name="Check_CollectionExistence", comment="(On collection name Checking) - current name = %s ; expected name = %s" % (self.item.displayName, expectedName))
                 result = False
             self.logger.addComment("Collection existence")
             return result
@@ -1108,17 +1108,17 @@ class UITestItem(object):
                 selected = self.item in App_ns.summary.widget.SelectedItems()
                 
         if selected:
-            description = "item named %s is selected" % self.item.displayName
+            description = u"item named %s is selected" % self.item.displayName
         else:
-            description = "item named %s is not selected" %self.item.displayName
+            description = u"item named %s is not selected" % self.item.displayName
         if selected == expectedResult:
             result = True
             if report:
-                self.logger.report(True, name="Check_ItemSelected", comment="(On Selection Checking) - %s" %description)
+                self.logger.report(True, name="Check_ItemSelected", comment="(On Selection Checking) - %s" % description)
         else:
             result = False
             if report:
-                self.logger.report(False, name="Check_ItemSelected", comment="(On Selection Checking) - %s" %description)
+                self.logger.report(False, name="Check_ItemSelected", comment="(On Selection Checking) - %s" % description)
         return result                 
         
         
@@ -1145,19 +1145,19 @@ class UITestItem(object):
             if col:
                 if self.item in col:
                     value = True
-                    description = "item named %s is in %s" %(self.item.displayName, collectionName)
+                    description = "item named %s is in %s" % (self.item.displayName, collectionName)
                 else:
                     value = False
-                    description = "item named %s is not in %s" %(self.item.displayName, collectionName)
+                    description = "item named %s is not in %s" % (self.item.displayName, collectionName)
                 if value == expectedResult:
                     result = True
                     if report:
-                        self.logger.report(True, name="Check_ItemInCollection", comment="(On Collection Checking) - %s" %description)
+                        self.logger.report(True, name="Check_ItemInCollection", comment="(On Collection Checking) - %s" % description)
                         self.logger.addComment("Item in collection")
                 else:
                     result = False
                     if report:
-                        self.logger.report(False, name="Check_ItemInCollection", comment="(On Collection Checking) - %s" %description)
+                        self.logger.report(False, name="Check_ItemInCollection", comment="(On Collection Checking) - %s" % description)
                         self.logger.addComment("Item in collection")
             else:
                 result = False
@@ -1192,7 +1192,7 @@ class UITestItem(object):
     
 class UITestAccounts:
     fieldMap = {
-        'SMTP': {'displayName': 3, 'address': 5, 'host': 7,
+        'SMTP': {'displayName': 3, 'email': 5, 'host': 7,
                  'username': 17, 'password': 19, 'security': 9,
                  'port':13, 'authentication': 15},
 
@@ -1352,7 +1352,7 @@ class UITestAccounts:
                     self.logger.report(True, name="VerifyValues", comment="Checking %s %s" % (type, key))
 
         #report the checkings
-        self.logger.addComment("%s values" %type)
+        self.logger.addComment("%s values" % type)
         return result
 
 
@@ -1418,7 +1418,7 @@ class UITestView(object):
         else:
             return False
         self.state = viewName
-        self.logger.startAction("Switch to %s" %viewName)
+        self.logger.startAction("Switch to %s" % viewName)
         #process the corresponding event
         App_ns.appbar.press(name=button)
         wx.GetApp().Yield()
@@ -1454,7 +1454,7 @@ class UITestView(object):
         Check if the current view is the expected one
         """
         if not self.state == self.GetCurrentState():
-            self.logger.report(False, name="CheckView", comment="(On wiew checking) || expected current view = %s ; Correspondig button is switch off " %self.state)
+            self.logger.report(False, name="CheckView", comment="(On wiew checking) || expected current view = %s ; Correspondig button is switch off " % self.state)
         else:
             self.logger.report(True, name="CheckView", comment="(On view checking)")
         #report the checkings
@@ -1552,7 +1552,7 @@ class UITestView(object):
             TestItem = UITestItem(canvasItem.item, self.logger)
             return TestItem
         else:
-            self.logger.addComment("DoubleClickInCalView is not available in the current view : %s" %self.state)
+            self.logger.addComment("DoubleClickInCalView is not available in the current view : %s" % self.state)
             return
 
     def Check_Equality(self, a, b, message):

@@ -2,9 +2,8 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import os
 import application.dialogs.SubscribeCollection as SubscribeCollection
-import application.Globals as Globals
 import wx
-from i18n import OSAFMessageFactory as _
+from i18n.tests import uw
 import osaf.framework.scripting as scripting
 
 
@@ -17,7 +16,7 @@ class TestSubscribing(ChandlerTestCase):
         ap = QAUITestAppLib.UITestAccounts(self.logger)
         ap.Open() # first, open the accounts dialog window
         ap.CreateAccount("WebDAV")
-        ap.TypeValue("displayName", "Subscribe Test WebDAV")
+        ap.TypeValue("displayName", uw("Subscribe Test WebDAV"))
         ap.TypeValue("host", "qacosmo.osafoundation.org")
         ap.TypeValue("path", "home/demo1")
         ap.TypeValue("username", "demo1")
@@ -29,9 +28,8 @@ class TestSubscribing(ChandlerTestCase):
         self.logger.endAction(True)
     
         # verification
-        ap.VerifyValues("WebDAV", "Subscribe Test WebDAV", displayName = "Subscribe Test WebDAV", host = "qacosmo.osafoundation.org", username = "demo1",
-                        password="ad3leib5", port=8080)
-        
+        ap.VerifyValues("WebDAV", uw("Subscribe Test WebDAV"), displayName = uw("Subscribe Test WebDAV"), host = "qacosmo.osafoundation.org", path = "home/demo1", username = "demo1", password="ad3leib5", port=8080)
+
         # Subscribe dialog
         self.logger.startAction("Subscribe dialog")
         window = SubscribeCollection.Show(wx.GetApp().mainFrame,

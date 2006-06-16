@@ -62,7 +62,7 @@ class TestOutput:
   #         self.passedTests = self.passedSuites + 1
   #      else:
   #          self.failedTests = self.failedSuites + 1
-        
+        self.displaySummary()
         self.printOut('Ending Suite ""%s"" :: EndTime %s :: Total Time %s' % (self.currentSuite['name'], self.currentSuite['endtime'], self.currentSuite['totaltime']), level=3)
         self.currentSuite['testlist'] = copy.copy(self.testList)
         self.suiteList.append(copy.copy(self.currentSuite))
@@ -211,6 +211,12 @@ class TestOutput:
                     return
 
     def displaySummary(self):
+        for test in self.testList:
+            if test['comment'] == 'None\nNone':
+                self.printOut( "%s %s %s" % ( test['name'] , 'PASS',  test['totaltime'] ), 4)
+            else:
+                self.printOut ("%s %s %s" % ( test['name'] , 'FAIL',  test['totaltime'] ), 4) 
+                self.printOut (test['comment'].replace('\n','') )
         self.printOut('\n--Suite Summary-- There were %s passed tests and %s failed with a combined %s passed actions and %s failed actions, with %s passed reports and %s failed reports.' % (self.passedTests, self.failedTests, self.passedActions, self.failedActions, self.passedReports,self.failedReports))
         
 
