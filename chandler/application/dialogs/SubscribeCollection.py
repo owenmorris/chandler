@@ -102,6 +102,8 @@ class SubscribeDialog(wx.Dialog):
         if self.modal:
             self.EndModal(True)
         self.Destroy()
+        
+        self.subscribing = False
 
     def _shareError(self, err):
 
