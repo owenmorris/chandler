@@ -989,6 +989,8 @@ class perf:
             detail.append('<tr><th>Run at</th><th>Rev #</th><th>Time</th><th>&Delta; %</th><th>&Delta; time</th></tr>\n')
 
             previous = 0
+            previousRevision = None
+            lastDatapoint = None
             
             for hour in k_hours:
               for datapoint in dateitem[hour]:
@@ -1011,14 +1013,25 @@ class perf:
                   deltaClass = 'ok'
                 timeClass = self.colorTime(testkey, current, 0.02)# bogus std dev
                 
-                detail.append('<tr><td>%02d:%02d:%02d</td><td>%s</td><td class="number%s">%02.2fs</td><td class="%s">%+3.0f%%</td><td class="%s">%+1.2fs</td></tr>\n' %
-                              (datapoint[1].hour, datapoint[1].minute, datapoint[1].second,
-                               revision, timeClass, current, deltaClass, c_perc, deltaClass, c_diff))
+                if previousRevision is not None and previousRevision != revision:
+                  bonsaiURL = 'http://bonsai.osafoundation.org/svnquery.cgi?treeid=default&module=all&branch=trunk&branchtype=match&sortby=Date&date=explicit&mindate=%4d-%02d-%02d+%02d:%02d:%02d&maxdate=%4d-%02d-%02d+%02d:%02d:%02d&repository=/svn/chandler' % \
+                    (lastDatapoint[1].year, lastDatapoint[1].month, lastDatapoint[1].day, lastDatapoint[1].hour, lastDatapoint[1].minute, lastDatapoint[1].second,
+                     datapoint[1].year, datapoint[1].month, datapoint[1].day, datapoint[1].hour, datapoint[1].minute, datapoint[1].second)                  
+                  detail.append('<tr><td><a href="%s">%02d:%02d:%02d</a></td>' %
+                                (bonsaiURL, datapoint[1].hour, datapoint[1].minute, datapoint[1].second))
+                else:
+                  detail.append('<tr><td>%02d:%02d:%02d</td>' %
+                                (datapoint[1].hour, datapoint[1].minute, datapoint[1].second))
+
+                detail.append('<td>%s</td><td class="number%s">%02.2fs</td><td class="%s">%+3.0f%%</td><td class="%s">%+1.2fs</td></tr>\n' %
+                              (revision, timeClass, current, deltaClass, c_perc, deltaClass, c_diff))
 
                 if self._options['debug']:
                   print "%s %s %s %s %s %s %f" % (testDisplayName, platformkey, buildkey, datekey, hour, revision, current)
                 
                 previous = current
+                previousRevision = revision
+                lastDatapoint = datapoint
 
             (v, n, avg) = self.standardDeviation(platformdata['values'])
 
