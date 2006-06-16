@@ -107,16 +107,9 @@ try:
         win.OnPublishDone(None)
         app.Yield()
 
-        # Delete the (local) collection we just published so that we can
-        # subscribe to it below.
-        # XXX Delete sharing info first, because deleting just the collection does
-        # XXX not seem to get rid of the sharing info (you get an error about
-        # XXX already sharing) otherwise.
-        for share in collection.shares:
-            share.conduit.delete(True)
-            share.format.delete(True)
-            share.delete(True)
-        # delete collection
+        # Unsubscribe and delete the (local) collection we just published so
+        # that we can subscribe to it below.
+        sharing.unsubscribe(collection)
         collection.delete(recursive=True)
         User.idle()
 
