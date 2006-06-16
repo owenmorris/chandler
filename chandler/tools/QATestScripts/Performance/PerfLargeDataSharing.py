@@ -27,8 +27,8 @@ def sidebarCollectionNamed(name):
     return None
 
 # initialization
-fileName = "PerfSharing.log"
-logger = QAUITestAppLib.QALogger(fileName, "PerfSharing")
+fileName = "PerfLargeDataSharing.log"
+logger = QAUITestAppLib.QALogger(fileName, "PerfLargeDataSharing")
 
 try:
     # action
