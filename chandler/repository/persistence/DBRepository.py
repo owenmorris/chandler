@@ -1052,7 +1052,8 @@ class DBCheckpointThread(Thread):
 
         while self._alive:
             condition.acquire()
-            condition.wait(600.0)
+            if self._alive:
+                condition.wait(600.0)
             condition.release()
 
             if not (self._alive and self.isAlive()):
@@ -1099,7 +1100,15 @@ class DBIndexerThread(RepositoryThread):
         condition = self._condition
         view = None
 
-        while self._alive and self.isAlive():
+        while self._alive:
+            condition.acquire()
+            if self._alive:
+                condition.wait(60.0)
+            condition.release()
+
+            if not (self._alive and self.isAlive()):
+                break
+
             latestVersion = store.getVersion()
             indexVersion = store.getIndexVersion()
 
@@ -1110,11 +1119,6 @@ class DBIndexerThread(RepositoryThread):
                     view.refresh(version=indexVersion + 1, notify=False)
                     self._indexVersion(view, indexVersion + 1, store)
                     indexVersion += 1
-
-            condition.acquire()
-            if self._alive:
-                condition.wait(60.0)
-            condition.release()
 
         if view is not None:
             view.closeView()
