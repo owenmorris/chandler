@@ -1499,6 +1499,7 @@ class CalendarEventMixin(RemindableMixin):
                 master.delete()
             else:
                 del master.recurrenceID
+                del master.rruleset
                 master.occurrenceFor = master
 
         
