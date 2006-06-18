@@ -58,7 +58,7 @@ class wxTableData(wx.grid.PyGridTableBase):
             # it from disk
             bitmap = getattr(self, '_colbitmap%s' % column, None)
             if bitmap is None:
-                bitmap = wx.GetApp().GetImage(columnItem.icon + ".png")
+                bitmap = wx.GetApp().GetImage(columnItem.icon + "Stamped.png")
                 setattr(self, '_colbitmap%s' % column, bitmap)
                 
             grid.SetLabelBitmap(False, column, bitmap)
@@ -695,6 +695,10 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
                           Block.getWidgetID(self),
                           characterStyle=getattr(self, "characterStyle", None),
                           headerCharacterStyle=getattr(self, "headerCharacterStyle", None))        
+        self.registerAttributeEditors(widget)
+        return widget
+    
+    def registerAttributeEditors(self, widget):
         defaultName = "_default"
         widget.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
         aeKind = AttributeEditors.AttributeEditorMapping.getKind(self.itsView)
@@ -704,7 +708,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
                 widget.RegisterDataType (key,
                                          GridCellAttributeRenderer (key),
                                          GridCellAttributeEditor (key))
-        return widget
 
     def GetCurrentContents(self, writable=False):
         """

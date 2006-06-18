@@ -28,6 +28,7 @@ from osaf.framework.blocks.Block import (ShownSynchronizer,
 from osaf.pim.items import ContentItem
 from application import schema
 from application.dialogs import RecurrenceDialog, TimeZoneList
+from util.MultiStateButton import BitmapInfo, MultiStateBitmapCache
 
 from i18n import OSAFMessageFactory as _
 from osaf import messages
@@ -115,6 +116,7 @@ def installParcel(parcel, oldVersion=None):
     aeDict = {
         '_default': 'RepositoryAttributeEditor',
         'Boolean': 'CheckboxAttributeEditor',
+        'CalendarEventMixin': 'CalendarKindAttributeEditor',
         'Contact': 'ContactAttributeEditor',
         'ContactName': 'ContactNameAttributeEditor', 
         'ContentItem': 'StringAttributeEditor', 
@@ -129,11 +131,10 @@ def installParcel(parcel, oldVersion=None):
         'EmailAddress': 'EmailAddressAttributeEditor',
         'Integer': 'RepositoryAttributeEditor',
         'Item': 'ItemNameAttributeEditor',
-        'Kind': 'StampAttributeEditor',
-        'IsKind': 'IsKindAttributeEditor',
         'image/jpeg': 'LobImageAttributeEditor',
         'Location': 'LocationAttributeEditor',
-        'SharingStatusEnum': 'EnumAttributeEditor',
+        'MailMessageMixin': 'MailKindAttributeEditor',
+        'TaskMixin': 'TaskKindAttributeEditor',
         'Text': 'StringAttributeEditor',
         'Text+static': 'StaticStringAttributeEditor',
         'Timedelta': 'TimeDeltaAttributeEditor',
@@ -2234,60 +2235,149 @@ class TriageAttributeEditor(ChoiceAttributeEditor):
                 _(u"Done"))
     
 class IconAttributeEditor (BaseAttributeEditor):
-    def ReadOnly (self, (item, attribute)):
-        return True # The Icon editor doesn't support editing.
+    """
+    Base class for an icon-based attribute editor; subclass and provide
+    management of state & variations on the icons.
+    """
+    bitmapCache = MultiStateBitmapCache()
 
     def GetAttributeValue (self, item, attributeName):
-        # simple implementation - get the value, assume it's a string
+        """ 
+        Simple implementation assumes that an icon should be shown if
+        the configured attribute is non-entry, and left blank otherwise.
+        """
         try:
             value = getattr (item, attributeName) # getattr will work with properties
         except AttributeError:
             value = ""
         return value
-
+    
+    def getImageVariation(self, item, attributeName):
+        """ Pick the right variation """
+        # By default, our two choices only depend on readonlyness.
+        return self.ReadOnly((item, attributeName)) and 'disabled' or 'normal'
+    
     def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
-        item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
+        """
+        Draw the appropriate variation from the set of icons for this state.
+        """
+        proxyItem = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
         dc.SetPen (wx.TRANSPARENT_PEN)
         dc.DrawRectangleRect(rect) # always draw the background
-        imageName = self.GetAttributeValue(item, attributeName)
-        if len(imageName):
-            imageName += ".png"
-            image = wx.GetApp().GetImage(imageName)
+        value = self.GetAttributeValue(proxyItem, attributeName)
+        if len(value):
+            imageSet = self.bitmapCache.get(value)
+            imageVariation = self.getImageVariation(item, attributeName)
+            image = getattr(imageSet, imageVariation, None)
             if image is not None:
                 x = rect.GetLeft() + (rect.GetWidth() - image.GetWidth()) / 2
                 y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
                 dc.DrawBitmap (image, x, y, True)
 
-class EnumAttributeEditor (IconAttributeEditor):
+class KindAttributeEditor(IconAttributeEditor):
     """
-    An attribute editor for enumerated types to be represented as icons.
-    Uses the attribute name, an underscore, and the value name as the
-    image filename. (An alternative might be to use the enum type name
-    instead of the attribute name...)
+    Base class for attribute editors used for the stamping 
+    columns in the summary. Subclasses need to define a 
+    "mixinClass" class attribute that points at the mixin class to be used.
     """
-    def GetAttributeValue (self, item, attributeName):
-        try:
-            value = "%s_%s" % (attributeName, item.getAttributeValue(attributeName))
-        except AttributeError:
-            value = ''
-        return value;
+    def __init__(self, *args, **kwds):
+        super(KindAttributeEditor, self).__init__(*args, **kwds)
+        IconAttributeEditor.bitmapCache.AddStates(\
+            multibitmaps=self.makeStates(),
+            bitmapProvider=wx.GetApp().GetImage)
+    
+    def _getStateName(self, isStamped):
+        return "%s.%s" % (self.iconPrefix,
+                         isStamped and "Stamped" or "Unstamped")
+        
+    def makeStates(self):
+        prefix = self.iconPrefix
+        unstamped = BitmapInfo()
+        unstamped.stateName = self._getStateName(False)
+        unstamped.normal   = "pixel"
+        unstamped.rollover = "%sRollover" % prefix
+        unstamped.disabled = "pixel"
+        unstamped.selected = "%sPressed" % prefix
+        stamped = BitmapInfo()
+        stamped.stateName = self._getStateName(True)
+        stamped.normal   = "%sStamped" % prefix
+        stamped.rollover = "%sRollover" % prefix
+        stamped.disabled = "%sStamped" % prefix
+        stamped.selected = "%sPressed" % prefix
+        return (unstamped, stamped)
 
-class StampAttributeEditor (IconAttributeEditor):
-    def GetAttributeValue (self, item, attributeName):
-        if isinstance(item, TaskMixin):
-            return 'TaskMixinStamp'
-        elif isinstance(item, Calendar.CalendarEventMixin):
-            return 'CalendarEventMixin'
-        else:
-            return ''
+    def ReadOnly(self, (item, attributeName)):
+        # Our "attributeName" is a Kind; substitute a real attribute.
+        readOnly = super(KindAttributeEditor, self).ReadOnly((item, 'body'))
 
-class IsKindAttributeEditor(IconAttributeEditor):
-    """
-    A sort of boolean attribute editor - it returns whether or not an
-    item is of the given kind.
-    """
-    def GetAttributeValue(self, item, kind):
-        if item.isItemOf(kind):
-            return "%sStamp" % (kind.itsName)
+        # @@@BJS: added Morgan's temporary disabling of stamping of shared
+        # items, as in Detail.py's DetailStampButton._isStampable()
+        readOnly = readOnly or (item.getSharedState() != ContentItem.UNSHARED)
+        
+        return readOnly
+
+    def getImageVariation(self, item, attributeName):
+        """ Pick the right variation """
+        result = super(KindAttributeEditor, self).getImageVariation(item, attributeName)
+        if result != 'normal':
+            return result
+        
+        rolledOverItem = getattr(self, 'rolledOverItem', None)
+        return (rolledOverItem is item) and "rollover" or "normal"
+
+    def GetAttributeValue(self, item, attributeName):
+        isStamped = item.isItemOf(self.mixinClass.getKind(item.itsView))
+        return self._getStateName(isStamped)
+    
+    def SetAttributeValue(self, item, attributeName, value):
+        mixinKind = self.mixinClass.getKind(item.itsView)
+        stampedNess = item.isItemOf(mixinKind)
+        if stampedNess != (value == self._getStateName(True)):
+            # Stamp or unstamp the item
+            operation = stampedNess and 'remove' or 'add'
+            #logger.debug("%s: stamping: %s %s to %s", debugName(self), 
+                         #operation, mixinKind, debugName(item))
+            item.StampKind(operation, mixinKind)
+
+    def OnMouseChange(self, event, isIn, isDown, (item, attributeName)):
+        """
+        Handle live changes of mouse state related to our cell.
+        """
+        # Note whether the in-ness changed
+        wasIn = getattr(self, 'rolledOverItem', None)
+        if (not isIn) or (wasIn is not item):
+            if isIn:
+                self.rolledOverItem = item
+            else:
+                del self.rolledOverItem
+            #logger.debug("Rolled over: %s" % getattr(self, 'rolledOverItem', None))
+
+        # Note down-ness changes; eat the event if the downness changed, and
+        # trigger an advance if appropriate.
+        if isDown != getattr(self, 'wasDown', False):
+            if isIn and not isDown:
+                stampedNess = item.isItemOf(self.mixinClass.getKind(item.itsView))
+                newValue = self._getStateName(not stampedNess)
+                self.SetAttributeValue(item, attributeName, newValue)                
+            if isDown:
+                self.wasDown = True
+            else:
+                del self.wasDown
+            #logger.debug("Downness now %s" % getattr(self, 'wasDown', False))
+            #logger.debug("AE NOT calling event.Skip")
         else:
-            return ""
+            #logger.debug("AE Calling event.Skip")
+            event.Skip()
+            
+class CalendarKindAttributeEditor(KindAttributeEditor):
+    mixinClass = Calendar.CalendarEventMixin
+    iconPrefix = "SumEvent"
+    
+class TaskKindAttributeEditor(KindAttributeEditor):
+    mixinClass = TaskMixin
+    iconPrefix = "SumTask"
+
+class MailKindAttributeEditor(KindAttributeEditor):
+    mixinClass = Mail.MailMessageMixin
+    iconPrefix = "SumMail"
+    

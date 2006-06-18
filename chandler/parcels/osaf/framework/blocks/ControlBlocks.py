@@ -73,7 +73,7 @@ class Button(RectangularChild):
             #
             #   {icon}Normal, {icon}Stamped, {icon}Rollover, {icon}Pressed, {icon}Disabled
             #
-            # From these we build two states named "normal" and "stamped", which can
+            # From these we build two states suffixed "unstamped" and "stamped", which can
             # be used the toggle the appearance of the button.
             #
             assert len(self.icon) > 0
@@ -84,13 +84,13 @@ class Button(RectangularChild):
             normal.rollover = "%sRollover" % self.icon
             normal.disabled = "%sDisabled" % self.icon
             normal.selected = "%sPressed" % self.icon
-            normal.stateName = "normal"
+            normal.stateName = "%s.Unstamped" % self.icon
             stamped = MultiStateButton.BitmapInfo()
             stamped.normal   = "%sStamped" % self.icon
             stamped.rollover = "%sRollover" % self.icon
             stamped.disabled = "%sDisabled" % self.icon
             stamped.selected = "%sPressed" % self.icon
-            stamped.stateName = "stamped"
+            stamped.stateName = "%s.Stamped" % self.icon
             button = wxChandlerMultiStateButton (parentWidget, 
                                 id, 
                                 wx.DefaultPosition,
@@ -106,7 +106,7 @@ class Button(RectangularChild):
     def isStamped(self):
         stamped = False;
         if self.buttonKind == "Stamp":
-            stamped = (self.widget.currentState == "stamped")
+            stamped = (self.widget.currentState == "%s.Stamped" % self.icon)
         return stamped
 
     def buttonPressed(self, event):
@@ -367,7 +367,7 @@ class AttributeDelegate (ListDelegate):
             col = self.blockItem.columns[column]
             
             if col.valueType == 'kind':
-                typeName = 'IsKind'
+                typeName = col.kind.itsName
                 
             elif col.valueType == 'attribute':
                 attributeName = col.attributeName

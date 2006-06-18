@@ -105,7 +105,7 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
         Return a list containing the item we're displaying.
         (This gets used for Send)
         """
-        return self.contents is not None and [ self.contents ] or []
+        return getattr(self, 'contents', None) is not None and [ self.contents ] or []
 
     def onSendShareItemEvent (self, event):
         """
@@ -366,7 +366,8 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
                  item.itsKind.itsName,
                  mixinClass.__name__, 
                  mixinKind.itsName)
-        self.widget.SetState(stamped and "stamped" or "normal")
+        self.widget.SetState("%s.%s" % (self.icon,
+                             stamped and "Stamped" or "Unstamped"))
 
     def onButtonPressedEvent (self, event):
         # Rekind the item by adding or removing the associated Mixin Kind
@@ -395,7 +396,9 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
         # @@@MOR Until view merging supports kind changes (or until stamping
         # is accomplished without kind changes), don't allow stamping or
         # unstamping of shared items:
-
+        # @@@BJS Stamping now works from the attribute editors for the stamping
+        # columns in the summary too, so I've made the same change there: 
+        # see AttributEditors.py's KindAttributeEditor.ReadOnly().
         return (item.isItemOf(items.ContentItem.getKind(self.itsView)) and
             (item.getSharedState() == items.ContentItem.UNSHARED))
 
@@ -416,17 +419,16 @@ class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.Button):
     def synchronizeWidget(self, useHints=False):
         # toggle this button to reflect the privateness of the selected item        
         super(PrivateSwitchButtonBlock, self).synchronizeWidget(useHints)
-        self.widget.SetState(self.item.private and "stamped" or "normal")
+        self.widget.SetState("%s.%s" % (self.icon,
+                             self.item.private and "Stamped" or "Unstamped"))
 
     def onButtonPressedEvent(self, event):
         item = self.item            
         self.postEventByName("FocusTogglePrivate", {'items': [item]})
         tool = event.arguments['sender']
         # in case the user canceled the dialog, reset markupbar buttons
-        if item.private:
-            self.widget.SetState("stamped")
-        else:
-            self.widget.SetState("normal")
+        self.widget.SetState("%s.%s" % (self.icon,
+                             self.item.private and "Stamped" or "Unstamped"))
 
     def onButtonPressedEventUpdateUI(self, event):
         item = self.item            
@@ -442,7 +444,8 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.Button):
         super(ReadOnlyIconBlock, self).synchronizeWidget(useHints)
 
         enable = (self.item.getSharedState() == ContentItem.READONLY)
-        self.widget.SetState(enable and "stamped" or "normal")
+        self.widget.SetState("%s.%s" % (self.icon,
+                             enable and "Stamped" or "Unstamped"))
 
     def onButtonPressedEvent(self, event):
         # We don't actually allow the read only state to be toggled

@@ -16,6 +16,96 @@ class BitmapInfo(object):
                  "selected", "selectedBitmap",
                  "stateName")
 
+class MultiStateBitmapCache(dict):
+    """
+    A cache of bitmap sets
+    """
+    def AddStates(self, multibitmaps, bitmapProvider=wx.Image):
+        """
+        Add more state bitmaps.
+        
+        @param multibitmaps: a list of strings/tuples/BitmapInfo's. See
+        MultiStateButton.__init__ for a description of this list. More bitmap 
+        states can be added at any time.
+        """
+        firstFoundState = None
+        found = False
+        for entry in multibitmaps:
+            stateName = None
+            paths = {}
+            bitmaps = {}
+
+            if isinstance(entry, tuple):
+                # a tuple with normal and rollover bitmap names
+                paths["normal"] = entry[0]
+                paths["rollover"] = entry[1]
+            elif isinstance(entry, basestring):
+                paths["normal"] = entry
+                paths["rollover"] = None
+            elif isinstance(entry, BitmapInfo):
+                stateName = getattr(entry, "stateName", None)
+                for variation in ("normal", "rollover", "disabled", "focus", "selected"):
+                    bitmaps[variation] = getattr(entry, variation + "Bitmap", None)
+                    paths[variation] = getattr(entry, variation, None)
+            else:
+                raise TypeError, "Unknown bitmap entry type"
+
+            if stateName is None:
+                assert paths["normal"] is not None
+                # The name of the state is the same as the base name of the
+                # bitmap
+                stateName = os.path.basename(paths["normal"])
+                assert len(stateName) > 0
+
+            if not self.has_key(stateName):
+                self[stateName] = BitmapInfo()
+                for variation in ("normal", "rollover", "disabled", "focus", "selected"):
+                    if bitmaps.get(variation) is not None:
+                        setattr(self[stateName], variation, bitmaps[variation])
+                    elif paths.get(variation) is not None:
+                        setattr(self[stateName], variation,
+                                self._GetBitmapFor(paths[variation], bitmapProvider))
+    
+                assert self[stateName].normal is not None
+
+            if firstFoundState is None:
+                firstFoundState = stateName
+        assert firstFoundState is not None
+        return firstFoundState
+
+    def _GetBitmapFor(self, bitmapName, bitmapProvider):
+        """
+        Find the named bitmap, checking various file type extensions (are
+        these available inside wx.Image somewhere?)
+        
+        The design decision here is that the specific type of the image
+        is not as important as its name. Indeed, the type of the image can
+        change over time to accomodate new technologies. By leaving the
+        type unspecified, code does not have to change whenever the file
+        format changes.
+        """
+        bitmap = None
+        ##rae
+        # is there a more robust list of image types? I made this list up myself..
+        for ext in ("png", "gif", "jpg", "tiff", "psd"):
+            try:
+                img = bitmapProvider("%s.%s" % (bitmapName, ext))
+                convert = getattr(img, "ConvertToBitmap", None)
+                if convert is not None:
+                    bitmap = convert(img)
+                else:
+                    bitmap = img
+                if bitmap is not None:
+                    # stop when the bitmap is found
+                    break
+            except IOError:
+                # file was not found
+                pass
+        if bitmap is not None:
+            assert bitmap.GetWidth() > 0
+        return bitmap
+ 
+    
 class MultiStateButton(GenBitmapButton):
     """
     A MultiStateButton can have multiple bitmaps in its default state. These
@@ -77,6 +167,8 @@ class MultiStateButton(GenBitmapButton):
     Obviously this latter method is a lot more verbose
 
     """
+    bitmapCache = MultiStateBitmapCache()
+    
     def __init__(self, parent, ID, pos, size, style, multibitmaps=(),
                 bitmapProvider=wx.Image, *args, **kwds):
         """
@@ -100,7 +192,6 @@ class MultiStateButton(GenBitmapButton):
         name of the state itself
 
         """
-        self.stateBitmaps = {}
         self.currentState = None
         self.bitmapProvider = bitmapProvider
 
@@ -130,50 +221,8 @@ class MultiStateButton(GenBitmapButton):
         __init__ for a description of this list. More bitmap states can be
         added at any time to the button.
         """
-        firstFoundState = None
-        found = False
-        for entry in multibitmaps:
-            stateName = None
-            paths = {}
-            bitmaps = {}
-
-            if isinstance(entry, tuple):
-                # a tuple with normal and rollover bitmap names
-                paths["normal"] = entry[0]
-                paths["rollover"] = entry[1]
-            elif isinstance(entry, basestring):
-                paths["normal"] = entry
-                paths["rollover"] = None
-            elif isinstance(entry, BitmapInfo):
-                stateName = getattr(entry, "stateName", None)
-                for variation in ("normal", "rollover", "disabled", "focus", "selected"):
-                    bitmaps[variation] = getattr(entry, variation + "Bitmap", None)
-                    paths[variation] = getattr(entry, variation, None)
-            else:
-                raise TypeError, "Unknown bitmap entry type"
-
-            if stateName is None:
-                assert paths["normal"] is not None
-                # The name of the state is the same as the base name of the
-                # bitmap
-                stateName = os.path.basename(paths["normal"])
-                assert len(stateName) > 0
-
-            self.stateBitmaps[stateName] = BitmapInfo()
-
-            for variation in ("normal", "rollover", "disabled", "focus", "selected"):
-                if bitmaps.get(variation) is not None:
-                    setattr(self.stateBitmaps[stateName], variation, bitmaps[variation])
-                elif paths.get(variation) is not None:
-                    setattr(self.stateBitmaps[stateName], variation,
-                                                    self._GetBitmapFor(paths[variation]))
-
-            assert self.stateBitmaps[stateName].normal is not None
-
-            if firstFoundState is None:
-                firstFoundState = stateName
-        assert firstFoundState is not None
-        return firstFoundState
+        return self.bitmapCache.AddStates(multibitmaps, 
+                                          self.bitmapProvider)
 
     def SetState(self, inStateName):
         """
@@ -185,17 +234,17 @@ class MultiStateButton(GenBitmapButton):
         added at any time to the button.
         """
         if inStateName != self.currentState:
-            statemap = (('normal',      self.SetBitmapLabel),
-                        ('disabled',    self.SetBitmapDisabled),
-                        ('focus',       self.SetBitmapFocus), 
-                        ('selected',    self.SetBitmapSelected))
+            variationMap = (('normal',      self.SetBitmapLabel),
+                            ('disabled',    self.SetBitmapDisabled),
+                            ('focus',       self.SetBitmapFocus), 
+                            ('selected',    self.SetBitmapSelected))
 
-            stateBitmaps = self.stateBitmaps.get(inStateName)
+            stateBitmaps = self.bitmapCache.get(inStateName)
             assert stateBitmaps is not None, "invalid state name '" + inStateName + "'"
             assert getattr(stateBitmaps, "normal", None) is not None, "invalid state '" + inStateName + "' is missing 'normal' bitmap"
  
-            for state, method in statemap:
-                bitmap = getattr(stateBitmaps, state, None)
+            for variation, method in variationMap:
+                bitmap = getattr(stateBitmaps, variation, None)
                 if bitmap is not None:
                     method(bitmap)
  
@@ -208,7 +257,7 @@ class MultiStateButton(GenBitmapButton):
         Change the state of the button to its possible rollover state.
         """
         if self.IsEnabled():
-            stateBitmaps = self.stateBitmaps[self.currentState]
+            stateBitmaps = self.bitmapCache[self.currentState]
             assert stateBitmaps is not None
             rolloverBitmap = getattr(stateBitmaps, "rollover", None)
             if rolloverBitmap is not None:
@@ -222,7 +271,7 @@ class MultiStateButton(GenBitmapButton):
         Return the button to its non-rollover state.
         """
         if self.IsEnabled():
-            stateBitmaps = self.stateBitmaps[self.currentState]
+            stateBitmaps = self.bitmapCache[self.currentState]
             # only do all this if there was actually a rollover
             if getattr(stateBitmaps, "rollover", None) is not None:
                 assert getattr(stateBitmaps, "normal", None) is not None, "invalid state '" + inStateName + "' is missing 'normal' bitmap"
@@ -231,38 +280,6 @@ class MultiStateButton(GenBitmapButton):
                 # will the app need this call to Update?
                 self.Update()
 
-    def _GetBitmapFor(self, bitmapName):
-        """
-        Find the named bitmap, checking various file type extensions (are
-        these available inside wx.Image somewhere?)
-        
-        The design decision here is that the specific type of the image
-        is not as important as its name. Indeed, the type of the image can
-        change over time to accomodate new technologies. By leaving the
-        type unspecified, code does not have to change whenever the file
-        format changes.
-        """
-        bitmap = None
-        ##rae
-        # is there a more robust list of image types? I made this list up myself..
-        for ext in ("png", "gif", "jpg", "tiff", "psd"):
-            try:
-                img = self.bitmapProvider("%s.%s" % (bitmapName, ext))
-                convert = getattr(img, "ConvertToBitmap", None)
-                if convert is not None:
-                    bitmap = convert(img)
-                else:
-                    bitmap = img
-                if bitmap is not None:
-                    # stop when the bitmap is found
-                    break
-            except IOError:
-                # file was not found
-                pass
-        if bitmap is not None:
-            assert bitmap.GetWidth() > 0
-        return bitmap
- 
 # execute with execfile("/Users/rae/work/osaf/rae-button/MultiStateButton.py", { "__name__" :"__main__" })
 # or similar
 if __name__ == "__main__":

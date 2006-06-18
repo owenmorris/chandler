@@ -751,7 +751,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                     newTime = datetime.combine(startDay.date(), newTime.time())
             else:
                 # move newTime to the appropriate day of the week
-                days = now.isoweekday() - startDay.isoweekday() % 7
+                days = (now.isoweekday() - startDay.isoweekday()) % 7
                 if newTime.date() != startDay.date() and days == 6:
                     # transition from one week to the next, move it backwards
                     # rather than putting it out of view

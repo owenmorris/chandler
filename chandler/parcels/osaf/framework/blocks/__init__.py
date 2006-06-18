@@ -27,7 +27,7 @@ from ControlBlocks import (
 )
 
 from Table import (
-    Table, wxTable, GridCellAttributeEditor
+    Table, wxTable, GridCellAttributeEditor, GridCellAttributeRenderer
 )
 
 from MenusAndToolbars import (
