@@ -52,7 +52,8 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     new distinct item type.
     """
     def onSetContentsEvent (self, event):
-        # logger.debug("DetailRoot.onSetContentsEvent: %s", event.arguments['item'])
+        logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
+                     event.arguments['item'], event.arguments['collection'])
         Block.Block.finishEdits()
         self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
@@ -134,11 +135,12 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
             map(syncInside, block.childrenBlocks)
             block.synchronizeWidget()
 
-        self.widget.Freeze()
-        try:
-            syncInside(self)
-        finally:
-            self.widget.Thaw()
+        if self.item is not None:
+            self.widget.Freeze()
+            try:
+                syncInside(self)
+            finally:
+                self.widget.Thaw()
             
 
 class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
@@ -218,7 +220,8 @@ class DetailSynchronizer(Item):
     of the blocks in the detail view.
     """
     def onSetContentsEvent (self, event):
-        # logger.debug("%s: onSetContentsEvent", debugName(self))
+        #logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
+                     #event.arguments['item'], event.arguments['collection'])
         self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
 
@@ -227,10 +230,10 @@ class DetailSynchronizer(Item):
 
     def synchronizeWidget(self, useHints=False):
         super(DetailSynchronizer, self).synchronizeWidget(useHints)
-        self.show(self.shouldShow(self.item))
+        self.show(self.item is not None and self.shouldShow(self.item))
     
     def shouldShow (self, item):
-        return item is not None
+        return True
 
     def show (self, shouldShow):
         # if the show status has changed, tell our widget, and return True
@@ -291,7 +294,8 @@ class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
 
     def synchronizeWidget(self, useHints=False):
         super(StaticTextLabel, self).synchronizeWidget(useHints)
-        self.synchronizeLabel(self.staticTextLabelValue(self.item))
+        if self.item is not None:
+            self.synchronizeLabel(self.staticTextLabelValue(self.item))
 
 def GetRedirectAttribute(item, defaultAttr):
     """
@@ -354,26 +358,27 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
 
         # toggle this button to reflect the kind of the selected item
         item = self.item
-        mixinClass = self.stampMixinClass()
-        mixinKind = mixinClass.getKind(self.itsView)
-        stamped = item.isItemOf(mixinKind)
-        if __debug__:
-            looksStampedbyClass = isinstance(item, mixinClass)
-            assert looksStampedbyClass == stamped, \
-                "Class/Kind mismatch! Item is class %s, kind %s; " \
-                "stamping with class %s, kind %s" % (
-                 item.__class__.__name__, 
-                 item.itsKind.itsName,
-                 mixinClass.__name__, 
-                 mixinKind.itsName)
-        self.widget.SetState("%s.%s" % (self.icon,
-                             stamped and "Stamped" or "Unstamped"))
+        if item is not None:
+            mixinClass = self.stampMixinClass()
+            mixinKind = mixinClass.getKind(self.itsView)
+            stamped = item.isItemOf(mixinKind)
+            if __debug__:
+                looksStampedbyClass = isinstance(item, mixinClass)
+                assert looksStampedbyClass == stamped, \
+                    "Class/Kind mismatch! Item is class %s, kind %s; " \
+                    "stamping with class %s, kind %s" % (
+                     item.__class__.__name__, 
+                     item.itsKind.itsName,
+                     mixinClass.__name__, 
+                     mixinKind.itsName)
+            self.widget.SetState("%s.%s" % (self.icon,
+                                 stamped and "Stamped" or "Unstamped"))
 
     def onButtonPressedEvent (self, event):
         # Rekind the item by adding or removing the associated Mixin Kind
         Block.Block.finishEdits()
         item = self.item
-        if not item or not self._isStampable(item):
+        if item is None or not self._isStampable(item):
             return
             
         mixinKind = self.stampMixinClass().getKind(self.itsView)
@@ -419,16 +424,17 @@ class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.Button):
     def synchronizeWidget(self, useHints=False):
         # toggle this button to reflect the privateness of the selected item        
         super(PrivateSwitchButtonBlock, self).synchronizeWidget(useHints)
-        self.widget.SetState("%s.%s" % (self.icon,
-                             self.item.private and "Stamped" or "Unstamped"))
+        if self.item is not None:
+            self.widget.SetState("%s.%s" % (self.icon,
+                                 self.item.private and "Stamped" or "Unstamped"))
 
     def onButtonPressedEvent(self, event):
-        item = self.item            
-        self.postEventByName("FocusTogglePrivate", {'items': [item]})
-        tool = event.arguments['sender']
-        # in case the user canceled the dialog, reset markupbar buttons
-        self.widget.SetState("%s.%s" % (self.icon,
-                             self.item.private and "Stamped" or "Unstamped"))
+        item = self.item
+        if item is not None:
+            self.postEventByName("FocusTogglePrivate", {'items': [item]})
+            # in case the user canceled the dialog, reset markupbar buttons
+            self.widget.SetState("%s.%s" % (self.icon,
+                                 self.item.private and "Stamped" or "Unstamped"))
 
     def onButtonPressedEventUpdateUI(self, event):
         item = self.item            
@@ -443,16 +449,18 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.Button):
         # toggle this icon to reflect the read only status of the selected item
         super(ReadOnlyIconBlock, self).synchronizeWidget(useHints)
 
-        enable = (self.item.getSharedState() == ContentItem.READONLY)
+        checked = self.item is not None and \
+               (self.item.getSharedState() == ContentItem.READONLY)
         self.widget.SetState("%s.%s" % (self.icon,
-                             enable and "Stamped" or "Unstamped"))
+                             checked and "Stamped" or "Unstamped"))
 
     def onButtonPressedEvent(self, event):
         # We don't actually allow the read only state to be toggled
         pass
 
     def onButtonPressedEventUpdateUI(self, event):
-        enable = ( self.item.getSharedState() == ContentItem.READONLY )
+        enable = self.item is not None and \
+               (self.item.getSharedState() == ContentItem.READONLY)
         event.arguments ['Enable'] = enable        
 
 class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
@@ -505,7 +513,8 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
 
     def synchronizeWidget(self, useHints=False):
         super(EditTextAttribute, self).synchronizeWidget(useHints)
-        self.loadTextValue(self.item)
+        if self.item is not None:
+            self.loadTextValue(self.item)
             
     def saveAttributeFromWidget (self, item, widget, validate):  
        # subclasses need to override this method
@@ -587,28 +596,32 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
                 #enabled = False
         #event.arguments['Enable'] = enabled
 
+def getAppearsInNames(item):
+    # Only a recurrence master appears 'in' the collection (for 0.6, anyway)
+    # so if this item lets us get its master, do so and use that instead.
+    getMasterMethod = getattr(item, 'getMaster', None)
+    if getMasterMethod is not None:
+        item = getMasterMethod()
+
+    if not hasattr(item, 'appearsIn'):
+        return () # we won't be visible if this happens.
+
+    # Collect the names and join them into a list
+    collectionNames = _(", ").join(sorted([coll.displayName 
+                                           for coll in item.appearsIn
+                                           if hasattr(coll, 'displayName')]))
+    return collectionNames
+    
 class AppearsInAEBlock(DetailSynchronizedAttributeEditorBlock):
     def shouldShow (self, item):
-        return hasattr(item, 'appearsIn')
+        return len(getAppearsInNames(item)) > 0
 
 class AppearsInAttributeEditor(StaticStringAttributeEditor):
     """
     A read-only list of collections that this item appears in, for now.
     """
     def GetAttributeValue(self, item, attributeName):
-        # Only a recurrence master appears 'in' the collection (for 0.6, anyway)
-        # so if this item lets us get its master, do so and use that instead.
-        getMasterMethod = getattr(item, 'getMaster', None)
-        if getMasterMethod is not None:
-            item = getMasterMethod()
-
-        if not hasattr(item, 'appearsIn'):
-            return u"" # we won't be visible if this happens.
-
-        # Collect the names and join them into a list
-        collectionNames = _(", ").join(sorted([coll.displayName 
-                                               for coll in item.appearsIn
-                                               if hasattr(coll, 'displayName')]))
+        collectionNames = getAppearsInNames(item)
         
         # logger.debug("Returning new appearsin list: %s" % collectionNames)
         # @@@ I18N: FYI: I expect the label & names to be separate fields before too long...
@@ -1404,7 +1417,8 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
 class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
     def synchronizeWidget(self, useHints=False):
         super(HTMLDetailArea, self).synchronizeWidget(useHints)
-        self.selection = self.item
+        if self.item is not None:
+            self.selection = self.item
 
     def getHTMLText(self, item):
         return u"<html><body>" + item + u"</body></html>"
