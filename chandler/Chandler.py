@@ -25,7 +25,6 @@ def main():
     
         os.chdir(Globals.chandlerDirectory)
         Utility.initLogging(Globals.options)
-        Utility.initI18n(Globals.options)
 
         if __debug__ and Globals.options.wing:
             # Check for -wing command line argument; if specified, try to 

@@ -172,6 +172,19 @@ class wxMainFrame (wxBlockFrameWindow):
         """
         Main window is about to be closed when the application is quitting.
         """
+        def displayInfoWhileProcessing (message, method, *args, **kwds):
+            busyInfo = wx.BusyInfo (message)
+            wx.Yield()
+            result = method(*args, **kwds)
+            del busyInfo
+            return result
+
+        def commit (view):
+            try:
+                view.commit()
+            except VersionConflictError, e:
+                logger.exception(e)
+
         # Finish any edits in progress.
         from osaf.framework.blocks.Block import Block
         Block.finishEdits()
@@ -188,46 +201,34 @@ class wxMainFrame (wxBlockFrameWindow):
             wx.GetApp().Bind(wx.EVT_ACTIVATE_APP, None)
 
         if __debug__:
-            busyInfo = wx.BusyInfo (_(u"Checking repository..."))
-            app.UIRepositoryView.check()
-            del busyInfo
-
+            displayInfoWhileProcessing (_("Checking repository..."),
+                                        app.UIRepositoryView.check)
 
         # Preliminary tests point to stopCrypto as the cause for Chandler being slow
         # to quit besides the debug only checking of the repository
 
-        busyInfo = wx.BusyInfo (_("Shutting down mail service..."))
-        Globals.mailService.shutdown()
-        del busyInfo
+        displayInfoWhileProcessing (_("Shutting down mail service..."),
+                                    Globals.mailService.shutdown)
 
-        busyInfo = wx.BusyInfo (_("Stopping wakeup service..."))
-        Utility.stopWakeup()
-        del busyInfo
+        displayInfoWhileProcessing (_("Stopping wakeup service..."),
+                                    Utility.stopWakeup)
 
-        busyInfo = wx.BusyInfo (_("Stopping twisted..."))
-        Utility.stopTwisted()
-        del busyInfo
+        displayInfoWhileProcessing (_("Stopping twisted..."),
+                                    Utility.stopTwisted)
 
         # Since Chandler doesn't have a save command and commits typically happen
         # only when the user completes a command that changes the user's data, we
         # need to add a final commit when the application quits to save data the
         # state of the user's world, e.g. window location and size.
 
-        busyInfo = wx.BusyInfo (_("Committing repository..."))
-        view = app.UIRepositoryView
-        try:
-            view.commit()
-        except VersionConflictError, e:
-            logger.exception(e)
-        del busyInfo
+        displayInfoWhileProcessing (_("Committing repository..."),
+                                    commit, app.UIRepositoryView)
 
-        busyInfo = wx.BusyInfo (_("Stopping crypto..."))
-        Utility.stopCrypto(Globals.options.profileDir)
-        del busyInfo
+        displayInfoWhileProcessing (_("Stopping crypto..."),
+                                    Utility.stopCrypto, Globals.options.profileDir)
 
-        busyInfo = wx.BusyInfo (_("Checkpointing repository..."))
-        view.repository.checkpoint()
-        del busyInfo
+        displayInfoWhileProcessing (_("Checkpointing repository..."),
+                                    app.UIRepositoryView.repository.checkpoint)
 
         # When we quit, as each wxWidget window is torn down our handlers that
         # track changes to the selection are called, and we don't want to count
@@ -245,6 +246,16 @@ class wxApplication (wx.App):
         """
         Main application initialization.
         """
+
+        # The initI18n can't be initialized until after the App
+        # object has been created since initialization creates a
+        # wx.Locale object which requires a path that requires
+        # GetTraits, which is a method on the App object.
+        #
+        # Eventually when we get Python egg based localization
+        # implemented, this constraint may change
+        Utility.initI18n(Globals.options) 
+
         util.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
         self.ignoreSynchronizeWidget = True
