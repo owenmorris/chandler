@@ -116,7 +116,6 @@ try:
         # Subscribe to the remote collection
         win = SubscribeCollection.Show(wx.GetApp().mainFrame,
             view=App_ns.itsView, modal=False)
-        win = wx.FindWindowByLabel("Subscribe to Shared Collection")
         url = win.toolPanel.GetChildren()[1]
         url.SetFocus()
         url.Clear()

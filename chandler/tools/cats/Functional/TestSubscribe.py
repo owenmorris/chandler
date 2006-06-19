@@ -34,7 +34,6 @@ class TestSubscribing(ChandlerTestCase):
         self.logger.startAction("Subscribe dialog")
         window = SubscribeCollection.Show(wx.GetApp().mainFrame,
             view=self.app_ns.itsView, modal=False)
-        window = wx.FindWindowByLabel("Subscribe to Shared Collection")
         url = window.toolPanel.GetChildren()[1]
         url.SetFocus()
         url.Clear()

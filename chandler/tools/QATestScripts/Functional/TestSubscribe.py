@@ -33,7 +33,6 @@ try:
     # Subscribe dialog
     window = SubscribeCollection.Show(wx.GetApp().mainFrame,
         view=App_ns.itsView, modal=False)
-    window = wx.FindWindowByLabel("Subscribe to Shared Collection")
     url = window.toolPanel.GetChildren()[1]
     url.SetFocus()
     url.Clear()
