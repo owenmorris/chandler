@@ -24,6 +24,8 @@ except ImportError:
     doChart = False
     raise # Comment this out if you don't care about graphs
 
+
+allPlatforms = ('win', 'osx', 'linux')
     
 def drawGraph(data, platforms, filename, size=(132, 132), xLabel='Revision'):
     """
@@ -54,27 +56,19 @@ def drawGraph(data, platforms, filename, size=(132, 132), xLabel='Revision'):
                     y_range=(0, None))
 
     col = 1
-    if 'win' in platforms:
-        myArea.add_plot(line_plot.T(label='win',
-                                    data=data,
-                                    ycol=col,
-                                    line_style=line_style.darkseagreen,
-                                    tick_mark=tick_mark.circle3))
-        col += 1
-    if 'osx' in platforms:
-        myArea.add_plot(line_plot.T(label='osx',
-                                    data=data,
-                                    ycol=col,
-                                    line_style=line_style.red_dash1,
-                                    tick_mark=tick_mark.square))
-        col += 1
-    if 'linux' in platforms:
-        myArea.add_plot(line_plot.T(label='linux',
-                                    data=data,
-                                    ycol=col,
-                                    line_style=line_style.darkblue_dash2,
-                                    tick_mark=tick_mark.tri))
-        col += 1
+    linesAndTicks = ((None, None), # because col begins from 1
+                     (line_style.darkseagreen, tick_mark.circle3),
+                     (line_style.red_dash1, tick_mark.square),
+                     (line_style.darkblue_dash2, tick_mark.tri))
+    for p in allPlatforms:
+        if p in platforms:
+            myArea.add_plot(line_plot.T(label=p,
+                                        data=data,
+                                        ycol=col,
+                                        line_style=linesAndTicks[col][0],
+                                        tick_mark=linesAndTicks[col][1]))
+            col += 1
+
     myArea.add_plot(line_plot.T(label='acceptable',
                                 data=data,
                                 ycol=col,
@@ -181,12 +175,13 @@ def platforms2GraphData(platforms, acceptable):
     """
     ret = []
     
-    osMedians = {'win': {}, 'osx': {}, 'linux': {}}
+    osMedians = {}
     
-    for platform in ('win', 'osx', 'linux'):
+    for platform in allPlatforms:
         i = 0
         lastRev = 0
         values = []
+        osMedians[platform] = {}
 
         for (time, rev) in platforms[platform]['timesRevs']:
             rev = int(rev)
@@ -203,33 +198,21 @@ def platforms2GraphData(platforms, acceptable):
     # Find out which platforms have values other than None
     plats = ()
     revs = []
-    for value in osMedians['win'].itervalues():
-        if value is not None:
-            plats += ('win',)
-            revs.extend(osMedians['win'].keys())
-            break
-    for value in osMedians['osx'].itervalues():
-        if value is not None:
-            plats += ('osx',)
-            revs.extend(osMedians['osx'].keys())
-            break
-    for value in osMedians['linux'].itervalues():
-        if value is not None:
-            plats += ('linux',)
-            revs.extend(osMedians['linux'].keys())
-            break
+    for p in allPlatforms:
+        for value in osMedians[p].itervalues():
+            if value is not None:
+                plats += (p,)
+                revs.extend(osMedians[p].keys())
+                break
 
     revs = unique(revs)
     revs.sort()
         
     for rev in revs:
         item = (rev,)
-        if 'win' in plats:
-            item += (osMedians['win'].get(rev, None), )
-        if 'osx' in plats:
-            item += (osMedians['osx'].get(rev, None), )
-        if 'linux' in plats:
-            item += (osMedians['linux'].get(rev, None), )
+        for p in allPlatforms:
+            if p in plats:
+                item += (osMedians[p].get(rev, None), )
         item += (acceptable, )
         ret.append(item)
     
@@ -305,7 +288,6 @@ class perf:
                        'section':    'base',
                        'warn':       2.0,    # range of values to control color of cells
                        'alert':      5.0,
-                       'p_alert':    100.0, # percentage change to warn about (for summary only)
                        'delta_days': 30,    # how many days to include in detailed long history and graph
                      }
 
@@ -313,50 +295,34 @@ class perf:
 
     self.verbose = self._options['verbose']
 
-    self.SummaryTests = [('startup',                                             '#1 Startup'),
-         ('new_event_from_file_menu_for_performance.event_creation',             '#2 New event (menu)'),
-         ('new_event_by_double_clicking_in_the_cal_view_for_performance.double_click_in_the_calendar_view', '#3 New event (double click)'),
-         ('test_new_calendar_for_performance.collection_creation',               '#4 New calendar'),
-         ('importing_3000_event_calendar.import',                                '#5 Import 3k event calendar'),
-         ('startup_with_large_calendar',                                         '#6 Startup with 3k event calendar'),
-         ('creating_new_event_from_the_file_menu_after_large_data_import.event_creation', '#7 New event (menu) with 3k event calendar'),
-         ('creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view', '#8 New event (double click) with 3k event calendar'),
-         ('creating_a_new_calendar_after_large_data_import.collection_creation', '#9 New calendar with 3k event calendar'),
-         ('switching_to_all_view_for_performance.switch_to_allview',             'Switch Views'),
-         ('perf_stamp_as_event.change_the_event_stamp',                          'Stamp'),
-         ('switching_view_after_importing_large_data.switch_to_allview',         'Switch Views with 3k event calendar'),
-         ('stamping_after_large_data_import.change_the_event_stamp',             'Stamp with 3k event calendar'),
-         ('scroll_calendar_one_unit.scroll_calendar_one_unit',                   'Scroll calendar with 3k event calendar'),
-         ('scrolling_a_table.scroll_table_25_scroll_units',                      'Scroll table with 3k event calendar'),
-         ('jump_from_one_week_to_another.jump_calendar_by_one_week',             'Jump calendar by one week with 3k event calendar'),
-         ('overlay_calendar.overlay_calendar',                                   'Overlay calendar with 3k event calendar'),
-         ('switch_calendar.switch_calendar',                                     'Switch calendar with 3k event calendar'),
-         #('resize_app_in_calendar_mode.resize_app_in_calendar_mode',             'Resize calendar with 3k event calendar'),
-        ]
+    # all lower case test name  
+    # target time in seconds
+    # official test name
+    self.testTimeName = (
+        ('startup',                                                             10, '#1 Startup'),
+        ('new_event_from_file_menu_for_performance.event_creation',             1,  '#2 New event (menu)'),
+        ('new_event_by_double_clicking_in_the_cal_view_for_performance.double_click_in_the_calendar_view', 1, '#3 New event (double click)'),
+        ('test_new_calendar_for_performance.collection_creation',               1, '#4 New calendar'),
+        ('importing_3000_event_calendar.import',                                30, '#5 Import 3k event calendar'),
+        ('startup_with_large_calendar',                                         10, '#6 Startup with 3k event calendar'),
+        ('creating_new_event_from_the_file_menu_after_large_data_import.event_creation', 1, '#7 New event (menu) with 3k event calendar'),
+        ('creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view', 0.5, '#8 New event (double click) with 3k event calendar'),
+        ('creating_a_new_calendar_after_large_data_import.collection_creation', 1, '#9 New calendar with 3k event calendar'),
+        ('switching_to_all_view_for_performance.switch_to_allview',             1, 'Switch Views'),
+        ('perf_stamp_as_event.change_the_event_stamp',                          1, 'Stamp'),
+        ('switching_view_after_importing_large_data.switch_to_allview',         1, 'Switch Views with 3k event calendar'),
+        ('stamping_after_large_data_import.change_the_event_stamp',             0.5, 'Stamp with 3k event calendar'),
+        ('scroll_calendar_one_unit.scroll_calendar_one_unit',                   0.1, 'Scroll calendar with 3k event calendar'),
+        ('scrolling_a_table.scroll_table_25_scroll_units',                      0.1, 'Scroll table with 3k event calendar'),
+        ('jump_from_one_week_to_another.jump_calendar_by_one_week',             0.1, 'Jump calendar by one week with 3k event calendar'),
+        ('overlay_calendar.overlay_calendar',                                   1, 'Overlay calendar with 3k event calendar'),
+        ('switch_calendar.switch_calendar',                                     1, 'Switch calendar with 3k event calendar'),
+        #('perflargedatasharing.publish',                                        2.5, 'Publish calendar with 3k event calendar'),
+        #('perflargedatasharing.subscribe',                                      2.5, 'Subscribe to calendar with 3k event calendar'),
+        #('resize_app_in_calendar_mode.resize_app_in_calendar_mode',             0.1, 'Resize calendar with 3k event calendar'),
+        )
 
-      # all times are in seconds
-    self.SummaryTargets = {'startup':                                           10, 
-         'new_event_from_file_menu_for_performance.event_creation':             1,
-         'new_event_by_double_clicking_in_the_cal_view_for_performance.double_click_in_the_calendar_view': 1,
-         'test_new_calendar_for_performance.collection_creation':               1,
-         'importing_3000_event_calendar.import':                                30,
-         'startup_with_large_calendar':                                         10,
-         'creating_new_event_from_the_file_menu_after_large_data_import.event_creation': 1,
-         'creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view': 0.5,
-         'creating_a_new_calendar_after_large_data_import.collection_creation': 1,
-         'switching_to_all_view_for_performance.switch_to_allview':             1,
-         'perf_stamp_as_event.change_the_event_stamp':                          1,
-         'switching_view_after_importing_large_data.switch_to_allview':         1,
-         'stamping_after_large_data_import.change_the_event_stamp':             0.5,
-         'scroll_calendar_one_unit.scroll_calendar_one_unit':                   0.1,
-         'scrolling_a_table.scroll_table_25_scroll_units':                      0.1,
-         'jump_from_one_week_to_another.jump_calendar_by_one_week':             0.1,
-         'overlay_calendar.overlay_calendar':                                   1,
-         'switch_calendar.switch_calendar':                                     1,
-         #'resize_app_in_calendar_mode.resize_app_in_calendar_mode':             0.1,
-        }
-
-    self.PerformanceTBoxes = ['p_win', 'p_osx', 'p_linux']
+    self.PerformanceTBoxes = ['p_' + platform for platform in allPlatforms]
 
     if self._options['debug']:
       print 'Configuration Values:'
@@ -403,7 +369,10 @@ class perf:
         if testTime == 0:
             return 'ok'
         
-        acceptable = self.SummaryTargets[testName]
+        for (test, targetTime, name) in self.testTimeName:
+          if test == testName:
+            acceptable = targetTime
+            break
         
         if testTime < (acceptable - stdDev):
             return 'good'
@@ -426,7 +395,6 @@ class perf:
               'perf_data':  ('-p', '--perfdata', 's', self._options['perf_data'],  '', ''),
               'warn':       ('-w', '--warn',     'f', self._options['warn'],       '', ''),
               'alert':      ('-a', '--alert',    'f', self._options['alert'],      '', ''),
-              'p_alert':    ('-P', '--p_alert',  'f', self._options['p_alert'],    '', ''),
             }
 
     parser = optparse.OptionParser(usage="usage: %prog [options]", version="%prog " + __version__)
@@ -643,13 +611,9 @@ class perf:
     detailpage.append('<h1>Performance details for the previous %d days</h1>\n' % self._options['delta_days'])
     detailpage.append('<div id="detail">\n')
 
-    graphTests = self.SummaryTargets.keys()
-    
     graphDict = {}
     
-    for (testkey, testDisplayName) in self.SummaryTests:
-      if testkey in graphTests:
-          
+    for (testkey, targetTime, testDisplayName) in self.testTimeName:
         testitem = tests[testkey]
 
         detailpage.append('<h2 id="%s">%s</h2>\n' % (testkey, testDisplayName))
@@ -658,7 +622,9 @@ class perf:
         k_builds.sort()
         k_builds.reverse()
 
-        graphPlatform = {'win':{}, 'osx':{}, 'linux':{}}
+        graphPlatform = {}
+        for p in allPlatforms:
+          graphPlatform[p] = {}
 
         for buildkey in k_builds:
           builditem = testitem[buildkey]
@@ -786,9 +752,10 @@ class perf:
         graphDict[testkey] = graphPlatform
     
     def plat2data(graphPlatform, acceptable):
-      dates = unique(graphPlatform['win'].keys() + \
-                     graphPlatform['osx'].keys() + \
-                     graphPlatform['linux'].keys())
+      keys = []
+      for p in allPlatforms:
+          keys += graphPlatform[p].keys()
+      dates = unique(keys)
       dates.sort()
       data = []
       for date in dates:
@@ -805,15 +772,14 @@ class perf:
     
     trendspage = ['<html><head><title>Performance trends for the last %d days</title></head>\n<body><h1>Performance trends for the last %d days</h1>' % (self._options['delta_days'], self._options['delta_days'])]
     trendspage.append('<p><a href="%s">Numerical trends</a></p>' % detailfilename)
-    graphPlatforms = ('win', 'osx', 'linux') # We are assuming we get data for all in such a long period of time
-    for (test, testDisplayName) in self.SummaryTests:
+    for (test, targetTime, testDisplayName) in self.testTimeName:
       graphPlatform = graphDict[test]
        
-      #print  plat2data(graphPlatform, self.SummaryTargets[test])
+      #print  plat2data(graphPlatform, targetTime)
       graphfilename = '%d_%s.png' % (self._options['delta_days'], test)
       graphfile = os.path.join(self._options['html_data'], graphfilename)
-      drawGraph(plat2data(graphPlatform, self.SummaryTargets[test]),
-                graphPlatforms,
+      drawGraph(plat2data(graphPlatform, targetTime),
+                allPlatforms,
                 graphfile, 
                 size=(264, 132), xLabel='Date')
       trendspage.append('<h2><a href="%s#%s">%s</a></h2><img src="%s" alt="graph" title="%s">' % (detailfilename, test, testDisplayName, graphfilename, testDisplayName))
@@ -847,15 +813,17 @@ class perf:
   def _generateSummaryDetailLine(self, platforms, testkey, enddate, testDisplayName, currentValue, previousValue):
       graph = []
       
-      if testkey in self.SummaryTargets.keys():
-        targetAvg = self.SummaryTargets[testkey]
+      for (test, targetTime, testName) in self.testTimeName:
+        if test == testkey:
+            targetAvg = targetTime
+            break
       else:
         targetAvg = 0.0
 
       line  = '<tr><td><a href="detail_%s.html#%s" target="_new">%s</a></td>' % (enddate, testkey, testDisplayName)
       line += '<td class="number">%2.1fs</td>' % targetAvg
 
-      for key in ['win', 'osx', 'linux']:
+      for key in allPlatforms:
         current  = currentValue[key]
         previous = previousValue[key]
         revision = platforms[key]['revision']
@@ -901,31 +869,22 @@ class perf:
     tbox   = []
     graph  = []
 
-    revisions     = { 'osx':   ['', ''],
-                      'linux': ['', ''],
-                      'win':   ['', ''], }
-
-    updates       = { 'osx':   '',
-                      'linux': '',
-                      'win':   ''
-                    }
-
-    currentValue  = { 'osx':   0,
-                      'linux': 0,
-                      'win':   0,
-                    }
-
-    previousValue = { 'osx':   0,
-                      'linux': 0,
-                      'win':   0,
-                    }
+    revisions = {}
+    updates = {}
+    currentValue = {}
+    previousValue = {}
+    for p in allPlatforms:
+      revisions[p] = ['', '']
+      updates[p] = ''
+      currentValue[p] = 0
+      previousValue[p] = 0
 
     detail.append('<h1>Performance details for the day</h1>\n')
     detail.append('<div id="detail">\n')
     detail.append('<p>Sample Date: %s-%s-%s<br/>\n' % (enddate[:4], enddate[4:6], enddate[6:8]))
     detail.append(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>', time.localtime()))
 
-    for (testkey, testDisplayName) in self.SummaryTests:
+    for (testkey, targetTime, testDisplayName) in self.testTimeName:
       if testkey in tests.keys():
         testitem = tests[testkey]
 
@@ -935,39 +894,23 @@ class perf:
         detail.append('<img class="daygraph" src="%s" alt="graph">' % graphfile)
         detail.append('<h2 id="%s">%s</h2>\n' % (testkey, testDisplayName))
 
-        platforms = { 'osx':   { 'stddev':   0,
-                                 'avg':      0,
-                                 'count':    0,
-                                 'total':    0,
-                                 'values':   [],
-                                 'timesRevs':[],
-                                 'revision': '' },
-                      'linux': { 'stddev':   0,
-                                 'avg':      0,
-                                 'count':    0,
-                                 'total':    0,
-                                 'values':   [],
-                                 'timesRevs':[],
-                                 'revision': '' },
-                      'win':   { 'stddev':   0,
-                                 'avg':      0,
-                                 'count':    0,
-                                 'total':    0,
-                                 'values':   [],
-                                 'timesRevs':[],
-                                 'revision': '' },
-                    }
+        platforms = {}
+        for p in allPlatforms:
+            platforms[p] = { 'stddev':   0,
+                             'avg':      0,
+                             'count':    0,
+                             'total':    0,
+                             'values':   [],
+                             'timesRevs':[],
+                             'revision': '' }
 
         for buildkey in self.PerformanceTBoxes:
           if buildkey in testitem.keys():
             builditem = testitem[buildkey]
 
-            if 'osx' in buildkey:
-              platformkey = 'osx'
-            elif 'win' in buildkey:
-              platformkey = 'win'
-            else:
-              platformkey = 'linux'
+            for p in allPlatforms:
+              if p in buildkey:
+                platformkey = p
 
             platformdata = platforms[platformkey]
 
@@ -1068,7 +1011,7 @@ class perf:
         graph += graphdata
         
         (data, plats) = platforms2GraphData(platforms,
-                                            self.SummaryTargets[testkey])
+                                            targetTime)
         #graphfile = 'day_%s.png' % testkey.replace('.', '_')
         if drawGraph(data, plats, os.path.join(self._options['html_data'],
                                                graphfile)):
@@ -1110,7 +1053,7 @@ class perf:
 
     tbox.append('<p>')
     latestUpdate = {}
-    for key in ['win', 'osx', 'linux']:
+    for key in allPlatforms:
       update = updates[key]
       month  = getattr(update, 'month', None)
       day    = getattr(update, 'day', None)
