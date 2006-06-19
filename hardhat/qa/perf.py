@@ -25,8 +25,8 @@ except ImportError:
     raise # Comment this out if you don't care about graphs
 
 
-allPlatforms = ('win', 'osx', 'linux')
-    
+allPlatforms = ('win', 'osx', 'linux', 'iosx')
+
 def drawGraph(data, platforms, filename, size=(132, 132), xLabel='Revision'):
     """
     Draw a picture in png format.
@@ -57,9 +57,10 @@ def drawGraph(data, platforms, filename, size=(132, 132), xLabel='Revision'):
 
     col = 1
     linesAndTicks = ((None, None), # because col begins from 1
-                     (line_style.darkseagreen, tick_mark.circle3),
-                     (line_style.red_dash1, tick_mark.square),
-                     (line_style.darkblue_dash2, tick_mark.tri))
+                     (line_style.darkseagreen, tick_mark.circle3), # win
+                     (line_style.red_dash1, tick_mark.square),     # osx
+                     (line_style.darkblue_dash2, tick_mark.tri),   # linux
+                     (line_style.darkkhaki_dash1, tick_mark.dia))  # iosx
     for p in allPlatforms:
         if p in platforms:
             myArea.add_plot(line_plot.T(label=p,
@@ -317,8 +318,8 @@ class perf:
         ('jump_from_one_week_to_another.jump_calendar_by_one_week',             0.1, 'Jump calendar by one week with 3k event calendar'),
         ('overlay_calendar.overlay_calendar',                                   1, 'Overlay calendar with 3k event calendar'),
         ('switch_calendar.switch_calendar',                                     1, 'Switch calendar with 3k event calendar'),
-        #('perflargedatasharing.publish',                                        2.5, 'Publish calendar with 3k event calendar'),
-        #('perflargedatasharing.subscribe',                                      2.5, 'Subscribe to calendar with 3k event calendar'),
+        ('perflargedatasharing.publish',                                        2.5, 'Publish calendar with 3k event calendar'),
+        ('perflargedatasharing.subscribe',                                      2.5, 'Subscribe to calendar with 3k event calendar'),
         #('resize_app_in_calendar_mode.resize_app_in_calendar_mode',             0.1, 'Resize calendar with 3k event calendar'),
         )
 
@@ -763,6 +764,7 @@ class perf:
                      graphPlatform['win'].get(date, None),
                      graphPlatform['osx'].get(date, None),
                      graphPlatform['linux'].get(date, None),
+                     graphPlatform['iosx'].get(date, None),
                      acceptable))
 
       return data
@@ -1076,13 +1078,14 @@ class perf:
     tboxfile.write('<div id="tbox">\n')
     tboxfile.write('<table cellspacing="1">\n')
     tboxfile.write('<tr><th rowspan="2">Test (<a href="%s" target="_new">trends</a>)<br/>Latest results as of %s</th><th rowspan="2">0.7<br/>Target</th>' % ('trends.html', latest))
-    tboxfile.write('<th colspan="4">Windows (r %s vs %s)</th>' % (revisions['win'][0], revisions['win'][1]))
-    tboxfile.write('<th colspan="4">OS X (r %s vs %s)</th>' % (revisions['osx'][0], revisions['osx'][1]))
-    tboxfile.write('<th colspan="4">Linux (r %s vs %s)</th></tr>\n' % (revisions['linux'][0], revisions['linux'][1]))
+    tboxfile.write('<th colspan="4">Windows (r%s vs %s)</th>' % (revisions['win'][0], revisions['win'][1]))
+    tboxfile.write('<th colspan="4">PPC Mac (r%s vs %s)</th>' % (revisions['osx'][0], revisions['osx'][1]))
+    tboxfile.write('<th colspan="4">Linux (r %svs %s)</th>' % (revisions['linux'][0], revisions['linux'][1]))
+    tboxfile.write('<th colspan="4">Intel Mac (r%s vs %s)</th></tr>\n' % (revisions['iosx'][0], revisions['iosx'][1]))
     tboxfile.write('<tr>')
-    tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
-    tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
-    tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th></tr>\n')
+    for p in allPlatforms:
+        tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
+    tboxfile.write('</tr>\n')
 
     for line in tbox:
       tboxfile.write(line)
