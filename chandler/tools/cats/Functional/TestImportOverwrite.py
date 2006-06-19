@@ -2,7 +2,7 @@ import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
-import os, wx , sys
+import os, wx, sys 
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import ListCollection
 from i18n.tests import uw
@@ -28,10 +28,9 @@ class TestImportOverwrite(ChandlerTestCase):
         if os.path.exists(fullpath):
             os.remove(fullpath)
         #Upcast path to unicode since Sharing requires a unicode path
-        #for now. This will change in the next few days
         path = unicode(path, sys.getfilesystemencoding())
-        share = Sharing.OneTimeFileSystemShare(path, u'tempOverwriteTest.ics', ICalendar.ICalendarFormat, itsView=appView)
-    
+        share = Sharing.OneTimeFileSystemShare(path, 'tempOverwriteTest.ics', ICalendar.ICalendarFormat, itsView=appView)
+
         collection = ListCollection(itsView=appView)
         for tmpEvent in Calendar.CalendarEvent.iterItems(appView):
             collection.add(tmpEvent)
@@ -45,7 +44,7 @@ class TestImportOverwrite(ChandlerTestCase):
         self.logger.addComment("event changed after export")
     
         #import the original event
-        share = Sharing.OneTimeFileSystemShare(path, u'tempOverwriteTest.ics', ICalendar.ICalendarFormat, itsView=self.app_ns.itsView)
+        share = Sharing.OneTimeFileSystemShare(path, 'tempOverwriteTest.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
         share.get()
         wx.GetApp().Yield()
         self.logger.addComment("Imported exported event")

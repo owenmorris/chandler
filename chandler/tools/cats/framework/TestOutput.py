@@ -187,6 +187,9 @@ class TestOutput:
  
     def printOut(self, string, level=0, result=True):
         
+        if isinstance(string, unicode):
+            string = string.encode('utf8')
+            
         if result is True:
             leadchar = '+'
         else:

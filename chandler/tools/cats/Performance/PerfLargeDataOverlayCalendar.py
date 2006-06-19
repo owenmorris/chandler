@@ -14,13 +14,13 @@ class PerfLargeDataOverlayCalendar(ChandlerTestCase):
     
         # Load a large calendar
         # NOTE: Don't do this when we restore from backed up repository
-        testView = QAUITestAppLib.UITestView(self.logger)#, u'Generated3000.ics')
+        testView = QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
         self.scripting.User.idle()
     
         # Test Phase: Action
     
         self.logger.startAction("Overlay calendar")
-        clickSucceeded = self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, "Generated3000",  overlay=True)
+        clickSucceeded = User.emulate_sidebarClick(App_ns.sidebar, "Generated3000", overlay=True)
         self.scripting.User.idle()
         self.logger.endAction()
     

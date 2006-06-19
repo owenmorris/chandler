@@ -11,8 +11,7 @@ import wx
 import string
 import osaf.framework.scripting as scripting
 import osaf.sharing.ICalendar as ICalendar
-import os
-import sys
+import os, sys
 from itertools import chain
 
 #Global AppProxy instance
@@ -105,7 +104,7 @@ class UITestItem(object):
             setattr(self, 'is' + type, True)
             constructorName = DataTypes[type]
             constructor = getattr(App_ns.root, constructorName)
-            self.item = constructor()[0]
+            self.item = constructor()
             
             # Give the Yield
             scripting.User.idle()
@@ -295,6 +294,9 @@ class UITestItem(object):
             # work around : emulate_return doesn't work
             #scripting.User.emulate_return()
             scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")
+            #check this actually worked
+            #assert self.item.displayName == displayName, '%s != %s' % \
+              #(self.item.displayName.encode('raw_unicode_escape'), displayName.encode('raw_unicode_escape'))
             if timeInfo:
                 self.logger.endAction(True)
 
@@ -721,7 +723,7 @@ class UITestItem(object):
         @type timeInfo: boolean
         """
         #turn off delete confirmation dialog for collection deletion
-        confimDialog=scripting.schema.ns("osaf.views.main",Globals.mainViewRoot).clearCollectionPref
+        confimDialog=scripting.schema.ns("osaf.views.main",wx.GetApp().UIRepositoryView).clearCollectionPref
         confimDialog.askNextTime = False
         confimDialog.response = True
         if self.isCollection:
@@ -1133,7 +1135,7 @@ class UITestItem(object):
         """
         if not self.isCollection or collectionName == "Trash":
             # for All, In, Out, Trash collection find by item rather than itemName
-            pim_ns = scripting.schema.ns('osaf.pim', Globals.mainViewRoot)
+            pim_ns = scripting.schema.ns('osaf.pim', wx.GetApp().UIRepositoryView)
             chandler_collections = {"All":   pim_ns.allCollection,
                                     "Out":   pim_ns.outCollection,
                                     "In":    pim_ns.inCollection,

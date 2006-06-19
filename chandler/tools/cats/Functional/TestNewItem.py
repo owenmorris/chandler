@@ -1,6 +1,5 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
-from i18n.tests import uw
     
 class TestNewItem(ChandlerTestCase):
 
@@ -8,7 +7,7 @@ class TestNewItem(ChandlerTestCase):
 
         def switchAndCheck(buttonName, expectedClass):
     
-            name = uw("TestNewItem(%s)" % (buttonName,))
+            name = "TestNewItem(%s" % (buttonName,))
             self.logger.startAction(name)
         
             # Switch to the requested view...

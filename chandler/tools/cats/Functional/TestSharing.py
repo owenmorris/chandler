@@ -65,8 +65,15 @@ class TestSharing(ChandlerTestCase):
                                     filterClassName=filterClassName,
                                     modal=False)
             #Share button call
-            if not win.OnPublish(None):
-                self.logger.report(False, name="(On publish collection)")
+            
+            win.PublishCollection()
+ 
+            while not win.done:
+                wx.GetApp().Yield()
+ 
+            if not win.success:
+                logger.ReportFailure("(On publish collection)")
+ 
             #Done button call
             win.OnPublishDone(None)
             wx.GetApp().Yield()
