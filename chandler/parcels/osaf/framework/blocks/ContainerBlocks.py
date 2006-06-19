@@ -46,49 +46,6 @@ class wxBoxContainer (wxRectangularChild):
         sizer.Layout()
         self.Layout()
 
-        if self.blockItem.isShown:
-            # @@@ this hack is so evil it belongs in a conrad novel
-            #
-            # to fix the mysterious negative sash position: bug 3497
-            # The sash goes negative after its *parent*'s Layout(),
-            # but since that happens *after* its own Layout(), the code
-            # for wxSplitterWindow is powerless to prevent this travesty.
-            #
-            # The allday/timed splitter's parent is a generic BoxContainer
-            # so that's why the hack is here.
-            
-            try:
-                blockName = self.blockItem.blockName
-                splitter = list(self.blockItem.childrenBlocks)[1]
-                splitterBlockName = splitter.blockName
-            except (AttributeError, IndexError): 
-                pass
-            else:
-                if blockName == 'CalendarSummaryView' and \
-                   splitterBlockName == 'MainCalendarCanvasSplitter' and \
-                   splitter.widget.GetSashPosition() < 0:
-                    
-                    #Fun fact: at this time, splitter.widget.GetSize() is
-                    #wacky, like (20,0) or something.
-                    #
-                    #However, CPIA remembers the correct size: splitter.size
-                    #and splitPercentage are right. So we'll use that to work
-                    #around. It's odd that MoveSash / SetSashPosition lets
-                    #you put the sash at a position *greater* than
-                    #GetSize()[1], but if they play dirty with negative sash
-                    #positions, we can play dirty too.
-                    #
-                    #The logic to translate CPIA size/splitPerc -> a number for SetSashPosition
-                    #is copy-pasted out of wxSplitterWindow.OnSize() for now
-
-                    position = int (splitter.size.height * splitter.splitPercentage + 0.5)
-                    splitter.widget.SetSashPosition(position)
-                    splitter.widget.adjustSplit(position)
-                    
-                    #uhoh: this reports 107 and -63 for me, YET the behavior is correct (?!)
-                    #print position
-                    #print splitter.widget.GetSashPosition()
-
     @classmethod
     def CalculateWXStyle(theClass, block):
         style = wx.TAB_TRAVERSAL
