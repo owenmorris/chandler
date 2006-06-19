@@ -299,7 +299,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                 offset += 1
             
     
-    def AdjustSplit(self, splitter, height):
+    def AdjustSplit(self, height):
         headerHeight = self.GetHeaderSize().height
         previewWidget = Block.Block.findBlockByName("PreviewArea").widget
         previewHeight = previewWidget.GetSize()[1]

@@ -241,12 +241,10 @@ class wxSplitterWindow(wx.SplitterWindow):
             distance = self.blockItem.size.height
         else:
             distance = self.blockItem.size.width
-        #indentlog("SetSashPosition to: %s" % int (distance * self.blockItem.splitPercentage + 0.5))
         position = int (distance * self.blockItem.splitPercentage + 0.5)
         self.SetSashPosition (position)
         self.adjustSplit(position)
-        if event:
-            event.Skip()
+        event.Skip()
 
     def OnSplitChanging(self, event):
         if not self.blockItem.allowResize:
@@ -255,58 +253,27 @@ class wxSplitterWindow(wx.SplitterWindow):
 
     @WithoutSynchronizeWidget
     def OnSplitChanged(self, event):
-        width, height = self.GetSizeTuple()
-        position = float (event.GetSashPosition())
-        splitMode = self.GetSplitMode()
-        if not self.adjustSplit(position):
-            if splitMode == wx.SPLIT_HORIZONTAL:
-                self.blockItem.splitPercentage = position / height
-            else:
-                self.blockItem.splitPercentage = position / width
-                #indentlog("%sset splitperc to %s%s" %(util.autolog.BOLDGREEN, self.blockItem.splitPercentage, util.autolog.NORMAL))
-
+        self.adjustSplit (event.GetSashPosition())
         event.Skip()
 
     def adjustSplit(self, position):
-        # Ask the children if they wish to override the split
-        if position == 0:
-            return
-        splitMode = self.GetSplitMode()
-        width, height = self.GetSizeTuple()
-        # On the mac, we were getting an extra call before sizes were valid and that was
-        # messing up persistence
-        if ( ( width < 0 ) or ( height < 0 ) ):
-            return
-        child1 = self.GetWindow1()
-        didAdjust = False
-        if child1:
-            for childBlock in child1.blockItem.childrenBlocks:
-                adjustSplit = getattr(childBlock.widget, "AdjustSplit", None)
-                if ( adjustSplit ):
-                    newSize = adjustSplit(self, position)
-                    didAdjust = True
-                    continue
-        if not didAdjust:
-            child2 = self.GetWindow2()
-            if child2:
-                for childBlock in child2.blockItem.childrenBlocks:
-                    adjustSplit = getattr(childBlock.widget, "AdjustSplit", None)
-                    if ( adjustSplit ):
-                        if splitMode == wx.SPLIT_HORIZONTAL:
-                            newSize = height - adjustSplit(self, height - position)
-                        else:
-                            newSize = width - adjustSplit(self, width - position)                        
-                        didAdjust = True
-                        continue
+        def calculatePosition():
+            for splitWindow in self.blockItem.childrenBlocks:
+                for child in splitWindow.childrenBlocks:
+                    adjustSplitMethod = getattr (type (child.widget), "AdjustSplit", None)
+                    if adjustSplitMethod is not None:
+                        # Python does't have a break statement that exits
+                        # nested loops, so we'll use return instead
+                        return windowSize - adjustSplitMethod(child.widget, windowSize - position)
+            return position
 
-        if ( didAdjust ):
-            floatSize = float (newSize)
-            if splitMode == wx.SPLIT_HORIZONTAL:
-                self.blockItem.splitPercentage = floatSize / height
-            else:
-                self.blockItem.splitPercentage = floatSize / width
-            self.SetSashPosition(floatSize)
-        return didAdjust
+        width, windowSize = self.GetSizeTuple()
+        if self.GetSplitMode() == wx.SPLIT_VERTICAL:
+            windowSize = width
+        if windowSize > 0:
+            position = calculatePosition()
+            self.blockItem.splitPercentage = float (position) / windowSize
+            self.SetSashPosition (position)
 
     def wxSynchronizeWidget(self, useHints=False):
         self.SetSize ((self.blockItem.size.width, self.blockItem.size.height))
