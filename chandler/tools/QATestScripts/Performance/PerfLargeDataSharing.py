@@ -119,14 +119,25 @@ try:
         url = win.toolPanel.GetChildren()[1]
         url.SetFocus()
         url.Clear()
+
+        # Need to have this or first letter of URL is not
+        # typed into control on Linux
+        User.idle()
         
         QAUITestAppLib.scripting.User.emulate_typing(urlString)
-    
+        
         # We are interested in seeing how quickly we can download the collection
         logger.Start('Subscribe')
         win.OnSubscribe(None)
-        while win.subscribing:
-            app.Yield()
+        try:
+            while win.subscribing:
+                app.Yield()
+        except wx.PyDeadObjectError:
+            # XXX The C++ part of the dialog was gone, so we are no longer
+            # XXX supposed to touch any attributes of the dialog. In our
+            # XXX case this is safe, so just ignore. This seems to be needed
+            # XXX on Linux only.
+            pass
         logger.Stop()
         
         User.idle()
