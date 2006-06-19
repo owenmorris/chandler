@@ -52,8 +52,8 @@ class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
     new distinct item type.
     """
     def onSetContentsEvent (self, event):
-        logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
-                     event.arguments['item'], event.arguments['collection'])
+        #logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
+                     #event.arguments['item'], event.arguments['collection'])
         Block.Block.finishEdits()
         self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
