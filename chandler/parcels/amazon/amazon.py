@@ -1,3 +1,8 @@
+__author__ = "Mark Pilgrim (f8dy@diveintomark.org)"
+__version__ = "0.64.1"
+__copyright__ = "Copyright (c) 2002 Mark Pilgrim"
+__license__ = "Python"
+
 """Python wrapper
 
 
@@ -54,10 +59,6 @@ Other usage notes:
  - All functions can take http_proxy="http://x/y/z" which overrides your system setting
 """
 
-__author__ = "Mark Pilgrim (f8dy@diveintomark.org)"
-__version__ = "0.64.1"
-__copyright__ = "Copyright (c) 2002 Mark Pilgrim"
-__license__ = "Python"
 # Powersearch and return object type fix by Joseph Reagle <geek@goatee.net>
 
 # Locale support by Michael Josephson <mike@josephson.org>
