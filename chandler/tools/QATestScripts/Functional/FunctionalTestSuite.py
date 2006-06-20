@@ -71,7 +71,6 @@ exclusions = {#tests to exclude on specific platfoms only
     ),
     
     'windows':(
-        "TestSharing.py", # bug 5889
     ),
     
     'all':( #tests to exclude on all platforms       
