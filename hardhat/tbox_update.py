@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2006 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # Helper program to send tinderbox2 status emails
 #
 # Author:   Mike Taylor (bear@osafoundation.org)
-# Version:  1.0
 #
 
 import os, time, smtplib
@@ -43,7 +42,7 @@ def initOptions():
 
     # %prog expands to os.path.basename(sys.argv[0])
     usage  = "usage: %prog [options]"
-    parser = optparse.OptionParser(usage=usage, version="%prog " + __version__)
+    parser = optparse.OptionParser(usage=usage)
 
     for key in _configItems:
         (shortCmd, longCmd, optionType, defaultValue, helpText) = _configItems[key]
