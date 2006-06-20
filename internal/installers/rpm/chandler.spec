@@ -32,7 +32,7 @@ notes, and instant messaging functions.
 #cd $RPM_BUILD_ROOT
 #tar zxvf %{SOURCE0}
 #%clean
-#if [ -d "$RPM_BUILD_ROOT/usr/local/chandler-0.7" ]; then
+#if [ -d "$RPM_BUILD_ROOT/usr/local/chandler-%{_dv}" ]; then
 #rm -rf $RPM_BUILD_ROOT
 #fi
 #%post
@@ -46,4 +46,4 @@ notes, and instant messaging functions.
 #fi
 %files
 %defattr(-,root,root)
-/usr/local/chandler-0.7
+/usr/local/chandler-%{_dv}
