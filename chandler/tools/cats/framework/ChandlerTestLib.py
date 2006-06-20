@@ -1,3 +1,10 @@
+"""ChandlerTestLib is a library for testing chandler.
+
+Originally this libarary was called QAUITestAppLib.
+"""
+__author__ =  'Dan Steinicke <dan@osafoundation.org>'
+__version__=  '0.2'
+
 from tools.QALogger import *
 from datetime import datetime, timedelta, time
 from time import mktime, strptime

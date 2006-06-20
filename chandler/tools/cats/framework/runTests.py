@@ -1,7 +1,11 @@
-## FunctionalList1.py
-## Author : Olivier Giroussens
-## Description: This test suite runs the 4 basic testcases of generating event, mail, task and note items in chandler
- 
+"""runTests module for running casts tests
+
+This is a module containing with methods defined for running tests
+in the cats 0.2+ framework. Not used with cats < 0.2.
+"""
+__author__ =  'Mikeal Rogers <mikeal@osafoundation.org>'
+__version__=  '0.2'
+
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.TestOutput import TestOutput
 import os, sys
@@ -11,6 +15,7 @@ functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/Functional")
 #initialization 
 
 def run_tests(tests):
+    """Method to execute cats tests, must be in Functional directory."""
     
     logger = TestOutput(stdout=True, debug=4)
     logger.startSuite(name='ChandlerTestSuite')
@@ -34,6 +39,7 @@ def run_tests(tests):
     scripting.app_ns().root.Quit()
  
 def run_perf_tests(tests):
+    """Method to execute cats tests, must be in Performance directory"""
 
     logger = TestOutput(stdout=True, debug=4)
     logger.startSuite(name='ChandlerTestSuite')

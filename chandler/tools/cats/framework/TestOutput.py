@@ -1,17 +1,34 @@
+"""TestOutput class for cats 0.2
+
+This is a module contains on major class, TestOutput,
+which is used for string output, timeing, and report->action->test->suite
+encapsulation.
+"""
+__author__ =  'Mikeal Rogers <mikeal@osafoundation.org>'
+__version__=  '0.2'
+
 from datetime import datetime as dtime
 import copy
 
 class datetime(dtime):
-    
+    """Class for overriding datetime's normal string method"""
     def __str__(self):
-        
+        """Method to return more parsable datetime string"""
         return '%s:%s:%s:%s' % (self.hour, self.minute, self.second, self.microsecond)
 
 class TestOutput:
-    
+    """
+    Test output and timing class.
+    """
     def __init__(self, logname=None, debug=0, mask=0, stdout=None):
+        """Instantiation method
         
-        print 'logger starting'
+        Keyword Arguments:
+        logname: str  -- Name of the logfile
+        debug:   int  -- Debug level
+        mask:    int  -- Masking level
+        stdout   bool -- Switch to turn on stdout output
+        """
         self.debug = debug
         self.mask = mask
         self.suiteList = []
@@ -25,16 +42,9 @@ class TestOutput:
         self.inAction = False
         self.inTest = False
         self.inSuite = False
-        self.passedTests = 0
-        self.failedTests = 0
-        self.passedActions = 0
-        self.failedActions = 0
-        self.passedReports = 0
-        self.failedReports = 0
         
         if stdout is True:
            import sys
-     #      self.stdout = sys.__stdout__
            self.stdout = sys.__stdout__
         else:
            self.stdout = None
@@ -45,6 +55,14 @@ class TestOutput:
             self.f = None
             
     def startSuite(self, name, comment=None):
+        """Method to begin test Suite.
+        
+        Required Argument:
+        name: str -- Name of Suite
+        
+        Keyword Argument:
+        comment: str -- Comment string
+        """
         
         self.currentSuite = {}
         self.testList = []
@@ -53,15 +71,12 @@ class TestOutput:
         self.inSuite = True
         
     def endSuite(self):
+        """Method to end current running suite.
+        
+        Encapsulates test list."""
             
         self.currentSuite['endtime'] = datetime.now()
         self.currentSuite['totaltime'] = self.currentSuite['endtime'] - self.currentSuite['starttime']
-  
-  #    This code is for if we implement this where there may be multiple suites.
-  #      if self.calculateSuite(self.suiteList) == True:
-  #         self.passedTests = self.passedSuites + 1
-  #      else:
-  #          self.failedTests = self.failedSuites + 1
         self.displaySummary()
         self.printOut('Ending Suite ""%s"" :: EndTime %s :: Total Time %s' % (self.currentSuite['name'], self.currentSuite['endtime'], self.currentSuite['totaltime']), level=3)
         self.currentSuite['testlist'] = copy.copy(self.testList)
@@ -69,6 +84,13 @@ class TestOutput:
         self.inSuite = False
         
     def startTest(self, name, comment=None):
+        """Method to begin individual test class run.
+        
+        Required Argument:
+        name: str -- Name of Test
+        
+        Keyword Argument:
+        comment: -- Comment string"""
         
         self.currentTest = {}
         self.actionList = []
@@ -77,23 +99,25 @@ class TestOutput:
         self.inTest = True
         
     def endTest(self, comment=None):
+        """Method to end individual test class run.
         
+        Encapsulates action list."""
         self.currentTest['endtime'] = datetime.now()
         self.currentTest['totaltime'] = self.currentTest['endtime'] - self.currentTest['starttime']
         self.currentTest['comment'] = '%s\n%s' % (self.currentTest['comment'], comment)
-        
-#        if self.calculateTest(self.testList) == True:
-#            self.passedTests = self.passedTests + 1
-#        else:
-#            self.failedTests = self.failedTests + 1
-            
         self.printOut('Ending Test ""%s"" :: EndTime %s :: Total Time %s' % (self.currentTest['name'], self.currentTest['endtime'], self.currentTest['totaltime']), level=2)
         self.currentTest['actionlist'] = copy.copy(self.actionList)
         self.testList.append(copy.copy(self.currentTest))
         self.inTest = False
         
     def startAction(self, name, comment=None):
+        """Method to being action inside of test class run.
         
+        Required Argument:
+        name: str -- Name of action
+        
+        Keyword Argument:
+        comment: str -- Comment string"""
         self.currentAction = {}
         self.currentResultList = []
         self.currentAction = {'name':name, 'comment':comment, 'starttime':datetime.now()}
@@ -101,45 +125,48 @@ class TestOutput:
         self.inAction = True
                        
     def endAction(self, result=True, comment=None):
+        """Method to end current action.
         
+        Keyword Arguments:
+        result:  bool -- User signalled result of action. Shortcut to call report() at end of action.
+        comment: str  -- Comment string
+        """
         if self.inAction is False:
             self.printOut("ENDACTION HAS BEEN CALLED OUTSIDE OF ACTION", level=1, result=False)
             return False
         self.currentAction['endtime'] = datetime.now()
         self.currentAction['totaltime'] = self.currentAction['endtime'] - self.currentAction['starttime']
         self.report(result, comment)
-        
-#        for result in self.currentResultList:
-#            if result[0] is False:
-#                reportResult = False
-#                break
-#            else:
-#                reportResult = True
-#        if reportResult is True:
-#            self.passedActions = self.passedActions + 1
-#            self.printOut('Ending Action ""%s"" :: EndTime %s :: Total Time %s' % (self.currentAction['name'], self.currentAction['endtime'], self.currentAction['totaltime']), level=1)
-#        if reportResult is False:
-#            self.failedActions = self.failedActions + 1
-#            self.printOut('Ending Action FAILED ""%s"" :: EndTime %s :: Total Time %s' % (self.currentAction['name'], self.currentAction['endtime'], self.currentAction['totaltime']), level=1, result=False)
-        
         self.currentAction['resultList'] = copy.copy(self.currentResultList)
         self.actionList.append(copy.copy(self.currentAction))
         self.inAction = False
         
     def startPerformanceAction(self, name, comment=None):
+        """Method to being performance action timer.
         
+        This starts and stops it's own timer and isn't encapsulated in the normal output datastructure.
+        
+        Required Argument:
+        name: str -- Name of action you wish to time.
+        
+        Keyword Argument:
+        comment: str -- Comment string.
+        """
         self.currentPerformanceAction = {}
         self.currentPerformanceAction = {'name':name, 'comment':comment, 'starttime':datetime.now()}
         self.printOut('Performance Starting Action ""%s"" :: StartTime %s' % (name, self.currentPerformanceAction['starttime']), level=1)
 
     def endPerformanceAction(self):
-        
+        """Method to end preformance action timer."""
         self.currentPerformanceAction['endtime'] = datetime.now()
         self.currentPerformanceAction['totaltime'] = self.currentPerformanceAction['endtime'] - self.currentPerformanceAction['starttime']
         self.performanceActionList.append(copy.copy(self.currentPerformanceAction))
         
     def addComment(self, string):
+        """Method to insert comment in to current action or test.
         
+        Required Argument:
+        string: str -- Comment string."""
         string = '[%s] %s' % (datetime.now(), string)
         
         if self.inAction is True:
@@ -150,7 +177,15 @@ class TestOutput:
             self.printOut('CommentAdd :: %s' % string, level=1, result=True)
     
     def report(self, result, name=None, comment=None):
+        """Method to report PASS/FAIL within test or action.
         
+        Required Argument:
+        result: bool -- PASS=True, FAIL=False
+        
+        Keyword Arguments:
+        name:    str -- Name of report being called. If not inside action name is REQUIRED.
+        comment: str -- Comment string.
+        """
         # check state
         if self.inAction is True:
             self.currentResultList.append([result, comment])
@@ -175,8 +210,18 @@ class TestOutput:
             self.failedReports = self.failedReports + 1
             self.printOut('Failure in action.%s.report :: %s' % (self.currentAction['name'], comment), level=0)
         
-
     def write(self, string):
+        """Method to allow TestOutput to be used like a file object.
+        
+        Required Argument:
+        string: str -- String you wish to write."""
+        self._write(string)    
+
+    def _write(self, string):
+        """Internal method for writing to log/stdout when enabled.
+        
+        Required Argument:
+        string: str -- String you wish to write."""
         if self.f is not None:
             self.f.write(string)
             self.f.flush()
@@ -186,45 +231,48 @@ class TestOutput:
             self.stdout.flush()
  
     def printOut(self, string, level=0, result=True):
+        """Method to print using self._write but observe debug and mask settings.
         
+        Required Argument:
+        string: str -- String you wish to print.
+        
+        Keyword Arguments:
+        level:  int  -- Level at which the output came; report=0, action=1, test=2, suite=3.
+        result: boot -- Result for output. Necessary for masking passes.
+        """
         if isinstance(string, unicode):
             string = string.encode('utf8')
-            
-        if result is True:
-            leadchar = '+'
-        else:
-            leadchar = '-'
-            
-        string = '%s%s\n' % (leadchar * (4 - level), string)
+
         if self.debug > 2:
-            self.write(string)
+            self._write(string)
             return
         if self.debug > 1:
             if level >= self.mask:
-                self.write(string)
+                self._write(string)
                 return
         if self.debug > 0:
             if result is False:
-                self.write(string)
+                self._write(string)
                 return
         if self.debug == 0:
             if result is False:
                 if level >= self.mask:
-                    self.write(string)
+                    self._write(string)
                     return
 
-    def displaySummary(self):
-        for test in self.testList:
-            if test['comment'] == 'None\nNone':
-                self.printOut( "%s %s %s" % ( test['name'] , 'PASS',  test['totaltime'] ), 4)
-            else:
-                self.printOut ("%s %s %s" % ( test['name'] , 'FAIL',  test['totaltime'] ), 4) 
-                self.printOut (test['comment'].replace('\n','') )
-        self.printOut('\n--Suite Summary-- There were %s passed tests and %s failed with a combined %s passed actions and %s failed actions, with %s passed reports and %s failed reports.' % (self.passedTests, self.failedTests, self.passedActions, self.failedActions, self.passedReports,self.failedReports))
+#    def displaySummary(self):
+#        
+#        for test in self.testList:
+#            if test['comment'] == 'None\nNone':
+#                self.printOut( "%s %s %s" % ( test['name'] , 'PASS',  test['totaltime'] ), 4)
+#            else:
+#                self.printOut ("%s %s %s" % ( test['name'] , 'FAIL',  test['totaltime'] ), 4) 
+#                self.printOut (test['comment'].replace('\n','') )
+#        self.printOut('\n--Suite Summary-- There were %s passed tests and %s failed with a combined %s passed actions and %s failed actions, with %s passed reports and %s failed reports.' % (self.passedTests, self.failedTests, self.passedActions, self.failedActions, self.passedReports,self.failedReports))
         
 
     def traceback(self):
-        
+        """Method to handle python traceback exception."""
         import sys, traceback
         type, value, stack = sys.exc_info()
         
@@ -242,8 +290,8 @@ class TestOutput:
         if self.inTest is True:
             self.endTest(comment='Test Failure due to traceback')
         
-
-   
+    ### All the methods below will be removed pre 0.2-cats-release. They are only there for reverse compatability in old test so that those tests don't fail in Python.    
+        
     def Start(self, string):
         
         self.printOut('DEPRICATED LOGGER FUNCTION', level=0, result=False)
@@ -285,63 +333,7 @@ class TestOutput:
                 result = False
        #     self.printOut(report[1], level = 0, result = report[0])
         return result
-        
-    def calculateAction(self, actionList):
-        result = True
-        
-        iterations = len(actionList)
-        i = 0
-       
-        while i < iterations:
-            
-            reportResult = self.calculateReport(actionList[i+1])
-            if reportResult is False:
-                result = False
-            
-           # printString = 'Name:: %s Comments:: %s Starttime:: %s Endtime:: %s TotalTime:: %s Passed:: %s' % (actionList[i]['name'], actionList[i]['comment'], actionList[i]['starttime'], actionList[i]['endtime'], actionList[i]['totaltime'], reportResult)
-           # self.printOut(printString, level=1, result=reportResult)
-            
-            i = i+2
-        return result
-    
-    def calculateTest(self, testList):
-        result = True
-        
-        iterations = len(testList)
-        i = 0
-       
-        while i < iterations:
-            
-            reportResult = self.calculateAction(testList[i+1])
-            if reportResult is False:
-                result = False
-            
-          #  printString = 'Name:: %s Comments:: %s Starttime:: %s Endtime:: %s TotalTime:: %s Passed:: %s' % (testList[i]['name'], testList[i]['comment'], testList[i]['starttime'], testList[i]['endtime'], testList[i]['totaltime'], reportResult)
-            #self.printOut(printString, level = 2, result=reportResult)
-            
-            i = i+2
-        return result
-        
-        
-    def calculateSuite(self, suiteList):
-        result = True
-        
-        iterations = len(suiteList)
-        i = 0
-       
-        while i < iterations:
-            
-            reportResult = self.calculateTest(suiteList[i+1])
-            if reportResult is False:
-                result = False
-            
-         #   printString = 'Name:: %s Comments:: %s Starttime:: %s Endtime:: %s TotalTime:: %s Passed:: %s' % (suiteList[i]['name'], suiteList[i]['comment'], suiteList[i]['starttime'], suiteList[i]['endtime'], suiteList[i]['totaltime'], reportResult)
-           # self.printOut(printString, level = 3, result = reportResult)
-            
-            i = i+2
-        return result    
-        
-        
+                
         
 if __name__ == "__main__":
     
