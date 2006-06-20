@@ -878,9 +878,7 @@ class wxToolbarMixin (object):
         updateUIEvents, so we'll handle it here with the method OnSetTextEvent.
         """
         self.SetLabel (event.GetText())
-        if getattr(self, 'GetToolBar', None) is not None:
-            # text fields in the toolbar do not have a GetToolBar() method
-            self.GetToolBar().Realize()
+        self.GetToolBar().Realize()
 
     def selectTool(self):
         """

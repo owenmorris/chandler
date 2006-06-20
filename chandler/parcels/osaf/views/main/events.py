@@ -250,10 +250,6 @@ def makeMainEvents(parcel):
     BlockEvent.template('SendMail').install(parcel)
                   
     BlockEvent.template(
-        'Search',
-        dispatchEnum = 'FocusBubbleUp').install(parcel)
-
-    BlockEvent.template(
         'SendShareItem',
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
