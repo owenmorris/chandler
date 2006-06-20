@@ -418,7 +418,7 @@ class MainView(View):
         """
         sidebar = Block.findBlockByName ("Sidebar")
         item = sidebar.contents.getFirstSelectedItem()
-        if (private == False and item.private):
+        if getattr(item, 'private', None) is not None and private == False and item.private:
             return None
         
         return item
@@ -756,6 +756,26 @@ class MainView(View):
         query = application.dialogs.Util.promptUser(
             _(u"Search"),
             _(u"Enter your PyLucene query:"))
+        if query:
+            view = self.itsView
+            view.commit() # make sure all changes are searchable
+            
+            searchResults = view.searchItems(query)
+
+            # later we'll skip this step if there are no results
+            results = pim.SmartCollection(itsView=view,
+                displayName=_(u"Search: %(query)s") % {'query' : query})
+            schema.ns("osaf.pim", self.itsView).mine.addSource(results)
+            
+            for item in search.processResults(searchResults):
+                results.add(item)
+                
+            schema.ns("osaf.app", self).sidebarCollection.add(results)
+
+    def onSearchEvent(self, event):
+        # query from the search bar; get the text
+        query = event.arguments['sender'].widget.GetValue()
+        # import pdb;pdb.set_trace()
         if query:
             view = self.itsView
             view.commit() # make sure all changes are searchable

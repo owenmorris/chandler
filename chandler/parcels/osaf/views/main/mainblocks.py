@@ -119,6 +119,15 @@ def makeMainView (parcel):
                 title = messages.SEND,
                 toolbarItemKind = 'Button',
                 helpString = _(u'Send the selected Item')),
+            ToolbarItem.template('ApplicationSeparator3',
+                toolbarItemKind = 'Separator'),
+            ToolbarItem.template('ApplicationBarSearchField',
+                event = main.Search,
+                title = _(u''),
+                toolbarItemKind = 'Text',
+                helpString = _(u'Search field - enter text to find')),
+            ToolbarItem.template('ApplicationSeparator3',
+                toolbarItemKind = 'Separator'),
             ]) # Toolbar ApplicationBar
 
     MainViewInstance = MainView.template(
