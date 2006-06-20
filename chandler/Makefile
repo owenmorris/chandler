@@ -1,9 +1,6 @@
 
-# Copyright (c) 2005 Open Source Applications Foundation
-# License: http://osafoundation.org/Chandler_0.1_license_terms.htm
-#
 # This Makefile requires cygwin on Windows
-# It should *not* be made to depend on external/internal
+# It should *not* be made to depend on external/ or internal/
 
 OS=$(shell uname)
 
