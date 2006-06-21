@@ -20,7 +20,7 @@
 
 #
 # Author:           Mike Taylor (bear@code-bear.com)
-# Contributors:     Heikki
+# Contributors:     Heikki Toivonen
 #
 
 
@@ -317,15 +317,15 @@ class perf:
     self.testTimeName = (
         ('startup',                                                             10, '#1 Startup'),
         ('new_event_from_file_menu_for_performance.event_creation',             1,  '#2 New event (menu)'),
-        ('new_event_by_double_clicking_in_the_cal_view_for_performance.double_click_in_the_calendar_view', 1, '#3 New event (double click)'),
+        ('new_event_by_double_clicking_in_the_cal_view_for_performance.double_click_in_the_calendar_view', 0.2, '#3 New event (double click)'),
         ('test_new_calendar_for_performance.collection_creation',               1, '#4 New calendar'),
         ('importing_3000_event_calendar.import',                                30, '#5 Import 3k event calendar'),
         ('startup_with_large_calendar',                                         10, '#6 Startup with 3k'),
         ('creating_new_event_from_the_file_menu_after_large_data_import.event_creation', 1, '#7 New event (menu) with 3k'),
-        ('creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view', 0.5, '#8 New event (double click) with 3k'),
+        ('creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view', 0.2, '#8 New event (double click) with 3k'),
         ('creating_a_new_calendar_after_large_data_import.collection_creation', 1, '#9 New calendar with 3k'),
         ('switching_to_all_view_for_performance.switch_to_allview',             1, 'Switch Views'),
-        ('perf_stamp_as_event.change_the_event_stamp',                          1, 'Stamp'),
+        ('perf_stamp_as_event.change_the_event_stamp',                          0.5, 'Stamp'),
         ('switching_view_after_importing_large_data.switch_to_allview',         1, 'Switch Views with 3k'),
         ('stamping_after_large_data_import.change_the_event_stamp',             0.5, 'Stamp with 3k'),
         ('scroll_calendar_one_unit.scroll_calendar_one_unit',                   0.1, 'Scroll calendar with 3k'),
@@ -333,8 +333,8 @@ class perf:
         ('jump_from_one_week_to_another.jump_calendar_by_one_week',             0.1, 'Jump calendar by one week with 3k'),
         ('overlay_calendar.overlay_calendar',                                   1, 'Overlay calendar with 3k'),
         ('switch_calendar.switch_calendar',                                     1, 'Switch calendar with 3k'),
-        ('perflargedatasharing.publish',                                        2.5, 'Publish calendar with 3k'),
-        ('perflargedatasharing.subscribe',                                      2.5, 'Subscribe to calendar with 3k'),
+        ('perflargedatasharing.publish',                                        1, 'Publish calendar with 3k'),
+        ('perflargedatasharing.subscribe',                                      1, 'Subscribe to calendar with 3k'),
         #('resize_app_in_calendar_mode.resize_app_in_calendar_mode',             0.1, 'Resize calendar with 3k'),
         )
 
@@ -770,17 +770,16 @@ class perf:
     def plat2data(graphPlatform, acceptable):
       keys = []
       for p in allPlatforms:
-          keys += graphPlatform[p].keys()
+        keys += graphPlatform[p].keys()
       dates = unique(keys)
       dates.sort()
       data = []
       for date in dates:
-        data.append((date, 
-                     graphPlatform['win'].get(date, None),
-                     graphPlatform['osx'].get(date, None),
-                     graphPlatform['linux'].get(date, None),
-                     graphPlatform['iosx'].get(date, None),
-                     acceptable))
+        params = [date]
+        for p in allPlatforms:
+          params.append(graphPlatform[p].get(date, None))
+        params.append(acceptable)
+        data.append(params)
 
       return data
     
