@@ -20,6 +20,7 @@ __parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
 
+from chandlerdb.util.c import issingleref
 from osaf.framework.blocks import Block, DragAndDrop, FocusEventHandlers
 from application import schema
 from application.dialogs import Util
@@ -1060,8 +1061,7 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
         # Bug 5817, the iterable returned by iterSelection will complain if an
         # item is removed, so create a (seemingly useless) list before iterating
         for item in list(selection.iterSelection()):
-            if (item is not None and
-                item not in self.contentsCollection):
+            if not (issingleref(item) or item in self.contentsCollection):
                 selection.unselectItem(item)
         self.synchronizeWidget()
 
@@ -1103,7 +1103,7 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
     def DeleteSelection(self, cutting=False, *args, **kwargs):
         selection = self.GetSelection()
         for item in selection.iterSelection():
-            assert item is not None
+            assert not issingleref(item)
             item.removeFromCollection(self.contentsCollection, cutting)
         self.ClearSelection()
 
