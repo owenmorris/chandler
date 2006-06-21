@@ -413,7 +413,7 @@ class perf:
               'alert':      ('-a', '--alert',    'f', self._options['alert'],      '', ''),
             }
 
-    parser = optparse.OptionParser(usage="usage: %prog [options]", version="%prog " + __version__)
+    parser = optparse.OptionParser(usage="usage: %prog [options]")
 
     for key in items:
       (shortCmd, longCmd, optionType, defaultValue, environName, helpText) = items[key]
