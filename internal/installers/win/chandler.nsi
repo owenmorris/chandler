@@ -24,7 +24,7 @@
   !define SNAP "release"
 !endif
 
-!define PRODUCT_NAME "Chandler ${DISTRIB_VERSION}"
+!define PRODUCT_NAME "Chandler"
 !define PRODUCT_VERSION "${DISTRIB_VERSION}"
 !define PRODUCT_PUBLISHER "Open Source Applications Foundation"
 !define PRODUCT_WEB_SITE "http://osafoundation.org"
@@ -71,7 +71,7 @@ Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "Setup.exe"
 Icon "..\..\..\${DISTRIB_DIR}\resources\images\Chandler.ico"
 UninstallIcon "..\..\..\${DISTRIB_DIR}\resources\images\Chandler.ico"
-InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
+InstallDir "$PROGRAMFILES\${PRODUCT_NAME}${PRODUCT_VERSION}"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails nevershow
 ShowUnInstDetails nevershow
