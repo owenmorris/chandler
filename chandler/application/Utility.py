@@ -26,6 +26,7 @@ from repository.persistence.RepositoryView import NullRepositoryView
 from repository.persistence.RepositoryError import \
     VersionConflictError, RepositoryPasswordError, RepositoryVersionError
 
+import version
 
 # Increment this value whenever the schema changes, and replace the comment
 # with your name (and some helpful text). The comment's really there just to
@@ -105,7 +106,7 @@ def locateProfileDir():
 
         profileDir = os.path.join(dataDir,
                                   'Open Source Applications Foundation',
-                                  'Chandler', '0.7')
+                                  'Chandler', version.release)
 
     elif sys.platform == 'darwin':
         dataDir = os.path.join(os.path.expanduser('~'),
@@ -113,11 +114,11 @@ def locateProfileDir():
                                'Application Support')
         profileDir = os.path.join(dataDir,
                                   'Open Source Applications Foundation',
-                                  'Chandler', '0.7')
+                                  'Chandler', version.release)
 
     else:
         dataDir = os.path.expanduser('~')
-        profileDir = os.path.join(dataDir, '.chandler', '0.7')
+        profileDir = os.path.join(dataDir, '.chandler', version.release)
 
     # Deal with the random part
     pattern = '%s%s*.default' % (profileDir, os.sep)
