@@ -712,7 +712,7 @@ class MainView(View):
         if log in sidebar:
             menuTitle = u'Show Sharing Activity'
         else:
-            menuTitle = u'Add sharing sctivity log to Sidebar'
+            menuTitle = u'Add sharing activity log to Sidebar'
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 
