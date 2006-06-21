@@ -66,7 +66,7 @@ class TestOutput:
         
         self.currentSuite = {}
         self.testList = []
-        self.currentSuite = {'name':name, 'comment':comment, 'starttime':datetime.now()}
+        self.currentSuite = {'name':name, 'comment':comment, 'starttime':datetime.now(), 'result':None}
         self.printOut('Starting Suite %s :: StartTime %s' % (name, self.currentSuite['starttime']), level=3) 
         self.inSuite = True
         
@@ -77,7 +77,6 @@ class TestOutput:
             
         self.currentSuite['endtime'] = datetime.now()
         self.currentSuite['totaltime'] = self.currentSuite['endtime'] - self.currentSuite['starttime']
-        self.displaySummary()
         self.printOut('Ending Suite ""%s"" :: EndTime %s :: Total Time %s' % (self.currentSuite['name'], self.currentSuite['endtime'], self.currentSuite['totaltime']), level=3)
         self.currentSuite['testlist'] = copy.copy(self.testList)
         self.suiteList.append(copy.copy(self.currentSuite))
@@ -94,7 +93,7 @@ class TestOutput:
         
         self.currentTest = {}
         self.actionList = []
-        self.currentTest = {'name':name, 'comment':comment, 'starttime':datetime.now()}
+        self.currentTest = {'name':name, 'comment':comment, 'starttime':datetime.now(), 'result':None}
         self.printOut('Starting Test ""%s"" :: StartTime %s' % (name, self.currentTest['starttime']), level=2)
         self.inTest = True
         
@@ -119,8 +118,8 @@ class TestOutput:
         Keyword Argument:
         comment: str -- Comment string"""
         self.currentAction = {}
-        self.currentResultList = []
-        self.currentAction = {'name':name, 'comment':comment, 'starttime':datetime.now()}
+        self.currentReportList = []
+        self.currentAction = {'name':name, 'comment':comment, 'starttime':datetime.now(), 'result':None}
         self.printOut('Starting Action ""%s"" :: StartTime %s' % (name, self.currentAction['starttime']), level=1)
         self.inAction = True
                        
@@ -137,7 +136,7 @@ class TestOutput:
         self.currentAction['endtime'] = datetime.now()
         self.currentAction['totaltime'] = self.currentAction['endtime'] - self.currentAction['starttime']
         self.report(result, comment)
-        self.currentAction['resultList'] = copy.copy(self.currentResultList)
+        self.currentAction['reportlist'] = copy.copy(self.currentReportList)
         self.actionList.append(copy.copy(self.currentAction))
         self.inAction = False
         
@@ -188,7 +187,7 @@ class TestOutput:
         """
         # check state
         if self.inAction is True:
-            self.currentResultList.append([result, comment])
+            self.currentReportList.append((result, name, comment))
         elif self.inAction is False:
             if name is None:
                 x = datetime.now()
@@ -203,12 +202,9 @@ class TestOutput:
         if name is not None: comment = '%s :: %s' % (name, comment)
         
         if result is True:
-            self.passedReports = self.passedReports + 1
-            if self.debug > 0:
-                self.printOut('Success in action.%s.report:: %s' % (self.currentAction['name'], comment), level=0)
+            self.printOut('Success in action.%s.report:: %s' % (self.currentAction['name'], comment), level=0, result=True)
         else:
-            self.failedReports = self.failedReports + 1
-            self.printOut('Failure in action.%s.report :: %s' % (self.currentAction['name'], comment), level=0)
+            self.printOut('Failure in action.%s.report :: %s' % (self.currentAction['name'], comment), level=0, result=False)
         
     def write(self, string):
         """Method to allow TestOutput to be used like a file object.
@@ -240,6 +236,14 @@ class TestOutput:
         level:  int  -- Level at which the output came; report=0, action=1, test=2, suite=3.
         result: boot -- Result for output. Necessary for masking passes.
         """
+        #Prepend + for true and - for false to the beginning of each string 
+        if result is True:
+            leadchar = '+'
+        else:
+            leadchar = '-'
+        #Each line should be prepended with the amount of characters for that level, this shows the encapsulation.
+        string = '%s%s\n' % (leadchar * (4 - level), string)
+        
         if isinstance(string, unicode):
             string = string.encode('utf8')
 
@@ -289,6 +293,67 @@ class TestOutput:
             self.endAction(result=False, comment='Action Failure due to traceback')
         if self.inTest is True:
             self.endTest(comment='Test Failure due to traceback')
+            
+    def _parse_results(self):
+        """Method to parse through the result output datastructure to bubble up encapsulated failures"""
+        for suite_dict in self.suiteList:
+            for test_dict in suite_dict['testlist']:
+                for action_dict in test_dict['actionlist']:
+                    for report_tuple in action_dict['reportlist']:
+                        if report_tuple[0] is False:
+                            action_dict['result'] = False
+                    if action_dict['result'] is False:
+                        test_dict['result'] = False
+                if test_dict['result'] is False:
+                    suite_dict['result'] = False
+            
+    def summary(self):
+        """Method to calculate and print summary and report"""
+        suites_ran = 0
+        suites_failed = 0
+        tests_ran = 0
+        tests_failed = 0
+        actions_ran = 0
+        actions_failed = 0
+        reports_ran = 0
+        reports_failed = 0
+        
+        self._parse_results()
+        #Parse through finalized suiteList for failures
+        
+        self._write('Failure Report;')
+        for suite_dict in self.suiteList:
+            if suite_dict['result'] is False:
+                self._write('*Suite ""%s"" Failed :: Total Time ""%s"" :: Comment ""%s""\n' % (suite_dict['name'], suite_dict['totaltime'], suite_dict['comment']))
+                suites_failed = suites_failed + 1
+                for test_dict in suite_dict['testlist']:
+                    if test_dict['result'] is False:
+                        self._write('**Test ""%s"" Failed :: Total Time ""%s"" :: Comment ""%s""\n' % (test_dict['name'], test_dict['totaltime'], test_dict['comment']))
+                        tests_failed = tests_failed + 1
+                        for action_dict in test_dict['actionlist']:
+                            if action_dict['result'] is False:
+                                self._write('***Action ""%s"" Failed :: Total Time ""%s"" :: Comment ""%s""\n' % (action_dict['name'], action_dict['totaltime'], action_dict['comment']))
+                                actions_failed = actions_failed + 1
+                                for report_tuple in action_dict['reportlist']:
+                                    if report_tuple[0] is False:
+                                        self._write('****Report ""%s"" Failed :: Comment ""%s""\n' % (report_tuple[1], report_tuple[2]))
+                                        reports_failed = reports_failed + 1
+
+        #Calculate number ran
+        for suite in self.suiteList:
+            suites_ran = suites_ran + 1
+            for test in suite['testlist']:
+                tests_ran = tests_ran + 1
+                for action in test['actionlist']:
+                    actions_ran = actions_ran + 1
+                    for report in action['reportlist']:
+                        reports_ran = reports_ran + 1
+        
+        self._write('$Suites run=%s, pass=%s, fail=%s :: Tests run=%s, pass=%s, fail=%s :: Actions run=%s, pass=%s, fail=%s :: Reports run=%s, pass=%s, fail=%s \n' % 
+                    (suites_ran, suites_ran - suites_failed, suites_failed, tests_ran, tests_ran - tests_failed, tests_failed, actions_ran, 
+                     actions_ran - actions_failed, actions_failed, reports_ran, reports_ran - reports_failed, reports_failed))                                
+           
+        
         
     ### All the methods below will be removed pre 0.2-cats-release. They are only there for reverse compatability in old test so that those tests don't fail in Python.    
         
@@ -392,4 +457,3 @@ if __name__ == "__main__":
     
    # logger.mask = 1
     logger.calculateSuite(logger.suiteList)
-    logger.displaySummary()

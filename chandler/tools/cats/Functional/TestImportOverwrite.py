@@ -44,7 +44,7 @@ class TestImportOverwrite(ChandlerTestCase):
         self.logger.addComment("event changed after export")
     
         #import the original event
-        share = Sharing.OneTimeFileSystemShare(path, 'tempOverwriteTest.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
+        share = Sharing.OneTimeFileSystemShare(path, 'tempOverwriteTest.ics', ICalendar.ICalendarFormat, itsView=self.app_ns.itsView)
         share.get()
         wx.GetApp().Yield()
         self.logger.addComment("Imported exported event")

@@ -35,6 +35,7 @@ def run_tests(tests):
             logger.traceback()
 
     logger.endSuite()
+    logger.summary()
     import osaf.framework.scripting as scripting
     scripting.app_ns().root.Quit()
  
