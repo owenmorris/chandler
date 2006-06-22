@@ -96,7 +96,7 @@ class FocusEventHandlers(Item):
         self.contents
         """
         collection = self.contentsCollection
-        if collection is None:
+        if collection is None and isinstance(self.contents, ContentCollection):
             collection = self.contents
 
         return collection
