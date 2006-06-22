@@ -428,9 +428,9 @@ class MainView(View):
         """
         sidebar = Block.findBlockByName ("Sidebar")
         item = sidebar.contents.getFirstSelectedItem()
-        if (private == False and item.private):
+        if getattr(item, 'private', None) is not None and private == False and item.private:
             return None
-        
+
         return item
 
     def _logChange(self, item, version, status, values, references):
@@ -762,10 +762,7 @@ class MainView(View):
         # Test menu item
         wx.GetApp().ChooseLogConfig()
 
-    def onSearchWindowEvent(self, event):
-        query = application.dialogs.Util.promptUser(
-            _(u"Search"),
-            _(u"Enter your PyLucene query:"))
+    def searchFor(self, query):
         if query:
             view = self.itsView
             view.commit() # make sure all changes are searchable
@@ -781,6 +778,20 @@ class MainView(View):
                 results.add(item)
                 
             schema.ns("osaf.app", self).sidebarCollection.add(results)
+            # select the newly-created collection
+            sidebar = Block.findBlockByName ("Sidebar")
+            sidebar.select(results)
+
+    def onSearchWindowEvent(self, event):
+        query = application.dialogs.Util.promptUser(
+            _(u"Search"),
+            _(u"Enter your PyLucene query:"))
+        self.searchFor(query)
+
+    def onSearchEvent(self, event):
+        # query from the search bar; get the text
+        query = event.arguments['sender'].widget.GetValue()
+        self.searchFor(query)
 
     def onSyncPrefsEvent(self, event):
         autosyncprefs.Show(self.itsView)

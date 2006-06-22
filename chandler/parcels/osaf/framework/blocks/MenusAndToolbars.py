@@ -839,7 +839,7 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
             toolbarItem = self._item_named (name)
         return Block.Block.post(toolbarItem.event, {}, toolbarItem)
         
-class wxToolbarMixin (object):
+class wxToolbarItemMixin (object):
     """
     Toolbar Tool Widget mixin, for various items that can appear in a Toolbar.
 
@@ -858,7 +858,11 @@ class wxToolbarMixin (object):
     block from its widget. 
     """
     def Destroy(self):
-        Block.Block.wxOnDestroyWidget (self)
+        # toolbar items that are now wx.Windows need to have their blocks destroyed
+        # menually. wx.Windows' destructions are caught by the application, which
+        # handles their blocks' destruction.
+        if not isinstance(self, wx.Window):
+            Block.Block.wxOnDestroyWidget (self)
         toolbar = self.blockItem.parentBlock.widget
         toolbar.DeleteTool(self.GetId())
 
@@ -889,7 +893,9 @@ class wxToolbarMixin (object):
         updateUIEvents, so we'll handle it here with the method OnSetTextEvent.
         """
         self.SetLabel (event.GetText())
-        self.GetToolBar().Realize()
+        if getattr(self, 'GetToolBar', None) is not None:
+            # text fields in the toolbar do not have a GetToolBar() method
+            self.GetToolBar().Realize()
 
     def selectTool(self):
         """
@@ -977,6 +983,15 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
         # post the event for the toolbarItem, or toolbarItem located by name
         return self.widget.press (toolbarItem, name)
 
+class wxTextCtrl(wx.TextCtrl):
+    """
+    """
+    def onDestroyWidget(self, *arguments, **keywords):
+        super (wxTextCtrl, self).onDestroyWidget(*arguments, **keywords)
+
+    def onDestroy(self, event):
+        super (wxTextCtrl, self).onDestroy(event)
+
 class toolbarItemKindEnumType(schema.Enumeration):
     values = "Button", "Separator", "Check", "Radio", "Text", "Combo", "Choice", "Status"
 
@@ -1002,6 +1017,14 @@ class ToolbarItem(Block.Block, DynamicChild):
     schema.addClouds(
         copying = schema.Cloud(byRef=[prototype], byCloud=[event])
     )
+
+    def onDestroyWidget(self, *arguments, **keywords):
+        # This only gets called for the text field toolbar item, which is already being deleted
+        # by the toolbar (I think). -- Reid
+        #pass
+        # Hm, 'pass' causes a different functional test failure.
+        #import pdb;pdb.set_trace()
+        super (ToolbarItem, self).onDestroyWidget(*arguments, **keywords)
 
     def instantiateWidget (self):
         def getBitmaps (self):
@@ -1048,7 +1071,7 @@ class ToolbarItem(Block.Block, DynamicChild):
                                         kind = theKind,
                                         shortHelp=shortHelp,
                                         longHelp=longHelp)
-            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarMixin'
+            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin'
             mixinAClass (tool, toolWidgetMixin)
             theToolbar.SetToolLongHelp(id, longHelp)
             theToolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)            
@@ -1067,6 +1090,8 @@ class ToolbarItem(Block.Block, DynamicChild):
             tool.SetName(self.title)
             theToolbar.AddControl (tool)
         elif self.toolbarItemKind == 'Text':
+            # unlike other Toolbar items, a 'text' item actually creates a
+            # real wx control
             tool = wx.TextCtrl (theToolbar, id, "", 
                                wx.DefaultPosition, 
                                wx.Size(300,-1), 
@@ -1080,7 +1105,7 @@ class ToolbarItem(Block.Block, DynamicChild):
             bitmap, disabledBitmap = getBitmaps (self)
             tool = wx.StaticBitmap(theToolbar, id, bitmap)
 
-            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarMixin'
+            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin'
             mixinAClass (tool, toolWidgetMixin)
             theToolbar.AddControl (tool)
             theToolbar.SetToolLongHelp(id, self.helpString)
@@ -1111,8 +1136,7 @@ class ToolbarItem(Block.Block, DynamicChild):
         
         # downcast the item created by wx into a toolbarMixin, so
         # it has the extra methods needed by CPIA.
-        if tool is not None and not isinstance(tool, wxToolbarMixin):
-            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarMixin'
+        if tool is not None and not isinstance(tool, wxToolbarItemMixin):
+            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin'
             mixinAClass (tool, toolWidgetMixin)
         return tool
-
