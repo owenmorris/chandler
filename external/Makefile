@@ -19,7 +19,8 @@ SYSTEMS=db \
         m2crypto \
         zanshin \
         elementtree \
-        pylint
+        pylint \
+        wx
 
 .PHONY: systems env binaries sources expand install clean \
         $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)
