@@ -28,7 +28,7 @@
 # We assume directory structure as follows:
 #
 # + absolute start directory
-#   + (*-osx | *-linux | *-win)
+#   + (*-osx | *-linux | *-win | *-iosx)
 #     + YYYYMMDDHHMMSS
 #
 # We delete all YYYYMMDDHHMMSS directories that don't match our policy.
@@ -41,7 +41,7 @@ fromAddr         = 'builds'
 toAddr           = 'builder-admin'
 defaultDomain    = 'osafoundation.org'
 startDir         = '/home/builder/www/docs/chandler/continuous'
-tboxDirGlob      = ['*-win', '*-osx', '*-linux']
+tboxDirGlob      = ['*-win', '*-osx', '*-linux', '*-iosx']
 
 symlinkTargets   = ['cosmo-full-osx', 'cosmo-0.2-osx', 'scooby-full-osx']
 
