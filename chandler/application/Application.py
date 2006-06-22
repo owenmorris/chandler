@@ -310,8 +310,7 @@ class wxApplication (wx.App):
             splashBitmap = self.GetImage("splash.png")
             splash = StartupSplash(None, splashBitmap)
             splash.Show()
-            # NB: not needed on Mac and Window, but leave in place until verified on GTK
-            # wx.Yield() #let the splash screen render itself
+            splash.Update()  # Force the window to refresh right now
 
         # Crypto initialization
         if splash:
@@ -1069,6 +1068,7 @@ class StartupSplash(wx.Frame):
             percentString = _(u"%(percent)d%%") % {'percent' : self.completedTicks + self.timerTicks}
             self.progressPercent.SetLabel(percentString)
         self.Layout()
+        self.Update()
         wx.Yield()
 
     def Destroy(self):
