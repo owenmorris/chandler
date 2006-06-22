@@ -194,8 +194,10 @@ if [ -n "$TEST_TO_RUN" ]; then
             echo Running $mode | tee -a $TESTLOG
 
             for test in $DIRS ; do
+                NEWCATS=tools/cats
                 if [ "$OSTYPE" = "cygwin" ]; then
                     TESTNAME=`cygpath -w $test`
+                    NEWCATS=`cygpath -w $NEWCATS`
                 else
                     TESTNAME=$test
                 fi
@@ -204,20 +206,24 @@ if [ -n "$TEST_TO_RUN" ]; then
 
                 cd $C_DIR
 
-                if echo "$TESTNAME" | grep -q "QATestScripts" ; then
-                    $CHANDLERBIN/$mode/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
-                    SUCCESS="#TINDERBOX# Status = PASSED"
+                if echo "$TESTNAME" | grep -q "$NEWCATS" ; then
+                    echo Skipping $TESTNAME in new cats directory
                 else
-                    $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $C_DIR/test.log
-                    SUCCESS="^OK"
-                fi
+                    if echo "$TESTNAME" | grep -q "QATestScripts" ; then
+                        $CHANDLERBIN/$mode/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                        SUCCESS="#TINDERBOX# Status = PASSED"
+                    else
+                        $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $C_DIR/test.log
+                        SUCCESS="^OK"
+                    fi
 
-                echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $TESTLOG
-                cat $C_DIR/test.log | tee -a $TESTLOG
+                    echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $TESTLOG
+                    cat $C_DIR/test.log | tee -a $TESTLOG
 
-                RESULT=`grep "$SUCCESS" $C_DIR/test.log`
-                if [ "$RESULT" = "" ]; then
-                    FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
+                    RESULT=`grep "$SUCCESS" $C_DIR/test.log`
+                    if [ "$RESULT" = "" ]; then
+                        FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
+                    fi
                 fi
             done
         done
