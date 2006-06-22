@@ -163,11 +163,10 @@ class wxMainFrame (wxBlockFrameWindow):
             # only use this option under Windows XP with true colour:
 
             #   (wxTheApp->GetComCtl32Version() >= 600 && ::wxDisplayDepth() >= 32)
-            if wx.GetApp().GetComCtl32Version() >= 600 and wx.DisplayDepth() >= 32:
-                value = 2
-            else:
-                value = 0
-            wx.SystemOptions.SetOptionInt ("msw.remap", value)
+            #
+            # Unfortunately, for some XP machines msw.remap of 2 doesn't work, even
+            # when wx.GetApp().GetComCtl32Version() >= 600 and wx.DisplayDepth() >= 32
+            wx.SystemOptions.SetOptionInt ("msw.remap", 0)
 
         if wx.Platform == '__WXMAC__':
             # Fix for Bug 4156: On the Mac, when the app activates,
