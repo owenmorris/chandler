@@ -60,7 +60,7 @@ class TestMulti(ChandlerTestCase):
         ## End Create accounts for Mail
         
         # action -- Create new Collection
-        col = QAUITestAppLib.UITestItem(uw("Collection"), self.logger)
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
         # action -- Set the Display name for new Collection
         col.SetDisplayName(uw("TestCollection"))
         # verification -- Initial Existense of Collection

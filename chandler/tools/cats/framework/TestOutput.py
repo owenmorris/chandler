@@ -23,6 +23,7 @@ __version__=  '0.2'
 
 from datetime import datetime as dtime
 import copy
+import sys
 
 class datetime(dtime):
     """Class for overriding datetime's normal string method"""
@@ -67,7 +68,7 @@ class TestOutput:
             self.f = file(logname, 'w')
         else:
             self.f = None
-            
+
     def startSuite(self, name, comment=None):
         """Method to begin test Suite.
         
@@ -81,7 +82,7 @@ class TestOutput:
         self.currentSuite = {}
         self.testList = []
         self.currentSuite = {'name':name, 'comment':comment, 'starttime':datetime.now(), 'result':None}
-        self.printOut('Starting Suite %s :: StartTime %s' % (name, self.currentSuite['starttime']), level=3) 
+        self.printOut(u'Starting Suite %s :: StartTime %s' % (name, self.currentSuite['starttime']), level=3) 
         self.inSuite = True
         
     def endSuite(self):
@@ -91,7 +92,7 @@ class TestOutput:
             
         self.currentSuite['endtime'] = datetime.now()
         self.currentSuite['totaltime'] = self.currentSuite['endtime'] - self.currentSuite['starttime']
-        self.printOut('Ending Suite ""%s"" :: EndTime %s :: Total Time %s' % (self.currentSuite['name'], self.currentSuite['endtime'], self.currentSuite['totaltime']), level=3)
+        self.printOut(u'Ending Suite ""%s"" :: EndTime %s :: Total Time %s' % (self.currentSuite['name'], self.currentSuite['endtime'], self.currentSuite['totaltime']), level=3)
         self.currentSuite['testlist'] = copy.copy(self.testList)
         self.suiteList.append(copy.copy(self.currentSuite))
         self.inSuite = False
@@ -108,7 +109,7 @@ class TestOutput:
         self.currentTest = {}
         self.actionList = []
         self.currentTest = {'name':name, 'comment':comment, 'starttime':datetime.now(), 'result':None}
-        self.printOut('Starting Test ""%s"" :: StartTime %s' % (name, self.currentTest['starttime']), level=2)
+        self.printOut(u'Starting Test ""%s"" :: StartTime %s' % (name, self.currentTest['starttime']), level=2)
         self.inTest = True
         
     def endTest(self, comment=None):
@@ -118,7 +119,7 @@ class TestOutput:
         self.currentTest['endtime'] = datetime.now()
         self.currentTest['totaltime'] = self.currentTest['endtime'] - self.currentTest['starttime']
         self.currentTest['comment'] = '%s\n%s' % (self.currentTest['comment'], comment)
-        self.printOut('Ending Test ""%s"" :: EndTime %s :: Total Time %s' % (self.currentTest['name'], self.currentTest['endtime'], self.currentTest['totaltime']), level=2)
+        self.printOut(u'Ending Test ""%s"" :: EndTime %s :: Total Time %s' % (self.currentTest['name'], self.currentTest['endtime'], self.currentTest['totaltime']), level=2)
         self.currentTest['actionlist'] = copy.copy(self.actionList)
         self.testList.append(copy.copy(self.currentTest))
         self.inTest = False
@@ -134,7 +135,7 @@ class TestOutput:
         self.currentAction = {}
         self.currentReportList = []
         self.currentAction = {'name':name, 'comment':comment, 'starttime':datetime.now(), 'result':None}
-        self.printOut('Starting Action ""%s"" :: StartTime %s' % (name, self.currentAction['starttime']), level=1)
+        self.printOut(u'Starting Action ""%s"" :: StartTime %s' % (name, self.currentAction['starttime']), level=1)
         self.inAction = True
                        
     def endAction(self, result=True, comment=None):
@@ -167,7 +168,7 @@ class TestOutput:
         """
         self.currentPerformanceAction = {}
         self.currentPerformanceAction = {'name':name, 'comment':comment, 'starttime':datetime.now()}
-        self.printOut('Performance Starting Action ""%s"" :: StartTime %s' % (name, self.currentPerformanceAction['starttime']), level=1)
+        self.printOut(u'Performance Starting Action ""%s"" :: StartTime %s' % (name, self.currentPerformanceAction['starttime']), level=1)
 
     def endPerformanceAction(self):
         """Method to end preformance action timer."""
@@ -184,10 +185,10 @@ class TestOutput:
         
         if self.inAction is True:
             self.currentAction['comment'] = '%s :: %s' % (self.currentAction['comment'], string)
-            self.printOut('CommentAdd :: %s' % string, level=0, result=True)
+            self.printOut(u'CommentAdd :: %s' % string, level=0, result=True)
         elif self.inAction is False:
             self.currentTest['comment'] = '%s :: %s' % (self.currentTest['comment'], string)
-            self.printOut('CommentAdd :: %s' % string, level=1, result=True)
+            self.printOut(u'CommentAdd :: %s' % string, level=1, result=True)
     
     def report(self, result, name=None, comment=None):
         """Method to report PASS/FAIL within test or action.
@@ -205,7 +206,7 @@ class TestOutput:
         elif self.inAction is False:
             if name is None:
                 x = datetime.now()
-                self.printOut('UNNAMED REPORT CANNOT BE CALLED OUTSIDE OF ACTION %s:%s:%s:%s' % (x.hour, x.minute, x.second, x.microsecond), level=0, result=False)
+                self.printOut(u'UNNAMED REPORT CANNOT BE CALLED OUTSIDE OF ACTION %s:%s:%s:%s' % (x.hour, x.minute, x.second, x.microsecond), level=0, result=False)
                 return
             elif name is not None:
                 if comment is None: comment = 'Action created by framework for report call'
@@ -216,9 +217,9 @@ class TestOutput:
         if name is not None: comment = '%s :: %s' % (name, comment)
         
         if result is True:
-            self.printOut('Success in action.%s.report:: %s' % (self.currentAction['name'], comment), level=0, result=True)
+            self.printOut(u'Success in action.%s.report:: %s' % (self.currentAction['name'], comment), level=0, result=True)
         else:
-            self.printOut('Failure in action.%s.report :: %s' % (self.currentAction['name'], comment), level=0, result=False)
+            self.printOut(u'Failure in action.%s.report :: %s' % (self.currentAction['name'], comment), level=0, result=False)
         
     def write(self, string):
         """Method to allow TestOutput to be used like a file object.
@@ -233,11 +234,11 @@ class TestOutput:
         Required Argument:
         string: str -- String you wish to write."""
         if self.f is not None:
-            self.f.write(string)
+            self.f.write(string.encode('raw_unicode_escape'))
             self.f.flush()
         
         if self.stdout is not None:
-            self.stdout.write(string)
+            self.stdout.write(string.encode('raw_unicode_escape'))
             self.stdout.flush()
  
     def printOut(self, string, level=0, result=True):
@@ -256,10 +257,10 @@ class TestOutput:
         else:
             leadchar = '-'
         #Each line should be prepended with the amount of characters for that level, this shows the encapsulation.
-        string = '%s%s\n' % (leadchar * (4 - level), string)
+        string = u'%s%s\n' % (leadchar * (4 - level), string)
         
-        if isinstance(string, unicode):
-            string = string.encode('utf8')
+        #if isinstance(string, unicode):
+            #string = string.encode('utf8')
 
         if self.debug > 2:
             self._write(string)
@@ -373,35 +374,35 @@ class TestOutput:
         
     def Start(self, string):
         
-        self.printOut('DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
         
     def Stop(self):
         
-        self.printOut('DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
         
     def Print(self, string):
         
-        self.printOut('DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
         
     def Report(self, string):
         
-        self.printOut('DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
         
     def ReportPass(self, string):
         
-        self.printOut('DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
         
     def ReportFailure(self, string):
         
-        self.printOut('DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
         
     def SetChecked(self, string):
         
-        self.printOut('DEPRICATED LOGGER FUNCTION', level=0, result=False)   
+        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)   
         
     def Close(self):
         
-        self.printOut('DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
         
     def calculateReport(self, reportList):
         

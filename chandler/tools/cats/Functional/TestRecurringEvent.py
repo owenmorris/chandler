@@ -114,7 +114,7 @@ class TestRecurringEvent(ChandlerTestCase):
                             recurrenceEnd="12/31/2006")
                             
         # verification
-          
+         
         monthlyEvent.Check_DetailView({"displayName":uw("Monthly book club"),
                                      "startDate":"1/1/06",
                                       "endDate":"1/1/06",
@@ -122,7 +122,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                       "endTime":"9:00 PM",
                                       "location":uw("My house"),
                                       "status":"Confirmed",
-                                      "body":"Resolution: host book club once a month",
+                                      "body":uw("Resolution: host book club once a month"),
                                       "timeZone":"US/Central",
                                       "recurrence":"Monthly",
                                       "recurrenceEnd":"12/31/06"})
@@ -160,7 +160,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                       "endDate":"2/6/06",
                                       "startTime":"10:00 AM",
                                       "endTime":"11:00 AM",
-                                      "location":"Downtown",
+                                      "location":uw("Downtown"),
                                       "status":"Confirmed",
                                       "body":uw("Resolution: get teeth cleaned once a year"),
                                       "timeZone":"US/Pacific",

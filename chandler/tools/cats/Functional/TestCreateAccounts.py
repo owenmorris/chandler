@@ -39,6 +39,7 @@ class TestCreateAccounts(ChandlerTestCase):
         ap.ToggleValue("authentication", True) # turn on the authentication checkbox
         ap.TypeValue("port", '587')
         ap.TypeValue("email",pEMAIL)
+        ap.TypeValue('username', 'demo1')
         ap.TypeValue('password', 'ad3leib5')
         
         ap.CreateAccount("IMAP")
@@ -83,5 +84,5 @@ class TestCreateAccounts(ChandlerTestCase):
         ap.VerifyValues("IMAP", pIMAP, displayName = pIMAP, host = "imap.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
         ap.VerifyValues("POP", pPOP, displayName = pPOP, host = "pop.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
         ap.VerifyValues("WebDAV", pWEBDAV, displayName = pWEBDAV, host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
-        self.logger.endAction("Verifying Account Values")
+        self.logger.endAction(True, "Verifying Account Values")
 

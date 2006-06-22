@@ -67,6 +67,6 @@ class TestNewCollection(ChandlerTestCase):
         beforeChangeEvent.Check_ItemInCollection(uw("Meeting"), expectedResult=True)
         beforeChangeEvent.Check_ItemInCollection("All", expectedResult=False)
     
-       afterChangeEvent.Check_ItemInCollection(uw("Meeting"), expectedResult=True)
+        afterChangeEvent.Check_ItemInCollection(uw("Meeting"), expectedResult=True)
         afterChangeEvent.Check_ItemInCollection("All", expectedResult=False)
 

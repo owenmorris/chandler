@@ -19,15 +19,23 @@ from application.dialogs import RecurrenceDialog
 import osaf.framework.scripting as scripting
 import wx
 from i18n.tests import uw
+import datetime 
 
 class TestNewEvent(ChandlerTestCase):
     
     def startTest(self):
         
-        evtDate = "4/18/05"
-        evtSecondDate = "4/19/05"
-        evtThirdDate = "4/20/05"
-        evtRecurrenceEnd = "4/18/06"
+        def todayPlus(inc=0):
+            """return a m/d/yy date string equal to today plus inc days"""
+            today = datetime.date.today()
+            incDay =  today + datetime.timedelta(days=inc)
+            y, m, d = incDay.timetuple()[:3]
+            return '%s/%s/%s' % (m, d, str(y)[2:].zfill(2))
+        
+        evtDate = todayPlus()
+        evtSecondDate = todayPlus(1)
+        evtThirdDate = todayPlus(2)
+        evtRecurrenceEnd = todayPlus(365)
         
         # Make sure we're not showing timezones now (we'll put it back below)
         tzPrefs = schema.ns('osaf.app', QAUITestAppLib.App_ns.itsView).TimezonePrefs
@@ -93,6 +101,7 @@ class TestNewEvent(ChandlerTestCase):
         event.SetAttr("Making it recur",
                       recurrence="Daily", 
                       recurrenceEnd=evtRecurrenceEnd)
+        scripting.User.idle()
         event.CheckDisplayedValues("Checking recurrence",
             EditRecurrence=(True, "Daily"),
             EditRecurrenceEnd=(True, evtRecurrenceEnd))

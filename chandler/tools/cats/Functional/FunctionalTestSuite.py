@@ -26,7 +26,6 @@ functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/Functional")
 #initialization
 
 allTests = [
-                ("TestAdditionalViews","TestAdditionalViews"),
                 ("TestCreateAccounts","TestCreateAccounts"),
                 ("TestAllDayEvent","TestAllDayEvent"), 
                 ("TestNewCollection","TestNewCollection"),
@@ -83,12 +82,11 @@ exclusions = {#tests to exclude on specific platfoms only
         ("TestEditModeOnEnter","TestEditModeOnEnter"), #Chandler bug 5744
         ("TestRemoveFromTrashOnImport","TestRemoveFromTrashOnImport"), #not tested on all platforms yet
         ("TestSwitchTimezone","TestSwitchTimezone"), #new test not yet working
-        ("TestSharing","TestSharing"), # bug 5889
+        ("TestEnableTimezones","TestEnableTimezones"),
         ]
 }
 
 tests_to_run = filter(lambda test : test not in exclusions['all'] and test not in exclusions[platform], allTests)
 teststring = ''.join(['%s:%s,' % (test, klass) for test, klass in tests_to_run])[:-1]
 
-print teststring.replace(',',',\n')
 run_tests(teststring)

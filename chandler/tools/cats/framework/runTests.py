@@ -31,7 +31,7 @@ functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/Functional")
 def run_tests(tests):
     """Method to execute cats tests, must be in Functional directory."""
     
-    logger = TestOutput(stdout=True, debug=4)
+    logger = TestOutput(stdout=True, debug=4) #debug=0 (least output), debug=4(most output)
     logger.startSuite(name='ChandlerTestSuite')
     for paramSet in tests.split(','):
         try:

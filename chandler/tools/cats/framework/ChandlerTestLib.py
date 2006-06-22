@@ -984,7 +984,7 @@ class UITestItem(object):
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On end time Checking)")
             elif field == "location": # location checking
-                loc = "%s" %self.item.location
+                loc = unicode(self.item.location)
                 if not value == loc :
                     self.logger.report(False, name="Check_Object", comment="(On location Checking) || object location = %s ; expected location = %s" % (loc, value))
                 else:
