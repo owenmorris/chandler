@@ -6,7 +6,6 @@
 include Makefile.inc
 
 SYSTEMS=chandlerdb \
-        wx \
         launchers
 
 .PHONY: binaries $(SYSTEMS)
