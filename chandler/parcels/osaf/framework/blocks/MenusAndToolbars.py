@@ -768,14 +768,7 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         # keep track of ToolbarItems so we can tell when/how they change in synchronize
         self.toolItemList = [] # non-persistent list
         self.toolItems = 0
-
-    
-    if '__WXMAC__' in wx.PlatformInfo:
-        def Destroy(self):
-            if (self.blockItem.mainFrameToolbar):
-                self.blockItem.getFrame().SetToolBar (None)
-            super (wxToolbar, self).Destroy()
-        
+           
     def wxSynchronizeWidget(self, useHints=False):
         super (wxToolbar, self).wxSynchronizeWidget()
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
@@ -957,12 +950,6 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
                             style=self.calculate_wxStyle())
         # set the tool bitmap size right away
         toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
-
-        if '__WXMAC__' in wx.PlatformInfo:
-            # widgets on the Mac has a bug causing it not to set the Toolbar on the FrameWindow
-            if (self.mainFrameToolbar):
-                self.getFrame().SetToolBar (toolbar)
-
         return toolbar
     
     def calculate_wxStyle (self):
