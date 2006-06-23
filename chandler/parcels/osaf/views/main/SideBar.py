@@ -862,9 +862,8 @@ class SidebarBlock(Table):
                     else:
                         # we didn't find it in a 'mine' Collection
                         allCollection.add(item)
-                
-                sharing.unsubscribe(collection)
-            
+
+            sharing.unsubscribe(collection)
             collection.delete(True)
 
         self.widget.DeleteSelection(DeleteItemCallback=deleteItem)

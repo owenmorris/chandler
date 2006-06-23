@@ -227,11 +227,14 @@ class BackgroundSyncHandler:
 
                 else:
                     for share in Sharing.Share.iterItems(self.rv):
-                        if(share.active and
-                            share.established and
-                            share.contents is not None and
-                            share.contents not in collections):
-                            collections.append(share.contents)
+                        try:
+                            if(share.active and
+                                share.established and
+                                share.contents is not None and
+                                share.contents not in collections):
+                                collections.append(share.contents)
+                        except Exception, e:
+                            logger.exception("Error with Share object")
 
                 for collection in collections:
 
