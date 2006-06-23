@@ -331,7 +331,7 @@ def importCertificateDialog(repView):
                               u"", 
                               u"", 
                               _(u"PEM files|*.pem;*.crt|All files (*.*)|*.*"),
-                              wx.OPEN | wx.HIDE_READONLY)
+                              wx.OPEN)
 
     (cmd, dir, filename) = res
 

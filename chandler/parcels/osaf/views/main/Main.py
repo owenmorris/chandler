@@ -571,7 +571,7 @@ class MainView(View):
         res = application.dialogs.Util.showFileDialog(
             wx.GetApp().mainFrame, _(u"Choose a file to import"), "",
             _(u"import.csv"), _(u"CSV files|*.csv"),
-            wx.OPEN | wx.HIDE_READONLY)
+            wx.OPEN)
 
         (cmd, dir, filename) = res
 
