@@ -127,7 +127,7 @@ class ImportDialog(FileChooserWithOptions):
             self, parent, dialogTitle,
             schema.ns("osaf.sharing", view).prefs.import_dir,
             _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
-            wx.OPEN | wx.HIDE_READONLY, options
+            wx.OPEN, options
         )
         
         self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
