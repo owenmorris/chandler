@@ -23,7 +23,6 @@ import logging
 import wx
 
 from i18n import OSAFMessageFactory as _
-from osaf import messages
 from osaf.framework.certstore import utils, errors
 
 log = logging.getLogger(__name__)
@@ -90,10 +89,10 @@ class ImportCertificateDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, u" " +  messages.OK + u" ")
+        btn = wx.Button(self, wx.ID_OK)
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, u" " + messages.CANCEL + u" ")
+        btn = wx.Button(self, wx.ID_CANCEL)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
@@ -194,10 +193,10 @@ class TrustSiteCertificateDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, messages.OK)
+        btn = wx.Button(self, wx.ID_OK)
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, messages.CANCEL)
+        btn = wx.Button(self, wx.ID_CANCEL)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
