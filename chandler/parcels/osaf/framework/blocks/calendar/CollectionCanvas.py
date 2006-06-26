@@ -783,8 +783,11 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
         if ('__WXMAC__' in wx.PlatformInfo and 
             (keyCode in (wx.WXK_BACK, wx.WXK_DELETE))):
-            self.blockItem.onDeleteEvent(event)
-            return
+            # Fix bug 6126: make sure we can delete before calling
+            # onDeleteEvent (and eat the key event either way).
+            if self.blockItem.CanDelete():
+                self.blockItem.onDeleteEvent(event)
+            return # eat the key event.
 
         # didn't handle it so propagate the key event upward
         event.Skip()

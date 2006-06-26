@@ -370,7 +370,7 @@ class FocusEventHandlers(Item):
 
     def onDeleteEvent(self, event):
         # Destructive action, worth an extra assert
-        assert self.CanDelete(), "Can't remove right now.. some updateUI logic may be broken"
+        assert self.CanDelete(), "Can't delete right now.. some updateUI logic may be broken"
         selectedCollection = self.__getPrimaryCollection()
         selection = self.__getSelectedItems()
 
