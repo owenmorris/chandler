@@ -25,7 +25,7 @@ import application.Parcel
 
 import application.dialogs.Util
 from application.dialogs import ( AccountPreferences, PublishCollection,
-    SubscribeCollection, SyncProgress, RestoreShares, autosyncprefs
+    SubscribeCollection, RestoreShares, autosyncprefs
 )
 
 from osaf import pim, sharing, messages, webserver, search
@@ -1062,15 +1062,11 @@ class MainView(View):
         if activeShares:
             # Fire off a background syncAll:
 
-            # To make the change available to sharing thread
+            # To make changes available to sharing thread
             self.RepositoryCommitWithStatus ()
 
             sharing.scheduleNow(view)
 
-            # Old code:
-            # self.setStatusMessage (_(u"Synchronizing shared collections..."))
-            # SyncProgress.Show(wx.GetApp().mainFrame, rv=self.itsView)
-            # self.setStatusMessage (_(u"Shared collections synchronized"))
         else:
             if DAVReady:
                 self.setStatusMessage (_(u"No shared collections found"))
@@ -1093,9 +1089,11 @@ class MainView(View):
         activeShares = sharing.checkForActiveShares(view)
         if activeShares:
             # find all the shared collections and sync them.
-            self.setStatusMessage (_(u"Synchronizing shared collections..."))
-            SyncProgress.Show(wx.GetApp().mainFrame, rv=self.itsView)
-            self.setStatusMessage (_(u"Shared collections synchronized"))
+
+            # To make changes available to sharing thread
+            self.RepositoryCommitWithStatus ()
+
+            sharing.scheduleNow(view)
 
         else:
             if not sharing.isWebDAVSetUp(view):
