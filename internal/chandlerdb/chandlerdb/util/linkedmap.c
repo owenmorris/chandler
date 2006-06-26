@@ -840,6 +840,7 @@ void _init_linkedmap(PyObject *m)
 
             PyDict_SetItemString_Int(dict, "NEW", LM_NEW);
             PyDict_SetItemString_Int(dict, "LOAD", LM_LOAD);
+            PyDict_SetItemString_Int(dict, "MERGING", LM_MERGING);
 
             Py_INCREF(&LinkType);
             PyModule_AddObject(m, "CLink", (PyObject *) &LinkType);

@@ -36,6 +36,7 @@ typedef struct {
 
 
 enum {
-    LM_NEW  = 0x0001,
-    LM_LOAD = 0x0002
+    LM_NEW     = 0x0001,
+    LM_LOAD    = 0x0002,
+    LM_MERGING = 0x0004
 };
