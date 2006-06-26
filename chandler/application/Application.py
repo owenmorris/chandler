@@ -255,6 +255,11 @@ class wxApplication (wx.App):
         """
         Main application initialization.
         """
+        
+        # A temporary (?) workaround to prevent the default error
+        # dialog box popping up on Ubuntu that is stopping
+        # functional tests. See bug 6120 for more info.
+        wx.Log.SetActiveTarget(wx.LogStderr())
 
         # The initI18n can't be initialized until after the App
         # object has been created since initialization creates a
