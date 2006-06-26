@@ -262,13 +262,14 @@ class DetailSynchronizer(Item):
                      #shouldShow and "visible" or "hidden")
         
         # Re-layout the sizer on the detail view
-        block = self.parentBlock
-        while block is not None and not block.eventBoundary:
-            block = block.parentBlock
-        if block:                
+        block = self
+        while block is not None:
             sizer = block.widget.GetSizer()
             if sizer:
                 sizer.Layout()
+            if block.eventBoundary:
+                break
+            block = block.parentBlock
         return True
 
     def onItemNotification(self, notificationType, data):
