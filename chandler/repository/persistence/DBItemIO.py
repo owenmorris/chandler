@@ -498,7 +498,7 @@ class DBValueReader(ValueReader):
         store = self.store
         uAttr, vFlags, data = store._values.c.loadValue(store.txn, uValue)
 
-        if toIndex and not ord(vFlags) & CValues.TOINDEX:
+        if toIndex and not (ord(vFlags) & CValues.TOINDEX):
             return uAttr, Nil
 
         withSchema = (self.status & CItem.CORESCHEMA) != 0

@@ -20,7 +20,7 @@ from time import time
 from PyLucene import \
     Document, Field, RAMDirectory, DbDirectory, StandardAnalyzer, \
     QueryParser, IndexReader, IndexWriter, IndexSearcher, Term, TermQuery, \
-    JavaError
+    JavaError, MatchAllDocsQuery
 
 from chandlerdb.util.c import UUID
 from chandlerdb.persistence.c import DBLockDeadlockError, DBInvalidArgError
@@ -458,6 +458,7 @@ class IndexContainer(FileContainer):
     def getIndexWriter(self):
 
         writer = IndexWriter(RAMDirectory(), StandardAnalyzer(), True)
+        #writer = IndexWriter(self.getDirectory(), StandardAnalyzer(), False)
         writer.setUseCompoundFile(False)
 
         return writer
@@ -489,31 +490,32 @@ class IndexContainer(FileContainer):
 
     def indexValue(self, indexWriter, value, uItem, uAttr, uValue, version):
 
-        YES = Field.Store.YES
-        NO =  Field.Index.NO
+        STORED = Field.Store.YES
+        UN_STORED = Field.Store.NO
         TOKENIZED = Field.Index.TOKENIZED
+        UN_INDEXED = Field.Index.NO
         UN_TOKENIZED = Field.Index.UN_TOKENIZED
 
         doc = Document()
-        doc.add(Field("item", uItem.str64(), YES, UN_TOKENIZED))
-        doc.add(Field("attribute", uAttr.str64(), YES, NO))
-        doc.add(Field("value", uValue.str64(), YES, NO))
-        doc.add(Field("version", str(version), YES, NO))
-        doc.add(Field("contents", value, YES, TOKENIZED))
+        doc.add(Field("item", uItem.str64(), STORED, UN_TOKENIZED))
+        doc.add(Field("attribute", uAttr.str64(), STORED, UN_INDEXED))
+        doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
+        doc.add(Field("version", str(version), STORED, UN_INDEXED))
+        doc.add(Field("contents", value, UN_STORED, TOKENIZED))
 
         indexWriter.addDocument(doc)
 
     def indexReader(self, indexWriter, reader, uItem, uAttr, uValue, version):
 
-        YES = Field.Store.YES
-        NO =  Field.Index.NO
+        STORED = Field.Store.YES
+        UN_INDEXED = Field.Index.NO
         UN_TOKENIZED = Field.Index.UN_TOKENIZED
 
         doc = Document()
-        doc.add(Field("item", uItem.str64(), YES, UN_TOKENIZED))
-        doc.add(Field("attribute", uAttr.str64(), YES, NO))
-        doc.add(Field("value", uValue.str64(), YES, NO))
-        doc.add(Field("version", str(version), YES, NO))
+        doc.add(Field("item", uItem.str64(), STORED, UN_TOKENIZED))
+        doc.add(Field("attribute", uAttr.str64(), STORED, UN_INDEXED))
+        doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
+        doc.add(Field("version", str(version), STORED, UN_INDEXED))
         doc.add(Field("contents", reader))
 
         indexWriter.addDocument(doc)
@@ -522,10 +524,14 @@ class IndexContainer(FileContainer):
 
         indexWriter.optimize()
 
-    def searchDocuments(self, version, query, attribute=None):
+    def searchDocuments(self, version, query=None, attribute=None):
 
         searcher = self.getIndexSearcher()
-        query = QueryParser("contents", StandardAnalyzer()).parse(query)
+
+        if query is None:
+            query = MatchAllDocsQuery()
+        else:
+            query = QueryParser("contents", StandardAnalyzer()).parse(query)
 
         docs = {}
         for i, doc in searcher.search(query):

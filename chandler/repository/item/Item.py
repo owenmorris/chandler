@@ -1970,11 +1970,13 @@ class Item(CItem):
         @return: boolean
         """
 
-        if self._kind is kind:
+        _kind = self.itsKind
+
+        if _kind is kind:
             return True
 
-        if self._kind is not None:
-            return self._kind.isKindOf(kind)
+        if _kind is not None:
+            return _kind.isKindOf(kind)
 
         return False
 
