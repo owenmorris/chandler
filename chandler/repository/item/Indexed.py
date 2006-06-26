@@ -227,6 +227,8 @@ class Indexed(object):
                         others.append(key)
                         if key in index:
                             index.removeKey(key)
+                elif key in index:
+                    index.removeKey(key)
             for key in others:
                 index.insertKey(key)
 

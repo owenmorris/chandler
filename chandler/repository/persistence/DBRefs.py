@@ -14,12 +14,11 @@
 
 
 from chandlerdb.item.c import Nil
-from chandlerdb.util.c import UUID, CLink
+from chandlerdb.util.c import UUID, CLink, CLinkedMap
 from repository.item.Children import Children
 from repository.item.RefCollections import RefList
 from repository.item.Indexes import NumericIndex
 from repository.persistence.RepositoryError import MergeError
-from repository.util.LinkedMap import LinkedMap
 
 
 class PersistentRefs(object):
@@ -272,8 +271,12 @@ class PersistentRefs(object):
             if op == 1:
                 #if key in history:
                 #    self.view._e_2_move(self, key)
-                if key in self:
-                    self._removeRef(key)
+                try:
+                    self._flags |= CLinkedMap.MERGING
+                    if key in self:
+                        self._removeRef(key)
+                finally:
+                    self._flags &= ~CLinkedMap.MERGING
             else:
                 if alias is not None:
                     resolvedKey = self.resolveAlias(alias)
@@ -316,7 +319,7 @@ class DBRefList(RefList, PersistentRefs):
 
         PersistentRefs.__init__(self, view)
         RefList.__init__(self, item, name, otherName, readOnly,
-                         (new and LinkedMap.NEW or 0) | LinkedMap.LOAD)
+                         (new and CLinkedMap.NEW or 0) | CLinkedMap.LOAD)
 
     def iterkeys(self, firstKey=None, lastKey=None):
 
@@ -333,7 +336,7 @@ class DBRefList(RefList, PersistentRefs):
     def resolveAlias(self, alias, load=True):
 
         key = RefList.resolveAlias(self, alias, load)
-        if key is None and load and not self._flags & LinkedMap.NEW:
+        if key is None and load and not self._flags & CLinkedMap.NEW:
             key = PersistentRefs.resolveAlias(self, alias, load)
 
         return key
@@ -360,7 +363,7 @@ class DBRefList(RefList, PersistentRefs):
         aliases = self._aliases
 
         if __debug__:
-            if not (self._flags & LinkedMap.NEW or
+            if not (self._flags & CLinkedMap.NEW or
                     item.isAttributeDirty(self._name, item._references) or
                     len(self._changedRefs) == 0):
                 raise AssertionError, '%s.%s not marked dirty' %(item._repr_(),
@@ -398,7 +401,7 @@ class DBRefList(RefList, PersistentRefs):
         
     def _clearDirties(self):
 
-        self._flags &= ~LinkedMap.NEW
+        self._flags &= ~CLinkedMap.NEW
 
         PersistentRefs._clearDirties(self)
         self._clearIndexDirties()
@@ -610,7 +613,7 @@ class DBChildren(Children, PersistentRefs):
 
         PersistentRefs.__init__(self, view)
         Children.__init__(self, item,
-                          (new and LinkedMap.NEW or 0) | LinkedMap.LOAD)
+                          (new and CLinkedMap.NEW or 0) | CLinkedMap.LOAD)
 
     def iterkeys(self, firstKey=None, lastKey=None):
 
@@ -623,12 +626,12 @@ class DBChildren(Children, PersistentRefs):
 
     def _load(self, key):
 
-        if self._flags & LinkedMap.NEW:
+        if self._flags & CLinkedMap.NEW:
             return False
 
         if not self._isRemoved(key):
             child = self.view.find(key)
-            if child is not None:
+            if child is not None or self._flags & CLinkedMap.MERGING:
                 if not self._contains_(key):
                     try:
                         loading = self.view._setLoading(True)
@@ -658,7 +661,7 @@ class DBChildren(Children, PersistentRefs):
     def resolveAlias(self, alias, load=True):
 
         key = Children.resolveAlias(self, alias, load)
-        if key is None and not self._flags & LinkedMap.NEW:
+        if key is None and not self._flags & CLinkedMap.NEW:
             key = PersistentRefs.resolveAlias(self, alias, load)
 
         return key
@@ -742,5 +745,5 @@ class DBChildren(Children, PersistentRefs):
 
     def _clearDirties(self):
 
-        self._flags &= ~LinkedMap.NEW
+        self._flags &= ~CLinkedMap.NEW
         PersistentRefs._clearDirties(self)
