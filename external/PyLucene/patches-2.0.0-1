@@ -39,7 +39,7 @@
  else
  CCFLAGS=-O2
  LDFLAGS=
-@@ -776,7 +777,8 @@
+@@ -777,7 +778,8 @@
  install::
  	install $(GCJ_HOME)/bin/libiconv-2.dll $(PYTHON_SITE)
  ifdef DB

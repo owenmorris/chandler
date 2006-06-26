@@ -142,16 +142,26 @@ clean:
 binaries:
 	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) $(MANIFEST)
 
-PyLucene-src-$(VERSION).tar.gz:
-	$(CURL) http://builds.osafoundation.org/external/PyLucene-src-$(VERSION).tar.gz
+ifeq ($(OS),Darwin)
+ifeq ($(ARCH),i386)
+PYLUCENE_SRC_ARCHIVE=PyLucene-src-$(VERSION)-darwin-i386.tar.gz
+else
+PYLUCENE_SRC_ARCHIVE=PyLucene-src-$(VERSION).tar.gz
+endif
+else
+PYLUCENE_SRC_ARCHIVE=PyLucene-src-$(VERSION).tar.gz
+endif
 
-sources: PyLucene-src-$(VERSION).tar.gz
+sources: $(PYLUCENE_SRC_ARCHIVE)
 
-PyLucene-$(VERSION)-expanded: PyLucene-src-$(VERSION).tar.gz
-	tar xvzf PyLucene-src-$(VERSION).tar.gz
-	touch PyLucene-$(VERSION)-expanded
+$(PYLUCENE_SRC_ARCHIVE):
+	$(CURL) http://builds.osafoundation.org/external/$(PYLUCENE_SRC_ARCHIVE)
 
-expand: PyLucene-$(VERSION)-expanded
+PyLucene-src-$(VERSION)-expanded: $(PYLUCENE_SRC_ARCHIVE)
+	tar xvzf $(PYLUCENE_SRC_ARCHIVE)
+	touch PyLucene-src-$(VERSION)-expanded
+
+expand: PyLucene-src-$(VERSION)-expanded
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
