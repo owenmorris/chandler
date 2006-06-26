@@ -480,6 +480,12 @@ class MainView(View):
         repository.logger.info(successMessage)
         self.setStatusMessage(successMessage)
 
+    def onIndexRepositoryEvent(self, event):
+        # triggered from "Test | Index Repository" Menu
+        self.RepositoryCommitWithStatus()
+        repository = self.itsView.repository
+        repository.notifyIndexer()
+
     def onImportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" menu
         prefs = schema.ns("osaf.sharing", self.itsView).prefs

@@ -56,6 +56,8 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('CompactRepository').install(parcel)
 
+    BlockEvent.template('IndexRepository').install(parcel)
+
     BlockEvent.template('UnsubscribeSidebarCollection').install(parcel)
 
     BlockEvent.template('SharingPublishFreeBusy').install(parcel)
