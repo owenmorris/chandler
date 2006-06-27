@@ -350,8 +350,7 @@ class AbstractSet(ItemValue, Indexed):
                                     dirty = True
                         else:
                             for index in self._indexes.itervalues():
-                                if other in index:
-                                    index.removeKey(other)
+                                if index.removeKey(other):
                                     dirty = True
 
                         if dirty:

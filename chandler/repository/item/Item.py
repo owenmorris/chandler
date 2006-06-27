@@ -139,8 +139,10 @@ class Item(CItem):
         @return: C{True} or C{False}
         """
 
-        if self._kind is not None:
-            attribute = self._kind.getAttribute(name, True, self)
+        kind = self.itsKind
+
+        if kind is not None:
+            attribute = kind.getAttribute(name, True, self)
             if attribute is not None:
                 return attribute.hasAspect(aspect)
 
@@ -151,7 +153,7 @@ class Item(CItem):
         item = self
         names = redirect.split('.')
         for i in xrange(len(names) - 1):
-            item = item.getAttributeValue(names[i])
+            item = getattr(item, names[i])
 
         return getattr(item, methodName)(names[-1], *args)
         

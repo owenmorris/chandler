@@ -17,7 +17,7 @@ from struct import pack, unpack
 from itertools import izip
 
 from chandlerdb.item.c import Nil
-from chandlerdb.util.c import SkipList
+from chandlerdb.util.c import SkipList, CLinkedMap
 from PyICU import Collator, Locale
   
 from repository.util.RangeSet import RangeSet
@@ -62,6 +62,7 @@ class Index(dict):
 
     def removeKey(self, key):
         self._count -= 1
+        return True
 
     def getKey(self, n):
         raise NotImplementedError, "%s.getKey" %(type(self))
@@ -254,14 +255,17 @@ class NumericIndex(Index):
             
     def removeKey(self, key):
 
-        skipList = self.skipList
+        if key in self:
+            skipList = self.skipList
 
-        ranges = self._ranges
-        if ranges is not None:
-            ranges.onRemove(key, skipList.position(key))
+            ranges = self._ranges
+            if ranges is not None:
+                ranges.onRemove(key, skipList.position(key))
 
-        skipList.remove(key)
-        super(NumericIndex, self).removeKey(key)
+            skipList.remove(key)
+            return super(NumericIndex, self).removeKey(key)
+
+        return False
 
     def clear(self):
 
@@ -375,8 +379,20 @@ class SortedIndex(DelegatingIndex):
 
     def removeKey(self, key):
 
-        self._index.removeKey(key)
-            
+        if self._index.removeKey(key):
+            if self._subIndexes:
+                view = self._valueMap._getView()
+                for uuid, attr, name in self._subIndexes:
+                    indexed = getattr(view[uuid], attr)
+                    index = indexed.getIndex(name)
+                    if key in index:
+                        index.removeKey(key)
+                        indexed._setDirty(True)
+
+            return True
+
+        return False
+
     def moveKey(self, key, afterKey):
 
         index = self._index

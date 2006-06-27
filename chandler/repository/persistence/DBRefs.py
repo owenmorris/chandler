@@ -261,49 +261,54 @@ class PersistentRefs(object):
                 k = nK
                 nK = changes[k][2]
 
-        for key, (op, prevKey, nextKey, alias, oldAlias) in changes.iteritems():
-            if key in history:
-                merge = True
-                hOp, hPrevKey, hNextKey, hAlias, hOldAlias = history[key]
-            else:
-                merge = False
+        try:
+            # allow deleted refs to return for merging
+            self._flags |= CLinkedMap.MERGING
 
-            if op == 1:
-                #if key in history:
-                #    self.view._e_2_move(self, key)
-                try:
-                    self._flags |= CLinkedMap.MERGING
+            for key, (op, prevKey, nextKey,
+                      alias, oldAlias) in changes.iteritems():
+                if key in history:
+                    merge = True
+                    hOp, hPrevKey, hNextKey, hAlias, hOldAlias = history[key]
+                else:
+                    merge = False
+
+                if op == 1:
+                    #if key in history:
+                    #    self.view._e_2_move(self, key)
                     if key in self:
                         self._removeRef(key)
-                finally:
-                    self._flags &= ~CLinkedMap.MERGING
-            else:
-                if alias is not None:
-                    resolvedKey = self.resolveAlias(alias)
-                    if resolvedKey not in (None, key):
-                        self.view._e_2_name(self, resolvedKey, key, alias)
-
-                if key in self:
-                    link = self._get(key)
-                    if oldAlias is not Nil:
-                        if link.alias != alias:
-                            if merge and hOldAlias not in (Nil, hAlias):
-                                self.view._e_1_name(self, key, alias, hAlias)
-                            self.setAlias(key, alias)
-                elif merge is True and hOp == 1:
-                    # conflict: the ref was removed, resolve in favor of history
-                    continue
                 else:
-                    self._setRef(key, alias)
-                    link = self._get(key)
+                    if alias is not None:
+                        resolvedKey = self.resolveAlias(alias)
+                        if resolvedKey not in (None, key):
+                            self.view._e_2_name(self, resolvedKey, key, alias)
 
-                if link._previousKey != prevKey:
-                    if prevKey is None or prevKey in self:
-                        place(key, prevKey)
+                    if key in self:
+                        link = self._get(key)
+                        if oldAlias is not Nil:
+                            if link.alias != alias:
+                                if merge and hOldAlias not in (Nil, hAlias):
+                                    self.view._e_1_name(self, key, alias, hAlias)
+                                self.setAlias(key, alias)
+                    elif merge is True and hOp == 1:
+                        # conflict: the ref was removed, resolve 
+                        #           in favor of history
+                        continue
                     else:
-                        moves[prevKey] = key
+                        self._setRef(key, alias)
+                        link = self._get(key)
 
-                done.add(key)
+                    if link._previousKey != prevKey:
+                        if prevKey is None or prevKey in self:
+                            place(key, prevKey)
+                        else:
+                            moves[prevKey] = key
+
+                    done.add(key)
+
+        finally:
+            self._flags &= ~CLinkedMap.MERGING
 
         for prevKey, key in moves.iteritems():
             if prevKey in self:
@@ -450,8 +455,11 @@ class DBNumericIndex(NumericIndex):
 
     def removeKey(self, key):
 
-        super(DBNumericIndex, self).removeKey(key)
-        self._changedKeys[key] = None
+        if super(DBNumericIndex, self).removeKey(key):
+            self._changedKeys[key] = None
+            return True
+
+        return False
 
     def __getitem__(self, key):
 

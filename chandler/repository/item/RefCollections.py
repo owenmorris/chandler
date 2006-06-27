@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-from chandlerdb.util.c import UUID, _hash, _combine, CLink
+from chandlerdb.util.c import UUID, _hash, _combine, CLink, CLinkedMap
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 from repository.item.Indexed import Indexed
@@ -390,7 +390,7 @@ class RefList(LinkedMap, Indexed):
 
     def _load(self, key):
 
-        if self._flags & LinkedMap.NEW:
+        if self._flags & CLinkedMap.NEW:
             return False
 
         ref = self._loadRef(key)
@@ -404,7 +404,10 @@ class RefList(LinkedMap, Indexed):
             try:
                 other = view[key]
             except KeyError:
-                raise DanglingRefError, (self._item, self._name, key)
+                if self._flags & CLinkedMap.MERGING:
+                    other = key
+                else:
+                    raise DanglingRefError, (self._item, self._name, key)
 
             previousKey, nextKey, alias = ref
             self._dict[key] = CLink(self, other, previousKey, nextKey, alias)
@@ -683,10 +686,11 @@ class RefList(LinkedMap, Indexed):
         return ''
 
     
-    #   NEW  = 0x0001 (defined on LinkedMap)
-    #   LOAD = 0x0002 (defined on LinkedMap)
-    SETDIRTY = 0x0004
-    READONLY = 0x0008
+    #    NEW  = 0x0001 (defined on CLinkedMap)
+    #    LOAD = 0x0002 (defined on CLinkedMap)
+    # MERGING = 0x0004 (defined on CLinkedMap)
+    SETDIRTY  = 0x0008
+    READONLY  = 0x0010
 
 
 class TransientRefList(RefList):
@@ -697,7 +701,7 @@ class TransientRefList(RefList):
     def __init__(self, item, name, otherName, readOnly):
 
         super(TransientRefList, self).__init__(item, name, otherName, readOnly,
-                                               LinkedMap.NEW)
+                                               CLinkedMap.NEW)
 
     def _setOwner(self, item, name):
 
@@ -723,7 +727,7 @@ class TransientRefList(RefList):
     def _unloadRef(self, item):
 
         key = item.itsUUID
-        self._flags |= LinkedMap.LOAD
+        self._flags |= CLinkedMap.LOAD
 
         if self.has_key(key, False):
             link = self._get(key, False)

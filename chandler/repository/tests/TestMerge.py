@@ -943,6 +943,40 @@ class TestMerge(RepositoryTestCase):
         main.commit()
         self.assert_(main.check(), 'main view did not check out')
 
+    def testMergeSubIndex(self):
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        k = main.findPath('//CineGuide/KHepburn')
+        k.movies.addIndex('t', 'value', attribute='title', ranges=[(0, 1)])
+        m1 = k.movies.first()
+        m1.director.directed.addIndex('T', 'subindex',
+                                      superindex=(k, 'movies', 't'))
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        c = k.itsParent
+        m1 = k.movies.first()
+        m1.title = 'Foo'
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        c = k.itsParent
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m3 = k.movies.next(m2)
+        m2.director = m1.director
+        m3.delete()
+
+        main.commit()
+        self.assert_(main.check(), 'main view did not check out')
+
 
 if __name__ == "__main__":
 #    import hotshot
