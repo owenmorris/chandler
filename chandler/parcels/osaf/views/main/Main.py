@@ -803,6 +803,8 @@ class MainView(View):
         autosyncprefs.Show(self.itsView)
 
     def onRestoreSharesEvent(self, event):
+        if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
+            return
         RestoreShares.Show(wx.GetApp().mainFrame, self.itsView)
 
     def onShareSidebarCollectionEvent(self, event):

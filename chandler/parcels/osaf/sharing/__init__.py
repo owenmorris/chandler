@@ -1006,43 +1006,6 @@ def unsubscribe(collection):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Public helper methods
 
-def restoreFromAccount(account):
-
-    view = account.itsView
-
-    me = schema.ns("osaf.pim", view).currentContact.item
-
-    accountUrl = account.getLocation()
-    if not accountUrl.endswith('/'):
-        accountUrl += "/"
-
-    collections = []
-    failures = []
-
-    existing = getExistingResources(account)
-
-    for name in existing:
-
-        # name = urllib.quote_plus(name).decode('utf-8')
-        url = accountUrl + name
-
-        share = findMatchingShare(view, url)
-
-        if share is None:
-            try:
-                collection = subscribe(view, url)
-
-                # Make me the sharer
-                for share in collection.shares:
-                    share.sharer = me
-
-                collections.append(collection)
-
-            except Exception, err:
-                failures.append(name)
-
-    return (collections, failures)
-
 
 def findMatchingShare(view, url):
     """ Find a Share which corresponds to a URL.
