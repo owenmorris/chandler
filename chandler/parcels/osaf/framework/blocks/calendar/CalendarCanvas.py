@@ -1070,6 +1070,16 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         if self.editor.IsShown():
             self.editor.SaveAndHide()
 
+    def onItemNotification(self, notificationType, data):
+        # Work around bug 6137 and bug 3727: If an item changes
+        # while we're editing it, finish editing.
+        if (notificationType == 'collectionChange'):
+            op, coll, name, uuid = data
+            if op == 'changed' and self.editor.item is not None and \
+               self.editor.item.itsUUID == uuid:
+                self.GrabFocusHack()
+        super(wxCalendarCanvas, self).onItemNotification(notificationType, data)
+
     def RefreshCanvasItems(self, resort=True):
         # [@@@] grant setting resort=True here avoids a
         # wiggling events problem (if you drag an event
