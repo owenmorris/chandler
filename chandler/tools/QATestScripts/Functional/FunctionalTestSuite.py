@@ -77,7 +77,6 @@ else:
     
 exclusions = {#tests to exclude on specific platfoms only
     'other':(
-    "TestTableSelection.py",            #bug 5877 
     ),
     
     'mac':( 
