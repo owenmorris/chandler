@@ -20,6 +20,7 @@ import unittest, os
 
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 from osaf import pim
+from application import schema
 import osaf.pim.mail as Mail
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.generate as generate
@@ -255,6 +256,27 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
                 pass
             else:
                 self.assert_(False, "Unstamping a stamp not present should raise an exception!")
+            # Test for Bug:6151: Make sure items don't disappear
+            # from the all collection if they're unstamped
+            #
+            # Make an email ...
+            aMessage = Mail.MailMessage("aNewMessage", itsView=view)
+            self.setAttributes(aMessage)
+            
+            # Make sure it's in "Out"
+            aMessage.isOutbound = True
+            outCollection = schema.ns("osaf.pim", view).outCollection
+            
+            self.failUnless(aMessage in outCollection)
+            
+            # unstamp its emailness
+            self.traverseStampSquence(aMessage,
+                                      (('add', taskMixin),
+                                      ('remove', mailMixin)))
+                                      
+            allCollection = schema.ns("osaf.pim", view).allCollection
+            self.failUnless(aMessage in allCollection)
+
 
 if __name__ == "__main__":
     unittest.main()

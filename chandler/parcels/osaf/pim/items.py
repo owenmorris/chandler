@@ -304,10 +304,22 @@ class ContentItem(schema.Item):
         """
         newKind = self._findStampedKind (operation, mixinKind)
         addedKinds = self._addedKinds (newKind, operation, mixinKind)
+        
+        all = schema.ns("osaf.pim", self.itsView).allCollection
+        inAllBeforeStamp = self in all
+        
         if newKind is not None:
             self.itsKind = newKind
         else:
             self.mixinKinds ((operation, mixinKind)) # create a class on-the-fly
+            
+        # [Bug:6151] If you unstamp a received email, it stops being in the "In"
+        # collection, and is therefore no longer "mine", and disappears
+        # completely. So, for now explicitly add self back to the all collection
+        # in this case.
+        if inAllBeforeStamp and not self in all:
+            all.add(self)
+
         self._stampPostProcess (addedKinds) # initialize attributes of added kinds
         
         # make sure the respository knows about the item's new Kind
