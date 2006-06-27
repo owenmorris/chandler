@@ -1515,9 +1515,15 @@ def makeInstaller(buildenv, directories, fileRoot, majorVersion='0', minorVersio
     if buildenv['os'] == 'win':
         if not buildenv['makensis']:
             raise hardhatutil.CommandNotFound, 'makensis'
+
+        distribVersion = '%s.%s' % (majorVersion, minorVersion)
+
+        if releaseVersion != '0':
+            distribVersion = '%s-%s' % (distribVersion, releaseVersion)
+
         nsisScriptPath = os.path.join(buildenv['root'], "internal", "installers", "win")
-        scriptOption   = '/DSNAP_%s /DDISTRIB_DIR=%s /DDISTRIB_VERSION=%s.%s-%s' % \
-                          (buildenv['version'].upper(), fileRoot, majorVersion, minorVersion, releaseVersion)
+        scriptOption   = '/DSNAP_%s /DDISTRIB_DIR=%s /DDISTRIB_VERSION=%s' % \
+                          (buildenv['version'].upper(), fileRoot, distribVersion)
 
         if sys.platform == 'cygwin':
             scriptName = os.path.join(nsisScriptPath, "makeinstaller.sh")
