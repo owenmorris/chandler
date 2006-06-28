@@ -72,11 +72,18 @@ class BoxContainer(RectangularChild):
     orientationEnum = schema.One(
         orientationEnumType, initialValue = 'Horizontal',
     )
+    bufferedDraw = schema.One(schema.Boolean, defaultValue=False)
 
     def instantiateWidget (self):
-        return wxBoxContainer (self.parentBlock.widget, self.getWidgetID(),
-                               wx.DefaultPosition, wx.DefaultSize, style=wxBoxContainer.CalculateWXStyle(self))
-    
+        widget = wxBoxContainer (self.parentBlock.widget,
+                                 self.getWidgetID(),
+                                 wx.DefaultPosition,
+                                 wx.DefaultSize,
+                                 style=wxBoxContainer.CalculateWXStyle(self))
+        if self.bufferedDraw:
+            widget.SetExtraStyle (wx.WS_EX_BUFFERED_DRAW)
+        return widget
+
     
 class wxLayoutChooser(wxBoxContainer):
     def __init__(self, *arguments, **keywords):

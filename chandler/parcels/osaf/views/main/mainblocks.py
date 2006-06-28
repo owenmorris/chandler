@@ -79,7 +79,14 @@ def makeMainView (parcel):
         filterKind = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView)).install(parcel)
     Sidebar.contents.selectItem (pim_ns.allCollection)
 
-    appChildren = [
+    ApplicationBar = Toolbar.template(
+        'ApplicationBar',
+        stretchFactor = 0.0,
+        toolSize = SizeType(26, 26),
+        buttonsLabeled = True,
+        separatorWidth = 20,
+        mainFrameToolbar = True,
+        childrenBlocks = [
             ToolbarItem.template('ApplicationBarAllButton',
                 event = main.ApplicationBarAll,
                 bitmap = 'ApplicationBarAll.png',
@@ -127,33 +134,14 @@ def makeMainView (parcel):
                 title = messages.SEND,
                 toolbarItemKind = 'Button',
                 helpString = _(u'Send the selected Item')),
-            ]
-
-    platform, major, minor = wx.GetOsVersion()
-    # according the the wx file src/msw/settings.cpp, around line 135-175,
-    # major=5, minor=1 and later indicate Windows XP and later.
-    # platform=18 is wxWINDOWS_NT, which covers Win2k as well, but apparently
-    # the 'platform' value is more subject to chaange.
-    if '__WXMSW__' not in wx.PlatformInfo or major < 5 or (major == 5 and minor < 1):
-        # Don't add search field under Windows until CPU-hogging bug is fixed
-        appChildren.extend([
             ToolbarItem.template('ApplicationSeparator3',
                 toolbarItemKind = 'Separator'),
             ToolbarItem.template('ApplicationBarSearchField',
                 event = main.Search,
                 title = _(u''),
                 toolbarItemKind = 'Text',
-                helpString = _(u'Search field - enter text to find')),
-        ])
-
-    ApplicationBar = Toolbar.template(
-        'ApplicationBar',
-        stretchFactor = 0.0,
-        toolSize = SizeType(26, 26),
-        buttonsLabeled = True,
-        separatorWidth = 20,
-        mainFrameToolbar = True,
-        childrenBlocks = appChildren
+                helpString = _(u'Search field - enter text to find'))
+        ]
     ) # Toolbar ApplicationBar
 
     MainViewInstance = MainView.template(
@@ -183,6 +171,7 @@ def makeMainView (parcel):
                 childrenBlocks = [
                     ApplicationBar,
                     BoxContainer.template('SidebarContainerContainer',
+                        bufferedDraw = True,
                         border = RectType(4, 0, 0, 0),
                         childrenBlocks = [
                             SplitterWindow.template('SidebarContainer',
