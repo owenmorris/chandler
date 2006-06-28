@@ -35,7 +35,10 @@ static PyObject *_isUUID(PyObject *self);
 static PyObject *_isItem(PyObject *self);
 static PyObject *_isRefs(PyObject *self);
 
+static PyObject *pop_NAME;
+
 int debug = 0;
+PyObject *uuidList = NULL;
 
 static PyMemberDef t_uuid_members[] = {
     { "_uuid", T_OBJECT, offsetof(t_uuid, uuid), READONLY, "UUID bytes" },
@@ -132,6 +135,27 @@ static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
 
     switch (len) {
       case 0:
+        if (uuidList)
+        {
+            PyObject *u = PyObject_CallMethodObjArgs(uuidList, pop_NAME, NULL);
+
+            if (!u)
+                return -1;
+
+            if (u->ob_type != &UUIDType)
+            {
+                PyErr_SetObject(PyExc_TypeError, u);
+                return -1;
+            }
+
+            Py_INCREF(((t_uuid *) u)->uuid);
+            Py_XDECREF(self->uuid);
+            self->uuid = ((t_uuid *) u)->uuid;
+            self->hash = ((t_uuid *) u)->hash;
+            Py_DECREF(u);
+
+            return 0;
+        }
         if (generate_uuid(uuid))
         {
             PyErr_SetString(PyExc_ValueError,
@@ -280,12 +304,15 @@ void _init_uuid(PyObject *m)
             PyModule_AddObject(m, "UUID", (PyObject *) &UUIDType);
             UUID = &UUIDType;
 
+            pop_NAME = PyString_FromString("pop");
+
             cobj = PyCObject_FromVoidPtr(PyUUID_Check, NULL);
             PyModule_AddObject(m, "PyUUID_Check", cobj);
             cobj = PyCObject_FromVoidPtr(PyUUID_Make16, NULL);
             PyModule_AddObject(m, "PyUUID_Make16", cobj);
 
             debug = !Py_OptimizeFlag;
+            uuidList = NULL;
         }
     }
 }

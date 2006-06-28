@@ -68,12 +68,32 @@ static PyObject *combine(PyObject *self, PyObject *args)
     return PyInt_FromLong(combine_longs(h0, h1));
 }
 
+static PyObject *useUUIDs(PyObject *self, PyObject *arg)
+{
+    if (arg == Py_None)
+        arg = NULL;
+    else if (!PyList_Check(arg))
+    {
+        PyErr_SetObject(PyExc_TypeError, arg);
+        return NULL;
+    }
+    else
+        Py_INCREF(arg);
+
+    Py_XDECREF(uuidList);
+    uuidList = arg;
+
+    Py_RETURN_NONE;
+}
+
 
 static PyMethodDef c_funcs[] = {
     { "isuuid", (PyCFunction) isuuid, METH_O, "isinstance(UUID)" },
     { "issingleref", (PyCFunction) issingleref, METH_O, "isinstance(SingleRef)" },
     { "_hash", (PyCFunction) hash, METH_VARARGS, "hash bytes" },
     { "_combine", (PyCFunction) combine, METH_VARARGS, "combine two hashes" },
+    { "useUUIDs", (PyCFunction) useUUIDs, METH_O,
+      "use a list of pre-generated UUIDs for debugging" },
 #ifdef WINDOWS
     { "openHFILE", (PyCFunction) openHFILE, METH_VARARGS, "open HFILE" },
     { "closeHFILE", (PyCFunction) closeHFILE, METH_VARARGS, "close HFILE" },

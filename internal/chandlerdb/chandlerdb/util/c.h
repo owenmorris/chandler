@@ -30,6 +30,7 @@ extern PyTypeObject *CLink;
 extern PyTypeObject *CPoint;
 extern PyTypeObject *CNode;
 extern PyTypeObject *SkipList;
+extern PyObject *uuidList;
 
 void PyDict_SetItemString_Int(PyObject *, char *, int);
 
