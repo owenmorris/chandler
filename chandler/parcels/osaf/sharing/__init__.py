@@ -102,6 +102,17 @@ RUNNING        = 2
 running_status = IDLE
 
 
+# In order to shut down cleanly, the BackgroundSyncHandler registers itself
+# with twisted to be alerted when reactor shutdown is beginning.  If the
+# sharing layer is in the middle of a job, a Deferred is returned to twisted,
+# and Twisted suspends shutdown until BackgroundSyncHandler triggers the
+# Deferred.  If no job is running, None is returned and twisted continues
+# with shutdown immediately.
+
+# The Deferred object is stored in shutdown_deferred for later use by
+# BackgroundSyncHandler's run method.
+shutdown_deferred = None
+
 
 def setAutoSyncInterval(rv, minutes):
     # If minutes is None, that means manual mode only, and we'll set the
@@ -129,14 +140,16 @@ def scheduleNow(rv, *args, **kwds):
     collection = kwds.get('collection', None)
     if collection is not None:
         kwds['collection'] = collection.itsUUID
+
     task.run_once(*args, **kwds)
 
-def interrupt(rv, graceful=True):
+def interrupt(graceful=True):
     """ Stop sync operations; if graceful=True, then the Share being synced
         at the moment is allowed to complete.  If graceful=False, stop the
         current Share in the middle of whatever it's doing.
     """
     global interrupt_flag
+
     if running_status == IDLE:
         return
 
@@ -187,6 +200,26 @@ class BackgroundSyncHandler:
     def __init__(self, item):
         global running_status
 
+        def shutdownCallback():
+            # This gets called before twisted starts shutting down, since we
+            # register this callback a few lines down
+
+            # Return a Deferred that we can return to twisted -- twisted will
+            # wait for the Deferred to be called-back when shutting down; if
+            # no current sync activity, then return None
+            global shutdown_deferred
+
+            if running_status == IDLE:
+                # Returning None since we're not running
+                return None
+
+            shutdown_deferred = twisted.internet.defer.Deferred()
+            return shutdown_deferred
+
+        # Register a callback for when twisted is being shutdown
+        twisted.internet.reactor.addSystemEventTrigger('before', 'shutdown',
+            shutdownCallback)
+
         repo = item.itsView.repository
         for view in repo.views:
             if view.name == 'BackgroundSync':
@@ -202,9 +235,12 @@ class BackgroundSyncHandler:
 
         # A callback to allow cancelling of a sync( )
         def callback(msg=None, work=None, totalWork=None):
-            # print "in run.callback", msg, work, totalWork, interrupt_flag
             kwds = {'msg':msg, 'work':work, 'totalWork':totalWork}
             _callCallbacks(**kwds)
+            return interrupt_flag == IMMEDIATE_STOP
+
+        def silentCallback(*args, **kwds):
+            # Simply return the interrupt flag
             return interrupt_flag == IMMEDIATE_STOP
 
         if running_status != IDLE:
@@ -220,6 +256,7 @@ class BackgroundSyncHandler:
 
             try:
                 self.rv.refresh(notify=False)
+
 
                 collections = []
 
@@ -248,8 +285,10 @@ class BackgroundSyncHandler:
                         collection.displayName)
                     try:
                         stats.extend(sync(collection,
-                            modeOverride=modeOverride))
+                            modeOverride=modeOverride,
+                            updateCallback=silentCallback))
                         _clearError(collection)
+
                     except Exception, e:
                         # print "Exception", e
                         logger.exception("Error syncing collection")
@@ -267,9 +306,6 @@ class BackgroundSyncHandler:
                 logger.exception("Background sync error")
 
         finally:
-            interrupt_flag = PROCEED
-            running_status = IDLE
-            _callCallbacks(msg='')
 
             # Create the sync report event
             log = schema.ns('osaf.sharing', self.rv).activityLog
@@ -284,6 +320,15 @@ class BackgroundSyncHandler:
             log.add(reportEvent)
 
             self.rv.commit()
+
+            running_status = IDLE
+            _callCallbacks(msg='')
+            if interrupt_flag != PROCEED:
+                # We have been asked to stop, so fire the deferred
+                if shutdown_deferred:
+                    shutdown_deferred.callback(None)
+
+            interrupt_flag = PROCEED
 
         return True
 

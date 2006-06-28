@@ -222,6 +222,10 @@ class wxMainFrame (wxBlockFrameWindow):
         displayInfoWhileProcessing (_("Stopping wakeup service..."),
                                     Utility.stopWakeup)
 
+        from osaf import sharing
+        displayInfoWhileProcessing (_("Stopping sharing..."),
+                                    sharing.interrupt, graceful=False)
+
         displayInfoWhileProcessing (_("Stopping twisted..."),
                                     Utility.stopTwisted)
 
