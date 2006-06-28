@@ -334,11 +334,15 @@ class AbstractSet(ItemValue, Indexed):
             if change == 'collection':
                 if op in ('add', 'remove'):
                     if not (local or self._otherName is None):
-                        refs = self._view[other]._references
-                        if op == 'add':
-                            refs._addRef(self._otherName, item, attribute, True)
-                        else:
-                            refs._removeRef(self._otherName, item, True)
+                        otherItem = self._view.find(other)
+                        if otherItem is not None:
+                            refs = otherItem._references
+                            if op == 'add':
+                                refs._addRef(self._otherName, item, attribute, True)
+                            else:
+                                refs._removeRef(self._otherName, item, True)
+                        elif op == 'add':
+                            raise AssertionError, ("op == 'add' but item not found", other)
 
                     if self._indexes:
                         dirty = False

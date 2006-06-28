@@ -66,7 +66,7 @@ BUILD_PLUGINS=Chandler-HelloWorldPlugin Chandler-FeedsPlugin
 
 # these get installed into release or debug
 ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)8.tar.gz \
-         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)27.tar.gz \
+         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)28.tar.gz \
          $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)5.tar.gz \
          $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.3-$(BP)3.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)9.tar.gz \

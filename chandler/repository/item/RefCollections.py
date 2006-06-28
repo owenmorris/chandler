@@ -155,7 +155,7 @@ class RefList(LinkedMap, Indexed):
 
         return super(RefList, self).__contains__(key.itsUUID)
 
-    def extend(self, valueList):
+    def extend(self, valueList, _noMonitors=False):
         """
         As with regular python lists, this method appends all items in the
         list to this ref collection.
@@ -164,13 +164,13 @@ class RefList(LinkedMap, Indexed):
         try:
             sd = self._setFlag(RefList.SETDIRTY, False)
             for value in valueList:
-                self.append(value)
+                self.append(value, None, _noMonitors)
         finally:
             self._setFlag(RefList.SETDIRTY, sd)
 
         self._setDirty(True)
 
-    def update(self, dictionary, setAliases=False):
+    def update(self, dictionary, setAliases=False, _noMonitors=False):
         """
         As with regular python dictionary, this method appends all items in
         the dictionary to this ref collection.
@@ -185,10 +185,10 @@ class RefList(LinkedMap, Indexed):
             sd = self._setFlag(RefList.SETDIRTY, False)
             if setAliases:
                 for alias, value in dictionary.iteritems():
-                    self.append(value, alias)
+                    self.append(value, alias, _noMonitors)
             else:
                 for value in dictionary.itervalues():
-                    self.append(value)
+                    self.append(value, None, _noMonitors)
         finally:
             self._setFlag(RefList.SETDIRTY, sd)
 
@@ -203,7 +203,7 @@ class RefList(LinkedMap, Indexed):
 
         self.append(item, alias)
 
-    def append(self, item, alias=None):
+    def append(self, item, alias=None, _noMonitors=False):
         """
         Append an item to this ref collection.
 
@@ -226,7 +226,7 @@ class RefList(LinkedMap, Indexed):
                 if aliasedKey is not None:
                     raise ValueError, "alias '%s' already set for key %s" %(alias, aliasedKey)
             self._item._references._setValue(self._name, item, self._otherName,
-                                             False, 'list', alias)
+                                             _noMonitors, 'list', alias)
 
     def clear(self):
         """

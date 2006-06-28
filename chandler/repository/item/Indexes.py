@@ -385,8 +385,7 @@ class SortedIndex(DelegatingIndex):
                 for uuid, attr, name in self._subIndexes:
                     indexed = getattr(view[uuid], attr)
                     index = indexed.getIndex(name)
-                    if key in index:
-                        index.removeKey(key)
+                    if index.removeKey(key):
                         indexed._setDirty(True)
 
             return True

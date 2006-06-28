@@ -118,6 +118,8 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('BackgroundSyncAll').install(parcel)
 
+    BlockEvent.template('BackgroundSyncGetOnly').install(parcel)
+
     BlockEvent.template('EditMyName').install(parcel)
 
     BlockEvent.template('CommitRepository').install(parcel)

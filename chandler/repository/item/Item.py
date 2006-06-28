@@ -158,7 +158,8 @@ class Item(CItem):
         return getattr(item, methodName)(names[-1], *args)
         
     def setAttributeValue(self, name, value=None, _attrDict=None,
-                          otherName=None, setDirty=True, setAliases=False):
+                          otherName=None, setDirty=True, setAliases=False,
+                          _noMonitors=False):
         """
         Set a value on a Chandler attribute.
 
@@ -191,7 +192,7 @@ class Item(CItem):
                 if redirect is not None:
                     return self._redirectTo(redirect, 'setAttributeValue',
                                             value, None, None,
-                                            setDirty, setAliases)
+                                            setDirty, setAliases, _noMonitors)
 
                 if otherName is None:
                     otherName = self.itsKind.getOtherName(name, self, Nil)
@@ -227,7 +228,7 @@ class Item(CItem):
             else:
                 if otherName is None:
                     otherName = self.itsKind.getOtherName(name, self)
-                _references._setValue(name, value, otherName)
+                _references._setValue(name, value, otherName, _noMonitors)
                 setDirty = False
 
         elif not isinstance(value, (RefList, list, dict, tuple, set)):
@@ -257,7 +258,7 @@ class Item(CItem):
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
-                refList.extend(value)
+                refList.extend(value, _noMonitors)
                 value = refList
                 setDirty = False
             else:
@@ -274,7 +275,7 @@ class Item(CItem):
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
-                refList.update(value, setAliases)
+                refList.update(value, setAliases, _noMonitors)
                 value = refList
                 setDirty = False
             else:
@@ -291,7 +292,7 @@ class Item(CItem):
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
-                refList.extend(value)
+                refList.extend(value, _noMonitors)
                 value = refList
                 setDirty = False
             else:
@@ -308,7 +309,7 @@ class Item(CItem):
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
-                refList.extend(value)
+                refList.extend(value, _noMonitors)
                 value = refList
                 setDirty = False
             else:
@@ -317,7 +318,7 @@ class Item(CItem):
                 dirty = Item.VDIRTY
 
         if setDirty:
-            self.setDirty(dirty, name, _attrDict)
+            self.setDirty(dirty, name, _attrDict, _noMonitors)
         
         return value
 
@@ -484,7 +485,8 @@ class Item(CItem):
 
         raise NoValueForAttributeError, (self, name)
 
-    def removeAttributeValue(self, name, _attrDict=None, _attrID=None):
+    def removeAttributeValue(self, name, _attrDict=None, _attrID=None,
+                             _noMonitors=False):
         """
         Remove a value for a Chandler attribute.
 
@@ -510,7 +512,8 @@ class Item(CItem):
                 redirect = self.getAttributeAspect(name, 'redirectTo',
                                                    False, _attrID, None)
                 if redirect is not None:
-                    return self._redirectTo(redirect, 'removeAttributeValue')
+                    return self._redirectTo(redirect, 'removeAttributeValue',
+                                            None, None, _noMonitors)
 
                 if hasattr(self, name): # inherited value
                     return
@@ -535,7 +538,8 @@ class Item(CItem):
             else:
                 raise NoLocalValueForAttributeError, (self, name)
 
-        self._fireChanges('remove', name)
+        if not _noMonitors:
+            self._fireChanges('remove', name)
 
     def hasChild(self, name, load=True):
         """

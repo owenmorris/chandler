@@ -122,13 +122,14 @@ def getAutoSyncInterval(rv):
     else:
         return interval.days * 1440 + interval.seconds / 60
 
-def scheduleNow(rv, collection=None):
+def scheduleNow(rv, *args, **kwds):
     """ Initiate a sync right now, queuing up if one is running already """
     task = schema.ns('osaf.sharing', rv).sharingTask
+
+    collection = kwds.get('collection', None)
     if collection is not None:
-        task.run_once(collection=collection.itsUUID)
-    else:
-        task.run_once()
+        kwds['collection'] = collection.itsUUID
+    task.run_once(*args, **kwds)
 
 def interrupt(rv, graceful=True):
     """ Stop sync operations; if graceful=True, then the Share being synced
@@ -210,6 +211,8 @@ class BackgroundSyncHandler:
             # busy
             return True
 
+        modeOverride = kwds.get('modeOverride', None)
+
         stats = []
         try:
             running_status = RUNNING
@@ -244,7 +247,8 @@ class BackgroundSyncHandler:
                     _callCallbacks(msg="Syncing collection '%s'" %
                         collection.displayName)
                     try:
-                        stats.extend(sync(collection))
+                        stats.extend(sync(collection,
+                            modeOverride=modeOverride))
                         _clearError(collection)
                     except Exception, e:
                         # print "Exception", e

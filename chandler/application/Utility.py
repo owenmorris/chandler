@@ -21,6 +21,7 @@ import i18n, schema
 import M2Crypto.Rand as Rand, M2Crypto.threading as m2threading
 from optparse import OptionParser
 
+from chandlerdb.util.c import UUID, useUUIDs
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryView import NullRepositoryView
 from repository.persistence.RepositoryError import \
@@ -198,6 +199,7 @@ def initOptions(**kwds):
         'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, 'Parcel that defines the core application'),
         'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
         'indexer':    ('-i', '--indexer',    's', 'background', None, 'Run Lucene indexing in the background or foreground'),
+        'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
     }
 
 
@@ -361,6 +363,11 @@ def locateRepositoryDirectory(profileDir):
 
 
 def initRepository(directory, options, allowSchemaView=False):
+
+    if options.uuids:
+        input = file(options.uuids)
+        useUUIDs([UUID(uuid.strip()) for uuid in input if len(uuid) > 1])
+        input.close()
 
     repository = DBRepository(directory)
 

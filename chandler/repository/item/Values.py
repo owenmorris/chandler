@@ -386,9 +386,10 @@ class Values(CValues):
                     if name in dirties:
                         newValue = ask(MergeError.VALUE, name, newValue)
                     if newValue is Nil:
-                        delattr(self._item, name)
+                        self._item.removeAttributeValue(name, self, None, True)
                     else:
-                        setattr(self._item, name, newValue)
+                        self._item.setAttributeValue(name, newValue, self,
+                                                     None, True, False, True)
 
 
 class References(Values):
@@ -909,8 +910,8 @@ class References(Values):
             otherOtherName = other.itsKind.getOtherName(otherName, other, None)
             if otherOtherName != name:
                 logger.error("otherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
-                             self._item._kind.itsPath, name, otherName,
-                             other._kind.itsPath, otherName, otherOtherName)
+                             self._item.itsKind.itsPath, name, otherName,
+                             other.itsKind.itsPath, otherName, otherOtherName)
                 return False
 
             otherOther = other._references._getRef(otherName)
@@ -919,7 +920,7 @@ class References(Values):
                 if otherOther._isRefs():
                     logger.error("%s doesn't contain a reference to %s, yet %s.%s references %s",
                                  otherOther, self._item._repr_(),
-                                 self._item._repr_(), otherName, other._repr_())
+                                 self._item._repr_(), name, other._repr_())
                 elif isitem(otherOther):
                     logger.error("%s.%s doesn't reference %s.%s but %s",
                                  other._repr_(), otherName, self._item._repr_(),

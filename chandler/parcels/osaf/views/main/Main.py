@@ -746,6 +746,14 @@ class MainView(View):
         rv = self.itsView
         sharing.scheduleNow(rv)
 
+    def onBackgroundSyncGetOnlyEvent(self, event):
+        rv = self.itsView
+        collection = self.getSidebarSelectedCollection()
+        if collection is not None:
+            rv.commit()
+            sharing.scheduleNow(rv, collection=collection, modeOverride='get')
+
+
     def onEditMyNameEvent(self, event):
         rv = self.itsView
         application.dialogs.Util.promptForItemValues(None, "Enter your name",
