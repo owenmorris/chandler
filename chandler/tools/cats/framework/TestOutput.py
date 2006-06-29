@@ -336,7 +336,7 @@ class TestOutput:
         self._parse_results()
         #Parse through finalized suiteList for failures
         
-        self._write('Failure Report;')
+        self._write('Failure Report;\n')
         for suite_dict in self.suiteList:
             if suite_dict['result'] is False:
                 self._write('*Suite ""%s"" Failed :: Total Time ""%s"" :: Comment ""%s""\n' % (suite_dict['name'], suite_dict['totaltime'], suite_dict['comment']))

@@ -40,7 +40,11 @@ class TestExporting(ChandlerTestCase):
         for event in Calendar.CalendarEvent.iterItems(appView):
             collection.add(event)
         share.contents = collection
-        share.put()
+        try:
+            share.put()
+            self.logger.report(True, name="share.put()")
+        except:
+            self.logger.report(False, name="share.put()")    
         self.logger.endAction(True)
         
 
