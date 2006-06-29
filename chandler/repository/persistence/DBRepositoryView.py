@@ -19,7 +19,7 @@ from time import time, sleep
 
 from chandlerdb.item.c import CItem, Nil, Default, isitem
 from chandlerdb.util.c import isuuid, HashTuple
-from chandlerdb.persistence.c import DBLockDeadlockError
+from chandlerdb.persistence.c import CView, DBLockDeadlockError
 
 from repository.item.RefCollections import RefList, TransientRefList
 from repository.item.Indexed import Indexed
@@ -432,6 +432,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                     raise
 
                 try:
+                    verify = (self._status & CView.VERIFY) != 0
+                    if verify:
+                        self._status &= ~CView.VERIFY
+
                     _unload(merges.iterkeys)
 
                     for uItem, (dirty, uParent, dirties) in merges.iteritems():
@@ -450,6 +454,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                             item._references._removeRef(name, uRef)
 
                 except:
+                    if verify:
+                        self._status |= CView.VERIFY
                     self.discardChangeNotifications()
                     self._version = oldVersion
                     self._refreshItems(unloads.itervalues)
@@ -469,6 +475,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                     raise
 
                 else:
+                    if verify:
+                        self._status |= CView.VERIFY
                     self.playChangeNotifications()
 
             if notify:

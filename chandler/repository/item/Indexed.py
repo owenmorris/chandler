@@ -614,9 +614,15 @@ class Indexed(object):
     def _checkIndexes(self, logger, item, attribute):
 
         result = True
-
+        
         if self._indexes:
-            count = len(self)
+            try:
+                indexes = self._indexes
+                self._indexes = None
+                count = len(self)
+            finally:
+                self._indexes = indexes
+
             for name, index in self._indexes.iteritems():
                 if count != len(index):
                     logger.error("Lengths of index '%s' (%d) installed on value '%s' (%d) of type %s in attribute %s on %s don't match", name, len(index), self, count, type(self), attribute, item._repr_())

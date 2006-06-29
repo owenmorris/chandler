@@ -1124,7 +1124,7 @@ class ItemContainer(DBContainer):
                         if itemVer <= version:
                             return itemVer, value[1]
                         else:
-                            value = cursor.next(self._flags, None)
+                            value = _self.cursor.next(self._flags, None)
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:

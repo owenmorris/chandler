@@ -17,7 +17,7 @@ from new import classobj
 
 from chandlerdb.util.c import UUID, SingleRef, _hash, _combine, issingleref
 from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
-from chandlerdb.item.c import Nil, Default, isitem
+from chandlerdb.item.c import Nil, Default, isitem, CItem
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 from chandlerdb.item.ItemValue import ItemValue
 
@@ -978,8 +978,9 @@ class Extent(Item):
     def iterItems(self, recursive=True):
 
         view = self.itsView
+        kindChanged = CItem.KDIRTY | CItem.NEW
         changedItems = set(item for item in view.dirtyItems()
-                           if item._isKDirty())
+                           if item._status & kindChanged)
 
         def _query(kinds):
             for kind in kinds:
@@ -1004,10 +1005,10 @@ class Extent(Item):
     def iterKeys(self, recursive=True):
 
         view = self.itsView
-
+        kindChanged = CItem.KDIRTY | CItem.NEW
         changedItems = {}
         for item in view.dirtyItems():
-            if item._isKDirty():
+            if item._status & kindChanged:
                 changedItems[item.itsUUID] = item.itsKind
 
         def _query(kinds):
