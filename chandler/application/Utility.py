@@ -173,6 +173,7 @@ def initOptions(**kwds):
         'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
         'chandlerTests': ('', '--chandlerTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by new framework'),
         'chandlerPerformanceTests': ('', '--chandlerPerformanceTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by performance new framework'),
+        'chandlerTestLogfile': ('', '--chandlerTestLogfile', 's', None, None, 'file for chandlerTests output'),
         'scriptTimeout': ('-s', '--scriptTimeout', 's', 0,  None, 'script file timeout'),
         'catsProfile':('',   '--catsProfile','s', None,  None, 'file for hotshot profile of script execution'),
         'catsPerfLog':('',   '--catsPerfLog','s', None,  None, 'file to output a performance number'),
