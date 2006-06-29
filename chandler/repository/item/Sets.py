@@ -16,6 +16,7 @@
 from itertools import izip
 
 from chandlerdb.util.c import UUID, isuuid
+from chandlerdb.persistence.c import CView
 from chandlerdb.item.c import Nil
 from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors
@@ -437,12 +438,21 @@ class AbstractSet(ItemValue, Indexed):
         self._dirty = True
         item = self._item
         if item is not None:
-            if self._otherName is None:
-                item.setDirty(item.VDIRTY, self._attribute,
-                              item._values, noMonitors)
-            else:
-                item.setDirty(item.RDIRTY, self._attribute,
-                              item._references, noMonitors)
+            try:
+                view = item.itsView
+                verify = view._status & CView.VERIFY
+                if verify:
+                    view._status &= ~CView.VERIFY
+                    
+                if self._otherName is None:
+                    item.setDirty(item.VDIRTY, self._attribute,
+                                  item._values, noMonitors)
+                else:
+                    item.setDirty(item.RDIRTY, self._attribute,
+                                  item._references, noMonitors)
+            finally:
+                if verify:
+                    view._status |= CView.VERIFY
 
     @classmethod
     def makeValue(cls, string):
