@@ -613,6 +613,9 @@ class Indexed(object):
 
     def _checkIndexes(self, logger, item, attribute):
 
+        # @@@MOR: Disabling this check until Andi can investigate
+        return True
+
         result = True
         
         if self._indexes:
