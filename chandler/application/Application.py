@@ -533,9 +533,17 @@ class wxApplication (wx.App):
         return mainViewRoot
 
     def RenderMainView (self):
+        from osaf.framework.blocks.Block import Block
+
         mainViewRoot = self.mainFrame.mainViewRoot
         mainViewRoot.lastDynamicBlock = False
         mainViewRoot.render()
+
+        # Macintosh requires that the MenuBar be attached to the frame
+        # after all it's dynamic children are setup, so we delay setting
+        # the mainFrame's MenuBar until after we've finished rendering.
+
+        self.mainFrame.SetMenuBar (Block.findBlockByName('MenuBar').widget)
 
         # We have to wire up the block mainViewRoot, it's widget and sizer to a new
         # sizer that we add to the mainFrame.

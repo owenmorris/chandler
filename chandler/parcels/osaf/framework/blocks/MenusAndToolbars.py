@@ -699,9 +699,7 @@ class MenuItem (Block.Block, DynamicChild):
 class MenuBar (Block.Block, DynamicContainer):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
-        widget = wxMenuBar()
-        self.getFrame().SetMenuBar(widget)
-        return widget
+        return wxMenuBar()
 
 
     def synchronizeItems(self):
