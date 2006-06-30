@@ -279,16 +279,6 @@ class TestOutput:
                     self._write(string)
                     return
 
-#    def displaySummary(self):
-#        
-#        for test in self.testList:
-#            if test['comment'] == 'None\nNone':
-#                self.printOut( "%s %s %s" % ( test['name'] , 'PASS',  test['totaltime'] ), 4)
-#            else:
-#                self.printOut ("%s %s %s" % ( test['name'] , 'FAIL',  test['totaltime'] ), 4) 
-#                self.printOut (test['comment'].replace('\n','') )
-#        self.printOut('\n--Suite Summary-- There were %s passed tests and %s failed with a combined %s passed actions and %s failed actions, with %s passed reports and %s failed reports.' % (self.passedTests, self.failedTests, self.passedActions, self.failedActions, self.passedReports,self.failedReports))
-        
 
     def traceback(self):
         """Method to handle python traceback exception."""
@@ -307,7 +297,7 @@ class TestOutput:
         if self.inAction is True:
             self.endAction(result=False, comment='Action Failure due to traceback')
         if self.inTest is True:
-            self.endTest(comment='Test Failure due to traceback')
+            self.endTest(comment='Test Failure due to traceback\n' + traceback.format_exc())
             
     def _parse_results(self):
         """Method to parse through the result output datastructure to bubble up encapsulated failures"""
@@ -336,7 +326,7 @@ class TestOutput:
         self._parse_results()
         #Parse through finalized suiteList for failures
         
-        self._write('Failure Report;\n')
+        self._write('Test Report;\n')
         for suite_dict in self.suiteList:
             if suite_dict['result'] is False:
                 self._write('*Suite ""%s"" Failed :: Total Time ""%s"" :: Comment ""%s""\n' % (suite_dict['name'], suite_dict['totaltime'], suite_dict['comment']))
@@ -367,7 +357,15 @@ class TestOutput:
         self._write('$Suites run=%s, pass=%s, fail=%s :: Tests run=%s, pass=%s, fail=%s :: Actions run=%s, pass=%s, fail=%s :: Reports run=%s, pass=%s, fail=%s \n' % 
                     (suites_ran, suites_ran - suites_failed, suites_failed, tests_ran, tests_ran - tests_failed, tests_failed, actions_ran, 
                      actions_ran - actions_failed, actions_failed, reports_ran, reports_ran - reports_failed, reports_failed))                                
-           
+        
+        #write out stuff for tinderbox
+        for suite_dict in self.suiteList:
+            self._write('#TINDERBOX# Testname = %s\n' % suite_dict['name'])
+            self._write('#TINDERBOX# Time elapsed = %s (seconds)\n' % suite_dict['totaltime'])
+            if suite_dict['result'] is None:
+                self._write('#TINDERBOX# Status = PASSED\n')
+            else:
+                self._write('#TINDERBOX# Status = FAILED\n')
         
         
     ### All the methods below will be removed pre 0.2-cats-release. They are only there for reverse compatability in old test so that those tests don't fail in Python.    
