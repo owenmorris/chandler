@@ -21,13 +21,9 @@ logger = QAUITestAppLib.QALogger("TestCleanRepo.log","TestCleanRepo")
 # / logging infrastructure. By doing this here, we'll see corruption while
 # everything's still set up.
 try:
-    logger.Start('TestCleanRepo')
-    logger.SetChecked(True)
     QAUITestAppLib.App_ns.itsView.check()
     logger.ReportPass('CleanRepo')
-    logger.Stop()
+    logger.SetChecked(True)
 finally:
-    if len(logger.passedList) < 1:
-        logger.ReportFailure('TestCleanRepo')
     logger.Report('TestCleanRepo')
     logger.Close()
