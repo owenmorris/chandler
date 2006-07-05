@@ -34,6 +34,7 @@ def run_tests(tests):
             print "%s failed due to exception" % fileName
             type, value, stack = sys.exc_info()
             traceback.print_exception(type, value, stack, None, sys.stderr)
+    QAUITestAppLib.App_ns.itsView.check()
         
 allTests = [
                 "TestCreateAccounts.py",
@@ -66,6 +67,7 @@ allTests = [
                 "TestSwitchTimezone.py",
                 "TestSubscribe.py",
                 "TestBlocks.py", 
+                "TestCleanRepo.py", 
                 ]
 
 if sys.platform == 'win32': 
