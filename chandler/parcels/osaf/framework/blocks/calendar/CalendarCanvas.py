@@ -661,9 +661,10 @@ class CalendarNotificationHandler(object):
         # newly created events in various calendar widgets.
         # (See Bug:4118).
         # 
-        # The return value will be a list of all the non-recurring
-        # events that overlap the range between the datetime arguments
-        # startTime and endTime.
+        # The return value will be a list of all the events
+        # (i.e. non-recurring events and individual occurrences of
+        # recurring events) that overlap the range between the datetime
+        # arguments startTime and endTime.
         # 
         # The idea is that you can call this from wxSynchronizeWidget(),
         # and do a full redraw if you get back [], or do less work
@@ -671,6 +672,11 @@ class CalendarNotificationHandler(object):
         #
         # The returned list may be empty (e.g. if an event is added
         # outside the given range).
+        #
+        # XXX: [grant] This call now occurs too late to trigger a full
+        # redraw. As a result, we're triggering an unnecessary load
+        # of events for the minicalendar in this case.
+        #
         addedEvents = []
         for itemUUID in self._pendingNewEvents:
             try:
@@ -680,10 +686,12 @@ class CalendarNotificationHandler(object):
                 continue
             
             if (hasattr(item, 'startTime') and
-                hasattr(item, 'duration') and
-                (item.rruleset is None) ):
-
-                if not (item.startTime > endTime or item.endTime < startTime):
+                hasattr(item, 'duration')):
+                
+                if item.rruleset is not None:
+                    for event in item.getOccurrencesBetween(startTime, endTime):
+                        addedEvents.append(event)
+                elif not (item.startTime > endTime or item.endTime < startTime):
                     addedEvents.append(item)
 
         self._pendingNewEvents = set()
