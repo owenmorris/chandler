@@ -370,6 +370,7 @@ class Block(schema.Item):
         if widget is not None:
 
             if __debug__:
+                # If the block has eventsForNamedLookup, make sure they are all gone
                 eventsForNamedLookup = self.eventsForNamedLookup
                 if eventsForNamedLookup is not None:
                     oldCounts = []
@@ -378,23 +379,20 @@ class Block(schema.Item):
                         assert list is not None
                         oldCounts.append (list.count (item.itsUUID))
 
-            method = getattr (type(widget), 'GetParent', None)
-            if method is not None:
-                parent = method (widget)
-                """
-                Remove child from parent before destroying child.
-                """
-                if isinstance (widget, wx.Window):
-                    parent = widget.GetParent()
-                    if parent:
-                        parent.RemoveChild (widget)
+                # Also, verify that the widget is deleted from it's parent
+                methodGetParent = getattr (type(widget), 'GetParent', None)
+                if methodGetParent is not None:
+                    parent = methodGetParent (widget)
+                    methodGetChildren = getattr (type(parent), 'GetChildren', None)
+                    if methodGetChildren is not None:
+                        numberChildren = len (methodGetChildren (parent))
 
             method = getattr (type(widget), 'Destroy', None)
             if method is not None:
                 method (widget)
-        
-            # If the block has eventsForNamedLookup, make sure they are all gone
+
             if __debug__:
+                # If the block has eventsForNamedLookup, make sure they are all gone
                 if eventsForNamedLookup is not None:
                     for item, oldCount in map (None, eventsForNamedLookup, oldCounts):
                         list = Block.eventNameToItemUUID.get (item.blockName, None)
@@ -403,6 +401,11 @@ class Block(schema.Item):
                         else:
                             count = list.count (item.itsUUID)
                         assert count == oldCount - 1
+                
+                # Also, verify that the widget is deleted from it's parent
+                if methodGetParent is not None and methodGetChildren is not None:
+                    assert numberChildren == len (methodGetChildren (parent)) + 1
+
 
     # We keep track of what items we're watching for which blocks.
     # watchingItems[itemUUID][attributeName] is a set() of blocks
