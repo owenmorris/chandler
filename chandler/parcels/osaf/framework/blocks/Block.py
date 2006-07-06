@@ -380,12 +380,15 @@ class Block(schema.Item):
                         oldCounts.append (list.count (item.itsUUID))
 
                 # Also, verify that the widget is deleted from it's parent
-                methodGetParent = getattr (type(widget), 'GetParent', None)
-                if methodGetParent is not None:
-                    parent = methodGetParent (widget)
-                    methodGetChildren = getattr (type(parent), 'GetChildren', None)
-                    if methodGetChildren is not None:
-                        numberChildren = len (methodGetChildren (parent))
+                numberChildren = None
+                method = getattr (type(widget), 'GetParent', None)
+                if method is not None:
+                    parent = method (widget)
+                    method = getattr (type(parent), 'GetChildren', None)
+                    if method is not None:
+                        parentsChildren = method (parent)
+                        if widget in parentsChildren:
+                            numberChildren = len (parentsChildren)
 
             method = getattr (type(widget), 'Destroy', None)
             if method is not None:
@@ -403,8 +406,8 @@ class Block(schema.Item):
                         assert count == oldCount - 1
                 
                 # Also, verify that the widget is deleted from it's parent
-                if methodGetParent is not None and methodGetChildren is not None:
-                    assert numberChildren == len (methodGetChildren (parent)) + 1
+                if numberChildren is not None:
+                    assert numberChildren == len (parent.GetChildren()) + 1
 
 
     # We keep track of what items we're watching for which blocks.
