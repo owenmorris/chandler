@@ -995,15 +995,20 @@ class CalendarEventMixin(RemindableMixin):
         if not event.isBetween(after, before):
             event = first.getNextOccurrence(after, before)
         else:
-            # [Bug 5482]
+            # [Bug 5482], [Bug 5627], [Bug 6174]
             # We need to make sure event is actually
             # included in our recurrence rule.
             rruleset = self.createDateUtilFromRule()
             
-            if not event.recurrenceID in rruleset:
-                event = event.getNextOccurrence()
-        
+            recurrenceID = event.recurrenceID
+            if isDayItem(event):
+                recurrenceID = datetime.combine(
+                                    recurrenceID.date(),
+                                    time(0, tzinfo=recurrenceID.tzinfo))
             
+            if not recurrenceID in rruleset:
+                event = event.getNextOccurrence()
+
         while event is not None:
             if event.isBetween(after, before, inclusive):
                 if event.occurrenceFor is not None:
