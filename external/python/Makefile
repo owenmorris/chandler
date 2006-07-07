@@ -92,7 +92,7 @@ installext:
             python$(PV)$(SUFFIX).exp | tar -C $(BINDIR)/libs -xvf -
 	(cd $(SRC)/Lib; tar -cf - *.py) | tar -C $(BINDIR)/Lib -xvf -
 	(cd $(SRC)/PCbuild; tar -cf - *.pyd) | tar -C $(BINDIR)/DLLs -xvf -
-	for mod in compiler distutils email encodings hotshot xml bsddb logging; \
+	for mod in compiler distutils email encodings hotshot xml logging; \
   do \
       (cd $(SRC)/Lib; \
       tar -cf - `find $$mod -name '*.py'`) | tar -C $(BINDIR)/Lib -xvf - ; \
