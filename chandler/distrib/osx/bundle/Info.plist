@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>ChandlerApp</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Chandler 0.7alpha3.dev from the Open Source Applications Foundation</string>
+	<string>Chandler 0.7alpha4.dev from the Open Source Applications Foundation</string>
 	<key>CFBundleIconFile</key>
 	<string>Chandler.icns</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -21,7 +21,7 @@
 	<key>CFBundleSignature</key>
 	<string>CHAN</string>
 	<key>CFBundleVersion</key>
-	<string>0.7alpha3.dev</string>
+	<string>0.7alpha4.dev</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

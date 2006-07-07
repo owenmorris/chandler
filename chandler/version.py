@@ -7,7 +7,7 @@
 #   version    - "%s%s-r%s%s" % (release, build, revision, checkpoint)
 #
 
-release = "0.7alpha3"
+release = "0.7alpha4"
 build = ".dev"
 checkpoint = ""
 revision = ""
