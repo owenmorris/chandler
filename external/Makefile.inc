@@ -208,7 +208,7 @@ ifeq ($(OS),Cygwin)
 
 MINGW_VERSION=5.0-3.4.6
 
-$(GCJ_HOME): $(notdir $(GCJ_HOME).tar.gz)
+$(GCJ_HOME): $(notdir $(GCJ_HOME).tar.bz2)
 	cd $(BUILD_ROOT); tar -xvjf $<
 
 $(notdir $(GCJ_HOME).tar.bz2):
