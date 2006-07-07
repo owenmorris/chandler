@@ -86,8 +86,8 @@ endif
 
 ifndef GCJ_HOME
 ifeq ($(OS),Cygwin)
-GCJ_HOME=$(BUILD_ROOT)/mingw-3.1-3.4.2
-GCJ_VER=3
+GCJ_HOME=$(BUILD_ROOT)/mingw-5.0-3.4.6
+GCJ_VER=4
 endif
 ifeq ($(OS),Darwin)
 ifeq ($(ARCH),ppc)
@@ -206,12 +206,12 @@ COMPILERS=http://downloads.osafoundation.org/compilers
 
 ifeq ($(OS),Cygwin)
 
-MINGW_VERSION=3.1-3.4.2
+MINGW_VERSION=5.0-3.4.6
 
 $(GCJ_HOME): $(notdir $(GCJ_HOME).tar.gz)
-	cd $(BUILD_ROOT); tar -xvzf $<
+	cd $(BUILD_ROOT); tar -xvjf $<
 
-$(notdir $(GCJ_HOME).tar.gz):
+$(notdir $(GCJ_HOME).tar.bz2):
 	cd $(BUILD_ROOT); \
 	$(CURL) -O $(COMPILERS)/windows/$@
 	$(CURL) -O $(COMPILERS)/windows/$@.md5
