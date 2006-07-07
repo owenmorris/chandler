@@ -1557,10 +1557,13 @@ class UITestView(object):
             #it's a new event
             if not canvasItem :
                 for elem in reversed(self.timedCanvas.widget.canvasItemList):
-                    if elem.isHit(pos):
-                        canvasItem = elem
-                        self.logger.report(True, name="DoubleClickInCalView", comment="On double click in Calendar view checking (event creation)")
-                        break
+                # It's possible for the event to appear a few pixels
+                # lower than pos, if pos is near a dividing line in
+                # the calendar
+                    if elem.isHit(pos) or elem.isHit(pos+(0,5)):
+                            canvasItem = elem
+                            self.logger.report(True, name="DoubleClickInCalView", comment="On double click in Calendar view checking (event creation)")
+                            break
             else:
                 self.logger.report(True, name="DoubleClickInCalView", comment="On double click in Calendar view checking (event selection)")
 
