@@ -22,14 +22,13 @@ from application import schema
 from chandlerdb.item.c import Default
 from repository.item.Sets import \
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \
-    KindSet, ExpressionFilteredSet, MethodFilteredSet
+    KindSet, ExpressionFilteredSet, MethodFilteredSet, EmptySet
 from repository.item.Collection import Collection
 
 from osaf.pim.items import ContentItem
 
 logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
-
 
 
 class ContentCollection(ContentItem, Collection):
@@ -107,7 +106,7 @@ class ContentCollection(ContentItem, Collection):
             invitees,
             byRef=['contentsOwner', 'subscribers']
         ),
-        sharing = schema.Cloud( none = ["displayName"] ),
+        sharing = schema.Cloud(none=["displayName"]),
     )
 
     def __str__(self):
@@ -163,9 +162,7 @@ class KindCollection(ContentCollection):
 
     set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
-    schema.kindInfo(
-        displayName=u"KindCollection"
-    )
+    schema.kindInfo(displayName=u"KindCollection")
 
     kind = schema.One(schema.TypeReference('//Schema/Core/Kind'))
     recursive = schema.One(schema.Boolean, defaultValue=False)
@@ -199,13 +196,9 @@ class ListCollection(ContentCollection):
             item.delete(True)
 
 
-class DifferenceCollection(ContentCollection):
+class WrapperCollection(ContentCollection):
     """
-    A ContentCollection containing the set theoretic difference of two
-    ContentCollections.
-
-    The C{sources} attribute (a list) contains the ContentCollection
-    instances to be differenced.
+    A class for collections wrapping other collections
     """
 
     __metaclass__ = schema.CollectionClass
@@ -213,47 +206,14 @@ class DifferenceCollection(ContentCollection):
 
     set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
-    schema.kindInfo(
-        displayName=u"DifferenceCollection"
-    )
-
-    sources = schema.Sequence(ContentCollection, otherName='sourceFor')
-
-    schema.addClouds(
-        copying = schema.Cloud(byCloud=[sources]),
-    )
+    sources = schema.Sequence(ContentCollection, otherName='sourceFor',
+                              doc="the collections being wrapped",
+                              initialValue=[])
+    schema.addClouds(copying=schema.Cloud(byCloud=[sources]))
 
     def __init__(self, *args, **kwds):
 
-        super(DifferenceCollection, self).__init__(*args, **kwds)
-
-        a, b = self.sources
-        setattr(self, self.__collection__, Difference(a, b))
-
-
-class MultiCollection(ContentCollection):
-    """
-    A ContentCollection containing the set theoretic union or intersection
-    of at least two ContentCollections.
-
-    The C{sources} attribute (a ref collection) contains the ContentCollection
-    instances to be combined and can be changed.
-    """
-
-    __metaclass__ = schema.CollectionClass
-    __collection__ = 'set'
-
-    set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
-
-    sources = schema.Sequence(ContentCollection,
-                              otherName='sourceFor', initialValue=[])
-
-    schema.kindInfo(displayName=u"UnionCollection")
-    schema.addClouds(copying = schema.Cloud(byCloud=[sources]))
-
-    def __init__(self, *args, **kwds):
-
-        super(MultiCollection, self).__init__(*args, **kwds)
+        super(WrapperCollection, self).__init__(*args, **kwds)
 
         self._sourcesChanged_()
         self.watchCollection(self, 'sources', '_sourcesChanged')
@@ -267,7 +227,7 @@ class MultiCollection(ContentCollection):
             if op == 'add':
                 set = self._sourcesChanged_()
                 sourceChanged = set.sourceChanged
-                actualSource = set.findSource(source.itsUUID)
+                actualSource = set.findSource(sourceId)
                 assert actualSource is not None
                 for uuid in source.iterkeys():
                     view._notifyChange(sourceChanged, 'add', 'collection',
@@ -276,7 +236,7 @@ class MultiCollection(ContentCollection):
             elif op == 'remove':
                 set = getattr(self, self.__collection__)
                 sourceChanged = set.sourceChanged
-                actualSource = set.findSource(source.itsUUID)
+                actualSource = set.findSource(sourceId)
                 assert actualSource is not None
                 for uuid in source.iterkeys():
                     view._notifyChange(sourceChanged, 'remove', 'collection',
@@ -295,11 +255,80 @@ class MultiCollection(ContentCollection):
             self.sources.remove(source)
 
 
-class UnionCollection(MultiCollection):
+class SingleSourceWrapperCollection(WrapperCollection):
+    """
+    A class for collections wrapping another collection
+    """
+
+    def _getSource(self):
+        sources = self.sources
+        if sources:
+            return sources.first()
+        return None
+    def _setSource(self, source):
+        sources = self.sources
+        if sources and sources.first() is not source:
+            sources.clear()
+            if source is not None:
+                sources.append(source)
+    def _delSource(self):
+        self.sources.clear()
+    source = property(_getSource, _setSource, _delSource)
+
+    def __init__(self, *args, **kwds):
+
+        source = kwds.pop('source', None)
+        if source is not None:
+            kwds['sources'] = [source]
+
+        super(SingleSourceWrapperCollection, self).__init__(*args, **kwds)
+
+
+class DifferenceCollection(WrapperCollection):
+    """
+    A ContentCollection containing the set theoretic difference of two
+    ContentCollections.
+
+    The C{sources} attribute (a list) contains the ContentCollection
+    instances to be differenced.
+    """
+
+    schema.kindInfo(displayName=u"DifferenceCollection")
+
+    def _sourcesChanged_(self):
+
+        sources = self.sources
+        sourceCount = len(sources)
+
+        if sourceCount == 0:
+            set = EmptySet()
+        elif sourceCount == 1:
+            set = getattr(self, self.__collection__)
+            source = sources.first()
+            if instance(set, Difference):
+                if set._left[0] == source.itsUUID:
+                    set = Set(source)
+                else:
+                    set = EmptySet()
+            else:
+                set = Set(source)
+        elif sourceCount == 2:
+            a, b = self.sources
+            set = Difference(a, b)
+        else:
+            raise ValueError, 'too many sources'
+
+        setattr(self, self.__collection__, set)
+        return set
+
+
+class UnionCollection(WrapperCollection):
     """
     A ContentCollection containing the set theoretic union of at least two
     ContentCollections.
     """
+
+    schema.kindInfo(displayName=u"UnionCollection")
 
     def _sourcesChanged_(self):
 
@@ -308,11 +337,12 @@ class UnionCollection(MultiCollection):
 
         # For now, when we join collections with Union, we pull trash
         # out of the equation with withoutTrash()
-        if sourceCount == 1:
+        if sourceCount == 0:
+            set = EmptySet()
+        elif sourceCount == 1:
             set = Set(sources.first().withoutTrash())
         elif sourceCount == 2:
-            left = sources.first()
-            right = sources.next(left)
+            left, right = sources
             set = Union(left.withoutTrash(), right.withoutTrash())
         else:
             set = MultiUnion(*(source.withoutTrash()
@@ -322,11 +352,13 @@ class UnionCollection(MultiCollection):
         return set
 
 
-class IntersectionCollection(MultiCollection):
+class IntersectionCollection(WrapperCollection):
     """
     A ContentCollection containing the set theoretic intersection of at
     least two ContentCollections.
     """
+
+    schema.kindInfo(displayName=u"IntersectionCollection")
 
     def _sourcesChanged_(self):
 
@@ -335,11 +367,10 @@ class IntersectionCollection(MultiCollection):
 
         # For now, when we join collections with Intersection, we pull trash
         # out of the equation with withoutTrash()
-        if sourceCount == 1:
-            set = Set(sources.first().withoutTrash())
+        if sourceCount < 2:
+            set = EmptySet()
         elif sourceCount == 2:
-            left = sources.first()
-            right = sources.next(left)
+            left, right = sources
             set = Intersection(left.withoutTrash(), right.withoutTrash())
         else:
             set = MultiIntersection(*(source.withoutTrash()
@@ -349,7 +380,7 @@ class IntersectionCollection(MultiCollection):
         return set
 
 
-class FilteredCollection(ContentCollection):
+class FilteredCollection(SingleSourceWrapperCollection):
     """
     A ContentCollection which is the result of applying a boolean predicate
     to every item of another ContentCollection.
@@ -366,47 +397,31 @@ class FilteredCollection(ContentCollection):
     Failure to provide this list will result in missing notifications.
     """
 
-    __metaclass__ = schema.CollectionClass
-    __collection__ = 'set'
-
-    set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
-
-    schema.kindInfo(
-        displayName=u"FilteredCollection"
-    )
-
-    sources = schema.Sequence(ContentCollection, otherName='sourceFor')
+    schema.kindInfo(displayName=u"FilteredCollection")
 
     filterExpression = schema.One(schema.Text)
     filterMethod = schema.One(schema.Tuple)
     filterAttributes = schema.Sequence(schema.Symbol, initialValue=[])
 
-    schema.addClouds(
-        copying = schema.Cloud(byCloud=[sources]),
-    )
+    def _sourcesChanged_(self):
 
-    def __init__(self, *args, **kwds):
-
-        source = kwds.pop('source', None)
-        if source is not None:
-            kwds['sources'] = [source]
-
-        super(FilteredCollection, self).__init__(*args, **kwds)
-
-        attrTuples = set()
-        for i in self.filterAttributes:
-            attrTuples.add((i, "set"))
-            attrTuples.add((i, "remove"))
-
-        source = self.sources.first()
-        attrs = tuple(attrTuples)
-
-        if 'filterExpression' in kwds:
-            setattr(self, self.__collection__,
-                    ExpressionFilteredSet(source, self.filterExpression, attrs))
+        source = self.source
+        if source is None:
+            s = EmptySet()
         else:
-            setattr(self, self.__collection__,
-                    MethodFilteredSet(source, self.filterMethod, attrs))
+            attrTuples = set()
+            for name in self.filterAttributes:
+                attrTuples.add((name, "set"))
+                attrTuples.add((name, "remove"))
+            attrs = tuple(attrTuples)
+
+            if hasattr(self, 'filterExpression'):
+                s = ExpressionFilteredSet(source, self.filterExpression, attrs)
+            else:
+                s = MethodFilteredSet(source, self.filterMethod, attrs)
+
+        setattr(self, self.__collection__, s)
+        return s
 
 
 class AppCollection(ContentCollection):
@@ -626,34 +641,32 @@ class InclusionExclusionCollection(SmartCollection):
     pass
 
 
-class IndexedSelectionCollection(ContentCollection):
+class IndexedSelectionCollection(SingleSourceWrapperCollection):
     """
     A collection that adds an index, e.g. for sorting items, a
     selection and visibility attribute to another source collection.
     """
 
-    __metaclass__ = schema.CollectionClass
-    __collection__ = 'set'
+    indexName = schema.One(schema.Symbol, initialValue="__adhoc__")
 
-    set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
-
-    indexName   = schema.One(schema.Text, initialValue="__adhoc__")
-    source      = schema.One(ContentCollection, defaultValue=None)
-
-    def __init__(self, *args, **kwds):
-
-        super(IndexedSelectionCollection, self).__init__(*args, **kwds)
-
+    def _sourcesChanged_(self):
+        
+        source = self.source
         trash = schema.ns('osaf.pim', self.itsView).trashCollection
-        if (isinstance(self.source, MultiCollection) and
-            trash not in self.source.sources):
+
+        if source is None:
+            set = EmptySet()
+        elif (isinstance(source, WrapperCollection) and
+              trash not in source.sources):
             # bug 5899 - alpha2 workaround: When SmartCollections are
             # wrapped with IntersectionCollection/UnionCollection,
             # they drop the trash. So we artificially insert it back
-            sourceMinusTrash = Difference(self.source, trash)
-            setattr(self, self.__collection__, sourceMinusTrash)
+            set = Difference(source, trash)
         else:
-            setattr(self, self.__collection__, Set(self.source))
+            set = Set(self.source)
+
+        setattr(self, self.__collection__, set)
+        return set
 
     def getCollectionIndex(self, indexName=None):
         """
@@ -716,7 +729,6 @@ class IndexedSelectionCollection(ContentCollection):
             self.setDescending (currentIndexName, not self.isDescending(currentIndexName))
             self.setSelectionRanges(newRanges)
 
-
     def __len__(self):
 
         return len(self.getCollectionIndex())
@@ -748,7 +760,7 @@ class IndexedSelectionCollection(ContentCollection):
     # Range-based selection methods
     # 
 
-    def getSelectionRanges (self):
+    def getSelectionRanges(self):
         """
         Return the ranges associated with the current index as an
         array of tuples, where each tuple represents a start and
@@ -756,7 +768,7 @@ class IndexedSelectionCollection(ContentCollection):
         """
         return self.getCollectionIndex().getRanges()
         
-    def setSelectionRanges (self, ranges):
+    def setSelectionRanges(self, ranges):
         """
         Sets the ranges associated with the current index with
         C{ranges} which should be an array of tuples, where each
@@ -765,7 +777,7 @@ class IndexedSelectionCollection(ContentCollection):
         """
         self.setRanges(self.indexName, ranges)
 
-    def isSelected (self, range):
+    def isSelected(self, range):
         """
         Returns C{True} if the C{range} is completely inside the selected
         ranges of the index.  C{range} may be a tuple: (start, end) or
@@ -774,7 +786,7 @@ class IndexedSelectionCollection(ContentCollection):
         """
         return self.getCollectionIndex().isInRanges(range)
 
-    def addSelectionRange (self, range):
+    def addSelectionRange(self, range):
         """
         Selects a C{range} of indexes. C{range} may be a tuple:
         (start, end) or an integer index, where negative indexing
@@ -782,7 +794,7 @@ class IndexedSelectionCollection(ContentCollection):
         """
         self.addRange(self.indexName, range)
 
-    def removeSelectionRange (self, range):
+    def removeSelectionRange(self, range):
         """
         Unselects a C{range} of indexes. C{range} may be a tuple:
         (start, end) or an integer index, where negative indexing
@@ -793,14 +805,14 @@ class IndexedSelectionCollection(ContentCollection):
     # Item-based selection methods
     #
     
-    def setSelectionToItem (self, item):
+    def setSelectionToItem(self, item):
         """
         Sets the entire selection to include only the C{item}.
         """
         index = self.index (item)
         self.setRanges(self.indexName, [(index, index)])
 
-    def getFirstSelectedItem (self):
+    def getFirstSelectedItem(self):
         """
         Returns the first selected item in the index or C{None} if
         there is no selection.
@@ -827,13 +839,13 @@ class IndexedSelectionCollection(ContentCollection):
                 for idx in range(start,end+1):
                     yield self[idx]
 
-    def selectItem (self, item):
+    def selectItem(self, item):
         """
         Selects an C{item} in the index.
         """
         self.addSelectionRange (self.index (item))
 
-    def unselectItem (self, item):
+    def unselectItem(self, item):
         """
         Unselects an C{item} in the index.
         """
@@ -843,7 +855,7 @@ class IndexedSelectionCollection(ContentCollection):
     # index-based methods
     #
 
-    def __getitem__ (self, index):
+    def __getitem__(self, index):
         """
         Support indexing using [].
         """
@@ -852,7 +864,7 @@ class IndexedSelectionCollection(ContentCollection):
         self.getCollectionIndex()
         return self.getByIndex(self.indexName, index)
 
-    def index (self, item):
+    def index(self, item):
         """
         Return the position of item in the index.
         """
@@ -862,7 +874,6 @@ class IndexedSelectionCollection(ContentCollection):
 
         self.getCollectionIndex()
         return self.positionInIndex(self.indexName, item)
-
 
     def add(self, item):
         self.source.add(item)

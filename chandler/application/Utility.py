@@ -33,7 +33,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "215" # John: added bufferedDraw to BoxContainer
+SCHEMA_VERSION = "216" #vajda: refactored collections for dynamic source changes
 
 logger = None # initialized in initLogging()
 

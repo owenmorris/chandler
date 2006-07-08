@@ -451,7 +451,7 @@ class Indexed(object):
 
     def iterindexkeys(self, indexName, first=None, last=None):
 
-        for key in self.getIndex(indexName).__iter__(first, last):
+        for key in self.getIndex(indexName).iterkeys(first, last):
             yield key
 
     def iterindexvalues(self, indexName, first=None, last=None):
@@ -614,7 +614,7 @@ class Indexed(object):
     def _checkIndexes(self, logger, item, attribute):
 
         result = True
-        
+
         if self._indexes:
             try:
                 indexes = self._indexes

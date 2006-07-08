@@ -16,7 +16,7 @@
 from struct import pack, unpack
 from itertools import izip
 
-from chandlerdb.item.c import Nil
+from chandlerdb.item.c import Nil, DelegatingIndex
 from chandlerdb.util.c import SkipList, CLinkedMap
 from PyICU import Collator, Locale
   
@@ -30,7 +30,7 @@ class Index(dict):
         super(Index, self).__init__()
         self._count = 0
 
-    def __iter__(self, firstKey=None, lastKey=None, backwards=False):
+    def iterkeys(self, firstKey=None, lastKey=None, backwards=False):
 
         if backwards:
             getFirstKey = self.getLastKey
@@ -48,6 +48,9 @@ class Index(dict):
 
         if lastKey is not None:
             yield lastKey
+
+    def __iter__(self):
+        return self.iterkeys()
 
     def clear(self):
 
@@ -311,36 +314,6 @@ class NumericIndex(Index):
         return offset
 
 
-class DelegatingIndex(object):
-
-    def __init__(self, index, **kwds):
-        self._index = index
-
-    def __repr__(self):
-        return '<%s: %d>' %(type(self).__name__, self._count)
-
-    def __len__(self):
-        return len(self._index)
-
-    def __iter__(self, firstKey=None, lastKey=None, backwards=False):
-        return self._index.__iter__(firstKey, lastKey, backwards)
-
-    def __getattr__(self, name):
-        return getattr(self._index, name)
-
-    def __contains__(self, key):
-        return key in self._index
-
-    def has_key(self, key):
-        return key in self._index
-
-    def _writeValue(self, itemWriter, buffer, version):
-        self._index._writeValue(itemWriter, buffer, version)
-
-    def _readValue(self, itemReader, offset, data):
-        return self._index._readValue(itemReader, offset, data)
-
-
 class SortedIndex(DelegatingIndex):
 
     def __init__(self, valueMap, index, **kwds):
@@ -353,12 +326,12 @@ class SortedIndex(DelegatingIndex):
         if not kwds.get('loading', False):
             self._descending = str(kwds.pop('descending', 'False')) == 'True'
 
-    def __iter__(self, firstKey=None, lastKey=None, backwards=False):
+    def iterkeys(self, firstKey=None, lastKey=None, backwards=False):
 
         if self._descending:
             backwards = not backwards
 
-        return self._index.__iter__(firstKey, lastKey, backwards)
+        return self._index.iterkeys(firstKey, lastKey, backwards)
 
     def getInitKeywords(self):
 
@@ -476,7 +449,7 @@ class SortedIndex(DelegatingIndex):
 
     def _writeValue(self, itemWriter, buffer, version):
 
-        super(SortedIndex, self)._writeValue(itemWriter, buffer, version)
+        self._index._writeValue(itemWriter, buffer, version)
         itemWriter.writeBoolean(buffer, self._descending)
         if self._subIndexes:
             itemWriter.writeShort(buffer, len(self._subIndexes))
@@ -489,7 +462,7 @@ class SortedIndex(DelegatingIndex):
 
     def _readValue(self, itemReader, offset, data):
 
-        offset = super(SortedIndex, self)._readValue(itemReader, offset, data)
+        offset = self._index._readValue(itemReader, offset, data)
         offset, self._descending = itemReader.readBoolean(offset, data)
         offset, count = itemReader.readShort(offset, data)
 

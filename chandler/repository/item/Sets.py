@@ -100,7 +100,7 @@ class AbstractSet(ItemValue, Indexed):
 
         index = self._anIndex()
         if index is not None:
-            return index.__iter__()
+            return index.iterkeys()
 
         return self._iterkeys()
 
@@ -1092,7 +1092,7 @@ class MultiIntersection(MultiSet):
     def _iterkeys(self):
 
         sources = self._sources
-        if sources:
+        if len(sources) > 1:
             source = sources[0]
             for key in self._iterSourceKeys(source):
                 everywhere = True
@@ -1108,7 +1108,7 @@ class MultiIntersection(MultiSet):
     def _itervalues(self):
 
         sources = self._sources
-        if sources:
+        if len(sources) > 1:
             source = sources[0]
             for item in self._iterSource(source):
                 everywhere = True
@@ -1124,17 +1124,18 @@ class MultiIntersection(MultiSet):
     def _op(self, ops, other):
 
         sources = self._sources
-        for op, source in izip(ops, sources):
-            if op is not None:
-                everywhere = True
-                for src in sources:
-                    if src is source:
-                        continue
-                    if not self._sourceContains(other, src):
-                        everywhere = False
-                        break
-                if everywhere:
-                    return op
+        if len(sources) > 1:
+            for op, source in izip(ops, sources):
+                if op is not None:
+                    everywhere = True
+                    for src in sources:
+                        if src is source:
+                            continue
+                        if not self._sourceContains(other, src):
+                            everywhere = False
+                            break
+                    if everywhere:
+                        return op
 
         return None
 
