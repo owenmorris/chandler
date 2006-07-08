@@ -267,10 +267,12 @@ class SingleSourceWrapperCollection(WrapperCollection):
         return None
     def _setSource(self, source):
         sources = self.sources
-        if sources and sources.first() is not source:
+        if sources:
+            if sources.first() is source:
+                return
             sources.clear()
-            if source is not None:
-                sources.append(source)
+        if source is not None:
+            sources.append(source)
     def _delSource(self):
         self.sources.clear()
     source = property(_getSource, _setSource, _delSource)
