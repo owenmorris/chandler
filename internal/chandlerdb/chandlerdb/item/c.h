@@ -53,6 +53,7 @@ extern PyCFunction _countAccess;
 
 void _init_item(PyObject *m);
 void _init_values(PyObject *m);
+void _init_indexes(PyObject *m);
 
 PyObject *t_values__setDirty(t_values *self, PyObject *key);
 void PyDict_SetItemString_Int(PyObject *dict, char *key, int value);

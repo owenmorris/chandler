@@ -122,6 +122,7 @@ void initc(void)
 
     _init_item(m);
     _init_values(m);
+    _init_indexes(m);
 
     m = PyImport_ImportModule("chandlerdb.util.c");
     LOAD_TYPE(m, SingleRef);

@@ -61,6 +61,7 @@ def main():
     extensions.append(Extension('chandlerdb.item.c',
                                 sources=['chandlerdb/item/item.c',
                                          'chandlerdb/item/values.c',
+                                         'chandlerdb/item/indexes.c',
                                          'chandlerdb/item/c.c']))
 
     persistence_sources = ['chandlerdb/persistence/repository.c',
