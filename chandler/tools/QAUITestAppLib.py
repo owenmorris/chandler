@@ -1083,7 +1083,7 @@ class UITestItem(object):
                         self.logger.ReportPass("(On collection existence Checking)")
                         result = True
                     else:
-                        self.logger.ReportFail("(On collection existence Checking)")
+                        self.logger.ReportFailure("(On collection existence Checking)")
                         result = False
                     self.logger.Report("Collection existence")
                 else:
