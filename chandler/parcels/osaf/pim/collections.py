@@ -223,6 +223,7 @@ class WrapperCollection(ContentCollection):
         if op in ('add', 'remove'):
             view = self.itsView
             source = view[sourceId]
+            name = source.__collection__
 
             if op == 'add':
                 set = self._sourcesChanged_()
@@ -231,8 +232,8 @@ class WrapperCollection(ContentCollection):
                 assert actualSource is not None
                 for uuid in source.iterkeys():
                     view._notifyChange(sourceChanged, 'add', 'collection',
-                                       source, source.__collection__,
-                                       False, uuid, actualSource)
+                                       source, name, False, uuid, actualSource)
+
             elif op == 'remove':
                 set = getattr(self, self.__collection__)
                 sourceChanged = set.sourceChanged
@@ -240,8 +241,7 @@ class WrapperCollection(ContentCollection):
                 assert actualSource is not None
                 for uuid in source.iterkeys():
                     view._notifyChange(sourceChanged, 'remove', 'collection',
-                                       source, source.__collection__,
-                                       False, uuid, actualSource)
+                                       source, name, False, uuid, actualSource)
                 set = self._sourcesChanged_()
 
     def addSource(self, source):
@@ -284,6 +284,18 @@ class SingleSourceWrapperCollection(WrapperCollection):
             kwds['sources'] = [source]
 
         super(SingleSourceWrapperCollection, self).__init__(*args, **kwds)
+
+    def _sourcesChanged_(self):
+        
+        source = self.source
+
+        if source is None:
+            set = EmptySet()
+        else:
+            set = Set(source)
+
+        setattr(self, self.__collection__, set)
+        return set
 
 
 class DifferenceCollection(WrapperCollection):
@@ -361,6 +373,44 @@ class IntersectionCollection(WrapperCollection):
     """
 
     schema.kindInfo(displayName=u"IntersectionCollection")
+
+    def _sourcesChanged(self, op, item, attribute, sourceId):
+
+        if op in ('add', 'remove'):
+            view = self.itsView
+            source = view[sourceId]
+            name = self.__collection__
+            _collectionChanged = self._collectionChanged
+
+            if op == 'add':
+                set = getattr(self, name)
+                wasEmpty = isinstance(set, EmptySet)
+                sourceSet = getattr(source, source.__collection__)
+                for uuid in set.iterkeys():
+                    if uuid not in sourceSet:
+                        view._notifyChange(_collectionChanged,
+                                           'remove', 'collection', name, uuid)
+                set = self._sourcesChanged_()
+                if wasEmpty:
+                    for uuid in set.iterkeys():
+                        view._notifyChange(_collectionChanged,
+                                           'add', 'collection', name, uuid)
+
+            elif op == 'remove':
+                wasEmpty = isinstance(getattr(self, name), EmptySet)
+                set = self._sourcesChanged_()
+                sourceSet = getattr(source, source.__collection__)
+                if isinstance(set, EmptySet):
+                    if not wasEmpty:
+                        for uuid in sourceSet.iterkeys():
+                            view._notifyChange(_collectionChanged,
+                                               'remove', 'collection',
+                                               name, uuid)
+                else:
+                    for uuid in set.iterkeys():
+                        if uuid not in sourceSet:
+                            view._notifyChange(_collectionChanged,
+                                               'add', 'collection', name, uuid)
 
     def _sourcesChanged_(self):
 
@@ -665,7 +715,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
             # they drop the trash. So we artificially insert it back
             set = Difference(source, trash)
         else:
-            set = Set(self.source)
+            set = Set(source)
 
         setattr(self, self.__collection__, set)
         return set

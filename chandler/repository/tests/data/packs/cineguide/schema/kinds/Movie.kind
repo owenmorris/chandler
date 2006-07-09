@@ -22,6 +22,7 @@
     <ref alias="delta" type="path">/CineGuide/Attributes/delta</ref>
     <ref alias="set" type="path">/CineGuide/Attributes/set</ref>
     <ref alias="appearsIn" type="path">/CineGuide/Attributes/appearsIn</ref>
+    <ref alias="collections" type="path">/CineGuide/Attributes/collections</ref>
   </ref>
 
   <attribute name="displayAttribute">title</attribute>

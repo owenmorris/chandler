@@ -17,6 +17,7 @@ import os,unittest
 from osaf.pim.collections import *
 from osaf import pim
 from repository.persistence.DBRepository import DBRepository
+from repository.tests.RepositoryTestCase import RepositoryTestCase
 from i18n.tests import uw
 
 class NotifyHandler(schema.Item):
@@ -80,7 +81,7 @@ class CollectionTestCase(unittest.TestCase):
         rep.create(**kwds)
         view = rep.view
 
-        if view.findPath("//Schema") is None:
+        if view.getRoot("Schema") is None:
             view.loadPack(os.path.join(self.chandlerDir, 'repository', 'packs', 'schema.pack'))
             view.loadPack(os.path.join(self.chandlerDir, 'repository', 'packs', 'chandler.pack'))
         self.view = view
@@ -639,6 +640,131 @@ class CollectionTests(CollectionTestCase):
         self.assert_(note not in coll3)
         self.assert_(note not in trash)
         self.assert_(note in all)
+
+
+class TestCollections(RepositoryTestCase):
+
+    def setUp(self):
+
+        super(TestCollections, self).setUp()
+
+        view = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        view.loadPack(cineguidePack)
+
+
+    def testIntersectionSourceChanges(self):
+
+        view = self.rep.view
+
+        k = view['CineGuide']['KHepburn']
+        k.movies.addIndex('n', 'numeric')
+
+        c2 = ListCollection("c2", view)
+        c3 = ListCollection("c3", view)
+        c4 = ListCollection("c4", view)
+        c8 = ListCollection("c8", view)
+
+        i = 0
+        for m in k.movies:
+            if i % 2 == 0:
+                c2.append(m)
+            if i % 3 == 0:
+                c3.append(m)
+            if i % 4 == 0:
+                c4.append(m)
+            if i % 8 == 0:
+                c8.append(m)
+            i += 1
+
+        ci = IntersectionCollection("ci", view, sources = [c2, c3, c4])
+
+        cw = SingleSourceWrapperCollection("cw", view, source = ci)
+        cw.addIndex('n', 'numeric')
+
+        i = 0
+        for m in k.movies:
+            if i % 12 == 0:
+                self.assert_(m in ci)
+                self.assert_(m in cw)
+            else:
+                self.assert_(m not in ci)
+                self.assert_(m not in cw)
+            i += 1
+
+        ci.removeSource(c4)
+        i = 0
+        for m in k.movies:
+            if i % 6 == 0:
+                self.assert_(m in ci)
+                self.assert_(m in cw)
+            else:
+                self.assert_(m not in ci)
+                self.assert_(m not in cw)
+            i += 1
+
+        ci.addSource(c4)
+        i = 0
+        for m in k.movies:
+            if i % 12 == 0:
+                self.assert_(m in ci)
+                self.assert_(m in cw)
+            else:
+                self.assert_(m not in ci)
+                self.assert_(m not in cw)
+            i += 1
+
+        ci.addSource(c8)
+        i = 0
+        for m in k.movies:
+            if i % 24 == 0:
+                self.assert_(m in ci)
+                self.assert_(m in cw)
+            else:
+                self.assert_(m not in ci)
+                self.assert_(m not in cw)
+            i += 1
+
+        ci.removeSource(c2)
+        i = 0
+        for m in k.movies:
+            if i % 24 == 0:
+                self.assert_(m in ci)
+                self.assert_(m in cw)
+            else:
+                self.assert_(m not in ci)
+                self.assert_(m not in cw)
+            i += 1
+
+        ci.removeSource(c8)
+        i = 0
+        for m in k.movies:
+            if i % 12 == 0:
+                self.assert_(m in ci)
+                self.assert_(m in cw)
+            else:
+                self.assert_(m not in ci)
+                self.assert_(m not in cw)
+            i += 1
+
+        ci.removeSource(c4)
+        for m in k.movies:
+            self.assert_(m not in ci)
+            self.assert_(m not in cw)
+
+        ci.addSource(c2)
+        i = 0
+        for m in k.movies:
+            if i % 6 == 0:
+                self.assert_(m in ci)
+                self.assert_(m in cw)
+            else:
+                self.assert_(m not in ci)
+                self.assert_(m not in cw)
+            i += 1
+
+        self.assert_(view.check())
 
 
 if __name__ == "__main__":
