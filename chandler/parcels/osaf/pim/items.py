@@ -368,10 +368,14 @@ class ContentItem(schema.Item):
         return the list of candidate kinds for stamping
         right now, we consider only ContentItems.
         """
-        kindKind = self.findPath('//Schema/Core/Kind')
-        allKinds = kindKind.iterItems()
-        contentItemKind = ContentItem.getKind (self.itsView)
-        contentItemKinds = [ aKind for aKind in allKinds if aKind.isKindOf (contentItemKind) ]
+        contentItemKind = ContentItem.getKind(self.itsView)
+        contentItemKinds = set((contentItemKind,))
+        def collectSubKinds(aKind):
+            subKinds = getattr(aKind, 'subKinds', None)
+            if subKinds is not None:
+                contentItemKinds.update(subKinds)
+                map(collectSubKinds, subKinds)
+        collectSubKinds(contentItemKind)
         return contentItemKinds
 
     def _computeTargetKindSignature (self, operation, stampKind):
