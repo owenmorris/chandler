@@ -87,7 +87,7 @@ endif
 ifndef GCJ_HOME
 ifeq ($(OS),Cygwin)
 GCJ_HOME=$(BUILD_ROOT)/mingw-5.0-3.4.6
-GCJ_VER=4
+GCJ_VER=3
 endif
 ifeq ($(OS),Darwin)
 ifeq ($(ARCH),ppc)
