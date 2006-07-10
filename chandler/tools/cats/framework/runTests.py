@@ -26,12 +26,16 @@ import os, sys
 
 functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/Functional")
 
-#initialization 
+     
+def checkRepo(logger):
+    """Check for coruption in the repository"""
+    logger.addComment('Checking for repository corruption')
+    QAUITestAppLib.App_ns.itsView.check()
 
 def run_tests(tests):
     """Method to execute cats tests, must be in Functional directory."""
     
-    logger = TestOutput(stdout=True, debug=4) #debug=0 (least output), debug=4(most output)
+    logger = TestOutput(stdout=True, debug=0) 
     logger.startSuite(name='ChandlerTestSuite')
     for paramSet in tests.split(','):
         try:
@@ -45,9 +49,11 @@ def run_tests(tests):
             teststring = 'test = %s(name=\'%s\', logger=logger)' % (filenameAndTest[0], filenameAndTest[1])
             exec(compile(teststring, '%s/%s.py' % (functional_dir, filenameAndTest[0]), 'exec'))
             test.runTest()
+            if logger.debug == 2: checkRepo(logger)
         except:
             logger.traceback()
 
+    if logger.debug < 2: checkRepo(logger)
     logger.endSuite()
     logger.summary()
     import osaf.framework.scripting as scripting
@@ -56,7 +62,7 @@ def run_tests(tests):
 def run_perf_tests(tests):
     """Method to execute cats tests, must be in Performance directory"""
 
-    logger = TestOutput(stdout=True, debug=4)
+    logger = TestOutput(stdout=True, debug=0)
     logger.startSuite(name='ChandlerTestSuite')
     for paramSet in tests.split(','):
         try:
@@ -70,9 +76,11 @@ def run_perf_tests(tests):
             teststring = 'test = %s(name=\'%s\', logger=logger)' % (filenameAndTest[1], filenameAndTest[1])
             exec(compile(teststring, '', 'exec'))
             test.runTest()
+            if logger.debug == 2: checkRepo(logger)
         except:
             logger.traceback()
 
+    if logger.debug < 2: checkRepo(logger)
     logger.endSuite()
     import osaf.framework.scripting as scripting
     scripting.app_ns().root.Quit()
