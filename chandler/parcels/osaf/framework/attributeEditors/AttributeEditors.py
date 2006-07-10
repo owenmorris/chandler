@@ -934,17 +934,13 @@ class wxAutoCompleter(wx.ListBox):
         unitSlop = 0
         defaultBorderStyle = wx.SIMPLE_BORDER
 
-    def __init__(self, adjacentControl, completionCallback, 
+    def __init__(self, parent, adjacentControl, completionCallback, 
                  style=wx.LB_NEEDED_SB | wx.LB_SINGLE | defaultBorderStyle):
         self.choices = []
         self.completionCallback = completionCallback
         self.adjacentControl = adjacentControl
         
-        # We hang ourselves off the top-level window, though we remember
-        # the 'parent' we were passed so that we can place ourself
-        # adjacent to it.
-        topLevelWindow = wx.GetTopLevelParent(adjacentControl)
-        super(wxAutoCompleter, self).__init__(topLevelWindow, id=wx.ID_ANY,
+        super(wxAutoCompleter, self).__init__(parent, id=wx.ID_ANY,
                                               choices=[u""],
                                               size=wx.Size(0,0),
                                               style=style)
@@ -968,12 +964,11 @@ class wxAutoCompleter(wx.ListBox):
         """
         # Convert the position of the control in its own coordinate system
         # to global coordinates, then back to the coordinate system of the 
-        # top-level window... offset by the height of the original control,
+        # our parent window... offset by the height of the original control,
         # so we'll appear below it.
         adjacentControl = self.adjacentControl
         adjControlBounds = adjacentControl.GetRect()
-        topLevelWindow = wx.GetTopLevelParent(adjacentControl)
-        pos = topLevelWindow.ScreenToClient(\
+        pos = self.GetParent().ScreenToClient(\
             adjacentControl.GetParent().ClientToScreen(adjControlBounds.GetPosition()))
         pos.y += adjControlBounds.height
         self.SetPosition(pos)
@@ -1346,6 +1341,36 @@ class StringAttributeEditor (BaseAttributeEditor):
         if autocompleter is not None:
             autocompleter.reposition()
         event.Skip()
+        
+    def _findAutocompletionParent(self):
+        """
+        Find a widget to hang the autocompletion popup from, and return it.
+        Return None if no suitable widget found.
+        """
+        # We need to hang the completion popup off a window up the tree from 
+        # where we are, since it wants to overlap our neighboring controls.
+        # 
+        # We used to hang ourselves off the top-level window, but a fix
+        # for a toolbar redrawing bug involved turning on WS_EX_BUFFERED_DRAW
+        # on various widgets - and for some unknown reason, buffered drawing prevents
+        # this popup from appearing (bug 6190). So, we'll walk up our widget 
+        # tree until we find our event boundary (that is, our view), and hang 
+        # the popup off of that; this has the side benefit that if our view gets 
+        # unrendered, this widget will be destroyed automatically.
+        topLevelWindow = wx.GetTopLevelParent(self.control)
+        parentWindow = None
+        p = self.control
+        while p is not topLevelWindow:
+            # We'd better not hit a widget w/buffering before we find the view!
+            assert (p.GetExtraStyle() & wx.WS_EX_BUFFERED_DRAW == 0)
+
+            block = getattr(p, 'blockItem', None)
+            if block is not None and block.eventBoundary:
+                return p
+            p = p.GetParent()
+            
+        # Oops - didn't find a view!
+        return None
 
     def manageCompletionList(self, matches=None):
         """
@@ -1355,11 +1380,18 @@ class StringAttributeEditor (BaseAttributeEditor):
         autocompleter = getattr(self, 'autocompleter', None)
         if matches is not None and len(matches) > 0:
             if autocompleter is None:
-                autocompleter = wxAutoCompleter(self.control, 
+                acParent = self._findAutocompletionParent()
+                if acParent is None:
+                    return
+                autocompleter = wxAutoCompleter(acParent, self.control,
                                                 self.finishCompletion)
                 self.autocompleter = autocompleter
+                #logger.debug("Presenting completion list on %s", debugName(self))
+            #else:
+                #logger.debug("Updating completion list on %s", debugName(self))
             autocompleter.updateChoices(matches)
         elif autocompleter is not None:
+            #logger.debug("Destroying completion list on %s", debugName(self))
             autocompleter.Destroy()
             del self.autocompleter
 
@@ -1469,9 +1501,11 @@ class StringAttributeEditor (BaseAttributeEditor):
                     targetEnd = len(target)
                     target = target[start:].lstrip()
                     matches = []
-                    if len(target) > 0 and targetEnd <= insertionPoint:
+                    if len(target) > 0 and targetEnd <= insertionPoint and \
+                       event.GetKeyCode() != wx.WXK_RETURN:
                         # We have at least two characters, none after the 
-                        # insertion point
+                        # insertion point, and this isn't a return. Find matches,
+                        # but not too many.
                         count = 0
                         for m in matchGenerator(self, target):
                             count += 1
