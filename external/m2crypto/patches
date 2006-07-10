@@ -1,102 +1,17 @@
---- M2Crypto-310/setup.py	2005-06-08 19:43:59.000000000 -0700
-+++ M2Crypto-310-patched/setup.py	2006-04-03 09:43:33.273145600 -0700
-@@ -15,19 +15,39 @@
- from distutils.core import setup, Extension
- from distutils.command import build_ext
- 
-+# XXX This is a hack to force search order that works
-+# XXX for Chandler.
-+from distutils.sysconfig import get_config_var
-+
- my_inc = os.path.join(os.getcwd(), 'SWIG')
- 
- if os.name == 'nt':
-     openssl_dir = 'c:\\pkg\\openssl'
--    include_dirs = [my_inc, openssl_dir + '/include']
--    swig_opts_str = '-I"' + openssl_dir + os.sep + 'include"'
--    library_dirs = [openssl_dir + '\\lib']
-+    # XXX This is a hack to force search order that works
-+    # XXX for Chandler.
-+    prefix_dir = get_config_var('prefix')
-+    include_dirs = [prefix_dir + '\\..\\include',
-+                    my_inc,
-+                    openssl_dir + '/include']
-+    library_dirs = [prefix_dir + '\\..\\lib',
-+                    openssl_dir + '\\lib']
-+    swig_opts_str = '-I"' + prefix_dir + '\\..\\include"'
-     libraries = ['ssleay32', 'libeay32']
-     
- elif os.name == 'posix':
--    include_dirs = [my_inc, '/usr/include']
--    swig_opts_str = '-I/usr/include'
--    library_dirs = ['/usr/lib']
-+    # XXX This is a hack to force search order that works
-+    # XXX for Chandler.
-+    if sys.platform != 'darwin':
-+        chandler_inc = get_config_var('INCLUDEDIR')
-+        chandler_lib = get_config_var('LIBDIR')
-+    else:
-+        chandler_inc = get_config_var('INCLUDEDIR') + '/../../../../../../include'
-+        chandler_lib = get_config_var('LIBDIR') + '/../../../../../../lib'
-+    include_dirs = [chandler_inc, get_config_var('INCLUDEDIR'),
-+                    my_inc, '/usr/include']
-+    swig_opts_str = '-I' + chandler_inc
-+    library_dirs = [chandler_lib, get_config_var('LIBDIR'),
-+                    '/usr/lib']
-     if sys.platform == 'cygwin':
-         # Cygwin SHOULD work (there's code in distutils), but
-         # if one first starts a Windows command prompt, then bash,
-@@ -98,8 +118,7 @@
-                      include_dirs = include_dirs,
-                      library_dirs = library_dirs,
-                      libraries = libraries,
--                     extra_compile_args = ['-DTHREADING', 
--                                           '-DSWIG_COBJECT_PYTHON'],
-+                     extra_compile_args = ['-DTHREADING'],
-                      swig_opts = [swig_opts_str]
-                      )
- 
---- M2Crypto-310/tests/alltests.py	2005-06-09 10:32:28.000000000 -0700
-+++ M2Crypto-310-patched/tests/alltests.py	2006-04-03 09:42:53.385790400 -0700
-@@ -18,10 +18,6 @@
-         'test_evp',
+--- M2Crypto-458/tests/alltests.py	2006-06-12 10:33:03.000000000 -0700
++++ M2Crypto-458-patched/tests/alltests.py	2006-07-07 14:48:34.064065600 -0700
+@@ -19,10 +19,10 @@
          'test_rsa',
+         'test_smime',
          'test_x509']
 -    if os.name == 'posix':
 -        modules_to_test.append('test_ssl')
 -    elif os.name == 'nt':
 -        modules_to_test.append('test_ssl_win')
-     alltests = unittest.TestSuite()
-     for module in map(__import__, modules_to_test):
-         alltests.addTest(module.suite())
---- M2Crypto-310/M2Crypto/SSL/cb.py	2005-06-09 10:32:28.000000000 -0700
-+++ M2Crypto-310-patched/M2Crypto/SSL/cb.py	2006-04-03 09:44:54.760318400 -0700
-@@ -19,7 +19,7 @@
-         m2.X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE,
-         m2.X509_V_ERR_CERT_UNTRUSTED
-         ]
--    ssl_ctx = Context.map()[ssl_ctx_ptr]
-+    ssl_ctx = Context.map()[long(ssl_ctx_ptr)]
-     if errnum in unknown_issuer: 
-         if ssl_ctx.get_allow_unknown_ca():
-             sys.stderr.write("policy: %s: permitted...\n" % (m2.x509_get_verify_error(errnum)))
---- M2Crypto-310/M2Crypto/SSL/Context.py	2005-06-30 09:40:58.000000000 -0700
-+++ M2Crypto-310-patched/M2Crypto/SSL/Context.py	2006-04-03 09:45:54.946862400 -0700
-@@ -38,7 +38,7 @@
-             raise ValueError, "no such protocol '%s'" % protocol
-         self.ctx = m2.ssl_ctx_new(proto())
-         self.allow_unknown_ca = 0
--        map()[self.ctx] = self
-+        map()[long(self.ctx)] = self
-         m2.ssl_ctx_set_cache_size(self.ctx, 128L)
-         if weak_crypto is None:
-             if protocol == 'sslv23':
-@@ -49,7 +49,7 @@
-         m2.ssl_ctx_free(self.ctx)
- 
-     def close(self):
--        del map()[self.ctx]
-+        del map()[long(self.ctx)]
-         
-     def load_cert(self, certfile, keyfile=None, callback=util.passphrase_callback):
-         """Load certificate and private key into the context.
++#    if os.name == 'posix':
++#        modules_to_test.append('test_ssl')
++#    elif os.name == 'nt':
++#        modules_to_test.append('test_ssl_win')
+     if m2.OPENSSL_VERSION_NUMBER >= 0x90800F and m2.OPENSSL_NO_EC == 0:
+         modules_to_test.append('test_ecdh')
+         modules_to_test.append('test_ecdsa')

@@ -1,6 +1,7 @@
 
-VERSION=310
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)9
+# r458 == M2Crypto 0.16
+VERSION=458
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
 BUILD=build_$(SNAP)
 TARBALL=m2crypto-$(SNAP)-$(RELVER).tar.gz
@@ -15,6 +16,7 @@ ifeq ($(OS),Cygwin)
 build: expand apply
 	cd $(SRC); \
 	$(PYTHON) setup.py \
+	      --openssl=`cygpath -aw $(BUILD_ROOT)/$(SNAP)` \
           build_ext --swig=`cygpath -aw $(SWIG)` \
                     --library-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/lib` \
                     --include-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/include` \
@@ -25,6 +27,7 @@ else
 build: expand apply
 	cd $(SRC); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
+	      --openssl=$(BUILD_ROOT)/$(SNAP) \
           build_ext --swig=$(SWIG) \
                     --library-dirs=$(BUILD_ROOT)/$(SNAP)/lib \
                     --include-dirs=$(BUILD_ROOT)/$(SNAP)/include \
