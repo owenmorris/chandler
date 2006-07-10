@@ -17,7 +17,7 @@ __parcel__ = "osaf.framework.blocks"
 
 from Block import (
     Block, RectangularChild, wxRectangularChild, debugName,
-    WithoutSynchronizeWidget
+    WithoutSynchronizeWidget, IgnoreSynchronizeWidget
 )
 from osaf.pim.structs import PositionType
 import DragAndDrop
@@ -55,7 +55,7 @@ class wxBoxContainer (wxRectangularChild):
                            wxRectangularChild.CalculateWXFlag(childBlock), 
                            wxRectangularChild.CalculateWXBorder(childBlock))
         sizer.Layout()
-        self.Layout()
+        IgnoreSynchronizeWidget(False, self.Layout)
 
     @classmethod
     def CalculateWXStyle(theClass, block):
@@ -216,16 +216,6 @@ class wxSplitterWindow(wx.SplitterWindow):
         # Setting minimum pane size prevents unsplitting a window by double-clicking
         self.SetMinimumPaneSize(7) #weird number to help debug the weird sizing bug 3497
 
-    def Layout(self, *arguments, **keywords):
-        #this is here for debugging bug 3497
-        return super(wxSplitterWindow, self).Layout(*arguments, **keywords)
-
-    def OnInit(self, *arguments, **keywords):
-        #vain attempts to solve weird sizing bug
-        pass
-        #self.Layout()
-        #self.Refresh()
-
     def MoveSash(self, position):
         """
         Sets the sash position, and fires off the appropriate event
@@ -265,8 +255,22 @@ class wxSplitterWindow(wx.SplitterWindow):
         event.Skip()
 
     def OnSplitChanging(self, event):
+        """
+          Called when the user attempts to change the splitter. We need to calculate and store
+          the new splitPercentage here. This means that the splitPercentage won't change in
+          response to a window size change, which is important if resizing windows small then
+          large will get you back to where you started (bug #6164). Also, multiple size events
+          come through when sizer Layout is called and we don't want to change the percentage
+          in response to these size changes          
+        """
         if not self.blockItem.allowResize:
             event.SetSashPosition(-1)
+        else:
+            width, windowSize = self.GetSizeTuple()
+            if self.GetSplitMode() == wx.SPLIT_VERTICAL:
+                windowSize = width
+            assert windowSize >= 0
+            self.blockItem.splitPercentage = float (event.GetSashPosition()) / windowSize
         event.Skip()
 
     @WithoutSynchronizeWidget
@@ -275,22 +279,26 @@ class wxSplitterWindow(wx.SplitterWindow):
         event.Skip()
 
     def adjustSplit(self, position):
-        def calculatePosition():
+
+        def calculatePosition (position):
             for splitWindow in self.blockItem.childrenBlocks:
                 for child in splitWindow.childrenBlocks:
                     adjustSplitMethod = getattr (type (child.widget), "AdjustSplit", None)
                     if adjustSplitMethod is not None:
+                        position = windowSize - adjustSplitMethod(child.widget, windowSize - position)
+                        if position < 0:
+                            position = 0
                         # Python does't have a break statement that exits
                         # nested loops, so we'll use return instead
-                        return windowSize - adjustSplitMethod(child.widget, windowSize - position)
+                        return position
             return position
 
         width, windowSize = self.GetSizeTuple()
         if self.GetSplitMode() == wx.SPLIT_VERTICAL:
             windowSize = width
-        if windowSize > 0:
-            position = calculatePosition()
-            self.blockItem.splitPercentage = float (position) / windowSize
+        if windowSize >= 0:
+            # On Mac the windowSize is sometimes negative
+            position = calculatePosition (position)
             self.SetSashPosition (position)
 
     def wxSynchronizeWidget(self, useHints=False):

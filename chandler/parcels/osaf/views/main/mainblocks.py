@@ -177,6 +177,7 @@ def makeMainView (parcel):
                             SplitterWindow.template('SidebarContainer',
                                 stretchFactor = 0.0,
                                 border = RectType(0, 0, 0, 4.0),
+                                splitPercentage = 0.42,
                                 childrenBlocks = [
                                     Sidebar,
                                     BoxContainer.template('PreviewAndMiniCalendar',
