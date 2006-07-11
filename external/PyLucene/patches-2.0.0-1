@@ -14,14 +14,16 @@
          if '-loop' in sys.argv:
 --- PyLucene-src-2.0rc1-10/_PyLucene.cpp	2006-04-27 20:53:05.000000000 -0400
 +++ PyLucene-src-2.0rc1-10-patched/_PyLucene.cpp	2006-05-24 20:28:26.000000000 -0400
-@@ -32,6 +32,14 @@
+@@ -32,6 +32,16 @@
  #include "java.h"
  #include "lucene.h"
  
 +#ifdef EPRINTF
 +#include <assert.h>
-+void __eprintf(const char *, const char *, unsigned, const char *)
++void __eprintf(const char *format, const char *file, unsigned line,
++               const char *e)
 +{
++    printf(format, file, line, e);
 +    abort();
 +}
 +#endif
