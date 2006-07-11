@@ -31,11 +31,8 @@ def switchAndCheck(logger, buttonName, expectedClass):
     # ... idle() so the app can handle changes
     QAUITestAppLib.scripting.User.idle()
 
-    # ... Create a new item (For some reason, calling
-    # scripting.User.emulate_typing() didn't correctly
-    # simulate a control/cmd-n here)
-    QAUITestAppLib.App_ns.MainView.onNewItemEvent(
-       QAUITestAppLib.App_ns.NewItemItem.event)
+    # ... Create a new item, by simulating cmd-n
+    QAUITestAppLib.scripting.User.emulate_menu_accelerator("n")
     
     # ... wait again so the app can refresh
     QAUITestAppLib.scripting.User.idle()
