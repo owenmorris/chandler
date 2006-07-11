@@ -678,8 +678,9 @@ class Block(schema.Item):
                 id = self.freeWXIds.pop(0)
             else:
                 id = wx.NewId()
+                assert id < wx.ID_LOWEST
 
-        assert (id > 0)
+        assert id > 0
 
         assert not self.idToBlock.has_key (id)
         self.idToBlock [id] = self

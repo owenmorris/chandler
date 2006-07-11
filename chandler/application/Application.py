@@ -619,9 +619,7 @@ class wxApplication (wx.App):
         Delay imports to avoid circular references.
         """
         from osaf.framework.blocks.Block import Block
-
         wxID = event.GetId()
-
         block = Block.idToBlock.get (wxID, None)
         if block is not None:
 
@@ -629,21 +627,22 @@ class wxApplication (wx.App):
             #the topmost windw, standard events like cut/copy/paste get processed
             #by this handler instead of the dialog, causing cut/copy/paste to stop
             #working in dialogs. So, instead, if the dialog handles the event we
-            # don't want to dispatch it through our CPIA event mechanism.
+            #don't want to dispatch it through our CPIA event mechanism.
             #
             #Unfortunately, it's not possible to know if the dialog can process
-            #the event. So instead we'll just send all events with "standard wx
-            #ids" (e.g. that have an associated block whose wxId is non-zero) to
-            #the dialog. This can be accomplished by not handling the event
+            #the event. So instead, when the dialog is frontmost, we'll only send
+            #events belonging to blocks which have ids in the range we generate
+            #with getWidgetID through our commands processing, otherwise we'll send
+            #it to the dialog. This can be accomplished by not handling the event
             #here and, instead, calling Skip so it will be passed along to the dialog.
             #
             #Telling if a dialog is the topmost windows is also a bit tricky since
-            #dialogs have by default a top level window that is our MainFrame
-            #window. So a dialog is on top when the second window in
-            #wx.TopLevelWindows is a dialog.
+            #wx.GetActiveWindow is implemented only on windows, so wet get the top
+            #level parent of whatever window has the focus
+    
+            if ((wxID > 0 and wxID < wx.ID_LOWEST) or
+                not isinstance (wx.GetTopLevelParent(wx.Window.FindFocus()), wx.Dialog)):
 
-            topWindows = wx.GetTopLevelWindows()
-            if not (len (topWindows) > 1 and isinstance (topWindows[1], wx.Dialog)):
                 updateUIEvent = event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
                 blockEvent = getattr (block, 'event', None)
                 # If a block doesn't have an event, it should be an updateUI event
