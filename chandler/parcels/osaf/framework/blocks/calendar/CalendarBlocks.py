@@ -401,17 +401,6 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
     def onSelectAllEventUpdateUI(self, event):
         event.arguments['Enable'] = False
     
-    def onSelectedItemChangedEvent(self, event):
-        """Called directly by the detail view when the item it displays changes.
-        
-        Really this would make sense to be a BroadcastEverywhere block command,
-        but this is slow.
-        """
-        item = event.arguments['item']
-        if item != self.widget.selectedItem:
-            self.widget.selectedItem = item
-            self.synchronizeWidget()
-    
     def instantiateWidget(self):
         if not self.getHasBeenRendered():
             self.setRange( datetime.now().date() )
@@ -436,7 +425,6 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
                  *arguments, **keywords):
         super(wxPreviewArea, self).__init__(parent, id, *arguments, **keywords)
         self.currentDaysItems = []
-        self.selectedItem = None
         self._avoidDrawing = False
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
@@ -471,24 +459,14 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         self.blockItem.post(goto, {'item': item})
 
         self._avoidDrawing = False
-        
-        # after switching to the calendar view the current day often changes
-        if item in self.currentDaysItems:
-            self.selectedItem = item
-            self.Refresh()
-
-        
 
     def OnClick(self, event):
         item = self._getItem(event)
-        if self.selectedItem != item:
-            self.selectedItem = item
-            
-            sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
-            sidebarBPB.childrenBlocks.first().postEventByName (
-               'SelectItemsBroadcast', {'items':[item]}
-                )
-            self.Refresh()
+        sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
+        sidebarBPB.childrenBlocks.first().postEventByName (
+           'SelectItemsBroadcast', {'items':[item]}
+            )
+        self.Refresh()
 
     def Draw(self, dc):
         """
@@ -573,15 +551,6 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
                     y += self.lineHeight  #For end calculation
                     break
 
-            if item == self.selectedItem:
-                dc.DestroyClippingRegion()                
-                dc.SetBrush(wx.Brush(selectedBackground, wx.SOLID))
-                dc.DrawRectangle(r.x, y, r.width, self.lineHeight + 2)
-                setClipping()
-                
-                dc.SetTextBackground( selectedBackground )
-                dc.SetTextForeground( selectedColor )
-
             if not (item.allDay or item.anyTime):
                 # Draw the time
                 dc.SetFont(self.timeFont)
@@ -601,10 +570,6 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             dc.DrawText(item.displayName, x, y + self.eventFontOffset)
 
             y += self.lineHeight
-
-            if item == self.selectedItem:
-                dc.SetTextBackground( unselectedBackground )
-                dc.SetTextForeground( unselectedColor )
             
         dc.DestroyClippingRegion()
         return y - self.vMargin

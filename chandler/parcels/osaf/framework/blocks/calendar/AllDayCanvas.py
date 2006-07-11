@@ -414,10 +414,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                             newTime = self.blockItem.rangeStart - item.duration
     
                         start = newTime
-                        end   = start + item.duration
                     else:
-                        start, end = item.startTime, item.endTime
+                        start = item.effectiveStartTime
                     
+                    end  = start + item.duration
                     addCanvasItem(item, start, end)
 
             self.numEventRows = numEventRows
