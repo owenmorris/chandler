@@ -1179,7 +1179,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
 
         self.OnSelectItem(event)
 
-        self.blockItem.itsView.commit()
+        view.commit()
         return event
 
 
