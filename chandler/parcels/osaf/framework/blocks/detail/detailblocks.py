@@ -348,6 +348,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     buttonKind="Stamp",
                                     icon="MarkupPrivate",
                                     helpString=messages.PRIVATE,
+                                    viewAttribute=u'private',
                                     event=buttonPressed,
                                     stretchFactor=0.0,
                                     minimumSize=SizeType(30, 18))
