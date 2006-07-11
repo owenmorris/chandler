@@ -906,12 +906,12 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """
         tzprefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
         if tzprefs.showUI:
-            return ((item.startTime <= end) and (item.endTime >= start))
+            return ((item.effectiveStartTime <= end) and (item.effectiveEndTime >= start))
         else:
-            return ((item.startTime.replace(tzinfo=None) <=
-                                end.replace(tzinfo=None)) and
-                      (item.endTime.replace(tzinfo=None) >=
-                              start.replace(tzinfo=None)))
+            return ((item.effectiveStartTime.replace(tzinfo=None) <=
+                                         end.replace(tzinfo=None)) and
+                      (item.effectiveEndTime.replace(tzinfo=None) >=
+                                       start.replace(tzinfo=None)))
 
     def generateItemsInRange(self, date, nextDate, dayItems, timedItems):
         # wish we could put this somewhere more useful, but

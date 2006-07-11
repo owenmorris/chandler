@@ -228,7 +228,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
             
             for item in Calendar.eventsInRange(view, startDatetime, endDatetime,
                                                events):                                                
-                    updateBusy(item, item.startTime)
+                    updateBusy(item, item.effectiveStartTime)
     
             # Next, try to find all generated events in the given
             # datetime range
