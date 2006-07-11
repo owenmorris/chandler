@@ -37,7 +37,7 @@ PREFIX_PYTHON=$(PREFIX)/$(FRAMEWORK)
 MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU.so
 
 apply: patches-$(VERSION)
-	patch -Nup0 < patches-$(VERSION)
+	patch -Nup0 < patches-$(VERSION); echo ok
 
 build: expand apply
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
