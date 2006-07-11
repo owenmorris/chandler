@@ -37,7 +37,7 @@ from twisted.internet import reactor
 import application.Globals as Globals
 import application.Utility as Utility
 from osaf.framework.certstore import ssl
-                
+from osaf import messages         
 
 class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     def __init__(self, host=None, port=None, username=None, password=None,
@@ -98,7 +98,7 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     
                 handler = lambda: ssl.askIgnoreSSLError(
                     err.pem, 
-                    str(err), # XXX intl
+                    messages.SSL_HOST_MISMATCH % {'expectedHost': err.expectedHost, 'actualHost': err.actualHost},
                     retry)
                 self._handleSSLError(handler, err, callable, *args, **keywds)
     

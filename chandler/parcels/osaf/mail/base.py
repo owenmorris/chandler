@@ -34,6 +34,7 @@ from repository.persistence.RepositoryView import RepositoryView
 import osaf.pim.mail as Mail
 from osaf.framework.certstore import ssl
 import application.Utility as Utility
+from osaf import messages
 
 #Chandler Mail Service imports
 import errors
@@ -338,8 +339,9 @@ class AbstractDownloadClient(object):
             # Post an asynchronous event to the main thread where
             # we ask the user if they would like to continue even though
             # the certificate identifies a different host.
-            displayIgnoreSSLErrorDialog(err.pem, errorText,#XXX intl
-                                              reconnect)
+            displayIgnoreSSLErrorDialog(err.pem,
+                                        messages.SSL_HOST_MISMATCH % {'expectedHost': err.expectedHost, 'actualHost': err.actualHost},
+                                        reconnect)
 
             self._actionCompleted()
             return

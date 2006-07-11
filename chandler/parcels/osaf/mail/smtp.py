@@ -499,9 +499,9 @@ class SMTPClient(object):
 
             return True
         elif str(err.__class__) == errors.M2CRYPTO_CHECKER_ERROR:
-            #XXX [i18n] this message needs to be localized
-            displayIgnoreSSLErrorDialog(err.pem, str(err),
-                                              reconnect)
+            displayIgnoreSSLErrorDialog(err.pem,
+                                        messages.SSL_HOST_MISMATCH % {'expectedHost': err.expectedHost, 'actualHost': err.actualHost},
+                                        reconnect)
 
             return True
         return False
