@@ -196,8 +196,8 @@ if [ -n "$TEST_TO_RUN" ]; then
             for test in $DIRS ; do
                 NEWCATS=tools/cats
                 if [ "$OSTYPE" = "cygwin" ]; then
-                    TESTNAME=`cygpath -w $test`
-                    NEWCATS=`cygpath -w $NEWCATS`
+                    TESTNAME=`cygpath -m $test`
+                    NEWCATS=`cygpath -m $NEWCATS`
                 else
                     TESTNAME=$test
                 fi
