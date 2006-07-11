@@ -21,27 +21,26 @@ class TestNewItem(ChandlerTestCase):
 
         def switchAndCheck(buttonName, expectedClass):
     
-            name = "TestNewItem(%s" % (buttonName,))
+            name = "TestNewItem(%s)" % (buttonName,)
             self.logger.startAction(name)
         
             # Switch to the requested view...
-            QAUITestAppLib.App_ns.appbar.press(name=buttonName)
+            self.app_ns.appbar.press(name=buttonName)
             
             # ... idle() so the app can handle changes
-            QAUITestAppLib.scripting.User.idle()
+            self.scripting.User.idle()
         
             # ... Create a new item, by simulating cmd-n
-            QAUITestAppLib.scripting.User.emulate_menu_accelerator("n")
+            self.scripting.User.emulate_menu_accelerator("n")
             
             # ... wait again so the app can refresh
-            QAUITestAppLib.scripting.User.idle()
+            self.scripting.User.idle()
         
             # See what's in the detail view
-            newItem = QAUITestAppLib.App_ns.DetailRoot.contents
+            newItem = self.app_ns.DetailRoot.contents
         
             # Verify we got what we expected
-            global START_ITEM
-            if newItem is START_ITEM:
+            if newItem is self.selectedItem:
                 self.logger.endAction(False, "Selection in detail view didn't change!")
             elif newItem.__class__ != expectedClass:
                 self.logger.endAction(False, "Expected a %s, got %s" % (expectedClass, newItem))
@@ -49,19 +48,22 @@ class TestNewItem(ChandlerTestCase):
                 self.logger.endAction(True, "Created a %s" % (expectedClass))
         
         
-        START_ITEM = QAUITestAppLib.App_ns.DetailRoot.contents
+        self.selectedItem = self.app_ns.DetailRoot.contents
         
         switchAndCheck("ApplicationBarAllButton",
-                       QAUITestAppLib.pim.notes.Note)
+                       QAUITestAppLib.pim.notes.Note)        
+        self.selectedItem = self.app_ns.DetailRoot.contents
     
         switchAndCheck("ApplicationBarEventButton",
-                       QAUITestAppLib.pim.calendar.CalendarEvent)
+                       QAUITestAppLib.pim.calendar.CalendarEvent)        
+        self.selectedItem = self.app_ns.DetailRoot.contents
     
         switchAndCheck("ApplicationBarMailButton",
-                       QAUITestAppLib.Mail.MailMessage)
+                       QAUITestAppLib.Mail.MailMessage)        
+        self.selectedItem = self.app_ns.DetailRoot.contents
     
         switchAndCheck("ApplicationBarTaskButton",
-                       QAUITestAppLib.pim.Task)
+                       QAUITestAppLib.pim.Task) 
     
    
 
