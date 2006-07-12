@@ -15,19 +15,21 @@
 import tools.QAUITestAppLib as QAUITestAppLib
 
 from PyICU import ICUtzinfo
+from osaf.pim.calendar.TimeZone import TimeZoneInfo
 
-fileName = "TestSwitchTimezone.log"
-logger = QAUITestAppLib.QALogger(fileName, "Switch timezone")
-
-originalTz = ICUtzinfo.default.tzid
-switchTz = "US/Hawaii"
+logger = QAUITestAppLib.QALogger("TestSwitchTimezone.log",
+                                 "TestSwitchTimezone")
 
 try:
-    app_ns = app_ns()
-    calendarBlock = getattr(app_ns, "MainCalendarControl")
+    calendarBlock = getattr(app_ns(), "MainCalendarControl")
+
+    # Find the "canonical timezone" to use in test comparisons
+    info = TimeZoneInfo.get(app_ns().itsView)
+    originalTz = info.canonicalTimeZone(ICUtzinfo.default).tzid
+    switchTz = "US/Hawaii"
 
     # Enable timezones so that we can switch from the UI
-    app_ns.root.EnableTimezones()
+    app_ns().root.EnableTimezones()
 
     # Create a new event, which should inherit the default tz 
     timezoneEvent = QAUITestAppLib.UITestItem("Event", logger)
