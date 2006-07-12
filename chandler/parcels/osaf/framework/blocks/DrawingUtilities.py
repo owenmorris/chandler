@@ -231,6 +231,9 @@ class Gradients(object):
         # There is probably a nicer way to do this, without:
         # - going through wxImage
         # - individually setting each RGB pixel
+        
+        #An image created with a negative widths will cause image.GetDataBuffer() to fail.
+        assert bitmapWidth > 0
         if orientation == "Horizontal":
             image = wx.EmptyImage(bitmapWidth, 1)
         else:

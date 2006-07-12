@@ -386,132 +386,133 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
        
         for rectIndex, itemRect in enumerate(self.GetBoundsRects()):
 
-            if ENABLE_DEVICE_ORIGIN:
-                brushOffset = 0
-            else:
-                brushOffset = itemRect.x
+            if not itemRect.IsEmpty():
+                if ENABLE_DEVICE_ORIGIN:
+                    brushOffset = 0
+                else:
+                    brushOffset = itemRect.x
+                    
+                brush = styles.brushes.GetGradientBrush(brushOffset,
+                                                        itemRect.width,
+                                                        gradientLeft, gradientRight)	
+                dc.SetBrush(brush)	
+                dc.SetPen(wx.Pen(outlineColor))	
+           
+                # properly round the corners - first and last	
+                # boundsRect gets some rounding, and they	
+                # may actually be the same boundsRect	
+                hasTopRightRounded = hasBottomRightRounded = False	
+                drawEventText = False	
+                if rectIndex == 0:	
+                    hasTopRightRounded = True	
+                    drawEventText = True	
+           
+                if rectIndex == len(self.GetBoundsRects())-1:	
+                    hasBottomRightRounded = True	
+           
+                # anyTime-but-not-allday or zero-duration events get fully rounded
+                isAllDay = getattr(item, 'allDay', False)
+                isAnyTime = getattr(item, 'anyTime', False)
+                duration = getattr(item, 'duration', 0)
+                hasLeftRounded = ((isAnyTime or not duration) and not isAllDay)
                 
-            brush = styles.brushes.GetGradientBrush(brushOffset,
-                                                    itemRect.width,
-                                                    gradientLeft, gradientRight)	
-            dc.SetBrush(brush)	
-            dc.SetPen(wx.Pen(outlineColor))	
-       
-            # properly round the corners - first and last	
-            # boundsRect gets some rounding, and they	
-            # may actually be the same boundsRect	
-            hasTopRightRounded = hasBottomRightRounded = False	
-            drawEventText = False	
-            if rectIndex == 0:	
-                hasTopRightRounded = True	
-                drawEventText = True	
-       
-            if rectIndex == len(self.GetBoundsRects())-1:	
-                hasBottomRightRounded = True	
-       
-            # anyTime-but-not-allday or zero-duration events get fully rounded
-            isAllDay = getattr(item, 'allDay', False)
-            isAnyTime = getattr(item, 'anyTime', False)
-            duration = getattr(item, 'duration', 0)
-            hasLeftRounded = ((isAnyTime or not duration) and not isAllDay)
-            
-            self.DrawEventRectangle(dc, itemRect, brush,
-                                    hasLeftRounded,
-                                    hasTopRightRounded,
-                                    hasBottomRightRounded,
-                                    rightSideCutOff)
-            
-            # if the left side is rounded, we don't need a status bar
-            if not hasLeftRounded:
-                self.DrawStatusBar(dc, outlineColor,
-                                   (itemRect.x+1,
-                                    itemRect.y+1,
-                                    itemRect.y-1 + itemRect.height))
-
- 
-            self.textOffset = wx.Point(self.textMargin, self.textMargin)
-            
-            if hasLeftRounded:
-                cornerRadius = 8
-                self.textOffset.x += cornerRadius
-            else:
-                self.textOffset.x += 3
-
-            # Shift text to account for rounded corners
-            x = itemRect.x + self.textOffset.x
-            y = itemRect.y + self.textOffset.y
-
-            width = itemRect.width - self.textOffset.x - (self.textMargin)
-            
-            # only draw date/time on first item	
-            if drawEventText:
-                # only draw time on timed events
-                if not isAnyTimeOrAllDay:
-                    
-                    # allow self.startTime to override the
-                    # pre-formatted time string, and use that to
-                    # decide if we should measure the time or not
-                    startTime = getattr(self, 'startTime', None)
-                    if startTime:
-                        timeString = formatTime(startTime)
-                        timeHeight = dc.GetFullTextExtent(timeString, styles.eventTimeFont)[1]
-                    else:
-                        timeString = self.timeString
-                        # cache the timeHeight
-                        if self.timeHeight == 0:
+                self.DrawEventRectangle(dc, itemRect, brush,
+                                        hasLeftRounded,
+                                        hasTopRightRounded,
+                                        hasBottomRightRounded,
+                                        rightSideCutOff)
+                
+                # if the left side is rounded, we don't need a status bar
+                if not hasLeftRounded:
+                    self.DrawStatusBar(dc, outlineColor,
+                                       (itemRect.x+1,
+                                        itemRect.y+1,
+                                        itemRect.y-1 + itemRect.height))
+    
+     
+                self.textOffset = wx.Point(self.textMargin, self.textMargin)
+                
+                if hasLeftRounded:
+                    cornerRadius = 8
+                    self.textOffset.x += cornerRadius
+                else:
+                    self.textOffset.x += 3
+    
+                # Shift text to account for rounded corners
+                x = itemRect.x + self.textOffset.x
+                y = itemRect.y + self.textOffset.y
+    
+                width = itemRect.width - self.textOffset.x - (self.textMargin)
+                
+                # only draw date/time on first item	
+                if drawEventText:
+                    # only draw time on timed events
+                    if not isAnyTimeOrAllDay:
+                        
+                        # allow self.startTime to override the
+                        # pre-formatted time string, and use that to
+                        # decide if we should measure the time or not
+                        startTime = getattr(self, 'startTime', None)
+                        if startTime:
+                            timeString = formatTime(startTime)
+                            timeHeight = dc.GetFullTextExtent(timeString, styles.eventTimeFont)[1]
+                        else:
+                            timeString = self.timeString
+                            # cache the timeHeight
+                            if self.timeHeight == 0:
+                                self.timeHeight = \
+                                    dc.GetFullTextExtent(timeString, styles.eventTimeFont)[1]
+                            timeHeight = self.timeHeight
+                            
+                        # add some space below the time
+                        # (but on linux there isn't any room)
+                        if '__WXGTK__' in wx.PlatformInfo:
+                            timeBottomMargin = 0
+                        else:
+                            timeBottomMargin = 2
+    
+                        # draw the time if there is room for the time and at least
+                        # one other line of text
+                        # we need to precalculate how much room we have left
+                        availableSpace = timeHeight*2 + timeBottomMargin + \
+                                         self.textOffset.y*2
+                        if (availableSpace < itemRect.height):
+                            timeRect = (x, y, width, timeHeight)
+                            
+                            dc.SetFont(styles.eventTimeFont)
                             self.timeHeight = \
-                                dc.GetFullTextExtent(timeString, styles.eventTimeFont)[1]
-                        timeHeight = self.timeHeight
-                        
-                    # add some space below the time
-                    # (but on linux there isn't any room)
-                    if '__WXGTK__' in wx.PlatformInfo:
-                        timeBottomMargin = 0
+                                DrawWrappedText(dc, timeString, timeRect,
+                                                styles.eventTimeMeasurements)
+    
+                            y += self.timeHeight + timeBottomMargin
+    
+                        else:	
+                            self.timeHeight = 0	
+    
+                    # we may have lost some room in the rectangle from	
+                    # drawing the time	
+                    lostHeight = y - itemRect.y
+    
+                    # for some reason text measurement on the mac is off,
+                    # and text tends to look smooshed to the edge, so we
+                    # give it a 5 pixel buffer there
+                    if ('__WXMAC__' in wx.PlatformInfo):
+                        margin = 5
                     else:
-                        timeBottomMargin = 2
-
-                    # draw the time if there is room for the time and at least
-                    # one other line of text
-                    # we need to precalculate how much room we have left
-                    availableSpace = timeHeight*2 + timeBottomMargin + \
-                                     self.textOffset.y*2
-                    if (availableSpace < itemRect.height):
-                        timeRect = (x, y, width, timeHeight)
+                        margin = 0
                         
-                        dc.SetFont(styles.eventTimeFont)
-                        self.timeHeight = \
-                            DrawWrappedText(dc, timeString, timeRect,
-                                            styles.eventTimeMeasurements)
-
-                        y += self.timeHeight + timeBottomMargin
-
-                    else:	
-                        self.timeHeight = 0	
-
-                # we may have lost some room in the rectangle from	
-                # drawing the time	
-                lostHeight = y - itemRect.y
-
-                # for some reason text measurement on the mac is off,
-                # and text tends to look smooshed to the edge, so we
-                # give it a 5 pixel buffer there
-                if ('__WXMAC__' in wx.PlatformInfo):
-                    margin = 5
-                else:
-                    margin = 0
-                    
-                # now draw the text of the event
-                textRect = (x,y,width - margin, 
-                            itemRect.height - lostHeight - self.textOffset.y)
-       
-                dc.SetFont(styles.eventLabelFont)
-                if selected:
-                    proxy = RecurrenceDialog.getProxy(u'ui', item)
-                    DrawWrappedText(dc, proxy.displayName, textRect,
-                                    styles.eventLabelMeasurements)
-                else:
-                    DrawWrappedText(dc, item.displayName, textRect,
-                                    styles.eventLabelMeasurements)
+                    # now draw the text of the event
+                    textRect = (x,y,width - margin, 
+                                itemRect.height - lostHeight - self.textOffset.y)
+           
+                    dc.SetFont(styles.eventLabelFont)
+                    if selected:
+                        proxy = RecurrenceDialog.getProxy(u'ui', item)
+                        DrawWrappedText(dc, proxy.displayName, textRect,
+                                        styles.eventLabelMeasurements)
+                    else:
+                        DrawWrappedText(dc, item.displayName, textRect,
+                                        styles.eventLabelMeasurements)
        
         dc.DestroyClippingRegion()	
         if clipRect:	
