@@ -1147,9 +1147,24 @@ class CalendarEventMixin(RemindableMixin):
         isFirst = (recurrenceID == master.startTime)
         self._ignoreValueChanges = True
         
-        if attr == 'startTime':
-            startTimeDelta = (value - self.startTime)
-            self.rruleset.moveDatesAfter(recurrenceID, startTimeDelta)
+        # all day events' startTime is at midnight
+        startMidnight = datetime.combine(self.startTime.date(),
+                                         time(0, tzinfo=self.startTime.tzinfo))
+            
+        if attr in ('startTime', 'allDay'):
+            startTimeDelta = zero_delta
+            if attr == 'startTime':
+                startTimeDelta = (value - self.startTime)
+            # the recurrence dialog often gets extra changes buffered, don't
+            # process allDay unless it's actually changed
+            elif self.allDay != value:
+                if value == False:
+                    startTimeDelta = self.startTime - startMidnight
+                else:
+                    startTimeDelta = startMidnight - self.startTime
+            
+            if startTimeDelta != zero_delta:
+                self.rruleset.moveDatesAfter(recurrenceID, startTimeDelta)
         
         setattr(self, attr, value)
         
@@ -1164,7 +1179,10 @@ class CalendarEventMixin(RemindableMixin):
             self._makeGeneralChange()
             # Make this event a separate event from the original rule
             del self.modificationFor
-            self.recurrenceID = self.startTime
+            if self.allDay:
+                self.recurrenceID = startMidnight
+            else:
+                self.recurrenceID = self.startTime
             self.icalUID = unicode(self.itsUUID)
             self.copyCollections(master, self)
                                         
