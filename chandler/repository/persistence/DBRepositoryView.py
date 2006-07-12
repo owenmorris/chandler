@@ -232,7 +232,14 @@ class DBRepositoryView(OnDemandRepositoryView):
             if kind is not None:
                 kind.extent._collectionChanged('refresh', 'collection',
                                                'extent', uItem)
-                
+
+                if status & CItem.SCHEMA and kind.isKindOf(kind.getKindKind()):
+                    names = dirtyNames()
+                    if 'attributes' in names:
+                        self[uItem].flushCaches('attributes')
+                    elif 'superKinds' in names:
+                        self[uItem].flushCaches('superKinds')
+
                 dispatch = self.findValue(uItem, 'watcherDispatch', None, version)
                 if dispatch:
                     isNew = (status & CItem.NEW) != 0

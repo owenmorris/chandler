@@ -1021,7 +1021,7 @@ class RepositoryView(CView):
 
     def getItemVersion(self, version, item):
 
-        return self.repository.store.getItemVersion(version, item._uuid)
+        return self.repository.store.getItemVersion(self, version, item.itsUUID)
 
     def importItem(self, item):
 

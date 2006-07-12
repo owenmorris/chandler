@@ -596,6 +596,10 @@ class Kind(Item):
 
         return self.find(CORE)['Item']
 
+    def getKindKind(self):
+
+        return self.find(CORE)['Kind']
+
     def mixin(self, superKinds):
         """
         Find or generate a mixin kind.
