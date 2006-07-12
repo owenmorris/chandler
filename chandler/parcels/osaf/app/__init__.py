@@ -70,7 +70,7 @@ def installParcel(parcel, oldVersion=None):
 
 
     sharing.WebDAVAccount.update(parcel, 'CosmoWebDAVAccount',
-        displayName=_(u'Sharing'),
+        displayName=_(u'Cosmo Sharing Service'),
         host=u'cosmo-demo.osafoundation.org',
         path=u'/home/<username>',
         username=u'',
