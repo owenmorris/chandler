@@ -21,7 +21,7 @@ import i18n, schema
 import M2Crypto.Rand as Rand, M2Crypto.threading as m2threading
 from optparse import OptionParser
 
-from chandlerdb.util.c import UUID, useUUIDs
+from chandlerdb.util.c import UUID, loadUUIDs
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryView import NullRepositoryView
 from repository.persistence.RepositoryError import \
@@ -367,7 +367,7 @@ def initRepository(directory, options, allowSchemaView=False):
 
     if options.uuids:
         input = file(options.uuids)
-        useUUIDs([UUID(uuid.strip()) for uuid in input if len(uuid) > 1])
+        loadUUIDs([UUID(uuid.strip()) for uuid in input if len(uuid) > 1])
         input.close()
 
     repository = DBRepository(directory)
