@@ -38,7 +38,7 @@ static PyObject *_isRefs(PyObject *self);
 static PyObject *pop_NAME;
 
 int debug = 0;
-PyObject *uuidList = NULL;
+PyObject *inList, *outList = NULL;
 
 static PyMemberDef t_uuid_members[] = {
     { "_uuid", T_OBJECT, offsetof(t_uuid, uuid), READONLY, "UUID bytes" },
@@ -135,9 +135,9 @@ static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
 
     switch (len) {
       case 0:
-        if (uuidList)
+        if (inList)
         {
-            PyObject *u = PyObject_CallMethodObjArgs(uuidList, pop_NAME, NULL);
+            PyObject *u = PyObject_CallMethodObjArgs(inList, pop_NAME, NULL);
 
             if (!u)
                 return -1;
@@ -162,6 +162,8 @@ static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
                             "an error occurred while generating new UUID");
             return -1;
         }
+        else if (outList)
+            PyList_Append(outList, (PyObject *) self);
         break;
       case 16:
       case 22:
@@ -312,7 +314,7 @@ void _init_uuid(PyObject *m)
             PyModule_AddObject(m, "PyUUID_Make16", cobj);
 
             debug = !Py_OptimizeFlag;
-            uuidList = NULL;
+            inList = outList = NULL;
         }
     }
 }
