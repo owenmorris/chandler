@@ -1,4 +1,4 @@
-import os, hardhatlib, hardhatutil, sys
+import os, hardhatlib, hardhatutil, sys, platform
 
 info = {
         'name':'chandler',
@@ -30,8 +30,10 @@ def distribute(buildenv):
 
     if buildenv['version'] == 'debug':
         if buildenv['os'] == 'osx':
-
-            distName = 'Chandler_osx_debug_' + buildName
+            if platform.processor() == 'i386':
+                distName = 'Chandler_iosx_debug_' + buildName
+            else:
+                distName = 'Chandler_osx_debug_' + buildName
             # when we make an osx distribution, we actually need to put it
             # in a subdirectory (which has a .app extension).  So we set
             # 'distdir' temporarily to that .app dir so that handleManifest()
@@ -118,8 +120,10 @@ def distribute(buildenv):
             installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName, majorVersion, minorVersion, releaseVersion)
 
         if buildenv['os'] == 'osx':
-
-            distName = 'Chandler_osx_' + buildName
+            if platform.processor() == 'i386':
+                distName = 'Chandler_iosx_' + buildName
+            else:
+                distName = 'Chandler_osx_' + buildName
             # when we make an osx distribution, we actually need to put it
             # in a subdirectory (which has a .app extension).  So we set
             # 'distdir' temporarily to that .app dir so that handleManifest()
