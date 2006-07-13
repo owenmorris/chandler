@@ -724,6 +724,9 @@ class TransientRefList(RefList):
     def _setDirty(self, noMonitors=False):
         pass
 
+    def _removeRef(self, other, noError=False):
+        return super(TransientRefList, self)._removeRef(other, True)
+
     def _unloadRef(self, item):
 
         key = item.itsUUID
