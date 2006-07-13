@@ -22,7 +22,7 @@ __svn__          = "$Id$"
     #                            
     # source tree:
     #    /home/builder/www/chandler/continuous
-    #        + ( osx | win | linux )
+    #        + ( osx | win | linux | iosx)
     #            + YYYYMMDDHHMMSS 
     #
     # target tree:
@@ -31,6 +31,7 @@ __svn__          = "$Id$"
     # each build will be present in qa named as:
     #                   
     #     Chandler_osx.dmg
+    #     Chandler_iosx.dmg
     #     Chandler_win.exe
     #     Chandler_win.zip
     #     Chandler_linux.i386.rpm
@@ -40,7 +41,7 @@ __svn__          = "$Id$"
 import os, glob, string
 
 workingDirectory = '/home/builder/www/docs/chandler/continuous'
-platforms        = ['osx', 'win', 'linux']
+platforms        = ['osx', 'win', 'linux', 'iosx']
         
 def main():
     os.chdir(workingDirectory)
