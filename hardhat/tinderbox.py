@@ -21,7 +21,7 @@
 # The cycle.py script does the hardhat updates, so any changes
 # to the main script can be picked up
 
-import hardhatutil, time, smtplib, os, sys
+import hardhatutil, time, smtplib, os, sys, glob
 from optparse import OptionParser
 
 whereAmI    = os.path.dirname(os.path.abspath(hardhatutil.__file__))
@@ -115,6 +115,7 @@ def main():
 
     path       = os.environ.get('PATH', os.environ.get('path'))
     svnProgram = hardhatutil.findInPath(path, "svn")
+    scpProgram = hardhatutil.findInPath(path, "scp")
 
     if not skipRsync:
         rsyncProgram = hardhatutil.findInPath(path, "rsync")
@@ -268,6 +269,8 @@ def main():
             log.write("There were no changes in SVN\n")
             status = "not_running"
 
+        SendUUIDFile(buildDir, scpProgram, fromAddr, buildName, log)
+
         log.write( "End = " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n")
 
         try:
@@ -287,6 +290,41 @@ def main():
             print "Sleeping %d minutes" % sleepMinutes
             time.sleep(sleepMinutes * 60)
 
+
+def SendUUIDFile(buildDir, scpProgram, fromAddr, buildName, log):
+    builderURL = '%s%s.osafoundation.org:debug_files/' % ('builder', '@paniolo')
+    andiAddr   = '%s%sfoundation.org' % ('vajda@', 'osa')
+
+    files = glob.glob('uuid_*.txt')
+
+    if len(files) > 0:
+        print "Sending UUID files to server..."
+        log.write("Sending UUID files to server [%s]\n" % ", ".join(files))
+
+        subject = "[tbox UUID] from %s" % buildName
+        msg     = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromAddr, andiAddr, subject))
+
+        for filename in files:
+            uuidfile = open(filename, "r")
+            uuiddata = uuidfile.read()
+            uuidfile.close()
+
+            msg += '%s\r\n%s\r\n' % (filename, uuiddata)
+
+        try:
+            server = smtplib.SMTP('mail.osafoundation.org')
+            server.sendmail(fromAddr, andiAddr, msg)
+            server.quit()
+        except Exception, e:
+            print "SendMail error", e
+
+        outputList = hardhatutil.executeCommandReturnOutputRetry(
+            [scpProgram, "uuid_*.txt", builderURL])
+        hardhatutil.dumpOutputList(outputList, log)
+
+        for filename in files:
+            os.remove(filename)
+
 def UploadToStaging(nowString, log, rsyncProgram, rsyncServer):
     timestamp = nowString.replace("-", "")
     timestamp = timestamp.replace(":", "")
@@ -294,7 +332,7 @@ def UploadToStaging(nowString, log, rsyncProgram, rsyncServer):
 
     if not os.path.isdir(timestamp):
         print "skipping rsync to staging area, no dir", timestamp
-        log.write("skipping rsync to staging area, no dir")
+        log.write("skipping rsync to staging area, no dir\n")
     else:
         if os.name == 'nt' or sys.platform == 'cygwin':
             platform = 'windows'
