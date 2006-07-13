@@ -21,7 +21,7 @@
 # The cycle.py script does the hardhat updates, so any changes
 # to the main script can be picked up
 
-import hardhatutil, time, smtplib, os, sys, glob
+import hardhatutil, time, smtplib, os, sys, glob, platform
 from optparse import OptionParser
 
 whereAmI    = os.path.dirname(os.path.abspath(hardhatutil.__file__))
@@ -337,7 +337,10 @@ def UploadToStaging(nowString, log, rsyncProgram, rsyncServer):
         if os.name == 'nt' or sys.platform == 'cygwin':
             platform = 'windows'
         elif sys.platform == 'darwin':
-            platform = 'macosx'
+            if platform.processor() == 'i386':
+                platform = 'maciosx'
+            else:
+                platform = 'macosx'
         else:
             platform = 'linux'
 

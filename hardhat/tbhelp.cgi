@@ -1,24 +1,18 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2004 Open Source Applications Foundation
+#   Copyright (c) 2004-2006 Open Source Applications Foundation
 #
-# Permission is hereby granted, free of charge, to any person obtaining a
-# copy of this software and associated documentation files (the "Software"),
-# to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
-# and/or sell copies of the Software, and to permit persons to whom the
-# Software is furnished to do so, subject to the following conditions:
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
 #
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
+#       http://www.apache.org/licenses/LICENSE-2.0
 #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
 #
 # Author(s): Heikki Toivonen (heikki@osafoundation.org)
 
@@ -37,6 +31,8 @@ debug = False
         timestamp(s)
       macosx
         timestamp(s)
+      maciosx
+        timestamp(s)
       linux
         timestamp(s)
  
@@ -45,6 +41,7 @@ debug = False
   external
     windows
     macosx
+    maciosx
     linux
  
   It is assumed that timestamp is of the form yyyymmddhhmmss. It is assumed
@@ -83,6 +80,8 @@ destRootUrl = rootUrl
 lockFile = destRootDir + '/windows/lock'
 
 haveLock = False
+
+allPlatforms = ('windows', 'macosx', 'linux', 'maciosx')
 
 def availableBinaryTarballsForPlatform(platform):
     """
@@ -161,23 +160,35 @@ def buildFrontPage():
     """
     This will build the front page the user goes to.
     """
-    aWin = availableBinaryTarballsForPlatform('windows')
-    aMac = availableBinaryTarballsForPlatform('macosx')
-    aLin = availableBinaryTarballsForPlatform('linux')
+    results = {}
+    for p in allPlatforms:
+        results[p] = availableBinaryTarballsForPlatform(p)
 
     if debug:
-        print aWin, aMac, aLin
+        print results
         
     available = []
-    for k, valWin in aWin.items():
-        if aMac.has_key(k) and aLin.has_key(k) and not inDest(k):
-            available += [k + '|' + valWin + '|' + aMac[k] + '|' + aLin[k]]
+    for k, valWin in results['windows'].items():
+        for p in allPlatforms:
+            if p == 'windows':
+                continue
+            if not results[p].has_key(k):
+                break
+        else:
+            # This looks weird, but if we get here it means all platforms
+            # have the key.
+            if not inDest(k):
+                s = [k] 
+                for p in allPlatforms:
+                    s.append('|')
+                    s.append(results[p][k])
+                available.append(s.join(''))
     
     print '<title>Copy external/internal tarballs</title></head><body>'
     print '<h1>Copy external/internal tarballs</h1>'
 
-    print '<p>Staging:     [<a href="%s">Windows</a>] [<a href="%s">Mac OS X</a>] [<a href="%s">Linux</a>]</p>' % (stagingRootUrl + '/windows', stagingRootUrl + '/macosx', stagingRootUrl + '/linux')
-    print '<p>Destination: [<a href="%s">Windows</a>] [<a href="%s">Mac OS X</a>] [<a href="%s">Linux</a>]</p>' % (destRootUrl + '/windows', destRootUrl + '/macosx', destRootUrl + '/linux')
+    print '<p>Staging:     [<a href="%s">Windows</a>] [<a href="%s">PPC Mac OS X</a>] [<a href="%s">Linux</a>] [<a href="%s">Intel Mac OS X</a>]</p>' % (stagingRootUrl + '/windows', stagingRootUrl + '/macosx', stagingRootUrl + '/linux', stagingRootUrl + '/maciosx')
+    print '<p>Destination: [<a href="%s">Windows</a>] [<a href="%s">PPC Mac OS X</a>] [<a href="%s">Linux</a>] [<a href="%s">Intel Mac OS X</a>]</p>' % (destRootUrl + '/windows', destRootUrl + '/macosx', destRootUrl + '/linux', destRootUrl + '/maciosx')
 
 
     if not available:
@@ -199,17 +210,25 @@ def parseEntry(entry):
     """
     Parse entry in format:
     
-    foobar-*-x.y.z-w.tar.gz|windows:12345678901234|macosx:22345678901234|linux:32345678901234
+    foobar-*-x.y.z-w.tar.gz|windows:12345678901234|macosx:22345678901234|linux:32345678901234|...
 
-    and return the 7 parsed fields in a tuple.
+    and return the parsed fields in a tuple.
     """
-    entryMatch = re.compile('^(.+\-\*\-.+\.tar\.gz)\|windows\:([0-9]{14})\|macosx\:([0-9]{14})\|linux\:([0-9]{14})$').match(entry)
+    s = ['^(.+\-\*\-.+\.tar\.gz)']
+    for p in allPlatforms:
+        s.append('\|%s\:([0-9]{14})' % p)
+    s.append('$')
+    entryMatch = re.compile(s.join('')).match(entry)
     if not entryMatch:
         raise Exception, 'bad entry'
     file    = entryMatch.group(1)
-    winTime = entryMatch.group(2)
-    macTime = entryMatch.group(3)
-    linTime = entryMatch.group(4)
+    
+    times = {}
+    i = 2
+    for p in allPlatforms:
+        times[p] = entryMatch.group(i)
+        i += 1
+
     if file.count('*') != 1:
         raise Exception, 'bad file name'            
     if not re.compile('[a-zA-Z0-9.\-_*]').match(file):
@@ -218,7 +237,7 @@ def parseEntry(entry):
     relFileMd = relFile + '.md5'
     debFile   = file.replace('*', 'debug')
     debFileMd = debFile + '.md5'
-    return (relFile, relFileMd, debFile, debFileMd, winTime, macTime, linTime)
+    return (relFile, relFileMd, debFile, debFileMd, times)
 
 def copyWanted(wantedCopyList):
     """
@@ -226,20 +245,12 @@ def copyWanted(wantedCopyList):
     """
 
     for entry in wantedCopyList:
-        (relFile, relFileMd, debFile, debFileMd, winTime, macTime, linTime) = parseEntry(entry)
+        (relFile, relFileMd, debFile, debFileMd, times) = parseEntry(entry)
 
 
-        for platform in ('/linux/', '/macosx/', '/windows/'):
-            srcDir = stagingRootDir + platform
-            dstDir = destRootDir + platform
-
-
-            if platform == '/linux/':
-                srcDir += linTime + '/'
-            if platform == '/macosx/':
-                srcDir += macTime + '/'
-            if platform == '/windows/':
-                srcDir += winTime + '/'
+        for platform in allPlatforms:
+            srcDir = '%s/%s/%s/' % (stagingRootDir, platform, times[platform])
+            dstDir = '%s/%s/' % (destRootDir, platform)
 
             if debug:
                 print srcDir + relFile, dstDir + relFile
@@ -364,4 +375,3 @@ if __name__ == "__main__":
     except Exception, e:
         if debug:
             print e
-        pass
