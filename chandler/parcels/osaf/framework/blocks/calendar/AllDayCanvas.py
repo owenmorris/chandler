@@ -479,6 +479,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         evaluate datetime's position in the week: 0-6 (sun-sat)
         """
         cal = GregorianCalendar()
+        cal.setTimeZone(datetime.tzinfo.timezone)
         cal.setTime(datetime)
         
         return (cal.get(cal.DAY_OF_WEEK) - cal.getFirstDayOfWeek())
