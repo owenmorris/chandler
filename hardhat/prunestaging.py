@@ -24,7 +24,7 @@
 # We assume directory structure as follows:
 #
 # + absolute start directory
-#   + (linux | macosx | windows)
+#   + (linux | macosx | windows | maciosx)
 #     + YYYYMMDDHHMMSS
 #
 # We delete all YYYYMMDDHHMMSS directories that don't match our policy.
@@ -36,7 +36,7 @@ fromAddr         = 'builds'
 toAddr           = 'builder-admin'
 defaultDomain    = 'osafoundation.org'
 startDir         = '/home/builder/www/docs/external/staging'
-tboxDirGlob      = ['windows', 'macosx', 'linux']
+tboxDirGlob      = ['windows', 'macosx', 'linux', 'maciosx']
 
 import datetime, time, smtplib, os, glob
 
