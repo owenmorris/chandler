@@ -115,7 +115,7 @@ def availableBinaryTarballsForPlatform(platform):
         os.chdir(stagingRootDir + '/' + platform + '/' + archive)
         
         packages = glob.glob('*.tar.gz')
-		packages.sort()
+        packages.sort()
 
         if debug:
             print 'packages=', len(packages), packages
