@@ -219,7 +219,7 @@ def parseEntry(entry):
     for p in allPlatforms:
         s.append('\|%s\:([0-9]{14})' % p)
     s.append('$')
-    entryMatch = re.compile(s.join('')).match(entry)
+    entryMatch = re.compile(''.join(s)).match(entry)
     if not entryMatch:
         raise Exception, 'bad entry'
     file    = entryMatch.group(1)
