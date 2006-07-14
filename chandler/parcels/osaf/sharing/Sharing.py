@@ -29,6 +29,7 @@ from chandlerdb.item.ItemError import NoSuchAttributeError
 from PyICU import ICUtzinfo
 import M2Crypto.BIO, WebDAV, twisted.web.http, zanshin.webdav, wx
 from cStringIO import StringIO
+import bisect
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ __all__ = [
     'AlreadyExists',
     'AlreadySubscribed',
     'CalDAVConduit',
+    'CalDAVFreeBusyConduit',
     'CloudXMLFormat',
     'CouldNotConnect',
     'FileSystemConduit',
@@ -1928,6 +1930,172 @@ class CalDAVConduit(WebDAVConduit):
         resource = serverHandle.getResource(resourcePath)
 
         return result
+
+MINIMUM_FREEBUSY_UPDATE_FREQUENCY = datetime.timedelta(hours=1)
+MERGE_GAP_DAYS = 3
+ 
+utc = ICUtzinfo.getInstance('UTC')
+
+class FreeBusyAnnotation(schema.Annotation):
+    schema.kindInfo(annotates=pim.ContentCollection)
+    update_needed = schema.Sequence()
+    recently_updated = schema.Sequence()
+    
+    def addDateNeeded(self, view, needed_date, force_update = False):
+        """
+        Check for recently updated dates, if it was updated more than 
+        MINIMUM_FREEBUSY_UPDATE_FREQUENCY in the past (or force_update is True)
+        move it to update_needed.
+        
+        Next, check if that date has already been requested.  If no existing
+        update is found, create a new one.
+        
+        Return True if an update is created or changed, False otherwise.
+        
+        """
+        # need to think about what happens when bgsync changes get merged
+        # with the UI view when shuffling FreeBusyUpdates about
+        
+        # test if the date's in recently_updated, then check in update_needed
+        for update in getattr(self, 'recently_updated', []):
+            if update.date == needed_date:
+                if force_update or \
+                   update.last_update + MINIMUM_FREEBUSY_UPDATE_FREQUENCY < \
+                   datetime.datetime.now(utc):
+                    update.needed_for = self
+                    return True
+                else:
+                    # nothing to do
+                    return False
+                
+        for update in getattr(self, 'update_needed', []):
+            if update.date == needed_date:
+                return False
+        
+        # no existing update items for needed_date, create one
+        FreeBusyUpdate(itsView = view, date = needed_date,
+                       needed_for = self.itsItem)
+        return True
+    
+    def dateUpdated(self, updated_date):
+        update_found = False
+        # this is inefficient when processing, say, 60 days have been updated,
+        # with difficulty I convinced myself to avoid premature optimization
+        for update in getattr(self, 'recently_updated', []):
+            if update.date == updated_date:
+                update.last_update = datetime.datetime.now(utc)
+                if getattr(update, 'needed_for', False):
+                    del update.needed_for
+                update_found = True
+                break
+        for update in getattr(self, 'update_needed', []):
+            if update.date == updated_date:
+                if update_found:
+                    # redundant update request created by a different view
+                    update.delete()
+                else:
+                    del update.needed_for
+                    update.updated_for = self.itsItem
+                    update.last_update = datetime.datetime.now(utc)
+                return
+    
+    def cleanUpdates(self):
+        for update in getattr(self, 'recently_updated', []):
+            if update.last_update + MINIMUM_FREEBUSY_UPDATE_FREQUENCY < \
+               datetime.datetime.now(utc) and \
+               getattr(update, 'needed_for', False):
+                update.delete()
+
+class FreeBusyUpdate(schema.Item):
+    """
+    A FreeBusyUpdate item can be a request to update a particular date, or a
+    record of a recent update received.  Items are used instead of a simple
+    dictionary so the background sync view can merge changes from the UI view,
+    because changes to a repository Dictionary don't merge smoothly.
+    
+    """
+    date = schema.One(schema.Date)
+    last_update = schema.One(schema.DateTime)
+    needed_for = schema.One(FreeBusyAnnotation,
+                            inverse=FreeBusyAnnotation.update_needed)
+    updated_for = schema.One(FreeBusyAnnotation,
+                            inverse=FreeBusyAnnotation.recently_updated)
+
+
+class CalDAVFreeBusyConduit(CalDAVConduit):
+    """A read-only conduit, using the results of a free-busy report for get()"""
+
+    def _getFreeBusy(self, resource, start, end):
+        serverHandle = self._getServerHandle()
+        response = serverHandle.blockUntil(resource.getFreebusy, start, end, depth=1)
+        # quick hack to temporarily handle Cosmo's multistatus response
+        return response.body
+
+    def exists(self):
+        # this should probably do something nicer
+        return True
+
+    def _get(self, contentView, *args, **kwargs):
+        
+        if self.share.contents is None:
+            self.share.contents = pim.SmartCollection(itsView=self.itsView)
+        updates = FreeBusyAnnotation(self.share.contents)
+        updates.cleanUpdates()            
+
+
+        oneday = datetime.timedelta(1)
+        yesterday = datetime.date.today() - oneday
+        for i in xrange(29):
+            updates.addDateNeeded(self.itsView, yesterday + i * oneday)
+
+        needed_dates = []
+        date_ranges = [] # a list of (date, number_of_days) tuples
+        for update in getattr(updates, 'update_needed', []):
+            bisect.insort(needed_dates, update.date)
+        
+        if len(needed_dates) > 0:
+            start_date = working_date = needed_dates[0]
+            for date in needed_dates:
+                if date - working_date > oneday * MERGE_GAP_DAYS:
+                    days = (working_date - start_date).days
+                    date_ranges.append( (start_date, days) )
+                    start_date = working_date = date
+                else:
+                    working_date = date
+            
+            days = (working_date - start_date).days
+            date_ranges.append( (start_date, days) )
+        
+        # prepare resource, add security context
+        resource = self._resourceFromPath(u"")
+        if getattr(self, 'ticketReadOnly', False):
+            resource.ticketId = self.ticketReadOnly
+
+        zero_utc = datetime.time(0, tzinfo = utc)
+        for period_start, days in date_ranges:
+            start = datetime.datetime.combine(period_start, zero_utc)
+            end = datetime.datetime.combine(period_start + (days + 1) * oneday,
+                                            zero_utc)
+        
+            text = self._getFreeBusy(resource, start, end)        
+            self.share.format.importProcess(contentView, text, item=self.share)
+            
+            for i in xrange(days + 1):
+                updates.dateUpdated(period_start + i * oneday)
+                    
+        # a stats data structure appears to be required
+        stats = {
+            'share' : self.share.itsUUID,
+            'op' : 'get',
+            'added' : [],
+            'modified' : [],
+            'removed' : []
+        }
+        
+        return stats
+
+    def get(self):
+        self._get()
 
 
 

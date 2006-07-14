@@ -71,6 +71,8 @@ class SubscribeDialog(wx.Dialog):
         self.textUsername = wx.xrc.XRCCTRL(self, "TEXT_USERNAME")
         self.textPassword = wx.xrc.XRCCTRL(self, "TEXT_PASSWORD")
         self.checkboxKeepOut = wx.xrc.XRCCTRL(self, "CHECKBOX_KEEPOUT")
+        self.forceFreeBusy = wx.xrc.XRCCTRL(self, "CHECKBOX_FORCEFREEBUSY")
+        
         self.subscribeButton = wx.xrc.XRCCTRL(self, "wxID_OK")
 
         self.Bind(wx.EVT_BUTTON, self.OnSubscribe, id=wx.ID_OK)
@@ -154,6 +156,8 @@ class SubscribeDialog(wx.Dialog):
             username = None
             password = None
 
+        forceFreeBusy = self.forceFreeBusy.GetValue()
+
         self.subscribeButton.Enable(False)
         self.gauge.SetValue(0)
         self.subscribing = True
@@ -163,11 +167,12 @@ class SubscribeDialog(wx.Dialog):
 
         class ShareTask(task.Task):
 
-            def __init__(task, view, url, username, password):
+            def __init__(task, view, url, username, password, forceFreeBusy):
                 super(ShareTask, task).__init__(view)
                 task.url = url
                 task.username = username
                 task.password = password
+                task.forceFreeBusy = forceFreeBusy
 
             def error(task, err):
                 self._shareError(err)
@@ -185,13 +190,15 @@ class SubscribeDialog(wx.Dialog):
 
                 collection = sharing.subscribe(task.view, task.url,
                     updateCallback=task._updateCallback,
-                    username=task.username, password=task.password)
+                    username=task.username, password=task.password,
+                    forceFreeBusy=task.forceFreeBusy)
 
                 return collection.itsUUID
 
         self.view.commit()
         self.taskView = viewpool.getView(self.view.repository)
-        self.currentTask = ShareTask(self.taskView, url, username, password)
+        self.currentTask = ShareTask(self.taskView, url, username, password,
+                                     forceFreeBusy)
         self.currentTask.start(inOwnThread=True)
 
 

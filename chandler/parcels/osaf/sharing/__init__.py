@@ -31,6 +31,7 @@ from application.Parcel import Reference
 from application.Utility import getDesktopDir
 from osaf import pim
 from i18n import OSAFMessageFactory as _
+import vobject
 
 from repository.item.Monitors import Monitors
 from repository.item.Item import Item
@@ -690,7 +691,8 @@ def unpublishFreeBusy(collection):
         deleteShare(share)
 
 
-def subscribe(view, url, updateCallback=None, username=None, password=None):
+def subscribe(view, url, updateCallback=None, username=None, password=None,
+              forceFreeBusy=False):
 
     if updateCallback:
         progressMonitor = ProgressMonitor(0, updateCallback)
@@ -830,7 +832,42 @@ def subscribe(view, url, updateCallback=None, username=None, password=None):
                 logger.exception("Failed to subscribe to %s", url)
                 share.delete(True)
                 raise
-            
+
+        elif forceFreeBusy:
+            share = Share(itsView=view)
+            share.format = FreeBusyFileFormat(itsParent=share)
+            share.conduit = CalDAVFreeBusyConduit(itsParent=share,
+                                                  host=host,
+                                                  port=port,
+                                                  useSSL=useSSL,
+                                                  shareName=shareName,
+                                                  sharePath=parentPath,
+                                                  account=account)
+            if ticket:
+                share.conduit.ticketReadOnly = ticket
+            share.mode = "get"
+            share.filterClasses = \
+                ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
+
+            if updateCallback:
+                updateCallback(msg=_(u"Subscribing to freebusy..."))
+
+            try:
+                share.get(updateCallback=callback)
+
+                try:
+                    share.contents.shares.append(share, 'main')
+                except ValueError:
+                    # There is already a 'main' share for this collection
+                    share.contents.shares.append(share)
+
+                return share.contents
+
+            except Exception, err:
+                logger.exception("Failed to subscribe to %s", url)
+                share.delete(True)
+                raise            
+
         if updateCallback:
             updateCallback(msg=_(u"Detecting share settings..."))
 

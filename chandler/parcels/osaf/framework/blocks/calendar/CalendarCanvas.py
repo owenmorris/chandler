@@ -32,7 +32,7 @@ from osaf.pim import ContentCollection
 from osaf.usercollections import UserCollection
 from application.dialogs import RecurrenceDialog, Util, TimeZoneList
 
-from osaf.sharing import ChooseFormat
+from osaf.sharing import ChooseFormat, Sharing
 
 from osaf.framework.blocks import (
     DragAndDrop, Block, SplitterWindow, Styles, BoxContainer, BlockEvent
@@ -860,6 +860,30 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         Convenience method for changing between day and week mode.
         """
         self.postEventByName ('DayMode', {'dayMode': dayMode, 'newDay' : newDay})
+        
+    def getFreeBusyCollections(self):
+        """
+        Convenience method, returns any selected or overlaid collections
+        whose conduit is a CalDAVFreeBusyConduit.
+
+        """
+        hits = []
+        try:
+            collections = getattr(self.contents, 'collectionList',
+                                  [self.contents])
+        except AttributeError:
+            # sometimes self.contents hasn't been set yet. That's fine.
+            return hits
+        
+        for collection in collections:
+            shares = getattr(collection, 'shares', [])
+            for share in shares:
+                if isinstance(share.conduit, Sharing.CalDAVFreeBusyConduit):
+                    hits.append(collection)
+                    break
+        
+        return hits
+
 
     # Managing the date range
 
@@ -877,6 +901,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 
         if self.dayMode:
             self.rangeStart = date
+            number = 1
         else:
             calendar = GregorianCalendar()
             calendar.setTimeZone(ICUtzinfo.default.timezone)
@@ -884,7 +909,17 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
                                     calendar.getFirstDayOfWeek()))
             self.rangeStart = date - delta
-
+            number = 7
+        
+        # get an extra day on either side of the displayed range, because
+        # timezone displayed could be earlier or later than UTC
+        fb_date = self.rangeStart.date() - timedelta(1)
+        dates = [fb_date + n * timedelta(1) for n in range(number + 2)]
+ 
+        for col in self.getFreeBusyCollections():
+            annotation = Sharing.FreeBusyAnnotation(col)
+            for date in dates:
+                annotation.addDateNeeded(self.itsView, date)    
 
     def incrementRange(self):
         """
