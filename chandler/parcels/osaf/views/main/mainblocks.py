@@ -168,10 +168,10 @@ def makeMainView (parcel):
                                    event = main.ReminderTime),
             BoxContainer.template('ToolbarContainer',
                 orientationEnum = 'Vertical',
+                bufferedDraw = True,
                 childrenBlocks = [
                     ApplicationBar,
                     BoxContainer.template('SidebarContainerContainer',
-                        bufferedDraw = True,
                         border = RectType(4, 0, 0, 0),
                         childrenBlocks = [
                             SplitterWindow.template('SidebarContainer',
