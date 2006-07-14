@@ -18,7 +18,7 @@ Chandler startup
 """
 
 
-import os
+import os, PyLucene
 import application.Globals as Globals
 import application.Utility as Utility
 
