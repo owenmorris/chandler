@@ -335,23 +335,23 @@ def UploadToStaging(nowString, log, rsyncProgram, rsyncServer):
         log.write("skipping rsync to staging area, no dir\n")
     else:
         if os.name == 'nt' or sys.platform == 'cygwin':
-            platform = 'windows'
+            buildplatform = 'windows'
         elif sys.platform == 'darwin':
             if platform.processor() == 'i386':
-                platform = 'maciosx'
+                buildplatform = 'maciosx'
             else:
-                platform = 'macosx'
+                buildplatform = 'macosx'
         else:
-            platform = 'linux'
+            buildplatform = 'linux'
 
         print "Rsyncing to staging area..."
         log.write('rsync -e ssh -avzp ' + timestamp + ' ' +
                   rsyncServer + ':staging/' +
-                  platform)
+                  buildplatform)
         outputList = hardhatutil.executeCommandReturnOutputRetry(
          [rsyncProgram, "-e", "ssh", "-avzp",
          timestamp,
-         rsyncServer + ":staging/" + platform])
+         rsyncServer + ":staging/" + buildplatform])
         hardhatutil.dumpOutputList(outputList, log)
 
         completedFile = timestamp + os.sep + "completed"
@@ -359,11 +359,11 @@ def UploadToStaging(nowString, log, rsyncProgram, rsyncServer):
 
         log.write('rsync -e ssh -avzp ' + completedFile + ' ' +
                   rsyncServer + ':staging/' +
-                  platform + "/" + timestamp)
+                  buildplatform + "/" + timestamp)
         outputList = hardhatutil.executeCommandReturnOutputRetry(
          [rsyncProgram, "-e", "ssh", "-avzp",
          completedFile,
-         rsyncServer + ":staging/" + platform + "/" + timestamp])
+         rsyncServer + ":staging/" + buildplatform + "/" + timestamp])
         hardhatutil.dumpOutputList(outputList, log)
 
         hardhatutil.rmdirRecursive(timestamp)
