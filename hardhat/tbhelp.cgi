@@ -95,13 +95,13 @@ def availableBinaryTarballsForPlatform(platform):
     archiveDirs.sort()
 
     if debug:
-        print platform
+        print '<p>platform: %s</p>' % platform
     
     for archive in archiveDirs:
         os.chdir(stagingRootDir + '/' + platform)
 
         if debug:
-            print archive
+            print '<li>', archive
             
         if len(archive) != 14 or not os.path.isdir(archive):
             if debug:
@@ -115,9 +115,10 @@ def availableBinaryTarballsForPlatform(platform):
         os.chdir(stagingRootDir + '/' + platform + '/' + archive)
         
         packages = glob.glob('*.tar.gz')
+		packages.sort()
 
         if debug:
-            print packages
+            print 'packages=', len(packages), packages
 
         platTime = platform + ':' + archive
         lastPackage = ''
@@ -165,7 +166,7 @@ def buildFrontPage():
         results[p] = availableBinaryTarballsForPlatform(p)
 
     if debug:
-        print results
+        print '<p>results:</p>', results
         
     available = []
     for k, valWin in results['windows'].items():
@@ -182,7 +183,7 @@ def buildFrontPage():
                 for p in allPlatforms:
                     s.append('|')
                     s.append(results[p][k])
-                available.append(s.join(''))
+                available.append(''.join(s))
     
     print '<title>Copy external/internal tarballs</title></head><body>'
     print '<h1>Copy external/internal tarballs</h1>'
