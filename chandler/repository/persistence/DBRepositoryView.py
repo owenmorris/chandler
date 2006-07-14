@@ -233,13 +233,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                 kind.extent._collectionChanged('refresh', 'collection',
                                                'extent', uItem)
 
-                if status & CItem.SCHEMA and kind.isKindOf(kind.getKindKind()):
-                    names = dirtyNames()
-                    if 'attributes' in names:
-                        self[uItem].flushCaches('attributes')
-                    elif 'superKinds' in names:
-                        self[uItem].flushCaches('superKinds')
-
                 dispatch = self.findValue(uItem, 'watcherDispatch', None, version)
                 if dispatch:
                     isNew = (status & CItem.NEW) != 0
@@ -387,14 +380,15 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _refreshForwards(self, mergeFn, newVersion, notify):
 
         history = []
+        schema_history = []
         refreshes = set()
         deletes = set()
         merges = {}
         unloads = {}
         dangling = []
 
-        self._scanHistory(self.itsVersion, newVersion,
-                          history, refreshes, merges, unloads, deletes)
+        self._scanHistory(self.itsVersion, newVersion, history, schema_history,
+                          refreshes, merges, unloads, deletes)
         oldVersion = self._version
         self._version = newVersion
 
@@ -485,6 +479,17 @@ class DBRepositoryView(OnDemandRepositoryView):
                     if verify:
                         self._status |= CView.VERIFY
                     self.playChangeNotifications()
+
+            # flush schema caches of changed kinds
+            for (uItem, version, uKind, status, uParent,
+                 pKind, dirties) in schema_history:
+                kind = self.find(uKind)
+                if kind.isKindOf(kind.getKindKind()):
+                    names = kind._nameTuple(dirties)
+                    if 'attributes' in names:
+                        self[uItem].flushCaches('attributes')
+                    elif 'superKinds' in names:
+                        self[uItem].flushCaches('superKinds')
 
             if notify:
                 before = time()
@@ -677,7 +682,8 @@ class DBRepositoryView(OnDemandRepositoryView):
             yield uItem, version, kind, status, values, references, prevKind
 
     def _scanHistory(self, oldVersion, toVersion,
-                     history, refreshes, merges, unloads, deletes):
+                     history, schema_history,
+                     refreshes, merges, unloads, deletes):
 
         for args in self.store._items.iterHistory(self, oldVersion, toVersion):
             uItem, version, uKind, status, uParent, prevKind, dirties = args
@@ -687,6 +693,8 @@ class DBRepositoryView(OnDemandRepositoryView):
 
             if status & CItem.DELETED:
                 deletes.add(uItem)
+            elif status & CItem.SCHEMA:
+                schema_history.append(args)
 
             item = self.find(uItem, False)
             if item is not None:
