@@ -126,7 +126,11 @@ endif
 HOST=builds.osafoundation.org
 ifeq ($(OS),Darwin)
 ARCH=$(shell arch)
-URL=http://$(HOST)/external/$(PLATFORM)/$(ARCH)
+ifeq ($(ARCH),i386)
+URL=http://$(HOST)/external/maciosx
+else
+URL=http://$(HOST)/external/macosx
+endif
 else
 URL=http://$(HOST)/external/$(PLATFORM)
 endif
