@@ -13,6 +13,7 @@
     <ref alias="picture" type="path">/CineGuide/Attributes/picture</ref>
     <ref alias="films" type="path">/CineGuide/Attributes/films</ref>
     <ref alias="set" type="path">/CineGuide/Attributes/set</ref>
+    <ref alias="workedWith" type="path">/CineGuide/Attributes/workedWith</ref>
   </ref>
 
   <ref name="superKinds">

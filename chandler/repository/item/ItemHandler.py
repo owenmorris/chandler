@@ -63,8 +63,8 @@ class RefArgs(object):
         kwds = self.kwds
         item._references._setValue(self.name, other, self.otherName, True,
                                    kwds.get('cardinality'), kwds.get('alias'),
-                                   kwds.get('otherCard'),
-                                   kwds.get('otherAlias'))
+                                   kwds.get('dictKey'), kwds.get('otherKey'),
+                                   kwds.get('otherCard'), kwds.get('otherAlias'))
 
     def _setRef(self):
 
@@ -471,9 +471,8 @@ class ItemHandler(ValueHandler):
             refList = self.item._references.get(name)
 
         if refList is None:
-            refList = self.view._createRefList(None, name, otherName,
-                                                     True, readOnly, self.new,
-                                                     uuid)
+            refList = self.view._createRefList(None, name, otherName, None,
+                                               True, readOnly, self.new, uuid)
                 
         self.collections.append(refList)
 

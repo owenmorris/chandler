@@ -17,7 +17,8 @@
 
       <!-- 
          - plus local attributes below:
-         -     monitors, watcherDispatch, watchers, watches
+         -     monitors, watcherDispatch, watchers, watches,
+	 -     freeValues, freeValueOf
         -->
 
     </ref>
@@ -45,24 +46,6 @@
   </item>
 
   <item withSchema="True">
-    <name>watcherDispatch</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Core/Item</parent>
-
-    <ref name="kinds" otherName="attributes"
-         cardinality="list" otherCard="list">
-      <ref type="path" otherAlias="watcherDispatch">..</ref>
-    </ref>
-
-    <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/Set</ref>
-
-    <attribute name="cardinality">dict</attribute>
-    <attribute name="copyPolicy">remove</attribute>
-  </item>
-
-  <item withSchema="True">
     <name>watchers</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -73,8 +56,10 @@
       <ref type="path" otherAlias="watchers">..</ref>
     </ref>
 
-    <attribute name="cardinality">list</attribute>
-    <attribute name="otherName">watches</attribute>
+    <attribute name="cardinality">dict</attribute>
+    <attribute name="otherName">watchedItems</attribute>
+    <attribute name="copyPolicy">remove</attribute>
+    <attribute name="deletePolicy">cascade</attribute>
   </item>
 
   <item withSchema="True">
@@ -89,7 +74,43 @@
     </ref>
 
     <attribute name="cardinality">list</attribute>
-    <attribute name="otherName">watchers</attribute>
+    <attribute name="otherName">watchingItem</attribute>
+    <attribute name="copyPolicy">remove</attribute>
+    <attribute name="deletePolicy">cascade</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>freeValues</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Item</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="freeValues">..</ref>
+    </ref>
+
+    <attribute name="cardinality">dict</attribute>
+    <attribute name="otherName">freeValueOf</attribute>
+    <attribute name="copyPolicy">remove</attribute>
+    <attribute name="deletePolicy">remove</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>freeValueOf</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Item</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="freeValueOf">..</ref>
+    </ref>
+
+    <attribute name="cardinality">dict</attribute>
+    <attribute name="otherName">freeValues</attribute>
+    <attribute name="copyPolicy">remove</attribute>
+    <attribute name="deletePolicy">remove</attribute>
   </item>
 
 </items>

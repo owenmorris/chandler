@@ -7,6 +7,7 @@
   <ref name="attributes">
     <ref alias="name" type="path">/CineGuide/Attributes/name</ref>
     <ref alias="directed" type="path">/CineGuide/Attributes/directed</ref>
+    <ref alias="workedWith" type="path">/CineGuide/Attributes/workedWith</ref>
   </ref>
 
   <ref name="superKinds">

@@ -69,7 +69,7 @@ class TestPerfWithRSS(RepositoryTestCase):
 
         if feeds == []:
             logger.info("got no feeds")
-            print "If you haven't installed the feed data, you can retreive it from"
+            print "If you haven't installed the feed data, you can retrieve it from"
             print "http://aloha.osafoundation.org/~twl"
             print "select a tarball, download it, and unpack it in repository/tests/data"
             print "The data will be in a new directory called rssfeeds"

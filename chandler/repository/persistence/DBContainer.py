@@ -385,7 +385,10 @@ class RefContainer(DBContainer):
             l, alias = self._readValue(value, offset)
             offset += l
 
-            return (previous, next, alias)
+            l, otherKey = self._readValue(value, offset)
+            offset += l
+
+            return previous, next, alias, otherKey
 
     def loadRef(self, view, uCol, version, uRef):
 
@@ -465,7 +468,7 @@ class RefContainer(DBContainer):
             if ref is None:
                 iterator.close()
                 raise KeyError, ('refIterator', uCol)
-            _firstKey, _lastKey, alias = ref
+            _firstKey, _lastKey, x, x = ref
             if firstKey is None:
                 firstKey = _firstKey
             if lastKey is None:
@@ -478,7 +481,7 @@ class RefContainer(DBContainer):
             if ref is None:
                 iterator.close()
                 raise KeyError, ('refIterator', key)
-            previousKey, nextKey, alias = ref
+            previousKey, nextKey, x, x = ref
             yield key
 
         if lastKey is not None:
@@ -1563,8 +1566,9 @@ class ValueContainer(DBContainer):
     # 0.6.3: changed persisting if a value is full-text indexed
     # 0.6.4: changed version persistence
     # 0.6.5: added support for sub-indexes
+    # 0.6.6: added support for dictionaries of ref collections
 
-    FORMAT_VERSION = 0x00060500
+    FORMAT_VERSION = 0x00060600
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)

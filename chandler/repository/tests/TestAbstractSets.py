@@ -33,7 +33,8 @@ class movie(Movie):
 
     def _collectionChanged(self, op, change, name, other):
 
-        self.calls.append((op, self, name, other))
+        if name != 'watches':
+            self.calls.append((op, self, name, other))
         super(movie, self)._collectionChanged(op, change, name, other)
     
 

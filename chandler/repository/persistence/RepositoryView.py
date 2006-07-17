@@ -58,8 +58,9 @@ class RepositoryView(CView):
     # 0.6.4: changed format of some indexes to accept one or more attributes
     # 0.6.5: changed format of abstract sets to store an optional id
     # 0.6.6: added support for MethodFilteredSet
+    # 0.6.7: watchers reworked to use RefDict
     
-    CORE_SCHEMA_VERSION = 0x00060600
+    CORE_SCHEMA_VERSION = 0x00060700
 
     def __init__(self, repository, name, version):
         """
@@ -101,7 +102,7 @@ class RepositoryView(CView):
 
         return False
 
-    def _createRefList(self, item, name, otherName,
+    def _createRefList(self, item, name, otherName, dictKey, 
                        persisted, readOnly, new, uuid):
 
         raise NotImplementedError, "%s._createRefList" %(type(self))
@@ -1174,67 +1175,99 @@ class RepositoryView(CView):
 
         raise NotImplementedError, "%s._dispatchChanges" %(type(self))
 
-    def _registerWatch(self, watcher, item, attribute, watch, name):
+    def _registerWatch(self, watchingItem, watchedItem, cls, key, *args):
 
-        dispatch = self._watcherDispatch
-        watcher = (watcher.itsUUID, watch, name)
-        uItem = item.itsUUID
+        watchers = self._watchers
+        uWatching = watchingItem.itsUUID
+        uWatched = watchedItem.itsUUID
 
-        if dispatch is None:
-            self._watcherDispatch = { uItem: { attribute: set([watcher]) } }
+        if watchers is None:
+            self._watchers = {uWatched: {key: [cls(self, uWatching, *args)]}}
         else:
-            watchers = dispatch.get(uItem, None)
+            watchers = watchers.get(uWatched)
             if watchers is None:
-                dispatch[uItem] = { attribute: set([watcher]) }
+                self._watchers[uWatched] = {key: [cls(self, uWatching, *args)]}
             else:
-                watchers = watchers.get(attribute)
+                watchers = watchers.get(key)
                 if watchers is None:
-                    dispatch[uItem][attribute] = set([watcher])
+                    self._watchers[uWatched][key] = [cls(self, uWatching,*args)]
                 else:
-                    watchers.add(watcher)
+                    for watcher in watchers:
+                        if (watcher.watchingItem == uWatching and
+                            type(watcher) is cls and watcher.compare(*args)):
+                            return watcher
+                    watchers.append(cls(self, uWatching, *args))
+                
+        if cls is TransientWatchItem:
+            watchedItem._status |= CItem.T_WATCHED
 
-        if watch == 'item':
-            item._status |= CItem.T_WATCHED
+        return self._watchers[uWatched][key][-1]
 
-    def _unregisterWatch(self, watcher, item, attribute, watch, name):
+    def _unregisterWatch(self, watchingItem, watchedItem, cls, key, *args):
 
-        dispatch = self._watcherDispatch
-        if dispatch:
-            uItem = item.itsUUID
-            watchers = dispatch.get(uItem, None)
+        watchers = self._watchers
+        uWatching = watchingItem.itsUUID
+        uWatched = watchedItem.itsUUID
+
+        if watchers:
+            watchers = watchers.get(uWatched)
             if watchers:
-                watchers = watchers.get(attribute)
+                watchers = watchers.get(key)
                 if watchers:
-                    try:
-                        watchers.remove((watcher.itsUUID, watch, name))
-                    except KeyError:
-                        pass
-                    else:
-                        if watch == 'item' and not watchers:
-                            item._status &= ~CItem.T_WATCHED
+                    for watcher in watchers:
+                        if (watcher.watchingItem == uWatching and
+                            type(watcher) is cls and watcher.compare(*args)):
+                            watchers.remove(watcher)
+                    if not watchers:
+                        del self._watchers[uWatched][key]
+                        if not self._watchers[uWatched]:
+                            del self._watchers[uWatched]
+                        if cls is TransientWatchItem:
+                            watchedItem._status &= ~CItem.T_WATCHED
 
     def _unregisterWatches(self, item):
 
-        dispatch = self._watcherDispatch
-        if dispatch:
-            dispatch.pop(item.itsUUID, None)
+        watchers = self._watchers
+        if watchers:
+            uItem = item.itsUUID
+            watchers.pop(uItem, None)
+            for uWatched, watcherDict in watchers.items():
+                for key, watchers in watcherDict.items():
+                    watchers = [watcher for watcher in watchers
+                                if watcher.watchingItem != uItem]
+                    if watchers:
+                        watcherDict[key] = watchers
+                    else:
+                        del watcherDict[key]
+                if not watcherDict:
+                    del self._watchers[uWatched]
 
-    def watchItem(self, watcher, item, methodName):
-        self._registerWatch(watcher, item, None, 'item', methodName)
+    def watchItem(self, watchingItem, watchedItem, methodName):
+        return self._registerWatch(watchingItem, watchedItem,
+                                   TransientWatchItem,
+                                   watchedItem.itsUUID, methodName)
 
-    def unwatchItem(self, watcher, item, methodName):
-        self._unregisterWatch(watcher, item, None, 'item', methodName)
+    def unwatchItem(self, watchingItem, watchedItem, methodName):
+        self._unregisterWatch(watchingItem, watchedItem, TransientWatchItem,
+                              watchedItem.itsUUID, methodName)
 
-    def watchKind(self, watcher, kind, methodName):
-        self._registerWatch(watcher, kind.extent, 'extent', 'kind', methodName)
+    def watchKind(self, watchingItem, kind, methodName):
+        return self._registerWatch(watchingItem, kind.extent,
+                                   TransientWatchKind,
+                                   'extent', methodName)
 
-    def unwatchKind(self, watcher, kind, methodName):
-        self._unregisterWatch(watcher, kind.extent, 'extent', 'kind', methodName)
-    def watchCollection(self, watcher, owner, attribute, methodName):
-        self._registerWatch(watcher, owner, attribute, 'collection', methodName)
+    def unwatchKind(self, watchingItem, kind, methodName):
+        self._unregisterWatch(watchingItem, kind.extent, TransientWatchKind,
+                              'extent', methodName)
 
-    def unwatchCollection(self, watcher, owner, attribute, methodName):
-        self._unregisterWatch(watcher, owner, attribute, 'collection', methodName)
+    def watchCollection(self, watchingItem, owner, attribute, methodName):
+        return self._registerWatch(watchingItem, owner,
+                                   TransientWatchCollection,
+                                   attribute, methodName)
+
+    def unwatchCollection(self, watchingItem, owner, attribute, methodName):
+        self._unregisterWatch(watchingItem, owner, TransientWatchCollection,
+                              attribute, methodName)
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     itsPath = property(_getPath)
@@ -1423,10 +1456,11 @@ class NullRepositoryView(RepositoryView):
         
         raise AssertionError, "Null view cannot cancel"
 
-    def _createRefList(self, item, name, otherName,
+    def _createRefList(self, item, name, otherName, dictKey, 
                        persisted, readOnly, new, uuid):
 
-        return NullViewRefList(item, name, otherName, persisted, readOnly)
+        return NullViewRefList(item, name, otherName, dictKey,
+                               persisted, readOnly)
     
     def _createChildren(self, parent, new):
 
@@ -1564,11 +1598,74 @@ class NullViewLob(Lob):
 
 class NullViewRefList(TransientRefList):
 
-    def __init__(self, item, name, otherName, persisted, readOnly):
+    def __init__(self, item, name, otherName, dictKey, persisted, readOnly):
 
-        super(NullViewRefList, self).__init__(item, name, otherName, readOnly)
+        super(NullViewRefList, self).__init__(item, name, otherName, dictKey,
+                                              readOnly)
         self._transient = not persisted
 
     def _isTransient(self):
 
         return self._transient
+
+
+class TransientWatch(object):
+    
+    def __init__(self, view, watchingItem):
+
+        self.view = view
+        self.watchingItem = watchingItem
+
+
+class TransientWatchCollection(TransientWatch):
+
+    def __init__(self, view, watchingItem, methodName):
+
+        super(TransientWatchCollection, self).__init__(view, watchingItem)
+        self.methodName = methodName
+        
+    def __call__(self, op, change, owner, name, other):
+
+        getattr(self.view[self.watchingItem],
+                self.methodName)(op, owner, name, other)
+
+    def compare(self, methodName):
+
+        return self.methodName == methodName
+
+
+class TransientWatchKind(TransientWatch):
+
+    def __init__(self, view, watchingItem, methodName):
+
+        super(TransientWatchKind, self).__init__(view, watchingItem)
+        self.methodName = methodName
+        
+    def __call__(self, op, change, owner, name, other):
+
+        if isuuid(owner):
+            kind = self.view[owner].kind
+        else:
+            kind = owner.kind
+
+        getattr(self.view[self.watchingItem], self.methodName)(op, kind, other)
+
+    def compare(self, methodName):
+
+        return self.methodName == methodName
+
+
+class TransientWatchItem(TransientWatch):
+
+    def __init__(self, view, watchingItem, methodName):
+
+        super(TransientWatchItem, self).__init__(view, watchingItem)
+        self.methodName = methodName
+        
+    def __call__(self, op, uItem, names):
+
+        getattr(self.view[self.watchingItem], self.methodName)(op, uItem, names)
+
+    def compare(self, methodName):
+
+        return self.methodName == methodName

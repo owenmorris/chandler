@@ -25,6 +25,7 @@
       <item file="Principal.kind" />
       <item file="Monitors.kind" />
       <item file="Monitor.kind" />
+      <item file="Watch.kind" />
       <item file="Collection.kind" />
     </item>
 
@@ -45,6 +46,7 @@
       <item file="items.namespace" cwd="items">
         <item file="Monitors.item" />
         <item file="monitors.namespace" />
+        <item file="watches.namespace" />
       </item>
     </item>
   </item>

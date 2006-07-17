@@ -30,7 +30,7 @@ class RefList(LinkedMap, Indexed):
     used to name and access the references contained by a ref list.
     """
     
-    def __init__(self, item, name, otherName, readOnly, lmflags):
+    def __init__(self, item, name, otherName, dictKey, readOnly, lmflags):
         """
         The constructor for this class. A RefList should not be instantiated
         directly but created through the item and attribute it is going to
@@ -42,6 +42,7 @@ class RefList(LinkedMap, Indexed):
         self._item = None
         self._name = name
         self._otherName = otherName
+        self._dictKey = dictKey
 
         if item is not None:
             self._setOwner(item, name)
@@ -52,7 +53,13 @@ class RefList(LinkedMap, Indexed):
     def _isRefs(self):
         return True
     
+    def _isList(self):
+        return True
+    
     def _isSet(self):
+        return False
+    
+    def _isDict(self):
         return False
     
     def _isItem(self):
@@ -64,6 +71,15 @@ class RefList(LinkedMap, Indexed):
     def _isTransient(self):
         return False
 
+    def _isDirty(self):
+        return False
+
+    def _setDirty(self, noMonitors=False):
+
+        if self._flags & RefList.SETDIRTY:
+            item = self._item
+            item.setDirty(item.RDIRTY, self._name, item._references, noMonitors)
+
     def _setFlag(self, flag, on):
 
         old = self._flags & flag != 0
@@ -73,12 +89,6 @@ class RefList(LinkedMap, Indexed):
             self._flags &= ~flag
 
         return old
-
-    def _setDirty(self, noMonitors=False):
-
-        if self._flags & RefList.SETDIRTY:
-            item = self._item
-            item.setDirty(item.RDIRTY, self._name, item._references, noMonitors)
 
     # copy the indexes from self into refList, empty
     def _copyIndexes(self, refList):
@@ -91,26 +101,52 @@ class RefList(LinkedMap, Indexed):
                 indexes[name] = refList._createIndex(type, **kwds)
 
     # copy the refs from self into copyItem._references
-    def _copy(self, copyItem, name, policy, copyFn):
+    def _copy(self, copyItem, name, policy, copyFn, refList=None):
 
-        refList = copyItem._references.get(name, Nil)
-        if refList is Nil:
-            refList = copyItem._refList(name)
-            self._copyIndexes(refList)
-            copyItem._references[name] = refList
+        if refList is None:
+            refList = copyItem._references.get(name, Nil)
+            if refList is Nil:
+                refList = copyItem._refList(name, self._otherName)
+                self._copyIndexes(refList)
+                copyItem._references[name] = refList
 
         for key in self.iterkeys():
             link = self._get(key)
             copyOther = copyFn(copyItem, link.value, policy)
             if copyOther is not Nil:
                 if copyOther not in refList:
-                    refList.append(copyOther, link.alias)
+                    refList.append(copyOther, link.alias, link._otherKey)
                 else:
                     refList.placeItem(copyOther, refList.last()) # copy order
-                    if link.alias is not None:                  # and alias
+                    if link.alias is not None:                   # and alias
                         refList.setAlias(copyOther, link.alias)
 
         return refList
+
+    def _clone(self, owner):
+
+        name = self._name
+        otherName = self._otherName
+        owner._references[name] = clone = owner._refList(name, otherName,
+                                                         self._dictKey)
+
+        if self:
+            otherKind = owner.getAttributeAspect(name, 'type', False,
+                                                 None, None)
+            if otherKind is not None:
+                otherAttr = otherKind.getAttribute(otherName)
+                if otherAttr.getAspect('cardinality', 'single') == 'list':
+                    clone.extend(self)
+                return clone
+
+            for other in self:
+                otherCard = other.getAttributeAspect(otherName,
+                                                     'cardinality', False,
+                                                     None, 'single')
+                if otherCard == 'list':
+                    clone.append(other)
+
+        return clone
 
     def _setOwner(self, item, name):
 
@@ -164,46 +200,29 @@ class RefList(LinkedMap, Indexed):
         try:
             sd = self._setFlag(RefList.SETDIRTY, False)
             for value in valueList:
-                self.append(value, None, _noMonitors)
+                self.append(value, None, None, _noMonitors)
         finally:
             self._setFlag(RefList.SETDIRTY, sd)
 
         self._setDirty(True)
 
-    def update(self, dictionary, setAliases=False, _noMonitors=False):
-        """
-        As with regular python dictionary, this method appends all items in
-        the dictionary to this ref collection.
-
-        @param setAliases: if C{True}, the keys in the dictionary are used
-        as aliases for the references added to this ref collection. The keys
-        should be strings.
-        @type setAliases: boolean
-        """
-
-        try:
-            sd = self._setFlag(RefList.SETDIRTY, False)
-            if setAliases:
-                for alias, value in dictionary.iteritems():
-                    self.append(value, alias, _noMonitors)
-            else:
-                for value in dictionary.itervalues():
-                    self.append(value, None, _noMonitors)
-        finally:
-            self._setFlag(RefList.SETDIRTY, sd)
-
-        self._setDirty(True)
-
-    def add(self, item, alias=None):
+    def add(self, item, alias=None, otherKey=None):
         """
         Add an item to this ref collection.
 
         This is method is a synonym for the L{append} method.
         """
 
-        self.append(item, alias)
+        self.append(item, alias, otherKey)
 
-    def append(self, item, alias=None, _noMonitors=False):
+    def set(self, item, alias=None, otherKey=None):
+
+        if self:
+            self.clear()
+        
+        self.append(item, alias, otherKey)
+
+    def append(self, item, alias=None, otherKey=None, _noMonitors=False):
         """
         Append an item to this ref collection.
 
@@ -218,15 +237,20 @@ class RefList(LinkedMap, Indexed):
         """
 
         if item in self:
-            if alias is not None:
+            if otherKey is not None and self.getOtherKey(item) != otherKey:
+                self.remove(item)
+            elif alias is not None:
                 self.setAlias(item, alias)
-        else:
-            if alias is not None:
-                aliasedKey = self.resolveAlias(alias)
-                if aliasedKey is not None:
-                    raise ValueError, "alias '%s' already set for key %s" %(alias, aliasedKey)
-            self._item._references._setValue(self._name, item, self._otherName,
-                                             _noMonitors, 'list', alias)
+            else:
+                return
+
+        if alias is not None:
+            aliasedKey = self.resolveAlias(alias)
+            if aliasedKey is not None:
+                raise ValueError, "alias '%s' already set for key %s" %(alias, aliasedKey)
+        self._item._references._setValue(self._name, item, self._otherName,
+                                         _noMonitors, 'list',
+                                         alias, self._dictKey, otherKey)
 
     def clear(self):
         """
@@ -251,10 +275,19 @@ class RefList(LinkedMap, Indexed):
         for item in self:
             print item._repr_()
 
-    def _setRef(self, other, alias=None, fireChanges=False):
+    def _setRef(self, other, alias=None, dictKey=None, otherKey=None,
+                fireChanges=False):
+
+        # DEBUG
+        if fireChanges not in (True, False):
+            raise ValueError, fireChanges
+
+        if otherKey is not None and other in self:
+            if self.getOtherKey(other) != otherKey:
+                self.remove(other)
 
         key = other.itsUUID
-        link = CLink(self, other, None, None, alias);
+        link = CLink(self, other, None, None, alias, otherKey);
         self[key] = link
 
         if self._indexes:
@@ -350,12 +383,13 @@ class RefList(LinkedMap, Indexed):
         @type item: an C{Item} instance
         """
 
-        self._item._references._removeValue(self._name, item, self._otherName)
+        self._item._references._removeValue(self._name, item,
+                                            self._otherName, self._dictKey)
             
     def __delitem__(self, key):
 
         self._item._references._removeValue(self._name, self[key],
-                                            self._otherName)
+                                            self._otherName, self._dictKey)
 
     def _removeRef_(self, other):
 
@@ -373,16 +407,18 @@ class RefList(LinkedMap, Indexed):
 
         return link
 
-    def _removeRef(self, other, noError=False):
+    def _removeRef(self, other, dictKey=None, noError=False):
 
         if not noError or other in self:
-            self._removeRef_(other)
+            link = self._removeRef_(other)
 
             item = self._item
             view = item.itsView
             view._notifyChange(item._collectionChanged,
                                'remove', 'collection', self._name,
                                other.itsUUID)
+
+            return link._otherKey
 
     def _removeRefs(self):
 
@@ -409,8 +445,9 @@ class RefList(LinkedMap, Indexed):
                 else:
                     raise DanglingRefError, (self._item, self._name, key)
 
-            previousKey, nextKey, alias = ref
-            self._dict[key] = CLink(self, other, previousKey, nextKey, alias)
+            previousKey, nextKey, alias, otherKey = ref
+            self._dict[key] = CLink(self, other, previousKey, nextKey,
+                                    alias, otherKey)
             if alias is not None:
                 self._aliases[alias] = key
 
@@ -448,6 +485,17 @@ class RefList(LinkedMap, Indexed):
         """
 
         return super(RefList, self).get(key, default, load)
+
+    def getOtherKey(self, item):
+        """
+        Get the alias this item is keyed on in this collection.
+
+        @param item: an item in the collection
+        @type item: an L{Item<repository.item.Item.Item>} instance
+        @return: the alias string or None if the item is not aliased
+        """
+
+        return self._get(item.itsUUID)._otherKey
 
     def getAlias(self, item):
         """
@@ -685,7 +733,9 @@ class RefList(LinkedMap, Indexed):
     def _inspect_(self, indent):
         return ''
 
-    
+    def iterItems(self):
+        return self.itervalues()
+
     #    NEW  = 0x0001 (defined on CLinkedMap)
     #    LOAD = 0x0002 (defined on CLinkedMap)
     # MERGING = 0x0004 (defined on CLinkedMap)
@@ -698,10 +748,10 @@ class TransientRefList(RefList):
     A ref collection class for transient attributes.
     """
 
-    def __init__(self, item, name, otherName, readOnly):
+    def __init__(self, item, name, otherName, dictKey, readOnly):
 
-        super(TransientRefList, self).__init__(item, name, otherName, readOnly,
-                                               CLinkedMap.NEW)
+        super(TransientRefList, self).__init__(item, name, otherName, dictKey,
+                                               readOnly, CLinkedMap.NEW)
 
     def _setOwner(self, item, name):
 
@@ -724,8 +774,8 @@ class TransientRefList(RefList):
     def _setDirty(self, noMonitors=False):
         pass
 
-    def _removeRef(self, other, noError=False):
-        return super(TransientRefList, self)._removeRef(other, True)
+    def _removeRef(self, other, dictKey=None, noError=False):
+        return super(TransientRefList, self)._removeRef(other, dictKey, True)
 
     def _unloadRef(self, item):
 
@@ -738,3 +788,209 @@ class TransientRefList(RefList):
                 link.value = key
             else:
                 raise AssertionError, '%s: unloading non-loaded ref %s' %(self, item._repr_())
+
+
+class RefDict(object):
+    """
+    This class implements a dictionary of RefList instances.
+    """
+    
+    def __init__(self, item, name, otherName):
+        
+        super(RefDict, self).__init__()
+
+        self._item = item
+        self._name = name
+        self._otherName = otherName
+        self._dict = {}
+
+    def _isRefs(self):
+        return True
+    
+    def _isList(self):
+        return False
+    
+    def _isSet(self):
+        return False
+    
+    def _isDict(self):
+        return True
+    
+    def _isItem(self):
+        return False
+    
+    def _isUUID(self):
+        return False
+    
+    def _isTransient(self):
+        return False
+
+    def _refList(self, dictKey):
+
+        if dictKey is None:
+            raise ValueError, 'dictKey is None'
+
+        refList = self._dict.get(dictKey)
+        if refList is None:
+            self._dict[dictKey] = refList = self._item._refList(self._name,
+                                                                self._otherName,
+                                                                dictKey)
+
+        return refList
+
+    def _setRef(self, other, alias=None, dictKey=None, otherKey=None,
+                fireChanges=False):
+
+        self._refList(dictKey)._setRef(other, alias, dictKey, otherKey,
+                                       fireChanges)
+
+    def _removeRef(self, other, dictKey=None, noError=False):
+
+        if not noError or dictKey in self:
+            return self[dictKey]._removeRef(other, dictKey, noError)
+
+    def _removeRefs(self):
+
+        self.clear()
+
+    def add(self, dictKey, other, alias=None, otherKey=None):
+
+        self._refList(dictKey).append(other, alias, otherKey)
+
+    def set(self, dictKey, other, alias=None, otherKey=None):
+
+        refList = self._refList(dictKey)
+        if refList:
+            refList.clear()
+        
+        refList.append(other, alias, otherKey)
+
+    def clear(self):
+        
+        for refList in self._dict.itervalues():
+            refList.clear()
+
+        self._dict.clear()
+
+    def get(self, key, default=None):
+
+        return self._dict.get(key, default)
+
+    def __len__(self):
+
+        return sum(len(refList) for refList in self._dict.itervalues())
+
+    def __delitem__(self, dictKey):
+
+        if dictKey is None:
+            raise ValueError, 'dictKey is None'
+
+        refList = self._dict[dictKey]
+        refList.clear()
+
+        del self._dict[dictKey]
+
+    def __getitem__(self, dictKey):
+
+        if dictKey is None:
+            raise ValueError, 'dictKey is None'
+
+        return self._dict[dictKey]
+
+    def __setitem__(self, dictKey, value):
+
+        if isitem(value):
+            self._refList(dictKey).append(value)
+        else:
+            self._refList(dictKey).extend(value)
+
+    def __contains__(self, dictKey):
+
+        if dictKey is None:
+            raise ValueError, 'dictKey is None'
+
+        return dictKey in self._dict
+
+    def containsKey(self, dictKey):
+
+        if dictKey is None:
+            raise ValueError, 'dictKey is None'
+
+        return dictKey in self._dict
+
+    def containsItem(self, item):
+
+        for refList in self._dict.itervalues():
+            if item in refList:
+                return True
+
+        return False
+
+    def _check(self, logger, item, name):
+
+        for refList in self._dict.itervalues():
+            if not refList._check(logger, item, name):
+                return False
+
+        return True
+
+    def _clearDirties(self):
+
+        for refList in self._dict.itervalues():
+            refList._clearDirties()
+
+    def _setOwner(self, item, name):
+        
+        self._item = item
+        for refList in self._dict.itervalues():
+            refList._setOwner(item, name)
+
+    def keys(self):
+
+        return self._dict.keys()
+
+    def values(self):
+        
+        return self._dict.values()
+
+    def iterkeys(self):
+
+        return self._dict.iterkeys()
+
+    def itervalues(self):
+
+        return self._dict.itervalues()
+
+    def iteritems(self):
+
+        return self._dict.iteritems()
+
+    def iterItems(self):
+
+        for refList in self._dict.itervalues():
+            for item in refList:
+                yield item
+
+    def refCount(self, loaded):
+
+        return sum(refList.refCount(loaded) for refList in
+                   self._dict.itervalues())
+            
+    def _refCount(self):
+
+        return sum(refList._refCount() for refList in
+                   self._dict.itervalues()) + 1
+
+    # copy the refs from self into copyItem._references
+    def _copy(self, copyItem, name, policy, copyFn, refDict=None):
+
+        if refDict is None:
+            refDict = copyItem._references.get(name, Nil)
+            if refDict is Nil:
+                refDict = RefDict(copyItem, name, self._otherName)
+                copyItem._references[name] = refDict
+
+        for key, refList in self._dict.iteritems():
+            refList._copy(copyItem, name, policy, copyFn, refDict._refList(key))
+
+        return refDict

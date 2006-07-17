@@ -385,27 +385,27 @@ class IntersectionCollection(WrapperCollection):
             if op == 'add':
                 set = getattr(self, name)
                 wasEmpty = isinstance(set, EmptySet)
-                sourceSet = getattr(source, source.__collection__)
-                for uuid in set.iterkeys():
-                    if uuid not in sourceSet:
-                        view._notifyChange(_collectionChanged,
-                                           'remove', 'collection', name, uuid)
+                if not wasEmpty:
+                    sourceSet = getattr(source, source.__collection__)
+                    for uuid in set.iterkeys():
+                        if uuid not in sourceSet:
+                            view._notifyChange(_collectionChanged,
+                                               'remove', 'collection',
+                                               name, uuid)
                 set = self._sourcesChanged_()
-                if wasEmpty:
+                if wasEmpty and not isinstance(set, EmptySet):
                     for uuid in set.iterkeys():
                         view._notifyChange(_collectionChanged,
                                            'add', 'collection', name, uuid)
 
-            elif op == 'remove':
-                wasEmpty = isinstance(getattr(self, name), EmptySet)
+            elif (op == 'remove' and
+                  not isinstance(getattr(self, name), EmptySet)):
                 set = self._sourcesChanged_()
                 sourceSet = getattr(source, source.__collection__)
                 if isinstance(set, EmptySet):
-                    if not wasEmpty:
-                        for uuid in sourceSet.iterkeys():
-                            view._notifyChange(_collectionChanged,
-                                               'remove', 'collection',
-                                               name, uuid)
+                    for uuid in sourceSet.iterkeys():
+                        view._notifyChange(_collectionChanged,
+                                           'remove', 'collection', name, uuid)
                 else:
                     for uuid in set.iterkeys():
                         if uuid not in sourceSet:

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+  <item withSchema="True">
+    <name>Watch</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="repository.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below: 
+         -   watchingItem, watchedItems
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Item</ref>
+    </ref>
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">repository.item.Item.Watch</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>WatchSet</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="repository.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below: 
+         -   attribute
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Watch</ref>
+    </ref>
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">repository.item.Item.WatchSet</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>WatchCollection</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="repository.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below: 
+         -   methodName
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Watch</ref>
+    </ref>
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">repository.item.Item.WatchCollection</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>WatchKind</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="repository.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below: 
+         -   methodName
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Watch</ref>
+    </ref>
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">repository.item.Item.WatchKind</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>WatchItem</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="repository.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below: 
+         -   methodName
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Watch</ref>
+    </ref>
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">repository.item.Item.WatchItem</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>watchingItem</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Watch</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="watchingItem">..</ref>
+    </ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="otherName">watches</attribute>
+    <attribute name="copyPolicy">remove</attribute>
+    <attribute name="deletePolicy">remove</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>watchedItems</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Watch</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="watchedItems">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">watchers</attribute>
+    <attribute name="copyPolicy">remove</attribute>
+    <attribute name="deletePolicy">remove</attribute>
+    <attribute name="countPolicy">count</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>attribute</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="attribute">//Schema/Core/WatchSet</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Symbol</ref>
+
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>methodName</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="methodName">//Schema/Core/WatchCollection</ref>
+      <ref type="path" otherAlias="methodName">//Schema/Core/WatchKind</ref>
+      <ref type="path" otherAlias="methodName">//Schema/Core/WatchItem</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Symbol</ref>
+
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+</items>

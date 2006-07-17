@@ -54,7 +54,8 @@ class Children(LinkedMap):
 
     def _append(self, child):
 
-        self[child.itsUUID] = CLink(self, child, None, None, child.itsName)
+        self[child.itsUUID] = CLink(self, child, None, None,
+                                    child.itsName, None)
     
     def __repr__(self):
 

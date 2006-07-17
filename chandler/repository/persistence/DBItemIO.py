@@ -25,6 +25,7 @@ from repository.item.ItemIO import \
     ItemWriter, ItemReader, ItemPurger, ValueReader
 from repository.item.PersistentCollections \
      import PersistentCollection, PersistentList, PersistentDict, PersistentSet
+from repository.item.RefCollections import RefDict
 from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.RepositoryError \
      import LoadError, LoadValueError, MergeError, SaveValueError
@@ -452,14 +453,35 @@ class DBItemWriter(ItemWriter):
                 buffer.append(chr(flags))
                 self.writeString(buffer, value.makeString(value))
 
+            elif attrCard == 'dict':
+                flags = DBItemWriter.DICT | DBItemWriter.REF
+                if withSchema:
+                    flags |= DBItemWriter.TYPED
+                buffer.append(chr(flags))
+                if withSchema:
+                    self.writeSymbol(buffer, item.itsKind.getOtherName(name, item))
+                buffer.append(pack('>H', len(value._dict)))
+                size = 2
+                for key, refList in value._dict.iteritems():
+                    if isuuid(key):
+                        buffer.append('\0')
+                        buffer.append(key._uuid)
+                    else:
+                        buffer.append('\1')
+                        self.writeSymbol(buffer, key)
+                    buffer.append(refList.uuid._uuid)
+                    if refList._isDirty():
+                        size += refList._saveValues(version)
+
             else:
                 raise NotImplementedError, attrCard
 
-            self.indexes = []
-            size += self.writeIndexes(buffer, item, version, value)
-            for uuid in self.indexes:
-                self.writeUUID(buffer, uuid)
-            buffer.append(pack('>H', len(self.indexes)))
+            if attrCard != 'dict':
+                self.indexes = []
+                size += self.writeIndexes(buffer, item, version, value)
+                for uuid in self.indexes:
+                    self.writeUUID(buffer, uuid)
+                buffer.append(pack('>H', len(self.indexes)))
 
         else:
             raise TypeError, value
@@ -533,6 +555,21 @@ class DBValueReader(ValueReader):
                 offset, value = self.readString(offset + 1, data)
                 value = AbstractSet.makeValue(value)
                 value._setView(view)
+                return uAttr, value
+
+            elif flags & DBItemWriter.DICT:
+                if withSchema:
+                    offset, otherName = self.readSymbol(offset, data)
+                value = {}
+                offset, count = self.readShort(offset + 1, data)
+                for i in xrange(count):
+                    t = data[offset]
+                    if t == '\0':
+                        offset, key = self.readUUID(offset + 1, data)
+                    else:
+                        offset, key = self.readSymbol(offset + 1, data)
+                    offset, uuid = self.readUUID(offset, data)
+                    value[key] = uuid
                 return uAttr, value
 
             else:
@@ -631,7 +668,7 @@ class DBValueReader(ValueReader):
                 offset, otherName = self.readSymbol(offset, data)
             else:
                 otherName = kind.getOtherName(name, None)
-            value = view._createRefList(None, name, otherName,
+            value = view._createRefList(None, name, otherName, None,
                                         True, False, False, uuid)
             offset = self._readIndexes(offset, data, value, afterLoadHooks)
 
@@ -642,6 +679,26 @@ class DBValueReader(ValueReader):
             value = AbstractSet.makeValue(string)
             value._setView(view)
             offset = self._readIndexes(offset, data, value, afterLoadHooks)
+
+            return offset, value
+
+        elif flags & DBItemWriter.DICT:
+            if withSchema:
+                offset, otherName = self.readSymbol(offset, data)
+            else:
+                otherName = kind.getOtherName(name, None)
+            value = RefDict(None, name, otherName)
+            offset, count = self.readShort(offset, data)
+            for i in xrange(count):
+                t = data[offset]
+                if t == '\0':
+                    offset, key = self.readUUID(offset + 1, data)
+                else:
+                    offset, key = self.readSymbol(offset + 1, data)
+                offset, uuid = self.readUUID(offset, data)
+                value._dict[key] = view._createRefList(None, name, otherName,
+                                                       key, True, False, False,
+                                                       uuid)
 
             return offset, value
 
@@ -821,8 +878,8 @@ class DBItemReader(ItemReader, DBValueReader):
         isContainer = (status & CItem.CONTAINER) != 0
 
         status &= (CItem.CORESCHEMA | CItem.P_WATCHED)
-        watcherDispatch = view._watcherDispatch
-        if watcherDispatch and self.uItem in watcherDispatch:
+        watchers = view._watchers
+        if watchers and self.uItem in watchers:
             status |= CItem.T_WATCHED
 
         kind = self._kind(self.uKind, withSchema, view, afterLoadHooks)

@@ -21,7 +21,7 @@ from chandlerdb.item.ItemValue import ItemValue
 
 from repository.util.Path import Path
 from repository.util.Lob import Lob
-from repository.item.RefCollections import RefList
+from repository.item.RefCollections import RefList, RefDict
 from repository.item.Indexed import Indexed
 from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.RepositoryError import MergeError
@@ -389,13 +389,13 @@ class Values(CValues):
                         self._item.removeAttributeValue(name, self, None, True)
                     else:
                         self._item.setAttributeValue(name, newValue, self,
-                                                     None, True, False, True)
+                                                     None, True, True)
 
 
 class References(Values):
 
     def _setValue(self, name, other, otherName, noMonitors=False,
-                  cardinality=None, alias=None,
+                  cardinality=None, alias=None, dictKey=None, otherKey=None,
                   otherCard=None, otherAlias=None):
 
         item = self._item
@@ -421,12 +421,14 @@ class References(Values):
                 if value is not None and isitem(value):
                     value._references._removeRef(name, other)
 
-        value = self._setRef(name, other, otherName, cardinality, alias)
+        value = self._setRef(name, other, otherName, cardinality,
+                             alias, dictKey, otherKey)
 
         if other is not None:
             try:
                 otherValue = other._references._setRef(otherName, item, name,
-                                                       otherCard, otherAlias)
+                                                       otherCard, otherAlias,
+                                                       otherKey, dictKey)
             except:
                 self._removeRef(name, other)   # remove dangling ref
                 raise
@@ -450,13 +452,14 @@ class References(Values):
 
         value = self.get(name, None)
         if value is None or not value._isRefs() or other.itsUUID not in value:
-            self._setRef(name, other, otherName, None, None, fireChanges)
+            self._setRef(name, other, otherName, None, None, None, None,
+                         fireChanges)
             return True
 
         return False
             
     def _setRef(self, name, other, otherName=None, cardinality=None, alias=None,
-                fireChanges=False):
+                dictKey=None, otherKey=None, fireChanges=False):
 
         item = self._item
         value = self.get(name)
@@ -467,11 +470,13 @@ class References(Values):
                                                       True, None, 'single')
             if cardinality == 'list':
                 self[name] = value = item._refList(name, otherName)
+            elif cardinality == 'dict':
+                self[name] = value = RefDict(item, name, otherName)
             elif cardinality != 'single':
                 raise ValueError, cardinality
 
         if value is not None and value._isRefs():
-            value._setRef(other, alias, fireChanges)
+            value._setRef(other, alias, dictKey, otherKey, fireChanges)
             if fireChanges:
                 item.itsView._notifyChange(item._collectionChanged,
                                            'add', 'collection', name,
@@ -536,18 +541,18 @@ class References(Values):
 
         raise BadRefError, (item, name, value, other)
     
-    def _removeValue(self, name, other, otherName):
+    def _removeValue(self, name, other, otherName, dictKey=None):
 
-        self._removeRef(name, other)
+        otherKey = self._removeRef(name, other, dictKey)
         if not (other is None or other._isRefs()):
             item = self._item
-            other._references._removeRef(otherName, item)
+            other._references._removeRef(otherName, item, otherKey)
             #initialValue = other.getAttributeAspect(otherName, 'initialValue',
             #                                        False, None, item)
             #if initialValue is not item:
             #    other._references._setValue(otherName, initialValue, name)
 
-    def _removeRef(self, name, other, noError=False):
+    def _removeRef(self, name, other, dictKey=None, noError=False):
 
         value = self.get(name, self)
         if value is self:
@@ -572,7 +577,7 @@ class References(Values):
             item.setDirty(CItem.VDIRTY, name, self, True)
             item._fireChanges('remove', name)
         elif value._isRefs():
-            value._removeRef(other, noError)
+            return value._removeRef(other, dictKey, noError)
         else:
             raise BadRefError, (self._item, name, other, value)
         
@@ -613,18 +618,18 @@ class References(Values):
             if value is not None and value._isRefs():
                 value._setOwner(item, name)
 
-    def refCount(self, loaded):
+    def refCount(self, name, loaded):
 
         count = 0
 
-        for value in self._dict.itervalues():
-            if value is not None:
-                if isitem(value):
-                    count += 1
-                elif value._isRefs():
-                    count += value.refCount(loaded)
-                elif not loaded and isuuid(value):
-                    count += 1
+        value = self._dict.get(name)
+        if value is not None:
+            if isitem(value):
+                count += 1
+            elif value._isRefs():
+                count += value.refCount(loaded)
+            elif not loaded and isuuid(value):
+                count += 1
 
         return count
 
@@ -678,31 +683,14 @@ class References(Values):
                 self[name] = None
                 continue
 
-            otherName = kind.getOtherName(name, item)
             if value._isRefs():
-                self[name] = clone = item._refList(name, otherName)
-                if not value:
-                    continue
-
-                otherKind = item.getAttributeAspect(name, 'type',
-                                                    False, None, None)
-                if otherKind is not None:
-                    otherAttr = otherKind.getAttribute(otherName)
-                    if otherAttr.getAspect('cardinality', 'single') == 'list':
-                        clone.extend(value)
-                    continue
-
-                for other in value:
-                    otherCard = other.getAttributeAspect(otherName,
-                                                         'cardinality', False,
-                                                         None, 'single')
-                    if otherCard == 'list':
-                        clone.append(other)
+                value._clone(item)  # attribute value is set in _clone()
                 continue
 
             if isuuid(value):
                 value = item.itsView[value]
 
+            otherName = kind.getOtherName(name, item)
             otherCard = value.getAttributeAspect(otherName, 'cardinality',
                                                  False, None, 'single')
             if otherCard == 'list':
@@ -905,7 +893,7 @@ class References(Values):
             return False
 
         if other is not None:
-            if other._kind is None:
+            if other.itsKind is None:
                 raise AssertionError, 'no kind for %s' %(other.itsPath)
             otherOtherName = other.itsKind.getOtherName(otherName, other, None)
             if otherOtherName != name:
@@ -915,8 +903,15 @@ class References(Values):
                 return False
 
             otherOther = other._references._getRef(otherName)
-            if not (otherOther is self._item or
-                    otherOther._isRefs() and self._item in otherOther):
+
+            if otherOther is self._item:
+                return True
+            elif (otherOther._isRefs() and not otherOther._isDict() and
+                  self._item in otherOther):
+                return True
+            elif otherOther._isRefs() and otherOther._isDict():
+                return True  # check not yet implemented
+            else:
                 if otherOther._isRefs():
                     logger.error("%s doesn't contain a reference to %s, yet %s.%s references %s",
                                  otherOther, self._item._repr_(),
@@ -956,9 +951,10 @@ class References(Values):
                 if check:
                     check = value._check(logger, item, key)
             elif attrCard == 'dict':
-                logger.error("Attribute %s on %s is using deprecated 'dict' cardinality, use 'list' instead", key, self._item.itsPath)
-                check = value._check(logger, item, key)
-                check = False
+                check = self._checkCardinality(logger, key, value,
+                                               RefDict, 'dict')
+                if check:
+                    check = value._check(logger, item, key)
             elif attrCard == 'set':
                 from repository.item.Sets import AbstractSet
                 check = self._checkCardinality(logger, key, value,
@@ -1005,7 +1001,7 @@ class References(Values):
                                     if alias is not None:
                                         value.setAlias(other, alias)
                     else:
-                        localValue = view._createRefList(item, value._name, value._otherName, True, False, True, UUID())
+                        localValue = view._createRefList(item, value._name, value._otherName, None, True, False, True, UUID())
                         value._copyIndexes(localValue)
                         for other in value:
                             if other in items:
@@ -1038,24 +1034,38 @@ class References(Values):
                         view._e_3_overlap(MergeError.REF, self._item, name)
                     elif value._isRefs():
                         if value._isSet():
-                            newChanges[name] = (True, value)
+                            newChanges[name] = ('set', value)
                             changes[name] = {}
+                            value._collectIndexChanges(name, indexChanges)
+                        elif value._isDict():
+                            newChanges[name] = \
+                                ('dict', 
+                                 dict((key, dict(refList._iterChanges()))
+                                      for key, refList in value.iteritems()))
+                            changes[name] = \
+                                dict((key, dict(refList._iterHistory(version, newVersion) for key, refList in value.iteritems())))
                         else:
-                            newChanges[name] = (False,
+                            newChanges[name] = ('list',
                                                 dict(value._iterChanges()))
                             changes[name] = dict(value._iterHistory(version,
                                                                     newVersion))
-                        value._collectIndexChanges(name, indexChanges)
+                            value._collectIndexChanges(name, indexChanges)
                 else:
                     if value is Nil:
-                        newChanges[name] = (False, Nil)
+                        newChanges[name] = ('nil', Nil)
                     elif value._isRefs():
                         if value._isSet():
-                            newChanges[name] = (True, value)
+                            newChanges[name] = ('set', value)
+                            value._collectIndexChanges(name, indexChanges)
+                        elif value._isDict():
+                            newChanges[name] = \
+                                ('dict', 
+                                 dict((key, dict(refList._iterChanges()))
+                                      for key, refList in value.iteritems()))
                         else:
-                            newChanges[name] = (False,
+                            newChanges[name] = ('list',
                                                 dict(value._iterChanges()))
-                        value._collectIndexChanges(name, indexChanges)
+                            value._collectIndexChanges(name, indexChanges)
 
         elif flag == CItem.VDIRTY:
             for name in self._getDirties():
@@ -1070,9 +1080,9 @@ class References(Values):
                       dangling):
 
         if flag == CItem.RDIRTY:
-            for name, (isSet, valueChanges) in newChanges[flag].iteritems():
+            for name, (card, valueChanges) in newChanges[flag].iteritems():
                 value = self.get(name, Nil)
-                if isSet:
+                if card == 'set':
                     if not (changes is None or value == valueChanges):
                         if name in dirties:
                             view._e_3_overlap(MergeError.REF, self._item, name)
@@ -1083,14 +1093,35 @@ class References(Values):
                         view._e_3_overlap(MergeError.REF, self._item, name)
                     elif valueChanges:
                         if changes is None:
-                            value._applyChanges(valueChanges, ())
+                            if card == 'dict':
+                                for key, vc in valueChanges.iteritems():
+                                    refList = value._refList(key)
+                                    refList._applyChanges(vc, ())
+                            else:
+                                value._applyChanges(valueChanges, ())
                         else:
-                            value._applyChanges(valueChanges,
-                                                changes[flag][name])
+                            if card == 'dict':
+                                for key, vc in valueChanges.iteritems():
+                                    c = changes[flag][name].get(key, ())
+                                    refList = value._refList(key)
+                                    refList._applyChanges(vc, c)
+                            else:
+                                value._applyChanges(valueChanges,
+                                                    changes[flag][name])
                         self._setDirty(name)
                 elif valueChanges is Nil:
                     if value is not Nil:
                         self._removeRef(name, value)
+                elif card == 'dict':
+                    if value is Nil:
+                        item = self._item
+                        kind = item.itsKind
+                        otherName = kind.getOtherName(name, item)
+                        self[name] = value = RefDict(item, name, otherName)
+                    for key, vc in valueChanges.iteritems():
+                        refList = value._refList(key)
+                        refList._applyChanges(vc, ())
+                    self._setDirty(name)
                 else:
                     if value is Nil:
                         self[name] = value = self._item._refList(name)

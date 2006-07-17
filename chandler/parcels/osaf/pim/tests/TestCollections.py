@@ -44,7 +44,8 @@ class NotifyHandler(schema.Item):
             return rec[0] == op and (rec[3] == other or rec[3] == other.itsUUID)
 
     def onCollectionNotification(self, op, collection, name, other):
-        self.log.append((op, collection, name, other))
+        if name != 'watches':
+            self.log.append((op, collection, name, other))
 
 class SimpleItem(schema.Item):
     """
@@ -652,7 +653,6 @@ class TestCollections(RepositoryTestCase):
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         view.loadPack(cineguidePack)
-
 
     def testIntersectionSourceChanges(self):
 

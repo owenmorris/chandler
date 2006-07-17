@@ -55,11 +55,11 @@ class Kind(Item):
 
         # recursion avoidance
         refList = self._refList('inheritedSuperKinds',
-                                'inheritingSubKinds', False)
+                                'inheritingSubKinds', None, False)
         references['inheritedSuperKinds'] = refList
 
         refList = self._refList('inheritingSubKinds',
-                                'inheritedSuperKinds', False)
+                                'inheritedSuperKinds', None, False)
         references['inheritingSubKinds'] = refList
 
         self._status |= Item.SCHEMA | Item.PINNED

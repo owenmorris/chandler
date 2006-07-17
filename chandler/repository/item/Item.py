@@ -20,7 +20,7 @@ from chandlerdb.item.c import CItem, Nil, Default, isitem
 from chandlerdb.item.ItemValue import ItemValue
 from chandlerdb.item.ItemError import *
 
-from repository.item.RefCollections import RefList
+from repository.item.RefCollections import RefList, RefDict
 from repository.item.Values import Values, References
 from repository.item.Access import ACL
 from repository.item.PersistentCollections import \
@@ -158,8 +158,7 @@ class Item(CItem):
         return getattr(item, methodName)(names[-1], *args)
         
     def setAttributeValue(self, name, value=None, _attrDict=None,
-                          otherName=None, setDirty=True, setAliases=False,
-                          _noMonitors=False):
+                          otherName=None, setDirty=True, _noMonitors=False):
         """
         Set a value on a Chandler attribute.
 
@@ -169,11 +168,6 @@ class Item(CItem):
         @type name: a string.
         @param value: the value being set
         @type value: anything compatible with the attribute's type
-        @param setAliases: when the attribute is to contain a
-        L{ref collection<repository.item.RefCollections.RefList>} and the
-        C{value} is a dictionary, use the keys in the dictionary as aliases
-        into the ref collection when this parameter is C{True}
-        @type setAliases: boolean
         @return: the value actually set.
         """
 
@@ -192,7 +186,7 @@ class Item(CItem):
                 if redirect is not None:
                     return self._redirectTo(redirect, 'setAttributeValue',
                                             value, None, None,
-                                            setDirty, setAliases, _noMonitors)
+                                            setDirty, _noMonitors)
 
                 if otherName is None:
                     otherName = self.itsKind.getOtherName(name, self, Nil)
@@ -231,7 +225,7 @@ class Item(CItem):
                 _references._setValue(name, value, otherName, _noMonitors)
                 setDirty = False
 
-        elif not isinstance(value, (RefList, list, dict, tuple, set)):
+        elif not isinstance(value, (RefList, RefDict, list, dict, tuple, set)):
 
             if _attrDict is not _values:
                 from repository.item.Sets import AbstractSet
@@ -266,17 +260,19 @@ class Item(CItem):
                 _values[name] = attrValue
                 dirty = Item.VDIRTY
 
-        elif isinstance(value, dict):
+        elif isinstance(value, (RefDict, dict)):
             if _attrDict is _references:
                 if old is None:
-                    _references[name] = refList = self._refList(name)
+                    if otherName is None:
+                        otherName = self.itsKind.getOtherName(name, self)
+                    _references[name] = refDict = RefDict(self, name, otherName)
                 else:
                     if not wasRefs:
                         raise CardinalityError, (self, name, 'multi-valued')
-                    refList = old
+                    refDict = old
 
-                refList.update(value, setAliases, _noMonitors)
-                value = refList
+                refDict.update(value, _noMonitors)
+                value = refDict
                 setDirty = False
             else:
                 attrValue = PersistentDict(self, name, value, False)
@@ -322,6 +318,22 @@ class Item(CItem):
         
         return value
 
+    def setFreeValue(self, name, item):
+
+        self.setValue('freeValues', item, name, None, name)
+
+    def addFreeValue(self, name, item):
+
+        self.addValue('freeValues', item, name, None, name)
+
+    def getFreeValue(self, name, default=Nil):
+
+        return self.getValue('freeValues', name, None, default)
+
+    def removeFreeValue(self, name, item=None):
+
+        self.removeValue('freeValues', item, name)
+
     def _reIndex(self, op, item, attrName, collectionName, indexName):
 
         if op in ('set', 'remove'):
@@ -334,60 +346,59 @@ class Item(CItem):
         if not (item.isDeleting() or self._isNoDirty()):
             getattr(self, name).itemChanged(item.itsUUID, attribute)
 
-    def _registerWatch(self, watcher, attribute, watch, name):
+    def _registerWatch(self, watchingItem, cls, key, *args):
 
-        dispatch = self._values.get('watcherDispatch', None)
-        watcher = (watcher.itsUUID, watch, name)
+        watchers = self.getValue('watchers', key, None, None)
+        if watchers:
+            for watcher in watchers:
+                if (watcher.watchingItem is watchingItem and
+                    type(watcher) is cls and watcher.compare(*args)):
+                    return watcher
 
-        if dispatch is None:
-            self.watcherDispatch = { attribute: set([watcher]) }
-        else:
-            watchers = dispatch.get(attribute, None)
-            if watchers is None:
-                dispatch[attribute] = set([watcher])
-            else:
-                watchers.add(watcher)
+        watcher = cls(watchingItem, *args)
+        self.addValue('watchers', watcher, key)
 
-        if watch == 'item':
+        if cls is WatchItem:
             self._status |= Item.P_WATCHED
 
-    def _unregisterWatch(self, watcher, attribute, watch, name):
+        return watcher
 
-        dispatch = self._values.get('watcherDispatch', None)
-        if dispatch:
-            watchers = dispatch.get(attribute, None)
-            if watchers:
-                try:
-                    watchers.remove((watcher.itsUUID, watch, name))
-                except KeyError:
-                    pass
-                else:
-                    if watch == 'item' and not watchers:
+    def _unregisterWatch(self, watchingItem, cls, key, *args):
+
+        watchers = self.getValue('watchers', key, None, None)
+        if watchers:
+            for watch in watchers:
+                if (watch.watchingItem is watchingItem and
+                    type(watch) is cls and watch.compare(*args)):
+                    watchers.remove(watch)
+
+                    if cls is WatchItem and not watchers:
                         self._status &= ~Item.P_WATCHED
 
     def _watchSet(self, owner, attribute, name):
-        owner._registerWatch(self, attribute, 'set', name)
+        return owner._registerWatch(self, WatchSet, attribute, name)
 
     def _unwatchSet(self, owner, attribute, name):
-        owner._unregisterWatch(self, attribute, 'set', name)
+        owner._unregisterWatch(self, WatchSet, attribute, name)
 
     def watchCollection(self, owner, attribute, methodName):
-        owner._registerWatch(self, attribute, 'collection', methodName)
+        return owner._registerWatch(self, WatchCollection,
+                                    attribute, methodName)
 
     def unwatchCollection(self, owner, attribute, methodName):
-        owner._unregisterWatch(self, attribute, 'collection', methodName)
+        owner._unregisterWatch(self, WatchCollection, attribute, methodName)
 
     def watchKind(self, kind, methodName):
-        kind.extent._registerWatch(self, 'extent', 'kind', methodName)
+        return kind.extent._registerWatch(self, WatchKind, 'extent', methodName)
 
     def unwatchKind(self, kind, methodName):
-        kind.extent._unregisterWatch(self, 'extent', 'kind', methodName)
+        kind.extent._unregisterWatch(self, WatchKind, 'extent', methodName)
 
     def watchItem(self, item, methodName):
-        item._registerWatch(self, None, 'item', methodName)
+        return item._registerWatch(self, WatchItem, item.itsUUID, methodName)
 
     def unwatchItem(self, item, methodName):
-        item._unregisterWatch(self, None, 'item', methodName)
+        item._unregisterWatch(self, WatchItem, item.itsUUID, methodName)
 
     def getAttributeValue(self, name, _attrDict=None, _attrID=None,
                           default=Default):
@@ -782,7 +793,7 @@ class Item(CItem):
         return self.itsVersion
         
     def getValue(self, attribute, key=None, alias=None,
-                 default=None, _attrDict=None):
+                 default=Nil, _attrDict=None):
         """
         Return a value from a Chandler collection attribute.
 
@@ -809,26 +820,41 @@ class Item(CItem):
 
         value = self.getAttributeValue(attribute, _attrDict, None, Nil)
         if value is Nil:
+            if default is Nil:
+                raise NoValueForAttributeError, (self, attribute)
             return default
 
-        if alias is not None:
-            return value.getByAlias(alias, default)
+        if isinstance(value, (RefList, RefDict)):
+            if key is not None:
+                value = value.get(key, default)
+                if value is default:
+                    if value is Nil:
+                        raise NoValueForAttributeError, (self, attribute, key)
+                    return value
+            if alias is not None:
+                value = value.getByAlias(alias, default)
+                if value is Nil:
+                    raise NoValueForAttributeError, (self, attribute, alias)
+            return value
 
         if isinstance(value, dict):
-            return value.get(key, default)
-
-        if isinstance(value, dict):
-            return value.get(key, default)
+            value = value.get(key, default)
+            if value is Nil:
+                raise NoValueForAttributeError, (self, attribute, key)
+            return value
 
         if isinstance(value, list):
             if key < len(value):
                 return value[key]
+            elif default is Nil:
+                raise NoValueForAttributeError, (self, attribute, key)
             else:
                 return default
 
         raise CardinalityError, (self, attribute, 'multi-valued')
 
-    def setValue(self, attribute, value, key=None, alias=None, _attrDict=None):
+    def setValue(self, attribute, value, key=None, alias=None, otherKey=None,
+                 _attrDict=None):
         """
         Set a value into a Chandler collection attribute.
 
@@ -865,7 +891,7 @@ class Item(CItem):
                                                    False, None, None)
                 if redirect is not None:
                     return self._redirectTo(redirect, 'setValue',
-                                            value, key, alias)
+                                            value, key, alias, otherKey)
 
                 if self.itsKind.getOtherName(attribute, self, None):
                     _attrDict = self._references
@@ -882,7 +908,8 @@ class Item(CItem):
             if card == 'dict':
                 if _attrDict is self._references:
                     if isItem:
-                        attrValue = self._refList(attribute)
+                        otherName = self.itsKind.getOtherName(attribute, self)
+                        attrValue = RefDict(self, attribute, otherName)
                     else:
                         raise TypeError, type(value)
                 else:
@@ -926,7 +953,10 @@ class Item(CItem):
 
         if _attrDict is self._references:
             if isItem:
-                attrValue.append(value, alias)
+                if attrValue._isDict():
+                    attrValue.set(key, value, alias, otherKey)
+                else:
+                    attrValue.set(value, alias, otherKey)
             else:
                 raise TypeError, type(value)
         else:
@@ -934,7 +964,8 @@ class Item(CItem):
 
         return attrValue
 
-    def addValue(self, attribute, value, key=None, alias=None, _attrDict=None):
+    def addValue(self, attribute, value, key=None, alias=None, otherKey=None,
+                 _attrDict=None):
         """
         Add a value to a Chandler collection attribute.
 
@@ -969,7 +1000,7 @@ class Item(CItem):
                                                    False, None, None)
                 if redirect is not None:
                     return self._redirectTo(redirect, 'addValue',
-                                            value, key, alias)
+                                            value, key, alias, otherKey)
 
                 if self.itsKind.getOtherName(attribute, self, None):
                     _attrDict = self._references
@@ -978,11 +1009,17 @@ class Item(CItem):
 
         attrValue = _attrDict.get(attribute, Nil)
         if attrValue is Nil:
-            return self.setValue(attribute, value, key, alias, _attrDict)
+            return self.setValue(attribute, value, key, alias, otherKey,
+                                 _attrDict)
 
         elif isinstance(attrValue, RefList):
             if isitem(value):
-                attrValue.append(value, alias)
+                attrValue.append(value, alias, otherKey)
+            else:
+                raise TypeError, type(value)
+        elif isinstance(attrValue, RefDict):
+            if isitem(value):
+                attrValue.add(key, value, alias, otherKey)
             else:
                 raise TypeError, type(value)
         elif isinstance(attrValue, dict):
@@ -1112,18 +1149,26 @@ class Item(CItem):
         values = _attrDict.get(attribute, Nil)
 
         if values is not Nil:
-            if key is not None or alias is not None:
+            if isinstance(values, RefList):
                 if alias is not None:
                     key = value.resolveAlias(alias)
-                    if key is None:
-                        raise KeyError, 'No value for alias %s' %(alias)
+                elif key is None:
+                    key = value.itsUUID
                 del values[key]
-            elif _attrDict is self._references:
-                del values[value._uuid]
-            elif isinstance(values, list):
+            elif isinstance(values, RefDict):
+                if alias is None:
+                    if value is None:
+                        del values[key]
+                    else:
+                        del values[key][value.itsUUID]
+                else:
+                    del values[key][values.resolveAlias(alias)]
+            elif isinstance(values, (list, set)):
+                if key is not None:
+                    value = values[key]
                 values.remove(value)
             elif isinstance(values, dict):
-                raise TypeError, 'To remove from dict value on %s, key must be specified' %(attribute)
+                del values[key]
             else:
                 raise TypeError, type(values)
         else:
@@ -1443,7 +1488,7 @@ class Item(CItem):
             else:
                 refs = self._references
                 values = self._values
-                others = []
+                others = set()
 
                 self.setDirty(Item.NDIRTY)
                 self._status |= Item.DELETING
@@ -1459,8 +1504,9 @@ class Item(CItem):
                                        ('itsKind',))
                     self._status &= ~Item.WATCHED
 
-                if 'watcherDispatch' in values:
-                    del values['watcherDispatch']
+                if 'watches' in refs:
+                    for watch in self.watches:
+                        watch.delete(True, None, None, True)
                 view._unregisterWatches(self)
 
                 if 'monitors' in refs:
@@ -1475,9 +1521,9 @@ class Item(CItem):
                         value = refs._getRef(name)
                         if value is not None:
                             if value._isRefs():
-                                others.extend(value)
+                                others.update(value.iterItems())
                             else:
-                                others.append(value)
+                                others.add(value)
 
                 for other in others:
                     if other.refCount(True) == 0:
@@ -2236,7 +2282,7 @@ class Item(CItem):
         if self._children is not None:
             self._children._unloadChild(child)
 
-    def _refList(self, name, otherName=None, persisted=None):
+    def _refList(self, name, otherName=None, dictKey=None, persisted=None):
 
         if otherName is None:
             otherName = self.itsKind.getOtherName(name, self)
@@ -2244,7 +2290,7 @@ class Item(CItem):
             persisted = self.getAttributeAspect(name, 'persisted',
                                                 False, None, True)
 
-        return self.itsView._createRefList(self, name, otherName,
+        return self.itsView._createRefList(self, name, otherName, dictKey,
                                            persisted, False, True, None)
 
 
@@ -2349,3 +2395,95 @@ class Item(CItem):
 
 class MissingClass(Item):
     pass
+
+
+class Watch(Item):
+    
+    parent = Path('//Schema/Core/items/watches')
+
+    def __init__(self, watchingItem):
+
+        view = watchingItem.itsView
+        super(Watch, self).__init__(None,
+                                    view.find(Watch.parent),
+                                    view.find(type(self).kind))
+
+        self.watchingItem = watchingItem
+
+
+class WatchSet(Watch):
+
+    kind = Path('//Schema/Core/WatchSet')
+
+    def __init__(self, watchingItem, attribute):
+
+        super(WatchSet, self).__init__(watchingItem)
+        self.attribute = attribute
+        
+    def __call__(self, op, change, owner, name, other):
+        
+        set = getattr(self.watchingItem, self.attribute);
+        set.sourceChanged(op, change, owner, name, False, other)
+
+    def compare(self, attribute):
+
+        return self.attribute == attribute
+
+
+class WatchCollection(Watch):
+
+    kind = Path('//Schema/Core/WatchCollection')
+
+    def __init__(self, watchingItem, methodName):
+
+        super(WatchCollection, self).__init__(watchingItem)
+        self.methodName = methodName
+        
+    def __call__(self, op, change, owner, name, other):
+
+        getattr(self.watchingItem, self.methodName)(op, owner, name, other)
+
+    def compare(self, methodName):
+
+        return self.methodName == methodName
+
+
+class WatchKind(Watch):
+
+    kind = Path('//Schema/Core/WatchKind')
+
+    def __init__(self, watchingItem, methodName):
+
+        super(WatchKind, self).__init__(watchingItem)
+        self.methodName = methodName
+        
+    def __call__(self, op, change, owner, name, other):
+
+        if isuuid(owner):
+            kind = self.itsView[owner].kind
+        else:
+            kind = owner.kind
+
+        getattr(self.watchingItem, self.methodName)(op, kind, other)
+
+    def compare(self, methodName):
+
+        return self.methodName == methodName
+
+
+class WatchItem(Watch):
+
+    kind = Path('//Schema/Core/WatchItem')
+
+    def __init__(self, watchingItem, methodName):
+
+        super(WatchItem, self).__init__(watchingItem)
+        self.methodName = methodName
+        
+    def __call__(self, op, uItem, names):
+
+        getattr(self.watchingItem, self.methodName)(op, uItem, names)
+
+    def compare(self, methodName):
+
+        return self.methodName == methodName
