@@ -27,9 +27,9 @@ typedef struct {
     PyObject *registry;
     PyObject *deletedRegistry;
     PyObject *uuid;
-    PyObject *monitors;
     PyObject *singletons;
-    PyObject *watcherDispatch;
+    PyObject *monitors;
+    PyObject *watchers;
     PyObject *debugOn;
     PyObject *deferredDeletes;
 } t_view;

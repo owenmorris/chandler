@@ -915,12 +915,13 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
                           Py_RETURN_NONE;
                       else
                       {
-                          PyObject *tuple = PyTuple_New(3);
+                          PyObject *tuple = PyTuple_New(4);
                           int pos = 0;
 
                           PyTuple_SET_ITEM(tuple, 0, _readValue(buffer, &pos));
                           PyTuple_SET_ITEM(tuple, 1, _readValue(buffer, &pos));
                           PyTuple_SET_ITEM(tuple, 2, _readValue(buffer, &pos));
+                          PyTuple_SET_ITEM(tuple, 3, _readValue(buffer, &pos));
 
                           if (buffer != data.buffer)
                               free(buffer);
@@ -960,14 +961,14 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
 
 static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
 {
-    PyObject *txn, *previous, *next, *alias;
+    PyObject *txn, *previous, *next, *alias, *otherKey;
     char *uCol, *uRef;
     int uColLen, uRefLen;
     unsigned long long version;
 
-    if (!PyArg_ParseTuple(args, "Os#Ks#OOO", &txn, &uCol, &uColLen,
+    if (!PyArg_ParseTuple(args, "Os#Ks#OOOO", &txn, &uCol, &uColLen,
                           &version, &uRef, &uRefLen, 
-                          &previous, &next, &alias))
+                          &previous, &next, &alias, &otherKey))
         return NULL;
 
     if (txn != Py_None && !PyObject_TypeCheck(txn, CDBTxn))
@@ -991,7 +992,7 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
     {
         DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
         DB *db = (((t_container *) self)->db)->db;
-        valueType prevType, nextType, aliasType;
+        valueType prevType, nextType, aliasType, otherKeyType;
         char keyBuffer[40], *dataBuffer, stackBuffer[128];
         DBT key, data;
         int len, err;
@@ -1008,6 +1009,7 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
         len += _size_valueType(previous, &prevType);
         len += _size_valueType(next, &nextType);
         len += _size_valueType(alias, &aliasType);
+        len += _size_valueType(otherKey, &otherKeyType);
 
         if (len > sizeof(stackBuffer))
         {
@@ -1025,6 +1027,7 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
         len += _writeValue(dataBuffer + len, previous, prevType);
         len += _writeValue(dataBuffer + len, next, nextType);
         len += _writeValue(dataBuffer + len, alias, aliasType);
+        len += _writeValue(dataBuffer + len, otherKey, otherKeyType);
         memset(&data, 0, sizeof(data));
         data.data = dataBuffer;
         data.size = len;

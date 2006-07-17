@@ -22,6 +22,7 @@ typedef struct {
     PyObject *nextKey;
     PyObject *value;
     PyObject *alias;
+    PyObject *otherKey;
 } t_link;
 
 

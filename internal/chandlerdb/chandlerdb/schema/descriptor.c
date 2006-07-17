@@ -318,7 +318,7 @@ static int t_descriptor___set__(t_descriptor *self,
                     }
                 }
 
-                value = PyObject_CallMethodObjArgs(obj, setAttributeValue_NAME, self->name, value, attrDict ? (PyObject *) attrDict : Py_None, flags & REF ? attr->otherName : Py_None, Py_True, Py_False, NULL);
+                value = PyObject_CallMethodObjArgs(obj, setAttributeValue_NAME, self->name, value, attrDict ? (PyObject *) attrDict : Py_None, flags & REF ? attr->otherName : Py_None, Py_True, NULL);
 
                 if (!value)
                     return -1;

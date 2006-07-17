@@ -64,6 +64,7 @@ static PyObject *view_NAME;
 
 static PyMemberDef t_link_members[] = {
     { "_value", T_OBJECT, offsetof(t_link, value), 0, "" },
+    { "_otherKey", T_OBJECT, offsetof(t_link, otherKey), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -151,6 +152,7 @@ static int t_link_traverse(t_link *self, visitproc visit, void *arg)
     Py_VISIT(self->nextKey);
     Py_VISIT(self->value);
     Py_VISIT(self->alias);
+    Py_VISIT(self->otherKey);
 
     return 0;
 }
@@ -162,6 +164,7 @@ static int t_link_clear(t_link *self)
     Py_CLEAR(self->nextKey);
     Py_CLEAR(self->value);
     Py_CLEAR(self->alias);
+    Py_CLEAR(self->otherKey);
 
     return 0;
 }
@@ -177,6 +180,7 @@ static PyObject *t_link_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         self->nextKey = NULL;
         self->value = NULL;
         self->alias = NULL;
+        self->otherKey = NULL;
     }
 
     return (PyObject *) self;
@@ -185,7 +189,7 @@ static PyObject *t_link_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int _t_link_init(t_link *self,
                         PyObject *owner, PyObject *value,
                         PyObject *previousKey, PyObject *nextKey,
-                        PyObject *alias)
+                        PyObject *alias, PyObject *otherKey)
 {
     Py_INCREF(owner); Py_XDECREF(self->owner);
     self->owner = owner;
@@ -202,19 +206,24 @@ static int _t_link_init(t_link *self,
     Py_INCREF(alias); Py_XDECREF(self->alias);
     self->alias = alias;
 
+    Py_INCREF(otherKey); Py_XDECREF(self->otherKey);
+    self->otherKey = otherKey;
+
     return 0;
 }
 
 static int t_link_init(t_link *self, PyObject *args, PyObject *kwds)
 {
     PyObject *owner, *value;
-    PyObject *previousKey = Py_None, *nextKey = Py_None, *alias = Py_None;
+    PyObject *previousKey = Py_None, *nextKey = Py_None;
+    PyObject *alias = Py_None, *otherKey = Py_None;
 
-    if (!PyArg_ParseTuple(args, "OO|OOO", &owner, &value,
-                          &previousKey, &nextKey, &alias))
+    if (!PyArg_ParseTuple(args, "OO|OOOO", &owner, &value,
+                          &previousKey, &nextKey, &alias, &otherKey))
         return -1;
     else
-        return _t_link_init(self, owner, value, previousKey, nextKey, alias);
+        return _t_link_init(self, owner, value, previousKey, nextKey,
+                            alias, otherKey);
 }
 
 static PyObject *t_link_repr(t_link *self)
@@ -253,6 +262,10 @@ static PyObject *t_link__copy_(t_link *self, PyObject *arg)
         obj = ((t_link *) arg)->alias;
         Py_INCREF(obj); Py_XDECREF(self->alias);
         self->alias = obj;
+
+        obj = ((t_link *) arg)->otherKey;
+        Py_INCREF(obj); Py_XDECREF(self->otherKey);
+        self->otherKey = obj;
 
         Py_RETURN_NONE;
     }
@@ -561,7 +574,7 @@ static int t_lm_init(t_lm *self, PyObject *args, PyObject *kwds)
         PyObject *link = t_link_new(&LinkType, NULL, NULL);
 
         _t_link_init((t_link *) link, (PyObject *) self, Py_None,
-                     Py_None, Py_None, Py_None);
+                     Py_None, Py_None, Py_None, Py_None);
 
         Py_XDECREF(self->head);
         self->head = link;

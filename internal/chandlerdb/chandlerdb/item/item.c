@@ -96,7 +96,7 @@ static PyObject *item_NAME;
 static PyObject *_logItem_NAME;
 static PyObject *_clearDirties_NAME;
 static PyObject *_flags_NAME;
-static PyObject *watchers_NAME, *watcherDispatch_NAME;
+static PyObject *watchers_NAME;
 static PyObject *filterItem_NAME;
 static PyObject *_setParent_NAME;
 static PyObject *_setItem_NAME;
@@ -1061,6 +1061,43 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
     Py_RETURN_FALSE;
 }
 
+static int invokeWatchers(PyObject *dispatch, PyObject *name,
+                          PyObject *op, PyObject *change,
+                          PyObject *item, PyObject *other)
+{
+    PyObject *watchers = PyObject_GetItem(dispatch, name);
+
+    if (watchers)
+    {
+        PyObject *iter = PyObject_GetIter(watchers);
+        Py_DECREF(watchers);
+
+        if (iter)
+        {
+            PyObject *watcher;
+
+            while ((watcher = PyIter_Next(iter))) {
+                PyObject *args = PyTuple_Pack(5, op, change, item, name, other);
+                PyObject *obj = PyObject_Call(watcher, args, NULL);
+
+                Py_DECREF(args);
+                Py_DECREF(watcher);
+                if (!obj)
+                    break;
+                Py_DECREF(obj);
+            }
+            Py_DECREF(iter);
+
+            if (PyErr_Occurred())
+                return -1;
+        }
+
+        return 0;
+    }
+
+    return -1;
+}
+
 static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
 {
     PyObject *op, *change, *name, *other, *dispatch;
@@ -1072,98 +1109,53 @@ static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OOOO", &op, &change, &name, &other))
         return NULL;
 
-    dispatch = PyDict_GetItem(self->values->dict, watcherDispatch_NAME);
-    if (dispatch)
-    {
-        PyObject *watchers = PyDict_GetItem(dispatch, name);
-
-        if (watchers &&
-            CView_invokeWatchers(view, watchers, op, change,
-                                 (PyObject *) self, name, other) < 0)
+    dispatch = PyDict_GetItem(self->references->dict, watchers_NAME);
+    if (dispatch && PySequence_Contains(dispatch, name))
+        if (invokeWatchers(dispatch, name, op, change,
+                           (PyObject *) self, other) < 0)
             return NULL;
-    }
 
-    if (view->watcherDispatch)
+    if (view->watchers)
     {
-        PyObject *dispatch = PyDict_GetItem(view->watcherDispatch, self->uuid);
+        dispatch = PyDict_GetItem(view->watchers, self->uuid);
 
-        if (dispatch)
-        {
-            PyObject *watchers = PyDict_GetItem(dispatch, name);
-
-            if (watchers &&
-                CView_invokeWatchers(view, watchers, op, change,
-                                     (PyObject *) self, name, other) < 0)
+        if (dispatch && PySequence_Contains(dispatch, name))
+            if (invokeWatchers(dispatch, name, op, change,
+                               (PyObject *) self, other) < 0)
                 return NULL;
-        }
     }
 
     Py_RETURN_NONE;
 }
 
-static int __t_item__itemChanged(t_item *self, PyObject *dispatch,
-                                 PyObject *op, PyObject *names)
+static int invokeItemWatchers(PyObject *dispatch, PyObject *uItem,
+                              PyObject *op, PyObject *names)
 {
-    /* name part of item watch is None */
-    PyObject *watchers = PyDict_GetItem(dispatch, Py_None); 
+    PyObject *watchers = PyObject_GetItem(dispatch, uItem);
 
     if (watchers)
     {
-        PyObject *dict, *key, *value;
-        int pos = 0;
+        PyObject *iter = PyObject_GetIter(watchers);
+        Py_DECREF(watchers);
 
-        if (!PyAnySet_Check(watchers))
+        if (iter)
         {
-            PyErr_SetObject(PyExc_TypeError, watchers);
-            return -1;
-        }
+            PyObject *watcher;
 
-        /* a set's dict is organized as { value: True } */
-        dict = ((PySetObject *) watchers)->data;
+            while ((watcher = PyIter_Next(iter))) {
+                PyObject *args = PyTuple_Pack(3, op, uItem, names);
+                PyObject *obj = PyObject_Call(watcher, args, NULL);
 
-        while (PyDict_Next(dict, &pos, &key, &value)) {
-            PyObject *watcher = PyTuple_GetItem(key, 0);
-            PyObject *watch = PyTuple_GetItem(key, 1);
-
-            if (!watcher || !watch)
-                return -1;
-
-            if (!PyObject_Compare(watch, item_NAME))
-            {
-                PyObject *methName, *result;
-
-                if (PyObject_TypeCheck(watcher, SingleRef))
-                    watcher = PyObject_GetItem(((t_item *) self->root)->parent,
-                                               ((t_sr *) watcher)->uuid);
-                else if (PyUUID_Check(watcher))
-                    watcher = PyObject_GetItem(((t_item *) self->root)->parent,
-                                               watcher);
-                else
-                {
-                    PyErr_SetObject(PyExc_TypeError, watcher);
-                    return -1;
-                }
-
-                if (!watcher)
-                {
-                    /* kludge until watchers use bi-refs */
-                    if (PyErr_Occurred() == PyExc_KeyError)
-                    {
-                        PyErr_Clear();
-                        continue;
-                    }
-                    return -1;
-                }
-
-                methName = PyTuple_GetItem(key, 2);
-                result = PyObject_CallMethodObjArgs(watcher, methName, 
-                                                    op, self->uuid, names,
-                                                    NULL);
+                Py_DECREF(args);
                 Py_DECREF(watcher);
-                if (!result)
-                    return -1;
-                Py_DECREF(result);
+                if (!obj)
+                    break;
+                Py_DECREF(obj);
             }
+            Py_DECREF(iter);
+
+            if (PyErr_Occurred())
+                return -1;
         }
     }
 
@@ -1177,25 +1169,23 @@ static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *names)
 
     if (self->status & P_WATCHED)
     {
-        PyObject *dispatch =
-            PyDict_GetItem(self->values->dict, watcherDispatch_NAME);
+        PyObject *dispatch = PyDict_GetItem(self->references->dict,
+                                            watchers_NAME);
 
-        if (dispatch && __t_item__itemChanged(self, dispatch, op, names) < 0)
-            return -1;
+        if (dispatch && PySequence_Contains(dispatch, self->uuid))
+            return invokeItemWatchers(dispatch, self->uuid, op, names);
     }
 
     if (self->status & T_WATCHED)
     {
         t_view *view = (t_view *) ((t_item *) self->root)->parent;
 
-        if (view->watcherDispatch)
+        if (view->watchers)
         {
-            PyObject *dispatch =
-                PyDict_GetItem(view->watcherDispatch, self->uuid);
+            PyObject *dispatch = PyDict_GetItem(view->watchers, self->uuid);
 
-            if (dispatch &&
-                __t_item__itemChanged(self, dispatch, op, names) < 0)
-                return -1;
+            if (dispatch && PySequence_Contains(dispatch, self->uuid))
+                return invokeItemWatchers(dispatch, self->uuid, op, names);
         }
     }
 
@@ -1516,7 +1506,6 @@ void _init_item(PyObject *m)
             _clearDirties_NAME = PyString_FromString("_clearDirties");
             _flags_NAME = PyString_FromString("_flags");
             watchers_NAME = PyString_FromString("watchers");
-            watcherDispatch_NAME = PyString_FromString("watcherDispatch");
             filterItem_NAME = PyString_FromString("filterItem");
             _setParent_NAME = PyString_FromString("_setParent");
             _setItem_NAME = PyString_FromString("_setItem");

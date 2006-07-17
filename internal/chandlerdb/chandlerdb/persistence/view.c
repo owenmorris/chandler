@@ -64,7 +64,6 @@ static PyObject *t_view_find(t_view *self, PyObject *args);
 static PyObject *t_view_getSingleton(t_view *self, PyObject *key);
 static PyObject *t_view_setSingleton(t_view *self, PyObject *args);
 static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args);
-static PyObject *t_view_invokeWatchers(t_view *self, PyObject *args);
 static PyObject *t_view_debugOn(t_view *self, PyObject *arg);
 
 static int t_view_dict_length(t_view *self);
@@ -96,7 +95,7 @@ static PyMemberDef t_view_members[] = {
     { "_registry", T_OBJECT, offsetof(t_view, registry), 0, "" },
     { "_deletedRegistry", T_OBJECT, offsetof(t_view, deletedRegistry), 0, "" },
     { "_monitors", T_OBJECT, offsetof(t_view, monitors), 0, "" },
-    { "_watcherDispatch", T_OBJECT, offsetof(t_view, watcherDispatch), 0, "" },
+    { "_watchers", T_OBJECT, offsetof(t_view, watchers), 0, "" },
     { "_debugOn", T_OBJECT, offsetof(t_view, debugOn), 0, "" },
     { "_deferredDeletes", T_OBJECT, offsetof(t_view, deferredDeletes), 0, "" },
     { NULL, 0, 0, 0, NULL }
@@ -128,7 +127,6 @@ static PyMethodDef t_view_methods[] = {
     { "getSingleton", (PyCFunction) t_view_getSingleton, METH_O, NULL },
     { "setSingleton", (PyCFunction) t_view_setSingleton, METH_VARARGS, "" },
     { "invokeMonitors", (PyCFunction) t_view_invokeMonitors, METH_VARARGS, "" },
-    { "invokeWatchers", (PyCFunction) t_view_invokeWatchers, METH_VARARGS, "" },
     { "debugOn", (PyCFunction) t_view_debugOn, METH_O, "" },
     { NULL, NULL, 0, NULL }
 };
@@ -220,9 +218,9 @@ static int t_view_traverse(t_view *self, visitproc visit, void *arg)
     Py_VISIT(self->registry);
     Py_VISIT(self->deletedRegistry);
     Py_VISIT(self->uuid);
-    Py_VISIT(self->monitors);
     Py_VISIT(self->singletons);
-    Py_VISIT(self->watcherDispatch);
+    Py_VISIT(self->monitors);
+    Py_VISIT(self->watchers);
     Py_VISIT(self->debugOn);
     Py_VISIT(self->deferredDeletes);
 
@@ -237,9 +235,9 @@ static int t_view_clear(t_view *self)
     Py_CLEAR(self->registry);
     Py_CLEAR(self->deletedRegistry);
     Py_CLEAR(self->uuid);
-    Py_CLEAR(self->monitors);
     Py_CLEAR(self->singletons);
-    Py_CLEAR(self->watcherDispatch);
+    Py_CLEAR(self->monitors);
+    Py_CLEAR(self->watchers);
     Py_CLEAR(self->debugOn);
     Py_CLEAR(self->deferredDeletes);
 
@@ -275,9 +273,9 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
     self->registry = NULL;
     self->deletedRegistry = NULL;
     Py_INCREF(uuid); self->uuid = uuid;
-    self->monitors = NULL;
     self->singletons = PyDict_New();
-    self->watcherDispatch = NULL;
+    self->monitors = NULL;
+    self->watchers = NULL;
     self->debugOn = NULL;
     self->deferredDeletes = PyList_New(0);
 
@@ -939,142 +937,6 @@ static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static int _t_view_invokeWatchers(t_view *self, PyObject *watchers,
-                                  PyObject *op, PyObject *change,
-                                  PyObject *owner, PyObject *name,
-                                  PyObject *other)
-{
-    PyObject *dict, *key, *value;
-    int pos = 0;
-
-    if (!PyAnySet_Check(watchers))
-    {
-        PyErr_SetObject(PyExc_TypeError, watchers);
-        return -1;
-    }
-
-    /* a set's dict is organized as { value: True } */
-    dict = ((PySetObject *) watchers)->data;
-
-    while (PyDict_Next(dict, &pos, &key, &value)) {
-        PyObject *watcher = PyTuple_GetItem(key, 0);
-        PyObject *watch = PyTuple_GetItem(key, 1);
-
-        if (!watcher || !watch)
-            return -1;
-
-        if (PyObject_TypeCheck(watcher, SingleRef))
-            watcher = t_view_dict_get(self, ((t_sr *) watcher)->uuid);
-        else if (PyUUID_Check(watcher))
-            watcher = t_view_dict_get(self, watcher);
-        else
-        {
-            PyErr_SetObject(PyExc_TypeError, watcher);
-            return -1;
-        }
-
-        if (!watcher)
-        {
-            if (PyErr_Occurred() == PyExc_KeyError)
-            {
-                PyErr_Clear();
-                continue;
-            }
-            return -1;
-        }
-
-        if (!PyObject_Compare(watch, set_NAME))
-        {
-            PyObject *attrName = PyTuple_GetItem(key, 2);
-            PyObject *set = PyObject_GetAttr(watcher, attrName);
-            PyObject *result;
-
-            if (!set)
-            {
-                Py_DECREF(watcher);
-                return -1;
-            }
-
-            result = PyObject_CallMethodObjArgs(set, sourceChanged_NAME,
-                                                op, change, owner, name,
-                                                Py_False, other, NULL);
-            Py_DECREF(watcher);
-            Py_DECREF(set);
-
-            if (!result)
-                return -1;
-            Py_DECREF(result);
-        }
-        else if (!PyObject_Compare(watch, kind_NAME))
-        {
-            PyObject *methName = PyTuple_GetItem(key, 2);
-            PyObject *result, *kind;
-
-            if (PyUUID_Check(owner))
-            {
-                PyObject *extent = t_view_dict_get(self, owner);
-
-                if (!extent)
-                {
-                    Py_DECREF(watcher);
-                    return -1;
-                }
-
-                kind = PyObject_GetAttr(extent, kind_NAME);
-                Py_DECREF(extent);
-            }
-            else
-                kind = PyObject_GetAttr(owner, kind_NAME);
-
-            if (!kind)
-            {
-                Py_DECREF(watcher);
-                return -1;
-            }
-
-            result = PyObject_CallMethodObjArgs(watcher, methName,
-                                                op, kind, other, NULL);
-            Py_DECREF(kind);
-            Py_DECREF(watcher);
-
-            if (!result)
-                return -1;
-            Py_DECREF(result);
-        }
-        else if (!PyObject_Compare(watch, collection_NAME))
-        {
-            PyObject *methName = PyTuple_GetItem(key, 2);
-            PyObject *result =
-                PyObject_CallMethodObjArgs(watcher, methName,
-                                           op, owner, name, other, NULL);
-
-            Py_DECREF(watcher);
-            if (!result)
-                return -1;
-            Py_DECREF(result);
-        }
-        else
-            Py_DECREF(watcher);
-    }
-
-    return 0;
-}
-
-static PyObject *t_view_invokeWatchers(t_view *self, PyObject *args)
-{
-    PyObject *watchers, *op, *change, *owner, *name, *other;
-
-    if (!PyArg_ParseTuple(args, "OOOOOO", &watchers, &op, &change,
-                          &owner, &name, &other))
-        return NULL;
-
-    if (_t_view_invokeWatchers(self, watchers, op, change,
-                               owner, name, other) < 0)
-        return NULL;
-
-    Py_RETURN_NONE;
-}
-
 static int _debugOn(PyObject *obj, PyFrameObject *frame,
                     int what, PyObject *arg)
 {
@@ -1166,8 +1028,6 @@ void _init_view(PyObject *m)
 
             cobj = PyCObject_FromVoidPtr(t_view_invokeMonitors, NULL);
             PyModule_AddObject(m, "CView_invokeMonitors", cobj);
-            cobj = PyCObject_FromVoidPtr(_t_view_invokeWatchers, NULL);
-            PyModule_AddObject(m, "CView_invokeWatchers", cobj);
         }
     }
 }
