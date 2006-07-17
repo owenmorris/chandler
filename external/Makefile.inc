@@ -69,7 +69,11 @@ PLATFORM=macosx
 SWIG=$(PREFIX)/bin/swig
 MD5=md5
 MD5CHECK=$(MD5) --check
-UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)/$(ARCH)
+ifeq ($(ARCH),i386)
+UPLOAD=builder@builds.osafoundation.org:/www/docs/external/maciosx
+else
+UPLOAD=builder@builds.osafoundation.org:/www/docs/external/macosx
+endif
 else
 PYTHON:=$(PREFIX)/bin/$(PYTHON)
 SITE=lib/python$(PYTHON_VER)/site-packages
