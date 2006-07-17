@@ -1066,7 +1066,7 @@ class ReminderTimer(Timer):
         Prime the reminder timer and maybe show or hide the dialog
         """
         mainFrame = wx.GetApp().mainFrame
-        if not mainFrame.IsShown():
+        if createDialog and not mainFrame.IsShown():
             # The main window isn't up yet; this happens on Mac when
             # Chandler is started with a reminder already due. Wait a couple
             # of seconds and try again.
