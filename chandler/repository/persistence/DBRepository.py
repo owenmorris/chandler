@@ -597,10 +597,10 @@ class DBRepository(OnDemandRepository):
             self._indexer.terminate()
             self._indexer = None
 
-    def notifyIndexer(self):
+    def notifyIndexer(self, wait=False):
 
         if self._indexer is not None:
-            self._indexer.notify()
+            self._indexer.notify(wait)
 
     openUUID = UUID('c54211ac-131a-11d9-8475-000393db837c')
     OPEN_FLAGS = (DBEnv.DB_INIT_MPOOL | DBEnv.DB_INIT_LOCK |
@@ -1115,19 +1115,24 @@ class DBIndexerThread(RepositoryThread):
                 condition.wait(60.0)
             condition.release()
 
-            if not (self._alive and self.isAlive()):
-                break
+            try:
+                if not (self._alive and self.isAlive()):
+                    break
 
-            latestVersion = store.getVersion()
-            indexVersion = store.getIndexVersion()
+                latestVersion = store.getVersion()
+                indexVersion = store.getIndexVersion()
 
-            if indexVersion < latestVersion:
-                if view is None:
-                    view = repository.createView("Lucene")
-                while indexVersion < latestVersion:
-                    view.refresh(version=indexVersion + 1, notify=False)
-                    self._indexVersion(view, indexVersion + 1, store)
-                    indexVersion += 1
+                if indexVersion < latestVersion:
+                    if view is None:
+                        view = repository.createView("Lucene")
+                    while indexVersion < latestVersion:
+                        view.refresh(version=indexVersion + 1, notify=False)
+                        self._indexVersion(view, indexVersion + 1, store)
+                        indexVersion += 1
+            finally:
+                condition.acquire()
+                condition.notifyAll()
+                condition.release()
 
         if view is not None:
             view.closeView()
@@ -1210,13 +1215,15 @@ class DBIndexerThread(RepositoryThread):
                                                 uItem, uAttr, uValue, version)
                     store._values.c.setIndexed(store.txn, uValue)
 
-    def notify(self):
+    def notify(self, wait=False):
 
         if self._alive and self.isAlive():
             condition = self._condition
 
             condition.acquire()
             condition.notify()
+            if wait:
+                condition.wait()
             condition.release()
 
     def terminate(self):

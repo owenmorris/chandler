@@ -779,7 +779,10 @@ class MainView(View):
     def searchFor(self, query):
         if query:
             view = self.itsView
-            view.commit() # make sure all changes are searchable
+
+            # make sure all changes are searchable
+            view.commit()
+            view.repository.notifyIndexer(True)
             
             searchResults = view.searchItems(query)
 

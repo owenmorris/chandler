@@ -823,7 +823,7 @@ class RepositoryView(CView):
 
         return instance
 
-    def refresh(self, mergeFn=None, version=None):
+    def refresh(self, mergeFn=None, version=None, notify=True):
         """
         Refresh this view to the changes made in other views.
 
@@ -839,7 +839,8 @@ class RepositoryView(CView):
                also in this view are marked C{STALE} unless they're pinned
                in memory in which case they're refreshed in place.
             3. Change and history notifications from changes in other views
-               are dispatched after the merges succeeded.
+               are dispatched after the merges succeeded if C{notify} is
+               C{True}, the default.
             4. If the view's cache has reached a threshhold item count - at
                the moment 10,000 - the least-used items are removed from
                cache and pointers to them are marked C{STALE} such that the
@@ -848,7 +849,7 @@ class RepositoryView(CView):
         
         raise NotImplementedError, "%s.refresh" %(type(self))
 
-    def commit(self, mergeFn=None):
+    def commit(self, mergeFn=None, notify=True):
         """
         Commit all the changes made to items in this view.
 
@@ -858,7 +859,8 @@ class RepositoryView(CView):
             2. All changes made to items in the view are saved to
                persistent storage.
             3. Change and history notifications from the items committed
-               are dispatched after the transactions commits.
+               are dispatched after the transactions commits if C{notify} is
+               {True}, the default.
         """
         
         raise NotImplementedError, "%s.commit" %(type(self))
