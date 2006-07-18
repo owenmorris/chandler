@@ -2629,7 +2629,13 @@ class CloudXMLFormat(ImportExportFormat):
 
             else: # it's a literal (@@@MOR could be SingleRef though)
 
-                result += "<%s" % attrName
+                # Since 'displayName' is being renamed 'title', let's keep
+                # existing shares backwards-compatible and continue to read/
+                # write 'displayName':
+                if attrName == 'title':
+                    result += "<%s" % 'displayName'
+                else:
+                    result += "<%s" % attrName
 
                 if cardinality == 'single':
 
@@ -2694,7 +2700,14 @@ class CloudXMLFormat(ImportExportFormat):
                     # @@@MOR
                     pass
 
-            result += "</%s>\n" % attrName
+
+            # Since 'displayName' is being renamed 'title', let's keep
+            # existing shares backwards-compatible and continue to read/
+            # write 'displayName':
+            if attrName == 'title':
+                result += "</%s>\n" % 'displayName'
+            else:
+                result += "</%s>\n" % attrName
 
         depth -= 1
         result += indent * depth
@@ -2815,7 +2828,14 @@ class CloudXMLFormat(ImportExportFormat):
             attributes = self.share.getSharedAttributes(item)
             for attrName in attributes:
 
-                attrElement = self._getElement(element, attrName)
+                # Since 'displayName' is being renamed 'title', let's keep
+                # existing shares backwards-compatible and continue to read/
+                # write 'displayName':
+                if attrName == 'title':
+                    attrElement = self._getElement(element, 'displayName')
+                else:
+                    attrElement = self._getElement(element, attrName)
+
                 if attrElement is None:
                     if item.hasLocalAttributeValue(attrName):
                         item.removeAttributeValue(attrName)
