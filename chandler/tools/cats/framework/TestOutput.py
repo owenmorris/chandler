@@ -35,13 +35,20 @@ class TestOutput:
     """
     Test output and timing class.
     """
-    def __init__(self, logname=None, debug=0, mask=0, stdout=None):
+    def __init__(self, logName=None, debug=0, mask=2, stdout=None):
         """Instantiation method
         
         Keyword Arguments:
-        logname: str  -- Name of the logfile
-        debug:   int  -- Debug level
+        logName: str  -- Name of the logfile
+        debug:   int  -- Debug level: 
+                0 = show only failures
+                1 = show pass and fail
+                2 = show pass and fail and check repository after each test
         mask:    int  -- Masking level
+                0 = show everything
+                1 = don't show report 
+                2 = don't show report, action
+                3 = don't show report, action, test
         stdout   bool -- Switch to turn on stdout output
         """
         self.debug = debug
@@ -57,6 +64,7 @@ class TestOutput:
         self.inAction = False
         self.inTest = False
         self.inSuite = False
+        #print 'logName = %s:: debug level = %d :: mask level = %d ::  stdout = %s' % (logName, debug, mask, stdout)
         
         if stdout is True:
            import sys
@@ -64,8 +72,8 @@ class TestOutput:
         else:
            self.stdout = None
         
-        if logname is not None:
-            self.f = file(logname, 'w')
+        if logName is not None:
+            self.f = file(logName, 'w')
         else:
             self.f = None
 
@@ -247,38 +255,37 @@ class TestOutput:
         Required Argument:
         string: str -- String you wish to print.
         
-        Keyword Arguments:
         level:  int  -- Level at which the output came; report=0, action=1, test=2, suite=3.
-        result: boot -- Result for output. Necessary for masking passes.
+        result: bool -- Result for output. Necessary for masking passes.
+        debug:   int  -- Debug level: 
+                0 = show only failures
+                1 = show pass and fail
+                2 = show pass and fail and check repository after each test
+        mask:    int  -- Masking level
+                0 = show everything
+                1 = don't show report 
+                2 = don't show report, action
+                3 = don't show report, action, test
+        level:     int -- indentation level
+                0 = report
+                1 = action
+                2 = test
+                3 = suite
         """
-        #Prepend + for true and - for false to the beginning of each string 
-        if result is True:
-            leadchar = '+'
-        else:
-            leadchar = '-'
-        #Each line should be prepended with the amount of characters for that level, this shows the encapsulation.
-        string = u'%s%s\n' % (leadchar * (4 - level), string)
         
-        #if isinstance(string, unicode):
-            #string = string.encode('utf8')
-
-        if self.debug > 2:
-            self._write(string)
-            return
-        if self.debug > 1:
-            if level >= self.mask:
-                self._write(string)
-                return
-        if self.debug > 0:
-            if result is False:
-                self._write(string)
-                return
-        if self.debug == 0:
-            if result is False:
-                if level >= self.mask:
-                    self._write(string)
-                    return
-
+        def sendTo_write(string, result):
+            """prepend lead characters and send to _write 
+                prepend + for true and - for false to the beginning of each string 
+                repeat leadchar level number of time to show encapsulation
+            """
+            leadchar = '-'
+            if result: leadchar = '+'
+            self._write( u'%s%s\n' % (leadchar * (4 - level) * 3, string))
+            
+        if self.debug == 0 and result == True:
+            return #don't print passes when debug = 0
+        if level >= self.mask:
+            sendTo_write(string, result)
 
     def traceback(self):
         """Method to handle python traceback exception."""
@@ -415,58 +422,70 @@ class TestOutput:
         
 if __name__ == "__main__":
     
-    logger = TestOutput(logname='testlog')
-   # logger.debug = 1
-    logger.startSuite('1st suite', 'comment')
-    logger.startTest('1st test')
-    logger.startAction('1st action in 1st test will pass')
-    logger.endAction(True)
-    logger.startAction('2nd action in 1st test will fail')
-    logger.endAction(False)
-    logger.startAction('3nd action in 1st test will fail')
-    logger.endAction(False)
-    logger.startAction('4nd action in 1st test will fail')
-    logger.endAction(False)
-    logger.startAction('5nd action in 1st test will fail')
-    logger.endAction(False)
-    logger.startAction('6nd action in 1st test will fail')
-    logger.endAction(False)
-    logger.startAction('7nd action in 1st test will fail')
-    logger.endAction(False)
-    logger.startAction('8nd action in 1st test will fail')
-    logger.endAction(False)
-    logger.startAction('9nd action in 1st test will fail')
-    logger.endAction(False)
-    logger.endTest()
-    logger.startTest('2nd test')
-    logger.startAction('1st action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('2nd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('3rd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('4nd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('5nd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('6nd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('7nd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('8nd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('9nd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('10nd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('11nd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('12nd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.startAction('13nd action in 2nd test will pass')
-    logger.endAction(True)
-    logger.endTest()
-    logger.endSuite()
+    #test masking
+    levels = ['report', 'action', 'test', 'suite']
+    for debug in [0, 1, 2]:
+        for mask in [0, 1, 2, 3]:
+            for result in [True, False]:
+                print '########## debug = %d :: mask = %d :: result = %s' % (debug, mask, result)
+                logger = TestOutput(debug=debug, mask=mask, stdout=True)
+                for level in [0, 1, 2, 3]:
+                    output = 'At  level %d, %s' % (level, levels[level])
+                    logger.printOut(output, level=level, result=result)
+                    
+            
+    #logger = TestOutput(logName='testlog')
+   ## logger.debug = 1
+    #logger.startSuite('1st suite', 'comment')
+    #logger.startTest('1st test')
+    #logger.startAction('1st action in 1st test will pass')
+    #logger.endAction(True)
+    #logger.startAction('2nd action in 1st test will fail')
+    #logger.endAction(False)
+    #logger.startAction('3nd action in 1st test will fail')
+    #logger.endAction(False)
+    #logger.startAction('4nd action in 1st test will fail')
+    #logger.endAction(False)
+    #logger.startAction('5nd action in 1st test will fail')
+    #logger.endAction(False)
+    #logger.startAction('6nd action in 1st test will fail')
+    #logger.endAction(False)
+    #logger.startAction('7nd action in 1st test will fail')
+    #logger.endAction(False)
+    #logger.startAction('8nd action in 1st test will fail')
+    #logger.endAction(False)
+    #logger.startAction('9nd action in 1st test will fail')
+    #logger.endAction(False)
+    #logger.endTest()
+    #logger.startTest('2nd test')
+    #logger.startAction('1st action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('2nd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('3rd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('4nd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('5nd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('6nd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('7nd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('8nd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('9nd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('10nd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('11nd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('12nd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.startAction('13nd action in 2nd test will pass')
+    #logger.endAction(True)
+    #logger.endTest()
+    #logger.endSuite()
     
-   # logger.mask = 1
-    logger.calculateSuite(logger.suiteList)
+   ## logger.mask = 1
+    #logger.calculateSuite(logger.suiteList)

@@ -255,15 +255,16 @@ def run_startup_script_with_symbols(view, builtIns):
 
     # Execute new framework if chandlerTests option is called
     chandlerTests = Globals.options.chandlerTests
+    logFileName = Globals.options.chandlerTestLogfile
     if chandlerTests:
         from tools.cats.framework.runTests import run_tests
-        run_tests(chandlerTests)
+        run_tests(chandlerTests, logName=logFileName)
 
     # Execute new framework if chandlerPerformanceTests option is called
     chandlerPerformanceTests = Globals.options.chandlerPerformanceTests
     if chandlerPerformanceTests:
         from tools.cats.framework.runTests import run_perf_tests
-        run_perf_tests(chandlerPerformanceTests)
+        run_perf_tests(chandlerPerformanceTests, logName=logFileName)
         
     fileName = Globals.options.scriptFile
     if fileName:

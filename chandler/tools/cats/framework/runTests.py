@@ -32,10 +32,10 @@ def checkRepo(logger):
     logger.addComment('Checking for repository corruption')
     QAUITestAppLib.App_ns.itsView.check()
 
-def run_tests(tests):
+def run_tests(tests, logName=None):
     """Method to execute cats tests, must be in Functional directory."""
     
-    logger = TestOutput(stdout=True, debug=0) 
+    logger = TestOutput(stdout=True, debug=0, logName=logName) 
     logger.startSuite(name='ChandlerTestSuite')
     for paramSet in tests.split(','):
         try:
@@ -59,10 +59,10 @@ def run_tests(tests):
     import osaf.framework.scripting as scripting
     scripting.app_ns().root.Quit()
  
-def run_perf_tests(tests):
+def run_perf_tests(tests, logName=None):
     """Method to execute cats tests, must be in Performance directory"""
 
-    logger = TestOutput(stdout=True, debug=0)
+    logger = TestOutput(stdout=True, debug=0, logName=logName)
     logger.startSuite(name='ChandlerTestSuite')
     for paramSet in tests.split(','):
         try:
