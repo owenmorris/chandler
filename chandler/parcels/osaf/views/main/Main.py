@@ -712,7 +712,7 @@ class MainView(View):
         # go to the All application, so we can view the scripts
         self.postEventByName ('ApplicationBarAll', { })
 
-    def onAddScriptsToSidebarEventUpdateUI(self, event):
+    def onAddSharingLogToSidebarEventUpdateUI(self, event):
         sidebar = Block.findBlockByName ("Sidebar").contents
         log = schema.ns('osaf.sharing', self.itsView).activityLog
         if log in sidebar:
