@@ -1175,7 +1175,7 @@ class StringAttributeEditor (BaseAttributeEditor):
             # hack to work around bug 5669 until the underlying wx bug is fixed.
             if '__WXMAC__' in wx.PlatformInfo: 
                 def showhide(ctrl):
-                    if ctrl:
+                    if ctrl and ctrl.IsShown():
                         ctrl.Hide()
                         ctrl.Show()
                 wx.CallAfter(showhide, control)
