@@ -275,7 +275,7 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
     Py_INCREF(uuid); self->uuid = uuid;
     self->singletons = PyDict_New();
     self->monitors = NULL;
-    self->watchers = NULL;
+    self->watchers = PyDict_New();
     self->debugOn = NULL;
     self->deferredDeletes = PyList_New(0);
 
