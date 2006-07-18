@@ -24,6 +24,8 @@ __version__=  '0.2'
 from datetime import datetime as dtime
 import copy
 import sys
+import os.path
+import time 
 
 class datetime(dtime):
     """Class for overriding datetime's normal string method"""
@@ -73,6 +75,18 @@ class TestOutput:
            self.stdout = None
         
         if logName is not None:
+            logName = os.path.abspath(logName)
+            # Rename the last log file to timestamped version
+            try:
+                # getatime returns last mod on Unix, and creation time on Win
+                atime = os.path.getatime(logName)
+                time_stamp = time.strftime('%Y%m%d%H%M%S',
+                                           time.localtime(atime))
+                os.rename(logName, '%s.%s' % (logName, time_stamp))
+            except OSError:
+                # Most likely the file didn't exist, just ignore
+                pass            
+            
             self.f = file(logName, 'w')
         else:
             self.f = None
