@@ -296,14 +296,8 @@ class AbstractDownloadClient(object):
 
             err = err.value
 
+        #Get the str representation of Python class
         errorType   = str(err.__class__)
-
-        #Convert error messages to unicode objects for display
-        try:
-            errorText = unicode(err.__str__(), 'utf8', 'replace')
-        except UnicodeEncodeError, e:
-            logging.exception("Unable to convert Exception string text to Unicode")
-            errorText = u""
 
         if self.testing:
             reconnect = self.testAccountSettings
@@ -313,7 +307,6 @@ class AbstractDownloadClient(object):
             #But only if we are not in testing mode since it
             #does not leverage the status bar.
             NotifyUIAsync(u"")
-
 
         if isinstance(err, Utility.CertificateVerificationError):
             assert err.args[1] == 'certificate verify failed'
@@ -346,6 +339,14 @@ class AbstractDownloadClient(object):
             self._actionCompleted()
             return
 
+        #Convert error messages to unicode objects for display
+        try:
+            errorText = unicode(err.__str__(), 'utf8', 'replace')
+        except (UnicodeEncodeError, TypeError), e:
+            logging.exception("Unable to convert Exception string text to Unicode")
+            #XXX If the conversion fails add a more detailed message
+            # such "Please look at log to view the error"
+            errorText = u""
 
         if self.testing:
             alert(constants.TEST_ERROR, {'accountName': self.account.displayName, \
