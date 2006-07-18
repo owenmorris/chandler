@@ -158,21 +158,22 @@ def prune_and_link():
         if dir in symlinkTargets:
             print 'symlink check', dir
             symlinkDirs.sort()
-            print 'last found', symlinkDirs[-1]
+            if len(symlinkDirs) > 0:
+                print 'last found', symlinkDirs[-1]
 
-            symlinkDir = checkArchiveDir(archive, symlinkDirs[-1])
-            sympath    = os.path.join(startDir, dir, symlinkDir, '*.tar.gz')
-            symFiles   = glob.glob(sympath)
+                symlinkDir = checkArchiveDir(archive, symlinkDirs[-1])
+                sympath    = os.path.join(startDir, dir, symlinkDir, '*.tar.gz')
+                symFiles   = glob.glob(sympath)
 
-            print 'sympath, symFiles:', sympath, symFiles
+                print 'sympath, symFiles:', sympath, symFiles
 
-            for symSource in symFiles:
-                symTarget = os.path.join(startDir, symlinkNames[dir])
-                if os.path.isfile(symTarget) or os.path.islink(symTarget):
-                    #print 'removing', symTarget
-                    os.unlink(symTarget)
-                print 'linking', symSource, symTarget
-                os.symlink(symSource, symTarget)
+                for symSource in symFiles:
+                    symTarget = os.path.join(startDir, symlinkNames[dir])
+                    if os.path.isfile(symTarget) or os.path.islink(symTarget):
+                        #print 'removing', symTarget
+                        os.unlink(symTarget)
+                    print 'linking', symSource, symTarget
+                    os.symlink(symSource, symTarget)
 
 def main():
     global shortPolicyHours, longPolicyDays, smtpServer, downloadsServer
