@@ -29,17 +29,6 @@ class CollectionClass(type):
 
 class Collection(Item):
     """
-    Collection instances are items wrapping a collection attribute value and
-    provide a C{subscribers} ref collection for clients to subscribe to their
-    notifications. Subscriber items must provide a C{subscribesTo} inverse
-    attribute and a method of the following signature::
-        C{onCollectionNotification(op, collection, name, item)}
-
-    where C{op} is one of C{add}, C{remove}, C{refresh} or C{changed},
-    C{collection} is the Collection item, C{name} is the attribute
-    containing the collection value and C{item} the item in the collection
-    that was added, removed, refreshed or changed.
-
     This class is abstract. Base concrete subclasses must use the
     C{CollectionClass} metaclass, must be declared tied to a kind that
     provides the collection attribute, and must declare its name as in the
@@ -56,37 +45,12 @@ class Collection(Item):
 
     def _collectionChanged(self, op, change, name, other):
 
-        if change == 'dispatch':
+        view = self.itsView
+        watchers = view._watchers.get(self.itsUUID)
+        if watchers and view.SUBSCRIBERS in watchers:
+            view.queueNotification(self, op, change, name, other)
 
-            subscribers = getattr(self, 'subscribers', None)
-            if subscribers:
-                for subscriber in subscribers:
-                    subscriber.onCollectionNotification(op, self, name, other)
-
-            view = self.itsView
-            subscribers = view._subscribers.get(self.itsUUID)
-            if subscribers:
-                notFound = None
-                for subscriber in subscribers:
-                    item = view.findUUID(subscriber)
-                    if item is not None:
-                        item.onCollectionNotification(op, self, name, other)
-                    elif notFound is None:
-                        notFound = [subscriber]
-                    else:
-                        notFound.append(subscriber)
-                if notFound:
-                    for subscriber in notFound:
-                        view.notificationQueueUnsubscribe(self, subscriber)
-
-        else:
-            view = self.itsView
-
-            if (getattr(self, 'subscribers', None) or
-                view._subscribers.get(self.itsUUID)):
-                view.queueNotification(self, op, change, name, other)
-
-            super(Collection, self)._collectionChanged(op, change, name, other)
+        super(Collection, self)._collectionChanged(op, change, name, other)
 
     def __contains__(self, obj):
 
@@ -126,15 +90,6 @@ class Collection(Item):
             raise NotImplementedError, (type(self), 'remove not implemented')
         else:
             return remove(other)
-
-    def notificationQueueSubscribe(self, subscriber):
-
-        self.subscribers.add(subscriber)
-
-    def notificationQueueUnsubscribe(self, subscriber):
-
-        if subscriber in self.subscribers:
-            self.subscribers.remove(subscriber)
 
     def getSourceCollection(self):
 

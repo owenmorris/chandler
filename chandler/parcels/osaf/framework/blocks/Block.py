@@ -90,11 +90,6 @@ class Block(schema.Item):
     contents = schema.One(ContentItem, otherName="contentsOwner")
     contentsCollection = schema.One(ContentItem, defaultValue=None)
 
-    # Must be provided in order to subcribe to collection notifications.
-    # In order to subscribe to more than one collection, this attribute
-    # should be declared with schema.Sequence().
-    subscribesTo = schema.One(ContentCollection, otherName="subscribers")
-
     # Blocks instances can be put into ListCollections or AppCollections
     collections = schema.Sequence(otherName='inclusions')
 
@@ -454,7 +449,8 @@ class Block(schema.Item):
         # If this looks like a collection, we'll subscribe to
         # collection notifications.
         if isinstance(contents, ContentCollection):
-            self.itsView.notificationQueueSubscribe(contents, self)
+            self.itsView.watchCollectionQueue(self, contents,
+                                              'onCollectionNotification')
 
         # Do item subscription, if this block wants us to watch 
         # something and has an onItemNotification method
@@ -496,7 +492,8 @@ class Block(schema.Item):
         # unsubscribe from collection notifications
         contents = getattr (self, 'contents', None)
         if contents is not None and isinstance(contents, ContentCollection):
-            self.itsView.notificationQueueUnsubscribe(contents, self)
+            self.itsView.unwatchCollectionQueue(self, contents,
+                                                'onCollectionNotification')
             
         # do item notifications, too, if we had any
         try:

@@ -35,17 +35,6 @@ class ContentCollection(ContentItem, Collection):
     """
     The base class for Chandler Collection types.
 
-    ContentCollection instances are items wrapping a collection value and
-    provide a C{subscribers} ref collection for clients to subscribe to their
-    notifications. Subscriber items must provide a C{subscribesTo} inverse
-    attribute and a method of the following signature::
-        C{onCollectionNotification(op, collection, name, item)}
-
-    where C{op} is one of C{add}, C{remove}, C{refresh} or C{changed},
-    C{collection} is the Collection item, C{name} is the attribute
-    containing the collection value and C{item} the item in the collection
-    that was added, removed, refreshed or changed.
-
     This class is abstract. Base concrete subclasses must use the
     C{schema.CollectionClass} metaclass and declare the collection attribute
     and its name as in the examples below::
@@ -104,7 +93,7 @@ class ContentCollection(ContentItem, Collection):
     schema.addClouds(
         copying = schema.Cloud(
             invitees,
-            byRef=['contentsOwner', 'subscribers']
+            byRef=['contentsOwner']
         ),
         sharing = schema.Cloud(none=["displayName"]),
     )

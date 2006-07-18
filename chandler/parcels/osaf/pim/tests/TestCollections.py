@@ -26,7 +26,6 @@ class NotifyHandler(schema.Item):
     we should change notifications to work on callables -- John is cool with that.
     """
     log = schema.Sequence(initialValue=[])
-    subscribesTo = schema.One(ContentCollection, otherName="subscribers")
 
     def checkLog(self, op, item, other, index=-1):
         if len(self.log) == 0:
@@ -43,7 +42,7 @@ class NotifyHandler(schema.Item):
                 continue
             return rec[0] == op and (rec[3] == other or rec[3] == other.itsUUID)
 
-    def onCollectionNotification(self, op, collection, name, other):
+    def queuedChange(self, op, collection, name, other):
         if name != 'watches':
             self.log.append((op, collection, name, other))
 
@@ -126,8 +125,8 @@ class CollectionTests(CollectionTestCase):
         u = UnionCollection('u', itsView=self.view,
                             sources=[ self.b1, self.b2 ])
 
-        self.b1.notificationQueueSubscribe(self.nh)
-        u.notificationQueueSubscribe(self.nh1)
+        self.view.watchCollectionQueue(self.nh, self.b1, 'queuedChange')
+        self.view.watchCollectionQueue(self.nh1, u, 'queuedChange')
 
         # add i to b1
         self.b1.add(self.i)
@@ -151,15 +150,15 @@ class CollectionTests(CollectionTestCase):
         test addSource
         """
         u = UnionCollection('u', itsView=self.view)
-        u.notificationQueueSubscribe(self.nh)
+        self.view.watchCollectionQueue(self.nh, u, 'queuedChange')
 
         self.b1.add(self.i)
         self.b2.add(self.i)
         self.b2.add(self.i1)
 
         # make transient subscriptions
-        self.view.notificationQueueSubscribe(self.b1, self.nh1)
-        self.view.notificationQueueSubscribe(self.b2, self.nh2)
+        self.view.watchCollectionQueue(self.nh1, self.b1, 'queuedChange')
+        self.view.watchCollectionQueue(self.nh2, self.b2, 'queuedChange')
 
         u.addSource(self.b1)
         self.view.dispatchNotifications()
@@ -183,8 +182,8 @@ class CollectionTests(CollectionTestCase):
         """
         d = DifferenceCollection('d', itsView=self.view,
                                  sources=[ self.b1, self.b2 ])
-        self.b1.notificationQueueSubscribe(self.nh)
-        d.notificationQueueSubscribe(self.nh1)
+        self.view.watchCollectionQueue(self.nh, self.b1, 'queuedChange')
+        self.view.watchCollectionQueue(self.nh1, d, 'queuedChange')
 
         self.b1.add(self.i)
         self.view.dispatchNotifications()      
@@ -196,7 +195,7 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(self.nh.checkLog("add", self.b1, self.i1))
         self.failUnless(self.nh1.checkLog("add", d, self.i1))
 
-        self.b2.notificationQueueSubscribe(self.nh2)
+        self.view.watchCollectionQueue(self.nh2, self.b2, 'queuedChange')
         self.b2.add(self.i2)
         self.view.dispatchNotifications()
         self.failUnless(self.nh2.checkLog("add", self.b2, self.i2))
@@ -221,12 +220,12 @@ class CollectionTests(CollectionTestCase):
         ic = DifferenceCollection("ic", itsView=self.view,
                                   sources=[ iu, exclusions ])
 
-        inclusions.notificationQueueSubscribe(self.nh)
-        rule.notificationQueueSubscribe(self.nh1)
-        exclusions.notificationQueueSubscribe(self.nh2)
+        self.view.watchCollectionQueue(self.nh, inclusions, 'queuedChange')
+        self.view.watchCollectionQueue(self.nh1, rule, 'queuedChange')
+        self.view.watchCollectionQueue(self.nh2, exclusions, 'queuedChange')
 
         nh3 = NotifyHandler("nh3", itsView=self.view)
-        ic.notificationQueueSubscribe(nh3)
+        self.view.watchCollectionQueue(nh3, ic, 'queuedChange')
 
         inclusions.add(self.i)
         self.view.dispatchNotifications()
@@ -267,7 +266,7 @@ class CollectionTests(CollectionTestCase):
                             kind=k)
         k2 = KindCollection(itsView=self.view,
                             kind=self.i.itsKind)
-        k2.notificationQueueSubscribe(self.nh)
+        self.view.watchCollectionQueue(self.nh, k2, 'queuedChange')
 
         i = SimpleItem("new i", itsView=self.view)
         self.view.dispatchNotifications()       
@@ -298,8 +297,8 @@ class CollectionTests(CollectionTestCase):
                                 source=self.b1,
                                 filterExpression=u"len(view[uuid].label) > 3",
                                 filterAttributes=["label"])
-        self.b1.notificationQueueSubscribe(self.nh)
-        f1.notificationQueueSubscribe(self.nh1)
+        self.view.watchCollectionQueue(self.nh, self.b1, 'queuedChange')
+        self.view.watchCollectionQueue(self.nh1, f1, 'queuedChange')
 
         self.b1.add(self.i)
         self.view.dispatchNotifications()
@@ -329,8 +328,8 @@ class CollectionTests(CollectionTestCase):
                                 filterAttributes=["label"])
         nh3 = NotifyHandler("nh3", itsView=self.view)
 
-        k1.notificationQueueSubscribe(self.nh2)
-        f2.notificationQueueSubscribe(nh3)
+        self.view.watchCollectionQueue(self.nh2, k1, 'queuedChange')
+        self.view.watchCollectionQueue(nh3, f2, 'queuedChange')
 
         fred = SimpleItem("fred", label=uw("fred"), itsView=self.view)
         self.view.dispatchNotifications()
@@ -402,8 +401,8 @@ class CollectionTests(CollectionTestCase):
                                 filterAttributes=["label"])
         nh3 = NotifyHandler("nh3", itsView=self.view)
 
-        k1.notificationQueueSubscribe(self.nh2)
-        f2.notificationQueueSubscribe(nh3)
+        self.view.watchCollectionQueue(self.nh2, k1, 'queuedChange')
+        self.view.watchCollectionQueue(nh3, f2, 'queuedChange')
 
         self.i.label = uw("xxx")
         print nh3.log
@@ -439,7 +438,7 @@ class CollectionTests(CollectionTestCase):
         l = ListCollection(itsView=self.view)
 
         u = UnionCollection(itsView=self.view)
-        u.notificationQueueSubscribe(self.nh)
+        self.view.watchCollectionQueue(self.nh, u, 'queuedChange')
 
         u.addSource(f)
         u.addSource(l)

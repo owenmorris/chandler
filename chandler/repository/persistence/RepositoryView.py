@@ -59,8 +59,9 @@ class RepositoryView(CView):
     # 0.6.5: changed format of abstract sets to store an optional id
     # 0.6.6: added support for MethodFilteredSet
     # 0.6.7: watchers reworked to use RefDict
+    # 0.6.8: removed support for persistent collection queue subscriptions
     
-    CORE_SCHEMA_VERSION = 0x00060700
+    CORE_SCHEMA_VERSION = 0x00060800
 
     def __init__(self, repository, name, version):
         """
@@ -73,7 +74,6 @@ class RepositoryView(CView):
         """
 
         self._notifications = Queue()
-        self._subscribers = {}
 
         if not name:
             name = threading.currentThread().getName()
@@ -204,7 +204,6 @@ class RepositoryView(CView):
             repository._openViews.remove(self)
 
         self.flushNotifications()
-        self._subscribers.clear()
         self.clear()
 
         if repository is not None:
@@ -1124,9 +1123,18 @@ class RepositoryView(CView):
             while not queue.empty():
                 uItem, op, change, name, other = queue.get()
                 count += 1
-                item = self.find(uItem)
-                if item is not None:
-                    item._collectionChanged(op, 'dispatch', name, other)
+
+                watchers = self._watchers.get(uItem)
+                if watchers:
+                    watchers = watchers.get(self.SUBSCRIBERS)
+                    if watchers:
+                        try:
+                            collection = self[uItem]
+                        except KeyError:
+                            continue
+                        else:
+                            for watcher in watchers:
+                                watcher(op, change, collection, name, other)
 
             while self.isDirtyAgain():
                 self._dispatchChanges(self.mapChanges(True))
@@ -1147,28 +1155,6 @@ class RepositoryView(CView):
 
         return count
 
-    def notificationQueueSubscribe(self, collection, subscriber):
-
-        uCol = collection.itsUUID
-        uItem = subscriber.itsUUID
-        subscribers = self._subscribers.get(uCol)
-
-        if subscribers is None:
-            self._subscribers[uCol] = set((uItem,))
-        else:
-            subscribers.add(uItem)
-
-    def notificationQueueUnsubscribe(self, collection, subscriber):
-
-        uCol = collection.itsUUID
-        uItem = subscriber.itsUUID
-        subscribers = self._subscribers.get(uCol)
-
-        if subscribers and uItem in subscribers:
-            subscribers.remove(uItem)
-            if not subscribers:
-                del self._subscribers[uCol]
-
     def _dispatchHistory(self, history, refreshes, oldVersion, newVersion):
 
         raise NotImplementedError, "%s._dispatchHistory" %(type(self))
@@ -1179,26 +1165,22 @@ class RepositoryView(CView):
 
     def _registerWatch(self, watchingItem, watchedItem, cls, key, *args):
 
-        watchers = self._watchers
         uWatching = watchingItem.itsUUID
         uWatched = watchedItem.itsUUID
 
+        watchers = self._watchers.get(uWatched)
         if watchers is None:
-            self._watchers = {uWatched: {key: [cls(self, uWatching, *args)]}}
+            self._watchers[uWatched] = {key: [cls(self, uWatching, *args)]}
         else:
-            watchers = watchers.get(uWatched)
+            watchers = watchers.get(key)
             if watchers is None:
-                self._watchers[uWatched] = {key: [cls(self, uWatching, *args)]}
+                self._watchers[uWatched][key] = [cls(self, uWatching, *args)]
             else:
-                watchers = watchers.get(key)
-                if watchers is None:
-                    self._watchers[uWatched][key] = [cls(self, uWatching,*args)]
-                else:
-                    for watcher in watchers:
-                        if (watcher.watchingItem == uWatching and
-                            type(watcher) is cls and watcher.compare(*args)):
-                            return watcher
-                    watchers.append(cls(self, uWatching, *args))
+                for watcher in watchers:
+                    if (watcher.watchingItem == uWatching and
+                        type(watcher) is cls and watcher.compare(*args)):
+                        return watcher
+                watchers.append(cls(self, uWatching, *args))
                 
         if cls is TransientWatchItem:
             watchedItem._status |= CItem.T_WATCHED
@@ -1271,9 +1253,20 @@ class RepositoryView(CView):
         self._unregisterWatch(watchingItem, owner, TransientWatchCollection,
                               attribute, methodName)
 
+    def watchCollectionQueue(self, watchingItem, collection, methodName):
+        return self._registerWatch(watchingItem, collection,
+                                   TransientWatchCollection,
+                                   RepositoryView.SUBSCRIBERS, methodName)
+
+    def unwatchCollectionQueue(self, watchingItem, collection, methodName):
+        self._unregisterWatch(watchingItem, collection,
+                              TransientWatchCollection,
+                              RepositoryView.SUBSCRIBERS, methodName)
+
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
+    SUBSCRIBERS = UUID('4dc81eae-1689-11db-a0ac-0016cbc90838')
+
     itsPath = property(_getPath)
-    
     views = property(lambda self: self.repository.getOpenViews())
 
 

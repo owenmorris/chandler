@@ -561,10 +561,13 @@ class wxApplication (wx.App):
         mainViewRoot = self.mainFrame.mainViewRoot.unRender()
         if __debug__:
             from osaf.framework.blocks.Block import Block
-            for value in self.UIRepositoryView._subscribers.itervalues():
-                for uuid in value:
-                    item = self.UIRepositoryView.findUUID(uuid)
-                    assert not isinstance (item, Block)
+            view = self.UIRepositoryView
+            for uWatched, watchers in view._watchers.iteritems():
+                watchers = watchers.get(view.SUBSCRIBERS)
+                if watchers:
+                    for watcher in watchers:
+                        item = view.findUUID(watcher.watchingItem)
+                        assert not isinstance(item, Block)
             
         self.mainFrame.SetSizer (None)
 
