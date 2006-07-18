@@ -49,8 +49,6 @@ PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
 SITE=bin/Lib/site-packages
 PLATFORM=windows
 SWIG=$(PREFIX)/bin/swig/swig.exe
-MD5=md5sum.exe
-MD5CHECK=$(MD5) -c
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
 else
 ifeq ($(OS),Darwin)
@@ -67,8 +65,6 @@ PYTHON:=$(PREFIX)/$(FRAMEWORK)/bin/$(PYTHON)
 SITE=$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
 PLATFORM=macosx
 SWIG=$(PREFIX)/bin/swig
-MD5=md5
-MD5CHECK=$(MD5) --check
 ifeq ($(ARCH),i386)
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/maciosx
 else
@@ -79,8 +75,6 @@ PYTHON:=$(PREFIX)/bin/$(PYTHON)
 SITE=lib/python$(PYTHON_VER)/site-packages
 PLATFORM=linux
 SWIG=$(PREFIX)/bin/swig
-MD5=md5sum
-MD5CHECK=$(MD5) -c
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
 endif
 endif
@@ -218,8 +212,6 @@ $(GCJ_HOME): $(notdir $(GCJ_HOME).tar.bz2)
 $(notdir $(GCJ_HOME).tar.bz2):
 	cd $(BUILD_ROOT); \
 	$(CURL) -O $(COMPILERS)/windows/$@
-	$(CURL) -O $(COMPILERS)/windows/$@.md5
-#	$(MD5CHECK) $@.md5
 
 endif
 
@@ -233,8 +225,6 @@ $(GCJ_HOME): $(notdir $(GCJ_HOME).tar.gz)
 $(notdir $(GCJ_HOME).tar.gz):
 	cd $(BUILD_ROOT);
 	$(CURL) $(COMPILERS)/osx/$(ARCH)/$@
-	$(CURL) $(COMPILERS)/osx/$(ARCH)/$@.md5
-#	$(MD5CHECK) $@.md5
 else
 $(GCJ_HOME): $(notdir $(GCJ_HOME).tar.bz2)
 	cd $(BUILD_ROOT); tar xvjf $<
@@ -242,8 +232,6 @@ $(GCJ_HOME): $(notdir $(GCJ_HOME).tar.bz2)
 $(notdir $(GCJ_HOME).tar.bz2):
 	cd $(BUILD_ROOT);
 	$(CURL) $(COMPILERS)/osx/$(ARCH)/$@
-	$(CURL) $(COMPILERS)/osx/$(ARCH)/$@.md5
-#	$(MD5CHECK) $@.md5
 endif
 
 endif
@@ -256,8 +244,6 @@ $(GCJ_HOME): $(notdir $(GCJ_HOME).tar.gz)
 $(notdir $(GCJ_HOME).tar.gz):
 	cd $(BUILD_ROOT); \
 	$(CURL) $(COMPILERS)/linux/$@
-	$(CURL) $(COMPILERS)/linux/$@.md5
-#	$(MD5CHECK) $@.md5
 
 endif
 
