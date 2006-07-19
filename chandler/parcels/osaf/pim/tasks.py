@@ -28,7 +28,6 @@ from PyICU import ICUtzinfo
 
 
 class TaskStatusEnum(schema.Enumeration):
-    schema.kindInfo(displayName=u"Task Status")
     values = "todo", "blocked", "done", "deferred"
 
 
@@ -42,7 +41,6 @@ class TaskMixin(items.ContentItem):
     """
     
     schema.kindInfo(
-        displayName = u"Task Mixin Kind",
         description = 
             "This Kind is 'mixed in' to others kinds to create Kinds that "
             "can be instantiated"
@@ -127,7 +125,6 @@ class TaskEventExtraMixin(items.ContentItem):
     """
 
     schema.kindInfo(
-        displayName = u"Task Event Extra Mixin Kind",
         description =
             "The attributes specific to an item that is both a task and an "
             "event.  This is additional 'due by' information. "
@@ -181,5 +178,4 @@ class Task(TaskMixin, notes.Note):
 
       - Task should maybe have a 'Timezone' attribute.
     """
-    schema.kindInfo( displayName = u"Task" )
 

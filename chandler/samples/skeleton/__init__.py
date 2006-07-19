@@ -21,10 +21,6 @@ class MyKind1(pim.ContentItem):
     
     attr1 = schema.One(schema.Text, displayName=u"Attribute 1")
    
-    schema.kindInfo(
-        displayName = u"Example Kind"
-    )
-
     # redirection attributes
     who = schema.Descriptor(redirectTo="attr1")
 

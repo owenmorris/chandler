@@ -56,10 +56,6 @@ class ContentCollection(ContentItem, Collection):
     an AbstractSet subclass instance or a RefList instance.
     """
 
-    schema.kindInfo(
-        displayName=u"ContentCollection"
-    )
-
     collectionList = schema.Sequence(
         'ContentCollection',
         doc="Views, e.g. the Calendar, that display collections need to know "
@@ -151,8 +147,6 @@ class KindCollection(ContentCollection):
 
     set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
-    schema.kindInfo(displayName=u"KindCollection")
-
     kind = schema.One(schema.TypeReference('//Schema/Core/Kind'))
     recursive = schema.One(schema.Boolean, defaultValue=False)
 
@@ -177,8 +171,6 @@ class ListCollection(ContentCollection):
 
     # must be named 'inclusions' to match AppCollection
     inclusions = schema.Sequence(otherName='collections', initialValue=[])
-
-    schema.kindInfo(displayName=u"ListCollection")
 
     def empty(self):
         for item in self:
@@ -296,8 +288,6 @@ class DifferenceCollection(WrapperCollection):
     instances to be differenced.
     """
 
-    schema.kindInfo(displayName=u"DifferenceCollection")
-
     def _sourcesChanged_(self):
 
         sources = self.sources
@@ -331,8 +321,6 @@ class UnionCollection(WrapperCollection):
     ContentCollections.
     """
 
-    schema.kindInfo(displayName=u"UnionCollection")
-
     def _sourcesChanged_(self):
 
         sources = self.sources
@@ -360,8 +348,6 @@ class IntersectionCollection(WrapperCollection):
     A ContentCollection containing the set theoretic intersection of at
     least two ContentCollections.
     """
-
-    schema.kindInfo(displayName=u"IntersectionCollection")
 
     def _sourcesChanged(self, op, item, attribute, sourceId):
 
@@ -437,8 +423,6 @@ class FilteredCollection(SingleSourceWrapperCollection):
     (Strings), which are accessed by the C{filterExpression}.
     Failure to provide this list will result in missing notifications.
     """
-
-    schema.kindInfo(displayName=u"FilteredCollection")
 
     filterExpression = schema.One(schema.Text)
     filterMethod = schema.One(schema.Tuple)

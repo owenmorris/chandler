@@ -44,8 +44,6 @@ class Contact(items.ContentItem):
     'Permissions I've given them', 'Items of mine they've subscribed to',
     'Items of theirs I've subscribed to', etc.
     """
-    schema.kindInfo(displayName=_(u"Contact"), displayAttribute="emailAddress")
-
     itemsCreated = schema.Sequence(
         displayName=u"Items Created",
         doc = "List of content items created by this user.",

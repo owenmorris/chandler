@@ -750,8 +750,6 @@ def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
 
 class ICalendarFormat(Sharing.ImportExportFormat):
 
-    schema.kindInfo(displayName=u"iCalendar Import/Export Format Kind")
-    
     def fileStyle(self):
         return self.STYLE_SINGLE
 
@@ -849,8 +847,6 @@ class CalDAVFormat(ICalendarFormat):
     
 class FreeBusyFileFormat(ICalendarFormat):
     """Format for exporting/importing a monolithic freebusy file."""
-    schema.kindInfo(displayName=u"iCalendar Free/Busy Format Kind")
-
     def extension(self, item):
         return "ifb"
 

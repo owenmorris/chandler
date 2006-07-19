@@ -186,8 +186,6 @@ def _AddToCollection(repView, text, countryCode, bags):
 
 
 class AmazonCollection(ListCollection):
-    schema.kindInfo(displayName = u"Amazon Collection Kind")
-
     keywords = schema.One(schema.Text, displayName = u'Keywords')
 
     myKindID = None
@@ -277,8 +275,6 @@ class AmazonCollection(ListCollection):
             return u'Amzn:' + text
 
 class AmazonItem(ContentItem):
-
-    schema.kindInfo(displayName = u"Amazon Item")
 
     amazonCollection = schema.One(
         AmazonCollection, displayName = u'Amazon Collection',

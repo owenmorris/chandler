@@ -34,9 +34,6 @@ from i18n import OSAFMessageFactory as _
 
 class FrequencyEnum(schema.Enumeration):
     """The base frequency for a recurring event."""
-    schema.kindInfo(
-        displayName=u"Frequency"
-    )
     values="yearly","monthly","weekly","daily","hourly","minutely","secondly"
 
 
@@ -60,9 +57,6 @@ pluralFrequencyMap =   dict(yearly  = _(u"years"),
 
 class WeekdayEnum(schema.Enumeration):
     """The names of weekdays.  Values shouldn't be displayed directly."""
-    schema.kindInfo(
-        displayName=u"Weekdays"
-    )
     values="monday","tuesday","wednesday","thursday","friday", \
            "saturday","sunday"
 

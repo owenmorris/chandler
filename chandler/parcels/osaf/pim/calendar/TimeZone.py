@@ -27,10 +27,6 @@ class TimeZoneInfo(schema.Item):
      - A list of "well-known" timezone names.
     """
 
-    schema.kindInfo(
-        displayName=u"TimeZone info"
-    )
-
     default = schema.One(
         schema.TimeZone,
         displayName = u'User Default Time Zone',

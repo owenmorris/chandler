@@ -119,14 +119,12 @@ def getCurrentMailAccount(view, uuid=None):
 
 
 class connectionSecurityEnum(schema.Enumeration):
-    schema.kindInfo(displayName=u"Connection Security Enumeration")
     values = "NONE", "TLS", "SSL"
 
 
 class AccountBase(items.ContentItem):
 
     schema.kindInfo(
-        displayName=u"Account base kind",
         description="The base kind for various account kinds, such as "
                     "IMAP, SMTP, WebDav"
     )
@@ -206,7 +204,6 @@ class AccountBase(items.ContentItem):
 class DownloadAccountBase(AccountBase):
 
     schema.kindInfo(
-        displayName=u"Download Account Base",
         description="Base Account for protocols that download mail",
     )
 
@@ -244,7 +241,6 @@ class SMTPAccount(AccountBase):
     accountType = "SMTP"
 
     schema.kindInfo(
-        displayName=_(u"SMTP Account"),
         description="An SMTP Account",
     )
 
@@ -294,7 +290,6 @@ class IMAPAccount(DownloadAccountBase):
     accountType = "IMAP"
 
     schema.kindInfo(
-        displayName = _(u"IMAP Account"),
         description = "An IMAP Account",
     )
 
@@ -320,7 +315,6 @@ class POPAccount(DownloadAccountBase):
     accountType = "POP"
 
     schema.kindInfo(
-        displayName = _(u"POP Account"),
         description = "An POP Account",
     )
     port = schema.One(
@@ -350,7 +344,6 @@ class POPAccount(DownloadAccountBase):
 class MailDeliveryError(items.ContentItem):
 
     schema.kindInfo(
-        displayName=u"Mail Delivery Error kind",
         description=
             "Contains the error data associated with a MailDelivery Type"
     )
@@ -375,7 +368,6 @@ class MailDeliveryError(items.ContentItem):
 class MailDeliveryBase(items.ContentItem):
 
     schema.kindInfo(
-        displayName = u"Mail Delivery base kind",
         description =
             "Parent kind for delivery-specific attributes of a MailMessage"
     )
@@ -406,7 +398,6 @@ class stateEnum(schema.Enumeration):
 class SMTPDelivery(MailDeliveryBase):
 
     schema.kindInfo(
-        displayName = u"SMTP Delivery",
         description = "Tracks the status of an outgoing message\n\n"
             "Issues:\n\n"
             "   Currently the parcel loader can't set a default value for the "
@@ -456,7 +447,6 @@ class SMTPDelivery(MailDeliveryBase):
 class IMAPDelivery(MailDeliveryBase):
 
     schema.kindInfo(
-        displayName = u"IMAP Delivery",
         description = "Tracks the state of an inbound message",
     )
 
@@ -483,7 +473,6 @@ class IMAPDelivery(MailDeliveryBase):
 class POPDelivery(MailDeliveryBase):
 
     schema.kindInfo(
-        displayName = u"POP Delivery",
         description = "Tracks the state of an inbound message",
     )
 
@@ -497,7 +486,6 @@ class POPDelivery(MailDeliveryBase):
 
 class MIMEBase(items.ContentItem):
     schema.kindInfo(
-        displayName=u"MIME Base Kind",
         description="Super kind for MailMessage and the various MIME kinds",
     )
 
@@ -517,7 +505,6 @@ class MIMENote(MIMEBase):
     # was removed from MIMENote's superKinds list
 
     schema.kindInfo(
-        displayName=u"MIME Note",
         description="MIMEBase and Note, rolled into one",
     )
 
@@ -532,8 +519,6 @@ class MIMENote(MIMEBase):
 
 
 class MIMEContainer(MIMEBase):
-
-    schema.kindInfo(displayName=u"MIME Container Kind")
 
     hasMimeParts = schema.One(schema.Boolean, initialValue = False)
     mimeParts = schema.Sequence(
@@ -557,9 +542,6 @@ class MailMessageMixin(MIMEContainer):
       - Really not sure what to do with the 'downloadAccount' attribute
         and how it should be included in the cloud.  For now it's byValue.
     """
-    schema.kindInfo(
-        displayName=u"Mail Message Mixin"
-    )
     deliveryExtension = schema.One(
         MailDeliveryBase,
         initialValue = None,
@@ -732,7 +714,6 @@ class MailMessageMixin(MIMEContainer):
 
 class MailMessage(MailMessageMixin, notes.Note):
     schema.kindInfo(
-        displayName = _(u"Mail Message"),
         displayAttribute = "subject",
         description = "MailMessageMixin, and Note, all rolled up into one",
     )
@@ -740,13 +721,10 @@ class MailMessage(MailMessageMixin, notes.Note):
 
 class MIMEBinary(MIMENote):
 
-    schema.kindInfo(displayName = u"MIME Binary Kind")
     data = schema.One(schema.Lob, indexed=False)
 
 
 class MIMEText(MIMENote):
-
-    schema.kindInfo(displayName = u"MIME Text Kind")
 
     charset = schema.One(
         schema.Text,
@@ -761,14 +739,11 @@ class MIMEText(MIMENote):
 
 
 class MIMESecurity(MIMEContainer):
-
-    schema.kindInfo(displayName=u"MIME Security Kind")
-
+    pass
 
 class EmailAddress(items.ContentItem):
 
     schema.kindInfo(
-        displayName = u"Email Address Kind",
         displayAttribute = "emailAddress",
         description = "An item that represents a simple email address, plus "
                       "all the info we might want to associate with it, like "

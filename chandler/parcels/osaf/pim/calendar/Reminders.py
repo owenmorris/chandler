@@ -20,10 +20,6 @@ from PyICU import ICUtzinfo
 
 
 class Reminder(schema.Item):
-    schema.kindInfo(
-        displayName=u"A Reminder for one or more RemindableMixin items"
-    )
-
     delta = schema.One(
         schema.TimeDelta, 
         displayName=u"Delta",
@@ -76,10 +72,6 @@ class Reminder(schema.Item):
         return result
 
 class RemindableMixin(ContentItem):
-    schema.kindInfo(
-        displayName=u"RemindableMixin",
-    )
-
     reminders = schema.Sequence(
         Reminder,
         displayName=u"Reminders",

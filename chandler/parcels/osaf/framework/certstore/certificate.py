@@ -43,7 +43,6 @@ class typeEnum(schema.Enumeration):
     Type enumeration
     @see: U{model<../model/parcels/osaf/framework/certstore/typeEnum/index.html>}
     """
-    schema.kindInfo(displayName = u"Type Enumeration")
     values = constants.TYPE_ROOT, constants.TYPE_SITE
 
 class Certificate(pim.ContentItem):
@@ -52,8 +51,6 @@ class Certificate(pim.ContentItem):
 
     @see: U{model<../model/parcels/osaf/framework/certstore/Certificate/index.html>}
     """
-
-    schema.kindInfo(displayName = _(u"Certificate"))
 
     who = schema.One(redirectTo = 'displayName')
     displayName = schema.One(

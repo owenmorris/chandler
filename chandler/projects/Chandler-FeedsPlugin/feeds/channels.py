@@ -131,8 +131,6 @@ class FeedChannel(pim.ListCollection):
         super(FeedChannel, self).__init__(*args, **kw)
         self.addIndex('link', 'value', attribute='link')
 
-    schema.kindInfo(displayName=u"Feed Channel")
-
     link = schema.One(
         schema.URL,
         displayName=_(u"link")
@@ -414,8 +412,6 @@ class FeedChannel(pim.ListCollection):
 # FeedItem
 ##
 class FeedItem(pim.ContentItem):
-
-    schema.kindInfo(displayName=u"Feed Item")
 
     link = schema.One(
         schema.URL,

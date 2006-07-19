@@ -363,7 +363,6 @@ def getLinkedShares(share):
 
 
 class modeEnum(schema.Enumeration):
-    schema.kindInfo(displayName=u"Mode Enumeration")
     values = "put", "get", "both"
 
 
@@ -374,7 +373,6 @@ class Share(pim.ContentItem):
     """
 
     schema.kindInfo(
-        displayName=u"Share Kind",
         description="Represents a shared collection",
     )
 
@@ -559,8 +557,6 @@ class ShareConduit(pim.ContentItem):
     def __init__(self, *args, **kw):
         super(ShareConduit, self).__init__(*args, **kw)
         self.itemsMarker = Item('itemsMarker', self, None)
-
-    schema.kindInfo(displayName = u"Share Conduit Kind")
 
     share = schema.One(Share, inverse = Share.conduit)
 
@@ -1264,9 +1260,6 @@ class SharingConflictNotification(SharingChangeNotification):
 
 class FileSystemConduit(ShareConduit):
 
-    schema.kindInfo(displayName=u"File System Share Conduit Kind")
-
-
     def __init__(self, *args, **kw):
         if 'shareName' not in kw:
             kw['shareName'] = unicode(UUID())
@@ -1416,8 +1409,6 @@ class FileSystemConduit(ShareConduit):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class WebDAVConduit(ShareConduit):
-
-    schema.kindInfo(displayName=u"WebDAV Share Conduit Kind")
 
     account = schema.One('WebDAVAccount', inverse='conduits',initialValue=None)
     host = schema.One(schema.Text, initialValue=u"")
@@ -2104,8 +2095,6 @@ class SimpleHTTPConduit(WebDAVConduit):
     Useful for get-only subscriptions of remote .ics files
     """
 
-    schema.kindInfo(displayName=u"Simple HTTP Share Conduit Kind")
-
     lastModified = schema.One(schema.Text, initialValue = '')
 
     def _get(self, contentView, updateCallback=None):
@@ -2366,7 +2355,6 @@ class VersionMismatch(SharingError):
 
 class WebDAVAccount(pim.ContentItem):
     schema.kindInfo(
-        displayName=messages.ACCOUNT % {'accountName': 'WebDAV Account'},
         description="A WebDAV 'Account'\n\n"
             "Issues:\n"
             "   Long term we're probably not going to treat WebDAV as an "
@@ -2479,8 +2467,6 @@ class WebDAVAccount(pim.ContentItem):
 
 class ImportExportFormat(pim.ContentItem):
 
-    schema.kindInfo(displayName=u"Import/Export Format Kind")
-
     share = schema.One(Share, inverse = Share.format)
 
     STYLE_SINGLE = 'single' # Share represented by monolithic file
@@ -2508,8 +2494,6 @@ class ImportExportFormat(pim.ContentItem):
 
 
 class CloudXMLFormat(ImportExportFormat):
-
-    schema.kindInfo(displayName=u"Cloud XML Import/Export Format Kind")
 
     cloudAlias = schema.One(schema.Text, initialValue='sharing')
 

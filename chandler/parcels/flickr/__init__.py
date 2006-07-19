@@ -42,8 +42,6 @@ class FlickrPhotoMixin(PhotoMixin):
     """
     A mixin that adds flickr attributes to a Note item
     """
-    schema.kindInfo(displayName=u"Flickr Photo Mixin")
-
     flickrID = schema.One (schema.Text)
     imageURL = schema.One (schema.URL)
     datePosted = schema.One (schema.DateTime)
@@ -75,7 +73,7 @@ class FlickrPhotoMixin(PhotoMixin):
         self.importFromURL(self.imageURL)
 
 class FlickrPhoto(FlickrPhotoMixin, pim.Note):
-    schema.kindInfo(displayName = u"Flickr Photo")
+    pass
 
 class Tag(pim.ContentItem):
     """
@@ -83,8 +81,6 @@ class Tag(pim.ContentItem):
     tag. This makes it easy to find all photos with a given tag or all tags belonging
     to a photo. Currently, there isn't any code that takes advantage of Tags.
     """
-    schema.kindInfo(displayName=u"Flickr Tag")
-
     itemsWithTag = schema.Sequence(FlickrPhotoMixin, inverse=FlickrPhotoMixin.tags)
 
     @classmethod
@@ -120,8 +116,6 @@ class PhotoCollection(pim.ListCollection):
     """
     A ListCollection of FlickrPhotos
     """
-    schema.kindInfo(displayName=u"Collection of Flickr Photos")
-
     userName = schema.One (schema.Text, initialValue=u'')
     tag = schema.One (Tag, initialValue=None)
     fillInBackground = schema.One (schema.Boolean, defaultValue=False)

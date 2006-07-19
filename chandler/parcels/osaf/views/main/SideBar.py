@@ -1124,7 +1124,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                     newKey = IntersectionCollection(itsView=self.itsView,
                                                     sources=[key, kindCollection])
                     UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
-                    displayName += u" filtered by " + filterKind.displayName
+                    displayName += u" filtered by " + filterKind.itsName
                     key = newKey
 
                 # Finally, create a UI wrapper collection to manage

@@ -54,14 +54,9 @@ class TimeTransparencyEnum(schema.Enumeration):
 
     """
     
-    schema.kindInfo(
-        displayName=u"Time Transparency"
-    )
     values="confirmed", "tentative", "fyi"
 
 class ModificationEnum(schema.Enumeration):
-    """Unused, should be removed."""
-    schema.kindInfo(displayName=u"Modification")
     values="this", "thisandfuture"
 
 def _sortEvents(eventlist, reverse=False):
@@ -300,10 +295,6 @@ class CalendarEventMixin(RemindableMixin):
     
     """
     
-    schema.kindInfo(
-        displayName=u"Calendar Event Mixin Kind"
-    )
-
     startTime = schema.One(
         schema.DateTimeTZ,
         displayName=_(u"Start Time"),
@@ -1627,7 +1618,6 @@ class CalendarEventMixin(RemindableMixin):
 
 class CalendarEvent(CalendarEventMixin, Note):
     """An unstamped event."""
-    schema.kindInfo(displayName=u"Calendar Event")
 
     def __init__(self, *args, **kw):
         kw.setdefault('participants',[])
@@ -1637,13 +1627,11 @@ class CalendarEvent(CalendarEventMixin, Note):
 class Calendar(ContentItem):
     """Unused, should be removed."""
     
-    schema.kindInfo(displayName=u"Calendar", displayAttribute="displayName")
 
 
 class Location(ContentItem):
     """Stub Kind for Location."""
     
-    schema.kindInfo(displayName=u"Location", displayAttribute="displayName")
 
     eventsAtLocation = schema.Sequence(
         CalendarEventMixin,
@@ -1687,5 +1675,3 @@ class Location(ContentItem):
 class RecurrencePattern(ContentItem):
     """Unused, should be removed."""
     
-    schema.kindInfo(displayName=u"Recurrence Pattern")
-

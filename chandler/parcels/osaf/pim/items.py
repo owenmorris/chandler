@@ -43,8 +43,6 @@ class ContentKind(Kind):
 
     __metaclass__ = schema.ItemClass
 
-    schema.kindInfo(displayName=u"Metakind 'Content Kind'")
-
     detailView = schema.One()   # Block
 
 
@@ -52,13 +50,9 @@ class ImportanceEnum(schema.Enumeration):
     """
     Importance Enum
     """
-    schema.kindInfo(
-        displayName=u"Importance Enum"
-    )
     values = "important", "normal", "fyi"
 
 class TriageEnum(schema.Enumeration):
-    schema.kindInfo(displayName=_(u"Triage Status Enum"))
     values = "now", "later", "done"
 
 class Calculated(property):
@@ -93,8 +87,6 @@ class ContentItem(schema.Item):
      - a Contact -- 'Terry Smith'
      - a Task -- 'mail 1040 to IRS'
     """
-    schema.kindInfo( displayName = u"Content Item" )
-
     displayName = schema.One(schema.Text, displayName=_(u"Title"), indexed=True)
     body = schema.One(
         schema.Text,
@@ -737,7 +729,6 @@ class _SuperKindSignature(list):
 class Tag(ContentItem):
 
     schema.kindInfo(
-        displayName = u"Tag",
         description =
             "A generic tag object that can be associated with any ContentItem"
     )
@@ -770,7 +761,6 @@ class Tag(ContentItem):
 class Project(ContentItem):
 
     schema.kindInfo(
-        displayName = u"Project",
         description =
             "Users can create projects to help organize their work. Users can "
             "take content items (like tasks and mail messages) and assign "
@@ -798,7 +788,6 @@ class Project(ContentItem):
 class Group(ContentItem):
 
     schema.kindInfo(
-        displayName = u'"Playlist"/"Item Collection"',
         description =
             "See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject\n\n"
             "Issues:\n"
@@ -810,7 +799,6 @@ class Group(ContentItem):
 class UserNotification(ContentItem):
 
     schema.kindInfo(
-        displayName = u'User Notification',
         description = "Notifications meant for the user to see"
     )
 
@@ -835,8 +823,6 @@ class UserNotification(ContentItem):
 
 
 class Principal(ContentItem):
-    schema.kindInfo(displayName=u'Access Control Principal')
-
     # @@@MOR These should be moved out so that authentication can be made
     # more general, but they're here for convenience for now.
     login = schema.One(schema.Text)

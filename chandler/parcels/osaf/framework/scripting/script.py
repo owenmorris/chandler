@@ -38,7 +38,7 @@ __all__ = [
 
 class Script(pim.ContentItem):
     """ Persistent Script Item, to be executed. """
-    schema.kindInfo(displayName=_(u"Script"), displayAttribute="displayName")
+    schema.kindInfo(displayAttribute="displayName")
     lastRan = schema.One(schema.DateTime, displayName = _(u"last ran"))
     fkey = schema.One(schema.Text, initialValue = u'')
     test = schema.One(schema.Boolean, initialValue = False)

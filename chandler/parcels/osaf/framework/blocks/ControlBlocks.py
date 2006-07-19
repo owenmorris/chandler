@@ -1136,9 +1136,6 @@ class PresentationStyle(schema.Item):
     their presentation or behavior.
     """
 
-    schema.kindInfo(
-        displayName = _(u"Presentation Style")
-    )
     sampleText = schema.One(
         schema.Text,
         doc = 'Localized in-place sample text (optional); if "", will use the attr\'s displayName.',
@@ -1175,7 +1172,6 @@ class AEBlock(BoxContainer):
        cause this to be reliable, but I think these problems can be fixed there.
     """
     schema.kindInfo(
-        displayName=u"Attribute Editor Block Kind",
         description="Block that instantiates an appropriate Attribute Editor."
     )
 

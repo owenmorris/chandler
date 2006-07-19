@@ -966,12 +966,10 @@ def kindInfo(**attrs):
 
     The attributes defined by the keyword arguments will be set on the
     enclosing class' schema Item.  For example, the following class'
-    repository Kind will have a ``displayName`` of ``"Example Item"``, and
-    a ``displayAttribute`` of ``"someAttr"``::
+    repository Kind will have a ``displayAttribute`` of ``"someAttr"``::
 
         class SomeItem(schema.Item):
             schema.kindInfo(
-                displayName = u"Example Item",
                 displayAttribute = "someAttr",
             )
 

@@ -30,9 +30,6 @@ class Note(items.ContentItem):
     ## Attribute declarations
     ##
 
-    # ensure that the displayName carries over
-    schema.kindInfo(displayName=_(u"Note"))
-
     # temporarily make this a real attribute instead of a redirection,
     # because we don't want to redirect this anywhere
     who = schema.One(

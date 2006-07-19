@@ -31,8 +31,7 @@ import os
 logger = logging.getLogger(__name__)
 
 class PhotoMixin(pim.ContentItem):
-    schema.kindInfo(displayName=u"Photo Mixin Kind",
-                    displayAttribute="displayName")
+    schema.kindInfo(displayAttribute="displayName")
     dateTaken = schema.One(schema.DateTime, displayName=_(u"taken"))
     file = schema.One(schema.Text)
     exif = schema.Mapping(schema.Text, initialValue={})
@@ -111,7 +110,7 @@ class PhotoMixin(pim.ContentItem):
 
 
 class Photo(PhotoMixin, pim.Note):
-    schema.kindInfo(displayName = u"Photo")
+    pass
 
 
 class NewImageEvent(NewItemEvent):
