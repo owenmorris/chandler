@@ -327,10 +327,11 @@ class DBRepositoryView(OnDemandRepositoryView):
         if not self._status & RepositoryView.REFRESHING:
             try:
                 self._status |= RepositoryView.REFRESHING
+                forwards = False
                 while True:
                     try:
                         txnStatus = self._startTransaction(False)
-                        self._refresh(mergeFn, version, notify)
+                        forwards = self._refresh(mergeFn, version, notify)
                     except DBLockDeadlockError:
                         self.logger.info('%s retrying refresh aborted by deadlock (thread: %s)', self, currentThread().getName())
                         self._abortTransaction(txnStatus)
@@ -346,6 +347,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                         return self.itsVersion
             finally:
                 self._status &= ~RepositoryView.REFRESHING
+                if self._status & RepositoryView.COMMITREQ:
+                    self._status &= ~RepositoryView.COMMITREQ
+                    if forwards:
+                        self.commit(mergeFn, notify)
 
         else:
             self.logger.warning('%s skipping recursive refresh', self)
@@ -366,12 +371,14 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self._refreshForwards(mergeFn, newVersion, False)
 
             self.prune(10000)
+            return True
 
         elif newVersion == self.itsVersion:
             if notify:
                 self.dispatchNotifications()
             else:
                 self.flushNotifications()
+            return True
 
         else:
             self.cancel()
@@ -380,6 +387,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             self._version = newVersion
             self._refreshItems(unloads.__iter__)
             self.flushNotifications()
+            return False
 
     def _refreshItems(self, items):
 
@@ -530,6 +538,8 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         if self._status & RepositoryView.COMMITTING:
             self.logger.warning('%s: skipping recursive commit', self)
+        elif self._status & RepositoryView.REFRESHING:
+            self._status |= RepositoryView.COMMITREQ
         elif len(self._log) + len(self._deletedRegistry) > 0:
             try:
                 release = False
