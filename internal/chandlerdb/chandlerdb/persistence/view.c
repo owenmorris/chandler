@@ -1004,6 +1004,7 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "RECORDING", RECORDING);
             PyDict_SetItemString_Int(dict, "REFRESHING", REFRESHING);
             PyDict_SetItemString_Int(dict, "VERIFY", VERIFY);
+            PyDict_SetItemString_Int(dict, "COMMITREQ", COMMITREQ);
 
             refresh_NAME = PyString_FromString("refresh");
             delete_NAME = PyString_FromString("delete");

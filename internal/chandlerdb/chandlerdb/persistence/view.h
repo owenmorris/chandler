@@ -35,22 +35,23 @@ typedef struct {
 } t_view;
 
 enum {
-    OPEN       = 0x0001,
-    REFCOUNTED = 0x0002,
-    LOADING    = 0x0004,
-    COMMITTING = 0x0008,
-    /* FDIRTY  = 0x0010, from CItem */
-    RECORDING  = 0x0020,
-    MONITORING = 0x0040,
-    /* STALE   = 0x0080, from CItem */
-    REFRESHING = 0x0100,
-    /* CDIRTY  = 0x0200, from CItem */
-    DEFERDEL   = 0x0400,
-    BGNDINDEX  = 0x0800,
-    VERIFY     = 0x1000,
-    DEBUG      = 0x2000,
-    RAMDB      = 0x4000,
-    CLOSED     = 0x8000,
+    OPEN       = 0x00000001,
+    REFCOUNTED = 0x00000002,
+    LOADING    = 0x00000004,
+    COMMITTING = 0x00000008,
+    /* FDIRTY  = 0x00000010, from CItem */
+    RECORDING  = 0x00000020,
+    MONITORING = 0x00000040,
+    /* STALE   = 0x00000080, from CItem */
+    REFRESHING = 0x00000100,
+    /* CDIRTY  = 0x00000200, from CItem */
+    DEFERDEL   = 0x00000400,
+    BGNDINDEX  = 0x00000800,
+    VERIFY     = 0x00001000,
+    DEBUG      = 0x00002000,
+    RAMDB      = 0x00004000,
+    CLOSED     = 0x00008000,
+    COMMITREQ  = 0x00010000,
 
     /*
      * merge flags from CItem
