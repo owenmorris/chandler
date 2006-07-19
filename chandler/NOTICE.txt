@@ -118,3 +118,690 @@ tools/createPot.py
     #
     # Minimally patched to make it even more xgettext compatible
     # by Peter Funk <pf@artcom-gmbh.de>
+
+
+external/PyICU
+
+    /* ====================================================================
+     * Copyright (c) 2005 Open Source Applications Foundation.
+     *
+     * Permission is hereby granted, free of charge, to any person obtaining a
+     * copy of this software and associated documentation files (the "Software"),
+     * to deal in the Software without restriction, including without limitation
+     * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+     * and/or sell copies of the Software, and to permit persons to whom the
+     * Software is furnished to do so, subject to the following conditions: 
+     *
+     * The above copyright notice and this permission notice shall be included
+     * in all copies or substantial portions of the Software. 
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+     * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+     * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+     * DEALINGS IN THE SOFTWARE.
+     * ====================================================================
+     */
+
+
+external/PyLucene
+
+    /* ====================================================================
+     * Copyright (c) 2004 - 2005 Open Source Applications Foundation.
+     *
+     * Permission is hereby granted, free of charge, to any person obtaining a
+     * copy of this software and associated documentation files (the "Software"),
+     * to deal in the Software without restriction, including without limitation
+     * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+     * and/or sell copies of the Software, and to permit persons to whom the
+     * Software is furnished to do so, subject to the following conditions: 
+     *
+     * The above copyright notice and this permission notice shall be included
+     * in all copies or substantial portions of the Software. 
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+     * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+     * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+     * DEALINGS IN THE SOFTWARE.
+     * ====================================================================
+     */
+
+
+external/dateutil
+
+    B. TERMS AND CONDITIONS FOR ACCESSING OR OTHERWISE USING PYTHON
+    ===============================================================
+
+    PSF LICENSE AGREEMENT FOR PYTHON 2.3
+    ------------------------------------
+
+    1. This LICENSE AGREEMENT is between the Python Software Foundation
+    ("PSF"), and the Individual or Organization ("Licensee") accessing and
+    otherwise using Python 2.3 software in source or binary form and its
+    associated documentation.
+
+    2. Subject to the terms and conditions of this License Agreement, PSF
+    hereby grants Licensee a nonexclusive, royalty-free, world-wide
+    license to reproduce, analyze, test, perform and/or display publicly,
+    prepare derivative works, distribute, and otherwise use Python 2.3
+    alone or in any derivative version, provided, however, that PSF's
+    License Agreement and PSF's notice of copyright, i.e., "Copyright (c)
+    2001, 2002, 2003 Python Software Foundation; All Rights Reserved" are
+    retained in Python 2.3 alone or in any derivative version prepared by
+    Licensee.
+
+    3. In the event Licensee prepares a derivative work that is based on
+    or incorporates Python 2.3 or any part thereof, and wants to make
+    the derivative work available to others as provided herein, then
+    Licensee hereby agrees to include in any such work a brief summary of
+    the changes made to Python 2.3.
+
+    4. PSF is making Python 2.3 available to Licensee on an "AS IS"
+    basis.  PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR
+    IMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND
+    DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS
+    FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF PYTHON 2.3 WILL NOT
+    INFRINGE ANY THIRD PARTY RIGHTS.
+
+    5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON
+    2.3 FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS
+    A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON 2.3,
+    OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+
+    6. This License Agreement will automatically terminate upon a material
+    breach of its terms and conditions.
+
+    7. Nothing in this License Agreement shall be deemed to create any
+    relationship of agency, partnership, or joint venture between PSF and
+    Licensee.  This License Agreement does not grant permission to use PSF
+    trademarks or trade name in a trademark sense to endorse or promote
+    products or services of Licensee, or any third party.
+
+    8. By copying, installing or otherwise using Python 2.3, Licensee
+    agrees to be bound by the terms and conditions of this License
+    Agreement.
+
+
+external/db
+
+    The following is the license that applies to this copy of the Berkeley DB
+    software.  For a license to use the Berkeley DB software under conditions
+    other than those described here, or to purchase support for this software,
+    please contact Sleepycat Software by email at info@sleepycat.com, or on
+    the Web at http://www.sleepycat.com.
+
+    =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    /*
+     * Copyright (c) 1990-2005
+     *      Sleepycat Software.  All rights reserved.
+     *
+     * Redistribution and use in source and binary forms, with or without
+     * modification, are permitted provided that the following conditions
+     * are met:
+     * 1. Redistributions of source code must retain the above copyright
+     *    notice, this list of conditions and the following disclaimer.
+     * 2. Redistributions in binary form must reproduce the above copyright
+     *    notice, this list of conditions and the following disclaimer in the
+     *    documentation and/or other materials provided with the distribution.
+     * 3. Redistributions in any form must be accompanied by information on
+     *    how to obtain complete source code for the DB software and any
+     *    accompanying software that uses the DB software.  The source code
+     *    must either be included in the distribution or be available for no
+     *    more than the cost of distribution plus a nominal fee, and must be
+     *    freely redistributable under reasonable conditions.  For an
+     *    executable file, complete source code means the source code for all
+     *    modules it contains.  It does not include source code for modules or
+     *    files that typically accompany the major components of the operating
+     *    system on which the executable file runs.
+     *
+     * THIS SOFTWARE IS PROVIDED BY SLEEPYCAT SOFTWARE ``AS IS'' AND ANY EXPRESS
+     * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR
+     * NON-INFRINGEMENT, ARE DISCLAIMED.  IN NO EVENT SHALL SLEEPYCAT SOFTWARE
+     * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+     * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+     * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+     * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+     * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+     * THE POSSIBILITY OF SUCH DAMAGE.
+     */
+
+
+external/elementtree
+
+    The ElementTree Library is
+
+    Copyright (c) 1999-2005 by Secret Labs AB
+    Copyright (c) 1999-2005 by Fredrik Lundh
+
+    By obtaining, using, and/or copying this software and/or its
+    associated documentation, you agree that you have read, understood,
+    and will comply with the following terms and conditions:
+
+    Permission to use, copy, modify, and distribute this software and its
+    associated documentation for any purpose and without fee is hereby
+    granted, provided that the above copyright notice appears in all
+    copies, and that both that copyright notice and this permission notice
+    appear in supporting documentation, and that the name of Secret Labs
+    AB or the author not be used in advertising or publicity pertaining to
+    distribution of the software without specific, written prior
+    permission.
+
+    SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO
+    THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+    FITNESS.  IN NO EVENT SHALL SECRET LABS AB OR THE AUTHOR BE LIABLE FOR
+    ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+    OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+
+external/epydoc
+
+    Copyright (C) Edward Loper
+
+    epydoc is released under the following license:
+
+        Permission is hereby granted, free of charge, to any person
+        obtaining a copy of this software and any associated documentation
+        files (the "Software"), to deal in the Software without
+        restriction, including without limitation the rights to use, copy,
+        modify, merge, publish, distribute, sublicense, and/or sell copies
+        of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be
+        included in all copies or substantial portions of the Software.
+
+        The software is provided "as is", without warranty of any
+        kind, express or implied, including but not limited to the
+        warranties of merchantability, fitness for a particular purpose
+        and noninfringement. In no event shall the authors or copyright
+        holders be liable for any claim, damages or other liability,
+        whether in an action of contract, tort or otherwise, arising from,
+        out of or in connection with the software or the use or other
+        dealings in the software.
+
+
+external/icu
+
+    COPYRIGHT AND PERMISSION NOTICE
+
+    Copyright (c) 1995-2005 International Business Machines Corporation and others
+    All rights reserved.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, and/or sell copies of the Software, and to permit persons
+    to whom the Software is furnished to do so, provided that the above
+    copyright notice(s) and this permission notice appear in all copies of
+    the Software and that both the above copyright notice(s) and this
+    permission notice appear in supporting documentation.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+    OF THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+    HOLDERS INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL
+    INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING
+    FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+    NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+    WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+    Except as contained in this notice, the name of a copyright holder
+    shall not be used in advertising or otherwise to promote the sale, use
+    or other dealings in this Software without prior written authorization
+    of the copyright holder.
+
+    --------------------------------------------------------------------------------
+    All trademarks and registered trademarks mentioned herein are the property of their respective owners.
+
+
+external/m2crypto
+
+    Copyright (c) 1999-2004 Ng Pheng Siong. All rights reserved.
+
+    Portions copyright (c) 2004-2006 Open Source Applications Foundation. 
+    All rights reserved.
+
+    Portions copyright (c) 2005-2006 Vrije Universiteit Amsterdam. 
+    All rights reserved.
+
+    Permission to use, copy, modify, and distribute this software and its
+    documentation for any purpose and without fee is hereby granted,
+    provided that the above copyright notice appear in all copies and that
+    both that copyright notice and this permission notice appear in
+    supporting documentation.
+
+    THE AUTHOR PROVIDES THIS SOFTWARE ``AS IS'' AND ANY EXPRESSED OR 
+    IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
+    OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  
+    IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
+    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+    NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+external/openssl
+
+    /* ====================================================================
+     * Copyright (c) 1998-2005 The OpenSSL Project.  All rights reserved.
+     *
+     * Redistribution and use in source and binary forms, with or without
+     * modification, are permitted provided that the following conditions
+     * are met:
+     *
+     * 1. Redistributions of source code must retain the above copyright
+     *    notice, this list of conditions and the following disclaimer. 
+     *
+     * 2. Redistributions in binary form must reproduce the above copyright
+     *    notice, this list of conditions and the following disclaimer in
+     *    the documentation and/or other materials provided with the
+     *    distribution.
+     *
+     * 3. All advertising materials mentioning features or use of this
+     *    software must display the following acknowledgment:
+     *    "This product includes software developed by the OpenSSL Project
+     *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
+     *
+     * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
+     *    endorse or promote products derived from this software without
+     *    prior written permission. For written permission, please contact
+     *    openssl-core@openssl.org.
+     *
+     * 5. Products derived from this software may not be called "OpenSSL"
+     *    nor may "OpenSSL" appear in their names without prior written
+     *    permission of the OpenSSL Project.
+     *
+     * 6. Redistributions of any form whatsoever must retain the following
+     *    acknowledgment:
+     *    "This product includes software developed by the OpenSSL Project
+     *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
+     *
+     * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
+     * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+     * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
+     * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+     * OF THE POSSIBILITY OF SUCH DAMAGE.
+     * ====================================================================
+     *
+     * This product includes cryptographic software written by Eric Young
+     * (eay@cryptsoft.com).  This product includes software written by Tim
+     * Hudson (tjh@cryptsoft.com).
+     *
+     */
+
+
+external/pychecker
+
+    Copyright (c) 2000-2001, MetaSlash Inc.
+    All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are
+    met:
+
+     - Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+
+     - Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the
+       distribution.
+
+     - Neither name of MetaSlash Inc. nor the names of contributors
+       may be used to endorse or promote products derived
+       from this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR
+    CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+    EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+    PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+    PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+external/pylint
+
+    # Copyright (c) 2003-2006 Sylvain Thenault (thenault@gmail.com).
+    # Copyright (c) 2003-2006 LOGILAB S.A. (Paris, FRANCE).
+    # http://www.logilab.fr/ -- mailto:contact@logilab.fr
+    #
+    # This program is free software; you can redistribute it and/or modify it under
+    # the terms of the GNU General Public License as published by the Free Software
+    # Foundation; either version 2 of the License, or (at your option) any later
+    # version.
+    #
+    # This program is distributed in the hope that it will be useful, but WITHOUT
+    # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details
+    #
+    # You should have received a copy of the GNU General Public License along with
+    # this program; if not, write to the Free Software Foundation, Inc.,
+    # 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+
+external/pylint/astng
+
+    # This program is free software; you can redistribute it and/or modify it under
+    # the terms of the GNU General Public License as published by the Free Software
+    # Foundation; either version 2 of the License, or (at your option) any later
+    # version.
+    #
+    # This program is distributed in the hope that it will be useful, but WITHOUT
+    # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    #
+    # You should have received a copy of the GNU General Public License along with
+    # this program; if not, write to the Free Software Foundation, Inc.,
+    # 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+
+external/pylint/common
+
+    # This program is free software; you can redistribute it and/or modify it under
+    # the terms of the GNU General Public License as published by the Free Software
+    # Foundation; either version 2 of the License, or (at your option) any later
+    # version.
+    #
+    # This program is distributed in the hope that it will be useful, but WITHOUT
+    # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    #
+    # You should have received a copy of the GNU General Public License along with
+    # this program; if not, write to the Free Software Foundation, Inc.,
+    # 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+    """ Copyright (c) 2000-2002 LOGILAB S.A. (Paris, FRANCE).
+     http://www.logilab.fr/ -- mailto:contact@logilab.fr
+ 
+    Logilab common libraries
+    """
+
+
+external/python
+
+    Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006 Python Software Foundation.
+    All rights reserved.
+
+    Copyright (c) 2000 BeOpen.com.
+    All rights reserved.
+
+    Copyright (c) 1995-2001 Corporation for National Research Initiatives.
+    All rights reserved.
+
+    Copyright (c) 1991-1995 Stichting Mathematisch Centrum.
+    All rights reserved.
+
+
+    License information
+    -------------------
+
+    See the file "LICENSE" for information on the history of this
+    software, terms & conditions for usage, and a DISCLAIMER OF ALL
+    WARRANTIES.
+
+    This Python distribution contains no GNU General Public Licensed
+    (GPLed) code so it may be used in proprietary projects just like prior
+    Python distributions.  There are interfaces to some GNU code but these
+    are entirely optional.
+
+    All trademarks referenced herein are property of their respective
+    holders.
+
+
+external/readline
+
+    /* Copyright (C) 1987-2005 Free Software Foundation, Inc.
+
+       This file is part of the GNU Readline Library, a library for
+       reading lines of text with interactive input and history editing.
+
+       The GNU Readline Library is free software; you can redistribute it
+       and/or modify it under the terms of the GNU General Public License
+       as published by the Free Software Foundation; either version 2, or
+       (at your option) any later version.
+
+       The GNU Readline Library is distributed in the hope that it will be
+       useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+       of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+       GNU General Public License for more details.
+
+       The GNU General Public License is often shipped with GNU software, and
+       is generally kept in a file called COPYING or LICENSE.  If you do not
+       have a copy of the license, write to the Free Software Foundation,
+       59 Temple Place, Suite 330, Boston, MA 02111 USA. */
+
+
+external/twisted
+
+    Copyright (c) 2001-2005
+    Allen Short
+    Andrew Bennetts
+    Apple Computer, Inc.
+    Benjamin Bruheim
+    Bob Ippolito
+    Christopher Armstrong
+    Donovan Preston
+    Eric Mangold
+    Itamar Shtull-Trauring
+    James Knight
+    Jason A. Mobarak
+    Jonathan Lange
+    Jonathan D. Simms
+    Jp Calderone
+    J<FC>rgen Hermann
+    Kevin Turner
+    Mary Gardiner
+    Matthew Lefkowitz
+    Massachusetts Institute of Technology
+    Moshe Zadka
+    Paul Swartz
+    Pavel Pergamenshchik
+    Sean Riley
+    Travis B. Hartwell
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+    Exception: 
+
+    Some files in twisted/python/pymodules/ are copyright Python Software
+    Foundation and covered by the License contained in
+    twisted/python/pymodules/LICENSE-python.txt.
+
+
+external/vobject
+
+    /* ====================================================================
+     * The Apache Software License, Version 1.1
+     *
+     * Copyright (c) 2000 The Apache Software Foundation.  All rights
+     * reserved.
+     *
+     * Redistribution and use in source and binary forms, with or without
+     * modification, are permitted provided that the following conditions
+     * are met:
+     *
+     * 1. Redistributions of source code must retain the above copyright
+     *    notice, this list of conditions and the following disclaimer.
+     *
+     * 2. Redistributions in binary form must reproduce the above copyright
+     *    notice, this list of conditions and the following disclaimer in
+     *    the documentation and/or other materials provided with the
+     *    distribution.
+     *
+     * 3. The end-user documentation included with the redistribution,
+     *    if any, must include the following acknowledgment:
+     *       "This product includes software developed by the
+     *        Apache Software Foundation (http://www.apache.org/)."
+     *    Alternately, this acknowledgment may appear in the software itself,
+     *    if and wherever such third-party acknowledgments normally appear.
+     *
+     * 4. The names "Apache" and "Apache Software Foundation" must
+     *    not be used to endorse or promote products derived from this
+     *    software without prior written permission. For written
+     *    permission, please contact apache@apache.org.
+     *
+     * 5. Products derived from this software may not be called "Apache",
+     *    nor may "Apache" appear in their name, without prior written
+     *    permission of the Apache Software Foundation.
+     *
+     * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
+     * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+     * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
+     * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+     * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+     * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+     * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+     * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+     * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     * SUCH DAMAGE.
+     * ====================================================================
+     *
+     * This software consists of voluntary contributions made by many
+     * individuals on behalf of the Apache Software Foundation.  For more
+     * information on the Apache Software Foundation, please see
+     * <http://www.apache.org/>.
+     *
+     * Portions of this software are based upon public domain software
+     * originally written at the National Center for Supercomputing Applications,
+     * University of Illinois, Urbana-Champaign.
+     */
+
+
+external/wx
+
+                  wxWindows Library Licence, Version 3.1
+                  ======================================
+
+    Copyright (c) 1998-2005 Julian Smart, Robert Roebling et al
+
+    Everyone is permitted to copy and distribute verbatim copies
+    of this licence document, but changing it is not allowed.
+
+                         WXWINDOWS LIBRARY LICENCE
+       TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+    This library is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Library General Public Licence as published by
+    the Free Software Foundation; either version 2 of the Licence, or (at
+    your option) any later version.
+
+    This library is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Library
+    General Public Licence for more details.
+
+    You should have received a copy of the GNU Library General Public Licence
+    along with this software, usually in a file named COPYING.LIB.  If not,
+    write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+    Boston, MA 02111-1307 USA.
+
+    EXCEPTION NOTICE
+
+    1. As a special exception, the copyright holders of this library give
+    permission for additional uses of the text contained in this release of
+    the library as licenced under the wxWindows Library Licence, applying
+    either version 3.1 of the Licence, or (at your option) any later version of
+    the Licence as published by the copyright holders of version
+    3.1 of the Licence document.
+
+    2. The exception is that you may use, copy, link, modify and distribute
+    under your own terms, binary object code versions of works based
+    on the Library.
+
+    3. If you copy code from files distributed under the terms of the GNU
+    General Public Licence or the GNU Library General Public Licence into a
+    copy of this library, as this licence permits, the exception does not
+    apply to the code that you add in this way.  To avoid misleading anyone as
+    to the status of such modified files, you must delete this exception
+    notice from such code and/or adjust the licensing conditions notice
+    accordingly.
+
+    4. If you write modifications of your own for this library, it is your
+    choice whether to permit this exception to apply to your modifications. 
+    If you do not wish that, you must delete the exception notice from such
+    code and/or adjust the licensing conditions notice accordingly.
+
+
+external/zanshin
+
+    Copyright (c) 2005 Open Source Applications Foundation.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions: 
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software. 
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+
+external/zope
+
+    ##############################################################################
+    #
+    # Copyright (c) 2001, 2002 Zope Corporation and Contributors.
+    # All Rights Reserved.
+    #
+    # This software is subject to the provisions of the Zope Public License,
+    # Version 2.1 (ZPL).  A copy of the ZPL should accompany this distribution.
+    # THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
+    # WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+    # WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
+    # FOR A PARTICULAR PURPOSE.
+    #
+    ##############################################################################
+
+
