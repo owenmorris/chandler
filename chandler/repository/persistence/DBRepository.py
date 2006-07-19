@@ -40,7 +40,7 @@ from repository.persistence.DBContainer import \
 from repository.persistence.FileContainer import \
     FileContainer, BlockContainer, IndexContainer, LOBContainer
 from repository.persistence.DBItemIO import \
-    DBItemReader, DBItemPurger, DBValueReader, DBItemWriter
+    DBItemReader, DBItemPurger, DBValueReader, DBItemWriter, DBItemUndo
 
 DB_VERSION = DB_VERSION_MAJOR << 16 | DB_VERSION_MINOR << 8 | DB_VERSION_PATCH
 
@@ -405,6 +405,49 @@ class DBRepository(OnDemandRepository):
 
         return (itemCount, valueCount, refCount, lobCount, blockCount,
                 nameCount, indexCount, documentCount)
+
+    def undo(self, toVersion=None):
+
+        store = self.store
+
+        currentVersion = store.getVersion()
+        if toVersion is None:
+            toVersion = currentVersion - 1
+
+        for version in xrange(currentVersion, toVersion, -1):
+            while True:
+                try:
+                    txnStatus = store.startTransaction(None, True)
+                    if txnStatus == 0:
+                        raise AssertionError, 'no transaction started'
+                    txn = store.txn
+
+                    indexReader = store._index.getIndexReader()
+                    indexSearcher = store._index.getIndexSearcher()
+
+                    for args in store._items.iterHistory(None,
+                                                         version - 1, version):
+                        DBItemUndo(self, *args).undoItem(txn, indexReader,
+                                                         indexSearcher)
+                    indexReader.close()
+                    indexSearcher.close()
+
+                    indexVersion = store.getIndexVersion()
+                    if indexVersion == version:
+                        store.setIndexVersion(indexVersion - 1)
+                    store._values.setVersion(version - 1)
+
+                    store.commitTransaction(None, txnStatus)
+
+                except DBLockDeadlockError:
+                    self.logger.info('retrying undo aborted by deadlock')
+                    store.abortTransaction(None, txnStatus)
+                    continue
+                except:
+                    store.abortTransaction(None, txnStatus)
+                    raise
+                else:
+                    break
 
     def open(self, **kwds):
 

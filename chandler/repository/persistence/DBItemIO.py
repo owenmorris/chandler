@@ -1057,6 +1057,18 @@ class DBItemPurger(ItemPurger):
             elif flags & DBItemWriter.REF:
                 if flags & DBItemWriter.LIST:
                     self.keep.add(UUID(data[offset:offset+16]))
+                elif flags & DBItemWriter.DICT:
+                    if withSchema:
+                        offset = self.skipSymbol(offset, data)
+                    offset, size = self.readShort(offset, data)
+                    for i in xrange(size):
+                        t = data[offset]
+                        if t == '\0':
+                            offset += 17
+                        else:
+                            offset = self.skipSymbol(offset + 1, data)
+                        self.keep.add(UUID(data[offset:offset+16]))
+                        offset += 16
 
             self.keep.update(self.iterIndexes(flags, data))
 
@@ -1100,6 +1112,9 @@ class DBItemPurger(ItemPurger):
         offset, len, = offset+2, unpack('>H', data[offset:offset+2])[0]
         return offset + len
 
+    def readShort(self, offset, data):
+        return offset+2, unpack('>h', data[offset:offset+2])[0]
+
     def purgeItem(self, txn, values, version, status):
 
         withSchema = (status & CItem.CORESCHEMA) != 0
@@ -1131,19 +1146,157 @@ class DBItemPurger(ItemPurger):
                             self.indexCount += store._indexes.purgeIndex(txn, uuid, uuid in keep)
                             done.add(uuid)
 
-                elif flags & DBItemWriter.REF and flags & DBItemWriter.LIST:
+                elif flags & DBItemWriter.REF:
                     uuid = UUID(data[offset:offset+16])
-                    if uuid not in done:
-                        count = store._refs.purgeRefs(txn, uuid, uuid in keep)
-                        self.refCount += count[0]
-                        self.nameCount += count[1]
-                        done.add(uuid)
-                    for uuid in self.iterIndexes(flags, data):
+                    if flags & DBItemWriter.LIST:
                         if uuid not in done:
-                            self.indexCount += store._indexes.purgeIndex(txn, uuid, uuid in keep)
+                            count = store._refs.purgeRefs(txn, uuid,
+                                                          uuid in keep)
+                            self.refCount += count[0]
+                            self.nameCount += count[1]
                             done.add(uuid)
+                    elif flags & DBItemWriter.DICT:
+                        if withSchema:
+                            offset = self.skipSymbol(offset, data)
+                        offset, size = self.readShort(offset, data)
+                        for i in xrange(size):
+                            t = data[offset]
+                            if t == '\0':
+                                offset += 17
+                            else:
+                                offset = self.skipSymbol(offset + 1, data)
+                            uuid = UUID(data[offset:offset+16])
+                            offset += 16
+                            if uuid not in done:
+                                count = store._refs.purgeRefs(txn, uuid,
+                                                              uuid in keep)
+                                self.refCount += count[0]
+                                self.nameCount += count[1]
+                                done.add(uuid)
+                    if flags & (DBItemWriter.LIST | DBItemWriter.SET):
+                        for uuid in self.iterIndexes(flags, data):
+                            if uuid not in done:
+                                self.indexCount += store._indexes.purgeIndex(txn, uuid, uuid in keep)
+                                done.add(uuid)
 
                 self.valueCount += store._values.purgeValue(txn, uValue)
                 done.add(uValue)
 
         self.itemCount += store._items.purgeItem(txn, self.uItem, version)
+
+
+class DBItemUndo(object):
+
+    def __init__(self, repository, uItem, version,
+                 uKind, status, uParent, prevKind, dirties):
+
+        self.repository = repository
+        self.uItem = uItem
+        self.version = version
+        self.uKind = uKind
+        self.status = status
+        self.uParent = uParent
+
+        if status & CItem.NEW:
+            self.hashes = None
+        else:
+            self.hashes = list(dirties)
+
+    def skipSymbol(self, offset, data):
+        offset, len, = offset+2, unpack('>H', data[offset:offset+2])[0]
+        return offset + len
+
+    def readShort(self, offset, data):
+        return offset+2, unpack('>h', data[offset:offset+2])[0]
+
+    def iterLobs(self, flags, data):
+
+        if flags & DBItemWriter.VALUE:
+            lobCount, indexCount = unpack('>HH', data[-4:])
+
+            lobStart = -(lobCount * 16 + indexCount * 16) - 4
+            for i in xrange(lobCount):
+                uuid = UUID(data[lobStart:lobStart+16])
+                lobStart += 16
+                yield uuid
+
+    def iterIndexes(self, flags, data):
+
+        if flags & DBItemWriter.VALUE:
+            indexCount, = unpack('>H', data[-2:])
+            indexStart = -indexCount * 16 - 4
+            for i in xrange(indexCount):
+                yield UUID(data[indexStart:indexStart+16])
+                indexStart += 16
+
+        elif flags & DBItemWriter.REF:
+            if flags & (DBItemWriter.LIST | DBItemWriter.SET):
+                indexCount, = unpack('>H', data[-2:])
+                indexStart = -indexCount * 16 - 2
+                for i in xrange(indexCount):
+                    yield UUID(data[indexStart:indexStart+16])
+                    indexStart += 16
+
+    def undoItem(self, txn, indexReader, indexSearcher):
+        
+        store = self.repository.store
+        items = store._items
+        values = store._values
+        refs = store._refs
+        lobs = store._lobs
+        indexes = store._indexes
+
+        withSchema = (self.status & CItem.CORESCHEMA) != 0
+        isNew = (self.status & CItem.NEW) != 0
+        uItem = self.uItem
+        version = self.version
+
+        status, uValues = items.findValues(None, version, uItem,
+                                           self.hashes, True)
+
+        for uValue in uValues:
+            if uValue is not None:
+                uAttr, vFlags, data = values.c.loadValue(txn, uValue)
+                        
+                if withSchema:
+                    offset = self.skipSymbol(0, data)
+                else:
+                    offset = 0
+
+                flags = ord(data[offset])
+                offset += 1
+
+                if flags & DBItemWriter.VALUE:
+                    if isNew:
+                        for uLob in self.iterLobs(flags, data):
+                            lobs.purgeLob(txn, uLob)
+                    for uIndex in self.iterIndexes(flags, data):
+                        indexes.undoIndex(txn, uIndex, version)
+            
+                elif flags & DBItemWriter.REF:
+                    if flags & DBItemWriter.LIST:
+                        uRefs = UUID(data[offset:offset+16])
+                        refs.undoRefs(txn, uRefs, version)
+                    elif flags & DBItemWriter.DICT:
+                        if withSchema:
+                            offset = self.skipSymbol(offset, data)
+                        offset, count = self.readShort(offset, data)
+                        for i in xrange(count):
+                            t = data[offset]
+                            if t == '\0':
+                                offset += 17
+                            else:
+                                offset = self.skipSymbol(offset + 1, data)
+                            uRefs = UUID(data[offset:offset+16])
+                            offset += 16
+                            refs.undoRefs(txn, uRefs, version)
+                    if flags & (DBItemWriter.LIST | DBItemWriter.SET):
+                        for uIndex in self.iterIndexes(flags, data):
+                            indexes.undoIndex(txn, uIndex, version)
+    
+                values.purgeValue(txn, uValue)
+        
+        refs.undoRefs(txn, uItem, version) # children
+        store._index.undoDocuments(indexSearcher, indexReader, uItem, version)
+
+        items.purgeItem(txn, uItem, version)

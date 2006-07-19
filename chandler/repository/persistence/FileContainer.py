@@ -579,3 +579,11 @@ class IndexContainer(FileContainer):
             count = indexReader.deleteDocuments(term)
 
         return count
+
+    def undoDocuments(self, indexSearcher, indexReader, uItem, version):
+
+        term = Term("item", uItem.str64())
+
+        for i, doc in indexSearcher.search(TermQuery(term)):
+            if long(doc['version']) == version:
+                indexReader.deleteDocument(hits.id(i))

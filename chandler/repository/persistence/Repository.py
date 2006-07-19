@@ -215,6 +215,10 @@ class Repository(CRepository):
         
         return self.view.check()
 
+    def isNew(self):
+
+        return self.store.getVersion() == 0
+
     def setDebug(self, debug):
 
         if debug:

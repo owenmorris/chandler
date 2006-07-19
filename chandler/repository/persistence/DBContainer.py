@@ -520,6 +520,26 @@ class RefContainer(DBContainer):
 
         return count, self.store._names.purgeNames(txn, uCol, keepOne)
 
+    def undoRefs(self, txn, uCol, version):
+
+        cursor = None
+
+        try:
+            cursor = self.openCursor()
+            key = uCol._uuid
+            value = cursor.set_range(key, self._flags, None)
+
+            while value is not None and value[0].startswith(key):
+                keyVer = ~unpack('>q', value[0][32:40])[0]
+                if keyVer == version:
+                    cursor.delete(self._flags)
+                value = cursor.next(self._flags, None)
+
+        finally:
+            self.closeCursor(cursor)
+
+        self.store._names.undoNames(txn, uCol, version)
+
 
 class NamesContainer(DBContainer):
 
@@ -567,6 +587,25 @@ class NamesContainer(DBContainer):
             self.closeCursor(cursor)
 
         return count
+
+    def undoNames(self, txn, uuid, version):
+
+        cursor = None
+
+        try:
+            cursor = self.openCursor()
+            key = uuid._uuid
+            prevHash = None
+            value = cursor.set_range(key, self._flags, None)
+
+            while value is not None and value[0].startswith(key):
+                nameVer = ~unpack('>q', value[0][-8:])[0]
+                if nameVer == version:
+                    cursor.delete(self._flags)
+                value = cursor.next(self._flags, None)
+
+        finally:
+            self.closeCursor(cursor)
 
     def readName(self, view, version, key, name):
 
@@ -889,6 +928,25 @@ class IndexesContainer(DBContainer):
             self.closeCursor(cursor)
 
         return count
+
+    def undoIndex(self, txn, uIndex, version):
+
+        cursor = None
+
+        try:
+            cursor = self.openCursor()
+            key = uIndex._uuid
+            value = cursor.set_range(key, self._flags, None)
+
+            while value is not None and value[0].startswith(key):
+                keyVer = ~unpack('>q', value[0][32:40])[0]
+                if keyVer == version:
+                    cursor.delete(self._flags)
+
+                value = cursor.next(self._flags, None)
+
+        finally:
+            self.closeCursor(cursor)
 
     def nodeIterator(self, view, keyBuffer, version):
         
@@ -1281,6 +1339,8 @@ class ItemContainer(DBContainer):
     # return list may contain None (for deleted or not found values)
     def findValues(self, view, version, uuid, hashes=None, exact=False):
 
+        assert hashes is None or type(hashes) is list
+
         if exact:
             item = self.get(pack('>16sq', uuid._uuid, ~version))
         else:
@@ -1639,6 +1699,11 @@ class ValueContainer(DBContainer):
             return 0L
         else:
             return unpack('>q', value)[0]
+
+    def setVersion(self, version):
+
+        self._version.put(ValueContainer.VERSION_KEY, pack('>q', version),
+                          self.store.txn)
 
     def nextVersion(self):
 

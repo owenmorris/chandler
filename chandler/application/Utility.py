@@ -201,6 +201,7 @@ def initOptions(**kwds):
         'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
         'indexer':    ('-i', '--indexer',    's', 'background', None, 'Run Lucene indexing in the background or foreground'),
         'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
+        'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions'),
     }
 
 
@@ -406,6 +407,11 @@ def initRepository(directory, options, allowSchemaView=False):
         else:
             del kwds
             break
+
+    if options.undo and not repository.isNew():
+        toVersion = long(options.undo)
+        if toVersion < repository.store.getVersion():
+            repository.undo(toVersion)
 
     view = repository.view
 
