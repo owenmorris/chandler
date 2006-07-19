@@ -29,6 +29,7 @@ class Dummy(schema.Item):
 class Other(schema.Item):
     thing = schema.One(Dummy, inverse="other")
 
+
 TEST_PATH = "//this/is/a/test"
 
 class Mixed(Dummy, Types.Type):
@@ -41,6 +42,15 @@ class CoreAnnotation(schema.Annotation):
     schema.kindInfo(annotates=schema.Kind)
     extraInfo = schema.One(schema.Text)
     otherItem = schema.One(schema.Item, inverse=schema.Sequence())
+
+class ForwardAnnotation(schema.Annotation):
+    schema.kindInfo(annotates=Dummy)
+    fwd_attr1 = schema.One("ForwardAnnotation")
+    fwd_attr2 = schema.One(inverse="TestSchemaAPI.OtherForward.foo")
+
+class OtherForward(schema.Annotation):
+    schema.kindInfo(annotates=Dummy)
+    foo = schema.One()
 
 class SchemaTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""
@@ -104,7 +114,7 @@ class SchemaTests(SchemaTestCase):
         schema.synchronize(self.rv, this_module)
         path = "//parcels/%s/" % this_module.replace('.','/')
 
-        # Everything should exist now, including the default parent objects        
+        # Everything should exist now, including the default parent objects
         self.assertNotEqual( self.rv.findPath(TEST_PATH), None)
         self.assertNotEqual( self.rv.findPath("//userdata"), None)
         self.assertNotEqual( self.rv.findPath(path+'Dummy'), None)
@@ -120,6 +130,9 @@ class SchemaTests(SchemaTestCase):
             list(getattr(parcel, __name__+".CoreAnnotation.otherItem.inverse")),
             [kind_kind]
         )
+
+    def testAnnotateForwardRefs(self):
+        schema.itemFor(ForwardAnnotation, self.rv)
 
 
 def test_schema_api():

@@ -343,7 +343,8 @@ class Descriptor(ActiveDescriptor,CDescriptor):
                         continue    # don't set type to None
                     else:
                         val = itemFor(val, view)  # works for Kind and TypeReference
-
+                        if isinstance(val, AnnotationItem):
+                            val = itemFor(val.annotates, view)
                 setattr(attr,aspect,val)
 
         if not hasattr(self,'otherName') and self.inverse is not None:
@@ -1359,7 +1360,7 @@ def itemFor(obj, view):
                         if cb is not None:
                             queue.append(cb)
                         while queue and not level:
-                            queue.pop(0)()  # invoke callbacks                           
+                            queue.pop(0)()  # invoke callbacks
                     finally:
                         view._schema_init_level = level
 
