@@ -186,7 +186,7 @@ def _AddToCollection(repView, text, countryCode, bags):
 
 
 class AmazonCollection(ListCollection):
-    keywords = schema.One(schema.Text, displayName = u'Keywords')
+    keywords = schema.One(schema.Text)
 
     myKindID = None
     myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonCollection"
@@ -276,9 +276,7 @@ class AmazonCollection(ListCollection):
 
 class AmazonItem(ContentItem):
 
-    amazonCollection = schema.One(
-        AmazonCollection, displayName = u'Amazon Collection',
-    )
+    amazonCollection = schema.One(AmazonCollection)
 
     # When you add/remove/modify attributes here remember to update the
     # corresponding names displayed in the user interface in __init__.py
