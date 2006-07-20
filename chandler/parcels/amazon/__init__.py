@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-from AmazonKinds import AmazonCollection, AmazonItem
+from AmazonKinds import AmazonCollection, AmazonItem, DisplayNamesItem
 from AmazonBlocks import AmazonController, AmazonDetailBlock
 
 from application import schema
@@ -68,3 +68,19 @@ def installParcel(parcel, version=None):
             minimumSize = SizeType(100,50),
         ),
     ])
+
+    DisplayNamesItem.update(parcel, "displayNames",
+        namesDictionary = {'ProductName': _(u'Product Name'),
+                           'ProductDescription': _(u'Product Description'),
+                           'Author': _(u'Author(s)'),
+                           'Media': _(u'Media'),
+                           'ReleaseDate': _(u'Release Date'),
+                           'ImageURL': _(u'image path'),
+                           'ProductURL': _(u'product url'),
+                           'NewPrice': _(u'New Price'),
+                           'UsedPrice': _(u'Used Price'),
+                           'Availability': _(u'Availability'),
+                           'Manufacturer': _(u'Manufacturer'),
+                           'AverageCustomerRating': _(u'Average Customer Review'),
+                           'NumberOfReviews': _(u'Number of people who reviewed the item')})
+

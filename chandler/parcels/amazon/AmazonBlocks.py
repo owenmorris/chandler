@@ -15,8 +15,9 @@
 
 __parcel__ = "amazon"
 
-import osaf.framework.blocks.Block as Block
+from application import schema
 import AmazonKinds
+import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.detail.Detail as Detail
 
 #XXX[i18n] this module sits outsite of OSAF and should have its own translation domain
@@ -98,7 +99,8 @@ class AmazonDetailBlock(Detail.HTMLDetailArea):
         if val == '':
             return ''
 
-        displayName = item.itsKind.getAttribute(field).displayName
+        displayNamesItem = schema.ns(__name__, self.itsView).displayNames
+        displayName = displayNamesItem.namesDictionary [field]
 
         return u"<tr><td align='right' valign='top' width='40%'>" + self._applyFont("<b>" + displayName + ":</b>") + \
                "</td><td align='left' valign='top'>" + self._applyFont(val) + "</td></tr>"
@@ -107,7 +109,9 @@ class AmazonDetailBlock(Detail.HTMLDetailArea):
         if item.AverageCustomerRating == '':
             return ''
 
-        displayName = item.itsKind.getAttribute("AverageCustomerRating").displayName
+        displayNamesItem = schema.ns(__name__, self.itsView).displayNames
+        displayName = displayNamesItem.namesDictionary ["AverageCustomerRating"]
+
         txt = u"<tr><td align='right' valign='top' width='40%'>" + self._applyFont("<b>" + displayName + ":</b>") + "</td>"
 
         txt += "<td align='left' valign='top'><img src='" + self._getRatingURL(item.AverageCustomerRating) + "'>"

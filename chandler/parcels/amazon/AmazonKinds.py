@@ -280,19 +280,22 @@ class AmazonItem(ContentItem):
         AmazonCollection, displayName = u'Amazon Collection',
     )
 
-    ProductName = schema.One(schema.Text, displayName = _(u'Product Name'))
-    ProductDescription = schema.One(schema.Text, displayName = _(u'Product Description'))
-    Author = schema.One(schema.Text, displayName = _(u'Author(s)'))
-    Media = schema.One(schema.Text, displayName = _(u'Media'))
-    ReleaseDate = schema.One(schema.Text, displayName = _(u'Release Date'))
-    ImageURL = schema.One(schema.URL, displayName = u'image path')
-    ProductURL = schema.One(schema.URL, displayName = u'product url')
-    NewPrice = schema.One(schema.Text, displayName = _(u'New Price'))
-    UsedPrice = schema.One(schema.Text, displayName = _(u'Used Price'))
-    Availability = schema.One(schema.Text, displayName = _(u'Availability'))
-    Manufacturer = schema.One(schema.Text, displayName = _(u'Manufacturer'))
-    AverageCustomerRating = schema.One(schema.Text, displayName = _(u'Average Customer Review'))
-    NumberOfReviews = schema.One(schema.Text, displayName = u'Number of people who reviewed the item')
+    # When you add/remove/modify attributes here remember to update the
+    # corresponding names displayed in the user interface in __init__.py
+    ProductName = schema.One(schema.Text)
+    ProductDescription = schema.One(schema.Text)
+    Author = schema.One(schema.Text)
+    Media = schema.One(schema.Text)
+    ReleaseDate = schema.One(schema.Text)
+    ImageURL = schema.One(schema.URL)
+    ProductURL = schema.One(schema.URL)
+    NewPrice = schema.One(schema.Text)
+    UsedPrice = schema.One(schema.Text)
+    Availability = schema.One(schema.Text)
+    Manufacturer = schema.One(schema.Text)
+    AverageCustomerRating = schema.One(schema.Text)
+    NumberOfReviews = schema.One(schema.Text)
+    
     about = schema.One(redirectTo = 'ProductName')
     who = schema.One(redirectTo = 'Author')
     date = schema.One(redirectTo = 'ReleaseDate')
@@ -357,6 +360,9 @@ class AmazonItem(ContentItem):
                 self.NumberOfReviews = ''
 
             self.displayName = self.ProductName
+
+class DisplayNamesItem(schema.Item):
+    namesDictionary = schema.Mapping(schema.Text, defaultValue={})
 
 
 def _printBag(aBag, level):
