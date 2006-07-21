@@ -44,3 +44,9 @@ binaries:
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
+clean:
+	rm -f $(TARBALL)
+
+_realclean::
+	@rm -f $(TARBALL)
+
