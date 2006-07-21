@@ -32,16 +32,16 @@ def checkRepo(logger):
     logger.addComment('Checking for repository corruption')
     QAUITestAppLib.App_ns.itsView.check()
 
-def run_tests(tests, logName=None):
+def run_tests(tests, debug=0, mask=3, logName=None):
     """Method to execute cats tests, must be in Functional directory."""
     
-    logger = TestOutput(stdout=True, debug=0, logName=logName) 
+    logger = TestOutput(stdout=True, debug=debug, mask=mask, logName=logName) 
     logger.startSuite(name='ChandlerTestSuite')
     for paramSet in tests.split(','):
         try:
             filenameAndTest = paramSet.split(':')
             
-            #dan added this as a convenience, I'm already tired of typing this stuff twice
+            #assume file name and and test name are the same if only one given
             if len(filenameAndTest) < 2: filenameAndTest.append(filenameAndTest[0])
                 
             teststring = 'from tools.cats.Functional.%s import %s' % (filenameAndTest[0], filenameAndTest[1])
@@ -55,7 +55,12 @@ def run_tests(tests, logName=None):
 
     if logger.debug < 2: checkRepo(logger)
     logger.endSuite()
-    logger.summary()
+    if logger.debug == 0:
+        logger.easyReadSummary()
+    else:
+        logger.summary()
+    logger.simpleSummary()
+    logger.tinderOutput()
     import osaf.framework.scripting as scripting
     scripting.app_ns().root.Quit()
  
@@ -68,7 +73,7 @@ def run_perf_tests(tests, logName=None):
         try:
             filenameAndTest = paramSet.split(':')
             
-            #dan added this as a convenience, I'm already tired of typing this stuff twice
+            #assume file name and and test name are the same if only one given
             if len(filenameAndTest) < 2: filenameAndTest.append(filenameAndTest[0])
             
             teststring = 'from tools.cats.Performance.%s import %s' % (filenameAndTest[0], filenameAndTest[1])

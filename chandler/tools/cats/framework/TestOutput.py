@@ -14,7 +14,7 @@
 
 """TestOutput class for cats 0.2
 
-This is a module contains on major class, TestOutput,
+This is a module contains a major class, TestOutput,
 which is used for string output, timeing, and report->action->test->suite
 encapsulation.
 """
@@ -37,7 +37,7 @@ class TestOutput:
     """
     Test output and timing class.
     """
-    def __init__(self, logName=None, debug=0, mask=2, stdout=None):
+    def __init__(self, logName=None, debug=1, mask=2, stdout=None):
         """Instantiation method
         
         Keyword Arguments:
@@ -53,8 +53,9 @@ class TestOutput:
                 3 = don't show report, action, test
         stdout   bool -- Switch to turn on stdout output
         """
-        self.debug = debug
-        self.mask = mask
+        self.debug = int(debug)
+        self.mask = int(mask)
+        self.logName = logName
         self.suiteList = []
         self.testList = []
         self.actionList = []
@@ -73,21 +74,21 @@ class TestOutput:
            self.stdout = sys.__stdout__
         else:
            self.stdout = None
-        
-        if logName is not None:
-            logName = os.path.abspath(logName)
+           
+        if self.logName is not None:
+            self.LogName = os.path.abspath(self.logName)
             # Rename the last log file to timestamped version
             try:
                 # getatime returns last mod on Unix, and creation time on Win
-                atime = os.path.getatime(logName)
+                atime = os.path.getatime(self.LogName)
                 time_stamp = time.strftime('%Y%m%d%H%M%S',
                                            time.localtime(atime))
-                os.rename(logName, '%s.%s' % (logName, time_stamp))
+                os.rename(self.LogName, '%s.%s' % (self.LogName, time_stamp))
             except OSError:
                 # Most likely the file didn't exist, just ignore
                 pass            
             
-            self.f = file(logName, 'w')
+            self.f = file(self.logName, 'w')
         else:
             self.f = None
 
@@ -300,6 +301,30 @@ class TestOutput:
             return #don't print passes when debug = 0
         if level >= self.mask:
             sendTo_write(string, result)
+            
+    def easyReadSummary(self):
+        """Failures displayed to be easily readable by humans """
+        def stripStuff(s):
+            if s == None:
+                return ''
+            if 'Traceback' not in s:
+                s = s.strip('None').strip('\n')
+            return s 
+        self._parse_results()
+        for suite_dict in self.suiteList:
+            if suite_dict['result'] == False:
+                self._write('\nSUITE %s FAILED\n' % suite_dict['name'])
+                for test_dict in suite_dict['testlist']:
+                    if test_dict['result'] == False:
+                        self._write('\tTEST %s FAILED\n ' % stripStuff(test_dict['name']))
+                        for action_dict in test_dict['actionlist']:
+                            if action_dict['result'] == False:
+                                self._write('\t\tACTION %s %s\n' % (stripStuff(action_dict['name']),stripStuff(action_dict['comment'])))
+                                for report_tuple in action_dict['reportlist']:
+                                    if report_tuple[0] is False:
+                                        self._write('\t\t\tREPORT %s %s\n' % (stripStuff(report_tuple[1]), stripStuff(report_tuple[2])))
+                                        
+
 
     def traceback(self):
         """Method to handle python traceback exception."""
@@ -313,6 +338,9 @@ class TestOutput:
             traceback.print_exception(type, value, stack, None, self.stdout)
         if self.stdout is None and self.f is None:
             traceback.print_exception(type, value, stack, None, self.stderr)
+        
+        #report the action
+        self.report(False, 'Traceback detected')
         
         #Clean up logger state
         if self.inAction is True:
@@ -347,22 +375,22 @@ class TestOutput:
         self._parse_results()
         #Parse through finalized suiteList for failures
         
-        self._write('Test Report;\n')
+        self._write('\n*** Test Report ***\n\n')
         for suite_dict in self.suiteList:
             if suite_dict['result'] is False:
-                self._write('*Suite ""%s"" Failed :: Total Time ""%s"" :: Comment ""%s""\n' % (suite_dict['name'], suite_dict['totaltime'], suite_dict['comment']))
+                self._write('Suite ""%s"" Failed :: Total Time ""%s"" :: Comment ""%s""\n' % (suite_dict['name'], suite_dict['totaltime'], suite_dict['comment']))
                 suites_failed = suites_failed + 1
                 for test_dict in suite_dict['testlist']:
                     if test_dict['result'] is False:
-                        self._write('**Test ""%s"" Failed :: Total Time ""%s"" :: Comment ""%s""\n' % (test_dict['name'], test_dict['totaltime'], test_dict['comment']))
+                        self._write('    Test ""%s"" Failed :: Total Time ""%s"" :: Comment ""%s""\n' % (test_dict['name'], test_dict['totaltime'], test_dict['comment']))
                         tests_failed = tests_failed + 1
                         for action_dict in test_dict['actionlist']:
                             if action_dict['result'] is False:
-                                self._write('***Action ""%s"" Failed :: Total Time ""%s"" :: Comment ""%s""\n' % (action_dict['name'], action_dict['totaltime'], action_dict['comment']))
+                                self._write('        Action ""%s"" Failed :: Total Time ""%s"" :: Comment ""%s""\n' % (action_dict['name'], action_dict['totaltime'], action_dict['comment']))
                                 actions_failed = actions_failed + 1
                                 for report_tuple in action_dict['reportlist']:
                                     if report_tuple[0] is False:
-                                        self._write('****Report ""%s"" Failed :: Comment ""%s""\n' % (report_tuple[1], report_tuple[2]))
+                                        self._write('            Report ""%s"" Failed :: Comment ""%s""\n' % (report_tuple[1], report_tuple[2]))
                                         reports_failed = reports_failed + 1
 
         #Calculate number ran
@@ -378,7 +406,19 @@ class TestOutput:
         self._write('$Suites run=%s, pass=%s, fail=%s :: Tests run=%s, pass=%s, fail=%s :: Actions run=%s, pass=%s, fail=%s :: Reports run=%s, pass=%s, fail=%s \n' % 
                     (suites_ran, suites_ran - suites_failed, suites_failed, tests_ran, tests_ran - tests_failed, tests_failed, actions_ran, 
                      actions_ran - actions_failed, actions_failed, reports_ran, reports_ran - reports_failed, reports_failed))                                
-        
+    
+    def simpleSummary(self):
+        #write simple summary
+        self._write("\n*********** TEST RESULTS ************\n*************************************\n")
+        for suite_dict in self.suiteList:
+                for test_dict in suite_dict['testlist']:
+                    if test_dict['result'] == False:
+                        self._write('%s*FAILED*\n' % test_dict['name'].ljust(30,'_'))
+                    else:
+                        self._write('%s passed \n' % test_dict['name'].ljust(30,'_'))
+        self._write("*************************************\n")
+
+    def tinderOutput(self):
         #write out stuff for tinderbox
         for suite_dict in self.suiteList:
             self._write('#TINDERBOX# Testname = %s\n' % suite_dict['name'])
@@ -438,8 +478,8 @@ if __name__ == "__main__":
     
     #test masking
     levels = ['report', 'action', 'test', 'suite']
-    for debug in [0, 1, 2]:
-        for mask in [0, 1, 2, 3]:
+    for self.debug in [0, 1, 2]:
+        for self.mask in [0, 1, 2, 3]:
             for result in [True, False]:
                 print '########## debug = %d :: mask = %d :: result = %s' % (debug, mask, result)
                 logger = TestOutput(debug=debug, mask=mask, stdout=True)

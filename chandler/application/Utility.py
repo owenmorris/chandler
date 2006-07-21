@@ -172,6 +172,8 @@ def initOptions(**kwds):
         'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
         'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
         'chandlerTests': ('', '--chandlerTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by new framework'),
+        'chandlerTestDebug': ('-D', '--chandlerTestDebug', 's', 0, None, '0=print only failures, 1=print pass and fail, 2=print pass & fail & check repository after each test'),
+        'chandlerTestMask': ('-M', '--chandlerTestMask', 's', 3, None, '0=print all, 1=hide reports, 2=also hide actions, 3=also hide test names'),
         'chandlerPerformanceTests': ('', '--chandlerPerformanceTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by performance new framework'),
         'chandlerTestLogfile': ('', '--chandlerTestLogfile', 's', None, None, 'file for chandlerTests output'),
         'scriptTimeout': ('-s', '--scriptTimeout', 's', 0,  None, 'script file timeout'),
