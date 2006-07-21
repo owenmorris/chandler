@@ -3,6 +3,7 @@ VERSION=0.6b3
 SETUPTOOLS=$(BUILD_ROOT)/setuptools
 BUILD=build_$(SNAP)
 TARBALL=setuptools-$(VERSION)-py2.4.egg
+SRC=$(SETUPTOOLS)/$(TARBALL)
 
 include $(BUILD_ROOT)/Makefile.inc
 
