@@ -1,4 +1,4 @@
-VERSION=0.6b3
+VERSION=0.6c2dev_r50758
 
 SETUPTOOLS=$(BUILD_ROOT)/setuptools
 BUILD=build_$(SNAP)
@@ -12,7 +12,7 @@ ifeq ($(OS),Cygwin)
 build: $(TARBALL)
 	cd $(SETUPTOOLS); \
     PYTHONPATH=$(TARBALL) \
-    $(PYTHON) ez_setup.py
+    $(PYTHON) ez_setup.py $(TARBALL)
 else
 
 ifeq ($(OS),Darwin)
