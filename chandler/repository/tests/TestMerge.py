@@ -949,6 +949,11 @@ class TestMerge(RepositoryTestCase):
 
         uuids = []
         saveUUIDs(uuids)
+
+#        from chandlerdb.util.c import UUID, loadUUIDs
+#        input = file('uuids_ad06.txt')
+#        loadUUIDs([UUID(uuid.strip()) for uuid in input if len(uuid) > 1])
+#        input.close()
         
         try:
             main = self.rep.view
@@ -983,6 +988,7 @@ class TestMerge(RepositoryTestCase):
             main.commit()
         finally:
             saveUUIDs(None)
+            #loadUUIDs(None)
 
         if not main.check():
 

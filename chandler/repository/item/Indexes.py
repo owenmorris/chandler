@@ -60,7 +60,10 @@ class Index(dict):
     def insertKey(self, key, afterKey):
         self._count += 1
 
-    def moveKey(self, key, afterKey):
+    def moveKey(self, key, afterKey=None):
+        pass
+
+    def moveKeys(self, keys, afterKey=None):
         pass
 
     def removeKey(self, key):
@@ -225,7 +228,7 @@ class NumericIndex(Index):
 
         return {}
 
-    def insertKey(self, key, afterKey):
+    def insertKey(self, key, afterKey=None):
 
         skipList = self.skipList
         skipList.insert(key, afterKey)
@@ -237,7 +240,7 @@ class NumericIndex(Index):
 
         super(NumericIndex, self).insertKey(key, afterKey)
             
-    def moveKey(self, key, afterKey):
+    def moveKey(self, key, afterKey=None):
 
         if key not in self:
             self.insertKey(key, afterKey)
@@ -255,6 +258,11 @@ class NumericIndex(Index):
                 ranges.onInsert(key, skipList.position(key))
 
             super(NumericIndex, self).moveKey(key, afterKey)
+
+    def moveKeys(self, keys, afterKey=None):
+
+        for key in keys:
+            self.moveKey(key, afterKey)
             
     def removeKey(self, key):
 
@@ -345,7 +353,7 @@ class SortedIndex(DelegatingIndex):
 
         raise NotImplementedError, '%s is abstract' % type(self)
 
-    def insertKey(self, key, afterKey=None):
+    def insertKey(self, key, ignore=None):
 
         index = self._index
         index.insertKey(key, index.skipList.after(key, self.compare))
@@ -365,7 +373,7 @@ class SortedIndex(DelegatingIndex):
 
         return False
 
-    def moveKey(self, key, afterKey):
+    def moveKey(self, key, ignore=None):
 
         index = self._index
         if key in index:
@@ -378,7 +386,25 @@ class SortedIndex(DelegatingIndex):
                 indexed = getattr(view[uuid], attr)
                 index = indexed.getIndex(name)
                 if key in index:
-                    index.moveKey(key, None)
+                    index.moveKey(key, ignore)
+                    indexed._setDirty(True)
+
+    def moveKeys(self, keys, ignore=None):
+
+        index = self._index
+        for key in keys:
+            index.removeKey(key)
+        for key in keys:
+            index.insertKey(key, index.skipList.after(key, self.compare))
+
+        if self._subIndexes:
+            view = self._valueMap._getView()
+            for uuid, attr, name in self._subIndexes:
+                indexed = getattr(view[uuid], attr)
+                index = indexed.getIndex(name)
+                subKeys = [key for key in keys if key in index]
+                if subKeys:
+                    index.moveKeys(subKeys, ignore)
                     indexed._setDirty(True)
 
     def setDescending(self, descending=True):

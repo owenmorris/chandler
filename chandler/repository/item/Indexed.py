@@ -216,7 +216,9 @@ class Indexed(object):
         for name, _indexChanges in indexChanges.iteritems():
             index = indexes[name]
 
-            others = []
+            moves = []
+            insertions = []
+
             for key, value in _indexChanges.iteritems():
                 if value is not None:
                     item = view.find(key)
@@ -224,12 +226,15 @@ class Indexed(object):
                         if key not in deletes:
                             raise AssertionError, (key, "item not found")
                     elif item.isDirty():
-                        others.append(key)
                         if key in index:
-                            index.removeKey(key)
+                            moves.append(key)
+                        else:
+                            insertions.append(ley)
                 elif key in index:
                     index.removeKey(key)
-            for key in others:
+
+            index.moveKeys(moves)
+            for key in insertions:
                 index.insertKey(key)
 
     def _createIndex(self, indexType, **kwds):

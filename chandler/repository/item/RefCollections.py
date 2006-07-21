@@ -278,10 +278,6 @@ class RefList(LinkedMap, Indexed):
     def _setRef(self, other, alias=None, dictKey=None, otherKey=None,
                 fireChanges=False):
 
-        # DEBUG
-        if fireChanges not in (True, False):
-            raise ValueError, fireChanges
-
         if otherKey is not None and other in self:
             if self.getOtherKey(other) != otherKey:
                 self.remove(other)
@@ -291,7 +287,7 @@ class RefList(LinkedMap, Indexed):
         self[key] = link
 
         if self._indexes:
-            for index in self._indexes.itervalues():
+            for name, index in self._indexes.iteritems():
                 index.insertKey(key, link._previousKey)
 
         self._setDirty(not fireChanges)
