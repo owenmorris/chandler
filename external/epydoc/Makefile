@@ -33,12 +33,9 @@ epydoc-$(VERSION)-expanded: epydoc-$(VERSION).tar.gz
 expand: epydoc-$(VERSION)-expanded
 
 binaries: strip
-	cd $(BUILD_ROOT); \
-      find $(SNAP)/$(SITE)/epydoc -name "*.pyc" | xargs rm -f; \
-      find $(SNAP)/$(SITE)/epydoc -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(EPYDOC)/$(TARBALL) \
-          --exclude test \
-          $(SNAP)/$(SITE)/epydoc
+	tar -C $(BUILD_ROOT) -cvzf $(EPYDOC)/$(TARBALL) \
+        --exclude test --exclude '*.py?' \
+        $(SNAP)/$(SITE)/epydoc
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)

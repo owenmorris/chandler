@@ -37,7 +37,9 @@ build: expand apply
         install --force
 
 binaries: strip
-	tar -C $(BUILD_ROOT) -cvzf $(VOBJECT)/$(TARBALL) $(MANIFEST)
+	tar -C $(BUILD_ROOT) -cvzf $(VOBJECT)/$(TARBALL) \
+        --exclude '*.py?' \
+        $(MANIFEST)
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)

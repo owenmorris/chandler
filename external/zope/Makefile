@@ -33,12 +33,8 @@ ZopeInterface-$(VERSION)-expanded: ZopeInterface-$(VERSION).tgz
 expand: ZopeInterface-$(VERSION)-expanded
 
 binaries: strip
-	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/zope -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/zope -name "*.pyo" | xargs rm -f; \
-	tar -cvzf $(ZOPE)/$(TARBALL) \
-        --exclude tests \
-        --exclude testing \
+	tar -C $(BUILD_ROOT) -cvzf $(ZOPE)/$(TARBALL) \
+        --exclude tests --exclude testing --exclude '*.py?' \
         $(SNAP)/$(SITE)/zope
 
 install: $(TARBALL)

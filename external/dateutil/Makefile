@@ -30,10 +30,9 @@ build: expand #apply
           install --force
 
 binaries: strip
-	cd $(BUILD_ROOT); \
-      find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
-      find $(MANIFEST) -name "*.pyo" | xargs rm -f; \
-      tar -C $(BUILD_ROOT) -cvzf $(DATEUTIL)/$(TARBALL) $(MANIFEST)
+	tar -C $(BUILD_ROOT) -cvzf $(DATEUTIL)/$(TARBALL) \
+        --exclude '*.py?' \
+        $(MANIFEST)
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)

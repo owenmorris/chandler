@@ -27,12 +27,9 @@ zanshin-$(VERSION)-expanded: zanshin-$(VERSION).tar.gz
 expand: zanshin-$(VERSION)-expanded
 
 binaries: strip
-	cd $(BUILD_ROOT); \
-      find $(SNAP)/$(SITE)/zanshin -name "*.pyc" | xargs rm -f; \
-      find $(SNAP)/$(SITE)/zanshin -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(ZANSHIN)/$(TARBALL) \
-          --exclude test \
-          $(SNAP)/$(SITE)/zanshin
+	tar -C $(BUILD_ROOT) -cvzf $(ZANSHIN)/$(TARBALL) \
+        --exclude test --exclude '*.py?' \
+        $(SNAP)/$(SITE)/zanshin
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)

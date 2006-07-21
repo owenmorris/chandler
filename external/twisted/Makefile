@@ -33,11 +33,8 @@ Twisted-$(VERSION)-expanded: Twisted-$(VERSION).tar.gz
 expand: Twisted-$(VERSION)-expanded
 
 binaries: strip
-	cd $(BUILD_ROOT); \
-      find $(SNAP)/$(SITE)/twisted -name "*.pyc" | xargs rm -f; \
-      find $(SNAP)/$(SITE)/twisted -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(TWISTED)/$(TARBALL) \
-          --exclude test \
+	tar -C $(BUILD_ROOT) -cvzf $(TWISTED)/$(TARBALL) \
+          --exclude test --exclude '*.py?' \
           $(SNAP)/$(SITE)/twisted
 
 install: $(TARBALL)

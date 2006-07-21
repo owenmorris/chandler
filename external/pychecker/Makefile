@@ -38,12 +38,10 @@ pychecker-$(VERSION)-expanded: pychecker-$(VERSION).tar.gz
 expand: pychecker-$(VERSION)-expanded
 
 binaries: strip
-	cd $(BUILD_ROOT); \
-      find $(SNAP)/$(SITE)/pychecker -name "*.pyc" | xargs rm -f; \
-      find $(SNAP)/$(SITE)/pychecker -name "*.pyo" | xargs rm -f; \
-      tar -cvzf $(PYCHECKER)/$(TARBALL) \
-          $(SNAP)/$(SITE)/pychecker \
-          $(SNAP)/$(BIN)/pychecker*
+	tar -C $(BUILD_ROOT) -cvzf $(PYCHECKER)/$(TARBALL) \
+        --exclude '*.py?' \
+        $(SNAP)/$(SITE)/pychecker \
+        $(SNAP)/$(BIN)/pychecker
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)

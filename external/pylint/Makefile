@@ -51,12 +51,9 @@ binaries-astng:
 	$(MAKE) -C astng DEBUG=$(DEBUG) binaries
 
 binaries: binaries-common binaries-astng  strip
-	cd $(BUILD_ROOT); \
-    find $(SNAP)/$(SITE)/pylint -name "*.pyc" | xargs rm -f; \
-    find $(SNAP)/$(SITE)/pylint -name "*.pyo" | xargs rm -f; \
-        tar -cvzf $(PYLINT)/pylint-$(SNAP)-$(RELVER).tar.gz \
-                  --exclude test \
-                  $(SNAP)/$(SITE)/pylint
+	tar -C $(BUILD_ROOT) -cvzf $(PYLINT)/pylint-$(SNAP)-$(RELVER).tar.gz \
+        --exclude test --exclude '*.py?' \
+        $(SNAP)/$(SITE)/pylint
 
 install-common:
 	$(MAKE) -C common DEBUG=$(DEBUG) install

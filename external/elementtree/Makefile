@@ -28,12 +28,9 @@ elementtree-$(VERSION)-expanded: elementtree-$(VERSION).tar.gz
 expand: elementtree-$(VERSION)-expanded
 
 binaries: strip
-	cd $(BUILD_ROOT); \
-    find $(SNAP)/$(SITE)/elementtree -name "*.pyc" | xargs rm -f; \
-    find $(SNAP)/$(SITE)/elementtree -name "*.pyo" | xargs rm -f; \
-        tar -cvzf $(ETREE)/$(TARBALL) \
-                  --exclude test \
-                  $(SNAP)/$(SITE)/elementtree
+	tar -C $(BUILD_ROOT) -cvzf $(ETREE)/$(TARBALL) \
+        --exclude test --exclude '*.py?' \
+        $(SNAP)/$(SITE)/elementtree
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
