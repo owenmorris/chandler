@@ -19,6 +19,7 @@ import vobject, email
 import osaf.mail.message
 import osaf.sharing.ICalendar
 import application.Globals as Globals
+from osaf.framework.blocks.Block import Block
 
 EMAIL_FORMAT, EMAILX_FORMAT, ICALENDAR_FORMAT = range(3)
 
@@ -83,7 +84,7 @@ def importFileAsFormat(format, filename, view, coll=None,
 def importEmail(text, view, coll=None, selectedCollection=False):
     item = osaf.mail.message.messageTextToKind(view, text)
     if selectedCollection or coll is None:
-        coll = Globals.views[0].getSidebarSelectedCollection()
+        coll = Block.findBlockByName("MainView").getSidebarSelectedCollection()
     if item is not None:
         coll.add(item)
     return item
