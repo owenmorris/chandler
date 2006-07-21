@@ -87,7 +87,7 @@ Chandler.py
 version.py
 run_tests.py
 LICENSE.txt
-Chandler-project.wpr
+WingLinuxDebug.wpr
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
