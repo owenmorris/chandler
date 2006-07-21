@@ -1,45 +1,46 @@
-include ../Makefile.inc
+VERSION=0.6b3
 
-VERSION=0.6a10-py2.4
 SETUPTOOLS=$(BUILD_ROOT)/setuptools
 BUILD=build_$(SNAP)
-SRC=setuptools-$(VERSION).egg
+TARBALL=setuptools-$(VERSION)-py2.4.egg
 
-ifeq ($(DEBUG),1)
-DEBUG_SUFFIX=_d
-else
-DEBUG_SUFFIX=
-endif
-
-SETUPTOOLS_EGG=$(CHANDLERBIN)/$(SNAP)/$(SRC)
-SETUPTOOLS_ABS=$(SETUPTOOLS_EGG)
-SETUPTOOLS_BIN=$(CHANDLERBIN)/$(SNAP)
-PYTHONEGG_BIN=$(CHANDLERBIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
+include $(BUILD_ROOT)/Makefile.inc
 
 ifeq ($(OS),Cygwin)
-SETUPTOOLS_ABS:=`cygpath -wa $(SETUPTOOLS_EGG)`
-SETUPTOOLS_BIN:=`cygpath -wa $(SETUPTOOLS_BIN)`
-endif
+
+build: $(TARBALL)
+	cd $(SETUPTOOLS); \
+    PYTHONPATH=$(TARBALL) \
+    $(PYTHON) ez_setup.py $(TARBALL)
+else
 
 ifeq ($(OS),Darwin)
-PYTHONEGG_BIN:=$(SETUPTOOLS_BIN)/RunPython
+
+build: $(TARBALL)
+	cd $(SETUPTOOLS); \
+    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
+    PYTHONPATH=$(TARBALL) \
+    $(PYTHON) ez_setup.py $(TARBALL)
+
+else
+
+build: $(TARBALL)
+	cd $(SETUPTOOLS); \
+    PYTHONPATH=$(TARBALL) \
+    $(PYTHON) ez_setup.py $(TARBALL)
+
+endif
 endif
 
-$(SRC):
-	$(CURL) http://builds.osafoundation.org/external/$(SRC)
+$(TARBALL):
+	$(CURL) http://builds.osafoundation.org/external/$(TARBALL)
 
-sources: $(SRC)
+sources: $(TARBALL)
 
-expand: $(SRC)
+expand:
 
-build: expand
+binaries: 
 
-all: build
+install: $(TARBALL)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
-binaries:
-
-install: build
-	cp $(SRC) $(SETUPTOOLS_ABS)
-	MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERBIN) $(PYTHONEGG_BIN) \
-        -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
-        --script-dir=$(SETUPTOOLS_BIN) $(SETUPTOOLS_ABS)

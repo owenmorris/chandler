@@ -8,6 +8,7 @@ SYSTEMS=db \
         openssl \
         $(READLINE_OSX) \
         python \
+        setuptools \
         epydoc \
         PyLucene \
         PyICU \
