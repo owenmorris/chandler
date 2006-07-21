@@ -26,7 +26,7 @@ if __name__ == '__main__':
     
     if len(sys.argv) == 1:
         sys.argv.append('--disable-msg-cat=R,C')
-        sys.argv.append('--disable-msg=W0103,W0131,C0103,W0142,W0312,W0511,W0232,W0201,E0214,W0613,W0401')
+        sys.argv.append('--disable-msg=C0103,W0142,W0312,W0511,W0232,W0201,W0613,W0401')
         #sys.argv.append('--disable-report=R0001,R0002,R0003,R0004,R0701,R0801,R0401,R0101')
         sys.argv.append('--include-ids=y')
         sys.argv.append('Chandler')
