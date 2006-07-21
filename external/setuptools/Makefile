@@ -12,7 +12,7 @@ ifeq ($(OS),Cygwin)
 build: $(TARBALL)
 	cd $(SETUPTOOLS); \
     PYTHONPATH=$(TARBALL) \
-    $(PYTHON) ez_setup.py $(TARBALL)
+    $(PYTHON) ez_setup.py
 else
 
 ifeq ($(OS),Darwin)
