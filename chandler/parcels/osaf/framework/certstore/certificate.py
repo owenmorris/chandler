@@ -53,14 +53,7 @@ class Certificate(pim.ContentItem):
     """
 
     who = schema.One(redirectTo = 'displayName')
-    displayName = schema.One(
-        schema.Text, displayName = _(u'Display Name'),
-        doc = 'Display Name.',
-    )
-    about = schema.One(
-        doc = "Issues: type would make more sense, but it isn't supported for summary view.",
-        redirectTo = 'trust',
-    )
+    about = schema.One(redirectTo = 'trust')
     date = schema.One(redirectTo = 'createdOn')
     type = schema.One(
         typeEnum,

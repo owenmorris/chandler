@@ -68,7 +68,7 @@ def process_create(view, subcommand, text):
 
         start = parse_datetime(s)
         length = parse_timedelta(l)
-        task = Calendar.CalendarEvent(itsView=view, displayName = data, startTime=start , duration=length )
+        task = Calendar.CalendarEvent(itsView=view, startTime=start , duration=length )
         view.commit()
     elif subcommand == 'task':
         task = pim.Task(itsView=view, displayName=text)

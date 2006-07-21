@@ -74,7 +74,7 @@ class TaskMixin(items.ContentItem):
         TaskStatusEnum,
         displayName = u'Task Status',
     )
-    dueDate = schema.One(schema.DateTimeTZ, displayName = u'Due date')
+    dueDate = schema.One(schema.DateTimeTZ)
     whoFrom = schema.One(redirectTo = 'requestor')
     about = schema.One(redirectTo = 'displayName')
 

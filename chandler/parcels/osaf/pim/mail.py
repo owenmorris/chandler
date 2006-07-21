@@ -159,7 +159,7 @@ class AccountBase(items.ContentItem):
         initialValue = u'',
     )
     port = schema.One(
-        schema.Integer, displayName = _(u'Port'), doc = 'The port number to use',
+        schema.Integer, doc = 'The port number to use',
     )
     connectionSecurity = schema.One(
         connectionSecurityEnum,
@@ -451,7 +451,7 @@ class IMAPDelivery(MailDeliveryBase):
     )
 
     folder = schema.One(
-        schema.Text, displayName = u'Folder', initialValue = u'',
+        schema.Text, initialValue = u'',
     )
     uid = schema.One(
         schema.Long,
@@ -466,7 +466,7 @@ class IMAPDelivery(MailDeliveryBase):
         initialValue = u'',
     )
     flags = schema.Sequence(
-        schema.Text, displayName = u'Flags', initialValue = [],
+        schema.Text, initialValue = [],
     )
 
 
@@ -509,9 +509,9 @@ class MIMENote(MIMEBase):
     )
 
     filename = schema.One(
-        schema.Text, displayName = _(u'File name'), initialValue = u'',
+        schema.Text, initialValue = u'',
     )
-    filesize = schema.One(schema.Long, displayName = _(u'File Size'))
+    filesize = schema.One(schema.Long)
 
     schema.addClouds(
         sharing = schema.Cloud(filename, filesize),

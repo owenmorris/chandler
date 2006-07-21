@@ -721,7 +721,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         canvasItem = self.SelectedCanvasItem()
         if canvasItem is None and self._bgSelectionStartTime is not None:
-            canvasItem = self.OnCreateItem(None, displayName = '')
+            canvasItem = self.OnCreateItem(None)
         if canvasItem is not None:
             self.OnEditItem(canvasItem)
 
