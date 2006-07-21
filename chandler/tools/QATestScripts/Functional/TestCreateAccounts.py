@@ -82,10 +82,10 @@ try:
     logger.Stop()
 
     # verification
-    ap.VerifyValues("SMTP", pSMTP, displayName = pSMTP, host= "smtp.osafoundation.org", connectionSecurity = "TLS", useAuth = True, port = 587, username = 'demo1', password = 'ad3leib5' )
-    ap.VerifyValues("IMAP", pIMAP, displayName = pIMAP, host = "imap.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
-    ap.VerifyValues("POP", pPOP, displayName = pPOP, host = "pop.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
-    ap.VerifyValues("WebDAV", pWEBDAV, displayName = pWEBDAV, host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
+    ap.VerifyValues("SMTP", pSMTP, host= "smtp.osafoundation.org", connectionSecurity = "TLS", useAuth = True, port = 587, username = 'demo1', password = 'ad3leib5' )
+    ap.VerifyValues("IMAP", pIMAP, host = "imap.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
+    ap.VerifyValues("POP", pPOP, host = "pop.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
+    ap.VerifyValues("WebDAV", pWEBDAV, host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
 
 finally:
     # cleaning
