@@ -41,7 +41,7 @@ binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(PYCHECKER)/$(TARBALL) \
         --exclude '*.py?' \
         $(SNAP)/$(SITE)/pychecker \
-        $(SNAP)/$(BIN)/pychecker
+        $(SNAP)/$(BIN)/pychecker*
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
