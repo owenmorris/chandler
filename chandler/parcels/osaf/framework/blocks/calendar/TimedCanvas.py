@@ -568,7 +568,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.drawOrderedCanvasItems = ordered
 
     def CheckConflicts(self):
-        assert sorted(self.visibleItems, self.sortByStartTime) == self.visibleItems
+        assert (sorted([i for i in self.visibleItems if not i.isStale()],
+                       self.sortByStartTime) == 
+                [i for i in self.visibleItems if not i.isStale()])
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
             if self.coercedCanvasItem is not canvasItem \
                and not canvasItem.item.isStale():

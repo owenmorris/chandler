@@ -1134,25 +1134,40 @@ class CalendarEventMixin(RemindableMixin):
         """Modify this and all future events."""
         master = self.getMaster()
         first = master # Changed for no-THISANDFUTURE-style
+        if self.recurrenceID is None:
+            self.recurrenceID = self.startTime
         recurrenceID = self.recurrenceID
-        isFirst = (recurrenceID == master.startTime)
+        # we can't use master.effectiveStartTime because the event timezone and
+        # the current timezone may not match
+        isFirst = (((master.allDay or master.anyTime) and 
+                    recurrenceID.date() == master.startTime.date()) or
+                   (recurrenceID == master.startTime))
         self._ignoreValueChanges = True
         
         # all day events' startTime is at midnight
         startMidnight = datetime.combine(self.startTime.date(),
                                          time(0, tzinfo=self.startTime.tzinfo))
             
-        if attr in ('startTime', 'allDay'):
+        if attr in ('startTime', 'allDay', 'anyTime'):
+            # if startTime changes (and an allDay/anyTime change changes 
+            # effective startTime), all future occurrences need to be shifted
+            # appropriately
             startTimeDelta = zero_delta
             if attr == 'startTime':
                 startTimeDelta = (value - self.startTime)
-            # the recurrence dialog often gets extra changes buffered, don't
-            # process allDay unless it's actually changed
-            elif self.allDay != value:
-                if value == False:
-                    startTimeDelta = self.startTime - startMidnight
+            # don't move future occurrences unless allDayness (anyTime or
+            # allDay) changes
+            else:
+                if attr == 'allDay':
+                    otherAllDayness = self.anyTime
                 else:
-                    startTimeDelta = startMidnight - self.startTime
+                    otherAllDayness = self.allDay
+                if (value or otherAllDayness) != (getattr(self, attr) or
+                                                  otherAllDayness):
+                    if value == False:
+                        startTimeDelta = self.startTime - startMidnight
+                    else:
+                        startTimeDelta = startMidnight - self.startTime
             
             if startTimeDelta != zero_delta:
                 self.rruleset.moveDatesAfter(recurrenceID, startTimeDelta)
@@ -1496,6 +1511,7 @@ class CalendarEventMixin(RemindableMixin):
             master.changeNoModification('recurrenceID', master.startTime)
         rruleset = master.rruleset
         if rruleset is not None:
+            rruleset._ignoreValueChanges = True
             masterHadModification = False
             for event in master.occurrences:
 
@@ -1504,7 +1520,10 @@ class CalendarEventMixin(RemindableMixin):
                     # in the background sharing mode) let's remove the events
                     # from occurrences:
                     master.occurrences.remove(event)
-
+                    # now that we've disconnected this event from the master, 
+                    # event.delete() will erroneously dispatch to deleteAll() if
+                    # event.rruleset exists, so disconnect from the rruleset
+                    del event.rruleset
                     event.delete()
 
                 elif event != master:

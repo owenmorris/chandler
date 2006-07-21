@@ -282,13 +282,13 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
                 # become a modification, which means we should
                 # call getMaster() here and not earlier when
                 # calculating modifiedRecurringEvents.
-                event = event.getMaster()
-                occurrences = getattr(event, 'occurrences', None)
+                masterOccurrences = event.getMaster().occurrences
 
-                if occurrences is not None:
-                    event.occurrences = [x for x in occurrences
-                                            if x.rruleset is not None and
-                                            not x.rruleset.isDeferred()]
+                if masterOccurrences is not None:
+                    for occurrence in masterOccurrences:
+                        if (occurrence.rruleset is None or
+                            occurrence.rruleset.isDeferred()):
+                            occurrence.delete(recursive=True)
 
 
 
