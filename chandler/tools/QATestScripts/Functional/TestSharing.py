@@ -47,7 +47,7 @@ try:
     ap.Ok()
 
     # verification
-    ap.VerifyValues("WebDAV", uw("Sharing Test WebDAV"), displayName = uw("Sharing Test WebDAV"), host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
+    ap.VerifyValues("WebDAV", uw("Sharing Test WebDAV"), host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
 
     # import events so test will have something to share even when run by itself
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")

@@ -42,7 +42,7 @@ try:
     ap.Ok()
 
     # verification
-    ap.VerifyValues("WebDAV", displayName, displayName = displayName, host = "qacosmo.osafoundation.org", path = "home/demo1", username = "demo1", password="ad3leib5", port=8080)
+    ap.VerifyValues("WebDAV", displayName, host = "qacosmo.osafoundation.org", path = "home/demo1", username = "demo1", password="ad3leib5", port=8080)
 
     # Subscribe dialog
     window = SubscribeCollection.Show(wx.GetApp().mainFrame,

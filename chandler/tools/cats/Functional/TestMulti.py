@@ -54,8 +54,8 @@ class TestMulti(ChandlerTestCase):
         self.logger.endAction(True)
         
         # verification
-        ap.VerifyValues("SMTP", uw("Personal SMTP"), displayName = uw("Personal SMTP"), host= "smtp.osafoundation.org", connectionSecurity = "TLS", useAuth = True, port = 587, username = 'demo1', password = 'ad3leib5' )
-        ap.VerifyValues("IMAP", uw("Personal IMAP"), displayName = uw("Personal IMAP"), host = "imap.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
+        ap.VerifyValues("SMTP", uw("Personal SMTP"), host= "smtp.osafoundation.org", connectionSecurity = "TLS", useAuth = True, port = 587, username = 'demo1', password = 'ad3leib5' )
+        ap.VerifyValues("IMAP", uw("Personal IMAP"), host = "imap.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
  
         ## End Create accounts for Mail
         

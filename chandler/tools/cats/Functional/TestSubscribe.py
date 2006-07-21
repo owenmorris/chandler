@@ -42,7 +42,7 @@ class TestSubscribing(ChandlerTestCase):
         self.logger.endAction(True)
     
         # verification
-        ap.VerifyValues("WebDAV", uw("Subscribe Test WebDAV"), displayName = uw("Subscribe Test WebDAV"), host = "qacosmo.osafoundation.org", path = "home/demo1", username = "demo1", password="ad3leib5", port=8080)
+        ap.VerifyValues("WebDAV", uw("Subscribe Test WebDAV"), host = "qacosmo.osafoundation.org", path = "home/demo1", username = "demo1", password="ad3leib5", port=8080)
 
         # Subscribe dialog
         self.logger.startAction("Subscribe dialog")
