@@ -255,6 +255,12 @@ endif
 purge:
 	$(PYTHON_BIN) $(C_HOME)/tools/purge.py $(C_HOME)
 
+check:
+	$(PYTHON_BIN) $(C_HOME)/tools/checker.py
+
+lint:
+	$(PYTHON_BIN) $(C_HOME)/tools/lint.py
+
 print-%:
 	@echo $* = $($*)
 
