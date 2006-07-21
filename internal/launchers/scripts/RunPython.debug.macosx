@@ -28,7 +28,7 @@ else
     exit 1
 fi
 
-export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
+export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels:"$CHANDLERHOME"/tools
 export DYLD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib
 export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/debug/Library/Frameworks
 

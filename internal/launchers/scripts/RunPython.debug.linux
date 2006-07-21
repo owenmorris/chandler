@@ -22,7 +22,7 @@ else
     exit 1
 fi
 
-export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
+export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels:"$CHANDLERHOME"/tools
 export PYTHONHOME="$CHANDLERBIN"/debug
 export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib
 
