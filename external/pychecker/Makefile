@@ -9,7 +9,12 @@ include $(BUILD_ROOT)/Makefile.inc
 
 ifeq ($(OS),Cygwin)
 BIN=bin/Scripts
+MANIFEST=$(SNAP)/$(SITE)/pychecker \
+         $(SNAP)/$(BIN)/pychecker.bat
 else
+MANIFEST=$(SNAP)/$(SITE)/pychecker \
+         $(SNAP)/$(BIN)/pychecker
+
 ifeq ($(OS),Darwin)
 BIN=$(FRAMEWORK)/bin
 else
@@ -40,8 +45,7 @@ expand: pychecker-$(VERSION)-expanded
 binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(PYCHECKER)/$(TARBALL) \
         --exclude '*.py?' \
-        $(SNAP)/$(SITE)/pychecker \
-        $(SNAP)/$(BIN)/pychecker*
+        $(MANIFEST)
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
