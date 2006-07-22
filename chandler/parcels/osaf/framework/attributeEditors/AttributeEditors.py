@@ -1546,8 +1546,6 @@ class StringAttributeEditor (BaseAttributeEditor):
             sampleText = item.getAttributeAspect(attributeName, 'redirectTo');
             if sampleText is None:
                 sampleText = attributeName
-            if item.hasAttributeAspect (sampleText, 'displayName'):
-                sampleText = item.getAttributeAspect (sampleText, 'displayName')                  
         return sampleText
 
     def HasValue(self, item, attributeName):

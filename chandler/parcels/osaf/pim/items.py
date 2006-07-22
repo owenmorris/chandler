@@ -87,7 +87,7 @@ class ContentItem(schema.Item):
      - a Contact -- 'Terry Smith'
      - a Task -- 'mail 1040 to IRS'
     """
-    displayName = schema.One(schema.Text, displayName=_(u"Title"), indexed=True)
+    displayName = schema.One(schema.Text, indexed=True)
     body = schema.One(
         schema.Text,
         displayName=_(u"Body"),
