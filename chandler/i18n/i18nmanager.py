@@ -73,15 +73,15 @@ class I18nManager(object):
 
     def setRootPath(self, path):
         """
-           Set the root path under which the I18nManager runs.
-           This path is used to locale resources and 
-           optionally is used as part of the wxTranslation 
-           loading mechanism. If the root path is not explicitly
-           set it defaults to "."
+        Set the root path under which the I18nManager runs.
+        This path is used to locale resources and
+        optionally is used as part of the wxTranslation
+        loading mechanism. If the root path is not explicitly
+        set it defaults to "."
 
-           @type path: unicode or str
-           @param path: A filesystem path to the root directory that the
-                        I18nManager is run under
+        @type path: unicode or str
+        @param path: A filesystem path to the root directory that the
+                     I18nManager is run under
         """
         assert(path is not None)
 
@@ -95,18 +95,18 @@ class I18nManager(object):
 
     def setWxPath(self, path):
         """
-           Set the WxWidgets translation filesystem path.
-           Under this path be the following structure:
+        Set the WxWidgets translation filesystem path.
+        Under this path be the following structure:
 
-           $LOCALE_NAME/LC_MESSAGES/wxstd.mo
+        $LOCALE_NAME/LC_MESSAGES/wxstd.mo
 
-           Setting the wxPath is optional. But 
-           if not set the wx localizations files for 
-           the "wxstd" domain will not be loaded.
+        Setting the wxPath is optional. But 
+        if not set the wx localizations files for 
+        the "wxstd" domain will not be loaded.
 
-           @type path: unicode or str
-           @param path: A filesystem path to the directory
-                        that contains the wx translations
+        @type path: unicode or str
+        @param path: A filesystem path to the directory
+                     that contains the wx translations
         """
         assert(path is not None)
 
@@ -120,9 +120,9 @@ class I18nManager(object):
 
     def flushCache(self):
         """
-            Flushes the current resource path and translation per locale cache.
-            This should be called when a locale set has been changed during runtime
-            or to reload translations.
+        Flushes the current resource path and translation per locale cache.
+        This should be called when a locale set has been changed during runtime
+        or to reload translations.
         """
         del self._cache
         self._cache = {"RESOURCES": {}, "TRANSLATIONS": {}}
@@ -130,13 +130,13 @@ class I18nManager(object):
 
     def discoverLocaleSet(self):
         """
-            Queries the Operating System for the current locale sets.
-            The Operating System may return one or more locales. In the case
-            where more than one locale is returned the translation fallback will
-            try each locale in the set in order till a resource or translation is 
-            encountered.
+        Queries the Operating System for the current locale sets.
+        The Operating System may return one or more locales. In the case
+        where more than one locale is returned the translation fallback will
+        try each locale in the set in order till a resource or translation is 
+        encountered.
 
-            For .7 only the primary locale will be used.
+        For .7 only the primary locale will be used.
         """
 
         #     For .7 we will use wx to get the primary OS locale.
@@ -154,11 +154,11 @@ class I18nManager(object):
 
     def setLocaleSet(self, localeSet=None):
         """
-            Sets the current locale set for translation.
+        Sets the current locale set for translation.
 
-            @type localeSet: List
-            @param localeSet: an ordered  List of locale strings
-                              for example ['en_US', 'en']
+        @type localeSet: List
+        @param localeSet: an ordered  List of locale strings
+                          for example ['en_US', 'en']
         """
 
         assert isinstance(localeSet, ListType)
@@ -263,23 +263,23 @@ class I18nManager(object):
 
     def wxTranslate(self, defaultText):
         """
-           Returns the translation for the current localeset for the
-           WxWidgets "wxstd" domain.
+        Returns the translation for the current localeset for the
+        WxWidgets "wxstd" domain.
 
-           The WxWidgets localization path needs to be set
-           prior to calling wxTranslate via the setWxPath method.
-           Setting the wxPath tells the I18nManager how to 
-           find the wxstd.mo translation files.
+        The WxWidgets localization path needs to be set
+        prior to calling wxTranslate via the setWxPath method.
+        Setting the wxPath tells the I18nManager how to 
+        find the wxstd.mo translation files.
 
-           If the wx path has not been set wxTranslate will raise a
-           i18n.I18nException.
+        If the wx path has not been set wxTranslate will raise a
+        i18n.I18nException.
 
-           @type defaultText: unicode
-           @param defaultText: the unicode or ascii default key
+        @type defaultText: unicode
+        @param defaultText: the unicode or ascii default key
 
-            @rtype: unicode
-            @return: The translated unicode string for key defaultText 
-                      or defaultText itself if no translation found
+        @rtype: unicode
+        @return: The translated unicode string for key defaultText 
+                  or defaultText itself if no translation found
         """
 
         #if not self._initialized:
@@ -300,22 +300,22 @@ class I18nManager(object):
 
     def getImage(self, fileName, domain=None):
         """
-            Retrieves the localized image for the given domain.
-            A folder structure based on the ordered locale set of the domain
-            is searched for a image with the passed in fileName. When a match is
-            found an open file object for the resource is returned. This path is
-            then cached for future lookups. If no match is found for 
-            the given locale set and no default file with the 
-            fileName is found None is returned.
+        Retrieves the localized image for the given domain.
+        A folder structure based on the ordered locale set of the domain
+        is searched for a image with the passed in fileName. When a match is
+        found an open file object for the resource is returned. This path is
+        then cached for future lookups. If no match is found for 
+        the given locale set and no default file with the 
+        fileName is found None is returned.
 
-            @type fileName: unicode
-            @param fileName: The name of the file to return
+        @type fileName: unicode
+        @param fileName: The name of the file to return
 
-            @type domain: ASCII str
-            @param domain: unique ASCII domain name
+        @type domain: ASCII str
+        @param domain: unique ASCII domain name
 
-            @rtype: file or None
-            @return: An open file handle to the resource or None if no file found
+        @rtype: file or None
+        @return: An open file handle to the resource or None if no file found
         """
 
         if domain is None:
@@ -326,22 +326,22 @@ class I18nManager(object):
 
     def getHTML(self, fileName, domain=None):
         """
-            Retrieves the localized html file for the given domain.
-            A folder structure based on the ordered locale set of the domain
-            is searched for an html file with the passed in fileName. 
-            When a match is found an open file object for the resource is
-            returned. This path is then cached for future lookups. 
-            If no match is found for the given locale set
-            and no default file with the fileName is found None is returned.
+        Retrieves the localized html file for the given domain.
+        A folder structure based on the ordered locale set of the domain
+        is searched for an html file with the passed in fileName. 
+        When a match is found an open file object for the resource is
+        returned. This path is then cached for future lookups. 
+        If no match is found for the given locale set
+        and no default file with the fileName is found None is returned.
 
-            @type fileName: unicode
-            @param fileName: The name of the file to return
+        @type fileName: unicode
+        @param fileName: The name of the file to return
 
-            @type domain: ASCII str
-            @param domain: unique ASCII domain name
+        @type domain: ASCII str
+        @param domain: unique ASCII domain name
 
-            @rtype: file or None
-            @return: An open file handle to the resource or None if no file found
+        @rtype: file or None
+        @return: An open file handle to the resource or None if no file found
         """
 
         if domain is None:
@@ -352,22 +352,22 @@ class I18nManager(object):
 
     def getAudio(self, fileName, domain=None):
         """
-            Retrieves the localized audio file for the given domain.
-            A folder structure based on the ordered locale set of the domain
-            is searched for an audio file with the passed in fileName. 
-            When a match is found an open file object for the 
-            resource is returned. This path is then cached for 
-            future lookups. If no match is found for the given locale set
-            and no default file with the fileName is found None is returned.
+        Retrieves the localized audio file for the given domain.
+        A folder structure based on the ordered locale set of the domain
+        is searched for an audio file with the passed in fileName. 
+        When a match is found an open file object for the 
+        resource is returned. This path is then cached for 
+        future lookups. If no match is found for the given locale set
+        and no default file with the fileName is found None is returned.
 
-            @type fileName: unicode
-            @param fileName: The name of the file to return
+        @type fileName: unicode
+        @param fileName: The name of the file to return
 
-            @type domain: ASCII str
-            @param domain: unique ASCII domain name
+        @type domain: ASCII str
+        @param domain: unique ASCII domain name
 
-            @rtype: file or None
-            @return: An open file handle to the resource or None if no file found
+        @rtype: file or None
+        @return: An open file handle to the resource or None if no file found
         """
 
         if domain is None:
@@ -378,28 +378,28 @@ class I18nManager(object):
 
     def getResource(self, relPath, fileName, domain=None):
         """
-            Generic method for looking up localized resources.
-            retrieves the localized file for the given domain 
-            and relative file path. A folder structure based on 
-            the ordered locale set of the domain is searched for 
-            a resource with the passed in fileName. When a match is
-            found an open file object for the resource is returned. 
-            This path is then cached for future lookups. 
-            If no match is found for the given locale set and 
-            no default file with the fileName is found None is returned.
+        Generic method for looking up localized resources.
+        retrieves the localized file for the given domain 
+        and relative file path. A folder structure based on 
+        the ordered locale set of the domain is searched for 
+        a resource with the passed in fileName. When a match is
+        found an open file object for the resource is returned. 
+        This path is then cached for future lookups. 
+        If no match is found for the given locale set and 
+        no default file with the fileName is found None is returned.
 
-            @type relPath: unicode
-            @param relPath: The relative file path in
-                           relation to the domain file path
+        @type relPath: unicode
+        @param relPath: The relative file path in
+                        relation to the domain file path
 
-            @type fileName: unicode
-            @param fileName: The name of the file to return
+        @type fileName: unicode
+        @param fileName: The name of the file to return
 
-            @type domain: ASCII str
-            @param domain: unique ASCII domain name
+        @type domain: ASCII str
+        @param domain: unique ASCII domain name
 
-            @rtype: file or None
-            @return: An open file handle to the resource or None if no file found
+        @rtype: file or None
+        @return: An open file handle to the resource or None if no file found
         """
 
         if domain is None:

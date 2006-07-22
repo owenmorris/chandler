@@ -14,15 +14,16 @@
 
 
 """
-The util.timing module is a simple way to time critical sections of your
-code.  By placing begin() and end() calls around the sections you want to time,
-you can get a report of how many times that section was called, total time,
-and average time -- a lightweight profiler.  The begin() and end() methods
-take a name parameter that is a string which describes the operation you
-are timing -- make sure they match! -- that will appear in the report printed
-by the results() method.
+The util.timing module is a simple way to time critical sections
+of your code.  By placing begin() and end() calls around the sections
+you want to time, you can get a report of how many times that section
+was called, total time, and average time -- a lightweight profiler.
 
-Example:
+The begin() and end() methods take a name parameter that is a string
+which describes the operation you are timing -- make sure they match!
+That string will appear in the report printed by the results() method.
+
+Example::
 
     import util.timing
 
@@ -52,11 +53,12 @@ Example:
     Totals:                          1460  8.429  0.006
 
 
-Gotchas:
+Gotchas::
 
-- Recursion isn't handled (you will get an assert if you try to call begin()
-on the same label without an intervening end())
-- The grand total will be inflated if any of the timed sections are nested.
+    - Recursion isn't handled (you will get an assert if you try to
+      call begin() on the same label without an intervening end())
+    - The grand total will be inflated if any of the timed sections
+      are nested.
 """
 
 import time

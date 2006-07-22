@@ -167,7 +167,7 @@ class Block(schema.Item):
         @param arguments: arguments to pass to the event
         @type arguments: a C{dict}
         @param sender: the block that sent the event
-        @type arguments: a C{Block}
+        @type sender: a C{Block}
         @return: the value returned by the event handler
         """
         try:
