@@ -458,7 +458,7 @@ class CalendarEventMixin(RemindableMixin):
 
     # Redirections
 
-    whoFrom = schema.One(redirectTo="organizer", displayName=_(u'Who'))
+    whoFrom = schema.One(redirectTo="organizer")
     about = schema.One(redirectTo="displayName")
     date = schema.One(redirectTo="startTime")
 

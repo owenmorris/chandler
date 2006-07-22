@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 class PhotoMixin(pim.ContentItem):
     schema.kindInfo(displayAttribute="displayName")
-    dateTaken = schema.One(schema.DateTime, displayName=_(u"taken"))
+    dateTaken = schema.One(schema.DateTime)
     file = schema.One(schema.Text)
     exif = schema.Mapping(schema.Text, initialValue={})
     photoBody = schema.One(schema.Lob)

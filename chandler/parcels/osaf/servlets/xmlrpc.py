@@ -81,7 +81,7 @@ class XmlRpcResource(xmlrpc.XMLRPC):
     def xmlrpc_note(self, title, body, viewName=None):
         view = getServletView(self.repositoryView.repository, viewName)
         view.refresh()
-        note = pim.Note(itsView=view, displayName=title)
+        note = pim.Note(itsView=view)
         note.body = note.getAttributeAspect('body', 'type').makeValue(body,
             indexed=True)
         view.commit()

@@ -51,19 +51,19 @@ class SimpleItem(schema.Item):
     A dirt simple item -- think content item here, if you like
     """
 
-    label = schema.One(schema.Text, displayName=uw("My Label"))
+    label = schema.One(schema.Text)
     collections = schema.Sequence(otherName='inclusions')
     appearsIn = schema.Sequence(otherName='set')
 
 class ChildSimpleItem(SimpleItem):
-    childData = schema.One(schema.Text, displayName=uw("Child data"))
+    childData = schema.One(schema.Text)
 
 class OtherSimpleItem(schema.Item):
     """
     Another dirt simple item -- think content item here, if you like
     """
 
-    label = schema.One(schema.Text, displayName=uw("My Label"))
+    label = schema.One(schema.Text)
     collections = schema.Sequence(otherName='inclusions')
     appearsIn = schema.Sequence(otherName='set')
 

@@ -58,7 +58,7 @@ class TestFeedIndexing(testcase.SingleRepositoryTestCase):
         # duplicate, then pass the 'multiple=True' arg to indexLookup.
 
         url = URL('http://www.osafoundation.org/archives/000964.html')
-        item = feeds.FeedItem(itsView=view, displayName="Duplicate", link=url)
+        item = feeds.FeedItem(itsView=view, link=url)
         channel.add(item)
 
         items = indexes.valueLookup(channel, 'link', 'link', url, multiple=True)

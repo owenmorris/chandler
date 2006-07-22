@@ -67,7 +67,6 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
 class RepositoryItemDetail(ControlBlocks.ItemDetail):
 
     def getHTMLText(self, item):
-        print self.widget.GetMinWidth(), self.widget.GetMinHeight()
         def formatReference(reference):
             """
             Formats the a reference attribute to be clickable, etcetera

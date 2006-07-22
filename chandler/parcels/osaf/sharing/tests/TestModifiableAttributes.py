@@ -30,13 +30,13 @@ class TestModifiableAttributes(testcase.NRVTestCase):
 
         # We need a currentContact set for isAttributeModifiable to work;
         # normally this is set by the app
-        me = pim.Contact(itsView=view, displayName=u'me',
-            references=[schema.ns('osaf.pim', view).currentContact]
+        me = pim.Contact(itsView=view,
+                         references=[schema.ns('osaf.pim', view).currentContact]
         )
 
         # Add the subject to a read-only share:
 
-        share_ro = sharing.Share(itsView=view, displayName=uw("share_ro"))
+        share_ro = sharing.Share(itsView=view)
         share_ro.mode = 'get'
 
         e1.sharedIn.append(share_ro)

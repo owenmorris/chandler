@@ -140,7 +140,7 @@ class Resource(schema.Item):
          server.
     """
 
-    location = schema.One(schema.Text, displayName=_(u"Location"))
+    location = schema.One(schema.Text)
 
     server = schema.One(
         Server,
@@ -281,9 +281,9 @@ class Directory(schema.Item):
          server attribute to a web server item.
     """
 
-    location = schema.One(schema.Text, displayName=_(u"Location"))
+    location = schema.One(schema.Text)
 
-    path = schema.One(schema.Text, displayName=_(u"Path"))
+    path = schema.One(schema.Text,)
 
     module = schema.One(schema.Text,
         doc = "In order to find the filesystem directory to associate with "

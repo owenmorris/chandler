@@ -2362,7 +2362,7 @@ class WebDAVAccount(pim.ContentItem):
             "mappings.\n",
     )
     username = schema.One(
-        schema.Text, displayName = messages.USERNAME, initialValue = u'',
+        schema.Text, initialValue = u'',
     )
     password = schema.One(
         schema.Text,
