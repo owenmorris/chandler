@@ -70,7 +70,6 @@ src=chandler
 dest=
 Chandler.py
 version.py
-run_tests.py
 LICENSE.txt
 WingWindowsRelease.wpr
 

@@ -54,7 +54,6 @@ src=chandler
 dest=Contents/Resources
 Chandler.py
 version.py
-run_tests.py
 LICENSE.txt
 WingMacRelease.wpr
 
