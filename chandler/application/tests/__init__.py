@@ -29,7 +29,7 @@ __all__ = [
 
 def suite():
     """Unit test suite; run by testing 'application.tests.suite'"""
-    from run_tests import ScanningLoader
+    from tools.run_tests import ScanningLoader
     from unittest import defaultTestLoader, TestSuite
     loader = ScanningLoader()
     return TestSuite(

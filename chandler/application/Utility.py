@@ -157,6 +157,26 @@ def getDesktopDir():
         return desktopDir
     return homeDir
 
+def getPlatformName():
+    import platform
+
+    platformName = 'Unknown'
+
+    if os.name == 'nt':
+        platformName = 'Windows'
+    elif os.name == 'posix':
+        if sys.platform == 'darwin':
+            if platform.processor() == 'i386':
+                platformName = 'Mac OS X (intel)'
+            else:
+                platformName = 'Mac OS X (ppc)'
+        elif sys.platform == 'cygwin':
+            platformName = 'Windows (Cygwin)'
+        else:
+            platformName = 'Linux'
+
+    return platformName
+
 def initOptions(**kwds):
     """
     Load and parse the command line options, with overrides in **kwds.

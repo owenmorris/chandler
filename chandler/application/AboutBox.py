@@ -17,6 +17,7 @@ import webbrowser
 import wx, wx.html, os, sys
 from i18n import OSAFMessageFactory as _
 import i18n
+import Utility
 import Globals
 
 class AboutBox(wx.Dialog):
@@ -106,13 +107,14 @@ def _getDefaultHTML():
 
     replaceValues = {
 
-    "pix": _getRelImagePath("pixel.gif"),
-    "ab":  _getRelImagePath("about.png"),
-    "ver": _("Version: %(versionNumber)s") % {"versionNumber": version},
-    "abt": _("About Chandler"),
-    "ex":  _("Experimentally usable calendar"),
-    "ch":  _("Chandler"),
-    "osa": _("Open Source Applications Foundation"),
+    "pix":  _getRelImagePath("pixel.gif"),
+    "ab":   _getRelImagePath("about.png"),
+    "ver":  _("Version: %(versionNumber)s") % {"versionNumber": version},
+    "abt":  _("About Chandler"),
+    "ex":   _("Experimentally usable calendar"),
+    "plat": Utility.getPlatformName(),
+    "ch":   _("Chandler"),
+    "osa":  _("Open Source Applications Foundation"),
     "loc":  _("For more info: %(chandlerWebURL)s") % \
            {"chandlerWebURL": "<a href=\"http://chandler.osafoundation.org\">chandler.osafoundation.org</a>"},
     #This is a bummer the % in the width attribute was causing the
@@ -138,6 +140,7 @@ def _getDefaultHTML():
 <tr><td><center><font face="verdana, arial, helvetica, sans-serif" size="4" color="black"><strong>%(ch)s</strong></font></center></td></tr>
 <tr><td><img src="%(pix)s" width="1" height="15"></td></tr>
 <tr><td><center><font face="helvetica, arial, sans-serif" size="2" color="black">%(ver)s</font></center></td></tr>
+<tr><td><center><font face="helvetica, arial, sans-serif" size="2" color="black">%(plat)s</font></center></td></tr>
 <tr><td><img src="%(pix)s" width="1" height="2"></td></tr>
 <tr><td><center><font face="helvetica, arial, sans-serif" size="2" color="black"> %(loc)s </font></center></td></tr>
 <tr><td><img src="%(pix)s" width="1" height="10"></td></tr>

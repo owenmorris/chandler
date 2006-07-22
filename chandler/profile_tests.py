@@ -40,7 +40,7 @@ or the 'pstats' module chapter of your Python manual.
 """
 
 import sys
-from run_tests import ScanningLoader
+from tools.run_tests import ScanningLoader
 from unittest import main
 from hotshot import Profile
 from hotshot.stats import load

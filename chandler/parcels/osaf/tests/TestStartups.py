@@ -82,6 +82,6 @@ if __name__=='__main__':
         signal(SIGALRM, timeout)
         alarm(90)
 
-    from run_tests import ScanningLoader
+    from tools.run_tests import ScanningLoader
     unittest.main(testLoader = ScanningLoader())
 
