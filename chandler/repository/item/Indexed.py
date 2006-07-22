@@ -229,7 +229,7 @@ class Indexed(object):
                         if key in index:
                             moves.append(key)
                         else:
-                            insertions.append(ley)
+                            insertions.append(key)
                 elif key in index:
                     index.removeKey(key)
 
