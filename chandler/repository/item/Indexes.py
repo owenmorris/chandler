@@ -124,6 +124,34 @@ class Index(dict):
     def _needsReindexing(self):
         return False
 
+    def _checkIndex(self, _index, logger, name, value, item, attribute, count):
+
+        result = True
+
+        if count != len(self):
+            logger.error("Lengths of index '%s' (%d) installed on value '%s' (%d) of type %s in attribute %s on %s don't match", name, len(self), value, count, type(value), attribute, item._repr_())
+            result = False
+
+        else:
+            size, result = _index._checkIterateIndex(logger, name, value,
+                                                     item, attribute)
+            if size != 0:
+                logger.error("Iteration of index '%s' (%d) installed on value '%s' of type %s in attribute %s on %s doesn't match length (%d)", name, count - size, value, type(value), attribute, item._repr_(), count)
+                result = False
+
+        return result
+
+    def _checkIterateIndex(self, logger, name, value, item, attribute):
+        
+        size = len(self)
+
+        for key in self:
+            size -= 1
+            if size < 0:
+                break
+
+        return size, True
+
 
 class NumericIndex(Index):
     """
@@ -516,7 +544,42 @@ class SortedIndex(DelegatingIndex):
         self._subIndexes.remove((uuid, attr, name))
 
     def _needsReindexing(self):
+
         return True
+
+    def _checkIndex(self, _index, logger, name, value, item, attribute, count):
+
+        return self._index._checkIndex(self, logger, name, value,
+                                       item, attribute, count)
+
+    def _checkIterateIndex(self, logger, name, value, item, attribute):
+
+        size = len(self)
+        prevKey = None
+        result = True
+
+        compare = self.compare
+        descending = self._descending
+        if descending:
+            word = 'lesser'
+        else:
+            word = 'greater'
+
+        for key in self:
+            size -= 1
+            if size < 0:
+                break
+            if prevKey is not None:
+                if descending:
+                    sorted = compare(prevKey, key) >= 0
+                else:
+                    sorted = compare(prevKey, key) <= 0
+                if not sorted:
+                    logger.error("Sorted index '%s' installed on value '%s' of type %s in attribute %s on %s is not sorted properly: value for %s is %s than the value for %s", name, value, type(value), attribute, item._repr_(), repr(prevKey), word, repr(key))
+                    result = False
+            prevKey = key
+
+        return size, result
 
 
 class AttributeIndex(SortedIndex):
