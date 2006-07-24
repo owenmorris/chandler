@@ -1032,7 +1032,7 @@ class References(Values):
                 if name in dirties:
                     if value is Nil:
                         view._e_3_overlap(MergeError.REF, self._item, name)
-                    elif value._isRefs():
+                    elif value is not None and value._isRefs():
                         if value._isSet():
                             newChanges[name] = ('set', value)
                             changes[name] = {}
@@ -1053,7 +1053,7 @@ class References(Values):
                 else:
                     if value is Nil:
                         newChanges[name] = ('nil', Nil)
-                    elif value._isRefs():
+                    elif value is not None and value._isRefs():
                         if value._isSet():
                             newChanges[name] = ('set', value)
                             value._collectIndexChanges(name, indexChanges)
