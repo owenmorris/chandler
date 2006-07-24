@@ -472,6 +472,8 @@ class References(Values):
                 self[name] = value = item._refList(name, otherName)
             elif cardinality == 'dict':
                 self[name] = value = RefDict(item, name, otherName)
+            elif cardinality == 'set':
+                raise NoValueForAttributeError, (item, name)
             elif cardinality != 'single':
                 raise ValueError, cardinality
 
