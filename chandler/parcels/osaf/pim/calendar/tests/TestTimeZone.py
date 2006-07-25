@@ -352,7 +352,7 @@ class CoerceTimeZoneTestCase(AbstractTimeZoneTestCase):
 
 def suite():
     """Unit test suite; run by testing 'parcels.osaf.sharing.tests.suite'"""
-    from tools.run_tests import ScanningLoader
+    from util.test_finder import ScanningLoader
     from unittest import defaultTestLoader, TestSuite
     loader = ScanningLoader()
     return TestSuite(

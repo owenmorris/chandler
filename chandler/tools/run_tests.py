@@ -1,31 +1,32 @@
-"""run_tests.py -- Run specified tests or suites
+"""
+run_tests.py -- Run specified tests or suites
 
 Usage
 -----
 
 Run tests in a specific module::
 
-    RunPython -m run_tests repository.tests.TestText
+    RunPython ./tools/run_tests.py repository.tests.TestText
 
 Run a specific test class::
 
-    RunPython -m run_tests repository.tests.TestText.TestText
+    RunPython ./tools/run_tests.py repository.tests.TestText.TestText
 
 Run a specific test method::
 
-    RunPython -m run_tests repository.tests.TestText.TestText.testAppend
+    RunPython ./tools/run_tests.py repository.tests.TestText.TestText.testAppend
 
 Run all tests in a suite::
 
-    RunPython -m run_tests application.tests.TestSchemaAPI.suite
+    RunPython ./tools/run_tests.py application.tests.TestSchemaAPI.suite
 
 Run all tests in all modules in a package and its sub-packages::
 
-    RunPython -m run_tests application.tests
+    RunPython ./tools/run_tests.py application.tests
 
 Run all tests in Chandler::
 
-    RunPython -m run_tests application crypto osaf repository
+    RunPython ./tools/run_tests.py application crypto osaf repository
 
 
 A '-v' option can be included after 'run_tests' to print the name and
@@ -45,48 +46,18 @@ Logging is configured in the same manner as for Chandler or headless.py,
 i.e. by setting the CHANDLERLOGCONFIG environment variable or the -L <file>
 command line argument to specify a logging configuration file.  For example:
 
-    RunPython -m run_tests -L custom.conf -v application osaf
+    RunPython ./tools/run_tests.py -L custom.conf -v application osaf
 
 (Note: specifying package names on the 'run_tests' command line will
 cause *all* modules in all sub-packages of that package to be imported.)
 
 """
 
-import sys, os
+import sys
 
-from unittest import TestLoader, main
+from unittest import main
 from application import Utility
-
-class ScanningLoader(TestLoader):
-
-    def loadTestsFromModule(self, module):
-        """Return a suite of all tests cases contained in the given module"""
-
-        tests = [TestLoader.loadTestsFromModule(self,module)]
-
-        if hasattr(module, "additional_tests"):
-            tests.append(module.additional_tests())
-
-        if hasattr(module, '__path__'):
-            for dir in module.__path__:
-                for file in os.listdir(dir):
-                    if file.endswith('.py') and file!='__init__.py':
-                        if file.lower().startswith('test'):
-                            submodule = module.__name__+'.'+file[:-3]
-                        else:
-                            continue
-                    else:
-                        subpkg = os.path.join(dir,file,'__init__.py')
-                        if os.path.exists(subpkg):
-                            submodule = module.__name__+'.'+file
-                        else:
-                            continue
-                    tests.append(self.loadTestsFromName(submodule))
-
-        if len(tests)>1:
-            return self.suiteClass(tests)
-        else:
-            return tests[0] # don't create a nested suite for only one return
+from util import test_finder
 
 
 if __name__ == '__main__':
@@ -109,6 +80,5 @@ if __name__ == '__main__':
     # options.args has all the leftover arguments from Utility
     sys.argv = args + options.args
 
-
-    main(module=None, testLoader=ScanningLoader())
+    main(module=None, testLoader=test_finder.ScanningLoader())
 

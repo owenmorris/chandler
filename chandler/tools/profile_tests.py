@@ -1,23 +1,24 @@
-"""profile_tests.py -- Profile specified tests or suites
+"""
+profile_tests.py -- Profile specified tests or suites
 
 Usage
 -----
 
 Profile tests in a specific module::
 
-    RunPython -m profile_tests repository.tests.TestText
+    RunPython ./tools/profile_tests.py repository.tests.TestText
 
 Profile a specific test class::
 
-    RunPython -m profile_tests repository.tests.TestText.TestText
+    RunPython ./tools/profile_tests.py repository.tests.TestText.TestText
 
 Profile a specific test method::
 
-    RunPython -m profile_tests repository.tests.TestText.TestText.testAppend
+    RunPython ./tools/profile_tests.py repository.tests.TestText.TestText.testAppend
 
 Profile all tests in a suite::
 
-    RunPython -m profile_tests repository.tests.suite
+    RunPython ./tools/profile_tests.py repository.tests.suite
 
 By default, the top 10 routines (by time consumed) will be printed,
 and the profile statistics will be saved in 'profile.dat'.  However, if
@@ -40,7 +41,7 @@ or the 'pstats' module chapter of your Python manual.
 """
 
 import sys
-from tools.run_tests import ScanningLoader
+from util.test_finder import ScanningLoader
 from unittest import main
 from hotshot import Profile
 from hotshot.stats import load
@@ -55,13 +56,13 @@ if __name__ == '__main__':
         sys.exit(2)
 
     stats_file = "profile.dat"
-    
+
     try:
         ProfilingMain(module=None, testLoader=ScanningLoader())
     except SystemExit:
         # prevent unittest.main() from forcing an early exit
         pass
-    
+
     s = load(stats_file)
     s.sort_stats("time")
     s.print_stats(10)

@@ -34,7 +34,7 @@ def additional_tests():
 if __name__=='__main__':
     # This module can't be safely run as __main__, so it has to be re-imported
     # and have *that* copy run.
-    from tools.run_tests import ScanningLoader
+    from util.test_finder import ScanningLoader
     unittest.main(
         module=None, testLoader = ScanningLoader(),
         argv=["unittest", this_module]
