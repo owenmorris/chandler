@@ -1051,7 +1051,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
     )
 
     def _mapItemToCacheKeyItem(self, item, hints):
-        assert isinstance (item, ContentCollection) # The sidebar can only contain ContentCollections
+        assert item is None or isinstance (item, ContentCollection) # The sidebar can only contain ContentCollections
         key = item
         sidebar = Block.Block.findBlockByName ("Sidebar")
         """
