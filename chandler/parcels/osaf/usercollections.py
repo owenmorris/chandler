@@ -108,7 +108,7 @@ def installParcel(parcel, oldVersion=None):
     allUC = UserCollection(pim_ns.allCollection)
     allUC.setValues(renameable=False,
                     outOfTheBoxCollection=True,
-                    allowOverlay = False, # bug 5818
+                    allowOverlay = True,
                     displayNameAlternatives = \
                     {'None': _(u'My items'),
                      'MailMessageMixin': _(u'My mail'),

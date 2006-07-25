@@ -1091,8 +1091,21 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             if key is None:
                 # we don't have a cached version of this key, so we'll
                 # create a new one
-                if len (collectionList) == 1:
-                    key = collectionList [0]
+
+                # Bug 5884: in order to overlay the allCollection remove
+                # all 'mine' collections already included in collectionList.
+                # Their inclusion in collectionList would be duplicated by
+                # the inclusion of the allCollection and would invalidate
+                # the resulting union.
+                if len(collectionList) > 1:
+                    pim_ns = schema.ns('osaf.pim', self.itsView)
+                    if pim_ns.allCollection in collectionList:
+                        mineCollections = pim_ns.mine.sources
+                        collectionList = [c for c in collectionList
+                                          if c not in mineCollections]
+
+                if len(collectionList) == 1:
+                    key = collectionList[0]
                 else:
                     # eventually it would be nice to just make a
                     # Union here, but we need to make sure each

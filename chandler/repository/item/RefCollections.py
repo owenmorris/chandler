@@ -727,7 +727,8 @@ class RefList(LinkedMap, Indexed):
         return hash
 
     def _inspect_(self, indent):
-        return ''
+        return "\n%s<RefList> %s<->%s" %('  ' * indent,
+                                         self._name, self._otherName)
 
     def iterItems(self):
         return self.itervalues()

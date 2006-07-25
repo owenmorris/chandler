@@ -2384,13 +2384,13 @@ class Item(CItem):
         indexes = collection._indexes
 
         if indexes is None:
-            indexes = ''
+            return "\n%s%s%s" %('  ' * indent, self._repr_(),
+                                collection._inspect_(indent + 1))
         else:
             indexes = ', '.join((str(t) for t in indexes.iteritems()))
-
-        return "\n%s%s\n%sindexes: %s%s" %('  ' * indent, self._repr_(),
-                                           '  ' * (indent + 1), indexes,
-                                           collection._inspect_(indent + 1))
+            return "\n%s%s\n%sindexes: %s%s" %('  ' * indent, self._repr_(),
+                                               '  ' * (indent + 1), indexes,
+                                               collection._inspect_(indent + 1))
 
 
 class MissingClass(Item):
