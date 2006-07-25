@@ -142,7 +142,10 @@ def fork_item(item_or_view, name=None, version=None):
     if view.repository is None:
         return item_or_view     # for NullRepositoryView, use old item
 
-    new_view = view.repository.createView(name, version)
+    new_view = view.repository.createView(
+        name or getattr(item_or_view, 'itsName', None), 
+        version
+        )
     item = new_view.findUUID(item_or_view.itsUUID)
 
     if item is None:
