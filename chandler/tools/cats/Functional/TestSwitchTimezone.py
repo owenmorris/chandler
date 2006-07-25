@@ -16,15 +16,18 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 
 from PyICU import ICUtzinfo
+from osaf.pim.calendar.TimeZone import TimeZoneInfo
 
 class TestSwitchTimezone(ChandlerTestCase):
 
     def startTest(self):
         
-        originalTz = ICUtzinfo.default.tzid
-        switchTz = "US/Hawaii"
-    
         calendarBlock = getattr(self.app_ns, "MainCalendarControl")
+    
+        # Find the "canonical timezone" to use in test comparisons
+        info = TimeZoneInfo.get(self.app_ns.itsView)
+        originalTz = info.canonicalTimeZone(ICUtzinfo.default).tzid
+        switchTz = "US/Hawaii"
     
         # Enable timezones so that we can switch from the UI
         self.app_ns.root.EnableTimezones()
