@@ -53,13 +53,11 @@ class Server(schema.Item):
 
     port = schema.One(
         schema.Integer,
-        displayName=_(u"Port"),
         doc="The port to listen on"
     )
 
     path = schema.One(
         schema.Text,
-        displayName=_(u"Path"),
         doc="The filesystem path pointing to the server's doc root.  This "
             "path is relative to the current working directory, or it can "
             "be absolute"
@@ -67,14 +65,12 @@ class Server(schema.Item):
 
     resources = schema.Sequence(
         initialValue=(),
-        displayName=_(u"Resources"),
         doc = "You may define custom twisted resources and associate them "
               "with this server"
     )
 
     directories = schema.Sequence(
         initialValue=(),
-        displayName=_(u"Directories"),
         doc = "You may specify other file system directories which will be "
               "used to server specific URL locations.  (See the Directory "
               "Kind)"
@@ -144,7 +140,6 @@ class Resource(schema.Item):
 
     server = schema.One(
         Server,
-        displayName=_(u"Server"),
         initialValue=None,
         inverse=Server.resources
     )
@@ -157,7 +152,6 @@ class Resource(schema.Item):
 
     resourceClass = schema.One(
         schema.Class,
-        displayName=u"Resource Class",
         initialValue=None)
 
     def getResource(self):
@@ -295,7 +289,6 @@ class Directory(schema.Item):
 
     server = schema.One(
         Server,
-        displayName=_(u"Server"),
         initialValue=None,
         inverse=Server.directories
     )

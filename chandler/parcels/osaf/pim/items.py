@@ -56,21 +56,20 @@ class TriageEnum(schema.Enumeration):
     values = "now", "later", "done"
 
 class Calculated(property):
-    """ 
-    A property with type information, in the style of our schema.* objects. 
+    """
+    A property with type information, in the style of our schema.* objects.
     - This could become a schema class when it grows up :-)
     - I'm open to a different name: I think it oughta be schema.Property, but pje
     thought Calculated was better...
     """
-    def __new__(cls, schema_type, displayName, basedOn, fget, fset=None, fdel=None, 
+    def __new__(cls, schema_type, basedOn, fget, fset=None, fdel=None,
                 doc=None):
         return property.__new__(cls, fget, fset, fdel, doc)
-    
-    def __init__(self, schema_type, displayName, basedOn, fget, fset=None, fdel=None, 
+
+    def __init__(self, schema_type, basedOn, fget, fset=None, fdel=None,
                  doc=None):
         property.__init__(self, fget, fset, fdel, doc)
         self.type = schema_type
-        self.displayName = displayName
         self.basedOn = basedOn
 
 
@@ -90,7 +89,6 @@ class ContentItem(schema.Item):
     displayName = schema.One(schema.Text, indexed=True)
     body = schema.One(
         schema.Text,
-        displayName=_(u"Body"),
         indexed = True,
         defaultValue = _(u""),
         doc="All Content Items may have a body to contain notes.  It's "
@@ -103,24 +101,20 @@ class ContentItem(schema.Item):
 
     creator = schema.One(
         # Contact
-        displayName=_(u"creator"),
         doc="Link to the contact who created the item."
     )
 
     modifiedOn = schema.One(
         schema.DateTimeTZ,
-        displayName=_(u"Last Modified"),
         doc="DateTime this item was last modified"
     )
 
     lastModifiedBy = schema.One(
         # Contact
-        displayName=_(u"Last Modified By"),
         doc="Link to the contact who last modified the item.",
     )
 
     importance = schema.One(ImportanceEnum,
-        displayName=u"Importance",
         doc="Most items are of normal importance (no value need be show), "
             "however some things may be flagged either highly important or "
             "merely 'fyi'. This attribute is also used in the mail schema, so "
@@ -150,7 +144,6 @@ class ContentItem(schema.Item):
 
     createdOn = schema.One(
         schema.DateTimeTZ,
-        displayName=_(u"Created"),
         doc="DateTime this item was created"
     )
 
@@ -160,20 +153,17 @@ class ContentItem(schema.Item):
 
     tags = schema.Sequence(
         'Tag',
-        displayName=u'Tags',
         description='All the Tags associated with this ContentItem',
         inverse='items',
         initialValue=[]
     )
 
     notifications = schema.Sequence('UserNotification',
-        displayName=u'User Notifications',
         description='All notifications for this ContentItem',
         initialValue=[]
     )
 
     triageStatus = schema.One(TriageEnum, indexed=True,
-                              displayName=_(u"Triage Status"),
                               initialValue="now")
 
     # We haven't ported the "other end" of these links, so we have to use
@@ -243,26 +233,26 @@ class ContentItem(schema.Item):
 
     def addToCollection(self, collection):
         """Add self to the given collection.
-        
+
         For most items, just call collection.add(self), but for recurring
         events, this method is intercepted by a proxy and buffered while the
         user selects from various possible meanings for adding a recurring event
         to a collection.
-        
+
         """
         collection.add(self)
-        
+
     def removeFromCollection(self, collection, cutting = False):
         """Remove self from the given collection.
-        
+
         For most items, just call collection.remove(self), but for recurring
         events, this method is intercepted by a proxy and buffered while the
         user selects from various possible meanings for removing a recurring
         event from a collection.
-        
+
         Cutting is typically equivalent to remove, but recurrence has different
         behavior for cutting operations than delete.
-        
+
         """
         collection.remove(self)
 
@@ -296,15 +286,15 @@ class ContentItem(schema.Item):
         """
         newKind = self._findStampedKind (operation, mixinKind)
         addedKinds = self._addedKinds (newKind, operation, mixinKind)
-        
+
         all = schema.ns("osaf.pim", self.itsView).allCollection
         inAllBeforeStamp = self in all
-        
+
         if newKind is not None:
             self.itsKind = newKind
         else:
             self.mixinKinds ((operation, mixinKind)) # create a class on-the-fly
-            
+
         # [Bug:6151] If you unstamp a received email, it stops being in the "In"
         # collection, and is therefore no longer "mine", and disappears
         # completely. So, for now explicitly add self back to the all collection
@@ -313,7 +303,7 @@ class ContentItem(schema.Item):
             all.add(self)
 
         self._stampPostProcess (addedKinds) # initialize attributes of added kinds
-        
+
         # make sure the respository knows about the item's new Kind
         #  to trigger updates in the UI.
         # @@@BJS: I'm pretty sure this isn't necessary, so I'm commenting it out to speed things up.
@@ -347,7 +337,7 @@ class ContentItem(schema.Item):
     a preexisting Kind solves a few esoteric problems for us:
         1) Unifies class ordering.  We'd like a task item stamped as mail to be
             the same as a mail item stamped as a task.  The class order is
-            important because we have multiple definitions of the redirectTo 
+            important because we have multiple definitions of the redirectTo
             attributes.
         2) Implements our "synergy mixin" requirement.  When an item is both
             a task and an event it gains an additional set of attributes
@@ -501,7 +491,7 @@ class ContentItem(schema.Item):
         from osaf.pim.contacts import ContactName
         """
         return unicode(item.who)
-        @@@DLD - XMLRefDicts that have EmailAddress items should 
+        @@@DLD - XMLRefDicts that have EmailAddress items should
                  know how to convert themselves to string
         """
         try:
@@ -603,12 +593,12 @@ class ContentItem(schema.Item):
                 for name in names[:-1]:
                     item = getattr(item, name)
                 return item.getBasedAttributes(names[-1])
-        
-        # Not redirected. If it's Calculated, see what it's based on; 
+
+        # Not redirected. If it's Calculated, see what it's based on;
         # otherwise, just return a list containing its own name.
         descriptor = getattr(self.__class__, attribute, None)
         return getattr(descriptor, 'basedOn', (attribute,))
-    
+
     def isAttributeModifiable(self, attribute):
         # fast path -- item is unshared; have at it!
         if not self.sharedIn:
@@ -630,7 +620,7 @@ class ContentItem(schema.Item):
                 else:                               # read-only share
                     # We found a read-only share; this attribute isn't
                     # modifiable if it's one of the attributes shared for
-                    # this item in this share. (First, map this attribute to 
+                    # this item in this share. (First, map this attribute to
                     # the 'real' attributes it depends on, if we haven't yet.)
                     if basedAttributeNames is None:
                         basedAttributeNames = self.getBasedAttributes(attribute)
@@ -658,18 +648,18 @@ class StampNotPresentError(ValueError):
 
 class _SuperKindSignature(list):
     """
-    A list of unique superkinds, used as a signature to identify 
+    A list of unique superkinds, used as a signature to identify
     the structure of a Kind for stamping.
     The signature is the list of twig node superkinds of the Kind.
     Using a tree analogy, a twig is the part farthest from the leaf
     that has no braching.
 
-    Specifically, a twig node in the SuperKind hierarchy is a node 
+    Specifically, a twig node in the SuperKind hierarchy is a node
     that has at most one superkind, and whose superkind has at
     most one superkind, all they way up.
 
     The twig superkinds list makes the best signature for two reasons:
-      1. it bypasses all the branching, allowing (A, (B,C)) to match 
+      1. it bypasses all the branching, allowing (A, (B,C)) to match
          ((A, B), C)
       2. it uses the most specialized form when there is no branching,
          thus if D has superKind B, and D has no other superKinds,
@@ -735,7 +725,6 @@ class Tag(ContentItem):
 
     items = schema.Sequence(
         'ContentItem',
-        displayName=u'Item',
         description='All the ContentItems associated with this Tag',
         inverse='tags',
         initialValue=[]
@@ -743,7 +732,6 @@ class Tag(ContentItem):
 
     supertags = schema.Sequence(
         'Tag',
-        displayName=u'SuperTags',
         description='Allows a tag hierarchy',
         inverse='subtags',
         initialValue=[]
@@ -751,7 +739,6 @@ class Tag(ContentItem):
 
     subtags = schema.Sequence(
         'Tag',
-        displayName=u'SubTags',
         description='Allows a tag hierarchy',
         inverse='supertags',
         initialValue=[]
@@ -773,13 +760,11 @@ class Project(ContentItem):
 
     parentProject = schema.One(
         'Project',
-        displayName = u'Parent Project',
         doc = 'Projects can be organized into hierarchies. Each project can have one parent.',
         inverse = 'subProjects',
     )
     subProjects = schema.Sequence(
         'Project',
-        displayName = u'Sub Projects',
         doc = 'Projects can be organized into hierarchies. Each project can have many sub-projects.',
         inverse = 'parentProject',
     )
@@ -805,7 +790,6 @@ class UserNotification(ContentItem):
     items = schema.Sequence(ContentItem, inverse='notifications')
 
     timestamp = schema.One(schema.DateTimeTZ,
-        displayName=_(u"timestamp"),
         doc="DateTime this notification ocurred"
     )
 

@@ -57,29 +57,24 @@ class Certificate(pim.ContentItem):
     date = schema.One(redirectTo = 'createdOn')
     type = schema.One(
         typeEnum,
-        displayName = _(u'Certificate type'),
         doc = 'Certificate type.',
         initialValue = constants.TYPE_ROOT,
     )
     trust = schema.One(
         schema.Integer,
-        displayName = _(u'Trust'),
         defaultValue = 0,
         doc = 'A certificate can have no trust assigned to it, or any combination of 1=trust authenticity of certificate, 2=trust to issue site certificates.',
     )
     pem = schema.One(
         schema.Lob,
-        displayName = _(u'PEM'),
         doc = 'An X.509 certificate in PEM format.',
     )
     asText = schema.One(
         schema.Lob,
-        displayName = _(u'Human readable certificate value'),
         doc = 'An X.509 certificate in human readable format.',
     )
     fingerprintAlgorithm = schema.One(
         schema.Text,
-        displayName = _(u'fingerprint algorithm'),
         doc = 'A name of a hash algorithm that was used to compute fingerprint.',
     )
     fingerprint = schema.One(
@@ -106,7 +101,7 @@ class Certificate(pim.ContentItem):
         """
         return self.asText.getPlainTextReader().read()
 
-    asTextAsString = pim.Calculated(schema.Text, u"body",
+    asTextAsString = pim.Calculated(schema.Text,
         basedOn=('asText',),
         fget=getAsTextAsString,
         doc="asText attribute as a string")
@@ -144,7 +139,7 @@ class Certificate(pim.ContentItem):
 
     def isAttributeModifiable(self, attribute):
         # None of these attributes should be edited by the user.
-        if attribute in ['date', 'type', 'fingerprintAlgorithm', 
+        if attribute in ['date', 'type', 'fingerprintAlgorithm',
                                  'fingerprint', 'asTextAsString' ]:
             return False
         return super(Certificate, self).isAttributeModifiable(attribute)
@@ -168,14 +163,14 @@ def _isRootCertificate(x509):
             log.debug('"keyUsage" contained "Certificate Sign": %s' % root)
         except LookupError:
             pass
-    
+
     if not root:
         try:
             root = x509.get_ext('nsCertType').get_value().find('SSL CA') > -1
             log.debug('"nsCertType" contained "SSL CA": %s' % root)
         except LookupError:
             pass
-    
+
     if not root:
         subject = x509.get_subject()
         issuer = x509.get_issuer()
@@ -190,13 +185,13 @@ def _isSiteCertificate(x509):
     # XXX Should use OpenSSL itself if possible
     # XXX X509_check_purpose
     site = False
-    
+
     try:
         site = x509.get_ext('extendedKeyUsage').get_value().find('TLS Web Server Authentication') > -1
         log.debug('"extendedKeyUsage" contained "TLS Web Server Authentication": %s' % site)
     except LookupError:
         pass
-    
+
     if not site:
         try:
             site = x509.get_ext('nsCertType').get_value().find('SSL Server') > -1
@@ -232,12 +227,12 @@ def _isSiteCertificate(x509):
 def certificateType(x509, typeHint=None):
     """
     Determine certificate type.
-    
+
     @param typeHint: We try to see if the certificate could be this type first,
                      before trying any other types.
     """
     type = None
-    
+
     if typeHint == constants.TYPE_SITE:
         if _isSiteCertificate(x509):
             type = constants.TYPE_SITE
@@ -302,7 +297,7 @@ def importCertificate(x509, fingerprint, trust, repView, typeHint=None):
                        displayName=unicode(commonName),
                        pem=pem,
                        asText=text)
-    
+
     log.info('Imported certificate: CN=%s, type=%s, fp=%s' % (commonName,
                                                               type,
                                                               fingerprint))
@@ -318,8 +313,8 @@ def importCertificateDialog(repView):
     app = wx.GetApp()
     res = Util.showFileDialog(app.mainFrame,
                               _(u"Choose a certificate to import"),
-                              u"", 
-                              u"", 
+                              u"",
+                              u"",
                               _(u"PEM files|*.pem;*.crt|All files (*.*)|*.*"),
                               wx.OPEN)
 
@@ -328,17 +323,17 @@ def importCertificateDialog(repView):
     if cmd  == wx.ID_OK:
         # dir and filename are unicode
         path = os.path.join(dir, filename)
-    
-        try: 
+
+        try:
             x509 = X509.load_cert(path)
-    
+
             fprint = utils.fingerprint(x509)
             type = certificateType(x509)
             # Note: the order of choices must match the selections code below
             choices = [_(u"Trust the authenticity of this certificate.")]
             if type == constants.TYPE_ROOT:
                 choices += [_(u"Trust this certificate to sign site certificates.")]
-    
+
             dlg = dialogs.ImportCertificateDialog(app.mainFrame,
                                        type,
                                        fprint,
@@ -355,10 +350,10 @@ def importCertificateDialog(repView):
                         trust |= constants.TRUST_SITE
                 certificate = importCertificate(x509, fprint, trust, repView)
             dlg.Destroy()
-    
+
         except utils.CertificateException, e:
             application.dialogs.Util.ok(app.mainFrame, messages.ERROR, e.__unicode__())
-    
+
         except Exception, e:
             log.exception(e)
             application.dialogs.Util.ok(app.mainFrame, messages.ERROR,

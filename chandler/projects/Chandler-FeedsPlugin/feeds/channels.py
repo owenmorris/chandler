@@ -133,52 +133,42 @@ class FeedChannel(pim.ListCollection):
 
     link = schema.One(
         schema.URL,
-        displayName=_(u"link")
     )
 
     category = schema.One(
         schema.Text,
-        displayName=_(u"Category")
     )
 
     author = schema.One(
         schema.Text,
-        displayName=_(u"Author")
     )
 
     date = schema.One(
         schema.DateTime,
-        displayName=_(u"Date")
     )
 
     url = schema.One(
         schema.URL,
-        displayName=u"URL"
     )
 
     etag = schema.One(
         schema.Text,
-        displayName=u"eTag"
     )
 
     lastModified = schema.One(
         schema.DateTime,
-        displayName=u"Last Modified"
     )
 
     copyright = schema.One(
         schema.Text,
-        displayName=u"Copyright"
     )
 
     language = schema.One(
         schema.Text,
-        displayName=u"Language"
     )
 
     ignoreContentChanges = schema.One(
         schema.Boolean,
-        displayName=u"Ignore Content Changes",
         initialValue=False
     )
 
@@ -415,38 +405,31 @@ class FeedItem(pim.ContentItem):
 
     link = schema.One(
         schema.URL,
-        displayName=_(u"link"),
         initialValue="", # Needed because of the _compareLink( ) method
     )
 
     category = schema.One(
         schema.Text,
-        displayName=_(u"Category")
     )
 
     author = schema.One(
         schema.Text,
-        displayName=_(u"Author")
     )
 
     date = schema.One(
         schema.DateTime,
-        displayName=_(u"Date")
     )
 
     channel = schema.One(
         FeedChannel,
-        displayName=u"Channel"
     )
 
     content = schema.One(
         schema.Lob,
-        displayName=u"Content"
     )
 
     updated = schema.One(
         schema.Boolean,
-        displayName=_(u"Updated")
     )
 
     about = schema.Descriptor(redirectTo="displayName")

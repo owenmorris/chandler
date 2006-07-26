@@ -17,7 +17,7 @@
 
 @group Main Recurrence Kinds: RecurrenceRule, RecurrenceRuleSet
 @group Recurrence Enumerations: FrequencyEnum, WeekdayEnum, WeekdayAndPositionStruct
-        
+
 """
 
 __parcel__ = "osaf.pim.calendar"
@@ -84,7 +84,7 @@ def toDateUtilWeekday(enum):
     """
     Convert the English string for a weekday in WeekdayEnum to dateutil's
     special weekday class associated with that day.
-    
+
     """
     return getattr(dateutil.rrule, enum[0:2].upper())
 
@@ -96,7 +96,7 @@ def toDateUtilStruct(structlist):
     """
     Convert a WeekdayAndPositionStruct to the associated dateutil byweekday
     class.
-    
+
     """
     outlist = []
     for struct in structlist:
@@ -111,7 +111,7 @@ def toDateUtil(val):
     """
     Convert a Chandler frequency, weekday, or byweekday selector to the
     associated dateutil value.
-    
+
     """
     if type(val) == PersistentList: return toDateUtilStruct(val)
     elif val in FrequencyEnum.values: return toDateUtilFrequency(val)
@@ -129,79 +129,64 @@ class RecurrenceRule(items.ContentItem):
     """One rule defining recurrence for an item."""
     freq = schema.One(
         FrequencyEnum,
-        displayName=u"Frequency possibilities",
         defaultValue="weekly"
     )
     isCount = schema.One(
         schema.Boolean,
-        displayName = u"isCount",
         doc = "If True, calculate and export count instead of until",
         defaultValue = False
     )
     until = schema.One(
         schema.DateTimeTZ,
-        displayName=u"Until",
     )
     untilIsDate = schema.One(
         schema.Boolean,
-        displayName = u"untilIsDate",
         doc = "If True, treat until as an inclusive date, use until + 23:59 "
               "for until",
         defaultValue = True
     )
     interval = schema.One(
         schema.Integer,
-        displayName=u"Interval",
         defaultValue=1
     )
     wkst = schema.One(
         WeekdayEnum,
-        displayName=u"Week Start Day",
         defaultValue=None
     )
     bysetpos = schema.Sequence(
         schema.Integer,
-        displayName=u"Position selector",
         defaultValue=None
     )
     bymonth = schema.Sequence(
         schema.Integer,
-        displayName=u"Month selector",
         defaultValue=None
     )
     bymonthday = schema.Sequence(
         schema.Integer,
-        displayName=u"Ordinal day of month selector",
         defaultValue=None
     )
     byyearday = schema.Sequence(
         schema.Integer,
-        displayName=u"Ordinal day of year selector",
         defaultValue=None
     )
     byweekno = schema.Sequence(
         schema.Integer,
-        displayName=u"Week number selector",
         defaultValue=None
     )
     byweekday = schema.Sequence(
          WeekdayAndPositionStruct,
-         displayName=u"Weekday selector",
         defaultValue=None
     )
     byhour = schema.Sequence(
         schema.Integer,
-        displayName=u"Hour selector",
         defaultValue=None
     )
     byminute = schema.Sequence(
         schema.Integer,
-        displayName=u"Minute selector",
         defaultValue=None
     )
     bysecond = schema.Sequence(
         schema.Integer,
-        displayName=u"Second selector",
         defaultValue=None
     )
     rruleFor = schema.One('RecurrenceRuleSet', inverse='rrules')
@@ -220,7 +205,7 @@ class RecurrenceRule(items.ContentItem):
 
     notSpecialNames = ("interval", "until", "bysetpos", "bymonth", "bymonthday",
                        "byyearday","byweekno", "byhour", "byminute", "bysecond")
-    
+
     allNames = ("interval", "until", "bysetpos", "bymonth", "bymonthday",
                 "byyearday","byweekno", "byhour", "byminute", "bysecond",
                 "wkst", "byweekday", "freq")
@@ -231,12 +216,12 @@ class RecurrenceRule(items.ContentItem):
 
     def calculatedUntil(self):
         """
-        Return until or until + 23:59, depending on untilIsDate. 
+        Return until or until + 23:59, depending on untilIsDate.
         Will return None if there's no 'until' (so don't assume you can
         compare this value with a datetime directly!)
-        
+
         @rtype: C{datetime} or C{None}
-        
+
         """
         try:
             until = self.until
@@ -247,17 +232,17 @@ class RecurrenceRule(items.ContentItem):
             return until.replace(hour=23, minute=59)
         else:
             return until
-            
+
 
     def createDateUtilFromRule(self, dtstart, ignoreIsCount=True,
                                convertFloating=False):
         """Return an appropriate dateutil.rrule.rrule.
-        
+
         @param dtstart: The start time for the recurrence rule
         @type  dtstart: C{datetime}
 
         @param ignoreIsCount: Whether the isCount flag should be used to convert
-                              until endtimes to a count. Converting to count 
+                              until endtimes to a count. Converting to count
                               takes extra cycles and is only necessary when
                               the rule is going to be serialized
         @type  ignoreIsCount: C{bool}
@@ -268,7 +253,7 @@ class RecurrenceRule(items.ContentItem):
                                 needed for exporting floating events to
                                 icalendar format.
         @type  convertFloating: C{bool}
-        
+
         @rtype: C{dateutil.rrule.rrule}
 
         """
@@ -303,10 +288,10 @@ class RecurrenceRule(items.ContentItem):
 
     def setRuleFromDateUtil(self, rrule):
         """Extract attributes from rrule, set them in self.
-        
+
         @param rrule: The rule to marshall into Chandler
         @type  rrule: C{dateutil.rrule.rrule}
-        
+
         """
         self.untilIsDate = False
         until = None # assume no limit
@@ -334,7 +319,7 @@ class RecurrenceRule(items.ContentItem):
                     day = fromDateUtilWeekday(day)
                     self.byweekday.append(WeekdayAndPositionStruct(day, n))
         if rrule._until is not None:
-            until = rrule._until    
+            until = rrule._until
         if rrule._interval != 1:
             self.interval = rrule._interval
         if until is None:
@@ -345,7 +330,7 @@ class RecurrenceRule(items.ContentItem):
                 self.until = until.replace(tzinfo=ICUtzinfo.floating)
             else:
                 self.until = coerceTimeZone(until, ICUtzinfo.default)
-            
+
         for key in self.listNames:
             # TODO: cache getattr(rrule, '_' + key)
             if getattr(rrule, '_' + key) is not None and \
@@ -353,7 +338,7 @@ class RecurrenceRule(items.ContentItem):
                                          len(getattr(rrule, '_' + key)) > 1):
                 # cast tuples to list
                 setattr(self, key, list(getattr(rrule, '_' + key)))
-        # bymonthday and bymonth may be set automatically by dateutil, if so, 
+        # bymonthday and bymonth may be set automatically by dateutil, if so,
         # unset them
         if rrule._freq in (dateutil.rrule.MONTHLY, dateutil.rrule.YEARLY):
             if len(rrule._bymonthday) == 1:
@@ -366,13 +351,13 @@ class RecurrenceRule(items.ContentItem):
 
     def getPreviousRecurrenceID(self, dtstart, recurrenceID):
         """Return the date of the previous recurrenceID, or None.
-        
+
         @param dtstart: The start time for the recurrence rule
         @type  dtstart: C{datetime}
-        
+
         @param recurrenceID: The current recurrenceID
         @type  recurrenceID: C{datetime}
-        
+
         @rtype: C{datetime} or C{None}
         """
         previous = None
@@ -388,10 +373,10 @@ class RecurrenceRule(items.ContentItem):
 
         @param dtstart: The start time for the recurrence rule
         @type  dtstart: C{datetime}
-        
+
         @param recurrenceID: The current recurrenceID
         @type  recurrenceID: C{datetime}
-        
+
         """
         previous = self.getPreviousRecurrenceID(dtstart, recurrenceID)
         assert previous is not None
@@ -412,30 +397,25 @@ class RecurrenceRuleSet(items.ContentItem):
     """
     rrules = schema.Sequence(
         RecurrenceRule,
-        displayName=u"Recurrence rules",
         inverse = RecurrenceRule.rruleFor,
         deletePolicy = 'cascade'
     )
     exrules = schema.Sequence(
         RecurrenceRule,
-        displayName=u"Exclusion rules",
         inverse = RecurrenceRule.exruleFor,
         deletePolicy = 'cascade'
     )
     rdates = schema.Sequence(
         schema.DateTimeTZ,
-        displayName=u"Recurrence Dates"
     )
     exdates = schema.Sequence(
         schema.DateTimeTZ,
-        displayName=u"Exclusion Dates"
     )
     events = schema.Sequence(
         "osaf.pim.calendar.Calendar.CalendarEventMixin",
-        displayName=u"Events",
         inverse="rruleset"
     )
- 
+
     schema.addClouds(
         copying = schema.Cloud(rrules, exrules, rdates, exdates),
         sharing = schema.Cloud(exdates, rdates, byCloud = [exrules, rrules])
@@ -443,19 +423,19 @@ class RecurrenceRuleSet(items.ContentItem):
 
     def addRule(self, rule, rrulesorexrules='rrules'):
         """Add an rrule or exrule, defaults to rrule.
-        
+
         @param rule: Rule to be added
         @type  rule: L{RecurrenceRule}
-        
+
         @param rrulesorexrules: Whether the rule is an rrule or exrule
         @type  rrulesorexrules: 'rrules' or 'exrules'
-        
+
         """
         try:
             getattr(self, rrulesorexrules).append(rule)
         except AttributeError:
             setattr(self, rrulesorexrules, [rule])
-        
+
     def createDateUtilFromRule(self, dtstart, ignoreIsCount=True,
                                convertFloating=False):
         """Return an appropriate dateutil.rrule.rruleset.
@@ -464,20 +444,20 @@ class RecurrenceRuleSet(items.ContentItem):
         @type  dtstart: C{datetime}
 
         @param ignoreIsCount: Whether the isCount flag should be used to convert
-                              until endtimes to a count. Converting to count 
+                              until endtimes to a count. Converting to count
                               takes extra cycles and is only necessary when
                               the rule is going to be serialized
         @type  ignoreIsCount: C{bool}
-        
+
         @param convertFloating: Whether or not to allow ICUtzinfo.floating
                                 in datetimes of the rruleset. If C{True},
                                 naive datetimes are used instead. This is
                                 needed for exporting floating events to
                                 icalendar format.
         @type  convertFloating: C{bool}
-        
+
         @rtype: C{dateutil.rrule.rruleset}
-        
+
         """
         ruleset = rruleset()
         for rtype in 'rrule', 'exrule':
@@ -494,7 +474,7 @@ class RecurrenceRuleSet(items.ContentItem):
 
     def setRuleFromDateUtil(self, ruleSetOrRule):
         """Extract rules and dates from ruleSetOrRule, set them in self.
-        
+
         If a dateutil.rrule.rrule is passed in instead of an rruleset, treat
         it as the new rruleset.
 
@@ -520,13 +500,13 @@ class RecurrenceRuleSet(items.ContentItem):
         for typ in 'rdate', 'exdate':
             datetimes = [forceToDateTime(d) for d in getattr(ruleSetOrRule, '_' + typ, [])]
             setattr(self, typ + 's', datetimes)
-    
+
     def isComplex(self):
         """Determine if the rule is too complex to display a meaningful
         description about it.
-        
+
         @rtype: C{bool}
-        
+
         """
         if hasattr(self, 'rrules'):
             if len(self.rrules) != 1:
@@ -544,15 +524,15 @@ class RecurrenceRuleSet(items.ContentItem):
                 for daystruct in rule.byweekday:
                     if daystruct.selector != 0:
                         return True
-            return False 
+            return False
         else:
             return True
-        
+
 
     def isCustomRule(self):
         """Determine if this is a custom rule.
-        
-        For the moment, simple daily, weekly, or monthly repeating events, 
+
+        For the moment, simple daily, weekly, or monthly repeating events,
         optionally with an UNTIL date, or the abscence of a rule, are the only
         rules which are not custom.
 
@@ -576,7 +556,7 @@ class RecurrenceRuleSet(items.ContentItem):
         """Return a string describing custom rules.
 
         @rtype: C{str}
-        
+
         """
         if self.isComplex():
             return _(u"complex rule - no description available")
@@ -584,7 +564,7 @@ class RecurrenceRuleSet(items.ContentItem):
             rule = self.rrules.first()
             freq = rule.freq
             interval = rule.interval
-            
+
             #@@@ This would be tricky to internationalize, bug 4464
             dct = {}
             dct['weekdays'] = u""
@@ -593,27 +573,27 @@ class RecurrenceRuleSet(items.ContentItem):
                 if len(daylist) > 0:
                     daylist.append(u" ")
                     dct['weekdays'] = u"".join(daylist)
-                    
+
             if rule.interval != 1:
                 dct['interval'] = str(rule.interval)
                 dct['freq'] = pluralFrequencyMap[freq]
             else:
                 dct['interval'] = u""
                 dct['freq'] = singularFrequencyMap[freq]
-                
+
             until = rule.calculatedUntil()
             if until is None:
                 dct['until'] = u""
             else:
                 formatter = DateFormat.createDateInstance(DateFormat.kShort)
                 dct['until'] = _(u"until ") + unicode(formatter.format(until))
-            
+
             return "%(weekdays)severy %(interval)s %(freq)s %(until)s" % dct
-            
+
 
     def moveDatesAfter(self, after, delta):
         """Move dates (later than "after") in exdates and rdates by delta.
-        
+
         @param after: Earliest date to move
         @type  after: C{datetime}
 
@@ -682,4 +662,4 @@ class RecurrenceRuleSet(items.ContentItem):
                     event.getFirstInRule().cleanRule()
                     # assume we have only one conceptual event per rrule
                     break
-                
+

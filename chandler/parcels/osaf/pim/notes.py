@@ -36,7 +36,6 @@ class Note(items.ContentItem):
         schema.Text,
         initialValue = u"",
         indexed = True,
-        displayName = _(u"Who"),
     )
 
     # redirections

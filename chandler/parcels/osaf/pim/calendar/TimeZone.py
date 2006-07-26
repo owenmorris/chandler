@@ -29,7 +29,6 @@ class TimeZoneInfo(schema.Item):
 
     default = schema.One(
         schema.TimeZone,
-        displayName = u'User Default Time Zone',
     )
 
     # List of well-known time zones (for populating drop-downs).
@@ -37,7 +36,6 @@ class TimeZoneInfo(schema.Item):
     # we'll have to provide our own translations.
     wellKnownIDs = schema.Sequence(
         schema.Text,
-        displayName = u'List of "well-known" time zones names',
     )
 
     @classmethod
@@ -52,12 +50,12 @@ class TimeZoneInfo(schema.Item):
         return schema.ns(__name__, view).defaultInfo
 
     def __init__(self, *args, **keywds):
-        
+
         super(TimeZoneInfo, self).__init__(*args, **keywds)
-        
+
         self.default = PyICU.ICUtzinfo.floating
 
-        
+
     def canonicalTimeZone(self, tzinfo):
         """
         This returns an ICUtzinfo that's equivalent to the passed-in
@@ -79,14 +77,14 @@ class TimeZoneInfo(schema.Item):
                 result = tzinfo
             else:
                 numEquivalents = PyICU.TimeZone.countEquivalentIDs(tzinfo.tzid)
-                
+
                 for index in xrange(numEquivalents):
                     equivName = PyICU.TimeZone.getEquivalentID(tzinfo.tzid, index)
-                    
+
                     if equivName in self.wellKnownIDs:
                         result = PyICU.ICUtzinfo.getInstance(equivName)
                         break
-                        
+
             if result is None and tzinfo is not None:
                 self.wellKnownIDs.append(unicode(tzinfo.tzid))
                 result = tzinfo
@@ -134,7 +132,7 @@ class TimeZoneInfo(schema.Item):
             # This next if is required to avoid an infinite recursion!
             if canonicalDefault is not default:
                 self.default = canonicalDefault
-                
+
 def installParcel(parcel, oldVersion = None):
     # Get our parcel's namespace
     namespace = schema.ns(__name__, parcel.itsView)
@@ -161,7 +159,7 @@ def installParcel(parcel, oldVersion = None):
         _(u'US/Eastern'),
         _(u'World/Floating'),
     ]
-    
+
     # Set up our parcel's 'defaultInfo' attribute
     TimeZoneInfo.update(namespace.parcel, 'defaultInfo',
                         wellKnownIDs=wellKnownIDs)
@@ -236,16 +234,16 @@ def formatTime(dt, tzinfo=None):
 
         msgFormat.setFormats(subformats)
 
-    
+
     if tzinfo is None: tzinfo = PyICU.ICUtzinfo.default
-    
+
     useSameTimeZoneFormat = True
 
     if dt.tzinfo is None or dt.tzinfo is PyICU.ICUtzinfo.floating:
         dt = dt.replace(tzinfo=tzinfo)
     elif dt.tzinfo != tzinfo:
         useSameTimeZoneFormat = False
-        
+
     if useSameTimeZoneFormat:
         format = PyICU.MessageFormat("{0,time,short}")
         __setTimeZoneInSubformats(format, tzinfo.timezone)
@@ -253,7 +251,7 @@ def formatTime(dt, tzinfo=None):
         # This string should be localizable
         format = PyICU.MessageFormat("{0,time,short} {0,time,z}")
         __setTimeZoneInSubformats(format, dt.tzinfo.timezone)
-        
+
     formattable = PyICU.Formattable(dt, PyICU.Formattable.kIsDate)
 
     return unicode(format.format([formattable], PyICU.FieldPosition()))

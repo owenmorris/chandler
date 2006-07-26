@@ -45,7 +45,6 @@ class Contact(items.ContentItem):
     'Items of theirs I've subscribed to', etc.
     """
     itemsCreated = schema.Sequence(
-        displayName=u"Items Created",
         doc = "List of content items created by this user.",
         inverse=items.ContentItem.creator,
     )
@@ -55,54 +54,46 @@ class Contact(items.ContentItem):
     )
 
     emailAddress = schema.One(schema.Text,
-        displayName = _(u"Email Address"),
         initialValue = u"",
         indexed = True,
     )
 
     itemsLastModified = schema.Sequence(
         items.ContentItem,
-        displayName=u"Items Last Modified",
         doc="List of content items last modified by this user.",
         inverse=items.ContentItem.lastModifiedBy
     )
 
     requestedTasks = schema.Sequence(
         "osaf.pim.tasks.TaskMixin",
-        displayName=u"Requested Tasks",
         doc="List of tasks requested by this user.",
         inverse="requestor"
     )
 
     taskRequests= schema.Sequence(
         "osaf.pim.tasks.TaskMixin",
-        displayName=u"Task Requests",
         doc="List of tasks requested for this user.",
         otherName="requestee"   # XXX other end points to ContentItem???
     )
 
     organizedEvents= schema.Sequence(
         "osaf.pim.calendar.Calendar.CalendarEventMixin",
-        displayName=u"Organized Events",
         doc="List of events this user has organized.",
         inverse="organizer"
     )
 
     participatingEvents= schema.Sequence(
         "osaf.pim.calendar.Calendar.CalendarEventMixin",
-        displayName=u"Participating Events",
         doc="List of events this user is a participant.",
         inverse="participants"
     )
 
     sharerOf= schema.Sequence(  # Share
-        displayName=u"Sharer Of",
         doc="List of shares shared by this user.",
         otherName="sharer"
     )
 
     shareeOf= schema.Sequence(  # Share
-        displayName=u"Sharee Of",
         doc="List of shares for which this user is a sharee.",
         otherName="sharees"
     )

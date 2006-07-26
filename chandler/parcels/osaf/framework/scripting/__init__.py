@@ -41,7 +41,7 @@ This is the main module for scripting, and ties in multiple scripting components
 
 
 __all__ = [
-    'app_ns', 'cats_profiler', 'hotkey_script', 
+    'app_ns', 'cats_profiler', 'hotkey_script',
     'run_script', 'run_startup_script', 'Script', 'script_file',
     'User'
 ]
@@ -56,14 +56,13 @@ def installParcel(parcel, oldVersion=None):
 
     scriptsCollection = \
         pim.SmartCollection.update(parcel, 'scriptsCollection',
-            displayName = _(u"Scripts"),
             renameable = False,
             private = False,
             source=scripts
             )
     userScripts = UserCollection(scriptsCollection)
     userScripts.dontDisplayAsCalendar = True
-    
+
 
     from blocks import installBlocks
     installBlocks(parcel, oldVersion)
@@ -82,5 +81,5 @@ def run_startup_script(*args, **kwds):
     builtIns = kwds.pop('builtIns', {})
     builtIns.update(script_builtins)
     run_startup_script_with_symbols(builtIns=builtIns, *args, **kwds)
-    
+
 

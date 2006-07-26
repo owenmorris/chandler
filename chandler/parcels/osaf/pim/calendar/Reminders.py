@@ -21,48 +21,43 @@ from PyICU import ICUtzinfo
 
 class Reminder(schema.Item):
     delta = schema.One(
-        schema.TimeDelta, 
-        displayName=u"Delta",
+        schema.TimeDelta,
         doc="The amount in advance this reminder should occur (usually negative!)",
     )
 
     relativeTo = schema.One(
         schema.Text,
-        displayName=u"Relative to",
         initialValue='effectiveStartTime',
     )
 
     reminderItems = schema.Sequence(
-        "RemindableMixin", 
-        displayName=u"Pending Reminder Items",
+        "RemindableMixin",
         inverse="reminders",
         initialValue=[]
     )
 
     expiredReminderItems = schema.Sequence(
-        "RemindableMixin", 
-        displayName=u"Expired Reminder Items",
+        "RemindableMixin",
         inverse="expiredReminders",
         initialValue=[]
     )
-    
+
     snoozedUntil = schema.One(
         schema.DateTimeTZ,
-        displayName=u"SnoozedUntil",
         defaultValue=None
     )
-    
+
     schema.addClouds(
         sharing = schema.Cloud(delta, relativeTo, snoozedUntil)
     )
-    
+
     def getBaseTimeFor(self, remindable):
         """
         Get the relative-to time for this remindable's next reminder
         so that the UI can generate a message relative to it.
         """
         return getattr(remindable, self.relativeTo, datetime.max)
-    
+
     def getNextReminderTimeFor(self, remindable):
         """ Get the time for this remindable's next reminder """
         result = self.snoozedUntil or \
@@ -78,21 +73,20 @@ class RemindableMixin(ContentItem):
         inverse=Reminder.reminderItems,
         initialValue=[]
     )
-    
+
     expiredReminders = schema.Sequence(
         Reminder,
-        displayName=u"Expired Reminders",
         inverse=Reminder.expiredReminderItems,
         initialValue=[]
     )
-    
+
     schema.addClouds(
         copying = schema.Cloud(reminders,expiredReminders),
         sharing = schema.Cloud(
             byCloud = [reminders, expiredReminders]
         )
     )
-    
+
     def getReminderInterval(self):
         for attr in ("reminders", "expiredReminders"):
             if (self.hasLocalAttributeValue(attr)):
@@ -104,11 +98,11 @@ class RemindableMixin(ContentItem):
                     pass
 
         return None
-    
+
     def setReminderInterval(self, delta):
         reminderCollection = self.reminders
         firstReminder = reminderCollection.first()
-        
+
         if firstReminder is None:
             reminderCollection = self.expiredReminders
             firstReminder = reminderCollection.first()
@@ -124,7 +118,6 @@ class RemindableMixin(ContentItem):
 
     reminderInterval = Calculated(
         schema.TimeDelta,
-        displayName=u"Reminder Interval",
         basedOn=('reminders',),
         fget=getReminderInterval,
         fset=setReminderInterval,
@@ -144,7 +137,6 @@ class RemindableMixin(ContentItem):
 
     reminderFireTime = Calculated(
         schema.DateTimeTZ,
-        displayName=u"Reminder fire time",
         basedOn=('startTime', 'allDay', 'anyTime', 'reminders'),
         fget=getReminderFireTime,
         doc="Reminder fire time, or None for no unexpired reminders")
@@ -153,25 +145,25 @@ class RemindableMixin(ContentItem):
         # @@@ I think the proxy code should override calls to this method
         # add a separate reference to this reminder to each generated event,
         # (or something like that). (Remindable.snoozeReminder will call this
-        # method; that operation should only affect the actual event, not the 
+        # method; that operation should only affect the actual event, not the
         # series)
         newReminder = Reminder(None, delta=delta, itsView=self.itsView)
-        
+
         addThisTo = self.reminders
-        
+
         if checkExpired:
             nextTime = newReminder.getNextReminderTimeFor(self)
-            
+
             if (nextTime is not None and
                 nextTime < datetime.now(ICUtzinfo.default)):
                 addThisTo = self.expiredReminders
-            
+
         addThisTo.add(newReminder)
         return newReminder
 
     def dismissReminder(self, reminder):
         """ Dismiss this reminder. """
-        
+
         # Make sure the next one's around, so we'll prime the reminder-
         # watching mechanism to alert us about it. We also check that
         # reminders for past events don't trigger this one.
@@ -189,7 +181,7 @@ class RemindableMixin(ContentItem):
             getNextOccurrenceMethod(after=now)
 
         # In the case of generated occurrences, the reminder
-        # may already have fired (cf fixReminders() in 
+        # may already have fired (cf fixReminders() in
         # CalendarEventMixin.getNextOccurrence
         if reminder in self.reminders:
             self.reminders.remove(reminder)
@@ -203,13 +195,13 @@ class RemindableMixin(ContentItem):
                 self.expiredReminders.add(reminder)
 
 
-        
+
     def snoozeReminder(self, reminder, delay):
         """ Snooze this reminder for this long. """
         # Dismiss the original reminder
         originalTime = reminder.getNextReminderTimeFor(self)
         self.dismissReminder(reminder)
-        
+
         # Make a new reminder for this event
         newReminder = Reminder(None, itsView=self.itsView,
                                snoozedUntil=(datetime.now(ICUtzinfo.default) +

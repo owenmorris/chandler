@@ -143,7 +143,7 @@ def fork_item(item_or_view, name=None, version=None):
         return item_or_view     # for NullRepositoryView, use old item
 
     new_view = view.repository.createView(
-        name or getattr(item_or_view, 'itsName', None), 
+        name or getattr(item_or_view, 'itsName', None),
         version
         )
     item = new_view.findUUID(item_or_view.itsUUID)
@@ -252,13 +252,11 @@ class PeriodicTask(TwistedTask):
 
     interval = schema.One(
         schema.TimeDelta,
-        displayName = u'Interval between run() calls',
         initialValue = datetime.timedelta(0),
     )
 
     run_at_startup = schema.One(
         schema.Boolean,
-        displayName = u"Also run at startup",
         initialValue = False
     )
 

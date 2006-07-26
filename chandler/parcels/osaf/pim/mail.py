@@ -131,19 +131,16 @@ class AccountBase(items.ContentItem):
 
     numRetries = schema.One(
         schema.Integer,
-        displayName = _(u'Number of Retries'),
         doc = 'How many times to retry before giving up',
         initialValue = 1,
     )
     username = schema.One(
         schema.Text,
-        displayName = messages.USERNAME,
         doc = 'The account login name',
         initialValue = u'',
     )
     password = schema.One(
         schema.Text,
-        displayName = _(u'Password'),
         doc = 'This could either be a password or some other sort of '
               'authentication info. We can use it for whatever is needed '
               'for this account type.\n\n'
@@ -154,7 +151,6 @@ class AccountBase(items.ContentItem):
     )
     host = schema.One(
         schema.Text,
-        displayName = _(u'Host'),
         doc = 'The hostname of the account',
         initialValue = u'',
     )
@@ -163,32 +159,27 @@ class AccountBase(items.ContentItem):
     )
     connectionSecurity = schema.One(
         connectionSecurityEnum,
-        displayName = _(u'Connection Security'),
         doc = 'The security mechanism to leverage for a network connection',
         initialValue = 'NONE',
     )
     pollingFrequency = schema.One(
         schema.Integer,
-        displayName = u'Polling frequency',
         doc = 'Frequency in seconds',
         initialValue = 300,
     )
     mailMessages = schema.Sequence(
         'MailMessageMixin',
-        displayName = u'Mail Messages',
         doc = 'Mail Messages sent or retrieved with this account ',
         initialValue = [],
         inverse = 'parentAccount',
     )
     timeout = schema.One(
         schema.Integer,
-        displayName = _(u'Timeout'),
         doc = 'The number of seconds before timing out a stalled connection',
         initialValue = 60,
     )
     isActive = schema.One(
         schema.Boolean,
-        displayName = u'Is active',
         doc = 'Whether or not an account should be used for sending or '
               'fetching email',
         initialValue = True,
@@ -209,29 +200,24 @@ class DownloadAccountBase(AccountBase):
 
     defaultSMTPAccount = schema.One(
         'SMTPAccount',
-        displayName = _(u'Default SMTP Account'),
         doc = 'Which SMTP account to use for sending mail from this account',
         initialValue = None,
         inverse = 'accounts',
     )
     downloadMax = schema.One(
         schema.Integer,
-        displayName = u'Download Max',
         doc = 'The maximum number of messages to download before forcing a repository commit',
         initialValue = 20,
     )
     replyToAddress = schema.One(
         'EmailAddress',
-        displayName = _(u'Reply-To Address'),
         initialValue = None,
         inverse = 'accounts',
     )
     emailAddress = schema.One(
-        displayName = u'Reply-To Address (Redirect)',
         redirectTo = 'replyToAddress.emailAddress',
     )
     fullName = schema.One(
-        displayName = u'Full Name (Redirect)',
         redirectTo = 'replyToAddress.fullName',
     )
 
@@ -246,16 +232,13 @@ class SMTPAccount(AccountBase):
 
     fromAddress = schema.One(
         'EmailAddress',
-        displayName = _(u'From Address'),
         initialValue = None
     )
     emailAddress = schema.One(
-        displayName = u'From Address (Redirect)',
         redirectTo = 'fromAddress.emailAddress',
     )
     port = schema.One(
         schema.Integer,
-        displayName = _(u'Port'),
         doc = 'The non-SSL port number to use\n\n'
             "Issues:\n"
             "   In order to get a custom initialValue for this attribute for an "
@@ -265,13 +248,11 @@ class SMTPAccount(AccountBase):
     )
     useAuth = schema.One(
         schema.Boolean,
-        displayName = _(u'Use Authentication'),
         doc = 'Whether or not to use authentication when sending mail',
         initialValue = False,
     )
     accounts = schema.Sequence(
         DownloadAccountBase,
-        displayName = u'Accounts',
         doc = 'Which accounts use this SMTP account as their default',
         initialValue = [],
         inverse = DownloadAccountBase.defaultSMTPAccount,
@@ -305,7 +286,6 @@ class IMAPAccount(DownloadAccountBase):
     )
     messageDownloadSequence = schema.One(
         schema.Long,
-        displayName = u'Message Download Sequence',
         initialValue = 0L,
     )
 
@@ -319,7 +299,6 @@ class POPAccount(DownloadAccountBase):
     )
     port = schema.One(
         schema.Integer,
-        displayName = _(u'Port'),
         doc = 'The non-SSL port number to use\n\n'
             "Issues:\n"
             "   In order to get a custom initialValue for this attribute for "
@@ -329,13 +308,11 @@ class POPAccount(DownloadAccountBase):
     )
     downloadedMessageUIDS = schema.Mapping(
         schema.Text,
-        displayName = u'Downloaded Message UID',
         doc = 'Used for quick look up to discover if a message has already been downloaded',
         initialValue = {},
     )
     leaveOnServer = schema.One(
         schema.Boolean,
-        displayName = u'Leave Mail On Server',
         doc = 'Whether or not to leave messages on the server after downloading',
         initialValue = True,
     )
@@ -350,7 +327,6 @@ class MailDeliveryError(items.ContentItem):
 
     errorCode = schema.One(
         schema.Integer,
-        displayName = u'The Error Code',
         doc = 'The Error Code returned by the Delivery Transport',
         initialValue = 0,
     )
@@ -358,7 +334,6 @@ class MailDeliveryError(items.ContentItem):
     errorDate = schema.One(schema.DateTime)
     mailDelivery = schema.One(
         'MailDeliveryBase',
-        displayName = u'Mail Delivery',
         doc = 'The Mail Delivery that cause this error',
         initialValue = None,
         inverse = 'deliveryErrors',
@@ -374,14 +349,12 @@ class MailDeliveryBase(items.ContentItem):
 
     mailMessage = schema.One(
         'MailMessageMixin',
-        displayName = u'Message',
         doc = 'Message which this delivery item refers to',
         initialValue = None,
         inverse = 'deliveryExtension',
     )
     deliveryErrors = schema.Sequence(
         MailDeliveryError,
-        displayName = u'Mail Delivery Errors',
         doc = 'Mail Delivery Errors associated with this transport',
         initialValue = [],
         inverse = MailDeliveryError.mailDelivery,
@@ -406,18 +379,15 @@ class SMTPDelivery(MailDeliveryBase):
 
     history = schema.Sequence(
         historyEnum,
-        displayName = u'History',
         initialValue = [],
     )
     tries = schema.One(
         schema.Integer,
-        displayName = u'Number of tries',
         doc = 'How many times we have tried to send it',
         initialValue = 0,
     )
     state = schema.One(
         stateEnum,
-        displayName = u'State',
         doc = 'The current state of the message\n\n'
         "Issues:\n"
         "   We don't appear to be able to set an initialValue for an "
@@ -455,13 +425,11 @@ class IMAPDelivery(MailDeliveryBase):
     )
     uid = schema.One(
         schema.Long,
-        displayName = u'IMAP UID',
         doc = 'The unique IMAP ID for the message',
         initialValue = 0,
     )
     namespace = schema.One(
         schema.Text,
-        displayName = u'Namespace',
         doc = 'The namespace of the message',
         initialValue = u'',
     )
@@ -478,7 +446,6 @@ class POPDelivery(MailDeliveryBase):
 
     uid = schema.One(
         schema.Text,
-        displayName = u'POP UID',
         doc = 'The unique POP ID for the message',
         initialValue = '',
     )
@@ -523,7 +490,6 @@ class MIMEContainer(MIMEBase):
     hasMimeParts = schema.One(schema.Boolean, initialValue = False)
     mimeParts = schema.Sequence(
         MIMEBase,
-        displayName = u'MIME Parts',
         initialValue = [],
         inverse = MIMEBase.mimeContainer,
     )
@@ -558,13 +524,11 @@ class MailMessageMixin(MIMEContainer):
     messageId = schema.One(schema.Text, initialValue = '')
     toAddress = schema.Sequence(
         'EmailAddress',
-        displayName = _(u'To'),
         initialValue = [],
         inverse = 'messagesTo',
     )
     fromAddress = schema.One(
         'EmailAddress',
-        displayName = _(u'From'),
         initialValue = None,
         inverse = 'messagesFrom',
     )
@@ -728,12 +692,10 @@ class MIMEText(MIMENote):
 
     charset = schema.One(
         schema.Text,
-        displayName = u'Character set encoding',
         initialValue = 'utf-8',
     )
     lang = schema.One(
         schema.Text,
-        displayName = u'Character set Language',
         initialValue = 'en',
     )
 
@@ -759,7 +721,6 @@ class EmailAddress(items.ContentItem):
 
     emailAddress = schema.One(
         schema.Text,
-        displayName = _(u'Email Address'),
         doc = 'The email address.\n\n'
             "Examples:\n"
             '   "abe@osafoundation.org"\n',
@@ -768,14 +729,12 @@ class EmailAddress(items.ContentItem):
     )
     fullName = schema.One(
         schema.Text,
-        displayName = _(u'Full Name'),
         doc = 'A first and last name associated with this email address',
         indexed = True,
         initialValue = u'',
     )
     vcardType = schema.One(
         schema.Text,
-        displayName = u'vCard type',
         doc = "Typical vCard types are values like 'internet', 'x400', and "
               "'pref'. Chandler will use this attribute when doing "
               "import/export of Contact records in vCard format.",
@@ -783,7 +742,6 @@ class EmailAddress(items.ContentItem):
     )
     accounts = schema.Sequence(
         DownloadAccountBase,
-        displayName = u'Used as Return Address by Email Account',
         doc = 'A list of Email Accounts that use this Email Address as the '
               'reply address for mail sent from the account.',
         initialValue = [],
@@ -791,42 +749,36 @@ class EmailAddress(items.ContentItem):
     )
     messagesBcc = schema.Sequence(
         MailMessageMixin,
-        displayName = u'Messages Bcc',
         doc = 'A list of messages with their Bcc: header referring to this address',
         initialValue = [],
         inverse = MailMessageMixin.bccAddress,
     )
     messagesCc = schema.Sequence(
         MailMessageMixin,
-        displayName = u'Messages cc',
         doc = 'A list of messages with their cc: header referring to this address',
         initialValue = [],
         inverse = MailMessageMixin.ccAddress,
     )
     messagesFrom = schema.Sequence(
         MailMessageMixin,
-        displayName = u'Messages From',
         doc = 'A list of messages with their From: header referring to this address',
         initialValue = [],
         inverse = MailMessageMixin.fromAddress,
     )
     messagesReplyTo = schema.Sequence(
         MailMessageMixin,
-        displayName = u'Messages Reply To',
         doc = 'A list of messages with their Reply-To: header referring to this address',
         initialValue = [],
         inverse = MailMessageMixin.replyToAddress,
     )
     messagesTo = schema.Sequence(
         MailMessageMixin,
-        displayName = u'Messages To',
         doc = 'A list of messages with their To: header referring to this address',
         initialValue = [],
         inverse = MailMessageMixin.toAddress,
     )
     inviteeOf = schema.Sequence(
         'osaf.pim.collections.ContentCollection',
-        displayName = u'Invitee Of',
         doc = 'List of collections that the user is about to be invited to share with.',
         inverse = 'invitees',
     )
@@ -1063,7 +1015,7 @@ class EmailAddress(items.ContentItem):
                 attrValue = view.findValue(uuid, indexName).lower()
                 if attrValue.startswith(partialAddress):
                     return 0
-                return cmp(partialAddress, attrValue)   
+                return cmp(partialAddress, attrValue)
             firstUUID = collection.findInIndex(indexName, 'first', _compare)
 
             if firstUUID is None:
@@ -1072,7 +1024,7 @@ class EmailAddress(items.ContentItem):
             lastUUID = collection.findInIndex(indexName, 'last', _compare)
             for uuid in collection.iterindexkeys(indexName, firstUUID, lastUUID):
                 yield view[uuid]
-        
+
     @classmethod
     def format(cls, emailAddress, encode=False):
         assert isinstance(emailAddress, EmailAddress), "You must pass an EmailAddress Object"

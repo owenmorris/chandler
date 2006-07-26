@@ -39,21 +39,19 @@ class TaskMixin(items.ContentItem):
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
-    
+
     schema.kindInfo(
-        description = 
+        description =
             "This Kind is 'mixed in' to others kinds to create Kinds that "
             "can be instantiated"
     )
 
     reminderTime = schema.One(
         schema.DateTimeTZ,
-        displayName = u'ReminderTime',
         doc = 'This may not be general enough',
     )
     requestor = schema.One(
         Contact,
-        displayName = u'Requestor',
         description =
             "Issues:\n"
             '   Type could be Contact, EmailAddress or String\n'
@@ -62,7 +60,6 @@ class TaskMixin(items.ContentItem):
     )
     requestee = schema.Sequence(
         items.ContentItem,
-        displayName = u'Requestee',
         description =
             "Issues:\n"
             '   Type could be Contact, EmailAddress or String\n'
@@ -72,7 +69,6 @@ class TaskMixin(items.ContentItem):
 
     taskStatus = schema.One(
         TaskStatusEnum,
-        displayName = u'Task Status',
     )
     dueDate = schema.One(schema.DateTimeTZ)
     whoFrom = schema.One(redirectTo = 'requestor')
@@ -83,7 +79,7 @@ class TaskMixin(items.ContentItem):
             requestor, requestee
         )
     )
-    
+
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
@@ -132,17 +128,14 @@ class TaskEventExtraMixin(items.ContentItem):
 
     dueByDate = schema.One(
         schema.DateTimeTZ,
-        displayName = u'Due by Date',
         doc = 'The date when a Task Event is due.',
     )
     dueByRecurrence = schema.Sequence(
         'osaf.pim.calendar.Calendar.RecurrencePattern',
-        displayName = u'Due by Recurrence',
         doc = 'Recurrence information for a Task Event.',
     )
     dueByTickler = schema.One(
         schema.DateTimeTZ,
-        displayName = u'Due by Tickler',
         doc = 'The reminder information for a Task Event.',
     )
 
@@ -171,9 +164,9 @@ class TaskEventExtraMixin(items.ContentItem):
 class Task(TaskMixin, notes.Note):
     """
     Task type
-    
+
     Issues:
-      - Do we want to support the idea of tasks having sub-tasks? If so, 
+      - Do we want to support the idea of tasks having sub-tasks? If so,
         then we need to add attributes for 'superTask' and 'subTasks'.
 
       - Task should maybe have a 'Timezone' attribute.
