@@ -17,6 +17,24 @@ cd `dirname $0`
 C_DIR=`pwd`
 C_DIR=`dirname $C_DIR`
 
+if [ -d "$C_DIR/release" ]; then
+  MODE_VALUE=release
+else
+  MODE_VALUE=debug
+fi
+if [ "$OSTYPE" = "cygwin" ]; then
+  WXRCCMD=$C_DIR/$MODE_VALUE/bin/wxrc.exe
+else
+  WXRCCMD=$C_DIR/$MODE_VALUE/bin/wxrc
+fi
+
+echo [$C_DIR] [$WXRCCMD]
+
+if [ ! -e $WXRCCMD ]; then
+  echo "ERROR: Unable to find wxrc tool."
+  exit 1
+fi
+
 SCAN_DIR=$C_DIR
 OUT_FILE=ChandlerXRC.pot
 MERGE_FILE=chandler.pot
@@ -37,7 +55,7 @@ if [ "$OSTYPE" = "cygwin" ]; then
   MERGE_FILE=`cygpath -aw $MERGE_FILE`
 fi
 
-XRC_FILES=`find $SCAN_DIR -type f -name *.xrc -print`
+XRC_FILES=`find $SCAN_DIR -type d \( -name debug -o -name release \) -prune -o -type f -name '*.xrc' | grep .xrc`
 CPP_FILES=
 
 for item in $XRC_FILES ; do
@@ -47,11 +65,19 @@ for item in $XRC_FILES ; do
     XRCNAME=`cygpath -aw $XRCNAME`
     CPPNAME=`cygpath -aw $CPPNAME`
   fi
-  wxrc -g -o $CPPNAME $XRCNAME
+  $WXRCCMD -g -o $CPPNAME $XRCNAME
+  if [ $? != 0 ]; then
+    echo "ERROR (wxrc): Unable to convert an XRC file to a C++ source file."
+    exit 2
+  fi
   CPP_FILES="$CPP_FILES $CPPNAME"
 done
 
 xgettext -C -a -o $OUT_FILE $CPP_FILES
+if [ $? != 0 ]; then
+  echo "ERROR (xgettext): Extracting _() blocks from C++ source files was unsuccesful."
+  exit 3
+fi
 
 for item in $XRC_FILES ; do
   rm `basename $item .xrc`.cpp
@@ -62,5 +88,8 @@ if [ -f $MERGE_FILE ]; then
   rm $MERGE_FILE
   mv tmp.pot $MERGE_FILE
 else
-  echo $MERGE_FILE "does not exist."
+  echo "WARNING: $MERGE_FILE does not exist so we could not merge with it."
+  exit 4
 fi
+
+exit 0
