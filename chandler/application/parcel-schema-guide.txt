@@ -226,20 +226,17 @@ descriptors** in our classes, to define how the data will be stored.  For
 example::
 
     >>> class Knight(schema.Item):
-    ...     who = schema.One(schema.Text, displayName="What is your name?")
-    ...     what = schema.One(schema.Text, displayName="What is your quest?")
+    ...     who = schema.One(schema.Text, doc="What is your name?")
+    ...     what = schema.One(schema.Text, doc="What is your quest?")
     ...     numbers = schema.Sequence(
-    ...         schema.Integer, displayName="What are your favorite numbers?"
+    ...         schema.Integer, doc="What are your favorite numbers?"
     ...     )
 
 ``schema.One`` and ``schema.Sequence`` are attribute descriptors that tell
 the repository you want either a simple attribute value, or a sequence of
 values.  The first argument to each is a **type reference**; it can be one of
 the predefined type references like ``schema.Text`` or ``schema.Integer``, or
-else it can be an existing item class.  (The ``displayName`` argument is used
-by some parts of Chandler to display e.g. column names, so you should generally
-wrap them with calls to the translation function (``_()``) from Chandler's
-``i18n`` package, even though we aren't doing that in this document.)
+else it can be an existing item class.
 
 Now that we've defined a schema for the ``Knight`` class, we can create
 instances with data in the specified attributes::
@@ -396,10 +393,9 @@ point to a new attribute descriptor of the desired cardinality (``One`` or
 You *must* set the type of the main attribute (``attendees`` in this case), so
 that the schema API will know what type the anonymous inverse attribute
 should be attached to (``Person`` in this case).  Both sides of the
-bidirectional reference can include a ``displayName``, ``description``,
-``initialValue``, or any of the other standard attribute descriptor arguments.
-(See the API Details section on `Attribute Descriptors`_, below, for a more
-complete list.)
+bidirectional reference can include a ``description``, ``initialValue``, or any
+of the other standard attribute descriptor arguments.  (See the API Details
+section on `Attribute Descriptors`_, below, for a more complete list.)
 
 You can't tell from the example above, but the ``inverse`` attribute actually
 gets attached to the ``Person`` kind, and the ``Joe`` item actually has an
@@ -583,7 +579,7 @@ or that were defined using ``__slots__`` in the class definition::
     >>> fJoe.connect()
     opening jabber connection 1
     checking if Mary Quite Contrary is on-line
-    
+
 The attributes defined using ``__slots__``, however, are *not* persistent, and
 they will not be stored in the repository.  Each annotation wrapper also has
 its own separate value for each attribute, no matter what item is wrapped.
@@ -1283,8 +1279,8 @@ Other Metadata
 
 When a parcel is created, persistent items are created that correspond to each
 class, to store each class' schema.  These items can have attributes of their
-own, such as ``displayName`` and ``description``.  Depending on whether the
-class is a ``schema.Item``, ``schema.Struct``, or ``schema.Enumeration``, the
+own, such as ``description``.  Depending on whether the class is a
+``schema.Item``, ``schema.Struct``, or ``schema.Enumeration``, the
 attributes may be different, as the type of the persistent item will be
 different.  For all classes, however, you can set attributes of the
 corresponding items by using the ``schema.kindInfo()`` function in the body of
@@ -1491,7 +1487,7 @@ objects:
         >>> Kind.superkinds.type
         <class '...Kind'>
 
-``displayName``, ``description``, and ``doc``
+``description``, and ``doc``
     The name and description of this attribute descriptor, if any.  They will
     be used to collectively form a ``__doc__`` string, so that ``help()`` is
     informative for Item classes::
@@ -1499,7 +1495,6 @@ objects:
         >>> Kind.subkinds.doc = "Sub-kinds of this kind"
         >>> Kind.superkinds.doc = "Super-kinds of this kind"
         >>> Kind.name.doc = "This kind's name"
-        >>> Kind.name.displayName = "Kind Name"
 
         >>> help(Kind)                      # doctest: +NORMALIZE_WHITESPACE
         Help on class Kind ...
@@ -1509,7 +1504,7 @@ objects:
          |  Data and other attributes defined here:
          |
          |  name = <Descriptor name of <class '...Kind'>>
-         |      Kind Name -- One(Text)
+         |      One(Text)
          |
          |      This kind's name
          |

@@ -31,8 +31,7 @@ __all__ = [
     'assertResolved', 'Annotation', 'AnnotationItem',
 ]
 
-all_aspects = Attribute.valueAspects + Attribute.refAspects + \
-    ('displayName','description')
+all_aspects = Attribute.valueAspects + Attribute.refAspects + ('description',)
 
 global_lock = threading.RLock()
 
@@ -287,22 +286,9 @@ class Descriptor(ActiveDescriptor,CDescriptor):
     doc = property(lambda self: self.__dict__.get('doc',None),__setDoc)
     description = property(lambda self: self.__dict__.get('doc',''),__setDoc)
 
-    def __getDisplayName(self):
-        return self.__dict__.get('displayName')
-
-    def __setDisplayName(self,val):
-        self.__dict__['displayName'] = val
-        self.setDoc()
-
-    displayName = property(__getDisplayName,__setDisplayName)
-
     def setDoc(self):
         doc = self.doc
-        name = self.displayName
-        if not name:
-            name = self.docInfo()
-        else:
-            name = "%s -- %s" % (name.encode('utf8'),self.docInfo())
+        name = self.docInfo()
         if not doc:
             doc = name
         else:
@@ -336,9 +322,7 @@ class Descriptor(ActiveDescriptor,CDescriptor):
         for aspect in all_aspects:
             if hasattr(self,aspect):
                 val = getattr(self,aspect)
-                if aspect=='displayName':
-                    val = val or unicode(self.name)  # default displayName=name
-                elif aspect=='type':
+                if aspect=='type':
                     if val is None:
                         continue    # don't set type to None
                     else:

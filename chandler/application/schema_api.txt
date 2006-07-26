@@ -78,7 +78,7 @@ All role objects have at least the following attributes and methods:
         >>> Kind.superkinds.type
         <class '...Kind'>
 
-``displayName``, ``description``, and ``doc``
+``description``, and ``doc``
     The name and description of this role, if any.  They will be used to
     collectively form a ``__doc__`` string, so that ``help()`` is informative
     for Item classes::
@@ -86,7 +86,6 @@ All role objects have at least the following attributes and methods:
         >>> Kind.subkinds.doc = "Sub-kinds of this kind"
         >>> Kind.superkinds.doc = "Super-kinds of this kind"
         >>> Kind.name.doc = "This kind's name"
-        >>> Kind.name.displayName = u"Kind Name"
 
         >>> help(Kind)  # doctest: +NORMALIZE_WHITESPACE
         Help on class Kind ...
@@ -96,7 +95,7 @@ All role objects have at least the following attributes and methods:
          |  Data and other attributes defined here:
          |
          |  name = <Descriptor name of <class '...Kind'>>
-         |      Kind Name -- One(Text)
+         |      One(Text)
          |
          |      This kind's name
          |
@@ -243,8 +242,8 @@ Aspect Attributes
     ``Attribute``, including ``required``, ``persisted``, ``indexed``,
     ``cardinality``, ``defaultValue``, ``initialValue``, ``inheritFrom``,
     ``redirectTo``, ``otherName``, ``companion``, ``deletePolicy``,
-    ``copyPolicy``, ``countPolicy``, ``type``, ``superAttribute``,
-    ``displayName``, and ``description``.  You can supply any of these as
+    ``copyPolicy``, ``countPolicy``, ``type``, ``superAttribute``, and
+    ``description``.  You can supply any of these as
     keyword arguments to a Descriptor constructor (such as ``schema.One``,
     ``schema.Many``, etc.), in order to set the corresponding value for the
     attribute.  Unspecified aspects will take on their normal default values,
@@ -385,7 +384,7 @@ Anonymous Inverses
 Sometimes, you need a bidirectional reference between a new kind and an
 existing kind.  You can do this by creating an "anonymous inverse" - a
 role that just indicates the cardinality of the other end (optionally with
-a displayName, description, initialValue, or other options):
+a description, initialValue, or other options):
 
 
     #>>> __name__ = "application.tests"    # pretend we're in this parcel
@@ -407,10 +406,10 @@ But it will be an attribute of the Person kind::
     >>> sorted(
     ...     a.itsName for a in Person.getKind(rv).attributes
     ... ) # doctest: +NORMALIZE_WHITESPACE
-    ... 
+    ...
     ['age', 'application.tests.School.attendees.inverse', 'children',
      'fullname', 'parents']
-    
+
 Notice that the attribute name is a combination of:
 
 1. the parcel name (from the module's ``__parcel__``, if applicable)
@@ -516,7 +515,7 @@ creators, using ``schema.Annotation`` classes.  Here, we'll define a
 Annotation classes do not create persistent items.  Instead, their instances
 are wrappers that give you access to the annotation attributes, which are
 actually stored on the wrapped item::
-   
+
     >>> ProfMary = Teacher(Mary)
     >>> gym = TeachingCertificate("gym", rv, subject=u"Physical Education")
     >>> ProfMary.certifications = [gym]
@@ -534,7 +533,7 @@ attribute values::
 
     >>> list(Teacher(Mary).certifications)
     [<TeachingCertificate ... gym ...>]
-    
+
 These additional attributes are added to the annotated kinds, using their
 module/class names to distinguish them from "native" or "essential" attributes
 of the kind::
@@ -542,7 +541,7 @@ of the kind::
     >>> sorted(
     ...     a.itsName for a in Person.getKind(rv).attributes
     ... ) # doctest: +NORMALIZE_WHITESPACE
-    ... 
+    ...
     ['age', 'application.tests.School.attendees.inverse',
      'application.tests.Teacher.certifications',
      'application.tests.Teacher.supervisor', 'children', 'fullname', 'parents']
@@ -591,7 +590,7 @@ not per underlying item::
     >>> fMary.jabberConnection = "just pretending"
     >>> fMary.jabberConnection
     'just pretending'
-    
+
     >>> f2Mary = Friend(Mary)
     >>> f2Mary.jabberConnection
     Traceback (most recent call last):
@@ -611,7 +610,7 @@ type.  Thus, we can convert a ``Friend`` to a ``Teacher`` or vice versa::
 
     >>> Teacher(fMary)
     Teacher(Mary Quite Contrary)
-    
+
     >>> Friend(ProfMary)
     Friend(Mary Quite Contrary)
 
@@ -877,7 +876,7 @@ Let's create a forward reference to a person::
     >>> stranger = api_tests.fwdRef(Person, u'Stranger')
 
 At this point, the item exists and can be used::
-    
+
     >>> carlos.parents = [stranger]
     >>> list(stranger.children)
     [Carlos Marron]
