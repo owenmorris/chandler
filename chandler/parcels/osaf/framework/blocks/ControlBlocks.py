@@ -231,8 +231,26 @@ class EditText(RectangularChild):
 
         editText.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
         return editText
+
+class HtmlWindowWithStatus(wx.html.HtmlWindow):
+    def __init__(self, *arguments, **keywords):
+        super (HtmlWindowWithStatus, self).__init__ (*arguments, **keywords)
+        # The default setting is to show link URLs in the statusbar of the mainframe.
+        self.showMessagesInStatusbar(wx.GetApp().mainFrame, True)
+        
+    def showMessagesInStatusbar(self, relatedFrame, show):
+        self.SetRelatedFrame(relatedFrame, u"%s")
+        if show:
+            self.SetRelatedStatusBar(0)
+        else:
+            self.SetRelatedStatusBar(-1)
+        
+    def OnSetTitle(self, title):
+        # This is an empty handler for setting the main frame window title.
+        # It is empty because we do not want to show the current URL in main frame window title.
+        pass
     
-class wxHTML(wx.html.HtmlWindow):
+class wxHTML(HtmlWindowWithStatus):
     def OnLinkClicked(self, link):
         webbrowser.open(link.GetHref())
 
@@ -880,7 +898,7 @@ class Tree(RectangularChild):
             self.widget.GoToItem (event.arguments['items'][0])
 
 
-class wxItemDetail(wx.html.HtmlWindow):
+class wxItemDetail(HtmlWindowWithStatus):
     def OnLinkClicked(self, wx_linkinfo):
         """
         Clicking on an item changes the selection (post event).
