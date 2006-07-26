@@ -204,8 +204,7 @@ class Indexed(object):
             _indexChanges = {}
 
             for indexName, index in indexes.iteritems():
-                if index._needsReindexing():
-                    _indexChanges[indexName] = dict(index._iterChanges())
+                _indexChanges[indexName] = dict(index._iterChanges())
 
             if _indexChanges:
                 indexChanges[name] = _indexChanges
@@ -236,6 +235,8 @@ class Indexed(object):
             index.moveKeys(moves)
             for key in insertions:
                 index.insertKey(key)
+
+        self._setDirty(True)
 
     def _createIndex(self, indexType, **kwds):
 
