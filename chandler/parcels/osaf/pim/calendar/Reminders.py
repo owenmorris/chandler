@@ -69,7 +69,6 @@ class Reminder(schema.Item):
 class RemindableMixin(ContentItem):
     reminders = schema.Sequence(
         Reminder,
-        displayName=u"Reminders",
         inverse=Reminder.reminderItems,
         initialValue=[]
     )

@@ -276,7 +276,6 @@ class IMAPAccount(DownloadAccountBase):
 
     port = schema.One(
         schema.Integer,
-        displayName = _(u'Port'),
         doc = 'The non-SSL port number to use\n\n'
             "Issues:\n"
             "   In order to get a custom initialValue for this attribute for "

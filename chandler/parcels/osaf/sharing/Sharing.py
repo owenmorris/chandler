@@ -1601,7 +1601,7 @@ class WebDAVConduit(ShareConduit):
                     # the server doesn't allow the creation of a collection here
                     message = _(u"Server doesn't allow the creation of collections at %(url)s") % {'url': url}
                     raise IllegalOperation(message)
-                    
+
                 if err.status == twisted.web.http.PRECONDITION_FAILED:
                     message = _(u"The contents of %(url)s were modified unexpectedly on the server while trying to share.") % {'url':url}
                     raise IllegalOperation(message)
@@ -1924,29 +1924,29 @@ class CalDAVConduit(WebDAVConduit):
 
 MINIMUM_FREEBUSY_UPDATE_FREQUENCY = datetime.timedelta(hours=1)
 MERGE_GAP_DAYS = 3
- 
+
 utc = ICUtzinfo.getInstance('UTC')
 
 class FreeBusyAnnotation(schema.Annotation):
     schema.kindInfo(annotates=pim.ContentCollection)
     update_needed = schema.Sequence()
     recently_updated = schema.Sequence()
-    
+
     def addDateNeeded(self, view, needed_date, force_update = False):
         """
-        Check for recently updated dates, if it was updated more than 
+        Check for recently updated dates, if it was updated more than
         MINIMUM_FREEBUSY_UPDATE_FREQUENCY in the past (or force_update is True)
         move it to update_needed.
-        
+
         Next, check if that date has already been requested.  If no existing
         update is found, create a new one.
-        
+
         Return True if an update is created or changed, False otherwise.
-        
+
         """
         # need to think about what happens when bgsync changes get merged
         # with the UI view when shuffling FreeBusyUpdates about
-        
+
         # test if the date's in recently_updated, then check in update_needed
         for update in getattr(self, 'recently_updated', []):
             if update.date == needed_date:
@@ -1958,16 +1958,16 @@ class FreeBusyAnnotation(schema.Annotation):
                 else:
                     # nothing to do
                     return False
-                
+
         for update in getattr(self, 'update_needed', []):
             if update.date == needed_date:
                 return False
-        
+
         # no existing update items for needed_date, create one
         FreeBusyUpdate(itsView = view, date = needed_date,
                        needed_for = self.itsItem)
         return True
-    
+
     def dateUpdated(self, updated_date):
         update_found = False
         # this is inefficient when processing, say, 60 days have been updated,
@@ -1989,7 +1989,7 @@ class FreeBusyAnnotation(schema.Annotation):
                     update.updated_for = self.itsItem
                     update.last_update = datetime.datetime.now(utc)
                 return
-    
+
     def cleanUpdates(self):
         for update in getattr(self, 'recently_updated', []):
             if update.last_update + MINIMUM_FREEBUSY_UPDATE_FREQUENCY < \
@@ -2003,7 +2003,7 @@ class FreeBusyUpdate(schema.Item):
     record of a recent update received.  Items are used instead of a simple
     dictionary so the background sync view can merge changes from the UI view,
     because changes to a repository Dictionary don't merge smoothly.
-    
+
     """
     date = schema.One(schema.Date)
     last_update = schema.One(schema.DateTime)
@@ -2027,11 +2027,11 @@ class CalDAVFreeBusyConduit(CalDAVConduit):
         return True
 
     def _get(self, contentView, *args, **kwargs):
-        
+
         if self.share.contents is None:
             self.share.contents = pim.SmartCollection(itsView=self.itsView)
         updates = FreeBusyAnnotation(self.share.contents)
-        updates.cleanUpdates()            
+        updates.cleanUpdates()
 
 
         oneday = datetime.timedelta(1)
@@ -2043,7 +2043,7 @@ class CalDAVFreeBusyConduit(CalDAVConduit):
         date_ranges = [] # a list of (date, number_of_days) tuples
         for update in getattr(updates, 'update_needed', []):
             bisect.insort(needed_dates, update.date)
-        
+
         if len(needed_dates) > 0:
             start_date = working_date = needed_dates[0]
             for date in needed_dates:
@@ -2053,10 +2053,10 @@ class CalDAVFreeBusyConduit(CalDAVConduit):
                     start_date = working_date = date
                 else:
                     working_date = date
-            
+
             days = (working_date - start_date).days
             date_ranges.append( (start_date, days) )
-        
+
         # prepare resource, add security context
         resource = self._resourceFromPath(u"")
         if getattr(self, 'ticketReadOnly', False):
@@ -2067,13 +2067,13 @@ class CalDAVFreeBusyConduit(CalDAVConduit):
             start = datetime.datetime.combine(period_start, zero_utc)
             end = datetime.datetime.combine(period_start + (days + 1) * oneday,
                                             zero_utc)
-        
-            text = self._getFreeBusy(resource, start, end)        
+
+            text = self._getFreeBusy(resource, start, end)
             self.share.format.importProcess(contentView, text, item=self.share)
-            
+
             for i in xrange(days + 1):
                 updates.dateUpdated(period_start + i * oneday)
-                    
+
         # a stats data structure appears to be required
         stats = {
             'share' : self.share.itsUUID,
@@ -2082,7 +2082,7 @@ class CalDAVFreeBusyConduit(CalDAVConduit):
             'modified' : [],
             'removed' : []
         }
-        
+
         return stats
 
     def get(self):
@@ -2366,38 +2366,33 @@ class WebDAVAccount(pim.ContentItem):
     )
     password = schema.One(
         schema.Text,
-        displayName = messages.PASSWORD,
-        description = 
+        description =
             'Issues: This should not be a simple string. We need some solution for '
             'encrypting it.\n',
         initialValue = u'',
     )
     host = schema.One(
         schema.Text,
-        displayName = messages.HOST,
         doc = 'The hostname of the account',
         initialValue = u'',
     )
     path = schema.One(
         schema.Text,
-        displayName = messages.PATH,
         doc = 'Base path on the host to use for publishing',
         initialValue = u'',
     )
     port = schema.One(
         schema.Integer,
-        displayName = messages.PORT,
         doc = 'The non-SSL port number to use',
         initialValue = 80,
     )
     useSSL = schema.One(
         schema.Boolean,
-        displayName = _(u'Use secure connection (SSL/TLS)'),
         doc = 'Whether or not to use SSL/TLS',
         initialValue = False,
     )
     accountType = schema.One(
-        displayName = _(u'Account Type'), initialValue = 'WebDAV',
+        initialValue = 'WebDAV',
     )
     conduits = schema.Sequence(WebDAVConduit, inverse = WebDAVConduit.account)
 
