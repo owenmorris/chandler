@@ -14,7 +14,7 @@
 NO_ARGS=0
 E_OPTERROR=65
 
-USAGE="Usage: `basename $0` -fpu [-m debug|release] [-t test_name] [chandler-base-path]"
+USAGE="Usage: `basename $0` -fpuN [-m debug|release] [-t test_name] [chandler-base-path]"
 
 if [ "$CHANDLER_FUNCTIONAL_TEST" = "yes" ]; then
     RUN_FUNCTIONAL=yes
@@ -31,16 +31,22 @@ if [ "$CHANDLER_UNIT_TEST" = "yes" ]; then
 else
     RUN_UNIT=no
 fi
+if [ "$USE_NEW_TEST_FRAMEWORK" = "yes" ]; then
+    USE_NEW_FRAMEWORK=yes
+else
+    USE_NEW_FRAMEWORK=no
+fi
 
 hadError=0
 
-while getopts "fput:m:" Option
+while getopts "fpuNt:m:" Option
 do
   case $Option in
     f ) RUN_FUNCTIONAL=yes;;
     p ) RUN_PERFORMANCE=yes;;
     u ) RUN_UNIT=yes;;
     t ) TEST_TO_RUN=$OPTARG;;
+    N ) USE_NEW_FRAMEWORK=yes;;
     m ) MODE_VALUE=$OPTARG;;
     * ) hadError=1
     ;;   # DEFAULT
@@ -52,6 +58,7 @@ if [ $hadError = 1 ]; then
     echo "   if CHANDLER_FUNCTIONAL_TEST=yes or -f then CATS Functional Tests are run"
     echo "   if CHANDLER_PERFORMANCE_TEST=yes or -p then CATS Performance Tests are run"
     echo "   if CHANDLER_UNIT_TEST=yes or -u then Chandler Unit Tests are run"
+    echo "   if USE_NEW_TEST_FRAMEWORK=yes or -N then run Functional tests using CATS 0.2"
     echo "if a specific test name or (pattern) is given using -t then only that test name will be run"
     echo "chandler-base-path is 'chandler' that has 'internal' and 'external' as sibling directories"
     exit $E_OPTERROR
@@ -74,6 +81,18 @@ else
 fi
 
 T_DIR=$C_DIR
+
+if [ $USE_NEW_FRAMEWORK = yes ]; then
+   F_TEST_SUITE="$C_DIR/tools/cats/Functional/FunctionalTestSuite.py"
+   F_TEST_IGNORE=QATestScripts
+   F_TEST_DIR=cats
+   echo Using new test framework
+else
+   F_TEST_SUITE="$C_DIR/tools/QATestScripts/Functional/FunctionalTestSuite.py"
+   F_TEST_IGNORE=cats
+   F_TEST_DIR=QATestScripts
+   echo Using old test framework
+fi
 
 if [ ! -d "$C_DIR/i18n" ]; then
     C_DIR=`pwd`
@@ -180,6 +199,8 @@ done
   # find that test and run it
 
 if [ -n "$TEST_TO_RUN" ]; then
+    
+    TEST_WITHOUT_PATH="$TEST_TO_RUN"
     DIRS=`find $C_DIR -name $TEST_TO_RUN -print`
 
     if [ "$DIRS" = "" ]; then
@@ -194,10 +215,10 @@ if [ -n "$TEST_TO_RUN" ]; then
             echo Running $mode | tee -a $TESTLOG
 
             for test in $DIRS ; do
-                NEWCATS=tools/cats
                 if [ "$OSTYPE" = "cygwin" ]; then
-                    TESTNAME=`cygpath -m $test`
-                    NEWCATS=`cygpath -m $NEWCATS`
+                    TESTNAME=`cygpath -w $test`
+                    F_TEST_IGNORE=`cygpath -w $F_TEST_IGNORE`
+                    F_TEST_DIR=`cygpath -w $F_TEST_DIR`
                 else
                     TESTNAME=$test
                 fi
@@ -205,13 +226,18 @@ if [ -n "$TEST_TO_RUN" ]; then
                 echo Running $TESTNAME | tee -a $TESTLOG
 
                 cd $C_DIR
-
-                if echo "$TESTNAME" | grep -q "$NEWCATS" ; then
-                    echo Skipping $TESTNAME in new cats directory
+                if echo "$TESTNAME" | grep -q "$F_TEST_IGNORE" ; then
+                    echo Skipping $TESTNAME in $F_TEST_IGNORE
                 else
-                    if echo "$TESTNAME" | grep -q "QATestScripts" ; then
-                        $CHANDLERBIN/$mode/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
-                        SUCCESS="#TINDERBOX# Status = PASSED"
+                    if echo "$TESTNAME" | grep -q "$F_TEST_DIR" ; then
+                        if [ $USE_NEW_FRAMEWORK = yes ]; then
+                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --chandlerTests="$TEST_WITHOUT_PATH" &> $C_DIR/test.log
+                            SUCCESS="#TINDERBOX# Status = PASSED"
+                        else
+                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                            SUCCESS="#TINDERBOX# Status = PASSED"
+                        fi
+                        
                     else
                         $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $C_DIR/test.log
                         SUCCESS="^OK"
@@ -295,12 +321,11 @@ else
         echo Running $mode functional tests | tee -a $TESTLOG
 
         for mode in $MODES ; do
-            test="$C_DIR/tools/QATestScripts/Functional/FunctionalTestSuite.py"
 
             if [ "$OSTYPE" = "cygwin" ]; then
-                TESTNAME=`cygpath -w $test`
+                TESTNAME=`cygpath -w $F_TEST_SUITE`
             else
-                TESTNAME=$test
+                TESTNAME=$F_TEST_SUITE
             fi
             if [ "$mode" = "debug" ]; then
                 STDERR_FLAG="--stderr"
