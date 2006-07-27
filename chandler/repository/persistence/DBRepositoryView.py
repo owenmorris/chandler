@@ -405,16 +405,31 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def _refreshForwards(self, mergeFn, newVersion, notify):
 
-        history = []
-        schema_history = []
-        refreshes = set()
-        deletes = set()
-        merges = {}
-        unloads = {}
-        dangling = []
+        scan = True
+        while scan:
+            history = []
+            schema_history = []
+            refreshes = set()
+            deletes = set()
+            merges = {}
+            unloads = {}
+            dangling = []
 
-        self._scanHistory(self.itsVersion, newVersion, history, schema_history,
-                          refreshes, merges, unloads, deletes)
+            self._scanHistory(self.itsVersion,
+                              newVersion, history, schema_history,
+                              refreshes, merges, unloads, deletes)
+            scan = False
+
+            if merges:
+                for uItem in deletes:
+                    if uItem in merges:
+                        item = self[uItem]
+                        if (mergeFn is None or
+                            not mergeFn(MergeError.DELETE, item, None, None)):
+                            self._e_2_delete(item, newVersion)
+                        item.delete(True)
+                        scan = True
+
         oldVersion = self._version
         self._version = newVersion
 
@@ -738,7 +753,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 elif item.itsVersion < version:
                     unloads[uItem] = item
 
-            elif uItem in self._deletedRegistry:
+            elif uItem in self._deletedRegistry and uItem not in deletes:
                 kind = self.find(uKind, False)
                 if kind is None:
                     self._e_1_delete(uItem, uKind, oldVersion, version)
@@ -866,6 +881,10 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _e_1_delete(self, uItem, uKind, oldVersion, newVersion):
 
         raise MergeError, ('delete', uItem, 'item %s was deleted in this version (%d) but has later changes in version (%d) where it is of kind %s' %(uItem, oldVersion, newVersion, uKind), MergeError.CHANGE)
+
+    def _e_2_delete(self, item, version):
+
+        raise MergeError, ('delete', item, 'item %s was changed in this view but was deleted in version (%d)' %(item._repr_(), version), MergeError.DELETE)
 
     def _e_1_name(self, list, key, newName, name):
         raise MergeError, ('name', type(self).__name__, 'element %s renamed to %s and %s' %(key, newName, name), MergeError.RENAME)

@@ -103,6 +103,7 @@ class MergeError(VersionConflictError):
     REF    = 5
     KIND   = 6
     CHANGE = 7
+    DELETE = 8
     
     codeNames = { BUG: 'BUG',
                   RENAME: 'RENAME',
@@ -111,7 +112,8 @@ class MergeError(VersionConflictError):
                   VALUE: 'VALUE',
                   REF: 'REF',
                   KIND: 'KIND',
-                  CHANGE: 'CHANGE' }
+                  CHANGE: 'CHANGE',
+                  DELETE: 'DELETE' }
 
 
 class LoadError(RepositoryError):

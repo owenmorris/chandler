@@ -1002,6 +1002,45 @@ class TestMerge(RepositoryTestCase):
 
             self.assert_(False, 'main view did not check out')
 
+    def testMergeChangeDelete(self):
+
+        def mergeFn(code, item, attribute, newValue):
+            if code == MergeError.DELETE:
+                return True
+            return newValue
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        c = k.itsParent
+        m1 = k.movies.first()
+        m1.delete()
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m1.title = 'Foo'
+        m1.director = k.movies.next(m1).director
+
+        try:
+            main.commit(None)
+        except MergeError, e:
+            self.assert_(e.getReasonCode() == MergeError.DELETE)
+        else:
+            self.assert_(False, "MergeError not caught")
+
+        main.commit(mergeFn)
+        self.assert_(m1.isDeleted())
+        self.assert_(main.check(), 'main view did not check out')
+
 
 if __name__ == "__main__":
 #    import hotshot
