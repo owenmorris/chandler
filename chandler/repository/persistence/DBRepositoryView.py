@@ -427,7 +427,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                         if (mergeFn is None or
                             not mergeFn(MergeError.DELETE, item, None, None)):
                             self._e_2_delete(item, newVersion)
-                        item.delete(True)
+                        if not item.isDeleted():
+                            item.delete(True)
                         scan = True
 
         oldVersion = self._version
