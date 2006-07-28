@@ -421,14 +421,20 @@ class DBRepositoryView(OnDemandRepositoryView):
             scan = False
 
             if merges:
+                # if item is deleted in other view, resolve conflict by
+                # deleting item locally (with mergeFn approval)
                 for uItem in deletes:
                     if uItem in merges:
                         item = self[uItem]
-                        if (mergeFn is None or
-                            not mergeFn(MergeError.DELETE, item, None, None)):
-                            self._e_2_delete(item, newVersion)
+                        if not item.isDeferred():
+                            if (mergeFn is None or
+                                not mergeFn(MergeError.DELETE, item,
+                                            None, None)):
+                                self._e_2_delete(item, newVersion)
                         if not item.isDeleted():
                             item.delete(True)
+                            if item.isDeferred():
+                                item._delete(self, True, None, False, True)
                         scan = True
 
         oldVersion = self._version

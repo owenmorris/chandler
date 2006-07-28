@@ -1025,6 +1025,7 @@ class TestMerge(RepositoryTestCase):
         view.commit()
         
         view = self.rep.setCurrentView(main)
+        main.deferDelete()
         k = main.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
         m1.title = 'Foo'
@@ -1035,7 +1036,8 @@ class TestMerge(RepositoryTestCase):
         except MergeError, e:
             self.assert_(e.getReasonCode() == MergeError.DELETE)
         else:
-            self.assert_(False, "MergeError not caught")
+            if not m1.isDeleted():
+                self.assert_(False, "MergeError not caught")
 
         main.commit(mergeFn)
         self.assert_(m1.isDeleted())

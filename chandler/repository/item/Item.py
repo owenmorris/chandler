@@ -1486,56 +1486,64 @@ class Item(CItem):
                 self._status &= ~Item.DEFERRING
             
             else:
-                refs = self._references
-                values = self._values
-                others = set()
+                self._delete(view, recursive, deletePolicy, _noMonitors, False)
 
-                self.setDirty(Item.NDIRTY)
-                self._status |= Item.DELETING
+    def _delete(self, view, recursive, deletePolicy, _noMonitors, _keepRoot):
 
-                if hasattr(type(self), 'onItemDelete'):
-                    self.onItemDelete(view, False)
+        refs = self._references
+        values = self._values
+        others = set()
 
-                for child in self.iterChildren():
-                    child.delete(True, deletePolicy)
+        self.setDirty(Item.NDIRTY)
+        self._status |= Item.DELETING
 
-                if self.isWatched():
-                    view._notifyChange(self._itemChanged, 'remove',
-                                       ('itsKind',))
-                    self._status &= ~Item.WATCHED
+        if hasattr(type(self), 'onItemDelete'):
+            self.onItemDelete(view, False)
 
-                if 'watches' in refs:
-                    for watch in self.watches:
-                        watch.delete(True, None, None, True)
-                view._unregisterWatches(self)
+        for child in self.iterChildren():
+            child.delete(True, deletePolicy)
 
-                if 'monitors' in refs:
-                    for monitor in self.monitors:
-                        monitor.delete(True, None, None, True)
+        if self.isWatched():
+            view._notifyChange(self._itemChanged, 'remove',
+                               ('itsKind',))
+            self._status &= ~Item.WATCHED
 
-                for name in refs.keys():
-                    policy = (deletePolicy or
-                              self.getAttributeAspect(name, 'deletePolicy',
-                                                      False, None, 'remove'))
-                    if policy == 'cascade':
-                        value = refs._getRef(name)
-                        if value is not None:
-                            if value._isRefs():
-                                others.update(value.iterItems())
-                            else:
-                                others.add(value)
+        if 'watches' in refs:
+            for watch in self.watches:
+                watch.delete(True, None, None, True)
+        view._unregisterWatches(self)
 
-                for other in others:
-                    if other.refCount(True) == 0:
-                        other.delete(recursive, deletePolicy)
+        if 'monitors' in refs:
+            for monitor in self.monitors:
+                monitor.delete(True, None, None, True)
 
-                self._setKind(None, _noMonitors)
+        for name in refs.keys():
+            policy = (deletePolicy or
+                      self.getAttributeAspect(name, 'deletePolicy',
+                                              False, None, 'remove'))
+            if policy == 'cascade':
+                value = refs._getRef(name)
+                if value is not None:
+                    if value._isRefs():
+                        others.update(value.iterItems())
+                    else:
+                        others.add(value)
 
-                self.itsParent._removeItem(self)
-                self._setRoot(None, view)
+        for other in others:
+            if other.refCount(True) == 0:
+                other.delete(recursive, deletePolicy)
 
-                self._status |= Item.DELETED | Item.STALE
-                self._status &= ~(Item.DELETING | Item.DEFERRED)
+        self._setKind(None, _noMonitors)
+        self.itsParent._removeItem(self)
+
+        if _keepRoot:  # during merge (to delete deferred children)
+            view._unregisterItem(self, False)
+            self._status |= Item.DELETED
+        else:
+            self._setRoot(None, view)
+            self._status |= Item.DELETED | Item.STALE
+
+        self._status &= ~(Item.DELETING | Item.DEFERRED)
 
     def _copyExport(self, view, cloudAlias, matches):
 
