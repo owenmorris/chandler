@@ -80,7 +80,6 @@ def IgnoreSynchronizeWidget(syncValue, method, *args, **kwds):
         app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
     return result
-    
 
 
 class Block(schema.Item):
@@ -156,6 +155,13 @@ class Block(schema.Item):
     #See Bug #5219
     wxId = schema.One (schema.Integer, defaultValue=0)
     
+    # event profiler (class attributes)
+    profileEvents = False          # Make "True" to profile events
+    __profilerActive = False       # to prevent reentrancy, if the profiler is currently active
+    __profiler = None              # The hotshot profiler
+
+    depth = 0                      # Recursive post depth
+
     @classmethod
     def post (self, event, arguments, sender=None):
         """
@@ -171,14 +177,20 @@ class Block(schema.Item):
         @return: the value returned by the event handler
         """
         try:
+            Block.depth += 1
             stackedArguments = getattr (event, "arguments", None)
             arguments ['sender'] = sender
             arguments ['results'] = None
             event.arguments = arguments
-            self.dispatchEvent (event)
+            
+            hookListItem = schema.ns (__name__, wx.GetApp().UIRepositoryView).BlockDispatchHookList
+            for hookItem in hookListItem.hooks:
+                hookItem.dispatchEvent (event, Block.depth)
+
             results = event.arguments ['results']
             return results # return after the finally clause
         finally:
+            Block.depth -= 1
             if stackedArguments is None:
                 delattr (event, 'arguments')
             else:
@@ -873,8 +885,24 @@ class Block(schema.Item):
             block = block.parentBlock
         return block.frame
 
-    @classmethod
-    def dispatchEvent (theClass, event):
+
+class DispatchHook (Block):
+    """
+    Override dispatchEvent and assign hookList to get called each
+    time an event is disspatched
+    """
+    hookList = schema.One("DispatcHookList", otherName='hooks')
+
+    def dispatchEvent (self, event, depth):
+        pass
+
+
+class DispatcHookList (schema.Item):
+    hooks = schema.Sequence("DispatchHook", otherName='hookList', defaultValue = [])
+
+
+class BlockDispatchHook (DispatchHook):
+    def dispatchEvent (self, event, depth):
         
         def callProfiledMethod(blockOrWidget, methodName, event):
             """
@@ -1051,10 +1079,6 @@ class Block(schema.Item):
         if commitAfterDispatch:
             wx.GetApp().UIRepositoryView.commit()
 
-    # event profiler (class attributes)
-    profileEvents = False        # Make "True" to profile events
-    __profilerActive = False       # to prevent reentrancy, if the profiler is currently active
-    __profiler = None              # The hotshot profiler
 
 def debugName(thing):
     """

@@ -23,7 +23,7 @@ from Block import (
     RectangularChild, BlockEvent, NewItemEvent, ChoiceEvent, ColorEvent,
     KindParameterizedEvent, AddToSidebarEvent, NewBlockWindowEvent, 
     EventList, debugName, getProxiedItem, WithoutSynchronizeWidget,
-    IgnoreSynchronizeWidget
+    IgnoreSynchronizeWidget, DispatchHook, DispatcHookList, BlockDispatchHook
 )
 
 from ContainerBlocks import (
@@ -143,3 +143,9 @@ def installParcel(parcel, oldName=None):
     CharacterStyle.update(parcel, "SummaryRowStyle", fontFamily="DefaultUIFont")
 
     CharacterStyle.update(parcel, "SidebarRowStyle", fontFamily="DefaultUIFont", fontSize=12)
+
+    defaultDispatchHook = BlockDispatchHook.update(parcel, "DefaultDispatchHook")
+    
+    DispatcHookList.update(parcel, "BlockDispatchHookList",
+        hooks = [defaultDispatchHook]
+    )

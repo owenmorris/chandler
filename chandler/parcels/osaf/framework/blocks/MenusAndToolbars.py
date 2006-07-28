@@ -31,24 +31,24 @@ class RefCollectionDictionary(schema.Item):
     The attribute that contains the reference collection is determined
     through attribute indirection using the collectionSpecifier attribute.
 
-    The "itsName" property of the items in the reference collection
+    The "blockName" property of the items in the reference collection
     is used for the dictionary lookup by default.  You can override
     the name accessor if you want to use something other than
-    itsName to key the items in the collection.
+    blockName to key the items in the collection.
     """
 
     def itemNameAccessor(self, item):
         """
         Name accessor used for RefCollectionDictionary
         subclasses can override this method if they want to
-        use something other than the itsName property to
+        use something other than the blockName property to
         determine item names.
 
         @param item: The item whose name we want.
         @type item: C{item}
         @return: A C{immutable} for the key into the collection
         """
-        return item.itsName or item.itsUUID.str64()
+        return item.blockName or item.itsUUID.str64()
     
     def getCollectionSpecifier(self):
         """
@@ -175,11 +175,18 @@ class RefCollectionDictionary(schema.Item):
         """
         # 
         coll = self.getAttributeValue(self.getCollectionSpecifier())
-        coll.append(item, alias=self.itemNameAccessor(item))
-        if index is not None:
-            prevItem = coll.previous(index)
-            coll.placeItem(item, prevItem) # place after the previous item
+        if index is None:
+            afterItem = coll.last()
+        else:
+            afterItem = coll.previous(index)
             
+        if item not in coll:
+            coll.append(item, alias=self.itemNameAccessor(item))
+            if index is not None:
+                coll.placeItem(item, afterItem) # place after the previous item
+        else:
+            coll.placeItem(item, afterItem) # place item at end
+
     def __delitem__(self, key):
         """
         Delete the keyed item from our ref collection.
@@ -293,9 +300,8 @@ class DynamicBlock(schema.Item):
 
                 Use 'MenuBar' for the Menu Bar.
                 """
-                try:
-                    locationName = child.location
-                except AttributeError:
+                locationName = getattr (child, 'location', None)
+                if locationName is None:
                     locationName = child.parentBlock.blockName
                 bar = containers [locationName]
                 

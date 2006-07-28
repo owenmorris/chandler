@@ -4,7 +4,7 @@
 # Wing IDE project file                                          #
 ##################################################################
 [project attributes]
-debug.run-args = {loc('Chandler.py'): '--nocatch'}
+debug.run-args = {loc('Chandler.py'): '--nocatch --create'}
 proj.env-vars = {None: ('custom',
                         ['PATH=release/bin']),
                  loc('Chandler.py'): ('project',
@@ -116,6 +116,7 @@ proj.file-list = [loc('application/AboutBox.py'),
                   loc('parcels/evdb/evdb.py'),
                   loc('parcels/evdb/EVDBDialog.py'),
                   loc('parcels/evdb/__init__.py'),
+                  loc('parcels/eventLogger/__init__.py'),
                   loc('parcels/flickr/flickr.py'),
                   loc('parcels/flickr/tests/TestI18nFlickr.py'),
                   loc('parcels/flickr/tests/__init__.py'),
