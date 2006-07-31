@@ -81,9 +81,9 @@ class RepositoryView(CView):
         if repository is not None and not repository.isOpen():
             raise RepositoryError, "Repository is not open"
 
-        super(RepositoryView, self).__init__(repository, name, version,
+        super(RepositoryView, self).__init__(repository, name,
                                              RepositoryView.itsUUID)
-        self.openView()
+        self.openView(version)
         
     def setCurrentView(self):
         """
@@ -119,7 +119,7 @@ class RepositoryView(CView):
 
         return self['Schema']['Core']['Lob'].makeValue(data, *args, **kwds)
 
-    def openView(self):
+    def openView(self, version=None):
         """
         Open this repository view.
 
@@ -127,7 +127,16 @@ class RepositoryView(CView):
         re-opening a closed view.
         """
 
-        self._roots = self._createChildren(self, self.itsVersion == 0)
+        repository = self.repository
+
+        if version is None:
+            if repository is not None:
+                version = repository.store.getVersion()
+            else:
+                version = 0L
+
+        self._version = long(version)
+        self._roots = self._createChildren(self, version == 0L)
         self._registry = {}
         self._deletedRegistry = {}
         self._instanceRegistry = {}
@@ -137,7 +146,6 @@ class RepositoryView(CView):
 
         self.classLoader = ClassLoader(Item, MissingClass)
 
-        repository = self.repository
         if repository is not None:
             if repository.isRefCounted():
                 self._status |= RepositoryView.REFCOUNTED
@@ -1430,7 +1438,7 @@ class NullRepositoryView(RepositoryView):
     def __init__(self, verify=False):
 
         self._logger = logging.getLogger(__name__)
-        super(NullRepositoryView, self).__init__(None, "null view", 0)
+        super(NullRepositoryView, self).__init__(None, "null view", 0L)
 
         if verify:
             self._status |= RepositoryView.VERIFY

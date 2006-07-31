@@ -430,10 +430,24 @@ def initRepository(directory, options, allowSchemaView=False):
             del kwds
             break
 
-    if options.undo and not repository.isNew():
-        toVersion = long(options.undo)
-        if toVersion < repository.store.getVersion():
-            repository.undo(toVersion)
+    if options.undo:
+        if options.undo == 'check':
+            view = repository.view
+            while view.itsVersion > 0:
+                schema.reset(view)
+                if view.check():
+                    break
+
+                repository.logger.info('Undoing version %d', view.itsVersion)
+                view.closeView()
+                repository.undo()
+                view.openView()
+        else:
+            version = repository.store.getVersion()
+            nVersions = long(options.undo)
+            toVersion = version - nVersions
+            if toVersion >= 0:
+                repository.undo(toVersion)
 
     view = repository.view
 

@@ -556,8 +556,9 @@ class IndexContainer(FileContainer):
             count = 0
             prevs = {}
 
-            for i, doc in indexSearcher.search(TermQuery(term)):
-                id = hits.id(i)
+            for hit in indexSearcher.search(TermQuery(term)):
+                id = hit.getId()
+                doc = hit.getDocument()
                 uAttr = UUID(doc['attribute'])
 
                 if uAttr in keeps:
@@ -584,6 +585,6 @@ class IndexContainer(FileContainer):
 
         term = Term("item", uItem.str64())
 
-        for i, doc in indexSearcher.search(TermQuery(term)):
-            if long(doc['version']) == version:
-                indexReader.deleteDocument(hits.id(i))
+        for hit in indexSearcher.search(TermQuery(term)):
+            if long(hit.getDocument()['version']) == version:
+                indexReader.deleteDocument(hit.getId())

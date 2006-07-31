@@ -36,12 +36,12 @@ from repository.persistence.DBItemIO import DBItemWriter
 
 class DBRepositoryView(OnDemandRepositoryView):
 
-    def openView(self):
+    def openView(self, version=None):
 
         self._log = set()
         self._indexWriter = None
 
-        super(DBRepositoryView, self).openView()
+        super(DBRepositoryView, self).openView(version)
 
     def _logItem(self, item):
 
