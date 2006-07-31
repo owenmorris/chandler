@@ -224,6 +224,7 @@ def initOptions(**kwds):
         'indexer':    ('-i', '--indexer',    's', 'background', None, 'Run Lucene indexing in the background or foreground'),
         'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
         'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions'),
+        'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
     }
 
 
@@ -430,10 +431,14 @@ def initRepository(directory, options, allowSchemaView=False):
             del kwds
             break
 
+    if options.backup:
+        dbHome = repository.backup()
+        repository.logger.info("Repository was backed up into %s", dbHome)
+
     if options.undo:
         if options.undo == 'check':
             view = repository.view
-            while view.itsVersion > 0:
+            while view.itsVersion > 0L:
                 schema.reset(view)
                 if view.check():
                     break
@@ -446,7 +451,7 @@ def initRepository(directory, options, allowSchemaView=False):
             version = repository.store.getVersion()
             nVersions = long(options.undo)
             toVersion = version - nVersions
-            if toVersion >= 0:
+            if toVersion >= 0L:
                 repository.undo(toVersion)
 
     view = repository.view
