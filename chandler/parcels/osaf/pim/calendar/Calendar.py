@@ -1575,12 +1575,17 @@ class CalendarEventMixin(RemindableMixin):
     def cmpTimeAttribute(self, item, attr, useTZ=True):
         """Compare item and self.attr, ignore timezones if useTZ is False."""
         itemTime = getattr(item, attr, None)
+        selfTime = getattr(self, attr, None)
+
         if itemTime is None:
-            return -1
+            if selfTime is None:
+                # both attributes are None, so item and self compare as equal
+                return 0
+            else:
+                return -1
         elif not useTZ:
             itemTime = itemTime.replace(tzinfo = None)
 
-        selfTime = getattr(self, attr, None)
         if selfTime is None:
             return 1
         elif not useTZ:
