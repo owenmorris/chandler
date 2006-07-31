@@ -253,8 +253,7 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
 {
     PyObject *repository, *name, *uuid;
 
-    if (!PyArg_ParseTuple(args, "OOLO", &repository, &name, &self->version,
-                          &uuid))
+    if (!PyArg_ParseTuple(args, "OOO", &repository, &name, &uuid))
         return -1;
 
     if (PyObject_TypeCheck(repository, CRepository))
@@ -267,6 +266,7 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
+    self->version = (long long) 0;
     Py_INCREF(name); self->name = name;
     Py_INCREF(repository); self->repository = repository;
     Py_INCREF(Py_None); self->changeNotifications = Py_None;
