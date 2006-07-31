@@ -77,7 +77,7 @@ class ItemValue(object):
 
         raise NotImplementedError, '%s._clone' %(type(self))
 
-    def _check(self, logger, item, attribute):
+    def _check(self, logger, item, attribute, repair):
 
         if not (item is self._item and attribute == self._attribute):
             logger.error('Value %s of type %s in attribute %s on %s is owned by  attribute %s on %s', self, type(self), attribute, item._repr_(), self._attribute, self._item)
