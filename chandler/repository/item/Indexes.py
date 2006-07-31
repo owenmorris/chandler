@@ -121,7 +121,8 @@ class Index(dict):
     def _xmlValues(self, generator, version):
         raise NotImplementedError, "%s._xmlValues" %(type(self))
 
-    def _checkIndex(self, _index, logger, name, value, item, attribute, count):
+    def _checkIndex(self, _index, logger, name, value, item, attribute, count,
+                    repair):
 
         result = True
 
@@ -131,14 +132,14 @@ class Index(dict):
 
         else:
             size, result = _index._checkIterateIndex(logger, name, value,
-                                                     item, attribute)
+                                                     item, attribute, repair)
             if size != 0:
                 logger.error("Iteration of index '%s' (%d) installed on value '%s' of type %s in attribute '%s' on %s doesn't match length (%d)", name, count - size, value, type(value), attribute, item._repr_(), count)
                 result = False
 
         return result
 
-    def _checkIterateIndex(self, logger, name, value, item, attribute):
+    def _checkIterateIndex(self, logger, name, value, item, attribute, repair):
         
         size = len(self)
 
@@ -540,12 +541,13 @@ class SortedIndex(DelegatingIndex):
         
         self._subIndexes.remove((uuid, attr, name))
 
-    def _checkIndex(self, _index, logger, name, value, item, attribute, count):
+    def _checkIndex(self, _index, logger, name, value, item, attribute, count,
+                    repair):
 
         return self._index._checkIndex(self, logger, name, value,
-                                       item, attribute, count)
+                                       item, attribute, count, repair)
 
-    def _checkIterateIndex(self, logger, name, value, item, attribute):
+    def _checkIterateIndex(self, logger, name, value, item, attribute, repair):
 
         size = len(self)
         prevKey = None
@@ -852,8 +854,9 @@ class SubIndex(SortedIndex):
 
         uuid, attr, name = self._super
         index = getattr(self._valueMap._getView()[uuid], attr).getIndex(name)
+        skipList = index.skipList
 
-        return index.getPosition(k0) - index.getPosition(k1)
+        return skipList.position(k0) - skipList.position(k1)
 
     def _xmlValues(self, generator, version, attrs, mode):
 

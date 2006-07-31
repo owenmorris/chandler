@@ -310,9 +310,9 @@ class Kind(Item):
 
         return c
 
-    def check(self, recursive=False):
+    def check(self, recursive=False, repair=False):
 
-        result = super(Kind, self).check(recursive)
+        result = super(Kind, self).check(recursive, repair)
         
         if not self.getAttributeValue('superKinds', self._references):
             if self is not self.getItemKind():
@@ -320,13 +320,13 @@ class Kind(Item):
                 result = False
 
         itemClass = self.getItemClass()
-        result = self._checkClass(itemClass, True)
+        result = self._checkClass(itemClass, True, repair)
 
         classes = Kind._kinds.get(self._uuid)
         if classes is not None:
             for cls in classes:
                 if cls is not itemClass:
-                    result = self._checkClass(cls, False) and result
+                    result = self._checkClass(cls, False, repair) and result
 
         attrs = self._references.get('attributes', None)
         if attrs:
@@ -336,7 +336,7 @@ class Kind(Item):
 
         return result
 
-    def _checkClass(self, cls, isItemClass):
+    def _checkClass(self, cls, isItemClass, repair):
 
         result = True
 

@@ -617,7 +617,7 @@ class Indexed(object):
 
         return len(self.getIndex(indexName))
 
-    def _checkIndexes(self, logger, item, attribute):
+    def _checkIndexes(self, logger, item, attribute, repair):
 
         result = True
 
@@ -631,7 +631,18 @@ class Indexed(object):
 
             for name, index in self._indexes.iteritems():
                 if not index._checkIndex(index, logger, name, self,
-                                         item, attribute, count):
-                    result = False
+                                         item, attribute, count, repair):
+                    if repair:
+                        logger.warning("Rebuilding index '%s' installed on value '%s' of type %s in attribute '%s' on %s", name, self, type(self), attribute, item._repr_())
+                        indexes[name] = index = \
+                            self._createIndex(index.getIndexType(),
+                                              **index.getInitKeywords())
+                        self.fillIndex(index)
+                        self._setDirty(True)
+                        result = index._checkIndex(index, logger, name, self,
+                                                   item, attribute, count,
+                                                   repair)
+                    else:
+                        result = False
                     
         return result

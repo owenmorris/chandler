@@ -664,7 +664,7 @@ class RefList(LinkedMap, Indexed):
 
         return None
 
-    def _check(self, logger, item, name):
+    def _check(self, logger, item, name, repair):
         """
         Debugging: verify this ref collection for consistency.
 
@@ -689,7 +689,7 @@ class RefList(LinkedMap, Indexed):
         while key is not None and l > 0:
             try:
                 other = self[key]
-                result = result and refs._checkRef(logger, name, other)
+                result = result and refs._checkRef(logger, name, other, repair)
             except DanglingRefError, e:
                 logger.error("Iterator on %s caused DanglingRefError: %s",
                              self, str(e))
@@ -710,7 +710,8 @@ class RefList(LinkedMap, Indexed):
             logger.error("iterator on %s doesn't finish on last key %s but on %s", self, self.lastKey(), prevKey)
             return False
 
-        return result and self._checkIndexes(logger, self._item, self._name)
+        return result and self._checkIndexes(logger, self._item, self._name,
+                                             repair)
 
     def _clearDirties(self):
         pass
@@ -759,7 +760,7 @@ class TransientRefList(RefList):
     def linkChanged(self, link, key):
         pass
     
-    def _check(self, logger, item, name):
+    def _check(self, logger, item, name, repair):
         return True
 
     def _load(self, key):
@@ -923,10 +924,10 @@ class RefDict(object):
 
         return False
 
-    def _check(self, logger, item, name):
+    def _check(self, logger, item, name, repair):
 
         for refList in self._dict.itervalues():
-            if not refList._check(logger, item, name):
+            if not refList._check(logger, item, name, repair):
                 return False
 
         return True

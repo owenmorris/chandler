@@ -432,10 +432,11 @@ class AbstractSet(ItemValue, Indexed):
         
         return copy
 
-    def _check(self, logger, item, attribute):
+    def _check(self, logger, item, attribute, repair):
 
-        return (super(AbstractSet, self)._check(logger, item, attribute) and
-                self._checkIndexes(logger, item, attribute))
+        return (super(AbstractSet, self)._check(logger, item, attribute,
+                                                repair) and
+                self._checkIndexes(logger, item, attribute, repair))
 
     def _setDirty(self, noMonitors=False):
 

@@ -268,10 +268,10 @@ class Values(CValues):
 
         return hash
 
-    def _checkValue(self, logger, name, value, attrType):
+    def _checkValue(self, logger, name, value, attrType, repair):
 
         if isinstance(value, ItemValue):
-            if not value._check(logger, self._item, name):
+            if not value._check(logger, self._item, name, repair):
                 return False
 
         if not attrType.recognizes(value):
@@ -280,7 +280,8 @@ class Values(CValues):
 
         return True
 
-    def _checkCardinality(self, logger, name, value, cardType, attrCard):
+    def _checkCardinality(self, logger, name, value, cardType, attrCard,
+                          repair):
 
         if not (value is None or
                 (cardType is None and isitem(value)) or
@@ -290,18 +291,18 @@ class Values(CValues):
 
         return True
 
-    def check(self):
+    def check(self, repair=False):
         
         logger = self._item.itsView.logger
         result = True
 
         for key, value in self._dict.iteritems():
-            r = self._verifyAssignment(key, value, logger)
+            r = self._verifyAssignment(key, value, logger, repair)
             result = result and r
 
         return result
 
-    def _verifyAssignment(self, key, value, logger):
+    def _verifyAssignment(self, key, value, logger, repair=False):
 
         item = self._item
 
@@ -321,31 +322,31 @@ class Values(CValues):
             attrCard = attribute.c.cardinality
 
             if attrCard == 'single':
-                return self._checkValue(logger, key, value, attrType)
+                return self._checkValue(logger, key, value, attrType, repair)
 
             elif attrCard == 'list':
-                if self._checkCardinality(logger, key, value, list, 'list'):
+                if self._checkCardinality(logger, key, value, list, 'list', repair):
                     result = True
                     for v in value:
-                        check = self._checkValue(logger, key, v, attrType)
+                        check = self._checkValue(logger, key, v, attrType, repair)
                         result = result and check
                     return result
                 return False
 
             elif attrCard == 'dict':
-                if self._checkCardinality(logger, key, value, dict, 'dict'):
+                if self._checkCardinality(logger, key, value, dict, 'dict', repair):
                     result = True
                     for v in value.itervalues():
-                        check = self._checkValue(logger, key, v, attrType)
+                        check = self._checkValue(logger, key, v, attrType, repair)
                         result = result and check
                     return result
                 return False
 
             elif attrCard == 'set':
-                if self._checkCardinality(logger, key, value, set, 'set'):
+                if self._checkCardinality(logger, key, value, set, 'set', repair):
                     result = True
                     for v in value.itervalues():
-                        check = self._checkValue(logger, key, v, attrType)
+                        check = self._checkValue(logger, key, v, attrType, repair)
                         result = result and check
                     return result
                 return False
@@ -867,7 +868,7 @@ class References(Values):
             if value is not None and value._isRefs():
                 value._clearDirties()
 
-    def _checkRef(self, logger, name, other):
+    def _checkRef(self, logger, name, other, repair):
 
         if other is not None:
             if not isitem(other):
@@ -930,7 +931,7 @@ class References(Values):
 
         return True
 
-    def check(self):
+    def check(self, repair=False):
 
         item = self._item
         logger = item.itsView.logger
@@ -944,25 +945,25 @@ class References(Values):
                                                False, None, 'single')
             if attrCard == 'single':
                 check = self._checkCardinality(logger, key, value,
-                                               None, 'single')
+                                               None, 'single', repair)
                 if check:
-                    check = self._checkRef(logger, key, value)
+                    check = self._checkRef(logger, key, value, repair)
             elif attrCard == 'list':
                 check = self._checkCardinality(logger, key, value,
-                                               RefList, 'list')
+                                               RefList, 'list', repair)
                 if check:
-                    check = value._check(logger, item, key)
+                    check = value._check(logger, item, key, repair)
             elif attrCard == 'dict':
                 check = self._checkCardinality(logger, key, value,
-                                               RefDict, 'dict')
+                                               RefDict, 'dict', repair)
                 if check:
-                    check = value._check(logger, item, key)
+                    check = value._check(logger, item, key, repair)
             elif attrCard == 'set':
                 from repository.item.Sets import AbstractSet
                 check = self._checkCardinality(logger, key, value,
-                                               AbstractSet, 'set')
+                                               AbstractSet, 'set', repair)
                 if check:
-                    check = value._check(logger, item, key)
+                    check = value._check(logger, item, key, repair)
             else:
                 logger.error("Attribute %s on %s is using a cardinality, '%s', which is not supported, use 'list' instead", key, self._item.itsPath, attrCard)
                 check = False
@@ -971,7 +972,7 @@ class References(Values):
 
         return result
 
-    def _verifyAssignment(self, key, other, logger):
+    def _verifyAssignment(self, key, other, logger, repair=False):
 
         item = self._item
         kind = item.itsKind

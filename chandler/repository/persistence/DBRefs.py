@@ -235,21 +235,6 @@ class PersistentRefs(object):
 
         self._changedRefs.clear()
 
-    def _check_(self):
-
-        l = len(self)
-        key = self.firstKey()
-
-        while key:
-            l -= 1
-            link = self._get(key)
-            key = link._nextKey
-            
-        if l != 0:
-            return 1
-
-        return 0
-
     def _applyChanges(self, changes, history):
 
         moves = {}

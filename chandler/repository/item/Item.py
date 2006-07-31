@@ -699,7 +699,7 @@ class Item(CItem):
             for name in self._references._dict.iterkeys():
                 yield name
 
-    def check(self, recursive=False, checkItem=True):
+    def check(self, recursive=False, repair=False):
         """
         Run consistency checks on this item.
 
@@ -714,14 +714,15 @@ class Item(CItem):
 
         @param recursive: if C{True}, check this item and its children
         recursively. If C{False}, the default, check only this item.
+        @param repair: if C{True}, perform repairs on failures.
         @return: C{True} if no errors were found, C{False} otherwise. Errors
         are logged in the Chandler execution log.
         """
 
         logger = self.itsView.logger
 
-        checkValues = self._values.check()
-        checkRefs = self._references.check()
+        checkValues = self._values.check(repair)
+        checkRefs = self._references.check(repair)
         result = checkValues and checkRefs
 
         name = self.itsName
@@ -749,7 +750,7 @@ class Item(CItem):
             for child in self.iterChildren():
                 l -= 1
                 if recursive:
-                    check = child.check(True)
+                    check = child.check(True, repair)
                     result = result and check
                 if l == 0:
                     break
@@ -757,24 +758,7 @@ class Item(CItem):
                 logger.error("Iterator on children of %s doesn't match length (%d left for %d total)", self._repr_(), l, len(self._children))
                 return False
 
-        if result and checkItem:
-            result = self.checkItem()
-
         return result
-
-    def checkItem(self):
-        """
-        A placeholder for subclasses to do more checking.
-
-        This method is meant to be used by developers to do implement checks
-        that the repository cannot do on its own such as semantic
-        constraints checking.
-
-        Failure should be logged, exceptions should not be raised.
-
-        @return: C{True} if all checks pass, C{False} otherwise
-        """
-        return True
 
     def getVersion(self, latest=False):
         """

@@ -440,12 +440,31 @@ class MainView(View):
 
     def onCheckRepositoryEvent(self, event):
         # triggered from "Test | Check Repository" Menu
-        repository = self.itsView.repository
+        view = self.itsView
+        repository = view.repository
         progressMessage = _(u'Checking repository...')
         repository.logger.info("Checking repository ...")
         self.setStatusMessage(progressMessage)
         before = time()
-        if repository.check():
+        if view.check():
+            after = time()
+            successMessage = _(u'Check completed successfully in %(numSeconds)s') % {'numSeconds': timedelta(seconds=after-before)}
+            repository.logger.info('Check completed successfully in %s' % (timedelta(seconds=after-before)))
+            self.setStatusMessage(successMessage)
+        else:
+            errorMessage = _(u'Check completed with errors')
+            repository.logger.info('Check completed with errors')
+            self.setStatusMessage(errorMessage)
+
+    def onCheckAndRepairRepositoryEvent(self, event):
+        # triggered from "Test | Check Repository and Repair" Menu
+        view = self.itsView
+        repository = view.repository
+        progressMessage = _(u'Checking repository...')
+        repository.logger.info("Checking repository ...")
+        self.setStatusMessage(progressMessage)
+        before = time()
+        if view.check(True):
             after = time()
             successMessage = _(u'Check completed successfully in %(numSeconds)s') % {'numSeconds': timedelta(seconds=after-before)}
             repository.logger.info('Check completed successfully in %s' % (timedelta(seconds=after-before)))

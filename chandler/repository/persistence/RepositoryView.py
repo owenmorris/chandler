@@ -642,7 +642,7 @@ class RepositoryView(CView):
                 self.dir(child, path)
             path.pop()
 
-    def check(self):
+    def check(self, repair=False):
         """
         Runs repository consistency checks on this view.
 
@@ -653,7 +653,7 @@ class RepositoryView(CView):
 
         result = True
         for root in self.iterRoots():
-            check = root.check(True)
+            check = root.check(True, repair)
             result = result and check
 
         return result

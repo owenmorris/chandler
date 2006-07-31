@@ -110,6 +110,8 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('CheckRepository').install(parcel)
 
+    BlockEvent.template('CheckAndRepairRepository').install(parcel)
+
     BlockEvent.template('i18nMailTest').install(parcel)
 
     BlockEvent.template('ShowLogWindow').install(parcel)
