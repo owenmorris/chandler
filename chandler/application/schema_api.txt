@@ -430,68 +430,6 @@ items of the target kind::
     #>>> del __name__    # quit pretending we're in application.tests
 
 
-Additional Metadata
-===================
-
-You can set additional attributes on your class' Kind by using
-``schema.kindInfo()`` in the body of your item class::
-
-    >>> class CalendarItem(schema.Item):
-    ...     """This is just a demo"""
-    ...     schema.kindInfo(
-    ...         displayName = u"Calendar Item",
-    ...         displayAttribute = "XYZ"
-    ...     )
-    >>> schema.itemFor(CalendarItem, rv).displayName
-    u'Calendar Item'
-    >>> schema.itemFor(CalendarItem, rv).displayAttribute
-    'XYZ'
-    >>> schema.itemFor(CalendarItem, rv).description
-    'This is just a demo'
-
-These additional attributes are not normally inherited by subkinds::
-
-    >>> class CalendarItemSubclass(CalendarItem):
-    ...     pass
-    >>> hasattr(schema.itemFor(CalendarItemSubclass, rv), 'displayName')
-    False
-
-You can make multiple calls to ``kindInfo()`` in the same class::
-
-    >>> class MultipleMetadata(schema.Item):
-    ...     schema.kindInfo(displayName=u"Foo")
-    ...     schema.kindInfo(displayAttribute="Bar")
-    >>> schema.itemFor(MultipleMetadata, rv).displayName
-    u'Foo'
-    >>> schema.itemFor(MultipleMetadata, rv).displayAttribute
-    'Bar'
-
-As long as you don't change anything you declared in a previous definition::
-
-    >>> class ConflictingMetadata(schema.Item):
-    ...     schema.kindInfo(displayName=u"Foo")
-    ...     schema.kindInfo(displayName=u"Bar")
-    Traceback (most recent call last):
-      ...
-    ValueError: 'displayName' defined multiple times for this class
-
-You also have to only use keyword arguments that correspond to actual Kind
-attributes::
-
-    >>> class BadMetadata(schema.Item):
-    ...     schema.kindInfo(madeUpName="xyz")
-    Traceback (most recent call last):
-      ...
-    TypeError: 'madeUpName' is not an attribute of Kind
-
-And calling ``kindInfo()`` is meaningless outside a class statement::
-
-    >>> schema.kindInfo(displayName=u"x")
-    Traceback (most recent call last):
-      ...
-    SyntaxError: kindInfo() must be called in the body of a class statement
-
-
 Annotation Classes
 ==================
 
@@ -631,19 +569,15 @@ Enumerations
 ============
 
     >>> class Importance(schema.Enumeration):
-    ...     """Description goes here"""
-    ...     schema.kindInfo(displayName=u"Importance Enum")
+    ...     schema.kindInfo(description="Importance Enum")
     ...     values = 'high', 'medium', 'low'
 
     >>> imp = schema.itemFor(Importance, rv)
     >>> imp
     <Enumeration ... Importance ...>
 
-    >>> imp.displayName
-    u'Importance Enum'
-
     >>> imp.description
-    'Description goes here'
+    'Importance Enum'
 
     >>> test_role = schema.Descriptor(Importance)
 

@@ -1179,7 +1179,7 @@ its value must be a ``schema.Cloud()`` object::
     ...     fiz = schema.Sequence(schema.Item)
     ...
     ...     schema.addClouds(
-    ...         sharing = schema.Cloud(foo, "displayName"),
+    ...         sharing = schema.Cloud(foo, "itsName"),
     ...         copying = schema.Cloud(byCloud = [fiz], byRef=[bar,baz]),
     ...     )
 
@@ -1193,11 +1193,11 @@ This then creates repository cloud items for the enclosing class::
 cloud.  The inclusion policies are given via keyword arguments (or the lack
 thereof), and attribute descriptors or attribute names are used to specify
 the endpoints themselves.  For example, the ``sharing`` cloud defines two
-endpoints, for the ``foo`` and ``displayName`` attributes::
+endpoints, for the ``foo`` and ``itsName`` attributes::
 
     >>> sharing = clouds.getByAlias('sharing')
     >>> list(sharing.endpoints)
-    [<Endpoint ... foo ...>, <Endpoint ... displayName ...>]
+    [<Endpoint ... foo ...>, <Endpoint ... itsName ...>]
 
 Because we simply listed these attributes without an explicit policy, the
 default ``byValue`` inclusion policy was applied::
@@ -1205,7 +1205,7 @@ default ``byValue`` inclusion policy was applied::
     >>> sharing.endpoints.getByAlias('foo').includePolicy
     'byValue'
 
-    >>> sharing.endpoints.getByAlias('displayName').includePolicy
+    >>> sharing.endpoints.getByAlias('itsName').includePolicy
     'byValue'
 
 To specify any other inclusion policies, you must use keyword arguments naming
@@ -1227,7 +1227,7 @@ The ``copying`` cloud above created endpoints for the ``fiz``, ``bar``, and
 Note that in most circumstances, you will want to specify endpoints using
 attribute descriptors directly, as we did in most of our example above.
 However, there are some times when it will be more useful or convenient to
-use an attribute *name* instead, as we did for the ``displayName`` attribute
+use an attribute *name* instead, as we did for the ``itsName`` attribute
 above.  Also, there may be times when you need to specify an advanced endpoint
 option such as for the ``byMethod`` policy, which requires a method name to be
 specified in addition to the attribute name and policy.  In cases like these,
@@ -1278,24 +1278,35 @@ Other Metadata
 --------------
 
 When a parcel is created, persistent items are created that correspond to each
-class, to store each class' schema.  These items can have attributes of their
-own, such as ``description``.  Depending on whether the class is a
-``schema.Item``, ``schema.Struct``, or ``schema.Enumeration``, the
+class, to store each class' schema.  These items can be retrieved using the
+``schema.itemFor()`` API, and have attributes of their own, such as
+``description``.  Depending on whether the class is a  ``schema.Item``,
+``schema.Struct``, ``schema.Annotation``, or ``schema.Enumeration``, the
 attributes may be different, as the type of the persistent item will be
-different.  For all classes, however, you can set attributes of the
-corresponding items by using the ``schema.kindInfo()`` function in the body of
-your item class::
+different.
+
+Normally, the ``description`` attribute of the persistent item is automatically
+set from the defining class' docstring (``__doc__`` attribute), if any::
+
+    >>> class AnExample(schema.Item):
+    ...     """Just an example"""
+
+    >>> schema.itemFor(AnExample, rv).description
+    'Just an example'
+
+For all classes, however, you can set attributes of the corresponding item by
+using the ``schema.kindInfo()`` function in the body of your item class::
 
     >>> class CalendarItem(schema.Item):
-    ...     """This is just a demo"""
+    ...     """My docstring is different from my description"""
     ...     schema.kindInfo(
-    ...         displayName = "Calendar Item",
+    ...         description = "Calendar Item",
     ...     )
 
 Once you've done this, the persistent item corresponding to your class in any
 given repository view, will have the attribute values you specify::
 
-    >>> schema.itemFor(CalendarItem, rv).displayName
+    >>> schema.itemFor(CalendarItem, rv).description
     'Calendar Item'
 
 Note, however, that you can only specify names that correspond to valid
@@ -1307,11 +1318,8 @@ attributes for whatever the corresponding item type is::
       ...
     TypeError: 'madeUpName' is not an attribute of Kind
 
-The only attribute used by all schema classes is ``displayName``, which as we
-mentioned previously may be used by the Chandler UI in some places to show a
-name to the user.  (You should therefore call the ``_()`` translation function
-on such strings before using them, although our examples in this document do
-not.)  The ``schema.Annotation`` class also has an ``annotates`` attribute,
+The only attribute currently used by all schema classes is ``description``.
+The ``schema.Annotation`` class also has an ``annotates`` attribute, however,
 as we saw in the section on `Annotation Classes`_, above.
 
 Whatever the attribute, however, you should note that their values are *not*
@@ -1320,16 +1328,16 @@ inherited by subclasses::
     >>> class CalendarItemSubclass(CalendarItem):
     ...     pass
 
-    >>> hasattr(schema.itemFor(CalendarItemSubclass, rv), 'displayName')
+    >>> hasattr(schema.itemFor(CalendarItemSubclass, rv), 'description')
     False
 
 Also note that you can make multiple calls to ``kindInfo()`` in the same
 class::
 
     >>> class MultipleMetadata(schema.Item):
-    ...     schema.kindInfo(displayName="Foo")
+    ...     schema.kindInfo(displayAttribute="Foo")
     ...     schema.kindInfo(description="Bar")
-    >>> schema.itemFor(MultipleMetadata, rv).displayName
+    >>> schema.itemFor(MultipleMetadata, rv).displayAttribute
     'Foo'
     >>> schema.itemFor(MultipleMetadata, rv).description
     'Bar'
@@ -1337,16 +1345,16 @@ class::
 as long as you don't change anything you set in a previous call::
 
     >>> class ConflictingMetadata(schema.Item):
-    ...     schema.kindInfo(displayName="Foo")
-    ...     schema.kindInfo(displayName="Bar")
+    ...     schema.kindInfo(description="Foo")
+    ...     schema.kindInfo(description="Bar")
     Traceback (most recent call last):
       ...
-    ValueError: 'displayName' defined multiple times for this class
+    ValueError: 'description' defined multiple times for this class
 
 And finally, note that calling ``kindInfo()`` is meaningless outside a class
 statement::
 
-    >>> schema.kindInfo(displayName="x")
+    >>> schema.kindInfo(description="x")
     Traceback (most recent call last):
       ...
     SyntaxError: kindInfo() must be called in the body of a class statement
@@ -1488,9 +1496,8 @@ objects:
         <class '...Kind'>
 
 ``description``, and ``doc``
-    The name and description of this attribute descriptor, if any.  They will
-    be used to collectively form a ``__doc__`` string, so that ``help()`` is
-    informative for Item classes::
+    The description of this attribute descriptor (if any) used to form a
+    ``__doc__`` string, so that ``help()`` is informative for Item classes::
 
         >>> Kind.subkinds.doc = "Sub-kinds of this kind"
         >>> Kind.superkinds.doc = "Super-kinds of this kind"
@@ -1520,8 +1527,8 @@ objects:
          |  ...
 
     As you can see, the automatically-generated ``__doc__`` for an attribute
-    descriptor includes its ``displayName`` (if any), its cardinality and type,
-    followed by a blank line and the ``doc`` or ``description``.
+    descriptor includes its cardinality and type followed by a blank line and
+    the ``doc`` or ``description``.
 
     Note that ``doc`` is actually just a convenient shortcut for
     ``description``; there is no real difference between the two attributes::
