@@ -166,7 +166,7 @@ def getPlatformName():
         platformName = 'Windows'
     elif os.name == 'posix':
         if sys.platform == 'darwin':
-            if platform.processor() == 'i386':
+            if platform.machine() == 'i386':
                 platformName = 'Mac OS X (intel)'
             else:
                 platformName = 'Mac OS X (ppc)'
