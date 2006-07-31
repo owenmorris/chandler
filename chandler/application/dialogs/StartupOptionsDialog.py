@@ -50,7 +50,7 @@ class StartupOptionsDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        style = wx.CAPTION | wx.STAY_ON_TOP
+        style = wx.CAPTION
         pre.Create(None, -1, _(u"Startup Options for Chandler"), 
                    wx.DefaultPosition, wx.DefaultSize, style)
 
