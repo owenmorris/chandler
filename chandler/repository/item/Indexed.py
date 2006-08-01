@@ -626,23 +626,25 @@ class Indexed(object):
                 indexes = self._indexes
                 self._indexes = None
                 count = len(self)
+
+                for name, index in indexes.iteritems():
+                    if not index._checkIndex(index, logger, name, self,
+                                             item, attribute, count, repair):
+                        if repair:
+                            logger.warning("Rebuilding index '%s' installed on value '%s' of type %s in attribute '%s' on %s", name, self, type(self), attribute, item._repr_())
+                            indexes[name] = index = \
+                                self._createIndex(index.getIndexType(),
+                                                  **index.getInitKeywords())
+                            self.fillIndex(index)
+                            self._setDirty(True)
+
+                            result = index._checkIndex(index, logger, name,
+                                                       self, item, attribute,
+                                                       count, repair)
+                        else:
+                            result = False
+
             finally:
                 self._indexes = indexes
-
-            for name, index in self._indexes.iteritems():
-                if not index._checkIndex(index, logger, name, self,
-                                         item, attribute, count, repair):
-                    if repair:
-                        logger.warning("Rebuilding index '%s' installed on value '%s' of type %s in attribute '%s' on %s", name, self, type(self), attribute, item._repr_())
-                        indexes[name] = index = \
-                            self._createIndex(index.getIndexType(),
-                                              **index.getInitKeywords())
-                        self.fillIndex(index)
-                        self._setDirty(True)
-                        result = index._checkIndex(index, logger, name, self,
-                                                   item, attribute, count,
-                                                   repair)
-                    else:
-                        result = False
                     
         return result
