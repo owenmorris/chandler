@@ -11,7 +11,7 @@ To run Chandler, double-click on chandler.exe.
 
 * Latest Release *
 
-We have recently released 0.6, our experimentally usable calendar. For more details go to...
+Download the new Chandler 0.7Alpha3 milestone for a sneak peak at features we are implementing for the 0.7 release. For more details go to...
 
-http://chandler.osafoundation.org/0.6_readme.php
+  http://chandler-dev.osafoundation.org/newinalpha3.php
 
