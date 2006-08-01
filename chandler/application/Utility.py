@@ -225,6 +225,7 @@ def initOptions(**kwds):
         'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
         'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions'),
         'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
+        'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
     }
 
 
@@ -434,6 +435,11 @@ def initRepository(directory, options, allowSchemaView=False):
     if options.backup:
         dbHome = repository.backup()
         repository.logger.info("Repository was backed up into %s", dbHome)
+
+    if options.repair:
+        view = repository.view
+        schema.reset(view)
+        view.check(True)
 
     if options.undo:
         if options.undo == 'check':
