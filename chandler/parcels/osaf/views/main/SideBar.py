@@ -736,6 +736,11 @@ class SidebarBlock(Table):
     # cell. A height of zero uses the height of the cell
     editRectOffsets = schema.Sequence (schema.Integer, required = True)
 
+    """
+      A dictionary mapping a filterKind string to display name of the Kind.
+    """
+    kindToDisplayName = schema.Mapping (schema.Text)
+
     schema.addClouds(
         copying = schema.Cloud(
             byRef = [filterKind],
@@ -997,36 +1002,39 @@ class SidebarBlock(Table):
         selectionRanges = self.contents.getSelectionRanges()
         if selectionRanges is None or len(selectionRanges) != 1:
             event.arguments['Enable'] = False
-            return
-
-        selectedItem = self.contents.getFirstSelectedItem()
-        if selectedItem is not None:
-            if hasattr (UserCollection(selectedItem), "displayNameAlternatives"):
-                collectionName = self.getNameAlternative (selectedItem)
-            else:
-                collectionName = selectedItem.getItemDisplayName()
         else:
-            collectionName = ""
-
-        arguments = {'collection': collectionName,
-                     'kind': self.getNameAlternative (schema.ns('osaf.pim', self.itsView).allCollection)}
-
-        if selectedItem is None:
-            enabled = False
-            menuTitle = _(u'Keep out of %(kind)s') % arguments
-        elif UserCollection(selectedItem).outOfTheBoxCollection:
-            enabled = False
-            menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
-        else:
-            enabled = True
-            mine = schema.ns('osaf.pim', self.itsView).mine
-            if selectedItem not in mine.sources:
-                menuTitle = _(u'Add "%(collection)s" to %(kind)s') % arguments
+            selectedItem = self.contents.getFirstSelectedItem()
+            if selectedItem is not None:
+                if hasattr (UserCollection(selectedItem), "displayNameAlternatives"):
+                    collectionName = self.getNameAlternative (selectedItem)
+                else:
+                    collectionName = selectedItem.getItemDisplayName()
             else:
+                collectionName = ""
+
+            if self.filterKind is None:
+                key = "None"
+            else:
+                key = os.path.basename (str (self.filterKind.itsPath))
+            arguments = {'collection': collectionName,
+                         'kind': self.kindToDisplayName[key]}
+    
+            if selectedItem is None:
+                enabled = False
+                menuTitle = _(u'Keep out of %(kind)s') % arguments
+            elif UserCollection(selectedItem).outOfTheBoxCollection:
+                enabled = False
                 menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
-
-        event.arguments ['Text'] = menuTitle
-        event.arguments['Enable'] = enabled
+            else:
+                enabled = True
+                mine = schema.ns('osaf.pim', self.itsView).mine
+                if selectedItem not in mine.sources:
+                    menuTitle = _(u'Add "%(collection)s" to %(kind)s') % arguments
+                else:
+                    menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
+    
+            event.arguments ['Text'] = menuTitle
+            event.arguments['Enable'] = enabled
 
     def getNameAlternative (self, item):
         """

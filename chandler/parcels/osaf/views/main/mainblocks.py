@@ -76,7 +76,11 @@ def makeMainView (parcel):
         elementDelegate = 'osaf.views.main.SideBar.SidebarElementDelegate',
         hideColumnHeadings = True,
         defaultEditableAttribute = u'displayName',
-        filterKind = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView)).install(parcel)
+        filterKind = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView),
+        kindToDisplayName = {'None': _(u'My items'),
+                             'MailMessageMixin': _(u'My mail'),
+                             'CalendarEventMixin': _(u'My calendar'),
+                             'TaskMixin': _(u'My tasks')}).install(parcel)
     Sidebar.contents.selectItem (pim_ns.allCollection)
 
     ApplicationBar = Toolbar.template(
