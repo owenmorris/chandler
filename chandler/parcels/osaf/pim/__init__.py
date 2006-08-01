@@ -122,7 +122,7 @@ def installParcel(parcel, oldVersion=None):
 
     # the "All" / "My" collection
     allCollection = SmartCollection.update(parcel, 'allCollection',
-        displayName=_(u"My items"),
+        displayName=_(u"Dashboard"),
         source=nonRecurringNotes,
         exclusions=trashCollection,
         trash=None,

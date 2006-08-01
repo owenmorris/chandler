@@ -268,8 +268,7 @@ def emulate_sidebarClick(sidebar, cellName, double=False, overlay=False):
         xOffset=3 
 
     # find special collections by item because their names may
-    # change (i.e. "All" becomes "My Items" or "My Calendar
-    # Events" etc...
+    # change. see UserCollection's displayNameAlternatives
     pim_ns = schema.ns('osaf.pim', wx.GetApp().UIRepositoryView)
     chandler_collections = {"All":pim_ns.allCollection}
     if cellName in chandler_collections.keys():

@@ -108,12 +108,7 @@ def installParcel(parcel, oldVersion=None):
     allUC = UserCollection(pim_ns.allCollection)
     allUC.setValues(renameable=False,
                     outOfTheBoxCollection=True,
-                    allowOverlay = True,
-                    displayNameAlternatives = \
-                    {'None': _(u'My items'),
-                     'MailMessageMixin': _(u'My mail'),
-                     'CalendarEventMixin': _(u'My calendar'),
-                     'TaskMixin': _(u'My tasks')})
+                    allowOverlay = True)
     allUC.ensureColor()
                                                    
     trashUC = UserCollection(pim_ns.trashCollection)
