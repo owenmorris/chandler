@@ -1,0 +1,1148 @@
+                           Chandler I18n Egg Integration Proposal
+                        ----------------------------------------------
+
+************************************************************
+NOTE: This README is slightly out of date with the 
+      EggResourceManager implementation and will be
+      updated soon.
+************************************************************
+
+Egg Architecture Reworking
+==========================
+
+My proposal is to redesign the API submitted by Markku to a class, EggResourceManager. I have kept Markku's original intent of having the API be usable for general resource loading purposes in addition to its localization features. I have also added or want to add the following features:
+
+  
+         1. Delay loading pkg_resources.add_activation_listener to the classes initial method.
+            This allows the specification of a locale set, resource file name, and fallback 
+            logic before the installed eggs are searched.
+
+         2. Added a gettext locale fallback mechanism as well as country code fallback features.
+            Country fallback feature adds only the language code as a fallback to a 
+            language code country code definition. If no resources or gettext translations 
+            are available for the fr_CA locale then fr locale will also be searched.
+
+         3. Gettext mo files are only loaded for locales in the locale set. This reduces
+            memory requirements and start up time. Returned values for resource and gettext 
+            look ups are cached by the EggResourceManager for performance. The cache is 
+            flushed and the gettext fallback order regenerated if the locale set of the
+            EggResourceManager changes.
+
+         4. Created an EggTranslations class which extended gettext.GNUTranslations. The
+            EggTranslations.ugettext method can take an optional default value which will 
+            be returned if no localization is found for the txt key passed.
+
+         5. The egg_i18n.py Python file which contains the localization logic contained 
+            should be rename to something that better reflects its use for all types of 
+            resources localized and non-localized. Some names that come to mind are
+            egg_resource.py, resource_manager.py, resource_loader.py.
+
+
+
+EggResourceManager Overview
+===============================
+The EggResourceManager is a flexible object oriented resource loader that can be used 
+for many purposes. It supports localization of resources and loading of gettext .mo files.
+
+However, The EggResourceManager can be used for other purposes other than localization.
+Its simple API can be leveraged by egg developers for basic resource loading.
+
+Each EggResourceManager instance can customize the locale set it supports, the name 
+of the resource ini file to parse, and whether to employ locale set fallback for 
+localization and resource look up. 
+
+EggResourceManager API
+=========================
+
+class EggResourceManager(object):
+    def __init__(self):
+ 
+    def initialize(self, localeSet, resourceINIFile="resources.ini",    
+                   fallback=True):
+        """
+        The initialize method performs the following operations:
+
+            1. Calls the c{pkg_resources.add_activation_listener} method 
+               passing the c{EggResourceManager._parseEggResourceFiles} method
+               as the callback. See the parseEggResourceFiles method for 
+               more info on loading resources and gettext translation files.
+
+
+            2. Calls the EggResourceManager's setLocaleSet method passing the  
+               localeSet param. See the setLocaleSet method documentation for 
+               more info.
+
+            The initialize method sets the locale set and loads the 
+            resource and translation caches. It must be called 
+            before using the EggResourceManager API.
+
+        @param localeSet: A String or List containing locale country 
+                          and language codes
+
+        @type localeSet: c{str} or c{unicode} or c{List} containing c{str} 
+                         or c{unicode} values
+
+        @param resourceFile: The name of the resource ini file in the egg's
+                             info directory.
+
+                             This file contains the location of localized 
+                             and non-localized resources
+                             as well as translation files in gettext mo format. 
+                             The default value for this file is "resources.info".
+ 
+         @type resourceFile: c{str} or c{unicode}
+
+         @param fallback: Indicates where locale set fallback should 
+                          take place. If set to True, the EggResourceManager 
+                          will search all locales in the locale set till a 
+                          resource or gettext mo translation file is found. If
+                          set to False the EggResourceManager will only try to
+                          locate a resource or gettext mo translation file for 
+                          the current locale which is the first locale in the 
+                          locale set.
+
+
+          @type fallback: c{boolean} 
+   
+        """
+
+    def hasKey(self, domain, name, locale=None):
+        """
+        returns True if a key was specified in one or more 
+        eggs resource ini files (default is "resource.info")
+        for the given domain and name. 
+ 
+        The locale is an optional argument. By default
+        the locale set is searched in fallback order
+        (if fallback=True in the initialize or setLocale method) until a 
+        key is found. If no key found the method returns False.
+          
+        However, if a locale is specified the method will only
+        search for a key in the resource ini files for the 
+        given locale.
+   
+        @param domain: A domain is a root namespace for which 
+                       resources and localizations exist under. 
+
+                       A domain name can be any unique string 
+                       and does not have to match the egg name.
+ 
+                       An egg's info file can contain resource
+                       and localizations for more than one domain.
+
+                       The domain terminology comes from the 
+                       gettext API architecture.
+
+         @type domain: c{str} or c{unicode}
+             
+         @param name: the name of the key that must be present in one
+                      or more ini files in order for the method to return
+                      True
+         @type name: c{str} or c{unicode}
+           
+         
+         @param locale: Optional argument that if specified tells the method 
+                        to only return True if key is present in one or more
+                        ini files for the given locale.
+
+         @type locale: c{str} a valid language country locale string i.e. "en_US"
+
+         @return: c{bool} True if the name is found otherwise False
+
+        """
+
+    def getValueForKey(self, domain, name, locale=None):
+        """
+        Returns the unicode string value that was specified 
+        in one or more eggs resource ini files (default is 
+        "resource.info") for the given domain and name. or 
+        None if not found.
+ 
+        The locale is an optional argument. By default
+        the locale set is searched in fallback order
+        (if fallback=True in the initialize or setLocale method) until a 
+        key is found.
+          
+        However, if a locale is specified the method will only
+        search for a key in the resource ini files for the 
+        given locale.
+
+        Example:
+           A resource.info file contains the following line: 
+              [mypackage::fr]
+               myimage = /resources/imgs/myimage.png
+
+           >>> print eggRMInstance.getValueForKey("mypackage", \
+           ...                               "myimage", "fr")
+           /resource/imgs/myimage.png
+           >>>
+
+        @param domain: A domain is a root namespace for which 
+                       resources and localizations exist under. 
+
+                       A domain name can be any unique string 
+                       and does not have to match the egg name.
+ 
+                       An egg's info file can contain resource
+                       and localizations for more than one domain.
+
+                       The domain terminology comes from the 
+                       gettext API architecture.
+
+         @type domain: c{str} or c{unicode}
+             
+         @param name: the name of the key that must be present in one
+                      or more ini files in order for the method to return
+                      True
+         @type name: c{str} or c{unicode}
+           
+         
+         @param locale: Optional argument that if specified tells the method 
+                        to only return True if key is present in one or more
+                        ini files for the given locale.
+
+         @type locale: c{str} a valid language country locale string i.e. "en_US"
+
+
+         @return c{unicode} value or None if not found
+        """
+
+    def isDirectory(self, domain, name, locale=None):
+        """
+          Returns True if:
+          1.  one or more resource ini files have an entry for the key 
+              contained in the name parameter.
+ 
+          2. The entry must be a valid directory path
+             in the same egg as resource ini.
+
+        The locale is an optional argument. By default
+        the locale set is searched in fallback order
+        (if fallback=True in the initialize or setLocale method) until a 
+        key is found. If no key found the method returns False.
+          
+        However, if a locale is specified the method will only
+        search for a key in the resource ini files for the 
+        given locale.
+
+        @param domain: A domain is a root namespace for which 
+                       resources and localizations exist under. 
+
+                       A domain name can be any unique string 
+                       and does not have to match the egg name.
+ 
+                       An egg's info file can contain resource
+                       and localizations for more than one domain.
+
+                       The domain terminology comes from the 
+                       gettext API architecture.
+
+         @type domain: c{str} or c{unicode}
+             
+         @param name: the name of the key that must be present in one
+                      or more ini files in order for the method to return
+                      True
+         @type name: c{str} or c{unicode}
+           
+         
+         @param locale: Optional argument that if specified tells the method 
+                        to only return True if key is present in one or more
+                        ini files for the given locale.
+
+         @type locale: c{str} a valid language country locale string i.e. "en_US"
+
+         @return: c{bool} True if the name is found and the entry for that 
+                  name is a valid directory path in the same egg
+                  otherwise False
+        """
+
+
+    def listDirectory(self, domain, name, locale=None):
+        """
+        Returns a c{List} of c{unicode} values containing the 
+        names of files in the directory entry for the 
+        given domain and name. The listDirectory
+        method will not return the names of sub directories 
+        only files in the directory for the given domain and 
+        name.
+
+        The locale is an optional argument. By default
+        the locale set is searched in fallback order
+        (if fallback=True in the initialize or setLocale method) until a 
+        key is found. If no key found the method returns False.
+          
+        However, if a locale is specified the method will only
+        search for a key in the resource ini files for the 
+        given locale.
+
+        Raises a c{NameError} if no entry is found for the 
+        given domain and name.
+
+        Raises a c{OSError} if the entry for given domain 
+        and name is not a directory.
+
+        @param domain: A domain is a root namespace for which 
+                       resources and localizations exist under. 
+
+                       A domain name can be any unique string 
+                       and does not have to match the egg name.
+ 
+                       An egg's info file can contain resource
+                       and localizations for more than one domain.
+
+                       The domain terminology comes from the 
+                       gettext API architecture.
+
+         @type domain: c{str} or c{unicode}
+             
+         @param name: the name of the key that must be present in one
+                      or more ini files in order for the method to return
+                      True
+         @type name: c{str} or c{unicode}
+           
+         
+         @param locale: Optional argument that if specified tells the method 
+                        to only return True if key is present in one or more
+                        ini files for the given locale.
+
+         @type locale: c{str} a valid language country locale string i.e. "en_US"
+        
+
+        @return: c{List} of c{unicode} filenames
+        """
+
+    def hasResource(self, domain, name, locale=None):
+        """
+        Returns True if:
+          1.  one or more resource ini files have an entry for the key 
+              contained in the name parameter.
+ 
+          2. The entry must be a valid path to a file 
+             in the same egg as resource ini.
+
+             Example:    
+             A resource.info file contain's the following line: 
+             
+                [mypackage::fr]
+                myResource=/resources/myresource.png
+
+           >>> print eggRMInstance.hasResource("mypackage", \
+           ...                                 "myResource", "fr")
+           True
+           >>>
+            
+        The locale is an optional argument. By default
+        the locale set is searched in fallback order
+        (if fallback=True in the initialize or setLocale method) until a 
+        key is found. If no key found the method returns False.
+          
+        However, if a locale is specified the method will only
+        search for a key in the resource ini files for the 
+        given locale.
+
+        @param domain: A domain is a root namespace for which 
+                       resources and localizations exist under. 
+
+                       A domain name can be any unique string 
+                       and does not have to match the egg name.
+ 
+                       An egg's info file can contain resource
+                       and localizations for more than one domain.
+
+                       The domain terminology comes from the 
+                       gettext API architecture.
+
+        @type domain: c{str} or c{unicode}
+             
+        @param name: the name of the key to look up in the resource ini files.
+        @type name: c{str} or c{unicode}
+           
+         
+        @param locale: Optional argument that if specified tells the method 
+                       to only return True if key is present in one or more
+                       ini files for the given locale and that keys value points
+                       to a valid file path in the same egg as resource ini.
+
+        @type locale: c{str} a valid language country locale string i.e. "en_US"
+  
+        @return: c{bool} True if the name key points to at least one 
+                 resource in an egg otherwise False.
+        """
+  
+
+    def getResourceAsStream(self, domain, name, locale=None):
+        """
+        #XXX StringIO can be Unicode 
+        #so convert the resource string to 
+        #Unicode with utf-8
+        Returns a c{cStringIO.StringIO} stream 
+        handle to the resource for the given domain 
+        and name.
+
+        Raises a c{NameError} if no entry is found for the 
+        given domain and name.
+
+        Raises a c{IOError} if the entry for given domain 
+        and name is not a file resource.
+
+        The locale is an optional argument. By default
+        the locale set is searched in fallback order
+        (if fallback=True in the initialize or setLocale method) until a 
+        key is found. If no key found the method returns False.
+          
+        However, if a locale is specified the method will only
+        search for a key in the resource ini files for the 
+        given locale.
+
+        @param domain: A domain is a root namespace for which 
+                       resources and localizations exist under. 
+
+                       A domain name can be any unique string 
+                       and does not have to match the egg name.
+ 
+                       An egg's info file can contain resource
+                       and localizations for more than one domain.
+
+                       The domain terminology comes from the 
+                       gettext API architecture.
+
+         @type domain: c{str} or c{unicode}
+             
+         @param name: the name of the key that must be present in one
+                      or more ini files in order for the method to return
+                      True
+         @type name: c{str} or c{unicode}
+           
+         
+         @param locale: Optional argument that if specified tells the method 
+                        to only return True if key is present in one or more
+                        ini files for the given locale.
+
+         @type locale: c{str} a valid language country locale string i.e. "en_US"
+        
+
+        @return: c{cStringIO.StringIO} stream handle to the resource
+        """
+
+    def getResourceAsLines(self, domain, name, locale=None, encoding='UTF-8'):
+        """
+        Returns a c{generator} containing a list of non-blank 
+        non-comment lines in a resource file for the given domain 
+        and name.
+
+        Raises a c{NameError} if no entry is found for the 
+        given domain and name.
+
+        Raises a c{IOError} if the entry for given domain 
+        and name is not a file resource.
+
+        Raises a c{UnicodeDecodeError} if the file resource
+        encoding does not match the value of the encoding 
+        argument.
+
+        Raises a c{LookupError} if an invalid or unsupported encoding
+        is specified.
+
+        The locale is an optional argument. By default
+        the locale set is searched in fallback order
+        (if fallback=True in the initialize or setLocale method) until a 
+        key is found. If no key found the method returns False.
+          
+        However, if a locale is specified the method will only
+        search for a key in the resource ini files for the 
+        given locale.
+
+        
+        Example:
+           A resource.info file contains the following line: 
+              [mypackage::all]
+              myDocument = README.txt
+
+           >>> lines = eggRMInstance.getResourceAsLines("mypackage", 
+           ...                                          "myDocument", "all")
+
+           >>> for line in lines:
+           >>>    print line
+           
+        @param domain: A domain is a root namespace for which 
+                       resources and localizations exist under. 
+
+                       A domain name can be any unique string 
+                       and does not have to match the egg name.
+ 
+                       An egg's info file can contain resource
+                       and localizations for more than one domain.
+
+                       The domain terminology comes from the 
+                       gettext API architecture.
+
+         @type domain: c{str} or c{unicode}
+             
+         @param name: the name of the key that must be present in one
+                      or more ini files in order for the method to return
+                      True
+         @type name: c{str} or c{unicode}
+           
+         
+         @param locale: Optional argument that if specified tells the method 
+                        to only return True if key is present in one or more
+                        ini files for the given locale.
+
+         @type locale: c{str} a valid language country locale string i.e. "en_US"
+        
+
+        @return: c{generator} list of non-blank non-comment lines.
+        """
+  
+    def getResourceAsString(self, domain, name, locale=None, encoding='UTF-8'):
+        """
+        Returns a c{unicode} string containing the contents of 
+        the resource file for the given domain and name.
+
+        Raises a c{NameError} if no entry is found for the 
+        given domain and name.
+
+        Raises a c{IOError} if the entry for given domain 
+        and name is not a file resource.
+
+        Raises a c{UnicodeDecodeError} if the file resource
+        encoding does not match the value of the encoding 
+        argument.
+
+        Raises a c{LookupError} if an invalid or unsupported encoding
+        is specified.
+
+        The locale is an optional argument. By default
+        the locale set is searched in fallback order
+        (if fallback=True in the initialize or setLocale method) until a 
+        key is found. If no key found the method returns False.
+          
+        However, if a locale is specified the method will only
+        search for a key in the resource ini files for the 
+        given locale.
+
+        
+        Example:
+           A resource.info file contains the following line: 
+              [mypackage::all]
+              myDocument = README.txt
+
+           >>> fileContents = eggRMInstance.getResourceAsString("mypackage", \
+           ...                                              "myDocument", "all")
+
+           >>> print fileContents
+           This is the text contained in the
+           readme file
+          
+           More text in the readme file.
+           >>>
+           
+        @param domain: A domain is a root namespace for which 
+                       resources and localizations exist under. 
+
+                       A domain name can be any unique string 
+                       and does not have to match the egg name.
+ 
+                       An egg's info file can contain resource
+                       and localizations for more than one domain.
+
+                       The domain terminology comes from the 
+                       gettext API architecture.
+
+         @type domain: c{str} or c{unicode}
+             
+         @param name: the name of the key that must be present in one
+                      or more ini files in order for the method to return
+                      True
+         @type name: c{str} or c{unicode}
+           
+         
+         @param locale: Optional argument that if specified tells the method 
+                        to only return True if key is present in one or more
+                        ini files for the given locale.
+
+         @type locale: c{str} a valid language country locale string i.e. "en_US"
+        
+
+        @return: c{unicode} string containing contents of the resource file.
+        """
+   
+    def getText(self, domain, name, txt, *args):
+        """
+        Returns a c{unicode} string containing the localized value
+        for key txt in the given domain. The name
+        parameter points to a key in a resource ini file that
+        contain a value entry pointing to a gettext .mo 
+        resource in the same egg.
+
+        An optional additional argument can be specified as the 
+        default value to return if no localized is found. By default
+        the txt parameter will be returned by c{EggResourceManager.getText}
+        if no localized value found for the txt parameter. However,
+        if the default value argument is passed that value will be 
+        returned instead of text.
+
+        Example where there in no localized value for 
+        txt parameter "Hello World":
+        
+            >>> eggRMInstance.getText("myproject", "message_catalog", "Hello World")
+            u'Hello World'
+            >>>
+            >>> eggRMInstance.getText("myproject", "message_catalog", \
+            ...                             "Hello World", "Default Value")  
+            u'Default Value'
+            >>>
+
+        If fallback was set to True in the c{EggResourceManager.initialize} method
+        or the c{EggResourceManager.setLocale} method, the 
+        c{EggResourceManager.getText} method will search all locales in the 
+        locale set till a gettext mo translation is found for the txt parameter.
+
+        If fallback was set to False in the c{EggResourceManager.initialize} method
+        or the c{EggResourceManager.setLocale} method, the
+        c{EggResourceManager.getText} method will only search the current locale
+        which is the first locale in the locale set for a gettext mo translation for 
+        the txt parameter.
+                          
+        Note that the "all" default locale can not contain any  key value pairs 
+        that point to gettext .mo files.
+         
+        If a .mo gettext value is found in the "all" default locale, the .mo file 
+        will not be loaded by the c{EggResourceManager}.
+
+
+        Example:
+           A resource.info file contains the following line: 
+              [mypackage::fr]
+              my_message_catalog = locale/fr/mypackage.mo
+
+           The locale/fr/mypackage.mo file contains a localization of "Hello"
+           to "Bonjour".
+
+           >>> egRMInstance.initialize("fr")
+           >>> eggRMInstance.getText("mypackage", "my_message_catalog", "Hello")
+           u'Bonjour'                                              
+
+           
+        @param domain: A domain is a root namespace for which 
+                       resources and localizations exist under. 
+
+                       A domain name can be any unique string 
+                       and does not have to match the egg name.
+ 
+                       An egg's info file can contain resource
+                       and localizations for more than one domain.
+
+                       The domain terminology comes from the 
+                       gettext API architecture.
+
+         @type domain: c{str} or c{unicode}
+             
+         @param name: the name of the key that must be present in one
+                      or more ini files in order for the method to return
+                      True
+         @type name: c{str} or c{unicode}
+           
+         
+         @param txt: The default text string which is used as look up key 
+                     to retrieve a localized value from a gettext .mo file.
+                     The default text string is usual the English version
+                     of the text. The .mo gettext files will contain 
+                     localizations of the English version with the English
+                     version as the key.
+                     
+
+         @type txt: c{str} or c{unicode}
+        
+
+        @return: c{unicode} the localized version of the txt parameter, the txt
+                 parameter if no localized version found, or a default value passed
+                 as an additional argument if no localized version of txt parameter found.
+        """
+
+    def hasFallback(self):
+        """
+        Returns True if fallback was set to True in either the 
+        c{EggResourceManager.initialize} method or the 
+        c{EggResourceManager.setLocale} method.
+        
+        @return: c{bool} True if fallback set to True in initialize or setLocale methods
+                         otherwise False.
+        """
+
+    def getINIFileName(self): 
+        """
+        Returns the c{unicode} file name of the resource ini files. The 
+        default for the resource ini file is "resource.info".
+ 
+        The name of the resource ini file is set in the c{EggResourceManager.initialize}
+        method.
+ 
+        @return: c{unicode} the name of the resource ini file.
+        """
+
+    def getLocaleSet(self):
+        """
+        Returns a c{List} of valid c{str} locale language / country codes.
+        The c{List} is arrange in ascending fallback order.
+
+        @return: c{List or c{str} locale language / country codes.
+        """
+
+    def setLocaleSet(self, localeSet, fallback=True): 
+        """
+        Resets the c{EggResourceManager}'s locale set c{List}.
+        Resetting the locale set includes unloading all gettext 
+        .mo translations, loading the the gettext .mo translations
+        for the current locale set, and setting the gettext locale
+        fallback order if the fallback parameter is set to True.
+
+        Calling this method also resets the c{EggResourceManager}'s
+        resource look up and localization caches as 
+        the locale set has changed and thus those caches are no longer
+        valid.
+
+        When a resource or localization is retrieved for the 
+        current locale set the value, localizations or resource file 
+        location is cached so the next time the value or resource file 
+        is request the locale set fallback order does not need to be
+        searched as that value is now in the cache.  
+
+        Note the initial locale set for the c{EggResourceManager}
+        must be set in the C{EggResourceManager.initialize}
+        method.
+
+        Note, setting the c{EggResourceManager}'s locale set 
+        also adds the language code as a fallback for language /
+        county code locale definitions when fallback is set to True.
+        If the locale set contains 'fr_CA' this method will also add
+        to the locale set 'fr' as a fallback for 'fr_CA'. 
+
+        @param localeSet: A String or List containing locale country 
+                          and language codes
+
+        @type localeSet: c{str} or c{unicode} or c{List} containing c{str} 
+                         or c{unicode} values
+
+
+        @param fallback: Indicates where locale set fallback should 
+                         take place. If set to True, the c{EggResourceManager} 
+                         will search all locales in the locale set till a 
+                         resource or gettext mo translation file is found. If
+                         set to False the c{EggResourceManager} will only try to
+                         locate a resource or gettext mo translation file for 
+                         the current locale which is the first locale in the 
+                         locale set.
+
+
+        @type fallback: c{boolean} 
+        """
+
+    def getDebugString(self, domain=None):
+    """
+     Returns a c{str} representation of the c{EggResourceManager}'s
+     egg loading values suitable for debugging using print, the logging 
+     package, or a UI dialog box.
+
+     If a domain parameter is passed, a debug string will be returned only
+     for the given domain.
+
+     The structure of the debug string when domain is set to None is as follows:
+
+         EggResourceManager
+         =========================
+            ini file: ResourceFileName 
+            locale set: [localeSetValues]
+            fallback: True | False
+                  
+            EggName 
+            ===============================
+               DomainName
+                 [LocaleName] 
+                    entryKey=entryValue
+                    gettextKey=getTextMoFile (LOADED | NOT_LOADED)
+
+       
+    An additional Example using real values:
+
+         EggResourceManager
+         =========================
+            ini file: "resources.info"
+            locale set: ['fr_CA', 'fr']
+            fallback: True
+
+            MyProject
+            ===============================
+               myProjectDomain
+                 [all] 
+                    splashScreenImage=imgs/splash.png
+                    readme=README.txt
+               
+               myAlternateDomain
+                 [all]
+                    splashScreenImage=alternate/imgs/splash.png
+                    readme=alternate/README.txt
+                  
+            MyProject_FR
+            ===============================
+               myProjectDomain
+                 [fr_CA,fr] 
+                    splashScreenImage=locale/fr/imgs/splash.png
+                    readme=locale/fr/README.txt
+                    message_catalog=locale/fr/myProjectDomain.mo (LOADED)
+               
+               myAlternateDomain
+                 [fr_CA,fr]
+                    splashScreenImage=alternate/locale/fr/imgs/splash.png
+                    readme=alternate/locale/fr/README.txt
+                    message_catalog=alternate/locale/fr/myProjectDomain.mo (LOADED)
+
+
+        @param domain: A domain is a root namespace for which 
+                       resources and localizations exist under. 
+
+                       A domain name can be any unique string 
+                       and does not have to match the egg name.
+ 
+                       An egg's info file can contain resource
+                       and localizations for more than one domain.
+
+                       The domain terminology comes from the 
+                       gettext API architecture.
+
+                       The domain parameter is optional and 
+                       if specified only debug info will be 
+                       returned for that domain.
+
+         @type domain: c{str} or c{unicode}
+               
+
+         @return: c{str} debug string of c{EggResourceManager} current configuration
+    """
+
+  def _parseEggResourceFiles(self, dist):
+      """
+      Callback method passed to c{pkg_resources.add_activation_listener} method.
+      
+      For each egg distribution contained in the dist parameter:
+          1. Parses the resource ini file (default name is "resource.info") for each egg
+             that contains one.
+          2. Builds a cache of resources based on domain, locale, and name.
+          3. For each .mo value for a given domain, locale, and name caches 
+             the file path to the .mo gettext file.
+
+      @param dist: An egg package distribution
+      @type dist: c{pkg_resources.Distribution}
+      """
+
+
+
+
+Resource Manager package distribution
+=======================================
+The resource module containing the EggResourceManager will be packaged 
+and distributed as an egg. Eggs wishing to leverage the EggResourceManager must include it 
+as a dependency in their setup.py python installation scripts. 
+
+An egg can contain any of the following resources, localization gettext .mo files, 
+Python code. It is recommended that localizations be distributed as stand alone eggs 
+separate from application implementation logic. 
+
+
+The Resource Ini File:
+==========================
+The resource ini file is created an egg's .egg-info directory. All resources and 
+gettext .mo files referenced in the resource ini must be under the egg's .egg-info directory.
+
+The default name for a resource ini file is "resource.info".
+
+The structure of the resource ini file is quite simple. 
+First lets address the concept of 'all'. This is the default fallback and 
+contains non-localized information. An 'all' default is not require but
+is useful for placing information which is localization agnostic.
+
+When fallback is set to True in an EggResourceManager instance the 'all' default will
+be the last place search for a resource, value, or localization once the locale set
+has been searched.
+
+Also passing a locale='all' to any of the EggResourceManager API's that support
+locale setting will result in instant access to information in 'all'.
+
+>>> r = eggRMInstance.getResourceAsString("mydomain", "myresource", "all")
+
+A resource ini file can define one or more domains and for each domain one or
+more locales that can contain any number of key value entries. 
+
+The really cool feature of the resource format is one can include values for 
+a domain that is used by another egg. This allows one egg to package translations
+for another.
+
+For example, I have a RSS Reader egg that contains an RSS retriever API and 
+a wxPython UI to display the RSS feeds. That RSS Reader defines a domain 
+in its resource ini file of RSSReader and includes some non-localized resources
+and uses the EggResourceManager for its string and resource retrieval via the
+EggResourceManager.getText and EggResourceManager.getResourceAsStream methods. 
+
+A translator can then create an additional egg which defines in the RSSReader domain
+resources and localizations for French. That egg does not need to contain any
+Python program logic what so ever. The French translation egg specifies the
+RSSReader egg as a dependency. 
+
+Installing the French egg and setting the locale to French will instantly result in 
+the RSS Reader being localized without any addition work done by the RSS Reader 
+developer. Pretty cool huh?
+ 
+
+Comments
+-------------
+
+Comments can be inserted in an resource ini file at the start of a line
+signaling  that the EggResourceManager is not to parse the line. Comments
+can also be added at the end of a line. In this case, the line will be
+parsed by the EggResourceManager till the comments are reached.
+The comments at the end of the line will be ignored. To insert a 
+comment use the # token. For example:
+
+#this is a comment
+entry = value #this comment will not be parsed but entry = value will
+
+
+Domains
+-----------
+
+Domains are defined using a [DOMAIN_NAME::LOCAL_SET] syntax.
+Each domain definition must include at least one locale or 'all' bucket. 
+For example:
+
+[myDomain::all]
+entry=value
+
+A domain can however, define more than one locale. For example: 
+[myDomain::fr_CA, fr, en_US]
+entry=value
+
+If more than one locale is specified the same key value pairs will be
+used for each locale.
+
+
+Key Value Pairs
+-------------------
+The value in a key value pair under a domain and locale(s) can be:
+    1. A string value such as status_message = Unable to load file.
+    2. A file path under the egg's .egg-info directory (used for
+       loading resources).
+    3. A directory path under the egg's .egg-info directory.
+    4. A file path to a gettext .mo translation file
+ 
+
+An Example resource ini file
+------------------------------------
+
+# This is an example comment in a resource 
+# ini file
+
+[mydomain::all]
+Welcome_Message=Greetings from my egg #This is the default message my
+                                      #users will see.
+
+defaultImage = resource/default.png   #This is the default image my
+                                      #users will see.
+defaultDirectory = resource
+
+[mydomain::fr_CA, fr_FR, fr] #All of these locales will use the entries defined below
+Welcome_Message = Bonjour 
+defaultImage = locale/fr/resources/default.png
+message_catalog = locale/fr/mydomain.mo #This gettext catalog will automatically get
+                                        #loaded if the EggResourceManager 
+                                        #locale set contains one or more or the 
+                                        #following 'fr_CA', 'fr_FR', 'fr'
+defaultDirectory= locale/fr/resources
+
+
+[mydomain::es_UY, es]
+Welcome_Message = hola 
+defaultImage = locale/es/resources/default.png
+message_catalog = locale/es/mydomain.mo #This gettext catalog will automatically get
+                                        #loaded if the EggResourceManager 
+                                        #locale set contains one or more or the 
+                                        #following 'es_UY', 'es'
+
+defaultDirectory = locale/es/resources
+
+[aDomainFromAnotherEgg::fr]
+message_catalog=locale/fr/aDomainFromAnotherEgg.mo
+               
+
+
+
+
+Integrating the EggResourceManager API in to Chandler
+=======================================================
+
+Little external changes will be made to the current Chandler
+i18n architecture. Many of the API's that were provided 
+in the Chandler i18n.I18nManager have now been moved to 
+the EggResourceManager.
+
+
+The I18nManager
+----------------
+The I18nManager will extend from the EggResourceManager to add 
+a few additional features that are Chandler specific.
+
+These features are:
+1. Locale Set discovery from the Operating System using wxPython
+2. Setting the wxPython locale
+3. Setting the PyICU locale
+4. Setting the Operating System Environment locale
+5. Adding a wx.FileSystem handler for retrieving resources 
+   defined in HTML or XRC. 
+
+In addition it will provide a few Chandler specific short cuts 
+that are not suitable for the generic EggResourceManager API.
+
+The key "message_catalog" will be used Chandler resource ini files
+as the default for looking up Chandler gettext .mo localization files.
+
+This prevents developers from having to include the key name
+when using the Chandler Message Factories. However, the factories
+do allow the use of a different key name. This feature is merely
+provided as a convenience. More details on the message_catalog 
+key and Message Factories will be cover later in the 
+proposal.
+
+
+Chandler also leverages many image resources in its UI. It would be 
+a burden for each resource ini file to have to define each 
+image resource for each support locale. As such, a short cut 
+will be created and a method I18nManager.getImage used to access 
+this short cut.
+
+
+In the resource ini file a key of "img.resource" will point to the 
+directory containing the required images for a given locale.
+
+In addition, the resource ini file will also define a root resources 
+directory using the "resources" key accessible by the I18nManager.getResource
+method and an HTML resources directory using the "html.resources" key
+accessible by the I18nManager.getHTML method.
+
+
+So a chandler resource.info file would look like the following:
+
+
+[OSAF::all]
+resources = resources 
+img.resources = resources/img #default location for image resources
+html.resources = /resources/html #default location for html resources
+
+#No definition for gettext file since
+# they not needed for default which is English
+
+[OSAF::fr]
+img.resources = fr/resources/img
+html.resources = fr/resources/html
+message_catalog = fr/osaf.mo
+
+
+
+Calling i18nManagerInstance.getImage("myImage.png") searches 
+the current locale set a for directory in the egg
+containing "myImage.png".
+
+Again, the directory is defined in the resource ini files using 
+the "img.resources" key.
+
+Once the location of the image file is found that path is 
+cached so subsequent requests for "myImage.png" do not 
+result in scanning of directories based on the locale set.
+
+
+Calling i18nManagerInstance.getHTML("myPage.html") searches 
+the current locale set for a directory in the egg
+containing "myPage.html".
+
+Again, the directory is defined in the resource ini files using 
+the "html.resources" key.
+
+Once the location of the html file is found that path is 
+cached so subsequent requests for "myPage.html" do not 
+result in scanning of directories based on the locale set.
+
+
+
+
+MessageFactory
+-----------------------
+The external API for i18n.MessageFactory will change very little.
+Message Factories are the preferred means for accessing localizations in 
+Chandler.
+
+The following example creates a MessageFactory that will return a
+localization for the domain "OSAF" using the key "message_catalog".
+
+   >>> from i18n import MessageFactory
+   >>> _ = MessageFactory("OSAF")
+   >>> _("Get Translation")
+   u'Get Translation'
+
+The above example is no different than how Message Factories are currently used.
+
+However, a few additional features have been added to MessageFactory. In this example,
+A MessageFactory will be created using the "MyDomain" domain and will not use 
+the default "message_catlog" key. Instead it will use the "MyDomain_catalog" key as the
+name for gettext localizations. It will also pass an additional parameter to the 
+_() method which is the default value to return if no translation is found.
+
+
+   >>> from i18n import MessageFactory
+   >>> _ = MessageFactory("MyDomain", "MyDomain_catalog")
+   >>> _("Get Translation", "Default Value To Return")
+   u'Default Value To Return'
+
+
+OSAFMessageFactory
+-----------------------
+The OSAFMessageFactory is provided as a convenience for those wishing to 
+access localizations in the "OSAF" domain. Like the MessageFactory
+an additional gettext catalog key and default value can be passed.
+
+   Using the "message_catalog" default and no default value:
+    >>> from i18n import OSAFMessageFactory as _
+   >>> _("Get Translation")
+   u'Get Translation'
+
+
+   Using a custom catalog key and a default value:
+
+   >>> from i18n import OSAFMessageFactory
+   >>> _ = OSAFMessageFactory("MyDomain_catalog")
+   >>> _("Get Translation", "Default Value To Return")
+   u'Default Value To Return'
+   >>>
+
+WxMessageFactory
+--------------------
+The WxMessageFactory is used to access localizations contained in wxstd.mo gettext files.
+The WxMessageFactory can not be passed a catalog key or a default value since the 
+underlying wxPython / wxWidgets API does not support it.
+
+   
+    >>> from i18n import WxMessageFactory as w
+    >>> w("Get Translation")
+    u'Get Translation'
+    >>>
+
+
+
+
+TODO
+========
+1. Move the i18n package to osaf.i18n
+2. Deprecate the osaf.messages localization file
+3. Decide on a name for the Python file containing the EggResourceManager
+
+
+
+
+
