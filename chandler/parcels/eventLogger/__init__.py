@@ -68,6 +68,6 @@ def installParcel(parcel, old_version=None):
         #location = "TestMenu",
         #itemLocation = "RepositoryTestMenu",
         #parentBlock = mainView.MainView
-         parentBlock = mainView.TestMenu)
+        parentBlock = mainView.TestMenu)
  
 
