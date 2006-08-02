@@ -74,6 +74,7 @@ try:
     if dashboard.sectionRows != goodExpandedSectioning:
         logger.ReportFailure("Dashboard didn't expand properly")
     
+    logger.SetChecked(True)
     logger.Report("TriageSectioning")
 
 finally:
