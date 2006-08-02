@@ -21,10 +21,6 @@
 @license:   Apache License, Version 2.0
 """
 
-# make sure that we have easy setup tools
-import ez_setup
-ez_setup.use_setuptools()
-
 # import packages
 from setuptools import setup
 
