@@ -37,7 +37,7 @@ from datetime import datetime, time, timedelta
 from PyICU import ICUError, ICUtzinfo, UnicodeString
 from osaf.framework.blocks.Block import (ShownSynchronizer, 
                                          wxRectangularChild, debugName)
-from osaf.pim.items import ContentItem
+from osaf.pim.items import ContentItem, triageStatusNames
 from application import schema
 from application.dialogs import RecurrenceDialog, TimeZoneList
 from util.MultiStateButton import BitmapInfo, MultiStateBitmapCache
@@ -2274,9 +2274,7 @@ class TriageAttributeEditor(ChoiceAttributeEditor):
     """
     def GetChoices(self):
         # would be nice if this came directly from the enum
-        return (_(u"Now"),
-                _(u"Later"),
-                _(u"Done"))
+        return triageStatusNames
     
 class IconAttributeEditor (BaseAttributeEditor):
     """
@@ -2383,7 +2381,7 @@ class KindAttributeEditor(IconAttributeEditor):
                          #operation, mixinKind, debugName(item))
             item.StampKind(operation, mixinKind)
 
-    def OnMouseChange(self, event, isIn, isDown, (item, attributeName)):
+    def OnMouseChange(self, event, cell, isIn, isDown, (item, attributeName)):
         """
         Handle live changes of mouse state related to our cell.
         """

@@ -55,6 +55,18 @@ class ImportanceEnum(schema.Enumeration):
 class TriageEnum(schema.Enumeration):
     values = "now", "later", "done"
 
+triageStatusNames = _(u"Now"), _(u"Later"), _(u"Done")
+def getTriageStatusName(value):
+    for i, triageValue in enumerate(TriageEnum.values):
+        if triageValue == value:
+            return triageStatusNames[i]
+    assert false
+    return u''
+
+triageStatusOrder = dict((v, i) for i, v in enumerate(TriageEnum.values))
+def getTriageStatusOrder(value):
+    return triageStatusOrder[value]
+    
 class Calculated(property):
     """
     A property with type information, in the style of our schema.* objects.

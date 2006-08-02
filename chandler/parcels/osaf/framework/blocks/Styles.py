@@ -88,25 +88,29 @@ platformSizeScalingFactor = 0.0
 
 fakeSuperscriptSizeScalingFactor = 0.7
 
-def getFont(characterStyle):
+# We default to an 11-point font, which gets scaled by the size of the
+# platform's default GUI font (which we measured just above). It's 11
+# because that's the size of the Mac's default GUI font, which is what
+# Mimi thinks in terms of. (It's a float so the math works out.)
+rawDefaultFontSize = 11.0
+
+def getFont(characterStyle=None, family=None, size=rawDefaultFontSize, 
+            style=wx.NORMAL, underline=False, weight=wx.NORMAL, name=""):
+    """
+    Retrieve a font, using a CharacterStyle item or discrete specifications.
+    Scales the requested point size relative to the idealized 11-point size 
+    on Mac that Mimi bases her specs on.
+    """
     # First time, get a couple of defaults
     global platformDefaultFaceName, platformDefaultFamily, platformSizeScalingFactor
     if platformDefaultFaceName is None:
         defaultGuiFont = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
         platformDefaultFaceName = defaultGuiFont.GetFaceName()
         platformDefaultFamily = defaultGuiFont.GetFamily()
-        platformSizeScalingFactor = defaultGuiFont.GetPointSize() / 11.0
-
-    # We default to an 11-point font, which gets scaled by the size of the
-    # platform's default GUI font (which we measured just above). It's 11
-    # because that's the size of the Mac's default GUI font, which is what
-    # Mimi thinks in terms of.
-    family = platformDefaultFamily
-    size = 11
-    style = wx.NORMAL
-    underline = False
-    weight = wx.NORMAL
-    name = ""
+        platformSizeScalingFactor = \
+            defaultGuiFont.GetPointSize() / rawDefaultFontSize
+        
+    family = family or platformDefaultFamily
     
     if characterStyle is not None:
         size = characterStyle.fontSize

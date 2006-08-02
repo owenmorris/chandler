@@ -14,15 +14,21 @@
 
 
 import wx
-
-from application import schema
-
-from osaf.framework.blocks import ControlBlocks
+from application import schema, styles
+from i18n import OSAFMessageFactory as _
+from osaf.framework.blocks import ControlBlocks, DrawingUtilities, Styles
+from osaf.framework.attributeEditors import BaseAttributeEditor
+from osaf.pim import ContentItem
+from osaf.pim.items import getTriageStatusName, getTriageStatusOrder
 from util.divisions import get_divisions
 
-from osaf.framework.blocks import DrawingUtilities
+import logging
+logger = logging.getLogger(__name__)
 
-from i18n import OSAFMessageFactory as _
+# Drawing geometry
+margin = 10
+swatchWidth = 25
+swatchHeight = '__WXMAC__' in wx.PlatformInfo and 8 or 10
 
 class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
@@ -45,9 +51,6 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         # total rows in the table
         self.totalRows = 0
 
-        self.RegisterDataType("Section", SectionRenderer(),
-                              SectionEditor())
-
         self.previousIndex = self.blockItem.contents.indexName
         
     def SynchronizeDelegate(self):
@@ -66,64 +69,80 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         rebuild the sections - this is relatively cheap as long as
         there aren't a lot of sections
         """
+        #for (row, ignored, ignored) in self.sectionRows:
+            #self.SetCellSize(row, 0, 1, 1)
         self.sectionRows = []
         self.sectionLabels = []
         self.sectionIndexes = []
-        self.totalRows = 0
+        self.sectionColors = []        
+        self.totalRows = len(self.blockItem.contents)
         
         dashboardPrefs = schema.ns('osaf.views.main',
                                    self.blockItem.itsView).dashboardPrefs
         if not dashboardPrefs.showSections:
             return
         
-        # regenerate index-based sections - each entry in
-        # self.sectionIndexes is the first index in the collection
-        # where we would need a section
-        indexName = self.blockItem.contents.indexName
-        if indexName not in (None, '__adhoc__'):
-            self.sectionIndexes = \
-                get_divisions(self.blockItem.contents,
-                              key=lambda x: getattr(x, indexName))
+        indexName = self.blockItem.contents.indexName        
+        # @@@ For 0.7alpha4, we only section on triage status
+        #if indexName in (None, '__adhoc__'): 
+        if indexName != 'triageStatus': 
+            return
 
-        # dont' show section headers for zero or one section
+        # Get the divisions
+        self.sectionIndexes = get_divisions(self.blockItem.contents,
+                                            key=lambda x: getTriageStatusOrder(getattr(x, indexName)))
+
+        # don't show section headers for zero or one section
         if len(self.sectionIndexes) <= 1:
             return
             
         # now build the row-based sections - each entry in this array
         # is the actual row that contains the section divider
+        self.totalRows = 0
         nextSectionRow = 0
         for section in range(0, len(self.sectionIndexes)):
             sectionRow = nextSectionRow
-            if section in self.collapsedSections:
-                sectionLength = 0
-                # previous section collapsed, so we're just one past
-                # the last one
+            if section == len(self.sectionIndexes)-1:
+                # last section - need to use blockItem.contents
+                # to determine the length
+                sectionTotal = (len(self.blockItem.contents) -
+                                self.sectionIndexes[-1])
             else:
-                if section == len(self.sectionIndexes)-1:
-                    # last section - need to use blockItem.contents
-                    # to determine the length
-                    sectionLength = (len(self.blockItem.contents) -
-                                     self.sectionIndexes[-1])
-                else:
-                    # not collapsed, so determine the length of this
-                    # section from the next section in self.sectionIndexes
-                    sectionLength = (self.sectionIndexes[section+1] -
-                                     self.sectionIndexes[section])
+                # not collapsed, so determine the length of this
+                # section from the next section in self.sectionIndexes
+                sectionTotal = (self.sectionIndexes[section+1] -
+                                self.sectionIndexes[section])
+
+            sectionVisible = (section not in self.collapsedSections
+                              and sectionTotal or 0)
 
             # might as well recall this for the next iteration through
             # the loop. the +1 is for the section header itself.
-            nextSectionRow = sectionRow + sectionLength + 1
+            nextSectionRow = sectionRow + sectionVisible + 1
             
-            self.sectionRows.append((sectionRow, sectionLength))
-            self.totalRows += sectionLength + 1
-            label = _(u"Section: %s") % \
-                    getattr(self.blockItem.contents[self.sectionIndexes[section]], indexName, _(u"<unknown>"))
+            self.sectionRows.append((sectionRow, sectionVisible, sectionTotal))
+            self.totalRows += sectionVisible + 1
+            
+            # Get the color name we'll use for this section
+            # For now, it's just the attribute value.
+            sectionValue = getattr(self.blockItem.contents[self.sectionIndexes[section]], 
+                                   indexName, None)
+            self.sectionColors.append(sectionValue)
+            
+            # Get the label we'll use for this section
+            # By default, it's the value (which we just grabbed as the color 
+            # name), unless this is an Enumeration whose `values` is a 
+            # dictionary that maps to a string label
+            label = getTriageStatusName(sectionValue)
             self.sectionLabels.append(label)
 
+        #for (row, ignored, ignored) in self.sectionRows:
+            #self.SetCellSize(row, 0, 1, self.GetNumberCols())
+            
         # make sure we're sane
         assert len(self.sectionRows) == len(self.sectionIndexes)
-        assert sum([length+1 for (row, length) in self.sectionRows]) == \
-               self.totalRows
+        assert sum([visible+1 for (row, visible, total) in self.sectionRows]) \
+               == self.totalRows
                    
 
     def GetElementCount(self):
@@ -148,22 +167,32 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             return "Section"
 
         return super(SectionedGridDelegate, self).GetElementType(row, column)
-
-    def ReadOnly(self, row, column):
-        itemIndex = self.RowToIndex(row)
-        if itemIndex == -1:
-            return False, True
-
-        return super(SectionedGridDelegate, self).ReadOnly(row, column)
     
     def GetElementValue(self, row, column):
-        
         itemIndex = self.RowToIndex(row)
         if itemIndex == -1:
-            # this is just a hack because this value is getting passed
-            # to the default attribute editor
-            return object(), None
-
+            # This is a section row. Return a tuple containing:
+            # - the attribute we're sectioned on,
+            # - the label for this section
+            # - the number of items in this section
+            # - the color name for this section (which may be None)
+            # - whether this section is expanded (True) or not (False)
+            # - whether this is the last (triageStatus) column
+            #
+            # Note that this tuple matches the one passed into 
+            # SectionAttributeEditor.Draw, below.
+            for (section, (sectionRow, visible, itemCount)) in enumerate(self.sectionRows):
+                if row == sectionRow:
+                    return (self.blockItem.contents.indexName,
+                            self.sectionLabels[section],
+                            itemCount,
+                            self.sectionColors[section],
+                            section not in self.collapsedSections,
+                            column == len(self.blockItem.columns) - 1)
+            
+            assert False
+            return (None, u'', 0, None, False, False)
+        
         return super(SectionedGridDelegate, self).GetElementValue(row, column)
 
     def RowToIndex(self, row):
@@ -181,7 +210,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
         sectionAdjust = len(self.sectionRows) - 1
         # search backwards so we can jump right to the section number
-        for (reversedSection, (sectionRow, sectionSize)) in enumerate(reversed(self.sectionRows)):
+        for (reversedSection, (sectionRow, visible, total)) in enumerate(reversed(self.sectionRows)):
             section = sectionAdjust - reversedSection
             
             if row == sectionRow:
@@ -210,7 +239,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         linear search through the sections. Generally there aren't a
         lot of sections though so this should be reasonably fast.
         """
-        if len(self.sectionIndexes) == 0:
+        if len(self.sectionIndexes) <= 1:
             return itemIndex
 
         sectionAdjust = len(self.sectionIndexes) - 1
@@ -223,7 +252,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
                     # we should assert? Or maybe this is a valid case?
                     return -1
                 else:
-                    # Expanded sxection. Find the relative position
+                    # Expanded section. Find the relative position
                     # +1 accounts for header row
                     indexOffset = itemIndex - sectionIndex
                     sectionRow = self.sectionRows[section][0]
@@ -236,7 +265,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         return -1
 
     def ToggleRow(self, row):
-        for (section, (sectionRow, length)) in enumerate(self.sectionRows):
+        for (section, (sectionRow, visible, total)) in enumerate(self.sectionRows):
             if row == sectionRow:
                 if section in self.collapsedSections:
                     self.ExpandSection(section)
@@ -251,11 +280,11 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         """
         assert section not in self.collapsedSections
 
-        # subtract the oldLength
-        (oldPosition, oldLength) = self.sectionRows[section]
+        # subtract the oldVisibleCount
+        (oldPosition, oldVisibleCount, oldTotalCount) = self.sectionRows[section]
 
-        self.AdjustSectionPosition(section, -oldLength)
-        self.totalRows -= oldLength
+        self.AdjustSectionPosition(section, -oldVisibleCount)
+        self.totalRows -= oldVisibleCount
         self.collapsedSections.add(section)
             
     def ExpandSection(self, section):
@@ -284,75 +313,98 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         we have to adjust the given section as well as all sections
         following it.
         """
-        for section, (sectionPosition, sectionLength) \
+        for section, (sectionPosition, sectionVisibleCount, sectionTotalCount) \
             in enumerate(self.sectionRows):
             if section >= startSection:
                 self.sectionRows[section] = (sectionPosition + delta,
-                                             sectionLength)
+                                             sectionVisibleCount,
+                                             sectionTotalCount)
         
-
-class SectionRenderer(wx.grid.PyGridCellRenderer):
+class SectionAttributeEditor(BaseAttributeEditor):    
     def __init__(self, *args, **kwds):
-        super(SectionRenderer, self).__init__(*args, **kwds)
+        super(SectionAttributeEditor, self).__init__(*args, **kwds)
         self.brushes = DrawingUtilities.Gradients()
-        
+    
     def ReadOnly(self, *args):
-        # print "Who is calling RO?"
-        return False, False
+        """ 
+        Sections are never editable. 
+        (Contract/expand toggling is handled separately.)
+        """
+        return True
 
-    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+    def Draw(self, dc, rect, 
+             (attributeName, label, count, colorName, expanded, last), 
+             isInSelection=False):
         dc.SetPen(wx.TRANSPARENT_PEN)
-        brush = self.brushes.GetGradientBrush(0, rect.height,
-                                              (153, 204, 255), (203, 229, 255),
-                                              "Vertical")
+
+        sectionBackgroundColor = styles.cfg.get('summary', 'SectionBackground')
+        sectionLabelColor = styles.cfg.get('summary', 'SectionLabel')
+        sectionCountColor = styles.cfg.get('summary', 'SectionCount')
+        sectionSampleColor = colorName and styles.cfg.get('summary', 
+                                'SectionSample_%s_%s' % (attributeName, colorName)) or None
+
+        # We want a little space below the section bar, so it looks nice when 
+        # they're contracted together... so erase a one-pixel-high rectangle at
+        # the bottom of our rect, then make ours a little smaller, 
+        dc.SetBrush(wx.WHITE_BRUSH)
+        rect.height -= 1
+        dc.DrawRectangleRect((rect.x, rect.y + rect.height, rect.width, 1))
+        
+        # Draw the background
+        brush = wx.Brush(sectionBackgroundColor, wx.SOLID)
         dc.SetBrush(brush)
         dc.DrawRectangleRect(rect)
+        dc.SetTextBackground(sectionBackgroundColor)
 
-        if col == 0:
-            dc.SetFont(attr.GetFont())
-            dc.SetTextForeground(wx.BLACK)
-            dc.SetBackgroundMode(wx.TRANSPARENT)
-            # look up row in section list
-            for section, (sectionRow, length) in enumerate(grid.sectionRows):
-                if row == sectionRow:
-                    sectionTitle = grid.sectionLabels[section]
-                    break
-            dc.DrawText(sectionTitle, 3, rect.y + 2)
-
-
-class SectionEditor(wx.grid.PyGridCellEditor):
-    def __init__(self, *args, **kwds):
-        super(SectionEditor, self).__init__(*args, **kwds)
-
-    def StartingClick(self):
-        #print "StartingClick()"
-        (grid, row) = self.collapseInfo
-        grid.ToggleRow(row)
-
-    def StartingKey(self, event):
-        #print "StartingKey()"
-        pass
-
-    def Create(self, parent, id, evtHandler):
-        """
-        Create a dummy control to make wx happy - the key here is SetControl()
-        """
-        self.control = wx.Control(parent, id)
-        self.SetControl(self.control)
-        if evtHandler:
-            self.control.PushEventHandler(evtHandler)
-        #print "Create(%s, %s, %s)" % (parent, id, evtHandler)
-
-    def BeginEdit(self, row, col, grid):
-        """
-        Don't 
-        """
-        self.control.Hide()
-        self.collapseInfo = (grid, row)
-        #print "BeginEdit(%s, %s)" % (row,col)
-
-    def EndEdit(self, row, col, grid):
-        del self.collapseInfo
-        #print "EndEdit(%s, %s)" % (row,col)
-        return False
+        # We'll center the 12-point text on the row, not counting descenders.
+        dc.SetFont(Styles.getFont(size=12))
+        (labelWidth, labelHeight, labelDescent, ignored) = dc.GetFullTextExtent(label)
+        labelTop = rect.y + ((rect.height - labelHeight) / 2)
+                
+        # Draw the expando triangle
+        # (we'll cache the bitmap and its size so we're not constantly loading)
+        triSuffix = expanded and 'Open' or 'Closed'
+        cacheAttribute = '_tri%s' % triSuffix
+        triBitmapInfo = getattr(self, cacheAttribute, None)
+        if triBitmapInfo is None:
+            triBitmap = wx.GetApp().GetImage("SectionCaret%s.png" % triSuffix)
+            triWidth = triBitmap.GetWidth()
+            triHeight = triBitmap.GetHeight()
+            setattr(self, cacheAttribute, (triBitmap, triWidth, triHeight))
+        else:
+            (triBitmap, triWidth, triHeight) = triBitmapInfo
+        triTop = rect.y + ((rect.height - triHeight) / 2)
+        dc.DrawBitmap(triBitmap, margin, triTop, True)
+            
+        # Draw the text label, if it overlaps the rect to be updated
+        labelPosition = margin + triWidth
+        dc.SetTextForeground(wx.BLACK)
+        dc.DrawText(label, labelPosition, labelTop)
         
+        # Draw the item count, if it overlaps the rect to be updated
+        countPosition = labelPosition + labelWidth
+        if count == 1:
+            itemCount = _(u" 1 item   ") % {'count': count }
+        else:
+            itemCount = _(u" %(count)d items   ") % {'count': count }
+        dc.SetFont(Styles.getFont(size=10))
+        (countWidth, countHeight, countDescent, ignored) = \
+            dc.GetFullTextExtent(itemCount)
+        countTop = labelTop + (labelHeight - countHeight) \
+                   - (labelDescent - countDescent)
+        dc.SetTextForeground(sectionCountColor)
+        dc.DrawText(itemCount, countPosition, countTop)
+                
+        # If we're sectioned on triage status, draw the swatch
+        if colorName and last:
+            dc.SetPen(wx.WHITE_PEN)
+            brush = wx.Brush(sectionSampleColor, wx.SOLID)
+            dc.SetBrush(brush)
+            swatchX = rect.x + ((rect.width - swatchWidth) / 2)
+            swatchY = rect.y + ((rect.height - swatchHeight) / 2)
+            dc.DrawRectangleRect((swatchX, swatchY, swatchWidth, swatchHeight))
+
+    def OnMouseChange(self, event, cell, isIn, isDown, itemAttrNameTuple):
+        if event.GetEventType() == wx.wxEVT_LEFT_DCLICK:
+            grid = event.GetEventObject().GetParent()
+            grid.ToggleRow(cell[1])

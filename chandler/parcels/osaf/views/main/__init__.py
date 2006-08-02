@@ -13,9 +13,9 @@
 #   limitations under the License.
 
 
-from Sections import SectionedGridDelegate
-from SideBar import SidebarBlock, CPIATestSidebarBranchPointDelegate, SidebarBranchPointDelegate
-
+from Sections import SectionedGridDelegate, SectionAttributeEditor
+from SideBar import (SidebarBlock, CPIATestSidebarBranchPointDelegate, 
+                     SidebarBranchPointDelegate)
 from Dashboard import DashboardPrefs
 
 def installParcel(parcel, oldVersion=None):
@@ -23,7 +23,8 @@ def installParcel(parcel, oldVersion=None):
     from menus import makeMainMenus
     from mainblocks import makeMainView 
     from summaryblocks import makeSummaryBlocks
-
+    from osaf.framework.attributeEditors import AttributeEditorMapping
+    
     makeMainEvents (parcel)
     makeMainMenus (parcel)
     makeMainView (parcel)
@@ -34,3 +35,7 @@ def installParcel(parcel, oldVersion=None):
     prompts.DialogPref.update(parcel, "clearCollectionPref")
 
     DashboardPrefs.update(parcel, "dashboardPrefs")
+    
+    AttributeEditorMapping.register(parcel, 
+                                    { 'Section': 'SectionAttributeEditor' }, 
+                                    __name__)

@@ -72,7 +72,7 @@ class wxTableData(wx.grid.PyGridTableBase):
             # it from disk
             bitmap = getattr(self, '_colbitmap%s' % column, None)
             if bitmap is None:
-                bitmap = wx.GetApp().GetImage(columnItem.icon + "Stamped.png")
+                bitmap = wx.GetApp().GetImage(columnItem.icon + ".png")
                 setattr(self, '_colbitmap%s' % column, bitmap)
                 
             grid.SetLabelBitmap(False, column, bitmap)
@@ -100,8 +100,8 @@ class wxTableData(wx.grid.PyGridTableBase):
             delegate = AttributeEditors.getSingleton (type)
             attribute = self.defaultROAttribute
             grid = self.GetView()
-            assert (row < self.GetNumberRows() and
-                    column < self.GetNumberCols())
+            assert (row < grid.GetNumberRows() and
+                    column < grid.GetNumberCols())
 
             if (not grid.blockItem.columns[column].readOnly and
                 not grid.ReadOnly (row, column)[0] and
@@ -256,25 +256,26 @@ class wxTable(DragAndDrop.DraggableWidget,
                 if not contents.isSelected((indexStart, indexEnd)):
                     selectionChanged = True
                     contents.addSelectionRange((indexStart, indexEnd))
+            elif (firstRow == 0 and lastRow != 0 
+                  and lastRow == self.GetNumberRows()-1):
+                # this is a special "deselection" event that the
+                # grid sends us just before selecting another
+                # single item. This happens just before a user
+                # simply clicks from one item to another.
+
+                # this allows us to avoid broadcasting an empty
+                # deselection if the user is just clicking from
+                # one item to another.
+                contents.clearSelection()
+                postSelection = False
             else:
+                assert -1 not in (firstRow, lastRow)
                 if contents.isSelected((indexStart, indexEnd)):
                     selectionChanged = True
                     
                 # we always want to remove the old selection
                 contents.removeSelectionRange((indexStart, indexEnd))
                     
-                if (firstRow == 0 and
-                    lastRow != 0 and lastRow == self.GetNumberRows()-1):
-                    # this is a special "deselection" event that the
-                    # grid sends us just before selecting another
-                    # single item. This happens just before a user
-                    # simply clicks from one item to another.
-
-                    # this allows us to avoid broadcasting an empty
-                    # deselection if the user is just clicking from
-                    # one item to another.
-                    postSelection = False
-
             # possibly broadcast the "new" selection
             if selectionChanged and postSelection:
                 gridTable = self.GetTable()
@@ -587,10 +588,7 @@ class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
         """
         DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isInSelection)
         value = grid.GetElementValue (row, column)
-        if __debug__:
-            item, attributeName = value
-            assert not item.isDeleted()
-            
+        assert len(value) != 2 or not value[0].isDeleted()            
         self.delegate.Draw (dc, rect, value, isInSelection)
 
 class GridCellAttributeEditor (wx.grid.PyGridCellEditor):

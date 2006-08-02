@@ -30,24 +30,24 @@ logger = logging.getLogger(__name__)
 
 if __debug__:
     evtNames = {
-        10028: 'ENTER_WINDOW',
-        10029: 'LEAVE_WINDOW',
-        10021: 'LEFT_DOWN',
-        10022: 'LEFT_UP',
-        10030: 'LEFT_DCLICK',
-        10023: 'MIDDLE_DOWN',
-        10024: 'MIDDLE_UP',
-        10031: 'MIDDLE_DCLICK',
-        10025: 'RIGHT_DOWN',
-        10026: 'RIGHT_UP',
-        10032: 'RIGHT_DCLICK',
-        10027: 'MOTION',
-        10036: 'MOUSEWHEEL',
+        wx.wxEVT_ENTER_WINDOW: 'ENTER_WINDOW',
+        wx.wxEVT_LEAVE_WINDOW: 'LEAVE_WINDOW',
+        wx.wxEVT_LEFT_DOWN: 'LEFT_DOWN',
+        wx.wxEVT_LEFT_UP: 'LEFT_UP',
+        wx.wxEVT_LEFT_DCLICK: 'LEFT_DCLICK',
+        wx.wxEVT_MIDDLE_DOWN: 'MIDDLE_DOWN',
+        wx.wxEVT_MIDDLE_UP: 'MIDDLE_UP',
+        wx.wxEVT_MIDDLE_DCLICK: 'MIDDLE_DCLICK',
+        wx.wxEVT_RIGHT_DOWN: 'RIGHT_DOWN',
+        wx.wxEVT_RIGHT_UP: 'RIGHT_UP',
+        wx.wxEVT_RIGHT_DCLICK: 'RIGHT_DCLICK',
+        wx.wxEVT_MOTION: 'MOTION',
+        wx.wxEVT_MOUSEWHEEL: 'MOUSEWHEEL',
         }
 
 class DashboardPrefs(Preferences):
 
-    showSections = schema.One(schema.Boolean, defaultValue = False)
+    showSections = schema.One(schema.Boolean, defaultValue = True)
     
 class wxDashboard(wxTable):
     def __init__(self, *arguments, **keywords):
@@ -84,10 +84,14 @@ class wxDashboard(wxTable):
             def getHandler(cell):
                 if cell is None or -1 in cell:
                     return None
+                renderer = self.GetCellRenderer(cell[1], cell[0])
                 try:
-                    handler = self.GetCellRenderer(cell[1], cell[0]).delegate.OnMouseChange
+                    # See if it's renderer with an attribute editor that wants
+                    # mouse events
+                    handler = renderer.delegate.OnMouseChange
                 except AttributeError:
-                    handler = None
+                    # See if it's a section renderer that wants mouse events
+                    handler = getattr(renderer, 'OnMouseChange', None)
                 return handler
                 
             # Figure out what cell we're in, and see whether it 
@@ -116,7 +120,8 @@ class wxDashboard(wxTable):
                     itemAttrPair = self.GetTable().GetValue(overCell[1], overCell[0])
                     #logger.debug("in=False, down=%s to old overCell: %s %s", 
                                  #event.LeftIsDown(), *itemAttrPair)
-                    oldHandler(event, False, event.LeftIsDown(), itemAttrPair)
+                    oldHandler(event, overCell, False, event.LeftIsDown(), 
+                               itemAttrPair)
                     skipIt = False
                 
                 # We'll need to notify the new cell too.
@@ -138,7 +143,7 @@ class wxDashboard(wxTable):
                 itemAttrPair = self.GetTable().GetValue(cell[1], cell[0])
                 #logger.debug("in=True, down=%s to new cell: %s %s", 
                              #event.LeftIsDown(), *itemAttrPair)
-                handler(event, True, event.LeftIsDown(), itemAttrPair)
+                handler(event, cell, True, event.LeftIsDown(), itemAttrPair)
                 skipIt = False
     
         finally:
