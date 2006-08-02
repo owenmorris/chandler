@@ -1848,7 +1848,8 @@ class RepositoryAttributeEditor (StringAttributeEditor):
         # attempt access as a Chandler attribute first
         attrType = item.getAttributeAspect(attributeName, "type", True)
         if attrType is None:
-            attrType = ItemHandler.ItemHandler.typeHandler(item.itsView, value)
+            attrType = ItemHandler.ItemHandler.typeHandler(item.itsView,
+                                                           valueString)
 
         # now we can convert the string to the right type
         value = attrType.makeValue (valueString)
