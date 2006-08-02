@@ -45,7 +45,6 @@ allTests = [
                 "TestNewMail.py",
                 "TestNewTask.py",
                 "TestNewNote.py",
-                "TestTriageSectioning.py",
                 "TestTableSelection.py",
                 "TestStamping.py", 
                 "TestSharing.py", 
