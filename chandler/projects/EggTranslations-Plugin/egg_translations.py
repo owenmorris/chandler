@@ -51,11 +51,11 @@ class DefaultTranslations(GNUTranslations):
 
         if tmsg is missing:
             if self._fallback:
-                return self._fallback.ugettext(message, arg[0])
+                return self._fallback.ugettext(message, args[0])
            
             # return the default value not the message value
             # as GNUTranslations does.
-            return arg[0]
+            return args[0]
 
         return tmsg
 
