@@ -18,8 +18,6 @@ import application
 import osaf.framework.blocks.detail.Detail as Detail
 import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
-from PyICU import ICUtzinfo, DateFormat
-import datetime
 import channels
 from i18n import OSAFMessageFactory as _
 from osaf import messages 
@@ -53,35 +51,70 @@ class FeedItemDetail(Detail.HTMLDetailArea):
                 content = displayName
             #desc = desc.replace("<", "&lt;").replace(">", "&gt;")
             HTMLText = HTMLText + u'<p>' + content + u'</p>\n\n'
-            #should find a good way to localize "more..."
-            HTMLText = HTMLText + u'<br><a href="' + unicode(item.link) + \
-                u'">more...</a>'
+            if link:
+                HTMLText = HTMLText + u'<br><a href="' + unicode(item.link) + u'">' + _(u'more...') + u'</a>'
 
             HTMLText = HTMLText + '</body></html>\n'
 
             return HTMLText
 
-class FeedController(Block.Block):
-    def onNewFeedChannelEvent(self, event):
+class AddFeedCollectionEvent(Block.AddToSidebarEvent):
+    def onNewItem (self):
+        def calledInMainThread(channelUUID, success):
+            # This method is called once the feed has been processed.  If all
+            # is okay, success will be True, otherwise False.
+            self.itsView.refresh()
+            channel = self.itsView.findUUID(channelUUID)
+            
+            if not channel.isEstablished and not success:
+                url = application.dialogs.Util.promptUser(
+                    _(u"The provided URL seems to be invalid"),
+                    _(u"Enter a URL for the RSS Channel"),
+                    defaultValue = unicode(channel.url))
+                if url != None:
+                    try:
+                        url = str(url)
+                        channel.displayName = url
+                        channel.url = channel.getAttributeAspect('url', 'type').makeValue(url)
+                        channel.isEstablished = False
+                        channel.isPreviousUpdateSuccessful = True
+                        channel.logItem = None
+                        channel.itsView.commit()
+                        channel.refresh(callback=calledInTwisted) # an async task
+                    except:
+                        application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                                    _(u"New Channel Error"),
+                                                    _(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {'url': url})
+
+        def calledInTwisted(channelUUID, success):
+            # This callback is what we really pass to twisted, and it will
+            # invoke the calledInMainThread method in -- what else -- the
+            # main thread
+            wx.GetApp().PostAsyncEvent(calledInMainThread, channelUUID, success)
+
+        # get an URL from the user, ...
         import wx
         url = application.dialogs.Util.promptUser(
             _(u"New Channel"),
             _(u"Enter a URL for the RSS Channel"),
-            defaultValue = "http://")
-        if url and url != "":
-            try:
-                # create the feed channel
-                channel = channels.newChannelFromURL(view=self.itsView, url=url)
-                schema.ns("osaf.app", self).sidebarCollection.add (channel)
-                self.itsView.commit() # To make the channel avail to feedsView
-                channel.refresh() # an async task
-
-                return [channel]
-            except:
-                application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                    _(u"New Channel Error"),
-                    _(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {'url': url})
-                raise
+            defaultValue = u"http://")
+        if url == None:
+            return None
+        
+        # ... and then try to create a new channel.
+        try:
+            # create the feed channel
+            channel = channels.newChannelFromURL(view=self.itsView, url=url)
+            self.itsView.commit() # To make the channel avail to feedsView
+            channel.refresh(callback=calledInTwisted) # an async task
+        except:
+            application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                _(u"New Channel Error"),
+                _(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {'url': url})
+            return None
+        
+        # return succesfully
+        return channel
 
 def installParcel(parcel, oldVersion=None):
 
@@ -90,26 +123,23 @@ def installParcel(parcel, oldVersion=None):
     main   = schema.ns('osaf.views.main', parcel)
     feeds  = schema.ns('feeds', parcel)
 
-    feed_controller = FeedController.update(parcel, "feed_controller")
+    # Create an AddFeedCollectionEvent that adds an RSS collection to the sidebar.
+    addFeedCollectionEvent = AddFeedCollectionEvent.update(
+        parcel, 'addFeedCollectionEvent',
+        blockName = 'addFeedCollectionEvent')
 
-    NewFeedChannelEvent = blocks.BlockEvent.update(
-        parcel, "NewFeedChannelEvent",
-        blockName="NewFeedChannel",
-        dispatchEnum="SendToBlockByReference",
-        destinationBlockReference=feed_controller,
-        commitAfterDispatch=True,
-    )
-
+    # Add a separator to the "Collection" menu ...
     blocks.MenuItem.update(parcel, 'FeedsParcelSeparator',
                            blockName = 'FeedsParcelSeparator',
                            menuItemKind = 'Separator',
                            parentBlock = main.CollectionMenu)
 
+    # ... and, below it, a menu item to subscribe to a RSS feed.
     blocks.MenuItem.update(parcel, "NewFeedChannel",
         blockName = "NewFeedChannelItem",
         title = _(u"New Feed Channel"),
-        event = NewFeedChannelEvent,
-        eventsForNamedLookup = [NewFeedChannelEvent],
+        event = addFeedCollectionEvent,
+        eventsForNamedLookup = [addFeedCollectionEvent],
         parentBlock = main.CollectionMenu,
     )
 

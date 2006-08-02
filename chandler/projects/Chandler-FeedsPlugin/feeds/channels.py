@@ -25,6 +25,9 @@ from osaf import pim
 from i18n import OSAFMessageFactory as _
 from twisted.web import client
 from twisted.internet import reactor
+from osaf.pim.calendar.TimeZone import formatTime
+from repository.util.URL import URL
+from repository.util.Lob import Lob
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +127,6 @@ class ConditionalHTTPClientFactory(client.HTTPClientFactory):
             client.HTTPClientFactory.noPage(self, reason)
 
 
-
 class FeedChannel(pim.ListCollection):
 
     def __init__(self, *args, **kw):
@@ -171,34 +173,52 @@ class FeedChannel(pim.ListCollection):
         schema.Boolean,
         initialValue=False
     )
+    
+    isEstablished = schema.One(
+        schema.Boolean,
+        displayName=u"Channel has been established",
+        initialValue=False
+    )
+
+    isPreviousUpdateSuccessful = schema.One(
+        schema.Boolean,
+        displayName=u"Previous update was successful",
+        initialValue=True
+    )
+    
+    logItem = schema.One(
+        initialValue=None
+    )
 
     schema.addClouds(
         sharing = schema.Cloud(author, copyright, link, url)
     )
 
     who = schema.Descriptor(redirectTo="author")
-    about = schema.Descriptor(redirectTo="about")
 
 
-    def refresh(self):
+    def refresh(self, callback=None):
 
         # Make sure we have the feedsView copy of the channel item
         feedsView = getFeedsView(self.itsView.repository)
         feedsView.refresh()
         item = feedsView.findUUID(self.itsUUID)
-
-        return item.download().addCallback(item.feedFetchSuccess).addErrback(
-            item.feedFetchFailed)
+        
+        return item.download().addCallback(item.feedFetchSuccess, callback).addErrback(
+            item.feedFetchFailed, callback)
 
 
     def download(self):
         url = str(self.url)
-        etag = getattr(self, 'etag', None)
+        etag = str(getattr(self, 'etag', None))
         lastModified = getattr(self, 'lastModified', None)
         if lastModified:
             lastModified = lastModified.strftime("%a, %d %b %Y %H:%M:%S %Z")
 
         (scheme, host, port, path) = client._parse(url)
+        scheme = str(scheme)
+        host = str(host)
+        path = str(path)
         factory = ConditionalHTTPClientFactory(url=url,
             lastModified=lastModified, etag=etag)
         reactor.connectTCP(host, port, factory)
@@ -207,7 +227,7 @@ class FeedChannel(pim.ListCollection):
 
 
 
-    def feedFetchSuccess(self, info):
+    def feedFetchSuccess(self, info, callback=None):
 
         (data, status, headers) = info
 
@@ -239,12 +259,20 @@ class FeedChannel(pim.ListCollection):
         count = self.parse(data)
         if count:
             logger.info("...added %d FeedItems" % count)
-
+            
+        self.isEstablished = True
+        self.isPreviousUpdateSuccessful = True
+        self.logItem = None
+        
         self.itsView.commit()
+        
+        if callback:
+            callback(self.itsUUID, True)
+            
         return FETCH_UPDATED
 
 
-    def feedFetchFailed(self, failure):
+    def feedFetchFailed(self, failure, callback=None):
 
         # getattr returns a unicode object which needs to be converted to
         # bytes for logging
@@ -257,6 +285,26 @@ class FeedChannel(pim.ListCollection):
         logger.error("Failed to update channel: %s; Reason: %s",
             channel, failure.getErrorMessage())
 
+        if self.isEstablished:
+            if self.isPreviousUpdateSuccessful:
+                self.isPreviousUpdateSuccessful = False
+                item = FeedItem(itsView=self.itsView)
+                item.displayName = _(u"Feed channel is unreachable")
+                item.author = _(u"Chandler Feeds Parcel")
+                item.category = _(u"Internal")
+                item.date = datetime.datetime.now(ICUtzinfo.default)
+                item.content = view.createLob(_(u"This feed channel is currently unreachable"))
+                self.addFeedItem(item)
+                self.logItem = item
+                self.itsView.commit()
+            else:
+                if self.logItem:
+                    self.logItem.content = view.createLob(u"This feed channel has been unreachable from " + unicode(formatTime(self.logItem.date)) + u" to " + unicode(formatTime(datetime.datetime.now(ICUtzinfo.default))))
+                    self.itsView.commit()
+
+        if callback:
+            callback(self.itsUUID, False)
+            
         return FETCH_FAILED
 
 
@@ -405,7 +453,8 @@ class FeedItem(pim.ContentItem):
 
     link = schema.One(
         schema.URL,
-        initialValue="", # Needed because of the _compareLink( ) method
+        initialValue=None
+        #initialValue=URL(u""), # Needed because of the _compareLink( ) method
     )
 
     category = schema.One(
