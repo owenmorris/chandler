@@ -579,7 +579,7 @@ class TestI18nValuesAndPathing(EggTestCase):
        by the EggTranslations API
     """
     PROJECT = u"ResourceManager-EggPlugin\u00FC"
-    INI_FILE = u"i18n/resources\u00FC.ini"
+    INI_FILE = u"i18n/resources.ini"
     ENCODING = "UTF-8"
 
     def testI18nValues(self):
@@ -612,7 +612,7 @@ class TestI18nValuesAndPathing(EggTestCase):
 
         self.assertEquals(self.eggTranslations.getValueForKey(self.PROJECT,
                           u"catalog", 'fr'), 
-                          u"i18n/test_dir\u00FC/locale/fr/catalog.mo")
+                          u"i18n/test_dir/locale/fr/catalog.mo")
                                   
 
     def testI18nPathing(self):
