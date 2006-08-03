@@ -26,6 +26,7 @@ from repository.item.Sets import Set
 from repository.schema.Types import Type
 from repository.util.Lob import Lob
 from chandlerdb.item.ItemError import NoSuchAttributeError
+from repository.persistence.RepositoryError import MergeError
 from PyICU import ICUtzinfo
 import M2Crypto.BIO, WebDAV, twisted.web.http, zanshin.webdav, wx
 from cStringIO import StringIO
@@ -79,6 +80,13 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
     def mergeFunction(code, item, attribute, value):
         # 'value' is the one from the *this* view
         # getattr(item, attribute) is the value from a different view
+
+        if code == MergeError.DELETE:
+            logger.debug("Sharing conflict on item %(item)s, "
+                "deleted locally, modified remotely",
+                { 'item' : item, }
+            )
+            return True
 
         logger.debug("Sharing conflict on item %(item)s, attribute "
             "%(attribute)s: %(local)s vs %(remote)s", {
@@ -332,6 +340,11 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
             metaView.commit(mergeFunction)
 
     except Exception, e:
+
+        # Discard any changes
+        contentView.cancel()
+        metaView.cancel()
+
         logger.exception("Sharing Error: %s" % e)
         raise
 
