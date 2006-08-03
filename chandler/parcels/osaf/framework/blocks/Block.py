@@ -999,9 +999,9 @@ class BlockDispatchHook (DispatchHook):
             if sender is not None:
                 title = getattr(sender, 'title', None)
                 if title is not None:
-                    accel = getattr(sender, 'accel', None)
-                    if accel is not None:
-                        title += '\t' + accel
+                    accel = getattr(sender, 'accel', u'')
+                    if len(accel) > 0:
+                        title += u'\t' + accel
                         # this isn't a real wx argument, but is used later
                         # to re-attach the accelerator after the client has
                         # updated the 'Text' argument
