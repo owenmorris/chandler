@@ -274,6 +274,9 @@ def messageObjectToKind(view, messageObject, messageText=None,
             if mimePart.get_content_type() == "text/calendar":
                 m = importIcalendarPayload(mimePart)
                 if m is not None:
+                    # In case we found an existing event to update,
+                    # force its triageStatus to 'now' (bug 6314)
+                    m.triageStatus = 'now'
                     break
 
     if m is None:

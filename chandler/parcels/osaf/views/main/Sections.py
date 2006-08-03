@@ -16,7 +16,8 @@
 import wx
 from application import schema, styles
 from i18n import OSAFMessageFactory as _
-from osaf.framework.blocks import ControlBlocks, DrawingUtilities, Styles
+from osaf.framework.blocks import (ControlBlocks, debugName, DrawingUtilities, 
+                                   Styles)
 from osaf.framework.attributeEditors import BaseAttributeEditor
 from osaf.pim import ContentItem
 from osaf.pim.items import getTriageStatusName, getTriageStatusOrder
@@ -69,8 +70,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         rebuild the sections - this is relatively cheap as long as
         there aren't a lot of sections
         """
-        #for (row, ignored, ignored) in self.sectionRows:
-            #self.SetCellSize(row, 0, 1, 1)
+        super(SectionedGridDelegate, self).RebuildSections()
         self.sectionRows = []
         self.sectionLabels = []
         self.sectionIndexes = []
@@ -92,8 +92,8 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         self.sectionIndexes = get_divisions(self.blockItem.contents,
                                             key=lambda x: getTriageStatusOrder(getattr(x, indexName)))
 
-        # don't show section headers for zero or one section
-        if len(self.sectionIndexes) <= 1:
+        # don't show section headers unless we have at least one section
+        if len(self.sectionIndexes) == 0:
             return
             
         # now build the row-based sections - each entry in this array
@@ -135,9 +135,6 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             # dictionary that maps to a string label
             label = getTriageStatusName(sectionValue)
             self.sectionLabels.append(label)
-
-        #for (row, ignored, ignored) in self.sectionRows:
-            #self.SetCellSize(row, 0, 1, self.GetNumberCols())
             
         # make sure we're sane
         assert len(self.sectionRows) == len(self.sectionIndexes)
@@ -239,7 +236,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         linear search through the sections. Generally there aren't a
         lot of sections though so this should be reasonably fast.
         """
-        if len(self.sectionIndexes) <= 1:
+        if len(self.sectionIndexes) == 0:
             return itemIndex
 
         sectionAdjust = len(self.sectionIndexes) - 1

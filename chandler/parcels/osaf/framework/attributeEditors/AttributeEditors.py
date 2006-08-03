@@ -37,8 +37,8 @@ from datetime import datetime, time, timedelta
 from PyICU import ICUError, ICUtzinfo, UnicodeString
 from osaf.framework.blocks.Block import (ShownSynchronizer, 
                                          wxRectangularChild, debugName)
-from osaf.pim.items import ContentItem, triageStatusNames
-from application import schema
+from osaf.pim.items import ContentItem
+from application import schema, styles
 from application.dialogs import RecurrenceDialog, TimeZoneList
 from util.MultiStateButton import BitmapInfo, MultiStateBitmapCache
 
@@ -470,16 +470,9 @@ class BaseAttributeEditor (object):
         Called by the attribute editor when it changes the underlying
         value; calls the callback function set by L{SetChangeCallback}.
         """
-        # We shouldn't notify about the change if this item's gone...
-        if self.item.isDeleted():
-            return
-        try:
-            callback = self.changeCallBack
-        except AttributeError:
-            pass
-        else:
-            if callback is not None:
-                callback()
+        callback = getattr(self, 'changeCallBack', None)
+        if callback and not self.item.isDeleted():
+            callback()
 
 class DragAndDropTextCtrl(ShownSynchronizer,
                  DragAndDrop.DraggableWidget,
@@ -2268,15 +2261,47 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             # logger.debug("Rebuilding DV timezone popup again") # see how often this happens.
             TimeZoneList.buildTZChoiceList(self.item.itsView, control, value)
 
-class TriageAttributeEditor(ChoiceAttributeEditor):
-    """
-    A pop-up control for the triageStatus attribute. Displays a
-    string, and then a control when clicked on.
-    """
-    def GetChoices(self):
-        # would be nice if this came directly from the enum
-        return triageStatusNames
-    
+class TriageAttributeEditor(BaseAttributeEditor):
+    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
+        # Get the value we'll draw, and its label
+        item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
+        value = getattr(item, attributeName, '')
+        label = value and pim.getTriageStatusName(value) or u''
+
+        # Paint our box in the right color
+        backgroundColor = styles.cfg.get('summary', 'SectionSample_%s_%s' 
+                                         % (attributeName, value)) or '#000000'
+        dc.SetPen(wx.WHITE_PEN)
+        brush = wx.Brush(backgroundColor, wx.SOLID)
+        dc.SetBrush(brush)
+        dc.DrawRectangleRect(rect)
+
+        # Draw the text
+        dc.SetBackgroundMode (wx.TRANSPARENT)
+        dc.SetTextForeground(wx.WHITE)
+        (labelWidth, labelHeight, labelDescent, ignored) = dc.GetFullTextExtent(label)
+        labelTop = rect.y + ((rect.height - labelHeight) / 2)
+        labelLeft = rect.x + ((rect.width - labelWidth) / 2)
+        dc.DrawText(label, labelLeft, labelTop)
+
+    def OnMouseChange(self, event, cell, isIn, isDown, (item, attributeName)):
+        """
+        Handle live changes of mouse state related to our cell.
+        """
+        # Note down-ness changes; eat the event if the downness changed, and
+        # trigger an advance if appropriate.
+        if isDown != getattr(self, 'wasDown', False):
+            if isIn and not isDown:
+                oldValue = self.GetAttributeValue(item, attributeName)
+                newValue = pim.getNextTriageStatus(oldValue)
+                self.SetAttributeValue(item, attributeName, newValue)                
+            if isDown:
+                self.wasDown = True
+            else:
+                del self.wasDown
+        else:
+            event.Skip()
+
 class IconAttributeEditor (BaseAttributeEditor):
     """
     Base class for an icon-based attribute editor; subclass and provide

@@ -39,7 +39,7 @@ def makeSummaryBlocks(parcel):
         branchStub = detailblocks.DetailRoot)
     #detailContentsCollection = pim.ListCollection.update(
         #parcel, 'DetailContentsCollection')
-    
+    iconColumnWidth = 23 # temporarily not 20, to work around header bug 6168
     SplitterWindow.template(
         'TableSummaryViewTemplate',
         eventBoundary = True,
@@ -54,13 +54,13 @@ def makeSummaryBlocks(parcel):
                                   icon = 'ColHTask',
                                   valueType = 'kind',
                                   kind = pim.TaskMixin.getKind(repositoryView),
-                                  width = 20,
+                                  width = iconColumnWidth,
                                   readOnly = True),
                     Column.update(parcel, 'SumColMail',
                                   icon = 'ColHMail',
                                   valueType = 'kind',
                                   kind = pim.mail.MailMessageMixin.getKind(repositoryView),
-                                  width = 20,
+                                  width = iconColumnWidth,
                                   readOnly = True),
                     Column.update(parcel, 'SumColWho',
                                   heading = _(u'Who'),
@@ -77,7 +77,7 @@ def makeSummaryBlocks(parcel):
                                   icon = 'ColHEvent',
                                   valueType = 'kind',
                                   kind = pim.CalendarEventMixin.getKind(repositoryView),
-                                  width = 20,
+                                  width = iconColumnWidth,
                                   readOnly = True),
                     Column.update(parcel, 'SumColDate',
                                   heading = _(u'Date'),

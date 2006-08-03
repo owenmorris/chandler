@@ -56,16 +56,16 @@ class TriageEnum(schema.Enumeration):
     values = "now", "later", "done"
 
 triageStatusNames = _(u"Now"), _(u"Later"), _(u"Done")
+triageStatusNamesDict = dict(zip(TriageEnum.values, triageStatusNames))
 def getTriageStatusName(value):
-    for i, triageValue in enumerate(TriageEnum.values):
-        if triageValue == value:
-            return triageStatusNames[i]
-    assert false
-    return u''
+    return triageStatusNamesDict.get(value, u'')
 
 triageStatusOrder = dict((v, i) for i, v in enumerate(TriageEnum.values))
 def getTriageStatusOrder(value):
     return triageStatusOrder[value]
+
+def getNextTriageStatus(value):
+    return TriageEnum.values[(triageStatusOrder[value]+1) % len(TriageEnum.values)]
     
 class Calculated(property):
     """

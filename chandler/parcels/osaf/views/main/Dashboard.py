@@ -72,6 +72,11 @@ class wxDashboard(wxTable):
         col = self.XToCol(unscrolledX)
         return (col, row)
         
+    def RebuildSections(self):
+        # If sections change, forget that we were over a cell.
+        if hasattr(self, 'overCell'):
+            del self.overCell
+    
     def OnMouseEvents (self, event):
         """ 
         Handle the variety of raw mouse events cells get, passing them to 

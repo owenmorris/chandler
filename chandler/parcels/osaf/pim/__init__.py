@@ -18,7 +18,8 @@
 #
 from items import (
     Calculated, ContentKind, ContentItem, ImportanceEnum, Group, Principal, 
-    Project, Tag, TriageEnum, UserNotification
+    Project, Tag, TriageEnum, getTriageStatusName, getTriageStatusOrder, 
+    getNextTriageStatus, UserNotification
 )
 from notes import Note
 from contacts import Contact, ContactName
