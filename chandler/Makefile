@@ -22,12 +22,31 @@ SNAP=release
 DEBUG_SUFFIX=
 endif
 
-ifeq ($(OS),Darwin)
-PLATFORM=macosx
-else
+PYTHON_VER=2.4
+
+# on Windows, CHANDLERHOME and CHANDLERBIN *must* be in Windows style
+# this is because of RunChandler.bat and RunPython.bat
+# so internally we need to convert them to unix style
+
 ifeq ($(OS),Cygwin)
+C_BIN=$(shell cygpath -aw $(CHANDLERBIN))
+C_HOME=$(shell cygpath -aw $(CHANDLERHOME))
+SITE=$(SNAP)/bin/Lib/site-packages
 PLATFORM=windows
 else
+C_BIN=$(CHANDLERBIN)
+C_HOME=$(CHANDLERHOME)
+ifeq ($(OS),Darwin)
+ARCH=$(shell arch)
+FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
+ifeq ($(ARCH),ppc)
+PLATFORM=macosx
+else
+PLATFORM=maciosx
+endif
+SITE=$(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
+else
+SITE=$(SNAP)/lib/python$(PYTHON_VER)/site-packages
 PLATFORM=linux
 endif
 endif
@@ -44,23 +63,13 @@ ifeq ($(CHANDLERARCHIVES),)
 CHANDLERARCHIVES=../downloads
 endif
 
-# on Windows, CHANDLERHOME and CHANDLERBIN *must* be in Windows style
-# this is because of RunChandler.bat and RunPython.bat
-# so internally we need to convert them to unix style
-
-ifeq ($(OS),Cygwin)
-C_BIN=$(shell cygpath -aw $(CHANDLERBIN))
-C_HOME=$(shell cygpath -aw $(CHANDLERHOME))
-else
-C_BIN=$(CHANDLERBIN)
-C_HOME=$(CHANDLERHOME)
-endif
-
 BUNDLED_PLUGINS=Chandler_HelloWorldPlugin-0.1-py2.4.egg \
                 Chandler_FeedsPlugin-0.2_r11264-py2.4.egg
+#                EggTranslations_Plugin-0.1-py2.4.egg
 
-BUILD_PLUGINS=Chandler-HelloWorldPlugin Chandler-FeedsPlugin
-
+BUILD_PLUGINS=Chandler-HelloWorldPlugin \
+              Chandler-FeedsPlugin
+#              EggTranslations-Plugin
 
 # When a version changes, the ARCHIVES lists below needs to be updated.
 
@@ -86,6 +95,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)A.tar.gz \
          $(CHANDLERARCHIVES)/astng-$(SNAP)-0.16.0-$(BP)3.tar.gz \
          $(CHANDLERARCHIVES)/common-$(SNAP)-0.15.0-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.11.0-$(BP)3.tar.gz
+#         $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.6-$(BP)1.tar.gz \
 
 
 # readline is only needed for OSX
@@ -124,16 +134,7 @@ endif
 endif
 
 HOST=builds.osafoundation.org
-ifeq ($(OS),Darwin)
-ARCH=$(shell arch)
-ifeq ($(ARCH),i386)
-URL=http://$(HOST)/external/maciosx
-else
-URL=http://$(HOST)/external/macosx
-endif
-else
 URL=http://$(HOST)/external/$(PLATFORM)
-endif
 
 ARCHIVES_INST = \
     $(addsuffix .inst, \
@@ -185,12 +186,14 @@ SETUPTOOLS_INST = \
                             $(notdir $(SETUPTOOLS_EGG))))
 SETUPTOOLS_ABS=$(SETUPTOOLS_EGG)
 SETUPTOOLS_BIN=$(CHANDLERBIN)/$(SNAP)
+SETUPTOOLS_SITE=$(CHANDLERBIN)/$(SITE)
 PYTHON_BIN=$(CHANDLERBIN)/$(SNAP)/RunPython
 
 ifeq ($(OS),Cygwin)
 PYTHON_BIN:=$(SETUPTOOLS_BIN)/bin/python$(DEBUG_SUFFIX)
 SETUPTOOLS_ABS:=`cygpath -wa $(SETUPTOOLS_EGG)`
 SETUPTOOLS_BIN:=`cygpath -wa $(SETUPTOOLS_BIN)`
+SETUPTOOLS_SITE:=`cygpath -wa $(SETUPTOOLS_SITE)`
 endif
 
 setuptools: $(SETUPTOOLS_INST)
@@ -202,7 +205,9 @@ $(SETUPTOOLS_EGG):
 $(SETUPTOOLS_INST): $(SETUPTOOLS_EGG)
 	MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) \
       -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
-      --script-dir=$(SETUPTOOLS_BIN) $(SETUPTOOLS_ABS)
+      --script-dir=$(SETUPTOOLS_BIN) \
+      --install-dir=$(SETUPTOOLS_SITE) \
+      $(SETUPTOOLS_ABS)
 	touch $@
 
 ifeq ($(OS),Cygwin)
@@ -252,6 +257,11 @@ strip:
 endif
 endif
 
+default: install
+
+debug:
+	$(MAKE) DEBUG=1 install
+
 purge:
 	$(PYTHON_BIN) $(C_HOME)/tools/purge.py $(C_HOME)
 
@@ -278,3 +288,4 @@ realclean: clean
 	rm -f $(ARCHIVES)
 	rm -rf $(CHANDLERBIN)/debug
 	rm -rf $(CHANDLERBIN)/release
+
