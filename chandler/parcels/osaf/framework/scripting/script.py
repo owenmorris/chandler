@@ -266,8 +266,11 @@ def run_startup_script_with_symbols(view, builtIns):
     # Execute new framework if chandlerPerformanceTests option is called
     chandlerPerformanceTests = Globals.options.chandlerPerformanceTests
     if chandlerPerformanceTests:
+        logFileName = Globals.options.chandlerTestLogfile
+        testDebug = Globals.options.chandlerTestDebug
+        testMask = Globals.options.chandlerTestMask
         from tools.cats.framework.runTests import run_perf_tests
-        run_perf_tests(chandlerPerformanceTests, logName=logFileName)
+        run_perf_tests(chandlerPerformanceTests, debug=testDebug, mask=testMask, logName=logFileName)
         
     fileName = Globals.options.scriptFile
     if fileName:
