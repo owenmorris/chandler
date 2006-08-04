@@ -52,6 +52,7 @@ from i18n import OSAFMessageFactory as _
 
 from application import schema, Utility
 from osaf.framework.certstore import constants, utils
+from osaf import messages
 
 __all__ = ['loadCertificatesToContext', 'SSLContextError', 'getContext',
            'connectSSL', 'connectTCP', 'unknown_issuer',
@@ -268,8 +269,9 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
             e.pem = peerX509.as_pem()
     
             acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(e.pem)
-            if acceptedErrList is not None and str(e) in acceptedErrList:
-                log.debug('Ignoring post connection error %s' %str(e))
+            err = messages.SSL_HOST_MISMATCH % {'expectedHost': e.expectedHost, 'actualHost': e.actualHost}
+            if acceptedErrList is not None and err in acceptedErrList:
+                log.debug('Ignoring post connection error %s' % err)
                 return 1
     
             raise e
