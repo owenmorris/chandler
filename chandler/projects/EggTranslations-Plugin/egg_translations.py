@@ -198,7 +198,7 @@ class EggTranslations(object):
 
          @type encoding: c{str} or c{unicode} 
 
-         @param fallback: Indicates where locale set fallback should
+         @param fallback: Indicates whether locale set fallback should
                           take place. If set to True, the 
                           EggTranslations will search all locales 
                           in the locale set till a resource or 
@@ -904,14 +904,14 @@ class EggTranslations(object):
 
         If fallback was set to True in the
         c{EggTranslations.initialize} method or the
-        c{EggTranslations.setLocale} method, the 
+        c{EggTranslations.setLocaleSet} method, the 
         c{EggTranslations.getText} method will search all 
         locales in the locale set till a gettext mo 
         translation is found for the txt parameter.
 
         If fallback was set to False in the
         c{EggTranslations.initialize} method
-        or the c{EggTranslations.setLocale} method, the
+        or the c{EggTranslations.setLocaleSet} method, the
         c{EggTranslations.getText} method will only search 
         the current locale, which is the first locale in the
         locale set for a gettext mo translation for 
@@ -1034,10 +1034,11 @@ class EggTranslations(object):
         """
         Returns True if fallback was set to True in either the 
         c{EggTranslations.initialize} method or the 
-        c{EggTranslations.setLocale} method.
+        c{EggTranslations.setLocaleSet} method.
         
         @return: c{boolean} True if fallback set to True
-                 in initialize or setLocale methods otherwise False.
+                 in initialize or setLocaleSet methods 
+                 otherwise False.
         """
         assert(self._init, True)
         return self._fallback
@@ -1099,7 +1100,7 @@ class EggTranslations(object):
         @type localeSet: c{str} or c{unicode} or c{List} containing 
                          c{str} or c{unicode} values
 
-         @param fallback: Indicates where locale set fallback should
+         @param fallback: Indicates whether locale set fallback should
                           take place. If set to True, the 
                           EggTranslations will search all locales 
                           in the locale set till a resource or 
@@ -1530,7 +1531,7 @@ class EggTranslations(object):
                             # location of each .mo file.
                             #
                             # This cache will be used by
-                            # setLocale method to 
+                            # setLocaleSet method to 
                             # load the EggTranslations 
                             # and build the fallback order
                             # if fallback set to True
