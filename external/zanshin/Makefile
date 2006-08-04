@@ -13,7 +13,7 @@ build: expand
 	cd $(SRC); \
       MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
           build --build-base=$(BUILD) $(DIST_OPT) \
-          install_lib --force
+          install_lib --force --install-dir=$(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 zanshin-$(VERSION).tar.gz:
 	svn export http://svn.osafoundation.org/zanshin/trunk -r $(VERSION) zanshin-$(VERSION)

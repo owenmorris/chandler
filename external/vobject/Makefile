@@ -34,7 +34,7 @@ build: expand apply
 	cd $(SRC); \
     MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
         build --build-base=$(BUILD) $(DIST_OPT) \
-        install --force
+        install --force --install-lib=$(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(VOBJECT)/$(TARBALL) \
