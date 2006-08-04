@@ -26,9 +26,10 @@ class TestNewEvent(ChandlerTestCase):
     def startTest(self):
         
         def todayPlus(inc=0):
-            """return a m/d/yy date string equal to today plus inc days"""
+            """return a m/d/yy date string equal to this Monday plus inc days"""
             today = datetime.date.today()
-            incDay =  today + datetime.timedelta(days=inc)
+            monday = today - datetime.timedelta(days=today.weekday())
+            incDay =  monday + datetime.timedelta(days=inc)
             y, m, d = incDay.timetuple()[:3]
             return '%s/%s/%s' % (m, d, str(y)[2:].zfill(2))
         
