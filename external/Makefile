@@ -21,6 +21,7 @@ SYSTEMS=db \
         zanshin \
         elementtree \
         pylint \
+        parsedatetime \
         wx
 
 .PHONY: systems env binaries sources expand install clean \
