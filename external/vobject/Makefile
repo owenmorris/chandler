@@ -30,11 +30,19 @@ apply: patches-$(VERSION)
             patch -Nup0 < patches-$(VERSION);echo ok; \
         fi
 
+ifeq ($(OS),Cygwin)
 build: expand apply
 	cd $(SRC); \
     MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
         build --build-base=$(BUILD) $(DIST_OPT) \
-        install --force --install-lib=$(BUILD_ROOT)/$(SNAP)/$(SITE)
+        install_lib --force --install-dir=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/$(SITE)`
+else
+build: expand apply
+	cd $(SRC); \
+    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
+        build --build-base=$(BUILD) $(DIST_OPT) \
+        install_lib --force --install-dir=$(BUILD_ROOT)/$(SNAP)/$(SITE)
+endif
 
 binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(VOBJECT)/$(TARBALL) \

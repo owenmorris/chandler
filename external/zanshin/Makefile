@@ -9,11 +9,19 @@ TARBALL=zanshin-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
+ifeq ($(OS),Cygwin)
+build: expand
+	cd $(SRC); \
+      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
+          build --build-base=$(BUILD) $(DIST_OPT) \
+          install_lib --force --install-dir=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/$(SITE)`
+else
 build: expand
 	cd $(SRC); \
       MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
           build --build-base=$(BUILD) $(DIST_OPT) \
           install_lib --force --install-dir=$(BUILD_ROOT)/$(SNAP)/$(SITE)
+endif
 
 zanshin-$(VERSION).tar.gz:
 	svn export http://svn.osafoundation.org/zanshin/trunk -r $(VERSION) zanshin-$(VERSION)
