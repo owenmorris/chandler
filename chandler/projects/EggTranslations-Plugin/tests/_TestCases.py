@@ -61,7 +61,6 @@ class EggTestCase(unittest.TestCase):
         logging.basicConfig(filename=f)
 
         rmLogger.setLevel(logging.DEBUG)
-
         self.logger = logging.getLogger(f)
         self.logger.setLevel(logging.DEBUG)
 
