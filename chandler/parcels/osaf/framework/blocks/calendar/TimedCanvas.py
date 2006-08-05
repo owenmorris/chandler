@@ -1012,7 +1012,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
 class TimedCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
-    textMargin = 4
+    textMargin = 2
     
     RESIZE_MODE_START = 1
     RESIZE_MODE_END = 2

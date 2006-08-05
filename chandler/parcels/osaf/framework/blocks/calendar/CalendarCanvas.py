@@ -52,6 +52,7 @@ from itertools import islice, chain
 from bisect import bisect
 import copy
 import logging
+from application import styles as confstyles
 
 from i18n import OSAFMessageFactory as _
 
@@ -65,6 +66,8 @@ dateFormatSymbols = DateFormatSymbols()
 # so the code enabled by ENABLE_DEVICE_ORIGIN isn't currently
 # used on any platform
 ENABLE_DEVICE_ORIGIN = False
+
+RADIUS = 8
 
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
 
@@ -147,24 +150,29 @@ class ColorInfo(object):
         return property(demangledTupleGetter)
 
     # these are all for when this calendar is the 'current' one
-    gradientLeft = tintedColor(0.4)
-    gradientRight = tintedColor(0.2)
-    outlineColor = tintedColor(0.6)
-    textColor = tintedColor(0.67, 0.6)
+    def get_style(name):
+        return (float(confstyles.cfg.get('calendarcanvas', name+'Saturation')),
+                float(confstyles.cfg.get('calendarcanvas', name+'Value')))
+                
+    gradientLeft  = tintedColor(*get_style('UnSelectedGradientLeft'))
+    gradientRight = tintedColor(*get_style('UnSelectedGradientRight'))
+    outlineColor  = tintedColor(*get_style('UnSelectedOutline'))
+    textColor     = tintedColor(*get_style('UnSelectedText'))
     defaultColors = tupleProperty(gradientLeft, gradientRight, outlineColor, textColor)
 
     # when a user selects a calendar event, use these
-    selectedGradientLeft = tintedColor(0.15)
-    selectedGradientRight = tintedColor(0.05)
-    selectedOutlineColor = tintedColor(0.6)
-    selectedTextColor = tintedColor(0.67, 0.6)
+    selectedGradientLeft  = tintedColor(*get_style('SelectedGradientLeft'))
+    selectedGradientRight = tintedColor(*get_style('SelectedGradientRight'))
+    selectedOutlineColor  = tintedColor(*get_style('SelectedOutline'))
+    selectedTextColor     = tintedColor(*get_style('SelectedText'))
     selectedColors = tupleProperty(selectedGradientLeft, selectedGradientRight, selectedOutlineColor, selectedTextColor)
     
     # 'visible' means that its not the 'current' calendar, but is still visible
-    visibleGradientLeft = tintedColor(0.15)
-    visibleGradientRight = tintedColor(0.15)
-    visibleOutlineColor = tintedColor(0.3)
-    visibleTextColor = tintedColor(0.4, 0.85)
+    visibleGradientLeft  = tintedColor(*get_style('OverlayGradientLeft'))
+    visibleGradientRight = tintedColor(*get_style('OverlayGradientRight'))
+    visibleOutlineColor  = tintedColor(*get_style('OverlayOutline'))
+    visibleTextColor     = tintedColor(*get_style('OverlayText'))
+                                       
     visibleColors = tupleProperty(visibleGradientLeft, visibleGradientRight, visibleOutlineColor, visibleTextColor)
 
 
@@ -290,7 +298,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         size = self.GetBoundsRects()[0].GetSize()
 
         # now offset to account for the time	
-        size -= (13, self.timeHeight + self.textMargin*2)	
+        size -= (16, self.timeHeight + self.textMargin*2 + 3)
         return size
 
 
@@ -374,10 +382,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         isAnyTimeOrAllDay = self.GetAnyTimeOrAllDay()	
         # Draw one event - an event consists of one or more bounds	
        
-        clipRect = None	
-        (cx,cy,cwidth,cheight) = dc.GetClippingBox()	
-        if not cwidth == cheight == 0:	
-            clipRect = (cx,cy,cwidth,cheight)	
+        clipRect = None
+        (cx,cy,cwidth,cheight) = dc.GetClippingBox()
+        if not cwidth == cheight == 0:
+            clipRect = (cx,cy,cwidth,cheight)
         
         gradientLeft, gradientRight, outlineColor, textColor = \
             self.getEventColors(selected)
@@ -394,10 +402,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     
                 brush = styles.brushes.GetGradientBrush(brushOffset,
                                                         itemRect.width,
-                                                        gradientLeft, gradientRight)	
-                dc.SetBrush(brush)	
-                dc.SetPen(wx.Pen(outlineColor))	
-           
+                                                        gradientLeft, gradientRight)
+
                 # properly round the corners - first and last	
                 # boundsRect gets some rounding, and they	
                 # may actually be the same boundsRect	
@@ -410,12 +416,15 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 if rectIndex == len(self.GetBoundsRects())-1:	
                     hasBottomRightRounded = True	
            
-                # anyTime-but-not-allday or zero-duration events get fully rounded
-                isAllDay = getattr(item, 'allDay', False)
-                isAnyTime = getattr(item, 'anyTime', False)
-                duration = getattr(item, 'duration', 0)
-                hasLeftRounded = ((isAnyTime or not duration) and not isAllDay)
+                hasLeftRounded = True #always rounding left side
+                                
+                # new, smaller itemRect
+                itemRect = wx.Rect(itemRect.x, itemRect.y,
+                                   itemRect.width - 2, itemRect.height - 2)
                 
+                # draw the normal canvas item
+                dc.SetBrush(brush)
+                dc.SetPen(wx.Pen(outlineColor))
                 self.DrawEventRectangle(dc, itemRect, brush,
                                         hasLeftRounded,
                                         hasTopRightRounded,
@@ -433,8 +442,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 self.textOffset = wx.Point(self.textMargin, self.textMargin)
                 
                 if hasLeftRounded:
-                    cornerRadius = 8
-                    self.textOffset.x += cornerRadius
+                    self.textOffset.x += RADIUS
                 else:
                     self.textOffset.x += 3
     
@@ -444,7 +452,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     
                 width = itemRect.width - self.textOffset.x - (self.textMargin)
                 
-                # only draw date/time on first item	
+                # only draw date/time on first item
                 if drawEventText:
                     # only draw time on timed events
                     if not isAnyTimeOrAllDay:
@@ -477,6 +485,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         availableSpace = timeHeight*2 + timeBottomMargin + \
                                          self.textOffset.y*2
                         if (availableSpace < itemRect.height):
+                            
                             timeRect = (x, y, width, timeHeight)
                             
                             dc.SetFont(styles.eventTimeFont)
@@ -506,13 +515,11 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                 itemRect.height - lostHeight - self.textOffset.y)
            
                     dc.SetFont(styles.eventLabelFont)
+                    drawingItem = item
                     if selected:
-                        proxy = RecurrenceDialog.getProxy(u'ui', item)
-                        DrawWrappedText(dc, proxy.displayName, textRect,
-                                        styles.eventLabelMeasurements)
-                    else:
-                        DrawWrappedText(dc, item.displayName, textRect,
-                                        styles.eventLabelMeasurements)
+                        drawingItem = RecurrenceDialog.getProxy(u'ui', item)
+                    DrawWrappedText(dc, drawingItem.displayName, textRect,
+                                    styles.eventLabelMeasurements)
        
         dc.DestroyClippingRegion()	
         if clipRect:	
@@ -536,8 +543,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                  hasTopRightRounded and hasBottomRightRounded) or
                 not hasLeftRounded)
 
-        radius = 8
-        diameter = radius * 2
+        diameter = RADIUS * 2
 
         dc.DestroyClippingRegion()
         dc.SetClippingRect(rect)
@@ -558,22 +564,22 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         # left/right clipping
         if not hasLeftRounded:
-            x -= radius
-            width += radius
+            x -= RADIUS
+            width += RADIUS
 
         if clipRightSide:
-            width += radius;
+            width += RADIUS;
             
         # top/bottom clipping
         if not hasBottomRightRounded:
-            height += radius
+            height += RADIUS
 
         if not hasTopRightRounded:
-            y -= radius
-            height += radius
+            y -= RADIUS
+            height += RADIUS
 
         # finally draw the clipped rounded rect
-        dc.DrawRoundedRectangle(x,y,width,height,radius)
+        dc.DrawRoundedRectangle(x,y,width,height,RADIUS)
         
         # draw the lefthand and possibly top & bottom borders
         if not hasLeftRounded:

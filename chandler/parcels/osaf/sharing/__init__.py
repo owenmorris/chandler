@@ -701,7 +701,6 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
         progressMonitor = None
         callback = None
 
-
     (useSSL, host, port, path, query, fragment) = splitUrl(url)
 
     ticket = ""

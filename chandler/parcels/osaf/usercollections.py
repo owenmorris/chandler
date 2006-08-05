@@ -21,6 +21,8 @@ from osaf.pim import ContentCollection
 
 from i18n import OSAFMessageFactory as _
 
+import colorsys
+from application import styles
 
 class CollectionColors(schema.Item):
     """
@@ -81,14 +83,16 @@ class UserCollection(schema.Annotation):
 
 # Collection colors
 # in the form 'Color', _('LocalizableColorString'), 360-degree based hue
-import colorsys
-collectionHues = [('Blue', _(u'Blue'), 210),
-                  ('Green', _(u'Green'), 120),
-                  ('Rose', _(u'Rose'), 0),
-                  ('Salmon', _(u'Salmon'), 30),
-                  ('Purple', _(u'Purple'), 270),
-                  ('Violet', _(u'Violet'), 240),
-                  ('Fuschia', _(u'Fuschia'), 330)]
+
+collectionHues = \
+    [('Blue',    _(u'Blue'),    float(styles.cfg.get('color', 'BlueHue'))),
+     ('Green',   _(u'Green'),   float(styles.cfg.get('color', 'GreenHue'))),
+     ('Rose',    _(u'Rose'),    float(styles.cfg.get('color', 'RoseHue'))),
+     ('Salmon',  _(u'Salmon'),  float(styles.cfg.get('color', 'SalmonHue'))),
+     ('Purple',  _(u'Purple'),  float(styles.cfg.get('color', 'PurpleHue'))),
+     ('Violet',  _(u'Violet'),  float(styles.cfg.get('color', 'VioletHue'))),
+     ('Fuschia', _(u'Fuschia'), float(styles.cfg.get('color', 'FuschiaHue')))]
+
 
 def installParcel(parcel, oldVersion=None):
 

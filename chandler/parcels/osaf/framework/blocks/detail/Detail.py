@@ -620,9 +620,9 @@ def getAppearsInNames(item):
         return () # we won't be visible if this happens.
 
     # Collect the names and join them into a list
-    collectionNames = _(", ").join(sorted([coll.displayName 
-                                           for coll in item.appearsIn
-                                           if hasattr(coll, 'displayName')]))
+    collectionNames = _(", ").join(sorted(coll.displayName 
+                                          for coll in item.appearsIn
+                                          if hasattr(coll, 'displayName')))
     return collectionNames
     
 class AppearsInAEBlock(DetailSynchronizedAttributeEditorBlock):
