@@ -35,6 +35,7 @@ allTests = [
                 ("TestNewTask","TestNewTask"),
                 ("TestNewNote","TestNewNote"),
                 ("TestTableSelection","TestTableSelection"),
+                ("TestTriageSectioning","TestTriageSectioning"),
                 ("TestStamping","TestStamping"), 
                 ("TestSharing","TestSharing"), 
                 ("TestMoveToTrash","TestMoveToTrash"), 
