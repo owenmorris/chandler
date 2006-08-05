@@ -52,7 +52,7 @@ class DefaultTranslations(GNUTranslations):
 
         @param message: c{unicode} or {str} message key
                         used to lookup a localization
-        @type message: c{unicode} or {str}
+        @type message: c{unicode} or ASCII {str}
  
         @param args: An optional argument which if passed 
                      will be returned if no localzation
@@ -171,7 +171,8 @@ class EggTranslations(object):
                           codes. The value(s) must be able to 
                           be converted to ASCII.
 
-        @type localeSet: c{str} or c{unicode} or c{List} containing 
+        @type localeSet: ASCII c{str} or c{unicode} or 
+                         c{List} containing ASCII 
                          c{str} or c{unicode} values
 
         @param iniFileName: The name of the resource ini file 
@@ -188,7 +189,7 @@ class EggTranslations(object):
                              method. The default encoding 
                              is "UTF-8".
  
-         @type iniFileName: c{str} or c{unicode}
+         @type iniFileName: ASCII c{str} or c{unicode}
 
          @param encoding: The character set encoding of the 
                           iniFileName. This encoding will be 
@@ -196,7 +197,7 @@ class EggTranslations(object):
                           in the iniFileName to c{unicode}.
                           The default encoding is "UTF-8".
 
-         @type encoding: c{str} or c{unicode} 
+         @type encoding: ASCII c{str} or c{unicode} 
 
          @param fallback: Indicates whether locale set fallback should
                           take place. If set to True, the 
@@ -269,7 +270,7 @@ class EggTranslations(object):
                         The project name must be either an ASCII
                         c{str} or c{unicode}.
 
-         @type project: c{str} or c{unicode}
+         @type project: ASCII c{str} or c{unicode}
              
          @param name: name is the key to lookup in  
                       a resource ini file to retrieve the 
@@ -279,7 +280,7 @@ class EggTranslations(object):
                       The name must be either an ASCII
                       c{str} or c{unicode}.
 
-         @type name: c{str} or c{unicode}
+         @type name: ASCII c{str} or c{unicode}
            
          
          @param locale: Optional argument that if specified 
@@ -290,7 +291,7 @@ class EggTranslations(object):
                         a valid language / country locale 
                         i.e. "en_US" or "en"
 
-         @type locale: c{unicode} or c{str} 
+         @type locale: c{unicode} or ASCII c{str} 
 
          @return: c{bool} True if the name is found otherwise False
         """
@@ -350,6 +351,7 @@ class EggTranslations(object):
            ...                               "myimage", "fr")
            /resource/imgs/myimage.png
            >>>
+
         The getValueForKey method can raise the following exceptions:
             1. c{UnicodeDecodeError}
             2. c{UnicodeEncodeError}
@@ -364,7 +366,7 @@ class EggTranslations(object):
                         The project name must be either an ASCII
                         c{str} or c{unicode}.
 
-         @type project: c{str} or c{unicode}
+         @type project: ASCII c{str} or c{unicode}
              
          @param name: name is the key to lookup in  
                       a resource ini file to retrieve the 
@@ -374,7 +376,7 @@ class EggTranslations(object):
                       The name must be either an ASCII
                       c{str} or c{unicode}.
 
-         @type name: c{str} or c{unicode}
+         @type name: ASCII c{str} or c{unicode}
            
          
          @param locale: Optional argument that if specified 
@@ -385,7 +387,7 @@ class EggTranslations(object):
                         a valid language / country locale 
                         i.e. "en_US" or "en"
 
-         @type locale: c{unicode} or c{str} 
+         @type locale: c{unicode} or ASCII c{str} 
 
          @return c{unicode} value or None if not found
         """
@@ -426,7 +428,7 @@ class EggTranslations(object):
                         The project name must be either an ASCII
                         c{str} or c{unicode}.
 
-         @type project: c{str} or c{unicode}
+         @type project: ASCII c{str} or c{unicode}
              
          @param name: name is the key to lookup in  
                       a resource ini file to retrieve the 
@@ -436,7 +438,7 @@ class EggTranslations(object):
                       The name must be either an ASCII
                       c{str} or c{unicode}.
 
-         @type name: c{str} or c{unicode}
+         @type name: ASCII c{str} or c{unicode}
            
          
          @param locale: Optional argument that if specified 
@@ -447,7 +449,7 @@ class EggTranslations(object):
                         a valid language / country locale 
                         i.e. "en_US" or "en"
 
-         @type locale: c{unicode} or c{str} 
+         @type locale: c{unicode} or ASCII c{str} 
 
          @return: c{bool} True if the name is found and 
                   the entry for that name is a valid directory 
@@ -500,7 +502,7 @@ class EggTranslations(object):
                         The project name must be either an ASCII
                         c{str} or c{unicode}.
 
-         @type project: c{str} or c{unicode}
+         @type project: ASCII c{str} or c{unicode}
              
          @param name: name is the key to lookup in  
                       a resource ini file to retrieve the 
@@ -510,7 +512,7 @@ class EggTranslations(object):
                       The name must be either an ASCII
                       c{str} or c{unicode}.
 
-         @type name: c{str} or c{unicode}
+         @type name: ASCII c{str} or c{unicode}
            
          
          @param locale: Optional argument that if specified 
@@ -521,7 +523,7 @@ class EggTranslations(object):
                         a valid language / country locale 
                         i.e. "en_US" or "en"
 
-         @type locale: c{unicode} or c{str} 
+         @type locale: c{unicode} or ASCII c{str} 
 
         @return: c{List} of c{unicode} filenames
         """
@@ -586,7 +588,7 @@ class EggTranslations(object):
                         The project name must be either an ASCII
                         c{str} or c{unicode}.
 
-         @type project: c{str} or c{unicode}
+         @type project: ASCII c{str} or c{unicode}
              
          @param name: name is the key to lookup in  
                       a resource ini file to retrieve the 
@@ -596,7 +598,7 @@ class EggTranslations(object):
                       The name must be either an ASCII
                       c{str} or c{unicode}.
 
-         @type name: c{str} or c{unicode}
+         @type name: ASCII c{str} or c{unicode}
            
          
          @param locale: Optional argument that if specified 
@@ -607,7 +609,7 @@ class EggTranslations(object):
                         a valid language / country locale 
                         i.e. "en_US" or "en"
 
-         @type locale: c{unicode} or c{str} 
+         @type locale: c{unicode} or ASCII c{str} 
 
         @return: c{bool} True if the name key points to at least 
                  one resource in an egg otherwise False.
@@ -655,7 +657,7 @@ class EggTranslations(object):
                         The project name must be either an ASCII
                         c{str} or c{unicode}.
 
-         @type project: c{str} or c{unicode}
+         @type project: ASCII c{str} or c{unicode}
              
          @param name: name is the key to lookup in  
                       a resource ini file to retrieve the 
@@ -665,7 +667,7 @@ class EggTranslations(object):
                       The name must be either an ASCII
                       c{str} or c{unicode}.
 
-         @type name: c{str} or c{unicode}
+         @type name: ASCII c{str} or c{unicode}
            
          
          @param locale: Optional argument that if specified 
@@ -676,7 +678,7 @@ class EggTranslations(object):
                         a valid language / country locale 
                         i.e. "en_US" or "en"
 
-         @type locale: c{unicode} or c{str} 
+         @type locale: c{unicode} or ASCII c{str} 
 
          @return: c{file} handle to the resource
         """
@@ -739,7 +741,7 @@ class EggTranslations(object):
                         The project name must be either an ASCII
                         c{str} or c{unicode}.
 
-         @type project: c{str} or c{unicode}
+         @type project: ASCII c{str} or c{unicode}
              
          @param name: name is the key to lookup in  
                       a resource ini file to retrieve the 
@@ -749,7 +751,7 @@ class EggTranslations(object):
                       The name must be either an ASCII
                       c{str} or c{unicode}.
 
-         @type name: c{str} or c{unicode}
+         @type name: ASCII c{str} or c{unicode}
            
          @param locale: Optional argument that if specified 
                         tells the method to only return True 
@@ -759,7 +761,7 @@ class EggTranslations(object):
                         a valid language / country locale 
                         i.e. "en_US" or "en"
 
-         @type locale: c{unicode} or c{str} 
+         @type locale: c{unicode} or ASCII c{str} 
  
  
          @param encoding: The character set encoding of the 
@@ -768,7 +770,7 @@ class EggTranslations(object):
                           in the file to c{unicode}.
                           The default encoding is "UTF-8".
 
-         @type encoding: c{str} or c{unicode} 
+         @type encoding: ASCII c{str} or c{unicode} 
 
          @return: c{generator} list of non-blank non-comment 
                   c{unicode} lines.
@@ -827,7 +829,7 @@ class EggTranslations(object):
                         The project name must be either an ASCII
                         c{str} or c{unicode}.
 
-         @type project: c{str} or c{unicode}
+         @type project: ASCII c{str} or c{unicode}
              
          @param name: name is the key to lookup in  
                       a resource ini file to retrieve the 
@@ -837,7 +839,7 @@ class EggTranslations(object):
                       The name must be either an ASCII
                       c{str} or c{unicode}.
 
-         @type name: c{str} or c{unicode}
+         @type name: ASCII c{str} or c{unicode}
            
          
          @param locale: Optional argument that if specified 
@@ -848,7 +850,7 @@ class EggTranslations(object):
                         a valid language / country locale 
                         i.e. "en_US" or "en"
 
-         @type locale: c{unicode} or c{str} 
+         @type locale: c{unicode} or ASCII c{str} 
 
          @param encoding: The character set encoding of the 
                           resource file. This encoding will be 
@@ -856,7 +858,7 @@ class EggTranslations(object):
                           in the file to c{unicode}.
                           The default encoding is "UTF-8".
 
-         @type encoding: c{str} or c{unicode} 
+         @type encoding: ASCII c{str} or c{unicode} 
            
          @return: c{unicode} contents of the resource file.
         """
@@ -952,7 +954,7 @@ class EggTranslations(object):
                         The project name must be either an ASCII
                         c{str} or c{unicode}.
 
-         @type project: c{str} or c{unicode}
+         @type project: ASCII c{str} or c{unicode}
              
          @param name: name is the key to lookup in  
                       a resource ini file to retrieve the 
@@ -962,7 +964,7 @@ class EggTranslations(object):
                       The name must be either an ASCII
                       c{str} or c{unicode}.
 
-         @type name: c{str} or c{unicode}
+         @type name: ASCII c{str} or c{unicode}
            
          @param txt: The default text string which is used 
                      as look up key to retrieve a localized 
@@ -974,7 +976,7 @@ class EggTranslations(object):
                      localizations of the English version
                      with the English version as the key.
                      
-         @type txt: c{str} or c{unicode}
+         @type txt: ASCII c{str} or c{unicode}
 
         @param args: An optional argument which if passed 
                      will be returned if no localzation
@@ -1097,7 +1099,8 @@ class EggTranslations(object):
                           codes. The value(s) must be able to 
                           be converted to ASCII.
 
-        @type localeSet: c{str} or c{unicode} or c{List} containing 
+        @type localeSet: ASCII c{str} or c{unicode} or 
+                         c{List} containing ASCII
                          c{str} or c{unicode} values
 
          @param fallback: Indicates whether locale set fallback should
@@ -1639,7 +1642,7 @@ def stripCountryCode(locale):
 
       @param locale: a valid c{str} language / country code
                      locale
-      @type locale: c{str}
+      @type locale: ASCII c{str}
 
       @return: c{str} with country code removed
     """
@@ -1654,7 +1657,7 @@ def hasCountryCode(locale):
         otherwise False.
 
       @param locale: a  c{str} locale
-      @type locale: c{str}
+      @type locale: ASCII c{str}
 
       @return: c{boolean} True if locale contains country code
                otherwise False
@@ -1675,7 +1678,7 @@ def isValidLocaleForm(locale):
       Only that the form of the c{str} is correct.
 
       @param locale: a c{str} locale
-      @type locale: c{str}
+      @type locale: ASCII c{str}
 
       @return: c{boolean} True if locale has a valid form
                otherwise False
@@ -1707,7 +1710,7 @@ def normalizeLocale(locale):
        "fr"
 
       @param locale: a c{str} locale
-      @type locale: c{str}
+      @type locale: ASCII c{str}
 
       @return: c{str} normalized version of the 
                locale.
@@ -1735,7 +1738,7 @@ def buildFallbackLocales(localeSet):
       Thus if passed ["fr_CA", "en_US", "es"]  this method 
       would return ["fr_CA", "fr", "en_US", "en", "es"]
 
-      @param localeSet: a c{List} containing c{str} locales
+      @param localeSet: a c{List} containing ASCII c{str} locales
       @type localeSet: c{List}
 
       @return: c{List} containing original locale set c{str}'s
@@ -1772,7 +1775,7 @@ def stripEncodingCode(locale):
       would return "en_US"
 
       @param locale: a c{str} locale
-      @type locale: c{str}
+      @type locale: ASCII c{str}
    
       @return: c{str} stripped version of locale
                or original locale c{str} if no
