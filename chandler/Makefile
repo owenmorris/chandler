@@ -65,6 +65,7 @@ endif
 
 BUNDLED_PLUGINS=Chandler_HelloWorldPlugin-0.1-py2.4.egg \
                 Chandler_FeedsPlugin-0.2_r11264-py2.4.egg
+#                Chandler_FeedsPlugin-0.2_r11338-py2.4.egg
 #                EggTranslations_Plugin-0.1-py2.4.egg
 
 BUILD_PLUGINS=Chandler-HelloWorldPlugin \
@@ -95,7 +96,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)A.tar.gz \
          $(CHANDLERARCHIVES)/astng-$(SNAP)-0.16.0-$(BP)3.tar.gz \
          $(CHANDLERARCHIVES)/common-$(SNAP)-0.15.0-$(BP)4.tar.gz \
          $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.11.0-$(BP)3.tar.gz
-#         $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.6-$(BP)1.tar.gz \
+#         $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.6.4-$(BP)1.tar.gz
 
 
 # readline is only needed for OSX
@@ -160,7 +161,10 @@ $(PLUGINS_DOWNLOAD):
 	$(CURL) $(PLUGIN_ARCHIVES)$(notdir $@) $(URL)/$(notdir $@)
 
 $(PLUGINS_INST):
-	$(EASYINSTALL) $(PLUGIN_ARCHIVES)$(notdir $(basename $@))
+	$(EASYINSTALL) \
+      --script-dir=$(SETUPTOOLS_BIN) \
+      --install-dir=$(SETUPTOOLS_SITE) \
+      $(PLUGIN_ARCHIVES)$(notdir $(basename $@))
 	touch $@
 
 bundled-plugins: $(PLUGINS_DOWNLOAD) $(PLUGINS_INST)
