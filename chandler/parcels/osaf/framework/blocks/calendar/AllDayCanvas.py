@@ -450,8 +450,9 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
         startX, width = self.getColumnForDay(dayStart, dayEnd)
         
-        rect = wx.Rect(startX, self.eventHeight * gridRow,
-                       width, self.eventHeight)
+        # overlap all-day canvas items by one pixel
+        rect = wx.Rect(startX, (self.eventHeight - 1) * gridRow,
+                       width + 1, self.eventHeight)
 
         collection = calendarBlock.getContainingCollection(item, calendarBlock.contentsCollection)
         return AllDayCanvasItem(collection, calendarBlock.contentsCollection,
@@ -570,6 +571,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 class AllDayCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
     textMargin = 2
+    
     def GetBoundsRects(self):
         return [self._bounds]
 

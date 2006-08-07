@@ -69,6 +69,12 @@ ENABLE_DEVICE_ORIGIN = False
 
 RADIUS = 8
 
+# add some space below the time (but on linux there isn't any room)
+if '__WXGTK__' in wx.PlatformInfo:
+    TIME_BOTTOM_MARGIN = 0
+else:
+    TIME_BOTTOM_MARGIN = 2
+
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
 
 def nth(iterable, n):
@@ -274,7 +280,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         # this is supposed to be set in Draw(), but sometimes this
         # object seems to exist before Draw() is called
-        self.textOffset = wx.Point(self.textMargin, self.textMargin)
+        self.textOffset = wx.Point(self.textMargin + RADIUS / 2, self.textMargin)
 
         # use PyICU to pre-cache the time string
         self.timeString = formatTime(self.item.startTime)
@@ -291,14 +297,14 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         position = self.GetBoundsRects()[0].GetPosition() + self.textOffset
 
         # now offset to account for the time
-        position += (0, self.timeHeight)
+        position += (0, self.timeHeight + 1)
         return position
 
     def GetMaxEditorSize(self):
         size = self.GetBoundsRects()[0].GetSize()
 
         # now offset to account for the time	
-        size -= (16, self.timeHeight + self.textMargin*2 + 3)
+        size -= (12, self.timeHeight + self.textMargin*2 + 3)
         return size
 
 
@@ -370,6 +376,24 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         item = self.item.getMaster()
         return item.isAttributeModifiable('displayName')
     
+    def SetTimeHeight(self, dc, styles, timeString = 'DummyValue'):
+        """Initialize timeHeight for displaying edit window."""
+        if self.GetAnyTimeOrAllDay():                
+            self.timeHeight = 0
+        else:
+            timeHeight = dc.GetFullTextExtent(timeString,
+                                              styles.eventTimeFont)[1]
+            minAvailableSpace = timeHeight*2 + TIME_BOTTOM_MARGIN + \
+                                self.textOffset.y*2
+            if (self.GetBoundsRects()[0].height < minAvailableSpace):
+                timeHeight = 0
+
+            self.timeHeight = timeHeight
+
+        return self.timeHeight
+                
+
+
     def Draw(self, dc, styles, selected, rightSideCutOff=False):
         # @@@ add a general cutoff parameter?
         item = self.item
@@ -395,14 +419,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         for rectIndex, itemRect in enumerate(self.GetBoundsRects()):
 
             if not itemRect.IsEmpty():
-                if ENABLE_DEVICE_ORIGIN:
-                    brushOffset = 0
-                else:
-                    brushOffset = itemRect.x
-                    
-                brush = styles.brushes.GetGradientBrush(brushOffset,
-                                                        itemRect.width,
-                                                        gradientLeft, gradientRight)
 
                 # properly round the corners - first and last	
                 # boundsRect gets some rounding, and they	
@@ -417,11 +433,30 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     hasBottomRightRounded = True	
            
                 hasLeftRounded = True #always rounding left side
-                                
+
+                dc.SetBrush(wx.WHITE_BRUSH)
+                dc.SetPen(wx.Pen(wx.WHITE, 1))
+
+                # draw white outline
+                self.DrawEventRectangle(dc, itemRect, wx.WHITE_BRUSH,
+                                        hasLeftRounded,
+                                        hasTopRightRounded,
+                                        hasBottomRightRounded,
+                                        rightSideCutOff)
+
                 # new, smaller itemRect
-                itemRect = wx.Rect(itemRect.x, itemRect.y,
+                itemRect = wx.Rect(itemRect.x + 1, itemRect.y + 1,
                                    itemRect.width - 2, itemRect.height - 2)
-                
+
+                if ENABLE_DEVICE_ORIGIN:
+                    brushOffset = 0
+                else:
+                    brushOffset = itemRect.x
+
+                brush = styles.brushes.GetGradientBrush(brushOffset,
+                                                        itemRect.width,
+                                                        gradientLeft, gradientRight)
+
                 # draw the normal canvas item
                 dc.SetBrush(brush)
                 dc.SetPen(wx.Pen(outlineColor))
@@ -439,12 +474,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                         itemRect.y-1 + itemRect.height))
     
      
-                self.textOffset = wx.Point(self.textMargin, self.textMargin)
+                #self.textOffset = wx.Point(self.textMargin, self.textMargin)
                 
-                if hasLeftRounded:
-                    self.textOffset.x += RADIUS
-                else:
-                    self.textOffset.x += 3
+                #if hasLeftRounded:
+                    #self.textOffset.x += RADIUS
+                #else:
+                    #self.textOffset.x += 3
     
                 # Shift text to account for rounded corners
                 x = itemRect.x + self.textOffset.x
@@ -463,40 +498,17 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         startTime = getattr(self, 'startTime', None)
                         if startTime:
                             timeString = formatTime(startTime)
-                            timeHeight = dc.GetFullTextExtent(timeString, styles.eventTimeFont)[1]
                         else:
                             timeString = self.timeString
-                            # cache the timeHeight
-                            if self.timeHeight == 0:
-                                self.timeHeight = \
-                                    dc.GetFullTextExtent(timeString, styles.eventTimeFont)[1]
-                            timeHeight = self.timeHeight
-                            
-                        # add some space below the time
-                        # (but on linux there isn't any room)
-                        if '__WXGTK__' in wx.PlatformInfo:
-                            timeBottomMargin = 0
-                        else:
-                            timeBottomMargin = 2
-    
-                        # draw the time if there is room for the time and at least
-                        # one other line of text
-                        # we need to precalculate how much room we have left
-                        availableSpace = timeHeight*2 + timeBottomMargin + \
-                                         self.textOffset.y*2
-                        if (availableSpace < itemRect.height):
-                            
+                        timeHeight = self.SetTimeHeight(dc, styles, timeString)
+
+                        if timeHeight != 0:
                             timeRect = (x, y, width, timeHeight)
-                            
                             dc.SetFont(styles.eventTimeFont)
-                            self.timeHeight = \
-                                DrawWrappedText(dc, timeString, timeRect,
-                                                styles.eventTimeMeasurements)
-    
-                            y += self.timeHeight + timeBottomMargin
-    
-                        else:	
-                            self.timeHeight = 0	
+                            DrawWrappedText(dc, timeString, timeRect,
+                                            styles.eventTimeMeasurements)
+                            
+                            y += self.timeHeight + TIME_BOTTOM_MARGIN
     
                     # we may have lost some room in the rectangle from	
                     # drawing the time	
@@ -1088,6 +1100,9 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
             return
         
         styles = self.blockItem.calendarContainer
+        if canvasItem.timeHeight == 0:
+            canvasItem.SetTimeHeight(wx.ClientDC(self), styles)        
+        
         position = self.CalcScrolledPosition(canvasItem.GetEditorPosition())
         size = canvasItem.GetMaxEditorSize()
 

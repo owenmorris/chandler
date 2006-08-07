@@ -162,8 +162,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.RealignCanvasItems()
         self.Refresh()
 
-        if numAdded == 1 and \
-           getattr(self, 'justCreatedCanvasItem', None):
+        if numAdded == 1 and getattr(self, 'justCreatedCanvasItem', None):
             self.OnSelectItem(self.justCreatedCanvasItem.item)
             self.justCreatedCanvasItem = None
             self.EditCurrentItem()
@@ -1067,12 +1066,20 @@ class TimedCanvasItem(CalendarCanvasItem):
             newWidthPercent = .80
             indentPercent = 1-newWidthPercent
             
-            indent = self.GetIndentLevel() * indentPercent
+            level = self.GetIndentLevel()
+            indent = level * indentPercent
             conflicts = self.GetMaxDepth()
+
             def UpdateForConflicts(rect):
                 if conflicts > 0:
-                    rect.x += rect.width * indent / conflicts
-                    rect.width *= newWidthPercent 
+                    delta = int(rect.width * indent / conflicts)
+                    rect.x += delta
+                    # make sure the last lozenge overlaps the right hand border
+                    if level == conflicts:
+                        rect.width = rect.width - delta
+                    else:
+                        rect.width *= newWidthPercent
+                    
 
         self._boundsRects = \
             list(self._calendarCanvas.GenerateBoundsRects(startTime, endTime))
@@ -1190,8 +1197,9 @@ class TimedCanvasItem(CalendarCanvasItem):
         """
         # we might want to keep track of the inverse conflict as well,
         # for conflict bars
-        child._beforeConflicts.append(self)
-        self._afterConflicts.append(child)
+        if self not in child._beforeConflicts:
+            child._beforeConflicts.append(self)
+            self._afterConflicts.append(child)
         
     def CalculateConflictDepth(self):
         """
