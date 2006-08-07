@@ -80,6 +80,7 @@ else:
     
 exclusions = {#tests to exclude on specific platfoms only
     'other':(
+    "TestNewMail.py", #exclude until bug 6449 resolved
     ),
     
     'mac':( 
