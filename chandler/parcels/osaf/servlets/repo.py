@@ -932,7 +932,10 @@ def RenderItem(repoView, item):
 
 
 
-        itemString = vr.Render(name)
+        try:
+            itemString = vr.Render(name)
+        except:
+            itemString = "Couldn't render %s" % name
 
         result += MakeValueRow(name, itemString, valueType)
         count += 1

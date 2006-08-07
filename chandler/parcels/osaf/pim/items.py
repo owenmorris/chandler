@@ -176,7 +176,7 @@ class ContentItem(schema.Item):
     )
 
     triageStatus = schema.One(TriageEnum, indexed=True,
-                              initialValue="now")
+                              defaultValue="now")
 
     # We haven't ported the "other end" of these links, so we have to use
     # 'otherName' settings to ensure that they get hooked up correctly.
@@ -198,7 +198,7 @@ class ContentItem(schema.Item):
 
     schema.addClouds(
         sharing = schema.Cloud("displayName", body, createdOn, 'tags',
-                               "description", lastModifiedBy),
+                               "description", lastModifiedBy, triageStatus),
         copying = schema.Cloud()
     )
 

@@ -249,6 +249,7 @@ class BackgroundSyncHandler:
             return True
 
         modeOverride = kwds.get('modeOverride', None)
+        forceUpdate = kwds.get('forceUpdate', None)
 
         stats = []
         try:
@@ -287,7 +288,8 @@ class BackgroundSyncHandler:
                     try:
                         stats.extend(sync(collection,
                             modeOverride=modeOverride,
-                            updateCallback=silentCallback))
+                            updateCallback=silentCallback,
+                            forceUpdate=forceUpdate))
                         _clearError(collection)
 
                     except Exception, e:
@@ -1063,6 +1065,16 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                 if hasattr(subShare, 'filterClasses'):
                     share.filterClasses = list(subShare.filterClasses)
 
+                # Because of a bug, we don't really know whether the
+                # publisher of this share intended to share alarms and
+                # event status (transparency).  Let's assume not.  However,
+                # we *can* determine their intention for sharing triage
+                # status.
+                share.filterAttributes = ['reminders', 'expiredReminders',
+                    'transparency']
+                if 'triageStatus' in getattr(subShare, 'filterAttributes', []):
+                    share.filterAttributes.append('triageStatus')
+
             try:
                 share.contents.shares.append(share, 'main')
             except ValueError:
@@ -1071,11 +1083,6 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
 
         except Exception, err:
             logger.exception("Failed to subscribe to %s", url)
-
-            if share:
-                share.delete(True)
-            if subShare:
-                subShare.delete(True)
             raise
 
         return share.contents

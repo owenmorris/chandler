@@ -75,7 +75,8 @@ CLOUD_XML_VERSION = '2'
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 
-def sync(collectionOrShares, modeOverride=None, updateCallback=None):
+def sync(collectionOrShares, modeOverride=None, updateCallback=None,
+    forceUpdate=None):
 
     def mergeFunction(code, item, attribute, value):
         # 'value' is the one from the *this* view
@@ -327,7 +328,8 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None):
                     stat = share.conduit._put(contentView,
                                               putStartingVersion,
                                               putEndingVersion,
-                                              updateCallback=updateCallback)
+                                              updateCallback=updateCallback,
+                                              forceUpdate=forceUpdate)
 
                     stats.append(stat)
 
@@ -596,7 +598,7 @@ class ShareConduit(pim.ContentItem):
 
 
     def _conditionalPutItem(self, contentView, item, changes,
-        updateCallback=None):
+        updateCallback=None, forceUpdate=None):
         """
         Put an item if it's not on the server or is out of date
         """
@@ -618,23 +620,28 @@ class ShareConduit(pim.ContentItem):
             reason = _(u"Not on server")
 
         else:
-            needsUpdate = False
+            if forceUpdate:
+                needsUpdate = True
+                result = 'modified'
+                reason = 'forced update'
+            else:
+                needsUpdate = False
 
-            # Check to see if the item or any of its itemCloud items have a
-            # more recent version than the last time we synced
-            for relatedItem in item.getItemCloud('sharing'):
-                if relatedItem.itsUUID in changes:
-                    modifiedAttributes = changes[relatedItem.itsUUID]
-                    sharedAttributes = \
-                        self.share.getSharedAttributes(relatedItem)
-                    logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('utf8', 'replace'), modifiedAttributes)
-                    for change in modifiedAttributes:
-                        if change in sharedAttributes:
-                            logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.getItemDisplayName())
-                            needsUpdate = True
-                            result = 'modified'
-                            reason = change
-                            break
+                # Check to see if the item or any of its itemCloud items have a
+                # more recent version than the last time we synced
+                for relatedItem in item.getItemCloud('sharing'):
+                    if relatedItem.itsUUID in changes:
+                        modifiedAttributes = changes[relatedItem.itsUUID]
+                        sharedAttributes = \
+                            self.share.getSharedAttributes(relatedItem)
+                        logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('utf8', 'replace'), modifiedAttributes)
+                        for change in modifiedAttributes:
+                            if change in sharedAttributes:
+                                logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.getItemDisplayName())
+                                needsUpdate = True
+                                result = 'modified'
+                                reason = change
+                                break
 
         if needsUpdate:
             logger.info("...putting '%s' %s (%d vs %d) (%s)" %
@@ -674,7 +681,8 @@ class ShareConduit(pim.ContentItem):
 
 
 
-    def _put(self, contentView, startVersion, endVersion, updateCallback=None):
+    def _put(self, contentView, startVersion, endVersion, updateCallback=None,
+        forceUpdate=None):
         """
         Transfer entire 'contents', transformed, to server.
         """
@@ -795,14 +803,16 @@ class ShareConduit(pim.ContentItem):
 
                     # Put the item
                     result = self._conditionalPutItem(contentView, item,
-                        changes, updateCallback=updateCallback)
+                        changes, updateCallback=updateCallback,
+                        forceUpdate=forceUpdate)
                     if result in ('added', 'modified'):
                         stats[result].append(item.itsUUID)
 
 
             # Put the Share item itself
             result = self._conditionalPutItem(contentView, cvSelf.share,
-                changes, updateCallback=updateCallback)
+                changes, updateCallback=updateCallback,
+                forceUpdate=forceUpdate)
             if result in ('added', 'modified'):
                 stats[result].append(self.share.itsUUID)
 

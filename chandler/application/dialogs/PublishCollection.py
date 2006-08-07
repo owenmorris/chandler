@@ -125,6 +125,8 @@ class PublishCollectionDialog(wx.Dialog):
             self.CheckboxShareAlarms.SetValue(False)
             self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
             self.CheckboxShareStatus.SetValue(False)
+            self.CheckboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
+            self.CheckboxShareTriage.SetValue(False)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
@@ -182,11 +184,14 @@ class PublishCollectionDialog(wx.Dialog):
                         self.OnFilterClicked)
 
         self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
-        self.CheckboxShareAlarms.Enable(False)
+        self.CheckboxShareAlarms.Enable(True)
         self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
-        self.CheckboxShareStatus.Enable(False)
+        self.CheckboxShareStatus.Enable(True)
+        self.CheckboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
+        self.CheckboxShareTriage.Enable(True)
 
-        self.originalFilterClasses = self.filterClasses = share.filterClasses
+        self.originalFilterClasses = self.filterClasses = list(share.filterClasses)
+        self.originalFilterAttributes = list(share.filterAttributes)
 
         self._loadClassFilterState()
         self._loadAttributeFilterState(share)
@@ -205,21 +210,19 @@ class PublishCollectionDialog(wx.Dialog):
     def OnManageDone(self, evt):
         self._saveClassFilterState()
 
-        # Commenting this out for now since they can't be changed in the
-        # manage dialog anyway (the checkboxes are disabled), and it causes
-        # CalDAV CloudXML shares to lose attribute filters that they need to
-        # keep:
-        # for share in self.collection.shares:
-        #     self._saveAttributeFilterState(share)
+        for share in self.collection.shares:
+            self._saveAttributeFilterState(share)
 
         if self.modal:
             self.EndModal(False)
         self.Destroy()
 
-        share = iter(self.collection.shares).next()
-        if share.filterClasses != self.originalFilterClasses:
-            SyncProgress.Show(wx.GetApp().mainFrame, rv=self.view,
-                collection=share.contents)
+        share = sharing.getShare(self.collection)
+        if (share.filterClasses != self.originalFilterClasses or
+            share.filterAttributes != self.originalFilterAttributes):
+            self.view.commit()
+            sharing.scheduleNow(self.view, collection=share.contents,
+                                forceUpdate=True)
 
 
     def _loadAttributeFilterState(self, share):
@@ -227,6 +230,8 @@ class PublishCollectionDialog(wx.Dialog):
         self.CheckboxShareAlarms.SetValue("reminders" not in \
                                           share.filterAttributes)
         self.CheckboxShareStatus.SetValue("transparency" not in \
+                                          share.filterAttributes)
+        self.CheckboxShareTriage.SetValue("triageStatus" not in \
                                           share.filterAttributes)
 
 
@@ -239,6 +244,8 @@ class PublishCollectionDialog(wx.Dialog):
                 attrs.append('expiredReminders')
             if not self.CheckboxShareStatus.GetValue():
                 attrs.append('transparency')
+            if not self.CheckboxShareTriage.GetValue():
+                attrs.append('triageStatus')
         return attrs
 
 
@@ -259,6 +266,20 @@ class PublishCollectionDialog(wx.Dialog):
         else:
             if "transparency" in share.filterAttributes:
                 share.filterAttributes.remove("transparency")
+
+        if not self.CheckboxShareTriage.GetValue():
+            if "triageStatus" not in share.filterAttributes:
+                share.filterAttributes.append("triageStatus")
+        else:
+            if "triageStatus" in share.filterAttributes:
+                share.filterAttributes.remove("triageStatus")
+
+        # Make sure no matter what we keep filtering out the attributes that
+        # never belong in the XML fork of a CalDAV share:
+        if "allDay" in share.filterAttributes: # this is such an XML fork
+            for attr in sharing.CALDAVFILTER:
+                if attr not in share.filterAttributes:
+                    share.filterAttributes.append(attr)
 
 
     def _loadClassFilterState(self):
