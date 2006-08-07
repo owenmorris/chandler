@@ -1014,9 +1014,9 @@ class ShareConduit(pim.ContentItem):
                 self._setSeen(itemPath)
 
             # When first importing a collection, name it after the share
-            if not hasattr(cvSelf.share.contents, 'displayName'):
+            if not getattr(cvSelf.share.contents, 'displayName', ''):
                 cvSelf.share.contents.displayName = \
-                    cvSelf.share.displayName
+                    self._getDisplayNameForShare(cvSelf.share)
 
             # If an item was previously on the server (it was in our
             # manifest) but is no longer on the server, remove it from
@@ -1095,7 +1095,16 @@ class ShareConduit(pim.ContentItem):
         else:
             print "@@@MOR Raise an exception here"
 
-
+    def _getDisplayNameForShare(self, share):
+        """
+        Return a C{str} (or C{unicode}) that specifies how the
+        shared collection should be displayed. By default, this
+        method just uses the share's displayName, but subclasses
+        may override for custom behavior (e.g. fetching a DAV
+        property).
+        """
+        return share.displayName
+        
     # Manifest mangement routines
     # The manifest keeps track of the state of shared items at the time of
     # last sync.  It is a dictionary keyed on "path" (not repo path, but
@@ -1659,6 +1668,19 @@ class WebDAVConduit(ShareConduit):
         if getattr(self, 'ticket', False):
             resource.ticketId = self.ticket
         return resource
+
+    def _getDisplayNameForShare(self, share):
+        container = self._getContainerResource()
+        try:
+            result = container.serverHandle.blockUntil(container.getDisplayName)
+        except:
+            result = ""
+            
+        return result or super(WebDAVConduit,
+                               self)._getDisplayNameForShare(share)
+            
+        return result
+
 
 
     def _putItem(self, item):
