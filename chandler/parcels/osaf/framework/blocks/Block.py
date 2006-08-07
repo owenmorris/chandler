@@ -1091,6 +1091,9 @@ def debugName(thing):
     if isinstance(thing, Block):
         return getattr(thing, 'blockName', '(unnamed %s)' % thing.__class__.__name__)
     
+    if isinstance(thing, BlockEvent):
+        return getattr(thing, 'itsName', '(unnamed %s)' % thing.__class__.__name__)
+    
     blockItem = getattr(thing, 'blockItem', None)
     if blockItem is not None:
         return '%s on %s' % (thing.__class__.__name__, debugName(blockItem))
