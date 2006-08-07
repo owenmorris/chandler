@@ -176,13 +176,11 @@ class FeedChannel(pim.ListCollection):
     
     isEstablished = schema.One(
         schema.Boolean,
-        displayName=u"Channel has been established",
         initialValue=False
     )
 
     isPreviousUpdateSuccessful = schema.One(
         schema.Boolean,
-        displayName=u"Previous update was successful",
         initialValue=True
     )
     
