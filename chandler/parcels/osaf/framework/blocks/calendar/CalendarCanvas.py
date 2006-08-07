@@ -1505,7 +1505,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
 
         newSize = wx.Size(size.width, size.height)
 
-        font = wx.Font(pointSize, wx.NORMAL, wx.NORMAL, wx.NORMAL)
+        font = wx.Font(pointSize, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.SetFont(font)
 
         # move the frame so that the default Mac Aqua focus "halo"

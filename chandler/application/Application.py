@@ -1001,13 +1001,13 @@ class StartupSplash(wx.Frame):
                             'mainview'    : ( 10, _(u"Rendering the main view"))}
 
         # Font to be used for the progress text
-        font = wx.Font(fontsize, wx.NORMAL, wx.NORMAL, wx.NORMAL)
+        font = wx.Font(fontsize, wx.SWISS, wx.NORMAL, wx.NORMAL)
         
         # Add title text
         titleText = wx.StaticText(self, -1, _(u"Experimentally Usable Calendar"))
         titleText.SetBackgroundColour(wx.WHITE)
         sizer.Add(titleText, 1, wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
-        titleText.SetFont(wx.Font(fontsize, wx.NORMAL, wx.NORMAL, wx.NORMAL))
+        titleText.SetFont(wx.Font(fontsize, wx.SWISS, wx.NORMAL, wx.NORMAL))
 
         # Load the splash screen picture.
         # The picture will set the width of the splash screen, 
@@ -1019,20 +1019,20 @@ class StartupSplash(wx.Frame):
         text1 = wx.StaticText(self, -1, _(u"Chandler"))
         text1.SetBackgroundColour(wx.WHITE)
         sizer.Add(text1, 1,  wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
-        text1.SetFont(wx.Font(16, wx.NORMAL, wx.NORMAL, wx.BOLD))
+        text1.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.BOLD))
 
         # Add Version text
         text2 = wx.StaticText(self, -1,
                               _(u"Version %(version)s") % { 'version': version })
         text2.SetBackgroundColour(wx.WHITE)
         sizer.Add(text2, 1,  wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
-        text2.SetFont(wx.Font(16, wx.NORMAL, wx.NORMAL, wx.NORMAL))
+        text2.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.NORMAL))
 
         # Add OSAF text
         text3 = wx.StaticText(self, -1, _(u"Open Source Applications Foundation"))
         text3.SetBackgroundColour(wx.WHITE)
         sizer.Add(text3, 1,  wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
-        text3.SetFont(wx.Font(10, wx.NORMAL, wx.NORMAL, wx.NORMAL))
+        text3.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
 
         # The progress text is in 2 parts: a text indicating the section being initialized
         # and a percent number indicating an approximate value of the total being done
