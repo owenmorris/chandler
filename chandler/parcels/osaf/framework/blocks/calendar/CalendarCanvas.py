@@ -134,52 +134,32 @@ class ColorInfo(object):
 
         color = UserCollection(collection).ensureColor().color
         self.hue = rgb_to_hsv(*color2rgb(color.red,color.green,color.blue))[0]
-
-    # to be used like a property, i.e. prop = tintedColor(0.5, 1.0)
-    # takes HSV 'S' and 'V' and returns an color based tuple property
-    def tintedColor(saturation, value = 1.0):
-        def getSaturatedColor(self):
-            return rgb2color(*hsv_to_rgb(self.hue, saturation, value))
-        return property(getSaturatedColor)
-
-    def tupleProperty(*args):
-        """
-        Untangle a tuple of property objects.
-
-        If you try to just declare a tuple of attributes
-        that are property objects, you end up with a tuple
-        of property objects, rather than a tuple of evaluated
-        property values.
-        """
-        def demangledTupleGetter(self):
-            return tuple([val.fget(self) for val in args])
-        return property(demangledTupleGetter)
-
-    # these are all for when this calendar is the 'current' one
-    def get_style(name):
-        return (float(confstyles.cfg.get('calendarcanvas', name+'Saturation')),
-                float(confstyles.cfg.get('calendarcanvas', name+'Value')))
-                
-    gradientLeft  = tintedColor(*get_style('UnSelectedGradientLeft'))
-    gradientRight = tintedColor(*get_style('UnSelectedGradientRight'))
-    outlineColor  = tintedColor(*get_style('UnSelectedOutline'))
-    textColor     = tintedColor(*get_style('UnSelectedText'))
-    defaultColors = tupleProperty(gradientLeft, gradientRight, outlineColor, textColor)
-
-    # when a user selects a calendar event, use these
-    selectedGradientLeft  = tintedColor(*get_style('SelectedGradientLeft'))
-    selectedGradientRight = tintedColor(*get_style('SelectedGradientRight'))
-    selectedOutlineColor  = tintedColor(*get_style('SelectedOutline'))
-    selectedTextColor     = tintedColor(*get_style('SelectedText'))
-    selectedColors = tupleProperty(selectedGradientLeft, selectedGradientRight, selectedOutlineColor, selectedTextColor)
     
-    # 'visible' means that its not the 'current' calendar, but is still visible
-    visibleGradientLeft  = tintedColor(*get_style('OverlayGradientLeft'))
-    visibleGradientRight = tintedColor(*get_style('OverlayGradientRight'))
-    visibleOutlineColor  = tintedColor(*get_style('OverlayOutline'))
-    visibleTextColor     = tintedColor(*get_style('OverlayText'))
-                                       
-    visibleColors = tupleProperty(visibleGradientLeft, visibleGradientRight, visibleOutlineColor, visibleTextColor)
+    def getColorsProperty(prefix):
+        """
+        takes HSV 'S' and 'V' from conf files, hue from self, returns a tuple of
+        four RGB colors.
+        
+        """
+        suffixes = 'GradientLeft', 'GradientRight', 'Outline', 'Text'
+        names = [prefix + suffix for suffix in suffixes]
+        
+        def saturationAndValue(name):
+            return (float(confstyles.cfg.get('calendarcanvas', name + 'Saturation')),
+                    float(confstyles.cfg.get('calendarcanvas', name + 'Value')))
+        
+        def getSaturatedColors(self):
+            return [rgb2color(*hsv_to_rgb(self.hue, saturation, value)) for
+                    saturation, value in map(saturationAndValue, names)]
+
+        return property(getSaturatedColors)
+    
+    defaultColors     = getColorsProperty('UnSelected')
+    selectedColors    = getColorsProperty('Selected')
+    visibleColors     = getColorsProperty('Overlay')
+    defaultFYIColors  = getColorsProperty('UnSelectedFYI')
+    selectedFYIColors = getColorsProperty('SelectedFYI')
+    visibleFYIColors  = getColorsProperty('OverlayFYI')
 
 
 # wrapper around 
@@ -266,6 +246,8 @@ class CalendarSelection(schema.Annotation):
         self.itsItem.clearSelection()
         self.selectedOccurrences = set()
 
+zero_delta = timedelta(0)
+
 class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     """
     Base class for calendar items. Covers:
@@ -307,41 +289,32 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         size -= (12, self.timeHeight + self.textMargin*2 + 3)
         return size
 
-
-    def DrawStatusBar(self, dc, color, (x,y1,y2)):
-        # probably should use styles to determine a good pen color
+    def invertColors(self):
         item = self.item
-
-        if item.transparency in ("fyi", "confirmed"):
-            pen = wx.Pen(color, 5)
-        elif (item.transparency == "tentative"):
-            if '__WXMAC__' in wx.PlatformInfo:
-                pen = wx.Pen(color, 4, wx.USER_DASH)
-                pen.SetDashes(TRANSPARENCY_DASHES)
-            else:
-                pen = wx.Pen(color, 4, wx.DOT)
-
-        pen.SetCap(wx.CAP_BUTT)
-        dc.SetPen(pen)
-        dc.DrawLine(x, y1, x, y2)
-        if item.transparency == "fyi":
-            pen = wx.Pen(wx.WHITE, 2)
-            pen.SetCap(wx.CAP_BUTT)
-            dc.SetPen(pen)
-            dc.DrawLine(x+1, y1, x+1, y2)
-
+        return (((item.anyTime or item.duration == zero_delta) and
+                  not item.allDay) or
+                item.transparency == 'fyi' )
+    
+    
     def getEventColors(self, selected):
         """
         Returns the appropriate tuple of selected, normal, and visible colors.
         """
-
-        if selected:
-            return self.colorInfo.selectedColors
-        elif self.isActive:
-            return self.colorInfo.defaultColors
-
-        return self.colorInfo.visibleColors
-
+        if self.invertColors():
+            if selected:
+                return self.colorInfo.selectedFYIColors
+            elif self.isActive:
+                return self.colorInfo.defaultFYIColors
+    
+            return self.colorInfo.visibleFYIColors
+        else:
+            if selected:
+                return self.colorInfo.selectedColors
+            elif self.isActive:
+                return self.colorInfo.defaultColors
+    
+            return self.colorInfo.visibleColors
+            
     def GetAnyTimeOrAllDay(self):	
         item = self.item
         anyTime = getattr(item, 'anyTime', False)
@@ -465,21 +438,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                         hasTopRightRounded,
                                         hasBottomRightRounded,
                                         rightSideCutOff)
-                
-                # if the left side is rounded, we don't need a status bar
-                if not hasLeftRounded:
-                    self.DrawStatusBar(dc, outlineColor,
-                                       (itemRect.x+1,
-                                        itemRect.y+1,
-                                        itemRect.y-1 + itemRect.height))
-    
-     
-                #self.textOffset = wx.Point(self.textMargin, self.textMargin)
-                
-                #if hasLeftRounded:
-                    #self.textOffset.x += RADIUS
-                #else:
-                    #self.textOffset.x += 3
+                    
     
                 # Shift text to account for rounded corners
                 x = itemRect.x + self.textOffset.x

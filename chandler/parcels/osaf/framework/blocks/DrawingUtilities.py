@@ -187,8 +187,24 @@ def DrawClippedText(dc, word, x, y, maxWidth, wordWidth = -1):
                 return
         #assert False, "Didn't draw any text!"
 
+class vector(list):
 
-        
+    def __add__(self, other):
+        return vector(map(lambda x,y: x+y, self, other))
+
+    def __neg__(self):
+        return vector(map(lambda x: -x, self))
+
+    def __sub__(self, other):
+        return vector(map(lambda x,y: x-y, self, other))
+
+    def __mul__(self, const):
+	return vector(map(lambda x: x*const, self))
+    
+    def __rmul__(self, other):
+	    return (self*other)
+
+
 class Gradients(object):
     """
     Gradient cache. 
@@ -240,20 +256,12 @@ class Gradients(object):
             image = wx.EmptyImage(1, bitmapWidth)
         leftHSV = rgb_to_hsv(*color2rgb(*leftColor))
         rightHSV = rgb_to_hsv(*color2rgb(*rightColor))
-
-        # make sure they are the same hue and brightness
-        # XXX: this doesn't quite work, because sometimes division issues
-        # cause numbers to be very close, but not quite the same
-        # (i.e. 0.4 != 0.40000001 etc)
-        #assert leftHSV.hue == rightHSV.hue
-        #assert leftHSV.value == rightHSV.value
         
-        hue = leftHSV[0]
-        value = leftHSV[2]
-        satStart = leftHSV[1]
-        satDelta = rightHSV[1] - leftHSV[1]
+        left  = vector(leftHSV)
+        right = vector(rightHSV)
+                
         if bitmapWidth == 0: bitmapWidth = 1
-        satStep = satDelta / bitmapWidth
+        step = (right - left) * (1.0 / bitmapWidth)
         
         # assign a sliding scale of floating point values from left to right
         # in the bitmap
@@ -273,12 +281,9 @@ class Gradients(object):
             # ensures we're dealing with x<offset correctly
             gradientIndex = (x - offset + bitmapWidth) % bitmapWidth
             
-            # now offset within the gradient range
-            gradientIndex %= bitmapWidth
-            
             # now calculate the actual color from the gradient index
-            sat = satStart + satStep * gradientIndex
-            color = rgb2color(*hsv_to_rgb(hue, sat, value))
+	    hsvVector = left + step * gradientIndex
+            color = rgb2color(*hsv_to_rgb(*hsvVector))
 
             # use the image buffer to write values directly
             # amazingly, this %c techinque to convert
