@@ -1046,7 +1046,7 @@ class References(Values):
                                  dict((key, dict(refList._iterChanges()))
                                       for key, refList in value.iteritems()))
                             changes[name] = \
-                                dict((key, dict(refList._iterHistory(version, newVersion) for key, refList in value.iteritems())))
+                                dict((key, dict(refList._iterHistory(version, newVersion))) for key, refList in value.iteritems())
                         else:
                             newChanges[name] = ('list',
                                                 dict(value._iterChanges()))
