@@ -1016,7 +1016,9 @@ class ShareConduit(pim.ContentItem):
             # When first importing a collection, name it after the share
             if not getattr(cvSelf.share.contents, 'displayName', ''):
                 cvSelf.share.contents.displayName = \
-                    self._getDisplayNameForShare(cvSelf.share)
+                    cvSelf.share.displayName
+                    # @@@MOR commenting out until I talk to Grant:
+                    # self._getDisplayNameForShare(cvSelf.share)
 
             # If an item was previously on the server (it was in our
             # manifest) but is no longer on the server, remove it from
