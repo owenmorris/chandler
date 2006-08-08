@@ -16,7 +16,6 @@
 #   limitations under the License.
 """
 @author:    Brian Kirsch - bkirsch@osafoundation.org
-@author:    Markku Mielityinen - mmmm@osafoundation.org
 @copyright: Copyright (c) 2003-2006 Open Source Applications Foundation
 @license:   Apache License, Version 2.0
 """
@@ -31,7 +30,7 @@ setup(
     version = "0.1",
     author = "Brian Kirsch",
     author_email = "bkirsch@osafoundation.org",
-    description = "Provides localization services for eggs",
+    description = "Provides an API for accessing localizations and resources packaged in eggs",
     license = "Apache License, Version 2.0",
     test_suite = "tests",
     include_package_data = True,
