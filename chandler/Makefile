@@ -2,108 +2,123 @@
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/ or internal/
 
-OS=$(shell uname)
+
+.PHONY: default install clean realclean downloads build-plugins
+
+default: install
+
+
+OS         = $(shell uname)
+PYTHON_VER = 2.4
+BP         =
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
-OS=Cygwin
+    OS = Cygwin
 endif
 
 ifeq ($(findstring WINNT,$(OS)),WINNT)
-OS=Cygwin
+    OS = Cygwin
 endif
-
-BP=
 
 ifeq ($(DEBUG),1)
-SNAP=debug
-DEBUG_SUFFIX=_d
+    SNAP         = debug
+    DEBUG_SUFFIX = _d
 else
-SNAP=release
-DEBUG_SUFFIX=
+    SNAP         =release
+    DEBUG_SUFFIX =
 endif
-
-PYTHON_VER=2.4
 
 # on Windows, CHANDLERHOME and CHANDLERBIN *must* be in Windows style
 # this is because of RunChandler.bat and RunPython.bat
 # so internally we need to convert them to unix style
 
 ifeq ($(CHANDLERHOME),)
-CHANDLERHOME=$(shell pwd)
+    CHANDLERHOME = $(shell pwd)
 endif
 
 ifeq ($(CHANDLERBIN),)
-CHANDLERBIN=$(CHANDLERHOME)
+    CHANDLERBIN = $(CHANDLERHOME)
 endif
 
 ifeq ($(CHANDLERARCHIVES),)
-CHANDLERARCHIVES=../downloads
+    CHANDLERARCHIVES = ../downloads
 endif
 
-PLUGIN_ARCHIVES=$(CHANDLERARCHIVES)
+PLUGIN_ARCHIVES = $(CHANDLERARCHIVES)
 
 ifeq ($(OS),Cygwin)
-C_BIN=$(shell cygpath -aw $(CHANDLERBIN))
-C_HOME=$(shell cygpath -aw $(CHANDLERHOME))
-SITE=$(SNAP)/bin/Lib/site-packages
-PLATFORM=windows
+    C_BIN         = $(shell cygpath -aw $(CHANDLERBIN))
+    C_HOME        = $(shell cygpath -aw $(CHANDLERHOME))
+    SITE          = $(SNAP)/bin/Lib/site-packages
+    PLATFORM      = windows
+    EASYINSTALL   = $(CHANDLERBIN)/$(SNAP)/easy_install.exe
+    PLUGIN_PYTHON = CHANDLERHOME=$(shell cygpath -aw $(C_HOME)) $(CHANDLERBIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
+    SED_MODERN    = -r
 else
-C_BIN=$(CHANDLERBIN)
-C_HOME=$(CHANDLERHOME)
-ifeq ($(OS),Darwin)
-ARCH=$(shell arch)
-FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
-ifeq ($(ARCH),ppc)
-PLATFORM=macosx
-else
-PLATFORM=maciosx
-endif
-SITE=$(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
-else
-SITE=$(SNAP)/lib/python$(PYTHON_VER)/site-packages
-PLATFORM=linux
-endif
+    C_BIN  = $(CHANDLERBIN)
+    C_HOME = $(CHANDLERHOME)
+
+    ifeq ($(OS),Darwin)
+        FRAMEWORK     = Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
+        SITE          = $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
+        ARCH          = $(shell arch)
+        EASYINSTALL   = MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(C_BIN)/$(SNAP)/easy_install
+        PLUGIN_PYTHON = MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(C_HOME) $(C_BIN)/$(SNAP)/RunPython
+        SED_MODERN    = -E
+
+        ifeq ($(ARCH),ppc)
+            PLATFORM = macosx
+        else
+            PLATFORM = maciosx
+        endif
+    else
+        SITE          = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
+        PLATFORM      = linux
+        EASYINSTALL   = $(C_BIN)/$(SNAP)/easy_install
+        PLUGIN_PYTHON = CHANDLERHOME=$(C_HOME) $(C_BIN)/$(SNAP)/RunPython
+        SED_MODERN    =-r
+    endif
 endif
 
-BUNDLED_PLUGINS=Chandler_HelloWorldPlugin-0.1-py2.4.egg \
-                Chandler_FeedsPlugin-0.2_r11264-py2.4.egg
-#                Chandler_FeedsPlugin-0.2_r11338-py2.4.egg
-#                EggTranslations_Plugin-0.1-py2.4.egg
 
-BUILD_PLUGINS=Chandler-HelloWorldPlugin \
-              Chandler-FeedsPlugin
-#              EggTranslations-Plugin
+BUNDLED_PLUGINS = Chandler_HelloWorldPlugin-0.1-py2.4.egg \
+                  Chandler_FeedsPlugin-0.2_r11264-py2.4.egg
+#                  Chandler_FeedsPlugin-0.2_r11338-py2.4.egg
+#                  EggTranslations_Plugin-0.1-py2.4.egg
+
+BUILD_PLUGINS = Chandler-HelloWorldPlugin \
+                Chandler-FeedsPlugin
+#                EggTranslations-Plugin
 
 # When a version changes, the ARCHIVES lists below needs to be updated.
-
 # these get installed into release or debug
-ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)A.tar.gz \
-         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)35.tar.gz \
-         $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)5.tar.gz \
-         $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.3-$(BP)3.tar.gz \
-         $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)9.tar.gz \
-         $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8b-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-458-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)6.tar.gz \
-         $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.5-62-$(BP)5.tar.gz \
-         $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-1-$(BP)2.tar.gz \
-         $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)4.tar.gz \
-         $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.7.0.0-r71-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)4.tar.gz \
-         $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)3.tar.gz \
-         $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.3.0-r149-$(BP)1.tar.gz \
-         $(CHANDLERARCHIVES)/zanshin-$(SNAP)-150-$(BP)3.tar.gz \
-         $(CHANDLERARCHIVES)/elementtree-$(SNAP)-1.2.6-20050316-$(BP)3.tar.gz \
-         $(CHANDLERARCHIVES)/astng-$(SNAP)-0.16.0-$(BP)3.tar.gz \
-         $(CHANDLERARCHIVES)/common-$(SNAP)-0.15.0-$(BP)4.tar.gz \
-         $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.11.0-$(BP)3.tar.gz
-#         $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.6.4-$(BP)1.tar.gz
+ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)A.tar.gz \
+           $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)35.tar.gz \
+           $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)5.tar.gz \
+           $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.3-$(BP)3.tar.gz \
+           $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)9.tar.gz \
+           $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)2.tar.gz \
+           $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8b-$(BP)2.tar.gz \
+           $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-458-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)6.tar.gz \
+           $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.5-62-$(BP)5.tar.gz \
+           $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-1-$(BP)2.tar.gz \
+           $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)4.tar.gz \
+           $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.7.0.0-r71-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)4.tar.gz \
+           $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)3.tar.gz \
+           $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.3.0-r149-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/zanshin-$(SNAP)-150-$(BP)3.tar.gz \
+           $(CHANDLERARCHIVES)/elementtree-$(SNAP)-1.2.6-20050316-$(BP)3.tar.gz \
+           $(CHANDLERARCHIVES)/astng-$(SNAP)-0.16.0-$(BP)3.tar.gz \
+           $(CHANDLERARCHIVES)/common-$(SNAP)-0.15.0-$(BP)4.tar.gz \
+           $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.11.0-$(BP)3.tar.gz
+#           $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.6.4-$(BP)1.tar.gz
 
 
 # readline is only needed for OSX
 ifeq ($(OS),Darwin)
-ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.1-$(BP)2.tar.gz
+    ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.1-$(BP)2.tar.gz
 endif
 
 # We download some pretty big files, which can clog your network. You can now
@@ -114,43 +129,32 @@ endif
 #   CURL="wget -r -P .. -nd"
 
 ifeq ($(CURL),)
-CURL=curl $(CHANDLER_CURL_OPTIONS) -f -o
+    CURL=curl $(CHANDLER_CURL_OPTIONS) -f -o
 endif
 
-ifeq ($(OS),Darwin)
-EASYINSTALL=MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(C_BIN)/$(SNAP)/easy_install
-PLUGIN_PYTHON=MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(C_HOME) $(C_BIN)/$(SNAP)/RunPython
-SED_MODERN=-E
-else
+HOST = builds.osafoundation.org
+URL  = http://$(HOST)/external/$(PLATFORM)
+
+SETUPTOOLS_EGG  = $(CHANDLERARCHIVES)/setuptools-0.6b3-py2.4.egg
+SETUPTOOLS_ABS  = $(SETUPTOOLS_EGG)
+SETUPTOOLS_BIN  = $(CHANDLERBIN)/$(SNAP)
+SETUPTOOLS_SITE = $(CHANDLERBIN)/$(SITE)
+EASYINSTALL_BIN = $(EASYINSTALL)
+PLUGIN_ABS      = $(PLUGIN_ARCHIVES)
+PYTHON_BIN      = $(CHANDLERBIN)/$(SNAP)/RunPython
+
+#
+# The following cygpaths are all done using
+# := (or 'simply expanded') to prevent errant
+# \ escaping that occurs when = is used
+#
 ifeq ($(OS),Cygwin)
-EASYINSTALL=$(CHANDLERBIN)/$(SNAP)/easy_install.exe
-PLUGIN_PYTHON=CHANDLERHOME=$(shell cygpath -aw $(C_HOME)) $(CHANDLERBIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
-SED_MODERN=-r
-else
-EASYINSTALL=$(C_BIN)/$(SNAP)/easy_install
-PLUGIN_PYTHON=CHANDLERHOME=$(C_HOME) $(C_BIN)/$(SNAP)/RunPython
-SED_MODERN=-r
-endif
-endif
-
-HOST=builds.osafoundation.org
-URL=http://$(HOST)/external/$(PLATFORM)
-
-SETUPTOOLS_EGG=$(CHANDLERARCHIVES)/setuptools-0.6b3-py2.4.egg
-SETUPTOOLS_ABS=$(SETUPTOOLS_EGG)
-SETUPTOOLS_BIN=$(CHANDLERBIN)/$(SNAP)
-SETUPTOOLS_SITE=$(CHANDLERBIN)/$(SITE)
-EASYINSTALL_BIN=$(EASYINSTALL)
-PLUGIN_ABS=$(PLUGIN_ARCHIVES)
-PYTHON_BIN=$(CHANDLERBIN)/$(SNAP)/RunPython
-
-ifeq ($(OS),Cygwin)
-PYTHON_BIN:=$(SETUPTOOLS_BIN)/bin/python$(DEBUG_SUFFIX)
-SETUPTOOLS_ABS:=`cygpath -wa $(SETUPTOOLS_EGG)`
-SETUPTOOLS_BIN:=`cygpath -wa $(SETUPTOOLS_BIN)`
-SETUPTOOLS_SITE:=`cygpath -wa $(SETUPTOOLS_SITE)`
-EASYINSTALL_BIN:=`cygpath -wa $(EASYINSTALL)`
-PLUGIN_ABS:=`cygpath -aw $(PLUGIN_ARCHIVES)`
+    PYTHON_BIN      := $(SETUPTOOLS_BIN)/bin/python$(DEBUG_SUFFIX)
+    SETUPTOOLS_ABS  := `cygpath -wa $(SETUPTOOLS_EGG)`
+    SETUPTOOLS_BIN  := `cygpath -wa $(SETUPTOOLS_BIN)`
+    SETUPTOOLS_SITE := `cygpath -wa $(SETUPTOOLS_SITE)`
+    EASYINSTALL_BIN := `cygpath -wa $(EASYINSTALL)`
+    PLUGIN_ABS      := `cygpath -aw $(PLUGIN_ARCHIVES)`
 endif
 
 ARCHIVES_INST = \
@@ -166,10 +170,6 @@ PLUGINS_INST = \
 PLUGINS_DOWNLOAD = \
                 $(addprefix $(PLUGIN_ARCHIVES)/, \
                             $(notdir $(BUNDLED_PLUGINS)))
-
-.PHONY: default install clean realclean downloads build-plugins
-
-default: install
 
 downloads: $(ARCHIVES) $(PLUGINS_DOWNLOAD)
 
@@ -265,8 +265,6 @@ strip:
 	find $(CHANDLERBIN)/release $(STRIP_OP) | xargs strip $(STRIP_OPTIONS)
 endif
 endif
-
-default: install
 
 debug:
 	$(MAKE) DEBUG=1 install
