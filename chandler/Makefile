@@ -28,6 +28,20 @@ PYTHON_VER=2.4
 # this is because of RunChandler.bat and RunPython.bat
 # so internally we need to convert them to unix style
 
+ifeq ($(CHANDLERHOME),)
+CHANDLERHOME=$(shell pwd)
+endif
+
+ifeq ($(CHANDLERBIN),)
+CHANDLERBIN=$(CHANDLERHOME)
+endif
+
+ifeq ($(CHANDLERARCHIVES),)
+CHANDLERARCHIVES=../downloads
+endif
+
+PLUGIN_ARCHIVES=$(CHANDLERARCHIVES)
+
 ifeq ($(OS),Cygwin)
 C_BIN=$(shell cygpath -aw $(CHANDLERBIN))
 C_HOME=$(shell cygpath -aw $(CHANDLERHOME))
@@ -49,18 +63,6 @@ else
 SITE=$(SNAP)/lib/python$(PYTHON_VER)/site-packages
 PLATFORM=linux
 endif
-endif
-
-ifeq ($(CHANDLERHOME),)
-CHANDLERHOME=$(shell pwd)
-endif
-
-ifeq ($(CHANDLERBIN),)
-CHANDLERBIN=$(CHANDLERHOME)
-endif               
-
-ifeq ($(CHANDLERARCHIVES),)
-CHANDLERARCHIVES=../downloads
 endif
 
 BUNDLED_PLUGINS=Chandler_HelloWorldPlugin-0.1-py2.4.egg \
@@ -118,24 +120,38 @@ endif
 ifeq ($(OS),Darwin)
 EASYINSTALL=MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(C_BIN)/$(SNAP)/easy_install
 PLUGIN_PYTHON=MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(C_HOME) $(C_BIN)/$(SNAP)/RunPython
-PLUGIN_ARCHIVES=$(CHANDLERARCHIVES)/
 SED_MODERN=-E
 else
 ifeq ($(OS),Cygwin)
-EASYINSTALL=$(C_BIN)/$(SNAP)/easy_install
+EASYINSTALL=$(CHANDLERBIN)/$(SNAP)/easy_install.exe
 PLUGIN_PYTHON=CHANDLERHOME=$(shell cygpath -aw $(C_HOME)) $(CHANDLERBIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
-PLUGIN_ARCHIVES=$(shell cygpath -aw $(CHANDLERARCHIVES))\\
 SED_MODERN=-r
 else
 EASYINSTALL=$(C_BIN)/$(SNAP)/easy_install
 PLUGIN_PYTHON=CHANDLERHOME=$(C_HOME) $(C_BIN)/$(SNAP)/RunPython
-PLUGIN_ARCHIVES=$(CHANDLERARCHIVES)/
 SED_MODERN=-r
 endif
 endif
 
 HOST=builds.osafoundation.org
 URL=http://$(HOST)/external/$(PLATFORM)
+
+SETUPTOOLS_EGG=$(CHANDLERARCHIVES)/setuptools-0.6b3-py2.4.egg
+SETUPTOOLS_ABS=$(SETUPTOOLS_EGG)
+SETUPTOOLS_BIN=$(CHANDLERBIN)/$(SNAP)
+SETUPTOOLS_SITE=$(CHANDLERBIN)/$(SITE)
+EASYINSTALL_BIN=$(EASYINSTALL)
+PLUGIN_ABS=$(PLUGIN_ARCHIVES)
+PYTHON_BIN=$(CHANDLERBIN)/$(SNAP)/RunPython
+
+ifeq ($(OS),Cygwin)
+PYTHON_BIN:=$(SETUPTOOLS_BIN)/bin/python$(DEBUG_SUFFIX)
+SETUPTOOLS_ABS:=`cygpath -wa $(SETUPTOOLS_EGG)`
+SETUPTOOLS_BIN:=`cygpath -wa $(SETUPTOOLS_BIN)`
+SETUPTOOLS_SITE:=`cygpath -wa $(SETUPTOOLS_SITE)`
+EASYINSTALL_BIN:=`cygpath -wa $(EASYINSTALL)`
+PLUGIN_ABS:=`cygpath -aw $(PLUGIN_ARCHIVES)`
+endif
 
 ARCHIVES_INST = \
     $(addsuffix .inst, \
@@ -148,7 +164,7 @@ PLUGINS_INST = \
                             $(notdir $(BUNDLED_PLUGINS))))
 
 PLUGINS_DOWNLOAD = \
-                $(addprefix $(PLUGIN_ARCHIVES), \
+                $(addprefix $(PLUGIN_ARCHIVES)/, \
                             $(notdir $(BUNDLED_PLUGINS)))
 
 .PHONY: default install clean realclean downloads build-plugins
@@ -158,13 +174,14 @@ default: install
 downloads: $(ARCHIVES) $(PLUGINS_DOWNLOAD)
 
 $(PLUGINS_DOWNLOAD):
-	$(CURL) $(PLUGIN_ARCHIVES)$(notdir $@) $(URL)/$(notdir $@)
+	$(CURL) $(PLUGIN_ARCHIVES)/$(notdir $@) $(URL)/$(notdir $@)
 
 $(PLUGINS_INST):
-	$(EASYINSTALL) \
+	MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) \
+      -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
       --script-dir=$(SETUPTOOLS_BIN) \
       --install-dir=$(SETUPTOOLS_SITE) \
-      $(PLUGIN_ARCHIVES)$(notdir $(basename $@))
+      $(PLUGIN_ABS)/$(notdir $(basename $@))
 	touch $@
 
 bundled-plugins: $(PLUGINS_DOWNLOAD) $(PLUGINS_INST)
@@ -183,22 +200,10 @@ $(ARCHIVES_INST):
 	tar -C $(CHANDLERBIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
 
-SETUPTOOLS_EGG=$(CHANDLERARCHIVES)/setuptools-0.6b3-py2.4.egg
 SETUPTOOLS_INST = \
     $(addsuffix .inst, \
                 $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
                             $(notdir $(SETUPTOOLS_EGG))))
-SETUPTOOLS_ABS=$(SETUPTOOLS_EGG)
-SETUPTOOLS_BIN=$(CHANDLERBIN)/$(SNAP)
-SETUPTOOLS_SITE=$(CHANDLERBIN)/$(SITE)
-PYTHON_BIN=$(CHANDLERBIN)/$(SNAP)/RunPython
-
-ifeq ($(OS),Cygwin)
-PYTHON_BIN:=$(SETUPTOOLS_BIN)/bin/python$(DEBUG_SUFFIX)
-SETUPTOOLS_ABS:=`cygpath -wa $(SETUPTOOLS_EGG)`
-SETUPTOOLS_BIN:=`cygpath -wa $(SETUPTOOLS_BIN)`
-SETUPTOOLS_SITE:=`cygpath -wa $(SETUPTOOLS_SITE)`
-endif
 
 setuptools: $(SETUPTOOLS_INST)
 
@@ -238,7 +243,7 @@ $(notdir $(shell echo $(ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
 # to install individual eggs, for example: make Chandler_HelloWorldPlugin
 
 $(notdir $(shell echo $(BUNDLED_PLUGINS) | sed $(SED_MODERN) "s/-[0-9]+[^ ]*\.egg//g")):
-	$(MAKE) $(PLUGIN_ARCHIVES)$(shell echo $(BUNDLED_PLUGINS) | sed "s=.*\($@-[^ ]*\).*=\1=")
+	$(MAKE) $(PLUGIN_ARCHIVES)/$(shell echo $(BUNDLED_PLUGINS) | sed "s=.*\($@-[^ ]*\).*=\1=")
 	$(MAKE) $(CHANDLERBIN)/$(SNAP)/$(shell echo $(PLUGINS_INST) | sed "s=.*\($@-[^ ]*\).*=\1=")
 
 
