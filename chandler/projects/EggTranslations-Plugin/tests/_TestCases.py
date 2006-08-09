@@ -73,20 +73,20 @@ class TestEggTranslations(EggTestCase):
     def testHasKey(self):
         # This tests fallback. A value for 'img_resource'
         # is only present in the 'all' default locale
-        hasKey = self.eggTranslations.hasKey(self.PROJECT, 
+        hasKey = self.eggTranslations.hasKey(self.PROJECT,
                                          "img_resource")
         self.assertEquals(hasKey, True)
 
-        hasKey = self.eggTranslations.hasKey(self.PROJECT, 
+        hasKey = self.eggTranslations.hasKey(self.PROJECT,
                                          "txt_resource")
         self.assertEquals(hasKey, True)
 
 
-        hasKey = self.eggTranslations.hasKey(self.PROJECT, 
+        hasKey = self.eggTranslations.hasKey(self.PROJECT,
                                          "txt_resource", "fr_CA")
         self.assertEquals(hasKey, False)
 
-        hasKey = self.eggTranslations.hasKey(self.PROJECT, 
+        hasKey = self.eggTranslations.hasKey(self.PROJECT,
                                          "txt_resource", "fr")
         self.assertEquals(hasKey, True)
 
@@ -128,22 +128,22 @@ class TestEggTranslations(EggTestCase):
 
 
     def testIsDirectory(self):
-        isDir = self.eggTranslations.isDirectory(self.PROJECT, 
+        isDir = self.eggTranslations.isDirectory(self.PROJECT,
                                            "dir_resource")
 
         self.assertEquals(isDir, True)
 
-        isDir = self.eggTranslations.isDirectory(self.PROJECT, 
+        isDir = self.eggTranslations.isDirectory(self.PROJECT,
                                            "dir_resource", "fr_CA")
         self.assertEquals(isDir, False)
 
-        isDir = self.eggTranslations.isDirectory(self.PROJECT, 
+        isDir = self.eggTranslations.isDirectory(self.PROJECT,
                                            "bogus_resource")
         self.assertEquals(isDir, False)
 
-        isDir = self.eggTranslations.isDirectory("BOGUS", 
+        isDir = self.eggTranslations.isDirectory("BOGUS",
                                            "dir_resource")
-  
+
         self.assertEquals(isDir, False)
 
     def testListDirectory(self):
@@ -153,10 +153,10 @@ class TestEggTranslations(EggTestCase):
         self.assert_('img_resource.jpg' in d)
         self.assert_('txt_resource.txt' in d)
 
-        # The dir path for "dir_bogus" in the 'fr' locale is 
+        # The dir path for "dir_bogus" in the 'fr' locale is
         # bogus
 
-        self.assertRaises(OSError, self.eggTranslations.listDirectory, 
+        self.assertRaises(OSError, self.eggTranslations.listDirectory,
                              self.PROJECT,"dir_bogus", "fr")
 
         self.assertRaises(OSError, self.eggTranslations.listDirectory,
@@ -168,18 +168,18 @@ class TestEggTranslations(EggTestCase):
     def test_GetTupleForKey(self):
         self.eggTranslations.setLocaleSet(["en_US", "fr_CA"])
 
-        # The getTupleForKey method is used by 
-        # the majority or the high level 
+        # The getTupleForKey method is used by
+        # the majority or the high level
         # EggTranslations API's such getResourceAsString.
         #
-        # Testing this method is essential 
-        # since it is where fallback and locale set 
+        # Testing this method is essential
+        # since it is where fallback and locale set
         # calculations take place.
-         
+
         getTuple = self.eggTranslations._getTupleForKey
-      
-        # Returns English over French now that the 
-        # Locale set changed  
+
+        # Returns English over French now that the
+        # Locale set changed
         self.assertEquals(getTuple(self.PROJECT,
                                "txt_message")[1],
                           u"This is a String value in 'English'")
@@ -188,7 +188,7 @@ class TestEggTranslations(EggTestCase):
                                "txt_message", 'fr')[1],
                           u"This is a String value in 'French'")
 
-        # Returns fallback values from 'all' 
+        # Returns fallback values from 'all'
         self.assertEquals(getTuple(self.PROJECT,
                                "dir_resource")[1],
                           u"test_directory/resources")
@@ -256,16 +256,16 @@ class TestEggTranslations(EggTestCase):
                                 u"This is the default 'all' resource\n")
 
         self.assertRaises(NameError,
-               self.eggTranslations.getResourceAsString, 
+               self.eggTranslations.getResourceAsString,
                "BOGUS", "txt_resource")
 
         self.assertRaises(NameError,
-               self.eggTranslations.getResourceAsString, 
+               self.eggTranslations.getResourceAsString,
                self.PROJECT, "txt_resource", 'fr_CA')
 
 
         self.assertRaises(IOError,
-               self.eggTranslations.getResourceAsString, 
+               self.eggTranslations.getResourceAsString,
                self.PROJECT, "txt_message")
 
     def testResourceAsLines(self):
@@ -285,11 +285,11 @@ class TestEggTranslations(EggTestCase):
             break
 
         self.assertRaises(NameError,
-               self.eggTranslations.getResourceAsLines, 
+               self.eggTranslations.getResourceAsLines,
                self.PROJECT, "txt_resource", 'fr_CA')
 
         self.assertRaises(IOError,
-               self.eggTranslations.getResourceAsLines, 
+               self.eggTranslations.getResourceAsLines,
                self.PROJECT, "txt_message")
 
     def testResourceAsStream(self):
@@ -308,17 +308,17 @@ class TestEggTranslations(EggTestCase):
             break
 
         self.assertRaises(NameError,
-               self.eggTranslations.getResourceAsStream, 
+               self.eggTranslations.getResourceAsStream,
                self.PROJECT, "txt_resource", 'fr_CA')
 
         self.assertRaises(IOError,
-               self.eggTranslations.getResourceAsStream, 
+               self.eggTranslations.getResourceAsStream,
                self.PROJECT, "txt_message")
 
     def testGetText(self):
         value = self.eggTranslations.getText(self.PROJECT, "catalog",
                                        "Hello")
-        
+
         self.assertEquals(value, "Bonjour From Montreal")
 
         value = self.eggTranslations.getText(self.PROJECT, "catalog_alt",
@@ -343,18 +343,18 @@ class TestEggTranslations(EggTestCase):
         expect = "I correctly handled fallback 1 in English catalog.mo"
         self.assertEquals(value, expect)
 
-        # Change the locale order 
+        # Change the locale order
         self.eggTranslations.setLocaleSet(["en_US", "fr_CA"])
-      
+
 
         value = self.eggTranslations.getText(self.PROJECT, "catalog",
                                        "fallback 2")
 
-        # This values comes from the catalog localization for 'fr' 
+        # This values comes from the catalog localization for 'fr'
         expect = "I correctly handled fallback 2 in French catalog.mo"
 
         self.assertEquals(value, expect)
- 
+
         # Remove fallback support
         self.eggTranslations.setLocaleSet(["en_US", "fr_CA"], False)
 
@@ -396,7 +396,7 @@ class TestEggTranslations(EggTestCase):
         # The EggTranslations will normalize locales
         # so FR_CA will be converted to fr_CA
         eRM.initialize(["FR_CA"])
-       
+
         self.assert_("fr_CA" in eRM.getLocaleSet())
 
         # The fr lang code is added by EggTranslations
@@ -413,13 +413,13 @@ class TestEggTranslations(EggTestCase):
 
         self.assertRaises(NameError, eRM.setLocaleSet, None)
         self.assertRaises(NameError, eRM.setLocaleSet, "BOGUS")
-        
+
         # All is not a valid locale
         self.assertRaises(NameError, eRM.setLocaleSet, 'all')
 
-        # Pass a unicode value for locale that can not be 
-        # converted to ASCII 
-        self.assertRaises(UnicodeEncodeError, eRM.setLocaleSet, 
+        # Pass a unicode value for locale that can not be
+        # converted to ASCII
+        self.assertRaises(UnicodeEncodeError, eRM.setLocaleSet,
                           u'\u00FC')
 
     def testMultipleProjects(self):
@@ -480,7 +480,7 @@ class TestEggTranslations(EggTestCase):
                                              "txt_message", "en"),
                           u"This is Project 3 in 'English'")
 
-        
+
     def testINIParsing(self):
         root = "test_directory/ini_files/"
 
@@ -506,7 +506,7 @@ class TestEggTranslations(EggTestCase):
 
         erm = EggTranslations()
         self.assertRaises(LookupError,
-                          erm.initialize, "ja_JP", r, 
+                          erm.initialize, "ja_JP", r,
                           "BOGUS_ENCODING")
 
         erm = EggTranslations()
@@ -516,7 +516,7 @@ class TestEggTranslations(EggTestCase):
         self.assertEquals(t, u'\u7a76\u6975\u306e\u8cc7\u7523\u9632\u885b\u30ce\u30a6\u30cf\u30a6\u3084\u300c\u6295\u8cc7\u306e\u9769\u547d\u300d\u3068\u306f\u306a\u306b\u304b\u3001\u9280\u884c\u9810\u91d1\u3088\u308a\u5b89\u5168\u306a')
 
 
-        t = erm.getValueForKey(self.PROJECT, u'\u7a76\u6975\u306e\u8cc7\u7523\u9632\u885b\u30ce\u30a6\u30cf\u30a6\u3084\u300c\u6295\u8cc7\u306e\u9769\u547d\u300d\u3068\u306f\u306a\u306b\u304b\u3001\u9280\u884c\u9810\u91d1\u3088\u308a\u5b89\u5168\u306a') 
+        t = erm.getValueForKey(self.PROJECT, u'\u7a76\u6975\u306e\u8cc7\u7523\u9632\u885b\u30ce\u30a6\u30cf\u30a6\u3084\u300c\u6295\u8cc7\u306e\u9769\u547d\u300d\u3068\u306f\u306a\u306b\u304b\u3001\u9280\u884c\u9810\u91d1\u3088\u308a\u5b89\u5168\u306a')
 
         self.assertEquals(t, u"Test message key")
 
@@ -531,11 +531,11 @@ class TestEggTranslations(EggTestCase):
         self.assertEquals(t, u"\u66f8")
 
     def testResourceEncodings(self):
-        self.assertRaises(UnicodeDecodeError, 
+        self.assertRaises(UnicodeDecodeError,
               self.eggTranslations.getResourceAsString,
               self.PROJECT, "ja_resource", 'ja_JP')
 
-        self.assertRaises(LookupError, 
+        self.assertRaises(LookupError,
               self.eggTranslations.getResourceAsString,
               self.PROJECT, "ja_resource", 'ja_JP',
               "BOGUS_ENCODING")
@@ -555,7 +555,7 @@ class TestEggTranslations(EggTestCase):
         self.assertEquals(erm.getText(self.PROJECT, "catalog",
                                       "fallback 1", "NOT_FOUND"),
                                       "NOT_FOUND")
-                      
+
 
     def testNoResources(self):
         erm = EggTranslations()
@@ -564,10 +564,10 @@ class TestEggTranslations(EggTestCase):
 
         self.assertRaises(NameError, erm.getResourceAsStream,
                           self.PROJECT, "txt_resource")
-                      
+
         value = self.eggTranslations.getText(self.PROJECT, "catalog",
                                        "Hello")
-        
+
         self.assertEquals(value, "Bonjour From Montreal")
 
 
@@ -610,22 +610,22 @@ class TestI18nValuesAndPathing(EggTestCase):
                               u"bogus_message", 'fr_CA'), None)
 
         self.assertEquals(self.eggTranslations.getValueForKey(self.PROJECT,
-                          u"catalog", 'fr'), 
+                          u"catalog", 'fr'),
                           u"i18n/test_dir/locale/fr/catalog.mo")
-                                  
+
 
     def testI18nPathing(self):
         value = self.eggTranslations.getText(self.PROJECT, "catalog",
                                        "Hello")
-        
+
         self.assertEquals(value, "Bonjour From Montreal")
 
         value = self.eggTranslations.getText("BOGUS", "catalog_alt",
                                        "Hello", "Default")
 
         self.assertEquals(value, "Default")
-    
-    
+
+
         value = self.eggTranslations.getText(self.PROJECT, "catalog",
                                        "fallback 1")
 

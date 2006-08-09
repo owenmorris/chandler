@@ -20,7 +20,6 @@
 @license:   Apache License, Version 2.0
 """
 
-# import packages
 from setuptools import setup
 
 # the setup block
@@ -36,6 +35,6 @@ setup(
     include_package_data = True,
     zip_safe = True,
 
-    # package contents    
+    # package contents
     py_modules = ["egg_translations"],
 )
