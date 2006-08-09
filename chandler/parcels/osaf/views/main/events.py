@@ -135,6 +135,10 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('ShowPyShell').install(parcel)
 
+    BlockEvent.template('SaveSettings').install(parcel)
+
+    BlockEvent.template('RestoreSettings').install(parcel)
+
     BlockEvent.template('EditAccountPreferences').install(parcel)
 
     BlockEvent.template(

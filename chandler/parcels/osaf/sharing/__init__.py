@@ -1025,6 +1025,7 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
 
                 subShare.format = CloudXMLFormat(itsParent=subShare)
 
+                subShare.filterAttributes = []
                 for attr in CALDAVFILTER:
                     subShare.filterAttributes.append(attr)
 

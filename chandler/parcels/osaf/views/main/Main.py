@@ -28,7 +28,7 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, RestoreShares, autosyncprefs
 )
 
-from osaf import pim, sharing, messages, webserver, search
+from osaf import pim, sharing, messages, webserver, search, settings
 
 from osaf.pim import Contact, ContentCollection, mail, IndexedSelectionCollection
 from osaf.usercollections import UserCollection
@@ -748,6 +748,30 @@ class MainView(View):
     def onShowPyCrustEvent(self, event):
         # Test menu item
         wx.GetApp().ShowPyShell(withFilling=True)
+
+    def onSaveSettingsEvent(self, event):
+        # triggered from "Test | Save Settings" Menu
+        wildcard = u"Settings files|*.ini|All files (*.*)|*.*"
+        dlg = wx.FileDialog(wx.GetApp().mainFrame,
+            "Save Settings", "", "chandler.ini", wildcard, wx.SAVE)
+        path = None
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+        dlg.Destroy()
+        if path:
+            settings.save(self.itsView, path)
+
+    def onRestoreSettingsEvent(self, event):
+        # triggered from "Test | Restore Settings" Menu
+        wildcard = u"Settings files|*.ini|All files (*.*)|*.*"
+        dlg = wx.FileDialog(wx.GetApp().mainFrame,
+            "Restore Settings", "", "chandler.ini", wildcard, wx.OPEN)
+        path = None
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+        dlg.Destroy()
+        if path:
+            settings.restore(self.itsView, path)
 
     def onActivateWebserverEventUpdateUI (self, event):
         for server in webserver.Server.iterItems(self.itsView):

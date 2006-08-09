@@ -31,7 +31,8 @@ class SubscribeDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-         resources=None, view=None, url=None, modal=True):
+         resources=None, view=None, url=None, name=None, modal=True,
+         immediate=False, mine=None, publisher=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
@@ -39,6 +40,9 @@ class SubscribeDialog(wx.Dialog):
         self.resources = resources
         self.parent = parent
         self.modal = modal
+        self.name = name
+        self.mine = mine
+        self.publisher = mine
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
         self.toolPanel = self.resources.LoadPanel(self, "Subscribe")
@@ -71,6 +75,8 @@ class SubscribeDialog(wx.Dialog):
         self.textUsername = wx.xrc.XRCCTRL(self, "TEXT_USERNAME")
         self.textPassword = wx.xrc.XRCCTRL(self, "TEXT_PASSWORD")
         self.checkboxKeepOut = wx.xrc.XRCCTRL(self, "CHECKBOX_KEEPOUT")
+        if self.mine:
+            self.checkboxKeepOut.SetValue(False)
         self.forceFreeBusy = wx.xrc.XRCCTRL(self, "CHECKBOX_FORCEFREEBUSY")
         
         self.subscribeButton = wx.xrc.XRCCTRL(self, "wxID_OK")
@@ -84,6 +90,9 @@ class SubscribeDialog(wx.Dialog):
         self.textUrl.SetFocus()
         self.textUrl.SetInsertionPointEnd()
         self.subscribing = False
+
+        if immediate:
+            self.OnSubscribe(None)
 
 
     def accountInfoCallback(self, host, path):
@@ -108,8 +117,16 @@ class SubscribeDialog(wx.Dialog):
 
         collection = self.view[uuid]
 
+        if self.name:
+            collection.displayName = self.name
+
+        if self.publisher:
+            me = schema.ns("osaf.pim", self.view).currentContact.item
+            for share in collection.shares:
+                share.sharer = me
+
         # Put this collection into "My items" if not checked:
-        if not self.checkboxKeepOut.GetValue():
+        if not self.checkboxKeepOut.GetValue() or self.mine:
             logger.info(_(u'Moving collection into My Items'))
             schema.ns('osaf.pim', self.view).mine.addSource(collection)
 
@@ -254,7 +271,8 @@ class SubscribeDialog(wx.Dialog):
                 self.EndModal(False)
             self.Destroy()
 
-def Show(parent, view=None, url=None, modal=False):
+def Show(parent, view=None, url=None, name=None, modal=False, immediate=False,
+         mine=None, publisher=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SubscribeCollection_wdr.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
@@ -262,7 +280,9 @@ def Show(parent, view=None, url=None, modal=False):
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
     win = SubscribeDialog(parent, _(u"Subscribe to Shared Collection"),
-                          resources=resources, view=view, url=url, modal=modal)
+                          resources=resources, view=view, url=url, name=name,
+                          modal=modal, immediate=immediate, mine=mine,
+                          publisher=publisher)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()
