@@ -13,8 +13,6 @@
 #   limitations under the License.
 
 
-from osaf.pim.structs import ColorType
-
 from application import schema
 from osaf.pim.structs import ColorType
 from osaf.pim import ContentCollection
@@ -83,15 +81,9 @@ class UserCollection(schema.Annotation):
 
 # Collection colors
 # in the form 'Color', _('LocalizableColorString'), 360-degree based hue
-
-collectionHues = \
-    [('Blue',    _(u'Blue'),    float(styles.cfg.get('color', 'BlueHue'))),
-     ('Green',   _(u'Green'),   float(styles.cfg.get('color', 'GreenHue'))),
-     ('Rose',    _(u'Rose'),    float(styles.cfg.get('color', 'RoseHue'))),
-     ('Salmon',  _(u'Salmon'),  float(styles.cfg.get('color', 'SalmonHue'))),
-     ('Purple',  _(u'Purple'),  float(styles.cfg.get('color', 'PurpleHue'))),
-     ('Violet',  _(u'Violet'),  float(styles.cfg.get('color', 'VioletHue'))),
-     ('Fuschia', _(u'Fuschia'), float(styles.cfg.get('color', 'FuschiaHue')))]
+order = [s.strip() for s in styles.cfg.get('colororder', 'order').split(',')]
+collectionHues = [(k, _(unicode(k)), styles.cfg.getint('colors', k))
+                  for k in order]
 
 
 def installParcel(parcel, oldVersion=None):

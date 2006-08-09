@@ -127,6 +127,9 @@ def roundToColumnPosition(v, columnList):
     else:
         return columnList[-1]
 
+# hue -> colorName mapping
+hueMap = dict((int(v), k) for k, v in confstyles.cfg.items('colors'))
+
 class ColorInfo(object):
     def __init__(self, collection):
         # sometimes this happens when getContainingCollection fails to find a collection
@@ -144,13 +147,20 @@ class ColorInfo(object):
         suffixes = 'GradientLeft', 'GradientRight', 'Outline', 'Text'
         names = [prefix + suffix for suffix in suffixes]
         
-        def saturationAndValue(name):
-            return (float(confstyles.cfg.get('calendarcanvas', name + 'Saturation')),
-                    float(confstyles.cfg.get('calendarcanvas', name + 'Value')))
-        
+        def valWithDefault(hue, name):
+            hueName = hueMap.get(int(hue*360))
+            if hueName is not None:
+                val = confstyles.cfg.get('calendarcanvas', hueName + name)
+                if val is not None:
+                    return float(val)
+            return confstyles.cfg.getfloat('calendarcanvas', name)
+                
         def getSaturatedColors(self):
+            satsAndValues = ((valWithDefault(self.hue, name + 'Saturation'),
+                              valWithDefault(self.hue, name + 'Value'))
+                             for name in names)
             return [rgb2color(*hsv_to_rgb(self.hue, saturation, value)) for
-                    saturation, value in map(saturationAndValue, names)]
+                    saturation, value in satsAndValues]
 
         return property(getSaturatedColors)
     
