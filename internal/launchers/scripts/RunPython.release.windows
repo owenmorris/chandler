@@ -8,6 +8,7 @@ echo CHANDLERBIN is "%CHANDLERBIN%"
 echo Using %CHANDLERBIN%\release\bin\python.exe %*
 
 path %CHANDLERBIN%\release\bin
+set LC_PATH=%CHANDLERHOME%\release\share\locale
 set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels
 if not "%PARCELPATH%"=="" set PYTHONPATH=%PYTHONPATH%;%PARCELPATH%
 

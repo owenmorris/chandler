@@ -31,6 +31,7 @@ fi
 export PYTHONPATH="$CHANDLERHOME":"$CHANDLERHOME"/parcels
 export DYLD_LIBRARY_PATH="$CHANDLERBIN"/release/lib:"$CHANDLERBIN"/release/db/lib:"$CHANDLERBIN"/release/icu/lib
 export DYLD_FRAMEWORK_PATH="$CHANDLERBIN"/release/Library/Frameworks
+export LC_PATH="$CHANDLERHOME"/release/share/locale
 
 if [ "$PARCELPATH" != "" ]
 then

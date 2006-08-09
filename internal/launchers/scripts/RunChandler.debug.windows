@@ -4,5 +4,6 @@ if "%CHANDLERHOME%"=="" set CHANDLERHOME=%cd%
 if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
 cd "%CHANDLERHOME%"
 path %CHANDLERBIN%\debug\bin
+set LC_PATH=%CHANDLERHOME%\debug\share\locale
 "%CHANDLERBIN%"\debug\bin\python_d.exe "%CHANDLERHOME%"\Chandler.py %*
 endlocal
