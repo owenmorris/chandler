@@ -1016,9 +1016,7 @@ class ShareConduit(pim.ContentItem):
             # When first importing a collection, name it after the share
             if not getattr(cvSelf.share.contents, 'displayName', ''):
                 cvSelf.share.contents.displayName = \
-                    cvSelf.share.displayName
-                    # @@@MOR commenting out until I talk to Grant:
-                    # self._getDisplayNameForShare(cvSelf.share)
+                    self._getDisplayNameForShare(cvSelf.share)
 
             # If an item was previously on the server (it was in our
             # manifest) but is no longer on the server, remove it from
@@ -1671,20 +1669,6 @@ class WebDAVConduit(ShareConduit):
             resource.ticketId = self.ticket
         return resource
 
-    def _getDisplayNameForShare(self, share):
-        container = self._getContainerResource()
-        try:
-            result = container.serverHandle.blockUntil(container.getDisplayName)
-        except:
-            result = ""
-            
-        return result or super(WebDAVConduit,
-                               self)._getDisplayNameForShare(share)
-            
-        return result
-
-
-
     def _putItem(self, item):
         """
         putItem should publish an item and return etag/date, etc.
@@ -1956,6 +1940,16 @@ class CalDAVConduit(WebDAVConduit):
 
     def _createCollectionResource(self, handle, resource, childName):
         return handle.blockUntil(resource.createCalendar, childName)
+
+    def _getDisplayNameForShare(self, share):
+        container = self._getContainerResource()
+        try:
+            result = container.serverHandle.blockUntil(container.getDisplayName)
+        except:
+            result = ""
+            
+        return result or super(WebDAVConduit,
+                               self)._getDisplayNameForShare(share)
 
     def _putItem(self, item):
         result = super(CalDAVConduit, self)._putItem(item)
