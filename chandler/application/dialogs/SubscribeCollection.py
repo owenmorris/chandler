@@ -42,7 +42,7 @@ class SubscribeDialog(wx.Dialog):
         self.modal = modal
         self.name = name
         self.mine = mine
-        self.publisher = mine
+        self.publisher = publisher
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
         self.toolPanel = self.resources.LoadPanel(self, "Subscribe")
