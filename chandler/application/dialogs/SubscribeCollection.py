@@ -78,7 +78,7 @@ class SubscribeDialog(wx.Dialog):
         if self.mine:
             self.checkboxKeepOut.SetValue(False)
         self.forceFreeBusy = wx.xrc.XRCCTRL(self, "CHECKBOX_FORCEFREEBUSY")
-        
+
         self.subscribeButton = wx.xrc.XRCCTRL(self, "wxID_OK")
 
         self.Bind(wx.EVT_BUTTON, self.OnSubscribe, id=wx.ID_OK)
@@ -86,9 +86,9 @@ class SubscribeDialog(wx.Dialog):
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
-
         self.textUrl.SetFocus()
-        self.textUrl.SetInsertionPointEnd()
+        self.textUrl.SetSelection(-1, -1)
+
         self.subscribing = False
 
         if immediate:
