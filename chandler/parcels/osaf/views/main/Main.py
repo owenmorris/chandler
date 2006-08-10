@@ -751,9 +751,13 @@ class MainView(View):
 
     def onSaveSettingsEvent(self, event):
         # triggered from "Test | Save Settings" Menu
-        wildcard = u"Settings files|*.ini|All files (*.*)|*.*"
+
+        wildcard = "%s|*.ini|%s (*.*)|*.*" % (_(u"Settings files"),
+            _(u"All files"))
+
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-            "Save Settings", "", "chandler.ini", wildcard, wx.SAVE)
+            _(u"Save Settings"), "", "chandler.ini", wildcard, wx.SAVE)
+
         path = None
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -763,9 +767,13 @@ class MainView(View):
 
     def onRestoreSettingsEvent(self, event):
         # triggered from "Test | Restore Settings" Menu
-        wildcard = u"Settings files|*.ini|All files (*.*)|*.*"
+
+        wildcard = "%s|*.ini|%s (*.*)|*.*" % (_(u"Settings files"),
+            _(u"All files"))
+
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-            "Restore Settings", "", "chandler.ini", wildcard, wx.OPEN)
+            _(u"Restore Settings"), "", "chandler.ini", wildcard, wx.OPEN)
+
         path = None
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
