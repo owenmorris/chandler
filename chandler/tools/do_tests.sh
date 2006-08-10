@@ -16,6 +16,9 @@ E_OPTERROR=65
 
 USAGE="Usage: `basename $0` -fpuN [-m debug|release] [-t test_name] [chandler-base-path]"
 
+# Signals to the Chandler code that it is being run from a unit test
+export UNIT_TESTING=True
+
 if [ "$CHANDLER_FUNCTIONAL_TEST" = "yes" ]; then
     RUN_FUNCTIONAL=yes
 else
@@ -327,16 +330,11 @@ else
             else
                 TESTNAME=$F_TEST_SUITE
             fi
-            if [ "$mode" = "debug" ]; then
-                STDERR_FLAG="--stderr"
-            else
-                STDERR_FLAG=""
-            fi
 
             echo Running $TESTNAME | tee -a $TESTLOG
 
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create $STDERR_FLAG --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
 
               # scan the test output for the success messge "OK"
             RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
