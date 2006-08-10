@@ -195,24 +195,18 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
 
 def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
-
     testDir = os.path.join(workingDir, "chandler")
     os.chdir(testDir)
 
-    if mode == "debug":
-        dashT = '-dvt'
-    else:
-        dashT = '-vrt'
-
-    try: # test
+    try:
         print "Testing " + mode
         log.write(separator)
         log.write("Testing " + mode + " ...\n")
 
-        print "hardhatScript [%s]" % hardhatScript
+        cmd = ['./tools/do_tests.sh', '-u', '-m %s' % mode]
 
-        outputList = hardhatutil.executeCommandReturnOutput(
-         [hardhatScript, dashT])
+        outputList = hardhatutil.executeCommandReturnOutput(cmd)
+
         hardhatutil.dumpOutputList(outputList, log)
 
     except Exception, e:
