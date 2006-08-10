@@ -85,7 +85,7 @@ glob=*
 repository
 icons
 i18n
-
+Chandler.egg-info
 
 # Grab the launchers and windows README
 src=chandler/distrib/win

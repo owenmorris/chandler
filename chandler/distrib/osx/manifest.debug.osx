@@ -69,7 +69,7 @@ glob=*
 repository
 icons
 i18n
-
+Chandler.egg-info
 
 # Grab the osx README
 src=chandler/distrib/osx

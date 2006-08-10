@@ -99,6 +99,7 @@ glob=*
 repository
 icons
 i18n
+Chandler.egg-info
 
 # Grab the linux README
 src=chandler/distrib/linux
