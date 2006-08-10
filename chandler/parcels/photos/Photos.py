@@ -21,7 +21,7 @@ from osaf import pim
 from repository.util.URL import URL
 from application import schema
 import EXIF
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from PyICU import ICUtzinfo
 from osaf.framework.blocks import NewItemEvent
 import application.dialogs.Util
@@ -149,7 +149,6 @@ class NewImageEvent(NewItemEvent):
             photo.importFromFile(path)
     
         theApp.CallItemMethodAsync("MainView",
-                                   'setStatusMessage',
-                                   _(u""))
+                                   'setStatusMessage',"")
         return photo
 

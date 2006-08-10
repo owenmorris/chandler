@@ -36,8 +36,7 @@ from application import schema
 logger = logging.getLogger(__name__)
 
 collectionsDict={}
-"""For .6 the locale 'test' is used to generate translation strings with surrogate pairs as well as trigger the creation of items with surrogate pair text fields in this file"""
-TEST_I18N = 'test' in i18n.getLocaleSet()
+TEST_I18N = i18n.getLocaleSet() and 'test' in i18n.getLocaleSet()
 
 STATUS = ["confirmed", "tentative", "fyi"]
 RECURRENCES = ["daily", "weekly", "monthly", "yearly"]

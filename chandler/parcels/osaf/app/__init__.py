@@ -16,7 +16,7 @@ import datetime, os
 
 from application import schema
 from application.Parcel import Reference
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from PyICU import ICUtzinfo
 from osaf import pim, messages
 from osaf.framework import scripting

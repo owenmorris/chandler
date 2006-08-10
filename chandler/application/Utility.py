@@ -37,33 +37,6 @@ SCHEMA_VERSION = "231" # morgen: added triageStatus to sharing cloud
 
 logger = None # initialized in initLogging()
 
-def locateWxLocalizationDir():
-    """
-         This is a temporary method to determine the
-         path to the wxstd.mo translation files.
-
-         Wx should know how to find its own translation
-         files at install time and it should not be
-         the job of Chandler to figure this out.
-
-         Brian K will work with Robin D to come up 
-         with a better solution at the WxWidgets layer
-         in the near future.
-    """
-    root = os.getenv("CHANDLERBIN") or locateChandlerDirectory()
-
-    if os.path.isdir(os.path.join(root, "debug")):
-        sub = "debug"
-    else:
-        sub  = "release"
-
-    if os.name == 'nt':
-        return os.path.join(root, sub, "bin", "Lib", \
-                              "site-packages", "wx", "locale")
-
-
-    return os.path.join(root, sub, "share", "locale")
-
 def createProfileDir(profileDir):
     """
     Create the profile directory with the right permissions. 
@@ -292,24 +265,8 @@ def initProfileDir(options):
 
 
 def initI18n(options):
-    # These methods are not exposed to 3rd party
-    # developers as part of the i18n package
-    i18nMan = i18n._I18nManager
-    i18nMan.setRootPath(locateChandlerDirectory())
-
-    #XXX: Comment out this code if a issue 
-    #     arises with wx translation loading
-    #     It's causing failure on mac nightly builds, so commenting it out till
-    #     that's fixed, bug 6040
-    #i18nMan.setWxPath(locateWxLocalizationDir())
-
-    if options.locale is not None:
-        # If a locale is passed in on the command line
-        # we set it as the root in the localeset.
-        i18nMan.setLocaleSet([options.locale])
-    else:
-        i18nMan.discoverLocaleSet()
-
+    #Will discover locale set if options.locale is None
+    i18n._I18nManager.initialize(options.locale)
 
 def initLogging(options):
     global logger

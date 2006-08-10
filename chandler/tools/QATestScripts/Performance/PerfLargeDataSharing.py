@@ -17,7 +17,7 @@ import os
 from application.dialogs.PublishCollection import ShowPublishDialog
 import application.dialogs.SubscribeCollection as SubscribeCollection
 import wx
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf.sharing import Sharing, unpublish 
 from osaf import sharing
 import osaf.sharing.ICalendar as ICalendar

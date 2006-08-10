@@ -16,7 +16,7 @@
 from blockviewer import BlockItemDetail
 from osaf.framework.blocks import Tree, SplitterWindow, Column
 from osaf.pim.structs import SizeType, RectType
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf.framework.blocks import FrameWindow, BoxContainer
 
 def installParcel(parcel, oldName=None):

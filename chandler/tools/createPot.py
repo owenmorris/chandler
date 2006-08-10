@@ -623,9 +623,8 @@ def main():
             expanded.extend(getFilesForName(arg))
     args = expanded
 
-    osaf = os.path.join("parcels", "osaf")
 
-    #Translations that are not part of Chandler osaf core
+    osaf = os.path.join("parcels", "osaf")
     amazon = os.path.join("parcels", "amazon")
     evdb = os.path.join("parcels", "evdb")
     flickr = os.path.join("parcels", "flickr")
@@ -633,7 +632,7 @@ def main():
     photos = os.path.join("parcels", "photos")
 
     expanded.extend(getFilesForName('application'))
-    expanded.extend(getFilesForName(osaf))
+    expanded.extend(getFilesForName('parcels'))
     #expanded.extend(getFilesForName('samples'))
 
     # slurp through all the files

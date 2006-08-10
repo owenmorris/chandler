@@ -29,7 +29,7 @@ import i18n
 from i18n.tests import uw
 from application import schema
 
-TEST_I18N = 'test' in i18n.getLocaleSet()
+TEST_I18N = i18n.getLocaleSet() and 'test' in i18n.getLocaleSet()
 
 HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
 

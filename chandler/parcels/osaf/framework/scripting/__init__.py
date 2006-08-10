@@ -21,7 +21,7 @@ from application import schema, Globals
 from osaf import pim
 from osaf.usercollections import UserCollection
 
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 # these are all the sub-modules that come together here
 from script import cats_profiler, hotkey_script, \

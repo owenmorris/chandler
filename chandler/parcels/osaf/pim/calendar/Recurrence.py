@@ -30,7 +30,7 @@ from dateutil.rrule import rrule, rruleset
 from repository.item.PersistentCollections import PersistentList
 from PyICU import ICUtzinfo, DateFormat
 from TimeZone import coerceTimeZone, forceToDateTime
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 class FrequencyEnum(schema.Enumeration):
     """The base frequency for a recurring event."""

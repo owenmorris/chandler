@@ -25,7 +25,7 @@ from osaf.framework.blocks import Block, DragAndDrop, FocusEventHandlers
 from application import schema
 from application.dialogs import Util
 from wx.lib import buttons
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from time import time as epochtime
 
 # temporary hack because Mac/Linux force BitmapButtons to

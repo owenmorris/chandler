@@ -14,7 +14,7 @@
 
 
 from datetime import datetime
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 import PyICU
 from TimeZone import formatTime
 

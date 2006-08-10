@@ -28,7 +28,7 @@ from PyICU import ICUtzinfo
 #Chandler imports
 import osaf.pim.mail as Mail
 from PyICU import UnicodeString
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 #Chandler Mail Service imports
 import constants
@@ -59,9 +59,8 @@ To Do:
 1. Work with Apple Mail and see how it handle display of various message types and copy
 2. Look at optimizations for Feedparser to prevent memory hogging (might tie in to twisted dataReceived)
 3. Add i18n support to outbound message
-4. Look at why certain encodings are failing from bear server move move encodings to 
-   i18n Package
-5. Look at test_Big5-2 it is not working anymore
+4. Look at test_Big5-2 it is not working anymore
+5. Add the HTML Cleaner API from Amazon
 
 
 ARE THESES HANDLED BY THE EMAIL LIBRARY?

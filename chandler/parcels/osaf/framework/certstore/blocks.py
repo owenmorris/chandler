@@ -17,7 +17,7 @@
 Certificate store UI.
 """
 
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 from osaf.framework.blocks import Block, NewItemEvent
 from osaf.framework.blocks.detail import Detail

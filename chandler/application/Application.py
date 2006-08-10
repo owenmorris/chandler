@@ -17,7 +17,7 @@ import os, sys, threading, time, logging, cStringIO
 import wx, Globals, Utility
 
 from new import classobj
-from i18n import OSAFMessageFactory as _, getImage
+from i18n import ChandlerMessageFactory as _, getImage
 import schema, feedback
 from version import version
 
@@ -139,7 +139,7 @@ class wxMainFrame (wxBlockFrameWindow):
         # useful in debugging Mac background drawing problems
         #self.MacSetMetalAppearance(True)
 
-        self.icon = wx.Icon("resources/images/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
+        self.icon = wx.Icon("icons/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
         self.SetIcon(self.icon)
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -263,7 +263,7 @@ class wxApplication (wx.App):
         """
         Main application initialization.
         """
-        
+
         # A temporary (?) workaround to prevent the default error
         # dialog box popping up on Ubuntu that is stopping
         # functional tests. See bug 6120 for more info.
@@ -276,7 +276,7 @@ class wxApplication (wx.App):
         #
         # Eventually when we get Python egg based localization
         # implemented, this constraint may change
-        Utility.initI18n(Globals.options) 
+        Utility.initI18n(Globals.options)
 
         util.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 

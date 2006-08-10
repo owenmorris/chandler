@@ -19,7 +19,7 @@ import wx
 import wx.xrc
 from osaf import sharing
 from application import Globals
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)
 

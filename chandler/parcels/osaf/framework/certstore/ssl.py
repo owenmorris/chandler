@@ -48,7 +48,7 @@ import M2Crypto.SSL.Checker as Checker
 import M2Crypto.X509 as X509
 import twisted
 import twisted.protocols.policies as policies
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 from application import schema, Utility
 from osaf.framework.certstore import constants, utils

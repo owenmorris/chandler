@@ -16,7 +16,7 @@
 import sys, wx
 from datetime import datetime, timedelta
 from PyICU import ICUtzinfo
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
  	
 DAY    = 1440
 HOUR   = 60

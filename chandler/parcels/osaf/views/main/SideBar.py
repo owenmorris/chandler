@@ -32,7 +32,7 @@ from osaf import sharing, pim
 from osaf.usercollections import UserCollection
 from osaf.sharing import ChooseFormat
 from application import schema
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 from colorsys import rgb_to_hsv
 

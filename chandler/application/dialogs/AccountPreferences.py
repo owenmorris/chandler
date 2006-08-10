@@ -27,7 +27,7 @@ import application.Parcel
 import application.dialogs.Util
 import osaf.pim.mail as Mail
 from osaf import sharing
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from osaf.framework.blocks.Block import Block
 

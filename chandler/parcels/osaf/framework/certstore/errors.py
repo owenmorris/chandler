@@ -18,7 +18,7 @@ Error codes
 
 import M2Crypto.m2 as m2
 
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 certificateVerifyError = {
     m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT: _(u"unable to get issuer certificate"),

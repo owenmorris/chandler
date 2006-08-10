@@ -26,7 +26,7 @@ from datetime import datetime
 import dateutil
 import wx
 import logging
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from osaf.pim.structs import SizeType, RectType
 from osaf.framework.blocks.Block import *

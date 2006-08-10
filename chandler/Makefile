@@ -81,14 +81,10 @@ else
 endif
 
 
-BUNDLED_PLUGINS = Chandler_HelloWorldPlugin-0.1-py2.4.egg \
-                  Chandler_FeedsPlugin-0.2_r11264-py2.4.egg
-#                  Chandler_FeedsPlugin-0.2_r11338-py2.4.egg
-#                  EggTranslations_Plugin-0.1-py2.4.egg
-
 BUILD_PLUGINS = Chandler-HelloWorldPlugin \
-                Chandler-FeedsPlugin
-#                EggTranslations-Plugin
+                Chandler-FeedsPlugin \
+                Chandler-I18nTestsPlugin \
+                EggTranslations-Plugin
 
 # When a version changes, the ARCHIVES lists below needs to be updated.
 # these get installed into release or debug
@@ -162,35 +158,23 @@ ARCHIVES_INST = \
                 $(addprefix $(C_BIN)/$(SNAP)/, \
                             $(notdir $(ARCHIVES))))
 
-PLUGINS_INST = \
-    $(addsuffix .inst, \
-                $(addprefix $(C_BIN)/$(SNAP)/, \
-                            $(notdir $(BUNDLED_PLUGINS))))
-
-PLUGINS_DOWNLOAD = \
-                $(addprefix $(PLUGIN_ARCHIVES)/, \
-                            $(notdir $(BUNDLED_PLUGINS)))
-
-downloads: $(ARCHIVES) $(PLUGINS_DOWNLOAD)
-
-$(PLUGINS_DOWNLOAD):
-	$(CURL) $(PLUGIN_ARCHIVES)/$(notdir $@) $(URL)/$(notdir $@)
-
-$(PLUGINS_INST):
-	MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) \
-      -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
-      --script-dir=$(SETUPTOOLS_BIN) \
-      --install-dir=$(SETUPTOOLS_SITE) \
-      $(PLUGIN_ABS)/$(notdir $(basename $@))
-	touch $@
-
-bundled-plugins: $(PLUGINS_DOWNLOAD) $(PLUGINS_INST)
+downloads: $(ARCHIVES)
 
 $(addprefix binaries-, $(BUILD_PLUGINS)):
 	cd $(CHANDLERHOME)/projects/$(subst binaries-,,$@); \
-    $(PLUGIN_PYTHON) setup.py bdist_egg -d ../../$(CHANDLERARCHIVES)
+    $(PLUGIN_PYTHON) setup.py develop \
+      --script-dir=$(SETUPTOOLS_BIN) \
+      --install-dir=$(SETUPTOOLS_SITE)
+
+#bdist_egg -d ../../$(CHANDLERARCHIVES)
 
 build-plugins: $(addprefix binaries-, $(BUILD_PLUGINS))
+
+chandler-locale-data:
+	$(PLUGIN_PYTHON) setup.py develop \
+      --script-dir=$(SETUPTOOLS_BIN) \
+      --install-dir=$(SETUPTOOLS_SITE)
+
 
 $(ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
@@ -229,7 +213,7 @@ else
 manifest_exe:
 endif
 
-install: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe $(SETUPTOOLS_INST) bundled-plugins
+install: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe $(SETUPTOOLS_INST) chandler-locale-data build-plugins
 
 download: $(ARCHIVES) $(SETUPTOOLS_EGG)
 
@@ -238,13 +222,6 @@ download: $(ARCHIVES) $(SETUPTOOLS_EGG)
 $(notdir $(shell echo $(ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
 	$(MAKE) $(shell echo $(ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
 	$(MAKE) $(shell echo $(ARCHIVES_INST) | sed "s=.*\($(CHANDLERBIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
-
-
-# to install individual eggs, for example: make Chandler_HelloWorldPlugin
-
-$(notdir $(shell echo $(BUNDLED_PLUGINS) | sed $(SED_MODERN) "s/-[0-9]+[^ ]*\.egg//g")):
-	$(MAKE) $(PLUGIN_ARCHIVES)/$(shell echo $(BUNDLED_PLUGINS) | sed "s=.*\($@-[^ ]*\).*=\1=")
-	$(MAKE) $(CHANDLERBIN)/$(SNAP)/$(shell echo $(PLUGINS_INST) | sed "s=.*\($@-[^ ]*\).*=\1=")
 
 
 ifeq ($(OS),Cygwin)

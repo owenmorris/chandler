@@ -16,7 +16,7 @@ import tools.QAUITestAppLib as QAUITestAppLib
 import os, sys
 from application.dialogs.PublishCollection import ShowPublishDialog
 import wx
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf.sharing import Sharing, unpublish 
 import osaf.sharing.ICalendar as ICalendar
 import tools.QAUITestAppLib as QAUITestAppLib

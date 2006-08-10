@@ -22,7 +22,7 @@ from application import schema, Globals
 
 from osaf import pim
 from osaf import messages
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from datetime import datetime
 import os, sys
 

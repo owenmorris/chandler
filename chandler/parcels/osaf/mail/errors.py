@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf import ChandlerException
 
 __all__ = ['MailException', 'IMAPException', 'SMTPException', 'POPException']

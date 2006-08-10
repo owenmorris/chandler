@@ -17,7 +17,7 @@ import application.schema as schema
 
 import PyICU
 import datetime
-from i18n import OSAFMessageFactory
+from i18n import ChandlerMessageFactory
 
 class TimeZoneInfo(schema.Item):
     """
@@ -106,10 +106,10 @@ class TimeZoneInfo(schema.Item):
 
             if tzinfo != floating:
 
-                yield (OSAFMessageFactory(name), tzinfo)
+                yield (ChandlerMessageFactory(name), tzinfo)
 
         if withFloating:
-            yield OSAFMessageFactory(u"Floating"), floating
+            yield ChandlerMessageFactory(u"Floating"), floating
 
     def onItemLoad(self, view):
         # This is overridden to ensure that storing the

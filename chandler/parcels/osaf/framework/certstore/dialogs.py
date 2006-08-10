@@ -22,7 +22,7 @@ import logging
 
 import wx
 
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf.framework.certstore import utils, errors
 
 log = logging.getLogger(__name__)

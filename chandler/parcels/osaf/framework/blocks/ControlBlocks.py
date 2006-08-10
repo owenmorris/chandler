@@ -38,7 +38,7 @@ from datetime import datetime, time, timedelta
 from osaf.pim.calendar import Calendar
 from osaf.pim import Reminder
 from repository.item.Monitors import Monitors
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 
 class textAlignmentEnumType(schema.Enumeration):

@@ -114,6 +114,8 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('i18nMailTest').install(parcel)
 
+    BlockEvent.template('ShowI18nManagerDebugWindow').install(parcel)
+
     BlockEvent.template('ShowLogWindow').install(parcel)
 
     BlockEvent.template('ActivateWebserver').install(parcel)

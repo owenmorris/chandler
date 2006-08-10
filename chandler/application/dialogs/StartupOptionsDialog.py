@@ -115,7 +115,7 @@ class StartupOptionsDialog(wx.Dialog):
         elif self.restore.GetValue():
             restorePath = wx.FileSelector(_(u"Snapshot to restore?"),
                                           getDesktopDir(),
-                                          _(u""), _(u".tgz"),
+                                           u"", _(u".tgz"),
                                           _(u"*.tgz"),
                                           flags=wx.OPEN|wx.FILE_MUST_EXIST,
                                           parent=self)

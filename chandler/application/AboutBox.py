@@ -15,7 +15,7 @@
 
 import webbrowser
 import wx, wx.html, os, sys
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 import i18n
 import Utility
 import Globals
@@ -107,8 +107,12 @@ def _getDefaultHTML():
 
     replaceValues = {
 
-    "pix":  _getRelImagePath("pixel.gif"),
-    "ab":   _getRelImagePath("about.png"),
+    # These images are loaded by wx from Python localization
+    # Eggs. The image: prefix signals to wx invoke
+    # The I18nManager.getImage method to locate the 
+    # localized image.
+    "pix":  "image:pixel.gif",
+    "ab":   "image:about.png",
     "ver":  _("Version: %(versionNumber)s") % {"versionNumber": version},
     "abt":  _("About Chandler"),
     "ex":   _("Experimentally usable calendar"),

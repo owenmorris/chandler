@@ -23,7 +23,7 @@ from osaf.pim import ContentItem, ListCollection
 from repository.util.URL import URL
 import wx
 from application import schema
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 import string
 import AmazonDialog
 

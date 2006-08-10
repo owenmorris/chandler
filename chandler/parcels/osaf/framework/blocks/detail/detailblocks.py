@@ -40,7 +40,7 @@ are lots of examples below in the basic pim Kinds' subtrees.
 from Detail import *
 from osaf.framework.blocks import *
 import osaf.pim
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf.pim.structs import SizeType, RectType
 
 

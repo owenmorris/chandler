@@ -22,12 +22,14 @@ from application import schema
 from util import feedparser, indexes
 from xml.sax import SAXParseException
 from osaf import pim
-from i18n import OSAFMessageFactory as _
+from i18n import MessageFactory
 from twisted.web import client
 from twisted.internet import reactor
 from osaf.pim.calendar.TimeZone import formatTime
 from repository.util.URL import URL
 from repository.util.Lob import Lob
+
+_ = MessageFactory("Chandler-FeedsPlugin")
 
 logger = logging.getLogger(__name__)
 

@@ -20,7 +20,7 @@ import osaf.pim.mail as Mail
 from repository.item.Item import Item
 from osaf.pim import ContentItem, Note, ContentCollection
 import application.dialogs.Util as Util
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from osaf.usercollections import UserCollection
 from osaf.framework.blocks import Block, BlockEvent, debugName, getProxiedItem

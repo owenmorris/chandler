@@ -17,7 +17,7 @@ from osaf.framework.blocks import *
 
 def makeSummaryBlocks(parcel):
     from application import schema
-    from i18n import OSAFMessageFactory as _
+    from i18n import ChandlerMessageFactory as _
     from osaf.framework.blocks.calendar import (
         CalendarContainer, CalendarControl, CanvasSplitterWindow,
         AllDayEventsCanvas, TimedEventsCanvas

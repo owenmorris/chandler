@@ -20,7 +20,7 @@
 # to edit them again in Boa, so it's OK to edit the generated methods.
 
 import wx
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
 

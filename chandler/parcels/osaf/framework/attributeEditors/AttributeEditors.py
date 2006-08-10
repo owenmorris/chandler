@@ -42,7 +42,7 @@ from application import schema, styles
 from application.dialogs import RecurrenceDialog, TimeZoneList
 from util.MultiStateButton import BitmapInfo, MultiStateBitmapCache
 
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf import messages
 
 logger = logging.getLogger(__name__)

@@ -20,7 +20,7 @@ from osaf.views.main.SideBar import *
 from osaf.pim.structs import SizeType, RectType
 from osaf import pim
 from osaf import messages
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 import osaf.pim.calendar
 from application import schema
 

@@ -19,7 +19,7 @@ This file provides block instances for the detail view
 
 import wx
 import os, sys
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 from application import schema
 from osaf.framework.blocks.detail import Detail

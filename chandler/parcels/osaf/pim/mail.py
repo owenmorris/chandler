@@ -36,7 +36,7 @@ import re as re
 import chandlerdb.item.ItemError as ItemError
 
 from repository.util.Path import Path
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf import messages
 
 """

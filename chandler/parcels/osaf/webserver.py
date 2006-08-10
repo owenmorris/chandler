@@ -24,7 +24,7 @@ from repository.item import Access
 from repository.util.ClassLoader import ClassLoader
 import os, sys
 import logging
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,9 @@ class Server(schema.Item):
 
     def startup(self):
         docRoot = self.path
-        root = static.File(docRoot)
+       
+        # Need to convert from unicode to bytes 
+        root = static.File(docRoot.encode("UTF-8"))
 
         # .rpy files are twisted's version of a cgi
         root.ignoreExt(".rpy")

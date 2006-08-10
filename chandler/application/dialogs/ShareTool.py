@@ -18,7 +18,7 @@ import wx
 import wx.xrc
 from osaf import sharing
 import application.Globals as Globals
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from application import schema
 
 class ShareToolDialog(wx.Dialog):

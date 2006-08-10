@@ -22,7 +22,7 @@ import application
 import repository.item.Item as Item
 from osaf.pim import items
 from application import schema
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 class Note(items.ContentItem):
 

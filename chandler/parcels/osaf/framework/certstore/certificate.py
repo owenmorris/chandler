@@ -30,7 +30,7 @@ import application
 from application import schema
 from osaf import pim
 from application.dialogs import Util
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from osaf.pim.collections import FilteredCollection
 from osaf.framework.certstore import utils, dialogs, constants

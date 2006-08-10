@@ -16,7 +16,7 @@
 import wx
 from wx.lib.filebrowsebutton import FileBrowseButton
 import os, logging
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from application import schema
 import itertools
 import osaf.sharing

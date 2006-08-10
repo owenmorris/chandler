@@ -17,7 +17,7 @@ import time, urlparse, os, base64, logging, datetime
 from elementtree.ElementTree import ElementTree
 from application import schema
 from osaf import pim, messages, ChandlerException
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 import osaf.mail.utils as utils
 
 from chandlerdb.util.c import UUID

@@ -34,7 +34,7 @@ import CalendarCanvas
 import osaf.pim.calendar.Calendar as Calendar
 from datetime import datetime, date, time, timedelta
 from PyICU import ICUtzinfo
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from application import styles
 
 if '__WXMAC__' in wx.PlatformInfo:

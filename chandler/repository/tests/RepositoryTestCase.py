@@ -17,16 +17,12 @@ A base class for repository testing
 """
 
 from unittest import TestCase
-import logging, os, sys, gettext
+import logging, os, sys
 
 from repository.persistence.DBRepository import DBRepository
 from repository.util.Path import Path
 from application.Parcel import Manager as ParcelManager
 from application import schema
-
-# set up the gettext locale, so we have a definition of _()
-os.environ['LANGUAGE'] = 'en'
-gettext.install('chandler', 'locale')
 
 class RepositoryTestCase(TestCase):
 

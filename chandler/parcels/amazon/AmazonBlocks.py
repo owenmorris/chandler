@@ -20,8 +20,7 @@ import AmazonKinds
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.detail.Detail as Detail
 
-#XXX[i18n] this module sits outsite of OSAF and should have its own translation domain
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 class AmazonController(Block.Block):
     def onNewAmazonCollectionEvent(self, event):

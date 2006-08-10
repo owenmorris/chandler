@@ -20,7 +20,7 @@ import wx.xrc
 from osaf import sharing
 from util import task, viewpool
 from application import schema, Globals
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from AccountInfoPrompt import PromptForNewAccountInfo
 
 logger = logging.getLogger(__name__)

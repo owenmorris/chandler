@@ -48,7 +48,7 @@ from osaf.framework.blocks.Block import Block
 from osaf.framework.prompts import promptOk
 
 import i18n
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 from application.Utility import getDesktopDir
 from application.dialogs import ImportExport
@@ -814,6 +814,9 @@ class MainView(View):
         )
         rv.commit()
 
+
+    def onShowI18nManagerDebugWindowEvent(self, event):
+        application.dialogs.Util.displayI18nManagerDebugWindow(wx.GetApp().mainFrame)
 
     def onShowLogWindowEvent(self, event):
         # Test menu item

@@ -20,7 +20,7 @@ def makeMainMenus(parcel):
     
     from osaf.framework.blocks import Menu, MenuItem, MenuBar, ColorEvent
     from osaf.framework.blocks.calendar import VisibleHoursEvent
-    from i18n import OSAFMessageFactory as _
+    from i18n import ChandlerMessageFactory as _
     from osaf import messages, pim
     from osaf.pim.structs import ColorType
     from osaf import usercollections
@@ -589,6 +589,7 @@ def makeMainMenus(parcel):
                                 title = u'Stop Event Profiler',
                                 helpString = u'Stop CPIA Event Profiler'),
                             ]),
+
                     Menu.template('LoggingMenu',
                         title=u'&Logging',
                         childrenBlocks = [
@@ -601,6 +602,19 @@ def makeMainMenus(parcel):
                                 title = u'&Load logging configuration file...',
                                 helpString = u'Load logging configuration file'),
                             ]),
+
+                    Menu.template('I18nMenu',
+                        title=u'&i18n',
+                        childrenBlocks = [
+                            MenuItem.template('ShowI18nManagerDebugItem',
+                                event = main.ShowI18nManagerDebugWindow,
+                                title = u'&Show I18nManager debug window',
+                                helpString = u'Displays a tree of projects, locales, resources, and gettext localizations'),
+                            ]),
+
+
+
+
                     Menu.template('ShareTestMenu',
                         title = u'S&haring',
                         helpString = u'Sharing-related test commands',

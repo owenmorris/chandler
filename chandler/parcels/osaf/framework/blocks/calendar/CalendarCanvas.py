@@ -54,7 +54,7 @@ import copy
 import logging
 from application import styles as confstyles
 
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)
 

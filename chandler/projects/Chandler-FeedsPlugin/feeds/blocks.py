@@ -19,10 +19,12 @@ import osaf.framework.blocks.detail.Detail as Detail
 import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
 import channels
-from i18n import OSAFMessageFactory as _
-from osaf import messages 
+from i18n import MessageFactory
+from osaf import messages
 from application import schema
 from osaf.pim.structs import SizeType, RectType
+
+_ = MessageFactory("Chandler-FeedsPlugin")
 
 logger = logging.getLogger(__name__)
 

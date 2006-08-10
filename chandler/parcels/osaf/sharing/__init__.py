@@ -30,7 +30,7 @@ from application import schema, Utility, dialogs
 from application.Parcel import Reference
 from application.Utility import getDesktopDir
 from osaf import pim
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 import vobject
 
 from repository.item.Monitors import Monitors

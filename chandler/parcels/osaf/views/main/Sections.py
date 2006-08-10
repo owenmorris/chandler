@@ -15,7 +15,7 @@
 
 import wx
 from application import schema, styles
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf.framework.blocks import (ControlBlocks, debugName, DrawingUtilities, 
                                    Styles)
 from osaf.framework.attributeEditors import BaseAttributeEditor

@@ -18,7 +18,7 @@ __parcel__ = "eventLogger"
 from application import schema
 from osaf.framework.blocks import DispatchHook, BlockEvent
 from osaf.framework.blocks.MenusAndToolbars import MenuItem
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 class EventLoggingDispatchHook (DispatchHook):
     logging = schema.One(schema.Boolean, initialValue=False)

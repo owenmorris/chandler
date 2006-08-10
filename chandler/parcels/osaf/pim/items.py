@@ -28,7 +28,7 @@ from repository.item.RefCollections import RefList
 from repository.schema.Kind import Kind
 import repository.item.Item as Item
 import logging
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from PyICU import ICUtzinfo
 
@@ -102,7 +102,7 @@ class ContentItem(schema.Item):
     body = schema.One(
         schema.Text,
         indexed = True,
-        defaultValue = _(u""),
+        defaultValue = u"",
         doc="All Content Items may have a body to contain notes.  It's "
             "not decided yet whether this body would instead contain the "
             "payload for resource items such as presentations or "

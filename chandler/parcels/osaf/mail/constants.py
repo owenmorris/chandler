@@ -20,7 +20,7 @@
 #python imports
 import version
 
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 DEFAULT_CHARSET = "utf-8"
 LF    = u"\n"

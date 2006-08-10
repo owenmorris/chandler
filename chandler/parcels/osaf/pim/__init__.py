@@ -41,7 +41,7 @@ from collections import KindCollection, ContentCollection, \
 from repository.item.Item import Item
 
 import tasks, mail, calendar.Calendar
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 
 # Stamped Kinds

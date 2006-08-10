@@ -17,7 +17,7 @@
 #
 
 from application import schema
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 import urllib, logging
 from zanshin.util import blockUntil

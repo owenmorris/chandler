@@ -39,7 +39,7 @@ import PyICU
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from application import schema
 import itertools
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 import os, logging
 import bisect
 

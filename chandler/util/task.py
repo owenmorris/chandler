@@ -15,7 +15,7 @@
 
 import wx
 import logging
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)
 

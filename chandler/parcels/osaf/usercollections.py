@@ -17,7 +17,7 @@ from application import schema
 from osaf.pim.structs import ColorType
 from osaf.pim import ContentCollection
 
-from i18n import OSAFMessageFactory as _
+from i18n import ChandlerMessageFactory as _
 
 import colorsys
 from application import styles
