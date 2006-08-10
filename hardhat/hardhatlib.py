@@ -1331,8 +1331,12 @@ def _copyTree(srcdir, destdir, recursive, patterns, excludes):
             # directory excludes so far only being for one pattern - .svn
             # if we need to add more, this will have to change to match method of file excludes above
             if os.path.isdir(full_name) and not name in excludes:
-                _copyTree(full_name, os.path.join(destdir, name), True, 
-                 patterns, excludes)
+                if os.path.islink(full_name):
+                    if not os.path.exists(destdir):
+                        mkdirs(destdir)
+                    os.symlink(os.readlink(full_name), os.path.join(destdir, name))
+                else:
+                    _copyTree(full_name, os.path.join(destdir, name), True, patterns, excludes)
 
 def mkdirs(newdir, mode=0777):
     try: 
