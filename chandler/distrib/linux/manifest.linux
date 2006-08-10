@@ -97,7 +97,7 @@ tools
 
 glob=*
 repository
-resources
+icons
 i18n
 
 # Grab the linux README
