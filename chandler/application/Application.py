@@ -18,7 +18,7 @@ import wx, Globals, Utility
 
 from new import classobj
 from i18n import OSAFMessageFactory as _, getImage
-import schema
+import schema, feedback
 from version import version
 
 from repository.persistence.RepositoryError import \
@@ -243,6 +243,8 @@ class wxMainFrame (wxBlockFrameWindow):
         displayInfoWhileProcessing (_("Checkpointing repository..."),
                                     app.UIRepositoryView.repository.checkpoint)
 
+        feedback.stopRuntimeLog(Globals.options.profileDir)
+
         # When we quit, as each wxWidget window is torn down our handlers that
         # track changes to the selection are called, and we don't want to count
         # these changes, since they weren't caused by user actions.
@@ -252,6 +254,8 @@ class wxMainFrame (wxBlockFrameWindow):
         self.Destroy()
 
 class wxApplication (wx.App):
+
+    outputWindowClass = feedback.FeedbackWindow
 
     __CHANDLER_STARTED_UP = False # workaround for bug 4362
 

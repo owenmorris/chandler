@@ -21,7 +21,6 @@ import os, PyLucene
 import application.Globals as Globals
 import application.Utility as Utility
 
-
 def main():
 
     # Process any command line switches and any environment variable values
@@ -30,6 +29,9 @@ def main():
     def realMain():
         
         Utility.initProfileDir(Globals.options)
+
+        from application import feedback
+        feedback.initRuntimeLog(Globals.options.profileDir)
         
         Globals.chandlerDirectory = Utility.locateChandlerDirectory()
     
@@ -65,7 +67,7 @@ def main():
         # useBestVisual - uses best screen resolutions on some old computers.
         #                 See wxApp.SetUseBestVisual
 
-        redirect = __debug__ and not Globals.options.stderr
+        redirect = not Globals.options.stderr
         app = wxApplication(redirect=redirect, useBestVisual=True)
 
         app.MainLoop()
@@ -108,20 +110,38 @@ def main():
 
             logging.error(longMessage)
 
-            if wx.GetApp() is None:
+            if getattr(globals(), 'app', None) is None or wx.GetApp() is None:
                 app = wx.PySimpleApp()
+                app.ignoreSynchronizeWidget = True
 
             try:
-                from application.dialogs.UncaughtExceptionDialog import ErrorDialog
-                dialog = ErrorDialog (longMessage)
+                # Let's try the best (and most complicated) option
+                # first
+                # See if we already have a window up, and if so, reuse it
+                from application import feedback
+                feedback.destroyAppOnClose = True
+                win = feedback.activeWindow
+                if win is None:
+                    win = feedback.FeedbackWindow()
+                    win.CreateOutputWindow('')
+                for line in backtrace:
+                    win.write(line)
+                if not app.IsMainLoopRunning():
+                    app.MainLoop()
             except:
-                frames = 8
-                line2 = u"Here are the bottom %(frames)s frames of the stack:\n" % {'frames': frames - 1}
-                shortMessage = "".join([line1, line2, "\n"] + backtrace[-frames:])
-                dialog = wx.MessageDialog(None, shortMessage, "Chandler", 
-                                          wx.OK | wx.ICON_INFORMATION)
-            dialog.ShowModal()
-            dialog.Destroy()
+                # Fall back to our custom (but simple) error dialog
+                try:
+                    from application.dialogs.UncaughtExceptionDialog import ErrorDialog
+                    dialog = ErrorDialog(longMessage)
+                except:
+                    # Fall back to MessageDialog
+                    frames = 8
+                    line2 = u"Here are the bottom %(frames)s frames of the stack:\n" % {'frames': frames - 1}
+                    shortMessage = "".join([line1, line2, "\n"] + backtrace[-frames:])
+                    dialog = wx.MessageDialog(None, shortMessage, "Chandler", 
+                                              wx.OK | wx.ICON_INFORMATION)
+                dialog.ShowModal()
+                dialog.Destroy()
 
 
     #@@@Temporary testing tool written by Morgen -- DJA
