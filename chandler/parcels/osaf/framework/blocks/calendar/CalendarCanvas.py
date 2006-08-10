@@ -301,29 +301,42 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
     def invertColors(self):
         item = self.item
-        return (((item.anyTime or item.duration == zero_delta) and
-                  not item.allDay) or
-                item.transparency == 'fyi' )
+        return (self.anyOrZero() or item.transparency == 'fyi')
+    
+    def dashedLine(self):
+        item = self.item
+        return (self.anyOrZero() or item.transparency == 'tentative')
+    
+    def anyOrZero(self):
+        item = self.item
+        return (item.anyTime or item.duration == zero_delta) and not item.allDay
+        
     
     
     def getEventColors(self, selected):
         """
         Returns the appropriate tuple of selected, normal, and visible colors.
         """
+        if self.dashedLine():
+            outline = self.colorInfo.selectedFYIColors[2]
+            mangleOutline = lambda x: (x[0], x[1], outline, x[3])
+        else:
+            mangleOutline = lambda x: x
+            
         if self.invertColors():
             if selected:
-                return self.colorInfo.selectedFYIColors
+                return mangleOutline(self.colorInfo.selectedFYIColors)
             elif self.isActive:
-                return self.colorInfo.defaultFYIColors
+                return mangleOutline(self.colorInfo.defaultFYIColors)
     
-            return self.colorInfo.visibleFYIColors
+            return mangleOutline(self.colorInfo.visibleFYIColors)
         else:
             if selected:
-                return self.colorInfo.selectedColors
+                return mangleOutline(self.colorInfo.selectedColors)
             elif self.isActive:
-                return self.colorInfo.defaultColors
+                return mangleOutline(self.colorInfo.defaultColors)
     
-            return self.colorInfo.visibleColors
+            return mangleOutline(self.colorInfo.visibleColors)
             
     def GetAnyTimeOrAllDay(self):	
         item = self.item
@@ -442,7 +455,13 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
                 # draw the normal canvas item
                 dc.SetBrush(brush)
-                dc.SetPen(wx.Pen(outlineColor))
+                pen = wx.Pen(outlineColor, 1)
+                if self.dashedLine():
+                    pen.SetStyle(wx.USER_DASH)
+                    pen.SetCap(wx.CAP_BUTT)
+                    pen.SetDashes([2,1,4,1])
+                dc.SetPen(pen)
+                
                 self.DrawEventRectangle(dc, itemRect, brush,
                                         hasLeftRounded,
                                         hasTopRightRounded,
@@ -504,7 +523,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
        
         dc.DestroyClippingRegion()	
         if clipRect:	
-            dc.SetClippingRegion(*clipRect)	
+            dc.SetClippingRegion(*clipRect)
        
     def DrawEventRectangle(self, dc, rect, brush,
                            hasLeftRounded=False,
@@ -518,12 +537,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         Side effect: Destroys the clipping region.
         """
-
-        # if your left side is rounded, then everything must be rounded
-        assert ((hasLeftRounded and
-                 hasTopRightRounded and hasBottomRightRounded) or
-                not hasLeftRounded)
-
+        
         diameter = RADIUS * 2
 
         dc.DestroyClippingRegion()
