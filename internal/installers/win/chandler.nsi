@@ -69,8 +69,8 @@ Page custom PageOldVersion
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "Setup.exe"
-Icon "..\..\..\${DISTRIB_DIR}\resources\images\Chandler.ico"
-UninstallIcon "..\..\..\${DISTRIB_DIR}\resources\images\Chandler.ico"
+Icon "..\..\..\${DISTRIB_DIR}\icons\Chandler.ico"
+UninstallIcon "..\..\..\${DISTRIB_DIR}\icons\Chandler.ico"
 InstallDir "$PROGRAMFILES\${PRODUCT_NAME}${PRODUCT_VERSION}"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails nevershow
@@ -346,8 +346,8 @@ Section "MainSection" SEC01
   File /r "..\..\..\${DISTRIB_DIR}\tools"
 
   CreateDirectory "$SMPROGRAMS\Chandler"
-  CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\resources\images\Chandler.ico" 
-  CreateShortCut "$DESKTOP\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\resources\images\Chandler.ico"
+  CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\icons\Chandler.ico" 
+  CreateShortCut "$DESKTOP\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\icons\Chandler.ico"
 SectionEnd
 
   ; create the uninstall shortcut - done here so that it will only
