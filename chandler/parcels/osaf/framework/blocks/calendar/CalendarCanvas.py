@@ -317,26 +317,20 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         """
         Returns the appropriate tuple of selected, normal, and visible colors.
         """
-        if self.dashedLine():
-            outline = self.colorInfo.selectedFYIColors[2]
-            mangleOutline = lambda x: (x[0], x[1], outline, x[3])
-        else:
-            mangleOutline = lambda x: x
-            
         if self.invertColors():
             if selected:
-                return mangleOutline(self.colorInfo.selectedFYIColors)
+                return self.colorInfo.selectedFYIColors
             elif self.isActive:
-                return mangleOutline(self.colorInfo.defaultFYIColors)
+                return self.colorInfo.defaultFYIColors
     
-            return mangleOutline(self.colorInfo.visibleFYIColors)
+            return self.colorInfo.visibleFYIColors
         else:
             if selected:
-                return mangleOutline(self.colorInfo.selectedColors)
+                return self.colorInfo.selectedColors
             elif self.isActive:
-                return mangleOutline(self.colorInfo.defaultColors)
+                return self.colorInfo.defaultColors
     
-            return mangleOutline(self.colorInfo.visibleColors)
+            return self.colorInfo.visibleColors
             
     def GetAnyTimeOrAllDay(self):	
         item = self.item
@@ -455,18 +449,13 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
                 # draw the normal canvas item
                 dc.SetBrush(brush)
-                pen = wx.Pen(outlineColor, 1)
-                if self.dashedLine():
-                    pen.SetStyle(wx.USER_DASH)
-                    pen.SetCap(wx.CAP_BUTT)
-                    pen.SetDashes([2,1,4,1])
-                dc.SetPen(pen)
+                dc.SetPen(wx.Pen(outlineColor, 1))
                 
                 self.DrawEventRectangle(dc, itemRect, brush,
                                         hasLeftRounded,
                                         hasTopRightRounded,
                                         hasBottomRightRounded,
-                                        rightSideCutOff)
+                                        rightSideCutOff, self.dashedLine())
                     
     
                 # Shift text to account for rounded corners
@@ -529,7 +518,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                            hasLeftRounded=False,
                            hasTopRightRounded=True,
                            hasBottomRightRounded=True,
-                           clipRightSide=False):
+                           clipRightSide=False,
+                           addDashes = False):
         """
         Make a rounded rectangle, optionally specifying if the top and bottom
         right side of the rectangle should have rounded corners.
@@ -537,7 +527,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         Side effect: Destroys the clipping region.
         """
-        
+        if addDashes:
+            dashColor = self.colorInfo.selectedFYIColors[3]
+            outlinePen = wx.Pen(dashColor, 1)
+            dc.SetPen(outlinePen)
         diameter = RADIUS * 2
 
         dc.DestroyClippingRegion()
@@ -576,16 +569,35 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         # finally draw the clipped rounded rect
         dc.DrawRoundedRectangle(x,y,width,height,RADIUS)
         
-        # draw the lefthand and possibly top & bottom borders
-        if not hasLeftRounded:
-            # vertical line down left side
-            dc.DrawLine(x, y,  x, y + height)
-        if not hasBottomRightRounded:
-            # horizontal line across the bottom
-            dc.DrawLine(x, y + height-1,  x + width, y + height-1)
-        if not hasTopRightRounded:
-            # horizontal line across the top
-            dc.DrawLine(x, y, x+width, y)
+        def drawSides():
+            dc.DrawLine(x, y+RADIUS,  x, y+height-RADIUS)                #left 
+            dc.DrawLine(x+RADIUS, y,  x + width-RADIUS, y)               #top 
+            dc.DrawLine(x+width-1, y+RADIUS, x+width-1, y+height-RADIUS) #right
+            dc.DrawLine(x+RADIUS, y+height-1, x+width-RADIUS, y+height-1)#bottom
+
+            
+        
+        if addDashes:
+            # draw white under dashes
+            dc.SetPen(wx.Pen(wx.WHITE, 1))
+            drawSides()
+
+            # draw dashes
+            outlinePen.SetStyle(wx.USER_DASH)
+            outlinePen.SetCap(wx.CAP_BUTT)
+            outlinePen.SetDashes([2,1,4,1])
+            dc.SetPen(outlinePen)
+            drawSides()
+            
+        #if not hasLeftRounded:
+            ## vertical line down left side
+            #dc.DrawLine(x, y,  x, y + height)
+        #if not hasBottomRightRounded:
+            ## horizontal line across the bottom
+            #dc.DrawLine(x, y + height-1,  x + width, y + height-1)
+        #if not hasTopRightRounded:
+            ## horizontal line across the top
+            #dc.DrawLine(x, y, x+width, y)
 
         if ENABLE_DEVICE_ORIGIN:
             dc.SetDeviceOrigin(oldOriginX, oldOriginY)
