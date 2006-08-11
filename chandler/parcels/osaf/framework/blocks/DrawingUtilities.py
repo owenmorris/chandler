@@ -14,6 +14,9 @@
 
 
 import wx, os, random
+from itertools import izip, cycle
+from struct import pack
+
 
 from colorsys import hsv_to_rgb, rgb_to_hsv
 import Styles
@@ -199,10 +202,13 @@ class vector(list):
         return vector(map(lambda x,y: x-y, self, other))
 
     def __mul__(self, const):
-	return vector(map(lambda x: x*const, self))
+        return vector(map(lambda x: x*const, self))
     
     def __rmul__(self, other):
-	    return (self*other)
+            return (self*other)
+        
+    def join(self, other):
+        return list.__add__(self, other)
 
 
 class Gradients(object):
@@ -232,6 +238,7 @@ class Gradients(object):
         that particular width of height
         """
         self._gradientCache = {}
+        self._dashCache  = {}
     
     def MakeGradientBrush(self, offset, bitmapWidth, leftColor, rightColor,
                           orientation):
@@ -267,7 +274,6 @@ class Gradients(object):
         # in the bitmap
         offset %= bitmapWidth
 
-        from struct import pack
         bufferX = 0
         imageBuffer = image.GetDataBuffer()
         
@@ -282,7 +288,7 @@ class Gradients(object):
             gradientIndex = (x - offset + bitmapWidth) % bitmapWidth
             
             # now calculate the actual color from the gradient index
-	    hsvVector = left + step * gradientIndex
+            hsvVector = left + step * gradientIndex
             color = rgb2color(*hsv_to_rgb(*hsvVector))
 
             # use the image buffer to write values directly
@@ -315,6 +321,38 @@ class Gradients(object):
         else:
             self.hits += 1
         return brush
+
+    def MakeDash(self, offset, pattern, color, orientation):
+        bitmapWidth = sum(pattern)
+        if orientation == "Horizontal":
+            image = wx.EmptyImage(bitmapWidth, 1)
+        else:
+            image = wx.EmptyImage(1, bitmapWidth)
+
+        offset *= 3 # three color bytes per pixel
+        colorAndWidth = izip(cycle([color, (255,255,255)]), pattern)
+
+        bufferX = 0
+        imageBuffer = image.GetDataBuffer()
+        for col, width in colorAndWidth:
+            newBufferX = bufferX + 3 * width
+            imageBuffer[bufferX:newBufferX] = width * pack('BBB', *col)
+            bufferX = newBufferX
+
+        # shift the bytes by offset
+        imageBuffer[:] = imageBuffer[offset:] + imageBuffer[:offset]
+        brush = wx.Brush(wx.WHITE, wx.STIPPLE)
+        brush.SetStipple(wx.BitmapFromImage(image))
+        return brush
+
+    def GetDash(self, offset, pattern, color, orientation):
+        key = (offset % len(pattern), color, orientation)
+        dash = self._dashCache.get(key, None)
+        if dash is None:
+            dash = self.MakeDash(offset, pattern, color, orientation)
+            self._dashCache[key] = dash
+        return dash
+
 
 if __name__ == '__main__':
     

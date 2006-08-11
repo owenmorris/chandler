@@ -415,12 +415,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 # may actually be the same boundsRect	
                 hasTopRightRounded = hasBottomRightRounded = False	
                 drawEventText = False	
-                if rectIndex == 0:	
-                    hasTopRightRounded = True	
-                    drawEventText = True	
+                if rectIndex == 0:
+                    hasTopRightRounded = True
+                    drawEventText = True
            
-                if rectIndex == len(self.GetBoundsRects())-1:	
-                    hasBottomRightRounded = True	
+                if rectIndex == len(self.GetBoundsRects())-1:
+                    hasBottomRightRounded = True
            
                 hasLeftRounded = True #always rounding left side
 
@@ -455,7 +455,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                         hasLeftRounded,
                                         hasTopRightRounded,
                                         hasBottomRightRounded,
-                                        rightSideCutOff, self.dashedLine())
+                                        rightSideCutOff, self.dashedLine(),
+                                        styles)
                     
     
                 # Shift text to account for rounded corners
@@ -519,7 +520,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                            hasTopRightRounded=True,
                            hasBottomRightRounded=True,
                            clipRightSide=False,
-                           addDashes = False):
+                           addDashes = False,
+                           styles = None):
         """
         Make a rounded rectangle, optionally specifying if the top and bottom
         right side of the rectangle should have rounded corners.
@@ -568,36 +570,57 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         # finally draw the clipped rounded rect
         dc.DrawRoundedRectangle(x,y,width,height,RADIUS)
+        dash_pattern = [2,1,4,1]
         
-        def drawSides():
-            dc.DrawLine(x, y+RADIUS,  x, y+height-RADIUS)                #left 
-            dc.DrawLine(x+RADIUS, y,  x + width-RADIUS, y)               #top 
-            dc.DrawLine(x+width-1, y+RADIUS, x+width-1, y+height-RADIUS) #right
-            dc.DrawLine(x+RADIUS, y+height-1, x+width-RADIUS, y+height-1)#bottom
+        def drawVertical(brush = None):
+            if brush:
+                dc.SetBrush(brush)
+                dc.DrawRectangle(x, y+RADIUS, 1, height - 2 * RADIUS)
+                dc.DrawRectangle(x+width-1, y+RADIUS, 1, height - 2 * RADIUS)
+            else:
+                dc.DrawLine(x, y+RADIUS,  x, y+height-RADIUS)                #left 
+                dc.DrawLine(x+width-1, y+RADIUS, x+width-1, y+height-RADIUS) #right
+
+        def drawHorizontal(brush = None):
+            if brush:
+                dc.SetBrush(brush)
+                dc.DrawRectangle(x+RADIUS, y, width - 2 * RADIUS, 1)
+                dc.DrawRectangle(x+RADIUS, y+height-1, width - 2 * RADIUS, 1)                
+            else:
+                dc.DrawLine(x+RADIUS, y,  x + width-RADIUS, y)               #top 
+                dc.DrawLine(x+RADIUS, y+height-1, x+width-RADIUS, y+height-1)#bottom
+
+
+        if '__WXMAC__' in wx.PlatformInfo and addDashes:
+            dc.SetAntiAliasing(False)
+            dc.SetPen(wx.Pen(wx.WHITE, 0, wx.TRANSPARENT))
+
+            drawHorizontal(styles.brushes.GetDash(x, dash_pattern, dashColor,
+                                                  'Horizontal'))
+
+            drawVertical(styles.brushes.GetDash(y, dash_pattern, dashColor,
+                                                'Vertical'))
+            # we ought to be storing the result of GetAntiAliasing, but that
+            # appears to always return False, so for now we just assume we're
+            # anti-aliasing
+            dc.SetAntiAliasing(True)
+
+        elif addDashes:
 
             
-        
-        if addDashes:
-            # draw white under dashes
-            dc.SetPen(wx.Pen(wx.WHITE, 1))
-            drawSides()
-
-            # draw dashes
-            outlinePen.SetStyle(wx.USER_DASH)
-            outlinePen.SetCap(wx.CAP_BUTT)
-            outlinePen.SetDashes([2,1,4,1])
-            dc.SetPen(outlinePen)
-            drawSides()
-            
-        #if not hasLeftRounded:
-            ## vertical line down left side
-            #dc.DrawLine(x, y,  x, y + height)
-        #if not hasBottomRightRounded:
-            ## horizontal line across the bottom
-            #dc.DrawLine(x, y + height-1,  x + width, y + height-1)
-        #if not hasTopRightRounded:
-            ## horizontal line across the top
-            #dc.DrawLine(x, y, x+width, y)
+            if addDashes:
+                # draw white under dashes
+                dc.SetPen(wx.Pen(wx.WHITE, 1))
+                drawHorizontal()
+                drawVertical()
+    
+                # draw dashes
+                outlinePen.SetStyle(wx.USER_DASH)
+                outlinePen.SetCap(wx.CAP_BUTT)
+                outlinePen.SetDashes(dash_pattern)
+                dc.SetPen(outlinePen)
+                drawHorizontal()
+                drawVertical()
 
         if ENABLE_DEVICE_ORIGIN:
             dc.SetDeviceOrigin(oldOriginX, oldOriginY)
