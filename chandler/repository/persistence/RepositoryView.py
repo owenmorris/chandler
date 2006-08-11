@@ -18,7 +18,7 @@ import logging, heapq, sys, gc, threading, os
 from Queue import Queue
 from itertools import izip
 
-from chandlerdb.util.c import UUID
+from chandlerdb.util.c import UUID, isuuid
 from chandlerdb.item.c import CItem, Nil, Default
 from chandlerdb.persistence.c import CView
 
