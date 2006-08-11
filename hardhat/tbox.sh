@@ -157,8 +157,8 @@ if [ "$TBOX" = "yes" ]; then
                 SNAP=
             fi
 
-            echo Running \"make -C $C_DIR $SNAP install strip\" | tee -a $BUILDLOG
-            make -C $C_DIR $SNAP install strip &> $T_DIR/install.log
+            echo Running \"make -C $C_DIR $SNAP distrib strip\" | tee -a $BUILDLOG
+            make -C $C_DIR $SNAP distrib strip &> $T_DIR/install.log
 
             if [ ! "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
                 echo do distribution step | tee -a $BUILDLOG
