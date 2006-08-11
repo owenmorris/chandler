@@ -476,7 +476,7 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
 
-    targets = ['install', 'strip', 'purge']
+    targets = ['distrib', 'strip', 'purge']
 
     print "Doing make " + dbgStr + clean + " ".join(targets) + "\n"
     log.write("Doing make " + dbgStr + clean + " ".join(targets) + "\n")
