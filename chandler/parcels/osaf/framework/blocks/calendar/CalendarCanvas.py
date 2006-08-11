@@ -606,21 +606,18 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             dc.SetAntiAliasing(True)
 
         elif addDashes:
+            # draw white under dashes
+            dc.SetPen(wx.Pen(wx.WHITE, 1))
+            drawHorizontal()
+            drawVertical()
 
-            
-            if addDashes:
-                # draw white under dashes
-                dc.SetPen(wx.Pen(wx.WHITE, 1))
-                drawHorizontal()
-                drawVertical()
-    
-                # draw dashes
-                outlinePen.SetStyle(wx.USER_DASH)
-                outlinePen.SetCap(wx.CAP_BUTT)
-                outlinePen.SetDashes(dash_pattern)
-                dc.SetPen(outlinePen)
-                drawHorizontal()
-                drawVertical()
+            # draw dashes
+            outlinePen.SetStyle(wx.USER_DASH)
+            outlinePen.SetCap(wx.CAP_BUTT)
+            outlinePen.SetDashes(dash_pattern)
+            dc.SetPen(outlinePen)
+            drawHorizontal()
+            drawVertical()
 
         if ENABLE_DEVICE_ORIGIN:
             dc.SetDeviceOrigin(oldOriginX, oldOriginY)
