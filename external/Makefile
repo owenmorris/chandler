@@ -90,8 +90,6 @@ all: env sources $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)
 world: all binaries install
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) world
 	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) install
-	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) build-plugins
-	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) bundled-plugins
 
 cleanworld: $(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) clean
