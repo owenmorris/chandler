@@ -3,7 +3,7 @@
 # It should *not* be made to depend on external/ or internal/
 
 
-.PHONY: default install clean realclean downloads build-plugins
+.PHONY: default install-core install distrib clean realclean downloads build-plugins
 
 default: install
 
@@ -166,14 +166,42 @@ $(addprefix binaries-, $(BUILD_PLUGINS)):
       --script-dir=$(SETUPTOOLS_BIN) \
       --install-dir=$(SETUPTOOLS_SITE)
 
+#
+# for distribution the egg develop mode has to be turned off
+# and the egg installed in the normal manner
+#
+$(addprefix distrib-, $(BUILD_PLUGINS)):
+	cd $(CHANDLERHOME)/projects/$(subst distrib-,,$@); \
+  $(PLUGIN_PYTHON) setup.py develop -u \
+    --script-dir=$(SETUPTOOLS_BIN) \
+    --install-dir=$(SETUPTOOLS_SITE)
+	cd $(CHANDLERHOME)/projects/$(subst distrib-,,$@); \
+    $(PLUGIN_PYTHON) setup.py install \
+      --install-scripts=$(SETUPTOOLS_BIN) \
+      --install-lib=$(SETUPTOOLS_SITE)
+
 #bdist_egg -d ../../$(CHANDLERARCHIVES)
 
 build-plugins: $(addprefix binaries-, $(BUILD_PLUGINS))
+
+distrib-plugins: $(addprefix distrib-, $(BUILD_PLUGINS))
 
 chandler-locale-data:
 	$(PLUGIN_PYTHON) setup.py develop \
       --script-dir=$(SETUPTOOLS_BIN) \
       --install-dir=$(SETUPTOOLS_SITE)
+
+#
+# for distribution the egg develop mode has to be turned off
+# and the egg installed in the normal manner
+#
+distrib-chandler-locale-data:
+	$(PLUGIN_PYTHON) setup.py develop -u \
+    --script-dir=$(SETUPTOOLS_BIN) \
+    --install-dir=$(SETUPTOOLS_SITE)
+	$(PLUGIN_PYTHON) setup.py install \
+      --install-scripts=$(SETUPTOOLS_BIN) \
+      --install-lib=$(SETUPTOOLS_SITE)
 
 
 $(ARCHIVES):
@@ -213,7 +241,11 @@ else
 manifest_exe:
 endif
 
-install: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe $(SETUPTOOLS_INST) chandler-locale-data build-plugins
+install-core: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe $(SETUPTOOLS_INST)
+
+install: install-core chandler-locale-data build-plugins
+
+distrib: install-core distrib-chandler-locale-data distrib-plugins
 
 download: $(ARCHIVES) $(SETUPTOOLS_EGG)
 
