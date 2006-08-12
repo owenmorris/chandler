@@ -435,7 +435,13 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                         rightSideCutOff)
 
                 # new, smaller itemRect
-                itemRect = wx.Rect(itemRect.x + 1, itemRect.y + 1,
+                yDelta = 1
+                if '__WXMAC__' in wx.PlatformInfo and isAnyTimeOrAllDay:
+                    # on non-Mac's timed event's tops and bottoms are offset from
+                    # hour lines by one pixel 
+                    yDelta = 0
+
+                itemRect = wx.Rect(itemRect.x + 1, itemRect.y + yDelta,
                                    itemRect.width - 2, itemRect.height - 2)
 
                 if ENABLE_DEVICE_ORIGIN:
