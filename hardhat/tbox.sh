@@ -68,6 +68,9 @@ then
     CHANDLERBIN="$C_DIR"
 fi
 
+# this is needed for the short term for tests that don't init i18n
+export UNIT_TESTING=True
+
 HH_DIR=`pwd`
 LOGFILES="svn.log distrib.log install.log tests.log"
 MODES="release debug"
