@@ -22,7 +22,7 @@ from detailblocks import (
     uniqueName
 )
 
-from Detail import (
+from detail import (
     CalendarAllDayAreaBlock,
     CalendarConditionalLabelBlock,
     CalendarLocationAreaBlock, 
@@ -37,6 +37,7 @@ from Detail import (
     DetailRootBlock, 
     DetailSynchronizedAttributeEditorBlock,
     DetailSynchronizedContentItemDetail,
+    DetailSynchronizer,
     DetailBranchPointDelegate, 
     EmptyPanelBlock,
     HTMLDetailArea,

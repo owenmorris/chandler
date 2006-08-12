@@ -17,7 +17,7 @@ from AmazonKinds import AmazonCollection, AmazonItem, DisplayNamesItem
 from AmazonBlocks import AmazonController, AmazonDetailBlock
 
 from application import schema
-from osaf.framework.blocks.detail import makeSubtree
+from osaf.views.detail import makeSubtree
 from i18n import ChandlerMessageFactory as _
 from osaf.pim.structs import SizeType, RectType
 
@@ -27,7 +27,7 @@ def installParcel(parcel, version=None):
 
     blocks = schema.ns('osaf.framework.blocks', parcel)
     main   = schema.ns('osaf.views.main', parcel)
-    detail = schema.ns('osaf.framework.blocks.detail', parcel)
+    detail = schema.ns('osaf.views.detail', parcel)
 
     blocks.MenuItem.update(parcel, 'AmazonParcelSeparator',
                            blockName = 'AmazonParcelSeparator',

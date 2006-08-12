@@ -19,13 +19,13 @@ from Photos import Photo, PhotoMixin, NewImageEvent
 from application import schema
 from osaf.pim.structs import RectType
 from osaf.pim.notes import Note
-from osaf.framework.blocks.detail import makeSubtree
+from osaf.views.detail import makeSubtree
 from osaf.framework.blocks.MenusAndToolbars import MenuItem
 from i18n import ChandlerMessageFactory as _
 
 def installParcel(parcel, old_version=None):
     blocks = schema.ns('osaf.framework.blocks', parcel)
-    detail = schema.ns('osaf.framework.blocks.detail', parcel)
+    detail = schema.ns('osaf.views.detail', parcel)
 
     makeSubtree(parcel, PhotoMixin, [
         detail.DetailSynchronizedAttributeEditorBlock.update(

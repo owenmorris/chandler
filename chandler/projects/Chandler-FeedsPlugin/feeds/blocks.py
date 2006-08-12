@@ -15,7 +15,7 @@
 
 import os, logging
 import application
-import osaf.framework.blocks.detail.Detail as Detail
+import osaf.views.detail as Detail
 import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
 import channels
@@ -120,7 +120,7 @@ class AddFeedCollectionEvent(Block.AddToSidebarEvent):
 
 def installParcel(parcel, oldVersion=None):
 
-    detail = schema.ns('osaf.framework.blocks.detail', parcel)
+    detail = schema.ns('osaf.views.detail', parcel)
     blocks = schema.ns('osaf.framework.blocks', parcel)
     main   = schema.ns('osaf.views.main', parcel)
     feeds  = schema.ns('feeds', parcel)

@@ -28,13 +28,13 @@ def makeSummaryBlocks(parcel):
     from Dashboard import DashboardBlock
     
     view = parcel.itsView
-    detailblocks = schema.ns('osaf.framework.blocks.detail', view)
+    detailblocks = schema.ns('osaf.views.detail', view)
     pim_ns = schema.ns('osaf.pim', view)
     blocks = schema.ns('osaf.framework.blocks', view)
     repositoryView = parcel.itsView
     
     # Our detail views share the same delegate instance and contents collection
-    detailBranchPointDelegate = detail.DetailBranchPointDelegate.update(
+    detailBranchPointDelegate = detailblocks.DetailBranchPointDelegate.update(
         parcel, 'DetailBranchPointDelegateInstance',
         branchStub = detailblocks.DetailRoot)
     #detailContentsCollection = pim.ListCollection.update(

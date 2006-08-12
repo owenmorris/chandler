@@ -20,13 +20,13 @@ Certificate store UI.
 from i18n import ChandlerMessageFactory as _
 
 from osaf.framework.blocks import Block, NewItemEvent
-from osaf.framework.blocks.detail import Detail
 from osaf.framework.attributeEditors import AttributeEditorMapping
 from osaf.pim.structs import SizeType, RectType
 from osaf.pim import KindCollection
 from osaf.usercollections import UserCollection
 from osaf.framework.certstore import certificate
 from application import schema
+import osaf.views.detail as Detail
 
 
 class ImportCertificateEvent(NewItemEvent):
@@ -51,7 +51,7 @@ def installParcel(parcel, oldVersion=None):
     # this file. This allows us to move the parcel to a new location without
     # editing any code in it.
     certstore = schema.ns(__name__[:__name__.rfind('.')], parcel)
-    detail    = schema.ns("osaf.framework.blocks.detail", parcel)
+    detail    = schema.ns("osaf.views.detail", parcel)
 
     certificateCollection = KindCollection.update(
         parcel, 'CertificateStore',

@@ -18,7 +18,7 @@ __parcel__ = "amazon"
 from application import schema
 import AmazonKinds
 import osaf.framework.blocks.Block as Block
-import osaf.framework.blocks.detail.Detail as Detail
+import osaf.views.detail as Detail
 
 from i18n import ChandlerMessageFactory as _
 

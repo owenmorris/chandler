@@ -37,7 +37,7 @@ L{makeEditor}) to simplify the process for the common case; there
 are lots of examples below in the basic pim Kinds' subtrees.
 """
 
-from Detail import *
+from detail import *
 from osaf.framework.blocks import *
 import osaf.pim
 from i18n import ChandlerMessageFactory as _

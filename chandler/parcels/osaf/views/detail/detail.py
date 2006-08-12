@@ -16,7 +16,7 @@
 Classes for the ContentItem Detail View
 """
 
-__parcel__ = "osaf.framework.blocks.detail"
+__parcel__ = "osaf.views.detail"
 
 import sys
 import application

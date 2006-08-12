@@ -20,7 +20,7 @@ from twisted.web import xmlrpc
 from util import commandline
 
 # For current( )
-from osaf.framework import blocks
+from osaf.views import detail
 
 def setattr_withtype(item, attribute, stringValue):
     """
@@ -59,7 +59,7 @@ class XmlRpcResource(xmlrpc.XMLRPC):
     def xmlrpc_current(self):
         view = self.repositoryView
         item = None
-        for block in blocks.detail.DetailRootBlock.iterItems(view=view):
+        for block in detail.DetailRootBlock.iterItems(view=view):
             if hasattr(block, 'widget'):
                 item = getattr(block, 'contents', None)
                 break

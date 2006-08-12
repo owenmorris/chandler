@@ -19,7 +19,7 @@ import flickr
 from flickr import FlickrError, FlickrNotFoundError
 from osaf import pim
 from photos import PhotoMixin
-import osaf.framework.blocks.detail.Detail as Detail
+import osaf.views.detail as Detail
 from osaf.pim.collections import KindCollection
 from repository.util.URL import URL
 from datetime import datetime
@@ -289,7 +289,7 @@ def installParcel(parcel, oldVersion=None):
 
     # The detail view used to display a flickrPhoto
     blocks = schema.ns('osaf.framework.blocks', parcel)
-    detail = schema.ns('osaf.framework.blocks.detail', parcel)
+    detail = schema.ns('osaf.views.detail', parcel)
 
     detail.makeSubtree(parcel, FlickrPhoto, [
         detail.makeArea(parcel, 'AuthorArea',

@@ -22,17 +22,17 @@ import os, sys
 from i18n import ChandlerMessageFactory as _
 
 from application import schema
-from osaf.framework.blocks.detail import Detail
 from osaf.framework.blocks import ControlBlocks
 from osaf.framework.attributeEditors import AttributeEditors
 from application.dialogs import Util
 from osaf.framework.blocks import Block
+import osaf.views.detail as Detail
 
 def installBlocks(parcel, oldVersion=None):
     from osaf.pim import structs
     from script import Script
 
-    detail = schema.ns('osaf.framework.blocks.detail', parcel)
+    detail = schema.ns('osaf.views.detail', parcel)
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
 
     # UI Elements:
@@ -216,7 +216,7 @@ class OpenFileButton(Detail.DetailSynchronizer, ControlBlocks.Button):
             writeFile = not preferFile
             self._item.filePath = os.path.join(dir, fileName)
             self._item.sync_file_with_model(preferFile=preferFile)
-            resyncEvent = schema.ns('osaf.framework.blocks.detail', self).Resynchronize
+            resyncEvent = schema.ns('osaf.views.detail', self).Resynchronize
             Block.Block.post(resyncEvent, {}, self)
             self.postEventByName('ResyncDetailParent', {})
 
