@@ -393,6 +393,8 @@ class I18nManager(EggTranslations, wx.FileSystemHandler):
           @type fallback: c{boolean}
         """
 
+        self._testing = False
+
         if localeSet is None:
             localeSet = self.discoverLocaleSet()
 
@@ -942,6 +944,12 @@ def setWxLocale(locale):
       @type locale: ASCII c{str}
     """
 
+    global _WX_LOCALE
+
+    # Need to unload wx.Locale object otherwise it will
+    # hold a dangling reference and not use the new Locale
+    _WX_LOCALE = None
+
     lc = findWxLocale(locale)
 
     if not lc.IsOk() and hasCountryCode(locale):
@@ -961,9 +969,10 @@ def setWxLocale(locale):
         raise I18nException("Invalid wxPython Locale: " \
                                  "'%s'" % locale)
 
-
-    # Store a reference to the wx.Locale instance
-    global _WX_LOCALE
+    # Keep a Global reference to the Wx Locale
+    # To ensure it does not get unloaded during the
+    # application life cycle. There can be only one
+    # wx locale per Python instance
     _WX_LOCALE = lc
 
 def findWxLocale(locale):

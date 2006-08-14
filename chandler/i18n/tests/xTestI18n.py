@@ -4,6 +4,7 @@ import i18n
 import os
 from i18n import *
 from i18n.i18nmanager import *
+from i18n import wxMessageFactory as w
 
 this_module = "i18n.tests.TestI18n"
 
@@ -19,7 +20,6 @@ class I18nTestCase(unittest.TestCase):
         # A wx application instance must be created
         # before using the wx translation API's
         self.app = wx.App()
-        os.environ["UNIT_TESTING"] = "True"
 
         self.i18nMan = i18n._I18nManager
 
@@ -31,12 +31,31 @@ class I18nTestCase(unittest.TestCase):
         self.i18nMan.initialize(self.LOCALE_SET, self.INI_FILE)
         self.mf = MessageFactory(self.PROJECT, self.CATALOG)
 
-    def tearDown(self):
-        os.environ["UNIT_TESTING"] = "True"
-
     def testWxMessageFactory(self):
-       # XXX Awaiting wxstd.mo discovery by wxPython
-       pass
+        self.assertEquals(w("Cancel"), u"Annuler")
+        self.assertEquals(w("&Quit"), u"&Quitter")
+
+        self.i18nMan.setLocaleSet("es_UY")
+        self.assertEquals(w("Cancel"), u"Cancelar")
+        self.assertEquals(w("&Quit"), u"&Salir")
+
+        self.i18nMan.setLocaleSet("en")
+        self.assertEquals(w("Cancel"), u"Cancel")
+        self.assertEquals(w("&Quit"), u"&Quit")
+
+        # The 'test' locale is a debug keyword
+        # which sets the locale set to ['fr_CA', 'fr']
+        # and enables the testing mode flag.
+        # In testing mode all values returned by
+        # the WxMessageFactory method insert
+        # a (WX)\u00FC: at the start of the string.
+        self.i18nMan.setLocaleSet("test")
+        self.assertEquals(w("Cancel"), u"(WX)\u00FC: Annuler")
+        self.assertEquals(w("&Quit"), u"(WX)\u00FC: &Quitter")
+
+        # Restore the default locale set
+        self.i18nMan.setLocaleSet(self.LOCALE_SET)
+
 
     def testChandlerMessageFactory(self):
         """
