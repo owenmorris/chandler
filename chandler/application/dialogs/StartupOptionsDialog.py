@@ -34,7 +34,7 @@ class StartupOptionsDialog(wx.Dialog):
     def run(cls, exception=None):
         dialog = StartupOptionsDialog(exception)
 
-        if Globals.options.create:
+        if Globals.options.create and hasattr(dialog, 'create'):
             # if --create was on the cmd line, and we have an existing repo, 
             # default to that choice.
             dialog.create.SetValue(True)
@@ -58,7 +58,11 @@ class StartupOptionsDialog(wx.Dialog):
         # object into the real wrapper of the dialog (instead of pre)
         # as far as the wxPython extension is concerned.
         self.this = pre.this
-        
+
+        # Do we have an existing repository?
+        repoDir = locateRepositoryDirectory(Globals.options.profileDir)
+        repoExists = os.path.exists(repoDir)
+
         # Construct the controls and lay them out; their member names match 
         # the options they set in Globals.options below.
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -69,29 +73,37 @@ class StartupOptionsDialog(wx.Dialog):
         sizer.Add(self.normalStartup, flag=wx.ALL, border=5)
         self.normalStartup.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
-        self.refreshui = wx.RadioButton(self, -1, 
-            _(u"Reset the user interface, but save my data and preferences"))
-        sizer.Add(self.refreshui, flag=wx.ALL, border=5)
-        self.refreshui.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
-
-        self.create = wx.RadioButton(self, -1, 
-            _(u"Discard all my data and start from scratch"))
-        sizer.Add(self.create, flag=wx.ALL, border=5)
-        self.create.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
-            
-        repoDir = locateRepositoryDirectory(Globals.options.profileDir)
-        repoExists = os.path.exists(repoDir)
         if repoExists:
-            sizer.AddSpacer((0,5))
-            if repoExists:
-                self.snapshot = wx.RadioButton(self, -1, 
-                    _(u"Make a snapshot of all data for submitting with a bug report, then exit"))
-                sizer.Add(self.snapshot, flag=wx.ALL, border=5)
-                self.snapshot.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
-        self.restore = wx.RadioButton(self, -1, 
-            _(u"Discard all my data and restore from a previous snapshot (this can take a few minutes)"))
-        sizer.Add(self.restore, flag=wx.ALL, border=5)
-        self.restore.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
+            self.refreshui = wx.RadioButton(self, -1, 
+                _(u"Do internal clean-up, but save my data and preferences"))
+            sizer.Add(self.refreshui, flag=wx.ALL, border=5)
+            self.refreshui.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
+
+            self.undocheck = wx.RadioButton(self, -1, 
+                _(u"Discard recent changes until data integrity tests pass"))
+            sizer.Add(self.undocheck, flag=wx.ALL, border=5)
+            self.undocheck.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
+
+            self.create = wx.RadioButton(self, -1, 
+                _(u"Discard all my data and start from scratch"))
+            sizer.Add(self.create, flag=wx.ALL, border=5)
+            self.create.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
+            
+            sizer.AddSpacer((0,8))
+            self.snapshot = wx.RadioButton(self, -1, 
+                _(u"Make a snapshot of all data for submitting with a bug report, then exit"))
+            sizer.Add(self.snapshot, flag=wx.ALL, border=5)
+            self.snapshot.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
+            
+            self.restore = wx.RadioButton(self, -1, 
+                _(u"Discard all my data and restore from a previous snapshot (this can take a few minutes)"))
+            sizer.Add(self.restore, flag=wx.ALL, border=5)
+            self.restore.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
+        else:
+            self.restore = wx.RadioButton(self, -1, 
+                _(u"Restore from a previous snapshot (this can take a few minutes)"))
+            sizer.Add(self.restore, flag=wx.ALL, border=5)
+            self.restore.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
         okButton = wx.Button(self, wx.OK, _(u"OK"))
@@ -106,12 +118,20 @@ class StartupOptionsDialog(wx.Dialog):
             
     def onButton(self, event):
         buttonID = event.GetEventObject().GetId()
-        Globals.options.create = self.create.GetValue()
-        if self.refreshui.GetValue():
+        if hasattr(self, 'create'):
+            Globals.options.create = self.create.GetValue()
+        
+        if hasattr(self, 'refreshui') and self.refreshui.GetValue():
             Globals.options.refreshui = True
+            Globals.options.repair = True
+
+        elif hasattr(self, 'undocheck') and self.undocheck.GetValue():
+            Globals.options.undo = 'check'
+
         elif hasattr(self, 'snapshot') and self.snapshot.GetValue():
             self.makeSnapshot()
             return # user canceled save box - keep going.
+
         elif self.restore.GetValue():
             restorePath = wx.FileSelector(_(u"Snapshot to restore?"),
                                           getDesktopDir(),
