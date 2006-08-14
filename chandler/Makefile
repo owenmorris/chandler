@@ -86,7 +86,7 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-EVDBPlugin \
                 Chandler-EventLogger \
                 Chandler-FeedsPlugin \
-                Chandler-Flickr \
+                Chandler-FlickrPlugin \
                 Chandler-I18nTestsPlugin \
                 Chandler-PhotoPlugin \
                 EggTranslations-Plugins
