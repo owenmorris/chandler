@@ -34,8 +34,8 @@ allTests = [
                 ("TestNewMail","TestNewMail"),
                 ("TestNewTask","TestNewTask"),
                 ("TestNewNote","TestNewNote"),
-                ("TestTableSelection","TestTableSelection"),
                 ("TestTriageSectioning","TestTriageSectioning"),
+                ("TestTableSelection","TestTableSelection"),
                 ("TestStamping","TestStamping"), 
                 ("TestSharing","TestSharing"), 
                 ("TestMoveToTrash","TestMoveToTrash"), 
@@ -55,6 +55,7 @@ allTests = [
                 ("TestRemoveFromTrashOnImport","TestRemoveFromTrashOnImport"),
                 ("TestEnableTimezones","TestEnableTimezones"),
                 ("TestSwitchTimezone","TestSwitchTimezone"),
+                ("TestSubscribe", "TestSubscribe"),
                 ("TestBlocks","TestBlocks"), 
                 ]
 
@@ -70,7 +71,7 @@ exclusions = {#tests to exclude on specific platfoms only
     ],
     
     'mac':[
-    #"TestTableSelection",            # until tested on mac 
+    "TestTableSelection",            # until tested on mac 
     ],
     
     'windows':[
@@ -80,9 +81,8 @@ exclusions = {#tests to exclude on specific platfoms only
     'all':[ #tests to exclude on all platforms       
         ("TestDates","TestDates"), #Chandler not handling daylightsavings bug#5038
         ("TestEditModeOnEnter","TestEditModeOnEnter"), #Chandler bug 5744
-        ("TestRemoveFromTrashOnImport","TestRemoveFromTrashOnImport"), #not tested on all platforms yet
-        ("TestSwitchTimezone","TestSwitchTimezone"), #new test not yet working
-        ("TestEnableTimezones","TestEnableTimezones"),
+        ("TestSubscribe", "TestSubscribe"),# new test not yet working
+        
         ]
 }
 
