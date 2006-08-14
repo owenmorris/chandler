@@ -350,7 +350,7 @@ def run_reactor(in_thread=True):
                 "can't start reactor thread except from the main thread"
             )
         limbo = [1]
-        reactor.addSystemEventTrigger('before', 'startup', limbo.pop)
+        reactor.addSystemEventTrigger('after', 'startup', limbo.pop)
         _reactor_thread = RepositoryThread(
             name="reactor", target=run_reactor, args=(False,)
         )
