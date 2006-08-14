@@ -88,8 +88,8 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-FeedsPlugin \
                 Chandler-Flickr \
                 Chandler-I18nTestsPlugin \
-                Chandler-Photo \
-                EggTranslations
+                Chandler-PhotoPlugin \
+                EggTranslations-Plugins
 
 # When a version changes, the ARCHIVES lists below needs to be updated.
 # these get installed into release or debug
