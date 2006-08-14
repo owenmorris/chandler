@@ -82,9 +82,14 @@ endif
 
 
 BUILD_PLUGINS = Chandler-HelloWorldPlugin \
+                Chandler-AmazonPlugin \
+                Chandler-EVDBPlugin \
+                Chandler-EventLogger \
                 Chandler-FeedsPlugin \
+                Chandler-Flickr \
                 Chandler-I18nTestsPlugin \
-                EggTranslations-Plugin
+                Chandler-Photo \
+                EggTranslations
 
 # When a version changes, the ARCHIVES lists below needs to be updated.
 # these get installed into release or debug
