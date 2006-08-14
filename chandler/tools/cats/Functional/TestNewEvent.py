@@ -25,18 +25,20 @@ class TestNewEvent(ChandlerTestCase):
     
     def startTest(self):
         
-        def todayPlus(inc=0):
+        def mondayPlus(inc=0):
             """return a m/d/yy date string equal to this Monday plus inc days"""
             today = datetime.date.today()
-            monday = today - datetime.timedelta(days=today.weekday())
+            daysUntilMonday = today.weekday()
+            if daysUntilMonday == 6: daysUntilMonday = -1 #sunday is special case
+            monday = today - datetime.timedelta(days=daysUntilMonday)
             incDay =  monday + datetime.timedelta(days=inc)
             y, m, d = incDay.timetuple()[:3]
             return '%s/%s/%s' % (m, d, str(y)[2:].zfill(2))
         
-        evtDate = todayPlus()
-        evtSecondDate = todayPlus(1)
-        evtThirdDate = todayPlus(2)
-        evtRecurrenceEnd = todayPlus(365)
+        evtDate = mondayPlus()
+        evtSecondDate = mondayPlus(1)
+        evtThirdDate = mondayPlus(2)
+        evtRecurrenceEnd = mondayPlus(365)
         
         # Make sure we're not showing timezones now (we'll put it back below)
         tzPrefs = schema.ns('osaf.app', QAUITestAppLib.App_ns.itsView).TimezonePrefs
@@ -135,4 +137,7 @@ class TestNewEvent(ChandlerTestCase):
             HeadlineBlock=(True, uw("Birthday Party")),
             EditCalendarStartDate=(True, evtThirdDate),
             )
+        
+        #leave Chandler with timezones turned off
+        tzPrefs.showUI = False
 
