@@ -84,7 +84,7 @@ endif
 BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-AmazonPlugin \
                 Chandler-EVDBPlugin \
-                Chandler-EventLogger \
+                Chandler-EventLoggerPlugin \
                 Chandler-FeedsPlugin \
                 Chandler-FlickrPlugin \
                 Chandler-I18nTestsPlugin \
