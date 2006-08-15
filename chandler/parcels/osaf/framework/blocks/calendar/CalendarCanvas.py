@@ -621,7 +621,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             delta = SWATCH_HEIGHT_VECTOR + vector([0, SWATCH_SEPARATION])
         else:
             delta = SWATCH_WIDTH_VECTOR  + vector([SWATCH_SEPARATION, 0])
-        
+
+        if '__WXMAC__' in wx.PlatformInfo:
+            dc.SetAntiAliasing(False)
+
         count = 0
         for coll in reversed([i for i in sidebarCollections if 
                               self.item in i and i not in 
@@ -639,6 +642,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
                 dc.DrawRectangle(*swatchTL.join(swatchBR - swatchTL))
                 count += 1
+                
+        if '__WXMAC__' in wx.PlatformInfo:
+            dc.SetAntiAliasing(True)
+
         return count
 
     def DrawEventRectangle(self, dc, rect, brush,
