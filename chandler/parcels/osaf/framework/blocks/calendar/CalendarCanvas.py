@@ -526,7 +526,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     # other collection swatches should be drawn if the item is
                     # in at least one other collection (not counting the
                     # dashboard).
-                    numCollections = len(item.appearsIn)
+                    numCollections = len(getattr(item, 'appearsIn', []))
                     if numCollections > 2 or (numCollections == 2 and
                                               item not in allCollection):
 
