@@ -31,6 +31,7 @@ import logging
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from PyICU import ICUtzinfo
+from reminders import Remindable
 
 logger = logging.getLogger(__name__)
 
@@ -67,25 +68,7 @@ def getTriageStatusOrder(value):
 def getNextTriageStatus(value):
     return TriageEnum.values[(triageStatusOrder[value]+1) % len(TriageEnum.values)]
     
-class Calculated(property):
-    """
-    A property with type information, in the style of our schema.* objects.
-    - This could become a schema class when it grows up :-)
-    - I'm open to a different name: I think it oughta be schema.Property, but pje
-    thought Calculated was better...
-    """
-    def __new__(cls, schema_type, basedOn, fget, fset=None, fdel=None,
-                doc=None):
-        return property.__new__(cls, fget, fset, fdel, doc)
-
-    def __init__(self, schema_type, basedOn, fget, fset=None, fdel=None,
-                 doc=None):
-        property.__init__(self, fget, fset, fdel, doc)
-        self.type = schema_type
-        self.basedOn = basedOn
-
-
-class ContentItem(schema.Item):
+class ContentItem(Remindable):
     """
     Content Item
 

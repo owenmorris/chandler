@@ -16,8 +16,9 @@
 # Import classes whose schemas are part of this parcel
 # (this should include all ContentItem subclasses in this package)
 #
+from calculated import Calculated
 from items import (
-    Calculated, ContentKind, ContentItem, ImportanceEnum, Group, Principal, 
+    ContentKind, ContentItem, ImportanceEnum, Group, Principal, 
     Project, Tag, TriageEnum, getTriageStatusName, getTriageStatusOrder, 
     getNextTriageStatus, UserNotification
 )
@@ -30,7 +31,7 @@ from calendar.TimeZone import installParcel as tzInstallParcel
 from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat, 
      monthNames, sampleDate, sampleTime, shortDateFormat, shortTimeFormat, 
      weekdayNames, weekdayName)
-from calendar.Reminders import Reminder, RemindableMixin
+from reminders import Remindable, Reminder
 from tasks import Task, TaskMixin
 from mail import EmailAddress
 from application.Parcel import Reference
@@ -121,6 +122,31 @@ def installParcel(parcel, oldVersion=None):
         filterAttributes=['isGenerated', 'modificationFor']
     )
 
+    itemKindCollection = KindCollection.update(
+        parcel, 'items',
+        kind = ContentItem.getKind(view),
+       recursive=True)
+
+    itemsWithRemindersIncludingTrash = FilteredCollection.update(
+        parcel, 'itemsWithRemindersIncludingTrash',
+        source=itemKindCollection,
+        filterExpression="view.hasTrueValue(uuid, 'reminders')",
+        filterAttributes=['reminders'])
+
+    itemsWithReminders = AppCollection.update(
+        parcel, 'itemsWithReminders',
+        source=itemsWithRemindersIncludingTrash,
+        exclusions=trashCollection,
+        trash=None,
+    )
+
+    # the monitor list assumes all reminders will be relativeTo
+    # effectiveStartTime, which is true in 0.6, but may not be in the future
+    itemsWithReminders.addIndex('reminderTime', 'compare',
+                                compare='cmpReminderTime',
+                                monitor=('startTime', 'allDay', 'anyTime'
+                                         'reminders'))
+
     # the "All" / "My" collection
     allCollection = SmartCollection.update(parcel, 'allCollection',
         displayName=_(u"Dashboard"),
@@ -146,19 +172,6 @@ def installParcel(parcel, oldVersion=None):
     
     events.addIndex('icalUID', 'value', attribute='icalUID')
 
-    eventsWithRemindersIncludingTrash = FilteredCollection.update(
-        parcel, 'eventsWithRemindersIncludingTrash',
-        source=events,
-        filterExpression="view.hasTrueValue(uuid, 'reminders')",
-        filterAttributes=['reminders'])
-
-    eventsWithReminders = AppCollection.update(
-        parcel, 'eventsWithReminders',
-        source=eventsWithRemindersIncludingTrash,
-        exclusions=trashCollection,
-        trash=None,
-    )
-
     longEvents = FilteredCollection.update(parcel, 'longEvents',
         source = events,
         filterMethod= (LongEventFilter(None, parcel), 'isLongEvent'),
@@ -176,13 +189,6 @@ def installParcel(parcel, oldVersion=None):
                         superindex=(events, events.__collection__,
                                     'effectiveEndNoTZ'))
     
-    # the monitor list assumes all reminders will be relativeTo
-    # effectiveStartTime, which is true in 0.6, but may not be in the future
-    eventsWithReminders.addIndex('reminderTime', 'compare',
-                                 compare='cmpReminderTime',
-                                 monitor=('startTime', 'allDay', 'anyTime'
-                                          'reminders'))
-
     masterFilter = "view.hasTrueValues(uuid, 'occurrences', 'rruleset')"
     masterEvents = FilteredCollection.update(parcel, 'masterEvents',
         source = events,

@@ -39,7 +39,7 @@ def makeMainView (parcel):
     ReminderTimer.update(
         parcel, 'ReminderTimer',
         event = main.ReminderTime,
-        contents = pim_ns.eventsWithReminders)
+        contents = pim_ns.itemsWithReminders)
 
     SidebarBranchPointDelegateInstance = SidebarBranchPointDelegate.update(
         parcel, 'SidebarBranchPointDelegateInstance',

@@ -398,6 +398,27 @@ def makeNoteSubtree(parcel, oldVersion):
             position=0.5,
             border=RectType(0,6,0,6)).install(parcel)
 
+    reminderArea = \
+        makeArea(parcel, 'ReminderArea',
+            baseClass=ReminderAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'alarm'), borderTop=5),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditReminder',
+                    viewAttribute=u'reminderInterval',
+                    presentationStyle={
+                        # @@@ XXX i18n: the code assumes that if the value
+                        # starts with a digit, it's a number of minutes; if not,
+                        # it's None.
+                        'choices': [_(u'None'), _(u'1 minute'), _(u'5 minutes'), 
+                                    _(u'10 minutes'), _(u'30 minutes'), 
+                                    _(u'60 minutes'), _(u'90 minutes')],
+                        'format' : 'reminder'
+                    },
+                    stretchFactor=0.0,
+                    minimumSize=SizeType(100, -1))],
+            position=0.81).install(parcel)
+
     # The Note AEBlock
     notesBlock = makeEditor(parcel, 'NotesBlock',
                             viewAttribute=u'body',
@@ -425,6 +446,9 @@ def makeNoteSubtree(parcel, oldVersion):
         makeSpacer(parcel, height=6, position=0.01).install(parcel),
         parcel['MarkupBar'],
         headlineArea, 
+        makeSpacer(parcel, height=7, baseClass=ReminderSpacerBlock,
+                   position=0.809999).install(parcel),
+        reminderArea,
         makeSpacer(parcel, height=7, position=0.8999).install(parcel),
         notesBlock,
         appearsInArea,
@@ -578,26 +602,6 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                     presentationStyle={'format': 'ends'},
                     stretchFactor=0.0,
                     size=SizeType(75, -1))])
-
-    reminderArea = \
-        makeArea(parcel, 'CalendarReminderArea',
-            baseClass=CalendarReminderAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'alarm'), borderTop=5),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditReminder',
-                    viewAttribute=u'reminderInterval',
-                    presentationStyle={
-                        # @@@ XXX i18n: the code assumes that if the value
-                        # starts with a digit, it's a number of minutes; if not,
-                        # it's None.
-                        'choices': [_(u'None'), _(u'1 minute'), _(u'5 minutes'), 
-                                    _(u'10 minutes'), _(u'30 minutes'), 
-                                    _(u'60 minutes'), _(u'90 minutes')],
-                        'format' : 'reminder'
-                    },
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(100, -1))])
  
     timeDescriptionArea = \
         makeArea(parcel, 'CalendarTimeDescriptionArea',
@@ -641,10 +645,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                 locationArea,
                 makeSpacer(parcel, height=4),
                 #timeDescriptionArea,
-                timeEditArea,
-                makeSpacer(parcel, height=7,
-                           baseClass=CalendarReminderSpacerBlock),
-                reminderArea]).install(parcel)
+                timeEditArea]).install(parcel)
 
     makeSubtree(parcel, osaf.pim.CalendarEventMixin, [ calendarDetails ])
  

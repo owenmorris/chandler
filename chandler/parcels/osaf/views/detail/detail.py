@@ -684,21 +684,78 @@ class CalendarTimeAEBlock (TimeConditionalBlock,
 
 class ReminderConditionalBlock(Item):
     def shouldShow (self, item):
-        return item.isAttributeModifiable('reminders') \
-               or len(item.reminders) > 0
+        return isinstance(item, pim.CalendarEventMixin) and \
+               (item.isAttributeModifiable('reminders') \
+               or len(item.reminders) > 0)
 
     def getWatchList(self):
         watchList = super(ReminderConditionalBlock, self).getWatchList()
         watchList.append((self.item, 'reminders'))
         return watchList
     
-class CalendarReminderSpacerBlock(ReminderConditionalBlock,
-                                  SynchronizedSpacerBlock):
+class ReminderSpacerBlock(ReminderConditionalBlock,
+                          SynchronizedSpacerBlock):
     pass
 
-class CalendarReminderAreaBlock (ReminderConditionalBlock,
-                                 DetailSynchronizedContentItemDetail):
+class ReminderAreaBlock(ReminderConditionalBlock,
+                        DetailSynchronizedContentItemDetail):
     pass
+
+class ReminderAttributeEditor(ChoiceAttributeEditor):
+    def GetControlValue (self, control):
+        """
+        Get the reminder delta value for the current selection.
+        """
+        # @@@ i18n For now, assumes that the menu will be a number of minutes, 
+        # followed by a space (eg, "1 minute", "15 minutes", etc), or something
+        # that doesn't match this (eg, "None") for no-alarm.
+        menuChoice = control.GetStringSelection()
+        try:
+            minuteCount = int(menuChoice.split(u" ")[0])
+        except ValueError:
+            # "None"
+            value = None
+        else:
+            value = timedelta(minutes=-minuteCount)
+        return value
+
+    def SetControlValue (self, control, value):
+        """
+        Select the choice that matches this delta value.
+        """
+        # We also take this opportunity to populate the menu
+        existingValue = self.GetControlValue(control)
+        if existingValue != value or control.GetCount() == 0:            
+            # rebuild the list of choices
+            choices = self.GetChoices()
+            control.Clear()
+            control.AppendItems(choices)
+
+            if value is None:
+                choiceIndex = 0 # the "None" choice
+            else:
+                minutes = ((value.days * 1440) + (value.seconds / 60))
+                reminderChoice = (minutes == -1) and _(u"1 minute") or (_(u"%(numberOf)i minutes") % {'numberOf': -minutes})
+                choiceIndex = control.FindString(reminderChoice)
+                # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
+                if choiceIndex == -1:
+                    choiceIndex = 0 # the "None" choice
+            control.Select(choiceIndex)
+
+    def GetAttributeValue (self, item, attributeName):
+        """
+        Get the value from the specified attribute of the item.
+        """
+        return item.reminderInterval
+
+    def SetAttributeValue (self, item, attributeName, value):
+        """Set the value of the attribute given by the value.
+        """
+        if not self.ReadOnly((item, attributeName)) and \
+           value != self.GetAttributeValue(item, attributeName):
+
+            setattr(item, attributeName, value)
+            self.AttributeChanged()
 
 class TransparencyConditionalBlock(Item):
     def shouldShow (self, item):
@@ -1034,62 +1091,6 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
             # Refresh the value in the control
             self.SetControlValue(self.control, 
                              self.GetAttributeValue(item, attributeName))
-
-class ReminderAttributeEditor(ChoiceAttributeEditor):
-    def GetControlValue (self, control):
-        """
-        Get the reminder delta value for the current selection.
-        """
-        # @@@ i18n For now, assumes that the menu will be a number of minutes, 
-        # followed by a space (eg, "1 minute", "15 minutes", etc), or something
-        # that doesn't match this (eg, "None") for no-alarm.
-        menuChoice = control.GetStringSelection()
-        try:
-            minuteCount = int(menuChoice.split(u" ")[0])
-        except ValueError:
-            # "None"
-            value = None
-        else:
-            value = timedelta(minutes=-minuteCount)
-        return value
-
-    def SetControlValue (self, control, value):
-        """
-        Select the choice that matches this delta value.
-        """
-        # We also take this opportunity to populate the menu
-        existingValue = self.GetControlValue(control)
-        if existingValue != value or control.GetCount() == 0:            
-            # rebuild the list of choices
-            choices = self.GetChoices()
-            control.Clear()
-            control.AppendItems(choices)
-
-            if value is None:
-                choiceIndex = 0 # the "None" choice
-            else:
-                minutes = ((value.days * 1440) + (value.seconds / 60))
-                reminderChoice = (minutes == -1) and _(u"1 minute") or (_(u"%(numberOf)i minutes") % {'numberOf': -minutes})
-                choiceIndex = control.FindString(reminderChoice)
-                # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
-                if choiceIndex == -1:
-                    choiceIndex = 0 # the "None" choice
-            control.Select(choiceIndex)
-
-    def GetAttributeValue (self, item, attributeName):
-        """
-        Get the value from the specified attribute of the item.
-        """
-        return item.reminderInterval
-
-    def SetAttributeValue (self, item, attributeName, value):
-        """Set the value of the attribute given by the value.
-        """
-        if not self.ReadOnly((item, attributeName)) and \
-           value != self.GetAttributeValue(item, attributeName):
-
-            setattr(item, attributeName, value)
-            self.AttributeChanged()
 
 class RecurrenceAttributeEditor(ChoiceAttributeEditor):
     # These are the values we pass around; they're the same as the menu indices.

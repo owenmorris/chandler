@@ -25,16 +25,17 @@ import application
 
 from application import schema
 from osaf.pim.contacts import Contact
-from osaf.pim.items import Calculated, ContentItem
+from osaf.pim.calculated import Calculated
+from osaf.pim.items import ContentItem
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
 from application.dialogs import RecurrenceDialog
 import wx
 
 from TimeZone import formatTime
-from Reminders import RemindableMixin, Reminder
 from osaf.pim.calendar.TimeZone import coerceTimeZone, TimeZoneInfo
 from osaf.pim.calendar import DateTimeUtil
+from osaf.pim.reminders import Remindable, Reminder
 from PyICU import DateFormat, DateFormatSymbols, ICUtzinfo
 from datetime import datetime, time, timedelta
 import itertools
@@ -269,7 +270,7 @@ def recurringEventsInRange(view, start, end, filterColl = None,
 
 
 
-class CalendarEventMixin(RemindableMixin):
+class CalendarEventMixin(ContentItem):
     """
     This is the set of CalendarEvent-specific attributes. This Kind is 'mixed
     in' to others kinds to create Kinds that can be instantiated.

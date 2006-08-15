@@ -14,7 +14,7 @@
 
 
 from application import schema
-from osaf.pim.items import Calculated, ContentItem
+from calculated import Calculated
 from datetime import datetime, time, timedelta
 from PyICU import ICUtzinfo
 
@@ -31,13 +31,13 @@ class Reminder(schema.Item):
     )
 
     reminderItems = schema.Sequence(
-        "RemindableMixin",
+        "Remindable",
         inverse="reminders",
         initialValue=[]
     )
 
     expiredReminderItems = schema.Sequence(
-        "RemindableMixin",
+        "Remindable",
         inverse="expiredReminders",
         initialValue=[]
     )
@@ -66,7 +66,7 @@ class Reminder(schema.Item):
             result = result.replace(tzinfo=ICUtzinfo.default)
         return result
 
-class RemindableMixin(ContentItem):
+class Remindable(schema.Item):
     reminders = schema.Sequence(
         Reminder,
         inverse=Reminder.reminderItems,
