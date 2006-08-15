@@ -313,6 +313,8 @@ class Gradients(object):
         """
         assert orientation in ("Horizontal", "Vertical")
         key = (offset, width, leftColor, rightColor, orientation)
+        if leftColor == rightColor:
+            return wx.TheBrushList.FindOrCreateBrush(leftColor, wx.SOLID)
         brush = self._gradientCache.get(key, None)
         if brush is None:
             self.misses += 1

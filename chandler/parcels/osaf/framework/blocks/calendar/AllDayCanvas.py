@@ -571,6 +571,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 class AllDayCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
     textMargin = 2
+    swatchAdjust = 3
     
     def GetBoundsRects(self):
         return [self._bounds]

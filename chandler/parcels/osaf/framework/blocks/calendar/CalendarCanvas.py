@@ -38,7 +38,8 @@ from osaf.framework.blocks import (
     DragAndDrop, Block, SplitterWindow, Styles, BoxContainer, BlockEvent
     )
 from osaf.framework.attributeEditors import AttributeEditors
-from osaf.framework.blocks.DrawingUtilities import DrawWrappedText, Gradients, color2rgb, rgb2color
+from osaf.framework.blocks.DrawingUtilities import (DrawWrappedText, Gradients,
+                color2rgb, rgb2color, vector)
 
 from osaf.framework.blocks.calendar import CollectionCanvas
 from osaf.framework import Preferences
@@ -68,6 +69,13 @@ dateFormatSymbols = DateFormatSymbols()
 ENABLE_DEVICE_ORIGIN = False
 
 RADIUS = 8
+SWATCH_HEIGHT = 5 # not counting border
+SWATCH_WIDTH  = 3 # not counting border
+SWATCH_BORDER = 1
+SWATCH_SEPARATION = 2
+
+SWATCH_WIDTH_VECTOR  = vector([SWATCH_WIDTH  + 2*SWATCH_BORDER, 0])
+SWATCH_HEIGHT_VECTOR = vector([0, SWATCH_HEIGHT + 2*SWATCH_BORDER])
 
 # add some space below the time (but on linux there isn't any room)
 if '__WXGTK__' in wx.PlatformInfo:
@@ -129,14 +137,32 @@ def roundToColumnPosition(v, columnList):
 
 # hue -> colorName mapping
 hueMap = dict((int(v), k) for k, v in confstyles.cfg.items('colors'))
+suffixes = 'GradientLeft', 'GradientRight', 'Outline', 'Text'
 
+def colorValWithDefault(hue, name):
+    hueName = hueMap.get(int(hue*360))
+    if hueName is not None:
+        val = confstyles.cfg.get('calendarcanvas', hueName + name)
+        if val is not None:
+            return float(val)
+    return confstyles.cfg.getfloat('calendarcanvas', name)
+
+
+def getLozengeTypeColor(hue, lozengeType):
+    return rgb2color(*hsv_to_rgb(hue,
+                        colorValWithDefault(hue, lozengeType + 'Saturation'),
+                        colorValWithDefault(hue, lozengeType + 'Value'))
+                     )
+
+def getHueForCollection(collection):
+    color = UserCollection(collection).ensureColor().color
+    return rgb_to_hsv(*color2rgb(color.red,color.green,color.blue))[0]
+    
 class ColorInfo(object):
     def __init__(self, collection):
         # sometimes this happens when getContainingCollection fails to find a collection
         assert collection is not None, "Can't get color for None"
-
-        color = UserCollection(collection).ensureColor().color
-        self.hue = rgb_to_hsv(*color2rgb(color.red,color.green,color.blue))[0]
+        self.hue = getHueForCollection(collection)
     
     def getColorsProperty(prefix):
         """
@@ -144,23 +170,10 @@ class ColorInfo(object):
         four RGB colors.
         
         """
-        suffixes = 'GradientLeft', 'GradientRight', 'Outline', 'Text'
         names = [prefix + suffix for suffix in suffixes]
-        
-        def valWithDefault(hue, name):
-            hueName = hueMap.get(int(hue*360))
-            if hueName is not None:
-                val = confstyles.cfg.get('calendarcanvas', hueName + name)
-                if val is not None:
-                    return float(val)
-            return confstyles.cfg.getfloat('calendarcanvas', name)
                 
         def getSaturatedColors(self):
-            satsAndValues = ((valWithDefault(self.hue, name + 'Saturation'),
-                              valWithDefault(self.hue, name + 'Value'))
-                             for name in names)
-            return [rgb2color(*hsv_to_rgb(self.hue, saturation, value)) for
-                    saturation, value in satsAndValues]
+            return [getLozengeTypeColor(self.hue, name) for name in names]
 
         return property(getSaturatedColors)
     
@@ -278,6 +291,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         self.timeString = formatTime(self.item.startTime)
 
         self.colorInfo = ColorInfo(collection)
+        
+        self.collection = collection
+        self.primaryCollection = primaryCollection
 
         self.isActive = primaryCollection is collection
 
@@ -332,7 +348,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     
             return self.colorInfo.visibleColors
             
-    def GetAnyTimeOrAllDay(self):	
+    def GetAnyTimeOrAllDay(self):
         item = self.item
         anyTime = getattr(item, 'anyTime', False)
         allDay = getattr(item, 'allDay', False)
@@ -393,7 +409,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         if (item.isDeleted() or
             not item.itsKind.isKindOf(CalendarEventKind)):
             return
-        isAnyTimeOrAllDay = self.GetAnyTimeOrAllDay()	
+        isAnyTimeOrAllDay = self.GetAnyTimeOrAllDay()
+        allCollection = schema.ns('osaf.pim', item.itsView).allCollection
         # Draw one event - an event consists of one or more bounds	
        
         clipRect = None
@@ -405,7 +422,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             self.getEventColors(selected)
        
         dc.SetTextForeground(textColor)
-       
         for rectIndex, itemRect in enumerate(self.GetBoundsRects()):
 
             if not itemRect.IsEmpty():
@@ -471,6 +487,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     
                 width = itemRect.width - self.textOffset.x - (self.textMargin)
                 
+                multipleLinesDrawn = False                
+                
                 # only draw date/time on first item
                 if drawEventText:
                     # only draw time on timed events
@@ -493,6 +511,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                             styles.eventTimeMeasurements)
                             
                             y += self.timeHeight + TIME_BOTTOM_MARGIN
+                            multipleLinesDrawn = True
     
                     # we may have lost some room in the rectangle from	
                     # drawing the time	
@@ -501,13 +520,67 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     # for some reason text measurement on the mac is off,
                     # and text tends to look smooshed to the edge, so we
                     # give it a 5 pixel buffer there
+                    
+                    rightMargin = 0
+                    
+                    # other collection swatches should be drawn if the item is
+                    # in at least one other collection (not counting the
+                    # dashboard).
+                    numCollections = len(item.appearsIn)
+                    if numCollections > 2 or (numCollections == 2 and
+                                              item not in allCollection):
+
+                        margin = max(RADIUS/2, self.textMargin)
+                        yMargin = vector([0, margin])
+
+                        bottomRight = vector(
+                               [itemRect.x + itemRect.width - margin, 
+                                itemRect.y + itemRect.height - margin])
+                        topRight = vector([itemRect.x + itemRect.width - margin,
+                                           itemRect.y + lostHeight + margin])
+
+                        if multipleLinesDrawn:
+                            # when the time was drawn, add yMargin back in, 
+                            # because lostHeight includes ample margin
+                            topLeft = topRight - SWATCH_WIDTH_VECTOR - yMargin
+                            self.DrawCollectionSwatches(dc, topLeft,
+                                                        bottomRight, True)
+                            rightMargin += (margin + SWATCH_WIDTH +
+                                            2 * SWATCH_BORDER)
+                        else:
+                            textWidth = dc.GetFullTextExtent(item.displayName,
+                                              styles.eventLabelFont)[0]                            
+                            
+                            oneWidth = (SWATCH_SEPARATION + SWATCH_WIDTH +
+                                        2*SWATCH_BORDER)
+                            doubleWidth = (margin + 2 * oneWidth -
+                                           SWATCH_SEPARATION)
+                            
+                            # position lozenges in the middle of the                             
+                            
+                            if textWidth > width - rightMargin - doubleWidth:
+                                left = topRight[0] - doubleWidth
+                            else:
+                                left = x + textWidth
+                            
+                            right = topRight[0]
+                            top = itemRect.y + RADIUS - self.swatchAdjust
+                            bottom = top + SWATCH_HEIGHT + 2 * SWATCH_BORDER 
+     
+                            count = self.DrawCollectionSwatches(dc, 
+                                                        vector([left, top]),
+                                                        vector([right, bottom]),
+                                                        vertical=False)
+                            
+                            rightMargin += (margin + count * oneWidth -
+                                            SWATCH_SEPARATION)
+
+
                     if ('__WXMAC__' in wx.PlatformInfo):
-                        margin = 5
-                    else:
-                        margin = 0
-                        
+                        rightMargin += 5
+                    
                     # now draw the text of the event
-                    textRect = (x,y,width - margin, 
+                    textRect = (x,y,width - rightMargin,
                                 itemRect.height - lostHeight - self.textOffset.y)
            
                     dc.SetFont(styles.eventLabelFont)
@@ -517,10 +590,57 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     DrawWrappedText(dc, drawingItem.displayName, textRect,
                                     styles.eventLabelMeasurements)
        
-        dc.DestroyClippingRegion()	
-        if clipRect:	
+        dc.DestroyClippingRegion()
+        if clipRect:
             dc.SetClippingRegion(*clipRect)
-       
+
+    def DrawCollectionSwatches(self, dc, topLeft, bottomRight, vertical=True):
+        """
+        topLeft and bottomRight must be vectors (lists which can be added and
+        subtracted like vectors)
+        """
+        app_ns = schema.ns('osaf.app', self.item.itsView)
+        sidebarCollections = app_ns.sidebarCollection
+        allCollection = schema.ns('osaf.pim', self.item.itsView).allCollection
+        if self.isActive:
+            fillColorLozengeType = 'SelectedGradientLeft'
+            outlinePre1 = 'Selected'
+        else:
+            fillColorLozengeType = 'SelectedFYIGradientLeft'
+            outlinePre1 = 'Overlay'
+        if self.invertColors():
+            outlinePre2 = 'FYISwatchOutline'
+        else:
+            outlinePre2 = 'SwatchOutline'
+
+        hue = getHueForCollection(self.collection)
+        outlineColor = getLozengeTypeColor(hue, outlinePre1 + outlinePre2)
+        dc.SetPen(wx.Pen(outlineColor, SWATCH_BORDER))
+
+        if vertical:
+            delta = SWATCH_HEIGHT_VECTOR + vector([0, SWATCH_SEPARATION])
+        else:
+            delta = SWATCH_WIDTH_VECTOR  + vector([SWATCH_SEPARATION, 0])
+        
+        count = 0
+        for coll in reversed([i for i in sidebarCollections if 
+                              self.item in i and i not in 
+                              (self.collection, allCollection)]):
+            swatchBR = bottomRight - count * delta
+            swatchTL = swatchBR - SWATCH_HEIGHT_VECTOR - SWATCH_WIDTH_VECTOR
+            
+            if swatchTL[0] < topLeft[0] or swatchTL[1] < topLeft[1]:
+                break
+            else:
+                hue = getHueForCollection(coll)
+                fillColor = getLozengeTypeColor(hue, fillColorLozengeType)
+                brush = wx.TheBrushList.FindOrCreateBrush(fillColor, wx.SOLID)
+                dc.SetBrush(brush)
+
+                dc.DrawRectangle(*swatchTL.join(swatchBR - swatchTL))
+                count += 1
+        return count
+
     def DrawEventRectangle(self, dc, rect, brush,
                            hasLeftRounded=False,
                            hasTopRightRounded=True,
