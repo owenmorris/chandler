@@ -518,9 +518,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                             
                             textWidth = dc.GetFullTextExtent(timeString,
                                               styles.eventTimeFont)[0]
-                            superscript = Styles.getFont(
-                                size = styles.eventTimeStyle.fontSize * .7
-                                )
+                            size = styles.eventTimeStyle.fontSize * .7
+                            if '__WXMAC__' in wx.PlatformInfo:
+                                # on the Mac anti-aliasing seems to stop at 8px
+                                size = max(size, 9)
+                            
+                            superscript = Styles.getFont(size=size)
                             # This assumes the timezone should be to the right
                             # of the time string.  This isn't necessarily true,
                             # so this isn't really localized yet.

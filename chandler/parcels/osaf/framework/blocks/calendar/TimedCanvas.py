@@ -836,6 +836,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if not currentCanvasItem.CanDrag():
             return
 
+        currentCanvasItem.startTime = currentCanvasItem.endTime = None
+
         proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.item,
                                           endCallback=self.wxSynchronizeWidget)
         self.activeProxy = proxy

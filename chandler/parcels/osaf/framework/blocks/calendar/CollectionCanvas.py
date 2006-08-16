@@ -261,8 +261,7 @@ class DragState(object):
         
         if self._dragStarted:
             self.StopDragTimer()
-            self.dragEndHandler()
-
+        self.dragEndHandler()
 
 class wxCollectionCanvas(DragAndDrop.DropReceiveWidget, 
                          DragAndDrop.DraggableWidget,
