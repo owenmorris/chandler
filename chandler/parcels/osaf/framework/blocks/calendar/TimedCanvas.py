@@ -504,6 +504,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                     # override the item's start time for when the time string
                     # is actually displayed in the time
                     canvasItem.startTime = newStartTime
+                    canvasItem.endTime   = newEndTime
                     
                     canvasItem.UpdateDrawingRects(newStartTime, newEndTime)
                 else:
@@ -1012,7 +1013,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 class TimedCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
     textMargin = 2
-    swatchAdjust = 2
+    swatchAdjust = 0
     
     RESIZE_MODE_START = 1
     RESIZE_MODE_END = 2

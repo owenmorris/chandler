@@ -27,7 +27,8 @@ from chandlerdb.item.ItemError import NoSuchItemInCollectionError
 from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo, TimeZone
 
-from osaf.pim.calendar import Calendar, TimeZoneInfo, formatTime, DateTimeUtil
+from osaf.pim.calendar import (Calendar, TimeZoneInfo, formatTime, DateTimeUtil,
+                               shortTZ)
 from osaf.pim import ContentCollection
 from osaf.usercollections import UserCollection
 from application.dialogs import RecurrenceDialog, Util, TimeZoneList
@@ -39,7 +40,7 @@ from osaf.framework.blocks import (
     )
 from osaf.framework.attributeEditors import AttributeEditors
 from osaf.framework.blocks.DrawingUtilities import (DrawWrappedText, Gradients,
-                color2rgb, rgb2color, vector)
+                DrawClippedText, color2rgb, rgb2color, vector)
 
 from osaf.framework.blocks.calendar import CollectionCanvas
 from osaf.framework import Preferences
@@ -68,7 +69,7 @@ dateFormatSymbols = DateFormatSymbols()
 # used on any platform
 ENABLE_DEVICE_ORIGIN = False
 
-RADIUS = 8
+RADIUS = 6
 SWATCH_HEIGHT = 5 # not counting border
 SWATCH_WIDTH  = 3 # not counting border
 SWATCH_BORDER = 1
@@ -285,10 +286,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         # this is supposed to be set in Draw(), but sometimes this
         # object seems to exist before Draw() is called
-        self.textOffset = wx.Point(self.textMargin + RADIUS / 2, self.textMargin)
+        self.textOffset = wx.Point(self.textMargin + RADIUS / 2, self.textMargin + 1)
 
         # use PyICU to pre-cache the time string
-        self.timeString = formatTime(self.item.startTime)
+        self.timeString = formatTime(self.item.startTime, noTZ=True)
 
         self.colorInfo = ColorInfo(collection)
         
@@ -320,8 +321,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return (self.anyOrZero() or item.transparency == 'fyi')
     
     def dashedLine(self):
-        item = self.item
-        return (self.anyOrZero() or item.transparency == 'tentative')
+        return self.item.transparency == 'tentative'
     
     def anyOrZero(self):
         item = self.item
@@ -487,7 +487,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     
                 width = itemRect.width - self.textOffset.x - (self.textMargin)
                 
-                multipleLinesDrawn = False                
+                multipleLinesDrawn = False
+                lostBottom = 0
                 
                 # only draw date/time on first item
                 if drawEventText:
@@ -499,7 +500,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         # decide if we should measure the time or not
                         startTime = getattr(self, 'startTime', None)
                         if startTime:
-                            timeString = formatTime(startTime)
+                            # don't use a time zone when drawing the startTime
+                            timeString = formatTime(startTime, noTZ=True)
                         else:
                             timeString = self.timeString
                         timeHeight = self.SetTimeHeight(dc, styles, timeString)
@@ -510,12 +512,66 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                             DrawWrappedText(dc, timeString, timeRect,
                                             styles.eventTimeMeasurements)
                             
+                            textWidth = dc.GetFullTextExtent(timeString,
+                                              styles.eventTimeFont)[0]
+                            superscript = Styles.getFont(
+                                size = styles.eventTimeStyle.fontSize * .7
+                                )
+                            # This assumes the timezone should be to the right
+                            # of the time string.  This isn't necessarily true,
+                            # so this isn't really localized yet.
+                            if textWidth < width:
+                                tzString = shortTZ(item.startTime)
+                                if len(tzString) > 0:
+                                    dc.SetFont(superscript)
+                                    DrawClippedText(dc, tzString, x + textWidth,
+                                                    y, width - textWidth,
+                                                    timeHeight)
+                            
+                            
                             y += self.timeHeight + TIME_BOTTOM_MARGIN
                             multipleLinesDrawn = True
+
+                            # draw end time when dragging
+                            endTime = getattr(self, 'endTime', None)
+                            if endTime:
+                                # use a time zone when drawing the endTime
+                                timeString = formatTime(endTime, noTZ=True)
+                                tzString = shortTZ(item.startTime)
+                                
+                                textWidth = dc.GetFullTextExtent(timeString,
+                                              styles.eventTimeFont)[0]
+                                tzWidth   = dc.GetFullTextExtent(tzString,
+                                              superscript)[0]
+
+                                rightAlignStart = max(x, x + width - textWidth -
+                                                    tzWidth - self.textOffset.x)
+                                bottomStart = (y - 2*self.textOffset.y -
+                                               2*timeHeight + itemRect.height)
+                                rectWidth = width + (x - rightAlignStart)
+                                timeRect = (rightAlignStart, bottomStart,
+                                            rectWidth, timeHeight)
+                                dc.SetFont(styles.eventTimeFont)
+
+                                DrawWrappedText(dc, timeString, timeRect,
+                                                styles.eventTimeMeasurements)
+
+                                if len(tzString) > 0:
+                                    dc.SetFont(superscript)
+
+                                    DrawClippedText(dc, tzString,
+                                                    rightAlignStart + textWidth,
+                                                    bottomStart,
+                                                    rectWidth - textWidth,
+                                                    timeHeight)                              
+                                
+                                lostBottom = timeHeight + self.textOffset.y
+                                
+
     
                     # we may have lost some room in the rectangle from	
                     # drawing the time	
-                    lostHeight = y - itemRect.y
+                    lostHeight = y - itemRect.y + lostBottom
     
                     # for some reason text measurement on the mac is off,
                     # and text tends to look smooshed to the edge, so we
@@ -527,8 +583,11 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     # in at least one other collection (not counting the
                     # dashboard).
                     numCollections = len(getattr(item, 'appearsIn', []))
+                    # for some reason primaryCollection and allCollection don't
+                    # compare as equal when they ought to
                     if numCollections > 2 or (numCollections == 2 and
-                                              item not in allCollection):
+                      (item not in allCollection or 
+                       self.primaryCollection.itsUUID==allCollection.itsUUID)):
 
                         margin = max(RADIUS/2, self.textMargin)
                         yMargin = vector([0, margin])
@@ -556,7 +615,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                             doubleWidth = (margin + 2 * oneWidth -
                                            SWATCH_SEPARATION)
                             
-                            # position lozenges in the middle of the                             
+                            # position swatches in the middle of the lozenge
                             
                             if textWidth > width - rightMargin - doubleWidth:
                                 left = topRight[0] - doubleWidth

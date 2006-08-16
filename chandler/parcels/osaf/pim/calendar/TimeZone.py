@@ -224,7 +224,22 @@ def coerceTimeZone(dt, tzinfo):
             dt = dt.replace(tzinfo=PyICU.ICUtzinfo.default)
         return dt.astimezone(tzinfo)
 
-def formatTime(dt, tzinfo=None):
+def shortTZ(dt, tzinfo=None):
+    """
+    Return an empty string or the short timezone string for dt if dt.tzinfo
+    doesn't match tzinfo (tzinfo defaults to PyICU.ICUtzinfo.default)
+    
+    """
+    if tzinfo is None: tzinfo = PyICU.ICUtzinfo.default    
+
+    if dt.tzinfo is None or dt.tzinfo is PyICU.ICUtzinfo.floating:
+        return u''
+    elif dt.tzinfo != tzinfo:
+        return dt.tzinfo.timezone.getDisplayName(dt.dst(),
+                                          dt.tzinfo.timezone.SHORT)
+    return u''
+
+def formatTime(dt, tzinfo=None, noTZ=False):
 
     def __setTimeZoneInSubformats(msgFormat, tz):
         subformats = msgFormat.getFormats()
@@ -244,7 +259,7 @@ def formatTime(dt, tzinfo=None):
     elif dt.tzinfo != tzinfo:
         useSameTimeZoneFormat = False
 
-    if useSameTimeZoneFormat:
+    if useSameTimeZoneFormat or noTZ:
         format = PyICU.MessageFormat("{0,time,short}")
         __setTimeZoneInSubformats(format, tzinfo.timezone)
     else:
