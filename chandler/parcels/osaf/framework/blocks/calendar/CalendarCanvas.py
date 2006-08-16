@@ -548,8 +548,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                 
                                 textWidth = dc.GetFullTextExtent(timeString,
                                               styles.eventTimeFont)[0]
-                                tzWidth   = dc.GetFullTextExtent(tzString,
-                                              superscript)[0]
+                                tzWidth = 0
+                                if len(tzString > 0):
+                                    tzWidth   = dc.GetFullTextExtent(tzString,
+                                                  superscript)[0]
 
                                 rightAlignStart = max(x, x + width - textWidth -
                                                     tzWidth - self.textOffset.x)
