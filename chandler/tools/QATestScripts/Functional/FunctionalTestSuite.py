@@ -66,7 +66,6 @@ allTests = [
                 "TestRemoveFromTrashOnImport.py",
                 "TestEnableTimezones.py",
                 "TestSwitchTimezone.py",
-                "TestSubscribe.py",
                 "TestBlocks.py", 
                 "TestCleanRepo.py", 
                 ]
@@ -93,7 +92,6 @@ exclusions = {#tests to exclude on specific platfoms only
         "TestDates.py", #Chandler not handling daylightsavings bug#5038
         "TestEditModeOnEnter.py", #Chandler bug 5744
         "TestRemoveFromTrashOnImport.py", #not tested on all platforms yet
-        "TestSubscribe.py", # new test not yet working
         )
 }
 
