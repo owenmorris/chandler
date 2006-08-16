@@ -34,6 +34,8 @@ from application.dialogs import RecurrenceDialog
 
 class TimedEventsCanvas(CalendarBlock):
 
+    scrollY = schema.One(schema.Integer, initialValue = -1)
+
     def render(self, *args, **kwds):
         super(TimedEventsCanvas, self).render(*args, **kwds)
 
@@ -90,6 +92,14 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.orderLast = []
 
     def wxSynchronizeWidget(self, useHints=False):
+        scrollY = self.blockItem.scrollY
+        if scrollY < 0:
+            # A scrollY value of -1 (it's initial value) is used as way to
+            # specify a scroll position of 6AM, which is difficult to calculate
+            # during repository creation time because it depends on runtime
+            # window sizes.
+            scrollY = (self.hourHeight * 6) / self.GetScrollPixelsPerUnit()[1]
+        self.Scroll(0, scrollY)
         currentRange = self.GetCurrentDateRange()
         self._doDrawingCalculations()
 

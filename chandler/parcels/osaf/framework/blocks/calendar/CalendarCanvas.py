@@ -1291,9 +1291,10 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
     def OnInit(self):
         super(wxCalendarCanvas, self).OnInit()
         self.editor = wxInPlaceEditor(self, defocusCallback=self.SetPanelFocus)
-        
+    
     def OnScroll(self, event):
         self.Refresh()
+        self.blockItem.scrollY = self.GetViewStart()[1]
         event.Skip()
 
     def OnSelectItem(self, item):
