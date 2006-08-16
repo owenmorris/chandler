@@ -141,7 +141,11 @@ hueMap = dict((int(v), k) for k, v in confstyles.cfg.items('colors'))
 suffixes = 'GradientLeft', 'GradientRight', 'Outline', 'Text'
 
 def colorValWithDefault(hue, name):
-    hueName = hueMap.get(int(hue*360))
+    hueDegrees = int(hue*360)
+    hueName = hueMap.get(hueDegrees)
+    if hueName is None:
+        # int rounds floats down, try rounding up
+        hueName = hueMap.get(hueDegrees + 1)
     if hueName is not None:
         val = confstyles.cfg.get('calendarcanvas', hueName + name)
         if val is not None:
