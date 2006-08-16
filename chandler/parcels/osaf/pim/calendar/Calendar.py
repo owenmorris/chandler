@@ -364,12 +364,6 @@ class CalendarEventMixin(ContentItem):
             "able to import iCalendar events with arbitrary UIDs."
     )
 
-    icalUIDMap = schema.One(
-        otherName = "items",
-        doc = "For performance we maintain a ref collection mapping iCalendar "
-              "UIDs to events, making lookup by UID quick."
-    )
-
     modifies = schema.One(
         ModificationEnum,
         defaultValue=None,
