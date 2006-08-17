@@ -71,7 +71,7 @@ exclusions = {#tests to exclude on specific platfoms only
     ],
     
     'mac':[
-    "TestTableSelection",            # until tested on mac 
+    ("TestTableSelection","TestTableSelection"),            # until tested on mac 
     ],
     
     'windows':[
