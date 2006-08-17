@@ -405,7 +405,7 @@ def makeNoteSubtree(parcel, oldVersion):
                 makeLabel(parcel, _(u'alarm'), borderTop=5),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditReminder',
-                    viewAttribute=u'reminderInterval',
+                    viewAttribute=u'userReminderInterval',
                     presentationStyle={
                         # @@@ XXX i18n: the code assumes that if the value
                         # starts with a digit, it's a number of minutes; if not,

@@ -625,6 +625,31 @@ class ContentItem(Remindable):
 
         return not isSharedInAnyReadOnlyShares
 
+    # For use in indexing time-related attributes. We only use this for 
+    # reminderFireTime here, but CalendarEventMixin uses this a lot more...
+    def cmpTimeAttribute(self, item, attr, useTZ=True):
+        """Compare item and self.attr, ignore timezones if useTZ is False."""
+        itemTime = getattr(item, attr, None)
+        selfTime = getattr(self, attr, None)
+
+        if itemTime is None:
+            if selfTime is None:
+                # both attributes are None, so item and self compare as equal
+                return 0
+            else:
+                return -1
+        elif not useTZ:
+            itemTime = itemTime.replace(tzinfo = None)
+
+        if selfTime is None:
+            return 1
+        elif not useTZ:
+            selfTime = selfTime.replace(tzinfo = None)
+
+        return cmp(selfTime, itemTime)
+
+    def cmpReminderTime(self, item):
+        return self.cmpTimeAttribute(item, 'reminderFireTime')
 
 """
 STAMPING SUPPORT CLASSES

@@ -18,18 +18,42 @@ from calculated import Calculated
 from datetime import datetime, time, timedelta
 from PyICU import ICUtzinfo
 
+# Make a value we can use for distant (or invalid) reminder times
+farFuture = datetime.max
+if getattr(farFuture, 'tzInfo', None) is None:
+    farFuture = farFuture.replace(tzinfo=ICUtzinfo.default)
 
 class Reminder(schema.Item):
-    delta = schema.One(
-        schema.TimeDelta,
-        doc="The amount in advance this reminder should occur (usually negative!)",
+    absoluteTime = schema.One(
+        schema.DateTimeTZ,
+        defaultValue=None,
+        doc="If set, overrides relativeTo as the base time for this reminder"
     )
 
     relativeTo = schema.One(
         schema.Text,
-        initialValue='effectiveStartTime',
+        defaultValue=None,
+        doc="The Remindable attribute that we're relative to",
     )
 
+    delta = schema.One(
+        schema.TimeDelta,
+        defaultValue=timedelta(0),
+        doc="Offset relative to 'relativeTo' that this reminder should occur",
+    )
+    
+    userCreated = schema.One(
+        schema.Boolean,
+        defaultValue=True,
+        doc="Is a user-created reminder?"
+    )
+        
+    keepExpired = schema.One(
+        schema.Boolean,
+        defaultValue=True,
+        doc="Should we keep this around (in the Remindable's expiredReminders) "
+            "after it fires?")
+    
     reminderItems = schema.Sequence(
         "Remindable",
         inverse="reminders",
@@ -42,28 +66,29 @@ class Reminder(schema.Item):
         initialValue=[]
     )
 
-    snoozedUntil = schema.One(
-        schema.DateTimeTZ,
-        defaultValue=None
-    )
-
     schema.addClouds(
-        sharing = schema.Cloud(delta, relativeTo, snoozedUntil)
+        sharing = schema.Cloud(absoluteTime, delta, relativeTo, 
+                               userCreated, keepExpired)
     )
 
     def getBaseTimeFor(self, remindable):
         """
-        Get the relative-to time for this remindable's next reminder
-        so that the UI can generate a message relative to it.
+        Get the base time for this remindable's next reminder:
+        - it's our absolute time if we have one; 
+        - otherwise, get the relative-to time from our remindable
+        - otherwise, use a time in the far future.
         """
-        return getattr(remindable, self.relativeTo, datetime.max)
+        return self.absoluteTime or getattr(remindable, self.relativeTo) \
+               or farFuture
 
     def getNextReminderTimeFor(self, remindable):
         """ Get the time for this remindable's next reminder """
-        result = self.snoozedUntil or \
-               (self.getBaseTimeFor(remindable) + self.delta)
-        if result.tzinfo is None:
-            result = result.replace(tzinfo=ICUtzinfo.default)
+        result = self.getBaseTimeFor(remindable)
+        if result != farFuture:
+            result += self.delta
+        assert result.tzinfo is not None
+        #if result.tzinfo is None:
+            #result = result.replace(tzinfo=ICUtzinfo.default)
         return result
 
 class Remindable(schema.Item):
@@ -86,75 +111,107 @@ class Remindable(schema.Item):
         )
     )
 
-    def getReminderInterval(self):
+    def getUserReminder(self, collectionToo=False):
         for attr in ("reminders", "expiredReminders"):
             if (self.hasLocalAttributeValue(attr)):
-                #@@@ This assumes we've only got 0 or 1 reminders.
-                first = getattr(self, attr).first()
-                try:
-                    return first.delta
-                except AttributeError:
-                    pass
+                collection = getattr(self, attr)
+                for reminder in collection:
+                    if reminder.userCreated:
+                        return collectionToo and (collection, reminder) or reminder
+        return collectionToo and (None, None) or None
 
-        return None
+    def replaceUserReminder(self, **kwds):
+        (collection, userReminder) = self.getUserReminder(True)
 
-    def setReminderInterval(self, delta):
-        reminderCollection = self.reminders
-        firstReminder = reminderCollection.first()
+        if userReminder is not None:
+            collection.remove(userReminder)
+            if not (len(userReminder.reminderItems) or \
+                    len(userReminder.expiredReminderItems)):
+                userReminder.delete()
 
-        if firstReminder is None:
-            reminderCollection = self.expiredReminders
-            firstReminder = reminderCollection.first()
+        if kwds.get('delta') is None and kwds.get('absoluteTime') is None:
+            return None
+        
+        return self.makeReminder(userCreated=True, keepExpired=True,
+                                 checkExpired=True, **kwds)
+    
+    # @@@ Note: 'Calculated' APIs are provided for both relative and absolute
+    # user-set reminders, even though only one reminder (which can be of either
+    # flavor) can be set right now. The 'set' functions can replace an existing
+    # reminder of either flavor, but the 'get' functions ignore (that is, return
+    # 'None' for) reminders of the wrong flavor.
+    
+    def getUserReminderInterval(self):
+        userReminder = self.getUserReminder()
+        if userReminder is None or userReminder.absoluteTime is not None:
+            return None
+        return userReminder.delta
 
-        if firstReminder is not None:
-            reminderCollection.remove(firstReminder)
-            if not (len(firstReminder.reminderItems) or \
-                    len(firstReminder.expiredReminderItems)):
-                firstReminder.delete()
+    def setUserReminderInterval(self, delta):
+        assert hasattr(self, 'effectiveStartTime')
+        return self.replaceUserReminder(delta=delta, relativeTo='effectiveStartTime')
 
-        if delta is not None:
-            self.makeReminder(delta, checkExpired=True)
-
-    reminderInterval = Calculated(
+    userReminderInterval = Calculated(
         schema.TimeDelta,
         basedOn=('reminders',),
-        fget=getReminderInterval,
-        fset=setReminderInterval,
-        doc="Reminder interval, computed from the first unexpired reminder."
+        fget=getUserReminderInterval,
+        fset=setUserReminderInterval,
+        doc="User-set reminder interval, computed from the first unexpired reminder."
+    )
+
+    def getUserReminderTime(self):
+        userReminder = self.getUserReminder()
+        if userReminder is None or userReminder.absoluteTime is None:
+            return None
+        return userReminder.absoluteTime
+
+    def setUserReminderTime(self, absoluteTime):
+        return self.replaceUserReminder(absoluteTime=absoluteTime)
+    
+    userReminderTime = Calculated(
+        schema.DateTimeTZ,
+        basedOn=('reminders',),
+        fget=getUserReminderTime,
+        fset=setUserReminderTime,
+        doc="User-set absolute reminder time."
     )
 
     def getReminderFireTime(self):
         """
-        A simplification of the possible complexity of reminder, assumes one
-        or zero reminders.  Returns a datetime or None.
+        Get the next reminder (of any kind) due to fire, or None if there aren't
+        any.
         """
-        reminder = self.reminders.first()
-        if reminder is None:
-            return None
-        else:
-            return reminder.getNextReminderTimeFor(self)
-
+        for reminder in self.reminders:
+            nextTime = reminder.getNextReminderTimeFor(self)
+            if nextTime is not None:
+                return nextTime
+        return None
+    
+    # @@@ For now, this is used to set absolute user reminders
+    # @@@ This is used for the next reminder of any kind (user or not), which is
+    # what the reminder-firing mechanism wants
     reminderFireTime = Calculated(
         schema.DateTimeTZ,
         basedOn=('startTime', 'allDay', 'anyTime', 'reminders'),
         fget=getReminderFireTime,
         doc="Reminder fire time, or None for no unexpired reminders")
 
-    def makeReminder(self, delta, checkExpired=False):
+    def makeReminder(self, checkExpired=False, **kwds):
         # @@@ I think the proxy code should override calls to this method
         # add a separate reference to this reminder to each generated event,
         # (or something like that). (Remindable.snoozeReminder will call this
         # method; that operation should only affect the actual event, not the
         # series)
-        newReminder = Reminder(None, delta=delta, itsView=self.itsView)
+        
+        newReminder = Reminder(None, itsView=self.itsView, **kwds)
 
         addThisTo = self.reminders
-
         if checkExpired:
             nextTime = newReminder.getNextReminderTimeFor(self)
 
             if (nextTime is not None and
                 nextTime < datetime.now(ICUtzinfo.default)):
+                assert kwds['keepExpired'], "Creating an expired reminder that isn't marked 'keepExpired'?"
                 addThisTo = self.expiredReminders
 
         addThisTo.add(newReminder)
@@ -166,8 +223,6 @@ class Remindable(schema.Item):
         # Make sure the next one's around, so we'll prime the reminder-
         # watching mechanism to alert us about it. We also check that
         # reminders for past events don't trigger this one.
-        now = datetime.now(ICUtzinfo.default)
-
         try:
             getNextOccurrenceMethod = self.getNextOccurrence
         except AttributeError:
@@ -177,22 +232,21 @@ class Remindable(schema.Item):
             # don't need to do anything with it; we just
             # want to make sure it's been instantiated
             # so that the next reminder will fire.
-            getNextOccurrenceMethod(after=now)
+            getNextOccurrenceMethod(after=datetime.now(ICUtzinfo.default))
 
         # In the case of generated occurrences, the reminder
         # may already have fired (cf fixReminders() in
         # CalendarEventMixin.getNextOccurrence
         if reminder in self.reminders:
             self.reminders.remove(reminder)
-        if getattr(reminder, 'snoozedUntil', None) is not None:
-            # This is a "snooze" reminder, just toss it.
+        if not reminder.keepExpired:
+            # This is a system or "snooze" reminder, just toss it.
             assert len(reminder.reminderItems) == 0
             assert len(reminder.expiredReminderItems) == 0
             reminder.delete()
         else:
             if not reminder in self.expiredReminders:
                 self.expiredReminders.add(reminder)
-
 
 
     def snoozeReminder(self, reminder, delay):
@@ -203,7 +257,9 @@ class Remindable(schema.Item):
 
         # Make a new reminder for this event
         newReminder = Reminder(None, itsView=self.itsView,
-                               snoozedUntil=(datetime.now(ICUtzinfo.default) +
-                                             delay))
+                               absoluteTime=(datetime.now(ICUtzinfo.default) +
+                                             delay),
+                               keepExpired=False,
+                               userCreated=False)
         self.reminders.add(newReminder)
         return newReminder

@@ -78,7 +78,7 @@ def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
     # Maybe a nice reminder?
     reminderInterval = random.choice(REMINDERS)
     if reminderInterval is not None:
-        event.makeReminder(timedelta(minutes=-reminderInterval))
+        event.userReminderInterval = timedelta(minutes=-reminderInterval)
         
     # Add a location to 2/3 of the events
     if random.randrange(3) > 0:
@@ -86,8 +86,6 @@ def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
             event.location = Calendar.Location.getLocation(view, uw(random.choice(LOCATIONS)))
         else:
             event.location = Calendar.Location.getLocation(view, random.choice(LOCATIONS))
-
-
 
     event.importance = random.choice(pim.ImportanceEnum.values)
     event.triageStatus = random.choice(pim.TriageEnum.values)

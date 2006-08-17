@@ -142,9 +142,15 @@ def itemsToVObject(view, items, cal=None, filters=None):
             pass
 
         if not filters or "reminders" not in filters:
-            firstReminder = item.reminders.first() or item.expiredReminders.first()
+            firstReminder = item.getUserReminder()
             if firstReminder is not None:
-                comp.add('valarm').add('trigger').value = firstReminder.delta
+                if firstReminder.absoluteTime is not None:
+                    value = firstReminder.absoluteTime
+                else:
+                    # @@@ For now, all relative reminders are relative to starttime
+                    assert firstReminder.relativeTo == 'effectiveStartTime'
+                    value = firstReminder.delta
+                comp.add('valarm').add('trigger').value = value
         
         if item.getAttributeValue('modificationFor', default=None) is not None:
             recurrenceid = comp.add('recurrence-id')
@@ -434,13 +440,18 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                 # dtstart.
                 anyTime = getattr(event.dtstart, 'x_osaf_anytime_param', None) == 'TRUE'
 
+                reminderDelta = None
+                reminderAbsoluteTime = None
                 try:
-                    reminderDelta = event.valarm.trigger.value
-                    if type(reminderDelta) is datetime.datetime:
-                        reminderDelta = reminderDelta - dtstart
+                    reminderValue = event.valarm.trigger.value
                 except AttributeError:
-                    reminderDelta = None
-
+                    pass
+                else:
+                    if type(reminderValue) is datetime.datetime:
+                        reminderAbsolute = reminderValue
+                    else:
+                        assert type(reminderValue) is datetime.timedelta
+                        reminderDelta = reminderValue
                 
                 if duration is None:
                     if dtend is not None:
@@ -577,11 +588,15 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     change('location', Calendar.Location.getLocation(view,
                                                                      location))
                     
-                # rruleset and reminderInterval need to be set last
+                # rruleset and userReminderInterval/userReminderTime must be set last
                 changeLast = []
                 if not filters or "reminders" not in filters:
                     if reminderDelta is not None:
-                        changeLast.append(('reminderInterval', reminderDelta))
+                        changeLast.append(('userReminderInterval', 
+                                           reminderDelta))
+                    elif reminderAbsoluteTime is None:
+                        changeLast.append(('userReminderTime', 
+                                           reminderAbsoluteTime))
                 
                 rruleset = event.rruleset
                 if rruleset is not None:

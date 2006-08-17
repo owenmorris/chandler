@@ -746,7 +746,7 @@ class ReminderAttributeEditor(ChoiceAttributeEditor):
         """
         Get the value from the specified attribute of the item.
         """
-        return item.reminderInterval
+        return item.userReminderInterval
 
     def SetAttributeValue (self, item, attributeName, value):
         """Set the value of the attribute given by the value.

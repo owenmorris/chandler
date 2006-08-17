@@ -35,7 +35,6 @@ import wx
 from TimeZone import formatTime
 from osaf.pim.calendar.TimeZone import coerceTimeZone, TimeZoneInfo
 from osaf.pim.calendar import DateTimeUtil
-from osaf.pim.reminders import Remindable, Reminder
 from PyICU import DateFormat, DateFormatSymbols, ICUtzinfo
 from datetime import datetime, time, timedelta
 import itertools
@@ -285,8 +284,8 @@ class CalendarEventMixin(ContentItem):
     getRecurrenceID, deleteThis, deleteThisAndFuture, deleteAll,
     removeRecurrence, isCustomRule, getCustomDescription, isAttributeModifiable
 
-    @group Comparison Methods for Indexing: cmpTimeAttribute, cmpStartTime,
-    cmpEndTime, cmpRecurEnd, cmpReminderTime
+    @group Comparison Methods for Indexing: cmpStartTime,
+    cmpEndTime, cmpRecurEnd
 
     @group Semi-Private Methods: addToCollection, changeNoModification,
     cleanRule, copyCollections, getEffectiveEndTime, getEffectiveStartTime,
@@ -931,8 +930,13 @@ class CalendarEventMixin(ContentItem):
 
         # ... and update the collections accordingly
         for reminder in nowExpired:
-            self.expiredReminders.add(reminder)
             self.reminders.remove(reminder)
+            if reminder.keepExpired:
+                self.expiredReminders.add(reminder)
+            else:
+                assert len(reminder.reminderItems) == 0
+                assert len(reminder.expiredReminderItems) == 0
+                reminder.delete()
 
         for reminder in nowNotExpired:
             self.reminders.add(reminder)
@@ -1580,27 +1584,6 @@ class CalendarEventMixin(ContentItem):
         # Otherwise, just do it the normal way.
         return super(CalendarEventMixin, self).isAttributeModifiable(attribute)
 
-    def cmpTimeAttribute(self, item, attr, useTZ=True):
-        """Compare item and self.attr, ignore timezones if useTZ is False."""
-        itemTime = getattr(item, attr, None)
-        selfTime = getattr(self, attr, None)
-
-        if itemTime is None:
-            if selfTime is None:
-                # both attributes are None, so item and self compare as equal
-                return 0
-            else:
-                return -1
-        elif not useTZ:
-            itemTime = itemTime.replace(tzinfo = None)
-
-        if selfTime is None:
-            return 1
-        elif not useTZ:
-            selfTime = selfTime.replace(tzinfo = None)
-
-        return cmp(selfTime, itemTime)
-
     # for use in indexing CalendarEventMixins
     def cmpStartTime(self, item):
         return self.cmpTimeAttribute(item, 'effectiveStartTime')
@@ -1610,9 +1593,6 @@ class CalendarEventMixin(ContentItem):
 
     def cmpRecurEnd(self, item):
         return self.cmpTimeAttribute(item, 'recurrenceEnd')
-
-    def cmpReminderTime(self, item):
-        return self.cmpTimeAttribute(item, 'reminderFireTime')
 
     # comparisons which strip timezones
     def cmpStartTimeNoTZ(self, item):
