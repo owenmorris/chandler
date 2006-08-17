@@ -612,9 +612,6 @@ def makeMainMenus(parcel):
                                 helpString = u'Displays a tree of projects, locales, resources, and gettext localizations'),
                             ]),
 
-
-
-
                     Menu.template('ShareTestMenu',
                         title = u'S&haring',
                         helpString = u'Sharing-related test commands',

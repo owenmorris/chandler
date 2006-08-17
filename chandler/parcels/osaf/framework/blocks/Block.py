@@ -346,9 +346,6 @@ class Block(schema.Item):
                                                         Block.eventNameToItemUUID)
                 self.addToNameToItemUUIDDictionary ([self],
                                                     Block.blockNameToItemUUID)
-                """
-                Keep list of blocks that are have event boundarys in the global list views.
-                """
                 if self.eventBoundary:
                     self.rebuildDynamicBlocks()
 
@@ -858,15 +855,11 @@ class Block(schema.Item):
         block = self
         while (block):
             for child in block.childrenBlocks:
-                try:
-                    method = getattr (type (child), 'isDynamicChild')
-                except AttributeError:
-                    pass
-                else:
+                isDynamicChildMethod = getattr (type (child), "isDynamicChild", None)
+                if isDynamicChildMethod is not None:
                     if candidate is None:
                         candidate = child
-                    isChild = method(child)
-                    if isChild:
+                    if isDynamicChildMethod (child):
                         synchToDynamicBlock (child, True)
                         return
             block = block.parentBlock

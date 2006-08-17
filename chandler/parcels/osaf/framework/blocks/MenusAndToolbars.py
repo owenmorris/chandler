@@ -31,24 +31,24 @@ class RefCollectionDictionary(schema.Item):
     The attribute that contains the reference collection is determined
     through attribute indirection using the collectionSpecifier attribute.
 
-    The "blockName" property of the items in the reference collection
+    The "itsName" property of the items in the reference collection
     is used for the dictionary lookup by default.  You can override
     the name accessor if you want to use something other than
-    blockName to key the items in the collection.
+    itsName to key the items in the collection.
     """
 
     def itemNameAccessor(self, item):
         """
         Name accessor used for RefCollectionDictionary
         subclasses can override this method if they want to
-        use something other than the blockName property to
+        use something other than the itsName property to
         determine item names.
 
         @param item: The item whose name we want.
         @type item: C{item}
         @return: A C{immutable} for the key into the collection
         """
-        return item.blockName or item.itsUUID.str64()
+        return item.itsName or item.itsUUID.str64()
     
     def getCollectionSpecifier(self):
         """
@@ -173,19 +173,15 @@ class RefCollectionDictionary(schema.Item):
         @param item: The C{item} to insert before C{index} in the ref collection.
         @type item: C{item}
         """
-        # 
+
         coll = self.getAttributeValue(self.getCollectionSpecifier())
         if index is None:
             afterItem = coll.last()
         else:
             afterItem = coll.previous(index)
-            
-        if item not in coll:
-            coll.append(item, alias=self.itemNameAccessor(item))
-            if index is not None:
-                coll.placeItem(item, afterItem) # place after the previous item
-        else:
-            coll.placeItem(item, afterItem) # place item at end
+        
+        coll.insertItem (item, afterItem)
+        coll.setAlias(item, self.itemNameAccessor(item))
 
     def __delitem__(self, key):
         """
@@ -223,11 +219,10 @@ class DynamicBlock(schema.Item):
         We want the static definitions to come first because the dynamic
         additions override them.
         """
-        try:
-            isContainer = self.isDynamicContainer ()
-        except AttributeError:
-            pass
-        else:
+        method = getattr (type (self), "isDynamicContainer", None)
+        if method is not None:
+            isContainer = method (self)
+            # dynamicChildren with with operation = "None" are treated as static items.
             try:
                 i = blockList.index (self)
             except ValueError:
@@ -253,10 +248,9 @@ class DynamicBlock(schema.Item):
         block = self
         while block is not None:
             for child in block.childrenBlocks:
-                try:
-                    child.appendDynamicBlocks (blockList)
-                except AttributeError:
-                    pass
+                method = getattr (type (child), "appendDynamicBlocks", None)
+                if method is not None:
+                    method (child, blockList)
             block = block.parentBlock
         return blockList
 
@@ -305,7 +299,8 @@ class DynamicBlock(schema.Item):
                     locationName = child.parentBlock.blockName
                 bar = containers [locationName]
                 
-                if child.operation == 'InsertBefore':
+                operation = child.operation
+                if operation == 'InsertBefore':
                     # Shouldn't have items with the same name, unless they are the same
                     if __debug__:
                         if not child in bar:
@@ -314,16 +309,14 @@ class DynamicBlock(schema.Item):
                     # find its position (or None) and insert there (or at the end)
                     i = bar.index (child.itemLocation)
                     bar.insert (i, child)
-                elif child.operation == 'Replace':
+                elif operation == 'Replace':
                     bar[child.itemLocation] = child
-                elif child.operation == 'Delete':
+                elif operation == 'Delete':
                     """
                     If you get an exception here, it's probably because
                     you're trying to remove a bar item that doesn't exist.
                     """
                     del bar[child.itemLocation]
-                else:
-                   assert (False)
 
     def synchronizeDynamicBlocks (self):
         """
@@ -384,7 +377,7 @@ class DynamicBlock(schema.Item):
 
 
 class operationEnumType(schema.Enumeration):
-      values = "InsertBefore", "Replace", "Delete"
+      values = "None", "InsertBefore", "Replace", "Delete"
 
 
 class DynamicChild(DynamicBlock):
@@ -399,7 +392,7 @@ class DynamicChild(DynamicBlock):
         Block.Block, initialValue = None, otherName = 'dynamicChildren',
     )
     title = schema.One(schema.Text, initialValue = u'')
-    operation = schema.One(operationEnumType, initialValue = 'InsertBefore')
+    operation = schema.One(operationEnumType, defaultValue = 'None')
     location = schema.One(schema.Text)
     itemLocation = schema.One(schema.Text, initialValue = u'')
     helpString = schema.One(schema.Text, initialValue = u'')
@@ -485,7 +478,7 @@ class wxMenuItem (wx.MenuItem):
         Note: @@@DLD - remove when wx.MenuItem subclasses are returned by wx.
         """
         try:
-            if self.this == other.this:
+            if self.this.this == other.this:
                 return 0
             else:
                 return -1
@@ -494,7 +487,11 @@ class wxMenuItem (wx.MenuItem):
 
     def Destroy(self):
         Block.Block.wxOnDestroyWidget (self)
-        self.GetMenu().DestroyItem (self)
+        # Remove the menu item from it's menu if it's still in the menu
+        menu = self.GetMenu()
+        if menu.FindItemById (self.GetId()):
+            menu.RemoveItem (self)
+        del self
 
     def wxSynchronizeWidget(self, useHints=False):
         # placeholder in case Menu Items change
@@ -604,7 +601,8 @@ class wxMenu(wx.Menu):
         return self.GetMenuItems()
     
     def removeItem (self, index, oldItem):
-        self.RemoveItem (oldItem)
+        oldMenuItem = self.RemoveItem (oldItem)
+        oldMenuItem.thisown = False
             
     def setMenuItem (self, newItem, oldItem, index):
         # set the menu item, replacing an old one if specified
@@ -730,9 +728,9 @@ class MenuBar (Block.Block, DynamicContainer):
                 widget.wxSynchronizeWidget()
 
             # get the current item installed in the menu, if any
-            try:
+            if len(menuList) != 0:
                 curItem = menuList.pop(0)
-            except IndexError:
+            else:
                 curItem = None
 
             # current and new items match?
@@ -870,14 +868,9 @@ class wxToolbarItemMixin (object):
         """
         block = self.blockItem
         if block.toolbarItemKind == "Radio":
-            try:
-                selected = block.selected
-            except AttributeError:
-                pass
-            else:
-                if selected:
-                    self.GetToolBar().ToggleTool (self.GetId(), True)
-        pass
+            selected = getattr (block, "selected", None)
+            if selected is True:
+                self.GetToolBar().ToggleTool (self.GetId(), True)
 
     def IsShown (self):
         # Since wx.ToolbarTools are not real widgets, they don't support IsShown,
@@ -1021,12 +1014,9 @@ class ToolbarItem(Block.Block, DynamicChild):
         def getBitmaps (self):
             app = wx.GetApp()
             bitmap = app.GetImage (self.bitmap)
-            try:
-                disabledBitmapName = self.disabledBitmap
-            except AttributeError:
-                disabledBitmap = wx.NullBitmap
-            else:
-                disabledBitmap = app.GetImage (disabledBitmapName)
+            disabledBitmap = getattr (self, 'disabledBitmap', wx.NullBitmap)
+            if disabledBitmap is not wx.NullBitmap:
+                disabledBitmap = app.GetImage (disabledBitmap)
             return bitmap, disabledBitmap
 
         # can't instantiate ourself without a toolbar

@@ -64,10 +64,9 @@ def installParcel(parcel, old_version=None):
         helpString = _(u'Turn on logging and send result to OSAF'),
         event = ToggleLogging,
         eventsForNamedLookup = [ToggleLogging],
-        # Recent changes have broken the menu location code
-        #location = "TestMenu",
-        #itemLocation = "RepositoryTestMenu",
-        #parentBlock = mainView.MainView
-        parentBlock = mainView.TestMenu)
+        location = "TestMenu",
+        operation = 'InsertBefore',
+        itemLocation = "SearchWindowItem",
+        parentBlock = mainView.MainView)
  
 
