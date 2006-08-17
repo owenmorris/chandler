@@ -14,6 +14,7 @@
 
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
+import sys
 
 class TestTableSelection(ChandlerTestCase):
     
@@ -54,10 +55,17 @@ class TestTableSelection(ChandlerTestCase):
         self.scripting.User.emulate_click(dashboard, 100, rowsToSelect[0]*rowHeight + rowMiddle)
                            
         # select 3 more rows, with control key down for multi selection
-        for row in rowsToSelect[1:]:
-            self.scripting.User.emulate_click(dashboard, 100,
-                               rowHeight*row + rowMiddle,
-                               control=True)
+        # except for mac which wants the meta key held down
+        if sys.platform == 'darwin':
+            for row in rowsToSelect[1:]:
+                self.scripting.User.emulate_click(dashboard, 100,
+                                   rowHeight*row + rowMiddle,
+                                   meta=True)
+        else:
+            for row in rowsToSelect[1:]:
+                self.scripting.User.emulate_click(dashboard, 100,
+                                   rowHeight*row + rowMiddle,
+                                   control=True)
         self.logger.endAction(True)
             
         # verification
