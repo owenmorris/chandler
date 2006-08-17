@@ -25,7 +25,7 @@ names a function (or non-Item class) that should be invoked at startup.  For
 our example, we'll use <tt class="docutils literal"><span class="pre">sys.stdout.write</span></tt> as the function we want to call:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from osaf.startup import Startup
-&gt;&gt;&gt; test = Startup(&quot;test&quot;, invoke=&quot;sys.stdout.write&quot;, view = rv)
+&gt;&gt;&gt; test = Startup(&quot;test&quot;, invoke=&quot;sys.stdout.write&quot;, itsView = rv)
 </pre>
 <p>When <tt class="docutils literal"><span class="pre">run_startup()</span></tt> is called, the function or class named by the <tt class="docutils literal"><span class="pre">invoke</span></tt>
 attribute of each <tt class="docutils literal"><span class="pre">Startup</span></tt> item will be called with the corresponding
@@ -65,7 +65,7 @@ using attributes of the item.  For example:</p>
 ...     def onStart(self):
 ...         print self.message.encode('utf8')
 
-&gt;&gt;&gt; hello = StartupMessage(view=rv)
+&gt;&gt;&gt; hello = StartupMessage(itsView=rv)
 &gt;&gt;&gt; run_startup(rv)
 Hello, world!
 </pre>
@@ -82,7 +82,7 @@ should be started first:</p>
 &gt;&gt;&gt; goodbye = StartupMessage(
 ...     message=u&quot;Goodbye, world!&quot;,
 ...     requires=[hello],
-...     view=rv
+...     itsView=rv
 ... )
 
 &gt;&gt;&gt; run_startup(rv)
@@ -140,7 +140,7 @@ temporarily, so that our <tt class="docutils literal"><span class="pre">Thread</
 <pre class="literal-block">
 &gt;&gt;&gt; from osaf.startup import Thread
 &gt;&gt;&gt; t = Thread(
-...     &quot;my_name_here&quot;, invoke=&quot;osaf.tests.TestStartups.my_thread&quot;, view=rv
+...     &quot;my_name_here&quot;, invoke=&quot;osaf.tests.TestStartups.my_thread&quot;, itsView=rv
 ... )
 &gt;&gt;&gt; t
 &lt;Thread (new): my_name_here ...&gt;
@@ -158,25 +158,37 @@ temporarily, so that our <tt class="docutils literal"><span class="pre">Thread</
 &gt;&gt;&gt; finished
 False
 </pre>
-<p>So, let's set the start flag, and wait a moment to allow the thread to finish:</p>
+<p>Because this and some of our later examples will need to wait a few moments for
+a thread to finish, we'll need a simple utility routine that sleeps until some
+condition occurs, or raises an error if it seems to be taking too long:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; from time import sleep
+
+&gt;&gt;&gt; def wait_until(condition):
+...     ms = 1
+...     while ms&lt;=10000:  # Wait a maximum of 11.111 seconds
+...         if condition():
+...             return
+...         sleep(ms/1000.0)    # sleep for ms milliseconds
+...         ms *= 10    # wait 10 times as long on the next try
+...     raise AssertionError(&quot;Condition didn't happen before timeout&quot;)
+</pre>
+<p>So, now that we have a way to wait for the thread, let's set the start flag
+and wait until the thread finishes:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; start = True
-&gt;&gt;&gt; from time import sleep
-&gt;&gt;&gt; sleep(0.1)    # let the thread finish
+&gt;&gt;&gt; wait_until(lambda: finished)    # let the thread finish
 </pre>
 <p>And now the finish flag should have been set by the thread:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; finished
 True
 </pre>
-<p>(Note: the sleep() duration above is 0.1 seconds because Windows machines have
-a fairly low resolution timer and may not actually perform the sleep()
-otherwise, which could break the test.)</p>
-<blockquote>
-<pre class="doctest-block">
-&gt;&gt;&gt; t.active = False    # don't use this thread in the subsequent tests
+<p>We don't want this <tt class="docutils literal"><span class="pre">startup.Thread</span></tt> to be active in subsequent examples, so
+we'll disable it now:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; t.active = False    # don't start `t` in future tests
 </pre>
-</blockquote>
 </div>
 <div class="section" id="starting-twisted">
 <h2><a name="starting-twisted">Starting Twisted</a></h2>
@@ -253,7 +265,7 @@ AssertionError: Reactor is already running
 <tt class="docutils literal"><span class="pre">Startup</span></tt> instance to invoke <tt class="docutils literal"><span class="pre">run_reactor()</span></tt>:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; twisted_startup = Startup(
-...     &quot;twisted&quot;, view=rv, invoke=&quot;osaf.startup.run_reactor&quot;
+...     &quot;twisted&quot;, itsView=rv, invoke=&quot;osaf.startup.run_reactor&quot;
 ... )
 &gt;&gt;&gt; run_startup(rv)
 &gt;&gt;&gt; reactor.running
@@ -271,7 +283,7 @@ the main thread, or you will receive an assertion error in that thread, and
 the reactor will not start:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; twisted_thread = Thread(
-...     &quot;dont_do_this&quot;, view=rv, invoke=&quot;osaf.startup.run_reactor&quot;
+...     &quot;dont_do_this&quot;, itsView=rv, invoke=&quot;osaf.startup.run_reactor&quot;
 ... )
 
 &gt;&gt;&gt; import sys, StringIO    # trap stderr output
@@ -281,10 +293,10 @@ the reactor will not start:</p>
 &gt;&gt;&gt; reactor.running
 0
 
-&gt;&gt;&gt; sleep(0.5)  # make sure exception has been sent to stderr
-&gt;&gt;&gt; stop_reactor()
-&gt;&gt;&gt; len(threading.enumerate())  # all other threads should be stopped now
-1
+&gt;&gt;&gt; wait_until(
+...     # wait until only one thread is running
+...     lambda: len(threading.enumerate())==1
+... )
 
 &gt;&gt;&gt; print sys.stderr.getvalue()
 Exception in thread //userdata/dont_do_this:
@@ -293,7 +305,7 @@ Traceback (most recent call last):
 AssertionError: can't start reactor thread except from the main thread...
 
 &gt;&gt;&gt; sys.stderr = old_stderr
-&gt;&gt;&gt; twisted_thread.active = False
+&gt;&gt;&gt; twisted_thread.active = False   # deactivate the startup we used
 </pre>
 </div>
 </div>
@@ -315,10 +327,13 @@ accept the <tt class="docutils literal"><span class="pre">TwistedTask</span></tt
 reactor setup it then needs to do, such as registering listening ports or
 scheduling timed callbacks.</p>
 <p>For our example, we'll just create a task that just prints what thread it was
-called from:</p>
+called from, and counts the number of items started:</p>
 <pre class="literal-block">
+&gt;&gt;&gt; started = 0
 &gt;&gt;&gt; def hello_from(item):
+...     global started
 ...     print &quot;running&quot;,item,&quot;in&quot;,threading.currentThread()
+...     started += 1
 </pre>
 <p>and put it in a module so we can import it (again, we're doing this so you
 don't have to go read another file to see the source; in the &quot;real world&quot; you
@@ -330,12 +345,12 @@ would just define the function in the appropriate module to start with):</p>
 <pre class="literal-block">
 &gt;&gt;&gt; from osaf.startup import TwistedTask
 &gt;&gt;&gt; demo = TwistedTask(
-...     &quot;demo&quot;, view=rv, invoke=&quot;osaf.tests.TestStartups.hello_from&quot;
+...     &quot;demo&quot;, itsView=rv, invoke=&quot;osaf.tests.TestStartups.hello_from&quot;
 ... )
 </pre>
 <p>Giving it a chance to run and complete:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; run_startup(rv); sleep(0.1)     # give it a chance to run
+&gt;&gt;&gt; run_startup(rv); wait_until(lambda: started)  # give it a chance to run
 running &lt;TwistedTask ... demo ...&gt; in &lt;RepositoryThread(reactor,...)&gt;
 
 &gt;&gt;&gt; stop_reactor()  # shut down the reactor again
@@ -363,18 +378,19 @@ repeated calls will cease.  The interval between calls is determined by the
 <p>For our example, we'll create a simple class suitable for use as a periodic
 task:</p>
 <pre class="literal-block">
+&gt;&gt;&gt; run_count = 0
 &gt;&gt;&gt; class Counter:
 ...     def __init__(self, item):
 ...         self.item = item
-...         self.count = 0
 ...         print &quot;__init__&quot;,
 ...         hello_from(item)        # show what thread we were called from
 ...
 ...     def run(self):
-...         self.count += 1
-...         print &quot;run() call&quot;, self.count,
+...         global run_count
+...         print &quot;run() call&quot;, run_count+1,
 ...         hello_from(self.item)   # show what thread we were called from
-...         return self.count&lt;5     # stop when count reaches 5
+...         run_count += 1
+...         return run_count&lt;5     # stop when count reaches 5
 </pre>
 <p>And once again, we'll insert this class into the <tt class="docutils literal"><span class="pre">TestStartups</span></tt> module, so
 you don't have to go there to read the source.  (But you should just set
@@ -389,11 +405,11 @@ per microsecond (so the test runs quickly!):</p>
 &gt;&gt;&gt; from osaf.startup import PeriodicTask
 
 &gt;&gt;&gt; counter = PeriodicTask(
-...     &quot;counter&quot;, view=rv, invoke=&quot;osaf.tests.TestStartups.Counter&quot;,
+...     &quot;counter&quot;, itsView=rv, invoke=&quot;osaf.tests.TestStartups.Counter&quot;,
 ...     interval = timedelta(microseconds=1)
 ... )
 
-&gt;&gt;&gt; run_startup(rv); sleep(0.1)    # wait for it to run all 5 times
+&gt;&gt;&gt; run_startup(rv); wait_until(lambda: run_count==5)
 __init__ running ... in &lt;RepositoryThread(reactor,...)&gt;
 run() call 1 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
 run() call 2 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
@@ -416,15 +432,51 @@ delay interval.  You can set the <tt class="docutils literal"><span class="pre">
 <p>To demonstrate, we'll set the delay interval to a year:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; counter.interval = timedelta(days=365)
-&gt;&gt;&gt; run_startup(rv); sleep(0.1)
-__init__ running ... in &lt;RepositoryThread(reactor,...)&gt;
+&gt;&gt;&gt; run_count = 0   # reset the counter
+&gt;&gt;&gt; run_startup(rv); wait_until(lambda: run_count)
 run() call 1 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
 </pre>
-<p>Notice that call 1 ran, even though there's a year between runs.  However, if
-we turn the flag back off, it doesn't get a <tt class="docutils literal"><span class="pre">run()</span></tt> call at startup:</p>
+<p>Notice that call 1 ran, even though there's a year between runs.</p>
+<p>This is probably a good time to mention that we can manually force a task to
+be run immediately using the <tt class="docutils literal"><span class="pre">run_once()</span></tt> method:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; counter.run_at_startup = True
-&gt;&gt;&gt; run_startup(rv); sleep(0.1)
+&gt;&gt;&gt; counter.run_once(); wait_until(lambda: run_count==2)
+run() call 2 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
+</pre>
+<p>and that we can change the interval of a running <tt class="docutils literal"><span class="pre">PeriodicTask</span></tt>, using the
+<tt class="docutils literal"><span class="pre">reschedule()</span></tt> method:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; counter.reschedule(
+...     timedelta(microseconds=1)
+... ); wait_until(lambda: run_count==5)
+run() call 3 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
+run() call 4 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
+run() call 5 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
+</pre>
+<p>There's also a <tt class="docutils literal"><span class="pre">stop()</span></tt> method, which will prevent any further invocations
+from occurring, until/unless you call <tt class="docutils literal"><span class="pre">reschedule()</span></tt> again.  If you don't
+provide an interval argument to <tt class="docutils literal"><span class="pre">reschedule()</span></tt>, it defaults to the current
+<tt class="docutils literal"><span class="pre">interval</span></tt> of the <tt class="docutils literal"><span class="pre">PeriodicTask</span></tt> you called it on:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; counter.stop()
+&gt;&gt;&gt; counter.reschedule(); wait_until(lambda: run_count==6)
+__init__ running ... in &lt;RepositoryThread(reactor,...)&gt;
+run() call 6 running ... in &lt;RepositoryThread(RepositoryPoolThread...)&gt;
+</pre>
+<p>(Note that if you <tt class="docutils literal"><span class="pre">stop()</span></tt> your periodic task, the task object (e.g. the
+<tt class="docutils literal"><span class="pre">Counter</span></tt> instance in our examples above) may be garbage collected by
+Python, if there are no longer any active references to it.  If this is the
+case, your next attempt to <tt class="docutils literal"><span class="pre">run_once()</span></tt>, <tt class="docutils literal"><span class="pre">stop()</span></tt>, or <tt class="docutils literal"><span class="pre">reschedule()</span></tt> the
+task will create a new instance, such that its <tt class="docutils literal"><span class="pre">__init__()</span></tt> method is called
+again.)</p>
+<p>Anyway, if we turn the <tt class="docutils literal"><span class="pre">run_at_startup</span></tt> flag back off, it doesn't get a
+<tt class="docutils literal"><span class="pre">run()</span></tt> call at startup:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; counter.stop()
+&gt;&gt;&gt; counter.interval = timedelta(days=365)
+&gt;&gt;&gt; counter.run_at_startup = False
+&gt;&gt;&gt; started = 0     # reset the counter
+&gt;&gt;&gt; run_startup(rv); wait_until(lambda: started)
 __init__ running ... in &lt;RepositoryThread(reactor,...)&gt;
 </pre>
 <p>Finally, let's clean up after our <tt class="docutils literal"><span class="pre">PeriodicTask</span></tt> example:</p>
@@ -444,7 +496,8 @@ confused by changes being made by other threads or tasks at the same time.
 <tt class="docutils literal"><span class="pre">TwistedTask</span></tt>, <tt class="docutils literal"><span class="pre">PeriodicTask</span></tt>, and <tt class="docutils literal"><span class="pre">Thread</span></tt> items handle this for you
 automatically, by calling the <tt class="docutils literal"><span class="pre">fork_item()</span></tt> API on an item.  <tt class="docutils literal"><span class="pre">fork_item()</span></tt>
 opens a new repository view and returns a copy of the item that is native to
-the new view.</p>
+the new view.  (Note that this means you should periodically refresh the view,
+to ensure that you are seeing an up-to-date persistent state for the item(s).)</p>
 <p>To demonstrate, let's set up a &quot;real&quot; (in-memory) repository, since null
 repository views can't be forked:</p>
 <pre class="literal-block">

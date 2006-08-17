@@ -18,38 +18,42 @@
 <li><a class="reference" href="#items-kinds-and-views" id="id3" name="id3">Items, Kinds, and Views</a></li>
 <li><a class="reference" href="#defining-attribute-descriptors" id="id4" name="id4">Defining Attribute Descriptors</a></li>
 <li><a class="reference" href="#bi-directional-references" id="id5" name="id5">Bi-directional References</a></li>
-<li><a class="reference" href="#extending-existing-kinds" id="id6" name="id6">Extending Existing Kinds</a><ul>
-<li><a class="reference" href="#anonymous-inverses" id="id7" name="id7">Anonymous Inverses</a></li>
-<li><a class="reference" href="#annotation-classes" id="id8" name="id8">Annotation Classes</a></li>
+<li><a class="reference" href="#observers-and-change-notifications" id="id6" name="id6">Observers and Change Notifications</a><ul>
+<li><a class="reference" href="#important-limitations" id="id7" name="id7">Important Limitations</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#extending-existing-kinds" id="id8" name="id8">Extending Existing Kinds</a><ul>
+<li><a class="reference" href="#anonymous-inverses" id="id9" name="id9">Anonymous Inverses</a></li>
+<li><a class="reference" href="#annotation-classes" id="id10" name="id10">Annotation Classes</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference" href="#working-with-parcels" id="id9" name="id9">Working With Parcels</a><ul>
-<li><a class="reference" href="#what-are-parcels" id="id10" name="id10">What are Parcels?</a></li>
-<li><a class="reference" href="#parcel-redirection" id="id11" name="id11">Parcel Redirection</a></li>
-<li><a class="reference" href="#parcel-installation" id="id12" name="id12">Parcel Installation</a><ul>
-<li><a class="reference" href="#accessing-parcel-contents" id="id13" name="id13">Accessing Parcel Contents</a></li>
-<li><a class="reference" href="#installing-or-updating-items" id="id14" name="id14">Installing or Updating Items</a></li>
+<li><a class="reference" href="#working-with-parcels" id="id11" name="id11">Working With Parcels</a><ul>
+<li><a class="reference" href="#what-are-parcels" id="id12" name="id12">What are Parcels?</a></li>
+<li><a class="reference" href="#parcel-redirection" id="id13" name="id13">Parcel Redirection</a></li>
+<li><a class="reference" href="#parcel-installation" id="id14" name="id14">Parcel Installation</a><ul>
+<li><a class="reference" href="#accessing-parcel-contents" id="id15" name="id15">Accessing Parcel Contents</a></li>
+<li><a class="reference" href="#installing-or-updating-items" id="id16" name="id16">Installing or Updating Items</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#parcel-discovery" id="id15" name="id15">Parcel Discovery</a><ul>
-<li><a class="reference" href="#parcel-dependencies" id="id16" name="id16">Parcel Dependencies</a></li>
+<li><a class="reference" href="#parcel-discovery" id="id17" name="id17">Parcel Discovery</a><ul>
+<li><a class="reference" href="#parcel-dependencies" id="id18" name="id18">Parcel Dependencies</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference" href="#api-details" id="id17" name="id17">API Details</a><ul>
-<li><a class="reference" href="#classes" id="id18" name="id18">Classes</a><ul>
-<li><a class="reference" href="#abstract-item-classes" id="id19" name="id19">Abstract Item Classes</a></li>
-<li><a class="reference" href="#enumeration-classes" id="id20" name="id20">Enumeration Classes</a></li>
-<li><a class="reference" href="#struct-classes" id="id21" name="id21">Struct Classes</a></li>
-<li><a class="reference" href="#defining-clouds" id="id22" name="id22">Defining Clouds</a></li>
-<li><a class="reference" href="#other-metadata" id="id23" name="id23">Other Metadata</a></li>
+<li><a class="reference" href="#api-details" id="id19" name="id19">API Details</a><ul>
+<li><a class="reference" href="#classes" id="id20" name="id20">Classes</a><ul>
+<li><a class="reference" href="#abstract-item-classes" id="id21" name="id21">Abstract Item Classes</a></li>
+<li><a class="reference" href="#enumeration-classes" id="id22" name="id22">Enumeration Classes</a></li>
+<li><a class="reference" href="#struct-classes" id="id23" name="id23">Struct Classes</a></li>
+<li><a class="reference" href="#defining-clouds" id="id24" name="id24">Defining Clouds</a></li>
+<li><a class="reference" href="#other-metadata" id="id25" name="id25">Other Metadata</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#attribute-descriptors" id="id24" name="id24">Attribute Descriptors</a></li>
-<li><a class="reference" href="#other-apis" id="id25" name="id25">Other APIs</a></li>
+<li><a class="reference" href="#attribute-descriptors" id="id26" name="id26">Attribute Descriptors</a></li>
+<li><a class="reference" href="#other-apis" id="id27" name="id27">Other APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -252,20 +256,17 @@ descriptors</strong> in our classes, to define how the data will be stored.  For
 example:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; class Knight(schema.Item):
-...     who = schema.One(schema.Text, displayName=&quot;What is your name?&quot;)
-...     what = schema.One(schema.Text, displayName=&quot;What is your quest?&quot;)
+...     who = schema.One(schema.Text, doc=&quot;What is your name?&quot;)
+...     what = schema.One(schema.Text, doc=&quot;What is your quest?&quot;)
 ...     numbers = schema.Sequence(
-...         schema.Integer, displayName=&quot;What are your favorite numbers?&quot;
+...         schema.Integer, doc=&quot;What are your favorite numbers?&quot;
 ...     )
 </pre>
 <p><tt class="docutils literal"><span class="pre">schema.One</span></tt> and <tt class="docutils literal"><span class="pre">schema.Sequence</span></tt> are attribute descriptors that tell
 the repository you want either a simple attribute value, or a sequence of
 values.  The first argument to each is a <strong>type reference</strong>; it can be one of
 the predefined type references like <tt class="docutils literal"><span class="pre">schema.Text</span></tt> or <tt class="docutils literal"><span class="pre">schema.Integer</span></tt>, or
-else it can be an existing item class.  (The <tt class="docutils literal"><span class="pre">displayName</span></tt> argument is used
-by some parts of Chandler to display e.g. column names, so you should generally
-wrap them with calls to the translation function (<tt class="docutils literal"><span class="pre">_()</span></tt>) from Chandler's
-<tt class="docutils literal"><span class="pre">i18n</span></tt> package, even though we aren't doing that in this document.)</p>
+else it can be an existing item class.</p>
 <p>Now that we've defined a schema for the <tt class="docutils literal"><span class="pre">Knight</span></tt> class, we can create
 instances with data in the specified attributes:</p>
 <pre class="literal-block">
@@ -320,7 +321,7 @@ a type that doesn't yet exist:</p>
 for us:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; Person.parents.inverse
-&lt;Role children of &lt;class '...Person'&gt;&gt;
+&lt;Descriptor children of &lt;class '...Person'&gt;&gt;
 </pre>
 <p>Again, this saves us from the awkward problem of how to set the inverse of
 <tt class="docutils literal"><span class="pre">parents</span></tt> before the <tt class="docutils literal"><span class="pre">children</span></tt> attribute descriptor exists!</p>
@@ -363,8 +364,78 @@ indexing) that is not otherwise available unless you are using a <tt class="docu
 that is part of a bidirectional reference.  See the repository documentation
 for more details.</p>
 </div>
+<div class="section" id="observers-and-change-notifications">
+<h2><a class="toc-backref" href="#id6" name="observers-and-change-notifications">Observers and Change Notifications</a></h2>
+<p>Sometimes, you need to know when attributes have changed, in order to update
+dependent attributes.  The schema API allows you to register &quot;observers&quot;:
+methods that will be called when one or more specified attributes have changed.
+For example:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Example(schema.Item):
+...     foo = schema.One(schema.Integer)
+...     bar = schema.One(schema.Text)
+...     &#64;schema.observer(foo, bar)
+...     def something_changed(self, name):
+...         print name, &quot;changed&quot;
+</pre>
+<p>Whenever the <tt class="docutils literal"><span class="pre">foo</span></tt> or <tt class="docutils literal"><span class="pre">bar</span></tt> attribute of any <tt class="docutils literal"><span class="pre">Example</span></tt> instance is
+changed, the instance's <tt class="docutils literal"><span class="pre">something_changed()</span></tt> method will be called, passing
+in the name of the changed attribute:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; e = Example(itsView = rv)
+&gt;&gt;&gt; e.foo = 1
+foo changed
+
+&gt;&gt;&gt; e.bar = u&quot;Test&quot;
+bar changed
+</pre>
+<p>Observer methods can be overridden by methods of the same name in a subclass:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Example2(Example):
+...     def something_changed(self, name):
+...         print name, &quot;changed in Example2&quot;
+&gt;&gt;&gt; e2 = Example2(itsView = rv)
+&gt;&gt;&gt; e2.foo = 1
+foo changed in Example2
+</pre>
+<p>Notice that this happens even if you do not explicitly register the subclass'
+method as an observer.</p>
+<p>If you need to observe an attribute that is not defined in the current class,
+you can do so by obtaining it from the base class, e.g.:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class Example3(Example):
+...     &#64;schema.observer(Example.foo)
+...     def foo_changed(self, name):
+...         print name, &quot;changed in Example3&quot;
+&gt;&gt;&gt; e3 = Example3(itsView = rv)
+&gt;&gt;&gt; e3.foo = 1
+foo changed
+foo changed in Example3
+&gt;&gt;&gt; e3.bar = u&quot;Test&quot;
+bar changed
+</pre>
+<p>In the example above, the <tt class="docutils literal"><span class="pre">Example.something_changed()</span></tt> method was called,
+<em>as well as</em> the <tt class="docutils literal"><span class="pre">Example3.foo_changed()</span></tt> method, because they have different
+method names.  Notice also that changing the <tt class="docutils literal"><span class="pre">bar</span></tt> attribute still called the
+<tt class="docutils literal"><span class="pre">something_changed</span></tt> method.</p>
+<div class="section" id="important-limitations">
+<h3><a class="toc-backref" href="#id7" name="important-limitations">Important Limitations</a></h3>
+<p>Please note that the order of observer calls is not guaranteed -- even
+different installations of the same version of Chandler may have a different
+callback order!  Therefore, you must <strong>always</strong> write observer code so that it
+does not depend on the order in which other observers are invoked.</p>
+<p>Also, because callbacks are registered by method name, you should take care not
+to use the same method name for different things, unless you intend to override
+an existing method.  For the same reason, you should also give your observers
+names that are unlikely to be accidentally duplicated in other classes.
+Private method names -- that is, names beginning with a double-underscore
+(<tt class="docutils literal"><span class="pre">__</span></tt>) can be good for this purpose, although they cannot be overridden in a
+subclass unless you manually duplicate the name mangling that Python does
+when you use private names.</p>
+</div>
+</div>
 <div class="section" id="extending-existing-kinds">
-<h2><a class="toc-backref" href="#id6" name="extending-existing-kinds">Extending Existing Kinds</a></h2>
+<h2><a class="toc-backref" href="#id8" name="extending-existing-kinds">Extending Existing Kinds</a></h2>
 <p>Chandler is designed to be modularly extensible, which means that you should be
 able to add new functionality, without modifying existing code.  Sometimes that
 means you need to be able to add to the schema of existing kinds, without
@@ -381,7 +452,7 @@ want to use similar attribute names.</p>
 <strong>anonymous inverse</strong> attribute, or you can define one or more in an
 <strong>annotation class</strong>.  The next two sections will show you how.</p>
 <div class="section" id="anonymous-inverses">
-<h3><a class="toc-backref" href="#id7" name="anonymous-inverses">Anonymous Inverses</a></h3>
+<h3><a class="toc-backref" href="#id9" name="anonymous-inverses">Anonymous Inverses</a></h3>
 <p>Suppose we'd like to have a <tt class="docutils literal"><span class="pre">School</span></tt> kind, whose items have <tt class="docutils literal"><span class="pre">Person</span></tt>
 objects as &quot;attendees&quot;.  We could simply create a <tt class="docutils literal"><span class="pre">School</span></tt> class with an
 <tt class="docutils literal"><span class="pre">attendees</span></tt> attribute, and that would work fine... unless we needed a feature
@@ -408,10 +479,9 @@ point to a new attribute descriptor of the desired cardinality (<tt class="docut
 <p>You <em>must</em> set the type of the main attribute (<tt class="docutils literal"><span class="pre">attendees</span></tt> in this case), so
 that the schema API will know what type the anonymous inverse attribute
 should be attached to (<tt class="docutils literal"><span class="pre">Person</span></tt> in this case).  Both sides of the
-bidirectional reference can include a <tt class="docutils literal"><span class="pre">displayName</span></tt>, <tt class="docutils literal"><span class="pre">description</span></tt>,
-<tt class="docutils literal"><span class="pre">initialValue</span></tt>, or any of the other standard attribute descriptor arguments.
-(See the API Details section on <a class="reference" href="#attribute-descriptors">Attribute Descriptors</a>, below, for a more
-complete list.)</p>
+bidirectional reference can include a <tt class="docutils literal"><span class="pre">description</span></tt>, <tt class="docutils literal"><span class="pre">initialValue</span></tt>, or any
+of the other standard attribute descriptor arguments.  (See the API Details
+section on <a class="reference" href="#attribute-descriptors">Attribute Descriptors</a>, below, for a more complete list.)</p>
 <p>You can't tell from the example above, but the <tt class="docutils literal"><span class="pre">inverse</span></tt> attribute actually
 gets attached to the <tt class="docutils literal"><span class="pre">Person</span></tt> kind, and the <tt class="docutils literal"><span class="pre">Joe</span></tt> item actually has an
 annotation attribute pointing to <tt class="docutils literal"><span class="pre">joes_school</span></tt>.  You can get, set, or delete
@@ -443,7 +513,7 @@ the module defines a <tt class="docutils literal"><span class="pre">__parcel__</
 Redirection</a> (see section below).)</p>
 </div>
 <div class="section" id="annotation-classes">
-<h3><a class="toc-backref" href="#id8" name="annotation-classes">Annotation Classes</a></h3>
+<h3><a class="toc-backref" href="#id10" name="annotation-classes">Annotation Classes</a></h3>
 <p>Accessing &quot;anonymous inverse&quot; attributes can be inconvenient, and in any case
 they don't let you add anything but bidirectional references to an existing
 class.  So, for more complex extensions, annotation classes are a better way to
@@ -648,9 +718,9 @@ wrapper before creating a new one.</p>
 </div>
 </div>
 <div class="section" id="working-with-parcels">
-<h1><a class="toc-backref" href="#id9" name="working-with-parcels">Working With Parcels</a></h1>
+<h1><a class="toc-backref" href="#id11" name="working-with-parcels">Working With Parcels</a></h1>
 <div class="section" id="what-are-parcels">
-<h2><a class="toc-backref" href="#id10" name="what-are-parcels">What are Parcels?</a></h2>
+<h2><a class="toc-backref" href="#id12" name="what-are-parcels">What are Parcels?</a></h2>
 <p>A <strong>parcel</strong> is the persistent representation of a Python module or package.
 Parcels store the schema for the classes that are defined in the corresponding
 module or package.  They also store any persistent items that the parcel
@@ -671,7 +741,7 @@ have its own parcel, then, you need to tell the schema API what parcel to use
 instead.  Our next section explains how.</p>
 </div>
 <div class="section" id="parcel-redirection">
-<h2><a class="toc-backref" href="#id11" name="parcel-redirection">Parcel Redirection</a></h2>
+<h2><a class="toc-backref" href="#id13" name="parcel-redirection">Parcel Redirection</a></h2>
 <p>Sometimes you will not want to have a parcel for every module in your project.
 For example, you may want to treat an entire package as a single parcel, for
 ease of reference by other parcels.  In these cases, you can add a
@@ -695,7 +765,7 @@ that it imports every class defined in the modules that redirect their schema
 to <tt class="docutils literal"><span class="pre">osaf.pim</span></tt>.</p>
 </div>
 <div class="section" id="parcel-installation">
-<h2><a class="toc-backref" href="#id12" name="parcel-installation">Parcel Installation</a></h2>
+<h2><a class="toc-backref" href="#id14" name="parcel-installation">Parcel Installation</a></h2>
 <p>When a parcel is created, the schema API checks whether the corresponding
 module or package has an <tt class="docutils literal"><span class="pre">installParcel()</span></tt> function defined, and if so,
 calls it.  This is your chance to create or update any items that should be
@@ -717,7 +787,7 @@ Redirection</a>, above.)  If you have a <tt class="docutils literal"><span class
 <tt class="docutils literal"><span class="pre">installParcel</span></tt> in the module named by <tt class="docutils literal"><span class="pre">__parcel__</span></tt>, as that is the main
 module for the parcel.</p>
 <div class="section" id="accessing-parcel-contents">
-<h3><a class="toc-backref" href="#id13" name="accessing-parcel-contents">Accessing Parcel Contents</a></h3>
+<h3><a class="toc-backref" href="#id15" name="accessing-parcel-contents">Accessing Parcel Contents</a></h3>
 <p>Usually, your <tt class="docutils literal"><span class="pre">installParcel()</span></tt> code will need to refer to the contents of
 other parcels and modules.  For example, when you create a menu item, you'll
 need to be able to refer to the menu it belongs in, and that menu item will be
@@ -791,7 +861,7 @@ any persistent item will do.  For example:</p>
 </pre>
 </div>
 <div class="section" id="installing-or-updating-items">
-<h3><a class="toc-backref" href="#id14" name="installing-or-updating-items">Installing or Updating Items</a></h3>
+<h3><a class="toc-backref" href="#id16" name="installing-or-updating-items">Installing or Updating Items</a></h3>
 <p>Your <tt class="docutils literal"><span class="pre">installParcel()</span></tt> function is responsible for creating or updating any
 persistent items you want in your parcel.  Such items may include UI components
 such as menu items or detail views, tasks to be run at startup or periodically,
@@ -885,7 +955,7 @@ and then rename it by setting the <tt class="docutils literal"><span class="pre"
 </div>
 </div>
 <div class="section" id="parcel-discovery">
-<h2><a class="toc-backref" href="#id15" name="parcel-discovery">Parcel Discovery</a></h2>
+<h2><a class="toc-backref" href="#id17" name="parcel-discovery">Parcel Discovery</a></h2>
 <p>So far, everything in this guide has assumed that your code is running or your
 parcel is being automatically created.  However, the only way that can happen
 is for Chandler to already <em>know</em> that your parcel exists!  (Well, you can also
@@ -915,7 +985,7 @@ them.</p>
 top-level package on the parcel path, it will not be loaded at startup unless
 another module or package depends on it.  But what does &quot;depends on&quot; mean here?</p>
 <div class="section" id="parcel-dependencies">
-<h3><a class="toc-backref" href="#id16" name="parcel-dependencies">Parcel Dependencies</a></h3>
+<h3><a class="toc-backref" href="#id18" name="parcel-dependencies">Parcel Dependencies</a></h3>
 <p>A parcel &quot;A&quot; depends on another parcel &quot;B&quot; if any of the following are true:</p>
 <ul class="simple">
 <li>Any type defined in &quot;A&quot; has an attribute of a type found in &quot;B&quot;</li>
@@ -953,14 +1023,14 @@ class doesn't need to depend on everything that its extended features do.)</p>
 </div>
 </div>
 <div class="section" id="api-details">
-<h1><a class="toc-backref" href="#id17" name="api-details">API Details</a></h1>
+<h1><a class="toc-backref" href="#id19" name="api-details">API Details</a></h1>
 <p>The remainder of this document will cover additional helpful details about
 the schema API, for more specialized uses than the general-purpose material
 covered so far.</p>
 <div class="section" id="classes">
-<h2><a class="toc-backref" href="#id18" name="classes">Classes</a></h2>
+<h2><a class="toc-backref" href="#id20" name="classes">Classes</a></h2>
 <div class="section" id="abstract-item-classes">
-<h3><a class="toc-backref" href="#id19" name="abstract-item-classes">Abstract Item Classes</a></h3>
+<h3><a class="toc-backref" href="#id21" name="abstract-item-classes">Abstract Item Classes</a></h3>
 <p>You can make an <tt class="docutils literal"><span class="pre">Item</span></tt> subclass abstract (non-instantiable) by setting
 <tt class="docutils literal"><span class="pre">__abstract__</span> <span class="pre">=</span> <span class="pre">True</span></tt> in its class body:</p>
 <pre class="literal-block">
@@ -984,7 +1054,7 @@ TypeError: Thing is an abstract class; use a subclass instead
 methods to be defined or overridden in subclasses before it can be used.</p>
 </div>
 <div class="section" id="enumeration-classes">
-<h3><a class="toc-backref" href="#id20" name="enumeration-classes">Enumeration Classes</a></h3>
+<h3><a class="toc-backref" href="#id22" name="enumeration-classes">Enumeration Classes</a></h3>
 <p>Sometimes, you have an attribute that you'd like to restrict to a set of fixed,
 pre-determined values. For example, suppose you want to be able to define
 attributes that contain a &quot;feed type&quot; value denoting one of the RSS/0.9,
@@ -1041,7 +1111,7 @@ TypeError: (&quot;Only 'values' may be defined in an enumeration class&quot;, ..
 </pre>
 </div>
 <div class="section" id="struct-classes">
-<h3><a class="toc-backref" href="#id21" name="struct-classes">Struct Classes</a></h3>
+<h3><a class="toc-backref" href="#id23" name="struct-classes">Struct Classes</a></h3>
 <p>Sometimes, it's useful to create &quot;value&quot; or &quot;structure&quot; types to use in a
 schema.  For example, suppose that you need a &quot;size&quot; type with a width and a
 height.  You can do this by subclassing <tt class="docutils literal"><span class="pre">schema.Struct</span></tt> and defining
@@ -1111,7 +1181,7 @@ would also need to be saved.  This can create hard-to-find bugs, which
 is why the feature is deprecated.</p>
 </div>
 <div class="section" id="defining-clouds">
-<h3><a class="toc-backref" href="#id22" name="defining-clouds">Defining Clouds</a></h3>
+<h3><a class="toc-backref" href="#id24" name="defining-clouds">Defining Clouds</a></h3>
 <p>Certain Chandler features such as item copying and sharing are controlled by
 schema information known as &quot;clouds&quot;.  A <strong>cloud</strong> is a named collection of
 <strong>endpoints</strong>, each of which sets an <strong>inclusion policy</strong> for an attribute.
@@ -1138,7 +1208,7 @@ its value must be a <tt class="docutils literal"><span class="pre">schema.Cloud(
 ...     fiz = schema.Sequence(schema.Item)
 ...
 ...     schema.addClouds(
-...         sharing = schema.Cloud(foo, &quot;displayName&quot;),
+...         sharing = schema.Cloud(foo, &quot;itsName&quot;),
 ...         copying = schema.Cloud(byCloud = [fiz], byRef=[bar,baz]),
 ...     )
 </pre>
@@ -1152,11 +1222,11 @@ its value must be a <tt class="docutils literal"><span class="pre">schema.Cloud(
 cloud.  The inclusion policies are given via keyword arguments (or the lack
 thereof), and attribute descriptors or attribute names are used to specify
 the endpoints themselves.  For example, the <tt class="docutils literal"><span class="pre">sharing</span></tt> cloud defines two
-endpoints, for the <tt class="docutils literal"><span class="pre">foo</span></tt> and <tt class="docutils literal"><span class="pre">displayName</span></tt> attributes:</p>
+endpoints, for the <tt class="docutils literal"><span class="pre">foo</span></tt> and <tt class="docutils literal"><span class="pre">itsName</span></tt> attributes:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; sharing = clouds.getByAlias('sharing')
 &gt;&gt;&gt; list(sharing.endpoints)
-[&lt;Endpoint ... foo ...&gt;, &lt;Endpoint ... displayName ...&gt;]
+[&lt;Endpoint ... foo ...&gt;, &lt;Endpoint ... itsName ...&gt;]
 </pre>
 <p>Because we simply listed these attributes without an explicit policy, the
 default <tt class="docutils literal"><span class="pre">byValue</span></tt> inclusion policy was applied:</p>
@@ -1164,7 +1234,7 @@ default <tt class="docutils literal"><span class="pre">byValue</span></tt> inclu
 &gt;&gt;&gt; sharing.endpoints.getByAlias('foo').includePolicy
 'byValue'
 
-&gt;&gt;&gt; sharing.endpoints.getByAlias('displayName').includePolicy
+&gt;&gt;&gt; sharing.endpoints.getByAlias('itsName').includePolicy
 'byValue'
 </pre>
 <p>To specify any other inclusion policies, you must use keyword arguments naming
@@ -1186,7 +1256,7 @@ The <tt class="docutils literal"><span class="pre">copying</span></tt> cloud abo
 <p>Note that in most circumstances, you will want to specify endpoints using
 attribute descriptors directly, as we did in most of our example above.
 However, there are some times when it will be more useful or convenient to
-use an attribute <em>name</em> instead, as we did for the <tt class="docutils literal"><span class="pre">displayName</span></tt> attribute
+use an attribute <em>name</em> instead, as we did for the <tt class="docutils literal"><span class="pre">itsName</span></tt> attribute
 above.  Also, there may be times when you need to specify an advanced endpoint
 option such as for the <tt class="docutils literal"><span class="pre">byMethod</span></tt> policy, which requires a method name to be
 specified in addition to the attribute name and policy.  In cases like these,
@@ -1216,32 +1286,52 @@ you may wish to directly create a <tt class="docutils literal"><span class="pre"
 <p>Note that you only need to use this if you need to specify a <tt class="docutils literal"><span class="pre">byMethod</span></tt>
 policy, a non-default <tt class="docutils literal"><span class="pre">cloudAlias</span></tt> for an endpoint, or a series of attributes
 instead of a single attribute.</p>
-<p>A final note on defining clouds: the schema API implementation for Chandler 0.6
-does not support defining clouds on annotation attributes, whether they are
-anonymous inverses or defined in an annotation class.  This restriction may be
-lifted in 0.7 if needed.</p>
+<p>You can also define clouds on annotations, and these are added to the clouds
+defined by the annotated class, updating in place if applicable:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class AddOnExample(schema.Annotation):
+...     schema.kindInfo(annotates=CloudExample2)
+...     spam = schema.One(CloudExample2)
+...     schema.addClouds(sharing = schema.Cloud(spam))
+
+&gt;&gt;&gt; example = schema.itemFor(AddOnExample, rv)
+&gt;&gt;&gt; sharing.endpoints.getByAlias('application.tests.AddOnExample.spam')
+&lt;Endpoint (new): application.tests.AddOnExample.spam ...&gt;
+</pre>
+<p>Note, however, that when defining a cloud's endpoints using strings, you must
+use the fully-qualified names of any annotation attributes, as shown above.</p>
 </div>
 <div class="section" id="other-metadata">
-<h3><a class="toc-backref" href="#id23" name="other-metadata">Other Metadata</a></h3>
+<h3><a class="toc-backref" href="#id25" name="other-metadata">Other Metadata</a></h3>
 <p>When a parcel is created, persistent items are created that correspond to each
-class, to store each class' schema.  These items can have attributes of their
-own, such as <tt class="docutils literal"><span class="pre">displayName</span></tt> and <tt class="docutils literal"><span class="pre">description</span></tt>.  Depending on whether the
-class is a <tt class="docutils literal"><span class="pre">schema.Item</span></tt>, <tt class="docutils literal"><span class="pre">schema.Struct</span></tt>, or <tt class="docutils literal"><span class="pre">schema.Enumeration</span></tt>, the
+class, to store each class' schema.  These items can be retrieved using the
+<tt class="docutils literal"><span class="pre">schema.itemFor()</span></tt> API, and have attributes of their own, such as
+<tt class="docutils literal"><span class="pre">description</span></tt>.  Depending on whether the class is a  <tt class="docutils literal"><span class="pre">schema.Item</span></tt>,
+<tt class="docutils literal"><span class="pre">schema.Struct</span></tt>, <tt class="docutils literal"><span class="pre">schema.Annotation</span></tt>, or <tt class="docutils literal"><span class="pre">schema.Enumeration</span></tt>, the
 attributes may be different, as the type of the persistent item will be
-different.  For all classes, however, you can set attributes of the
-corresponding items by using the <tt class="docutils literal"><span class="pre">schema.kindInfo()</span></tt> function in the body of
-your item class:</p>
+different.</p>
+<p>Normally, the <tt class="docutils literal"><span class="pre">description</span></tt> attribute of the persistent item is automatically
+set from the defining class' docstring (<tt class="docutils literal"><span class="pre">__doc__</span></tt> attribute), if any:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class AnExample(schema.Item):
+...     &quot;&quot;&quot;Just an example&quot;&quot;&quot;
+
+&gt;&gt;&gt; schema.itemFor(AnExample, rv).description
+'Just an example'
+</pre>
+<p>For all classes, however, you can set attributes of the corresponding item by
+using the <tt class="docutils literal"><span class="pre">schema.kindInfo()</span></tt> function in the body of your item class:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; class CalendarItem(schema.Item):
-...     &quot;&quot;&quot;This is just a demo&quot;&quot;&quot;
+...     &quot;&quot;&quot;My docstring is different from my description&quot;&quot;&quot;
 ...     schema.kindInfo(
-...         displayName = &quot;Calendar Item&quot;,
+...         description = &quot;Calendar Item&quot;,
 ...     )
 </pre>
 <p>Once you've done this, the persistent item corresponding to your class in any
 given repository view, will have the attribute values you specify:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; schema.itemFor(CalendarItem, rv).displayName
+&gt;&gt;&gt; schema.itemFor(CalendarItem, rv).description
 'Calendar Item'
 </pre>
 <p>Note, however, that you can only specify names that correspond to valid
@@ -1253,11 +1343,8 @@ Traceback (most recent call last):
   ...
 TypeError: 'madeUpName' is not an attribute of Kind
 </pre>
-<p>The only attribute used by all schema classes is <tt class="docutils literal"><span class="pre">displayName</span></tt>, which as we
-mentioned previously may be used by the Chandler UI in some places to show a
-name to the user.  (You should therefore call the <tt class="docutils literal"><span class="pre">_()</span></tt> translation function
-on such strings before using them, although our examples in this document do
-not.)  The <tt class="docutils literal"><span class="pre">schema.Annotation</span></tt> class also has an <tt class="docutils literal"><span class="pre">annotates</span></tt> attribute,
+<p>The only attribute currently used by all schema classes is <tt class="docutils literal"><span class="pre">description</span></tt>.
+The <tt class="docutils literal"><span class="pre">schema.Annotation</span></tt> class also has an <tt class="docutils literal"><span class="pre">annotates</span></tt> attribute, however,
 as we saw in the section on <a class="reference" href="#annotation-classes">Annotation Classes</a>, above.</p>
 <p>Whatever the attribute, however, you should note that their values are <em>not</em>
 inherited by subclasses:</p>
@@ -1265,16 +1352,16 @@ inherited by subclasses:</p>
 &gt;&gt;&gt; class CalendarItemSubclass(CalendarItem):
 ...     pass
 
-&gt;&gt;&gt; hasattr(schema.itemFor(CalendarItemSubclass, rv), 'displayName')
+&gt;&gt;&gt; hasattr(schema.itemFor(CalendarItemSubclass, rv), 'description')
 False
 </pre>
 <p>Also note that you can make multiple calls to <tt class="docutils literal"><span class="pre">kindInfo()</span></tt> in the same
 class:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; class MultipleMetadata(schema.Item):
-...     schema.kindInfo(displayName=&quot;Foo&quot;)
+...     schema.kindInfo(displayAttribute=&quot;Foo&quot;)
 ...     schema.kindInfo(description=&quot;Bar&quot;)
-&gt;&gt;&gt; schema.itemFor(MultipleMetadata, rv).displayName
+&gt;&gt;&gt; schema.itemFor(MultipleMetadata, rv).displayAttribute
 'Foo'
 &gt;&gt;&gt; schema.itemFor(MultipleMetadata, rv).description
 'Bar'
@@ -1282,16 +1369,16 @@ class:</p>
 <p>as long as you don't change anything you set in a previous call:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; class ConflictingMetadata(schema.Item):
-...     schema.kindInfo(displayName=&quot;Foo&quot;)
-...     schema.kindInfo(displayName=&quot;Bar&quot;)
+...     schema.kindInfo(description=&quot;Foo&quot;)
+...     schema.kindInfo(description=&quot;Bar&quot;)
 Traceback (most recent call last):
   ...
-ValueError: 'displayName' defined multiple times for this class
+ValueError: 'description' defined multiple times for this class
 </pre>
 <p>And finally, note that calling <tt class="docutils literal"><span class="pre">kindInfo()</span></tt> is meaningless outside a class
 statement:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; schema.kindInfo(displayName=&quot;x&quot;)
+&gt;&gt;&gt; schema.kindInfo(description=&quot;x&quot;)
 Traceback (most recent call last):
   ...
 SyntaxError: kindInfo() must be called in the body of a class statement
@@ -1299,7 +1386,7 @@ SyntaxError: kindInfo() must be called in the body of a class statement
 </div>
 </div>
 <div class="section" id="attribute-descriptors">
-<h2><a class="toc-backref" href="#id24" name="attribute-descriptors">Attribute Descriptors</a></h2>
+<h2><a class="toc-backref" href="#id26" name="attribute-descriptors">Attribute Descriptors</a></h2>
 <p>There are currently four types of attribute descriptors: <tt class="docutils literal"><span class="pre">One</span></tt>, <tt class="docutils literal"><span class="pre">Many</span></tt>,
 <tt class="docutils literal"><span class="pre">Sequence</span></tt>, and <tt class="docutils literal"><span class="pre">Mapping</span></tt>.  They are all essentially identical except for
 their <tt class="docutils literal"><span class="pre">cardinality</span></tt> attribute, which controls how the repository will store
@@ -1430,15 +1517,13 @@ the descriptors exist.  For example, in the following class, the
 &lt;class '...Kind'&gt;
 </pre>
 </dd>
-<dt><tt class="docutils literal"><span class="pre">displayName</span></tt>, <tt class="docutils literal"><span class="pre">description</span></tt>, and <tt class="docutils literal"><span class="pre">doc</span></tt></dt>
-<dd><p class="first">The name and description of this attribute descriptor, if any.  They will
-be used to collectively form a <tt class="docutils literal"><span class="pre">__doc__</span></tt> string, so that <tt class="docutils literal"><span class="pre">help()</span></tt> is
-informative for Item classes:</p>
+<dt><tt class="docutils literal"><span class="pre">description</span></tt>, and <tt class="docutils literal"><span class="pre">doc</span></tt></dt>
+<dd><p class="first">The description of this attribute descriptor (if any) used to form a
+<tt class="docutils literal"><span class="pre">__doc__</span></tt> string, so that <tt class="docutils literal"><span class="pre">help()</span></tt> is informative for Item classes:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; Kind.subkinds.doc = &quot;Sub-kinds of this kind&quot;
 &gt;&gt;&gt; Kind.superkinds.doc = &quot;Super-kinds of this kind&quot;
 &gt;&gt;&gt; Kind.name.doc = &quot;This kind's name&quot;
-&gt;&gt;&gt; Kind.name.displayName = &quot;Kind Name&quot;
 
 &gt;&gt;&gt; help(Kind)                      # doctest: +NORMALIZE_WHITESPACE
 Help on class Kind ...
@@ -1447,25 +1532,25 @@ class Kind(application.schema.Item)
  | ...
  |  Data and other attributes defined here:
  |
- |  name = &lt;Role name of &lt;class '...Kind'&gt;&gt;
- |      Kind Name -- One(Text)
+ |  name = &lt;Descriptor name of &lt;class '...Kind'&gt;&gt;
+ |      One(Text)
  |
  |      This kind's name
  |
- |  subkinds = &lt;Role subkinds of &lt;class '...Kind'&gt;&gt;
+ |  subkinds = &lt;Descriptor subkinds of &lt;class '...Kind'&gt;&gt;
  |      Sequence(Kind)
  |
  |      Sub-kinds of this kind
  |
- |  superkinds = &lt;Role superkinds of &lt;class '...Kind'&gt;&gt;
+ |  superkinds = &lt;Descriptor superkinds of &lt;class '...Kind...
  |      Sequence(Kind)
  |
  |      Super-kinds of this kind
  |  ...
 </pre>
 <p>As you can see, the automatically-generated <tt class="docutils literal"><span class="pre">__doc__</span></tt> for an attribute
-descriptor includes its <tt class="docutils literal"><span class="pre">displayName</span></tt> (if any), its cardinality and type,
-followed by a blank line and the <tt class="docutils literal"><span class="pre">doc</span></tt> or <tt class="docutils literal"><span class="pre">description</span></tt>.</p>
+descriptor includes its cardinality and type followed by a blank line and
+the <tt class="docutils literal"><span class="pre">doc</span></tt> or <tt class="docutils literal"><span class="pre">description</span></tt>.</p>
 <p>Note that <tt class="docutils literal"><span class="pre">doc</span></tt> is actually just a convenient shortcut for
 <tt class="docutils literal"><span class="pre">description</span></tt>; there is no real difference between the two attributes:</p>
 <pre class="literal-block">
@@ -1488,16 +1573,16 @@ them both together.  Above, we only set the <tt class="docutils literal"><span c
 but both end up pointing to each other automatically:</p>
 <pre class="last literal-block">
 &gt;&gt;&gt; Kind.superkinds.inverse
-&lt;Role subkinds of &lt;class '...Kind'&gt;&gt;
+&lt;Descriptor subkinds of &lt;class '...Kind'&gt;&gt;
 
 &gt;&gt;&gt; Kind.subkinds.inverse
-&lt;Role superkinds of &lt;class '...Kind'&gt;&gt;
+&lt;Descriptor superkinds of &lt;class '...Kind'&gt;&gt;
 </pre>
 </dd>
 </dl>
 </div>
 <div class="section" id="other-apis">
-<h2><a class="toc-backref" href="#id25" name="other-apis">Other APIs</a></h2>
+<h2><a class="toc-backref" href="#id27" name="other-apis">Other APIs</a></h2>
 <p>There are a few other schema API functions remaining, that don't fit into any
 of the preceding categories:</p>
 <dl class="docutils">
