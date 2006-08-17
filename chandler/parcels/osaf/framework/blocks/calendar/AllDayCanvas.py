@@ -599,3 +599,13 @@ class AllDayCanvasItem(CalendarCanvasItem):
                                           b.height)
         self._resizeRightBounds = wx.Rect(b.x + b.width - self.resizeBufferSize,
                                           b.y, self.resizeBufferSize, b.height)
+
+    def GetEditorPosition(self):
+        """
+        This returns a location to show the editor.
+        """
+        position = self.GetBoundsRects()[0].GetPosition() + self.textOffset
+
+        # now offset to account for the time
+        position += (0, self.timeHeight + 3)
+        return position

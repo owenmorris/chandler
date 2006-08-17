@@ -69,7 +69,9 @@ dateFormatSymbols = DateFormatSymbols()
 # used on any platform
 ENABLE_DEVICE_ORIGIN = False
 
-RADIUS = 6
+NORMAL_RADIUS   = 6
+ONE_LINE_RADIUS = 8
+
 SWATCH_HEIGHT = 5 # not counting border
 SWATCH_WIDTH  = 3 # not counting border
 SWATCH_BORDER = 1
@@ -288,9 +290,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     def __init__(self, collection, primaryCollection, bounds, item, *args, **keywords):
         super(CalendarCanvasItem, self).__init__(bounds, item, *args, **keywords)
 
-        # this is supposed to be set in Draw(), but sometimes this
-        # object seems to exist before Draw() is called
-        self.textOffset = wx.Point(self.textMargin + RADIUS / 2, self.textMargin + 1)
+        self.textOffset = wx.Point(self.textMargin + NORMAL_RADIUS / 2,
+                                   self.textMargin + 1)
 
         # use PyICU to pre-cache the time string
         self.timeString = formatTime(self.item.startTime, noTZ=True)
@@ -435,10 +436,31 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 # may actually be the same boundsRect	
                 hasTopRightRounded = hasBottomRightRounded = False	
                 drawEventText = False	
+                    
+                if isAnyTimeOrAllDay:
+                    timeHeight = 0
+                else:
+                    # When a canvas item is being dragged, it will have a
+                    # startTime set on it different from item.starTime. If
+                    # this isn't set, use the cached timeString
+                    startTime = getattr(self, 'startTime', None)
+                    if startTime:
+                        # don't use a time zone when drawing the startTime
+                        timeString = formatTime(startTime, noTZ=True)
+                    else:
+                        timeString = self.timeString
+                    timeHeight = self.SetTimeHeight(dc, styles, timeString)
+
+                if timeHeight > 0:
+                    radius = NORMAL_RADIUS
+                else:
+                    radius = ONE_LINE_RADIUS
+
                 if rectIndex == 0:
                     hasTopRightRounded = True
                     drawEventText = True
-           
+              
+                    
                 if rectIndex == len(self.GetBoundsRects())-1:
                     hasBottomRightRounded = True
            
@@ -448,7 +470,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 dc.SetPen(wx.Pen(wx.WHITE, 1))
 
                 # draw white outline
-                self.DrawEventRectangle(dc, itemRect, wx.WHITE_BRUSH,
+                self.DrawEventRectangle(dc, itemRect, wx.WHITE_BRUSH, radius,
                                         hasLeftRounded,
                                         hasTopRightRounded,
                                         hasBottomRightRounded,
@@ -477,7 +499,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 dc.SetBrush(brush)
                 dc.SetPen(wx.Pen(outlineColor, 1))
                 
-                self.DrawEventRectangle(dc, itemRect, brush,
+                self.DrawEventRectangle(dc, itemRect, brush, radius,
                                         hasLeftRounded,
                                         hasTopRightRounded,
                                         hasBottomRightRounded,
@@ -490,12 +512,23 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 y = itemRect.y + self.textOffset.y
     
                 width = itemRect.width - self.textOffset.x - (self.textMargin)
-                
-                multipleLinesDrawn = False
+
                 lostBottom = 0
-                
+
                 # only draw date/time on first item
                 if drawEventText:
+                    drawSwatches = False
+                    # other collection swatches should be drawn if the item is
+                    # in at least one other collection (not counting the
+                    # dashboard).
+                    numCollections = len(getattr(item, 'appearsIn', []))
+                    # for some reason primaryCollection and allCollection don't
+                    # compare as equal when they ought to
+                    if numCollections > 2 or (numCollections == 2 and
+                      (item not in allCollection or 
+                       self.primaryCollection.itsUUID==allCollection.itsUUID)):
+                        drawSwatches = True
+                    
                     # only draw time on timed events
                     if not isAnyTimeOrAllDay:
                         
@@ -537,7 +570,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                             
                             
                             y += self.timeHeight + TIME_BOTTOM_MARGIN
-                            multipleLinesDrawn = True
 
                             # draw end time when dragging
                             endTime = getattr(self, 'endTime', None)
@@ -552,12 +584,18 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                 if len(tzString) > 0:
                                     tzWidth   = dc.GetFullTextExtent(tzString,
                                                   superscript)[0]
+                                
+                                rightMargin = max(radius/2,self.textMargin)
+                                if drawSwatches:
+                                    rightMargin = (rightMargin + SWATCH_WIDTH +
+                                                   2*SWATCH_BORDER)
 
-                                rightAlignStart = max(x, x + width - textWidth -
-                                                    tzWidth - self.textOffset.x)
+                                rightAlignStart = max(x, x + width - 
+                                  (textWidth + tzWidth + rightMargin))
                                 bottomStart = (y - 2*self.textOffset.y -
                                                2*timeHeight + itemRect.height)
-                                rectWidth = width + (x - rightAlignStart)
+                                rectWidth = (width - rightMargin + 
+                                             x - rightAlignStart)
                                 timeRect = (rightAlignStart, bottomStart,
                                             rectWidth, timeHeight)
                                 dc.SetFont(styles.eventTimeFont)
@@ -588,17 +626,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     
                     rightMargin = 0
                     
-                    # other collection swatches should be drawn if the item is
-                    # in at least one other collection (not counting the
-                    # dashboard).
-                    numCollections = len(getattr(item, 'appearsIn', []))
-                    # for some reason primaryCollection and allCollection don't
-                    # compare as equal when they ought to
-                    if numCollections > 2 or (numCollections == 2 and
-                      (item not in allCollection or 
-                       self.primaryCollection.itsUUID==allCollection.itsUUID)):
+                    if drawSwatches:
 
-                        margin = max(RADIUS/2, self.textMargin)
+                        margin = max(radius/2, self.textMargin)
                         yMargin = vector([0, margin])
 
                         bottomRight = vector(
@@ -607,7 +637,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         topRight = vector([itemRect.x + itemRect.width - margin,
                                            itemRect.y + lostHeight + margin])
 
-                        if multipleLinesDrawn:
+                        if timeHeight > 0:
                             # when the time was drawn, add yMargin back in, 
                             # because lostHeight includes ample margin
                             topLeft = topRight - SWATCH_WIDTH_VECTOR - yMargin
@@ -632,7 +662,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                 left = x + textWidth
                             
                             right = topRight[0]
-                            top = itemRect.y + RADIUS - self.swatchAdjust
+                            top = itemRect.y + radius - self.swatchAdjust
                             bottom = top + SWATCH_HEIGHT + 2 * SWATCH_BORDER 
      
                             count = self.DrawCollectionSwatches(dc, 
@@ -716,7 +746,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         return count
 
-    def DrawEventRectangle(self, dc, rect, brush,
+    def DrawEventRectangle(self, dc, rect, brush, radius,
                            hasLeftRounded=False,
                            hasTopRightRounded=True,
                            hasBottomRightRounded=True,
@@ -734,7 +764,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             dashColor = self.colorInfo.selectedFYIColors[3]
             outlinePen = wx.Pen(dashColor, 1)
             dc.SetPen(outlinePen)
-        diameter = RADIUS * 2
+        diameter = radius * 2
 
         dc.DestroyClippingRegion()
         dc.SetClippingRect(rect)
@@ -755,41 +785,41 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         # left/right clipping
         if not hasLeftRounded:
-            x -= RADIUS
-            width += RADIUS
+            x -= radius
+            width += radius
 
         if clipRightSide:
-            width += RADIUS;
+            width += radius;
             
         # top/bottom clipping
         if not hasBottomRightRounded:
-            height += RADIUS
+            height += radius
 
         if not hasTopRightRounded:
-            y -= RADIUS
-            height += RADIUS
+            y -= radius
+            height += radius
 
         # finally draw the clipped rounded rect
-        dc.DrawRoundedRectangle(x,y,width,height,RADIUS)
+        dc.DrawRoundedRectangle(x,y,width,height,radius)
         dash_pattern = [2,1,4,1]
         
         def drawVertical(brush = None):
             if brush:
                 dc.SetBrush(brush)
-                dc.DrawRectangle(x, y+RADIUS, 1, height - 2 * RADIUS)
-                dc.DrawRectangle(x+width-1, y+RADIUS, 1, height - 2 * RADIUS)
+                dc.DrawRectangle(x, y+radius, 1, height - diameter)
+                dc.DrawRectangle(x+width-1, y+radius, 1, height - diameter)
             else:
-                dc.DrawLine(x, y+RADIUS,  x, y+height-RADIUS)                #left 
-                dc.DrawLine(x+width-1, y+RADIUS, x+width-1, y+height-RADIUS) #right
+                dc.DrawLine(x, y+radius,  x, y+height-radius)                #left 
+                dc.DrawLine(x+width-1, y+radius, x+width-1, y+height-radius) #right
 
         def drawHorizontal(brush = None):
             if brush:
                 dc.SetBrush(brush)
-                dc.DrawRectangle(x+RADIUS, y, width - 2 * RADIUS, 1)
-                dc.DrawRectangle(x+RADIUS, y+height-1, width - 2 * RADIUS, 1)                
+                dc.DrawRectangle(x+radius, y, width - diameter, 1)
+                dc.DrawRectangle(x+radius, y+height-1, width - diameter, 1)                
             else:
-                dc.DrawLine(x+RADIUS, y,  x + width-RADIUS, y)               #top 
-                dc.DrawLine(x+RADIUS, y+height-1, x+width-RADIUS, y+height-1)#bottom
+                dc.DrawLine(x+radius, y,  x + width-radius, y)               #top 
+                dc.DrawLine(x+radius, y+height-1, x+width-radius, y+height-1)#bottom
 
 
         if '__WXMAC__' in wx.PlatformInfo and addDashes:
