@@ -52,11 +52,22 @@ class TestFlickr(ChandlerTestCase):
             # Add the channel to the sidebar
             self.app_ns.sidebarCollection.add(fc)
     
+            def sidebarCollectionNamed(name):
+                """
+                Look for a sidebar collection with name, otherwise return False
+                """
+                sidebarWidget = self.app_ns.sidebar.widget
+                for i in range(sidebarWidget.GetNumberRows()):
+                    collection = sidebarWidget.GetTable().GetValue(i,0)[0]
+                    if collection.displayName == name:
+                        return collection
+                return False
+    
             # force sidebar to update
             self.scripting.User.idle()
     
             # check results
-            col = QAUITestAppLib.sidebarCollectionNamed(uw("oscon2005"))
+            col = sidebarCollectionNamed(uw("oscon2005"))
             if not col:
                 self.logger.endAction(False, "Flickr Collection wasn't created")
             if col and len(col) != 10:
