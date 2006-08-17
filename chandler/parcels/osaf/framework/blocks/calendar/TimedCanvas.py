@@ -278,6 +278,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         scaledY = (scrollY // self._scrollYRate) + rounding
         self.Scroll(scrollX, scaledY)
+        self.blockItem.scrollY = self.GetViewStart()[1]
 
     def ScrollToEvent(self, event, buffer=10):
         (startDay, endDay) = self.GetCurrentDateRange()
@@ -290,7 +291,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if event.startTime > startDay:
             x,y,width = self.getPositionFromDateTime(event.startTime)
             self.ScrollIntoView(self.CalcScrolledPosition(wx.Point(x,y)),buffer)
-
 
             
     def _doDrawingCalculations(self):
