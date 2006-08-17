@@ -29,6 +29,7 @@ class TimeZoneInfo(schema.Item):
 
     default = schema.One(
         schema.TimeZone,
+        afterChange = ['onDefaultChanged']
     )
 
     # List of well-known time zones (for populating drop-downs).
@@ -119,19 +120,18 @@ class TimeZoneInfo(schema.Item):
         if tz is not None and view is not None:
             PyICU.TimeZone.setDefault(tz.timezone)
 
-    def onValueChanged(self, name):
+    def onDefaultChanged(self, name):
         # Repository hook for attribute changes.
-        if name == 'default':
-            default = self.default
-            canonicalDefault = self.canonicalTimeZone(default)
-            # Make sure that PyICU's default timezone is synched with
-            # ours
-            if (canonicalDefault is not None and
-                canonicalDefault is not PyICU.ICUtzinfo.floating):
-                PyICU.ICUtzinfo.default = canonicalDefault
-            # This next if is required to avoid an infinite recursion!
-            if canonicalDefault is not default:
-                self.default = canonicalDefault
+        default = self.default
+        canonicalDefault = self.canonicalTimeZone(default)
+        # Make sure that PyICU's default timezone is synched with
+        # ours
+        if (canonicalDefault is not None and
+            canonicalDefault is not PyICU.ICUtzinfo.floating):
+            PyICU.ICUtzinfo.default = canonicalDefault
+        # This next if is required to avoid an infinite recursion!
+        if canonicalDefault is not default:
+            self.default = canonicalDefault
 
 def installParcel(parcel, oldVersion = None):
     # Get our parcel's namespace

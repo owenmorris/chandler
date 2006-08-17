@@ -29,6 +29,7 @@ __all__ = [
     'importString', 'parcel_for_module', 'TypeReference',
     'Enumeration', 'Cloud', 'Endpoint', 'addClouds', 'Struct',
     'assertResolved', 'Annotation', 'AnnotationItem',
+    'afterChange',
 ]
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + ('description',)
@@ -537,6 +538,20 @@ class ItemClass(Activator):
                 if ai not in kind.attributes:
                     kind.attributes.append(ai,name)
 
+        for attrName, names in cls.__dict__.get('__after_change__',{}).items():
+            attr = kind.getAttribute(attrName, True)
+            if attr is not None:
+                if hasattr(attr, 'afterChange'):
+                    afterChange = attr.afterChange
+                    for name in names:
+                        if name not in afterChange:
+                            afterChange.append(name)
+                else:
+                    attr.afterChange = names
+            else:
+                view.logger.warn("no attribute '%s' defined for kind for %s",
+                                 attrName, cls)
+
         def fixup():
             kind.itsParent = parcel_for_module(cls.__module__, view)
             kind.itsName = cls.__name__
@@ -1002,6 +1017,10 @@ def addClouds(**clouds):
             raise TypeError("Not a schema.Cloud", cloud)
     _update_info('addClouds','__kind_clouds__',clouds)
 
+
+def afterChange(**pairs):
+    """Update afterChange aspect on attributes"""
+    _update_info('afterChange', '__after_change__', pairs)
 
 
 def importString(name, globalDict=__main__.__dict__):

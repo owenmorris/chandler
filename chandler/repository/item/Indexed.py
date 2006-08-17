@@ -234,6 +234,8 @@ class Indexed(object):
 
             index.moveKeys(moves)
             for key in insertions:
+                if key in index:
+                    index.removeKey(key)
                 index.insertKey(key)
 
         self._setDirty(True)
@@ -643,7 +645,6 @@ class Indexed(object):
                                                        count, repair)
                         else:
                             result = False
-
             finally:
                 self._indexes = indexes
                     

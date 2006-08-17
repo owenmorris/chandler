@@ -26,20 +26,22 @@ from osaf.framework import Preferences
 import version
 
 class TZPrefs(Preferences):
-    showUI = schema.One(schema.Boolean, initialValue = False)
+    showUI = schema.One(schema.Boolean,
+                        initialValue = False,
+                        afterChange = ['onShowUIChanged'])
     
-    def onValueChanged(self, attrName):
-        if attrName == 'showUI':
-            from osaf.pim.calendar.TimeZone import TimeZoneInfo
+    def onShowUIChanged(self, attrName):
+
+        from osaf.pim.calendar.TimeZone import TimeZoneInfo
             
-            timeZoneInfo = TimeZoneInfo.get(self.itsView)
+        timeZoneInfo = TimeZoneInfo.get(self.itsView)
         
-            # Sync up the default timezone (i.e. the one used when
-            # creating new events).
-            if self.showUI:
-                timeZoneInfo.default = ICUtzinfo.default
-            else:
-                timeZoneInfo.default = ICUtzinfo.floating
+        # Sync up the default timezone (i.e. the one used when
+        # creating new events).
+        if self.showUI:
+            timeZoneInfo.default = ICUtzinfo.default
+        else:
+            timeZoneInfo.default = ICUtzinfo.floating
 
 
 

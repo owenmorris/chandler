@@ -24,7 +24,6 @@ from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Item import Item, MissingClass
 from repository.item.RefCollections import RefList
 from repository.item.Sets import AbstractSet
-from repository.item.Monitors import Monitors, Monitor
 from repository.item.Values import Values, References
 from repository.item.PersistentCollections import PersistentCollection
 from repository.persistence.RepositoryError import RecursiveLoadItemError
@@ -917,11 +916,17 @@ class Kind(Item):
         self.schemaHash = hash = self._hashItem()
         return hash
 
-    def onValueChanged(self, name):
+    def _afterSchemaChange(self, attrName):
 
-        if name == 'attributeHash':
-            if 'schemaHash' in self._values:
-                del self.schemaHash
+        c = getattr(self, 'c', None)
+        if c is not None:
+            if c.monitorSchema or c.attributesCached:
+                self.flushCaches(attrName)
+
+    def _afterAttributeHashChange(self):
+
+        if 'schemaHash' in self._values:
+            del self.schemaHash
 
     def findMatch(self, view, matches=None):
 
@@ -966,16 +971,6 @@ class Kind(Item):
     _kinds = {}
     _descriptors = {}
     
-
-class SchemaMonitor(Monitor):
-
-    def schemaChange(self, op, kind, attrName):
-
-        if isinstance(kind, Kind):
-            c = kind.c
-            if c.monitorSchema or c.attributesCached:
-                kind.flushCaches(attrName)
-
 
 class Extent(Item):
 

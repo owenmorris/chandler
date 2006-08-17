@@ -10,6 +10,8 @@
     <ref name="attributes" otherName="kinds"
          cardinality="list" otherCard="list">
 
+      <ref alias="typeIndex" type="path">/Core/typeIndex</ref>
+
       <!-- 
          - plus local attributes below:
          -     types

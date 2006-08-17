@@ -210,6 +210,24 @@ class RecurrenceRule(items.ContentItem):
                 "byyearday","byweekno", "byhour", "byminute", "bysecond",
                 "wkst", "byweekday", "freq")
 
+    # KLUDGE: 
+    #   replace the following with the proper schema API syntax
+    #   and possible per-attribute refactoring
+
+    schema.afterChange(interval = ['onRecurrenceChanged'],
+                       until = ['onRecurrenceChanged'],
+                       bysetpos = ['onRecurrenceChanged'],
+                       bymonth = ['onRecurrenceChanged'],
+                       bymonthday = ['onRecurrenceChanged'],
+                       byyearday = ['onRecurrenceChanged'],
+                       byweekno = ['onRecurrenceChanged'],
+                       byhour = ['onRecurrenceChanged'],
+                       byminute = ['onRecurrenceChanged'],
+                       bysecond = ['onRecurrenceChanged'],
+                       wkst = ['onRecurrenceChanged'],
+                       byweekday = ['onRecurrenceChanged'],
+                       freq = ['onRecurrenceChanged'])
+    
     # dateutil automatically sets these from dtstart, we don't want these
     # unless their length is greater than 1.
     interpretedNames = "byhour", "byminute", "bysecond"
@@ -383,12 +401,12 @@ class RecurrenceRule(items.ContentItem):
         self.until = previous
         self.untilIsDate = False
 
-    def onValueChanged(self, name):
+    def onRecurrenceChanged(self, name):
         """If the rule changes, update any associated events."""
         if name in self.allNames:
             for ruletype in ('rruleFor', 'exruleFor'):
                 if self.hasLocalAttributeValue(ruletype):
-                    getattr(self, ruletype).onValueChanged('rrules')
+                    getattr(self, ruletype).onRuleSetChanged('rrules')
 
 
 class RecurrenceRuleSet(items.ContentItem):
@@ -645,7 +663,7 @@ class RecurrenceRuleSet(items.ContentItem):
         @type  end: C{datetime}
 
         """
-        #change the rule, onValueChanged will trigger cleanRule for master
+        #change the rule, onRuleSetChanged will trigger cleanRule for master
         for rule in getattr(self, 'rrules', []):
             if (not rule.hasLocalAttributeValue('until') or
                (rule.calculatedUntil() >= end)):
@@ -654,12 +672,16 @@ class RecurrenceRuleSet(items.ContentItem):
 
     RULENAMES = ('rrules', 'exrules', 'rdates', 'exdates')
 
-    def onValueChanged(self, name):
+    schema.afterChange(rrules = ['onRuleSetChanged'],
+                       exrules = ['onRuleSetChanged'],
+                       rdates = ['onRuleSetChanged'],
+                       exdates = ['onRuleSetChanged'])
+
+    def onRuleSetChanged(self, name):
         """If the RuleSet changes, update the associated event."""
-        if name in self.RULENAMES and not getattr(self, '_ignoreValueChanges', False):
+        if not getattr(self, '_ignoreValueChanges', False):
             if self.hasLocalAttributeValue('events'):
                 for event in self.events:
                     event.getFirstInRule().cleanRule()
                     # assume we have only one conceptual event per rrule
                     break
-

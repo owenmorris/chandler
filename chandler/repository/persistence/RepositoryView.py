@@ -60,8 +60,9 @@ class RepositoryView(CView):
     # 0.6.6: added support for MethodFilteredSet
     # 0.6.7: watchers reworked to use RefDict
     # 0.6.8: removed support for persistent collection queue subscriptions
+    # 0.6.9: added 'afterChange' attribute aspect
     
-    CORE_SCHEMA_VERSION = 0x00060800
+    CORE_SCHEMA_VERSION = 0x00060900
 
     def __init__(self, repository, name, version):
         """

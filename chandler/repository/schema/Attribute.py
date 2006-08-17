@@ -145,46 +145,53 @@ class Attribute(Item):
         self.schemaHash = hash = self._hashItem()
         return hash
 
-    def onValueChanged(self, name):
+    def _afterAspectChange(self, name):
 
-        if name in Attribute.valueAspects or name in Attribute.refAspects:
-            values = self._values
+        if 'schemaHash' in self._values:
+            del self.schemaHash
+            if 'kinds' in self._references:
+                for kind in self.kinds:
+                    kind._afterAttributeHashChange()
 
-            if 'schemaHash' in values:
-                del self.schemaHash
-                if 'kinds' in self._references:
-                    for kind in self.kinds:
-                        kind.onValueChanged('attributeHash')
+    def _afterCardinalityChange(self, name):
 
-            c = getattr(self, 'c', None)
-            if c is not None:
+        self.c.cardinality = self._values
+        
+    def _afterPersistedChange(self, name):
 
-                if name == 'cardinality':
-                    c.cardinality = values
+        self.c.persisted = self._values.get('persisted', True)
 
-                elif name == 'persisted':
-                    c.persisted = values.get('persisted', True)
+    def _afterRequiredChange(self, name):
 
-                elif name == 'required':
-                    c.required = values.get('required', False)
+        self.c.required = self._values.get('required', False)
 
-                elif name == 'indexed':
-                    c.indexed = values.get('indexed', False)
+    def _afterIndexedChange(self, name):
 
-                elif name == 'inheritFrom':
-                    c.noInherit = (values, 'inheritFrom', 'redirectTo')
+        self.c.indexed = self._values.get('indexed', False)
 
-                elif name == 'defaultValue':
-                    c.defaultValue = values
+    def _afterInheritFromChange(self, name):
 
-                elif name == 'redirectTo':
-                    c.redirectTo = (values, 'redirectTo', 'inheritFrom')
+        self.c.noInherit = (self._values, 'inheritFrom', 'redirectTo')
 
-                elif name == 'otherName':
-                    c.otherName = values
+    def _afterDefaultValueChange(self, name):
 
-                elif name == 'type':
-                    c.typeID = self._references
+        self.c.defaultValue = self._values
+
+    def _afterRedirectToChange(self, name):
+
+        self.c.redirectTo = (self._values, 'redirectTo', 'inheritFrom')
+
+    def _afterOtherNameChange(self, name):
+
+        self.c.otherName = self._values
+
+    def _afterTypeChange(self, name):
+
+        self.c.typeID = self._references
+
+    def _afterAfterChangeChange(self, name):
+
+        self.c.afterChange = self._values
 
     def findMatch(self, view, matches=None):
 
@@ -209,7 +216,7 @@ class Attribute(Item):
 
     valueAspects = ('required', 'persisted', 'indexed', 'notify',
                     'cardinality', 'defaultValue', 'initialValue',
-                    'inheritFrom', 'redirectTo', 'otherName',
+                    'inheritFrom', 'redirectTo', 'otherName', 'afterChange',
                     'deletePolicy', 'copyPolicy', 'countPolicy', 'domains')
 
     refAspects = ('type', 'superAttribute')

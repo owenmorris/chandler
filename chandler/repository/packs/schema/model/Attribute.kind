@@ -16,7 +16,7 @@
          - plus local attributes below:
          -     required, persisted, indexed, notify,
 	 -     cardinality, type,
-	 -     defaultValue, initialValue,
+	 -     defaultValue, initialValue, afterChange,
          -     inheritFrom, redirectTo, otherName,
 	 -     deletePolicy, copyPolicy, countPolicy,
          -     kinds, superAttribute, subAttributes,
@@ -50,6 +50,10 @@
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue" type="bool">False</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterRequiredChange</value>
+    </attribute>
   </item>
 
   <item withSchema="True">
@@ -68,6 +72,10 @@
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue" type="bool">True</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterPersistedChange</value>
+    </attribute>
   </item>
 
   <item withSchema="True">
@@ -86,6 +94,10 @@
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue" type="bool">False</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterIndexedChange</value>
+    </attribute>
   </item>
 
   <item withSchema="True">
@@ -122,6 +134,10 @@
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue">single</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterCardinalityChange</value>
+    </attribute>
   </item>
 
   <item withSchema="True">
@@ -137,6 +153,10 @@
 
     <attribute name="cardinality">single</attribute>
     <attribute name="otherName">typeFor</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterTypeChange</value>
+    </attribute>
   </item>
 
   <item withSchema="True">
@@ -154,6 +174,10 @@
          type="path" otherCard="list">/Core/Anything</ref>
 
     <attribute name="cardinality">single</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterDefaultValueChange</value>
+    </attribute>
   </item>
 
   <item withSchema="True">
@@ -174,6 +198,27 @@
   </item>
 
   <item withSchema="True">
+    <name>afterChange</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="afterChange">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Importable</ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterAfterChangeChange</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
     <name>inheritFrom</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -188,6 +233,10 @@
          type="path" otherCard="list">/Core/Importable</ref>
 
     <attribute name="cardinality">single</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterInheritFromChange</value>
+    </attribute>
   </item>
 
   <item withSchema="True">
@@ -205,6 +254,10 @@
          type="path" otherCard="list">/Core/Importable</ref>
 
     <attribute name="cardinality">single</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterRedirectToChange</value>
+    </attribute>
   </item>
 
   <item withSchema="True">
@@ -222,6 +275,10 @@
          type="path" otherCard="list">/Core/Importable</ref>
 
     <attribute name="cardinality">single</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterAspectChange</value>
+      <value>_afterOtherNameChange</value>
+    </attribute>
   </item>
 
   <item withSchema="True">

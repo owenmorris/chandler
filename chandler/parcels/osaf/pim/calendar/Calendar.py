@@ -291,7 +291,7 @@ class CalendarEventMixin(ContentItem):
     @group Semi-Private Methods: addToCollection, changeNoModification,
     cleanRule, copyCollections, getEffectiveEndTime, getEffectiveStartTime,
     getEndTime, getFirstInRule, InitOutgoingAttributes, isBetween, isProxy,
-    moveCollections, moveRuleEndBefore, onValueChanged, removeFutureOccurrences,
+    moveCollections, moveRuleEndBefore, onEventChanged, removeFutureOccurrences,
     setEndTime, StampKind, updateRecurrenceEnd, __init__, removeFromCollection
 
     """
@@ -418,7 +418,7 @@ class CalendarEventMixin(ContentItem):
         schema.DateTimeTZ,
         defaultValue = None,
         doc="End time for recurrence, or None, kept up to date by "
-            "onValueChanged.  Note that this attribute is only meaningful "
+            "onEventChanged.  Note that this attribute is only meaningful "
             "on master events")
 
     schema.addClouds(
@@ -1354,13 +1354,26 @@ class CalendarEventMixin(ContentItem):
     changeNames = ('displayName', 'startTime', 'duration', 'location', 'body',
                    'lastModified', 'allDay')
 
-    def onValueChanged(self, name):
+    # KLUDGE: 
+    #   replace the following with the proper schema API syntax
+    #   and possible per-attribute refactoring
+
+    schema.afterChange(displayName=['onEventChanged'],
+                       startTime=['onEventChanged'],
+                       duration=['onEventChanged'],
+                       location=['onEventChanged'],
+                       body=['onEventChanged'],
+                       lastModified=['onEventChanged'],
+                       allDay=['onEventChanged'],
+                       rruleset=['onEventChanged'])
+
+    def onEventChanged(self, name):
         """
         Maintain coherence of the various recurring items associated with self
         after an attribute has been changed.
 
         """
-        # allow initialization code to avoid triggering onValueChanged
+        # allow initialization code to avoid triggering onEventChanged
         rruleset = name == 'rruleset'
         changeName = not rruleset and name in CalendarEventMixin.changeNames
 
@@ -1387,7 +1400,7 @@ class CalendarEventMixin(ContentItem):
         # changeThis won't work with stamping
         elif changeName:
             if DEBUG:
-                logger.debug("about to changeThis in onValueChanged(name=%s) for %s", name, str(self))
+                logger.debug("about to changeThis in onEventChanged(name=%s) for %s", name, str(self))
                 logger.debug("value is: %s", getattr(self, name))
             if name == 'duration' and self == self.getFirstInRule():
                 self.updateRecurrenceEnd()
@@ -1397,7 +1410,7 @@ class CalendarEventMixin(ContentItem):
         first = self.getFirstInRule()
         for event in first.occurrences:
             if event.isGenerated:
-                # don't let deletion result in spurious onValueChanged calls
+                # don't let deletion result in spurious onEventChanged calls
                 event._ignoreValueChanges = True
                 event.delete()
 

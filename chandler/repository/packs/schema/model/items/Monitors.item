@@ -7,30 +7,4 @@
     <kind type="path">//Schema/Core/Monitors</kind>
   </item>
 
-  <item>
-    <kind type="path">//Schema/Core/Monitor</kind>
-    <class module="repository.schema.Kind">SchemaMonitor</class>
-
-    <ref name="dispatcher" type="path">../Monitors</ref>
-    <ref name="item" type="path">.</ref>
-    <attribute name="attribute">attributes</attribute>
-    <attribute name="op">set</attribute>
-    <attribute name="method">schemaChange</attribute>
-    <attribute name="args"></attribute>
-    <attribute name="kwds"></attribute>
-  </item>
-
-  <item>
-    <kind type="path">//Schema/Core/Monitor</kind>
-    <class module="repository.schema.Kind">SchemaMonitor</class>
-
-    <ref name="dispatcher" type="path">../Monitors</ref>
-    <ref name="item" type="path">.</ref>
-    <attribute name="method">schemaChange</attribute>
-    <attribute name="op">set</attribute>
-    <attribute name="attribute">superKinds</attribute>
-    <attribute name="args"></attribute>
-    <attribute name="kwds"></attribute>
-  </item>
-
 </items>

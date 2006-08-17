@@ -37,7 +37,7 @@ class Item(CItem):
     """
 
     def __init__(self, itsName=None, itsParent=None, itsKind=None,
-                 _uuid=None, _noMonitors=False, fireOnValueChanged=True,
+                 _uuid=None, _noMonitors=False, fireAfterChange=True,
                  **values):
         """
         Construct an Item.
@@ -95,7 +95,7 @@ class Item(CItem):
                 self.setDirty(Item.NDIRTY | Item.NODIRTY)
 
             if values:
-                self._setInitialValues(values, fireOnValueChanged)
+                self._setInitialValues(values, fireAfterChange)
         finally:
             self._status &= ~Item.NODIRTY
 
@@ -104,16 +104,18 @@ class Item(CItem):
                                        'add', 'collection', 'extent',
                                        self.itsUUID)
 
-    def _setInitialValues(self, values, fireOnValueChanged):
+    def _setInitialValues(self, values, fireAfterChange):
 
         for name, value in values.iteritems():
             setattr(self, name, value)
 
-        if fireOnValueChanged:
-            onValueChanged = getattr(self, 'onValueChanged', None)
-            if onValueChanged is not None:
+        if fireAfterChange:
+            kind = self.itsKind
+            if kind is not None:
                 for name in values.iterkeys():
-                    onValueChanged(name)
+                    attr = kind.getAttribute(name, True, self)
+                    if attr is not None:
+                        attr.c.invokeAfterChange(self, name)
 
     def __iter__(self):
         """
@@ -1357,7 +1359,7 @@ class Item(CItem):
         return item
 
     def clone(self, name=None, parent=None,
-              exclude=(), fireOnValueChanged=True, **values):
+              exclude=(), fireAfterChange=True, **values):
 
         cls = type(self)
         item = cls.__new__(cls)
@@ -1378,7 +1380,7 @@ class Item(CItem):
             item._references._clone(self._references, exclude)
 
             if values:
-                item._setInitialValues(values, fireOnValueChanged)
+                item._setInitialValues(values, fireAfterChange)
         finally:
             item._status &= ~Item.NODIRTY
         

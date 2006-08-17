@@ -35,7 +35,7 @@ class PhotoMixin(pim.ContentItem):
     dateTaken = schema.One(schema.DateTime)
     file = schema.One(schema.Text)
     exif = schema.Mapping(schema.Text, initialValue={})
-    photoBody = schema.One(schema.Lob)
+    photoBody = schema.One(schema.Lob, afterChange=['onPhotoBodyChanged'])
 
     about = schema.One(redirectTo = 'displayName')
     date = schema.One(redirectTo = 'dateTaken')
@@ -104,9 +104,8 @@ class PhotoMixin(pim.ContentItem):
             logger.debug("Couldn't process EXIF of Photo %s (%s)" % \
                 (self.itsPath, e))
 
-    def onValueChanged(self, attribute):
-        if attribute == "photoBody":
-            self.processEXIF()
+    def onPhotoBodyChanged(self, attribute):
+        self.processEXIF()
 
 
 class Photo(PhotoMixin, pim.Note):

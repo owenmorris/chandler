@@ -52,6 +52,9 @@ class Script(pim.ContentItem):
     who = schema.One(redirectTo = 'creator')
     date = schema.One(redirectTo = 'lastRan')
 
+    # afterChange
+    schema.afterChange(body = ['onBodyChanged'])
+
     def __init__(self, itsName=None, itsParent=None, itsKind=None, itsView=None,
                  body=None, *args, **keys):
         defaultName = messages.UNTITLED
@@ -85,9 +88,8 @@ class Script(pim.ContentItem):
             self.body = newValue
             self._change_quietly = oldQuiet
 
-    def onValueChanged(self, name):
-        if name == 'body':
-            self.model_data_changed()
+    def onBodyChanged(self, name):
+        self.model_data_changed()
 
     def model_data_changed(self):
         if self.filePath and not getattr(self, '_change_quietly', False):

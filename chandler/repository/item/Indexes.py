@@ -854,6 +854,13 @@ class SubIndex(SortedIndex):
 
         uuid, attr, name = self._super
         index = getattr(self._valueMap._getView()[uuid], attr).getIndex(name)
+
+        # this should only happen during merge when the subindex is merged first
+        if k0 not in index:
+            index.insertKey(k0)
+        if k1 not in index:
+            index.insertKey(k1)
+
         skipList = index.skipList
 
         return skipList.position(k0) - skipList.position(k1)

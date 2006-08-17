@@ -77,6 +77,9 @@
     <attribute name="cardinality">list</attribute>
     <attribute name="otherName">subKinds</attribute>
     <attribute name="initialValue" type="list"></attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterSchemaChange</value>
+    </attribute>
   </item>
 
   <item withSchema="True">
@@ -107,6 +110,9 @@
 
     <attribute name="cardinality">list</attribute>
     <attribute name="otherName">kinds</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterSchemaChange</value>
+    </attribute>
   </item>
 
   <item withSchema="True">
