@@ -235,8 +235,12 @@ def shortTZ(dt, tzinfo=None):
     if dt.tzinfo is None or dt.tzinfo is PyICU.ICUtzinfo.floating:
         return u''
     elif dt.tzinfo != tzinfo:
-        return dt.tzinfo.timezone.getDisplayName(dt.dst(),
+        name = dt.tzinfo.timezone.getDisplayName(dt.dst(),
                                           dt.tzinfo.timezone.SHORT)
+        if not name:
+            return u''
+        else:
+            return name
     return u''
 
 def formatTime(dt, tzinfo=None, noTZ=False):
