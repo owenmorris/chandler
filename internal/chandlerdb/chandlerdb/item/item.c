@@ -21,7 +21,6 @@
 #include "../util/singleref.h"
 #include "../schema/kind.h"
 #include "../schema/descriptor.h"
-#include "../schema/attribute.h"
 
 static void t_item_dealloc(t_item *self);
 static int t_item_traverse(t_item *self, visitproc visit, void *arg);
@@ -87,7 +86,6 @@ static PyObject *getAttributeAspect_NAME;
 static PyObject *redirectTo_NAME;
 static PyObject *persisted_NAME;
 static PyObject *_redirectTo_NAME;
-static PyObject *onValueChanged_NAME;
 static PyObject *logger_NAME;
 static PyObject *_verifyAssignment_NAME;
 static PyObject *_setDirty_NAME;
@@ -782,22 +780,41 @@ static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
     Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__fireChanges(t_item *self, PyObject *args)
+static PyObject *_t_item__fireChanges(t_item *self,
+                                      PyObject *op, PyObject *name)
 {
-    PyObject *op, *name;
-
-    if (!PyArg_ParseTuple(args, "OO", &op, &name))
-        return NULL;
-
-    if (PyObject_HasAttr((PyObject *) self->ob_type, onValueChanged_NAME))
+    if (self->kind != Py_None)
     {
-        PyObject *result = PyObject_CallMethodObjArgs((PyObject *) self,
-                                                      onValueChanged_NAME,
-                                                      name, NULL);
-        if (result == NULL)
-            return NULL;
+        PyObject *attribute =
+            PyObject_CallMethodObjArgs(self->kind, getAttribute_NAME,
+                                       name, Py_False, self, NULL);
 
-        Py_DECREF(result);
+        if (attribute)
+        {
+            PyObject *c = PyObject_GetAttr(attribute, c_NAME);
+
+            Py_DECREF(attribute);
+            if (!c)
+                return NULL;
+
+            if (!PyObject_TypeCheck(c, CAttribute))
+            {
+                PyErr_SetObject(PyExc_TypeError, c);
+                Py_DECREF(c);
+                return NULL;
+            }
+
+            if (CAttribute_invokeAfterChange((t_attribute *) c,
+                                             (PyObject *) self, name) < 0)
+            {
+                Py_DECREF(c);
+                return NULL;
+            }
+
+            Py_DECREF(c);
+        }
+        else
+            return NULL;
     }
 
     {
@@ -823,6 +840,16 @@ static PyObject *t_item__fireChanges(t_item *self, PyObject *args)
     }
 
     Py_RETURN_NONE;
+}
+
+static PyObject *t_item__fireChanges(t_item *self, PyObject *args)
+{
+    PyObject *op, *name;
+
+    if (!PyArg_ParseTuple(args, "OO", &op, &name))
+        return NULL;
+
+    return _t_item__fireChanges(self, op, name);
 }
 
 static PyObject *t_item__fillItem(t_item *self, PyObject *args)
@@ -993,10 +1020,7 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
 
             if (!noMonitors)
             {
-                PyObject *args = PyTuple_Pack(2, set_NAME, attribute);
-
-                result = t_item__fireChanges(self, args);
-                Py_DECREF(args);
+                result = _t_item__fireChanges(self, set_NAME, attribute);
                 if (result == NULL)
                     return NULL;
                 Py_DECREF(result);
@@ -1495,7 +1519,6 @@ void _init_item(PyObject *m)
             redirectTo_NAME = PyString_FromString("redirectTo");
             persisted_NAME = PyString_FromString("persisted");
             _redirectTo_NAME = PyString_FromString("_redirectTo");
-            onValueChanged_NAME = PyString_FromString("onValueChanged");
             logger_NAME = PyString_FromString("logger");
             _verifyAssignment_NAME = PyString_FromString("_verifyAssignment");
             _setDirty_NAME = PyString_FromString("_setDirty");

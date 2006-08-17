@@ -29,6 +29,9 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds);
 
 static PyObject *t_attribute_getAspect(t_attribute *self, PyObject *args);
 
+static PyObject *t_attribute_invokeAfterChange(t_attribute *self,
+                                               PyObject *args);
+
 static PyObject *t_attribute__getCardinality(t_attribute *self, void *data);
 static int t_attribute__setCardinality(t_attribute *self, t_values *values,
                                        void *data);
@@ -47,6 +50,9 @@ static int t_attribute__setNoInherit(t_attribute *self, PyObject *value,
 static PyObject *t_attribute__getDefaultValue(t_attribute *self, void *data);
 static int t_attribute__setDefaultValue(t_attribute *self, t_values *values,
                                         void *data);
+static PyObject *t_attribute__getAfterChange(t_attribute *self, void *data);
+static int t_attribute__setAfterChange(t_attribute *self, t_values *values,
+                                       void *data);
 static PyObject *t_attribute__getRedirectTo(t_attribute *self, void *data);
 static int t_attribute__setRedirectTo(t_attribute *self, PyObject *value,
                                       void *data);
@@ -69,6 +75,7 @@ static PyObject *otherName_NAME;
 static PyObject *redirectTo_NAME;
 static PyObject *inheritFrom_NAME;
 static PyObject *defaultValue_NAME;
+static PyObject *afterChange_NAME;
 static PyObject *type_NAME;
 
 static PyMemberDef t_attribute_members[] = {
@@ -81,6 +88,7 @@ static PyMemberDef t_attribute_members[] = {
 
 static PyMethodDef t_attribute_methods[] = {
     { "getAspect", (PyCFunction) t_attribute_getAspect, METH_VARARGS, "" },
+    { "invokeAfterChange", (PyCFunction) t_attribute_invokeAfterChange, METH_VARARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -109,6 +117,10 @@ static PyGetSetDef t_attribute_properties[] = {
       (getter) t_attribute__getDefaultValue,
       (setter) t_attribute__setDefaultValue,
       "defaultValue property", NULL },
+    { "afterChange",
+      (getter) t_attribute__getAfterChange,
+      (setter) t_attribute__setAfterChange,
+      "afterChange property", NULL },
     { "redirectTo",
       (getter) t_attribute__getRedirectTo,
       (setter) t_attribute__setRedirectTo,
@@ -186,6 +198,7 @@ static int t_attribute_traverse(t_attribute *self, visitproc visit, void *arg)
     Py_VISIT(self->redirectTo);
     Py_VISIT(self->defaultValue);
     Py_VISIT(self->typeID);
+    Py_VISIT(self->afterChange);
 
     return 0;
 }
@@ -197,6 +210,7 @@ static int t_attribute_clear(t_attribute *self)
     Py_CLEAR(self->redirectTo);
     Py_CLEAR(self->defaultValue);
     Py_CLEAR(self->typeID);
+    Py_CLEAR(self->afterChange);
 
     return 0;
 }
@@ -212,7 +226,9 @@ static PyObject *t_attribute_new(PyTypeObject *type,
         self->attrID = NULL;
         self->otherName = NULL;
         self->redirectTo = NULL;
+        self->defaultValue = NULL;
         self->typeID = NULL;
+        self->afterChange = NULL;
     }
 
     return (PyObject *) self;
@@ -232,6 +248,7 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds)
         PyObject *inheritFrom = PyDict_GetItem(dict, inheritFrom_NAME);
         PyObject *defaultValue = PyDict_GetItem(dict, defaultValue_NAME);
         PyObject *redirectTo = PyDict_GetItem(dict, redirectTo_NAME);
+        PyObject *afterChange = PyDict_GetItem(dict, afterChange_NAME);
         int flags = NOINHERIT;
 
         if (!cardinality)
@@ -262,6 +279,13 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds)
             flags |= DEFAULT;
             Py_INCREF(defaultValue);
             self->defaultValue = defaultValue;
+        }
+
+        if (afterChange != NULL)
+        {
+            flags |= AFTERCHANGE;
+            Py_INCREF(afterChange);
+            self->afterChange = afterChange;
         }
 
         if (redirectTo != NULL && redirectTo != Py_None)
@@ -398,6 +422,15 @@ static PyObject *t_attribute_getAspect(t_attribute *self, PyObject *args)
                 }
             }
 
+            else if (!PyObject_Compare(aspect, afterChange_NAME))
+            {
+                if (flags & AFTERCHANGE)
+                {
+                    Py_INCREF(self->afterChange);
+                    return self->afterChange;
+                }
+            }
+
             else if (!PyObject_Compare(aspect, indexed_NAME))
             {
                 if (flags & INDEXED)
@@ -415,6 +448,45 @@ static PyObject *t_attribute_getAspect(t_attribute *self, PyObject *args)
         Py_INCREF(defaultValue);
         return defaultValue;
     }
+}
+
+static int _t_attribute_invokeAfterChange(t_attribute *self,
+                                          PyObject *item, PyObject *name)
+{
+    if (self->flags & AFTERCHANGE)
+    {
+        int i = -1;
+
+        while (++i < PyList_GET_SIZE(self->afterChange)) {
+            PyObject *method = PyList_GET_ITEM(self->afterChange, i);
+            
+            if (PyObject_HasAttr((PyObject *) item->ob_type, method))
+            {
+                PyObject *result = PyObject_CallMethodObjArgs(item, method,
+                                                              name, NULL);
+
+                if (!result)
+                    return -1;
+                Py_DECREF(result);
+            }
+        }
+    }
+
+    return 0;
+}
+
+static PyObject *t_attribute_invokeAfterChange(t_attribute *self,
+                                               PyObject *args)
+{
+    PyObject *item, *name;
+
+    if (!PyArg_ParseTuple(args, "OO", &item, &name))
+        return NULL;
+
+    if (_t_attribute_invokeAfterChange(self, item, name) < 0)
+        return NULL;
+    
+    Py_RETURN_NONE;
 }
 
 
@@ -680,6 +752,54 @@ static int t_attribute__setDefaultValue(t_attribute *self, t_values *values,
     }
 }
 
+/* afterChange property */
+
+static PyObject *t_attribute__getAfterChange(t_attribute *self, void *data)
+{
+    if (!(self->flags & REDIRECT) && (self->flags & AFTERCHANGE))
+    {
+        Py_INCREF(self->afterChange);
+        return self->afterChange;
+    }
+            
+    PyErr_SetObject(PyExc_AttributeError, afterChange_NAME);
+    return NULL;
+}
+
+static int t_attribute__setAfterChange(t_attribute *self, t_values *values,
+                                       void *data)
+{
+    if (!PyObject_TypeCheck(values, CValues))
+    {
+        PyErr_SetObject(PyExc_TypeError, (PyObject *) values);
+        return -1;
+    }
+    else
+    {
+        PyObject *afterChange = PyDict_GetItem(values->dict, afterChange_NAME);
+
+        if (afterChange == NULL)
+        {
+            self->flags &= ~AFTERCHANGE;
+            Py_XDECREF(self->afterChange);
+            self->afterChange = NULL;
+        }
+        else if (PyList_Check(afterChange))
+        {
+            self->flags |= AFTERCHANGE;
+            Py_INCREF(afterChange);
+            self->afterChange = afterChange;
+        }
+        else
+        {
+            PyErr_SetObject(PyExc_TypeError, (PyObject *) afterChange);
+            return -1;
+        }
+
+        return 0;
+    }
+}
+
 /* redirectTo property */
 
 static PyObject *t_attribute__getRedirectTo(t_attribute *self, void *data)
@@ -883,7 +1003,7 @@ void _init_attribute(PyObject *m)
     {
         if (m)
         {
-            PyObject *dict;
+            PyObject *dict, *cobj;
 
             Py_INCREF(&AttributeType);
             PyModule_AddObject(m, "CAttribute", (PyObject *) &AttributeType);
@@ -926,6 +1046,10 @@ void _init_attribute(PyObject *m)
             inheritFrom_NAME = PyString_FromString("inheritFrom");
             defaultValue_NAME = PyString_FromString("defaultValue");
             type_NAME = PyString_FromString("type");
+            afterChange_NAME = PyString_FromString("afterChange");
+
+            cobj = PyCObject_FromVoidPtr(_t_attribute_invokeAfterChange, NULL);
+            PyModule_AddObject(m, "CAttribute_invokeAfterChange", cobj);
         }
     }
 }

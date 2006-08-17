@@ -34,6 +34,7 @@ PyObject *Default = NULL;
 CView_invokeMonitors_fn CView_invokeMonitors;
 PyUUID_Check_fn PyUUID_Check;
 PyCFunction _countAccess;
+CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange;
 
 
 static PyObject *isitem(PyObject *self, PyObject *obj)
@@ -137,6 +138,7 @@ void initc(void)
     LOAD_TYPE(m, CKind);
     LOAD_TYPE(m, CAttribute);
     LOAD_TYPE(m, CDescriptor);
+    LOAD_FN(m, CAttribute_invokeAfterChange);
     LOAD_CFUNC(m, _countAccess);
     Py_DECREF(m);
 

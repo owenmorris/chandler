@@ -16,22 +16,23 @@
 
 
 enum {
-    VALUE        = 0x0001,
-    REF          = 0x0002,
-    REDIRECT     = 0x0004,
-    REQUIRED     = 0x0008,
-    PROCESS_GET  = 0x0010,
-    PROCESS_SET  = 0x0020,
-    SINGLE       = 0x0040,
-    LIST         = 0x0080,
-    DICT         = 0x0100,
-    SET          = 0x0200,
-    ALIAS        = 0x0400,
-    KIND         = 0x0800,
-    NOINHERIT    = 0x1000,
-    TRANSIENT    = 0x2000,
-    INDEXED      = 0x4000,
-    DEFAULT      = 0x8000,
+    VALUE        = 0x00000001,
+    REF          = 0x00000002,
+    REDIRECT     = 0x00000004,
+    REQUIRED     = 0x00000008,
+    PROCESS_GET  = 0x00000010,
+    PROCESS_SET  = 0x00000020,
+    SINGLE       = 0x00000040,
+    LIST         = 0x00000080,
+    DICT         = 0x00000100,
+    SET          = 0x00000200,
+    ALIAS        = 0x00000400,
+    KIND         = 0x00000800,
+    NOINHERIT    = 0x00001000,
+    TRANSIENT    = 0x00002000,
+    INDEXED      = 0x00004000,
+    DEFAULT      = 0x00008000,
+    AFTERCHANGE  = 0x00010000,
 
     ATTRDICT     = VALUE | REF | REDIRECT,
     CARDINALITY  = SINGLE | LIST | DICT | SET,
@@ -41,13 +42,13 @@ enum {
 typedef struct {
     PyObject_HEAD
     PyObject *attrID;
-    int flags;
+    unsigned long flags;
     PyObject *otherName;
     PyObject *redirectTo;
     PyObject *defaultValue;
     PyObject *typeID;
+    PyObject *afterChange;
 } t_attribute;
 
-
-typedef PyObject *(*CAttribute_getAspect_fn)(t_attribute *,
-                                             PyObject *, PyObject *);
+typedef int (*CAttribute_invokeAfterChange_fn)(t_attribute *,
+                                               PyObject *, PyObject *);
