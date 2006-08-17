@@ -269,6 +269,46 @@ once::
     TypeError: Descriptor objects are immutable; can't change 'doc'... once set
 
 
+Change Notifications
+====================
+
+Test error messages:
+
+    >>> class Example(schema.Item):
+    ...     foo = schema.One(schema.Integer)
+    ...     @schema.observer(foo)
+    ...     def foo_changed(self, name):
+    ...         print name, "changed"
+    >>> rv = NullRepositoryView(verify=True)
+    >>> e = Example(itsView = rv)
+    >>> e.foo = 1
+    foo changed
+
+    >>> class Example2(schema.Item):
+    ...     @schema.observer(Example.foo)
+    ...     def foo_changed(self, name):
+    ...         print name, "changed"
+    Traceback (most recent call last):
+      ...
+    TypeError: ...foo... does not belong to ...Example2'> or its superclasses
+
+    >>> class Example2(Example):
+    ...     @schema.observer(Example.foo)
+    ...     def foo_changed(self, name):
+    ...         print name, "changed in Example2"
+    >>> e2 = Example2(itsView = rv)
+    >>> e2.foo = 1
+    foo changed in Example2
+
+    >>> class BadExample(schema.Item):
+    ...     @schema.observer("foo")
+    ...     def foo_changed(self, name):
+    ...         print name, "changed"
+    Traceback (most recent call last):
+      ...
+    TypeError: 'foo' is not a schema.Descriptor (One, Many, Sequence, etc.)
+
+
 ---------------
 Item Subclasses
 ---------------

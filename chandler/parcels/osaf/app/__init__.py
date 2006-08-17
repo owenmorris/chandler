@@ -26,16 +26,13 @@ from osaf.framework import Preferences
 import version
 
 class TZPrefs(Preferences):
-    showUI = schema.One(schema.Boolean,
-                        initialValue = False,
-                        afterChange = ['onShowUIChanged'])
-    
-    def onShowUIChanged(self, attrName):
+    showUI = schema.One(schema.Boolean, initialValue = False)
 
+    @schema.observer(showUI)
+    def onShowUIChanged(self, attrName):
         from osaf.pim.calendar.TimeZone import TimeZoneInfo
-            
         timeZoneInfo = TimeZoneInfo.get(self.itsView)
-        
+
         # Sync up the default timezone (i.e. the one used when
         # creating new events).
         if self.showUI:

@@ -21,6 +21,7 @@ from repository.schema.Attribute import Attribute
 from repository.schema import Types
 from repository.schema.Cloud import Cloud as _Cloud
 from repository.schema.Cloud import Endpoint as _Endpoint
+from zope.interface.advice import getFrameInfo, addClassAdvisor
 import __main__, repository, threading, os, sys
 
 __all__ = [
@@ -29,7 +30,7 @@ __all__ = [
     'importString', 'parcel_for_module', 'TypeReference',
     'Enumeration', 'Cloud', 'Endpoint', 'addClouds', 'Struct',
     'assertResolved', 'Annotation', 'AnnotationItem',
-    'afterChange',
+    'observer',
 ]
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + ('description',)
@@ -538,18 +539,21 @@ class ItemClass(Activator):
                 if ai not in kind.attributes:
                     kind.attributes.append(ai,name)
 
-        for attrName, names in cls.__dict__.get('__after_change__',{}).items():
-            attr = kind.getAttribute(attrName, True)
-            if attr is not None:
-                if hasattr(attr, 'afterChange'):
-                    afterChange = attr.afterChange
-                    for name in names:
+        for name, attrNames in cls.__dict__.get('__after_change__',{}).items():
+            for attrName in attrNames:
+                if isinstance(attrName,Descriptor):
+                    attr = itemFor(attrName, view)
+                else:
+                    attr = kind.getAttribute(attrName, True)
+                if attr is not None:
+                    if hasattr(attr, 'afterChange'):
+                        afterChange = attr.afterChange
                         if name not in afterChange:
                             afterChange.append(name)
+                    else:
+                        attr.afterChange = [name]
                 else:
-                    attr.afterChange = names
-            else:
-                view.logger.warn("no attribute '%s' defined for kind for %s",
+                    view.logger.warn("no attribute '%s' defined for kind for %s",
                                  attrName, cls)
 
         def fixup():
@@ -941,9 +945,9 @@ class Enumeration(object):
     __metaclass__ = EnumerationClass
 
 
-def _update_info(name,attr,data):
-    from zope.interface.advice import getFrameInfo, addClassAdvisor
-    kind, module, _locals, _globals = getFrameInfo(sys._getframe(2))
+def _update_info(name,attr,data,frame=None,depth=2):
+    frame = frame or sys._getframe(depth)
+    kind, module, _locals, _globals = getFrameInfo(frame)
 
     if kind=='exec':
         # Fix for class-in-doctest-exec
@@ -983,6 +987,7 @@ def kindInfo(**attrs):
     """
     _update_info('kindInfo','__kind_info__',attrs)
 
+    @addClassAdvisor
     def callback(cls):
         _get_nrv()
         for k,v in attrs.items():
@@ -992,9 +997,6 @@ def kindInfo(**attrs):
                     (k, cls._kind_class.__name__)
                 )
         return cls
-
-    from zope.interface.advice import addClassAdvisor
-    addClassAdvisor(callback)
 
 
 def addClouds(**clouds):
@@ -1018,9 +1020,29 @@ def addClouds(**clouds):
     _update_info('addClouds','__kind_clouds__',clouds)
 
 
-def afterChange(**pairs):
-    """Update afterChange aspect on attributes"""
-    _update_info('afterChange', '__after_change__', pairs)
+def observer(*attrs):
+    """Decorator to create an observer method for `attrs`"""
+    attrs = list(attrs)
+    for attr in attrs:
+        if not isinstance(attr, Descriptor):
+            raise TypeError(
+                repr(attr)+
+                " is not a schema.Descriptor (One, Many, Sequence, etc.)"
+            )
+    def decorator(func):
+        _update_info('observer', '__after_change__', {func.__name__:attrs})
+        @addClassAdvisor
+        def callback(cls):
+            for attr in attrs:
+                if attr.owner is None or not issubclass(cls,attr.owner):
+                    raise TypeError(
+                        "%r does not belong to %r or its superclasses"
+                        % (attr, cls)
+                    )
+            return cls
+        return func
+
+    return decorator
 
 
 def importString(name, globalDict=__main__.__dict__):

@@ -35,7 +35,11 @@ class PhotoMixin(pim.ContentItem):
     dateTaken = schema.One(schema.DateTime)
     file = schema.One(schema.Text)
     exif = schema.Mapping(schema.Text, initialValue={})
-    photoBody = schema.One(schema.Lob, afterChange=['onPhotoBodyChanged'])
+    photoBody = schema.One(schema.Lob)
+
+    @schema.observer(photoBody)
+    def onPhotoBodyChanged(self, attribute):
+        self.processEXIF()
 
     about = schema.One(redirectTo = 'displayName')
     date = schema.One(redirectTo = 'dateTaken')
@@ -104,9 +108,6 @@ class PhotoMixin(pim.ContentItem):
             logger.debug("Couldn't process EXIF of Photo %s (%s)" % \
                 (self.itsPath, e))
 
-    def onPhotoBodyChanged(self, attribute):
-        self.processEXIF()
-
 
 class Photo(PhotoMixin, pim.Note):
     pass
@@ -146,7 +147,7 @@ class NewImageEvent(NewItemEvent):
             photo.displayName = filename
             photo.creator = schema.ns("osaf.pim", self.itsView).currentContact.item
             photo.importFromFile(path)
-    
+
         theApp.CallItemMethodAsync("MainView",
                                    'setStatusMessage',"")
         return photo

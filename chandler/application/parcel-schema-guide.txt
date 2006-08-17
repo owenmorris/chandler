@@ -340,6 +340,82 @@ that is part of a bidirectional reference.  See the repository documentation
 for more details.
 
 
+Observers and Change Notifications
+==================================
+
+Sometimes, you need to know when attributes have changed, in order to update
+dependent attributes.  The schema API allows you to register "observers":
+methods that will be called when one or more specified attributes have changed.
+For example::
+
+    >>> class Example(schema.Item):
+    ...     foo = schema.One(schema.Integer)
+    ...     bar = schema.One(schema.Text)
+    ...     @schema.observer(foo, bar)
+    ...     def something_changed(self, name):
+    ...         print name, "changed"
+
+Whenever the ``foo`` or ``bar`` attribute of any ``Example`` instance is
+changed, the instance's ``something_changed()`` method will be called, passing
+in the name of the changed attribute::
+
+    >>> e = Example(itsView = rv)
+    >>> e.foo = 1
+    foo changed
+
+    >>> e.bar = u"Test"
+    bar changed
+
+Observer methods can be overridden by methods of the same name in a subclass::
+
+    >>> class Example2(Example):
+    ...     def something_changed(self, name):
+    ...         print name, "changed in Example2"
+    >>> e2 = Example2(itsView = rv)
+    >>> e2.foo = 1
+    foo changed in Example2
+
+Notice that this happens even if you do not explicitly register the subclass'
+method as an observer.
+
+If you need to observe an attribute that is not defined in the current class,
+you can do so by obtaining it from the base class, e.g.::
+
+    >>> class Example3(Example):
+    ...     @schema.observer(Example.foo)
+    ...     def foo_changed(self, name):
+    ...         print name, "changed in Example3"
+    >>> e3 = Example3(itsView = rv)
+    >>> e3.foo = 1
+    foo changed
+    foo changed in Example3
+    >>> e3.bar = u"Test"
+    bar changed
+
+In the example above, the ``Example.something_changed()`` method was called,
+*as well as* the ``Example3.foo_changed()`` method, because they have different
+method names.  Notice also that changing the ``bar`` attribute still called the
+``something_changed`` method.
+
+
+Important Limitations
+---------------------
+
+Please note that the order of observer calls is not guaranteed -- even
+different installations of the same version of Chandler may have a different
+callback order!  Therefore, you must **always** write observer code so that it
+does not depend on the order in which other observers are invoked.
+
+Also, because callbacks are registered by method name, you should take care not
+to use the same method name for different things, unless you intend to override
+an existing method.  For the same reason, you should also give your observers
+names that are unlikely to be accidentally duplicated in other classes.
+Private method names -- that is, names beginning with a double-underscore
+(``__``) can be good for this purpose, although they cannot be overridden in a
+subclass unless you manually duplicate the name mangling that Python does
+when you use private names.
+
+
 Extending Existing Kinds
 ========================
 

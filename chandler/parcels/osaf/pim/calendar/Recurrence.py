@@ -206,28 +206,17 @@ class RecurrenceRule(items.ContentItem):
     notSpecialNames = ("interval", "until", "bysetpos", "bymonth", "bymonthday",
                        "byyearday","byweekno", "byhour", "byminute", "bysecond")
 
-    allNames = ("interval", "until", "bysetpos", "bymonth", "bymonthday",
-                "byyearday","byweekno", "byhour", "byminute", "bysecond",
-                "wkst", "byweekday", "freq")
+    @schema.observer(
+        interval, until, bysetpos, bymonth, bymonthday, byyearday, byweekno,
+        byhour, byminute, bysecond, wkst, byweekday, freq
+    )
+    def onRecurrenceChanged(self, name):
+        """If the rule changes, update any associated events."""
+        for ruletype in ('rruleFor', 'exruleFor'):
+            if self.hasLocalAttributeValue(ruletype):
+                getattr(self, ruletype).onRuleSetChanged('rrules')
 
-    # KLUDGE: 
-    #   replace the following with the proper schema API syntax
-    #   and possible per-attribute refactoring
 
-    schema.afterChange(interval = ['onRecurrenceChanged'],
-                       until = ['onRecurrenceChanged'],
-                       bysetpos = ['onRecurrenceChanged'],
-                       bymonth = ['onRecurrenceChanged'],
-                       bymonthday = ['onRecurrenceChanged'],
-                       byyearday = ['onRecurrenceChanged'],
-                       byweekno = ['onRecurrenceChanged'],
-                       byhour = ['onRecurrenceChanged'],
-                       byminute = ['onRecurrenceChanged'],
-                       bysecond = ['onRecurrenceChanged'],
-                       wkst = ['onRecurrenceChanged'],
-                       byweekday = ['onRecurrenceChanged'],
-                       freq = ['onRecurrenceChanged'])
-    
     # dateutil automatically sets these from dtstart, we don't want these
     # unless their length is greater than 1.
     interpretedNames = "byhour", "byminute", "bysecond"
@@ -401,13 +390,6 @@ class RecurrenceRule(items.ContentItem):
         self.until = previous
         self.untilIsDate = False
 
-    def onRecurrenceChanged(self, name):
-        """If the rule changes, update any associated events."""
-        if name in self.allNames:
-            for ruletype in ('rruleFor', 'exruleFor'):
-                if self.hasLocalAttributeValue(ruletype):
-                    getattr(self, ruletype).onRuleSetChanged('rrules')
-
 
 class RecurrenceRuleSet(items.ContentItem):
     """
@@ -438,6 +420,16 @@ class RecurrenceRuleSet(items.ContentItem):
         copying = schema.Cloud(rrules, exrules, rdates, exdates),
         sharing = schema.Cloud(exdates, rdates, byCloud = [exrules, rrules])
     )
+
+    @schema.observer(rrules, exrules, rdates, exdates)
+    def onRuleSetChanged(self, name):
+        """If the RuleSet changes, update the associated event."""
+        if not getattr(self, '_ignoreValueChanges', False):
+            if self.hasLocalAttributeValue('events'):
+                for event in self.events:
+                    event.getFirstInRule().cleanRule()
+                    # assume we have only one conceptual event per rrule
+                    break
 
     def addRule(self, rule, rrulesorexrules='rrules'):
         """Add an rrule or exrule, defaults to rrule.
@@ -670,18 +662,4 @@ class RecurrenceRuleSet(items.ContentItem):
                 rule.moveUntilBefore(dtstart, end)
         self.removeDates(datetime.__ge__, end)
 
-    RULENAMES = ('rrules', 'exrules', 'rdates', 'exdates')
 
-    schema.afterChange(rrules = ['onRuleSetChanged'],
-                       exrules = ['onRuleSetChanged'],
-                       rdates = ['onRuleSetChanged'],
-                       exdates = ['onRuleSetChanged'])
-
-    def onRuleSetChanged(self, name):
-        """If the RuleSet changes, update the associated event."""
-        if not getattr(self, '_ignoreValueChanges', False):
-            if self.hasLocalAttributeValue('events'):
-                for event in self.events:
-                    event.getFirstInRule().cleanRule()
-                    # assume we have only one conceptual event per rrule
-                    break

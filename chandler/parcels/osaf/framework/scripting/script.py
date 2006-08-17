@@ -52,8 +52,6 @@ class Script(pim.ContentItem):
     who = schema.One(redirectTo = 'creator')
     date = schema.One(redirectTo = 'lastRan')
 
-    # afterChange
-    schema.afterChange(body = ['onBodyChanged'])
 
     def __init__(self, itsName=None, itsParent=None, itsKind=None, itsView=None,
                  body=None, *args, **keys):
@@ -88,6 +86,7 @@ class Script(pim.ContentItem):
             self.body = newValue
             self._change_quietly = oldQuiet
 
+    @schema.observer(pim.ContentItem.body)
     def onBodyChanged(self, name):
         self.model_data_changed()
 
@@ -195,7 +194,7 @@ def run_script_with_symbols(scriptText, fileName=u"", profiler=None, builtIns=No
     for attr in __all__:
         builtIns[attr] = globals()[attr]
 
-    # Protect against scripts that don't stop, needed especially by 
+    # Protect against scripts that don't stop, needed especially by
     # automated tests.
     scriptTimeout = int(getattr(Globals.options, 'scriptTimeout', 0))
     if scriptTimeout > 0:
@@ -273,7 +272,7 @@ def run_startup_script_with_symbols(view, builtIns):
         testMask = Globals.options.chandlerTestMask
         from tools.cats.framework.runTests import run_perf_tests
         run_perf_tests(chandlerPerformanceTests, debug=testDebug, mask=testMask, logName=logFileName)
-        
+
     fileName = Globals.options.scriptFile
     if fileName:
         scriptFileText = script_file(fileName)
@@ -284,7 +283,7 @@ def run_startup_script_with_symbols(view, builtIns):
                 global_cats_profiler = profiler
                 profiler.runcall(run_script_with_symbols,
                                  scriptFileText,
-                                 fileName=fileName, 
+                                 fileName=fileName,
                                  profiler=profiler,
                                  builtIns=builtIns)
                 profiler.close()
@@ -292,7 +291,7 @@ def run_startup_script_with_symbols(view, builtIns):
             else:
                 run_script_with_symbols(scriptFileText, fileName = fileName,
                                         builtIns=builtIns)
-                
+
 global_cats_profiler = None # remember the CATS profiler here
 
 def cats_profiler():

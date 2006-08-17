@@ -1355,22 +1355,11 @@ class CalendarEventMixin(ContentItem):
         else:
             RecurrenceDialog.getProxy(u'ui', self).removeFromCollection(collection, cutting)
 
-    changeNames = ('displayName', 'startTime', 'duration', 'location', 'body',
-                   'lastModified', 'allDay')
 
-    # KLUDGE: 
-    #   replace the following with the proper schema API syntax
-    #   and possible per-attribute refactoring
-
-    schema.afterChange(displayName=['onEventChanged'],
-                       startTime=['onEventChanged'],
-                       duration=['onEventChanged'],
-                       location=['onEventChanged'],
-                       body=['onEventChanged'],
-                       lastModified=['onEventChanged'],
-                       allDay=['onEventChanged'],
-                       rruleset=['onEventChanged'])
-
+    @schema.observer(
+        ContentItem.displayName, ContentItem.body, ContentItem.lastModified,
+        startTime, duration, location, allDay, rruleset
+    )
     def onEventChanged(self, name):
         """
         Maintain coherence of the various recurring items associated with self
@@ -1379,10 +1368,9 @@ class CalendarEventMixin(ContentItem):
         """
         # allow initialization code to avoid triggering onEventChanged
         rruleset = name == 'rruleset'
-        changeName = not rruleset and name in CalendarEventMixin.changeNames
+        changeName = not rruleset
 
-        if (not (rruleset or changeName) or
-            self.rruleset is None or
+        if (self.rruleset is None or
             getattr(self, '_share_importing', False) or
             getattr(self, '_ignoreValueChanges', False)):
             return

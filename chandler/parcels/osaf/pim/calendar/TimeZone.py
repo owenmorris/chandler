@@ -29,8 +29,22 @@ class TimeZoneInfo(schema.Item):
 
     default = schema.One(
         schema.TimeZone,
-        afterChange = ['onDefaultChanged']
     )
+
+    @schema.observer(default)
+    def onDefaultChanged(self, name):
+        # Repository hook for attribute changes.
+        default = self.default
+        canonicalDefault = self.canonicalTimeZone(default)
+        # Make sure that PyICU's default timezone is synched with
+        # ours
+        if (canonicalDefault is not None and
+            canonicalDefault is not PyICU.ICUtzinfo.floating):
+            PyICU.ICUtzinfo.default = canonicalDefault
+        # This next if is required to avoid an infinite recursion!
+        if canonicalDefault is not default:
+            self.default = canonicalDefault
+
 
     # List of well-known time zones (for populating drop-downs).
     # [i18n] Since ICU doesn't suitably localize strings like 'US/Pacific',
@@ -120,18 +134,6 @@ class TimeZoneInfo(schema.Item):
         if tz is not None and view is not None:
             PyICU.TimeZone.setDefault(tz.timezone)
 
-    def onDefaultChanged(self, name):
-        # Repository hook for attribute changes.
-        default = self.default
-        canonicalDefault = self.canonicalTimeZone(default)
-        # Make sure that PyICU's default timezone is synched with
-        # ours
-        if (canonicalDefault is not None and
-            canonicalDefault is not PyICU.ICUtzinfo.floating):
-            PyICU.ICUtzinfo.default = canonicalDefault
-        # This next if is required to avoid an infinite recursion!
-        if canonicalDefault is not default:
-            self.default = canonicalDefault
 
 def installParcel(parcel, oldVersion = None):
     # Get our parcel's namespace
@@ -228,9 +230,9 @@ def shortTZ(dt, tzinfo=None):
     """
     Return an empty string or the short timezone string for dt if dt.tzinfo
     doesn't match tzinfo (tzinfo defaults to PyICU.ICUtzinfo.default)
-    
+
     """
-    if tzinfo is None: tzinfo = PyICU.ICUtzinfo.default    
+    if tzinfo is None: tzinfo = PyICU.ICUtzinfo.default
 
     if dt.tzinfo is None or dt.tzinfo is PyICU.ICUtzinfo.floating:
         return u''
