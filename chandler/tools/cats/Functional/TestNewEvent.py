@@ -116,8 +116,7 @@ class TestNewEvent(ChandlerTestCase):
         secondEvent.CheckDisplayedValues("Checking 2nd occurrence",
             EditCalendarStartDate=(True, evtSecondDate),
             )
-        secondEvent.FocusInDetailView()
-        QAUITestAppLib.App_ns.root.Delete()
+        secondEvent.MoveToTrash()
         scripting.User.idle()
     
         # Answer the recurrence question with "just this item"
