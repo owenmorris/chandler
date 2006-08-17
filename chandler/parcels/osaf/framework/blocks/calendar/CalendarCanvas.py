@@ -460,7 +460,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     hasTopRightRounded = True
                     drawEventText = True
               
-                    
                 if rectIndex == len(self.GetBoundsRects())-1:
                     hasBottomRightRounded = True
            
@@ -471,10 +470,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
                 # draw white outline
                 self.DrawEventRectangle(dc, itemRect, wx.WHITE_BRUSH, radius,
-                                        hasLeftRounded,
-                                        hasTopRightRounded,
-                                        hasBottomRightRounded,
-                                        rightSideCutOff)
+                                        hasLeftRounded, hasTopRightRounded,
+                                        hasBottomRightRounded, rightSideCutOff)
 
                 # new, smaller itemRect
                 yDelta = 1
@@ -500,119 +497,106 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 dc.SetPen(wx.Pen(outlineColor, 1))
                 
                 self.DrawEventRectangle(dc, itemRect, brush, radius,
-                                        hasLeftRounded,
-                                        hasTopRightRounded,
-                                        hasBottomRightRounded,
-                                        rightSideCutOff, self.dashedLine(),
-                                        styles)
+                                        hasLeftRounded, hasTopRightRounded,
+                                        hasBottomRightRounded, rightSideCutOff,
+                                        self.dashedLine(), styles)
                     
     
                 # Shift text to account for rounded corners
                 x = itemRect.x + self.textOffset.x
                 y = itemRect.y + self.textOffset.y
     
-                width = itemRect.width - self.textOffset.x - (self.textMargin)
+                width = itemRect.width - self.textOffset.x - self.textMargin
 
                 lostBottom = 0
 
                 # only draw date/time on first item
                 if drawEventText:
-                    drawSwatches = False
-                    # other collection swatches should be drawn if the item is
+                    # collection swatches should be drawn if the item is
                     # in at least one other collection (not counting the
                     # dashboard).
-                    numCollections = len(getattr(item, 'appearsIn', []))
+                    colls = len(getattr(item, 'appearsIn', []))
                     # for some reason primaryCollection and allCollection don't
-                    # compare as equal when they ought to
-                    if numCollections > 2 or (numCollections == 2 and
-                      (item not in allCollection or 
-                       self.primaryCollection.itsUUID==allCollection.itsUUID)):
-                        drawSwatches = True
+                    # compare as equal when they ought to, so compare UUIDs
+                    drawSwatches = (colls > 2 or (colls == 2 and
+                       (item not in allCollection or 
+                       self.primaryCollection.itsUUID == allCollection.itsUUID))
+                                    )
                     
                     # only draw time on timed events
-                    if not isAnyTimeOrAllDay:
+                    if not isAnyTimeOrAllDay and timeHeight > 0:
+                        timeRect = (x, y, width, timeHeight)
+                        dc.SetFont(styles.eventTimeFont)
+                        # draw start time
+                        DrawWrappedText(dc, timeString, timeRect,
+                                        styles.eventTimeMeasurements)
                         
-                        # allow self.startTime to override the
-                        # pre-formatted time string, and use that to
-                        # decide if we should measure the time or not
-                        startTime = getattr(self, 'startTime', None)
-                        if startTime:
-                            # don't use a time zone when drawing the startTime
-                            timeString = formatTime(startTime, noTZ=True)
-                        else:
-                            timeString = self.timeString
-                        timeHeight = self.SetTimeHeight(dc, styles, timeString)
+                        # calculate where to draw timezone
+                        textWidth = dc.GetFullTextExtent(timeString,
+                                          styles.eventTimeFont)[0]
+                        
+                        # set up superscript font
+                        size = styles.eventTimeStyle.fontSize * .7
+                        if '__WXMAC__' in wx.PlatformInfo:
+                            # on the Mac anti-aliasing seems to stop at 8px
+                            size = max(size, 9)
+                        superscript = Styles.getFont(size=size)
+                        
+                        # Draw timezone string.
+                        # This logic assumes the timezone should be to the right
+                        # of the time string.  This isn't necessarily true,
+                        # so this isn't really localized yet.
+                        if textWidth < width:
+                            tzString = shortTZ(item.startTime)
+                            if len(tzString) > 0:
+                                dc.SetFont(superscript)
+                                DrawClippedText(dc, tzString, x + textWidth,
+                                                y, width - textWidth,
+                                                timeHeight)
+                        
+                        y += self.timeHeight + TIME_BOTTOM_MARGIN
 
-                        if timeHeight != 0:
-                            timeRect = (x, y, width, timeHeight)
-                            dc.SetFont(styles.eventTimeFont)
-                            DrawWrappedText(dc, timeString, timeRect,
-                                            styles.eventTimeMeasurements)
+                        # draw end time (which should only be set when dragging)
+                        endTime = getattr(self, 'endTime', None)
+                        if endTime:
+                            timeString = formatTime(endTime, noTZ=True)
+                            tzString = shortTZ(item.startTime)
                             
                             textWidth = dc.GetFullTextExtent(timeString,
-                                              styles.eventTimeFont)[0]
-                            size = styles.eventTimeStyle.fontSize * .7
-                            if '__WXMAC__' in wx.PlatformInfo:
-                                # on the Mac anti-aliasing seems to stop at 8px
-                                size = max(size, 9)
+                                                        styles.eventTimeFont)[0]
+                            tzWidth = 0
+                            if len(tzString) > 0:
+                                tzWidth   = dc.GetFullTextExtent(tzString,
+                                                                 superscript)[0]
                             
-                            superscript = Styles.getFont(size=size)
-                            # This assumes the timezone should be to the right
-                            # of the time string.  This isn't necessarily true,
-                            # so this isn't really localized yet.
-                            if textWidth < width:
-                                tzString = shortTZ(item.startTime)
-                                if len(tzString) > 0:
-                                    dc.SetFont(superscript)
-                                    DrawClippedText(dc, tzString, x + textWidth,
-                                                    y, width - textWidth,
-                                                    timeHeight)
+                            rightMargin = max(radius/2,self.textMargin)
+                            if drawSwatches:
+                                rightMargin = (rightMargin + SWATCH_WIDTH +
+                                               2*SWATCH_BORDER)
+
+                            rightAlignStart = max(x, x + width - 
+                                            (textWidth + tzWidth + rightMargin))
+                            bottomStart = (y - 2*self.textOffset.y -
+                                           2*timeHeight + itemRect.height)
+                            rectWidth = (width - rightMargin + 
+                                         x - rightAlignStart)
+                            timeRect = (rightAlignStart, bottomStart,
+                                        rectWidth, timeHeight)
+                            dc.SetFont(styles.eventTimeFont)
+
+                            DrawWrappedText(dc, timeString, timeRect,
+                                            styles.eventTimeMeasurements)
+
+                            if len(tzString) > 0:
+                                dc.SetFont(superscript)
+
+                                DrawClippedText(dc, tzString,
+                                                rightAlignStart + textWidth,
+                                                bottomStart,
+                                                rectWidth - textWidth,
+                                                timeHeight)                              
                             
-                            
-                            y += self.timeHeight + TIME_BOTTOM_MARGIN
-
-                            # draw end time when dragging
-                            endTime = getattr(self, 'endTime', None)
-                            if endTime:
-                                # use a time zone when drawing the endTime
-                                timeString = formatTime(endTime, noTZ=True)
-                                tzString = shortTZ(item.startTime)
-                                
-                                textWidth = dc.GetFullTextExtent(timeString,
-                                              styles.eventTimeFont)[0]
-                                tzWidth = 0
-                                if len(tzString) > 0:
-                                    tzWidth   = dc.GetFullTextExtent(tzString,
-                                                  superscript)[0]
-                                
-                                rightMargin = max(radius/2,self.textMargin)
-                                if drawSwatches:
-                                    rightMargin = (rightMargin + SWATCH_WIDTH +
-                                                   2*SWATCH_BORDER)
-
-                                rightAlignStart = max(x, x + width - 
-                                  (textWidth + tzWidth + rightMargin))
-                                bottomStart = (y - 2*self.textOffset.y -
-                                               2*timeHeight + itemRect.height)
-                                rectWidth = (width - rightMargin + 
-                                             x - rightAlignStart)
-                                timeRect = (rightAlignStart, bottomStart,
-                                            rectWidth, timeHeight)
-                                dc.SetFont(styles.eventTimeFont)
-
-                                DrawWrappedText(dc, timeString, timeRect,
-                                                styles.eventTimeMeasurements)
-
-                                if len(tzString) > 0:
-                                    dc.SetFont(superscript)
-
-                                    DrawClippedText(dc, tzString,
-                                                    rightAlignStart + textWidth,
-                                                    bottomStart,
-                                                    rectWidth - textWidth,
-                                                    timeHeight)                              
-                                
-                                lostBottom = timeHeight + self.textOffset.y
+                            lostBottom = timeHeight + self.textOffset.y
                                 
 
     
@@ -638,11 +622,13 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                            itemRect.y + lostHeight + margin])
 
                         if timeHeight > 0:
-                            # when the time was drawn, add yMargin back in, 
+                            # if the time was drawn, add yMargin back in, 
                             # because lostHeight includes ample margin
                             topLeft = topRight - SWATCH_WIDTH_VECTOR - yMargin
+                            
                             self.DrawCollectionSwatches(dc, topLeft,
                                                         bottomRight, True)
+
                             rightMargin += (margin + SWATCH_WIDTH +
                                             2 * SWATCH_BORDER)
                         else:
@@ -672,7 +658,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                             
                             rightMargin += (margin + count * oneWidth -
                                             SWATCH_SEPARATION)
-
 
                     if ('__WXMAC__' in wx.PlatformInfo):
                         rightMargin += 5
