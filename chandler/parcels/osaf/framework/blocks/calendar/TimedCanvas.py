@@ -29,6 +29,8 @@ from osaf.pim.calendar.TimeZone import TimeZoneInfo, coerceTimeZone
 
 from time import time as epochtime
 from itertools import chain, islice
+from osaf.framework.blocks.Block import WithoutSynchronizeWidget
+from osaf.pim.structs import SizeType
 
 from application.dialogs import RecurrenceDialog
 
@@ -94,6 +96,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.orderLast = []
 
     def wxSynchronizeWidget(self, useHints=False):
+        self.SetSize ((self.blockItem.size.width, self.blockItem.size.height))
         scrollY = self.blockItem.scrollY
         if scrollY < 0:
             # A scrollY value of -1 (it's initial value) is used as way to
@@ -179,12 +182,15 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             self.justCreatedCanvasItem = None
             self.EditCurrentItem()
 
+    @WithoutSynchronizeWidget
     def OnSize(self, event):
         # print "wxTimedEventsCanvas.OnSize()  to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
         self.SetWindowGeometry()
         self._doDrawingCalculations()
 
         self.RefreshCanvasItems(resort=False)
+        newSize = self.GetSize()
+        self.blockItem.size = SizeType (newSize.width, newSize.height)
         event.Skip()
 
     def SetWindowGeometry(self):

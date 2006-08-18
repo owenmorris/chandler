@@ -1313,7 +1313,8 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
     
     def OnScroll(self, event):
         self.Refresh()
-        self.blockItem.scrollY = self.GetViewStart()[1]
+        if not wx.GetApp().ignoreSynchronizeWidget:
+            self.blockItem.scrollY = self.GetViewStart()[1]
         event.Skip()
 
     def OnSelectItem(self, item):

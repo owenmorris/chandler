@@ -19,7 +19,7 @@ from Block import (
     Block, RectangularChild, wxRectangularChild, debugName,
     WithoutSynchronizeWidget, IgnoreSynchronizeWidget
 )
-from osaf.pim.structs import PositionType
+from osaf.pim.structs import PositionType, SizeType
 import DragAndDrop
 from MenusAndToolbars import Toolbar as Toolbar
 from repository.item.Item import Item
@@ -241,10 +241,7 @@ class wxSplitterWindow(wx.SplitterWindow):
 
         newSize = self.GetSize()
 
-        self.blockItem.size.width = newSize.width
-        self.blockItem.size.height = newSize.height
-        self.blockItem.setDirty(self.blockItem.VDIRTY, 'size', self.blockItem._values)   # Temporary repository hack -- DJA
-
+        self.blockItem.size = SizeType (newSize.width, newSize.height)
         if self.blockItem.orientationEnum == "Horizontal":
             distance = self.blockItem.size.height
         else:
