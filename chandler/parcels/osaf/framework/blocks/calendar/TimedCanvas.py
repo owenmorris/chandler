@@ -975,7 +975,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         drawn on the screen
         """
         startX, startY, width = self.getPositionFromDateTime(startTime)
-        delta_height = 1
+        deltaHeight = 1
         if IS_MAC:
             startY -= 1
             deltaHeight = 0
