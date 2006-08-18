@@ -2136,12 +2136,9 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         #XXX: [i18n] These Header labels need to leverage PyICU for the display names
         headerLabels = [_(u"Week"), "S", "M", "Tu", "W", "Th", "F", "S", '']
         for header in headerLabels:
-            weekColumnHeader.AppendItem(header, (wx.colheader.CH_ALIGN_Center, wx.colheader.CH_ALIGN_Center),
-                                        0, bSortEnabled=False)
+            weekColumnHeader.AppendItem(header, wx.ALIGN_CENTER, 0, bSortEnabled=False)
             
         expandoColumn = len(headerLabels) - 1
-        weekColumnHeader.SetBitmapAlignment(expandoColumn,
-                                                (wx.colheader.CH_ALIGN_Center, wx.colheader.CH_ALIGN_Center))
         self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED,
                   self.OnDayColumnSelect, weekColumnHeader)
 
@@ -2166,7 +2163,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.monthText.SetFont(styles.monthLabelFont)
         self.monthText.SetForegroundColour(styles.monthLabelColor)
         
-        self.weekColumnHeader.SetBitmap(8, self.allDayCloseArrowImage)
+        self.weekColumnHeader.SetLabelBitmap(8, self.allDayCloseArrowImage)
         self.UpdateHeader()
 
         # onetime measurements
@@ -2210,9 +2207,9 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.weekColumnHeader.Freeze()
         for (i,width) in enumerate(drawInfo.columnWidths):
             originPt = (0, 0)
-            extentPt = self.weekColumnHeader.GetUIExtent(i)
-            extentPt.x = width
-            self.weekColumnHeader.SetUIExtent(i, extentPt)
+            extentPt = self.weekColumnHeader.GetItemSize(i)
+            extentPt.width = width
+            self.weekColumnHeader.SetItemSize(i, extentPt)
         self.weekColumnHeader.Thaw()
 
     def OnSize(self, event):
@@ -2392,11 +2389,11 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             pass
         elif position - sashsize <= wxAllDay.collapsedHeight:
             wxAllDay.autoExpandMode = False
-            self.weekColumnHeader.SetBitmap(8, self.allDayOpenArrowImage)
+            self.weekColumnHeader.SetLabelBitmap(8, self.allDayOpenArrowImage)
             
         elif position - sashsize > wxAllDay.collapsedHeight:
             wxAllDay.autoExpandMode = True
-            self.weekColumnHeader.SetBitmap(8, self.allDayCloseArrowImage)
+            self.weekColumnHeader.SetLabelBitmap(8, self.allDayCloseArrowImage)
         
     def OnDaySelect(self, day):
         """

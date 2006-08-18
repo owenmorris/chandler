@@ -57,29 +57,26 @@ class wxTableData(wx.grid.PyGridTableBase):
 
     def GetColLabelValue (self, column):
         grid = self.GetView()
+        item = grid.blockItem.contents.getFirstSelectedItem()
+        return grid.GetColumnHeading (column, item)
+
+    def GetColLabelBitmap(self, column):
+        grid = self.GetView()
         table = grid.blockItem
         columnItem = table.columns[column]
 
-        # see bug 1937 / bug 5894
-        # When wxGrid is used with a wxGridTable, there is no way to
-        # dynamically set the column to a bitmap. Ideally, there would
-        # be a GetColLabelBitmap(), or you could return a bitmap or a
-        # string from GetColLabelValue() instead. For now, we'll just
-        # set the bitmap every time we're asked for the string.
-        if hasattr(columnItem, 'icon'):
-            
+        if hasattr(columnItem, 'icon'):            
             # we'll cache the bitmap so we're not constantly loading
             # it from disk
             bitmap = getattr(self, '_colbitmap%s' % column, None)
             if bitmap is None:
                 bitmap = wx.GetApp().GetImage(columnItem.icon + ".png")
                 setattr(self, '_colbitmap%s' % column, bitmap)
-                
-            grid.SetLabelBitmap(False, column, bitmap)
-            return '' # no string, just an icon
-            
-        item = grid.blockItem.contents.getFirstSelectedItem()
-        return grid.GetColumnHeading (column, item)
+            return bitmap
+        
+        else:
+            return None
+        
 
     def IsEmptyCell (self, row, column): 
         return False 
@@ -141,6 +138,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
         self.SetLightSelectionBackground()
         self.SetScrollLineY (self.GetDefaultRowSize())
+        self.SetUseVisibleColHeaderSelection(True)
+        self.SetUseColSortArrows(True)
 
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
@@ -166,7 +165,10 @@ class wxTable(DragAndDrop.DraggableWidget,
         blockItem = self.blockItem
         if blockItem.columns[event.GetCol()].valueType != 'attribute':
             # for now we only support sorting on attribute-style columns
+            self.SetUseColSortArrows(False)
             return
+        else:
+            self.SetUseColSortArrows(True)
         attributeName = blockItem.columns[event.GetCol()].attributeName
         contents = blockItem.contents
 

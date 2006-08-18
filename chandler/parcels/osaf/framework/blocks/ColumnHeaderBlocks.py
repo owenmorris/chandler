@@ -32,14 +32,13 @@ class ColumnHeader (RectangularChild):
     columnWidths         = schema.Sequence(schema.Integer)
     proportionalResizing = schema.One(schema.Boolean)
     visibleSelection     = schema.One(schema.Boolean)
-    unicode              = schema.One(schema.Boolean)
     genericRenderer      = schema.One(schema.Boolean)
     # add selection attribute?
     
     def ResizeHeader(self):
         for (i,width) in enumerate(self.columnWidths):
             if hasattr(self, "widget"):
-                self.widget.SetUIExtent(i, (0,width))
+                self.widget.SetItemSize(i, (width, 0))
 
     def defaultOnSize(self, event):
         self.ResizeHeader()
@@ -57,12 +56,11 @@ class ColumnHeader (RectangularChild):
         # set attributes
         if hasattr(self, "visibleSelection"): wxColHeaderInstance.SetAttribute(wx.colheader.CH_ATTR_VisibleSelection,          self.visibleSelection)
         if hasattr(self, "proportionalResizing "): wxColHeaderInstance.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing, self.proportionalResizing )
-        if hasattr(self, "unicode"): wxColHeaderInstance.SetAttribute(wx.colheader.CH_ATTR_Unicode,                            self.unicode)
         if hasattr(self, "genericRenderer"): wxColHeaderInstance.SetAttribute(wx.colheader.CH_ATTR_GenericRenderer, self.genericRenderer)
 
         # add columns.
         for header in self.columnHeadings:
-            wxColHeaderInstance.AppendItem(header, (wx.colheader.CH_ALIGN_Center, wx.colheader.CH_ALIGN_Center), 20, bSortEnabled=False)
+            wxColHeaderInstance.AppendItem(header, wx.ALIGN_CENTER, 20, bSortEnabled=False)
 
         # set a default size-event handler  (this may need to be removed)
         wxColHeaderInstance.Bind(wx.EVT_SIZE, self.defaultOnSize)
