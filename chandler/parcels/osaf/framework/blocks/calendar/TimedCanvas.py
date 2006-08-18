@@ -968,12 +968,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         startX, startY, width = self.getPositionFromDateTime(startTime)
         
-        duration = (endTime - startTime)
-        duration = duration.days * 24 + duration.seconds / float(3600)
-        if duration <= 0.5:
-            duration = 0.5
-            
-        height = int(duration * self.hourHeight)
+        height = int(self.hourHeight * (endTime.hour + endTime.minute/60.0) -
+                     startY)
         
         return wx.Rect(startX, startY, width+1, height+1)
     
