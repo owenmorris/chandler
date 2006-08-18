@@ -32,6 +32,8 @@ from itertools import chain, islice
 
 from application.dialogs import RecurrenceDialog
 
+IS_MAC = '__WXMAC__' in wx.PlatformInfo
+
 class TimedEventsCanvas(CalendarBlock):
 
     scrollY = schema.One(schema.Integer, initialValue = -1)
@@ -371,7 +373,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                             self.xOffset - wText - 5,
                             hour * self.hourHeight - (hText/2))
             
-            if '__WXMAC__' in wx.PlatformInfo:
+            if IS_MAC:
                 dc.SetAntiAliasing(False)
             
             # Draw the line between hours
@@ -393,8 +395,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                         self.size.width+1,
                         hour * self.hourHeight + halfHourHeight)
 
-            if '__WXMAC__' in wx.PlatformInfo:
-                dc.SetAntiAliasing(True)   
+            if IS_MAC:
+                dc.SetAntiAliasing(True)
 
         # Draw a final, bottom hour line
         dc.SetPen(styles.majorLinePen)

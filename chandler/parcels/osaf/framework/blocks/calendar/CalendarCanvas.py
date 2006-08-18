@@ -80,6 +80,8 @@ SWATCH_SEPARATION = 2
 SWATCH_WIDTH_VECTOR  = vector([SWATCH_WIDTH  + 2*SWATCH_BORDER, 0])
 SWATCH_HEIGHT_VECTOR = vector([0, SWATCH_HEIGHT + 2*SWATCH_BORDER])
 
+IS_MAC = '__WXMAC__' in wx.PlatformInfo
+
 # add some space below the time (but on linux there isn't any room)
 if '__WXGTK__' in wx.PlatformInfo:
     TIME_BOTTOM_MARGIN = 0
@@ -475,7 +477,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
                 # new, smaller itemRect
                 yDelta = 1
-                if '__WXMAC__' in wx.PlatformInfo and isAnyTimeOrAllDay:
+                if IS_MAC and isAnyTimeOrAllDay:
                     # on non-Mac's timed event's tops and bottoms are offset from
                     # hour lines by one pixel 
                     yDelta = 0
@@ -537,7 +539,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         
                         # set up superscript font
                         size = styles.eventTimeStyle.fontSize * .7
-                        if '__WXMAC__' in wx.PlatformInfo:
+                        if IS_MAC:
                             # on the Mac anti-aliasing seems to stop at 8px
                             size = max(size, 9)
                         superscript = Styles.getFont(size=size)
@@ -659,7 +661,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                             rightMargin += (margin + count * oneWidth -
                                             SWATCH_SEPARATION)
 
-                    if ('__WXMAC__' in wx.PlatformInfo):
+                    if IS_MAC:
                         rightMargin += 5
                     
                     # now draw the text of the event
@@ -705,7 +707,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         else:
             delta = SWATCH_WIDTH_VECTOR  + vector([SWATCH_SEPARATION, 0])
 
-        if '__WXMAC__' in wx.PlatformInfo:
+        if IS_MAC:
             dc.SetAntiAliasing(False)
 
         count = 0
@@ -726,7 +728,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 dc.DrawRectangle(*swatchTL.join(swatchBR - swatchTL))
                 count += 1
                 
-        if '__WXMAC__' in wx.PlatformInfo:
+        if IS_MAC:
             dc.SetAntiAliasing(True)
 
         return count
@@ -807,7 +809,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 dc.DrawLine(x+radius, y+height-1, x+width-radius, y+height-1)#bottom
 
 
-        if '__WXMAC__' in wx.PlatformInfo and addDashes:
+        if IS_MAC and addDashes:
             dc.SetAntiAliasing(False)
             dc.SetPen(wx.Pen(wx.WHITE, 0, wx.TRANSPARENT))
 
@@ -1742,7 +1744,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
 
         # move the frame so that the default Mac Aqua focus "halo"
         # is aligned with the outer event frame
-        if '__WXMAC__' in wx.PlatformInfo:
+        if IS_MAC:
             position.x -= 1
             newSize.width += 4
             newSize.height -= 1
@@ -1825,7 +1827,7 @@ class CalendarContainer(BoxContainer):
         self.InitializeStyles()
         
         w = super(CalendarContainer, self).instantiateWidget()
-        if '__WXMAC__' in wx.PlatformInfo:
+        if IS_MAC:
             w.SetWindowStyle(wx.BORDER_SIMPLE)
         else:
             w.SetWindowStyle(wx.BORDER_STATIC)
