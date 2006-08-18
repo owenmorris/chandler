@@ -46,7 +46,7 @@ class TestFlickr(ChandlerTestCase):
         except socket.timeout:
             self.logger.endAction(True, "Flickr timed out; skipping test")
         except flickr.flickr.FlickrNotFoundError:
-            logger.ReportPass("Flickr search returned nothing; skipping test")
+            self.logger.ReportPass("Flickr search returned nothing; skipping test")
         else:
     
             # Add the channel to the sidebar
