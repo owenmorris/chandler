@@ -26,7 +26,7 @@ import twisted.internet.protocol as protocol
 import twisted.protocols.policies as policies
 
 import application.Utility as Utility
-from osaf.framework.certstore import ssl
+from osaf.framework.certstore import ssl, utils, certificate, constants
 from osaf.pim.tests import TestDomainModel
 
 class TestSSL(TestDomainModel.DomainModelTestCase):
@@ -132,6 +132,54 @@ QUW4hRYWNNbb
                           x509, 'example.com')
         self.assertRaises(Checker.NoCertificate, wrapper.postConnectionVerify, 
                           None, 'example.com')
+        
+    def testContextCache(self):
+        pemRoot = '''-----BEGIN CERTIFICATE-----
+MIIDpzCCAxCgAwIBAgIBADANBgkqhkiG9w0BAQQFADCBmjELMAkGA1UEBhMCVVMx
+CzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRowGAYDVQQKExFv
+c2Fmb3VuZGF0aW9uLm9yZzELMAkGA1UECxMCQ0ExEDAOBgNVBAMTB09TQUYgQ0Ex
+KzApBgkqhkiG9w0BCQEWHGhvc3RtYXN0ZXJAb3NhZm91bmRhdGlvbi5vcmcwHhcN
+MDQwNjAyMjEzNTIzWhcNMjkwNTI3MjEzNTIzWjCBmjELMAkGA1UEBhMCVVMxCzAJ
+BgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRowGAYDVQQKExFvc2Fm
+b3VuZGF0aW9uLm9yZzELMAkGA1UECxMCQ0ExEDAOBgNVBAMTB09TQUYgQ0ExKzAp
+BgkqhkiG9w0BCQEWHGhvc3RtYXN0ZXJAb3NhZm91bmRhdGlvbi5vcmcwgZ8wDQYJ
+KoZIhvcNAQEBBQADgY0AMIGJAoGBAMvKQY9ElPz4UOhYwKPhbHpSzxxGXxQHiOGu
+QDV9HuTaTD53cs4xhTau5nLrbqR6qkOpaxgq4+xGZGXwwdrl6vABXGamBAIS8U+C
+IoxMZmdi1zNCHpALjrUOr5zG+l5lbxKMzzfbBgz0EvnxdyUW3JzWlFA7gtKwNeq9
+8BbIVNIRAgMBAAGjgfowgfcwHQYDVR0OBBYEFFAUmTv7d1YAmmssTPTcaE3FWgdL
+MIHHBgNVHSMEgb8wgbyAFFAUmTv7d1YAmmssTPTcaE3FWgdLoYGgpIGdMIGaMQsw
+CQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExFjAUBgNVBAcTDVNhbiBGcmFuY2lzY28x
+GjAYBgNVBAoTEW9zYWZvdW5kYXRpb24ub3JnMQswCQYDVQQLEwJDQTEQMA4GA1UE
+AxMHT1NBRiBDQTErMCkGCSqGSIb3DQEJARYcaG9zdG1hc3RlckBvc2Fmb3VuZGF0
+aW9uLm9yZ4IBADAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBAUAA4GBAAdPk2l4
+bQBw41mQvTLGFVUx89oEqmlW8fMh06/PhNyKPvA+Ip/HL4fl71A8aGYINA2KGQeE
+Mi6jbcmKpkTked0C7KzayFkggv/SZtmeibzOjQJbO5WQCRgYuF9t7Rijk7oiAt3U
+3rOIG1GsNPeKaSKyc+Bpqd9phY+fPNsZf8b4
+-----END CERTIFICATE-----'''
+        
+        self.assert_(ssl.contextCache is None, 'cache should start empty')
+        ssl.getContext(self.rep.view) # set cache
+        self.assert_(ssl.contextCache is not None, 'cache should have an entry after getting a context')
+        
+        x509 = X509.load_cert_string(pemRoot)
+        fingerprint = utils.fingerprint(x509)
+        cert = certificate.importCertificate(x509,
+                                             fingerprint,
+                                             constants.TRUST_AUTHENTICITY | constants.TRUST_SITE,
+                                             self.rep.view)
+        self.assert_(ssl.contextCache is None, 'cache should have been cleared after adding a cert')
+
+        ssl.getContext(self.rep.view) # set cache
+        cert.trust = 0
+        self.assert_(ssl.contextCache is None, 'cache should have been cleared after changing cert.trust attribute')
+
+        ssl.getContext(self.rep.view) # set cache
+        del cert.trust
+        self.assert_(ssl.contextCache is None, 'cache should have been cleared after deleting cert.trust attribute')
+
+        ssl.getContext(self.rep.view) # set cache
+        cert.delete()
+        self.assert_(ssl.contextCache is None, 'cache should have been cleared after removing a cert')
 
 if __name__ == "__main__":
     unittest.main()

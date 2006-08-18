@@ -143,7 +143,23 @@ class Certificate(pim.ContentItem):
                                  'fingerprint', 'asTextAsString' ]:
             return False
         return super(Certificate, self).isAttributeModifiable(attribute)
-
+    
+    @schema.observer(type, trust, pem)
+    def changed(self, name):
+        """
+        Get a change notification for an attribute change. This happens
+        on item creation as well as normal attribute change (including
+        deletion), but not on item deletion.
+        """
+        # XXX Certificate should not need to know about ssl.contextCache
+        from osaf.framework.certstore import ssl
+        ssl.contextCache = None
+        
+    def onItemDelete(self, view, isDeferring):
+        """
+        Get a change notification for an item deletion.
+        """
+        self.changed(None)
 
 def _isRootCertificate(x509):
     # XXX This will need tweaks

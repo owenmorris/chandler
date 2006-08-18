@@ -33,7 +33,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "236" # john: Dynamic Blocks bug fixes and cleanup
+SCHEMA_VERSION = "237" # heikki: added certificate watcher
 
 logger = None # initialized in initLogging()
 

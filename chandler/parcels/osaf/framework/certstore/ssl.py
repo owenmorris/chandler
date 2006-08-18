@@ -59,9 +59,11 @@ __all__ = ['loadCertificatesToContext', 'SSLContextError', 'getContext',
            'trusted_until_shutdown_site_certs',
            'trusted_until_shutdown_invalid_site_certs',
            'askTrustSiteCertificate',
-           'askIgnoreSSLError']
+           'askIgnoreSSLError', 'contextCache']
 
 log = logging.getLogger(__name__)
+
+contextCache = None
 
 def loadCertificatesToContext(repView, ctx):
     """
@@ -99,6 +101,10 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
     @param verifyCallback: Function to call for certificate verification.
     @type verifyCallback:  Callback function
     """
+    global contextCache
+    if contextCache is not None:
+        return contextCache
+    
     ctx = SSL.Context(protocol)
 
     # XXX Sometimes we might want to accept any cert, and only use
@@ -136,6 +142,8 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
     if ctx.set_cipher_list('ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH') != 1:
         log.error('Could not set cipher list')
         raise SSLContextError(_(u'Could not set cipher list'))
+
+    contextCache = ctx
 
     return ctx
 
