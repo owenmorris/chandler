@@ -86,7 +86,7 @@ class TestSharing(ChandlerTestCase):
                 wx.GetApp().Yield()
  
             if not win.success:
-                logger.ReportFailure("(On publish collection)")
+                self.logger.ReportFailure("(On publish collection)")
  
             #Done button call
             win.OnPublishDone(None)
