@@ -413,7 +413,7 @@ class TestOutput:
         for suite_dict in self.suiteList:
                 for test_dict in suite_dict['testlist']:
                     if test_dict['result'] == False:
-                        self._write('%s*FAILED*\n' % test_dict['name'].ljust(30,'_'))
+                        self._write('%s*failed*\n' % test_dict['name'].ljust(30,'_'))
                     else:
                         self._write('%s passed \n' % test_dict['name'].ljust(30,'_'))
         self._write("*************************************\n")
