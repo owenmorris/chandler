@@ -250,7 +250,7 @@ def doFunctionalTests(releaseMode, workingDir, log):
                 '--profileDir=.',
                 '--parcelPath=tools/QATestScripts/DataFiles',
                 '--scriptTimeout=600', 
-                '--scriptFile=tools/cats/Functional/FunctionalTestSuite.py'
+                '--scriptFile=tools/cats/Functional/FunctionalTestSuite.py',
                 '--chandlerTestLogfile=FunctionalTestSuite.log'] #new framework defaults to no log without this
         outputList = hardhatutil.executeCommandReturnOutput(args)
 
