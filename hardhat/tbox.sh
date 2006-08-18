@@ -257,7 +257,7 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
         echo Running $mode functional tests | tee -a $BUILDLOG
     
         if [ ! "$CHANDLER_FUNCTIONAL_TEST" = "no" ]; then
-            test="$C_DIR/tools/QATestScripts/Functional/FunctionalTestSuite.py"
+            test="$C_DIR/tools/cats/Functional/FunctionalTestSuite.py"
     
             if [ "$OSTYPE" = "cygwin" ]; then
                 TESTNAME=`cygpath -w $test`
