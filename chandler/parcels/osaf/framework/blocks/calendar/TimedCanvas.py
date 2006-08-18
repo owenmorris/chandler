@@ -371,6 +371,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                             self.xOffset - wText - 5,
                             hour * self.hourHeight - (hText/2))
             
+            if '__WXMAC__' in wx.PlatformInfo:
+                dc.SetAntiAliasing(False)
+            
             # Draw the line between hours
             dc.SetPen(styles.majorLinePen)
             dc.DrawLine(self.xOffset,
@@ -389,6 +392,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                         hour * self.hourHeight + halfHourHeight,
                         self.size.width+1,
                         hour * self.hourHeight + halfHourHeight)
+
+            if '__WXMAC__' in wx.PlatformInfo:
+                dc.SetAntiAliasing(True)   
 
         # Draw a final, bottom hour line
         dc.SetPen(styles.majorLinePen)
