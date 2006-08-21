@@ -111,14 +111,15 @@ class UploadTask(object):
     def run(self):
         logger.info("eventLogger - receiveWakeupCall()")
 
-        dirList = os.listdir(logDir)
-        for file in dirList:
-            if re.search("event\.log\.\d+", file):
-
-                fname = os.path.join(logDir, file)
-
-                logger.info("eventLogger.Uploader: Trying to upload %s", fname)
-                self.uploadFile(fname)
+        if os.path.isdir (logDir):
+            dirList = os.listdir(logDir)
+            for file in dirList:
+                if re.search("event\.log\.\d+", file):
+    
+                    fname = os.path.join(logDir, file)
+    
+                    logger.info("eventLogger.Uploader: Trying to upload %s", fname)
+                    self.uploadFile(fname)
         return True
 
 
