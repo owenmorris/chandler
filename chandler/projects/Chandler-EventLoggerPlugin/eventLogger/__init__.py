@@ -38,6 +38,7 @@ logDir = os.path.join(Globals.options.profileDir, 'eventLogger')
 logFile = os.path.join(logDir, 'event.log')
 logFileMaxSize = 250000 #Bytes
 logFileMaxCount = 10    #Max logfiles to keep
+logFileVersion = "1.0"  #Version of the logfile
 
 class EventLoggingDispatchHook (DispatchHook):
     """
@@ -140,6 +141,7 @@ class UploadTask(object):
         data = []
         data.append("username=%s" % os.getlogin())
         data.append("hostname=%s" % socket.gethostname())
+        data.append("lversion=%s" % logFileVersion)
         data.append("uploaded=%s" % timestamp)
         data.append("\n%s" % fdata)
 
@@ -198,5 +200,5 @@ def installParcel(parcel, old_version=None):
         invoke = 'eventLogger.UploadTask',
         run_at_startup = True,
         active = True,
-        interval = timedelta(minutes=1))
+        interval = timedelta(minutes=20))
 
