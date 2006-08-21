@@ -246,7 +246,7 @@ def doFunctionalTests(releaseMode, workingDir, log):
             pass
 
         args = [runChandler,
-                '--create', '--stderr', '--nocatch',
+                '--create', '--nocatch',
                 '--profileDir=.',
                 '--parcelPath=tools/QATestScripts/DataFiles',
                 '--scriptTimeout=600', 

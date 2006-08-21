@@ -67,7 +67,7 @@ def main():
         # useBestVisual - uses best screen resolutions on some old computers.
         #                 See wxApp.SetUseBestVisual
 
-        redirect = not Globals.options.stderr
+        redirect = not Globals.options.nocatch
         app = wxApplication(redirect=redirect, useBestVisual=True)
 
         app.MainLoop()

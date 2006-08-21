@@ -154,7 +154,7 @@ def main():
                 #remove previous results file if exists
                 if os.path.isfile('tmpResult.txt'):
                     os.remove('tmpResult.txt')
-                cmdStr = r'./release/RunChandler.bat --create --stderr -f %s >tmpResult.txt ' % test
+                cmdStr = r'./release/RunChandler.bat --create --nocatch -f %s >tmpResult.txt ' % test
                 os.system(cmdStr)
                 if os.path.isfile('tmpResult.txt'):
                     f = open('tmpResult.txt','r')

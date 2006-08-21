@@ -234,10 +234,10 @@ if [ -n "$TEST_TO_RUN" ]; then
                 else
                     if echo "$TESTNAME" | grep -q "$F_TEST_DIR" ; then
                         if [ $USE_NEW_FRAMEWORK = yes ]; then
-                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --chandlerTests="$TEST_WITHOUT_PATH" &> $C_DIR/test.log
+                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --chandlerTests="$TEST_WITHOUT_PATH" &> $C_DIR/test.log
                             SUCCESS="#TINDERBOX# Status = PASSED"
                         else
-                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
                             SUCCESS="#TINDERBOX# Status = PASSED"
                         fi
                         
@@ -334,7 +334,7 @@ else
             echo Running $TESTNAME | tee -a $TESTLOG
 
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
 
               # scan the test output for the success messge "OK"
             RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
@@ -379,7 +379,7 @@ else
 
                 echo -n $TESTNAME
                 cd $C_DIR
-                $CHANDLERBIN/release/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
 
                 # scan the test output for the success message "OK"
                 RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
@@ -410,7 +410,7 @@ else
         fi
 
         cd $C_DIR
-        $CHANDLERBIN/release/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$BACKUP_REPO" &> $C_DIR/test.log
+        $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$BACKUP_REPO" &> $C_DIR/test.log
 
         # scan the test output for the success message "OK"
         RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
@@ -440,7 +440,7 @@ else
 
                     echo -n $TESTNAME
                     cd $C_DIR
-                    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --stderr --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
 
                     # scan the test output for the success message "OK"
                     RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
@@ -491,11 +491,11 @@ else
             RUNS="1 2 3"
 
             echo Creating new empty repository
-            $CHANDLERBIN/release/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $C_DIR/test.log
+            $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $C_DIR/test.log
 
             echo -n Timing startup
             for run in $RUNS ; do
-                $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --stderr --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
                 cat $T_DIR/start1.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $C_DIR/test.log
                 cat $C_DIR/test.log > $T_DIR/start1.$run.log
                 echo -n \ `<"$T_DIR/start1.$run.log"`
@@ -505,11 +505,11 @@ else
             echo \ \[$STARTUP\s\]
 
             echo Creating new large repository
-            $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --stderr --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $C_DIR/test.log
+            $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $C_DIR/test.log
 
             echo -n Timing startup with large repository
             for run in $RUNS ; do
-                $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --stderr --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
                 cat $T_DIR/start6.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $C_DIR/test.log
                 cat $C_DIR/test.log > $T_DIR/start6.$run.log
                 echo -n \ `<"$T_DIR/start6.$run.log"`

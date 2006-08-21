@@ -270,7 +270,7 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
             echo Running $TESTNAME | tee -a $BUILDLOG
     
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$P_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" --chandlerTestLogfile=FunctionalTestSuite.log &> $T_DIR/test.log
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" --chandlerTestLogfile=FunctionalTestSuite.log &> $T_DIR/test.log
     
               # functional tests output a #TINDERBOX# Status = PASSED that we can scan for
             RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
@@ -319,7 +319,7 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
 	            if [ "$OSTYPE" = "cygwin" ]; then
 	                T_LOG=`cygpath -w $T_LOG`
 	            fi
-	            $CHANDLERBIN/release/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
+	            $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
 	            echo `<"$T_LOG"` | tee -a $BUILDLOG
 	        done
 	
@@ -355,7 +355,7 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     fi
     
     cd $C_DIR
-    $CHANDLERBIN/release/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$BACKUP_REPO" &> $C_DIR/test.log
+    $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$BACKUP_REPO" &> $C_DIR/test.log
     
     # scan the test output for the success message "OK"
     RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
@@ -385,7 +385,7 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
 		            if [ "$OSTYPE" = "cygwin" ]; then
 		                T_LOG=`cygpath -w $T_LOG`
 		            fi
-		            $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --stderr --nocatch --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
+		            $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --nocatch --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
 		            echo `<"$T_LOG"` | tee -a $BUILDLOG
 		        done
 		
@@ -436,22 +436,22 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     cd $C_DIR
 
     echo Creating new empty repository | tee -a $BUILDLOG
-    $CHANDLERBIN/release/$RUN_CHANDLER --create --stderr --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $T_DIR/test.log
+    $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $T_DIR/test.log
     
     echo Timing startup | tee -a $BUILDLOG
     for run in $RUNS ; do
-        $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --stderr --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test.log
+        $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test.log
         cat $T_DIR/start1.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $T_DIR/test.log
         cat $T_DIR/test.log > $T_DIR/start1.$run.log
         echo `<"$T_DIR/start1.$run.log"` | tee -a $BUILDLOG
     done
 
     echo Creating new large repository | tee -a $BUILDLOG
-    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --stderr --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $T_DIR/test.log
+    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $T_DIR/test.log
     
     echo Timing startup | tee -a $BUILDLOG
     for run in $RUNS ; do
-        $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --stderr --nocatch --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test.log
+        $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --nocatch --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test.log
         cat $T_DIR/start6.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $T_DIR/test.log
         cat $T_DIR/test.log > $T_DIR/start6.$run.log
         echo `<"$T_DIR/start6.$run.log"` | tee -a $BUILDLOG
