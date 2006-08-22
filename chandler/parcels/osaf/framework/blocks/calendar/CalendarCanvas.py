@@ -521,7 +521,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     # for some reason primaryCollection and allCollection don't
                     # compare as equal when they ought to, so compare UUIDs
                     drawSwatches = (colls > 2 or (colls == 2 and
-                                                  item not in allCollection))
+                       (item not in allCollection or 
+                       self.primaryCollection.itsUUID == allCollection.itsUUID))
+                                    )
                     
                     # only draw time on timed events
                     if not isAnyTimeOrAllDay and timeHeight > 0:
