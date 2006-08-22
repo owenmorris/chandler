@@ -54,6 +54,8 @@ from datetime import datetime, time, timedelta
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 
+import parsedatetime.parsedatetime as parsedatetime 
+
 
 logger = logging.getLogger(__name__)
     
@@ -912,8 +914,18 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
                 dateTimeValue = pim.shortDateFormat.parse(newValueString, 
                                                           referenceDate=oldValue)
             except (ICUError, ValueError):
-                self._changeTextQuietly(self.control, "%s ?" % newValueString)
-                return
+                # use parsedatetime to calculate the date
+                try:
+                    cal = parsedatetime.Calendar() 
+                    (dateVar, invalidFlag) = cal.parse(newValueString)
+                    if dateVar != None and invalidFlag is False:
+                        dateTimeValue = datetime(*dateVar[:3])
+                    else:
+                        self._changeTextQuietly(self.control, "%s ?" % newValueString)
+                        return
+                except (ValueError):
+                    self._changeTextQuietly(self.control, "%s ?" % newValueString)
+                    return
 
             # If this results in a new value, put it back.
             value = datetime.combine(dateTimeValue.date(), oldValue.timetz())
@@ -1039,15 +1051,26 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                 forceReload = True
                 yield format % locals()
                                 
+            # use parsetime to calculate the time
             gotTime = None
             for valueString in generateTimeAttempts(newValueString):
                 try:
-                    gotTime = pim.shortTimeFormat.parse(valueString, 
-                                                     referenceDate=oldValue)
+                    # use parsedatetime to calculate time
+                    cal = parsedatetime.Calendar() 
+                    (timeVar, invalidFlag) = cal.parse(valueString)
+                    
+                    if timeVar != None and invalidFlag is False:
+                        newValueString = pim.shortTimeFormat.format(datetime(*timeVar[:5]))
+                        gotTime = pim.shortTimeFormat.parse(newValueString, 
+                                                         referenceDate=oldValue)
+                    else:
+                        self._changeTextQuietly(self.control, "%s ?" % newValueString)
+                        return
                 except (ICUError, ValueError):
                     continue        
                 else:
                     break
+            
             if gotTime is None:            
                 self._changeTextQuietly(self.control, "%s ?" % newValueString)
                 return

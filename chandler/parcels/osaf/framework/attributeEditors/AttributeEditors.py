@@ -45,6 +45,10 @@ from util.MultiStateButton import BitmapInfo, MultiStateBitmapCache
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 
+import parsedatetime.parsedatetime as parsedatetime
+from datetime import date
+import PyICU
+
 logger = logging.getLogger(__name__)
 
 # Should we do autocompletion? (was handy for turning it off during development)
@@ -1023,6 +1027,7 @@ class wxAutoCompleter(wx.ListBox):
             self.choices = choices
             self.Set(choices)
             self.resize()
+            self.SetSelection(0)   #selects the first choice in the list
 
 class StringAttributeEditor (BaseAttributeEditor):
     """ 
@@ -1702,8 +1707,50 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         # more robust parsing of the date/time info the user enters.
         return True
 
+        
 class DateAttributeEditor (StringAttributeEditor):
     
+    # natural language strings for date
+    dateStr = [(u'Today',_(u'today')), (u'Tomorrow',_(u'tomorrow')),
+                     ( u'Yesterday',_(u'yesterday')), (u'EOW',_(u'end of week'))]
+    
+    # Add weekdays of the current locale
+    us_weekDays = PyICU.DateFormatSymbols(PyICU.Locale.getUS()).getWeekdays()
+    current_weekDays = PyICU.DateFormatSymbols().getWeekdays()
+    dateStr.extend(zip(us_weekDays,current_weekDays))
+    
+    # Add month names of the current locale
+    us_months = PyICU.DateFormatSymbols(PyICU.Locale.getUS()).getMonths()
+    current_months = PyICU.DateFormatSymbols().getMonths()
+    dateStr.extend(zip(us_months,current_months))
+    
+    textMatches = dict(dateStr)
+
+    
+    @classmethod
+    def parseDate(cls, target):
+        """Parses Natural Language date strings using parsedatetime library."""
+        target = target.lower()
+        for matchKey in cls.textMatches:
+            #natural language string for date found
+            if ((cls.textMatches[matchKey]).lower()).startswith(target):
+                cal = parsedatetime.Calendar()
+                (dateVar, invalidFlag) = cal.parse(matchKey)
+                #invalidFlag is True if the string cannot be parsed successfully
+                if dateVar is not None and invalidFlag is False:
+                    dateStr = pim.shortDateFormat.format(datetime(*dateVar[:3]))
+                    matchKey += " : %s" % dateStr
+                    yield matchKey
+            else:
+                cal = parsedatetime.Calendar()
+                (dateVar, invalidFlag) = cal.parse(target)
+                if dateVar is not None and invalidFlag is False:
+                    # temporary fix: parsedatetime sometimes returns day == 0
+                    if not filter(lambda x: not x, dateVar[:3]):
+                        yield pim.shortDateFormat.format(datetime(*dateVar[:3]))
+                        break
+                
+
     def GetAttributeValue (self, item, attributeName):
         try:
             dateTimeValue = getattr (item, attributeName) # getattr will work with properties
@@ -1747,8 +1794,47 @@ class DateAttributeEditor (StringAttributeEditor):
     
     def GetSampleText(self, item, attributeName):
         return pim.sampleDate # get a hint like "mm/dd/yy"
+        
+    def generateCompletionMatches(self, target):
+        return self.parseDate(target)
+        
+    def finishCompletion(self, completionString):
+        if completionString is not None:
+            dashIndex = completionString.find(' - ')
+            if dashIndex != -1: # could be 'tomorrow - 08/02/2006'
+                completionString = completionString[dashIndex + 3:]
+        return super(DateAttributeEditor, self).finishCompletion(completionString)
+
     
 class TimeAttributeEditor(StringAttributeEditor):
+
+    #natural language strings for time
+    textMatches = {'Lunch':_(u'lunch'),'Evening':_(u'evening'),'Noon':_(u'noon'),
+                   'Midnight':_(u'midnight'),'Breakfast':_(u'breakfast'),'Now':_(u'now'),
+                   'Morning':_(u'morning'),'Dinner':_(u'dinner'),'Tonight':_(u'tonight'),
+                   'Night':_(u'night'),u'EOD':_(u'end of day')}
+    
+    @classmethod
+    def parseTime(cls, target):
+        """Parses Natural Language time strings using parsedatetime library."""
+        target = target.lower()
+        for matchKey in cls.textMatches:
+            #natural language time string found
+            if ((cls.textMatches[matchKey]).lower()).startswith(target):
+                cal = parsedatetime.Calendar() 
+                (timeVar, invalidFlag) = cal.parse(matchKey)
+                #invalidFlag is True if the string cannot be parsed successfully
+                if timeVar is not None and invalidFlag is False:
+                    timeVar = pim.shortTimeFormat.format(datetime(*timeVar[:5]))
+                    matchKey += " - %s" %timeVar
+                    yield matchKey
+            else:
+                cal = parsedatetime.Calendar() 
+                (timeVar, invalidFlag) = cal.parse(target)
+                if timeVar != None and invalidFlag is False:
+                    yield pim.shortTimeFormat.format(datetime(*timeVar[:5]))
+                    break
+
     def GetAttributeValue(self, item, attributeName):
         try:
             dateTimeValue = getattr (item, attributeName) # getattr will work with properties
@@ -1801,7 +1887,8 @@ class TimeAttributeEditor(StringAttributeEditor):
         try:
             hour = int(target)
         except ValueError:
-            pass
+            for matchKey in self.parseTime(target):
+                yield matchKey
         else:
             if hour < 24:
                 if hour == 12:
@@ -1811,6 +1898,13 @@ class TimeAttributeEditor(StringAttributeEditor):
                     yield pim.shortTimeFormat.format(
                         datetime(2003,10,30,hour + 12,00))
 
+    def finishCompletion(self, completionString):
+        if completionString is not None:
+            dashIndex = completionString.find(' - ')
+            if dashIndex != -1: # could be 'noon - 12:00 PM'
+                completionString = completionString[dashIndex + 3:]
+        return super(TimeAttributeEditor, self).finishCompletion(completionString) 
+        
     def GetSampleText(self, item, attributeName):
         return pim.sampleTime # Get a hint like "hh:mm PM"
 
