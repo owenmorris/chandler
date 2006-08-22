@@ -78,11 +78,18 @@ class UserCollection(schema.Annotation):
         for attr,value in kwds.iteritems():
             setattr(self, attr, value)
 
+# These colors are duplicated from application/styles.conf so gettext knows they
+# need to be localized.
+(_('Blue'), _('Green'), _('Red'), _('Orange'), _('Gold'), _('Plum'), 
+ _('Turquoise'), _('Fuschia'), _('Indigo'))
 
-# Collection colors
-# in the form 'Color', _('LocalizableColorString'), 360-degree based hue
+# Collection colors in the form ('Name', localizedName, 360-degree based hue)
 order = [s.strip() for s in styles.cfg.get('colororder', 'order').split(',')]
-collectionHues = [(k, _(unicode(k)), styles.cfg.getint('colors', k))
+# Using localize instead of "_". The gettext API only parses literal string
+# tokens such as _("MyString") when creating pot localization templates, using
+# a different function keeps it from complaining
+localize = _
+collectionHues = [(k, localize(unicode(k)), styles.cfg.getint('colors', k))
                   for k in order]
 
 
