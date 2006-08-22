@@ -1,12 +1,19 @@
 import unittest
-import wx
 import i18n
 import os
 from i18n import *
 from i18n.i18nmanager import *
+import i18n.i18nmanager as i18nmanager
 from i18n import wxMessageFactory as w
 
 this_module = "i18n.tests.TestI18n"
+
+try:
+    import wx
+    _WX_INSTALLED = True
+    _WX_APP = wx.App()
+except:
+    _WX_INSTALLED = False
 
 class I18nTestCase(unittest.TestCase):
     PROJECT = u"Chandler.i18n_test"
@@ -17,11 +24,12 @@ class I18nTestCase(unittest.TestCase):
     LOCALE_SET = ["fr_CA", "es_UY"]
 
     def setUp(self):
-        # A wx application instance must be created
-        # before using the wx translation API's
-        self.app = wx.App()
+        global _WX_INSTALLED
+        self._wx_installed = _WX_INSTALLED
+        i18nmanager._WX_INSTALLED = _WX_INSTALLED
 
         self.i18nMan = i18n._I18nManager
+        self.i18nMan._wx_installed = self._wx_installed
 
         self.i18nMan._DEFAULT_PROJECT = self.PROJECT
         self.i18nMan._DEFAULT_CATALOG = self.CATALOG
@@ -30,31 +38,6 @@ class I18nTestCase(unittest.TestCase):
 
         self.i18nMan.initialize(self.LOCALE_SET, self.INI_FILE)
         self.mf = MessageFactory(self.PROJECT, self.CATALOG)
-
-    def testWxMessageFactory(self):
-        self.assertEquals(w("Cancel"), u"Annuler")
-        self.assertEquals(w("&Quit"), u"&Quitter")
-
-        self.i18nMan.setLocaleSet("es_UY")
-        self.assertEquals(w("Cancel"), u"Cancelar")
-        self.assertEquals(w("&Quit"), u"&Salir")
-
-        self.i18nMan.setLocaleSet("en")
-        self.assertEquals(w("Cancel"), u"Cancel")
-        self.assertEquals(w("&Quit"), u"&Quit")
-
-        # The 'test' locale is a debug keyword
-        # which sets the locale set to ['fr_CA', 'fr']
-        # and enables the testing mode flag.
-        # In testing mode all values returned by
-        # the WxMessageFactory method insert
-        # a (WX)\u00FC: at the start of the string.
-        self.i18nMan.setLocaleSet("test")
-        self.assertEquals(w("Cancel"), u"(WX)\u00FC: Annuler")
-        self.assertEquals(w("&Quit"), u"(WX)\u00FC: &Quitter")
-
-        # Restore the default locale set
-        self.i18nMan.setLocaleSet(self.LOCALE_SET)
 
 
     def testChandlerMessageFactory(self):
@@ -107,7 +90,6 @@ class I18nTestCase(unittest.TestCase):
         self.i18nMan.setLocaleSet(self.LOCALE_SET)
 
     def testGetImage(self):
-
         # From the 'fr' locale
         img = self.i18nMan.getImage("test.png")
         self.assert_(img is not None)
@@ -200,7 +182,6 @@ class I18nTestCase(unittest.TestCase):
 
 
     def testGetHTML(self):
-
         html = self._getHTML("test.html")
         self.assert_(u"French test\u00FC" in html)
 
@@ -299,13 +280,6 @@ class I18nTestCase(unittest.TestCase):
         # Restore the default locale set
         self.i18nMan.setLocaleSet(self.LOCALE_SET)
 
-    def testSetWxLocale(self):
-        self.assertRaises(I18nException,
-                      setWxLocale, "bogus")
-
-        self.assertRaises(I18nException,
-                   setWxLocale, "fr_SX")
-
     def testSetPyICULocale(self):
         self.assertRaises(I18nException,
                       setPyICULocale, "bogus")
@@ -314,44 +288,87 @@ class I18nTestCase(unittest.TestCase):
                    setPyICULocale, "fr_SX")
 
     def testWxFileHandler(self):
-        b = self.i18nMan.CanOpen("image:test.png")
+        if not self._wx_installed:
+             return
+
+        fh = self.i18nMan._wx_filehandler
+
+        b = fh.CanOpen("image:test.png")
         self.assertEquals(b, True)
 
-        b = self.i18nMan.CanOpen("image:bogus.png")
+        b = fh.CanOpen("image:bogus.png")
         self.assertEquals(b, False)
 
-        b = self.i18nMan.CanOpen("BadProject#image:test.png")
+        b = fh.CanOpen("BadProject#image:test.png")
         self.assertEquals(b, False)
 
-        b = self.i18nMan.CanOpen("Chandler.i18n_test#image:test.png")
+        b = fh.CanOpen("Chandler.i18n_test#image:test.png")
         self.assertEquals(b, True)
 
-        b = self.i18nMan.CanOpen("bogus:test.bogus")
+        b = fh.CanOpen("bogus:test.bogus")
         self.assertEquals(b, False)
 
-        b = self.i18nMan.CanOpen("html:test.html")
+        b = fh.CanOpen("html:test.html")
         self.assertEquals(b, True)
 
-        b = self.i18nMan.CanOpen("html:bogus.html")
+        b = fh.CanOpen("html:bogus.html")
         self.assertEquals(b, False)
 
-        b = self.i18nMan.CanOpen("BadProject#html:test.html")
+        b = fh.CanOpen("BadProject#html:test.html")
         self.assertEquals(b, False)
 
-        b = self.i18nMan.CanOpen("Chandler.i18n_test#html:test.html")
+        b = fh.CanOpen("Chandler.i18n_test#html:test.html")
         self.assertEquals(b, True)
 
-        b = self.i18nMan.CanOpen("resource:test.resource")
+        b = fh.CanOpen("resource:test.resource")
         self.assertEquals(b, True)
 
-        b = self.i18nMan.CanOpen("resource:bogus.resource")
+        b = fh.CanOpen("resource:bogus.resource")
         self.assertEquals(b, False)
 
-        b = self.i18nMan.CanOpen("BadProject#resource:test.resource")
+        b = fh.CanOpen("BadProject#resource:test.resource")
         self.assertEquals(b, False)
 
-        b = self.i18nMan.CanOpen("Chandler.i18n_test#resource:test.resource")
+        b = fh.CanOpen("Chandler.i18n_test#resource:test.resource")
         self.assertEquals(b, True)
+
+    def testSetWxLocale(self):
+        if not self._wx_installed:
+             return
+
+        self.assertRaises(I18nException,
+                      setWxLocale, "bogus")
+
+        self.assertRaises(I18nException,
+                   setWxLocale, "fr_SX")
+
+    def testWxMessageFactory(self):
+        if not self._wx_installed:
+             return
+
+        self.assertEquals(w("Cancel"), u"Annuler")
+        self.assertEquals(w("&Quit"), u"&Quitter")
+
+        self.i18nMan.setLocaleSet("es_UY")
+        self.assertEquals(w("Cancel"), u"Cancelar")
+        self.assertEquals(w("&Quit"), u"&Salir")
+
+        self.i18nMan.setLocaleSet("en")
+        self.assertEquals(w("Cancel"), u"Cancel")
+        self.assertEquals(w("&Quit"), u"&Quit")
+
+        # The 'test' locale is a debug keyword
+        # which sets the locale set to ['fr_CA', 'fr']
+        # and enables the testing mode flag.
+        # In testing mode all values returned by
+        # the WxMessageFactory method insert
+        # a (WX)\u00FC: at the start of the string.
+        self.i18nMan.setLocaleSet("test")
+        self.assertEquals(w("Cancel"), u"(WX)\u00FC: Annuler")
+        self.assertEquals(w("&Quit"), u"(WX)\u00FC: &Quitter")
+
+        # Restore the default locale set
+        self.i18nMan.setLocaleSet(self.LOCALE_SET)
 
 if __name__ == "__main__":
     unittest.main()

@@ -19,7 +19,6 @@ from egg_translations import EggTranslations, hasCountryCode, stripCountryCode, 
 from types import ListType, StringType, UnicodeType
 from PyICU import Locale
 from cStringIO import StringIO
-import wx
 import os, locale, logging
 
 # Shortcut for quickly debugging issues with the
@@ -43,26 +42,32 @@ TO DO:
    1. Do performance testing (are caches needed?) (Markku)
 """
 
-__all__ = ["I18nManager", "setEnvironmentLocale", "getPyICULocale",
-           "setPythonLocale", "convertPyICULocale",
-           "isValidPyICULocale", "setPyICULocale",
-           "getWxLocale", "findWxLocale",
-           "setWxLocale", "I18nException"]
+try:
+    import wx
+    _WX_INSTALLED = True
 
-# Keep a Global reference to the Wx Locale and PyICU Locale
-# To ensure they do not get unloaded during the
+    __all__ = ["I18nManager", "setEnvironmentLocale", "getPyICULocale",
+               "setPythonLocale", "convertPyICULocale",
+               "isValidPyICULocale", "setPyICULocale", "I18nException",
+               "setWxLocale", "getWxLocale", "findWxLocale"]
+except:
+    _WX_INSTALLED = False
+    __all__ = ["I18nManager", "setEnvironmentLocale", "getPyICULocale",
+               "setPythonLocale", "convertPyICULocale",
+               "isValidPyICULocale", "setPyICULocale", "I18nException"]
+
+# Keep a Global reference to the PyICU Locale
+# To ensure it does not get unloaded during the
 # application life cycle. There can be only one
-# PyICU locale and wx locale per Python instance
-
-_WX_LOCALE = None
+# PyICU locale per Python instance
 _PYICU_LOCALE = None
 
-class I18nManager(EggTranslations, wx.FileSystemHandler):
+class I18nManager(EggTranslations):
     _NAME = "I18nManager"
 
-    __slots__ = ["_testing", "_lookupCache", "_DEFAULT_PROJECT",
-                 "_DEFAULT_CATALOG", "_DEFAULT_IMAGE",
-                 "_DEFAULT_HTML"]
+    __slots__ = ["_testing", "_lookupCache", "_wx_installed", "_wx_filehandler",
+                 "_DEFAULT_PROJECT", "_DEFAULT_CATALOG", "_DEFAULT_IMAGE",
+                 "_DEFAULT_HTML", "_RUNNING_IN_UNIT_TEST"]
 
     def __init__(self, DEFAULT_PROJECT, DEFAULT_CATALOG,
                  DEFAULT_IMAGE, DEFAULT_HTML):
@@ -87,11 +92,16 @@ class I18nManager(EggTranslations, wx.FileSystemHandler):
         self._DEFAULT_HTML    = DEFAULT_HTML
 
         self._lookupCache = None
+        self._wx_filehandler = None
         self._testing = False
+
+        global _WX_INSTALLED
+        self._wx_installed = _WX_INSTALLED
 
         # This is a signal that _I18nManager is being run with unit test
         # framework. Since the framework does not yet initialize the
-        # _I18nManager before running the tests we do it ourselves :)
+        # _I18nManager before running the tests the translation API
+        # is diabled :(
         self._RUNNING_IN_UNIT_TEST = os.environ.has_key("UNIT_TESTING") and \
                                      os.environ["UNIT_TESTING"] == "True"
 
@@ -102,105 +112,6 @@ class I18nManager(EggTranslations, wx.FileSystemHandler):
                                 self._DEFAULT_IMAGE,
                                 self._DEFAULT_HTML)
 
-    def CanOpen(self, location):
-        """
-          Called by wxPython to determine if
-          the I18nManager can open a given
-          file type.
-
-          If the protocol passed in the location
-          is either "image", "html", or "resource"
-          and the name passed in the location points
-          to a valid resource, image, or html in an
-          egg then return True otherwise False.
-
-          The location syntax is:
-             project#type:name
-
-          project is name of the egg project.
-          If no project is passed i.e. "type:name"
-          then the I18nManager._DEFAULT_PROJECT is
-          used.
-
-          type is the type of the resource.
-
-          if type == image the c{I18nManager.getImage}
-          method is used.
-
-          if type == html the c{I18nManager.getHTML}
-          method is used.
-
-          if type == resource the c{I18nManager.getResourceAsStream}
-          method is used.
-
-          @param location: the project#type:name c{str}
-          @type location: c{str}
-
-          @return: c{boolean} True if the I18nManager can open
-                  the file type otherwise False.
-        """
-
-        assert(self._init, True)
-        project = self.GetLeftLocation(location)
-        name = self.GetRightLocation(location)
-        protocol = self.GetProtocol(location).lower(
-                                             ).strip()
-
-        if protocol == "image":
-            img = self.getImage(name, project and project or None)
-            return img is not None
-
-        if protocol == "html":
-            html = self.getHTML(name, project and project or None)
-            return html is not None
-
-        if protocol == "resource":
-            project = project and project or self._DEFAULT_PROJECT
-            return self.hasResource(project, name)
-
-        return False
-
-    def OpenFile(self, fs, location):
-        """
-          Returns a c{file} handle to
-          an "image", "html", or "resource"
-          contained in an egg.
-
-          @param fs: wx FileSystem object
-          @type fs: c{wx._core.FileSystem}
-
-          @param location: the project#type:name c{str{
-          @type location: c{str}
-
-          @return: c{file} handle
-        """
-
-        assert(self._init, True)
-
-        protocol = self.GetProtocol(location).lower(
-                                             ).strip()
-
-        # If blank use the _DEFAULT_PROJECT
-        project = self.GetLeftLocation(location)
-        name = self.GetRightLocation(location)
-        mime = self.GetMimeTypeFromExt(location)
-
-        if protocol == "image":
-            return wx.FSFile(self.getImage(name,
-                             project and project or None),
-                             location, mime, "", wx.DateTime.Now())
-
-        if protocol == "html":
-            return wx.FSFile(self.getHTML(name,
-                             project and project or None),
-                             location, mime, "", wx.DateTime.Now())
-
-        if protocol == "resource":
-            project = project and project or self._DEFAULT_PROJECT
-            return wx.FSFile(self.getResourceAsStream(project, name),
-                             location, mime, "", wx.DateTime.Now())
-
-        return None
 
     def initialize(self, localeSet=None, iniFileName="resources.ini",
                    encoding="UTF-8", fallback=True):
@@ -287,7 +198,9 @@ class I18nManager(EggTranslations, wx.FileSystemHandler):
         super(I18nManager, self).initialize(localeSet, iniFileName,
                                             encoding, fallback)
 
-        wx.FileSystem.AddHandler(self)
+        if self._wx_installed:
+            self._wx_filehandler = I18nFileSystemHandler(self)
+            wx.FileSystem.AddHandler(self._wx_filehandler)
 
 
     def discoverLocaleSet(self):
@@ -311,7 +224,10 @@ class I18nManager(EggTranslations, wx.FileSystemHandler):
 
         assert(self._init, True)
 
-        locale = wx.Locale(wx.LANGUAGE_DEFAULT).GetName()
+        if self._wx_installed:
+            locale = wx.Locale(wx.LANGUAGE_DEFAULT).GetName()
+        else:
+            locale = Locale.getDefault().getName()
 
         if locale is None:
             raise I18nException("Unable to retrieve default " \
@@ -411,7 +327,9 @@ class I18nManager(EggTranslations, wx.FileSystemHandler):
 
         primaryLocale = self._localeSet[0]
 
-        setWxLocale(primaryLocale)
+        if self._wx_installed:
+            setWxLocale(primaryLocale)
+
         setPyICULocale(primaryLocale)
         setPythonLocale(primaryLocale)
         setEnvironmentLocale(primaryLocale)
@@ -589,8 +507,11 @@ class I18nManager(EggTranslations, wx.FileSystemHandler):
         """
         assert(self._init, True)
 
-        #XXX Add check that wx is loaded
-        res = wx.GetTranslation(txt)
+        if self._wx_installed:
+            #XXX Add check that wx is loaded
+            res = wx.GetTranslation(txt)
+        else:
+            res = txt
 
         if self._testing:
             return u"(WX)\u00FC: %s" % res
@@ -912,16 +833,6 @@ class I18nManager(EggTranslations, wx.FileSystemHandler):
 
         return (None, None)
 
-def getWxLocale():
-    """
-      Returns the current wxPython
-      Locale object or None
-
-      @return: a c{wx.Locale} object or None
-    """
-
-    global _WX_LOCALE
-    return _WX_LOCALE
 
 def setWxLocale(locale):
     """
@@ -944,10 +855,15 @@ def setWxLocale(locale):
       @type locale: ASCII c{str}
     """
 
-    global _WX_LOCALE
+    global _WX_INSTALLED
+
+    if not _WX_INSTALLED:
+        return None
+
 
     # Need to unload wx.Locale object otherwise it will
     # hold a dangling reference and not use the new Locale
+    global _WX_LOCALE
     _WX_LOCALE = None
 
     lc = findWxLocale(locale)
@@ -1114,4 +1030,211 @@ def setEnvironmentLocale(locale):
 class I18nException(Exception):
     pass
 
+if _WX_INSTALLED:
+    # Keep a Global reference to the Wx Locale
+    # To ensure that it does not get unloaded during the
+    # application life cycle. There can be only one
+    # Wx locale le per Python instance
 
+    _WX_LOCALE = None
+
+    def getWxLocale():
+        """
+          Returns the current wxPython
+          Locale object or None
+
+          @return: a c{wx.Locale} object or None
+        """
+
+        global _WX_LOCALE
+        return _WX_LOCALE
+
+    def setWxLocale(locale):
+        """
+          Sets the c{wx.Locale} to the value passed in
+          c{str} locale argument.
+
+          If the locale passed is not a valid wx locale and
+          and that locale consists of a lang and country code,
+          the country code is stripped and the lang code
+          is set as the c{wx.Locale}.
+
+          This logic is employed in the cases such as "es_UY"
+          where wxPython does not have a translation for
+          'es_UY' but does have one for 'es'.
+
+          If the locale is still not valid after attempting to
+          use just the lang code a c{I18nException} is raised.
+
+          @param locale: a c{str} locale
+          @type locale: ASCII c{str}
+        """
+
+        # Need to unload wx.Locale object otherwise it will
+        # hold a dangling reference and not use the new Locale
+        global _WX_LOCALE
+        _WX_LOCALE = None
+
+        lc = findWxLocale(locale)
+
+        if not lc.IsOk() and hasCountryCode(locale):
+            # Need to unload wx.Locale object otherwise it will
+            # hold a dangling reference and not use the
+            # Stripped Locale
+
+            lc = None
+
+            # Strip the country code and just use the language
+            # For example wx does not have a translation for
+            # 'es_UY' but does have one for 'es'
+
+            lc = findWxLocale(stripCountryCode(locale))
+
+        if not lc.IsOk():
+            raise I18nException("Invalid wxPython Locale: " \
+                                     "'%s'" % locale)
+
+        # Keep a Global reference to the Wx Locale
+        # To ensure it does not get unloaded during the
+        # application life cycle. There can be only one
+        # wx locale per Python instance
+        _WX_LOCALE = lc
+
+    def findWxLocale(locale):
+        """
+          Looks up the wx Language integer code.
+          The code is needed to create a c{wx.Locale} object.
+
+          For example the code for "en_US" is 58.
+
+          If c{wx.FindLanguageInfo(locale)} returns None then wx
+          does not support the requested locale or the lang / country
+          codes are invalid.
+
+          the findWxLocale method can raise the following exceptions:
+                1. c{I18nException}
+
+          @param locale: a c{str} locale
+          @type locale: c{str}
+
+          @return: a c{wx.Locale} object
+        """
+
+        langInfo = wx.Locale.FindLanguageInfo(locale)
+
+        if langInfo is None:
+            #The locale request is invalid or not supported by wx
+            raise I18nException("Invalid wxPython Locale: " \
+                                     "'%s'" % locale)
+
+        #Get the wx Locale object for the ISO lang / country code
+        return wx.Locale(langInfo.Language)
+
+
+    class I18nFileSystemHandler(wx.FileSystemHandler):
+        def __init__(self, i18nMan):
+            assert(isinstance(i18nMan, I18nManager))
+
+            super(I18nFileSystemHandler, self).__init__()
+            self.i18nMan = i18nMan
+
+        def CanOpen(self, location):
+            """
+              Called by wxPython to determine if
+              the c{I18nFileSystemHandler} can open a given
+              file type.
+
+              If the protocol passed in the location
+              is either "image", "html", or "resource"
+              and the name passed in the location points
+              to a valid resource, image, or html in an
+              egg then return True otherwise False.
+
+              The location syntax is:
+              project#type:name
+
+              project is name of the egg project.
+              If no project is passed i.e. "type:name"
+              then the I18nManager._DEFAULT_PROJECT is
+              used.
+
+              type is the type of the resource.
+
+              if type == image the c{I18nManager.getImage}
+              method is used.
+
+              if type == html the c{I18nManager.getHTML}
+              method is used.
+
+              if type == resource the c{I18nManager.getResourceAsStream}
+              method is used.
+
+              @param location: the project#type:name c{str}
+              @type location: c{str}
+
+              @return: c{boolean} True if the I18nManager can open
+                      the file type otherwise False.
+            """
+
+            assert(self.i18nMan._init, True)
+
+            project = self.GetLeftLocation(location)
+            name = self.GetRightLocation(location)
+            protocol = self.GetProtocol(location).lower(
+                                                 ).strip()
+
+            if protocol == "image":
+                img = self.i18nMan.getImage(name, project and project or None)
+                return img is not None
+
+            if protocol == "html":
+                html = self.i18nMan.getHTML(name, project and project or None)
+                return html is not None
+
+            if protocol == "resource":
+                project = project and project or self.i18nMan._DEFAULT_PROJECT
+                return self.i18nMan.hasResource(project, name)
+
+            return False
+
+        def OpenFile(self, fs, location):
+            """
+              Returns a c{file} handle to
+              an "image", "html", or "resource"
+              contained in an egg.
+
+              @param fs: wx FileSystem object
+              @type fs: c{wx._core.FileSystem}
+
+              @param location: the project#type:name c{str{
+              @type location: c{str}
+
+              @return: c{file} handle
+            """
+
+            assert(self.i18nMan._init, True)
+
+            protocol = self.GetProtocol(location).lower(
+                                                 ).strip()
+
+            # If blank use the _DEFAULT_PROJECT
+            project = self.GetLeftLocation(location)
+            name = self.GetRightLocation(location)
+            mime = self.GetMimeTypeFromExt(location)
+
+            if protocol == "image":
+                return wx.FSFile(self.i18nMan.getImage(name,
+                                 project and project or None),
+                                 location, mime, "", wx.DateTime.Now())
+
+            if protocol == "html":
+                return wx.FSFile(self.i18nMan.getHTML(name,
+                                 project and project or None),
+                                 location, mime, "", wx.DateTime.Now())
+
+            if protocol == "resource":
+                project = project and project or self.i18nMan._DEFAULT_PROJECT
+                return wx.FSFile(self.i18nMan.getResourceAsStream(project, name),
+                                 location, mime, "", wx.DateTime.Now())
+
+            return None
