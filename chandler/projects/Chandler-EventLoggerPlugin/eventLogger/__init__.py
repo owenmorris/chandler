@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 logDir = os.path.join(Globals.options.profileDir, 'eventLogger')
 logFile = os.path.join(logDir, 'event.log')
-logFileMaxSize = 250000 #Bytes
+logFileMaxSize = 100000 #Bytes
 logFileMaxCount = 10    #Max logfiles to keep
 logFileVersion = "1.0"  #Version of the logfile
 
@@ -201,5 +201,5 @@ def installParcel(parcel, old_version=None):
         invoke = 'eventLogger.UploadTask',
         run_at_startup = True,
         active = True,
-        interval = timedelta(minutes=20))
+        interval = timedelta(minutes=5))
 
