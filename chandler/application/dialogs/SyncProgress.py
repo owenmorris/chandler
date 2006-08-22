@@ -121,7 +121,7 @@ class SyncDialog(wx.Dialog):
 
 def Show(parent, rv=None, collection=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
-     'application', 'dialogs', 'SyncProgress_wdr.xrc')
+     'application', 'dialogs', 'SyncProgress.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())

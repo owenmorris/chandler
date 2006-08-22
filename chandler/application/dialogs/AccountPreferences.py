@@ -1226,7 +1226,7 @@ def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
 
     # Parse the XRC resource file:
     xrcFile = os.path.join(application.Globals.chandlerDirectory,
-     'application', 'dialogs', 'AccountPreferences_wdr.xrc')
+     'application', 'dialogs', 'AccountPreferences.xrc')
 
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode

@@ -610,7 +610,7 @@ class PublishCollectionDialog(wx.Dialog):
         )
 
 type_to_xrc_map = {'collection' :
-                   ('PublishCollection_wdr.xrc', _(u"Collection Sharing")),
+                   ('PublishCollection.xrc', _(u"Collection Sharing")),
                    'freebusy'   :
                    ('PublishFreeBusy.xrc', _(u"Publish Free/Busy Information"))}
 

@@ -87,7 +87,7 @@ class AccountInfoPromptDialog(wx.Dialog):
 def PromptForNewAccountInfo(parent, host=None, path=None):
 
     xrcFile = os.path.join(Globals.chandlerDirectory,
-        'application', 'dialogs', 'AccountInfoPrompt_wdr.xrc')
+        'application', 'dialogs', 'AccountInfoPrompt.xrc')
 
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode

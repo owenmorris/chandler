@@ -274,7 +274,7 @@ class SubscribeDialog(wx.Dialog):
 def Show(parent, view=None, url=None, name=None, modal=False, immediate=False,
          mine=None, publisher=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
-     'application', 'dialogs', 'SubscribeCollection_wdr.xrc')
+     'application', 'dialogs', 'SubscribeCollection.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())

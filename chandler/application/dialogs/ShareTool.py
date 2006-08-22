@@ -177,7 +177,7 @@ class ShareToolDialog(wx.Dialog):
 
 def ShowShareToolDialog(parent, rv=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
-     'application', 'dialogs', 'ShareTool_wdr.xrc')
+     'application', 'dialogs', 'ShareTool.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
