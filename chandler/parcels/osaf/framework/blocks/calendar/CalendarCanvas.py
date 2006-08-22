@@ -521,9 +521,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     # for some reason primaryCollection and allCollection don't
                     # compare as equal when they ought to, so compare UUIDs
                     drawSwatches = (colls > 2 or (colls == 2 and
-                       (item not in allCollection or 
-                       self.primaryCollection.itsUUID == allCollection.itsUUID))
-                                    )
+                                                  item not in allCollection))
                     
                     # only draw time on timed events
                     if not isAnyTimeOrAllDay and timeHeight > 0:
@@ -688,10 +686,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         sidebarCollections = app_ns.sidebarCollection
         allCollection = schema.ns('osaf.pim', self.item.itsView).allCollection
         if self.isActive:
-            fillColorLozengeType = 'SelectedGradientLeft'
+            fillColorLozengeType = 'UnselectedGradientRight'
             outlinePre1 = 'Selected'
         else:
-            fillColorLozengeType = 'SelectedFYIGradientLeft'
+            fillColorLozengeType = 'OverlayGradientRight'
             outlinePre1 = 'Overlay'
         if self.invertColors():
             outlinePre2 = 'FYISwatchOutline'
