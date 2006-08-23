@@ -76,6 +76,28 @@ def save(rv, filename):
                     cfg.set(section_name, "ticket", urls[0])
             counter += 1
 
+    # SMTP accounts
+    section_prefix = "smtp_account"
+    counter = 1
+
+    for account in pim.mail.SMTPAccount.iterItems(rv):
+        if account.isActive and account.host:
+            section_name = "%s_%d" % (section_prefix, counter)
+            cfg.add_section(section_name)
+            cfg.set(section_name, "type", "smtp account")
+            cfg.set(section_name, "uuid", account.itsUUID)
+            cfg.set(section_name, "title", account.displayName)
+            cfg.set(section_name, "host", account.host)
+            cfg.set(section_name, "auth", account.useAuth)
+            cfg.set(section_name, "username", account.username)
+            cfg.set(section_name, "password", account.password)
+            cfg.set(section_name, "name", account.fromAddress.fullName)
+            cfg.set(section_name, "address",
+                account.fromAddress.emailAddress)
+            cfg.set(section_name, "port", account.port)
+            cfg.set(section_name, "security", account.connectionSecurity)
+            counter += 1
+
     # IMAP accounts
     currentAccount = schema.ns('osaf.pim', rv).currentMailAccount.item
     section_prefix = "imap_account"
@@ -96,6 +118,9 @@ def save(rv, filename):
                 account.replyToAddress.emailAddress)
             cfg.set(section_name, "port", account.port)
             cfg.set(section_name, "security", account.connectionSecurity)
+            if account.defaultSMTPAccount:
+                cfg.set(section_name, "smtp",
+                    account.defaultSMTPAccount.itsUUID)
             if account is currentAccount:
                 cfg.set(section_name, "default", "True")
             counter += 1
@@ -121,30 +146,11 @@ def save(rv, filename):
             cfg.set(section_name, "port", account.port)
             cfg.set(section_name, "security", account.connectionSecurity)
             cfg.set(section_name, "leave", account.leaveOnServer)
+            if account.defaultSMTPAccount:
+                cfg.set(section_name, "smtp",
+                    account.defaultSMTPAccount.itsUUID)
             if account is currentAccount:
                 cfg.set(section_name, "default", "True")
-            counter += 1
-
-    # SMTP accounts
-    section_prefix = "smtp_account"
-    counter = 1
-
-    for account in pim.mail.SMTPAccount.iterItems(rv):
-        if account.isActive and account.host:
-            section_name = "%s_%d" % (section_prefix, counter)
-            cfg.add_section(section_name)
-            cfg.set(section_name, "type", "smtp account")
-            cfg.set(section_name, "uuid", account.itsUUID)
-            cfg.set(section_name, "title", account.displayName)
-            cfg.set(section_name, "host", account.host)
-            cfg.set(section_name, "auth", account.useAuth)
-            cfg.set(section_name, "username", account.username)
-            cfg.set(section_name, "password", account.password)
-            cfg.set(section_name, "name", account.fromAddress.fullName)
-            cfg.set(section_name, "address",
-                account.fromAddress.emailAddress)
-            cfg.set(section_name, "port", account.port)
-            cfg.set(section_name, "security", account.connectionSecurity)
             counter += 1
 
     # Show timezones
@@ -222,6 +228,34 @@ def restore(rv, filename):
                                          modal=False, immediate=True,
                                          mine=mine, publisher=publisher)
 
+    # smtp accounts
+    for section in cfg.sections():
+        section_type = cfg.get(section, "type")
+        if section_type == "smtp account":
+            if cfg.has_option(section, "uuid"):
+                uuid = cfg.get(section, "uuid")
+                uuid = UUID(uuid)
+                account = rv.findUUID(uuid)
+                if account is None:
+                    kind = pim.mail.SMTPAccount.getKind(rv)
+                    parent = schema.Item.getDefaultParent(rv)
+                    account = kind.instantiateItem(None, parent, uuid,
+                        withInitialValues=True)
+            else:
+                account = pim.mail.SMTPAccount(itsView=rv)
+
+            account.displayName = cfg.get(section, "title")
+            account.host = cfg.get(section, "host")
+            account.useAuth = cfg.getboolean(section, "auth")
+            account.username = cfg.get(section, "username")
+            account.password = cfg.get(section, "password")
+            account.port = cfg.getint(section, "port")
+            account.connectionSecurity = cfg.get(section, "security")
+            emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
+                cfg.get(section, "address"), cfg.get(section, "name"))
+            account.fromAddress = emailAddress
+
+
     # imap accounts
     for section in cfg.sections():
         section_type = cfg.get(section, "type")
@@ -252,6 +286,12 @@ def restore(rv, filename):
                 cfg.get(section, "default")):
                 accountRef = schema.ns("osaf.pim", rv).currentMailAccount
                 accountRef.item = account
+
+            if cfg.has_option(section, "smtp"):
+                uuid = cfg.get(section, "smtp")
+                uuid = UUID(uuid)
+                smtp = rv.findUUID(uuid)
+                account.defaultSMTPAccount = smtp
 
     # pop accounts
     for section in cfg.sections():
@@ -285,37 +325,12 @@ def restore(rv, filename):
                 accountRef = schema.ns("osaf.pim", rv).currentMailAccount
                 accountRef.item = account
 
-    # smtp accounts
-    for section in cfg.sections():
-        section_type = cfg.get(section, "type")
-        if section_type == "smtp account":
-            if cfg.has_option(section, "uuid"):
-                uuid = cfg.get(section, "uuid")
+            if cfg.has_option(section, "smtp"):
+                uuid = cfg.get(section, "smtp")
                 uuid = UUID(uuid)
-                account = rv.findUUID(uuid)
-                if account is None:
-                    kind = pim.mail.SMTPAccount.getKind(rv)
-                    parent = schema.Item.getDefaultParent(rv)
-                    account = kind.instantiateItem(None, parent, uuid,
-                        withInitialValues=True)
-            else:
-                account = pim.mail.SMTPAccount(itsView=rv)
+                smtp = rv.findUUID(uuid)
+                account.defaultSMTPAccount = smtp
 
-            account.displayName = cfg.get(section, "title")
-            account.host = cfg.get(section, "host")
-            account.useAuth = cfg.getboolean(section, "auth")
-            account.username = cfg.get(section, "username")
-            account.password = cfg.get(section, "password")
-            account.port = cfg.getint(section, "port")
-            account.connectionSecurity = cfg.get(section, "security")
-            emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
-                cfg.get(section, "address"), cfg.get(section, "name"))
-            account.fromAddress = emailAddress
-
-            if (cfg.has_option(section, "default") and
-                cfg.get(section, "default")):
-                accountRef = schema.ns("osaf.pim", rv).currentMailAccount
-                accountRef.item = account
 
     # timezones
     if cfg.has_section('timezones'):
