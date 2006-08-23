@@ -527,7 +527,7 @@ class AbstractSet(ItemValue, Indexed):
                 item._references._setRef(self._otherName, self._item,
                                          self._attribute)
 
-    def _unloadRef(self, item):
+    def _unloadRef(self, other, dictKey=None):
         pass
 
     def _unloadRefs(self):

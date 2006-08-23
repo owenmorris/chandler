@@ -584,21 +584,21 @@ class References(Values):
         else:
             raise BadRefError, (self._item, name, other, value)
         
-    def _unloadValue(self, name, other, otherName):
+    def _unloadValue(self, name, other, otherName, dictKey=None, otherKey=None):
 
         if other is not None:
-            self._unloadRef(name, other, otherName)
+            self._unloadRef(name, other, dictKey)
             if isitem(other):
-                other._references._unloadRef(otherName, self._item, name)
+                other._references._unloadRef(otherName, self._item, otherKey)
 
-    def _unloadRef(self, name, other, otherName):
+    def _unloadRef(self, name, other, dictKey=None):
 
         if not (other is None or isuuid(other)):
             value = self.get(name, None)
             if value is None or value is other:
                 self[name] = other.itsUUID
             elif value._isRefs():
-                value._unloadRef(other)
+                value._unloadRef(other, dictKey)
             elif isuuid(value) and value == other.itsUUID:
                 pass
             else:

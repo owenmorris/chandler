@@ -153,7 +153,7 @@ class PersistentRefs(object):
                         alias = Nil
                 self._changedRefs[key] = (0, alias)
 
-    def _unloadRef(self, item):
+    def _unloadRef(self, item, dictKey=None):
 
         key = item.itsUUID
 

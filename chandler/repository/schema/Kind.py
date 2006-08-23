@@ -930,7 +930,7 @@ class Kind(Item):
 
     def findMatch(self, view, matches=None):
 
-        uuid = self._uuid
+        uuid = self.itsUUID
 
         if matches is not None:
             match = matches.get(uuid)

@@ -458,10 +458,12 @@ class RefList(LinkedMap, Indexed):
         references = self._item._references
         name = self._name
         otherName = self._otherName
-        
+        dictKey = self._dictKey
+
         for link in self._values():
             # accessing _value directly to prevent reloading
-            references._unloadValue(name, link._value, otherName)
+            references._unloadValue(name, link._value, otherName,
+                                    dictKey, link._otherKey)
 
     def get(self, key, default=None, load=True):
         """
@@ -850,6 +852,16 @@ class RefDict(object):
     def _removeRefs(self):
 
         self.clear()
+
+    def _unloadRefs(self):
+
+        for refList in self._dict.itervalues():
+            refList._unloadRefs()
+
+    def _unloadRef(self, other, dictKey):
+        
+        if dictKey in self._dict:
+            self._dict[dictKey]._unloadRef(other)
 
     def add(self, dictKey, other, alias=None, otherKey=None):
 
