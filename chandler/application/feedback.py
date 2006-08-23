@@ -209,6 +209,8 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         self.frame.Bind(wx.EVT_BUTTON, self.OnSend, self.frame.sendButton)
 
     def OnCloseWindow(self, event):
+        if self.frame.disableFeedback.IsChecked():
+            wx.GetApp().RestoreStdio()
         global activeWindow
         wx.PyOnDemandOutputWindow.OnCloseWindow(self, event)
         activeWindow = None

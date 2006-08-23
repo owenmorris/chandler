@@ -31,7 +31,7 @@ def get_resources():
 
 
 class xrcFRAME(wx.Frame):
-    def PreCreate(self):
+    def PreCreate(self, pre):
         """ This function is called during the class's initialization.
         
         Override it for custom setup before the window is created usually to
@@ -41,12 +41,13 @@ class xrcFRAME(wx.Frame):
     def __init__(self, parent):
         # Two stage creation (see http://wiki.wxpython.org/index.cgi/TwoStageCreation)
         pre = wx.PreFrame()
+        self.PreCreate(pre)
         get_resources().LoadOnFrame(pre, parent, "FRAME")
-        self.PreCreate()
         self.PostCreate(pre)
 
         # Define variables for the controls
         self.panel = xrc.XRCCTRL(self, "panel")
+        self.disableFeedback = xrc.XRCCTRL(self, "disableFeedback")
         self.requiredPage = xrc.XRCCTRL(self, "requiredPage")
         self.text = xrc.XRCCTRL(self, "text")
         self.optionalPage = xrc.XRCCTRL(self, "optionalPage")

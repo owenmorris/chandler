@@ -7,14 +7,17 @@
         <orient>wxVERTICAL</orient>
         <object class="sizeritem">
           <object class="wxStaticText">
-            <label>Chandler has experienced an internal error.  It is recommended that you restart 
-Chandler to avoid data corruption. 
-
-You may send information to OSAF about this error in order to assist with improving 
-the product.  Simply click the Send button below after optionally adding additional 
-information about how to reproduce the error.</label>
+            <label>Chandler has experienced an internal error.  It is recommended that you restart
+Chandler to avoid data corruption.</label>
           </object>
           <flag>wxALL</flag>
+          <border>10</border>
+        </object>
+        <object class="sizeritem">
+          <object class="wxCheckBox" name="disableFeedback">
+            <label>Do not show further errors in this session.</label>
+          </object>
+          <flag>wxLEFT|wxRIGHT|wxBOTTOM</flag>
           <border>10</border>
         </object>
         <object class="sizeritem">
@@ -127,6 +130,8 @@ information about how to reproduce the error.</label>
             <object class="sizeritem">
               <object class="wxButton" name="sendButton">
                 <label>&amp;Send this feedback</label>
+                <tooltip>You may send information to OSAF about this error in order to assist with improving 
+the product.  You may optionally add additional information about how to reproduce the error before sending.</tooltip>
               </object>
               <flag>wxRIGHT</flag>
               <border>8</border>
