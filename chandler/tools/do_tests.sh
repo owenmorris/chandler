@@ -83,8 +83,6 @@ else
     C_DIR=`pwd`
 fi
 
-T_DIR=$C_DIR
-
 if [ $USE_NEW_FRAMEWORK = yes ]; then
    F_TEST_SUITE="$C_DIR/tools/cats/Functional/FunctionalTestSuite.py"
    F_TEST_IGNORE=QATestScripts
@@ -110,30 +108,33 @@ else
     echo Using [$C_DIR] as the chandler/ directory
 fi
 
-if [ "$CHANDLERBIN" = "" ]
-then
-    CHANDLERBIN="$C_DIR"
-fi
-
-HH_DIR=`pwd`
-TESTLOG="$C_DIR/do_tests.log"
-FAILED_TESTS=""
-
-rm -f $TESTLOG
-rm -f $C_DIR/test.log
-
-echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $TESTLOG
-echo Started `date`                                              | tee -a $TESTLOG
-echo Setting up script environment                               | tee -a $TESTLOG
-
-PP_DIR="$C_DIR/tools/QATestScripts/DataFiles"
-
 if [ "$CATSPROFILEDIR" = "" ]
 then
     PC_DIR="$C_DIR/test_profile"
 else
     PC_DIR="$CATSPROFILEDIR"
 fi
+
+T_DIR=$PC_DIR
+
+if [ "$CHANDLERBIN" = "" ]
+then
+    CHANDLERBIN="$C_DIR"
+fi
+
+HH_DIR=`pwd`
+DOTESTSLOG="$PC_DIR/do_tests.log"
+TESTLOG="$PC_DIR/test.log"
+FAILED_TESTS=""
+
+rm -f $DOTESTSLOG
+rm -f $TESTLOG
+
+echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $DOTESTSLOG
+echo Started `date`                                              | tee -a $DOTESTSLOG
+echo Setting up script environment                               | tee -a $DOTESTSLOG
+
+PP_DIR="$C_DIR/tools/QATestScripts/DataFiles"
 
 if [ "$OSTYPE" = "cygwin" ]; then
     RUN_CHANDLER=RunChandler.bat
@@ -152,19 +153,19 @@ fi
 MODES=""
 if [ "$MODE_VALUE" == "debug" ]; then
     if [ ! -d $CHANDLERBIN/debug ]; then
-        echo $CHANDLERBIN/debug does not exist bug debug mode was explicitly requested | tee -a $TESTLOG
+        echo $CHANDLERBIN/debug does not exist bug debug mode was explicitly requested | tee -a $DOTESTSLOG
         exit 1
     fi
     MODES="debug"
-    echo Running debug mode only | tee -a $TESTLOG
+    echo Running debug mode only | tee -a $DOTESTSLOG
 fi
 if [ "$MODE_VALUE" == "release" ]; then
     if [ ! -d $CHANDLERBIN/release ]; then
-        echo $CHANDLERBIN/release does not exist bug release mode was explicitly requested | tee -a $TESTLOG
+        echo $CHANDLERBIN/release does not exist bug release mode was explicitly requested | tee -a $DOTESTSLOG
         exit 1
     fi
     MODES="release"
-    echo Running release mode only | tee -a $TESTLOG
+    echo Running release mode only | tee -a $DOTESTSLOG
 fi
 
    # if no mode was explicitly requested then check to see what's available
@@ -174,16 +175,16 @@ if [ "$MODES" == "" ]; then
     MODE_RELEASE="release"
     if [ ! -d $CHANDLERBIN/debug ]; then
         MODE_DEBUG=""
-        echo Skipping debug tests as $CHANDLERBIN/debug does not exist | tee -a $TESTLOG
+        echo Skipping debug tests as $CHANDLERBIN/debug does not exist | tee -a $DOTESTSLOG
     fi
     if [ ! -d $CHANDLERBIN/release ]; then
         MODE_RELEASE=""
-        echo Skipping release tests as $CHANDLERBIN/release does not exist | tee -a $TESTLOG
+        echo Skipping release tests as $CHANDLERBIN/release does not exist | tee -a $DOTESTSLOG
     fi
     MODES="$MODE_DEBUG $MODE_RELEASE"
     if [ "$MODES" == " " ]; then
-    	echo Both debug and release directories are missing, cannot run.
-    	exit 1
+        echo Both debug and release directories are missing, cannot run.
+        exit 1
     fi
 fi
 
@@ -215,7 +216,7 @@ if [ -n "$TEST_TO_RUN" ]; then
         FAILED_TESTS="$TEST_TO_RUN"
     else
         for mode in $MODES ; do
-            echo Running $mode | tee -a $TESTLOG
+            echo Running $mode | tee -a $DOTESTSLOG
 
             for test in $DIRS ; do
                 if [ "$OSTYPE" = "cygwin" ]; then
@@ -226,7 +227,7 @@ if [ -n "$TEST_TO_RUN" ]; then
                     TESTNAME=$test
                 fi
 
-                echo Running $TESTNAME | tee -a $TESTLOG
+                echo Running $TESTNAME | tee -a $DOTESTSLOG
 
                 cd $C_DIR
                 if echo "$TESTNAME" | grep -q "$F_TEST_IGNORE" ; then
@@ -234,22 +235,22 @@ if [ -n "$TEST_TO_RUN" ]; then
                 else
                     if echo "$TESTNAME" | grep -q "$F_TEST_DIR" ; then
                         if [ $USE_NEW_FRAMEWORK = yes ]; then
-                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --chandlerTests="$TEST_WITHOUT_PATH" &> $C_DIR/test.log
+                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --chandlerTests="$TEST_WITHOUT_PATH" &> $TESTLOG
                             SUCCESS="#TINDERBOX# Status = PASSED"
                         else
-                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
                             SUCCESS="#TINDERBOX# Status = PASSED"
                         fi
                         
                     else
-                        $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $C_DIR/test.log
+                        $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $TESTLOG
                         SUCCESS="^OK"
                     fi
 
-                    echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $TESTLOG
-                    cat $C_DIR/test.log | tee -a $TESTLOG
+                    echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $DOTESTSLOG
+                    cat $TESTLOG | tee -a $DOTESTSLOG
 
-                    RESULT=`grep "$SUCCESS" $C_DIR/test.log`
+                    RESULT=`grep "$SUCCESS" $TESTLOG`
                     if [ "$RESULT" = "" ]; then
                         FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
                     fi
@@ -259,7 +260,7 @@ if [ -n "$TEST_TO_RUN" ]; then
     fi
 else
     if [ "$RUN_UNIT" = "yes" ]; then
-        DIRS=`find $C_DIR -type d -name tests -print`
+        DIRS=`find $PC_DIR -type d -name tests -print`
 
           # this code walks thru all the dirs with "tests" in their name
           # and then compares them to the exclude dir array by
@@ -286,7 +287,7 @@ else
           # walk thru all of the test dirs and find the test files
 
         for mode in $MODES ; do
-            echo Running $mode unit tests | tee -a $TESTLOG
+            echo Running $mode unit tests | tee -a $DOTESTSLOG
 
             for testdir in $TESTDIRS ; do
                 TESTS=`find $testdir -name 'Test*.py' -print`
@@ -298,17 +299,17 @@ else
                         TESTNAME=$test
                     fi
 
-                    echo Running $TESTNAME | tee -a $TESTLOG
+                    echo Running $TESTNAME | tee -a $DOTESTSLOG
 
                     cd $C_DIR
-                    $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $C_DIR/test.log
+                    $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $TESTLOG
 
                       # scan the test output for the success messge "OK"
-                    RESULT=`grep '^OK' $C_DIR/test.log`
+                    RESULT=`grep '^OK' $TESTLOG`
 
-                    echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $TESTLOG
-                    echo $TESTNAME [$RESULT] | tee -a $TESTLOG
-                    cat $C_DIR/test.log      | tee -a $TESTLOG
+                    echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $DOTESTSLOG
+                    echo $TESTNAME [$RESULT] | tee -a $DOTESTSLOG
+                    cat $TESTLOG      | tee -a $DOTESTSLOG
 
                     if [ "$RESULT" = "" ]; then
                         FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
@@ -321,7 +322,7 @@ else
       # if Functional Tests are needed - find the FunctionalTestSuite and run it
 
     if [ "$RUN_FUNCTIONAL" = "yes" ]; then
-        echo Running $mode functional tests | tee -a $TESTLOG
+        echo Running $mode functional tests | tee -a $DOTESTSLOG
 
         for mode in $MODES ; do
 
@@ -331,17 +332,17 @@ else
                 TESTNAME=$F_TEST_SUITE
             fi
 
-            echo Running $TESTNAME | tee -a $TESTLOG
+            echo Running $TESTNAME | tee -a $DOTESTSLOG
 
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
 
               # scan the test output for the success messge "OK"
-            RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
+            RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
 
-            echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $TESTLOG
-            echo $TESTNAME [$RESULT] | tee -a $TESTLOG
-            cat $C_DIR/test.log      | tee -a $TESTLOG
+            echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $DOTESTSLOG
+            echo $TESTNAME [$RESULT] | tee -a $DOTESTSLOG
+            cat $TESTLOG      | tee -a $DOTESTSLOG
 
             if [ "$RESULT" = "" ]; then
                 FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
@@ -353,16 +354,21 @@ else
       # and create a list of all valid tests
 
     if [ "$RUN_PERFORMANCE" = "yes" ]; then
-        echo Running performance tests | tee -a $TESTLOG
+        echo Running performance tests | tee -a $DOTESTSLOG
 
         TESTS=`find $C_DIR/tools/QATestScripts/Performance -name 'Perf*.py' -print`
-        TIME_LOG=$C_DIR/time.log
-        PERF_LOG=$C_DIR/perf.log
+        TIME_LOG=$PC_DIR/time.log
+        PERF_LOG=$PC_DIR/perf.log
         if [ "$OSTYPE" = "cygwin" ]; then
             TIME_LOG=`cygpath -w $TIME_LOG`
             PERF_LOG=`cygpath -w $PERF_LOG`
         fi
         rm -f $PERF_LOG
+
+        for test in $TESTS ; do
+            echo Directory: `dirname $test` | tee -a $DOTESTSLOG
+            break
+        done
 
         # First run tests with empty repository
         for test in $TESTS ; do
@@ -377,12 +383,12 @@ else
                     TESTNAME=$test
                 fi
 
-                echo -n $TESTNAME
+                echo -n `basename $TESTNAME`
                 cd $C_DIR
-                $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
 
                 # scan the test output for the success message "OK"
-                RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
+                RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
 
                 if [ "$RESULT" = "" ]; then
                     RESULT=Failed
@@ -390,9 +396,9 @@ else
                     RESULT=`cat $TIME_LOG`s
                 fi
 
-                echo \ [ $RESULT ] | tee -a $TESTLOG
+                echo \ [ $RESULT ] | tee -a $DOTESTSLOG
                 echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + >> $PERF_LOG
-                cat $C_DIR/test.log >> $PERF_LOG
+                cat $TESTLOG >> $PERF_LOG
 
                 if [ "$RESULT" = "Failed" ]; then
                     FAILED_TESTS="$FAILED_TESTS $TESTNAME"
@@ -400,7 +406,7 @@ else
             fi
         done
 
-        echo -n Creating a large repository backup for the remaining tests
+        echo Creating a large repository backup for the remaining tests
         rm -fr $PC_DIR/__repository__.0*
         REPO=$PC_DIR/__repository__.001
         BACKUP_REPO=$C_DIR/tools/QATestScripts/Performance/LargeDataBackupRepository.py
@@ -410,12 +416,12 @@ else
         fi
 
         cd $C_DIR
-        $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$BACKUP_REPO" &> $C_DIR/test.log
+        $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$BACKUP_REPO" &> $TESTLOG
 
         # scan the test output for the success message "OK"
-        RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
+        RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
 
-        cat $C_DIR/test.log >> $PERF_LOG
+        cat $TESTLOG >> $PERF_LOG
 
         if [ "$RESULT" = "" ]; then
             for test in $TESTS ; do
@@ -438,24 +444,24 @@ else
                         TESTNAME=$test
                     fi
 
-                    echo -n $TESTNAME
+                    echo -n `basename $TESTNAME`
                     cd $C_DIR
-                    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
+                    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --nocatch --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
 
                     # scan the test output for the success message "OK"
-                    RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
+                    RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
 
                     if [ "$RESULT" = "" ]; then
-                        RESULT=Failed
+                        RESULT=failed
                     else
                         RESULT=`cat $TIME_LOG`s
                     fi
 
-                    echo \ [ $RESULT ] | tee -a $TESTLOG
+                    echo \ [ $RESULT ] | tee -a $DOTESTSLOG
                     echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + >> $PERF_LOG
-                    cat $C_DIR/test.log >> $PERF_LOG
+                    cat $TESTLOG >> $PERF_LOG
 
-                    if [ "$RESULT" = "Failed" ]; then
+                    if [ "$RESULT" = "failed" ]; then
                         FAILED_TESTS="$FAILED_TESTS $TESTNAME"
                     fi
                 fi
@@ -491,13 +497,13 @@ else
             RUNS="1 2 3"
 
             echo Creating new empty repository
-            $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $C_DIR/test.log
+            $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $TESTLOG
 
             echo -n Timing startup
             for run in $RUNS ; do
-                $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
-                cat $T_DIR/start1.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $C_DIR/test.log
-                cat $C_DIR/test.log > $T_DIR/start1.$run.log
+                $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                cat $T_DIR/start1.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $TESTLOG
+                cat $TESTLOG > $T_DIR/start1.$run.log
                 echo -n \ `<"$T_DIR/start1.$run.log"`
             done
 
@@ -505,13 +511,13 @@ else
             echo \ \[$STARTUP\s\]
 
             echo Creating new large repository
-            $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $C_DIR/test.log
+            $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $TESTLOG
 
             echo -n Timing startup with large repository
             for run in $RUNS ; do
-                $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $C_DIR/test.log
-                cat $T_DIR/start6.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $C_DIR/test.log
-                cat $C_DIR/test.log > $T_DIR/start6.$run.log
+                $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                cat $T_DIR/start6.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $TESTLOG
+                cat $TESTLOG > $T_DIR/start6.$run.log
                 echo -n \ `<"$T_DIR/start6.$run.log"`
             done
 
@@ -540,15 +546,15 @@ else
     fi
 fi
 
-echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $TESTLOG
+echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $DOTESTSLOG
 
 if [ "$FAILED_TESTS" = "" ]; then
-    echo All tests passed | tee -a $TESTLOG
+    echo All tests passed | tee -a $DOTESTSLOG
 else
-    echo The following tests failed | tee -a $TESTLOG
+    echo The following tests failed | tee -a $DOTESTSLOG
 
     for item in $FAILED_TESTS ; do
-        echo "    $item" | tee -a $TESTLOG
+        echo "    $item" | tee -a $DOTESTSLOG
     done
 
     exit 1

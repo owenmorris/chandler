@@ -21,7 +21,8 @@ import version
 import application.Globals as Globals
 import osaf.framework.scripting as scripting
 import hotshot
-            
+from application import Globals
+
 class FileWatcher:       
     """masquerades as a file so stderr can be directed to it
          sets a flag if writen to, then passes str to stdout via print"""
@@ -41,9 +42,7 @@ def QALogger(fileName=None, description="No description"):
     qaLogger = getattr(TestLogger, 'logger', None)
     if qaLogger is None:
         # never created, or already destructed by Close()
-        filePath = os.getenv('CATSREPORTDIR')
-        if not filePath:
-            filePath = os.getcwd()
+        filePath = Globals.options.profileDir
         filePath = os.path.join(filePath, fileName)
         return TestLogger(filepath=filePath, description=description)
     else:

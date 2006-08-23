@@ -13,11 +13,6 @@
 #   limitations under the License.
 
 import tools.QAUITestAppLib as QAUITestAppLib
-import os
-
-filePath = os.getenv('CATSREPORTDIR')
-if not filePath:
-    filePath = os.getcwd()
 
 # initialization
 fileName = "PerfStampEvent.log"

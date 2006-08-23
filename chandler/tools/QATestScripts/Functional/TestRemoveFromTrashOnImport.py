@@ -22,6 +22,7 @@ from time import localtime, strftime
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.scripting as scripting
+from application import Globals
 
 appView = app_ns().itsView
 App_ns = app_ns()
@@ -45,9 +46,7 @@ try:
     ev.SetAttr(displayName=eventName, startDate=today, startTime="12:00 PM")
     
     #create a path to export to
-    reportDir = os.getenv('CATSREPORTDIR')
-    if not reportDir:
-        reportDir = os.getcwd()
+    reportDir = Globals.options.profileDir
     fullpath = os.path.join(reportDir,colName)
     if os.path.exists(fullpath):
         os.remove(fullpath)
