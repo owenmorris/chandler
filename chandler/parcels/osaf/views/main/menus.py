@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import logging
 
 def makeMainMenus(parcel):
 
@@ -601,6 +602,36 @@ def makeMainMenus(parcel):
                                 event = main.LoadLoggingConfig,
                                 title = u'&Load logging configuration file...',
                                 helpString = u'Load logging configuration file'),
+                            Menu.template('LoggingLevelMenu',
+                                title = u'Logging level',
+                                helpString = u'Change logging level',
+                                childrenBlocks = [
+                                    MenuItem.template('LoggingLevelCriticalMenuItem',
+                                        event = main.SetLoggingLevelCritical,
+                                        title = u'Critical',
+                                        menuItemKind = 'Check',
+                                        helpString = u'Set logging level to Critical'),
+                                    MenuItem.template('LoggingLevelErrorMenuItem',
+                                        event = main.SetLoggingLevelError,
+                                        title = u'Error',
+                                        menuItemKind = 'Check',
+                                        helpString = u'Set logging level to Error'),
+                                    MenuItem.template('LoggingLevelWarningMenuItem',
+                                        event = main.SetLoggingLevelWarning,
+                                        title = u'Warning',
+                                        menuItemKind = 'Check',
+                                        helpString = u'Set logging level to Warning'),
+                                    MenuItem.template('LoggingLevelInfoMenuItem',
+                                        event = main.SetLoggingLevelInfo,
+                                        title = u'Info',
+                                        menuItemKind = 'Check',
+                                        helpString = u'Set logging level to Info'),
+                                    MenuItem.template('LoggingLevelDebugMenuItem',
+                                        event = main.SetLoggingLevelDebug,
+                                        title = u'Debug',
+                                        menuItemKind = 'Check',
+                                        helpString = u'Set logging level to Debug'),
+                                    ]), # Menu SkinsMenu
                             ]),
 
                     Menu.template('I18nMenu',

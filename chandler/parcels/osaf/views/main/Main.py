@@ -17,7 +17,7 @@ from datetime import timedelta
 from time import time
 import wx, os, sys, traceback, logging
 
-from application import Globals, Printing, schema
+from application import Globals, Printing, schema, Utility
 
 from application.AboutBox import AboutBox
 from application.Application import wxBlockFrameWindow
@@ -829,6 +829,43 @@ class MainView(View):
     def onLoadLoggingConfigEvent(self, event):
         # Test menu item
         wx.GetApp().ChooseLogConfig()
+
+
+    def onSetLoggingLevelCriticalEvent(self, event):
+        Utility.setLoggingLevel(logging.CRITICAL)
+
+    def onSetLoggingLevelCriticalEventUpdateUI(self, event):
+        level = Utility.getLoggingLevel()
+        event.arguments['Check'] = (level == logging.CRITICAL)
+
+    def onSetLoggingLevelErrorEvent(self, event):
+        Utility.setLoggingLevel(logging.ERROR)
+
+    def onSetLoggingLevelErrorEventUpdateUI(self, event):
+        level = Utility.getLoggingLevel()
+        event.arguments['Check'] = (level == logging.ERROR)
+
+    def onSetLoggingLevelWarningEvent(self, event):
+        Utility.setLoggingLevel(logging.WARNING)
+
+    def onSetLoggingLevelWarningEventUpdateUI(self, event):
+        level = Utility.getLoggingLevel()
+        event.arguments['Check'] = (level == logging.WARNING)
+
+    def onSetLoggingLevelInfoEvent(self, event):
+        Utility.setLoggingLevel(logging.INFO)
+
+    def onSetLoggingLevelInfoEventUpdateUI(self, event):
+        level = Utility.getLoggingLevel()
+        event.arguments['Check'] = (level == logging.INFO)
+
+    def onSetLoggingLevelDebugEvent(self, event):
+        Utility.setLoggingLevel(logging.DEBUG)
+
+    def onSetLoggingLevelDebugEventUpdateUI(self, event):
+        level = Utility.getLoggingLevel()
+        event.arguments['Check'] = (level == logging.DEBUG)
+
 
     def searchFor(self, query):
         if query:

@@ -327,6 +327,11 @@ def initLogging(options):
         twisted.python.log.startLogging(twistedlog, 0)
         logger.warning("Twisted logging output to %s folder" % twistedLogDir)
 
+def getLoggingLevel():
+    return logging.getLogger().getEffectiveLevel()
+
+def setLoggingLevel(level):
+    logging.getLogger().setLevel(level)
 
 def locateChandlerDirectory():
     """

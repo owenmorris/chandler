@@ -188,6 +188,16 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('LoadLoggingConfig').install(parcel)
 
+    BlockEvent.template('SetLoggingLevelCritical').install(parcel)
+
+    BlockEvent.template('SetLoggingLevelError').install(parcel)
+
+    BlockEvent.template('SetLoggingLevelWarning').install(parcel)
+
+    BlockEvent.template('SetLoggingLevelInfo').install(parcel)
+
+    BlockEvent.template('SetLoggingLevelDebug').install(parcel)
+
     BlockEvent.template('SearchWindow').install(parcel)
 
     BlockEvent.template('RestoreShares').install(parcel)
