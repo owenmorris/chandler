@@ -221,7 +221,10 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
 
 
 def doFunctionalTests(releaseMode, workingDir, log):
-    chandlerDir = os.path.join(workingDir, "chandler")
+    chandlerDir = os.path.join(workingDir,  'chandler')
+    logDir      = os.path.join(chandlerDir, 'test_profile')
+    chandlerLog = os.path.join(logDir,      'chandler.log')
+    FuncTestLog = os.path.join(logDir,      'FunctionalTestSuite.log')
 
     if buildenv['os'] == 'win':
         runChandler = 'RunChandler.bat'
@@ -241,18 +244,33 @@ def doFunctionalTests(releaseMode, workingDir, log):
         log.write("Running %s Functional Tests ...\n" % releaseMode)
 
         try:
-            os.remove('chandler.log')
+            os.remove(chandlerLog)
         except OSError:
             pass
 
         args = [runChandler,
                 '--create', '--nocatch',
-                '--profileDir=.',
+                '--profileDir=%s' % logDir,
                 '--parcelPath=tools/QATestScripts/DataFiles',
                 '--scriptTimeout=600', 
                 '--scriptFile=tools/cats/Functional/FunctionalTestSuite.py',
                 '--chandlerTestLogfile=FunctionalTestSuite.log'] #new framework defaults to no log without this
         outputList = hardhatutil.executeCommandReturnOutput(args)
+
+        hardhatutil.dumpOutputList(outputList, log)
+
+        log.write("chandler.log:\n")
+        try:
+            CopyLog(chandlerLog, log)
+        except:
+            pass
+        log.write(separator)
+        log.write("FunctionalTestSuite.log:\n")
+        try:
+            CopyLog(FuncTestLog, log)
+        except:
+            pass
+        log.write(separator)
 
         # Hack: find if any line contains '#TINDERBOX# Status = FAILED' and
         # if so raise the exception to signal test failure
@@ -260,29 +278,13 @@ def doFunctionalTests(releaseMode, workingDir, log):
             if line.find('#TINDERBOX# Status = FAIL') >= 0 or \
                line.find('#TINDERBOX# Status = UNCHECKED') >= 0:
                 raise hardhatutil.ExternalCommandErrorWithOutputList([0, outputList])
-            
-        hardhatutil.dumpOutputList(outputList, log)
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "functional tests failed", e
         log.write("***Error during functional tests***\n")
-        log.write("Test log:\n")
-        hardhatutil.dumpOutputList(e.outputList, log)
         log.write("exit code=%s\n" % e.args)
         log.write("NOTE: If the tests themselves passed but the exit code\n")
         log.write("      reports failure, it means a shutdown problem.\n")
-        log.write("chandler.log:\n")
-        try:
-            CopyLog('chandler.log', log)
-        except:
-            pass
-        log.write(separator)
-        log.write("FunctionalTestSuite.log:\n")
-        try:
-            CopyLog('FunctionalTestSuite.log', log)
-        except:
-            pass
-        log.write(separator)
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
     except Exception, e:
@@ -301,6 +303,9 @@ def doFunctionalTests(releaseMode, workingDir, log):
 def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
     chandlerDir = os.path.join(workingDir, "chandler")
     testDir     = os.path.join(chandlerDir, 'tools', 'QATestScripts', 'Performance')
+    logDir      = os.path.join(chandlerDir, 'test_profile')
+    chandlerLog = os.path.join(logDir,      'chandler.log')
+    FuncTestLog = os.path.join(logDir,      'FunctionalTestSuite.log')
 
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
@@ -317,7 +322,7 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
 
     for testFile in testFiles:
         args = [python, pythonOpts, os.path.join(chandlerDir, 'Chandler.py'),
-                '--create', '--profileDir=%s' % chandlerDir, '--scriptFile=%s' % testFile]
+                '--create', '--profileDir=%s' % logDir, '--scriptFile=%s' % testFile]
 
         try:
             try:
@@ -346,7 +351,7 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
             log.write("      reports failure, it means a shutdown problem.\n")
             log.write("chandler.log:\n")
             try:
-                CopyLog('chandler.log', log)
+                CopyLog(chandlerLog, log)
             except:
                 pass
             forceBuildNextCycle(log, workingDir)
