@@ -161,7 +161,6 @@ def initOptions(**kwds):
         'parcelPath': ('-p', '--parcelPath', 's', None,  'PARCELPATH', 'Parcel search path'),
         'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
         'profileDir': ('-P', '--profileDir', 's', None,  'PROFILEDIR', 'location of the Chandler Repository'),
-        'profile':    ('',   '--prof',       'b', False, None, 'save profiling data'),
         'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
         'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
         'chandlerTests': ('', '--chandlerTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by new framework'),

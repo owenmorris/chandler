@@ -423,20 +423,8 @@ class wxApplication (wx.App):
         #prof.runcall(self.RenderMainView)
         #prof.close()
 
-        if Globals.options.profile:
-            import hotshot, hotshot.stats
-
-            prof = hotshot.Profile(os.path.join(Globals.options.profileDir, 'commit.log'))
-            prof.runcall(self.UIRepositoryView.commit)
-            prof.close()
-
-            stats = hotshot.stats.load(os.path.join(Globals.options.profileDir, 'commit.log'))
-            stats.strip_dirs()
-            stats.sort_stats('time', 'calls')
-            stats.print_stats(125)
-        else:
-            wx.Yield()
-            self.UIRepositoryView.commit()
+        wx.Yield()
+        self.UIRepositoryView.commit()
             
         # Start the WakeupCaller Service
         Utility.initWakeup(self.UIRepositoryView)
