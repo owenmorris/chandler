@@ -309,7 +309,7 @@ class TestOutput:
                 return ''
             if 'Traceback' not in s:
                 s.replace('None', '')
-                s.replace('\n')
+                s.replace('\n', '')
             return s 
         self._parse_results()
         for suite_dict in self.suiteList:
