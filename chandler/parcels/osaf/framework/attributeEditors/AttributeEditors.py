@@ -457,27 +457,7 @@ class BaseAttributeEditor (object):
         """
         if not self.ReadOnly((item, attributeName)):
             setattr(item, attributeName, value)
-            self.AttributeChanged()
     
-    def SetChangeCallback(self, callback):
-        """
-        Set the callback function that we'll use to notify about attribute
-        value changes.
-
-        @param callback: The callback function
-        @type callback: callable
-        """
-        self.changeCallBack = callback
-
-    def AttributeChanged(self):
-        """
-        Called by the attribute editor when it changes the underlying
-        value; calls the callback function set by L{SetChangeCallback}.
-        """
-        callback = getattr(self, 'changeCallBack', None)
-        if callback and not self.item.isDeleted():
-            callback()
-
 class DragAndDropTextCtrl(ShownSynchronizer,
                  DragAndDrop.DraggableWidget,
                  DragAndDrop.DropReceiveWidget,
@@ -1597,7 +1577,6 @@ class StringAttributeEditor (BaseAttributeEditor):
             elif cardinality == "list" or cardinality == "set":
                 value = map(unicode.strip, valueString.split(_(u",")))
             setattr(item, attributeName, value)
-            self.AttributeChanged()
         else:
             # The user cleared out the old value, which isn't allowed. 
             # Reread the old value from the domain model.
@@ -1752,13 +1731,9 @@ class DateAttributeEditor (StringAttributeEditor):
                 
 
     def GetAttributeValue (self, item, attributeName):
-        try:
-            dateTimeValue = getattr (item, attributeName) # getattr will work with properties
-        except AttributeError:
-            value = u''
-        else:
-            value = dateTimeValue is not None \
-                  and pim.shortDateFormat.format(dateTimeValue) or u''
+        dateTimeValue = getattr(item, attributeName, None)
+        value = dateTimeValue and \
+                pim.shortDateFormat.format(dateTimeValue) or u''
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
@@ -1768,9 +1743,13 @@ class DateAttributeEditor (StringAttributeEditor):
             return # leave the value alone if the user clears it out.
 
         oldValue = getattr(item, attributeName, None)
+        if oldValue is None:
+            oldValue = datetime.now(ICUtzinfo.default).\
+                       replace(hour=0, minute=0, second=0, microsecond=0)
 
         try:
-            dateValue = pim.shortDateFormat.parse(newValueString, referenceDate=oldValue)
+            dateValue = pim.shortDateFormat.parse(newValueString, 
+                                                  referenceDate=oldValue)
         except (ICUError, ValueError):
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
             return
@@ -1785,7 +1764,6 @@ class DateAttributeEditor (StringAttributeEditor):
             value = None
         if oldValue != value:
             setattr(item, attributeName, value)
-            self.AttributeChanged()
             
         # Refresh the value in place
         if not item.isDeleted():
@@ -1836,12 +1814,9 @@ class TimeAttributeEditor(StringAttributeEditor):
                     break
 
     def GetAttributeValue(self, item, attributeName):
-        try:
-            dateTimeValue = getattr (item, attributeName) # getattr will work with properties
-        except AttributeError:
-            value = u''
-        else:
-            value = pim.shortTimeFormat.format(dateTimeValue)
+        dateTimeValue = getattr(item, attributeName, None)
+        value = dateTimeValue and \
+                pim.shortTimeFormat.format(dateTimeValue) or u''
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
@@ -1851,6 +1826,8 @@ class TimeAttributeEditor(StringAttributeEditor):
         
         # We have _something_; parse it.
         oldValue = getattr(item, attributeName, None)
+        if oldValue is None:
+            oldValue = datetime.now(ICUtzinfo.default)
         try:
             timeValue = pim.shortTimeFormat.parse(newValueString, 
                                                   referenceDate=oldValue)
@@ -1870,7 +1847,6 @@ class TimeAttributeEditor(StringAttributeEditor):
         if item.anyTime or oldValue != value:
             # Something changed.                
             setattr (item, attributeName, value)
-            self.AttributeChanged()
             
         # Refresh the value in the control
         self.SetControlValue(self.control, 
@@ -1941,7 +1917,6 @@ class RepositoryAttributeEditor (StringAttributeEditor):
         # now we can convert the string to the right type
         value = attrType.makeValue (valueString)
         setattr (item, attributeName, value)
-        self.AttributeChanged()
 
 class LocationAttributeEditor (StringAttributeEditor):
     """
@@ -1960,8 +1935,6 @@ class LocationAttributeEditor (StringAttributeEditor):
                 return # no change
             setattr (item, attributeName, newValue)
         
-        self.AttributeChanged()
-
     def CreateControl (self, forEditing, readOnly, parentWidget, 
                        id, parentBlock, font):
         control = super(LocationAttributeEditor, self).\
@@ -2010,7 +1983,6 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
         else:
             if self.GetAttributeValue(item, attributeName) != value:
                 setattr (item, attributeName, value)
-                self.AttributeChanged()
 
     def _parse(self, inputString):
         """
@@ -2081,7 +2053,6 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
                 if cardinality == 'list':
                     # List cardinality.
                     setattr(item, attributeName, validAddresses)
-                    self.AttributeChanged()
                 else:
                     if len(validAddresses) > 1:
                         # got more than one valid address? That's invalid!
@@ -2090,7 +2061,6 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
                         value = len(validAddresses) > 0 \
                               and validAddresses[0] or None
                         setattr(item, attributeName, value)
-                        self.AttributeChanged()
                     
         if processedAddresses != valueString:
             # This processing changed the text in the control - update it.
@@ -2279,6 +2249,7 @@ class ChoiceAttributeEditor(BasePermanentAttributeEditor):
     def BeginControlEdit(self, item, attributeName, control):
         self.item = item
         self.attributeName = attributeName
+        self.control = control
         super(ChoiceAttributeEditor, self).BeginControlEdit(item, attributeName, control)
 
 class TimeZoneAttributeEditor(ChoiceAttributeEditor):
@@ -2299,8 +2270,6 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
                 # Something changed.                
                 value = oldValue.replace(tzinfo=tzinfo)
                 setattr(item, attributeName, value)
-
-                self.AttributeChanged()
 
     def GetAttributeValue(self, item, attributeName):
         value = getattr(item, attributeName, None)

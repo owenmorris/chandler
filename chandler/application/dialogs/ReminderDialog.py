@@ -169,13 +169,17 @@ class ReminderDialog(wx.Dialog):
                 nextReminderTime = reminderTime
                 break
 
+        # If we have stuff, but nothing selected, select the first thing
+        closeIt = listCtrl.GetItemCount() == 0
+        if not selectedReminders and not closeIt:
+            listCtrl.SetItemState(0, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+            
         self.UpdateControlEnabling()
 
         # When do we want to be called again?
         # If we have anything in the list, call us in a minute so we can update
         # the event times; otherwise, update us at the first future reminder time;
         # otherwise, no reminder needed.
-        closeIt = listCtrl.GetItemCount() == 0
         if not closeIt:
             now = datetime.now(ICUtzinfo.default)
             nextReminderTime = now + timedelta(seconds=(60-now.second))

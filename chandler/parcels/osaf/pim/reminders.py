@@ -17,6 +17,8 @@ from application import schema
 from calculated import Calculated
 from datetime import datetime, time, timedelta
 from PyICU import ICUtzinfo
+import logging
+logger = logging.getLogger(__name__)
 
 # Make a value we can use for distant (or invalid) reminder times
 farFuture = datetime.max
@@ -91,6 +93,9 @@ class Reminder(schema.Item):
             #result = result.replace(tzinfo=ICUtzinfo.default)
         return result
 
+    def __repr__(self):
+        return "<Reminder @ %s>" % (self.absoluteTime or self.delta)
+
 class Remindable(schema.Item):
     reminders = schema.Sequence(
         Reminder,
@@ -120,10 +125,32 @@ class Remindable(schema.Item):
                         return collectionToo and (collection, reminder) or reminder
         return collectionToo and (None, None) or None
 
+    def makeReminder(self, checkExpired=False, **kwds):
+        # @@@ I think the proxy code should override calls to this method
+        # add a separate reference to this reminder to each generated event,
+        # (or something like that). (Remindable.snoozeReminder will call this
+        # method; that operation should only affect the actual event, not the
+        # series)
+        newReminder = Reminder(None, itsView=self.itsView, **kwds)
+        logger.debug("Adding %s to %s", newReminder, self)
+
+        addThisTo = self.reminders
+        if checkExpired:
+            nextTime = newReminder.getNextReminderTimeFor(self)
+
+            if (nextTime is not None and
+                nextTime < datetime.now(ICUtzinfo.default)):
+                assert kwds['keepExpired'], "Creating an expired reminder that isn't marked 'keepExpired'?"
+                addThisTo = self.expiredReminders
+
+        addThisTo.add(newReminder)
+        return newReminder
+
     def replaceUserReminder(self, **kwds):
         (collection, userReminder) = self.getUserReminder(True)
 
         if userReminder is not None:
+            logger.debug("Removing %s from %s", userReminder, self)
             collection.remove(userReminder)
             if not (len(userReminder.reminderItems) or \
                     len(userReminder.expiredReminderItems)):
@@ -134,6 +161,52 @@ class Remindable(schema.Item):
         
         return self.makeReminder(userCreated=True, keepExpired=True,
                                  checkExpired=True, **kwds)
+
+    def dismissReminder(self, reminder):
+        """ Dismiss this reminder. """
+
+        # Make sure the next one's around, so we'll prime the reminder-
+        # watching mechanism to alert us about it. We also check that
+        # reminders for past events don't trigger this one.
+        try:
+            getNextOccurrenceMethod = self.getNextOccurrence
+        except AttributeError:
+            pass
+        else:
+            # Get the next occurrence of this event. We
+            # don't need to do anything with it; we just
+            # want to make sure it's been instantiated
+            # so that the next reminder will fire.
+            getNextOccurrenceMethod(after=datetime.now(ICUtzinfo.default))
+
+        # In the case of generated occurrences, the reminder
+        # may already have fired (cf fixReminders() in
+        # CalendarEventMixin.getNextOccurrence
+        if reminder in self.reminders:
+            self.reminders.remove(reminder)
+        if not reminder.keepExpired:
+            # This is a system or "snooze" reminder, just toss it.
+            assert len(reminder.reminderItems) == 0
+            assert len(reminder.expiredReminderItems) == 0
+            reminder.delete()
+        else:
+            if not reminder in self.expiredReminders:
+                self.expiredReminders.add(reminder)
+
+    def snoozeReminder(self, reminder, delay):
+        """ Snooze this reminder for this long. """
+        # Dismiss the original reminder
+        originalTime = reminder.getNextReminderTimeFor(self)
+        self.dismissReminder(reminder)
+
+        # Make a new reminder for this event
+        newReminder = Reminder(None, itsView=self.itsView,
+                               absoluteTime=(datetime.now(ICUtzinfo.default) +
+                                             delay),
+                               keepExpired=False,
+                               userCreated=False)
+        self.reminders.add(newReminder)
+        return newReminder
     
     # @@@ Note: 'Calculated' APIs are provided for both relative and absolute
     # user-set reminders, even though only one reminder (which can be of either
@@ -195,71 +268,3 @@ class Remindable(schema.Item):
         basedOn=('startTime', 'allDay', 'anyTime', 'reminders'),
         fget=getReminderFireTime,
         doc="Reminder fire time, or None for no unexpired reminders")
-
-    def makeReminder(self, checkExpired=False, **kwds):
-        # @@@ I think the proxy code should override calls to this method
-        # add a separate reference to this reminder to each generated event,
-        # (or something like that). (Remindable.snoozeReminder will call this
-        # method; that operation should only affect the actual event, not the
-        # series)
-        
-        newReminder = Reminder(None, itsView=self.itsView, **kwds)
-
-        addThisTo = self.reminders
-        if checkExpired:
-            nextTime = newReminder.getNextReminderTimeFor(self)
-
-            if (nextTime is not None and
-                nextTime < datetime.now(ICUtzinfo.default)):
-                assert kwds['keepExpired'], "Creating an expired reminder that isn't marked 'keepExpired'?"
-                addThisTo = self.expiredReminders
-
-        addThisTo.add(newReminder)
-        return newReminder
-
-    def dismissReminder(self, reminder):
-        """ Dismiss this reminder. """
-
-        # Make sure the next one's around, so we'll prime the reminder-
-        # watching mechanism to alert us about it. We also check that
-        # reminders for past events don't trigger this one.
-        try:
-            getNextOccurrenceMethod = self.getNextOccurrence
-        except AttributeError:
-            pass
-        else:
-            # Get the next occurrence of this event. We
-            # don't need to do anything with it; we just
-            # want to make sure it's been instantiated
-            # so that the next reminder will fire.
-            getNextOccurrenceMethod(after=datetime.now(ICUtzinfo.default))
-
-        # In the case of generated occurrences, the reminder
-        # may already have fired (cf fixReminders() in
-        # CalendarEventMixin.getNextOccurrence
-        if reminder in self.reminders:
-            self.reminders.remove(reminder)
-        if not reminder.keepExpired:
-            # This is a system or "snooze" reminder, just toss it.
-            assert len(reminder.reminderItems) == 0
-            assert len(reminder.expiredReminderItems) == 0
-            reminder.delete()
-        else:
-            if not reminder in self.expiredReminders:
-                self.expiredReminders.add(reminder)
-
-
-    def snoozeReminder(self, reminder, delay):
-        """ Snooze this reminder for this long. """
-        # Dismiss the original reminder
-        originalTime = reminder.getNextReminderTimeFor(self)
-        self.dismissReminder(reminder)
-
-        # Make a new reminder for this event
-        newReminder = Reminder(None, itsView=self.itsView,
-                               absoluteTime=(datetime.now(ICUtzinfo.default) +
-                                             delay),
-                               keepExpired=False,
-                               userCreated=False)
-        self.reminders.add(newReminder)
-        return newReminder

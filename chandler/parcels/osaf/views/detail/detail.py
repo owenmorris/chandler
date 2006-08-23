@@ -26,7 +26,8 @@ from osaf import pim
 from osaf.framework.attributeEditors import \
      AttributeEditorMapping, DateTimeAttributeEditor, \
      DateAttributeEditor, TimeAttributeEditor, \
-     ChoiceAttributeEditor, StaticStringAttributeEditor
+     ChoiceAttributeEditor, StringAttributeEditor, \
+     StaticStringAttributeEditor
 from osaf.framework.blocks import \
      Block, ContainerBlocks, ControlBlocks, MenusAndToolbars, \
      FocusEventHandlers, BranchPoint, debugName
@@ -684,80 +685,275 @@ class CalendarTimeAEBlock (TimeConditionalBlock,
                            DetailSynchronizedAttributeEditorBlock):
     pass
 
+#
+# Reminders
+#
+
+def timeDeltaMinutes(td):
+    """
+    Return the number of minutes in this timeDelta. 
+    Discards seconds and microseconds.
+    """
+    return (td.days * 1440) + (td.seconds // 60)
+    
+def timeDeltaDetails(td):
+    """
+    Return (units, scale, isAfter) for this timeDelta,
+    where 'units' is a positive integer, and scale is 0 (minutes),
+    1 (hours), or 2 (days), and isAfter is True if the original
+    timeDelta was greater than zero.
+    """
+    delta = timeDeltaMinutes(td)
+    if delta > 0:
+        isAfter = True
+    else:
+        isAfter = False
+        delta = abs(delta)
+    
+    if delta % 1440 == 0:
+        return (delta / 1440, 2, isAfter) # it's a whole number of days
+    if delta % 60 == 0:
+        return (delta / 60, 1, isAfter) # it's a whole number of hours
+    return (delta, 0, isAfter) # Use minutes
+
+def scaleTimeDelta(units, scale, isAfter):
+    """
+    The reverse of timeDeltaDetails
+    """
+    if not isAfter:
+        units *= -1
+    if scale == 0:
+        return timedelta(minutes=units)
+    if scale == 1:
+        return timedelta(hours=units)
+    assert scale == 2
+    return timedelta(days=units)
+    
+def getReminderType(reminder):
+    """ 
+    What kind of user reminder is this?
+    Returns 'none', 'before', 'after', or 'custom'
+    """
+    if reminder is None: 
+        return 'none'
+    if reminder.absoluteTime is not None:
+        return 'custom'
+    delta = timeDeltaMinutes(reminder.delta)
+    return (delta > 0) and 'after' or 'before'
+    
 class ReminderConditionalBlock(Item):
-    def shouldShow (self, item):
-        return isinstance(item, pim.CalendarEventMixin) and \
-               (item.isAttributeModifiable('reminders') \
-               or len(item.reminders) > 0)
+    def shouldShow(self, item):
+        # Don't show if we have no reminder and the user can't add one.
+        reminder = item.getUserReminder()
+        return reminder is not None or item.isAttributeModifiable('reminders')
+    
+    def selectedReminderType(self):
+        # The absolute and relative subclasses need to look at the type
+        # popup to determine whether to show themselves. (Returns None if we
+        # can't decide now.)
+        typeChooserBlock = Block.Block.findBlockByName('EditReminderType')
+        if typeChooserBlock is None:
+            return None
+        typeChooserWidget = getattr(typeChooserBlock, 'widget', None)
+        if typeChooserWidget is None:
+            return None
+        selectionIndex = typeChooserWidget.GetSelection()
+        if selectionIndex == wx.NOT_FOUND:
+            return None
+        reminderType = typeChooserWidget.GetClientData(selectionIndex)
+        return reminderType
 
     def getWatchList(self):
         watchList = super(ReminderConditionalBlock, self).getWatchList()
-        watchList.append((self.item, 'reminders'))
+        watchList.extend([(self.item, 'reminders'),
+                          (self.item, 'expiredReminders')])
         return watchList
-    
+
 class ReminderSpacerBlock(ReminderConditionalBlock,
                           SynchronizedSpacerBlock):
     pass
 
-class ReminderAreaBlock(ReminderConditionalBlock,
-                        DetailSynchronizedContentItemDetail):
+class ReminderTypeAreaBlock(ReminderConditionalBlock,
+                            DetailSynchronizedContentItemDetail):
     pass
 
-class ReminderAttributeEditor(ChoiceAttributeEditor):
+class ReminderRelativeAreaBlock(ReminderConditionalBlock,
+                                DetailSynchronizedContentItemDetail):
+    def shouldShow(self, item):
+        return super(ReminderRelativeAreaBlock, self).shouldShow(item) and \
+               self.selectedReminderType() in ('before', 'after')
+    
+class ReminderAbsoluteAreaBlock(ReminderConditionalBlock,
+                                DetailSynchronizedContentItemDetail):
+    def shouldShow(self, item):
+        return super(ReminderAbsoluteAreaBlock, self).shouldShow(item) and \
+               self.selectedReminderType() == 'custom'
+
+class ReminderAEBlock(DetailSynchronizedAttributeEditorBlock):
+    def getWatchList(self):
+        watchList = super(ReminderAEBlock, self).getWatchList()
+        watchList.extend([(self.item, 'reminders'),
+                          (self.item, 'expiredReminders')])
+        return watchList
+    
+class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
+    reminderIndexes = {
+        'none': 0,
+        'before': 1,
+        'after': 2,
+        # Custom omitted - see below.
+    }
+    
     def GetControlValue (self, control):
         """
-        Get the reminder delta value for the current selection.
+        Get the value from the control: 'none', 'before', 'after',
+        or 'custom'
         """
-        # @@@ i18n For now, assumes that the menu will be a number of minutes, 
-        # followed by a space (eg, "1 minute", "15 minutes", etc), or something
-        # that doesn't match this (eg, "None") for no-alarm.
-        menuChoice = control.GetStringSelection()
-        try:
-            minuteCount = int(menuChoice.split(u" ")[0])
-        except ValueError:
-            # "None"
-            value = None
-        else:
-            value = timedelta(minutes=-minuteCount)
-        return value
+        index = control.GetSelection()
+        return (index != wx.NOT_FOUND) and control.GetClientData(index) or 'none'
 
     def SetControlValue (self, control, value):
         """
-        Select the choice that matches this delta value.
+        Select the choice that matches this value ('none', 'before', 'after',
+        or 'custom')
         """
-        # We also take this opportunity to populate the menu
-        existingValue = self.GetControlValue(control)
-        if existingValue != value or control.GetCount() == 0:            
+        # Populate the menu if necessary
+        existingValue = control.GetClientData(control.GetSelection())
+        hasStart = hasattr(self.item, 'startTime')
+        if existingValue != value or control.GetCount() != (hasStart and 4 or 2):
             # rebuild the list of choices
-            choices = self.GetChoices()
             control.Clear()
-            control.AppendItems(choices)
-
-            if value is None:
-                choiceIndex = 0 # the "None" choice
-            else:
-                minutes = ((value.days * 1440) + (value.seconds / 60))
-                reminderChoice = (minutes == -1) and _(u"1 minute") or (_(u"%(numberOf)i minutes") % {'numberOf': -minutes})
-                choiceIndex = control.FindString(reminderChoice)
-                # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
-                if choiceIndex == -1:
-                    choiceIndex = 0 # the "None" choice
-            control.Select(choiceIndex)
+            control.Append(_(u"None"), 'none')
+            if hasStart:
+                control.Append(_(u"Before event"), 'before')
+                control.Append(_(u"After event"), 'after')
+            control.Append(_(u"Custom"), 'custom')
+        
+        # Which choice to select?
+        choiceIndex = self.reminderIndexes.get(value, hasStart and 3 or 1)
+        control.Select(choiceIndex)
 
     def GetAttributeValue (self, item, attributeName):
         """
         Get the value from the specified attribute of the item.
         """
-        return item.userReminderInterval
+        return getReminderType(item.getUserReminder())
 
     def SetAttributeValue (self, item, attributeName, value):
-        """Set the value of the attribute given by the value.
         """
-        if not self.ReadOnly((item, attributeName)) and \
-           value != self.GetAttributeValue(item, attributeName):
+        Set the value of the attribute given by the value.
+        """
+        if self.ReadOnly((item, attributeName)):
+            return
 
-            setattr(item, attributeName, value)
-            self.AttributeChanged()
+        reminder = item.getUserReminder()
+        reminderType = getReminderType(reminder)
+        if value == reminderType:
+            return
+        
+        self.control.blockItem.stopWatchingForChanges()
+        if value == 'none':
+            item.userReminderTime = None
+        elif value in ('before', 'after'):
+            if reminderType in ('before', 'after'):
+                # Just change the sign of the old reminder
+                item.userReminderInterval = scaleTimeDelta(units, scale, not isAfter)
+            else:
+                # Make a new 15-minute reminder with the right sign.
+                item.userReminderInterval = scaleTimeDelta(15, 0, value == 'after')
+        else:
+            assert value == 'custom'
+            # Absolute: today's date at 5PM
+            item.userReminderTime = datetime.now(tz=ICUtzinfo.default)\
+                .replace(hour=17, minute=0, second=0, microsecond=0)
+            
+        self.control.blockItem.watchForChanges()
+                        
+        if False:
+            active = "\n  ".join(unicode(r) for r in item.reminders) or "None"
+            inactive = "\n  ".join(unicode(r) for r in item.expiredReminders) or "None"            
+            logger.debug("Reminders on %s:\n  Active:\n    %s\n  Expired:\n    %s", 
+                         item, active, inactive)
+
+class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
+    choices = [_(u'Minutes'),
+                _(u'Hours'),
+                _(u'Days')]
+
+    def GetChoices(self):
+        return self.choices
+    
+    def GetAttributeValue (self, item, attributeName):
+        reminder = item.getUserReminder()
+        reminderType = getReminderType(reminder)
+        if reminderType not in ('before', 'after'):
+            return 0
+        (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
+        return scale
+            
+    def SetAttributeValue (self, item, attributeName, value):
+        reminder = item.getUserReminder()
+        reminderType = getReminderType(reminder)
+        if reminderType not in ('before', 'after'):
+            return
+        
+        (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
+        if scale == value:
+            return # unchanged
+        
+        item.userReminderInterval = scaleTimeDelta(value, scale, isAfter)
+
+    def GetControlValue (self, control):
+        choiceIndex = control.GetSelection()
+        return choiceIndex != wx.NOT_FOUND and choiceIndex or None
+
+    def SetControlValue (self, control, value):
+        existingValue = self.GetControlValue(control)
+        if existingValue is None or existingValue != value:            
+            # rebuild the list of choices
+            choices = self.GetChoices()
+            control.Clear()
+            control.AppendItems(choices)
+            control.SetSelection(value)
+
+class ReminderUnitsAttributeEditor(StringAttributeEditor):    
+    def GetAttributeValue (self, item, attributeName):
+        # Get the existing reminder, and figure out what kind it is
+        reminder = item.getUserReminder()
+        reminderType = getReminderType(reminder)
+
+        if reminderType not in ('before', 'after'):
+            return u''
+            
+        # Pick an appropriate scale for this delta value
+        (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
+        return unicode(units)
+                            
+    def SetAttributeValue (self, item, attributeName, valueString):
+        reminder = item.getUserReminder()
+        reminderType = getReminderType(reminder)
+        if reminderType not in ('before', 'after'):
+            assert False
+            return
+        
+        valueString = valueString.replace('?','').strip()
+        if len(valueString) == 0:
+            # Put the old value back.
+            self.SetControlValue(self.control, 
+                                 self.GetAttributeValue(item, attributeName))
+            return
+        try:
+            value = int(valueString)                
+        except ValueError:
+            self._changeTextQuietly(self.control, "%s ?" % valueString)
+            return
+
+        (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
+        if units != value:
+            item.userReminderInterval = scaleTimeDelta(value, scale, isAfter)
+
+#class ReminderDateAttributeEditor(DateAttributeEditor): pass
+#class ReminderTimeAttributeEditor(TimeAttributeEditor): pass
 
 class TransparencyConditionalBlock(Item):
     def shouldShow (self, item):
@@ -946,8 +1142,6 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
                 else:
                     assert False, "this attribute editor is really just for " \
                                   "start or endtime"
-
-                self.AttributeChanged()
                 
             # Refresh the value in place
             self.SetControlValue(self.control, 
@@ -1106,10 +1300,7 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                     setattr (item, attributeName, value)
                     item.anyTime = False
                 changed = True
-            
-        if changed:
-            self.AttributeChanged()
-            
+
         if changed or forceReload:
             # Refresh the value in the control
             self.SetControlValue(self.control, 
@@ -1213,8 +1404,6 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 del rruleset.rrules.first().until
             rruleset.rrules.first().untilIsDate = True
             item.changeThisAndFuture('rruleset', rruleset)
-
-        self.AttributeChanged()
     
     def GetControlValue (self, control):
         """
@@ -1305,7 +1494,6 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
                 def changeRecurrenceEnd(self, item, newEndValue):                    
                     item.untilIsDate = True
                     item.until = value
-                    self.AttributeChanged()
                 wx.CallAfter(changeRecurrenceEnd, self, item, value)
 
 class OutboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
@@ -1430,7 +1618,6 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
                 value = len(validAddresses) > 0 \
                       and validAddresses[0] or None
                 setattr(item, attributeName, value)
-                self.AttributeChanged()
                     
     def onChoice(self, event):
         control = event.GetEventObject()

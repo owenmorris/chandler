@@ -572,8 +572,8 @@ class Block(schema.Item):
                                      .append(attributeName)
             # Do the notifications
             for (block, attrs) in notifications.items():
-                #logger.debug("Sending notification of change to %s",
-                             #", ".join(attrs))
+                #logger.debug("Notifying %s of change to '%s'",
+                             #debugName(block), "', '".join(attrs))
                 block._sendItemNotificationAndSynchronize('itemChange',
                                                           (op, uuid, attrs))
         

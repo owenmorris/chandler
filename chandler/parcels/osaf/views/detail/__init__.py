@@ -44,7 +44,6 @@ from detail import (
     MailMessageButtonBlock,
     OutboundOnlyAreaBlock,
     PrivateSwitchButtonBlock, 
-    ReminderAreaBlock, 
     StaticRedirectAttribute,
     StaticRedirectAttributeLabel, 
     StaticTextLabel, 

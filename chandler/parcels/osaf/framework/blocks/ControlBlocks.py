@@ -1027,7 +1027,7 @@ class ReminderTimer(Timer):
     """
     
     def synchronizeWidget (self, *args, **kwds):
-        # logger.debug("*** Synchronizing ReminderTimer widget!")
+        #logger.debug("*** Synchronizing ReminderTimer widget!")
         super(ReminderTimer, self).synchronizeWidget(*args, **kwds)
         if not wx.GetApp().ignoreSynchronizeWidget:
             self.primeReminderTimer()
@@ -1076,7 +1076,7 @@ class ReminderTimer(Timer):
     
     def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary
-        # logger.debug("*** Got reminders time event!")
+        #logger.debug("*** Got reminders time event!")
         self.primeReminderTimer(True)
 
     def primeReminderTimer(self, createDialog=False):
@@ -1138,7 +1138,7 @@ class ReminderTimer(Timer):
             reminderDialog.Destroy()
 
     def setFiringTime(self, when):
-        # logger.debug("*** next reminder due %s" % when)
+        #logger.debug("*** next reminder due %s", when)
         super(ReminderTimer, self).setFiringTime(when)
 
 class PresentationStyle(schema.Item):
@@ -1200,11 +1200,9 @@ class AEBlock(BoxContainer):
     presentationStyle = schema.One(PresentationStyle,
         doc="""an optional PresentationStyle to customize
                this editor's selection or behavior""")
-    changeEvent = schema.One(BlockEvent)
 
     schema.addClouds(
-        copying = schema.Cloud(byRef=[characterStyle, presentationStyle, 
-                                      changeEvent])
+        copying = schema.Cloud(byRef=[characterStyle, presentationStyle])
     )
 
     def setItem(self, value): 
@@ -1371,8 +1369,6 @@ class AEBlock(BoxContainer):
         selectedEditor.presentationStyle = presentationStyle
         selectedEditor.parentBlock = self
 
-        # Register for value changes
-        selectedEditor.SetChangeCallback(self.onAttributeEditorValueChange)
         return selectedEditor
 
     def isReadOnly(self, item, attributeName):
@@ -1523,24 +1519,6 @@ class AEBlock(BoxContainer):
             if not isMultiLine:
                 self.widget.Navigate()
         event.Skip()
-
-    def onAttributeEditorValueChange(self):
-        """
-        Called when the attribute editor changes the value. If we're
-        configured to send an event when this happens, do so.
-        """
-        item = self.item
-        logger.debug("onAttributeEditorValueChange: %s %s", 
-                     item, self.attributeName)
-        try:
-            event = self.changeEvent
-        except AttributeError:
-            pass
-        else:
-            Block.post(event,
-                       {'item': item,  'attribute': self.attributeName },
-                       self)
-
 
 # Ewww, yuk.  Blocks and attribute editors are mutually interdependent
 import osaf.framework.attributeEditors

@@ -103,7 +103,8 @@ def makeArea(parcel, name, stretchFactor=None, border=None, minimumSize=None,
                               border=border or RectType(0, 0, 0, 6),
                               **kwds)
 
-def makeLabel(parcel, label=u'', borderTop=5, border=None, width=60):
+def makeLabel(parcel, label=u'', borderTop=5, border=None, width=60, 
+              textAlignmentEnum=None, **kwds):
     """
     Make a StaticText label template for use in the detail view.
     
@@ -130,13 +131,14 @@ def makeLabel(parcel, label=u'', borderTop=5, border=None, width=60):
     """
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
     border = border or RectType(borderTop, 0, 0, 0)
+    textAlignmentEnum = textAlignmentEnum or 'Right'
     return StaticText.template(uniqueName(parcel, 'Label'),
                                title=label,
                                characterStyle=blocks.LabelStyle,
-                               textAlignmentEnum='Right',
+                               textAlignmentEnum=textAlignmentEnum,
                                stretchFactor=0.0,
                                minimumSize=SizeType(width, -1),
-                               border=border)
+                               border=border, **kwds)
 
 def makeSpacer(parcel, size=None, width=-1, height=-1, 
                name=None, baseClass=ControlBlocks.StaticText, **kwds):
@@ -274,7 +276,11 @@ def registerAttributeEditors(parcel, oldVersion):
         'RecurrenceRuleSet+ends': 'RecurrenceEndsAttributeEditor',
         'RecurrenceRuleSet+occurs': 'RecurrenceAttributeEditor',
         'SmartCollection+appearsIn': 'AppearsInAttributeEditor',
-        'TimeDelta+reminder': 'ReminderAttributeEditor',
+        'Reminder+reminderType': 'ReminderTypeAttributeEditor',
+        'TimeDelta+reminderUnits': 'ReminderUnitsAttributeEditor',
+        'TimeDelta+reminderScale': 'ReminderScaleAttributeEditor',
+        #'DateTimeTZ+reminderDate': 'ReminderDateAttributeEditor',
+        #'DateTimeTZ+reminderTime': 'ReminderTimeAttributeEditor',
     }
     AttributeEditorMapping.register(parcel, aeDict, __name__)
     
@@ -398,26 +404,67 @@ def makeNoteSubtree(parcel, oldVersion):
             position=0.5,
             border=RectType(0,6,0,6)).install(parcel)
 
-    reminderArea = \
-        makeArea(parcel, 'ReminderArea',
-            baseClass=ReminderAreaBlock,
+    # Next, three rows of reminder stuff:
+    # alarm {none/before/after/custom popup}
+    #       [units] {minutes/hours/days popup}
+    #       [date] at [time]
+    reminderTypeArea = \
+        makeArea(parcel, 'ReminderTypeArea',
+            baseClass=ReminderTypeAreaBlock,
             childrenBlocks=[
                 makeLabel(parcel, _(u'alarm'), borderTop=5),
                 makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditReminder',
-                    viewAttribute=u'userReminderInterval',
-                    presentationStyle={
-                        # @@@ XXX i18n: the code assumes that if the value
-                        # starts with a digit, it's a number of minutes; if not,
-                        # it's None.
-                        'choices': [_(u'None'), _(u'1 minute'), _(u'5 minutes'), 
-                                    _(u'10 minutes'), _(u'30 minutes'), 
-                                    _(u'60 minutes'), _(u'90 minutes')],
-                        'format' : 'reminder'
-                    },
+                makeEditor(parcel, 'EditReminderType',
+                    baseClass=ReminderAEBlock,
+                    viewAttribute=u'reminders',
+                    presentationStyle={ 'format': 'reminderType' },
                     stretchFactor=0.0,
                     minimumSize=SizeType(100, -1))],
             position=0.81).install(parcel)
+    reminderRelativeArea = \
+        makeArea(parcel, 'ReminderRelativeArea',
+            baseClass=ReminderRelativeAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u''), borderTop=5),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditReminderUnits',
+                    baseClass=ReminderAEBlock,
+                    viewAttribute=u'userReminderInterval',
+                    presentationStyle={ 'format': 'reminderUnits' },
+                    stretchFactor=0.0,
+                    size=SizeType(35, -1)),
+                makeSpacer(parcel, width=4),
+                makeEditor(parcel, 'EditReminderScale',
+                    baseClass=ReminderAEBlock,
+                    viewAttribute=u'userReminderInterval',
+                    presentationStyle={ 'format': 'reminderScale' },
+                    stretchFactor=0.0,
+                    minimumSize=SizeType(80, -1)),
+                ],
+            position=0.82).install(parcel)
+    reminderAbsoluteArea = \
+        makeArea(parcel, 'ReminderAbsoluteArea',
+            baseClass=ReminderAbsoluteAreaBlock,
+            childrenBlocks=[                
+                makeLabel(parcel, _(u''), borderTop=4),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditReminderDate',
+                    baseClass=ReminderAEBlock,
+                    viewAttribute=u'userReminderTime',
+                    presentationStyle={'format': 'dateOnly'},
+                    stretchFactor=0.0,
+                    size=SizeType(75, -1)),
+                makeLabel(parcel, _(u'at'),
+                    textAlignmentEnum='Center',
+                    border=RectType(4, 4, 0, 4)),
+                makeEditor(parcel, 'EditReminderTime',
+                    baseClass=ReminderAEBlock,
+                    viewAttribute=u'userReminderTime',
+                    presentationStyle={'format': 'timeOnly'},
+                    stretchFactor=0.0,
+                    size=SizeType(85, -1)),
+                ],
+            position=0.82).install(parcel)
 
     # The Note AEBlock
     notesBlock = makeEditor(parcel, 'NotesBlock',
@@ -448,7 +495,9 @@ def makeNoteSubtree(parcel, oldVersion):
         headlineArea, 
         makeSpacer(parcel, height=7, baseClass=ReminderSpacerBlock,
                    position=0.809999).install(parcel),
-        reminderArea,
+        reminderTypeArea,
+        reminderRelativeArea,
+        reminderAbsoluteArea,
         makeSpacer(parcel, height=7, position=0.8999).install(parcel),
         notesBlock,
         appearsInArea,
