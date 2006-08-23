@@ -308,7 +308,8 @@ class TestOutput:
             if s == None:
                 return ''
             if 'Traceback' not in s:
-                s = s.strip('None').strip('\n')
+                s.replace('None', '')
+                s.replace('\n')
             return s 
         self._parse_results()
         for suite_dict in self.suiteList:
@@ -316,7 +317,7 @@ class TestOutput:
                 self._write('\nSUITE %s FAILED\n' % suite_dict['name'])
                 for test_dict in suite_dict['testlist']:
                     if test_dict['result'] == False:
-                        self._write('\tTEST %s FAILED\n ' % stripStuff(test_dict['name']))
+                        self._write('\tTEST %s failed\n ' % stripStuff(test_dict['name']))
                         for action_dict in test_dict['actionlist']:
                             if action_dict['result'] == False:
                                 self._write('\t\tACTION %s %s\n' % (stripStuff(action_dict['name']),stripStuff(action_dict['comment'])))
@@ -344,9 +345,9 @@ class TestOutput:
         
         #Clean up logger state
         if self.inAction is True:
-            self.endAction(result=False, comment='Action Failure due to traceback')
+            self.endAction(result=False, comment='Action failed due to traceback')
         if self.inTest is True:
-            self.endTest(comment='Test Failure due to traceback\n' + traceback.format_exc())
+            self.endTest(comment='Test failed due to traceback\n' + traceback.format_exc())
             
     def _parse_results(self):
         """Method to parse through the result output datastructure to bubble up encapsulated failures"""
@@ -413,7 +414,7 @@ class TestOutput:
         for suite_dict in self.suiteList:
                 for test_dict in suite_dict['testlist']:
                     if test_dict['result'] == False:
-                        self._write('%s*failed*\n' % test_dict['name'].ljust(30,'_'))
+                        self._write('%s*FAILED*\n' % test_dict['name'].ljust(30,'_'))
                     else:
                         self._write('%s passed \n' % test_dict['name'].ljust(30,'_'))
         self._write("*************************************\n")
