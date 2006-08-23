@@ -1800,7 +1800,7 @@ class DateAttributeEditor (StringAttributeEditor):
         
     def finishCompletion(self, completionString):
         if completionString is not None:
-            dashIndex = completionString.find(' - ')
+            dashIndex = completionString.find(' : ')
             if dashIndex != -1: # could be 'tomorrow - 08/02/2006'
                 completionString = completionString[dashIndex + 3:]
         return super(DateAttributeEditor, self).finishCompletion(completionString)
