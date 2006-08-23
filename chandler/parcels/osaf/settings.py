@@ -147,6 +147,11 @@ def save(rv, filename):
             cfg.set(section_name, "security", account.connectionSecurity)
             counter += 1
 
+    # Show timezones
+    cfg.add_section('timezones')
+    showTZ = schema.ns('osaf.app', rv).TimezonePrefs.showUI
+    cfg.set('timezones', 'type', 'show timezones')
+    cfg.set('timezones', 'show_timezones', showTZ)
 
     output = file(filename, "w")
     cfg.write(output)
@@ -311,3 +316,9 @@ def restore(rv, filename):
                 cfg.get(section, "default")):
                 accountRef = schema.ns("osaf.pim", rv).currentMailAccount
                 accountRef.item = account
+
+    # timezones
+    if cfg.has_section('timezones'):
+        if cfg.has_option('timezones', 'show_timezones'):
+            show = cfg.getboolean('timezones', 'show_timezones')
+            schema.ns('osaf.app', rv).TimezonePrefs.showUI = show
