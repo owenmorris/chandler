@@ -108,14 +108,7 @@ else
     echo Using [$C_DIR] as the chandler/ directory
 fi
 
-if [ "$CATSPROFILEDIR" = "" ]
-then
-    PC_DIR="$C_DIR/test_profile"
-else
-    PC_DIR="$CATSPROFILEDIR"
-fi
-
-T_DIR=$PC_DIR
+PC_DIR="$C_DIR/test_profile"
 
 if [ "$CHANDLERBIN" = "" ]
 then
@@ -129,6 +122,8 @@ FAILED_TESTS=""
 
 rm -f $DOTESTSLOG
 rm -f $TESTLOG
+
+mkdir -p $PC_DIR
 
 echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $DOTESTSLOG
 echo Started `date`                                              | tee -a $DOTESTSLOG
@@ -260,7 +255,7 @@ if [ -n "$TEST_TO_RUN" ]; then
     fi
 else
     if [ "$RUN_UNIT" = "yes" ]; then
-        DIRS=`find $PC_DIR -type d -name tests -print`
+        DIRS=`find $C_DIR -type d -name tests -print`
 
           # this code walks thru all the dirs with "tests" in their name
           # and then compares them to the exclude dir array by
@@ -406,7 +401,7 @@ else
             fi
         done
 
-        echo Creating a large repository backup for the remaining tests
+        echo -n Creating a large repository backup for the remaining tests
         rm -fr $PC_DIR/__repository__.0*
         REPO=$PC_DIR/__repository__.001
         BACKUP_REPO=$C_DIR/tools/QATestScripts/Performance/LargeDataBackupRepository.py
@@ -501,13 +496,13 @@ else
 
             echo -n Timing startup
             for run in $RUNS ; do
-                $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
-                cat $T_DIR/start1.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $TESTLOG
-                cat $TESTLOG > $T_DIR/start1.$run.log
-                echo -n \ `<"$T_DIR/start1.$run.log"`
+                $TIME -o $PC_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                cat $PC_DIR/start1.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $TESTLOG
+                cat $TESTLOG > $PC_DIR/start1.$run.log
+                echo -n \ `<"$PC_DIR/start1.$run.log"`
             done
 
-            STARTUP=`cat $T_DIR/start1.1.log $T_DIR/start1.2.log $T_DIR/start1.3.log | sort -n | head -n 2 | tail -n 1`
+            STARTUP=`cat $PC_DIR/start1.1.log $PC_DIR/start1.2.log $PC_DIR/start1.3.log | sort -n | head -n 2 | tail -n 1`
             echo \ \[$STARTUP\s\]
 
             echo Creating new large repository
@@ -515,13 +510,13 @@ else
 
             echo -n Timing startup with large repository
             for run in $RUNS ; do
-                $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
-                cat $T_DIR/start6.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $TESTLOG
-                cat $TESTLOG > $T_DIR/start6.$run.log
-                echo -n \ `<"$T_DIR/start6.$run.log"`
+                $TIME -o $PC_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                cat $PC_DIR/start6.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $TESTLOG
+                cat $TESTLOG > $PC_DIR/start6.$run.log
+                echo -n \ `<"$PC_DIR/start6.$run.log"`
             done
 
-            STARTUP_LARGE=`cat $T_DIR/start6.1.log $T_DIR/start6.2.log $T_DIR/start6.3.log | sort -n | head -n 2 | tail -n 1`
+            STARTUP_LARGE=`cat $PC_DIR/start6.1.log $PC_DIR/start6.2.log $PC_DIR/start6.3.log | sort -n | head -n 2 | tail -n 1`
             echo \ \[$STARTUP_LARGE\s\]
 
             echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $PERF_LOG
