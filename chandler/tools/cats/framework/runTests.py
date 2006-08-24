@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""runTests module for running casts tests
+"""runTests module for running cats tests
 
 This is a module containing with methods defined for running tests
 in the cats 0.2+ framework. Not used with cats < 0.2.
@@ -43,7 +43,7 @@ def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
     """Method to execute cats tests, must be in Functional directory."""
     
     logger = TestOutput(stdout=True, debug=debug, mask=mask, logName=logName) 
-    logger.startSuite(name='ChandlerTestSuite')
+    logger.startSuite(name='ChandlerFunctionalTestSuite')
     for paramSet in tests.split(','):
         try:
             filenameAndTest = paramSet.split(':')
@@ -91,7 +91,14 @@ def run_perf_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
             if logger.debug == 2: checkRepo(logger)
         except:
             logger.traceback()
-
+            
+    logger.endSuite()
+    if logger.debug == 0:
+        logger.easyReadSummary()
+    else:
+        logger.summary()
+    logger.simpleSummary()
+    logger.tinderOutput()
     if logger.debug < 2: checkRepo(logger)
     logger.endSuite()
     import osaf.framework.scripting as scripting
