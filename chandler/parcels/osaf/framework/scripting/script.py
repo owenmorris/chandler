@@ -261,7 +261,6 @@ def run_startup_script_with_symbols(view, builtIns):
         testDebug = Globals.options.chandlerTestDebug
         testMask = Globals.options.chandlerTestMask
         from tools.cats.framework.runTests import run_tests
-        print 'from script.py debug=%s, mask=%s' % (testDebug, testMask)
         run_tests(chandlerTests, debug=testDebug, mask=testMask, logName=logFileName)
 
     # Execute new framework if chandlerPerformanceTests option is called
