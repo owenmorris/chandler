@@ -540,6 +540,9 @@ class ItemClass(Activator):
                     kind.attributes.append(ai,name)
 
         for name, attrNames in cls.__dict__.get('__after_change__',{}).items():
+            if name.startswith('__'):
+                # support private name mangling
+                name = '_%s%s' % (cls.__name__, name)
             for attrName in attrNames:
                 if isinstance(attrName,Descriptor):
                     attr = itemFor(attrName, view)
