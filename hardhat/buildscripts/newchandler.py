@@ -220,7 +220,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
     return "success"  # end of doTests( )
 
 
-def dumpTestLogs(log, chandlerLog, FuncTestLog, errorCode=None):
+def dumpTestLogs(log, chandlerLog, FuncTestLog, exitCode=0):
     if FuncTestLog:
         log.write("FunctionalTestSuite.log:\n")
         try:
@@ -237,9 +237,7 @@ def dumpTestLogs(log, chandlerLog, FuncTestLog, errorCode=None):
             pass
         log.write(separator)
 
-    if errorCode:
-        log.write("exit code=%s\n" % e.args)
-
+    log.write("exit code=%s\n" % exitCode)
     log.write("NOTE: If the tests themselves passed but the exit code\n")
     log.write("      reports failure, it means a shutdown problem.\n")
 
