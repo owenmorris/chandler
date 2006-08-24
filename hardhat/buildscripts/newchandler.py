@@ -220,19 +220,28 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
     return "success"  # end of doTests( )
 
 
-def dumpTestLogs(log, chandlerLog, FuncTestLog):
-    log.write("chandler.log:\n")
-    try:
-        CopyLog(chandlerLog, log)
-    except:
-        pass
-    log.write(separator)
-    log.write("FunctionalTestSuite.log:\n")
-    try:
-        CopyLog(FuncTestLog, log)
-    except:
-        pass
-    log.write(separator)
+def dumpTestLogs(log, chandlerLog, FuncTestLog, errorCode=None):
+    if FuncTestLog:
+        log.write("FunctionalTestSuite.log:\n")
+        try:
+            CopyLog(FuncTestLog, log)
+        except:
+            pass
+        log.write(separator)
+
+    if chandlerLog:
+        log.write("chandler.log:\n")
+        try:
+            CopyLog(chandlerLog, log)
+        except:
+            pass
+        log.write(separator)
+
+    if errorCode:
+        log.write("exit code=%s\n" % e.args)
+
+    log.write("NOTE: If the tests themselves passed but the exit code\n")
+    log.write("      reports failure, it means a shutdown problem.\n")
 
 
 def doFunctionalTests(releaseMode, workingDir, log):
@@ -272,6 +281,7 @@ def doFunctionalTests(releaseMode, workingDir, log):
                 '--chandlerTestLogfile=FunctionalTestSuite.log', #new framework defaults to no log without this
                 '--chandlerTestDebug=1',
                 '--chandlerTestMask=0',]
+
         outputList = hardhatutil.executeCommandReturnOutput(args)
 
         hardhatutil.dumpOutputList(outputList, log)
@@ -283,21 +293,16 @@ def doFunctionalTests(releaseMode, workingDir, log):
                line.find('#TINDERBOX# Status = UNCHECKED') >= 0:
                 print "functional tests failed"
                 log.write("***Error during functional tests***\n")
-                log.write("NOTE: If the tests themselves passed but the exit code\n")
-                log.write("      reports failure, it means a shutdown problem.\n")
 
                 forceBuildNextCycle(log, workingDir)
 
                 return "test_failed"
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        dumpTestLogs(log, chandlerLog, FuncTestLog, e.args)
+
         print "functional tests failed", e
         log.write("***Error during functional tests***\n")
-        log.write("exit code=%s\n" % e.args)
-        log.write("NOTE: If the tests themselves passed but the exit code\n")
-        log.write("      reports failure, it means a shutdown problem.\n")
-
-        dumpTestLogs(log, chandlerLog, FuncTestLog)
 
         forceBuildNextCycle(log, workingDir)
 
