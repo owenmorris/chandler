@@ -458,7 +458,7 @@ class wxApplication (wx.App):
 
         self.mainFrame.Show()
 
-        # Set focs so OnIdle won't trigger an unnecessary UpdateWindowUI the
+        # Set focus so OnIdle won't trigger an unnecessary UpdateWindowUI the
         # first time through. -- DJA
         self.focus = wx.Window_FindFocus()
 
@@ -471,7 +471,15 @@ class wxApplication (wx.App):
                 self.PostAsyncEvent(setStatusMessage, kwds['msg'])
         sharing.register(_setStatusMessageCallback)
 
-    
+        # Fix for Bugs 3720, 3722, 5046, and 5650.  Sets the focus to
+        # the first focusable widget in the frame, and also forces a
+        # UpdateUI of the menus so the accelerator table will get built.
+        if '__WXGTK__' in wx.PlatformInfo:
+            def afterInit():
+                self.mainFrame.GetChildren()[0].SetFocus()
+                self.mainFrame.UpdateWindowUI(wx.UPDATE_UI_RECURSE)
+            wx.CallAfter(afterInit)
+        
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
         return True    # indicates we succeeded with initialization
