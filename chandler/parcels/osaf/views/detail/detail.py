@@ -818,7 +818,10 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         or 'custom')
         """
         # Populate the menu if necessary
-        existingValue = control.GetClientData(control.GetSelection())
+        existingSelectionIndex = control.GetSelection()
+        existingValue = (existingSelectionIndex != wx.NOT_FOUND) \
+                      and control.GetClientData(existingSelectionIndex) \
+                      or None
         hasStart = hasattr(self.item, 'startTime')
         if existingValue != value or control.GetCount() != (hasStart and 4 or 2):
             # rebuild the list of choices
