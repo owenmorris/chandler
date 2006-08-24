@@ -64,9 +64,10 @@ def getTriageStatusName(value):
 triageStatusOrder = dict((v, i) for i, v in enumerate(TriageEnum.values))
 def getTriageStatusOrder(value):
     return triageStatusOrder[value]
-
+# Bug 6525: the clicking sequence isn't the sort order
+triageStatusClickSequence = { 'now': 'done', 'done': 'later', 'later' : 'now' }
 def getNextTriageStatus(value):
-    return TriageEnum.values[(triageStatusOrder[value]+1) % len(TriageEnum.values)]
+    return triageStatusClickSequence[value]
     
 class ContentItem(Remindable):
     """
