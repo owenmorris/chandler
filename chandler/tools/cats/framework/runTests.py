@@ -23,8 +23,15 @@ __version__=  '0.2'
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.TestOutput import TestOutput
 import os, sys
+from application import Globals
 
 functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/Functional")
+testDebug = Globals.options.chandlerTestDebug
+testMask = Globals.options.chandlerTestMask
+logFileName = Globals.options.chandlerTestLogfile
+filePath = Globals.options.profileDir
+if filePath and logFileName:
+    logFileName = os.path.join(filePath, logFileName)
 
      
 def checkRepo(logger):
@@ -32,7 +39,7 @@ def checkRepo(logger):
     logger.addComment('Checking for repository corruption')
     QAUITestAppLib.App_ns.itsView.check()
 
-def run_tests(tests, debug=0, mask=3, logName=None):
+def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
     """Method to execute cats tests, must be in Functional directory."""
     
     logger = TestOutput(stdout=True, debug=debug, mask=mask, logName=logName) 
@@ -64,7 +71,7 @@ def run_tests(tests, debug=0, mask=3, logName=None):
     import osaf.framework.scripting as scripting
     scripting.app_ns().root.Quit()
  
-def run_perf_tests(tests, logName=None):
+def run_perf_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
     """Method to execute cats tests, must be in Performance directory"""
 
     logger = TestOutput(stdout=True, debug=0, logName=logName)
