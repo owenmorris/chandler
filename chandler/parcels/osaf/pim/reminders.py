@@ -116,51 +116,57 @@ class Remindable(schema.Item):
         )
     )
 
-    def getUserReminder(self, collectionToo=False):
+    def getUserReminder(self, collectionToo=False, skipThis=None):
         for attr in ("reminders", "expiredReminders"):
             if (self.hasLocalAttributeValue(attr)):
                 collection = getattr(self, attr)
                 for reminder in collection:
-                    if reminder.userCreated:
+                    if reminder.userCreated and reminder is not skipThis:
                         return collectionToo and (collection, reminder) or reminder
         return collectionToo and (None, None) or None
 
-    def makeReminder(self, checkExpired=False, **kwds):
+    def makeReminder(self, checkExpired=False, replace=False, **kwds):
         # @@@ I think the proxy code should override calls to this method
         # add a separate reference to this reminder to each generated event,
         # (or something like that). (Remindable.snoozeReminder will call this
         # method; that operation should only affect the actual event, not the
         # series)
-        newReminder = Reminder(None, itsView=self.itsView, **kwds)
-        logger.debug("Adding %s to %s", newReminder, self)
-
-        addThisTo = self.reminders
-        if checkExpired:
-            nextTime = newReminder.getNextReminderTimeFor(self)
-
-            if (nextTime is not None and
-                nextTime < datetime.now(ICUtzinfo.default)):
-                assert kwds['keepExpired'], "Creating an expired reminder that isn't marked 'keepExpired'?"
-                addThisTo = self.expiredReminders
-
-        addThisTo.add(newReminder)
-        return newReminder
-
-    def replaceUserReminder(self, **kwds):
-        (collection, userReminder) = self.getUserReminder(True)
-
-        if userReminder is not None:
-            logger.debug("Removing %s from %s", userReminder, self)
-            collection.remove(userReminder)
-            if not (len(userReminder.reminderItems) or \
-                    len(userReminder.expiredReminderItems)):
-                userReminder.delete()
-
-        if kwds.get('delta') is None and kwds.get('absoluteTime') is None:
-            return None
         
-        return self.makeReminder(userCreated=True, keepExpired=True,
-                                 checkExpired=True, **kwds)
+        # Make the new reminder before we remove the old one, to avoid flicker
+        # in the UI.
+        if kwds.get('delta') or kwds.get('absoluteTime'):
+            # We're creating a new reminder.
+            newReminder = Reminder(None, itsView=self.itsView, **kwds)
+            logger.debug("Adding %s to %s", newReminder, self)
+
+            addThisTo = self.reminders
+            if checkExpired:
+                nextTime = newReminder.getNextReminderTimeFor(self)
+    
+                if (nextTime is not None and
+                    nextTime < datetime.now(ICUtzinfo.default)):
+                    assert kwds['keepExpired'], "Creating an expired reminder that isn't marked 'keepExpired'?"
+                    addThisTo = self.expiredReminders
+    
+            addThisTo.add(newReminder)
+        else:
+            # We don't need to create a new reminder, which means we're just
+            # replacing an old one with None, right?
+            assert replace
+            newReminder = None
+
+        # If we're supposed to, replace any old userReminder
+        if replace:
+            (collection, userReminder) = self.getUserReminder(True, newReminder)
+
+            if userReminder is not None:
+                logger.debug("Removing %s from %s", userReminder, self)
+                collection.remove(userReminder)
+                if not (len(userReminder.reminderItems) or \
+                        len(userReminder.expiredReminderItems)):
+                    userReminder.delete()
+
+        return newReminder
 
     def dismissReminder(self, reminder):
         """ Dismiss this reminder. """
@@ -222,7 +228,9 @@ class Remindable(schema.Item):
 
     def setUserReminderInterval(self, delta):
         assert hasattr(self, 'effectiveStartTime')
-        return self.replaceUserReminder(delta=delta, relativeTo='effectiveStartTime')
+        return self.makeReminder(delta=delta, relativeTo='effectiveStartTime',
+                                 checkExpired=True, keepExpired=True, 
+                                 replace=True)
 
     userReminderInterval = Calculated(
         schema.TimeDelta,
@@ -239,7 +247,9 @@ class Remindable(schema.Item):
         return userReminder.absoluteTime
 
     def setUserReminderTime(self, absoluteTime):
-        return self.replaceUserReminder(absoluteTime=absoluteTime)
+        return self.makeReminder(absoluteTime=absoluteTime, userCreated=True,
+                                 checkExpired=True, keepExpired=True, 
+                                 replace=True)
     
     userReminderTime = Calculated(
         schema.DateTimeTZ,

@@ -1083,38 +1083,60 @@ class ReminderTimer(Timer):
         """
         Prime the reminder timer and maybe show or hide the dialog
         """
-        mainFrame = wx.GetApp().mainFrame
-        if createDialog and not mainFrame.IsShown():
-            # The main window isn't up yet; this happens on Mac when
-            # Chandler is started with a reminder already due. Wait a couple
-            # of seconds and try again.
-            (nextReminderTime, closeIt) = (datetime.now(
-                PyICU.ICUtzinfo.default) + timedelta(seconds=1), False)
-        else:
-            # Get the dialog if we have it; we'll create it if 'createDialog' and
-            # it doesn't exist.
-            reminderDialog = self.getReminderDialog(createDialog)
-            if reminderDialog is not None:
-                # The dialog is displayed; get the list of pending reminders and 
-                # let it update itself. It'll tell us when it wants us to fire next, 
-                # or whether we should close it now.
-                pending = self.getPendingReminders()
-                (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
+        # Ignore prime calls while we're priming
+        if getattr(self, '_inPrimeReminderTimer', False):
+            return
+        
+        self._inPrimeReminderTimer = True
+        try:
+            mainFrame = wx.GetApp().mainFrame
+            if createDialog and not mainFrame.IsShown():
+                # The main window isn't up yet; this happens on Mac when
+                # Chandler is started with a reminder already due. Wait a couple
+                # of seconds and try again.
+                (nextReminderTime, closeIt) = (datetime.now(
+                    PyICU.ICUtzinfo.default) + timedelta(seconds=1), False)
             else:
-                # Or not.
-                (nextReminderTime, closeIt) = (None, False)
+                # Get the dialog if we have it; we'll create it if 'createDialog' and
+                # it doesn't exist.
+                reminderDialog = self.getReminderDialog(createDialog)
+                if reminderDialog is not None:
+                    # The dialog is displayed; get the list of pending reminders and 
+                    # let it update itself. It'll tell us when it wants us to fire next, 
+                    # or whether we should close it now.
+                    
+                    # Update triagestatus on each pending reminder. Dismiss any
+                    # internal reminders that exist only to trigger on startTime.
+                    def processReminder((reminderTime, remindable, reminder)):
+                        remindable.triageStatus = 'now'
+                        remindable.setTriageStatusChanged(when=reminderTime)
+                        if reminder.userCreated:
+                            return True # this should appear in the list.
+                        # This is a non-user reminder, which served only to let us
+                        # bump the triageStatus. Discard it.
+                        reminder.dismiss()
+                        return False
+                    pending = filter(processReminder, self.getPendingReminders())
+                    
+                    (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
+                else:
+                    # Or not.
+                    (nextReminderTime, closeIt) = (None, False)
+            if nextReminderTime is None:
+                # The dialog didn't give us a time to fire; we'll fire at the
+                # next non-pending reminder's time.
+                itemsWithReminders = schema.ns('osaf.pim', self.itsView).itemsWithReminders
+                firstReminder = itemsWithReminders.firstInIndex('reminderTime')
+                if firstReminder is not None:
+                    nextReminderTime = firstReminder.reminderFireTime
+    
+            if closeIt:
+                self.closeReminderDialog()
+            self.setFiringTime(nextReminderTime)
 
-        if nextReminderTime is None:
-            # The dialog didn't give us a time to fire; we'll fire at the
-            # next non-pending reminder's time.
-            itemsWithReminders = schema.ns('osaf.pim', self.itsView).itemsWithReminders
-            firstReminder = itemsWithReminders.firstInIndex('reminderTime')
-            if firstReminder is not None:
-                nextReminderTime = firstReminder.reminderFireTime
+        finally:
+            del self._inPrimeReminderTimer                
 
-        if closeIt:
-            self.closeReminderDialog()
-        self.setFiringTime(nextReminderTime)
 
     def getReminderDialog(self, createIt):
         try:

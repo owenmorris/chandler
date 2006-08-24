@@ -246,6 +246,7 @@ class PublishCollectionDialog(wx.Dialog):
                 attrs.append('transparency')
             if not self.CheckboxShareTriage.GetValue():
                 attrs.append('triageStatus')
+                attrs.append('triageStatusChanged')
         return attrs
 
 
@@ -270,9 +271,11 @@ class PublishCollectionDialog(wx.Dialog):
         if not self.CheckboxShareTriage.GetValue():
             if "triageStatus" not in share.filterAttributes:
                 share.filterAttributes.append("triageStatus")
+                share.filterAttributes.append("triageStatusChanged")
         else:
             if "triageStatus" in share.filterAttributes:
                 share.filterAttributes.remove("triageStatus")
+                share.filterAttributes.remove("triageStatusChanged")
 
         # Make sure no matter what we keep filtering out the attributes that
         # never belong in the XML fork of a CalDAV share:

@@ -747,22 +747,6 @@ class ReminderConditionalBlock(Item):
         reminder = item.getUserReminder()
         return reminder is not None or item.isAttributeModifiable('reminders')
     
-    def selectedReminderType(self):
-        # The absolute and relative subclasses need to look at the type
-        # popup to determine whether to show themselves. (Returns None if we
-        # can't decide now.)
-        typeChooserBlock = Block.Block.findBlockByName('EditReminderType')
-        if typeChooserBlock is None:
-            return None
-        typeChooserWidget = getattr(typeChooserBlock, 'widget', None)
-        if typeChooserWidget is None:
-            return None
-        selectionIndex = typeChooserWidget.GetSelection()
-        if selectionIndex == wx.NOT_FOUND:
-            return None
-        reminderType = typeChooserWidget.GetClientData(selectionIndex)
-        return reminderType
-
     def getWatchList(self):
         watchList = super(ReminderConditionalBlock, self).getWatchList()
         watchList.extend([(self.item, 'reminders'),
@@ -781,13 +765,13 @@ class ReminderRelativeAreaBlock(ReminderConditionalBlock,
                                 DetailSynchronizedContentItemDetail):
     def shouldShow(self, item):
         return super(ReminderRelativeAreaBlock, self).shouldShow(item) and \
-               self.selectedReminderType() in ('before', 'after')
+               getReminderType(item.getUserReminder()) in ('before', 'after')
     
 class ReminderAbsoluteAreaBlock(ReminderConditionalBlock,
                                 DetailSynchronizedContentItemDetail):
     def shouldShow(self, item):
         return super(ReminderAbsoluteAreaBlock, self).shouldShow(item) and \
-               self.selectedReminderType() == 'custom'
+               getReminderType(item.getUserReminder()) == 'custom'
 
 class ReminderAEBlock(DetailSynchronizedAttributeEditorBlock):
     def getWatchList(self):
@@ -860,6 +844,7 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         elif value in ('before', 'after'):
             if reminderType in ('before', 'after'):
                 # Just change the sign of the old reminder
+                (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
                 item.userReminderInterval = scaleTimeDelta(units, scale, not isAfter)
             else:
                 # Make a new 15-minute reminder with the right sign.
@@ -879,9 +864,9 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
                          item, active, inactive)
 
 class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
-    choices = [_(u'Minutes'),
-                _(u'Hours'),
-                _(u'Days')]
+    choices = [_(u'minutes'),
+                _(u'hours'),
+                _(u'days')]
 
     def GetChoices(self):
         return self.choices
@@ -895,6 +880,8 @@ class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
         return scale
             
     def SetAttributeValue (self, item, attributeName, value):
+        if value is None:
+            return
         reminder = item.getUserReminder()
         reminderType = getReminderType(reminder)
         if reminderType not in ('before', 'after'):
@@ -904,7 +891,7 @@ class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
         if scale == value:
             return # unchanged
         
-        item.userReminderInterval = scaleTimeDelta(value, scale, isAfter)
+        item.userReminderInterval = scaleTimeDelta(units, value, isAfter)
 
     def GetControlValue (self, control):
         choiceIndex = control.GetSelection()
@@ -954,9 +941,6 @@ class ReminderUnitsAttributeEditor(StringAttributeEditor):
         (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
         if units != value:
             item.userReminderInterval = scaleTimeDelta(value, scale, isAfter)
-
-#class ReminderDateAttributeEditor(DateAttributeEditor): pass
-#class ReminderTimeAttributeEditor(TimeAttributeEditor): pass
 
 class TransparencyConditionalBlock(Item):
     def shouldShow (self, item):

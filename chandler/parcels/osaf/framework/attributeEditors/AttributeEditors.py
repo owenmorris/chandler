@@ -1835,17 +1835,12 @@ class TimeAttributeEditor(StringAttributeEditor):
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
             return
             
-
-        if oldValue is not None:
-            time = datetime.fromtimestamp(timeValue, oldValue.tzinfo).time()
-        else:
-            time = datetime.fromtimestamp(timeValue).time()
-
         # If we got a new value, put it back.
-        value = datetime.combine(oldValue.date(), time)
+        value = datetime.combine(oldValue.date(), timeValue.timetz())
+        # Preserve the time zone!
+        value = value.replace(tzinfo=oldValue.tzinfo)
         
-        if item.anyTime or oldValue != value:
-            # Something changed.                
+        if value != oldValue:
             setattr (item, attributeName, value)
             
         # Refresh the value in the control

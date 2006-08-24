@@ -18,6 +18,7 @@
 
 __parcel__ = "osaf.pim"
 
+import time
 from datetime import datetime
 
 from application.Parcel import Parcel
@@ -161,7 +162,13 @@ class ContentItem(Remindable):
 
     triageStatus = schema.One(TriageEnum, indexed=True,
                               defaultValue="now")
-
+    
+    # For sorting by how recently triageStatus changed, we keep this attribute,
+    # which is the time (in seconds) of the last change, negated for proper 
+    # order. It's updated automatically when triageStatus is changed by 
+    # setTriageStatusChanged, below.
+    triageStatusChanged = schema.One(schema.Float)
+    
     # We haven't ported the "other end" of these links, so we have to use
     # 'otherName' settings to ensure that they get hooked up correctly.
     # The 'otherName' settings should be removed once the other side of these
@@ -182,15 +189,21 @@ class ContentItem(Remindable):
 
     schema.addClouds(
         sharing = schema.Cloud("displayName", body, createdOn, 'tags',
-                               "description", lastModifiedBy, triageStatus),
+                               "description", lastModifiedBy, triageStatus,
+                               triageStatusChanged),
         copying = schema.Cloud()
     )
 
     def __init__(self, *args, **kw):
         super(ContentItem, self).__init__(*args, **kw)
+        now = None
         if not hasattr(self, 'createdOn'):
-            self.createdOn = datetime.now(ICUtzinfo.default)
-
+            now = datetime.now(ICUtzinfo.default)
+            self.createdOn = now
+        if not hasattr(self, 'triageStatusChanged'):
+            self.setTriageStatusChanged(when=now or 
+                                        datetime.now(ICUtzinfo.default))
+            
     def __str__ (self):
         if self.isStale():
             return super(ContentItem, self).__str__()
@@ -226,7 +239,7 @@ class ContentItem(Remindable):
 
         # Let the clipboard handler know we've got a ContentItem to export
         clipboardHandler.ExportItemFormat(self, 'ContentItem')
-
+        
     def addToCollection(self, collection):
         """Add self to the given collection.
 
@@ -575,6 +588,19 @@ class ContentItem(Remindable):
         return state
 
     sharedState = property(getSharedState)
+
+    @schema.observer(triageStatus)
+    def setTriageStatusChanged(self, attribute=None, when=None):
+        """
+        Update triageStatusChanged, which is the number of seconds since the
+        epoch that triageStatus was changed, negated for proper sort order.
+        As a schema.observer of triageStatus, it's called automatically, but
+        can also be called directly to set a specific time:
+           item.setTriageStatusChanged(when=someDateTime)
+        """
+        when = when or datetime.now(tz=ICUtzinfo.default)
+        self.triageStatusChanged = time.mktime(when.utctimetuple())
+        logger.debug("%s.triageStatus = %s @ %s", self, self.triageStatus, when)
 
     def getBasedAttributes(self, attribute):
         """ Determine the schema attributes that affect this attribute

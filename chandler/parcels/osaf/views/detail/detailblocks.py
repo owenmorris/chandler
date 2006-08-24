@@ -279,8 +279,6 @@ def registerAttributeEditors(parcel, oldVersion):
         'Reminder+reminderType': 'ReminderTypeAttributeEditor',
         'TimeDelta+reminderUnits': 'ReminderUnitsAttributeEditor',
         'TimeDelta+reminderScale': 'ReminderScaleAttributeEditor',
-        #'DateTimeTZ+reminderDate': 'ReminderDateAttributeEditor',
-        #'DateTimeTZ+reminderTime': 'ReminderTimeAttributeEditor',
     }
     AttributeEditorMapping.register(parcel, aeDict, __name__)
     
@@ -454,8 +452,11 @@ def makeNoteSubtree(parcel, oldVersion):
                     presentationStyle={'format': 'dateOnly'},
                     stretchFactor=0.0,
                     size=SizeType(75, -1)),
-                makeLabel(parcel, _(u'at'),
+                StaticTextLabel.template('ReminderAtLabel',
+                    title=_(u'at'),
+                    characterStyle=blocks.LabelStyle,
                     textAlignmentEnum='Center',
+                    stretchFactor=0.0,
                     border=RectType(4, 4, 0, 4)),
                 makeEditor(parcel, 'EditReminderTime',
                     baseClass=ReminderAEBlock,
