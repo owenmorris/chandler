@@ -517,11 +517,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     # collection swatches should be drawn if the item is
                     # in at least one other collection (not counting the
                     # dashboard).
-                    colls = len(getattr(item, 'appearsIn', []))
+                    master = item.getMaster()
+                    colls = len(getattr(master, 'appearsIn', []))
                     # for some reason primaryCollection and allCollection don't
                     # compare as equal when they ought to, so compare UUIDs
                     drawSwatches = (colls > 2 or (colls == 2 and
-                       (item not in allCollection or 
+                       (master not in allCollection or 
                        self.primaryCollection.itsUUID == allCollection.itsUUID))
                                     )
                     
@@ -684,6 +685,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         topLeft and bottomRight must be vectors (lists which can be added and
         subtracted like vectors)
         """
+        master = self.item.getMaster()
         app_ns = schema.ns('osaf.app', self.item.itsView)
         sidebarCollections = app_ns.sidebarCollection
         allCollection = schema.ns('osaf.pim', self.item.itsView).allCollection
@@ -712,7 +714,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         count = 0
         for coll in reversed([i for i in sidebarCollections if 
-                              self.item in i and i not in 
+                              master in i and i not in 
                               (self.collection, allCollection)]):
             swatchBR = bottomRight - count * delta
             swatchTL = swatchBR - SWATCH_HEIGHT_VECTOR - SWATCH_WIDTH_VECTOR
