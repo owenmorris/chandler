@@ -136,7 +136,7 @@ def main():
                 except:
                     # Fall back to MessageDialog
                     frames = 8
-                    line2 = u"Here are the bottom %(frames)s frames of the stack:\n" % {'frames': frames - 1}
+                    line2 = "Here are the bottom %(frames)s frames of the stack:\n" % {'frames': frames - 1}
                     shortMessage = "".join([line1, line2, "\n"] + backtrace[-frames:])
                     dialog = wx.MessageDialog(None, shortMessage, "Chandler", 
                                               wx.OK | wx.ICON_INFORMATION)
