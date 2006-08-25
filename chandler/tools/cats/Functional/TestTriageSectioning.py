@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from tools import QAUITestAppLib
+import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 import osaf.pim as pim
 import osaf.framework.scripting as scripting
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
