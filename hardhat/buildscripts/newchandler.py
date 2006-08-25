@@ -276,15 +276,15 @@ def doFunctionalTests(releaseMode, workingDir, log):
                 '--parcelPath=tools/QATestScripts/DataFiles',
                 '--scriptTimeout=600', 
                 '--scriptFile=tools/cats/Functional/FunctionalTestSuite.py',
-                '--chandlerTestLogfile=FunctionalTestSuite.log', #new framework defaults to no log without this
-                '--chandlerTestDebug=1',
+               # '--chandlerTestLogfile=FunctionalTestSuite.log', #new framework defaults to no log without this
+                '--chandlerTestDebug=0',
                 '--chandlerTestMask=0',]
 
         outputList = hardhatutil.executeCommandReturnOutput(args)
 
         hardhatutil.dumpOutputList(outputList, log)
 
-        dumpTestLogs(log, chandlerLog, FuncTestLog)
+        dumpTestLogs(log, chandlerLog)
 
         for line in outputList:
             if line.find('#TINDERBOX# Status = FAIL') >= 0 or \
