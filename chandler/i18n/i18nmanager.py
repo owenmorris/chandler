@@ -63,9 +63,6 @@ _PYICU_LOCALE = None
 
 try:
     import wx
-    #This will raise an error if no GUI display is
-    #avaiable for wx to render to
-    _WX_APP = wx.App()
     _WX_AVAILABLE = True
 
     # Keep a Global reference to the Wx Locale
@@ -87,7 +84,11 @@ except:
 
 def wxIsAvailable():
     global _WX_AVAILABLE
-    return _WX_AVAILABLE
+
+    if _WX_AVAILABLE:
+        return wx.GetApp() is not None
+
+    return False
 
 
 class I18nManager(EggTranslations):

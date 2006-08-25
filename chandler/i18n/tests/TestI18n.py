@@ -17,7 +17,13 @@ class I18nTestCase(unittest.TestCase):
     LOCALE_SET = ["fr_CA", "es_UY"]
 
     def setUp(self):
-        self._wx_available = wxIsAvailable()
+        try:
+            import wx
+            # A wx.App is needed for wx localizations
+            self._wx_app = wx.App()
+            self._wx_available = True
+        except:
+            self._wx_available = False
 
         self.i18nMan = i18n._I18nManager
 
