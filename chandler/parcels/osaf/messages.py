@@ -39,9 +39,9 @@ PRIVATE = _(u"Never share this item")
 NOT_PRIVATE = _(u"Allow sharing this item")
 READONLY = _(u"Read only")
 
-STAMP_MAIL_HELP = _(u"Prepare this item as a mail message")
-STAMP_TASK_HELP = _(u"Put this item onto the Taskpad")
-STAMP_CALENDAR_HELP = _(u"Put this item onto the Calendar")
+STAMP_MAIL_HELP = _(u"Address this item")
+STAMP_TASK_HELP = _(u"Add to task list")
+STAMP_CALENDAR_HELP = _(u"Add to Calendar")
 
 """Server Account Settings"""
 USERNAME = _(u"Username")
