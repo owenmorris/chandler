@@ -17,6 +17,7 @@ from i18nmanager import I18nManager, I18nException
 from types import UnicodeType, StringType
 
 __all__ = ["MessageFactory", "ChandlerMessageFactory",
+            "SafeTranslationMessageFactory", "ChandlerSafeTranslationMessageFactory",
            "wxMessageFactory", "getLocaleSet", "getImage", "getHTML"]
 
 CHANDLER_PROJECT = u"Chandler"
@@ -40,8 +41,8 @@ getHTML = _I18nManager.getHTML
 
 def MessageFactory(project, catalog_name=DEFAULT_CATALOG):
     """
-    Chandler translation API. A MessageFactory is leveraged per
-    unique project to access the localiztion files
+    Chandler translation API. A c{MessageFactory} is leveraged per
+    unique project to access the localization files
     which are in gettext .mo format.
 
     A unique project can be created per parcel or for a
@@ -49,7 +50,8 @@ def MessageFactory(project, catalog_name=DEFAULT_CATALOG):
 
     A project is namespace under which translation strings reside.
 
-    A MessageFactory example:
+    A c{MessageFactory} example:
+
     >>> from i18n import MessageFactory
     >>> _ = MessageFactory("myproject")
     >>> translatedString = _(u"Some text for translation")
@@ -101,12 +103,12 @@ def wxMessageFactory(defaultText):
     The wxMessageFactory is intended as shortcut to allow easy
     access to translations in the "wxstd" project.
 
-    The project must have been loaded by the I18nManager
-    in order to access the translations. Otherwise an
-    I18nException will be raised.
+    The "wxstd" project must have been loaded by the c{I18nManager}
+    in order to access the translations. Otherwise the
+    defaultText will be returned.
 
+    A c{wxMessageFactory} example:
 
-    A wxMessageFactory example:
     >>> from i18n import wxMessageFactory as w
     >>> translatedString = w("Cancel")
 
@@ -123,6 +125,78 @@ def wxMessageFactory(defaultText):
     assert(type(defaultText) == UnicodeType)
 
     return _I18nManager.wxTranslate(defaultText)
+
+
+def SafeTranslationMessageFactory(project, catalog_name=DEFAULT_CATALOG):
+    """
+    A c{SafeTranslationMessageFactory} is leveraged per
+    unique project to access the localization files
+    which are in gettext .mo format.
+
+    A unique project can be created per parcel or for a
+    grouping of parcels.
+
+    A project is namespace under which translation strings reside.
+
+    Unlike the c{MessageFactory} and c{ChandlerMessageFactory}
+    which will raise an Exception if called before i18n is initialized,
+    A safe translation will return the default text passed in cases where
+    i18n initialization has failed or has not been called.
+
+    This method should be used *only* in the cases where
+    a string must be displayed whether i18n has
+    successfully initialized or not.
+
+    A c{SafeTranslationMessageFactory} example:
+
+    >>> from i18n import SafeTranslationMessageFactory
+    >>> _ = SafeTranslationMessageFactory("myproject")
+    >>> translatedString = _(u"Some text for translation")
+
+    @param project: A project is a root namespace under which
+                    resources and localizations exist.
+
+                    A project name matches an egg name.
+                    An egg's info file can contain resource
+                    and localizations for more than one project.
+
+                    The project name must be either an ASCII
+                    c{str} or c{unicode}.
+
+     @type project: ASCII c{str} or c{unicode}
+
+    @rtype: function
+    @return: A SafeTranslationMessageFactory.getText function instance
+    """
+
+    mf =  MessageFactory(project, catalog_name)
+
+    def getText(defaultText):
+        """
+        Performs a translation lookup using the defaultText as the key.
+        Translation files are stored in the gettext .mo format and
+        cached on startup. The defaultText key is looked up for
+        each locale in the curent locale set until a match is found.
+        If no match is found the defaultText is returned as the value.
+
+        @param defaultText: the unicode or ascii default key
+        @type defaultText: c{unicode} or ASCII c{str}
+
+        @rtype: unicode
+        @return: The unicode localized string for key defaultText or the
+                 defaultText if no match found
+        """
+        if type(defaultText) == StringType:
+            defaultText = unicode(defaultText)
+
+        assert(type(defaultText) == UnicodeType)
+
+        try:
+            return mf(defaultText)
+        except:
+            return defaultText
+
+    return getText
 
 
 def ChandlerMessageFactory(defaultText):
@@ -152,3 +226,41 @@ def ChandlerMessageFactory(defaultText):
              defaultText if no match found
     """
     return MessageFactory(CHANDLER_PROJECT, DEFAULT_CATALOG)(defaultText)
+
+
+def ChandlerSafeTranslationMessageFactory(defaultText):
+    """
+    A safe translation message factory for Chandler.
+    The c{ChandlerSafeTranslationMessageFactory} is intended as
+    shortcut to allow easy access to safe translations in the "Chandler" project.
+
+    Unlike the c{MessageFactory} and c{ChandlerMessageFactory} 
+    which will raise an Exception if called before i18n is initialized,
+    A safe translation will return the default text passed in cases where 
+    i18n initialization has failed or has not been called.
+
+    This method should be used *only* in the cases where
+    a string must be displayed whether i18n has
+    successfully initialized or not.
+
+    A c{ChandlerSafeTranslationMessageFactory} example:
+
+    >>> from i18n import ChandlerSafeTranslationMessageFactory as _
+    >>> translatedString = _(u"Some text for translation")
+
+    The functionality provided by the c{ChandlerSafeTranslationMessageFactory} can
+    be accessed using a c{SafeTranslationMessageFactory}.  Again the
+    c{ChandlerSafeTranslationMessageFactory} is provided as a shortcut.
+
+    >>> from i18n import SafeTranslationMessageFactory
+    >>> _ = SafeTranslationMessageFactory(CHANDLER_PROJECT, DEFAULT_CATALOG)
+    >>> translatedString = _(u"Some text for translation")
+
+    @param defaultText: the unicode or ASCII default key
+    @type defaultText: ASCII c{str} or c{unicode}
+
+    @rtype: unicode
+    @return: The unicode localized string for key defaultText or the
+             defaultText if no match found
+    """
+    return SafeTranslationMessageFactory(CHANDLER_PROJECT, DEFAULT_CATALOG)(defaultText)

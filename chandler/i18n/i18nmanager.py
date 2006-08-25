@@ -21,10 +21,6 @@ from PyICU import Locale
 from cStringIO import StringIO
 import os, locale, logging
 
-# Shortcut for quickly debugging issues with the
-# EggTranslations resource loading code.
-# logger.setLevel(logging.DEBUG)
-
 
 """
 RULES:
@@ -40,21 +36,24 @@ THOUGHTS:
 TO DO:
 ===========
    1. Do performance testing (are caches needed?) (Markku)
+
+
+Gettext Program:
+=================
+1. if OS X set DYLD_LIBRARY_PATH to release/lib or debug/lib
+    if linux set LD_LIBRARY_PATH
+2. Find all xrc under a root poth
+3. Run wxrc on all xrc files outputing as .py files with a name like
+myfile_xrc_translation_strings.py
+4. Run createPot on all python files under the directory path
+5. remove the xrc python files
+
+Uses:
+1. Chandler -c creates a chandler.pot file
+2. Chandler examples -ce` creates a chandler_examples.pot file
+3. Specify the project name will create a PROJECT_NAME.pot for
+   all xrc and python files under the root
 """
-
-try:
-    import wx
-    _WX_INSTALLED = True
-
-    __all__ = ["I18nManager", "setEnvironmentLocale", "getPyICULocale",
-               "setPythonLocale", "convertPyICULocale",
-               "isValidPyICULocale", "setPyICULocale", "I18nException",
-               "setWxLocale", "getWxLocale", "findWxLocale"]
-except:
-    _WX_INSTALLED = False
-    __all__ = ["I18nManager", "setEnvironmentLocale", "getPyICULocale",
-               "setPythonLocale", "convertPyICULocale",
-               "isValidPyICULocale", "setPyICULocale", "I18nException"]
 
 # Keep a Global reference to the PyICU Locale
 # To ensure it does not get unloaded during the
@@ -62,10 +61,39 @@ except:
 # PyICU locale per Python instance
 _PYICU_LOCALE = None
 
+try:
+    import wx
+    #This will raise an error if no GUI display is
+    #avaiable for wx to render to
+    _WX_APP = wx.App()
+    _WX_AVAILABLE = True
+
+    # Keep a Global reference to the Wx Locale
+    # To ensure that it does not get unloaded during the
+    # application life cycle. There can be only one
+    # Wx locale le per Python instance
+    _WX_LOCALE = None
+
+
+    __all__ = ["I18nManager", "setEnvironmentLocale", "getPyICULocale",
+               "setPythonLocale", "convertPyICULocale",
+               "isValidPyICULocale", "setPyICULocale", "I18nException",
+               "setWxLocale", "getWxLocale", "findWxLocale", "wxIsAvailable"]
+except:
+    _WX_AVAILABLE = False
+    __all__ = ["I18nManager", "setEnvironmentLocale", "getPyICULocale",
+               "setPythonLocale", "convertPyICULocale",
+               "isValidPyICULocale", "setPyICULocale", "I18nException", "wxIsAvailable"]
+
+def wxIsAvailable():
+    global _WX_AVAILABLE
+    return _WX_AVAILABLE
+
+
 class I18nManager(EggTranslations):
     _NAME = "I18nManager"
 
-    __slots__ = ["_testing", "_lookupCache", "_wx_installed", "_wx_filehandler",
+    __slots__ = ["_testing", "_lookupCache", "_wx_filehandler",
                  "_DEFAULT_PROJECT", "_DEFAULT_CATALOG", "_DEFAULT_IMAGE",
                  "_DEFAULT_HTML", "_RUNNING_IN_UNIT_TEST"]
 
@@ -94,9 +122,6 @@ class I18nManager(EggTranslations):
         self._lookupCache = None
         self._wx_filehandler = None
         self._testing = False
-
-        global _WX_INSTALLED
-        self._wx_installed = _WX_INSTALLED
 
         # This is a signal that _I18nManager is being run with unit test
         # framework. Since the framework does not yet initialize the
@@ -198,7 +223,7 @@ class I18nManager(EggTranslations):
         super(I18nManager, self).initialize(localeSet, iniFileName,
                                             encoding, fallback)
 
-        if self._wx_installed:
+        if wxIsAvailable():
             self._wx_filehandler = I18nFileSystemHandler(self)
             wx.FileSystem.AddHandler(self._wx_filehandler)
 
@@ -224,8 +249,8 @@ class I18nManager(EggTranslations):
 
         assert(self._init, True)
 
-        if self._wx_installed:
-            locale = wx.Locale(wx.LANGUAGE_DEFAULT).GetName()
+        if wxIsAvailable():
+            locale = I18nLocale(wx.LANGUAGE_DEFAULT, i18nMan=self).GetName()
         else:
             locale = Locale.getDefault().getName()
 
@@ -327,8 +352,8 @@ class I18nManager(EggTranslations):
 
         primaryLocale = self._localeSet[0]
 
-        if self._wx_installed:
-            setWxLocale(primaryLocale)
+        if wxIsAvailable():
+            setWxLocale(primaryLocale, self)
 
         setPyICULocale(primaryLocale)
         setPythonLocale(primaryLocale)
@@ -476,10 +501,18 @@ class I18nManager(EggTranslations):
                         txt, *args)
         except TypeError, e:
             if self._RUNNING_IN_UNIT_TEST:
-                return args and arg[0] or txt
-            raise e
+                return args and args[0] or txt
+            # the c{cEggTranslations.getText} method will only raise an
+            # exception if it has not been initialized.
+            raise I18nException("I18nManager getText method called before initialization")
+
+        #If the additional argument passed to getText is
+        #the same as res meaning no translation was found
+        #then do not add u"(\u00FC):" to it.
+        ignore = args and args[0] == res
 
         if self._testing \
+           and not ignore \
            and not "Ctrl+" in res \
            and not "DELETE" == res \
            and not "Del" == res \
@@ -507,8 +540,7 @@ class I18nManager(EggTranslations):
         """
         assert(self._init, True)
 
-        if self._wx_installed:
-            #XXX Add check that wx is loaded
+        if wxIsAvailable():
             res = wx.GetTranslation(txt)
         else:
             res = txt
@@ -834,94 +866,6 @@ class I18nManager(EggTranslations):
         return (None, None)
 
 
-def setWxLocale(locale):
-    """
-      Sets the c{wx.Locale} to the value passed in
-      c{str} locale argument.
-
-      If the locale passed is not a valid wx locale and
-      and that locale consists of a lang and country code,
-      the country code is stripped and the lang code
-      is set as the c{wx.Locale}.
-
-      This logic is employed in the cases such as "es_UY"
-      where wxPython does not have a translation for
-      'es_UY' but does have one for 'es'.
-
-      If the locale is still not valid after attempting to
-      use just the lang code a c{I18nException} is raised.
-
-      @param locale: a c{str} locale
-      @type locale: ASCII c{str}
-    """
-
-    global _WX_INSTALLED
-
-    if not _WX_INSTALLED:
-        return None
-
-
-    # Need to unload wx.Locale object otherwise it will
-    # hold a dangling reference and not use the new Locale
-    global _WX_LOCALE
-    _WX_LOCALE = None
-
-    lc = findWxLocale(locale)
-
-    if not lc.IsOk() and hasCountryCode(locale):
-        # Need to unload wx.Locale object otherwise it will
-        # hold a dangling reference and not use the
-        # Stripped Locale
-
-        lc = None
-
-        # Strip the country code and just use the language
-        # For example wx does not have a translation for
-        # 'es_UY' but does have one for 'es'
-
-        lc = findWxLocale(stripCountryCode(locale))
-
-    if not lc.IsOk():
-        raise I18nException("Invalid wxPython Locale: " \
-                                 "'%s'" % locale)
-
-    # Keep a Global reference to the Wx Locale
-    # To ensure it does not get unloaded during the
-    # application life cycle. There can be only one
-    # wx locale per Python instance
-    _WX_LOCALE = lc
-
-def findWxLocale(locale):
-    """
-       Looks up the wx Language integer code.
-       The code is needed to create a c{wx.Locale} object.
-
-      For example the code for "en_US" is 58.
-
-      If c{wx.FindLanguageInfo(locale)} returns None then wx
-      does not support the requested locale or the lang / country
-      codes are invalid.
-
-      the findWxLocale method can raise the following exceptions:
-            1. c{I18nException}
-
-      @param locale: a c{str} locale
-      @type locale: c{str}
-
-      @return: a c{wx.Locale} object
-    """
-
-    langInfo = wx.Locale.FindLanguageInfo(locale)
-
-    if langInfo is None:
-        #The locale request is invalid or not supported by wx
-        raise I18nException("Invalid wxPython Locale: " \
-                                 "'%s'" % locale)
-
-    #Get the wx Locale object for the ISO lang / country code
-    return wx.Locale(langInfo.Language)
-
-
 def getPyICULocale():
     """
       Returns the current PyICU
@@ -1030,14 +974,7 @@ def setEnvironmentLocale(locale):
 class I18nException(Exception):
     pass
 
-if _WX_INSTALLED:
-    # Keep a Global reference to the Wx Locale
-    # To ensure that it does not get unloaded during the
-    # application life cycle. There can be only one
-    # Wx locale le per Python instance
-
-    _WX_LOCALE = None
-
+if _WX_AVAILABLE:
     def getWxLocale():
         """
           Returns the current wxPython
@@ -1049,7 +986,7 @@ if _WX_INSTALLED:
         global _WX_LOCALE
         return _WX_LOCALE
 
-    def setWxLocale(locale):
+    def setWxLocale(locale, i18nMan):
         """
           Sets the c{wx.Locale} to the value passed in
           c{str} locale argument.
@@ -1075,7 +1012,7 @@ if _WX_INSTALLED:
         global _WX_LOCALE
         _WX_LOCALE = None
 
-        lc = findWxLocale(locale)
+        lc = findWxLocale(locale, i18nMan)
 
         if not lc.IsOk() and hasCountryCode(locale):
             # Need to unload wx.Locale object otherwise it will
@@ -1088,7 +1025,7 @@ if _WX_INSTALLED:
             # For example wx does not have a translation for
             # 'es_UY' but does have one for 'es'
 
-            lc = findWxLocale(stripCountryCode(locale))
+            lc = findWxLocale(stripCountryCode(locale), i18nMan)
 
         if not lc.IsOk():
             raise I18nException("Invalid wxPython Locale: " \
@@ -1100,7 +1037,7 @@ if _WX_INSTALLED:
         # wx locale per Python instance
         _WX_LOCALE = lc
 
-    def findWxLocale(locale):
+    def findWxLocale(locale, i18nMan):
         """
           Looks up the wx Language integer code.
           The code is needed to create a c{wx.Locale} object.
@@ -1120,7 +1057,9 @@ if _WX_INSTALLED:
           @return: a c{wx.Locale} object
         """
 
-        langInfo = wx.Locale.FindLanguageInfo(locale)
+        assert(isinstance(i18nMan, I18nManager))
+
+        langInfo = I18nLocale.FindLanguageInfo(locale)
 
         if langInfo is None:
             #The locale request is invalid or not supported by wx
@@ -1128,7 +1067,7 @@ if _WX_INSTALLED:
                                      "'%s'" % locale)
 
         #Get the wx Locale object for the ISO lang / country code
-        return wx.Locale(langInfo.Language)
+        return I18nLocale(langInfo.Language, i18nMan=i18nMan)
 
 
     class I18nFileSystemHandler(wx.FileSystemHandler):
@@ -1238,3 +1177,34 @@ if _WX_INSTALLED:
                                  location, mime, "", wx.DateTime.Now())
 
             return None
+
+    class I18nLocale(wx.PyLocale):
+        def __init__(self, language=-1, flags=wx.LOCALE_LOAD_DEFAULT|wx.LOCALE_CONV_ENCODING,
+                     i18nMan=None):
+            wx.PyLocale.__init__(self, language, flags)
+            assert(isinstance(i18nMan, I18nManager))
+            self.i18nMan = i18nMan
+
+        def GetSingularString(self, txt, project=None):
+            if txt is None or len(txt.strip()) == 0:
+                return u""
+
+            msg = missing = object()
+
+            if project is None or len(project.strip()) == 0:
+                project = self.i18nMan._DEFAULT_PROJECT
+
+            msg = self.i18nMan.getText(project, self.i18nMan._DEFAULT_CATALOG,
+                                       txt, missing)
+
+            if msg is missing:
+                msg = wx.GetTranslation(txt)
+
+            if self.i18nMan._testing:
+                return "$%s$" % msg
+
+            return msg
+
+    #    # this handler captures all plural translation requests
+    #    def GetPluralString(self, txt, txt2, n, project=None):
+    #        pass

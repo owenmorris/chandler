@@ -8,13 +8,6 @@ from i18n import wxMessageFactory as w
 
 this_module = "i18n.tests.TestI18n"
 
-try:
-    import wx
-    _WX_INSTALLED = True
-    _WX_APP = wx.App()
-except:
-    _WX_INSTALLED = False
-
 class I18nTestCase(unittest.TestCase):
     PROJECT = u"Chandler.i18n_test"
     IMG_DIR = u"imgs.test.resources"
@@ -24,12 +17,9 @@ class I18nTestCase(unittest.TestCase):
     LOCALE_SET = ["fr_CA", "es_UY"]
 
     def setUp(self):
-        global _WX_INSTALLED
-        self._wx_installed = _WX_INSTALLED
-        i18nmanager._WX_INSTALLED = _WX_INSTALLED
+        self._wx_available = wxIsAvailable()
 
         self.i18nMan = i18n._I18nManager
-        self.i18nMan._wx_installed = self._wx_installed
 
         self.i18nMan._DEFAULT_PROJECT = self.PROJECT
         self.i18nMan._DEFAULT_CATALOG = self.CATALOG
@@ -38,7 +28,6 @@ class I18nTestCase(unittest.TestCase):
 
         self.i18nMan.initialize(self.LOCALE_SET, self.INI_FILE)
         self.mf = MessageFactory(self.PROJECT, self.CATALOG)
-
 
     def testChandlerMessageFactory(self):
         """
@@ -88,6 +77,33 @@ class I18nTestCase(unittest.TestCase):
 
         # Restore the default locale set
         self.i18nMan.setLocaleSet(self.LOCALE_SET)
+
+    def testSafeTranslationMessageFactory(self):
+        from i18n import SafeTranslationMessageFactory
+
+        tmp = i18n._I18nManager
+        i18n._I18nManager = I18nManager(self.PROJECT, self.CATALOG,
+                                        self.IMG_DIR, self.HTML_DIR)
+
+        # don't initilize the i18nmanager
+        stmf = SafeTranslationMessageFactory("Test")
+        self.assertEquals(stmf("Return Me"), u"Return Me")
+
+        #restore i18nmanager
+        i18n._I18nManager = tmp
+
+    def testChandlerSafeTranslationMessageFactory(self):
+        from i18n import ChandlerSafeTranslationMessageFactory as cstmf
+
+        tmp = i18n._I18nManager
+        i18n._I18nManager = I18nManager(self.PROJECT, self.CATALOG,
+                                        self.IMG_DIR, self.HTML_DIR)
+
+        # don't initilize the i18nmanager
+        self.assertEquals(cstmf("Return Me"), u"Return Me")
+
+        #restore i18nmanager
+        i18n._I18nManager = tmp
 
     def testGetImage(self):
         # From the 'fr' locale
@@ -288,7 +304,7 @@ class I18nTestCase(unittest.TestCase):
                    setPyICULocale, "fr_SX")
 
     def testWxFileHandler(self):
-        if not self._wx_installed:
+        if not self._wx_available:
              return
 
         fh = self.i18nMan._wx_filehandler
@@ -333,17 +349,17 @@ class I18nTestCase(unittest.TestCase):
         self.assertEquals(b, True)
 
     def testSetWxLocale(self):
-        if not self._wx_installed:
+        if not self._wx_available:
              return
 
         self.assertRaises(I18nException,
-                      setWxLocale, "bogus")
+                      setWxLocale, "bogus", self.i18nMan)
 
         self.assertRaises(I18nException,
-                   setWxLocale, "fr_SX")
+                   setWxLocale, "fr_SX", self.i18nMan)
 
     def testWxMessageFactory(self):
-        if not self._wx_installed:
+        if not self._wx_available:
              return
 
         self.assertEquals(w("Cancel"), u"Annuler")
@@ -364,8 +380,8 @@ class I18nTestCase(unittest.TestCase):
         # the WxMessageFactory method insert
         # a (WX)\u00FC: at the start of the string.
         self.i18nMan.setLocaleSet("test")
-        self.assertEquals(w("Cancel"), u"(WX)\u00FC: Annuler")
-        self.assertEquals(w("&Quit"), u"(WX)\u00FC: &Quitter")
+        self.assertEquals(w("Cancel"), u"(WX)\u00FC: $Annuler$")
+        self.assertEquals(w("&Quit"), u"(WX)\u00FC: $&Quitter$")
 
         # Restore the default locale set
         self.i18nMan.setLocaleSet(self.LOCALE_SET)
