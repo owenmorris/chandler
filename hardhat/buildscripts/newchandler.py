@@ -221,13 +221,14 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
 
 
 def dumpTestLogs(log, chandlerLog, FuncTestLog, exitCode=0):
-    if FuncTestLog:
-        log.write("FunctionalTestSuite.log:\n")
-        try:
-            CopyLog(FuncTestLog, log)
-        except:
-            pass
-        log.write(separator)
+    # make sure functional test logs are not appended to tinderbox log
+    #if FuncTestLog:
+        #log.write("FunctionalTestSuite.log:\n")
+        #try:
+            #CopyLog(FuncTestLog, log)
+        #except:
+            #pass
+        #log.write(separator)
 
     if chandlerLog:
         log.write("chandler.log:\n")
