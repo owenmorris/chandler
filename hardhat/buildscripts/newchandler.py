@@ -284,7 +284,7 @@ def doFunctionalTests(releaseMode, workingDir, log):
 
         hardhatutil.dumpOutputList(outputList, log)
 
-        dumpTestLogs(log, chandlerLog)
+        dumpTestLogs(log, chandlerLog, FuncTestLog)
 
         for line in outputList:
             if line.find('#TINDERBOX# Status = FAIL') >= 0 or \
