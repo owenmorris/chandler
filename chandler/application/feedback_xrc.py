@@ -67,7 +67,7 @@ def __init_resources():
     __res = xrc.EmptyXmlResource()
 
     # Have to edit the path to the xrc file
-    import os
+    import os, sys
     xrcFile = os.path.join(os.path.dirname(__file__), 'feedback.xrc')
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     __res.Load(xrcFile)
