@@ -68,4 +68,6 @@ def __init_resources():
 
     # Have to edit the path to the xrc file
     import os
-    __res.Load(os.path.join(os.path.dirname(__file__), 'feedback.xrc'))
+    xrcFile = os.path.join(os.path.dirname(__file__), 'feedback.xrc')
+    xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
+    __res.Load(xrcFile)
