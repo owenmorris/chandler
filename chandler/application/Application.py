@@ -21,6 +21,7 @@ from i18n import ChandlerMessageFactory as _, getImage
 import schema, feedback
 from version import version
 
+from chandlerdb.item.c import Nil
 from repository.persistence.RepositoryError import \
     MergeError, RepositoryVersionError, VersionConflictError
 
@@ -711,19 +712,26 @@ class wxApplication (wx.App):
         finally:
             self.ignoreIdle = False
 
-    def propagateAsynchronousNotifications (self):
-        def mergeFunction(code, item, attribute, value):
-            # You can choose which view wins by uncommenting the appropriate
-            # return statement:
+    def _mergeFunction(self, item, attribute, value):
 
-            return getattr(item, attribute)             # Let changes from
-                                                        # other views win
+        if code == MergeError.DELETE:
+            return True                             # Let the item delete 
+                                                    # in the other view win
 
-            # return value                              # Let changes from the
-                                                        # main view win
+        # You can choose which view wins by uncommenting the appropriate
+        # return statement: (Nil means 'no value for the attribute')
+
+        return getattr(item, attribute, Nil)        # Let changes from
+                                                    # other views win
+
+        # return value                              # Let changes from the
+                                                    # main view win
+
+    def propagateAsynchronousNotifications(self):
 
         # Fire set notifications that require mapChanges
-        self.repository.view.refresh (mergeFunction) # pickup changes from other threads
+        # and pickup changes from other views
+        self.repository.view.refresh(self._mergeFunction) 
 
         # synchronize dirtied blocks to reflect changes to the data
         from osaf.framework.blocks.Block import Block

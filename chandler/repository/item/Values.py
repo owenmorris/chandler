@@ -367,13 +367,7 @@ class Values(CValues):
 
         for name in self._getDirties():
             value = self.get(name, Nil)
-
-            if name in dirties:
-                if value is Nil:
-                    view._e_3_overlap(MergeError.VALUE, self._item, name)
-                newChanges[name] = (False, value)
-            else:
-                newChanges[name] = (False, value)
+            newChanges[name] = (False, value)
 
             if isinstance(value, Indexed):
                 value._collectIndexChanges(name, indexChanges)

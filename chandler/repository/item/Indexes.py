@@ -384,21 +384,6 @@ class SortedIndex(DelegatingIndex):
         index = self._index
         index.insertKey(key, index.skipList.after(key, self.compare))
 
-    def removeKey(self, key):
-
-        if self._index.removeKey(key):
-            if self._subIndexes:
-                view = self._valueMap._getView()
-                for uuid, attr, name in self._subIndexes:
-                    indexed = getattr(view[uuid], attr)
-                    index = indexed.getIndex(name)
-                    if index.removeKey(key):
-                        indexed._setDirty(True)
-
-            return True
-
-        return False
-
     def moveKey(self, key, ignore=None):
 
         index = self._index
@@ -572,6 +557,8 @@ class SortedIndex(DelegatingIndex):
                 if not sorted:
                     logger.error("Sorted index '%s' installed on value '%s' of type %s in attribute '%s' on %s is not sorted properly: value for %s is %s than the value for %s", name, value, type(value), attribute, item._repr_(), repr(prevKey), word, repr(key))
                     result = True #Kludge to green tinderboxes until bug #6387  is fixed
+                    # result = False
+
             prevKey = key
 
         return size, result
