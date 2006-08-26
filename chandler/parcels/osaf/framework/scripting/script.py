@@ -87,7 +87,7 @@ class Script(pim.ContentItem):
             self._change_quietly = oldQuiet
 
     @schema.observer(pim.ContentItem.body)
-    def onBodyChanged(self, name):
+    def onBodyChanged(self, op, name):
         self.model_data_changed()
 
     def model_data_changed(self):

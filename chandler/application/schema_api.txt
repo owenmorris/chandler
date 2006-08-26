@@ -277,7 +277,7 @@ Test error messages:
     >>> class Example(schema.Item):
     ...     foo = schema.One(schema.Integer)
     ...     @schema.observer(foo)
-    ...     def __foo_changed(self, name):
+    ...     def __foo_changed(self, op, name):
     ...         print name, "changed"
     >>> rv = NullRepositoryView(verify=True)
     >>> e = Example(itsView = rv)
@@ -286,7 +286,7 @@ Test error messages:
 
     >>> class Example2(schema.Item):
     ...     @schema.observer(Example.foo)
-    ...     def foo_changed(self, name):
+    ...     def foo_changed(self, op, name):
     ...         print name, "changed"
     Traceback (most recent call last):
       ...
@@ -294,7 +294,7 @@ Test error messages:
 
     >>> class Example2(Example):
     ...     @schema.observer(Example.foo)
-    ...     def _Example__foo_changed(self, name):
+    ...     def _Example__foo_changed(self, op, name):
     ...         print name, "changed in Example2"
     >>> e2 = Example2(itsView = rv)
     >>> e2.foo = 1
@@ -302,7 +302,7 @@ Test error messages:
 
     >>> class BadExample(schema.Item):
     ...     @schema.observer("foo")
-    ...     def foo_changed(self, name):
+    ...     def foo_changed(self, op, name):
     ...         print name, "changed"
     Traceback (most recent call last):
       ...

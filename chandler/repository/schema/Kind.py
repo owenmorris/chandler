@@ -916,7 +916,7 @@ class Kind(Item):
         self.schemaHash = hash = self._hashItem()
         return hash
 
-    def _afterSchemaChange(self, attrName):
+    def _afterSchemaChange(self, op, attrName):
 
         c = getattr(self, 'c', None)
         if c is not None:

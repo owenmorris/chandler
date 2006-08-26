@@ -145,7 +145,7 @@ class Attribute(Item):
         self.schemaHash = hash = self._hashItem()
         return hash
 
-    def _afterAspectChange(self, name):
+    def _afterAspectChange(self, op, name):
 
         if 'schemaHash' in self._values:
             del self.schemaHash
@@ -153,43 +153,43 @@ class Attribute(Item):
                 for kind in self.kinds:
                     kind._afterAttributeHashChange()
 
-    def _afterCardinalityChange(self, name):
+    def _afterCardinalityChange(self, op, name):
 
         self.c.cardinality = self._values
         
-    def _afterPersistedChange(self, name):
+    def _afterPersistedChange(self, op, name):
 
         self.c.persisted = self._values.get('persisted', True)
 
-    def _afterRequiredChange(self, name):
+    def _afterRequiredChange(self, op, name):
 
         self.c.required = self._values.get('required', False)
 
-    def _afterIndexedChange(self, name):
+    def _afterIndexedChange(self, op, name):
 
         self.c.indexed = self._values.get('indexed', False)
 
-    def _afterInheritFromChange(self, name):
+    def _afterInheritFromChange(self, op, name):
 
         self.c.noInherit = (self._values, 'inheritFrom', 'redirectTo')
 
-    def _afterDefaultValueChange(self, name):
+    def _afterDefaultValueChange(self, op, name):
 
         self.c.defaultValue = self._values
 
-    def _afterRedirectToChange(self, name):
+    def _afterRedirectToChange(self, op, name):
 
         self.c.redirectTo = (self._values, 'redirectTo', 'inheritFrom')
 
-    def _afterOtherNameChange(self, name):
+    def _afterOtherNameChange(self, op, name):
 
         self.c.otherName = self._values
 
-    def _afterTypeChange(self, name):
+    def _afterTypeChange(self, op, name):
 
         self.c.typeID = self._references
 
-    def _afterAfterChangeChange(self, name):
+    def _afterAfterChangeChange(self, op, name):
 
         self.c.afterChange = self._values
 

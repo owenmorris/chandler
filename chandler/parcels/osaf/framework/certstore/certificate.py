@@ -145,7 +145,7 @@ class Certificate(pim.ContentItem):
         return super(Certificate, self).isAttributeModifiable(attribute)
     
     @schema.observer(type, trust, pem)
-    def changed(self, name):
+    def changed(self, op, name):
         """
         Get a change notification for an attribute change. This happens
         on item creation as well as normal attribute change (including
@@ -159,7 +159,7 @@ class Certificate(pim.ContentItem):
         """
         Get a change notification for an item deletion.
         """
-        self.changed(None)
+        self.changed('remove', None)
 
 def _isRootCertificate(x509):
     # XXX This will need tweaks

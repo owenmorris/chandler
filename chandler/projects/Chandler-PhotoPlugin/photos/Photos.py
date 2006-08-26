@@ -38,7 +38,7 @@ class PhotoMixin(pim.ContentItem):
     photoBody = schema.One(schema.Lob)
 
     @schema.observer(photoBody)
-    def onPhotoBodyChanged(self, attribute):
+    def onPhotoBodyChanged(self, op, attribute):
         self.processEXIF()
 
     about = schema.One(redirectTo = 'displayName')

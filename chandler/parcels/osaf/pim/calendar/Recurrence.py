@@ -210,11 +210,11 @@ class RecurrenceRule(items.ContentItem):
         interval, until, bysetpos, bymonth, bymonthday, byyearday, byweekno,
         byhour, byminute, bysecond, wkst, byweekday, freq
     )
-    def onRecurrenceChanged(self, name):
+    def onRecurrenceChanged(self, op, name):
         """If the rule changes, update any associated events."""
         for ruletype in ('rruleFor', 'exruleFor'):
             if self.hasLocalAttributeValue(ruletype):
-                getattr(self, ruletype).onRuleSetChanged('rrules')
+                getattr(self, ruletype).onRuleSetChanged(op, 'rrules')
 
 
     # dateutil automatically sets these from dtstart, we don't want these
@@ -422,7 +422,7 @@ class RecurrenceRuleSet(items.ContentItem):
     )
 
     @schema.observer(rrules, exrules, rdates, exdates)
-    def onRuleSetChanged(self, name):
+    def onRuleSetChanged(self, op, name):
         """If the RuleSet changes, update the associated event."""
         if not getattr(self, '_ignoreValueChanges', False):
             if self.hasLocalAttributeValue('events'):

@@ -1360,7 +1360,7 @@ class CalendarEventMixin(ContentItem):
         ContentItem.displayName, ContentItem.body, ContentItem.lastModified,
         startTime, duration, location, allDay, rruleset
     )
-    def onEventChanged(self, name):
+    def onEventChanged(self, op, name):
         """
         Maintain coherence of the various recurring items associated with self
         after an attribute has been changed.

@@ -23,7 +23,7 @@ from chandlerdb.util import lock
 from chandlerdb.util.c import UUID, _hash
 from chandlerdb.item.c import Nil, Default, CItem, CValues
 from chandlerdb.item.ItemValue import Indexable
-from chandlerdb.persistence.c import DBEnv, \
+from chandlerdb.persistence.c import DBEnv, DB, \
     DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \
     DBLockDeadlockError, \
     DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH
@@ -68,6 +68,7 @@ class DBRepository(OnDemandRepository):
         self._exclusiveLock = None
         self._env = None
         self._checkpointThread = None
+        self._encrypted = False
 
         atexit.register(self.close)
 
@@ -214,6 +215,7 @@ class DBRepository(OnDemandRepository):
 
         if 'password' in kwds:
             env.set_encrypt(kwds['password'], DBEnv.DB_ENCRYPT_AES)
+            self._encrypted = True
 
         if create or ramdb:
             env.lk_detect = DBEnv.DB_LOCK_MAXWRITE
@@ -284,7 +286,7 @@ class DBRepository(OnDemandRepository):
             env.txn_checkpoint(0, 0, DBEnv.DB_FORCE)
             env.log_archive(DBEnv.DB_ARCH_REMOVE)
 
-    def backup(self, dbHome=None):
+    def backup(self, dbHome=None, withLog=True):
 
         if not self.isOpen():
             raise RepositoryError, 'Repository is not open'
@@ -311,15 +313,31 @@ class DBRepository(OnDemandRepository):
 
             self.checkpoint()
 
-            for db in env.log_archive(DBEnv.DB_ARCH_DATA):
-                path = os.path.join(dbHome, db)
-                self.logger.info(path)
-                shutil.copy2(os.path.join(self.dbHome, db), path)
+            if not withLog:
+                if self._encrypted:
+                    flags = DB.DB_ENCRYPT
+                else:
+                    flags = 0
 
-            for log in env.log_archive(DBEnv.DB_ARCH_LOG):
-                path = os.path.join(dbHome, log)
-                self.logger.info(path)
-                shutil.copy2(os.path.join(self.dbHome, log), path)
+            for db in env.log_archive(DBEnv.DB_ARCH_DATA):
+                srcPath = os.path.join(self.dbHome, db)
+                dstPath = os.path.join(dbHome, db)
+                self.logger.info(dstPath)
+
+                if withLog:
+                    shutil.copy2(srcPath, dstPath)
+                else:
+                    lsnFile = db + ".lsn"
+                    lsnPath = os.path.join(self.dbHome, lsnFile)
+                    shutil.copy2(srcPath, lsnPath)
+                    env.lsn_reset(lsnFile, flags)
+                    shutil.move(lsnPath, dstPath)
+
+            if withLog:
+                for log in env.log_archive(DBEnv.DB_ARCH_LOG):
+                    path = os.path.join(dbHome, log)
+                    self.logger.info(path)
+                    shutil.copy2(os.path.join(self.dbHome, log), path)
 
             if os.path.exists(os.path.join(self.dbHome, 'DB_CONFIG')):
                 path = os.path.join(dbHome, 'DB_CONFIG')

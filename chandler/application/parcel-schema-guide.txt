@@ -352,7 +352,7 @@ For example::
     ...     foo = schema.One(schema.Integer)
     ...     bar = schema.One(schema.Text)
     ...     @schema.observer(foo, bar)
-    ...     def something_changed(self, name):
+    ...     def something_changed(self, op, name):
     ...         print name, "changed"
 
 Whenever the ``foo`` or ``bar`` attribute of any ``Example`` instance is
@@ -369,7 +369,7 @@ in the name of the changed attribute::
 Observer methods can be overridden by methods of the same name in a subclass::
 
     >>> class Example2(Example):
-    ...     def something_changed(self, name):
+    ...     def something_changed(self, op, name):
     ...         print name, "changed in Example2"
     >>> e2 = Example2(itsView = rv)
     >>> e2.foo = 1
@@ -383,7 +383,7 @@ you can do so by obtaining it from the base class, e.g.::
 
     >>> class Example3(Example):
     ...     @schema.observer(Example.foo)
-    ...     def foo_changed(self, name):
+    ...     def foo_changed(self, op, name):
     ...         print name, "changed in Example3"
     >>> e3 = Example3(itsView = rv)
     >>> e3.foo = 1

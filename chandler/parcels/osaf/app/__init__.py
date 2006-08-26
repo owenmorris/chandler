@@ -29,7 +29,7 @@ class TZPrefs(Preferences):
     showUI = schema.One(schema.Boolean, initialValue = False)
 
     @schema.observer(showUI)
-    def onShowUIChanged(self, attrName):
+    def onShowUIChanged(self, op, attrName):
         from osaf.pim.calendar.TimeZone import TimeZoneInfo
         timeZoneInfo = TimeZoneInfo.get(self.itsView)
 

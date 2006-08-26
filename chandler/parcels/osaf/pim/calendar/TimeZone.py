@@ -32,7 +32,7 @@ class TimeZoneInfo(schema.Item):
     )
 
     @schema.observer(default)
-    def onDefaultChanged(self, name):
+    def onDefaultChanged(self, op, name):
         # Repository hook for attribute changes.
         default = self.default
         canonicalDefault = self.canonicalTimeZone(default)

@@ -1034,7 +1034,9 @@ class References(Values):
 
                 if name in dirties:
                     if value is Nil:
-                        view._e_3_overlap(MergeError.REF, self._item, name)
+                        # if both side removed the value, let it pass
+                        # this is enforced in _applyChanges
+                        newChanges[name] = ('nil', Nil)
                     elif value is not None and value._isRefs():
                         if value._isSet():
                             newChanges[name] = ('set', value)

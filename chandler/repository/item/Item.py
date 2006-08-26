@@ -115,7 +115,7 @@ class Item(CItem):
                 for name in values.iterkeys():
                     attr = kind.getAttribute(name, True, self)
                     if attr is not None:
-                        attr.c.invokeAfterChange(self, name)
+                        attr.c.invokeAfterChange(self, 'set', name)
 
     def __iter__(self):
         """

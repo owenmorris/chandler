@@ -590,7 +590,7 @@ class ContentItem(Remindable):
     sharedState = property(getSharedState)
 
     @schema.observer(triageStatus)
-    def setTriageStatusChanged(self, attribute=None, when=None):
+    def setTriageStatusChanged(self, op='set', attribute=None, when=None):
         """
         Update triageStatusChanged, which is the number of seconds since the
         epoch that triageStatus was changed, negated for proper sort order.
