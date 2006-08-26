@@ -681,6 +681,7 @@ void _init_db(PyObject *m)
             SET_DB_INT(dict, DB_CONSUME_WAIT);
             SET_DB_INT(dict, DB_GET_BOTH);
             SET_DB_INT(dict, DB_SET_RECNO);
+            SET_DB_INT(dict, DB_ENCRYPT);
 
             /* db types */
             SET_DB_INT(dict, DB_BTREE);

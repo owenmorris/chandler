@@ -805,7 +805,7 @@ static PyObject *_t_item__fireChanges(t_item *self,
             }
 
             if (CAttribute_invokeAfterChange((t_attribute *) c,
-                                             (PyObject *) self, name) < 0)
+                                             (PyObject *) self, op, name) < 0)
             {
                 Py_DECREF(c);
                 return NULL;

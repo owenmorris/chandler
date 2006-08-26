@@ -63,6 +63,7 @@ typedef struct {
 typedef struct {
     PyObject_HEAD
     DB_ENV *db_env;
+    PyObject *errfile;
 } t_env;
 
 typedef struct {

@@ -40,6 +40,7 @@ static PyObject *t_env_lock_id(t_env *self, PyObject *args);
 static PyObject *t_env_lock_id_free(t_env *self, PyObject *args);
 static PyObject *t_env_lock_get(t_env *self, PyObject *args);
 static PyObject *t_env_lock_put(t_env *self, PyObject *args);
+static PyObject *t_env_lsn_reset(t_env *self, PyObject *args);
 
 static PyObject *t_env_get_lk_detect(t_env *self, void *data);
 static int t_env_set_lk_detect(t_env *self, PyObject *value, void *data);
@@ -53,6 +54,8 @@ static PyObject *t_env_get_cachesize(t_env *self, void *data);
 static int t_env_set_cachesize(t_env *self, PyObject *value, void *data);
 static PyObject *t_env_get_lg_bsize(t_env *self, void *data);
 static int t_env_set_lg_bsize(t_env *self, PyObject *value, void *data);
+static PyObject *t_env_get_errfile(t_env *self, void *data);
+static int t_env_set_errfile(t_env *self, PyObject *value, void *data);
 
 
 static PyMemberDef t_env_members[] = {
@@ -76,6 +79,7 @@ static PyMethodDef t_env_methods[] = {
     { "lock_id_free", (PyCFunction) t_env_lock_id_free, METH_O, NULL },
     { "lock_get", (PyCFunction) t_env_lock_get, METH_VARARGS, NULL },
     { "lock_put", (PyCFunction) t_env_lock_put, METH_O, NULL },
+    { "lsn_reset", (PyCFunction) t_env_lsn_reset, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -110,6 +114,9 @@ static PyGetSetDef t_env_properties[] = {
     { "lg_bsize",
       (getter) t_env_get_lg_bsize, (setter) t_env_set_lg_bsize,
       "size of transactional log buffer", NULL },
+    { "errfile",
+      (getter) t_env_get_errfile, (setter) t_env_set_errfile,
+      "error filename", NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
 
@@ -160,9 +167,11 @@ static int _t_env_close(t_env *self, int flags)
 {
     if (self->db_env)
     {
+        FILE *errfile;
         int err;
 
         Py_BEGIN_ALLOW_THREADS;
+        self->db_env->get_errfile(self->db_env, &errfile);
         err = self->db_env->close(self->db_env, flags);
         Py_END_ALLOW_THREADS;
 
@@ -173,6 +182,8 @@ static int _t_env_close(t_env *self, int flags)
         }
 
         self->db_env = NULL;
+        if (errfile)
+            fclose(errfile);
     }
 
     return 0;
@@ -181,6 +192,7 @@ static int _t_env_close(t_env *self, int flags)
 static void t_env_dealloc(t_env *self)
 {
     _t_env_close(self, 0);
+    Py_XDECREF(self->errfile);
     self->ob_type->tp_free((PyObject *) self);
 }
 
@@ -210,6 +222,7 @@ static int t_env_init(t_env *self, PyObject *args, PyObject *kwds)
         }
 
         self->db_env->app_private = self;
+        self->errfile = Py_None; Py_INCREF(Py_None);
     }
 
     return 0;
@@ -646,6 +659,21 @@ static PyObject *t_env_lock_put(t_env *self, PyObject *value)
     Py_RETURN_NONE;
 }
 
+static PyObject *t_env_lsn_reset(t_env *self, PyObject *args)
+{
+    char *filename;
+    int err, flags = 0;
+
+    if (!PyArg_ParseTuple(args, "s|i", &filename, &flags))
+        return NULL;
+
+    err = self->db_env->lsn_reset(self->db_env, filename, flags);
+    if (err)
+        return raiseDBError(err);
+
+    Py_RETURN_NONE;
+}
+
 
 /* lk_detect */
 
@@ -936,6 +964,66 @@ static int t_env_set_lg_bsize(t_env *self, PyObject *value, void *data)
     {
         raiseDBError(err);
         return -1;
+    }
+
+    return 0;
+}
+
+
+/* errfile */
+
+static PyObject *t_env_get_errfile(t_env *self, void *data)
+{
+    Py_INCREF(self->errfile);
+    return self->errfile;
+}
+
+static int t_env_set_errfile(t_env *self, PyObject *value, void *data)
+{
+    int cmp;
+
+    if (PyObject_Cmp(self->errfile, value, &cmp) < 0)
+        return -1;
+    
+    if (cmp)
+    {
+        if (self->errfile != Py_None)
+        {
+            FILE *errfile;
+
+            self->db_env->get_errfile(self->db_env, &errfile);
+            if (errfile)
+                fclose(errfile);
+
+            self->db_env->set_errfile(self->db_env, NULL);
+
+            Py_DECREF(self->errfile);
+            self->errfile = Py_None; Py_INCREF(Py_None);
+        }
+
+        if (value != Py_None)
+        {
+            PyObject *filename = PyObject_Str(value);
+
+            if (!filename)
+                return -1;
+            else
+            {
+                FILE *errfile = fopen(PyString_AsString(filename), "w");
+
+                if (!errfile)
+                {
+                    Py_DECREF(filename);
+                    return -1;
+                }
+                else
+                {
+                    Py_XDECREF(self->errfile);
+                    self->errfile = filename;
+                    self->db_env->set_errfile(self->db_env, errfile);
+                }
+            }
+        }
     }
 
     return 0;

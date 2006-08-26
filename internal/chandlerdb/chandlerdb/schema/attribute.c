@@ -450,8 +450,8 @@ static PyObject *t_attribute_getAspect(t_attribute *self, PyObject *args)
     }
 }
 
-static int _t_attribute_invokeAfterChange(t_attribute *self,
-                                          PyObject *item, PyObject *name)
+static int _t_attribute_invokeAfterChange(t_attribute *self, PyObject *item,
+                                          PyObject *op, PyObject *name)
 {
     if (self->flags & AFTERCHANGE)
     {
@@ -463,7 +463,7 @@ static int _t_attribute_invokeAfterChange(t_attribute *self,
             if (PyObject_HasAttr((PyObject *) item->ob_type, method))
             {
                 PyObject *result = PyObject_CallMethodObjArgs(item, method,
-                                                              name, NULL);
+                                                              op, name, NULL);
 
                 if (!result)
                     return -1;
@@ -478,12 +478,12 @@ static int _t_attribute_invokeAfterChange(t_attribute *self,
 static PyObject *t_attribute_invokeAfterChange(t_attribute *self,
                                                PyObject *args)
 {
-    PyObject *item, *name;
+    PyObject *item, *op, *name;
 
-    if (!PyArg_ParseTuple(args, "OO", &item, &name))
+    if (!PyArg_ParseTuple(args, "OOO", &item, &op, &name))
         return NULL;
 
-    if (_t_attribute_invokeAfterChange(self, item, name) < 0)
+    if (_t_attribute_invokeAfterChange(self, item, op, name) < 0)
         return NULL;
     
     Py_RETURN_NONE;

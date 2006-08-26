@@ -50,5 +50,5 @@ typedef struct {
     PyObject *afterChange;
 } t_attribute;
 
-typedef int (*CAttribute_invokeAfterChange_fn)(t_attribute *,
+typedef int (*CAttribute_invokeAfterChange_fn)(t_attribute *, PyObject *,
                                                PyObject *, PyObject *);
