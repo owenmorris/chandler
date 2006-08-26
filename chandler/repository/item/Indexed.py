@@ -231,12 +231,16 @@ class Indexed(object):
                             insertions.append(key)
                 elif key in index:
                     index.removeKey(key)
-
+            
+            # moves must be done before insertions because at this time 
+            # the index is not sorted properly
             index.moveKeys(moves)
+
             for key in insertions:
-                if key in index:
-                    index.removeKey(key)
-                index.insertKey(key)
+                # the moves just done may have caused sub-indexes of the index
+                # to do insertions in their super-index, e.g. the index
+                if key not in index:
+                    index.insertKey(key)
 
         self._setDirty(True)
 

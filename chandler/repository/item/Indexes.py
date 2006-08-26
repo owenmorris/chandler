@@ -855,7 +855,7 @@ class SubIndex(SortedIndex):
         uuid, attr, name = self._super
         index = getattr(self._valueMap._getView()[uuid], attr).getIndex(name)
 
-        # this should only happen during merge when the subindex is merged first
+        # this should only happen during merge (moveKeys)
         if k0 not in index:
             index.insertKey(k0)
         if k1 not in index:
