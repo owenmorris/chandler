@@ -214,9 +214,7 @@ class Indexed(object):
         indexes = self._indexes
         for name, _indexChanges in indexChanges.iteritems():
             index = indexes[name]
-
             moves = []
-            insertions = []
 
             for key, value in _indexChanges.iteritems():
                 if value is not None:
@@ -225,22 +223,11 @@ class Indexed(object):
                         if key not in deletes:
                             raise AssertionError, (key, "item not found")
                     elif item.isDirty():
-                        if key in index:
-                            moves.append(key)
-                        else:
-                            insertions.append(key)
+                        moves.append(key)
                 elif key in index:
                     index.removeKey(key)
             
-            # moves must be done before insertions because at this time 
-            # the index is not sorted properly
             index.moveKeys(moves)
-
-            for key in insertions:
-                # the moves just done may have caused sub-indexes of the index
-                # to do insertions in their super-index, e.g. the index
-                if key not in index:
-                    index.insertKey(key)
 
         self._setDirty(True)
 
