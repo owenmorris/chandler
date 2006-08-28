@@ -1022,10 +1022,11 @@ class Timer(Block):
             elif millisecondsUntilFiring > sys.maxint:
                 millisecondsUntilFiring = sys.maxint
 
-            print "*** setFiringTime: will fire at %s in %s minutes" % (when, millisecondsUntilFiring / 60000)
+            logger.debug("*** setFiringTime: will fire at %s in %s minutes" 
+                         % (when, millisecondsUntilFiring / 60000))
             timer.Start(millisecondsUntilFiring, True)
         else:
-            print "*** setFiringTime: No new time."
+            logger.debug("*** setFiringTime: No new time.")
             pass
 
 class ReminderTimer(Timer):
