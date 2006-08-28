@@ -1144,7 +1144,7 @@ class EggTranslations(object):
                              or List")
 
         for i in xrange(0, len(tmpLocaleSet)):
-            tmpLocaleSet[i] = normalizeLocale(tmpLocaleSet[i])
+            tmpLocaleSet[i] = normalizeLocale(stripEncodingCode(tmpLocaleSet[i]))
 
             if not isValidLocaleForm(tmpLocaleSet[i]):
                 raise NameError("Invalid locale name found '%s'" %
@@ -1784,9 +1784,7 @@ def stripEncodingCode(locale):
 
     assert(type(locale) == types.StringType)
 
-    pos = locale.find(".")
-
-    if pos != -1:
-        return locale[0:pos]
+    if len(locale) > 5:
+        return locale[0:5]
 
     return locale
