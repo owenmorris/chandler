@@ -37,22 +37,6 @@ TO DO:
 ===========
    1. Do performance testing (are caches needed?) (Markku)
 
-
-Gettext Program:
-=================
-1. if OS X set DYLD_LIBRARY_PATH to release/lib or debug/lib
-    if linux set LD_LIBRARY_PATH
-2. Find all xrc under a root poth
-3. Run wxrc on all xrc files outputing as .py files with a name like
-myfile_xrc_translation_strings.py
-4. Run createPot on all python files under the directory path
-5. remove the xrc python files
-
-Uses:
-1. Chandler -c creates a chandler.pot file
-2. Chandler examples -ce` creates a chandler_examples.pot file
-3. Specify the project name will create a PROJECT_NAME.pot for
-   all xrc and python files under the root
 """
 
 # Keep a Global reference to the PyICU Locale
@@ -889,8 +873,6 @@ def setPyICULocale(locale):
       @type locale: ASCII c{str}
 
     """
-    locale = stripEncodingCode(locale)
-
     lc = Locale(locale)
 
     if not isValidPyICULocale(lc):
