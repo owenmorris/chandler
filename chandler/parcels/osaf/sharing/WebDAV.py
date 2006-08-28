@@ -194,7 +194,7 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
         return (IGNORE, None) # The user cancelled SSL error dialog
     except Utility.CertificateVerificationError:
         return (IGNORE, None) # The user cancelled trust cert/SSL error dialog
-    except error.ConnectionDone, err:
+    except Exception, err: # Consider any other exception as a connection error
         return (CANT_CONNECT, err)
     
     # Unique the child names returned by the server. (Note that
@@ -214,19 +214,11 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
 
     # Try to figure out a unique path (although the odds of
     # even more than one try being needs are probably negligible)..
-    triesLeft = 10
     testFilename = unicode(chandlerdb.util.c.UUID())
-    
+
     # Random string to use for trying a put
     while testFilename in childNames:
-        triesLeft -= 1
-
-        if triesLeft == 0:
-            # @@@ [grant] This can't be right, but it's what was in the
-            # original (pre-zanshin) code.
-            return -1
-
-        testFilename = chandlerdb.util.c.UUID()
+        testFilename = unicode(chandlerdb.util.c.UUID())
     
     # Now, we try to PUT a small test file on the server. If that
     # fails, we're going to say the user only has read-only access.
