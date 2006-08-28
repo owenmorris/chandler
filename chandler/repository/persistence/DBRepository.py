@@ -524,7 +524,7 @@ class DBRepository(OnDemandRepository):
             self._lockOpen()
             self._env = self._createEnv(False, kwds)
 
-            if not recover:
+            if not recover and exclusive:
                 if os.path.exists(self._openDir) and os.listdir(self._openDir):
                     recover = True
 
