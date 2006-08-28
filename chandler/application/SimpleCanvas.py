@@ -25,7 +25,7 @@ class wxCanvasDragImage(wx.Frame):
     def __init__(self, bitmap):
         super (wxCanvasDragImage, self).__init__ (None,
                                                   -1,
-                                                  "",
+                                                  u"",
                                                   style = wx.FRAME_SHAPED
                                                   | wx.SIMPLE_BORDER
                                                   | wx.FRAME_NO_TASKBAR

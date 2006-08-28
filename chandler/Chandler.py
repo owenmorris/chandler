@@ -82,16 +82,16 @@ def main():
 
         try:
             import logging, wx
+            from i18n import ChandlerSafeTranslationMessageFactory as _
             realMain()
 
         except (RepositoryOpenDeniedError, ExclusiveOpenDeniedError):
             # This doesn't seem worth the effor to localize, since we don't have a repository
             # which is necessary for localization.
-            message = "Another instance of Chandler currently has the " \
-                      "repository open."
-            logging.error(message)
-            dialog = wx.MessageDialog(None, message, "Chandler", 
-                                      wx.OK | wx.ICON_INFORMATION)
+            logging.error("Another instance of Chandler currently has the repository open.")
+            dialog = wx.MessageDialog(None,
+                                      _(u"Another instance of Chandler currently has the repository open."),
+                                      _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
             dialog.ShowModal()
             dialog.Destroy()
 
@@ -102,18 +102,18 @@ def main():
             import sys, traceback
             
             line1 = "Chandler encountered an unexpected problem while trying to start.\n"
-
+            
             type, value, stack = sys.exc_info()
             backtrace = traceback.format_exception(type, value, stack)
-
+            
             longMessage = "".join([line1, "\n"] + backtrace)
-
+            
             logging.error(longMessage)
-
+            
             if getattr(globals(), 'app', None) is None or wx.GetApp() is None:
                 app = wx.PySimpleApp()
                 app.ignoreSynchronizeWidget = True
-
+            
             try:
                 # Let's try the best (and most complicated) option
                 # first
@@ -136,10 +136,10 @@ def main():
                 except:
                     # Fall back to MessageDialog
                     frames = 8
-                    line2 = "Here are the bottom %(frames)s frames of the stack:\n" % {'frames': frames - 1}
-                    shortMessage = "".join([line1, line2, "\n"] + backtrace[-frames:])
-                    dialog = wx.MessageDialog(None, shortMessage, "Chandler", 
-                                              wx.OK | wx.ICON_INFORMATION)
+                    line1 = _(u"Chandler encountered an unexpected problem while trying to start.\n")
+                    line2 = _(u"Here are the bottom %(frames)s frames of the stack:\n") % {'frames': frames - 1}
+                    shortMessage = u"".join([line1, line2, u"\n"] + unicode(backtrace[-frames:], "UTF-8", "ignore"))
+                    dialog = wx.MessageDialog(None, shortMessage, _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
                 dialog.ShowModal()
                 dialog.Destroy()
 

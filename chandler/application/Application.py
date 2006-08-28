@@ -924,10 +924,10 @@ class wxApplication (wx.App):
         self.pyFrame.Show(True)
 
     def ChooseLogConfig(self):
-        wildcard = u"Config files|*.conf|All files (*.*)|*.*"
+        wildcard = _(u"Config files|*.conf|All files (*.*)|*.*")
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                            "Choose logging configuration file",
-                            "", "", wildcard, wx.OPEN)
+                            _(u"Choose logging configuration file"),
+                            u"", u"", wildcard, wx.OPEN)
 
         path = None
         if dlg.ShowModal() == wx.ID_OK:

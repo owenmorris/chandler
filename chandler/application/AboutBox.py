@@ -15,10 +15,10 @@
 
 import webbrowser
 import wx, wx.html, os, sys
-from i18n import ChandlerMessageFactory as _
 import i18n
 import Utility
 import Globals
+from i18n import ChandlerMessageFactory as _
 
 class AboutBox(wx.Dialog):
     """
