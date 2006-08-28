@@ -29,7 +29,7 @@ class PersistentRefs(object):
 
         self.view = view
         self.store = view.store
-        self._changedRefs = {}
+        self._changedRefs = Nil
         
     def _iterrefs(self, firstKey, lastKey):
 
@@ -144,14 +144,18 @@ class PersistentRefs(object):
     def _changeRef(self, key, link, oldAlias=Nil):
 
         if key is not None and not self.view.isLoading():
-            op, alias = self._changedRefs.get(key, (1, Nil))
-            if op != 0:
-                if oldAlias is not Nil:
-                    if alias is Nil:
-                        alias = oldAlias
-                    elif alias == oldAlias:
-                        alias = Nil
-                self._changedRefs[key] = (0, alias)
+            changedRefs = self._changedRefs
+            if changedRefs is Nil:
+                self._changedRefs = {key: (0, oldAlias)}
+            else:
+                op, alias = changedRefs.get(key, (1, Nil))
+                if op != 0:
+                    if oldAlias is not Nil:
+                        if alias is Nil:
+                            alias = oldAlias
+                        elif alias == oldAlias:
+                            alias = Nil
+                    changedRefs[key] = (0, alias)
 
     def _unloadRef(self, item, dictKey=None):
 
@@ -173,17 +177,21 @@ class PersistentRefs(object):
     def _removeRef_(self, key, link):
 
         if not self.view.isLoading():
-            op, alias = self._changedRefs.get(key, (-1, Nil))
-            if op == -1:
-                if link.alias is None:
-                    alias = Nil
-                else:
-                    alias = link.alias
-                self._changedRefs[key] = (1, alias)
-            elif op == 0:
-                if alias is Nil and link.alias is not None:
-                    alias = link.alias
-                self._changedRefs[key] = (1, alias)
+            changedRefs = self._changedRefs
+            if changedRefs is Nil:
+                self._changedRefs = {key: (1, link.alias or Nil)}
+            else:
+                op, alias = changedRefs.get(key, (-1, Nil))
+                if op == -1:
+                    if link.alias is None:
+                        alias = Nil
+                    else:
+                        alias = link.alias
+                    changedRefs[key] = (1, alias)
+                elif op == 0:
+                    if alias is Nil and link.alias is not None:
+                        alias = link.alias
+                    changedRefs[key] = (1, alias)
             return link
         else:
             raise ValueError, '_removeRef_ during load'
@@ -233,7 +241,7 @@ class PersistentRefs(object):
 
     def _clearDirties(self):
 
-        self._changedRefs.clear()
+        self._changedRefs = Nil
 
     def _applyChanges(self, changes, history):
 
