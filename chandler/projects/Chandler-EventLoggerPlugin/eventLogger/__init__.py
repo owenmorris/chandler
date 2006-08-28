@@ -31,7 +31,6 @@ import logging
 import logging.handlers
 import os
 
-
 logger = logging.getLogger(__name__)
 
 logDir = os.path.join(Globals.options.profileDir, 'eventLogger')
@@ -74,9 +73,11 @@ class EventLoggingDispatchHook (DispatchHook):
         if not os.path.isdir(logDir):
             os.mkdir(logDir)
 
-        handler = logging.handlers.RotatingFileHandler(logFile,'a', \
-                                                       logFileMaxSize, \
-                                                       logFileMaxCount)
+        handler = logging.handlers.TimedRotatingFileHandler(logFile, 
+                                                            'midnight',
+                                                            1,
+                                                            logFileMaxCount)
+
         handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
         logger = logging.getLogger('eventLogger')
         logger.addHandler(handler)
@@ -106,19 +107,19 @@ class UploadTask(object):
     """
     def __init__(self, item):
         self.rv = item.itsView
-        logger.info("eventLogger - Installing Parcel")
+        logger.info("Installing Parcel")
 
     def run(self):
-        logger.info("eventLogger - receiveWakeupCall()")
+        logger.info("receiveWakeupCall()")
 
         if os.path.isdir (logDir):
             dirList = os.listdir(logDir)
             for file in dirList:
-                if re.search("event\.log\.\d+", file):
+                if re.search("event\.log\.", file):
     
                     fname = os.path.join(logDir, file)
     
-                    logger.info("eventLogger.Uploader: Trying to upload %s", fname)
+                    logger.info("Trying to upload %s", fname)
                     self.uploadFile(fname)
         return True
 
@@ -201,5 +202,5 @@ def installParcel(parcel, old_version=None):
         invoke = 'eventLogger.UploadTask',
         run_at_startup = True,
         active = True,
-        interval = timedelta(minutes=5))
+        interval = timedelta(minutes=15))
 
