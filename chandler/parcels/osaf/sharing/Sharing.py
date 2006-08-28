@@ -21,6 +21,7 @@ from i18n import ChandlerMessageFactory as _
 import osaf.mail.utils as utils
 
 from chandlerdb.util.c import UUID
+from chandlerdb.item.c import Nil
 from repository.item.Item import Item
 from repository.item.Sets import Set
 from repository.schema.Types import Type
@@ -125,9 +126,9 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
 
         LOCAL_CHANGES_WIN = False
         if LOCAL_CHANGES_WIN:
-            return getattr(item, attribute) # Change from *other* views
+            return getattr(item, attribute, Nil) # Change from *other* views
         else:
-            return value                    # Change from *this* view
+            return value                         # Change from *this* view
 
 
 
