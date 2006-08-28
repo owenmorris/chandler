@@ -17,7 +17,8 @@ import sys, wx
 from datetime import datetime, timedelta
 from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
- 	
+from osaf import pim
+
 DAY    = 1440
 HOUR   = 60
 MINUTE = 1
@@ -143,7 +144,7 @@ class ReminderDialog(wx.Dialog):
         listCtrl = self.reminderControls['list']
         listCtrl.DeleteAllItems()
         self.remindersInList = {}
-        nextReminderTime = None
+        nextReminderTime = pim.Reminder.farFuture
         for t in reminderTuples:
             (reminderTime, remindable, reminder) = t
             if reminderTime < datetime.now(ICUtzinfo.default):

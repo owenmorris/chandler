@@ -23,7 +23,8 @@ from datetime import datetime, timedelta
 
 class ReminderTestCase(TestDomainModel.DomainModelTestCase):
     def testReminders(self):
-        # Make an event and add an expired absolute reminder to it.
+        # Make an event in the past (so it won't have a startTime reminder)
+        # and add an expired absolute reminder to it.
         anEvent = CalendarEvent("calendarEventItem", itsView=self.rep.view,
                                 startTime=datetime(2005,3,8,12,00,
                                                    tzinfo = ICUtzinfo.default),
@@ -39,7 +40,7 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
                         and anEvent.expiredReminders.first() is absoluteReminder)
         self.failUnless(anEvent.userReminderTime == absoluteReminderTime)
         self.failUnless(anEvent.userReminderInterval is None)
-        self.failUnless(anEvent.reminderFireTime == None)
+        self.failUnless(anEvent.nextReminderTime == Reminder.farFuture)
         
         # Replace the absoluteReminder with a relative one
         relativeReminderInterval = timedelta(minutes=-10)
@@ -51,7 +52,7 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
                         and anEvent.expiredReminders.first() is relativeReminder)
         self.failUnless(anEvent.userReminderInterval == relativeReminderInterval)
         self.failUnless(anEvent.userReminderTime is None)
-        self.failUnless(anEvent.reminderFireTime == None)
+        self.failUnless(anEvent.nextReminderTime == Reminder.farFuture)
 
         # Snooze the reminder for 5 minutes.
         snoozeReminder = anEvent.snoozeReminder(relativeReminder,
@@ -62,6 +63,7 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failUnless(list(anEvent.reminders) == [ snoozeReminder ])
         self.failUnless(snoozeReminder.keepExpired == False)
         self.failUnless(snoozeReminder.reminderItems.first() is anEvent)
+        self.failUnless(anEvent.nextReminderTime != Reminder.farFuture)
 
         # Dismiss the snoozed reminder
         anEvent.dismissReminder(snoozeReminder)
@@ -69,6 +71,7 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failIf(len(anEvent.reminders))
         self.failUnless(list(anEvent.expiredReminders) == [ relativeReminder ])
         self.failUnless(relativeReminder.reminderItems.first() is None)
+        self.failUnless(anEvent.nextReminderTime == Reminder.farFuture)
 
 if __name__ == "__main__":
     unittest.main()

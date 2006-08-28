@@ -806,7 +806,7 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         existingValue = (existingSelectionIndex != wx.NOT_FOUND) \
                       and control.GetClientData(existingSelectionIndex) \
                       or None
-        hasStart = hasattr(self.item, 'startTime')
+        hasStart = getattr(self.item.__class__, 'startTime', None) is not None
         if existingValue != value or control.GetCount() != (hasStart and 4 or 2):
             # rebuild the list of choices
             control.Clear()
@@ -902,8 +902,9 @@ class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
         if existingValue is None or existingValue != value:            
             # rebuild the list of choices
             choices = self.GetChoices()
-            control.Clear()
-            control.AppendItems(choices)
+            if len(choices) != control.GetCount():
+                control.Clear()
+                control.AppendItems(choices)
             control.SetSelection(value)
 
 class ReminderUnitsAttributeEditor(StringAttributeEditor):    

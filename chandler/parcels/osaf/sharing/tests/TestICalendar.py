@@ -220,14 +220,14 @@ class ICalendarTestCase(unittest.TestCase):
     def importReminders(self):
         format = self.Import(self.repo.view, u'RecurrenceWithAlarm.ics')
         future = Calendar.findUID(self.repo.view, 'RecurringAlarmFuture')
-        reminder = future.reminders.first()
+        reminder = future.getUserReminder()
         # this will start failing in 2015...
         self.assertEqual(reminder.delta, datetime.timedelta(minutes=-5))
         second = future.getNextOccurrence()
         self.assert_(reminder in second.reminders)
 
         past = Calendar.findUID(self.repo.view, 'RecurringAlarmPast')
-        reminder = past.expiredReminders.first()
+        reminder = past.getUserReminder()
         self.assertEqual(reminder.delta, datetime.timedelta(hours=-1))
         second = past.getNextOccurrence()
         self.assert_(reminder in second.expiredReminders)

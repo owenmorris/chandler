@@ -497,16 +497,28 @@ class CalendarEventMixin(ContentItem):
         to the exclusion list, so the item doesn't reappear after unstamping.
 
         """
-        if operation == 'remove' and self.rruleset is not None and \
+        if operation == 'remove' and \
            not self._findStampedKind(operation, mixinKind).isKindOf(CalendarEventMixin.getKind(self.itsView)):
-            self._ignoreValueChanges = True
-            rruleset = self.rruleset
-            self.occurrenceFor = None
-            self.rruleset = None
-            if getattr(rruleset, 'exdates', None) is None:
-                rruleset.exdates=[]
-            rruleset.exdates.append(self.recurrenceID)
-            del self._ignoreValueChanges
+            if self.rruleset is not None:          
+                self._ignoreValueChanges = True
+                rruleset = self.rruleset
+                self.occurrenceFor = None
+                self.rruleset = None
+                if getattr(rruleset, 'exdates', None) is None:
+                    rruleset.exdates=[]
+                rruleset.exdates.append(self.recurrenceID)
+                del self._ignoreValueChanges
+            
+            # Delete any relative user reminders, as well as any startTime
+            # triageStatus transition reminders
+            doomed = [ r for r in self.reminders
+                       if ((r.userCreated and r.absoluteTime is None) or 
+                           (not r.userCreated and r.keepExpired)) ]
+            doomed.extend(r for r in self.expiredReminders
+                          if r.absoluteTime is None)
+            for r in doomed:
+                logger.debug("Destroying obsolete %s on %s", r, self)
+                self.dismissReminder(r, dontExpire=True)
 
         super(CalendarEventMixin, self).StampKind(operation, mixinKind)
 
@@ -619,6 +631,35 @@ class CalendarEventMixin(ContentItem):
         fget=getEffectiveEndTime,
         doc="End time, without time if allDay/anyTime")
 
+    @schema.observer(startTime, allDay, anyTime)
+    def onStartTimeChanged(self, op, name):
+        # Update the reminder we use to update triageStatus at startTime, 
+        # if it's in the future. First, find any existing startTime reminder.
+        existing = [ r for r in self.reminders if not r.userCreated ]
+        assert len(existing) <= 1
+        existing = len(existing) and existing[0] or None
+        assert not existing or existing.absoluteTime is not None
+        
+        try:
+            newStartTime = self.effectiveStartTime
+        except AttributeError:
+            pass
+        else:
+            if newStartTime is not None and \
+               newStartTime >= datetime.now(tz=ICUtzinfo.default):
+                # It's due, or in the future.
+                if existing is not None and newStartTime == existing.absoluteTime:
+                    return # the effective time didn't change - leave it alone.
+                
+                # Create a new reminder for the new time. (We don't just update 
+                # the old because we want notifications to fire on this change)
+                self.makeReminder(absoluteTime=newStartTime, userCreated=False,
+                                     checkExpired=True, keepExpired=False)
+                    
+        # If we had an existing startTime reminder, dismiss it.
+        if existing:
+            self.dismissReminder(existing)
+            
 
     # begin recurrence related methods
 
@@ -911,7 +952,7 @@ class CalendarEventMixin(ContentItem):
 
         def expired(reminder):
             nextTime = reminder.getNextReminderTimeFor(self)
-            return (nextTime is not None and nextTime <= now)
+            return nextTime <= now
 
 
         # We really don't want to touch self.reminders

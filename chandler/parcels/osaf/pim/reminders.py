@@ -20,12 +20,13 @@ from PyICU import ICUtzinfo
 import logging
 logger = logging.getLogger(__name__)
 
-# Make a value we can use for distant (or invalid) reminder times
-farFuture = datetime.max
-if getattr(farFuture, 'tzInfo', None) is None:
-    farFuture = farFuture.replace(tzinfo=ICUtzinfo.default)
 
 class Reminder(schema.Item):
+    # Make a value we can use for distant (or invalid) reminder times
+    farFuture = datetime.max
+    if getattr(farFuture, 'tzInfo', None) is None:
+        farFuture = farFuture.replace(tzinfo=ICUtzinfo.default)
+
     absoluteTime = schema.One(
         schema.DateTimeTZ,
         defaultValue=None,
@@ -81,16 +82,18 @@ class Reminder(schema.Item):
         - otherwise, use a time in the far future.
         """
         return self.absoluteTime or getattr(remindable, self.relativeTo) \
-               or farFuture
+               or Reminder.farFuture
 
     def getNextReminderTimeFor(self, remindable):
         """ Get the time for this remindable's next reminder """
         result = self.getBaseTimeFor(remindable)
-        if result != farFuture:
+        if result != Reminder.farFuture:
             result += self.delta
         assert result.tzinfo is not None
         #if result.tzinfo is None:
             #result = result.replace(tzinfo=ICUtzinfo.default)
+        logger.debug("next reminder time for %s on %s is %s",
+                     self, remindable, result)
         return result
 
     def __repr__(self):
@@ -143,8 +146,7 @@ class Remindable(schema.Item):
             if checkExpired:
                 nextTime = newReminder.getNextReminderTimeFor(self)
     
-                if (nextTime is not None and
-                    nextTime < datetime.now(ICUtzinfo.default)):
+                if (nextTime < datetime.now(ICUtzinfo.default)):
                     assert kwds['keepExpired'], "Creating an expired reminder that isn't marked 'keepExpired'?"
                     addThisTo = self.expiredReminders
     
@@ -168,8 +170,13 @@ class Remindable(schema.Item):
 
         return newReminder
 
-    def dismissReminder(self, reminder):
-        """ Dismiss this reminder. """
+    def dismissReminder(self, reminder, dontExpire=False):
+        """ 
+        Dismiss this reminder. Normally, we'll decide whether to keep it
+        in 'expired' based on its keepExpired attribute, but if dontExpire
+        is True, we'll expire it anyway (we use this when unstamping and
+        deleting relative reminders).
+        """
 
         # Make sure the next one's around, so we'll prime the reminder-
         # watching mechanism to alert us about it. We also check that
@@ -190,10 +197,10 @@ class Remindable(schema.Item):
         # CalendarEventMixin.getNextOccurrence
         if reminder in self.reminders:
             self.reminders.remove(reminder)
-        if not reminder.keepExpired:
+        if dontExpire or not reminder.keepExpired:
             # This is a system or "snooze" reminder, just toss it.
-            assert len(reminder.reminderItems) == 0
-            assert len(reminder.expiredReminderItems) == 0
+            assert dontExpire or len(reminder.reminderItems) == 0
+            assert dontExpire or len(reminder.expiredReminderItems) == 0
             reminder.delete()
         else:
             if not reminder in self.expiredReminders:
@@ -201,10 +208,6 @@ class Remindable(schema.Item):
 
     def snoozeReminder(self, reminder, delay):
         """ Snooze this reminder for this long. """
-        # Dismiss the original reminder
-        originalTime = reminder.getNextReminderTimeFor(self)
-        self.dismissReminder(reminder)
-
         # Make a new reminder for this event
         newReminder = Reminder(None, itsView=self.itsView,
                                absoluteTime=(datetime.now(ICUtzinfo.default) +
@@ -212,6 +215,10 @@ class Remindable(schema.Item):
                                keepExpired=False,
                                userCreated=False)
         self.reminders.add(newReminder)
+
+        # Dismiss the original reminder
+        self.dismissReminder(reminder)
+
         return newReminder
     
     # @@@ Note: 'Calculated' APIs are provided for both relative and absolute
@@ -259,22 +266,34 @@ class Remindable(schema.Item):
         doc="User-set absolute reminder time."
     )
 
-    def getReminderFireTime(self):
+    def _getNextReminderAndTime(self):
         """
-        Get the next reminder (of any kind) due to fire, or None if there aren't
-        any.
+        Get a tuple containing the time the next unexpired reminder (of any 
+        kind) is supposed to fire, and the reminder itself.
         """
-        for reminder in self.reminders:
-            nextTime = reminder.getNextReminderTimeFor(self)
-            if nextTime is not None:
-                return nextTime
-        return None
+        try:
+            return min((r.getNextReminderTimeFor(self), r)
+                                   for r in self.reminders)
+        except ValueError:
+            return (Reminder.farFuture, None)
+        
+    def getNextReminderTuple(self):
+        """
+        Get a tuple containing (the next unexpired reminder's time, this
+        item, and the reminder)
+        """
+        (when, reminder) = self._getNextReminderAndTime()
+        return (when, self, reminder)
+        
+    def getNextReminderTime(self):
+        """
+        Get the time the next unexpired reminder (of any kind) is due to fire
+        """
+        return self._getNextReminderAndTime()[0]
     
-    # @@@ For now, this is used to set absolute user reminders
-    # @@@ This is used for the next reminder of any kind (user or not), which is
-    # what the reminder-firing mechanism wants
-    reminderFireTime = Calculated(
+    nextReminderTime = Calculated(
         schema.DateTimeTZ,
         basedOn=('startTime', 'allDay', 'anyTime', 'reminders'),
-        fget=getReminderFireTime,
-        doc="Reminder fire time, or None for no unexpired reminders")
+        fget=getNextReminderTime,
+        doc="Firing time of this item's next reminder, "
+            "or None for no unexpired reminders")

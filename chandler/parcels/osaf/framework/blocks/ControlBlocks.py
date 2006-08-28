@@ -293,13 +293,23 @@ class Column(schema.Item):
                            "determining the value of the item in "
                            "this column")
 
-    attributeName = schema.One(schema.Text, 
+    attributeName = schema.One(schema.Importable,
                                doc="The attribute used to "
                                "evaluate the column value for the "
-                               "item in the row")
-    icon = schema.One(schema.Text, doc="An optional name of an image to display instead of a label")
+                               "item in the row.")
     
-    kind = schema.One(schema.Kind, doc="The Kind used "
+    indexAttributes = schema.Sequence(schema.Importable, defaultValue=None,
+                                      doc="A list of attributes to index on")
+    
+    icon = schema.One(schema.Text, 
+                      doc="An optional name of an image to "
+                      "display instead of a label")
+    
+    useSortArrows = schema.One(schema.Boolean, defaultValue=True,
+                               doc="Show arrows when sorting by this column?")
+    
+    kind = schema.One(schema.Kind, 
+                      doc="The Kind used "
                       "for 'kind' columns")
 
     width = schema.One(schema.Integer,  defaultValue = 20,
@@ -318,10 +328,7 @@ class Column(schema.Item):
             return self.kind
         else:
             return self.attributeName
-
-    attributeEditorValue = property(getAttributeEditorValue)
-    
- 
+        
 class ListDelegate (object):
     """
     Default delegate for Lists that use the block's contents.
@@ -431,7 +438,7 @@ class AttributeDelegate (ListDelegate):
         item = blockItem.contents[itemIndex]
         col = blockItem.columns[column]
         
-        return (item, col.attributeEditorValue)
+        return (item, col.getAttributeEditorValue())
     
     def SetElementValue (self, row, column, value):
         itemIndex = self.RowToIndex(row)
@@ -1015,10 +1022,10 @@ class Timer(Block):
             elif millisecondsUntilFiring > sys.maxint:
                 millisecondsUntilFiring = sys.maxint
 
-            # print "*** setFiringTime: will fire at %s in %s minutes" % (when, millisecondsUntilFiring / 60000)
+            print "*** setFiringTime: will fire at %s in %s minutes" % (when, millisecondsUntilFiring / 60000)
             timer.Start(millisecondsUntilFiring, True)
         else:
-            # print "*** setFiringTime: No new time."
+            print "*** setFiringTime: No new time."
             pass
 
 class ReminderTimer(Timer):
@@ -1027,26 +1034,11 @@ class ReminderTimer(Timer):
     """
     
     def synchronizeWidget (self, *args, **kwds):
-        #logger.debug("*** Synchronizing ReminderTimer widget!")
+        logger.debug("*** Synchronizing ReminderTimer widget!")
         super(ReminderTimer, self).synchronizeWidget(*args, **kwds)
         if not wx.GetApp().ignoreSynchronizeWidget:
             self.primeReminderTimer()
     
-    def render(self, *args, **kwds):
-        super(ReminderTimer, self).render(*args, **kwds)
-        # Create a monitor to watch for changes that affect reminders
-        for attr in ('reminders', 'startTime'):
-            Monitors.attach(self, 'onRemindersChanged', 'set', attr)
-            
-    def onDestroyWidget(self, *args, **kwds):
-        # Get rid of the monitors
-        for attr in ('reminders', 'startTime'):
-            Monitors.detach(self, 'onRemindersChanged', 'set', attr)
-        super(ReminderTimer, self).onDestroyWidget(*args, **kwds)
-
-    def onRemindersChanged(self, op, item, attribute):
-        self.markDirty()
-
     def getPendingReminders (self):
         """
         Return a list of all reminder tuples with fire times in the past, 
@@ -1056,11 +1048,11 @@ class ReminderTimer(Timer):
         """
 
         view = self.itsView
-        # reminderFireTime always adds a timezone, so add one to now 
+        # nextReminderTime always adds a timezone, so add one to now 
         now = datetime.now(PyICU.ICUtzinfo.default)
 
         def matches(key):
-            if view[key].reminderFireTime <= now:
+            if view[key].nextReminderTime <= now:
                 return 0
             return -1
 
@@ -1068,7 +1060,7 @@ class ReminderTimer(Timer):
         lastPastKey = itemsWithReminders.findInIndex('reminderTime', 'last', matches)
 
         if lastPastKey is not None:
-            return [(item.reminderFireTime, item, item.reminders.first())
+            return [item.getNextReminderTuple()
                     for item in (view[key] for key in
                      itemsWithReminders.iterindexkeys('reminderTime', None, lastPastKey))]
 
@@ -1076,7 +1068,7 @@ class ReminderTimer(Timer):
     
     def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary
-        #logger.debug("*** Got reminders time event!")
+        logger.debug("*** Got reminders time event!")
         self.primeReminderTimer(True)
 
     def primeReminderTimer(self, createDialog=False):
@@ -1085,6 +1077,7 @@ class ReminderTimer(Timer):
         """
         # Ignore prime calls while we're priming
         if getattr(self, '_inPrimeReminderTimer', False):
+            logger.debug("(** skipping recursive call to primeReminderTimer")
             return
         
         self._inPrimeReminderTimer = True
@@ -1097,38 +1090,41 @@ class ReminderTimer(Timer):
                 (nextReminderTime, closeIt) = (datetime.now(
                     PyICU.ICUtzinfo.default) + timedelta(seconds=1), False)
             else:
+                # Update triagestatus on each pending reminder. Dismiss any
+                # internal reminders that exist only to trigger on startTime.
+                def processReminder((reminderTime, remindable, reminder)):
+                    logger.debug("*** now-ing %s due to %s", remindable, 
+                                 reminder)
+                    remindable.triageStatus = 'now'
+                    remindable.setTriageStatusChanged(when=reminderTime)
+                    if reminder.userCreated:
+                        return True # this should appear in the list.
+                    # This is a non-user reminder, which served only to let us
+                    # bump the triageStatus. Discard it.
+                    remindable.dismissReminder(reminder)
+                    return False
+                pending = filter(processReminder, self.getPendingReminders())
+
                 # Get the dialog if we have it; we'll create it if 'createDialog' and
                 # it doesn't exist.
-                reminderDialog = self.getReminderDialog(createDialog)
-                if reminderDialog is not None:
+                if pending:
+                    reminderDialog = self.getReminderDialog(True)
+
                     # The dialog is displayed; get the list of pending reminders and 
                     # let it update itself. It'll tell us when it wants us to fire next, 
                     # or whether we should close it now.
-                    
-                    # Update triagestatus on each pending reminder. Dismiss any
-                    # internal reminders that exist only to trigger on startTime.
-                    def processReminder((reminderTime, remindable, reminder)):
-                        remindable.triageStatus = 'now'
-                        remindable.setTriageStatusChanged(when=reminderTime)
-                        if reminder.userCreated:
-                            return True # this should appear in the list.
-                        # This is a non-user reminder, which served only to let us
-                        # bump the triageStatus. Discard it.
-                        reminder.dismiss()
-                        return False
-                    pending = filter(processReminder, self.getPendingReminders())
-                    
+                                        
                     (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
                 else:
                     # Or not.
-                    (nextReminderTime, closeIt) = (None, False)
+                    (nextReminderTime, closeIt) = (None, True)
             if nextReminderTime is None:
                 # The dialog didn't give us a time to fire; we'll fire at the
                 # next non-pending reminder's time.
                 itemsWithReminders = schema.ns('osaf.pim', self.itsView).itemsWithReminders
                 firstReminder = itemsWithReminders.firstInIndex('reminderTime')
                 if firstReminder is not None:
-                    nextReminderTime = firstReminder.reminderFireTime
+                    nextReminderTime = firstReminder.nextReminderTime
     
             if closeIt:
                 self.closeReminderDialog()
@@ -1160,7 +1156,7 @@ class ReminderTimer(Timer):
             reminderDialog.Destroy()
 
     def setFiringTime(self, when):
-        #logger.debug("*** next reminder due %s", when)
+        logger.debug("*** next reminder due %s", when)
         super(ReminderTimer, self).setFiringTime(when)
 
 class PresentationStyle(schema.Item):

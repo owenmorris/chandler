@@ -693,7 +693,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
         setattr(self, self.__collection__, set)
         return set
 
-    def getCollectionIndex(self, indexName=None):
+    def getCollectionIndex(self, indexName=None, attributes=None):
         """
         Get the index. If it doesn't exist, create. Also create a RangeSet
         for storing the selection on the index
@@ -712,12 +712,12 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
             else:
                 # for 0.7alpha2, hardcode 'date' as a secondary sort
                 # for any query
-                self.addIndex(indexName, 'attribute',
-                              attributes=(indexName, 'date'))
+                attributes = attributes or (indexName, 'date')
+                self.addIndex(indexName, 'attribute', attributes=attributes)
             self.setRanges(indexName, [])
         return self.getIndex(indexName)
 
-    def setCollectionIndex(self, newIndexName, toggleDescending=False):
+    def setCollectionIndex(self, newIndexName, toggleDescending=False, attributes=None):
         """
         Switches to a different index, bringing over the selection to
         the new index.
@@ -730,7 +730,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
         # assuming that we'll have to redo selection when sort is reversed?
         currentIndexName = self.indexName
 
-        newIndex = self.getCollectionIndex(newIndexName)
+        newIndex = self.getCollectionIndex(newIndexName, attributes)
 
 
         if currentIndexName != newIndexName:

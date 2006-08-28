@@ -163,17 +163,12 @@ class wxTable(DragAndDrop.DraggableWidget,
     def OnLabelLeftClicked (self, event):
         assert (event.GetRow() == -1) # Currently Table only supports column headers
         blockItem = self.blockItem
-        if blockItem.columns[event.GetCol()].valueType != 'attribute':
-            # for now we only support sorting on attribute-style columns
-            self.SetUseColSortArrows(False)
-            return
-        else:
-            self.SetUseColSortArrows(True)
-        attributeName = blockItem.columns[event.GetCol()].attributeName
-        contents = blockItem.contents
-
-        self.blockItem.contents.setCollectionIndex(attributeName,
-                                                   toggleDescending=True)
+        column = blockItem.columns[event.GetCol()]
+        self.SetUseColSortArrows(column.useSortArrows)
+        indexName = column.attributeName
+        blockItem.contents.setCollectionIndex(indexName,
+                                              toggleDescending=True,
+                                              attributes=column.indexAttributes)
         self.wxSynchronizeWidget()
 
     def OnKeyDown(self, event):
