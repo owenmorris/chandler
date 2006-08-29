@@ -60,11 +60,6 @@ class UserCollection(schema.Annotation):
         copying = schema.Cloud(byRef=[preferredKind]),
     )
 
-    """
-      A dictionary mapping a KindName string to a new displayName.
-    """
-    displayNameAlternatives = schema.Mapping (schema.Text)
-
     def ensureColor(self):
         """
         setup the color of a collection

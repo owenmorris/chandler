@@ -49,7 +49,7 @@ try:
     if 0:
         User.emulate_sidebarClick(App_ns.sidebar, name,  overlay=False)
         User.idle()
-        User.emulate_sidebarClick(App_ns.sidebar, "All",  overlay=False)
+        User.emulate_sidebarClick(App_ns.sidebar, "Dashboard",  overlay=False)
         User.idle()
         User.emulate_sidebarClick(App_ns.sidebar, name,  overlay=True)
         User.idle()

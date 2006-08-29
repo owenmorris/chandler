@@ -390,13 +390,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
                                 })
             if filteredCollection.isEmpty():
                 dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
-        """
-          Confuse user by changing the name to something they won't understand
-        """
-        if hasattr (UserCollection(item), "displayNameAlternatives"):
-            name = sidebar.getNameAlternative (item)
-        else:
-            name = getattr (item, attribute)
+        name = getattr (item, attribute)
         """
           Draw the buttons
         """
@@ -736,11 +730,6 @@ class SidebarBlock(Table):
     # cell. A height of zero uses the height of the cell
     editRectOffsets = schema.Sequence (schema.Integer, required = True)
 
-    """
-      A dictionary mapping a filterKind string to display name of the Kind.
-    """
-    kindToDisplayName = schema.Mapping (schema.Text)
-
     schema.addClouds(
         copying = schema.Cloud(
             byRef = [filterKind],
@@ -999,53 +988,39 @@ class SidebarBlock(Table):
                 mine.addSource(item)
 
     def onToggleMineEventUpdateUI(self, event):
-        selectionRanges = self.contents.getSelectionRanges()
-        if selectionRanges is None or len(selectionRanges) != 1:
+        selectedItem = second = None
+        iterator = self.contents.iterSelection()
+        try:
+            selectedItem = iterator.next()
+            second = iterator.next()
+        except StopIteration:
+            pass
+        
+        if selectedItem is None or second is not None:
             event.arguments['Enable'] = False
         else:
-            selectedItem = self.contents.getFirstSelectedItem()
-            if selectedItem is not None:
-                if hasattr (UserCollection(selectedItem), "displayNameAlternatives"):
-                    collectionName = self.getNameAlternative (selectedItem)
-                else:
-                    collectionName = selectedItem.getItemDisplayName()
-            else:
-                collectionName = ""
+            collectionName = selectedItem.getItemDisplayName()
 
-            if self.filterKind is None:
-                key = "None"
-            else:
-                key = os.path.basename (str (self.filterKind.itsPath))
+            allCollection = schema.ns("osaf.pim", self).allCollection
             arguments = {'collection': collectionName,
-                         'kind': self.kindToDisplayName[key]}
+                         'dashboard': allCollection.displayName}
     
             if selectedItem is None:
                 enabled = False
-                menuTitle = _(u'Keep out of %(kind)s') % arguments
+                menuTitle = _(u'Keep out of %(dashboard)s') % arguments
             elif UserCollection(selectedItem).outOfTheBoxCollection:
                 enabled = False
-                menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
+                menuTitle = _(u'Keep "%(collection)s" out of %(dashboard)s') % arguments
             else:
                 enabled = True
                 mine = schema.ns('osaf.pim', self.itsView).mine
                 if selectedItem not in mine.sources:
-                    menuTitle = _(u'Add "%(collection)s" to %(kind)s') % arguments
+                    menuTitle = _(u'Add "%(collection)s" to %(dashboard)s') % arguments
                 else:
-                    menuTitle = _(u'Keep "%(collection)s" out of %(kind)s') % arguments
+                    menuTitle = _(u'Keep "%(collection)s" out of %(kidashboardnd)s') % arguments
     
             event.arguments ['Text'] = menuTitle
             event.arguments['Enable'] = enabled
-
-    def getNameAlternative (self, item):
-        """
-        Chandler has a very confusing feature that some collection's names change
-        when the app bar is filtering, so we need to calculate the alternative name
-        """
-        if self.filterKind is None:
-            key = "None"
-        else:
-            key = os.path.basename (str (self.filterKind.itsPath))
-        return UserCollection(item).displayNameAlternatives [key]
 
 class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 

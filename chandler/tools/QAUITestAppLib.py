@@ -308,7 +308,7 @@ class UITestItem(object):
             scripting.User.emulate_typing(displayName)
             # work around : emulate_return doesn't work
             #scripting.User.emulate_return()
-            scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")
+            scripting.User.emulate_sidebarClick(App_ns.sidebar, "Dashboard")
             #check this actually worked 
             #assert self.item.displayName == displayName, '%s != %s' % \
             #(self.item.displayName.encode('raw_unicode_escape'), displayName.encode('raw_unicode_escape'))
@@ -1161,10 +1161,10 @@ class UITestItem(object):
             if self.logger: self.logger.SetChecked(True)
             # for All, In, Out, Trash collection find by item rather than itemName
             pim_ns = scripting.schema.ns('osaf.pim', wx.GetApp().UIRepositoryView)
-            chandler_collections = {"All":   pim_ns.allCollection,
-                                    "Out":   pim_ns.outCollection,
-                                    "In":    pim_ns.inCollection,
-                                    "Trash": pim_ns.trashCollection}
+            chandler_collections = {"Dashboard": pim_ns.allCollection,
+                                    "Out":       pim_ns.outCollection,
+                                    "In":        pim_ns.inCollection,
+                                    "Trash":     pim_ns.trashCollection}
             if collectionName in chandler_collections.keys():
                 col = chandler_collections[collectionName]
             else:

@@ -267,13 +267,6 @@ def emulate_sidebarClick(sidebar, cellName, double=False, overlay=False):
     if overlay:
         xOffset=3 
 
-    # find special collections by item because their names may
-    # change. see UserCollection's displayNameAlternatives
-    pim_ns = schema.ns('osaf.pim', wx.GetApp().UIRepositoryView)
-    chandler_collections = {"All":pim_ns.allCollection}
-    if cellName in chandler_collections.keys():
-        cellName = chandler_collections[cellName]
-
     cellRect = None
     for i in range(sidebar.widget.GetNumberRows()):
         item = sidebar.widget.GetTable().GetValue(i,0)[0]

@@ -55,7 +55,7 @@ try:
     beforeChangeEvent = QAUITestAppLib.UITestItem("Event", logger)
     beforeChangeEvent.AddCollection(uw("Meeting"))
     beforeChangeEvent.Check_ItemInCollection(uw("Meeting"), expectedResult=True)
-    beforeChangeEvent.Check_ItemInCollection("All", expectedResult=True)
+    beforeChangeEvent.Check_ItemInCollection("Dashboard", expectedResult=True)
     
     # Change Meeting to stop being in mine
     sidebar.onToggleMineEvent(QAUITestAppLib.App_ns.ToggleMineItem.event)
@@ -65,10 +65,10 @@ try:
 
     # both events should be in Meeting and not in All
     beforeChangeEvent.Check_ItemInCollection(uw("Meeting"), expectedResult=True)
-    beforeChangeEvent.Check_ItemInCollection("All", expectedResult=False)
+    beforeChangeEvent.Check_ItemInCollection("Dashboard", expectedResult=False)
 
     afterChangeEvent.Check_ItemInCollection(uw("Meeting"), expectedResult=True)
-    afterChangeEvent.Check_ItemInCollection("All", expectedResult=False)
+    afterChangeEvent.Check_ItemInCollection("Dashboard", expectedResult=False)
 
 
 finally:

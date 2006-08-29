@@ -30,7 +30,7 @@ try:
     note.MoveToTrash()
     # verification
     note.Check_ItemInCollection("Trash")
-    note.Check_ItemInCollection("All", expectedResult=False)
+    note.Check_ItemInCollection("Dashboard", expectedResult=False)
     
     today = strftime('%m/%d/%y',localtime())
 
@@ -50,7 +50,7 @@ try:
                   displayName=uw("Ephemeral event"))
 
     event.SelectItem()
-    event.Check_ItemInCollection("All", expectedResult=True)
+    event.Check_ItemInCollection("Dashboard", expectedResult=True)
     event.Check_ItemSelected()
 
     event.MoveToTrash()
@@ -58,7 +58,7 @@ try:
     scripting.User.emulate_sidebarClick(sidebar, "My calendar")
 
     event.SelectItem(catchException=True)
-    event.Check_ItemInCollection("All", expectedResult=False)
+    event.Check_ItemInCollection("Dashboard", expectedResult=False)
     event.Check_ItemSelected(expectedResult=False)
 
 finally:
