@@ -107,33 +107,36 @@ class Values(CValues):
 
         flags = orig._flags.get(name, 0) & Values.COPYMASK
         if flags != 0:
-            self._flags[name] = flags
+            _flags = self._flags
+            if _flags is Nil:
+                self._flags = {name: flags}
+            else:
+                _flags[name] = flags
 
     def _unload(self, clean=True):
 
         self._dict.clear()
-        self._flags.clear()
+        self._flags = Nil
 
     def _setFlags(self, key, flags):
 
-        self._flags[key] = flags
+        _flags = self._flags
+        if _flags is Nil:
+            self._flags = {key: flags}
+        else:
+            _flags[key] = flags
 
     def _getDirties(self):
 
-        _flags = self._flags
-        if _flags:
-            return [ key for key, flags in _flags.iteritems()
-                     if flags & Values.DIRTY ]
-
-        return []
+        return [ key for key, flags in self._flags.iteritems()
+                 if flags & Values.DIRTY ]
 
     def _clearDirties(self):
 
         _flags = self._flags
-        if _flags:
-            for key, flags in _flags.iteritems():
-                if flags & Values.DIRTY:
-                    _flags[key] &= ~Values.DIRTY
+        for key, flags in _flags.iteritems():
+            if flags & Values.DIRTY:
+                _flags[key] &= ~Values.DIRTY
 
         self._clearValueDirties()
 
@@ -147,7 +150,7 @@ class Values(CValues):
     def _writeValues(self, itemWriter, version, withSchema, all):
 
         item = self._item
-        kind = item._kind
+        kind = item.itsKind
 
         size = 0
         for name, value in self._dict.iteritems():
