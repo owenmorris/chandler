@@ -44,7 +44,10 @@ global_lock = threading.RLock()
 # Chandler's core schema using the schema API, rather than packs.
 #
 def _is_schema(ob):
-    return hasattr(ob,'_find_schema_item') or ob in (Base,Kind)
+    fsi = getattr(ob,'_find_schema_item',None)
+    if fsi:
+        return fsi.im_self is not None  # must be a *bound* method
+    return ob is Base or ob is Kind
 
 def _target_type(ob):
     if ob is Base or ob is Kind:
@@ -783,7 +786,7 @@ class AnnotationClass(type):
 class Annotation:
     """Base class for annotations"""
     __metaclass__ = AnnotationClass
-    __kind_info__ = {'annotates':None}  # Annotation doesn't annotate anything
+    __kind_info__ = {'annotates':Item}
     __slots__ = ['itsItem']
 
     def __init__(self, itsItem):
@@ -946,7 +949,7 @@ class EnumerationClass(Activator):
 class Enumeration(object):
     """Base class for defining enumerations"""
     __metaclass__ = EnumerationClass
-
+    values = ()
 
 def _update_info(name,attr,data,frame=None,depth=2):
     frame = frame or sys._getframe(depth)
@@ -1279,14 +1282,15 @@ class ModuleMaker:
         item.itsParent = self.getParent(view)
         item.itsName = self.name
         item.itsKind = itemFor(Parcel, view)
+
+        # make sure that the schema for the module is fully created
         module = importString(self.moduleName)
         if hasattr(module,'installParcel'):
-            # make sure that the schema for the module is fully created
-            for it in module.__dict__.values():
-                if hasattr(it,'_find_schema_item'):
-                    # Import each kind/struct/enum
-                    itemFor(it,view)
+            synchronize(view, self.moduleName)
             module.installParcel(item, None)
+        else:
+            return lambda: synchronize(view, self.moduleName)
+
 
     def __repr__(self):
         return "ModuleMaker(%r)" % self.moduleName
@@ -1322,7 +1326,7 @@ def synchronize(repoView,moduleName):
     parcel_for_module(moduleName,repoView)
 
     for item in module.__dict__.values():
-        if hasattr(item,'_find_schema_item'):
+        if _is_schema(item):
             # Import each kind/struct/enum
             itemFor(item,repoView)
 
