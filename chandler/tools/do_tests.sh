@@ -34,22 +34,16 @@ if [ "$CHANDLER_UNIT_TEST" = "yes" ]; then
 else
     RUN_UNIT=no
 fi
-if [ "$USE_NEW_TEST_FRAMEWORK" = "yes" ]; then
-    USE_NEW_FRAMEWORK=yes
-else
-    USE_NEW_FRAMEWORK=no
-fi
 
 hadError=0
 
-while getopts "fpuNt:m:" Option
+while getopts "fput:m:" Option
 do
   case $Option in
     f ) RUN_FUNCTIONAL=yes;;
     p ) RUN_PERFORMANCE=yes;;
     u ) RUN_UNIT=yes;;
     t ) TEST_TO_RUN=$OPTARG;;
-    N ) USE_NEW_FRAMEWORK=yes;;
     m ) MODE_VALUE=$OPTARG;;
     * ) hadError=1
     ;;   # DEFAULT
@@ -61,7 +55,6 @@ if [ $hadError = 1 ]; then
     echo "   if CHANDLER_FUNCTIONAL_TEST=yes or -f then CATS Functional Tests are run"
     echo "   if CHANDLER_PERFORMANCE_TEST=yes or -p then CATS Performance Tests are run"
     echo "   if CHANDLER_UNIT_TEST=yes or -u then Chandler Unit Tests are run"
-    echo "   if USE_NEW_TEST_FRAMEWORK=yes or -N then run Functional tests using CATS 0.2"
     echo "if a specific test name or (pattern) is given using -t then only that test name will be run"
     echo "chandler-base-path is 'chandler' that has 'internal' and 'external' as sibling directories"
     exit $E_OPTERROR
@@ -83,17 +76,9 @@ else
     C_DIR=`pwd`
 fi
 
-if [ $USE_NEW_FRAMEWORK = yes ]; then
-   F_TEST_SUITE="$C_DIR/tools/cats/Functional/FunctionalTestSuite.py"
-   F_TEST_IGNORE=QATestScripts
-   F_TEST_DIR=cats
-   echo Using new test framework
-else
-   F_TEST_SUITE="$C_DIR/tools/QATestScripts/Functional/FunctionalTestSuite.py"
-   F_TEST_IGNORE=cats
-   F_TEST_DIR=QATestScripts
-   echo Using old test framework
-fi
+F_TEST_SUITE="$C_DIR/tools/cats/Functional/FunctionalTestSuite.py"
+F_TEST_IGNORE=QATestScripts  #this can be removed once this dir is dropped fromt  the tree
+F_TEST_DIR=cats
 
 if [ ! -d "$C_DIR/i18n" ]; then
     C_DIR=`pwd`
@@ -229,14 +214,8 @@ if [ -n "$TEST_TO_RUN" ]; then
                     echo Skipping $TESTNAME in $F_TEST_IGNORE
                 else
                     if echo "$TESTNAME" | grep -q "$F_TEST_DIR" ; then
-                        if [ $USE_NEW_FRAMEWORK = yes ]; then
-                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --chandlerTests="$TEST_WITHOUT_PATH" &> $TESTLOG
-                            SUCCESS="#TINDERBOX# Status = PASSED"
-                        else
-                            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
-                            SUCCESS="#TINDERBOX# Status = PASSED"
-                        fi
-                        
+                        $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --chandlerTests="$TEST_WITHOUT_PATH" &> $TESTLOG
+                        SUCCESS="#TINDERBOX# Status = PASSED"
                     else
                         $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $TESTLOG
                         SUCCESS="^OK"
