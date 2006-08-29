@@ -162,37 +162,40 @@ class Certificate(pim.ContentItem):
         self.changed('remove', None)
 
 def _isRootCertificate(x509):
-    # XXX This will need tweaks
-    # XXX Should use OpenSSL itself if possible
-    # XXX X509_check_ca, X509_check_purpose
     root = False
-
+    
     try:
-        root = x509.get_ext('basicConstraints').get_value().find('CA:TRUE') > -1
-        log.debug('"basicConstraints" contained "CA:TRUE": %s' % root)
-    except LookupError:
-        pass
-
-    if not root:
+        # This works with OpenSSL 0.9.8 or later
+        root = x509.check_ca() > 0
+        log.debug('check_ca(): %s' % root)
+    except AttributeError:
+        # Our backup algorithm for older OpenSSL
         try:
-            root = x509.get_ext('keyUsage').get_value().find('Certificate Sign') > -1
-            log.debug('"keyUsage" contained "Certificate Sign": %s' % root)
+            root = x509.get_ext('basicConstraints').get_value().find('CA:TRUE') > -1
+            log.debug('"basicConstraints" contained "CA:TRUE": %s' % root)
         except LookupError:
             pass
-
-    if not root:
-        try:
-            root = x509.get_ext('nsCertType').get_value().find('SSL CA') > -1
-            log.debug('"nsCertType" contained "SSL CA": %s' % root)
-        except LookupError:
-            pass
-
-    if not root:
-        subject = x509.get_subject()
-        issuer = x509.get_issuer()
-        if subject.as_text() == issuer.as_text():
-            root = True
-        log.debug('subject and issuer matched: %s' % root)
+    
+        if not root:
+            try:
+                root = x509.get_ext('keyUsage').get_value().find('Certificate Sign') > -1
+                log.debug('"keyUsage" contained "Certificate Sign": %s' % root)
+            except LookupError:
+                pass
+    
+        if not root:
+            try:
+                root = x509.get_ext('nsCertType').get_value().find('SSL CA') > -1
+                log.debug('"nsCertType" contained "SSL CA": %s' % root)
+            except LookupError:
+                pass
+    
+        if not root:
+            subject = x509.get_subject()
+            issuer = x509.get_issuer()
+            if subject.as_text() == issuer.as_text():
+                root = True
+            log.debug('subject and issuer matched: %s' % root)
 
     return root
 
@@ -226,7 +229,7 @@ def _isSiteCertificate(x509):
             pass
 
     if not site:
-        commonName = x509.get_subject().CN
+        commonName = x509.get_subject().CN or ''
         if commonName.find(' ') < 0 and commonName.find('.') > -1:
             site = True
         elif commonName.replace('.','').isdigit():

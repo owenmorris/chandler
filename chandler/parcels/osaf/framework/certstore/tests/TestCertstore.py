@@ -131,6 +131,8 @@ rZehs7GgIFvKMquNzxPwHynD
             self.assertTrue(len(cert.fingerprint) > 3)
             self.assertTrue(cert.asTextAsString[:12] == 'Certificate:')            
     
+            self.assertTrue(certificate.certificateType(x509) == constants.TYPE_ROOT)
+            
     def _importAndFind(self, pem, trust):
         x509 = X509.load_cert_string(pem)
         fingerprint = utils.fingerprint(x509)
@@ -168,6 +170,9 @@ rZehs7GgIFvKMquNzxPwHynD
         self.assert_(cert.trust == trust)
         self.assert_(cert.type == constants.TYPE_SITE)
         self.assert_(cert.displayName == u'bugzilla.osafoundation.org')
+        
+        self.assertTrue(certificate.certificateType(x509) == constants.TYPE_SITE)
+        self.assertTrue(certificate.certificateType(x509, constants.TYPE_SITE) == constants.TYPE_SITE)
 
     def testImportRootCertificate(self):
         trust = constants.TRUST_AUTHENTICITY | constants.TRUST_SITE
@@ -182,10 +187,15 @@ rZehs7GgIFvKMquNzxPwHynD
         self.assert_(cert.trust == trust)
         self.assert_(cert.type == constants.TYPE_ROOT)
         self.assert_(cert.displayName == u'OSAF CA')
+
+        self.assertTrue(certificate.certificateType(x509) == constants.TYPE_ROOT)
         
     def testImportUnsupportedCertificate(self):
         trust = constants.TRUST_AUTHENTICITY
         self.assertRaises(Exception, self._importAndFind, self.pemUnsupported, trust)
+
+        x509 = X509.load_cert_string(self.pemUnsupported)
+        self.assertRaises(Exception, certificate.certificateType, x509)
         
     #def testImportMultipleCertificate(self):
         # XXX I would like to make it so that attempting to import when
