@@ -1017,7 +1017,7 @@ class SidebarBlock(Table):
                 if selectedItem not in mine.sources:
                     menuTitle = _(u'Add "%(collection)s" to %(dashboard)s') % arguments
                 else:
-                    menuTitle = _(u'Keep "%(collection)s" out of %(kidashboardnd)s') % arguments
+                    menuTitle = _(u'Keep "%(collection)s" out of %(dashboard)s') % arguments
     
             event.arguments ['Text'] = menuTitle
             event.arguments['Enable'] = enabled
