@@ -44,6 +44,10 @@ from conduits import *
 from WebDAV import *
 from ICalendar import *
 
+from osaf.pim.collections import UnionCollection, DifferenceCollection
+
+from itertools import chain
+
 logger = logging.getLogger(__name__)
 
 
@@ -73,7 +77,8 @@ PUBLISH_MONOLITHIC_ICS = True
 class SharingPreferences(schema.Item):
     import_dir = schema.One(schema.Text, defaultValue = getDesktopDir())
     import_as_new = schema.One(schema.Boolean, defaultValue = True)
-
+    freeBusyAccount = schema.One(WebDAVAccount, defaultValue=None)
+    freeBusyShare   = schema.One(Share, defaultValue=None)
 
 def installParcel(parcel, oldVersion=None):
 
@@ -90,7 +95,13 @@ def installParcel(parcel, oldVersion=None):
     pim.ListCollection.update(parcel, "activityLog",
         displayName="Sharing Activity"
     )
-
+    
+    publishedFreeBusy = UnionCollection.update(parcel, 'publishedFreeBusy')
+    hiddenEvents = DifferenceCollection.update(parcel, "hiddenEvents",
+        sources=[schema.ns('osaf.pim', parcel.itsView).allEventsCollection, publishedFreeBusy],
+        displayName = 'Unpublished Freebusy Events'
+    )
+    
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 PROCEED        = 1
@@ -363,8 +374,6 @@ class ProgressMonitor:
 
         return self.updateCallback(msg=msg, percent=percent)
 
-
-
 def publish(collection, account, classesToInclude=None,
             publishType = 'collection',
             attrsToExclude=None, displayName=None, updateCallback=None):
@@ -475,7 +484,7 @@ def publish(collection, account, classesToInclude=None,
             share.sync(updateCallback=callback)
 
         else:
-
+            # the collection should be published
             # determine a share name
             existing = getExistingResources(account)
             displayName = displayName or collection.displayName
@@ -493,103 +502,165 @@ def publish(collection, account, classesToInclude=None,
 
             shareName = _uniqueName(shareName, existing)
 
-            if publishType == 'freebusy':
-                shareName += '.ifb'
-                alias = 'freebusy'
-
-
             if ('calendar-access' in dav or 'MKCALENDAR' in allowed):
-
                 # We're speaking to a CalDAV server
+                
+                # should this collection live in the (alpha4 hack for freebusy)
+                # freebusy subcollection?
+                sharing_ns = schema.ns('osaf.sharing', view)
+                inFreeBusy = False
+                fbexists   = False
+                # create the freebusy collection if it doesn't already exist
+                if (publishType == 'freebusy' or
+                    collection in schema.ns('osaf.pim', view).mine.sources):
 
-                # Create a CalDAV conduit / ICalendar format
-                # Create a cloudxml subcollection
-                # or just a freebusy resource
-
-                share = _newOutboundShare(view, collection,
-                                         classesToInclude=classesToInclude,
-                                         shareName=shareName,
-                                         displayName=displayName,
-                                         account=account,
-                                         useCalDAV=True,
-                                         publishType=publishType)
-
-                if attrsToExclude:
-                    share.filterAttributes = attrsToExclude
-
-                try:
-                    collection.shares.append(share, alias)
-                except ValueError:
-                    # There is already a 'main' share for this collection
-                    collection.shares.append(share)
-
-                shares.append(share)
-
-                # allow freebusy resources to just be overwritten
-                if share.exists() and publishType != 'freebusy':
-                    raise SharingError(_(u"Share already exists"))
-
-                share.create()
-
-                share.conduit.setDisplayName(displayName)
-
-                if publishType == 'collection':
-                    # Create a subcollection to contain the cloudXML versions of
-                    # the shared items
-                    subShareName = u"%s/%s" % (shareName, SUBCOLLECTION)
-
-                    subShare = _newOutboundShare(view, collection,
-                                                 classesToInclude=classesToInclude,
-                                                 shareName=subShareName,
-                                                 displayName=displayName,
-                                                 account=account)
-
-                    if attrsToExclude:
-                        subShare.filterAttributes = attrsToExclude
-                    else:
-                        subShare.filterAttributes = []
-
-                    for attr in CALDAVFILTER:
-                        subShare.filterAttributes.append(attr)
-
-                    shares.append(subShare)
-
-                    if subShare.exists():
-                        raise SharingError(_(u"Share already exists"))
-
-                    try:
-                        subShare.create()
-
-                        # sync the subShare before the CalDAV share
-                        share.follows = subShare
-
-                        # Since we're publishing twice as many resources:
-                        if progressMonitor:
-                            progressMonitor.totalWork *= 2
-
-                    except SharingError:
-                        # We're not able to create the subcollection, so
-                        # must be a vanilla CalDAV Server.  Continue on.
-                        subShare.delete(True)
-                        subShare = None
-
+                    fbresource = handle.getResource(location + 'freebusy/')
+                    fbexists = handle.blockUntil(fbresource.exists)
+                    if not fbexists:
+                        try:
+                            fbresource = handle.blockUntil(
+                                          resource.createCollection, 'freebusy')
+                            fbexists = True
+                        except:
+                            pass
+                    if fbexists:
+                        inFreeBusy = True
+                
+                if publishType == 'freebusy':
+                    if not fbexists:
+                        raise SharingError(_(u"Could not create freebusy collection"))
+                   
+                    share = Share(itsView=view)
+                    share.conduit = CalDAVConduit(itsView=view, account=account,
+                                                  shareName = 'freebusy')
+                    
+                    share.conduit.createFreeBusyTicket()
+                    
+                    sharing_ns.prefs.freeBusyShare   = share
+                    sharing_ns.prefs.freeBusyAccount = account
+                    published = sharing_ns.publishedFreeBusy
+                    location += 'freebusy/'
+                    
+                    # put the appropriate collections into publishedFreeBusy to
+                    # avoid syncing the same event multiple times
+                    for share in getActiveShares(view):
+                        updatePublishedFreeBusy(share, location)
+                    
+                    
+                    hiddenResource = handle.getResource(location + 'hiddenEvents/')
+                    
+                    if handle.blockUntil(hiddenResource.exists):
+                        # someone has already published hiddenEvents for this
+                        # account.  It's hard to say what should happen in this
+                        # case, for now just fail
+                        raise SharingError(_(u"Free/Busy information has already been published for this account"))
+                    # publish hiddenEvents
+                    share = _newOutboundShare(view,
+                                              sharing_ns.hiddenEvents,
+                                              shareName='hiddenEvents',
+                                              account=account,
+                                              useCalDAV=True)
+                    shares.append(share)
+                    sharing_ns.hiddenEvents.shares.append(share)
+                    
+                    share.conduit.inFreeBusy = True
+                    share.create()
+                    share.put(updateCallback=callback)
+                
                 else:
-                    subShare = None
-
-                share.put(updateCallback=callback)
-
-                # tickets after putting
-                if supportsTickets:
+                    # Create a CalDAV conduit / ICalendar format
+                    # Create a cloudxml subcollection
+                    # or just a freebusy resource
+                    share = _newOutboundShare(view, collection,
+                                             classesToInclude=classesToInclude,
+                                             shareName=shareName,
+                                             displayName=displayName,
+                                             account=account,
+                                             useCalDAV=True,
+                                             publishType=publishType)
+    
+                    if attrsToExclude:
+                        share.filterAttributes = attrsToExclude
+    
+                    try:
+                        collection.shares.append(share, alias)
+                    except ValueError:
+                        # There is already a 'main' share for this collection
+                        collection.shares.append(share)
+    
+                    shares.append(share)
+    
+                    if share.exists():
+                        raise SharingError(_(u"Share already exists"))
+                    
+                    if inFreeBusy:
+                        share.conduit.inFreeBusy = True
+    
+                    share.create()
+    
+                    share.conduit.setDisplayName(displayName)
+    
                     if publishType == 'collection':
+                        # Create a subcollection to contain the cloudXML versions of
+                        # the shared items
+                        subShareName = u"%s/%s" % (shareName, SUBCOLLECTION)
+    
+                        subShare = _newOutboundShare(view, collection,
+                                                     classesToInclude=classesToInclude,
+                                                     shareName=subShareName,
+                                                     displayName=displayName,
+                                                     account=account)
+    
+                        subShare.conduit.inFreeBusy = inFreeBusy    
+    
+                        if attrsToExclude:
+                            subShare.filterAttributes = attrsToExclude
+                        else:
+                            subShare.filterAttributes = []
+    
+                        for attr in CALDAVFILTER:
+                            subShare.filterAttributes.append(attr)
+    
+                        shares.append(subShare)
+    
+                        if subShare.exists():
+                            raise SharingError(_(u"Share already exists"))
+    
+                        try:
+                            subShare.create()
+    
+                            # sync the subShare before the CalDAV share
+                            share.follows = subShare
+    
+                            # Since we're publishing twice as many resources:
+                            if progressMonitor:
+                                progressMonitor.totalWork *= 2
+    
+                        except SharingError:
+                            # We're not able to create the subcollection, so
+                            # must be a vanilla CalDAV Server.  Continue on.
+                            subShare.delete(True)
+                            subShare = None
+    
+                    else:
+                        subShare = None
+    
+                    share.put(updateCallback=callback)
+    
+                    # tickets after putting
+                    if supportsTickets and publishType == 'collection':
                         share.conduit.createTickets()
-                    elif publishType == 'freebusy':
-                        share.conduit.getTickets()
-                        # reuse existing tickets if possible
-                        if not share.conduit.ticketReadOnly:
-                            share.conduit.createTickets()
+
+                    if inFreeBusy:
+                        if account == sharing_ns.prefs.freeBusyAccount:
+                            sharing_ns.publishedFreeBusy.addSource(collection)
 
 
             elif dav is not None:
+
+                if publishType == 'freebusy':
+                    shareName += '.ifb'
+                    alias = 'freebusy'
 
                 # We're speaking to a WebDAV server
 
@@ -656,6 +727,22 @@ def publish(collection, account, classesToInclude=None,
 
     return shares
 
+def updatePublishedFreeBusy(share, fbLocation=None):
+    """Add the given share to publishedFreeBusy if it matches fbLocation."""
+    sharing_ns = schema.ns('osaf.sharing', share.itsView)
+    if fbLocation == None:
+        if sharing_ns.prefs.freeBusyShare is not None:
+            location = freeBusyShare.getLocation()
+            fbLocation = "/".join(location.split('/')[:-1])
+        else:
+            return
+        
+    published = sharing_ns.publishedFreeBusy
+    conduit = share.conduit
+    if (conduit.inFreeBusy and 
+        conduit.getLocation().startswith(fbLocation) and
+        share.contents != sharing_ns.hiddenEvents):
+            published.addSource(share.contents)
 
 def deleteShare(share):
     # Remove from server (or disk, etc.)
@@ -678,20 +765,45 @@ def unpublish(collection):
 
     for share in collection.shares:
         deleteShare(share)
+        
+    sharing_ns = schema.ns('osaf.sharing', collection.itsView)
+    if collection in sharing_ns.publishedFreeBusy.sources:
+        sharing_ns.publishedFreeBusy.removeSource(collection)
+
+def deleteTicket(share, ticket):
+    """Delete ticket associated with the given ticket string from the share."""
+    conduit = share.conduit
+    location = conduit.getLocation()
+    if not location.endswith("/"):
+        location += "/"
+    handle = conduit._getServerHandle()
+    resource = handle.getResource(location)
+    return handle.blockUntil(resource.deleteTicket, ticket)
 
 def unpublishFreeBusy(collection):
     """
     Remove a share from the server, and delete all associated Share objects
-
-    @type collection: pim.ContentCollection
-    @param collection: The collection to unpublish FreeBusy from
-
     """
-
     share = getFreeBusyShare(collection)
     if share is not None:
-        deleteShare(share)
-
+        # .ifb share, delete it
+        if share.contents == collection:
+            deleteShare(share)
+        # CalDAV parent collection for live data, deleting would be BAD
+        else:
+            # remove freebusy ticket from the collection
+            try:
+                deleteTicket(share, share.conduit.ticketFreeBusy)
+            except zanshin.http.HTTPError, err:
+                raise NotFound("Freebusy ticket not found")
+            # Clean up sharing-related objects
+            share.conduit.delete(True)
+            share.delete(True)
+            
+            # also stop publishing hiddenEvents
+            sharing_ns = schema.ns('osaf.sharing', collection.itsView)
+            for share in sharing_ns.hiddenEvents.shares:
+                deleteShare(share)
 
 def subscribe(view, url, updateCallback=None, username=None, password=None,
               forceFreeBusy=False):
@@ -716,7 +828,14 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
     # Get the parent directory of the given path:
     # '/dev1/foo/bar' becomes ['dev1', 'foo']
     pathList = path.strip(u'/').split(u'/')
-    parentPath = pathList[:-1]
+
+    # determine if the share is in a freebusy collection
+    if len(pathList) > 1 and pathList[-2] == 'freebusy':
+        inFreeBusy = True
+        parentPath = pathList[:-2]
+    else:
+        inFreeBusy = False
+        parentPath = pathList[:-1]
     # ['dev1', 'foo'] becomes "dev1/foo"
     parentPath = u"/".join(parentPath)
 
@@ -743,14 +862,19 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
         # compute shareName relative to the account path:
         accountPathLen = len(account.path.strip(u"/"))
         shareName = path.strip(u"/")[accountPathLen:]
+        if inFreeBusy:
+            shareName = shareName[len('freebusy/'):]
+        
+    
 
     if account:
         conduit = WebDAVConduit(itsView=view, account=account,
-            shareName=shareName)
+            shareName=shareName, inFreeBusy=inFreeBusy)
     else:
         conduit = WebDAVConduit(itsView=view, host=host, port=port,
             sharePath=parentPath, shareName=shareName, useSSL=useSSL,
-            ticket=ticket)
+            ticket=ticket, inFreeBusy=inFreeBusy)
+
 
     try:
         location = conduit.getLocation()
@@ -810,7 +934,7 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                                               sharePath=parentPath,
                                               account=account)
             if ticket:
-                share.conduit.ticketReadOnly = ticket
+                share.conduit.ticketFreeBusy = ticket
             share.mode = "get"
             share.filterClasses = \
                 ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
@@ -845,7 +969,7 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                                                   sharePath=parentPath,
                                                   account=account)
             if ticket:
-                share.conduit.ticketReadOnly = ticket
+                share.conduit.ticketFreeBusy = ticket
             share.mode = "get"
             share.filterClasses = \
                 ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
@@ -867,7 +991,7 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             except Exception, err:
                 logger.exception("Failed to subscribe to %s", url)
                 share.delete(True)
-                raise            
+                raise
 
         if updateCallback:
             updateCallback(msg=_(u"Detecting share settings..."))
@@ -1017,11 +1141,12 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                 if account:
                     subShare.conduit = WebDAVConduit(itsParent=subShare,
                                                      shareName=subShareName,
-                                                     account=account)
+                                                     account=account,
+                                                     inFreeBusy=inFreeBusy)
                 else:
                     subShare.conduit = WebDAVConduit(itsParent=subShare, host=host,
                         port=port, sharePath=parentPath, shareName=subShareName,
-                        useSSL=useSSL, ticket=ticket)
+                        useSSL=useSSL, ticket=ticket, inFreeBusy=inFreeBusy)
 
                 subShare.format = CloudXMLFormat(itsParent=subShare)
 
@@ -1041,11 +1166,12 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             if account:
                 share.conduit = CalDAVConduit(itsParent=share,
                                               shareName=shareName,
-                                              account=account)
+                                              account=account,
+                                              inFreeBusy=inFreeBusy)
             else:
                 share.conduit = CalDAVConduit(itsParent=share, host=host,
                     port=port, sharePath=parentPath, shareName=shareName,
-                    useSSL=useSSL, ticket=ticket)
+                    useSSL=useSSL, ticket=ticket, inFreeBusy=inFreeBusy)
 
             if updateCallback and updateCallback(
                 msg=_(u"Getting list of remote items...")):
@@ -1081,6 +1207,11 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             except ValueError:
                 # There is already a 'main' share for this collection
                 share.contents.shares.append(share)
+            
+            # If free busy has already been published, add the subscribed
+            # collection to publishedFreeBusy if appropriate
+            updatePublishedFreeBusy(share)
+            
 
         except Exception, err:
             logger.exception("Failed to subscribe to %s", url)
@@ -1141,9 +1272,10 @@ def isSharedByMe(share):
     return sharer is me
 
 
-
 def getUrls(share):
-    if isSharedByMe(share):
+    if share == schema.ns('osaf.sharing', share.itsView).prefs.freeBusyShare:
+        return [share.getLocation(privilege='freebusy')]
+    elif isSharedByMe(share):
         url = share.getLocation()
         readWriteUrl = share.getLocation(privilege='readwrite')
         readOnlyUrl = share.getLocation(privilege='readonly')
@@ -1190,6 +1322,9 @@ def getFreeBusyShare(collection):
     @return: A Share item, or None
     
     """
+    caldavShare = schema.ns('osaf.sharing', collection.itsView).prefs.freeBusyShare
+    if caldavShare is not None:
+        return caldavShare
     if hasattr(collection, 'shares') and collection.shares:
         return collection.shares.getByAlias('freebusy')
     return None
@@ -1226,6 +1361,11 @@ def isWebDAVSetUp(view):
     else:
         return False
 
+def getActiveShares(view):
+    for share in Share.iterItems(view):
+        if (share.active and
+            share.contents is not None):
+            yield share
 
 def syncAll(view, updateCallback=None):
     """
@@ -1236,15 +1376,12 @@ def syncAll(view, updateCallback=None):
     """
 
     sharedCollections = []
-    for share in Share.iterItems(view):
-        if (share.active and
-            share.contents is not None and
-            share.contents not in sharedCollections):
-            sharedCollections.append(share.contents)
-
     stats = []
-    for collection in sharedCollections:
-        stats.extend(sync(collection, updateCallback=updateCallback))
+    for share in getActiveShares(view):
+        if share.contents not in sharedCollections:
+            sharedCollections.append(share.contents)
+            stats.extend(sync(share.contents, updateCallback=updateCallback))
+            
     return stats
 
 
@@ -1279,12 +1416,22 @@ def getExistingResources(account):
         path = "/"
 
     existing = []
-    parent = handle.getResource(path)
+    parent   = handle.getResource(path)
+    
+    fbparent = handle.getResource(path + 'freebusy/')
+    fbexists = handle.blockUntil(fbparent.exists)
+
     skipLen = len(path)
-    for resource in handle.blockUntil(parent.getAllChildren):
+        
+    resources = handle.blockUntil(parent.getAllChildren)
+    if fbexists:
+        resources = chain(resources, handle.blockUntil(fbparent.getAllChildren))
+    ignore = ('', 'freebusy', 'freebusy/hiddenEvents')
+    
+    for resource in resources:
         path = resource.path[skipLen:]
         path = path.strip(u"/")
-        if path:
+        if path not in ignore:
             # path = urllib.unquote_plus(path).decode('utf-8')
             existing.append(path)
 
@@ -1299,7 +1446,7 @@ def getExistingResources(account):
 
 def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
         displayName=None, account=None, useCalDAV=False,
-        publishType='collection'):
+        publishType='collection', inFreeBusy = False):
     """ Create a new Share item for a collection this client is publishing.
 
     If account is provided, it will be used; otherwise, the default WebDAV

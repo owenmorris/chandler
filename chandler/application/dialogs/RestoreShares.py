@@ -160,6 +160,9 @@ class RestoreSharesDialog(wx.Dialog):
                     # Make me the sharer
                     for share in collection.shares:
                         share.sharer = me
+                            
+                    if name.startswith('freebusy/'):
+                        schema.ns('osaf.pim', view).mine.addSource(collection)                            
 
                     schema.ns("osaf.app",
                         view).sidebarCollection.add(collection)

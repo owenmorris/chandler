@@ -1448,6 +1448,7 @@ class WebDAVConduit(ShareConduit):
     username = schema.One(schema.Text, initialValue=u"")
     password = schema.One(schema.Text, initialValue=u"")
     useSSL = schema.One(schema.Boolean, initialValue=False)
+    inFreeBusy = schema.One(schema.Boolean, defaultValue=False)
 
     # The ticket this conduit will use (we're a sharee and we're using this)
     ticket = schema.One(schema.Text, initialValue="")
@@ -1469,12 +1470,16 @@ class WebDAVConduit(ShareConduit):
         self.serverHandle = None
 
     def _getSettings(self):
+        freebusy = ''
+        if self.inFreeBusy:
+            freebusy = '/freebusy'
         if self.account is None:
-            return (self.host, self.port, self.sharePath.strip("/"),
+            return (self.host, self.port, self.sharePath.strip("/") + freebusy,
                     self.username, self.password, self.useSSL)
         else:
             return (self.account.host, self.account.port,
-                    self.account.path.strip("/"), self.account.username,
+                    self.account.path.strip("/") + freebusy,
+                    self.account.username,
                     self.account.password, self.account.useSSL)
 
     def _getServerHandle(self):
@@ -1896,7 +1901,7 @@ class WebDAVConduit(ShareConduit):
             ticket.ticketId, ticket.ownerUri)
         self.ticketReadOnly = ticket.ticketId
 
-        ticket = handle.blockUntil(resource.createTicket, readonly=False)
+        ticket = handle.blockUntil(resource.createTicket, write=True)
         logger.debug("Read Write ticket: %s %s",
             ticket.ticketId, ticket.ownerUri)
         self.ticketReadWrite = ticket.ticketId
@@ -1913,10 +1918,10 @@ class WebDAVConduit(ShareConduit):
         try:
             tickets = handle.blockUntil(resource.getTickets)
             for ticket in tickets:
-                if ticket.readonly:
-                    self.ticketReadOnly = ticket.ticketId
-                else:
+                if ticket.write:
                     self.ticketReadWrite = ticket.ticketId
+                elif ticket.read:
+                    self.ticketReadOnly = ticket.ticketId
 
         except Exception, e:
             # Couldn't get tickets due to permissions problem, or there were
@@ -1937,6 +1942,7 @@ class WebDAVConduit(ShareConduit):
 
 
 class CalDAVConduit(WebDAVConduit):
+    ticketFreeBusy = schema.One(schema.Text, initialValue="")
 
     def _createCollectionResource(self, handle, resource, childName):
         return handle.blockUntil(resource.createCalendar, childName)
@@ -1962,6 +1968,28 @@ class CalDAVConduit(WebDAVConduit):
         resource = serverHandle.getResource(resourcePath)
 
         return result
+    
+    def createFreeBusyTicket(self):
+        handle = self._getServerHandle()
+        location = self.getLocation()
+        if not location.endswith("/"):
+            location += "/"
+        resource = handle.getResource(location)
+
+        ticket = handle.blockUntil(resource.createTicket, read=False,
+                                   freebusy=True)
+        logger.debug("Freebusy ticket: %s %s",
+            ticket.ticketId, ticket.ownerUri)
+        self.ticketFreeBusy = ticket.ticketId
+
+        return self.ticketFreeBusy    
+
+    def getLocation(self, privilege=None):
+        url = super(CalDAVConduit, self).getLocation(privilege)
+        if privilege == 'freebusy':
+            if self.ticketFreeBusy:
+                url = url + u"?ticket=%s" % self.ticketFreeBusy
+        return url
 
 MINIMUM_FREEBUSY_UPDATE_FREQUENCY = datetime.timedelta(hours=1)
 MERGE_GAP_DAYS = 3
@@ -2059,7 +2087,7 @@ class CalDAVFreeBusyConduit(CalDAVConduit):
 
     def _getFreeBusy(self, resource, start, end):
         serverHandle = self._getServerHandle()
-        response = serverHandle.blockUntil(resource.getFreebusy, start, end, depth=1)
+        response = serverHandle.blockUntil(resource.getFreebusy, start, end, depth='infinity')
         # quick hack to temporarily handle Cosmo's multistatus response
         return response.body
 
@@ -2100,7 +2128,9 @@ class CalDAVFreeBusyConduit(CalDAVConduit):
 
         # prepare resource, add security context
         resource = self._resourceFromPath(u"")
-        if getattr(self, 'ticketReadOnly', False):
+        if getattr(self, 'ticketFreeBusy', False):
+            resource.ticketId = self.ticketFreeBusy
+        elif getattr(self, 'ticketReadOnly', False):
             resource.ticketId = self.ticketReadOnly
 
         zero_utc = datetime.time(0, tzinfo = utc)

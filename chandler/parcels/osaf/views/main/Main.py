@@ -1008,7 +1008,7 @@ class MainView(View):
         allCollection = schema.ns('osaf.pim', self).allCollection
         share = sharing.getFreeBusyShare(allCollection)
         if share is not None:
-            urlString = sharing.getUrls(share)[1]
+            urlString = sharing.getUrls(share)[-1]
             gotClipboard = wx.TheClipboard.Open()
             if gotClipboard:
                 wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
@@ -1017,12 +1017,16 @@ class MainView(View):
     def onSharingUnpublishFreeBusyEvent(self, event):
         try:
             sharing.unpublishFreeBusy(schema.ns('osaf.pim', self).allCollection)
+        except Sharing.NotFound:
+            msg = _(u"Freebusy ticket not found, couldn't revoke freebusy access")
+            self.setStatusMessage(msg)
         except (Sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
             msg = _(u"Unpublish failed, could not connect to server")
             self.setStatusMessage(msg)
         except:
             msg = _(u"Unpublish failed, unknown error")
             self.setStatusMessage(msg)
+            raise # figure out what the exception is
         else:
             msg = _("Unpublish succeeded")
             self.setStatusMessage(msg)
