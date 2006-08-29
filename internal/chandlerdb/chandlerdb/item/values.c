@@ -163,7 +163,7 @@ static PyObject *t_values_new(PyTypeObject *type,
     {
         self->item = NULL;
         self->dict = PyDict_New();
-        self->flags = PyDict_New();
+        self->flags = Nil; Py_INCREF(Nil);
     }
 
     return (PyObject *) self;
@@ -183,7 +183,7 @@ static PyObject *t_values_copy(t_values *self, PyObject *args)
     {
         copy->item = NULL;
         copy->dict = PyDict_Copy(self->dict);
-        copy->flags = PyDict_New();
+        copy->flags = Nil; Py_INCREF(Nil);
     }
 
     return (PyObject *) copy;
@@ -272,22 +272,36 @@ static PyObject *t_values_has_key(t_values *self, PyObject *key)
 
 static PyObject *is_bit_set(t_values *self, PyObject *key, int bit)
 {
-    PyObject *flag = PyDict_GetItem(self->flags, key);
+    if (self->flags != Nil)
+    {
+        PyObject *flag = PyDict_GetItem(self->flags, key);
 
-    if (flag != NULL && PyInt_AsLong(flag) & bit)
-        Py_RETURN_TRUE;
+        if (flag != NULL && PyInt_AsLong(flag) & bit)
+            Py_RETURN_TRUE;
+    }
 
     Py_RETURN_FALSE;
 }
 
 static PyObject *set_bit(t_values *self, PyObject *key, int bit)
 {
-    PyObject *flag = PyDict_GetItem(self->flags, key);
+    PyObject *flag;
 
-    if (flag != NULL)
-        flag = PyInt_FromLong(PyInt_AsLong(flag) | bit);
+    if (self->flags != Nil)
+    {
+        flag = PyDict_GetItem(self->flags, key);
+
+        if (flag != NULL)
+            flag = PyInt_FromLong(PyInt_AsLong(flag) | bit);
+        else
+            flag = PyInt_FromLong(bit);
+    }
     else
+    {
+        Py_DECREF(self->flags);
+        self->flags = PyDict_New();
         flag = PyInt_FromLong(bit);
+    }
 
     PyDict_SetItem(self->flags, key, flag);
 
@@ -296,14 +310,17 @@ static PyObject *set_bit(t_values *self, PyObject *key, int bit)
 
 static PyObject *clear_bit(t_values *self, PyObject *key, int bit)
 {
-    PyObject *flag = PyDict_GetItem(self->flags, key);
-
-    if (flag != NULL)
+    if (self->flags != Nil)
     {
-        flag = PyInt_FromLong(PyInt_AsLong(flag) & ~bit);
-        PyDict_SetItem(self->flags, key, flag);
+        PyObject *flag = PyDict_GetItem(self->flags, key);
 
-        return flag;
+        if (flag != NULL)
+        {
+            flag = PyInt_FromLong(PyInt_AsLong(flag) & ~bit);
+            PyDict_SetItem(self->flags, key, flag);
+
+            return flag;
+        }
     }
 
     return PyInt_FromLong(0);
