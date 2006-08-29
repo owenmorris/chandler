@@ -431,7 +431,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         dc.SetTextForeground(textColor)
         for rectIndex, itemRect in enumerate(self.GetBoundsRects()):
 
-            if not itemRect.IsEmpty():
+            if not itemRect.IsEmpty() and itemRect.width > 2:
 
                 # properly round the corners - first and last	
                 # boundsRect gets some rounding, and they	
