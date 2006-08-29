@@ -51,6 +51,7 @@ static PyObject *t_lm_dict_clear(t_lm *self, PyObject *args);
 
 static PyObject *t_lm__getDict(t_lm *self, void *data);
 static PyObject *t_lm__getAliases(t_lm *self, void *data);
+static int t_lm__setAliases(t_lm *self, PyObject *arg, void *data);
 
 static PyObject *t_lm__getFirstKey(t_lm *self, void *data);
 static int t_lm___setFirstKey(t_lm *self, PyObject *arg, void *data);
@@ -463,7 +464,8 @@ static PyGetSetDef t_lm_properties[] = {
       NULL, "", NULL },
     { "_aliases",
       (getter) t_lm__getAliases,
-      NULL, "", NULL },
+      (setter) t_lm__setAliases,
+      "", NULL },
     { "_firstKey",
       (getter) t_lm__getFirstKey,
       (setter) t_lm___setFirstKey,
@@ -557,7 +559,7 @@ static PyObject *t_lm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (self)
     {
         self->dict = PyDict_New();
-        self->aliases = PyDict_New();
+        self->aliases = Nil; Py_INCREF(Nil);
         self->flags = 0;
         self->count = 0;
     }
@@ -696,7 +698,15 @@ static int t_lm_dict_set(t_lm *self, PyObject *key, PyObject *value)
                 return -1;
 
             if (link->alias != Py_None)
+            {
+                if (self->aliases == Nil)
+                {
+                    Py_DECREF(self->aliases);
+                    self->aliases = PyDict_New();
+                }
+
                 PyDict_SetItem(self->aliases, link->alias, key);
+            }
 
             return 0;
         }
@@ -733,7 +743,11 @@ static PyObject *t_lm_has_key(t_lm *self, PyObject *key)
 static PyObject *t_lm_dict_clear(t_lm *self, PyObject *args)
 {
     PyDict_Clear(self->dict);
-    PyDict_Clear(self->aliases);
+    if (self->aliases != Nil)
+    {
+        Py_DECREF(self->aliases);
+        self->aliases = Nil; Py_INCREF(Nil);
+    }
 
     t_lm___setFirstKey(self, Py_None, NULL);
     t_lm___setLastKey(self, Py_None, NULL);
@@ -792,6 +806,17 @@ static PyObject *t_lm__getAliases(t_lm *self, void *data)
 
     Py_INCREF(aliases);
     return aliases;
+}
+
+static int t_lm__setAliases(t_lm *self, PyObject *arg, void *data)
+{
+    if (self->aliases != arg)
+    {
+        Py_DECREF(self->aliases);
+        self->aliases = arg; Py_INCREF(arg);
+    }
+
+    return 0;
 }
 
 

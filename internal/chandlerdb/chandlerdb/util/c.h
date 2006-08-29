@@ -30,7 +30,11 @@ extern PyTypeObject *CLink;
 extern PyTypeObject *CPoint;
 extern PyTypeObject *CNode;
 extern PyTypeObject *SkipList;
+
 extern PyObject *inList, *outList;
+
+extern PyObject *Nil;
+extern PyObject *Default;
 
 void PyDict_SetItemString_Int(PyObject *, char *, int);
 
@@ -40,6 +44,7 @@ void _init_rijndael(PyObject *m);
 void _init_linkedmap(PyObject *m);
 void _init_skiplist(PyObject *m);
 void _init_hashtuple(PyObject *m);
+void _init_nil(PyObject *m);
 
 #ifdef WINDOWS
 PyObject *openHFILE(PyObject *self, PyObject *args);

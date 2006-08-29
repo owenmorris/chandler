@@ -30,6 +30,8 @@ PyTypeObject *CPoint = NULL;
 PyTypeObject *CNode = NULL;
 PyTypeObject *SkipList = NULL;
 
+PyObject *Nil = NULL;
+PyObject *Default = NULL;
 
 static PyObject *isuuid(PyObject *self, PyObject *obj)
 {
@@ -148,6 +150,7 @@ void initc(void)
     _init_linkedmap(m);
     _init_skiplist(m);
     _init_hashtuple(m);
+    _init_nil(m);
 #ifdef WINDOWS
     _init_lock(m);
 #endif

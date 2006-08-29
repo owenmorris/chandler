@@ -23,6 +23,9 @@
 #define LOAD_TYPE(m, name) \
     name = (PyTypeObject *) PyObject_GetAttrString(m, #name);
 
+#define LOAD_OBJ(m, name) \
+    name = PyObject_GetAttrString(m, #name);
+
 #define LOAD_FN(m, name) \
     { PyObject *cobj = PyObject_GetAttrString(m, #name); \
       name = (name##_fn) PyCObject_AsVoidPtr(cobj);      \

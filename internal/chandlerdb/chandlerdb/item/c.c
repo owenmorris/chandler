@@ -128,6 +128,8 @@ void initc(void)
     LOAD_TYPE(m, SingleRef);
     LOAD_TYPE(m, CLinkedMap);
     LOAD_FN(m, PyUUID_Check);
+    LOAD_OBJ(m, Nil);
+    LOAD_OBJ(m, Default);
     Py_DECREF(m);
 
     m = PyImport_ImportModule("chandlerdb.item.ItemValue");
