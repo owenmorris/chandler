@@ -13,8 +13,7 @@
 #   limitations under the License.
 
 
-from chandlerdb.item.c import Nil
-from chandlerdb.util.c import UUID, CLink, CLinkedMap
+from chandlerdb.util.c import Nil, UUID, CLink, CLinkedMap
 from repository.item.Children import Children
 from repository.item.RefCollections import RefList
 from repository.item.Indexes import NumericIndex
@@ -56,7 +55,11 @@ class PersistentRefs(object):
                 pKey, nKey, alias, otherKey = ref
                 map[key] = link = CLink(self, key, pKey, nKey, alias, otherKey)
                 if alias is not None:
-                    self._aliases[alias] = key
+                    aliases = self._aliases
+                    if aliases is Nil:
+                        self._aliases = {alias: key}
+                    else:
+                        aliases[alias] = key
 
             nextKey = link._nextKey
             yield key
@@ -664,7 +667,11 @@ class DBChildren(Children, PersistentRefs):
             self._dict[key] = CLink(self, child, prevKey, nextKey,
                                     alias, otherKey)
             if alias is not None:
-                self._aliases[alias] = key
+                aliases = self._aliases
+                if aliases is Nil:
+                    self._aliases = {alias: key}
+                else:
+                    aliases[alias] = key
         else:
             self._dict[key]._value = child
 

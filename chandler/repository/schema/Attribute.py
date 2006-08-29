@@ -13,8 +13,7 @@
 #   limitations under the License.
 
 
-from chandlerdb.util.c import _hash, _combine
-from chandlerdb.item.c import Nil, Default
+from chandlerdb.util.c import _hash, _combine, Nil, Default
 from chandlerdb.schema.c import CAttribute
 from chandlerdb.item.ItemError import SchemaError
 from repository.item.Item import Item

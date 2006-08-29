@@ -13,11 +13,10 @@
 #   limitations under the License.
 
 
-from chandlerdb.util.c import UUID, _hash, _combine, CLink, CLinkedMap
+from chandlerdb.util.c import UUID, _hash, _combine, CLink, CLinkedMap, Nil
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 from repository.item.Indexed import Indexed
-from chandlerdb.item.c import Nil
 from chandlerdb.item.ItemError import *
 
 
@@ -445,7 +444,11 @@ class RefList(LinkedMap, Indexed):
             self._dict[key] = CLink(self, other, previousKey, nextKey,
                                     alias, otherKey)
             if alias is not None:
-                self._aliases[alias] = key
+                aliases = self._aliases
+                if aliases is Nil:
+                    self._aliases = {alias: key}
+                else:
+                    aliases[alias] = key
 
             return True
         finally:

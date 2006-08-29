@@ -19,7 +19,7 @@ import logging, os
 
 from application import schema
 
-from chandlerdb.item.c import Default
+from chandlerdb.util.c import Default
 from repository.item.Sets import \
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \
     KindSet, ExpressionFilteredSet, MethodFilteredSet, EmptySet

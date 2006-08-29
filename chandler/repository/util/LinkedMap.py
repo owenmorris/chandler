@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-from chandlerdb.util.c import CLinkedMap
+from chandlerdb.util.c import CLinkedMap, Nil
 
 
 class LinkedMap(CLinkedMap):
@@ -189,7 +189,10 @@ class LinkedMap(CLinkedMap):
             link.alias = alias
 
             if alias is not None:
-                aliases[alias] = key
+                if aliases is Nil:
+                    self._aliases = {alias: key}
+                else:
+                    aliases[alias] = key
             
         return oldAlias
 

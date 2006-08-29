@@ -13,8 +13,8 @@
 #   limitations under the License.
 
 
-from chandlerdb.util.c import issingleref
-from chandlerdb.item.c import Nil, isitem
+from chandlerdb.util.c import issingleref, Nil
+from chandlerdb.item.c import isitem
 from chandlerdb.item.ItemError import RecursiveDeleteError
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet

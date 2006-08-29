@@ -13,8 +13,8 @@
 #   limitations under the License.
 
 
-from chandlerdb.item.c import CItem, Nil, isitem
-from chandlerdb.util.c import CLink
+from chandlerdb.item.c import CItem, isitem
+from chandlerdb.util.c import CLink, Nil
 from repository.util.LinkedMap import LinkedMap
 
 

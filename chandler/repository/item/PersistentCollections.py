@@ -13,8 +13,8 @@
 #   limitations under the License.
 
 
-from chandlerdb.util.c import SingleRef, issingleref
-from chandlerdb.item.c import Nil, isitem
+from chandlerdb.util.c import Nil, SingleRef, issingleref
+from chandlerdb.item.c import isitem
 from chandlerdb.item.ItemError import ReadOnlyAttributeError, OwnedValueError
 from chandlerdb.item.ItemValue import ItemValue
 

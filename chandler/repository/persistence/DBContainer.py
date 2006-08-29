@@ -17,8 +17,8 @@ import sys, threading, time
 
 from struct import pack, unpack
 
-from chandlerdb.util.c import UUID, _hash, SkipList, HashTuple
-from chandlerdb.item.c import CItem, CValues, Nil, Default
+from chandlerdb.util.c import UUID, _hash, SkipList, HashTuple, Nil, Default
+from chandlerdb.item.c import CItem, CValues
 from chandlerdb.persistence.c import \
     DBSequence, DB, \
     CContainer, CValueContainer, CRefContainer, CItemContainer, \

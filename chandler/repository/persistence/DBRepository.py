@@ -20,8 +20,8 @@ from datetime import datetime, timedelta
 from struct import pack
 
 from chandlerdb.util import lock
-from chandlerdb.util.c import UUID, _hash
-from chandlerdb.item.c import Nil, Default, CItem, CValues
+from chandlerdb.util.c import Nil, Default, UUID, _hash
+from chandlerdb.item.c import CItem, CValues
 from chandlerdb.item.ItemValue import Indexable
 from chandlerdb.persistence.c import DBEnv, DB, \
     DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \

@@ -15,9 +15,10 @@
 
 from new import classobj
 
-from chandlerdb.util.c import UUID, SingleRef, _hash, _combine, issingleref
+from chandlerdb.util.c import \
+    UUID, SingleRef, _hash, _combine, issingleref, Nil, Default
 from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
-from chandlerdb.item.c import Nil, Default, isitem, CItem
+from chandlerdb.item.c import isitem, CItem
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 from chandlerdb.item.ItemValue import ItemValue
 

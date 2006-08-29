@@ -16,8 +16,8 @@
 from struct import pack, unpack
 
 from chandlerdb.persistence.c import DBLockDeadlockError
-from chandlerdb.util.c import UUID, _hash, isuuid
-from chandlerdb.item.c import Nil, Default, isitem, CItem, CValues
+from chandlerdb.util.c import Nil, Default, UUID, _hash, isuuid
+from chandlerdb.item.c import isitem, CItem, CValues
 from chandlerdb.item.ItemValue import Indexable
 from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References

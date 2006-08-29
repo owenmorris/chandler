@@ -20,8 +20,7 @@ from osaf import pim, messages, ChandlerException
 from i18n import ChandlerMessageFactory as _
 import osaf.mail.utils as utils
 
-from chandlerdb.util.c import UUID
-from chandlerdb.item.c import Nil
+from chandlerdb.util.c import UUID, Nil
 from repository.item.Item import Item
 from repository.item.Sets import Set
 from repository.schema.Types import Type

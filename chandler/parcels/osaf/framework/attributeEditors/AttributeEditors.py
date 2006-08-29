@@ -29,7 +29,7 @@ from osaf.pim.calendar import TimeZoneInfo
 
 import repository.item.ItemHandler as ItemHandler
 from repository.util.Lob import Lob
-from chandlerdb.item.c import Nil
+from chandlerdb.util.c import Nil
 from osaf.framework.blocks import DragAndDrop, DrawingUtilities, Styles
 import logging
 from operator import itemgetter

@@ -21,8 +21,8 @@ from datetime import datetime, date, time, timedelta
 from PyICU import ICUtzinfo, FloatingTZ
 
 from chandlerdb.schema.c import CAttribute
-from chandlerdb.util.c import _hash, _combine
-from chandlerdb.item.c import Nil, isitem
+from chandlerdb.util.c import _hash, _combine, Nil
+from chandlerdb.item.c import isitem
 from repository.item.Item import Item
 from repository.item.PersistentCollections import \
      PersistentList, PersistentDict, PersistentTuple, PersistentSet

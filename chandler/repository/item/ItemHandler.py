@@ -13,10 +13,10 @@
 #   limitations under the License.
 
 
-from chandlerdb.item.c import CItem, Nil, isitem
+from chandlerdb.item.c import CItem, isitem
 from chandlerdb.item.ItemValue import ItemValue
 from chandlerdb.item.ItemError import *
-from chandlerdb.util.c import UUID
+from chandlerdb.util.c import UUID, Nil
 
 from repository.schema.TypeHandler import TypeHandler
 from repository.schema.Kind import Kind

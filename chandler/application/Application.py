@@ -21,7 +21,7 @@ from i18n import ChandlerMessageFactory as _, getImage
 import schema, feedback
 from version import version
 
-from chandlerdb.item.c import Nil
+from chandlerdb.util.c import Nil
 from repository.persistence.RepositoryError import \
     MergeError, RepositoryVersionError, VersionConflictError
 

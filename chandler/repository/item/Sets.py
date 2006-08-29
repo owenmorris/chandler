@@ -15,9 +15,8 @@
 
 from itertools import izip
 
-from chandlerdb.util.c import UUID, isuuid
+from chandlerdb.util.c import UUID, isuuid, Nil
 from chandlerdb.persistence.c import CView
-from chandlerdb.item.c import Nil
 from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors
 from repository.item.Indexed import Indexed

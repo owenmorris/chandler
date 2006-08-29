@@ -16,8 +16,8 @@
 from struct import pack, unpack
 from itertools import izip
 
-from chandlerdb.item.c import Nil, DelegatingIndex
-from chandlerdb.util.c import SkipList, CLinkedMap
+from chandlerdb.item.c import DelegatingIndex
+from chandlerdb.util.c import Nil, SkipList, CLinkedMap
 from PyICU import Collator, Locale
   
 from repository.util.RangeSet import RangeSet

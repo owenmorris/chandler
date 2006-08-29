@@ -14,8 +14,8 @@
 
 
 from chandlerdb.util.c import \
-    UUID, SingleRef, _hash, _combine, isuuid, issingleref
-from chandlerdb.item.c import Nil, Default, CValues, CItem, isitem
+    UUID, SingleRef, _hash, _combine, isuuid, issingleref, Nil, Default
+from chandlerdb.item.c import CValues, CItem, isitem
 from chandlerdb.item.ItemError import *
 from chandlerdb.item.ItemValue import ItemValue
 

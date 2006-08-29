@@ -17,8 +17,8 @@ from threading import currentThread
 from datetime import timedelta
 from time import time, sleep
 
-from chandlerdb.item.c import CItem, Nil, Default, isitem
-from chandlerdb.util.c import isuuid, HashTuple
+from chandlerdb.item.c import CItem, isitem
+from chandlerdb.util.c import isuuid, Nil, Default, HashTuple
 from chandlerdb.persistence.c import CView, DBLockDeadlockError
 
 from repository.item.RefCollections import RefList, TransientRefList
