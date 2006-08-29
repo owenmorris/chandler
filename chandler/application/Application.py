@@ -712,7 +712,7 @@ class wxApplication (wx.App):
         finally:
             self.ignoreIdle = False
 
-    def _mergeFunction(self, item, attribute, value):
+    def _mergeFunction(self, code, item, attribute, value):
 
         if code == MergeError.DELETE:
             return True                             # Let the item delete 
