@@ -367,6 +367,10 @@ class SortedIndex(DelegatingIndex):
 
         return self._index.iterkeys(firstKey, lastKey, backwards)
 
+    def __iter__(self):
+
+        return self.iterkeys()
+
     def getInitKeywords(self):
 
         if self._subIndexes:
