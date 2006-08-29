@@ -34,7 +34,7 @@ class Index(dict):
 
         if backwards:
             getFirstKey = self.getLastKey
-            getNextKey = self.getPrevKey
+            getNextKey = self.getPreviousKey
         else:
             getFirstKey = self.getFirstKey
             getNextKey = self.getNextKey
