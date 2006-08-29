@@ -93,7 +93,6 @@ def makeSummaryBlocks(parcel):
                                   indexAttributes = ['triageStatus',
                                                      'triageStatusChanged'],
                                   useSortArrows = False,
-                                  selected = True,
                                   width = 40),
                 ],
                 characterStyle = blocks.SummaryRowStyle,
