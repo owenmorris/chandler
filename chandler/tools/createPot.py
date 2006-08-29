@@ -9,10 +9,7 @@ from optparse import OptionParser
 TO DO
 =======
 1. Test on Linux and Windows
-2. Have .po written to cwd
-3. Build a po / egg tool
-4. Test project creation with and without Chandler home
-5. Update debug method
+2. Build a po / egg tool
 """
 
 class TranslationTool(object):
@@ -92,18 +89,29 @@ class TranslationTool(object):
 
             os.chdir(self.CWD)
 
+            if self.OPTIONS.Verbose:
+                self.debug()
+
         except Exception, e:
             self.raiseError("Directory path '%s' is invalid" % self.ROOTDIR)
 
     def debug(self):
+        print "\n\nProgram run with the following configuration:"
+        print "_______________________________________________\n"
         print "CHANDLERHOME: ", self.CHANDLERHOME
         print "CHANDLERBIN: ", self.CHANDLERBIN
         print "BINROOT: ", self.BINROOT
-        print "CONFIG: ", self.CONFIG
+        print "PYTHON: ", self.PYTHON
+        print "GETTEXT: ", self.GETTEXT
         print "ROOTDIR: ", self.ROOTDIR
+        print "CWD: ", self.CWD
         print "OUTPUTFILE: ", self.OUTPUTFILE
+        print "OPTIONS: ", self.OPTIONS
         print "WXRC: ", self.WXRC
         print "XRC_FILES: ", self.XRC_FILES
+        print "XRC_PYTHON: ", self.XRC_PYTHON
+        print "CONFIG: ", self.CONFIG
+        print "\n\n"
 
 
     def setLibraryPath(self):
@@ -148,7 +156,7 @@ class TranslationTool(object):
 
     def raiseError(self, txt):
         print "\n\nThe following error was raised: "
-        print "---------------------------\n%s\n\n" % txt
+        print "----------------------------------------\n%s\n\n" % txt
         sys.exit(-1)
 
     def getOpts(self):
@@ -157,7 +165,8 @@ class TranslationTool(object):
         'ChandlerExamples': ('-e', '--ChandlerExamples', False, 'Extract localization strings from Chandler Example projects Python and XRC files. A gettext .pot template file "ChandlerExamples.pot" is written to the currentworking directory'),
         'Project': ('-p', '--Project', True, 'Extract localization strings Python and XRC files for the given project. A gettext .pot template file "PROJECTNAME.pot" is written to the current working directory'),
         'Directory': ('-d', '--Directory', True, 'The root directory to search under for XRC and Python files. Can only be used in conjunction with the -p Project command.'),
-    }
+        'Verbose': ('-v', '--Verbose', False, 'Prints Verbose debugging information to the stdout'),
+        }
 
 
         # %prog expands to os.path.basename(sys.argv[0])
