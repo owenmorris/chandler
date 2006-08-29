@@ -314,7 +314,7 @@ class UITestItem(object):
             scripting.User.emulate_typing(displayName)
             # work around : emulate_return doesn't work
             #scripting.User.emulate_return()
-            scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")
+            scripting.User.emulate_sidebarClick(App_ns.sidebar, "Dashboard")
             #check this actually worked
             #assert self.item.displayName == displayName, '%s != %s' % \
               #(self.item.displayName.encode('raw_unicode_escape'), displayName.encode('raw_unicode_escape'))
