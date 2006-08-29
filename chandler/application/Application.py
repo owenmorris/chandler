@@ -189,9 +189,9 @@ class wxMainFrame (wxBlockFrameWindow):
             del busyInfo
             return result
 
-        def commit (view):
+        def commit(view):
             try:
-                view.commit()
+                view.commit(_mergeFunction)
             except VersionConflictError, e:
                 logger.exception(e)
 
@@ -253,6 +253,27 @@ class wxMainFrame (wxBlockFrameWindow):
         app.ignoreSynchronizeWidget = True
 
         self.Destroy()
+
+
+#
+# The merge function used during some of the refreshes in this module
+# You can choose which view wins by uncommenting the appropriate
+# return statement.
+# Nil means 'no value for the attribute'
+#
+
+def _mergeFunction(code, item, attribute, value):
+
+    if code == MergeError.DELETE:
+        return True                             # Let the item delete 
+                                                # in the other view win
+
+    return getattr(item, attribute, Nil)        # Let changes from
+                                                # other views win
+
+    # return value                              # Let changes from the
+                                                # main view win
+
 
 class wxApplication (wx.App):
 
@@ -712,26 +733,11 @@ class wxApplication (wx.App):
         finally:
             self.ignoreIdle = False
 
-    def _mergeFunction(self, code, item, attribute, value):
-
-        if code == MergeError.DELETE:
-            return True                             # Let the item delete 
-                                                    # in the other view win
-
-        # You can choose which view wins by uncommenting the appropriate
-        # return statement: (Nil means 'no value for the attribute')
-
-        return getattr(item, attribute, Nil)        # Let changes from
-                                                    # other views win
-
-        # return value                              # Let changes from the
-                                                    # main view win
-
     def propagateAsynchronousNotifications(self):
 
         # Fire set notifications that require mapChanges
         # and pickup changes from other views
-        self.repository.view.refresh(self._mergeFunction) 
+        self.repository.view.refresh(_mergeFunction)
 
         # synchronize dirtied blocks to reflect changes to the data
         from osaf.framework.blocks.Block import Block
