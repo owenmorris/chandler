@@ -906,7 +906,7 @@ class FreeBusyFileFormat(ICalendarFormat):
 
         return item
 
-class ImportError(Exception):
+class ICalendarImportError(Exception):
     pass
 
 def importICalendarFile(fullpath, view, targetCollection = None,
@@ -932,7 +932,7 @@ def importICalendarFile(fullpath, view, targetCollection = None,
     if filterAttributes is None: filterAttributes = []
     # not dealing with tzinfo yet
     if not os.path.isfile(fullpath):
-        raise ImportError(_(u"File does not exist, import cancelled."))
+        raise ICalendarImportError(_(u"File does not exist, import cancelled."))
     (dir, filename) = os.path.split(fullpath)
     
     share = Sharing.OneTimeFileSystemShare(
@@ -951,7 +951,7 @@ def importICalendarFile(fullpath, view, targetCollection = None,
     except:
         if logger:
             logger.exception("Failed importFile %s" % fullpath)
-        raise ImportError(_(u"Problem with the file, import cancelled."))
+        raise ICalendarImportError(_(u"Problem with the file, import cancelled."))
 
     if targetCollection is None:
         name = "".join(filename.split('.')[0:-1]) or filename

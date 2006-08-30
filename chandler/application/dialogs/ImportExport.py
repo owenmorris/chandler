@@ -20,7 +20,7 @@ from i18n import ChandlerMessageFactory as _
 from application import schema
 import itertools
 import osaf.sharing
-from  osaf.sharing.ICalendar import importICalendarFile, ImportError
+from  osaf.sharing.ICalendar import importICalendarFile, ICalendarImportError
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from osaf.framework.blocks.Block import Block
 
@@ -259,7 +259,7 @@ class ImportDialog(FileChooserWithOptions):
             collection = importICalendarFile(fullpath, self.view, coll,
                                              filterAttributes, monitor.callback,
                                              tzinfo, logger)
-        except ImportError, e:
+        except ICalendarImportError, e:
             self.fail(unicode(e))
             return False
 
