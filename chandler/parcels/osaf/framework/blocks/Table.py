@@ -164,10 +164,11 @@ class wxTable(DragAndDrop.DraggableWidget,
         assert (event.GetRow() == -1) # Currently Table only supports column headers
         blockItem = self.blockItem
         column = blockItem.columns[event.GetCol()]
-        for c in blockItem.columns:
-            if c.selected and c is not column:
-                c.selected = False
-        column.selected = True
+        self.SetUseColSortArrows(column.useSortArrows)
+        indexName = column.attributeName
+        blockItem.contents.setCollectionIndex(indexName,
+                                              toggleDescending=True,
+                                              attributes=column.indexAttributes)
         self.wxSynchronizeWidget()
 
     def OnKeyDown(self, event):
@@ -424,16 +425,11 @@ class wxTable(DragAndDrop.DraggableWidget,
         assert (self.GetNumberCols() == gridTable.GetNumberCols() and
                 self.GetNumberRows() == gridTable.GetNumberRows())
 
-        # Update column widths and sortedness
+        # Update column widths
+
         for index, column in enumerate(self.blockItem.columns):
             self.SetColSize (index, column.width)
             self.ScaleColumn (index, column.scaleColumn)
-            if column.selected:
-                self.SetUseColSortArrows(column.useSortArrows)
-                self.SetSelectedCol(index)
-                self.blockItem.contents.setCollectionIndex(
-                    column.attributeName, toggleDescending=True,
-                    attributes=column.indexAttributes)
 
         self.ScaleWidthToFit (self.blockItem.scaleWidthsToFit)
 

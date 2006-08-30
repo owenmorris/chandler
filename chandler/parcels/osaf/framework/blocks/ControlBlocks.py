@@ -318,7 +318,6 @@ class Column(schema.Item):
 
     scaleColumn = schema.One(schema.Boolean, defaultValue = False)
     readOnly = schema.One(schema.Boolean, initialValue=False)
-    selected = schema.One(schema.Boolean, defaultValue=False)
     
     schema.addClouds(
         copying = schema.Cloud(byRef=[kind])
