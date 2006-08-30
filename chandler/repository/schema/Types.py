@@ -980,8 +980,10 @@ class ConstantEnumeration(Enumeration):
     def _afterValuesChange(self, op, name):
 
         if op == 'set':
-            self.constants = [EnumValue(self.itsName, name, value)
-                              for name, value in self._values['values']]
+            constants = [EnumValue(self.itsName, name, value)
+                         for name, value in self._values['values']]
+            constants.sort(lambda v0, v1: cmp(v0.name, v1.name))
+            self.constants = constants
         elif op == 'remove':
             del self.constants
 
