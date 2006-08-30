@@ -848,9 +848,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.scrollTimer = None
         
     def OnBeginDragItem(self):
-        if not self.dragState.currentDragBox.CanDrag():
-            self.WarnReadOnlyTime([self.dragState.currentDragBox.item])
-            return False
         self.StartDragTimer()
         return True
 

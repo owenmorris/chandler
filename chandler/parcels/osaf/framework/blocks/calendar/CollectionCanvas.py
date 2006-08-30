@@ -171,6 +171,7 @@ class DragState(object):
         self.dragHandler = dragHandler
         self.dragEndHandler = dragEndHandler
         self.dragged = False
+        self.draggable = True
 
         # used ONLY for capture/release of the mouse
 
@@ -189,7 +190,9 @@ class DragState(object):
         if canvasItem:
             self.dragOffset = initialPosition - canvasItem.GetDragOrigin()
             # allow the originalDragBox to store state from the initial drag
-            canvasItem.StartDrag(initialPosition)
+            self.draggable = canvasItem.CanDrag()
+            if self.draggable:
+                canvasItem.StartDrag(initialPosition)
         
         self._dragStarted = False
         self._dragCanceled = False
@@ -360,7 +363,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                                         self.OnEndDragNone,
                                         unscrolledPosition, resize = True)
         
-        elif hitBox.isHitResize(unscrolledPosition): 
+        elif hitBox.isHitResize(unscrolledPosition):
             # start resizing
             self.dragState = DragState(hitBox, self,
                                         self.OnBeginResizeItem,
@@ -613,6 +616,10 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
         # checks if the event iself is from dragging the mouse
         elif self.dragState and event.Dragging():
+            if not self.dragState.draggable:
+                self.WarnReadOnlyTime([self.dragState.currentDragBox.item])
+                event.Skip()
+                return
             self.dragState.dragged = True
             if self.dragState.resize:
                 if self.IsValidDragPosition(unscrolledPosition):
