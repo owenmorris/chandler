@@ -83,9 +83,9 @@ class NonRecurringFilter(Item):
 
     def isNonRecurring(self, view, uuid):
 
-        isGenerated, modificationsFor = view.findValues(uuid, ('isGenerated', False), ('modificationsFor', None))
+        isGenerated, modificationFor = view.findValues(uuid, ('isGenerated', False), ('modificationFor', None))
 
-        return not (isGenerated or modificationsFor)
+        return not (isGenerated or modificationFor)
 
 class LongEventFilter(Item):
 
