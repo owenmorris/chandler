@@ -2494,7 +2494,7 @@ class CalendarPrefs(Preferences):
 
         prefs = schema.ns('osaf.framework.blocks.calendar', view).calendarPrefs
     """
-    hourHeightMode = schema.One(CalendarHourMode, defaultValue="auto",
+    hourHeightMode = schema.One(CalendarHourMode, defaultValue="visibleHours",
                                 doc="Chooses which mode to use when setting "
                                 "the hour height.\n"
                                 "'visibleHours' means to show exactly the "
