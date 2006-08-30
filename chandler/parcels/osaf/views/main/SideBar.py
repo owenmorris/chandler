@@ -550,7 +550,7 @@ class SSSidebarIconButton (SSSidebarButton):
         iconName = getattr(userCollection, "iconName", "")
         filterKind = self.buttonOwner.filterKind
         if userCollection.iconNameHasKindVariant and filterKind is not None:
-            iconName += os.path.basename (str (ilterKind.itsPath))
+            iconName += os.path.basename (str (filterKind.itsPath))
 
         # First lookup full image name
         app = wx.GetApp()
