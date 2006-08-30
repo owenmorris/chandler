@@ -119,10 +119,12 @@ def installParcel(parcel, oldVersion=None):
 
     inUC = UserCollection(pim_ns.inCollection)
     inUC.setValues(renameable = False,
+                   outOfTheBoxCollection=True,
                    dontDisplayAsCalendar=True)
 
     outUC = UserCollection(pim_ns.outCollection)
     outUC.setValues(renameable = False,
+                    outOfTheBoxCollection=True,
                     dontDisplayAsCalendar=True)
     
 

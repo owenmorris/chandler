@@ -135,7 +135,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.DisableDragRowSize()
         self.SetDefaultCellBackgroundColour(wx.WHITE)
         self.EnableCursor (False)
-        background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
         self.SetLightSelectionBackground()
         self.SetScrollLineY (self.GetDefaultRowSize())
         self.SetUseVisibleColHeaderSelection(True)

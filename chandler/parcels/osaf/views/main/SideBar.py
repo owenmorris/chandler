@@ -48,9 +48,12 @@ class SidebarElementDelegate (ControlBlocks.ListDelegate):
         return "Item"
 
     def GetElementValue (self, row, column):
-        itemIndex = self.RowToIndex(row)
-        return (self.blockItem.contents [itemIndex],
-                self.blockItem.columns[column].attributeName)
+        if row >= 0:
+            itemIndex = self.RowToIndex(row)
+            return (self.blockItem.contents [itemIndex],
+                    self.blockItem.columns[column].attributeName)
+        else:
+            return (None, None)
     
 class wxSidebar(wxTable):
     def __init__(self, *arguments, **keywords):
@@ -69,11 +72,14 @@ class wxSidebar(wxTable):
         event.Skip()
 
     def CalculateCellRect (self, row):
-        cellRect = self.CellToRect (row, 0)
-        cellRect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
-        left, top = self.CalcScrolledPosition (cellRect.GetLeft(), cellRect.GetTop())
-        cellRect.SetLeft (left)
-        cellRect.SetTop (top)
+        if row >= 0:
+            cellRect = self.CellToRect (row, 0)
+            cellRect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
+            left, top = self.CalcScrolledPosition (cellRect.GetLeft(), cellRect.GetTop())
+            cellRect.SetLeft (left)
+            cellRect.SetTop (top)
+        else:
+            cellRect = wx.Rect (0,0,0,0)
         return cellRect
 
     def wxSynchronizeWidget(self, useHints=False):
@@ -401,12 +407,24 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
                 imageRect = wxSidebar.GetRectFromOffsets (rect, button.buttonOffsets)
                 dc.DrawBitmap (image, imageRect.GetLeft(), imageRect.GetTop(), True)
 
-
         textRect = wxSidebar.GetRectFromOffsets (rect, sidebar.editRectOffsets)
         textRect.Inflate (-1, -1)
         dc.SetClippingRect (textRect)
         DrawingUtilities.DrawClippedTextWithDots (dc, name, textRect)
         dc.DestroyClippingRegion()
+        """
+          Optionally Draw the "Out of the box", "User" collection line separator
+          It's drawn if the item is the first "Out of the box" collection
+          in the table
+        """
+        if not UserCollection (item).outOfTheBoxCollection: # i.e. a "User" collection
+            for theRow in xrange (row-1, -1, -1):
+                theItem, theAttribute = grid.GetTable().GetValue (theRow, col)
+                if not UserCollection (theItem).outOfTheBoxCollection:
+                    break
+            else:
+                dc.SetPen (wx.Pen (grid.GetGridLineColour()))
+                dc.DrawLine (rect.GetLeft(), rect.GetTop(), rect.GetRight() + 1, rect.GetTop())
 
 
 class SSSidebarEditor (GridCellAttributeEditor):
@@ -530,9 +548,9 @@ class SSSidebarIconButton (SSSidebarButton):
                 colorizeIcon = userCollection.colorizeIcon
 
         iconName = getattr(userCollection, "iconName", "")
-        sidebar = self.buttonOwner
-        if userCollection.iconNameHasKindVariant and sidebar.filterKind is not None:
-            iconName += os.path.basename (str (sidebar.filterKind.itsPath))
+        filterKind = self.buttonOwner.filterKind
+        if userCollection.iconNameHasKindVariant and filterKind is not None:
+            iconName += os.path.basename (str (ilterKind.itsPath))
 
         # First lookup full image name
         app = wx.GetApp()
@@ -1158,9 +1176,9 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         return key
 
     def _makeBranchForCacheKey(self, keyItem):
-        sidebar = Block.Block.findBlockByName("Sidebar")
+        filterKind = Block.Block.findBlockByName("Sidebar").filterKind
         if (not UserCollection(keyItem).dontDisplayAsCalendar and
-            sidebar.filterKind is schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)):
+            filterKind is schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)):
                 template = self.findPath (self.calendarTemplatePath)
                 keyUUID = template.itsUUID
                 branch = self.keyUUIDToBranch.get (keyUUID, None)
