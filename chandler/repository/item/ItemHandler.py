@@ -280,7 +280,11 @@ class ValueHandler(ContentHandler, TypeHandler):
         name = attrs.get('name')
 
         if name is None:
-            self.collections[-1].add(value, False, False)
+            collection = self.collections[-1]
+            if isinstance(collection, set):
+                collection.add(value, False, False)
+            else:
+                collection.append(value, False, False)
         else:
             name = self.makeValue(self.view, attrs.get('nameType', 'str'), name)
             self.collections[-1].__setitem__(name, value, False, False)

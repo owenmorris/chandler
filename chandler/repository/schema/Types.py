@@ -841,7 +841,7 @@ class Class(Type):
 class Enumeration(Type):
 
     def getImplementationType(self):
-        return type(self)
+        return str
 
     def handlerName(self):
         return 'str'
@@ -874,6 +874,116 @@ class Enumeration(Type):
 
     def hashValue(self, value):
         return _combine(_hash(str(self.itsPath)), _hash(self.makeString(value)))
+
+
+class EnumValue(object):
+
+    def __init__(self, enumName, name, value):
+
+        self.enumName = enumName
+        self.name = name
+        self.value = value
+
+    def __repr__(self):
+
+        return "%s.%s" %(self.enumName, self.name)
+
+    def __str__(self):
+
+        return self.name
+
+    def __eq__(self, other):
+
+        if isinstance(other, EnumValue):
+            return self.value == other.value
+
+        return self.value == other
+
+    def __ne__(self, other):
+
+        if isinstance(other, EnumValue):
+            return self.value != other.value
+
+        return self.value != other
+
+    def __le__(self, other):
+
+        if isinstance(other, EnumValue):
+            return self.value <= other.value
+
+        return self.value <= other
+
+    def __lt__(self, other):
+
+        if isinstance(other, EnumValue):
+            return self.value < other.value
+
+        return self.value < other
+
+    def __ge__(self, other):
+
+        if isinstance(other, EnumValue):
+            return self.value >= other.value
+
+        return self.value >= other
+
+    def __gt__(self, other):
+
+        if isinstance(other, EnumValue):
+            return self.value > other.value
+
+        return self.value > other
+
+
+class ConstantEnumeration(Enumeration):
+
+    def _fillItem(self, *args):
+        super(ConstantEnumeration, self)._fillItem(*args)
+        if 'values' in self._values:
+            self._afterValuesChange('set', 'values')
+
+    def getImplementationType(self):
+        return EnumValue
+
+    def handlerName(self):
+        return 'str'
+    
+    def recognizes(self, value):
+        return value in self.constants
+
+    def makeValue(self, data):
+        for value in self.constants:
+            if data == str(value):
+                return value
+        raise ValueError, data
+
+    def makeString(self, value):
+        return str(value)
+
+    # it is assumed that an enum is not having more than 256 values
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+
+        if withSchema:
+            return itemWriter.writeString(buffer, str(value))
+        else:
+            buffer.append(chr(self.constants.index(value)))
+            return 1
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
+        
+        if withSchema:
+            return self.makeValue(itemReader.readString(offset, data))
+
+        return offset+1, self.constants[ord(data[offset])]
+
+    def _afterValuesChange(self, op, name):
+
+        if op == 'set':
+            self.constants = [EnumValue(self.itsName, name, value)
+                              for name, value in self._values['values']]
+        elif op == 'remove':
+            del self.constants
 
 
 class Struct(Type):
@@ -1768,7 +1878,7 @@ class Tuple(Collection):
     def _empty(self):
 
         class _tuple(list):
-            def append(self, value, setDirty=True):
+            def append(self, value, setDirty=True, ignore=None):
                 super(_tuple, self).append(value)
 
         return _tuple()

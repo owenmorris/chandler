@@ -61,8 +61,9 @@ class RepositoryView(CView):
     # 0.6.7: watchers reworked to use RefDict
     # 0.6.8: removed support for persistent collection queue subscriptions
     # 0.6.9: added 'afterChange' attribute aspect
+    # 0.6.10: added new enumeration type: ConstantEnumeration
     
-    CORE_SCHEMA_VERSION = 0x00060900
+    CORE_SCHEMA_VERSION = 0x00060a00
 
     def __init__(self, repository, name, version):
         """

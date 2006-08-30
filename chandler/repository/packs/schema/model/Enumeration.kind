@@ -44,4 +44,49 @@
     <attribute name="required" type="bool">True</attribute>
   </item>
 
+  <item withSchema="True">
+    <name>ConstantEnumeration</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="repository.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list"
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below:
+         -     values
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">//Schema/Core/Enumeration</ref>
+    </ref>
+
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">repository.schema.Types.ConstantEnumeration</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>values</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/ConstantEnumeration</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="values">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Tuple</ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="required" type="bool">True</attribute>
+    <attribute name="afterChange" cardinality="list">
+      <value>_afterValuesChange</value>
+    </attribute>
+  </item>
+
 </items>

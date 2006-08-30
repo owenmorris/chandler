@@ -324,7 +324,7 @@ class DBItemWriter(ItemWriter):
         except DBLockDeadlockError:
             raise
         except Exception, e:
-            raise SaveValueError, (item, name, e)
+            raise # SaveValueError, (item, name, e)
 
         if indexed:
             if indexable:
