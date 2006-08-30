@@ -866,10 +866,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                                           endCallback=self.wxSynchronizeWidget)
         self.activeProxy = proxy
         
-        (startTime, endTime) = self.GetDragAdjustedTimes()
-        duration = endTime - startTime
-        proxy.duration = duration
-        proxy.startTime = startTime
+        if self.dragState.dragged:
+            (startTime, endTime) = self.GetDragAdjustedTimes()
+            duration = endTime - startTime
+            proxy.duration = duration
+            proxy.startTime = startTime
         
         if self.coercedCanvasItem is not None:
             self.coercedCanvasItem = None

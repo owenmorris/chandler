@@ -170,6 +170,7 @@ class DragState(object):
         self.dragStartHandler = dragStartHandler
         self.dragHandler = dragHandler
         self.dragEndHandler = dragEndHandler
+        self.dragged = False
 
         # used ONLY for capture/release of the mouse
 
@@ -612,6 +613,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
         # checks if the event iself is from dragging the mouse
         elif self.dragState and event.Dragging():
+            self.dragState.dragged = True
             if self.dragState.resize:
                 if self.IsValidDragPosition(unscrolledPosition):
                     self.dragState.HandleDrag(unscrolledPosition)
