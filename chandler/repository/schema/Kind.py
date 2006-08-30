@@ -14,6 +14,7 @@
 
 
 from new import classobj
+from threading import RLock
 
 from chandlerdb.util.c import \
     UUID, SingleRef, _hash, _combine, issingleref, Nil, Default
@@ -32,6 +33,7 @@ from repository.util.Path import Path
 from repository.schema.TypeHandler import TypeHandler
 
 CORE=Path('//Schema/Core')
+_setup_lock = RLock()
 
 class Kind(Item):
 
@@ -86,32 +88,37 @@ class Kind(Item):
 
     def _setupClass(self, cls):
 
+        _setup_lock.acquire()
         try:
-            uuid = self._uuid
-            classes = Kind._classes
-            kinds = Kind._kinds
+            try:
+                uuid = self.itsUUID
+                classes = Kind._classes
+                kinds = Kind._kinds
 
-            clss = kinds.get(uuid)
-            if clss is None:
-                kinds[uuid] = set((cls,))
-            else:
-                clss.add(cls)
+                clss = kinds.get(uuid)
+                if clss is None:
+                    kinds[uuid] = set((cls,))
+                else:
+                    clss.add(cls)
 
-            uuids = classes.get(cls)
-            if uuids is None:
-                classes[cls] = set((uuid,))
-            elif uuid not in uuids:
-                uuids.add(uuid)
-            else:
-                return
+                uuids = classes.get(cls)
+                if uuids is None:
+                    classes[cls] = set((uuid,))
+                elif uuid not in uuids:
+                    uuids.add(uuid)
+                else:
+                    return
 
-            self.c.monitorSchema = True
-            self._setupDescriptors(cls)
-            self._setupDelegates(cls)
+                self.c.monitorSchema = True
+                self._setupDescriptors(cls)
+                self._setupDelegates(cls)
 
-        except RecursiveLoadItemError:
-            kinds[uuid].remove(cls)
-            classes[cls].remove(uuid)
+            except RecursiveLoadItemError:
+                kinds[uuid].remove(cls)
+                classes[cls].remove(uuid)
+
+        finally:
+            _setup_lock.release()
 
     def _getDescriptors(self, cls):
 

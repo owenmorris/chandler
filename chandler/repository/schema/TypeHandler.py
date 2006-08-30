@@ -24,9 +24,13 @@ class TypeHandler(object):
     def typeHandler(cls, view, value):
 
         try:
-            for t in cls.typeHandlers[view][type(value)]:
-                if t.recognizes(value):
-                    return t
+            method = getattr(type(value), 'getTypeItem', None)
+            if method is not None:
+                return method(value, view)
+            else:
+                for t in cls.typeHandlers[view][type(value)]:
+                    if t.recognizes(value):
+                        return t
         except KeyError:
             pass
 

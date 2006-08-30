@@ -884,55 +884,75 @@ class EnumValue(object):
         self.name = name
         self.value = value
 
-    def __repr__(self):
+    def getTypeItem(self, view):
+        raise NotImplementedError, "%s.getEnumType()" %(type(self))
 
+    def __hash__(self):
+        return hash(self.name)
+
+    def __repr__(self):
         return "%s.%s" %(self.enumName, self.name)
 
     def __str__(self):
-
         return self.name
 
     def __eq__(self, other):
 
         if isinstance(other, EnumValue):
-            return self.value == other.value
+            return (self.value == other.value and
+                    self.name == other.name)
 
         return self.value == other
 
     def __ne__(self, other):
 
         if isinstance(other, EnumValue):
-            return self.value != other.value
+            return (self.value != other.value or
+                    self.name != other.name)
 
         return self.value != other
 
     def __le__(self, other):
 
         if isinstance(other, EnumValue):
-            return self.value <= other.value
+            return (self.value < other.value or
+                    self.value == other.value and self.name <= other.name)
 
         return self.value <= other
 
     def __lt__(self, other):
 
         if isinstance(other, EnumValue):
-            return self.value < other.value
+            return (self.value < other.value or
+                    self.value == other.value and self.name < other.name)
 
         return self.value < other
 
     def __ge__(self, other):
 
         if isinstance(other, EnumValue):
-            return self.value >= other.value
+            return (self.value >= other.value or
+                    self.value == other.value and self.name >= other.name)
 
         return self.value >= other
 
     def __gt__(self, other):
 
         if isinstance(other, EnumValue):
-            return self.value > other.value
+            return (self.value > other.value or
+                    self.value == other.value and self.name > other.name)
 
         return self.value > other
+
+
+class SchemaEnumValue(EnumValue):
+
+    def __init__(self, enumType, name, value):
+        super(SchemaEnumValue, self).__init__(enumType.itsName, name, value)
+        self.enumUUID = enumType.itsUUID
+
+    def getTypeItem(self, view):
+        return view[self.enumUUID]
 
 
 class ConstantEnumeration(Enumeration):
@@ -949,7 +969,8 @@ class ConstantEnumeration(Enumeration):
         return 'str'
     
     def recognizes(self, value):
-        return value in self.constants
+        return (isinstance(value, EnumValue) and
+                value.getTypeItem(self.itsView) is self)
 
     def makeValue(self, data):
         for value in self.constants:
@@ -980,7 +1001,7 @@ class ConstantEnumeration(Enumeration):
     def _afterValuesChange(self, op, name):
 
         if op == 'set':
-            constants = [EnumValue(self.itsName, name, value)
+            constants = [SchemaEnumValue(self, name, value)
                          for name, value in self._values['values']]
             constants.sort(lambda v0, v1: cmp(v0.name, v1.name))
             self.constants = constants

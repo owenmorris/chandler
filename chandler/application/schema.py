@@ -894,6 +894,17 @@ class Struct(object):
             tuple(getattr(self,attr) for attr in self.__slots__)
         )
 
+
+class SchemaEnumValue(Types.EnumValue):
+
+    def __init__(self, enumClass, name, value):
+        super(SchemaEnumValue, self).__init__(enumClass.__name__, name, value)
+        self.enumClass = enumClass
+
+    def getTypeItem(self, view):
+        return itemFor(self.enumClass, view)
+
+
 class EnumerationClass(Activator):
     """Metaclass for enumerations"""
 
@@ -918,10 +929,21 @@ class EnumerationClass(Activator):
             raise TypeError("Enumerations cannot subclass or be subclassed")
 
         values = cdict.get('values',())
-        wrong = [v for v in values if not isinstance(v,str)]
-        if not isinstance(values,tuple) or not values or wrong:
+        if isinstance(values, tuple):
+            wrong = [v for v in values if not isinstance(v, str)]
+        elif isinstance(values, dict):
+            wrong = [n for n, v in values.iteritems() if not isinstance(n, str)]
+            if not wrong:
+                constants = [SchemaEnumValue(cls, n, v)
+                             for n, v in values.iteritems()]
+                for constant in constants:
+                    setattr(cls, constant.name, constant)
+                cls.constants = constants
+        else:
+            wrong = values
+        if not values or wrong:
             raise TypeError(
-                "'values' must be a tuple of 1 or more strings"
+                "'values' must be a tuple of 1 or more strings or a dict of (str, value) pairs"
             )
 
     def _find_schema_item(cls, view):
@@ -932,13 +954,18 @@ class EnumerationClass(Activator):
                 return item
 
     def _create_schema_item(cls, view):
-        return Types.Enumeration(
-            None, view['Schema'],
-            itemFor(Types.Enumeration, view)
-        )
+        if hasattr(cls, 'constants'):
+            return Types.ConstantEnumeration(
+                None, view['Schema'], itemFor(Types.ConstantEnumeration, view),
+                values=cls.values.items()
+            )
+        else:
+            return Types.Enumeration(
+                None, view['Schema'], itemFor(Types.Enumeration, view),
+                values=list(cls.values)
+            )
 
     def _init_schema_item(cls, enum, view):
-        enum.values = list(cls.values)
         def fixup():
             enum.itsParent = parcel_for_module(cls.__module__, view)
             enum.itsName = cls.__name__

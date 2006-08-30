@@ -635,19 +635,19 @@ Enumerations
     ...     values = "error"
     Traceback (most recent call last):
       ...
-    TypeError: 'values' must be a tuple of 1 or more strings
+    TypeError: 'values' must be a tuple of 1 or more strings or a dict of (str, value) pairs
 
     >>> class BrokenEnum2(schema.Enumeration):
     ...     values = ["x", "y"]
     Traceback (most recent call last):
       ...
-    TypeError: 'values' must be a tuple of 1 or more strings
+    TypeError: 'values' must be a tuple of 1 or more strings or a dict of (str, value) pairs
 
     >>> class BrokenEnum2(schema.Enumeration):
     ...     values = ()
     Traceback (most recent call last):
       ...
-    TypeError: 'values' must be a tuple of 1 or more strings
+    TypeError: 'values' must be a tuple of 1 or more strings or a dict of (str, value) pairs
 
     >>> class BrokenEnum3(schema.Enumeration):
     ...     def foo(self): pass
