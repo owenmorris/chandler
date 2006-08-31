@@ -26,8 +26,9 @@ class TranslationEggTool(LocalizationBase):
         super(TranslationEggTool, self).__init__()
 
         if sys.platform == 'cygwin':
-            self.raiseError("Cygwin is not supported due to filesystem  pathing issues." \
-                            "Please use the Windows command prompt instead.")
+            self.raiseError("Cygwin is not supported due to filesystem\n" \
+                            "pathing issues.\n\n" \
+                            "Please use the Windows Command Prompt instead.")
 
         self.getOpts()
 
