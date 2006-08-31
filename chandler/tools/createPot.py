@@ -1,75 +1,27 @@
 #! /usr/bin/env python
 
-import os, sys
-from optparse import OptionParser
-
+from createBase import LocalizationBase
+import os
 
 """
-
 TO DO
 =======
 1. Test on Linux and Windows
-2. Build a po / egg tool
 """
 
-class TranslationTool(object):
-    ROOTDIR = ""
-    CHANDLERHOME = ""
-    CHANDLERBIN = ""
-    BINROOT = ""
-    PYTHON = ""
-    WXRC = ""
-    GETTEXT = ""
-    OUTPUTFILE = ""
-    CWD = ""
-    OPTIONS = None
+class TranslationTool(LocalizationBase):
+    ROOTDIR = None
+    BINROOT = None
+    GETTEXT = None
+    OUTPUTFILE = None
+    CWD = None
     XRC_FILES = []
-    XRC_PYTHON = ""
+    XRC_PYTHON = None
 
     CONFIG = ["."]
 
-    CHANDLER_CONFIG = ["application", os.path.join("parcels", "osaf")]
-
-
-    CHANDLER_EXAMPLES_CONFIG = ["Chandler-AmazonPlugin",
-                                "Chandler-EVDPlugin",
-                                "Chandler-EventLoggerPlugin",
-                                "Chandler-FeedsPlugin",
-                                "Chandler-FlickrPlugin",
-                                "Chandler-PhotoPlugin",
-                        ]
-
-
     def __init__(self):
-        if os.environ.has_key("CHANDLERHOME"):
-            self.CHANDLERHOME = os.environ["CHANDLERHOME"]
-        else:
-            self.CHANDLERHOME = os.getcwd()
-
-        try:
-            if not "Chandler.py" in os.listdir(self.CHANDLERHOME):
-                raise Exception()
-        except:
-            self.raiseError("CHANDLERHOME is invalid '%s'" % self.CHANDLERHOME)
-
-        if os.environ.has_key("CHANDLERBIN"):
-            self.CHANDLERBIN = os.environ["CHANDLERBIN"]
-        else:
-            self.CHANDLERBIN = self.CHANDLERHOME
-
-        try:
-            if "debug" in os.listdir(self.CHANDLERBIN):
-                self.BINROOT = os.path.join(self.CHANDLERBIN, "debug")
-
-            elif "release" in os.listdir(self.CHANDLERBIN):
-                self.BINROOT = os.path.join(self.CHANDLERBIN, "release")
-
-            else:
-                self.raiseError("No debug or release directory under CHANDLERBIN")
-        except:
-            self.raiseError("CHANDLERBIN is invalid '%s'" % self.CHANDLERBIN)
-
-        self.PYTHON = os.path.join(self.BINROOT, "RunPython")
+        super(TranslationTool, self).__init__()
         self.GETTEXT = os.path.join(self.CHANDLERHOME, "tools", "pygettext.py")
 
         self.getOpts()
@@ -96,17 +48,12 @@ class TranslationTool(object):
             self.raiseError("Directory path '%s' is invalid" % self.ROOTDIR)
 
     def debug(self):
-        print "\n\nProgram run with the following configuration:"
-        print "_______________________________________________\n"
-        print "CHANDLERHOME: ", self.CHANDLERHOME
-        print "CHANDLERBIN: ", self.CHANDLERBIN
-        print "BINROOT: ", self.BINROOT
-        print "PYTHON: ", self.PYTHON
+        super(TranslationTool, self).debug()
+
         print "GETTEXT: ", self.GETTEXT
         print "ROOTDIR: ", self.ROOTDIR
         print "CWD: ", self.CWD
         print "OUTPUTFILE: ", self.OUTPUTFILE
-        print "OPTIONS: ", self.OPTIONS
         print "WXRC: ", self.WXRC
         print "XRC_FILES: ", self.XRC_FILES
         print "XRC_PYTHON: ", self.XRC_PYTHON
@@ -115,15 +62,16 @@ class TranslationTool(object):
 
 
     def setLibraryPath(self):
-        if sys.platform == 'darwin':
+        platform = self.getPlatform()
+        if platform == "Mac":
              os.environ["DYLD_LIBRARY_PATH"] = os.path.join(self.BINROOT, "lib")
 
-        elif os.name != 'nt': #Linux
+        elif platform == "Linux":
              os.environ["LD_LIBRARY_PATH"] = os.path.join(self.BINROOT, "lib")
 
 
     def setWXRC(self):
-        if os.name == 'nt':
+        if self.getPlatform() == "Windows":
             self.WXRC = os.path.join(self.BINROOT, "bin", "wxrc.exe")
         else:
             self.WXRC = os.path.join(self.BINROOT, "bin", "wxrc")
@@ -154,57 +102,39 @@ class TranslationTool(object):
         os.system(exp)
 
 
-    def raiseError(self, txt):
-        print "\n\nThe following error was raised: "
-        print "----------------------------------------\n%s\n\n" % txt
-        sys.exit(-1)
 
     def getOpts(self):
-        _configItems = {
-        'Chandler': ('-c', '--Chandler',  False, 'Extract localization strings from Chandler Python and XRC files. A gettext .pot template file "Chandler.pot" is written to the current working directory'),
-        'ChandlerExamples': ('-e', '--ChandlerExamples', False, 'Extract localization strings from Chandler Example projects Python and XRC files. A gettext .pot template file "ChandlerExamples.pot" is written to the currentworking directory'),
-        'Project': ('-p', '--Project', True, 'Extract localization strings Python and XRC files for the given project. A gettext .pot template file "PROJECTNAME.pot" is written to the current working directory'),
-        'Directory': ('-d', '--Directory', True, 'The root directory to search under for XRC and Python files. Can only be used in conjunction with the -p Project command.'),
-        'Verbose': ('-v', '--Verbose', False, 'Prints Verbose debugging information to the stdout'),
+        self.CONFIGITEMS = {
+        'Chandler': ('-c', '--chandler',  False, 'Extract localization strings from Chandler Python and XRC files. A gettext .pot template file "Chandler.pot" is written to the current working directory.'),
+        'ChandlerExamples': ('-e', '--examples', False, 'Extract localization strings from Chandler Example projects Python and XRC files. A gettext .pot template file "ChandlerExamples.pot" is written to the current working directory.'),
+        'Project': ('-p', '--project', True, 'Extract localization strings Python and XRC files for the given project. A gettext .pot template file "PROJECTNAME.pot" is written to the current working directory.'),
+        'Directory': ('-d', '--directory', True, 'The root directory to search under for XRC and Python files. Can only be used in conjunction with the -p Project command.'),
         }
 
-
-        # %prog expands to os.path.basename(sys.argv[0])
-        usage  = "usage: %prog [options]"
-        parser = OptionParser(usage=usage, version="%prog 1.0")
-
-        for key in _configItems:
-            (shortCmd, longCmd, argReq, helpText) = _configItems[key]
-
-            if argReq:
-                parser.add_option(shortCmd, longCmd, dest=key, help=helpText)
-            else:
-                parser.add_option(shortCmd, longCmd, dest=key, action="store_true",  help=helpText)
-
-        (self.OPTIONS, args) = parser.parse_args()
+        super(TranslationTool, self).getOpts()
 
         if self.OPTIONS.Chandler:
             if self.OPTIONS.ChandlerExamples or\
             self.OPTIONS.Project or self.OPTIONS.Directory:
-                parser.error("Invalid arguments passed")
+                self.raiseError("Invalid arguments passed")
 
-            self.CONFIG = self.CHANDLER_CONFIG
+            self.CONFIG = self.CHANDLER
             self.ROOTDIR = self.CHANDLERHOME
             self.OUTPUTFILE = "Chandler.pot"
 
         elif self.OPTIONS.ChandlerExamples:
             if self.OPTIONS.Chandler or\
             self.OPTIONS.Project or self.OPTIONS.Directory:
-                parser.error("Invalid arguments passed")
+                self.raiseError("Invalid arguments passed")
 
-            self.CONFIG = self.CHANDLER_EXAMPLES_CONFIG
+            self.CONFIG = self.CHANDLER_EXAMPLES
             self.ROOTDIR = os.path.join(self.CHANDLERHOME, "projects")
             self.OUTPUTFILE = "ChandlerExamples.pot"
 
         elif self.OPTIONS.Project:
             if self.OPTIONS.Chandler or\
             self.OPTIONS.ChandlerExamples:
-                parser.error("Invalid arguments passed")
+                self.raiseError("Invalid arguments passed")
 
             if self.OPTIONS.Directory:
                 self.ROOTDIR = self.OPTIONS.Directory
@@ -214,8 +144,15 @@ class TranslationTool(object):
             # Strip any whitespace
             self.OUTPUTFILE = "%s.pot" % self.OPTIONS.Project.replace(" ", "_")
 
+        elif self.OPTIONS.Directory:
+            if self.OPTIONS.Chandler or\
+            self.OPTIONS.ChandlerExamples:
+                self.raiseError("Invalid arguments passed")
+            if not self.OPTIONS.Project:
+                self.raiseError("Directory '-d' argument can only be used with the '-p' Project argument")
+
         else:
-            parser.error("At least one argument must be passed")
+            self.raiseError("At least one argument must be passed")
 
 
 if __name__ == "__main__":
