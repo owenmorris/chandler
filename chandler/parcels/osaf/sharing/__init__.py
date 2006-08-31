@@ -910,9 +910,8 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                                               useSSL=useSSL,
                                               shareName=shareName,
                                               sharePath=parentPath,
-                                              account=account)
-            if ticket:
-                share.conduit.ticketFreeBusy = ticket
+                                              account=account,
+                                              ticket=ticket)
             share.mode = "get"
             share.filterClasses = \
                 ["osaf.pim.calendar.Calendar.CalendarEventMixin"]

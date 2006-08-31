@@ -2210,6 +2210,8 @@ class SimpleHTTPConduit(WebDAVConduit):
         if self.lastModified:
             extraHeaders['If-Modified-Since'] = self.lastModified
             logger.info("...last modified: %s" % self.lastModified)
+        if self.ticket:
+            extraHeaders['Ticket'] = self.ticket
 
         try:
             handle = self._getServerHandle()
