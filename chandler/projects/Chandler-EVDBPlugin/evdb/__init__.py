@@ -15,12 +15,14 @@
 
 from application import schema
 import application.dialogs.Util as Util
-from i18n import ChandlerMessageFactory as _
+from i18n import MessageFactory
 from osaf import messages, pim
 from osaf.framework.blocks import Block
 from osaf.usercollections import UserCollection
 
 import evdb, EVDBDialog
+
+_ = MessageFactory("Chandler-EVDBPlugin")
 
 class AddEVDBCollectionEvent(Block.AddToSidebarEvent):
     """

@@ -19,8 +19,9 @@ from application import schema
 import AmazonKinds
 import osaf.framework.blocks.Block as Block
 import osaf.views.detail as Detail
+from i18n import MessageFactory
 
-from i18n import ChandlerMessageFactory as _
+_ = MessageFactory("Chandler-AmazonPlugin")
 
 class AmazonController(Block.Block):
     def onNewAmazonCollectionEvent(self, event):

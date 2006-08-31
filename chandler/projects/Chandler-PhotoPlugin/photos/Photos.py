@@ -21,12 +21,14 @@ from osaf import pim
 from repository.util.URL import URL
 from application import schema
 import EXIF
-from i18n import ChandlerMessageFactory as _
+from i18n import MessageFactory
 from PyICU import ICUtzinfo
 from osaf.framework.blocks import NewItemEvent
 import application.dialogs.Util
 import wx
 import os
+
+_ = MessageFactory("Chandler-PhotoPlugin")
 
 logger = logging.getLogger(__name__)
 

@@ -26,7 +26,7 @@ from datetime import datetime
 import dateutil
 import wx
 import logging
-from i18n import ChandlerMessageFactory as _
+from i18n import MessageFactory
 from osaf import messages
 from osaf.pim.structs import SizeType, RectType
 from osaf.framework.blocks.Block import *
@@ -35,6 +35,7 @@ from osaf.startup import PeriodicTask
 from datetime import timedelta
 from osaf.usercollections import UserCollection
 
+_ = MessageFactory("Chandler-FlickrPlugin")
 
 logger = logging.getLogger(__name__)
 

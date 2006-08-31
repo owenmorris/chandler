@@ -18,7 +18,10 @@ from AmazonBlocks import AmazonController, AmazonDetailBlock
 
 from application import schema
 from osaf.views.detail import makeSubtree
-from i18n import ChandlerMessageFactory as _
+from i18n import MessageFactory
+
+_ = MessageFactory("Chandler-AmazonPlugin")
+
 from osaf.pim.structs import SizeType, RectType
 
 def installParcel(parcel, version=None):

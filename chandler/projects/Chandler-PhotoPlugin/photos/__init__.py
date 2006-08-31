@@ -21,7 +21,9 @@ from osaf.pim.structs import RectType
 from osaf.pim.notes import Note
 from osaf.views.detail import makeSubtree
 from osaf.framework.blocks.MenusAndToolbars import MenuItem
-from i18n import ChandlerMessageFactory as _
+from i18n import MessageFactory
+
+_ = MessageFactory("Chandler-PhotoPlugin")
 
 def installParcel(parcel, old_version=None):
     blocks = schema.ns('osaf.framework.blocks', parcel)

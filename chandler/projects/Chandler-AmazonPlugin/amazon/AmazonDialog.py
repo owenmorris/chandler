@@ -14,8 +14,10 @@
 
 
 import wx
-from i18n import ChandlerMessageFactory as _
+from i18n import MessageFactory
 import i18n
+
+_ = MessageFactory("Chandler-AmazonPlugin")
 
 _SITE_CODES = ['us', 'gb', 'de', 'jp']
 _SITE_LIST = [

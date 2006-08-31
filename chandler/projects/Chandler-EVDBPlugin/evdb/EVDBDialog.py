@@ -14,9 +14,9 @@
 
 
 import wx
-from i18n import ChandlerMessageFactory as _
-from osaf import messages
-import i18n
+from i18n import MessageFactory
+
+_ = MessageFactory("Chandler-EVDBPlugin")
 
 # Fields in the Date: drop-down. Values can be handed off
 # the evdb module to run queries (with the exception of "This month".

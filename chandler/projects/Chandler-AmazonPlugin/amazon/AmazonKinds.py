@@ -23,10 +23,11 @@ from osaf.pim import ContentItem, ListCollection
 from repository.util.URL import URL
 import wx
 from application import schema
-from i18n import ChandlerMessageFactory as _
+from i18n import MessageFactory
 import string
 import AmazonDialog
 
+_ = MessageFactory("Chandler-AmazonPlugin")
 
 amazon.setLicense('0X5N4AEK0PTPMZK1NNG2')
 

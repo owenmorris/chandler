@@ -17,7 +17,7 @@
 #
 
 from application import schema
-from i18n import ChandlerMessageFactory as _
+from i18n import MessageFactory
 
 import urllib, logging
 from zanshin.util import blockUntil
@@ -29,6 +29,8 @@ from osaf.usercollections import UserCollection
 APP_KEY = 'CtssgKSFQDrFsBVC'
 logger = logging.getLogger(__name__)
 
+
+_ = MessageFactory("Chandler-EVDBPlugin")
 
 def GetCollectionFromSearch(repoView, searchTerms):
 
