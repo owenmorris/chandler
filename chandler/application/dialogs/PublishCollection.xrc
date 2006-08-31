@@ -171,7 +171,7 @@
                             <border>5</border>
                             <object class="wxRadioButton" name="RADIO_ITEMS">
                                 <style>wxRB_GROUP</style>
-                                <label>My items</label>
+                                <label>All items</label>
                             </object>
                         </object>
                         <object class="sizeritem">
@@ -194,7 +194,7 @@
                     <flag>wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP</flag>
                     <border>5</border>
                     <object class="wxCheckBox" name="CHECK_MAIL">
-                        <label>My mail</label>
+                        <label>Mail</label>
                     </object>
                 </object>
                 <object class="sizeritem">
@@ -208,7 +208,7 @@
                     <flag>wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT</flag>
                     <border>5</border>
                     <object class="wxCheckBox" name="CHECK_TASKS">
-                        <label>My tasks</label>
+                        <label>Tasks</label>
                     </object>
                 </object>
                 <object class="sizeritem">
@@ -222,7 +222,7 @@
                     <flag>wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM</flag>
                     <border>5</border>
                     <object class="wxCheckBox" name="CHECK_EVENTS">
-                        <label>My calendar</label>
+                        <label>Calendar</label>
                     </object>
                 </object>
                 <object class="sizeritem">
