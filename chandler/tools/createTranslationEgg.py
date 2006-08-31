@@ -4,7 +4,7 @@
 from createBase import LocalizationBase
 from distutils.dir_util import copy_tree, remove_tree, mkpath
 from distutils.file_util import copy_file
-import os
+import os, sys
 
 class TranslationEggTool(LocalizationBase):
     PROJECTNAME = None
@@ -24,6 +24,10 @@ class TranslationEggTool(LocalizationBase):
 
     def __init__(self):
         super(TranslationEggTool, self).__init__()
+
+        if sys.platform == 'cygwin':
+            self.raiseError("Cygwin is not supported due to filesystem  pathing issues." \
+                            "Please use the Windows command prompt instead.")
 
         self.getOpts()
 
@@ -73,7 +77,7 @@ class TranslationEggTool(LocalizationBase):
 
 
     def copyImages(self):
-        imgDir = os.path.join(self.LOCALEDIR, "resources", "images")
+        imgDir = os.path.join(self.LOCALEDIR, "images")
 
         try:
             copy_tree(self.IMGDIR, imgDir)
@@ -83,7 +87,7 @@ class TranslationEggTool(LocalizationBase):
 
 
     def copyHtml(self):
-        htmlDir = os.path.join(self.LOCALEDIR, "resources", "html")
+        htmlDir = os.path.join(self.LOCALEDIR, "html")
 
         try:
             copy_tree(self.HTMLDIR, htmlDir)
@@ -125,7 +129,8 @@ class TranslationEggTool(LocalizationBase):
         f.close()
 
     def writeSetupFile(self):
-        setup = """# -*- coding: utf-8 -*-
+        setup = """\
+# -*- coding: utf-8 -*-
 #   Copyright (c) 2003-2006 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -171,11 +176,11 @@ setup(
                           (outDir, self.POFILE[:-3]))
 
             if self.IMGDIR:
-                buffer.append("img.resources = %s/resources/images" % outDir)
+                buffer.append("img.resources = %s/images" % outDir)
             if self.HTMLDIR:
-                buffer.append("html.resources = %s/resources/html" % outDir)
+                buffer.append("html.resources = %s/html" % outDir)
 
-        iniText = os.linesep.join(buffer)
+        iniText = "\n".join(buffer)
         iniFile = os.path.join(self.EGGINFODIR, "resources.ini")
 
         f = file(iniFile, "w")
@@ -213,8 +218,8 @@ setup(
         'PoFile': ('-f', '--file',  True, 'A relative or full filesystem path to the .po translation file for the egg project. The po file will be copied to the egg and a .mo binary file generated. The .mo file will be registered with the eggs "resources.ini".'),
         'Locale': ('-l', '--locale', True, 'A valid locale name such as "fr", "fr_CA", "en", "en_US". The argument is required and must be specified in order for a translation egg to be generated.'),
         'Directory': ('-d', '--directory', True, 'An optional output directory where the translation egg will be written. The default is the current working directory.'),
-        'ImageDir': ('', '--imagedir', True, 'An optional command that when specified will copy all files and directories under the imagedir to the translation eggs .egg-info/resources/images directory. The images resource directory will be registed with the eggs "resources.ini" file.'),
-        'HtmlDir': ('', '--htmldir', True, 'An optional command that when specified will copy all files and directories under the htmldir to the translation eggs .egg-info/resources/html directory. The html resource directory will be registed with the eggs "resources.ini" file.'),
+        'ImageDir': ('', '--imagedir', True, 'An optional command that when specified will copy all files and directories under the imagedir to the translation eggs .egg-info/locale/LOCALENAME/images directory. The images resource directory will be registed with the eggs "resources.ini" file.'),
+        'HtmlDir': ('', '--htmldir', True, 'An optional command that when specified will copy all files and directories under the htmldir to the translation eggs .egg-info/locale/LOCALENAME/html directory. The html resource directory will be registed with the eggs "resources.ini" file.'),
         }
 
         super(TranslationEggTool, self).getOpts()
