@@ -75,7 +75,6 @@ class MainView(View):
     onPasteEventUpdateUI = _Method_CantEdit
     onUndoEventUpdateUI = _Method_CantEdit
     onRedoEventUpdateUI = _Method_CantEdit
-    onClearEventUpdateUI = _Method_CantEdit
     onSelectAllEventUpdateUI = _Method_CantEdit
 
     def displayMailError (self, message, account):

@@ -282,9 +282,6 @@ class wxSidebar(wxTable):
         # You can't Cut or Copy items from the sidebar
         event.arguments['Enable'] = False
         
-    def onClearEventUpdateUI(self, event):
-        event.arguments['Enable'] = self.blockItem.canRenameSelection()
-
     def OnHover (self, x, y, dragResult):
         x, y = self.CalcUnscrolledPosition(x, y)
         hoverRow = self.YToRow(y)
