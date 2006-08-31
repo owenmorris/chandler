@@ -384,10 +384,10 @@ class I18nTestCase(unittest.TestCase):
         # and enables the testing mode flag.
         # In testing mode all values returned by
         # the WxMessageFactory method insert
-        # a (WX)\u00FC: at the start of the string.
+        # a (WX): at the start of the string.
         self.i18nMan.setLocaleSet("test")
-        self.assertEquals(w("Cancel"), u"(WX)\u00FC: $Annuler$")
-        self.assertEquals(w("&Quit"), u"(WX)\u00FC: $&Quitter$")
+        self.assertEquals(w("Cancel"), u"(WX): Annuler")
+        self.assertEquals(w("&Quit"), u"(WX): &Quitter")
 
         # Restore the default locale set
         self.i18nMan.setLocaleSet(self.LOCALE_SET)

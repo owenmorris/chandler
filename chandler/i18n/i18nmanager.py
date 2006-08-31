@@ -1181,7 +1181,7 @@ if _WX_AVAILABLE:
                                        txt, missing)
 
             if msg is missing:
-                msg = self.i18nMan.wxTranslate(txt)
+                msg = wx.GetTranslation(txt)
 
             return msg
 
