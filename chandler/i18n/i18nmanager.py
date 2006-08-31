@@ -277,7 +277,7 @@ class I18nManager(EggTranslations):
         the c{I18nManager.getText} method insert
         a (\u00FC): at the start of the string.
         All values returned by the c{I18nManager.wxTranslate}
-        method return (WX)\00FC: at the start of the
+        method return (WX): at the start of the
         string.
 
         This method sets the following:
@@ -531,7 +531,7 @@ class I18nManager(EggTranslations):
             res = txt
 
         if self._testing:
-            return u"(WX)\u00FC: %s" % res
+            return u"(WX): %s" % res
 
         return res
 
@@ -1181,10 +1181,7 @@ if _WX_AVAILABLE:
                                        txt, missing)
 
             if msg is missing:
-                msg = wx.GetTranslation(txt)
-
-            if self.i18nMan._testing:
-                return "$%s$" % msg
+                msg = self.i18nMan.wxTranslate(txt)
 
             return msg
 
