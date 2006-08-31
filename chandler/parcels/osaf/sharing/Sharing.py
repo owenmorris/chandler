@@ -19,6 +19,7 @@ from application import schema
 from osaf import pim, messages, ChandlerException
 from i18n import ChandlerMessageFactory as _
 import osaf.mail.utils as utils
+from callbacks import *
 
 from chandlerdb.util.c import UUID, Nil
 from repository.item.Item import Item
@@ -73,7 +74,6 @@ __all__ = [
 CLOUD_XML_VERSION = '2'
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
 
 def sync(collectionOrShares, modeOverride=None, updateCallback=None,
     forceUpdate=None):
@@ -299,6 +299,30 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
                             occurrence.rruleset.isDeferred()):
                             occurrence.delete(recursive=True)
 
+
+        newItemsNeedsCalling = needsCalling(NEWITEMS)
+        newItemsUnestablishedNeedsCalling = (not shares[0].established and
+            needsCalling(NEWITEMSUNESTABLISHED))
+
+        if newItemsNeedsCalling or newItemsUnestablishedNeedsCalling:
+            added = [ ]
+            for stat in stats:
+                for uuid in stat['added']:
+                    if uuid not in added:
+                        added.append(uuid)
+
+        if newItemsNeedsCalling:
+            callCallbacks(NEWITEMS, share=shares[0], uuids=added)
+        if newItemsUnestablishedNeedsCalling:
+            callCallbacks(NEWITEMSUNESTABLISHED, share=shares[0], uuids=added)
+
+        if needsCalling(MODIFIEDITEMS):
+            modified = [ ]
+            for stat in stats:
+                for uuid in stat['modified']:
+                    if uuid not in modified:
+                        modified.append(uuid)
+            callCallbacks(MODIFIEDITEMS, share=shares[0], uuids=modified)
 
 
         # Pull in local changes from other views, and commit.  However, in
@@ -833,7 +857,7 @@ class ShareConduit(pim.ContentItem):
 
 
     def _conditionalGetItem(self, contentView, itemPath, into=None,
-        updateCallback=None):
+        updateCallback=None, stats=None):
         """
         Get an item from the server if we don't yet have it or our copy
         is out of date
@@ -852,7 +876,7 @@ class ShareConduit(pim.ContentItem):
 
             try:
                 (item, data) = self._getItem(contentView, itemPath, into=into,
-                    updateCallback=updateCallback)
+                    updateCallback=updateCallback, stats=stats)
             except TransformationFailed, e:
                 # This has already been logged; catch it and return None
                 # to allow the sync to proceed.
@@ -943,13 +967,7 @@ class ShareConduit(pim.ContentItem):
                 raise SharingError(_(u"Cancelled by user"))
 
             item = self._conditionalGetItem(contentView, itemPath,
-                into=cvSelf.share, updateCallback=updateCallback)
-
-            if item is not None:
-                if item.itsVersion > 0 :
-                    stats['added'].append(item.itsUUID)
-                else:
-                    stats['modified'].append(item.itsUUID)
+                into=cvSelf.share, updateCallback=updateCallback, stats=stats)
 
             # Whenever we get an item, mark it seen in our manifest and remove
             # it from the server resource list:
@@ -1001,15 +1019,10 @@ class ShareConduit(pim.ContentItem):
                     raise SharingError(_(u"Cancelled by user"))
 
                 item = self._conditionalGetItem(contentView, itemPath,
-                    updateCallback=updateCallback)
+                    updateCallback=updateCallback, stats=stats)
 
                 if item is not None:
                     cvSelf.share.contents.add(item)
-
-                    if item.itsVersion == 0 :
-                        stats['added'].append(item.itsUUID)
-                    else:
-                        stats['modified'].append(item.itsUUID)
 
                 self._setSeen(itemPath)
 
@@ -1232,7 +1245,8 @@ class ShareConduit(pim.ContentItem):
         """
         pass
 
-    def _getItem(self, contentView, itemPath, into=None, updateCallback=None):
+    def _getItem(self, contentView, itemPath, into=None, updateCallback=None,
+                 stats=None):
         """
         Must implement
         """
@@ -1338,7 +1352,8 @@ class FileSystemConduit(ShareConduit):
         logger.info("...removing from disk: %s" % path)
         os.remove(path)
 
-    def _getItem(self, contentView, itemPath, into=None, updateCallback=None):
+    def _getItem(self, contentView, itemPath, into=None, updateCallback=None,
+        stats=None):
 
         view = self.itsView
 
@@ -1351,7 +1366,7 @@ class FileSystemConduit(ShareConduit):
         try:
             item = self.share.format.importProcess(contentView, text,
                 extension=extension, item=into,
-                updateCallback=updateCallback)
+                updateCallback=updateCallback, stats=stats)
         except Exception, e:
             logging.exception(e)
             raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
@@ -1770,7 +1785,9 @@ class WebDAVConduit(ShareConduit):
             except M2Crypto.BIO.BIOError, err:
                 raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
-    def _getItem(self, contentView, itemPath, into=None, updateCallback=None):
+    def _getItem(self, contentView, itemPath, into=None, updateCallback=None,
+                 stats=None):
+
         view = self.itsView
         resource = self._resourceFromPath(itemPath)
 
@@ -1796,7 +1813,7 @@ class WebDAVConduit(ShareConduit):
 
         try:
             item = self.share.format.importProcess(contentView, text,
-                item=into, updateCallback=updateCallback)
+                item=into, updateCallback=updateCallback, stats=stats)
         except VersionMismatch:
             raise
         except Exception, e:
@@ -2229,7 +2246,8 @@ class SimpleHTTPConduit(WebDAVConduit):
             text = resp.body
             cvSelf = contentView.findUUID(self.itsUUID)
             self.share.format.importProcess(contentView, text,
-                item=cvSelf.share, updateCallback=updateCallback)
+                item=cvSelf.share, updateCallback=updateCallback,
+                stats=stats)
 
             # The share maintains bi-di-refs between Share and Item:
             for item in cvSelf.share.contents:
@@ -2573,7 +2591,8 @@ class CloudXMLFormat(ImportExportFormat):
         return "share.xml"
 
     def importProcess(self, contentView, text, extension=None, item=None,
-        updateCallback=None):
+        updateCallback=None, stats=None):
+
         root = ElementTree(file=StringIO(text)).getroot()
         try:
 
@@ -2584,7 +2603,7 @@ class CloudXMLFormat(ImportExportFormat):
             # self.itsView.recordChangeNotifications()
 
             item = self._importElement(contentView, root, item=item,
-                updateCallback=updateCallback)
+                updateCallback=updateCallback, stats=stats)
 
         finally:
 
@@ -2790,7 +2809,7 @@ class CloudXMLFormat(ImportExportFormat):
 
 
     def _importElement(self, contentView, element, item=None,
-        updateCallback=None):
+        updateCallback=None, stats=None):
 
         view = contentView
         kind = None
@@ -2851,6 +2870,9 @@ class CloudXMLFormat(ImportExportFormat):
             else:
                 item = kind.newItem(None, None)
 
+            if stats and uuid not in stats['added']:
+                stats['added'].append(uuid)
+
             if isinstance(item, pim.ContentItem):
                 SharingNewItemNotification(itsView=item.itsView,
                     displayName="New item", items=[item])
@@ -2864,7 +2886,10 @@ class CloudXMLFormat(ImportExportFormat):
             # change the kind of an existing item (for now):
 
             # item.itsKind = kind
-            pass
+
+            uuid = item.itsUUID
+            if stats and uuid not in stats['modified']:
+                stats['modified'].append(uuid)
 
 
 

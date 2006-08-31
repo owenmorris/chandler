@@ -491,7 +491,7 @@ class wxApplication (wx.App):
         def _setStatusMessageCallback(*args, **kwds):
             if kwds.get('msg', None) is not None:
                 self.PostAsyncEvent(setStatusMessage, kwds['msg'])
-        sharing.register(_setStatusMessageCallback)
+        sharing.register(sharing.UPDATE, _setStatusMessageCallback)
 
         # Fix for Bugs 3720, 3722, 5046, and 5650.  Sets the focus to
         # the first focusable widget in the frame, and also forces a

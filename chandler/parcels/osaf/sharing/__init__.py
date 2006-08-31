@@ -43,6 +43,7 @@ from Sharing import *
 from conduits import *
 from WebDAV import *
 from ICalendar import *
+from callbacks import *
 
 from osaf.pim.collections import UnionCollection, DifferenceCollection
 
@@ -171,29 +172,6 @@ def interrupt(graceful=True):
         interrupt_flag = IMMEDIATE_STOP # interrupt current sync( )
 
 
-registeredCallbacks = { }
-
-def register(func, *args):
-    global registeredCallbacks
-    if func not in registeredCallbacks:
-        registeredCallbacks[func] = args
-
-def unregister(func):
-    global registeredCallbacks
-    try:
-        del registeredCallbacks[func]
-    except KeyError:
-        pass
-
-def _callCallbacks(**kwds):
-    for (func, args) in registeredCallbacks.items():
-        func(*args, **kwds)
-
-# An example callback which simply prints to stdout:
-# def printIt(*args, **kwds):
-#     print args, kwds
-# register(printIt)
-
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 def _setError(collection, message):
@@ -248,7 +226,7 @@ class BackgroundSyncHandler:
         # A callback to allow cancelling of a sync( )
         def callback(msg=None, work=None, totalWork=None):
             kwds = {'msg':msg, 'work':work, 'totalWork':totalWork}
-            _callCallbacks(**kwds)
+            callCallbacks(UPDATE, **kwds)
             return interrupt_flag == IMMEDIATE_STOP
 
         def silentCallback(*args, **kwds):
@@ -294,7 +272,7 @@ class BackgroundSyncHandler:
                     if interrupt_flag != PROCEED: # interruption
                         return True
 
-                    _callCallbacks(msg="Syncing collection '%s'" %
+                    callCallbacks(UPDATE, msg="Syncing collection '%s'" %
                         collection.displayName)
                     try:
                         stats.extend(sync(collection,
@@ -336,7 +314,7 @@ class BackgroundSyncHandler:
             self.rv.commit()
 
             running_status = IDLE
-            _callCallbacks(msg='')
+            callCallbacks(UPDATE, msg='')
             if interrupt_flag != PROCEED:
                 # We have been asked to stop, so fire the deferred
                 if shutdown_deferred:

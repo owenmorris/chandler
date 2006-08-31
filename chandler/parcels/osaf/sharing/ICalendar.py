@@ -362,7 +362,7 @@ def makeNaiveteMatch(dt, tzinfo):
     return dt
 
 def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
-                     monolithic = True, updateCallback=None):
+                     monolithic = True, updateCallback=None, stats=None):
     """
     Take a string, create or update items from that stream.
 
@@ -555,6 +555,9 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                             
                         itemChangeCallback = CalendarEventMixin.changeThis
                         countUpdated += 1
+                        if stats and eventItem.itsUUID not in stats['modified']:
+                            stats['modified'].append(eventItem.itsUUID)
+
                     if DEBUG: logger.debug("Changing eventItem: %s" % str(eventItem))
                     
                 changesDict = {}
@@ -615,6 +618,8 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     for tup in changeLast:
                         eventItem.changeThis(*tup)
                     countNew += 1
+                    if stats and eventItem.itsUUID not in stats['added']:
+                        stats['added'].append(eventItem.itsUUID)
                 else:
                     # update an existing item
                     if rruleset is None and recurrenceID is None \
@@ -778,7 +783,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         return isinstance(item, (CalendarEventMixin, Sharing.Share))
 
     def importProcess(self, contentView, text, extension=None, item=None,
-                      updateCallback=None):
+                      updateCallback=None, stats=None):
         # the item parameter is so that a share item can be passed in for us
         # to populate.
 
@@ -792,7 +797,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         coerceTzinfo = getattr(self, 'coerceTzinfo', None)
 
         events, calname = itemsFromVObject(view, text, coerceTzinfo, filters,
-                                           monolithic, updateCallback)
+                                           monolithic, updateCallback, stats)
 
         if monolithic:
             if calname is None:
@@ -877,7 +882,7 @@ class FreeBusyFileFormat(ICalendarFormat):
         return cal.serialize().encode('utf-8')
 
     def importProcess(self, contentView, text, extension=None, item=None,
-                      updateCallback=None):
+                      updateCallback=None, stats=None):
         # the item parameter is so that a share item can be passed in for us
         # to populate.
 

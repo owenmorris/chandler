@@ -185,8 +185,8 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
         printStats(self.share1.itsView, stats)
         self.assert_(checkStats(stats,
-            ({'added' : 7, 'modified' : 0, 'removed' : 0},
-             {'added' : 6, 'modified' : 0, 'removed' : 0},
+            ({'added' : 6, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 6, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
