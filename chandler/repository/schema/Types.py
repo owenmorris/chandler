@@ -1003,7 +1003,7 @@ class ConstantEnumeration(Enumeration):
         if op == 'set':
             constants = [SchemaEnumValue(self, name, value)
                          for name, value in self._values['values']]
-            constants.sort(lambda v0, v1: cmp(v0.name, v1.name))
+            constants.sort(None, lambda x: x.name)
             self.constants = constants
         elif op == 'remove':
             del self.constants
