@@ -29,7 +29,7 @@
                     <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxCheckBox" name="CHECKBOX_KEEPOUT">
-                        <label>Keep out of My items</label>
+                        <label>Keep out of Dashboard</label>
                         <checked>1</checked>
                     </object>
                 </object>
