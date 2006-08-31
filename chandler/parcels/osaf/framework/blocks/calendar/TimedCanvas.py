@@ -95,8 +95,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         self.orderLast = []
 
-    def wxSynchronizeWidget(self, useHints=False):
-        self.SetSize ((self.blockItem.size.width, self.blockItem.size.height))
+    def setScroll(self):
         scrollY = self.blockItem.scrollY
         if scrollY < 0:
             # A scrollY value of -1 (it's initial value) is used as way to
@@ -105,6 +104,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             # window sizes.
             scrollY = (self.hourHeight * 6) / self.GetScrollPixelsPerUnit()[1]
         self.Scroll(0, scrollY)
+
+    def wxSynchronizeWidget(self, useHints=False):
+        self.SetSize ((self.blockItem.size.width, self.blockItem.size.height))
+        self.setScroll()
         currentRange = self.GetCurrentDateRange()
         self._doDrawingCalculations()
 
@@ -184,13 +187,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     @WithoutSynchronizeWidget
     def OnSize(self, event):
-        # print "wxTimedEventsCanvas.OnSize()  to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
         self.SetWindowGeometry()
         self._doDrawingCalculations()
 
         self.RefreshCanvasItems(resort=False)
         newSize = self.GetSize()
         self.blockItem.size = SizeType (newSize.width, newSize.height)
+        self.setScroll()
         event.Skip()
 
     def SetWindowGeometry(self):

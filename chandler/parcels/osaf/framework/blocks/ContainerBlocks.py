@@ -237,11 +237,9 @@ class wxSplitterWindow(wx.SplitterWindow):
 
     @WithoutSynchronizeWidget
     def OnSize(self, event):
-        #indentlog("splitperc: %s" % self.blockItem.splitPercentage)
-
         newSize = self.GetSize()
-
         self.blockItem.size = SizeType (newSize.width, newSize.height)
+        
         if self.blockItem.orientationEnum == "Horizontal":
             distance = self.blockItem.size.height
         else:
