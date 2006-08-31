@@ -3,11 +3,6 @@
 from createBase import LocalizationBase
 import os
 
-"""
-TO DO
-=======
-1. Test on Linux and Windows
-"""
 
 class TranslationTool(LocalizationBase):
     ROOTDIR = None
@@ -17,11 +12,11 @@ class TranslationTool(LocalizationBase):
     CWD = None
     XRC_FILES = []
     XRC_PYTHON = None
-
     CONFIG = ["."]
 
     def __init__(self):
         super(TranslationTool, self).__init__()
+
         self.GETTEXT = os.path.join(self.CHANDLERHOME, "tools", "pygettext.py")
 
         self.getOpts()
@@ -41,7 +36,7 @@ class TranslationTool(LocalizationBase):
 
             os.chdir(self.CWD)
 
-            if self.OPTIONS.Verbose:
+            if self.OPTIONS.Debug:
                 self.debug()
 
         except Exception, e:

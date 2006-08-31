@@ -1,18 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-   ISSUES:
-   1. Line feed on each OS should probally use the write_file util
-   2. If going to use locale dir then put resource under as well
-      ala locale/fr/resources/images/
-
-   TO DO:
-   1. update debug with --debug flag
-   2. Remove verbose
-
-"""
-
 from createBase import LocalizationBase
 from distutils.dir_util import copy_tree, remove_tree, mkpath
 from distutils.file_util import copy_file
@@ -31,6 +19,7 @@ class TranslationEggTool(LocalizationBase):
     POFILEPATH = None
     IMGDIR = None
     HTMLDIR = None
+    LOCALEDIR = None
 
 
     def __init__(self):
@@ -47,13 +36,17 @@ class TranslationEggTool(LocalizationBase):
             self.PLUGINDIR = self.PLUGINNAME
 
         try:
-            #XXXX overwrite previous hum?
             mkpath(self.PLUGINDIR)
+
             self.CWD = os.getcwd()
             os.chdir(self.PLUGINDIR)
+
             self.writeReadMeFile()
             self.writeSetupFile()
             self.putEggInDevelopMode()
+
+            self.LOCALEDIR = os.path.join(self.EGGINFODIR, "locale", self.LOCALE)
+
             self.writeResourceFile()
             self.createMoFile()
 
@@ -65,6 +58,9 @@ class TranslationEggTool(LocalizationBase):
 
             os.chdir(self.CWD)
 
+            if self.OPTIONS.Debug:
+                self.debug()
+
             print "\n\n================================================="
             print "   Translation egg '%s'" % (self.PLUGINNAME)
             print "   created and installed in develop mode"
@@ -72,15 +68,12 @@ class TranslationEggTool(LocalizationBase):
                 print "   to directory '%s'" % self.OUTPUTDIR
             print "=================================================\n\n"
 
-            if self.OPTIONS.Verbose:
-                self.debug()
-
         except Exception, e:
             self.raiseError(str(e))
 
 
     def copyImages(self):
-        imgDir = os.path.join(self.EGGINFODIR, "resources", "images")
+        imgDir = os.path.join(self.LOCALEDIR, "resources", "images")
 
         try:
             copy_tree(self.IMGDIR, imgDir)
@@ -90,7 +83,7 @@ class TranslationEggTool(LocalizationBase):
 
 
     def copyHtml(self):
-        htmlDir = os.path.join(self.EGGINFODIR, "resources", "html")
+        htmlDir = os.path.join(self.LOCALEDIR, "resources", "html")
 
         try:
             copy_tree(self.HTMLDIR, htmlDir)
@@ -98,14 +91,11 @@ class TranslationEggTool(LocalizationBase):
              self.raiseError("Unable to copy html from '%s': %s." % (self.HTMLDIR, e))
 
     def createMoFile(self):
-        #XXX: test that it really is a po file
-        moDir = os.path.join(self.EGGINFODIR, "locale", self.LOCALE)
-
         try:
-            mkpath(moDir)
-            copy_file(self.POFILEPATH, moDir)
+            mkpath(self.LOCALEDIR)
+            copy_file(self.POFILEPATH, self.LOCALEDIR)
             cwd = os.getcwd()
-            os.chdir(moDir)
+            os.chdir(self.LOCALEDIR)
             msgfmt = os.path.join(self.CHANDLERHOME, "tools", "msgfmt.py")
             exp = "%s %s %s" % (self.PYTHON,  msgfmt, self.POFILE)
             os.system(exp)
@@ -173,19 +163,19 @@ setup(
 
     def writeResourceFile(self):
         buffer = []
+        outDir = "locale/%s" % self.LOCALE
 
         for project in self.PROJECTNAMES:
             buffer.append("[%s::%s]" % (project, self.LOCALE))
-            buffer.append("gettext.catalog = locale/%s/%s.mo" % \
-                          (self.LOCALE, self.POFILE[:-3]))
+            buffer.append("gettext.catalog = %s/%s.mo" % \
+                          (outDir, self.POFILE[:-3]))
 
             if self.IMGDIR:
-                buffer.append("img.resources = resources/images")
+                buffer.append("img.resources = %s/resources/images" % outDir)
             if self.HTMLDIR:
-                buffer.append("html.resources = resources/html")
+                buffer.append("html.resources = %s/resources/html" % outDir)
 
-        #XXX need to get the os line feed
-        iniText = "\n".join(buffer)
+        iniText = os.linesep.join(buffer)
         iniFile = os.path.join(self.EGGINFODIR, "resources.ini")
 
         f = file(iniFile, "w")
@@ -193,7 +183,26 @@ setup(
         f.close()
 
     def debug(self):
-         super(TranslationEggTool, self).debug()
+        super(TranslationEggTool, self).debug()
+        print "PROJECTNAME: ", self.PROJECTNAME
+        print "PROJECTNAMES: ", self.PROJECTNAMES
+        print "LOCALE: ", self.LOCALE
+        print "LOCALEDIR: ", self.LOCALEDIR
+        print "OUTPUTDIR: ", self.OUTPUTDIR
+        print "PLUGINDIR: ", self.PLUGINDIR
+        print "PLUGINNAME: ", self.PLUGINNAME
+        print "EGGINFODIR: ", self.EGGINFODIR
+        print "CWD: ", self.CWD
+        print "POFILE: ", self.POFILE
+        print "POFILEPATH: ", self.POFILEPATH
+
+        if self.IMGDIR:
+            print "IMGDIR: ", self.IMGDIR
+
+        if self.HTMLDIR:
+            print "HTMLDIR: ", self.HTMLDIR
+
+        print "\n\n"
 
     def getOpts(self):
         self.CONFIGITEMS = {

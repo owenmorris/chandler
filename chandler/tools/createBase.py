@@ -92,8 +92,8 @@ class LocalizationBase(object):
 
 
     def getOpts(self):
-        self.CONFIGITEMS['Verbose'] = ('-v', '--verbose', False, \
-                                  'Prints Verbose debugging information to the stdout')
+        self.CONFIGITEMS['Debug'] = ('', '--debug', False, \
+                                  'Prints debugging information to the stdout')
 
         # %prog expands to os.path.basename(sys.argv[0])
         usage  = "usage: %prog [options]"
@@ -122,7 +122,6 @@ class LocalizationBase(object):
             return os.path.join(self.CHANDLERHOME, fileName)
 
         return None
-
 
 
     def findPath(self, name):
