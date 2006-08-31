@@ -1491,9 +1491,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         height = self.size.height - 1# was GetMinSize().GetWidth()???
             
         yPosition = min(yPosition, height)
-        if mustBeInBounds:
-            xPosition = min(xPosition, 
-                            drawInfo.xOffset + drawInfo.middleWidth - 1)
+        xPosition = min(xPosition, drawInfo.xOffset + drawInfo.middleWidth - 1)
         return wx.Point(xPosition, yPosition)
 
     def GetDragAdjustedStartTime(self, tzinfo):

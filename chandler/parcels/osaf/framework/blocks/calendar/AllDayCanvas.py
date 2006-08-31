@@ -293,7 +293,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         self.dragState = DragState(canvasItem, self, noop,
                                    noop, self.FinishDrag,
                                    unscrolledPosition)
-        
+        self.dragState.dragged = True
+
         canvasItem.resizeMode = None
         self.dragState._dragStarted = True
         self.dragState.originalDragBox = canvasItem

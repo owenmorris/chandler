@@ -240,7 +240,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         primaryCollection = self.blockItem.contentsCollection
         collection = self.blockItem.getContainingCollection(item, primaryCollection)
         canvasItem = TimedCanvasItem(collection, primaryCollection, item, self)        
-
+        
         unscrolledPosition = wx.Point(*self.CalcUnscrolledPosition(x, y))
         start = self.getDateTimeFromPosition(unscrolledPosition,
                                              item.startTime.tzinfo)
@@ -253,6 +253,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.dragState = DragState(canvasItem, self, noop,
                                    noop, self.FinishDrag,
                                    unscrolledPosition)
+        self.dragState.dragged = True
         
         canvasItem.resizeMode = None
         self.dragState._dragStarted = True
