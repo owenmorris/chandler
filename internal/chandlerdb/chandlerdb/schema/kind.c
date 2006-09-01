@@ -27,6 +27,7 @@ static PyObject *t_kind_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_kind_init(t_kind *self, PyObject *args, PyObject *kwds);
 
 static PyObject *t_kind_getAttribute(t_kind *self, PyObject *args);
+static PyObject *t_kind__setupDescriptors(t_kind *self, PyObject *args);
 
 static PyObject *t_kind_getMonitorSchema(t_kind *self, void *data);
 static int t_kind_setMonitorSchema(t_kind *self, PyObject *arg, void *data);
@@ -41,7 +42,10 @@ static PyMemberDef t_kind_members[] = {
 };
 
 static PyMethodDef t_kind_methods[] = {
-    { "getAttribute", (PyCFunction) t_kind_getAttribute, METH_VARARGS, "" },
+    { "getAttribute", (PyCFunction) t_kind_getAttribute,
+      METH_VARARGS, "" },
+    { "_setupDescriptors", (PyCFunction) t_kind__setupDescriptors,
+      METH_VARARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -179,6 +183,63 @@ static PyObject *t_kind_getAttribute(t_kind *self, PyObject *args)
     }
     else
         PyErr_Clear();
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *t_kind__setupDescriptors(t_kind *self, PyObject *args)
+{
+    PyObject *descriptors, *cls, *clsDescriptors, *actions;
+    int actionCount, i;
+
+    if (!PyArg_ParseTuple(args, "OOOO!", &descriptors, &cls,
+                          &clsDescriptors, &PyList_Type, &actions))
+        return NULL;
+
+    actionCount = PyList_GET_SIZE(actions);
+
+    for (i = 0; i < actionCount; i++) {
+        PyObject *action = PyList_GET_ITEM(actions, i);
+        PyObject *descriptor, *attribute;
+        int count;
+
+        if (!PyTuple_Check(action))
+        {
+            PyErr_SetObject(PyExc_TypeError, action);
+            return NULL;
+        }
+
+        count = PyTuple_GET_SIZE(action);
+
+        if (count != 2 && count != 3)
+        {
+            PyErr_SetObject(PyExc_ValueError, action);
+            return NULL;
+        }
+
+        descriptor = PyTuple_GET_ITEM(action, 0);
+        attribute = PyTuple_GET_ITEM(action, 1);
+
+        if (!PyObject_TypeCheck(descriptor, CDescriptor))
+        {
+            PyErr_SetObject(PyExc_TypeError, descriptor);
+            return NULL;
+        }
+
+        if (!PyObject_TypeCheck(attribute, CAttribute))
+        {
+            PyErr_SetObject(PyExc_TypeError, attribute);
+            return NULL;
+        }
+
+        PyDict_SetItem(((t_descriptor *) descriptor)->attrs,
+                       self->kind->uuid, attribute);
+
+        if (count == 3)
+            PyObject_SetAttr(cls, PyTuple_GET_ITEM(action, 2), descriptor);
+    }
+
+    PyDict_SetItem(descriptors, cls, clsDescriptors);
 
     Py_RETURN_NONE;
 }

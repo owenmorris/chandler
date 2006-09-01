@@ -41,6 +41,7 @@ static PyObject *t_env_lock_id_free(t_env *self, PyObject *args);
 static PyObject *t_env_lock_get(t_env *self, PyObject *args);
 static PyObject *t_env_lock_put(t_env *self, PyObject *args);
 static PyObject *t_env_lsn_reset(t_env *self, PyObject *args);
+static PyObject *t_env_fileid_reset(t_env *self, PyObject *args);
 
 static PyObject *t_env_get_lk_detect(t_env *self, void *data);
 static int t_env_set_lk_detect(t_env *self, PyObject *value, void *data);
@@ -80,6 +81,7 @@ static PyMethodDef t_env_methods[] = {
     { "lock_get", (PyCFunction) t_env_lock_get, METH_VARARGS, NULL },
     { "lock_put", (PyCFunction) t_env_lock_put, METH_O, NULL },
     { "lsn_reset", (PyCFunction) t_env_lsn_reset, METH_VARARGS, NULL },
+    { "fileid_reset", (PyCFunction) t_env_fileid_reset, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -667,7 +669,27 @@ static PyObject *t_env_lsn_reset(t_env *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s|i", &filename, &flags))
         return NULL;
 
+    Py_BEGIN_ALLOW_THREADS;
     err = self->db_env->lsn_reset(self->db_env, filename, flags);
+    Py_END_ALLOW_THREADS;
+
+    if (err)
+        return raiseDBError(err);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *t_env_fileid_reset(t_env *self, PyObject *args)
+{
+    char *filename;
+    int err, flags = 0;
+
+    if (!PyArg_ParseTuple(args, "s|i", &filename, &flags))
+        return NULL;
+
+    Py_BEGIN_ALLOW_THREADS;
+    err = self->db_env->fileid_reset(self->db_env, filename, flags);
+    Py_END_ALLOW_THREADS;
     if (err)
         return raiseDBError(err);
 

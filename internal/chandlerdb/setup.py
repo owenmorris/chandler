@@ -54,12 +54,14 @@ def main():
                                 include_dirs=['rijndael-3.0']))
 
     extensions.append(Extension('chandlerdb.schema.c',
+                                extra_compile_args = defines,
                                 sources=['chandlerdb/schema/descriptor.c',
                                          'chandlerdb/schema/attribute.c',
                                          'chandlerdb/schema/kind.c',
                                          'chandlerdb/schema/c.c']))
 
     extensions.append(Extension('chandlerdb.item.c',
+                                extra_compile_args = defines,
                                 sources=['chandlerdb/item/item.c',
                                          'chandlerdb/item/values.c',
                                          'chandlerdb/item/indexes.c',
