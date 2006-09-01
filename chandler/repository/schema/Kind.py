@@ -91,6 +91,8 @@ class Kind(Item):
         _setup_lock.acquire()
         try:
             try:
+                self.c.monitorSchema = True
+
                 uuid = self.itsUUID
                 classes = Kind._classes
                 kinds = Kind._kinds
@@ -109,7 +111,6 @@ class Kind(Item):
                 else:
                     return
 
-                self.c.monitorSchema = True
                 self._setupDescriptors(cls)
                 self._setupDelegates(cls)
 
@@ -126,38 +127,39 @@ class Kind(Item):
 
     def _setupDescriptors(self, cls, sync=None):
 
-        descriptors = Kind._descriptors.get(cls)
-        if descriptors is None:
-            descriptors = Kind._descriptors[cls] = {}
+        _setup_lock.acquire()
+        try:
+            descriptors = Kind._descriptors.get(cls, {}).copy()
+            actions = []
 
-        if sync is not None:
-            if sync == 'attributes':
-                attributes = self._references.get('attributes', [])
-            elif sync == 'superKinds':
-                attributes = set(a._uuid for n, a, k in self.iterAttributes())
-            else:
-                raise ValueError, sync
+            attributes = dict((a.itsUUID, (n, a))
+                              for n, a, k in self.iterAttributes())
             
-            for name, descriptor in descriptors.items():
-                try:
-                    attr = descriptor.getAttribute(self)
-                except KeyError:
-                    pass
-                else:
-                    if attr.attrID not in attributes:
-                        if descriptor.unregisterAttribute(self):
-                            delattr(cls, name)
+            if sync is not None:
+                for name, descriptor in descriptors.items():
+                    try:
+                        attr = descriptor.getAttribute(self)
+                    except KeyError:
+                        pass
+                    else:
+                        if attr.attrID not in attributes:
+                            if descriptor.unregisterAttribute(self):
+                                delattr(cls, name)
 
-        for name, attribute, k in self.iterAttributes():
-            descriptor = cls.__dict__.get(name, None)
-            if descriptor is None:
-                descriptor = descriptors[name] = CDescriptor(name)
-                setattr(cls, name, descriptor)
-                descriptor.registerAttribute(self, attribute.c)
-            elif isinstance(descriptor, CDescriptor):
-                descriptor.registerAttribute(self, attribute.c)
-            else:
-                self.itsView.logger.warn("Not installing attribute descriptor for '%s' since it would shadow already existing descriptor: %s", name, descriptor)
+            for name, attribute in attributes.itervalues():
+                descriptor = cls.__dict__.get(name, None)
+                if descriptor is None:
+                    descriptor = descriptors[name] = CDescriptor(name)
+                    actions.append((descriptor, attribute.c, name))
+                elif isinstance(descriptor, CDescriptor):
+                    actions.append((descriptor, attribute.c))
+                else:
+                    self.itsView.logger.warn("Not installing attribute descriptor for '%s' since it would shadow already existing descriptor: %s", name, descriptor)
+            self.c._setupDescriptors(Kind._descriptors,
+                                     cls, descriptors, actions)
+
+        finally:
+            _setup_lock.release()
 
     def _setupDelegates(self, cls):
 
@@ -287,7 +289,7 @@ class Kind(Item):
 
         superClasses = []
         
-        for superKind in self.getAttributeValue('superKinds', self._references):
+        for superKind in self._references.get('superKinds', Nil):
             c = superKind.getItemClass()
             if c is not Item and c not in superClasses:
                 superClasses.append(c)
@@ -628,7 +630,7 @@ class Kind(Item):
             if superKind._uuid in duplicates:
                 raise ValueError, 'Kind %s is duplicated' %(superKind.itsPath)
             else:
-                duplicates[superKind._uuid] = superKind
+                duplicates[superKind.itsUUID] = superKind
                 
         hash = self.hashItem()
         for superKind in superKinds:
@@ -640,7 +642,7 @@ class Kind(Item):
 
         kind = parent.getItemChild(name)
         if kind is None:
-            kind = self._kind.newItem(name, parent)
+            kind = self.itsKind.newItem(name, parent)
 
             kind.addValue('superKinds', self)
             kind.superKinds.extend(superKinds)
@@ -734,41 +736,46 @@ class Kind(Item):
 
         The caches of the subKinds of this kind are flushed recursively.
         """
-        c = self.c
-        stale = self.isStale()
 
-        if c.attributesCached:
-            self._allAttributes.clear()
-            self._allNames.clear()
-            self._notifyAttributes.clear()
-            c.attributesCached = False
+        _setup_lock.acquire()
+        try:
+            c = self.c
+            stale = self.isStale()
 
-        if not stale:
-            self.inheritedSuperKinds.clear()
-        c.superKindsCached = False
+            if c.attributesCached:
+                self._allAttributes.clear()
+                self._allNames.clear()
+                self._notifyAttributes.clear()
+                c.attributesCached = False
 
-        self._inheritedAttributes.clear()
-        del self._notFoundAttributes[:]
-        self._initialValues = None
-        self._initialReferences = None
+            if not stale:
+                self.inheritedSuperKinds.clear()
+            c.superKindsCached = False
 
-        # clear auto-generated composite class
-        if self._values._isTransient('classes'):
-            self._values._clearTransient('classes')
-            del self._values['classes']
+            self._inheritedAttributes.clear()
+            del self._notFoundAttributes[:]
+            self._initialValues = None
+            self._initialReferences = None
 
-        if not stale:
-            for subKind in self.getAttributeValue('subKinds', self._references,
-                                                  None, []):
-                subKind.flushCaches(reason)
+            # clear auto-generated composite class
+            if self._values._isTransient('classes'):
+                self._values._clearTransient('classes')
+                del self._values['classes']
 
-        if reason is not None:
-            logger = self.itsView.logger
-            for cls in Kind._kinds.get(self._uuid, []):
-                self._setupDescriptors(cls, reason)
+            if not stale:
+                for subKind in self._references.get('subKinds', Nil):
+                    subKind.flushCaches('superKinds')
 
-        if 'schemaHash' in self._values:
-            del self.schemaHash
+            if reason is not None:
+                logger = self.itsView.logger
+                for cls in Kind._kinds.get(self.itsUUID, Nil):
+                    self._setupDescriptors(cls, reason)
+
+            if 'schemaHash' in self._values:
+                del self.schemaHash
+
+        finally:
+            _setup_lock.release()
 
     def _unloadItem(self, reloadable, view, clean=True):
 
@@ -1076,4 +1083,7 @@ class DelegateDescriptor(object):
         if obj is None:
             return self
 
-        return getattr(getattr(obj, self.delegate), self.name)
+        try:
+            return getattr(getattr(obj, self.delegate), self.name)
+        except AttributeError:
+            import pdb; pdb.set_trace()

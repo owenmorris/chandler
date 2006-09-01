@@ -1767,11 +1767,12 @@ class Item(CItem):
         """
 
         superKinds = []
-        if self._kind is not None:
-            if self._kind.isMixin():
-                superKinds[:] = self._kind.superKinds
+        kind = self.itsKind
+        if kind is not None:
+            if kind.isMixin():
+                superKinds[:] = kind.superKinds
             else:
-                superKinds.append(self._kind)
+                superKinds.append(kind)
 
         for kind in kinds:
             if kind[0] == 'remove':
@@ -1786,7 +1787,7 @@ class Item(CItem):
                 raise ValueError, kind[0]
 
         count = len(superKinds)
-        kind = self._kind
+        kind = self.itsKind
         
         if count == 0 and (kind is None or kind.isMixin()):
             kind = None

@@ -534,10 +534,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                 kind = self[uKind]
                 if kind.isKindOf(kind.getKindKind()):
                     names = kind._nameTuple(dirties)
-                    if 'attributes' in names:
-                        self[uItem].flushCaches('attributes')
-                    elif 'superKinds' in names:
+                    if 'superKinds' in names:
                         self[uItem].flushCaches('superKinds')
+                    elif 'attributes' in names:
+                        self[uItem].flushCaches('attributes')
 
             if notify:
                 before = time()
