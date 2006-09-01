@@ -528,6 +528,15 @@ class MainView(View):
         if collection is None:
             return
 
+        for item in collection:
+            if isinstance(item, pim.CalendarEventMixin):
+                break
+        else:
+            message = _(u"This collection contains no events")
+            title = _(u"Export cancelled")
+            application.dialogs.Util.ok(None, message, title)
+            return
+
         options = [dict(name='reminders', checked = True, label = _(u"Export reminders")),
                    dict(name='transparency', checked = True, label = _(u"Export event status"))]
         res = ImportExport.showFileChooserWithOptions(wx.GetApp().mainFrame,
