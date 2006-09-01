@@ -842,8 +842,6 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
         shareName = path.strip(u"/")[accountPathLen:]
         if inFreeBusy:
             shareName = shareName[len('freebusy/'):]
-        
-    
 
     if account:
         conduit = WebDAVConduit(itsView=view, account=account,
@@ -853,12 +851,25 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             sharePath=parentPath, shareName=shareName, useSSL=useSSL,
             ticket=ticket, inFreeBusy=inFreeBusy)
 
-
     try:
         location = conduit.getLocation()
         for share in Share.iterItems(view):
             if share.getLocation() == location:
                 if share.established:
+
+                    # Compare the tickets (if any) and if different,
+                    # interrogate the server to get the new permissions
+                    if ticket and getattr(share.conduit, 'ticket', None):
+                        if ticket != share.conduit.ticket:
+                            (shareMode, hasSub, isCal) = interrogate(conduit,
+                                location, ticket=ticket)
+                            share.mode = shareMode
+                            share.conduit.ticket = ticket
+                            if hasSub:
+                                share.follows.mode = shareMode
+                                share.follows.conduit.ticket = ticket
+                            return share.contents
+
                     raise AlreadySubscribed(_(u"Already subscribed"))
                 else:
                     share.delete(True)
@@ -973,90 +984,21 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
         if updateCallback:
             updateCallback(msg=_(u"Detecting share settings..."))
 
-        # Interrogate the server
-
         if not location.endswith("/"):
             location += "/"
-        handle = conduit._getServerHandle()
-        resource = handle.getResource(location)
-        if ticket:
-            resource.ticketId = ticket
 
-        logger.debug('Examining %s ...', location)
-        try:
-            exists = handle.blockUntil(resource.exists)
-            if not exists:
-                logger.debug("...doesn't exist")
-                raise NotFound(message="%s does not exist" % location)
-        except zanshin.webdav.PermissionsError:
-            raise NotAllowed(_("You don't have permission"))
-
-        isReadOnly = True
-        shareMode = 'get'
-        hasPrivileges = False
-
-        logger.debug('Checking for write-access to %s...', location)
-        try:
-            privilege_set = handle.blockUntil(resource.getPrivileges)
-            if ('read', 'DAV:') in privilege_set.privileges:
-                hasPrivileges = True            
-            if ('write', 'DAV:') in privilege_set.privileges:
-                isReadOnly = False
-                shareMode = 'both'                
-        except zanshin.http.HTTPError, err:
-            logger.debug("PROPFIND of current-user-privilege-set failed; error status %d", err.status)
-
-
-        if isReadOnly and not hasPrivileges:
-            # Cosmo doesn't support the current-user-privilege-set property yet,
-            # so fall back to trying to create a child collection
-            # Create a random collection name to create
-            testCollName = u'.%s.tmp' % (chandlerdb.util.c.UUID())
-            try:
-                child = handle.blockUntil(resource.createCollection,
-                                          testCollName)
-                handle.blockUntil(child.delete)
-                isReadOnly = False
-                shareMode = 'both'                
-            except zanshin.http.HTTPError, err:
-                logger.debug("Failed to create test subcollection %s; error status %d", testCollName, err.status)
-
-        logger.debug('...Read Only?  %s', isReadOnly)
-
-        isCalendar = handle.blockUntil(resource.isCalendar)
-        logger.debug('...Calendar?  %s', isCalendar)
-
-        if isCalendar:
-            subLocation = urlparse.urljoin(location, SUBCOLLECTION)
-            if not subLocation.endswith("/"):
-                subLocation += "/"
-            subResource = handle.getResource(subLocation)
-            if ticket:
-                subResource.ticketId = ticket
-            try:
-                hasSubCollection = handle.blockUntil(subResource.exists) and \
-                    handle.blockUntil(subResource.isCollection)
-            except Exception, e:
-                logger.exception("Couldn't determine existence of subcollection %s",
-                    subLocation)
-                hasSubCollection = False
-            logger.debug('...Has subcollection?  %s', hasSubCollection)
-
-        isCollection =  handle.blockUntil(resource.isCollection)
-        logger.debug('...Collection?  %s', isCollection)
-
-        response = handle.blockUntil(resource.options)
-        dav = response.headers.getHeader('DAV')
-        logger.debug('...DAV:  %s', dav)
-        allowed = response.headers.getHeader('Allow')
-        logger.debug('...Allow:  %s', allowed)
+        # Interrogate the server to determine permissions, whether there
+        # is a subcollection (.XML fork) and whether this is a calendar
+        # collection
+        (shareMode, hasSubCollection, isCalendar) = interrogate(conduit,
+            location, ticket=ticket)
 
         if updateCallback:
             updateCallback(msg=_(u"Share settings detected; ready to subscribe"))
 
-
     finally:
         conduit.delete(True) # Clean up the temporary conduit
+
 
     if not isCalendar:
 
@@ -1184,11 +1126,11 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             except ValueError:
                 # There is already a 'main' share for this collection
                 share.contents.shares.append(share)
-            
+
             # If free busy has already been published, add the subscribed
             # collection to publishedFreeBusy if appropriate
             updatePublishedFreeBusy(share)
-            
+
 
         except Exception, err:
             logger.exception("Failed to subscribe to %s", url)
@@ -1201,6 +1143,89 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
 def unsubscribe(collection):
     for share in collection.shares:
         share.delete(recursive=True, cloudAlias='copying')
+
+
+def interrogate(conduit, location, ticket=None):
+    """ Determine sharing permissions and other details about a collection """
+
+    if not location.endswith("/"):
+        location += "/"
+
+    handle = conduit._getServerHandle()
+    resource = handle.getResource(location)
+    if ticket:
+        resource.ticketId = ticket
+
+    logger.debug('Examining %s ...', location)
+    try:
+        exists = handle.blockUntil(resource.exists)
+        if not exists:
+            logger.debug("...doesn't exist")
+            raise NotFound(message="%s does not exist" % location)
+    except zanshin.webdav.PermissionsError:
+        raise NotAllowed(_("You don't have permission"))
+
+    isReadOnly = True
+    shareMode = 'get'
+    hasPrivileges = False
+
+    logger.debug('Checking for write-access to %s...', location)
+    try:
+        privilege_set = handle.blockUntil(resource.getPrivileges)
+        if ('read', 'DAV:') in privilege_set.privileges:
+            hasPrivileges = True
+        if ('write', 'DAV:') in privilege_set.privileges:
+            isReadOnly = False
+            shareMode = 'both'
+    except zanshin.http.HTTPError, err:
+        logger.debug("PROPFIND of current-user-privilege-set failed; error status %d", err.status)
+
+
+    if isReadOnly and not hasPrivileges:
+        # Cosmo doesn't support the current-user-privilege-set property yet,
+        # so fall back to trying to create a child collection
+        # Create a random collection name to create
+        testCollName = u'.%s.tmp' % (chandlerdb.util.c.UUID())
+        try:
+            child = handle.blockUntil(resource.createCollection,
+                                      testCollName)
+            handle.blockUntil(child.delete)
+            isReadOnly = False
+            shareMode = 'both'
+        except zanshin.http.HTTPError, err:
+            logger.debug("Failed to create test subcollection %s; error status %d", testCollName, err.status)
+
+    logger.debug('...Read Only?  %s', isReadOnly)
+
+    isCalendar = handle.blockUntil(resource.isCalendar)
+    logger.debug('...Calendar?  %s', isCalendar)
+
+    if isCalendar:
+        subLocation = urlparse.urljoin(location, SUBCOLLECTION)
+        if not subLocation.endswith("/"):
+            subLocation += "/"
+        subResource = handle.getResource(subLocation)
+        if ticket:
+            subResource.ticketId = ticket
+        try:
+            hasSubCollection = handle.blockUntil(subResource.exists) and \
+                handle.blockUntil(subResource.isCollection)
+        except Exception, e:
+            logger.exception("Couldn't determine existence of subcollection %s",
+                subLocation)
+            hasSubCollection = False
+        logger.debug('...Has subcollection?  %s', hasSubCollection)
+
+    isCollection =  handle.blockUntil(resource.isCollection)
+    logger.debug('...Collection?  %s', isCollection)
+
+    response = handle.blockUntil(resource.options)
+    dav = response.headers.getHeader('DAV')
+    logger.debug('...DAV:  %s', dav)
+    allowed = response.headers.getHeader('Allow')
+    logger.debug('...Allow:  %s', allowed)
+
+    return (shareMode, hasSubCollection, isCalendar)
 
 
 
