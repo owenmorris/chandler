@@ -2257,7 +2257,7 @@ class SimpleHTTPConduit(WebDAVConduit):
 
         except Exception, e:
             logging.exception(e)
-            raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
+            raise TransformationFailed(_(u"Unable to parse data"))
 
         lastModified = resp.headers.getHeader('Last-Modified')
         if lastModified:

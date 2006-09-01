@@ -851,153 +851,149 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             sharePath=parentPath, shareName=shareName, useSSL=useSSL,
             ticket=ticket, inFreeBusy=inFreeBusy)
 
-    try:
-        location = conduit.getLocation()
-        for share in Share.iterItems(view):
-            if share.getLocation() == location:
-                if share.established:
+    location = conduit.getLocation()
+    for share in Share.iterItems(view):
+        if share.getLocation() == location:
+            if share.established:
 
-                    # Compare the tickets (if any) and if different,
-                    # interrogate the server to get the new permissions
-                    if ticket and getattr(share.conduit, 'ticket', None):
-                        if ticket != share.conduit.ticket:
-                            (shareMode, hasSub, isCal) = interrogate(conduit,
-                                location, ticket=ticket)
-                            share.mode = shareMode
-                            share.conduit.ticket = ticket
-                            if hasSub:
-                                share.follows.mode = shareMode
-                                share.follows.conduit.ticket = ticket
-                            return share.contents
+                # Compare the tickets (if any) and if different,
+                # interrogate the server to get the new permissions
+                if ticket and getattr(share.conduit, 'ticket', None):
+                    if ticket != share.conduit.ticket:
+                        (shareMode, hasSub, isCal) = interrogate(conduit,
+                            location, ticket=ticket)
+                        share.mode = shareMode
+                        share.conduit.ticket = ticket
+                        if hasSub:
+                            share.follows.mode = shareMode
+                            share.follows.conduit.ticket = ticket
+                        return share.contents
 
-                    raise AlreadySubscribed(_(u"Already subscribed"))
-                else:
-                    share.delete(True)
-                    break
+                raise AlreadySubscribed(_(u"Already subscribed"))
+            else:
+                share.delete(True)
+                break
 
 
-        # Shortcut: if it's a .ics file we're subscribing to, it's only
-        # going to be read-only (in 0.6 at least), and we don't need to
-        # mess around with checking Allow headers and the like:
+    # Shortcut: if it's a .ics file we're subscribing to, it's only
+    # going to be read-only (in 0.6 at least), and we don't need to
+    # mess around with checking Allow headers and the like:
 
-        if url.endswith(".ics"):
-            share = Share(itsView=view)
-            share.format = ICalendarFormat(itsParent=share)
-            share.conduit = SimpleHTTPConduit(itsParent=share,
-                                              shareName=shareName,
-                                              account=account)
-            share.mode = "get"
-            share.filterClasses = \
-                ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
+    if url.endswith(".ics"):
+        share = Share(itsView=view)
+        share.format = ICalendarFormat(itsParent=share)
+        share.conduit = SimpleHTTPConduit(itsParent=share,
+                                          shareName=shareName,
+                                          account=account)
+        share.mode = "get"
+        share.filterClasses = \
+            ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
 
-            if updateCallback:
-                updateCallback(msg=_(u"Subscribing to calendar..."))
+        if updateCallback:
+            updateCallback(msg=_(u"Subscribing to calendar..."))
+
+        try:
+            share.get(updateCallback=callback)
 
             try:
-                share.get(updateCallback=callback)
+                share.contents.shares.append(share, 'main')
+            except ValueError:
+                # There is already a 'main' share for this collection
+                share.contents.shares.append(share)
 
-                try:
-                    share.contents.shares.append(share, 'main')
-                except ValueError:
-                    # There is already a 'main' share for this collection
-                    share.contents.shares.append(share)
+            return share.contents
 
-                return share.contents
+        except Exception, err:
+            logger.exception("Failed to subscribe to %s", url)
+            # share.delete(True)
+            raise
 
-            except Exception, err:
-                logger.exception("Failed to subscribe to %s", url)
-                share.delete(True)
-                raise
+    # Shortcut: similarly, if it's a .ifb file we're subscribing to, it's
+    # read-only
 
-        # Shortcut: similarly, if it's a .ifb file we're subscribing to, it's
-        # read-only
+    elif path.endswith(".ifb"):
+        share = Share(itsView=view)
+        share.format = FreeBusyFileFormat(itsParent=share)
+        share.conduit = SimpleHTTPConduit(itsParent=share,
+                                          host=host,
+                                          port=port,
+                                          useSSL=useSSL,
+                                          shareName=shareName,
+                                          sharePath=parentPath,
+                                          account=account,
+                                          ticket=ticket)
+        share.mode = "get"
+        share.filterClasses = \
+            ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
 
-        elif path.endswith(".ifb"):
-            share = Share(itsView=view)
-            share.format = FreeBusyFileFormat(itsParent=share)
-            share.conduit = SimpleHTTPConduit(itsParent=share,
+        if updateCallback:
+            updateCallback(msg=_(u"Subscribing to freebusy..."))
+
+        try:
+            share.get(updateCallback=callback)
+
+            try:
+                share.contents.shares.append(share, 'main')
+            except ValueError:
+                # There is already a 'main' share for this collection
+                share.contents.shares.append(share)
+
+            return share.contents
+
+        except Exception, err:
+            logger.exception("Failed to subscribe to %s", url)
+            share.delete(True)
+            raise
+
+    elif forceFreeBusy:
+        share = Share(itsView=view)
+        share.format = FreeBusyFileFormat(itsParent=share)
+        share.conduit = CalDAVFreeBusyConduit(itsParent=share,
                                               host=host,
                                               port=port,
                                               useSSL=useSSL,
                                               shareName=shareName,
                                               sharePath=parentPath,
-                                              account=account,
-                                              ticket=ticket)
-            share.mode = "get"
-            share.filterClasses = \
-                ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
-
-            if updateCallback:
-                updateCallback(msg=_(u"Subscribing to freebusy..."))
-
-            try:
-                share.get(updateCallback=callback)
-
-                try:
-                    share.contents.shares.append(share, 'main')
-                except ValueError:
-                    # There is already a 'main' share for this collection
-                    share.contents.shares.append(share)
-
-                return share.contents
-
-            except Exception, err:
-                logger.exception("Failed to subscribe to %s", url)
-                share.delete(True)
-                raise
-
-        elif forceFreeBusy:
-            share = Share(itsView=view)
-            share.format = FreeBusyFileFormat(itsParent=share)
-            share.conduit = CalDAVFreeBusyConduit(itsParent=share,
-                                                  host=host,
-                                                  port=port,
-                                                  useSSL=useSSL,
-                                                  shareName=shareName,
-                                                  sharePath=parentPath,
-                                                  account=account)
-            if ticket:
-                share.conduit.ticketFreeBusy = ticket
-            share.mode = "get"
-            share.filterClasses = \
-                ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
-
-            if updateCallback:
-                updateCallback(msg=_(u"Subscribing to freebusy..."))
-
-            try:
-                share.get(updateCallback=callback)
-
-                try:
-                    share.contents.shares.append(share, 'main')
-                except ValueError:
-                    # There is already a 'main' share for this collection
-                    share.contents.shares.append(share)
-
-                return share.contents
-
-            except Exception, err:
-                logger.exception("Failed to subscribe to %s", url)
-                share.delete(True)
-                raise
+                                              account=account)
+        if ticket:
+            share.conduit.ticketFreeBusy = ticket
+        share.mode = "get"
+        share.filterClasses = \
+            ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
 
         if updateCallback:
-            updateCallback(msg=_(u"Detecting share settings..."))
+            updateCallback(msg=_(u"Subscribing to freebusy..."))
 
-        if not location.endswith("/"):
-            location += "/"
+        try:
+            share.get(updateCallback=callback)
 
-        # Interrogate the server to determine permissions, whether there
-        # is a subcollection (.XML fork) and whether this is a calendar
-        # collection
-        (shareMode, hasSubCollection, isCalendar) = interrogate(conduit,
-            location, ticket=ticket)
+            try:
+                share.contents.shares.append(share, 'main')
+            except ValueError:
+                # There is already a 'main' share for this collection
+                share.contents.shares.append(share)
 
-        if updateCallback:
-            updateCallback(msg=_(u"Share settings detected; ready to subscribe"))
+            return share.contents
 
-    finally:
-        conduit.delete(True) # Clean up the temporary conduit
+        except Exception, err:
+            logger.exception("Failed to subscribe to %s", url)
+            share.delete(True)
+            raise
+
+    if updateCallback:
+        updateCallback(msg=_(u"Detecting share settings..."))
+
+    if not location.endswith("/"):
+        location += "/"
+
+    # Interrogate the server to determine permissions, whether there
+    # is a subcollection (.XML fork) and whether this is a calendar
+    # collection
+    (shareMode, hasSubCollection, isCalendar) = interrogate(conduit,
+        location, ticket=ticket)
+
+    if updateCallback:
+        updateCallback(msg=_(u"Share settings detected; ready to subscribe"))
 
 
     if not isCalendar:
