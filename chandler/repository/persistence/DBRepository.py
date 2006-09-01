@@ -286,7 +286,7 @@ class DBRepository(OnDemandRepository):
             env.txn_checkpoint(0, 0, DBEnv.DB_FORCE)
             env.log_archive(DBEnv.DB_ARCH_REMOVE)
 
-    def backup(self, dbHome=None, withLog=True):
+    def backup(self, dbHome=None, withLog=False):
 
         if not self.isOpen():
             raise RepositoryError, 'Repository is not open'
@@ -304,40 +304,23 @@ class DBRepository(OnDemandRepository):
                 break
         os.makedirs(dbHome)
 
-        env = self._env
-        store = self.store
-
         try:
             for view in self.getOpenViews():
                 view._acquireExclusive()
 
             self.checkpoint()
 
-            if not withLog:
-                if self._encrypted:
-                    flags = DB.DB_ENCRYPT
-                else:
-                    flags = 0
-
-            for db in env.log_archive(DBEnv.DB_ARCH_DATA):
+            for db in self._env.log_archive(DBEnv.DB_ARCH_DATA):
                 srcPath = os.path.join(self.dbHome, db)
                 dstPath = os.path.join(dbHome, db)
                 self.logger.info(dstPath)
 
-                if withLog:
-                    shutil.copy2(srcPath, dstPath)
-                else:
-                    lsnFile = db + ".lsn"
-                    lsnPath = os.path.join(self.dbHome, lsnFile)
-                    shutil.copy2(srcPath, lsnPath)
-                    env.lsn_reset(lsnFile, flags)
-                    shutil.move(lsnPath, dstPath)
+                shutil.copy2(srcPath, dstPath)
 
-            if withLog:
-                for log in env.log_archive(DBEnv.DB_ARCH_LOG):
-                    path = os.path.join(dbHome, log)
-                    self.logger.info(path)
-                    shutil.copy2(os.path.join(self.dbHome, log), path)
+            for log in self._env.log_archive(DBEnv.DB_ARCH_LOG):
+                path = os.path.join(dbHome, log)
+                self.logger.info(path)
+                shutil.copy2(os.path.join(self.dbHome, log), path)
 
             if os.path.exists(os.path.join(self.dbHome, 'DB_CONFIG')):
                 path = os.path.join(dbHome, 'DB_CONFIG')
@@ -348,7 +331,33 @@ class DBRepository(OnDemandRepository):
                 path = os.path.join(dbHome, 'DB_VERSION')
                 self.logger.info(path)
                 shutil.copy2(os.path.join(self.dbHome, 'DB_VERSION'), path)
-            
+
+            if not withLog:
+                env = None
+                try:
+                    env = DBEnv()
+                    env.open(dbHome, (DBEnv.DB_RECOVER_FATAL | DBEnv.DB_CREATE |
+                                      self.OPEN_FLAGS), 0)
+
+                    if self._encrypted:
+                        flags = DB.DB_ENCRYPT
+                    else:
+                        flags = 0
+                    for db in env.log_archive(DBEnv.DB_ARCH_DATA):
+                        env.lsn_reset(db, flags)
+
+                    env.close()
+                    env = None
+
+                    for name in os.listdir(dbHome):
+                        if (name.startswith('__db.') or
+                            name.startswith('log.')):
+                            os.remove(os.path.join(dbHome, name))
+
+                finally:
+                    if env is not None:
+                        env.close()
+
         finally:
             for view in self.getOpenViews():
                 view._releaseExclusive()
