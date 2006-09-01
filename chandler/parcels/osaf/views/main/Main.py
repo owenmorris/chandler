@@ -15,7 +15,7 @@
 
 from datetime import timedelta
 from time import time
-import wx, os, sys, traceback, logging
+import wx, os, sys, traceback, logging, re
 
 from application import Globals, Printing, schema, Utility
 
@@ -537,12 +537,20 @@ class MainView(View):
             application.dialogs.Util.ok(None, message, title)
             return
 
+        name = collection.displayName
+        try:
+            name.encode('ascii')
+            pattern = re.compile('[^A-Za-z0-9]')
+            name = re.sub(pattern, "_", name)
+        except UnicodeEncodeError:
+            name = str(collection.itsUUID)
+
         options = [dict(name='reminders', checked = True, label = _(u"Export reminders")),
                    dict(name='transparency', checked = True, label = _(u"Export event status"))]
         res = ImportExport.showFileChooserWithOptions(wx.GetApp().mainFrame,
                                        _(u"Choose a filename to export to"),
                                             os.path.join(getDesktopDir(),
-                                      u"%s.ics" % (collection.displayName)),
+                                      u"%s.ics" % (name)),
                             _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
                                               wx.SAVE | wx.OVERWRITE_PROMPT, 
                                                                     options)
