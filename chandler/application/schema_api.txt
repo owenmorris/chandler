@@ -653,7 +653,7 @@ Enumerations
     ...     def foo(self): pass
     Traceback (most recent call last):
       ...
-    TypeError: ("Only 'values' may be defined in an enumeration class", 'foo', <function foo ...>)
+    TypeError: ("Only 'values' or 'names' may be defined in an enumeration class", 'foo', <function foo ...>)
 
     >>> class BadMetadata(schema.Enumeration):
     ...     schema.kindInfo(displayAttribute="xyz")

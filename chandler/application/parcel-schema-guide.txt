@@ -1148,7 +1148,7 @@ must be a tuple of strings::
     ...     def foo(self): pass
     Traceback (most recent call last):
       ...
-    TypeError: ("Only 'values' may be defined in an enumeration class", ...)
+    TypeError: ("Only 'values' or 'names' may be defined in an enumeration class", ...)
 
 
 Struct Classes

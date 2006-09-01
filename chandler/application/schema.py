@@ -914,9 +914,11 @@ class EnumerationClass(Activator):
         for name,value in cdict.items():
             if name.startswith('__'):
                 continue
-            elif name!='values':
+            elif (name not in ('values', 'names') or
+                  name == 'values' and 'names' in cdict or
+                  name == 'names' and 'values' in cdict):
                 raise TypeError(
-                    "Only 'values' may be defined in an enumeration class",
+                    "Only 'values' or 'names' may be defined in an enumeration class",
                     name, value
                 )
         super(EnumerationClass,cls).__init__(name,bases,cdict)
@@ -928,17 +930,20 @@ class EnumerationClass(Activator):
         if bases<>(Enumeration,):
             raise TypeError("Enumerations cannot subclass or be subclassed")
 
-        values = cdict.get('values',())
+        names = cdict.get('names', ())
+        if names:
+            values = dict(zip(names, range(len(names))))
+        else:
+            values = cdict.get('values', ())
         if isinstance(values, tuple):
             wrong = [v for v in values if not isinstance(v, str)]
         elif isinstance(values, dict):
             wrong = [n for n, v in values.iteritems() if not isinstance(n, str)]
             if not wrong:
-                constants = [SchemaEnumValue(cls, n, v)
-                             for n, v in values.iteritems()]
-                for constant in constants:
+                cls.constants = [SchemaEnumValue(cls, n, v)
+                                 for n, v in values.iteritems()]
+                for constant in cls.constants:
                     setattr(cls, constant.name, constant)
-                cls.constants = constants
         else:
             wrong = values
         if not values or wrong:
