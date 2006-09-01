@@ -114,7 +114,7 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)C.tar.gz \
            $(CHANDLERARCHIVES)/astng-$(SNAP)-0.16.0-$(BP)3.tar.gz \
            $(CHANDLERARCHIVES)/common-$(SNAP)-0.15.0-$(BP)4.tar.gz \
            $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.11.0-$(BP)3.tar.gz \
-           $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.7.1-$(BP)1.tar.gz
+           $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.7.2-$(BP)1.tar.gz
 
 
 # readline is only needed for OSX
