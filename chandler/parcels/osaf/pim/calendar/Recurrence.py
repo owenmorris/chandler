@@ -352,7 +352,9 @@ class RecurrenceRule(items.ContentItem):
                 if rrule._bymonthday[0] == rrule._dtstart.day:
                     del self.bymonthday
         if rrule._freq == dateutil.rrule.YEARLY:
-            if len(rrule._bymonth) == 1:
+            if len(rrule._bymonth or ()) == 1 and \
+                   rrule._byweekday is None and \
+                   len(rrule._bynweekday or ()) == 0:
                 if rrule._bymonth[0] == rrule._dtstart.month:
                     del self.bymonth
 
