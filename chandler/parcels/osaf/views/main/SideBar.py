@@ -158,9 +158,13 @@ class wxSidebar(wxTable):
 
         blockItem.stopNotificationDirt()
         try:
+            allowOverlay = (item is not None and
+                            UserCollection(item).allowOverlay and
+                            blockItem.filterKind not in blockItem.disallowOverlaysForFilterKinds)
+                            
             if (cellRect.InsideXY (x, y) and
                 not self.IsCellEditControlEnabled() and
-                UserCollection(item).allowOverlay):
+                allowOverlay):
                     if not hasattr (self, 'hoverImageRow'):
                         gridWindow.CaptureMouse()
         
@@ -191,8 +195,7 @@ class wxSidebar(wxTable):
                 if event.LeftDown():
                     for button in blockItem.buttons:
                         buttonState = button.buttonState
-                        if (buttonState['imageRect'].InsideXY (x, y) and
-                            UserCollection(item).allowOverlay):
+                        if (buttonState['imageRect'].InsideXY (x, y) and allowOverlay):
                             
                             event.Skip (False) #Gobble the event
                             self.SetFocus()
@@ -463,7 +466,9 @@ class SSSidebarButton (schema.Item):
 
 class SSSidebarIconButton (SSSidebarButton):
     def getChecked (self, item):
-        return item in self.buttonOwner.checkedItems
+        blockItem = self.buttonOwner
+        return (blockItem.filterKind not in blockItem.disallowOverlaysForFilterKinds and
+                item in blockItem.checkedItems)
 
     def setChecked (self, item, checked):
         checkedItems = self.buttonOwner.checkedItems
@@ -728,6 +733,10 @@ class SSSidebarSharingButton (SSSidebarButton):
 class SidebarBlock(Table):
     filterKind = schema.One(
         schema.TypeReference('//Schema/Core/Kind'), initialValue = None,
+    )
+
+    disallowOverlaysForFilterKinds = schema.Sequence(
+        schema.TypeReference('//Schema/Core/Kind'), initialValue = [],
     )
 
     # A set of the items in the sidebar that are checked
@@ -1066,10 +1075,11 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             # consumers know what the 'primary' collection is.
             if item is not None:
                 collectionList.append (item)
-            for theItem in sidebar.contents:
-                if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
-                    theItem not in collectionList):
-                    collectionList.append (theItem)
+            if sidebar.filterKind not in sidebar.disallowOverlaysForFilterKinds:
+                for theItem in sidebar.contents:
+                    if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
+                         theItem not in collectionList):
+                        collectionList.append (theItem)
 
         if len (collectionList) > 0:
             """

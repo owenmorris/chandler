@@ -97,8 +97,8 @@ class wxTableData(wx.grid.PyGridTableBase):
             delegate = AttributeEditors.getSingleton (type)
             attribute = self.defaultROAttribute
             grid = self.GetView()
-            assert (row < grid.GetNumberRows() and
-                    column < grid.GetNumberCols())
+            assert (row < grid.GetTable().GetNumberRows() and
+                    column < grid.GetTable().GetNumberCols())
 
             if (not grid.blockItem.columns[column].readOnly and
                 not grid.ReadOnly (row, column)[0] and
@@ -355,9 +355,10 @@ class wxTable(DragAndDrop.DraggableWidget,
             # remember the first row in the old selection
             topLeftSelection = self.GetSelectionBlockTopLeft()
             
-            newRowSelection = -1
             if len(topLeftSelection) > 0:
                 newRowSelection = topLeftSelection[0][0]
+            else:
+                newRowSelection = -1
             
             # avoid OnRangeSelect
             IgnoreSynchronizeWidget(True, self.ClearSelection)
@@ -368,8 +369,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 newRowSelection = -1
     
                 # now just do the selection update
-                self.SelectBlock (rowStart, 0,
-                                  rowEnd, columns, True)
+                self.SelectBlock (rowStart, 0, rowEnd, columns, True)
     
             # now auto-select a row if necessary
             if newRowSelection != -1:

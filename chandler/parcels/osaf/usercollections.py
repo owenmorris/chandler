@@ -105,27 +105,39 @@ def installParcel(parcel, oldVersion=None):
 
     allUC = UserCollection(pim_ns.allCollection)
     allUC.setValues(renameable=False,
-                    outOfTheBoxCollection=True,
-                    allowOverlay = True)
+                    outOfTheBoxCollection = True,
+                    iconName = "Dashboard",
+                    iconNameHasKindVariant = True,
+                    colorizeIcon = False,
+                    dontDisplayAsCalendar = True,
+                    allowOverlay = False)
     allUC.ensureColor()
                                                    
     trashUC = UserCollection(pim_ns.trashCollection)
     trashUC.setValues(renameable=False,
-                      dontDisplayAsCalendar=True,
                       outOfTheBoxCollection = True,
+                      iconName = "Trash",
+                      colorizeIcon = False,
                       allowOverlay = False,
+                      dontDisplayAsCalendar = True,
                       canAdd=False)
     trashUC.ensureColor()
 
     inUC = UserCollection(pim_ns.inCollection)
     inUC.setValues(renameable = False,
-                   outOfTheBoxCollection=True,
-                   dontDisplayAsCalendar=True)
+                   outOfTheBoxCollection = True,
+                   iconName = "In",
+                   dontDisplayAsCalendar = True,
+                   colorizeIcon = False,
+                   allowOverlay = False)
 
     outUC = UserCollection(pim_ns.outCollection)
     outUC.setValues(renameable = False,
-                    outOfTheBoxCollection=True,
-                    dontDisplayAsCalendar=True)
+                    outOfTheBoxCollection = True,
+                    iconName = "Out",
+                    colorizeIcon = False,
+                    dontDisplayAsCalendar = True,
+                    allowOverlay = False)
     
 
         

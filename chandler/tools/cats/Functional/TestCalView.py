@@ -23,6 +23,9 @@ class TestCalView(ChandlerTestCase):
     
         # creation
         testView = QAUITestAppLib.UITestView(self.logger)
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
         # action
         # switch to calendar view
         testView.SwitchToCalView()

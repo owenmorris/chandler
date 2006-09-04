@@ -26,6 +26,10 @@ class TestAllDayEvent(ChandlerTestCase):
         #logger.startSuite('TestAllDayEvent')
         #logger.startTest('TestAllDayEvent')
         
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+
         # creation
         event = QAUITestAppLib.UITestItem("Event", self.logger)
         
