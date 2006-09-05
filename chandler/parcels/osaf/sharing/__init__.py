@@ -1255,7 +1255,8 @@ def findMatchingShare(view, url):
     if hasattr(account, 'conduits'):
         for conduit in account.conduits:
             if conduit.shareName == shareName:
-                if conduit.share and conduit.share.hidden == False:
+                if(getattr(conduit, 'share', None) and
+                   conduit.share.hidden == False):
                     return conduit.share
 
     return None
