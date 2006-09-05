@@ -183,12 +183,22 @@ done
   # find that test and run it
 
 if [ -n "$TEST_TO_RUN" ]; then
-    
-    TEST_WITHOUT_PATH="$TEST_TO_RUN"
-    DIRS=`find $C_DIR -name $TEST_TO_RUN -print`
+      # if given test is a full path, then skip the find
+    if [ -e "$TEST_TO_RUN" ]; then
+        DIRS=$TEST_TO_RUN
+    else
+          # if given test is relateive to CHANDLERHOME path, then skip the find
+          echo [$C_DIR/$TEST_TO_RUN]
+        if [ -e "$C_DIR/$TEST_TO_RUN" ]; then
+            DIRS=$TEST_TO_RUN
+        else
+            TEST_WITHOUT_PATH="$TEST_TO_RUN"
+            DIRS=`find $C_DIR -name $TEST_TO_RUN -print`
 
-    if [ "$DIRS" = "" ]; then
-        DIRS=`find $C_DIR -name $TEST_TO_RUN.py -print`
+            if [ "$DIRS" = "" ]; then
+                DIRS=`find $C_DIR -name $TEST_TO_RUN.py -print`
+            fi
+        fi
     fi
 
     if [ "$DIRS" = "" ]; then
