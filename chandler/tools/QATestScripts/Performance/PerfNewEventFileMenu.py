@@ -22,6 +22,10 @@ try:
     #action
     event = QAUITestAppLib.UITestItem("Event", logger)
     
+    # make user collection, since only user
+    # collections can be displayed as a calendar
+    col = QAUITestAppLib.UITestItem("Collection", logger)
+
     #verification
     event.Check_DetailView({"displayName":"New Event"})
     

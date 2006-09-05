@@ -28,6 +28,10 @@ try:
     # Look at the same date every time -- do this before we import
     # to save time and grief
     
+    # make user collection, since only user
+    # collections can be displayed as a calendar
+    col = QAUITestAppLib.UITestItem("Collection", logger)
+
     testdate = datetime(2005, 12, 14, tzinfo=ICUtzinfo.default)
     App_ns.root.SelectedDateChanged(start=testdate)
     
