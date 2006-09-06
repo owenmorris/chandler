@@ -19,6 +19,12 @@ class PerfNewEventFileMenu(ChandlerTestCase):
 
     def startTest(self):
 
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+    
+        User.emulate_return()
+    
         #action
         event = QAUITestAppLib.UITestItem("Event", self.logger)
         

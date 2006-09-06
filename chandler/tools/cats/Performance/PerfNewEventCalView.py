@@ -22,6 +22,10 @@ class PerfNewEventCalView(ChandlerTestCase):
         # creation
         testView = QAUITestAppLib.UITestView(self.logger)
     
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+
         # action
         # double click in the calendar view => event creation or selection
         ev = testView.DoubleClickInCalView()

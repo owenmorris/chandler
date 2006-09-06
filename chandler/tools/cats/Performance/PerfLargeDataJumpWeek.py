@@ -23,6 +23,10 @@ class PerfLargeDataJumpWeek(ChandlerTestCase):
     
         # Test Phase: Initialization
     
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+
         # Start at the same date every time
         testdate = datetime(2005, 11, 27, tzinfo=ICUtzinfo.default)
         self.app_ns.root.SelectedDateChanged(start=testdate)

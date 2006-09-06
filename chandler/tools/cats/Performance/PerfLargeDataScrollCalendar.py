@@ -24,6 +24,10 @@ class PerfLargeDataScrollCalendar(ChandlerTestCase):
         # Look at the same date every time -- do this before we import
         # to save time and grief
         
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+
         testdate = datetime(2005, 12, 14, tzinfo=ICUtzinfo.default)
         self.app_ns.root.SelectedDateChanged(start=testdate)
         

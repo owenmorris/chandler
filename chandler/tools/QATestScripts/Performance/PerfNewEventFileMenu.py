@@ -20,9 +20,11 @@ logger = QAUITestAppLib.QALogger(fileName, "New Event from File Menu for Perform
 
 try:
     #setup for test
+
     # make user collection, since only user
     # collections can be displayed as a calendar
     col = QAUITestAppLib.UITestItem("Collection", logger)
+
     User.emulate_return()
     
     #action
