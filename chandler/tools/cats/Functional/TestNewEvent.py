@@ -35,6 +35,10 @@ class TestNewEvent(ChandlerTestCase):
             y, m, d = incDay.timetuple()[:3]
             return '%s/%s/%s' % (m, d, str(y)[2:].zfill(2))
         
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+
         evtDate = mondayPlus()
         evtSecondDate = mondayPlus(1)
         evtThirdDate = mondayPlus(2)

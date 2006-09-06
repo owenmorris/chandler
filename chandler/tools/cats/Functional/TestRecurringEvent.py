@@ -19,6 +19,10 @@ from i18n.tests import uw
 class TestRecurringEvent(ChandlerTestCase):
 
     def startTest(self):
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+
         # creation
         dailyEvent = QAUITestAppLib.UITestItem("Event", self.logger)
     

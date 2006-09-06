@@ -43,8 +43,11 @@ class TestDates(ChandlerTestCase):
                               ('10/29/06', '2:00 AM',  '10/29/06', '1:00 AM',  'US/Central'),
                              ],
                      }
-
     
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+
         # creation
         event = QAUITestAppLib.UITestItem("Event", self.logger)
     

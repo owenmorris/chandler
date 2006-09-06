@@ -20,8 +20,7 @@ import wx
 from i18n.tests import uw
 import osaf.framework.scripting as scripting
 
-
-class TestSubscribing(ChandlerTestCase):
+class TestSubscribe(ChandlerTestCase):
 
     def startTest(self):
 
@@ -56,7 +55,7 @@ class TestSubscribing(ChandlerTestCase):
         scripting.User.idle()
     
         # verification
-        if QAUITestAppLib.scripting.User.emulate_sidebarClick(App_ns.sidebar, "importTest"):
+        if QAUITestAppLib.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, "importTest"):
             self.logger.endAction(True, "(On Subscribe collection)")
         else:
             self.logger.endAction(False, "(On Subscribe collection)")

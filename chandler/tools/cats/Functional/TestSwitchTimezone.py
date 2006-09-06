@@ -22,6 +22,10 @@ class TestSwitchTimezone(ChandlerTestCase):
 
     def startTest(self):
         
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+        
         calendarBlock = getattr(self.app_ns, "MainCalendarControl")
     
         # Find the "canonical timezone" to use in test comparisons

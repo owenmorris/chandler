@@ -27,6 +27,10 @@ class TestImportOverwrite(ChandlerTestCase):
         
         appView = self.app_ns.itsView
 
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+
         #create an event to export
         self.logger.startAction('Create event to export')
         event = QAUITestAppLib.UITestItem("Event", self.logger)
