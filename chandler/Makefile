@@ -136,7 +136,7 @@ endif
 HOST = builds.osafoundation.org
 URL  = http://$(HOST)/external/$(PLATFORM)
 
-SETUPTOOLS_EGG  = $(CHANDLERARCHIVES)/setuptools-0.6b3-py2.4.egg
+SETUPTOOLS_EGG  = $(CHANDLERARCHIVES)/setuptools-0.6c2-py2.4.egg
 SETUPTOOLS_ABS  = $(SETUPTOOLS_EGG)
 SETUPTOOLS_BIN  = $(CHANDLERBIN)/$(SNAP)
 SETUPTOOLS_SITE = $(CHANDLERBIN)/$(SITE)

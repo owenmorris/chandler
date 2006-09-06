@@ -1,4 +1,4 @@
-VERSION=0.6c2dev_r50758
+VERSION=0.6c2
 
 SETUPTOOLS=$(BUILD_ROOT)/setuptools
 BUILD=build_$(SNAP)
