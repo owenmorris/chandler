@@ -623,8 +623,12 @@ def publish(collection, account, classesToInclude=None,
                     else:
                         subShare = None
     
-                    share.put(updateCallback=callback)
-    
+                    try:
+                        share.put(updateCallback=callback)
+                    except: # Publish failed
+                        share.destroy() # Clean up server
+                        raise
+
                     # tickets after putting
                     if supportsTickets and publishType == 'collection':
                         share.conduit.createTickets()
@@ -662,7 +666,11 @@ def publish(collection, account, classesToInclude=None,
                     raise SharingError(_(u"Share already exists"))
 
                 share.create()
-                share.put(updateCallback=callback)
+                try:
+                    share.put(updateCallback=callback)
+                except: # Publish failed
+                    share.destroy() # Clean up server
+                    raise
 
                 if supportsTickets:
                     share.conduit.createTickets()
