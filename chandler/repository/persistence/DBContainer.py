@@ -329,12 +329,12 @@ class RefContainer(DBContainer):
                 _self.cursor = self.openCursor(self._history)
                 
                 try:
-                    value = _self.cursor.set_range(pack('>16sq', uuid._uuid,
+                    value = _self.cursor.set_range(pack('>16sl', uuid._uuid,
                                                         fromVersion + 1),
                                                    self._flags, None)
 
                     while value is not None:
-                        uCol, version, uRef = unpack('>16sq16s', value[0])
+                        uCol, version, uRef = unpack('>16sl16s', value[0])
                         if version > toVersion or uCol != uuid._uuid:
                             break
 
@@ -365,7 +365,7 @@ class RefContainer(DBContainer):
 
     def deleteRef(self, uCol, version, uRef):
 
-        return self.put(pack('>16s16sq', uCol._uuid, uRef._uuid,
+        return self.put(pack('>16s16sl', uCol._uuid, uRef._uuid,
                              ~version), '\0')
 
     def _readRef(self, value):
@@ -530,7 +530,7 @@ class RefContainer(DBContainer):
             value = cursor.set_range(key, self._flags, None)
 
             while value is not None and value[0].startswith(key):
-                keyVer = ~unpack('>q', value[0][32:40])[0]
+                keyVer = ~unpack('>l', value[0][32:36])[0]
                 if keyVer == version:
                     cursor.delete(self._flags)
                 value = cursor.next(self._flags, None)
@@ -554,7 +554,7 @@ class NamesContainer(DBContainer):
         if uuid is None:
             uuid = key
 
-        return self.put(pack('>16slq', key._uuid, _hash(name), ~version),
+        return self.put(pack('>16sll', key._uuid, _hash(name), ~version),
                         uuid._uuid)
 
     def purgeNames(self, txn, uuid, keepOne):
@@ -599,7 +599,7 @@ class NamesContainer(DBContainer):
             value = cursor.set_range(key, self._flags, None)
 
             while value is not None and value[0].startswith(key):
-                nameVer = ~unpack('>q', value[0][-8:])[0]
+                nameVer = ~unpack('>l', value[0][-4:])[0]
                 if nameVer == version:
                     cursor.delete(self._flags)
                 value = cursor.next(self._flags, None)
@@ -637,7 +637,7 @@ class NamesContainer(DBContainer):
 
                 try:
                     while value is not None and value[0].startswith(cursorKey):
-                        nameVer = ~unpack('>q', value[0][-8:])[0]
+                        nameVer = ~unpack('>l', value[0][-4:])[0]
                 
                         if nameVer <= version:
                             if value[1] == value[0][0:16]:    # deleted name
@@ -691,7 +691,7 @@ class NamesContainer(DBContainer):
                 
                 try:
                     while value is not None and value[0].startswith(cursorKey):
-                        nameHash, nameVer = unpack('>lq', value[0][-12:])
+                        nameHash, nameVer = unpack('>ll', value[0][-8:])
                 
                         if nameHash != currentHash and ~nameVer <= version:
                             currentHash = nameHash
@@ -720,11 +720,11 @@ class ACLContainer(DBContainer):
     def writeACL(self, version, key, name, acl):
 
         if name is None:
-            key = pack('>16slq', key._uuid, 0, ~version)
+            key = pack('>16sll', key._uuid, 0, ~version)
         else:
             if isinstance(name, unicode):
                 name = name.encode('utf-8')
-            key = pack('>16slq', key._uuid, _hash(name), ~version)
+            key = pack('>16sll', key._uuid, _hash(name), ~version)
 
         if acl is None:    # deleted acl
             value = '\0\0\0\0'
@@ -768,7 +768,7 @@ class ACLContainer(DBContainer):
                 try:
                     while value is not None and value[0].startswith(cursorKey):
                         key, aces = value
-                        aclVer = ~unpack('>q', key[-8:])[0]
+                        aclVer = ~unpack('>l', key[-4:])[0]
                 
                         if aclVer <= version:
                             if len(aces) == 4:    # deleted acl
@@ -806,7 +806,7 @@ class IndexesContainer(DBContainer):
         if version is None:
             return buffer + key._uuid
 
-        return buffer + key._uuid + pack('>q', ~version)
+        return buffer + key._uuid + pack('>l', ~version)
 
     def saveKey(self, keyBuffer, version, key, node):
 
@@ -853,7 +853,7 @@ class IndexesContainer(DBContainer):
 
                 try:
                     while value is not None and value[0].startswith(cursorKey):
-                        keyVer = ~unpack('>q', value[0][32:40])[0]
+                        keyVer = ~unpack('>l', value[0][32:36])[0]
                 
                         if keyVer <= version:
                             value = value[1]
@@ -939,7 +939,7 @@ class IndexesContainer(DBContainer):
             value = cursor.set_range(key, self._flags, None)
 
             while value is not None and value[0].startswith(key):
-                keyVer = ~unpack('>q', value[0][32:40])[0]
+                keyVer = ~unpack('>l', value[0][32:36])[0]
                 if keyVer == version:
                     cursor.delete(self._flags)
 
@@ -986,7 +986,7 @@ class IndexesContainer(DBContainer):
 
                 try:
                     while value is not None and value[0].startswith(cursorKey):
-                        keyVer = ~unpack('>q', value[0][32:40])[0]
+                        keyVer = ~unpack('>l', value[0][32:36])[0]
                 
                         if keyVer <= version:
                             value = value[1]
@@ -1113,7 +1113,7 @@ class ItemContainer(DBContainer):
 
         # (uItem, version), (uKind, status, uParent, ...)
 
-        return self.put(pack('>16sq', uItem._uuid, ~version), ''.join(buffer))
+        return self.put(pack('>16sl', uItem._uuid, ~version), ''.join(buffer))
 
     def _readItem(self, itemVer, value):
 
@@ -1180,7 +1180,7 @@ class ItemContainer(DBContainer):
 
                 try:
                     while value is not None and value[0].startswith(key):
-                        itemVer = ~unpack('>q', value[0][16:24])[0]
+                        itemVer = ~unpack('>l', value[0][16:20])[0]
                 
                         if itemVer <= version:
                             return itemVer, value[1]
@@ -1245,7 +1245,7 @@ class ItemContainer(DBContainer):
 
                 try:
                     while value is not None and value[0].startswith(key):
-                        itemVer = ~unpack('>q', value[0][16:24])[0]
+                        itemVer = ~unpack('>l', value[0][16:20])[0]
                 
                         if itemVer <= version:
                             return itemVer, value[1]
@@ -1267,7 +1267,7 @@ class ItemContainer(DBContainer):
 
     def getItemValues(self, version, uuid):
 
-        item = self.get(pack('>16sq', uuid._uuid, ~version))
+        item = self.get(pack('>16sl', uuid._uuid, ~version))
         if item is None:
             return None
 
@@ -1292,13 +1292,13 @@ class ItemContainer(DBContainer):
 
     def purgeItem(self, txn, uuid, version):
 
-        self.delete(pack('>16sq', uuid._uuid, ~version), txn)
+        self.delete(pack('>16sl', uuid._uuid, ~version), txn)
         return 1
 
     def isValue(self, view, version, uItem, uValue, exact=False):
 
         if exact:
-            item = self.get(pack('>16sq', uItem._uuid, ~version))
+            item = self.get(pack('>16sl', uItem._uuid, ~version))
         else:
             version, item = self._findItem(view, version, uItem)
 
@@ -1317,7 +1317,7 @@ class ItemContainer(DBContainer):
     def findValue(self, view, version, uuid, hash, exact=False):
 
         if exact:
-            item = self.get(pack('>16sq', uuid._uuid, ~version))
+            item = self.get(pack('>16sl', uuid._uuid, ~version))
         else:
             version, item = self._findItem(view, version, uuid)
 
@@ -1342,7 +1342,7 @@ class ItemContainer(DBContainer):
         assert hashes is None or type(hashes) is list
 
         if exact:
-            item = self.get(pack('>16sq', uuid._uuid, ~version))
+            item = self.get(pack('>16sl', uuid._uuid, ~version))
         else:
             version, item = self._findItem(view, version, uuid)
 
@@ -1436,7 +1436,7 @@ class ItemContainer(DBContainer):
                 try:
                     lastItem = None
                     while value is not None:
-                        uKind, uItem, vItem = unpack('>16s16sq', value[0])
+                        uKind, uItem, vItem = unpack('>16s16sl', value[0])
                         if uKind != uuid._uuid:
                             break
 
@@ -1496,11 +1496,11 @@ class ItemContainer(DBContainer):
                 _self.cursor = self.openCursor(self._versions)
                 
                 try:
-                    value = _self.cursor.set_range(pack('>q', fromVersion + 1),
+                    value = _self.cursor.set_range(pack('>l', fromVersion + 1),
                                                    self._flags, None)
 
                     while value is not None:
-                        version, uItem = unpack('>q16s', value[0])
+                        version, uItem = unpack('>l16s', value[0])
                         if version > toVersion:
                             break
 
@@ -1575,7 +1575,7 @@ class ItemContainer(DBContainer):
                         if value is None:
                             break
 
-                        uuid, version = unpack('>16sq', value[0])
+                        uuid, version = unpack('>16sl', value[0])
 
                         value = value[1]
                         status, = unpack('>l', value[16:20])
@@ -1624,11 +1624,12 @@ class ValueContainer(DBContainer):
     # 0.6.1: version purge support
     # 0.6.2: added KDIRTY flag and storing of previous kind to item record
     # 0.6.3: changed persisting if a value is full-text indexed
-    # 0.6.4: changed version persistence
+    # 0.6.4: changed version persistence to no longer use sequence
     # 0.6.5: added support for sub-indexes
     # 0.6.6: added support for dictionaries of ref collections
+    # 0.6.7: version back to unsigned long
 
-    FORMAT_VERSION = 0x00060600
+    FORMAT_VERSION = 0x00060700
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)
@@ -1696,19 +1697,19 @@ class ValueContainer(DBContainer):
         value = self._version.get(ValueContainer.VERSION_KEY,
                                   self.store.txn, self._flags, None)
         if value is None:
-            return 0L
+            return 0
         else:
-            return unpack('>q', value)[0]
+            return unpack('>l', value)[0]
 
     def setVersion(self, version):
 
-        self._version.put(ValueContainer.VERSION_KEY, pack('>q', version),
+        self._version.put(ValueContainer.VERSION_KEY, pack('>l', version),
                           self.store.txn)
 
     def nextVersion(self):
 
-        version = self.getVersion() + 1L        
-        self._version.put(ValueContainer.VERSION_KEY, pack('>q', version),
+        version = self.getVersion() + 1
+        self._version.put(ValueContainer.VERSION_KEY, pack('>l', version),
                           self.store.txn)
 
         return version

@@ -740,7 +740,7 @@ class Item(CItem):
                 logger.error("kind %s for item %s is in view %s, not in item's view %s", kind.itsPath, self.itsPath, kind.itsView, self.itsView)
                 return False
                 
-            for name, desc in kind._getDescriptors(type(self)).iteritems():
+            for name, desc in kind.c.descriptors.iteritems():
                 attrDict, required = desc.isValueRequired(self)
                 if attrDict is not None:
                     if required and name not in attrDict:

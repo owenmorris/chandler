@@ -434,13 +434,13 @@ class IndexContainer(FileContainer):
 
         value = self.get(ValueContainer.VERSION_KEY)
         if value is None:
-            return 0L
+            return 0
         else:
-            return unpack('>q', value)[0]
+            return unpack('>l', value)[0]
 
     def setIndexVersion(self, version):
 
-        self.put(ValueContainer.VERSION_KEY, pack('>q', version))
+        self.put(ValueContainer.VERSION_KEY, pack('>l', version))
         
     def getDirectory(self):
 
@@ -458,7 +458,6 @@ class IndexContainer(FileContainer):
     def getIndexWriter(self):
 
         writer = IndexWriter(RAMDirectory(), StandardAnalyzer(), True)
-        #writer = IndexWriter(self.getDirectory(), StandardAnalyzer(), False)
         writer.setUseCompoundFile(False)
 
         return writer

@@ -27,9 +27,9 @@ from repository.item.PersistentCollections \
      import PersistentCollection, PersistentList, PersistentDict, PersistentSet
 from repository.item.RefCollections import RefDict
 from repository.schema.TypeHandler import TypeHandler
-from repository.persistence.RepositoryError \
-     import LoadError, LoadValueError, MergeError, SaveValueError
-
+from repository.persistence.RepositoryError import \
+        LoadError, LoadValueError, MergeError, SaveValueError
+    
 
 class DBItemWriter(ItemWriter):
 
@@ -908,7 +908,7 @@ class DBItemReader(ItemReader, DBValueReader):
 
         if isContainer:
             item._children = view._createChildren(item, False)
-            
+
         if kind is not None:
             afterLoadHooks.append(lambda view: kind._setupClass(cls))
 
@@ -952,7 +952,11 @@ class DBItemReader(ItemReader, DBValueReader):
                                   "kind not found: %s" %(uuid))
             else:
                 self.item._kind = kind
-                kind._setupClass(type(self.item))
+                cls = type(self.item)
+                if not kind._setupClass(cls):
+                    # run _setupClass again after load completes
+                    # because of recursive load error
+                    view._hooks.append(lambda view: kind._setupClass(cls))
 
     def _parent(self, uuid, withSchema, view, afterLoadHooks):
 

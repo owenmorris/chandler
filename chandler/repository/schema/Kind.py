@@ -14,7 +14,6 @@
 
 
 from new import classobj
-from threading import RLock
 
 from chandlerdb.util.c import \
     UUID, SingleRef, _hash, _combine, issingleref, Nil, Default
@@ -28,12 +27,12 @@ from repository.item.RefCollections import RefList
 from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References
 from repository.item.PersistentCollections import PersistentCollection
-from repository.persistence.RepositoryError import RecursiveLoadItemError
 from repository.util.Path import Path
 from repository.schema.TypeHandler import TypeHandler
+from repository.persistence.RepositoryError import RecursiveLoadItemError
 
 CORE=Path('//Schema/Core')
-_setup_lock = RLock()
+
 
 class Kind(Item):
 
@@ -41,7 +40,7 @@ class Kind(Item):
         super(Kind, self).__init__(*args, **kw)
         self.__init()
         self._createExtent(self.itsView)
-        
+
     def __init(self):
 
         self.c = CKind(self)
@@ -86,82 +85,64 @@ class Kind(Item):
 
         return extent
 
-    def _setupClass(self, cls):
+    def _setupDescriptors(self, sync=None):
 
-        _setup_lock.acquire()
+        c = self.c
+
+        if not c.descriptorsInstalling:
+            c.descriptorsInstalling = True
+        else:
+            return True
+
         try:
             try:
-                self.c.monitorSchema = True
+                descriptors = c.descriptors
+                attributes = dict((a.itsUUID, (n, a))
+                                  for n, a, k in self.iterAttributes())
+            
+                if sync is not None:
+                    for name, descriptor in descriptors.items():
+                        attr = descriptor.attr
+                        if attr.attrID not in attributes:
+                            del descriptors[name]
 
-                uuid = self.itsUUID
-                classes = Kind._classes
-                kinds = Kind._kinds
+                for name, attribute in attributes.itervalues():
+                    descriptor = descriptors.get(name, None)
+                    if descriptor is None:
+                        descriptor = descriptors[name] = \
+                            CDescriptor(name, attribute.c)
 
-                clss = kinds.get(uuid)
-                if clss is None:
-                    kinds[uuid] = set((cls,))
-                else:
-                    clss.add(cls)
-
-                uuids = classes.get(cls)
-                if uuids is None:
-                    classes[cls] = set((uuid,))
-                elif uuid not in uuids:
-                    uuids.add(uuid)
-                else:
-                    return
-
-                self._setupDescriptors(cls)
-                self._setupDelegates(cls)
+                c.descriptorsInstalled = True
+                return True
 
             except RecursiveLoadItemError:
-                kinds[uuid].remove(cls)
-                classes[cls].remove(uuid)
+                return False
 
         finally:
-            _setup_lock.release()
+            c.descriptorsInstalling = False
 
-    def _getDescriptors(self, cls):
+    def _setupClass(self, cls):
 
-        return Kind._descriptors.get(cls, {})
+        uuid = self.itsUUID
+        kinds = Kind._kinds
+        classes = Kind._classes
 
-    def _setupDescriptors(self, cls, sync=None):
+        clss = kinds.get(uuid)
+        if clss is None:
+            kinds[uuid] = set((cls,))
+        else:
+            clss.add(cls)
 
-        _setup_lock.acquire()
-        try:
-            descriptors = Kind._descriptors.get(cls, {}).copy()
-            actions = []
+        uuids = classes.get(cls)
+        if uuids is None:
+            classes[cls] = set((uuid,))
+        else:
+            uuids.add(uuid)
 
-            attributes = dict((a.itsUUID, (n, a))
-                              for n, a, k in self.iterAttributes())
-            
-            if sync is not None:
-                for name, descriptor in descriptors.items():
-                    try:
-                        attr = descriptor.getAttribute(self)
-                    except KeyError:
-                        pass
-                    else:
-                        if attr.attrID not in attributes:
-                            if descriptor.unregisterAttribute(self):
-                                delattr(cls, name)
-
-            for name, attribute in attributes.itervalues():
-                descriptor = cls.__dict__.get(name, None)
-                if descriptor is None:
-                    descriptor = descriptors[name] = CDescriptor(name)
-                    actions.append((descriptor, attribute.c, name))
-                elif isinstance(descriptor, CDescriptor):
-                    actions.append((descriptor, attribute.c))
-                else:
-                    self.itsView.logger.warn("Not installing attribute descriptor for '%s' since it would shadow already existing descriptor: %s", name, descriptor)
-            self.c._setupDescriptors(Kind._descriptors,
-                                     cls, descriptors, actions)
-
-        finally:
-            _setup_lock.release()
-
-    def _setupDelegates(self, cls):
+        if not self.c.descriptorsInstalled:
+            if self._setupDescriptors():
+                if self._status & CItem.CORESCHEMA:
+                    cls.__core_schema__ = self.c.descriptors
 
         delegates = getattr(cls, '__delegates__', None)
         if delegates:
@@ -183,6 +164,8 @@ class Kind(Item):
                     if (not hasattr(cls, name) and
                         callable(getattr(type, name))):
                         setattr(cls, name, DelegateDescriptor(name, delegate))
+
+        self.c.monitorSchema = True
 
     def newItem(self, name=None, parent=None, cls=None, **values):
         """
@@ -331,7 +314,7 @@ class Kind(Item):
         itemClass = self.getItemClass()
         result = self._checkClass(itemClass, True, repair)
 
-        classes = Kind._kinds.get(self._uuid)
+        classes = Kind._kinds.get(self.itsUUID)
         if classes is not None:
             for cls in classes:
                 if cls is not itemClass:
@@ -363,30 +346,22 @@ class Kind(Item):
             self.itsView.logger.warn('Kind %s has an item class or superclass that is not a subclass of Item: %s %s', self.itsPath, problemCls, type(problemCls))
             result = False
 
-        descriptors = Kind._descriptors.get(cls)
+        descriptors = self.c.descriptors
         if descriptors is None:
             if not isItemClass:
                 self.itsView.logger.warn("No descriptors for class %s but Kind %s seems to think otherwise", cls, self.itsPath)
                 result = False
         else:
             for name, descriptor in descriptors.iteritems():
-                try:
-                    attr = descriptor.getAttribute(self)
-                except KeyError:
-                    pass
+                attr = descriptor.attr
+                attribute = self.getAttribute(name, True)
+                if attribute is None:
+                    self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to an attribute on Kind %s", name, cls, self.itsPath)
+                    result = False
                 else:
-                    clsDescriptor = cls.__dict__.get(name, None)
-                    if clsDescriptor is not descriptor:
-                        self.itsView.logger.warn("Descriptor for attribute '%s', %s, on class %s doesn't match descriptor on Kind %s, %s", name, clsDescriptor, cls, self.itsPath, descriptor)
+                    if attr.attrID != attribute.itsUUID:
+                        self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to the attribute of the same name on Kind %s", name, cls, self)
                         result = False
-                    attribute = self.getAttribute(name, True)
-                    if attribute is None:
-                        self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to an attribute on Kind %s", name, cls, self.itsPath)
-                        result = False
-                    else:
-                        if attr.attrID != attribute.itsUUID:
-                            self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to the attribute of the same name on Kind %s", name, cls, self)
-                            result = False
 
         return result
         
@@ -737,45 +712,38 @@ class Kind(Item):
         The caches of the subKinds of this kind are flushed recursively.
         """
 
-        _setup_lock.acquire()
-        try:
-            c = self.c
-            stale = self.isStale()
+        c = self.c
+        stale = self.isStale()
 
-            if c.attributesCached:
-                self._allAttributes.clear()
-                self._allNames.clear()
-                self._notifyAttributes.clear()
-                c.attributesCached = False
+        if c.attributesCached:
+            self._allAttributes.clear()
+            self._allNames.clear()
+            self._notifyAttributes.clear()
+            c.attributesCached = False
 
-            if not stale:
-                self.inheritedSuperKinds.clear()
-            c.superKindsCached = False
+        if not stale:
+            self.inheritedSuperKinds.clear()
+        c.superKindsCached = False
 
-            self._inheritedAttributes.clear()
-            del self._notFoundAttributes[:]
-            self._initialValues = None
-            self._initialReferences = None
+        self._inheritedAttributes.clear()
+        del self._notFoundAttributes[:]
+        self._initialValues = None
+        self._initialReferences = None
 
-            # clear auto-generated composite class
-            if self._values._isTransient('classes'):
-                self._values._clearTransient('classes')
-                del self._values['classes']
+        # clear auto-generated composite class
+        if self._values._isTransient('classes'):
+            self._values._clearTransient('classes')
+            del self._values['classes']
 
-            if not stale:
-                for subKind in self._references.get('subKinds', Nil):
-                    subKind.flushCaches('superKinds')
+        if not stale:
+            for subKind in self._references.get('subKinds', Nil):
+                subKind.flushCaches('superKinds')
 
-            if reason is not None:
-                logger = self.itsView.logger
-                for cls in Kind._kinds.get(self.itsUUID, Nil):
-                    self._setupDescriptors(cls, reason)
+        if reason is not None:
+            self._setupDescriptors(reason)
 
-            if 'schemaHash' in self._values:
-                del self.schemaHash
-
-        finally:
-            _setup_lock.release()
+        if 'schemaHash' in self._values:
+            del self.schemaHash
 
     def _unloadItem(self, reloadable, view, clean=True):
 
@@ -982,9 +950,8 @@ class Kind(Item):
 
 
     NoneString = "__NONE__"
-    _classes = {}
     _kinds = {}
-    _descriptors = {}
+    _classes = {}
     
 
 class Extent(Item):
@@ -1083,7 +1050,4 @@ class DelegateDescriptor(object):
         if obj is None:
             return self
 
-        try:
-            return getattr(getattr(obj, self.delegate), self.name)
-        except AttributeError:
-            import pdb; pdb.set_trace()
+        return getattr(getattr(obj, self.delegate), self.name)

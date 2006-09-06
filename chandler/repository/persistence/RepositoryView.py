@@ -135,10 +135,10 @@ class RepositoryView(CView):
             if repository is not None:
                 version = repository.store.getVersion()
             else:
-                version = 0L
+                version = 0
 
         self._version = long(version)
-        self._roots = self._createChildren(self, version == 0L)
+        self._roots = self._createChildren(self, version == 0)
         self._registry = {}
         self._deletedRegistry = {}
         self._instanceRegistry = {}
@@ -1317,40 +1317,30 @@ class OnDemandRepositoryView(RepositoryView):
 
     def _readItem(self, itemReader):
 
+        release = False
         try:
-            release = False
-            loading = self.isLoading()
-            debug = self.isDebug()
-            if not loading:
-                release = self._acquireExclusive()
-                self._setLoading(True)
-                self._hooks = []
+            try:
+                loading = self.isLoading()
+                if not loading:
+                    release = self._acquireExclusive()
+                    self._setLoading(True)
+                    self._hooks = []
 
-            exception = None
-
-            if debug:
-                self.logger.debug('loading item %s', itemReader.getUUID())
-
-            item = itemReader.readItem(self, self._hooks)
-            if debug:
-                self.logger.debug("loaded version %d of %s",
-                                  item._version, item.itsPath)
-
-        except:
-            if not loading:
-                self._setLoading(False, False)
-                self._hooks = []
-            if release:
-                self._releaseExclusive()
-            raise
+                item = itemReader.readItem(self, self._hooks)
+            except:
+                if not loading:
+                    self._setLoading(False, False)
+                    self._hooks = []
+                raise
         
-        else:
             if not loading:
                 self._setLoading(False, True)
+
+            return item
+
+        finally:
             if release:
                 self._releaseExclusive()
-
-        return item
 
     def _loadItem(self, uuid):
 
@@ -1358,13 +1348,12 @@ class OnDemandRepositoryView(RepositoryView):
             raise RecursiveLoadItemError, uuid
 
         if not uuid in self._deletedRegistry:
-            itemReader = self.repository.store.loadItem(self,
-                                                        self._version, uuid)
+            itemReader = self.repository.store.loadItem(self, self.itsVersion,
+                                                        uuid)
 
             if itemReader is not None:
                 try:
                     self._loadingRegistry.add(uuid)
-                    self.logger.debug("loading item %s", uuid)
                     return self._readItem(itemReader)
                 finally:
                     self._loadingRegistry.remove(uuid)
@@ -1440,7 +1429,7 @@ class NullRepositoryView(RepositoryView):
     def __init__(self, verify=False):
 
         self._logger = logging.getLogger(__name__)
-        super(NullRepositoryView, self).__init__(None, "null view", 0L)
+        super(NullRepositoryView, self).__init__(None, "null view", 0)
 
         if verify:
             self._status |= RepositoryView.VERIFY

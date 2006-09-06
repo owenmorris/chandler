@@ -1030,10 +1030,11 @@ def kindInfo(**attrs):
         _get_nrv()
         for k,v in attrs.items():
             if not hasattr(cls._kind_class, k):
-                raise TypeError(
-                    "%r is not an attribute of %s" %
-                    (k, cls._kind_class.__name__)
-                )
+                if k not in getattr(cls._kind_class, '__core_schema__', ()):
+                    raise TypeError(
+                        "%r is not an attribute of %s" %
+                        (k, cls._kind_class.__name__)
+                        )
         return cls
 
 

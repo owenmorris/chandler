@@ -17,7 +17,6 @@ import os, shutil, atexit, cStringIO
 
 from threading import Thread, Lock, Condition, local, currentThread
 from datetime import datetime, timedelta
-from struct import pack
 
 from chandlerdb.util import lock
 from chandlerdb.util.c import Nil, Default, UUID, _hash
