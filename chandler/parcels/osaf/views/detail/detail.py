@@ -1363,8 +1363,11 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         """
         assert value != RecurrenceAttributeEditor.customIndex
         # Changing the recurrence period on a non-master item could delete 
-        # this very 'item'; if it does, we'll bypass the attribute-changed 
-        # notification below...
+        # this very 'item'; we'll try to select the "same" occurrence
+        # afterwards ...
+        master = item.getMaster()
+        recurrenceID = item.recurrenceID or item.startTime
+        
         if value == RecurrenceAttributeEditor.onceIndex:
             item.removeRecurrence()
         else:
@@ -1392,6 +1395,27 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 del rruleset.rrules.first().until
             rruleset.rrules.first().untilIsDate = True
             item.changeThisAndFuture('rruleset', rruleset)
+
+        itemToSelect = item
+        
+        if master.isDeleted() or not item.isDeleted():
+            # master can get deleted if it had a THIS modification
+            # (it gets replaced by its first occurrence).
+            # An occurrence can become a master by because we just did
+            # a THISANDFUTURE change.
+            master = itemToSelect = item.getMaster()
+            
+        if item.isDeleted():
+            itemToSelect = master.getRecurrenceID(recurrenceID) or master
+        
+        itemToSelect = getattr(itemToSelect, 'proxiedItem', itemToSelect)
+        item = getattr(item, 'proxiedItem', item)
+        
+        if itemToSelect is not item:
+            sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
+            sidebarBPB.childrenBlocks.first().postEventByName (
+               'SelectItemsBroadcast', {'items':[itemToSelect]}
+            )
     
     def GetControlValue (self, control):
         """

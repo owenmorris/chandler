@@ -389,6 +389,7 @@ class RecurrenceRule(items.ContentItem):
         """
         previous = self.getPreviousRecurrenceID(dtstart, recurrenceID)
         assert previous is not None
+
         self.until = previous
         self.untilIsDate = False
 
@@ -604,7 +605,8 @@ class RecurrenceRuleSet(items.ContentItem):
 
 
     def moveDatesAfter(self, after, delta):
-        """Move dates (later than "after") in exdates and rdates by delta.
+        """Move dates (later than "after") in exdates, rdates and
+        until, by delta.
 
         @param after: Earliest date to move
         @type  after: C{datetime}
@@ -625,6 +627,17 @@ class RecurrenceRuleSet(items.ContentItem):
                     else:
                         l.append(dt)
                 setattr(self, datetype, l)
+                
+        for rule in self.rrules or []:
+            if not rule.untilIsDate:
+                try:
+                    until = rule.until
+                except AttributeError:
+                    pass
+                else:
+                    if until >= after:
+                        rule.until = until + delta
+                
         del self._ignoreValueChanges
 
     def removeDates(self, cmpFn, endpoint):
