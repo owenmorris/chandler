@@ -158,9 +158,14 @@ class wxSidebar(wxTable):
 
         blockItem.stopNotificationDirt()
         try:
+            selectedItem = blockItem.contents.getFirstSelectedItem()
+            
             allowOverlay = (item is not None and
-                            UserCollection(item).allowOverlay and
-                            blockItem.filterKind not in blockItem.disallowOverlaysForFilterKinds)
+                            UserCollection (item).allowOverlay and
+                            blockItem.filterKind not in blockItem.disallowOverlaysForFilterKinds and
+                            
+                            (selectedItem is None or
+                             not UserCollection (selectedItem).outOfTheBoxCollection))
                             
             if (cellRect.InsideXY (x, y) and
                 not self.IsCellEditControlEnabled() and
