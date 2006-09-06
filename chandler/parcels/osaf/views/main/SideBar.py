@@ -539,15 +539,25 @@ class SSSidebarIconButton (SSSidebarButton):
         imageSuffix = ".png"
         userCollection = UserCollection(item)
 
-        if mouseOverFlag:
-            mouseOver = "MouseOver"
-            if self.buttonState['screenMouseDown']:
-                mouseDown = "MouseDown"
+        selectedItem = self.buttonOwner.contents.getFirstSelectedItem()
+        if (selectedItem is not None and
+            UserCollection (selectedItem).outOfTheBoxCollection and
+            not UserCollection (item).outOfTheBoxCollection):
+                if self.getChecked (item):
+                    mouseDown = "MouseDownDeactive"
+                else:
+                    mouseDown = "Deactive"
+
         else:
-            if self.getChecked (item):
-                mouseDown = "MouseDown"
+            if mouseOverFlag:
+                mouseOver = "MouseOver"
+                if self.buttonState['screenMouseDown']:
+                    mouseDown = "MouseDown"
             else:
-                colorizeIcon = userCollection.colorizeIcon
+                if self.getChecked (item):
+                    mouseDown = "MouseDown"
+                else:
+                    colorizeIcon = userCollection.colorizeIcon
 
         iconName = getattr(userCollection, "iconName", "")
         filterKind = self.buttonOwner.filterKind
@@ -1075,7 +1085,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             # consumers know what the 'primary' collection is.
             if item is not None:
                 collectionList.append (item)
-            if sidebar.filterKind not in sidebar.disallowOverlaysForFilterKinds:
+            if (sidebar.filterKind not in sidebar.disallowOverlaysForFilterKinds and
+                not UserCollection (item).outOfTheBoxCollection):
                 for theItem in sidebar.contents:
                     if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
                          theItem not in collectionList):
