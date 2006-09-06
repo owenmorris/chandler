@@ -74,6 +74,9 @@ def save(rv, filename):
                 cfg.set(section_name, "url", url)
                 if url != urls[0]:
                     cfg.set(section_name, "ticket", urls[0])
+                ticketFreeBusy = getattr(share.conduit, 'ticketFreeBusy', None)
+                if ticketFreeBusy:
+                    cfg.set(section_name, "freebusy", "True")
             counter += 1
 
     # SMTP accounts
@@ -223,10 +226,14 @@ def restore(rv, filename):
             if not subscribed:
                 if cfg.has_option(section, "ticket"):
                     url = cfg.get(section, "ticket")
+                freebusy = False
+                if cfg.has_option(section, "freebusy"):
+                    freebusy = cfg.getboolean(section, "freebusy")
                 title = cfg.get(section, "title")
                 SubscribeCollection.Show(None, view=rv, url=url, name=title,
                                          modal=False, immediate=True,
-                                         mine=mine, publisher=publisher)
+                                         mine=mine, publisher=publisher,
+                                         freebusy=freebusy)
 
     # smtp accounts
     for section in cfg.sections():

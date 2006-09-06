@@ -32,7 +32,7 @@ class SubscribeDialog(wx.Dialog):
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, view=None, url=None, name=None, modal=True,
-         immediate=False, mine=None, publisher=None):
+         immediate=False, mine=None, publisher=None, freebusy=False):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
@@ -43,6 +43,7 @@ class SubscribeDialog(wx.Dialog):
         self.name = name
         self.mine = mine
         self.publisher = publisher
+        self.freebusy = freebusy
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
         self.toolPanel = self.resources.LoadPanel(self, "Subscribe")
@@ -78,6 +79,8 @@ class SubscribeDialog(wx.Dialog):
         if self.mine:
             self.checkboxKeepOut.SetValue(False)
         self.forceFreeBusy = wx.xrc.XRCCTRL(self, "CHECKBOX_FORCEFREEBUSY")
+        if self.freebusy:
+            self.forceFreeBusy.SetValue(True)
 
         self.subscribeButton = wx.xrc.XRCCTRL(self, "wxID_OK")
 
@@ -272,7 +275,7 @@ class SubscribeDialog(wx.Dialog):
             self.Destroy()
 
 def Show(parent, view=None, url=None, name=None, modal=False, immediate=False,
-         mine=None, publisher=None):
+         mine=None, publisher=None, freebusy=False):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SubscribeCollection.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
@@ -282,7 +285,7 @@ def Show(parent, view=None, url=None, name=None, modal=False, immediate=False,
     win = SubscribeDialog(parent, _(u"Subscribe to Shared Collection"),
                           resources=resources, view=view, url=url, name=name,
                           modal=modal, immediate=immediate, mine=mine,
-                          publisher=publisher)
+                          publisher=publisher, freebusy=freebusy)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()

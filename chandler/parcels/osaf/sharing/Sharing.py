@@ -2003,7 +2003,7 @@ class CalDAVConduit(WebDAVConduit):
 
     def getLocation(self, privilege=None):
         url = super(CalDAVConduit, self).getLocation(privilege)
-        if privilege == 'freebusy':
+        if privilege in ('freebusy', 'subscribed'):
             if self.ticketFreeBusy:
                 url = url + u"?ticket=%s" % self.ticketFreeBusy
         return url
