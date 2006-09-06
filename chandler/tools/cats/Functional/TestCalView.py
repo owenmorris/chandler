@@ -16,6 +16,7 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import osaf.framework.scripting as scripting
 from i18n.tests import uw
+import osaf.framework.scripting.User as User
     
 class TestCalView(ChandlerTestCase):
     
@@ -26,15 +27,16 @@ class TestCalView(ChandlerTestCase):
         # make user collection, since only user
         # collections can be displayed as a calendar
         col = QAUITestAppLib.UITestItem("Collection", self.logger)
+        #name and then select collection
+        col.SetDisplayName(uw("testCalView"))
+        sb = QAUITestAppLib.App_ns.sidebar
+        User.emulate_sidebarClick(sb, uw('testCalView'))
+        
         # action
         # switch to calendar view
-        testView.SwitchToCalView()
+        testView.SwitchToCalView()       
         # double click in the calendar view => event creation or selection
-        ev = testView.DoubleClickInCalView()
-        scripting.User.idle()
-        # double click one more time => edit the title
-        #testView.DoubleClickInCalView()
-        # type a new title and return
+        ev = testView.DoubleClickInCalView()         
         QAUITestAppLib.scripting.User.emulate_typing(uw("Writing tests"))
         QAUITestAppLib.scripting.User.emulate_return()
         
