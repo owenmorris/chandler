@@ -17,8 +17,8 @@
 
 #include "../item/item.h"
 #include "kind.h"
-#include "descriptor.h"
 #include "attribute.h"
+#include "descriptor.h"
 
 #define LOAD_TYPE(m, name) \
     name = (PyTypeObject *) PyObject_GetAttrString(m, #name);

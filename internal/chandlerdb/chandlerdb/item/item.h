@@ -25,7 +25,7 @@
 
 #define Item_HEAD                   \
     unsigned long status;           \
-    unsigned long long version;     \
+    unsigned long version;          \
     PyObject *name;
 
 
@@ -48,6 +48,7 @@ typedef struct {
     PyObject *children;
     PyObject *root;
     PyObject *acls;
+    PyObject *c;
 } t_item;
 
 enum {
@@ -106,5 +107,6 @@ enum {
     V_COPYMASK  = V_READONLY | V_TRANSIENT
 };
 
+typedef void (*C_countAccess_fn)(t_item *);
 
 #endif

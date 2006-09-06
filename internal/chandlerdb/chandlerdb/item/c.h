@@ -17,8 +17,12 @@
 
 #include "item.h"
 #include "../util/uuid.h"
+#include "../util/singleref.h"
 #include "../persistence/view.h"
+#include "../schema/kind.h"
 #include "../schema/attribute.h"
+#include "../schema/descriptor.h"
+
 
 #define LOAD_TYPE(m, name) \
     name = (PyTypeObject *) PyObject_GetAttrString(m, #name);
@@ -51,8 +55,11 @@ extern PyObject *Default;
 
 extern CView_invokeMonitors_fn CView_invokeMonitors;
 extern PyUUID_Check_fn PyUUID_Check;
-extern PyCFunction _countAccess;
+extern C_countAccess_fn C_countAccess;
+
 extern CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange;
+extern CDescriptor_get_fn CDescriptor_get;
+extern CDescriptor_set_fn CDescriptor_set;
 
 void _init_item(PyObject *m);
 void _init_values(PyObject *m);

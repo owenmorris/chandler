@@ -945,8 +945,12 @@ static int t_attribute__setTypeID(t_attribute *self, t_values *refs, void *data)
                 PyObject_CallMethodObjArgs((PyObject *) refs, _getRef_NAME,
                                            type_NAME, Py_None, Py_None, NULL);
 
+            if (!type)
+                return -1;
+
             if (type == Py_None)
             {
+                Py_DECREF(type);
                 self->flags |= PROCESS;
                 Py_XDECREF(self->typeID);
                 self->typeID = NULL;
@@ -957,11 +961,15 @@ static int t_attribute__setTypeID(t_attribute *self, t_values *refs, void *data)
                     PyObject_CallMethodObjArgs(type, getFlags_NAME, NULL);
 
                 if (!typeFlags)
+                {
+                    Py_DECREF(type);
                     return -1;
+                }
 
                 if (!PyInt_Check(typeFlags))
                 {
                     PyErr_SetObject(PyExc_TypeError, typeFlags);
+                    Py_DECREF(type);
                     Py_DECREF(typeFlags);
 
                     return -1;
@@ -974,6 +982,7 @@ static int t_attribute__setTypeID(t_attribute *self, t_values *refs, void *data)
                 Py_INCREF(((t_item *) type)->uuid);
                 Py_XDECREF(self->typeID);
                 self->typeID = ((t_item *) type)->uuid;
+                Py_DECREF(type);
             }
         }
         else

@@ -27,7 +27,6 @@ static PyObject *t_kind_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_kind_init(t_kind *self, PyObject *args, PyObject *kwds);
 
 static PyObject *t_kind_getAttribute(t_kind *self, PyObject *args);
-static PyObject *t_kind__setupDescriptors(t_kind *self, PyObject *args);
 
 static PyObject *t_kind_getMonitorSchema(t_kind *self, void *data);
 static int t_kind_setMonitorSchema(t_kind *self, PyObject *arg, void *data);
@@ -35,17 +34,22 @@ static PyObject *t_kind_getAttributesCached(t_kind *self, void *data);
 static int t_kind_setAttributesCached(t_kind *self, PyObject *arg, void *data);
 static PyObject *t_kind_getSuperKindsCached(t_kind *self, void *data);
 static int t_kind_setSuperKindsCached(t_kind *self, PyObject *arg, void *data);
+static PyObject *t_kind_getDescriptorsInstalled(t_kind *self, void *data);
+static int t_kind_setDescriptorsInstalled(t_kind *self, PyObject *arg,
+                                          void *data);
+static PyObject *t_kind_getDescriptorsInstalling(t_kind *self, void *data);
+static int t_kind_setDescriptorsInstalling(t_kind *self, PyObject *arg,
+                                          void *data);
 
 
 static PyMemberDef t_kind_members[] = {
+    { "descriptors", T_OBJECT, offsetof(t_kind, descriptors), 0,
+      "attribute descriptors" },
     { NULL, 0, 0, 0, NULL }
 };
 
 static PyMethodDef t_kind_methods[] = {
-    { "getAttribute", (PyCFunction) t_kind_getAttribute,
-      METH_VARARGS, "" },
-    { "_setupDescriptors", (PyCFunction) t_kind__setupDescriptors,
-      METH_VARARGS, "" },
+    { "getAttribute", (PyCFunction) t_kind_getAttribute, METH_VARARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -61,6 +65,14 @@ static PyGetSetDef t_kind_properties[] = {
     { "superKindsCached",
       (getter) t_kind_getSuperKindsCached,
       (setter) t_kind_setSuperKindsCached,
+      NULL, NULL },
+    { "descriptorsInstalled",
+      (getter) t_kind_getDescriptorsInstalled,
+      (setter) t_kind_setDescriptorsInstalled,
+      NULL, NULL },
+    { "descriptorsInstalling",
+      (getter) t_kind_getDescriptorsInstalling,
+      (setter) t_kind_setDescriptorsInstalling,
       NULL, NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
@@ -118,12 +130,14 @@ static void t_kind_dealloc(t_kind *self)
 static int t_kind_traverse(t_kind *self, visitproc visit, void *arg)
 {
     Py_VISIT((PyObject *) self->kind);
+    Py_VISIT(self->descriptors);
     return 0;
 }
 
 static int t_kind_clear(t_kind *self)
 {
     Py_CLEAR(self->kind);
+    Py_CLEAR(self->descriptors);
     return 0;
 }
 
@@ -135,6 +149,7 @@ static PyObject *t_kind_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     {
         self->kind = NULL;
         self->flags = 0;
+        self->descriptors = PyDict_New();
     }
 
     return (PyObject *) self;
@@ -156,21 +171,19 @@ static int t_kind_init(t_kind *self, PyObject *args, PyObject *kwds)
 
 static PyObject *t_kind_getAttribute(t_kind *self, PyObject *args)
 {
-    PyObject *item, *name, *descriptor;
+    PyObject *item, *name;
 
     if (!PyArg_ParseTuple(args, "OO", &item, &name))
         return NULL;
-    
-    descriptor = PyObject_GetAttr((PyObject *) item->ob_type, name);
-    if (descriptor)
-    {
-        if (PyObject_TypeCheck(descriptor, CDescriptor))
-        {
-            t_attribute *attr = (t_attribute *)
-                PyDict_GetItem(((t_descriptor *) descriptor)->attrs,
-                               self->kind->uuid);
 
-            Py_DECREF(descriptor);
+    if (self->flags & DESCRIPTORS_INSTALLED)
+    {
+        t_descriptor *descriptor = (t_descriptor *)
+            PyDict_GetItem(self->descriptors, name);
+
+        if (descriptor)
+        {
+            t_attribute *attr = descriptor->attr;
 
             if (attr)
             {
@@ -178,68 +191,7 @@ static PyObject *t_kind_getAttribute(t_kind *self, PyObject *args)
                 return PyObject_GetItem(view, attr->attrID);
             }
         }
-        else
-            Py_DECREF(descriptor);
     }
-    else
-        PyErr_Clear();
-
-    Py_RETURN_NONE;
-}
-
-static PyObject *t_kind__setupDescriptors(t_kind *self, PyObject *args)
-{
-    PyObject *descriptors, *cls, *clsDescriptors, *actions;
-    int actionCount, i;
-
-    if (!PyArg_ParseTuple(args, "OOOO!", &descriptors, &cls,
-                          &clsDescriptors, &PyList_Type, &actions))
-        return NULL;
-
-    actionCount = PyList_GET_SIZE(actions);
-
-    for (i = 0; i < actionCount; i++) {
-        PyObject *action = PyList_GET_ITEM(actions, i);
-        PyObject *descriptor, *attribute;
-        int count;
-
-        if (!PyTuple_Check(action))
-        {
-            PyErr_SetObject(PyExc_TypeError, action);
-            return NULL;
-        }
-
-        count = PyTuple_GET_SIZE(action);
-
-        if (count != 2 && count != 3)
-        {
-            PyErr_SetObject(PyExc_ValueError, action);
-            return NULL;
-        }
-
-        descriptor = PyTuple_GET_ITEM(action, 0);
-        attribute = PyTuple_GET_ITEM(action, 1);
-
-        if (!PyObject_TypeCheck(descriptor, CDescriptor))
-        {
-            PyErr_SetObject(PyExc_TypeError, descriptor);
-            return NULL;
-        }
-
-        if (!PyObject_TypeCheck(attribute, CAttribute))
-        {
-            PyErr_SetObject(PyExc_TypeError, attribute);
-            return NULL;
-        }
-
-        PyDict_SetItem(((t_descriptor *) descriptor)->attrs,
-                       self->kind->uuid, attribute);
-
-        if (count == 3)
-            PyObject_SetAttr(cls, PyTuple_GET_ITEM(action, 2), descriptor);
-    }
-
-    PyDict_SetItem(descriptors, cls, clsDescriptors);
 
     Py_RETURN_NONE;
 }
@@ -313,6 +265,60 @@ static int t_kind_setSuperKindsCached(t_kind *self, PyObject *arg, void *data)
         self->flags |= SUPERKINDS_CACHED;
     else if (arg == Py_False)
         self->flags &= ~SUPERKINDS_CACHED;
+    else
+    {
+        PyErr_SetObject(PyExc_ValueError, arg);
+        return -1;
+    }
+
+    return 0;
+}
+
+
+/* descriptorsInstalled */
+
+static PyObject *t_kind_getDescriptorsInstalled(t_kind *self, void *data)
+{
+    if (self->flags & DESCRIPTORS_INSTALLED)
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+static int t_kind_setDescriptorsInstalled(t_kind *self, PyObject *arg,
+                                          void *data)
+{
+    if (arg == Py_True)
+        self->flags |= DESCRIPTORS_INSTALLED;
+    else if (arg == Py_False)
+        self->flags &= ~DESCRIPTORS_INSTALLED;
+    else
+    {
+        PyErr_SetObject(PyExc_ValueError, arg);
+        return -1;
+    }
+
+    return 0;
+}
+
+
+/* descriptorsInstalling */
+
+static PyObject *t_kind_getDescriptorsInstalling(t_kind *self, void *data)
+{
+    if (self->flags & DESCRIPTORS_INSTALLING)
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+static int t_kind_setDescriptorsInstalling(t_kind *self, PyObject *arg,
+                                          void *data)
+{
+    if (arg == Py_True)
+        self->flags |= DESCRIPTORS_INSTALLING;
+    else if (arg == Py_False)
+        self->flags &= ~DESCRIPTORS_INSTALLING;
     else
     {
         PyErr_SetObject(PyExc_ValueError, arg);

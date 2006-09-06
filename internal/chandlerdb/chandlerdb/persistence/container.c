@@ -840,9 +840,9 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
     PyObject *cursor;
     char *uCol, *uRef;
     int uColLen, uRefLen, flags = 0;
-    unsigned long long version;
+    unsigned long version;
 
-    if (!PyArg_ParseTuple(args, "Os#s#K|i", &cursor,
+    if (!PyArg_ParseTuple(args, "Os#s#k|i", &cursor,
                           &uCol, &uColLen, &uRef, &uRefLen, &version, &flags))
         return NULL;
 
@@ -866,7 +866,7 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
 
     {
         DBC *dbc = ((t_cursor *) cursor)->dbc;
-        char keyBuffer[40];
+        char keyBuffer[36];
         DBT key;
         t_buffer_dbt data;
         int err;
@@ -893,9 +893,9 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
             switch (err) {
               case 0:
               {
-                  unsigned long long ver;
+                  unsigned long ver;
 
-                  if (key.size != 40 ||
+                  if (key.size != 36 ||
                       memcmp(key.data, uCol, 16) ||
                       memcmp((char *) key.data + 16, uRef, 16))
                   {
@@ -906,8 +906,6 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
                   }
 
                   ver = ntohl(*(unsigned long *) ((char *) key.data + 32));
-                  ver <<= 32;
-                  ver += ntohl(*(unsigned long *) ((char *) key.data + 36));
 
                   if (~ver <= version)
                   {
@@ -964,9 +962,9 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
     PyObject *txn, *previous, *next, *alias, *otherKey;
     char *uCol, *uRef;
     int uColLen, uRefLen;
-    unsigned long long version;
+    unsigned long version;
 
-    if (!PyArg_ParseTuple(args, "Os#Ks#OOOO", &txn, &uCol, &uColLen,
+    if (!PyArg_ParseTuple(args, "Os#ks#OOOO", &txn, &uCol, &uColLen,
                           &version, &uRef, &uRefLen, 
                           &previous, &next, &alias, &otherKey))
         return NULL;
@@ -993,14 +991,13 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
         DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
         DB *db = (((t_container *) self)->db)->db;
         valueType prevType, nextType, aliasType, otherKeyType;
-        char keyBuffer[40], *dataBuffer, stackBuffer[128];
+        char keyBuffer[36], *dataBuffer, stackBuffer[128];
         DBT key, data;
         int len, err;
 
         memcpy(keyBuffer, uCol, 16);
         memcpy(keyBuffer + 16, uRef, 16);
-        *((unsigned long *) (&keyBuffer[32])) = htonl(~(unsigned long) (version >> 32));
-        *((unsigned long *) (&keyBuffer[36])) = htonl(~(unsigned long) version);
+        *((unsigned long *) (&keyBuffer[32])) = htonl(~(unsigned long) version);
         memset(&key, 0, sizeof(key));
         key.data = keyBuffer;
         key.size = sizeof(keyBuffer);
@@ -1053,20 +1050,19 @@ static int _t_ref_container_historyKey(DB *secondary,
                                        const DBT *key, const DBT *data,
                                        DBT *result)
 {
-    char *buffer = (char *) malloc(40);
-    unsigned long long version =
-        ~*(unsigned long long *) ((char *) key->data + 32);
+    char *buffer = (char *) malloc(36);
+    unsigned long version = ~*(unsigned long *) ((char *) key->data + 32);
 
     if (!buffer)
         return ENOMEM;
 
     memcpy(buffer, key->data, 16);
-    memcpy(buffer + 16, &version, 8);
-    memcpy(buffer + 24, (char *) key->data + 16, 16);
+    memcpy(buffer + 16, &version, 4);
+    memcpy(buffer + 20, (char *) key->data + 16, 16);
 
     result->data = buffer;
     result->flags = DB_DBT_APPMALLOC;
-    result->size = 40;
+    result->size = 36;
 
     return 0;
 }
@@ -1181,17 +1177,17 @@ static int _t_item_container_kindKey(DB *secondary,
                                      const DBT *key, const DBT *data,
                                      DBT *result)
 {
-    char *buffer = (char *) malloc(40);
+    char *buffer = (char *) malloc(36);
 
     if (!buffer)
         return ENOMEM;
 
     memcpy(buffer, data->data, 16);
-    memcpy(buffer + 16, key->data, 24);
+    memcpy(buffer + 16, key->data, 20);
 
     result->data = buffer;
     result->flags = DB_DBT_APPMALLOC;
-    result->size = 40;
+    result->size = 36;
 
     return 0;
 }
@@ -1210,18 +1206,18 @@ static int _t_item_container_versionKey(DB *secondary,
                                         const DBT *key, const DBT *data,
                                         DBT *result)
 {
-    char *buffer = (char *) malloc(24);
-    unsigned long long version = ~*(unsigned long long *) ((char *) key->data + 16);
+    char *buffer = (char *) malloc(20);
+    unsigned long version = ~*(unsigned long *) ((char *) key->data + 16);
 
     if (!buffer)
         return ENOMEM;
 
-    memcpy(buffer, &version, 8);
-    memcpy(buffer + 8, key->data, 16);
+    memcpy(buffer, &version, 4);
+    memcpy(buffer + 4, key->data, 16);
 
     result->data = buffer;
     result->flags = DB_DBT_APPMALLOC;
-    result->size = 24;
+    result->size = 20;
 
     return 0;
 }
@@ -1237,10 +1233,10 @@ static PyObject *t_item_container_setItemStatus(t_item_container *self,
                                                 PyObject *args)
 {
     PyObject *txn, *uItem;
-    unsigned long long version;
+    unsigned long version;
     unsigned int status;
 
-    if (!PyArg_ParseTuple(args, "OKOi", &txn, &version, &uItem, &status))
+    if (!PyArg_ParseTuple(args, "OkOi", &txn, &version, &uItem, &status))
         return NULL;
 
     if (!PyObject_TypeCheck(txn, CDBTxn))
@@ -1259,13 +1255,12 @@ static PyObject *t_item_container_setItemStatus(t_item_container *self,
         DB_TXN *db_txn = ((t_txn *) txn)->txn;
         DB *db = (((t_container *) self)->db)->db;
         DBT key, data;
-        char keyBuffer[24];
+        char keyBuffer[20];
         unsigned int value;
         int err;
 
         memcpy(keyBuffer, PyString_AS_STRING(((t_uuid *) uItem)->uuid), 16);
-        *((unsigned long *) (&keyBuffer[16])) = htonl(~(unsigned long) (version >> 32));
-        *((unsigned long *) (&keyBuffer[20])) = htonl(~(unsigned long) version);
+        *((unsigned long *) (&keyBuffer[16])) = htonl(~(unsigned long) version);
 
         memset(&key, 0, sizeof(key));
         key.data = keyBuffer;

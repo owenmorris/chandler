@@ -33,8 +33,10 @@ PyObject *Default = NULL;
 
 CView_invokeMonitors_fn CView_invokeMonitors;
 PyUUID_Check_fn PyUUID_Check;
-PyCFunction _countAccess;
+C_countAccess_fn C_countAccess;
 CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange;
+CDescriptor_get_fn CDescriptor_get;
+CDescriptor_set_fn CDescriptor_set;
 
 
 static PyObject *isitem(PyObject *self, PyObject *obj)
@@ -141,7 +143,9 @@ void initc(void)
     LOAD_TYPE(m, CAttribute);
     LOAD_TYPE(m, CDescriptor);
     LOAD_FN(m, CAttribute_invokeAfterChange);
-    LOAD_CFUNC(m, _countAccess);
+    LOAD_FN(m, CDescriptor_get);
+    LOAD_FN(m, CDescriptor_set);
+    LOAD_FN(m, C_countAccess);
     Py_DECREF(m);
 
     m = PyImport_ImportModule("chandlerdb.persistence.c");

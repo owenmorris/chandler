@@ -19,10 +19,13 @@ typedef struct {
     PyObject_HEAD
     t_item *kind;
     unsigned long flags;
+    PyObject *descriptors;
 } t_kind;
 
 enum {
-    MONITOR_SCHEMA    = 0x0001,
-    ATTRIBUTES_CACHED = 0x0002,
-    SUPERKINDS_CACHED = 0x0004,
+    MONITOR_SCHEMA         = 0x0001,
+    ATTRIBUTES_CACHED      = 0x0002,
+    SUPERKINDS_CACHED      = 0x0004,
+    DESCRIPTORS_INSTALLED  = 0x0008,
+    DESCRIPTORS_INSTALLING = 0x0010,
 };

@@ -34,6 +34,11 @@ static PyObject *countAccess(PyObject *self, t_item *item)
     Py_RETURN_NONE;
 }
 
+static void _countAccess(t_item *item)
+{
+    item->lastAccess = ++_lastAccess;
+}
+
 
 static PyMethodDef c_funcs[] = {
     { "_countAccess", (PyCFunction) countAccess, METH_O,
@@ -54,10 +59,14 @@ void PyDict_SetItemString_Int(PyObject *dict, char *key, int value)
 void initc(void)
 {
     PyObject *m = Py_InitModule3("c", c_funcs, "C schema types module");
+    PyObject *cobj;
 
     _init_descriptor(m);
     _init_attribute(m);
     _init_kind(m);
+
+    cobj = PyCObject_FromVoidPtr(_countAccess, NULL);
+    PyModule_AddObject(m, "C_countAccess", cobj);
 
     m = PyImport_ImportModule("chandlerdb.item.ItemError");
     PyExc_StaleItemError = PyObject_GetAttrString(m, "StaleItemError");

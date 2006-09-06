@@ -18,9 +18,6 @@
 #include "structmember.h"
 
 #include "c.h"
-#include "../util/singleref.h"
-#include "../schema/kind.h"
-#include "../schema/descriptor.h"
 
 static void t_item_dealloc(t_item *self);
 static int t_item_traverse(t_item *self, visitproc visit, void *arg);
@@ -28,6 +25,8 @@ static int t_item_clear(t_item *self);
 static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_item_init(t_item *self, PyObject *args, PyObject *kwds);
 static PyObject *t_item_repr(t_item *self);
+static PyObject *t_item_getattro(t_item *self, PyObject *name);
+static int t_item_setattro(t_item *self, PyObject *name, PyObject *value);
 static PyObject *t_item_isNew(t_item *self);
 static PyObject *t_item_isDeleting(t_item *self);
 static PyObject *t_item_isDeleted(t_item *self);
@@ -98,7 +97,6 @@ static PyObject *watchers_NAME;
 static PyObject *filterItem_NAME;
 static PyObject *_setParent_NAME;
 static PyObject *_setItem_NAME;
-static PyObject *c_NAME;
 static PyObject *getAttributeValue_NAME;
 
 /* NULL docstrings are set in chandlerdb/__init__.py
@@ -117,6 +115,7 @@ static PyMemberDef t_item_members[] = {
     { "_children", T_OBJECT, offsetof(t_item, children), 0, "item children" },
     { "_root", T_OBJECT, offsetof(t_item, root), 0, "item root" },
     { "_acls", T_OBJECT, offsetof(t_item, acls), 0, "item acls" },
+    { "c", T_OBJECT, offsetof(t_item, c), 0, "item c buddy" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -195,8 +194,8 @@ static PyTypeObject ItemType = {
     0,                                         /* tp_hash  */
     0,                                         /* tp_call */
     0,                                         /* tp_str */
-    0,                                         /* tp_getattro */
-    0,                                         /* tp_setattro */
+    (getattrofunc)t_item_getattro,             /* tp_getattro */
+    (setattrofunc)t_item_setattro,             /* tp_setattro */
     0,                                         /* tp_as_buffer */
     (Py_TPFLAGS_DEFAULT |
      Py_TPFLAGS_BASETYPE |
@@ -239,6 +238,7 @@ static int t_item_traverse(t_item *self, visitproc visit, void *arg)
     Py_VISIT(self->children);
     Py_VISIT(self->root);
     Py_VISIT(self->acls);
+    Py_VISIT(self->c);
 
     return 0;
 }
@@ -254,6 +254,7 @@ static int t_item_clear(t_item *self)
     Py_CLEAR(self->children);
     Py_CLEAR(self->root);
     Py_CLEAR(self->acls);
+    Py_CLEAR(self->c);
 
     return 0;
 }
@@ -276,6 +277,7 @@ static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         self->children = NULL;
         self->root = NULL;
         self->acls = NULL;
+        self->c = NULL;
     }
 
     return (PyObject *) self;
@@ -330,6 +332,50 @@ static PyObject *t_item_repr(t_item *self)
         return repr;
     }
 }
+
+
+static PyObject *t_item_getattro(t_item *self, PyObject *name)
+{
+    PyObject *kind = self->kind;
+
+    if (kind != NULL && kind != Py_None)
+    {
+        t_kind *c = (t_kind *) ((t_item *) kind)->c;
+
+        if (c->flags & DESCRIPTORS_INSTALLED)
+        {
+            t_descriptor *descriptor = (t_descriptor *)
+                PyDict_GetItem(c->descriptors, name);
+
+            if (descriptor)
+                return CDescriptor_get(descriptor, self, NULL);
+        }
+    }
+
+    return PyObject_GenericGetAttr((PyObject *) self, name);
+}
+
+static int t_item_setattro(t_item *self, PyObject *name, PyObject *value)
+{
+    PyObject *kind = self->kind;
+
+    if (kind != NULL && kind != Py_None)
+    {
+        t_kind *c = (t_kind *) ((t_item *) kind)->c;
+
+        if (c->flags & DESCRIPTORS_INSTALLED)
+        {
+            t_descriptor *descriptor = (t_descriptor *)
+                PyDict_GetItem(c->descriptors, name);
+
+            if (descriptor)
+                return CDescriptor_set(descriptor, self, value);
+        }
+    }
+
+    return PyObject_GenericSetAttr((PyObject *) self, name, value);
+}
+
 
 static PyObject *t_item_isNew(t_item *self)
 {
@@ -513,40 +559,28 @@ static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args)
 
     if (self->kind != Py_None)
     {
-        PyObject *descriptor = PyObject_GetAttr((PyObject *) self->ob_type,
-                                                name);
+        t_kind *c = (t_kind *) ((t_item *) self->kind)->c;
+        PyObject *descriptor = NULL;
         PyObject *attribute;
 
+        if (c->flags & DESCRIPTORS_INSTALLED)
+            descriptor = PyDict_GetItem(c->descriptors, name);
+        
         if (descriptor)
         {
-            if (PyObject_TypeCheck(descriptor, CDescriptor))
+            t_attribute *attr = ((t_descriptor *) descriptor)->attr;
+            
+            if (attr)
             {
-                PyObject *attr =
-                    PyDict_GetItem(((t_descriptor *) descriptor)->attrs,
-                                   ((t_item *) self->kind)->uuid);
+                PyObject *value = PyObject_GetAttr((PyObject *) attr, aspect);
 
-                if (attr)
-                {
-                    PyObject *value = PyObject_GetAttr(attr, aspect);
+                if (value)
+                    return value;
 
-                    if (value)
-                    {
-                        Py_DECREF(descriptor);
-                        Py_INCREF(value);
-
-                        return value;
-                    }
-                    else
-                        PyErr_Clear();
-
-                    attrID = ((t_attribute *) attr)->attrID;
-                }
+                PyErr_Clear();
+                attrID = attr->attrID;
             }
-
-            Py_DECREF(descriptor);
         }
-        else
-            PyErr_Clear();
 
         if (attrID != Py_None)
         {
@@ -643,38 +677,23 @@ static PyObject *t_item_hasLocalAttributeValue(t_item *self, PyObject *args)
     Py_RETURN_FALSE;
 }
 
-static int get_attr_flags(t_item *item, PyObject *name, PyObject *uuid,
+static int get_attr_flags(t_item *item, PyObject *name, t_kind *c,
                           t_attribute **attr, int *flags)
 {
-    PyObject *descriptor = PyObject_GetAttr((PyObject *) item->ob_type, name);
-    PyObject *obj;
+    t_descriptor *descriptor = NULL;
+    t_attribute *attribute;
+
+    if (c->flags & DESCRIPTORS_INSTALLED)
+        descriptor = (t_descriptor *) PyDict_GetItem(c->descriptors, name);
 
     if (descriptor == NULL)
-    {
-        PyErr_Clear();
         return 0;
-    }
         
-    if (!PyObject_TypeCheck(descriptor, CDescriptor))
+    attribute = descriptor->attr;
+    if (attribute)
     {
-        PyErr_SetObject(PyExc_TypeError, descriptor);
-        Py_DECREF(descriptor);
-        return -1;
-    }
-
-    obj = PyDict_GetItem(((t_descriptor *) descriptor)->attrs, uuid);
-    Py_DECREF(descriptor);
-
-    if (obj)
-    {
-        if (!PyObject_TypeCheck(obj, CAttribute))
-        {
-            PyErr_SetObject(PyExc_TypeError, obj);
-            return -1;
-        }
-
-        *attr = (t_attribute *) obj;
-        *flags = (*attr)->flags;
+        *attr = attribute;
+        *flags = attribute->flags;
     }
 
     return 0;
@@ -682,38 +701,24 @@ static int get_attr_flags(t_item *item, PyObject *name, PyObject *uuid,
 
 static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
 {
-    PyObject *kind = self->kind;
-
-    if (kind != Py_None)
+    if (self->kind != Py_None)
     {
         PyObject *value, *name, *attrDict = Py_None;
-        PyObject *uuid = ((t_item *) kind)->uuid;
-        int attributesCached;
+        t_kind *c;
 
         if (!PyArg_ParseTuple(args, "O|O", &name, &attrDict))
             return NULL;
 
-        kind = PyObject_GetAttr(kind, c_NAME);
-        if (kind == NULL)
-            return NULL;
-        if (!PyObject_TypeCheck(kind, CKind))
-        {
-            PyErr_SetObject(PyExc_TypeError, kind);
-            Py_DECREF(kind);
-            return NULL;
-        }
+        c = (t_kind *) ((t_item *) self->kind)->c;
 
-        attributesCached = ((t_kind *) kind)->flags & ATTRIBUTES_CACHED;
-        Py_DECREF(kind);
-
-        if (attributesCached)
+        if (c->flags & ATTRIBUTES_CACHED)
         {
             t_attribute *attr = NULL;
             int flags = 0;
 
             if (attrDict == Py_None)
             {
-                if (get_attr_flags(self, name, uuid, &attr, &flags) < 0)
+                if (get_attr_flags(self, name, c, &attr, &flags) < 0)
                     return NULL;
                 if (attr == NULL)
                     Py_RETURN_FALSE;
@@ -743,7 +748,7 @@ static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
 
             if (attr == NULL)
             {
-                if (get_attr_flags(self, name, uuid, &attr, &flags) < 0)
+                if (get_attr_flags(self, name, c, &attr, &flags) < 0)
                     return NULL;
                 if (attr == NULL)
                     Py_RETURN_FALSE;
@@ -774,7 +779,12 @@ static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
         }
 
         if (PyObject_TypeCheck(value, CItem) || PyObject_IsTrue(value))
+        {
+            Py_DECREF(value);
             Py_RETURN_TRUE;
+        }
+
+        Py_DECREF(value);
     }
 
     Py_RETURN_FALSE;
@@ -785,35 +795,38 @@ static PyObject *_t_item__fireChanges(t_item *self,
 {
     if (self->kind != Py_None)
     {
-        PyObject *attribute =
-            PyObject_CallMethodObjArgs(self->kind, getAttribute_NAME,
-                                       name, Py_False, self, NULL);
+        t_kind *c = (t_kind *) ((t_item *) self->kind)->c;
+        t_attribute *attr = NULL;
 
-        if (attribute)
+        if (c->flags & DESCRIPTORS_INSTALLED)
         {
-            PyObject *c = PyObject_GetAttr(attribute, c_NAME);
+            t_descriptor *descriptor = (t_descriptor *)
+                PyDict_GetItem(c->descriptors, name);
 
-            Py_DECREF(attribute);
-            if (!c)
-                return NULL;
-
-            if (!PyObject_TypeCheck(c, CAttribute))
+            if (!descriptor)
             {
-                PyErr_SetObject(PyExc_TypeError, c);
-                Py_DECREF(c);
+                PyErr_SetObject(PyExc_AttributeError, name);
                 return NULL;
             }
 
-            if (CAttribute_invokeAfterChange((t_attribute *) c,
-                                             (PyObject *) self, op, name) < 0)
-            {
-                Py_DECREF(c);
-                return NULL;
-            }
-
-            Py_DECREF(c);
+            attr = descriptor->attr;
         }
         else
+        {
+            PyObject *attribute =
+                PyObject_CallMethodObjArgs(self->kind, getAttribute_NAME,
+                                           name, Py_False, self, NULL);
+
+            if (attribute)
+            {
+                attr = (t_attribute *) ((t_item *) attribute)->c;
+                Py_DECREF(attribute);
+            }
+            else
+                return NULL;
+        }
+            
+        if (CAttribute_invokeAfterChange(attr, (PyObject *) self, op, name) < 0)
             return NULL;
     }
 
@@ -856,9 +869,10 @@ static PyObject *t_item__fillItem(t_item *self, PyObject *args)
 {
     PyObject *name, *parent, *kind, *uuid, *values, *references, *hooks;
     int status, update;
-    unsigned long long version;
+    unsigned long version;
+    PyObject *result;
 
-    if (!PyArg_ParseTuple(args, "OOOOOOiK|Oi", &name, &parent, &kind,
+    if (!PyArg_ParseTuple(args, "OOOOOOik|Oi", &name, &parent, &kind,
                           &uuid, &values, &references, &status, &version,
                           &hooks, &update))
         return NULL;
@@ -895,12 +909,22 @@ static PyObject *t_item__fillItem(t_item *self, PyObject *args)
 
     Py_INCREF(kind); Py_XDECREF(self->kind);
     self->kind = kind;
-        
-    if (!PyObject_CallMethodObjArgs((PyObject *) self,
-                                    _setParent_NAME, parent, NULL) ||
-        !PyObject_CallMethodObjArgs(values, _setItem_NAME, self, NULL) ||
-        !PyObject_CallMethodObjArgs(references, _setItem_NAME, self, NULL))
+
+    result = PyObject_CallMethodObjArgs((PyObject *) self,
+                                        _setParent_NAME, parent, NULL);
+    if (!result)
         return NULL;
+    Py_DECREF(result);
+                
+    result = PyObject_CallMethodObjArgs(values, _setItem_NAME, self, NULL);
+    if (!result)
+        return NULL;
+    Py_DECREF(result);
+        
+    result = PyObject_CallMethodObjArgs(references, _setItem_NAME, self, NULL);
+    if (!result)
+        return NULL;
+    Py_DECREF(result);
 
     if (self->parent == Py_None || ((t_item *) self->parent)->status & STALE)
     {
@@ -1027,8 +1051,7 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
             }
         }
 
-        result = _countAccess(NULL, (PyObject *) self);
-        Py_DECREF(result);
+        C_countAccess(self);
 
         if (!transient)
         {
@@ -1050,6 +1073,8 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
                         self->status |= dirty;
                         return result;
                     }
+
+                    Py_DECREF(result);
                 }
             }
             else
@@ -1229,6 +1254,7 @@ static PyObject *t_item__itemChanged(t_item *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+
 /* itsKind */
 
 static PyObject *t_item__getKind(t_item *self, void *data)
@@ -1239,9 +1265,15 @@ static PyObject *t_item__getKind(t_item *self, void *data)
     {
         PyObject *view = ((t_item *) self->root)->parent;
         PyObject *uuid = ((t_item *) kind)->uuid;
+        PyObject *newKind = PyObject_GetItem(view, uuid);
 
-        Py_DECREF(kind);
-        self->kind = kind = PyObject_GetItem(view, uuid);
+        if (newKind)
+        {
+            Py_DECREF(kind);
+            self->kind = kind = newKind;
+        }
+        else
+            return NULL;
     }
 
     Py_INCREF(kind);
@@ -1250,10 +1282,14 @@ static PyObject *t_item__getKind(t_item *self, void *data)
 
 static int t_item__setKind(t_item *self, PyObject *kind, void *data)
 {
-    if (!PyObject_CallMethodObjArgs((PyObject *) self, _setKind_NAME,
-                                    kind, NULL))
+    PyObject *result =
+        PyObject_CallMethodObjArgs((PyObject *) self, _setKind_NAME,
+                                   kind, NULL);
+    
+    if (!result)
         return -1;
 
+    Py_DECREF(result);
     return 0;
 }
 
@@ -1276,10 +1312,13 @@ static PyObject *t_item__getView(t_item *self, void *data)
 
 static int t_item__setView(t_item *self, PyObject *view, void *data)
 {
-    if (!PyObject_CallMethodObjArgs(view, importItem_NAME,
-                                    (PyObject *) self, NULL))
+    PyObject *result = PyObject_CallMethodObjArgs(view, importItem_NAME,
+                                                  (PyObject *) self, NULL);
+
+    if (!result)
         return -1;
 
+    Py_DECREF(result);
     return 0;
 }
 
@@ -1294,9 +1333,15 @@ static PyObject *t_item__getParent(t_item *self, void *data)
     {
         PyObject *view = ((t_item *) self->root)->parent;
         PyObject *uuid = ((t_item *) parent)->uuid;
+        PyObject *newParent = PyObject_GetItem(view, uuid);
 
-        Py_DECREF(parent);
-        self->parent = parent = PyObject_GetItem(view, uuid);
+        if (newParent)
+        {
+            Py_DECREF(parent);
+            self->parent = parent = newParent;
+        }
+        else
+            return NULL;
     }
 
     Py_INCREF(parent);
@@ -1305,9 +1350,13 @@ static PyObject *t_item__getParent(t_item *self, void *data)
 
 static int t_item__setParent(t_item *self, PyObject *parent, void *data)
 {
-    if (!PyObject_CallMethodObjArgs((PyObject *) self, move_NAME, parent, NULL))
+    PyObject *result =
+        PyObject_CallMethodObjArgs((PyObject *) self, move_NAME, parent, NULL);
+
+    if (!result)
         return -1;
 
+    Py_DECREF(result);
     return 0;
 }
 
@@ -1324,9 +1373,13 @@ static PyObject *t_item__getName(t_item *self, void *data)
 
 static int t_item__setName(t_item *self, PyObject *name, void *data)
 {
-    if (!PyObject_CallMethodObjArgs((PyObject *) self, rename_NAME, name, NULL))
+    PyObject *result =
+        PyObject_CallMethodObjArgs((PyObject *) self, rename_NAME, name, NULL);
+
+    if (!result)
         return -1;
 
+    Py_DECREF(result);
     return 0;
 }
 
@@ -1341,9 +1394,15 @@ static PyObject *t_item__getRoot(t_item *self, void *data)
     {
         PyObject *view = ((t_item *) root)->parent;
         PyObject *uuid = ((t_item *) root)->uuid;
+        PyObject *newRoot = PyObject_GetItem(view, uuid);
 
-        Py_DECREF(root);
-        self->root = root = PyObject_GetItem(view, uuid);
+        if (newRoot)
+        {
+            Py_DECREF(root);
+            self->root = root = newRoot;
+        }
+        else
+            return NULL;
     }
 
     Py_INCREF(root);
@@ -1374,15 +1433,22 @@ static PyObject *t_item__getPath(t_item *self, void *data)
 
 static PyObject *t_item__getVersion(t_item *self, void *data)
 {
-    return PyLong_FromUnsignedLongLong(self->version);
+    return PyLong_FromUnsignedLong(self->version);
 }
 
 static int t_item__setVersion(t_item *self, PyObject *value, void *data)
 {
-    unsigned long long version = PyLong_AsUnsignedLongLong(value);
-    
-    if (PyErr_Occurred())
+    unsigned long version;
+
+    if (PyInt_Check(value))
+        version = PyInt_AS_LONG(value);
+    else if (PyLong_Check(value))
+        version = PyLong_AsUnsignedLong(value);
+    else
+    {
+        PyErr_SetObject(PyExc_TypeError, value);
         return -1;
+    }
 
     self->version = version;
     
@@ -1463,7 +1529,6 @@ void _init_item(PyObject *m)
             filterItem_NAME = PyString_FromString("filterItem");
             _setParent_NAME = PyString_FromString("_setParent");
             _setItem_NAME = PyString_FromString("_setItem");
-            c_NAME = PyString_FromString("c");
             getAttributeValue_NAME = PyString_FromString("getAttributeValue");
         }
     }

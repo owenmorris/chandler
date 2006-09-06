@@ -145,6 +145,7 @@ static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
             if (u->ob_type != &UUIDType)
             {
                 PyErr_SetObject(PyExc_TypeError, u);
+                Py_DECREF(u);
                 return -1;
             }
 

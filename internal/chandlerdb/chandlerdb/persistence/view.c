@@ -266,7 +266,7 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    self->version = (long long) 0;
+    self->version = 0;
     Py_INCREF(name); self->name = name;
     Py_INCREF(repository); self->repository = repository;
     Py_INCREF(Py_None); self->changeNotifications = Py_None;
@@ -287,7 +287,7 @@ static PyObject *t_view_repr(t_view *self)
     PyObject *format = PyString_FromString("<%s: %s (%d)>");
     PyObject *typeName = PyObject_GetAttrString((PyObject *) self->ob_type,
                                                 "__name__");
-    PyObject *version = PyLong_FromLongLong(self->version);
+    PyObject *version = PyLong_FromUnsignedLong(self->version);
     PyObject *args = PyTuple_Pack(3, typeName, self->name, version);
     PyObject *repr = PyString_Format(format, args);
 
@@ -578,24 +578,35 @@ static PyObject *t_view__getParent(t_view *self, void *data)
 
 static PyObject *t_view__getVersion(t_view *self, void *data)
 {
-    return PyLong_FromUnsignedLongLong(self->version);
+    return PyLong_FromUnsignedLong(self->version);
 }
 
 static int t_view__setVersion(t_view *self, PyObject *version, void *data)
 {
-    if (!PyObject_CallMethodObjArgs((PyObject *) self, refresh_NAME,
-                                    Py_None, version, NULL))
+    PyObject *result =
+        PyObject_CallMethodObjArgs((PyObject *) self, refresh_NAME,
+                                   Py_None, version, NULL);
+
+    if (!result)
         return -1;
 
+    Py_DECREF(result);
     return 0;
 }
 
 static int t_view__set_version(t_view *self, PyObject *value, void *data)
 {
-    unsigned long long version = PyLong_AsUnsignedLongLong(value);
-    
-    if (PyErr_Occurred())
+    unsigned long version;
+
+    if (PyInt_Check(value))
+        version = PyInt_AS_LONG(value);
+    else if (PyLong_Check(value))
+        version = PyLong_AsUnsignedLong(value);
+    else
+    {
+        PyErr_SetObject(PyExc_TypeError, value);
         return -1;
+    }
 
     self->version = version;
     
