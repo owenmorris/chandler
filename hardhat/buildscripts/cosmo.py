@@ -37,8 +37,7 @@ sleepMinutes = 30
 reposRoot    = 'http://svn.osafoundation.org/server'
 reposModules = [('cosmo',  'cosmo/trunk',),
                ]
-reposBuild   = [('cosmo',  'clean build'),
-                ('cosmo/migrate', 'javaapp:deploy'),
+reposBuild   = [('cosmo',  'clean dist'),
                ]
 reposTest    = [('cosmo',  'clean test'),
                ]
