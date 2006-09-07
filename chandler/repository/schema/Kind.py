@@ -235,8 +235,6 @@ class Kind(Item):
                        Values(item), References(item), 0, version,
                        [], False)
 
-        if name == 'inCollection':
-            import pdb; pdb.set_trace()
         self._setupClass(cls)
 
         if withInitialValues:
