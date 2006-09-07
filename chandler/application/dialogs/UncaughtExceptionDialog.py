@@ -14,7 +14,7 @@
 
 
 import wx
-from i18n import ChandlerMessageFactory as _
+from i18n import ChandlerSafeTranslationMessageFactory as _
 
 class ErrorDialog(wx.Dialog):
     """
