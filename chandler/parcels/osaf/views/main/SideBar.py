@@ -1093,7 +1093,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             if item is not None:
                 collectionList.append (item)
             if (sidebar.filterKind not in sidebar.disallowOverlaysForFilterKinds and
-                not UserCollection (item).outOfTheBoxCollection):
+                not (item is not None and UserCollection (item).outOfTheBoxCollection)):
                 for theItem in sidebar.contents:
                     if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
                          theItem not in collectionList):
