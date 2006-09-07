@@ -138,7 +138,8 @@ def main():
                     frames = 8
                     line1 = _(u"Chandler encountered an unexpected problem while trying to start.\n")
                     line2 = _(u"Here are the bottom %(frames)s frames of the stack:\n") % {'frames': frames - 1}
-                    shortMessage = u"".join([line1, line2, u"\n"] + unicode(backtrace[-frames:], "UTF-8", "ignore"))
+                    shortMessage = u"".join([line1, line2, u"\n"])
+                    shortMessage += unicode("".join(backtrace[-frames:]), "UTF-8", "ignore")
                     dialog = wx.MessageDialog(None, shortMessage, _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
                 dialog.ShowModal()
                 dialog.Destroy()
