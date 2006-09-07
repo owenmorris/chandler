@@ -379,7 +379,11 @@ class wxTable(DragAndDrop.DraggableWidget,
                     # wxSynchronizeWidget is over
                     wx.CallAfter(self.blockItem.PostSelectItems,
                                  [self.blockItem.contents[itemIndex]])
-                
+        
+        rowHeight = getattr (self.blockItem, "rowHeight", None)
+        if rowHeight is not None:
+            self.SetDefaultRowSize (rowHeight)
+        
         self.SynchronizeDelegate()
 
         #Trim/extend the control's rows and update all values
@@ -676,6 +680,8 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
 class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
     columns = schema.Sequence(Column, required=True)
+    
+    rowHeight = schema.One(schema.Integer)
     
     elementDelegate = schema.One(schema.Text, initialValue = '')
     defaultEditableAttribute = \

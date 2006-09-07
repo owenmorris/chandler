@@ -49,7 +49,7 @@ def makeMainView (parcel):
     IconButton = SSSidebarIconButton.update(
         parcel, 'IconButton',
         buttonName = 'Icon',
-        buttonOffsets = [1,17,16])
+        buttonOffsets = [1,22,19])
     
     SharingButton = SSSidebarSharingButton.update(
         parcel, 'SharingIcon',
@@ -69,8 +69,9 @@ def makeMainView (parcel):
                                  attributeName = u'displayName')],
                           
         scaleWidthsToFit = True,
+        rowHeight = 19,
         border = RectType(0, 0, 4, 0),
-        editRectOffsets = [17, -17, 0],
+        editRectOffsets = [22, -17, 0],
         buttons = [IconButton, SharingButton],
         contents = sidebarSelectionCollection,
         elementDelegate = 'osaf.views.main.SideBar.SidebarElementDelegate',
