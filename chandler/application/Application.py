@@ -274,7 +274,6 @@ def _mergeFunction(code, item, attribute, value):
     # return value                              # Let changes from the
                                                 # main view win
 
-
 class wxApplication (wx.App):
 
     outputWindowClass = feedback.FeedbackWindow
@@ -286,10 +285,50 @@ class wxApplication (wx.App):
         Main application initialization.
         """
 
-        # A temporary (?) workaround to prevent the default error
-        # dialog box popping up on Ubuntu that is stopping
-        # functional tests. See bug 6120 for more info.
-        wx.Log.SetActiveTarget(wx.LogStderr())
+        # Python errors caught by wx are emitted via PyErr_Print() which
+        # outputs to Python's sys.stderr (bug 6586).
+        #
+        # Unless --stderr is used, ensure that all stderr output ends
+        # up in the logger output.
+        #
+        # Unless --nocatch is used, Python's sys.stderr is already overriden
+        # by the feedback window setup at this point.
+
+        if not Globals.options.stderr:
+
+            class _stderr(object):
+                def __init__(self, stderr):
+                    self.stderr = stderr
+                    self.output = []
+                    self.logger = logging.getLogger('stderr')
+                def __getattr__(self, name):
+                    return getattr(self.stderr, name)
+                def write(self, string):
+                    self.stderr.write(string)
+                    if string.endswith('\n'):
+                        self.output.append(string.rstrip())
+                        self.flush()
+                    else:
+                        self.output.append(string)
+                def flush(self):
+                    self.stderr.flush()
+                    self.logger.warning(''.join(self.output))
+                    self.output = []
+
+            sys.stderr = _stderr(sys.stderr)
+
+
+        # Ensure that all of wx's C/C++ stdout/stderr output goes to Python's
+        # sys.stderr instead (bugs 6120, 6150)
+
+        class _pyLog(wx.PyLog):
+            def DoLogString(self, message, timestamp):
+                sys.stderr.write('wx output: ')
+                sys.stderr.write(message)
+                sys.stderr.write('\n')
+
+        wx.Log.SetActiveTarget(_pyLog())
+
 
         # The initI18n can't be initialized until after the App
         # object has been created since initialization creates a
