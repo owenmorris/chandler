@@ -106,6 +106,9 @@ class TranslationTool(LocalizationBase):
         'Directory': ('-d', '--directory', True, 'The root directory to search under for XRC and Python files. Can only be used in conjunction with the -p Project command.'),
         }
 
+        #XXX Bug 6657: mmmm fill in with text on how to use tool
+        self.DESC = ""
+
         super(TranslationTool, self).getOpts()
 
         if self.OPTIONS.Chandler:

@@ -11,6 +11,7 @@ class LocalizationBase(object):
     CONFIGITEMS = None
     OPTIONS = None
     RAISED = False
+    DESC = ""
 
     CHANDLER = ["application", os.path.join("parcels", "osaf")]
 
@@ -98,6 +99,7 @@ class LocalizationBase(object):
         # %prog expands to os.path.basename(sys.argv[0])
         usage  = "usage: %prog [options]"
         parser = OptionParser(usage=usage, version="%prog 1.0")
+        parser.set_description(self.DESC)
 
         for key in self.CONFIGITEMS:
             (shortCmd, longCmd, argReq, helpText) = self.CONFIGITEMS[key]

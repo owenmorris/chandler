@@ -225,6 +225,9 @@ setup(
 
         super(TranslationEggTool, self).getOpts()
 
+        #XXX Bug 6657: mmmm fill in with text on how to use tool
+        self.DESC = ""
+
         if not self.OPTIONS.Locale:
             self.raiseError("A Locale (-l) must be specified.")
 
