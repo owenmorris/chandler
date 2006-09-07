@@ -20,6 +20,12 @@ typedef struct {
     t_item *kind;
     unsigned long flags;
     PyObject *descriptors;
+    PyObject *inheritedSuperKinds;
+    PyObject *notifyAttributes;
+    PyObject *allAttributes;
+    PyObject *allNames;
+    PyObject *inheritedAttributes;
+    PyObject *notFoundAttributes;
 } t_kind;
 
 enum {

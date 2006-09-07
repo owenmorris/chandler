@@ -45,6 +45,18 @@ static int t_kind_setDescriptorsInstalling(t_kind *self, PyObject *arg,
 static PyMemberDef t_kind_members[] = {
     { "descriptors", T_OBJECT, offsetof(t_kind, descriptors), 0,
       "attribute descriptors" },
+    { "inheritedSuperKinds", T_OBJECT, offsetof(t_kind, inheritedSuperKinds), 0,
+      "" },
+    { "notifyAttributes", T_OBJECT, offsetof(t_kind, notifyAttributes), 0,
+      "" },
+    { "allAttributes", T_OBJECT, offsetof(t_kind, allAttributes), 0,
+      "" },
+    { "allNames", T_OBJECT, offsetof(t_kind, allNames), 0,
+      "" },
+    { "inheritedAttributes", T_OBJECT, offsetof(t_kind, inheritedAttributes), 0,
+      "" },
+    { "notFoundAttributes", T_OBJECT, offsetof(t_kind, notFoundAttributes), 0,
+      "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -131,6 +143,13 @@ static int t_kind_traverse(t_kind *self, visitproc visit, void *arg)
 {
     Py_VISIT((PyObject *) self->kind);
     Py_VISIT(self->descriptors);
+    Py_VISIT(self->inheritedSuperKinds);
+    Py_VISIT(self->notifyAttributes);
+    Py_VISIT(self->allAttributes);
+    Py_VISIT(self->allNames);
+    Py_VISIT(self->inheritedAttributes);
+    Py_VISIT(self->notFoundAttributes);
+
     return 0;
 }
 
@@ -138,6 +157,13 @@ static int t_kind_clear(t_kind *self)
 {
     Py_CLEAR(self->kind);
     Py_CLEAR(self->descriptors);
+    Py_CLEAR(self->inheritedSuperKinds);
+    Py_CLEAR(self->notifyAttributes);
+    Py_CLEAR(self->allAttributes);
+    Py_CLEAR(self->allNames);
+    Py_CLEAR(self->inheritedAttributes);
+    Py_CLEAR(self->notFoundAttributes);
+
     return 0;
 }
 
@@ -147,9 +173,21 @@ static PyObject *t_kind_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     if (self)
     {
+        PyObject *noArgs = PyTuple_New(0);
+
         self->kind = NULL;
         self->flags = 0;
         self->descriptors = PyDict_New();
+        self->inheritedSuperKinds =
+            PyObject_Call((PyObject *) &PySet_Type, noArgs, NULL);
+        self->notifyAttributes = 
+            PyObject_Call((PyObject *) &PySet_Type, noArgs, NULL);
+        self->allAttributes = PyDict_New();
+        self->allNames = PyDict_New();
+        self->inheritedAttributes = PyDict_New();
+        self->notFoundAttributes = PyList_New(0);
+
+        Py_DECREF(noArgs);
     }
 
     return (PyObject *) self;
