@@ -37,13 +37,16 @@ CORE=Path('//Schema/Core')
 class Kind(Item):
 
     def __init__(self, *args, **kw):
+
         super(Kind, self).__init__(*args, **kw)
         self.__init()
         self._createExtent(self.itsView)
 
     def __init(self):
 
-        self.c = CKind(self)
+        if self.c is None:
+            self.c = CKind(self)
+
         self._notFoundAttributes = []
         self._initialValues = None
         self._initialReferences = None
@@ -123,6 +126,13 @@ class Kind(Item):
 
     def _setupClass(self, cls):
 
+        if not self.c.descriptorsInstalled:
+            if self._setupDescriptors():
+                if self._status & CItem.CORESCHEMA:
+                    cls.__core_schema__ = self.c.descriptors
+            else:
+                return False
+
         uuid = self.itsUUID
         kinds = Kind._kinds
         classes = Kind._classes
@@ -130,8 +140,10 @@ class Kind(Item):
         clss = kinds.get(uuid)
         if clss is None:
             kinds[uuid] = set((cls,))
-        else:
+            self._setupDelegates(cls)
+        elif cls not in clss:
             clss.add(cls)
+            self._setupDelegates(cls)
 
         uuids = classes.get(cls)
         if uuids is None:
@@ -139,10 +151,11 @@ class Kind(Item):
         else:
             uuids.add(uuid)
 
-        if not self.c.descriptorsInstalled:
-            if self._setupDescriptors():
-                if self._status & CItem.CORESCHEMA:
-                    cls.__core_schema__ = self.c.descriptors
+        self.c.monitorSchema = True
+
+        return True
+
+    def _setupDelegates(self, cls):
 
         delegates = getattr(cls, '__delegates__', None)
         if delegates:
@@ -164,8 +177,6 @@ class Kind(Item):
                     if (not hasattr(cls, name) and
                         callable(getattr(type, name))):
                         setattr(cls, name, DelegateDescriptor(name, delegate))
-
-        self.c.monitorSchema = True
 
     def newItem(self, name=None, parent=None, cls=None, **values):
         """
@@ -234,6 +245,8 @@ class Kind(Item):
                        Values(item), References(item), 0, version,
                        [], False)
 
+        if name == 'inCollection':
+            import pdb; pdb.set_trace()
         self._setupClass(cls)
 
         if withInitialValues:

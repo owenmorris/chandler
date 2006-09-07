@@ -902,18 +902,18 @@ class DBItemReader(ItemReader, DBValueReader):
         else:
             item = self.item = cls.__new__(cls)
 
+        if kind is not None:
+            afterLoadHooks.append(lambda view: kind._setupClass(cls))
+
+        if hasattr(cls, 'onItemLoad'):
+            afterLoadHooks.append(item.onItemLoad)
+
         item._fillItem(self.name, parent, kind, self.uItem,
                        values, references, status, self.version,
                        afterLoadHooks, False)
 
         if isContainer:
             item._children = view._createChildren(item, False)
-
-        if kind is not None:
-            afterLoadHooks.append(lambda view: kind._setupClass(cls))
-
-        if hasattr(cls, 'onItemLoad'):
-            afterLoadHooks.append(item.onItemLoad)
 
         return item
 
