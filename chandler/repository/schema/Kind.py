@@ -47,14 +47,8 @@ class Kind(Item):
         if self.c is None:
             self.c = CKind(self)
 
-        self._notFoundAttributes = []
         self._initialValues = None
         self._initialReferences = None
-        self._inheritedAttributes = {}
-        self._inheritedSuperKinds = set()
-        self._notifyAttributes = set()
-        self._allAttributes = {}
-        self._allNames = {}
 
         self._status |= Item.SCHEMA | Item.PINNED
 
@@ -116,10 +110,12 @@ class Kind(Item):
 
     def _setupClass(self, cls):
 
-        if not self.c.descriptorsInstalled:
+        c = self.c
+
+        if not c.descriptorsInstalled:
             if self._setupDescriptors():
                 if self._status & CItem.CORESCHEMA:
-                    cls.__core_schema__ = self.c.descriptors
+                    cls.__core_schema__ = c.descriptors
             else:
                 return False
 
@@ -141,7 +137,7 @@ class Kind(Item):
         else:
             uuids.add(uuid)
 
-        self.c.monitorSchema = True
+        c.monitorSchema = True
 
         return True
 
@@ -383,7 +379,7 @@ class Kind(Item):
         c = self.c
 
         if c.attributesCached:
-            attr = self._allAttributes.get(name)
+            attr = c.allAttributes.get(name)
             if attr is None:
                 if noError:
                     return None
@@ -404,7 +400,7 @@ class Kind(Item):
             attribute = None
             
         if attribute is None:
-            attribute = self._inheritedAttributes.get(name)
+            attribute = self.c.inheritedAttributes.get(name)
             if attribute is not None:
                 return self.itsView[attribute]
             attribute = self._inheritAttribute(name)
@@ -414,9 +410,11 @@ class Kind(Item):
         return attribute
 
     def hasAttribute(self, name):
+        
+        c = self.c
 
-        if self.c.attributesCached:
-            return name in self._allAttributes
+        if c.attributesCached:
+            return name in c.allAttributes
 
         attributes = self._references.get('attributes', None)
         if attributes is not None:
@@ -426,7 +424,7 @@ class Kind(Item):
 
         if uuid is not None:
             return True
-        elif name in self._inheritedAttributes:
+        elif name in c.inheritedAttributes:
             return True
 
         return self._inheritAttribute(name) is not None
@@ -479,11 +477,11 @@ class Kind(Item):
         """
 
         c = self.c
-        allAttributes = self._allAttributes
+        allAttributes = c.allAttributes
 
         if not c.attributesCached:
-            allNames = self._allNames
-            notifyAttributes = self._notifyAttributes
+            allNames = c.allNames
+            notifyAttributes = c.notifyAttributes
 
             allAttributes.clear()
             allNames.clear()
@@ -521,8 +519,10 @@ class Kind(Item):
 
     def _nameTuple(self, hashTuple):
 
-        if self.c.attributesCached:
-            allNames = self._allNames
+        c = self.c
+
+        if c.attributesCached:
+            allNames = c.allNames
             return tuple([allNames[hash] for hash in hashTuple])
         else:
             return tuple([name for name, a, k in self.iterAttributes()
@@ -530,16 +530,18 @@ class Kind(Item):
 
     def _iterNotifyAttributes(self):
 
-        if not self.c.attributesCached:
+        c = self.c
+
+        if not c.attributesCached:
             self.iterAttributes()
 
-        return iter(self._notifyAttributes)
+        return iter(c.notifyAttributes)
 
     def getInheritedSuperKindIDs(self):
 
         c = self.c
         references = self._references
-        inherited = self._inheritedSuperKinds
+        inherited = c.inheritedSuperKinds
 
         if not c.superKindsCached:
             for superKind in references['superKinds']:
@@ -556,21 +558,24 @@ class Kind(Item):
 
     def _inheritAttribute(self, name):
 
-        if name in self._notFoundAttributes:
+        c = self.c
+
+        if name in c.notFoundAttributes:
             return None
 
         cache = True
-        for superKind in self.getAttributeValue('superKinds', self._references):
+        inheritedAttributes = c.inheritedAttributes
+        for superKind in self._references.get('superKinds', Nil):
             if superKind is not None:
                 attribute = superKind.getAttribute(name, True)
                 if attribute is not None:
-                    self._inheritedAttributes[name] = attribute.itsUUID
+                    inheritedAttributes[name] = attribute.itsUUID
                     return attribute
             else:
                 cache = False
                     
         if cache:
-            self._notFoundAttributes.append(name)
+            c.notFoundAttributes.append(name)
 
         return None
 
@@ -710,34 +715,22 @@ class Kind(Item):
     def flushCaches(self, reason):
         """
         Flush the caches setup on this Kind and its subKinds.
-
-        This method should be called when following properties have been
-        changed:
-
-            - the kind's item class, the value of C{self.classes['python']},
-              see L{getItemClass} for more information
-
-            - the kind's attributes list or some attributes' initial values
-
-            - the kind's superKinds list
-
-        The caches of the subKinds of this kind are flushed recursively.
         """
 
         c = self.c
-        stale = self.isStale()
 
         if c.attributesCached:
-            self._allAttributes.clear()
-            self._allNames.clear()
-            self._notifyAttributes.clear()
+            c.allAttributes.clear()
+            c.allNames.clear()
+            c.notifyAttributes.clear()
             c.attributesCached = False
 
-        self._inheritedSuperKinds.clear()
+        c.inheritedSuperKinds.clear()
         c.superKindsCached = False
 
-        self._inheritedAttributes.clear()
-        del self._notFoundAttributes[:]
+        c.inheritedAttributes.clear()
+        del c.notFoundAttributes[:]
+
         self._initialValues = None
         self._initialReferences = None
 
@@ -746,20 +739,13 @@ class Kind(Item):
             self._values._clearTransient('classes')
             del self._values['classes']
 
-        if not stale:
-            for subKind in self._references.get('subKinds', Nil):
-                subKind.flushCaches(reason)
+        for subKind in self._references.get('subKinds', Nil):
+            subKind.flushCaches(reason)
 
-        if reason is not None:
-            self._setupDescriptors(reason)
+        self._setupDescriptors(reason)
 
         if 'schemaHash' in self._values:
             del self.schemaHash
-
-    def _unloadItem(self, reloadable, view, clean=True):
-
-        super(Kind, self)._unloadItem(reloadable, view, clean)
-        self.flushCaches(None)
 
     # begin typeness of Kind as SingleRef
     

@@ -317,7 +317,7 @@ class RefList(LinkedMap, Indexed):
                 afterKey = None
 
             self.place(key, afterKey)
-            self._setDirty(True)
+            self._setDirty()
         else:
             self.placeInIndex(item, after, *indexNames)
 

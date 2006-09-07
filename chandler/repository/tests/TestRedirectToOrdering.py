@@ -146,8 +146,6 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
 
         # place the last superKind first
         taskKind.superKinds.placeItem(taskKind.superKinds.last(), None)
-        # flush kind caches after re-arranging superKinds
-        taskKind.flushCaches('superKinds')
 
         redirectTo = aTask.getAttributeAspect('who', 'redirectTo')
         print "who points to", aTask.getAttributeAspect('who', 'redirectTo')
