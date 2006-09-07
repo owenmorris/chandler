@@ -21,10 +21,10 @@ import Globals
 import version
 from feedback_xrc import *
 
+LOGLINES = 500
 
 activeWindow = None
 destroyAppOnClose = False
-
 
 def initRuntimeLog(profileDir):
     """
@@ -84,9 +84,9 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
                 f = codecs.open(os.path.join(Globals.options.profileDir,
                                              'chandler.log'),
                                 encoding='utf-8', mode='r', errors='ignore')
-                for line in f.readlines()[-20:]:
+                for line in f.readlines()[-LOGLINES:]:
                     self.frame.sysInfo.InsertStringItem(index, 'chandler.log')
-                    self.frame.sysInfo.SetStringItem(index, 1, '%s' % line)
+                    self.frame.sysInfo.SetStringItem(index, 1, '%s' % line.strip())
                     index += 1
             except:
                 pass
@@ -94,9 +94,9 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
                 f = codecs.open(os.path.join(Globals.options.profileDir,
                                              'twisted.log'),
                                 encoding='utf-8', mode='r', errors='ignore')
-                for line in f.readlines()[-20:]:
+                for line in f.readlines()[-LOGLINES:]:
                     self.frame.sysInfo.InsertStringItem(index, 'twisted.log')
-                    self.frame.sysInfo.SetStringItem(index, 1, '%s' % line)
+                    self.frame.sysInfo.SetStringItem(index, 1, '%s' % line.strip())
                     index += 1
             except:
                 pass
@@ -220,6 +220,7 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             # XXX This would probably be better (we might leak resources with
             # XXX sys.exit), but causes Python crash            
             #wx.GetApp().Destroy()
+        initRuntimeLog(Globals.options.profileDir)
 
     def OnSend(self, event):
         self.frame.sendButton.Disable()
