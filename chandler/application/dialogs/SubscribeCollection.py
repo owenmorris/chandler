@@ -166,6 +166,11 @@ class SubscribeDialog(wx.Dialog):
         view = self.view
         url = self.textUrl.GetValue()
         url = url.strip()
+
+        if " " in url:
+            self._showStatus(_(u"Spaces are not allowed in URLs"))
+            return
+
         if url.startswith('webcal:'):
             url = 'http:' + url[7:]
 
