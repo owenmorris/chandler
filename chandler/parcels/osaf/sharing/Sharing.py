@@ -89,25 +89,27 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
             )
             return True
 
-        logger.debug("Sharing conflict on item %(item)s, attribute "
-            "%(attribute)s: %(local)s vs %(remote)s", {
-                'item' : item,
-                'attribute' : attribute,
-                'local' : unicode(getattr(item, attribute)).encode('utf8'),
-                'remote' : unicode(value).encode('utf8'),
-            })
+        # Uncomment to get sharing conflict log messages:
+        # if logger.getEffectiveLevel() <= logging.DEBUG:
+        #     logger.debug("Sharing conflict on item %(item)s, attribute "
+        #         "%(attribute)s: %(local)s vs %(remote)s", {
+        #             'item' : item,
+        #             'attribute' : attribute,
+        #             'local' : unicode(getattr(item, attribute,
+        #                 Nil)).encode('utf8'),
+        #             'remote' : unicode(value).encode('utf8'),
+        #         })
 
         # @@@MOR Probably not a good idea to create new items inside the
         # conflict resolution callback.
-
-        """ Commenting out for now
-        SharingConflictNotification(itsView=item.itsView,
-            displayName="Conflict for attribute %s" % attribute,
-            attribute=attribute,
-            local=unicode(getattr(item, attribute, None)),
-            remote=unicode(value),
-            items=[item])
-        """
+        #
+        # Commenting out for now
+        # SharingConflictNotification(itsView=item.itsView,
+        #     displayName="Conflict for attribute %s" % attribute,
+        #     attribute=attribute,
+        #     local=unicode(getattr(item, attribute, None)),
+        #     remote=unicode(value),
+        #     items=[item])
 
         # if updateCallback:
         #     updateCallback(
