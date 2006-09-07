@@ -222,6 +222,24 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             #wx.GetApp().Destroy()
         initRuntimeLog(Globals.options.profileDir)
 
+    def logReport(self, feedbackXML, serverResponse):
+        try:
+            # chandler.log
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(serverResponse)
+            
+            # Log each report to a new file
+            # A response looks like this:
+            # desktop feedback submission #2006-09-07T13-25-10.279322 successful.
+            import re
+            feedbackId = re.compile('^.*(\d{4}\-\d{2}\-\d{2}T\d{2}\-\d{2}\-\d{2}\.\d{6}).*$').match(serverResponse).group(1)
+            f = open(os.path.join(Globals.options.profileDir, 'feedback-%s.xml' % feedbackId), 'w')
+            f.write(feedbackXML)
+            f.close()
+        except:
+            pass
+
     def OnSend(self, event):
         self.frame.sendButton.Disable()
         # Disabling the focused button disables keyboard navigation
@@ -245,6 +263,7 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
                             self.frame.sysInfo, self.frame.text)
             c.request('POST', '/desktop/post/submit', body)
             response = c.getresponse()
+            
             if response.status != 200:
                 raise Exception('response.status=' + response.status)
             c.close()
@@ -252,6 +271,7 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             self.frame.sendButton.SetLabel(_(u'Failed to send'))
         else:
             self.frame.sendButton.SetLabel(_(u'Sent'))
+            self.logReport(body, response.read())
         
 
 def buildXML(comments, email, optional, required):
@@ -305,10 +325,5 @@ def buildXML(comments, email, optional, required):
     if isinstance(s, unicode):
         s = s.encode('utf8')
     
-    # For debugging purposes:
-    #f = open('feedback.xml', 'w')
-    #f.write(s)
-    #f.close()
-
     return s
 
