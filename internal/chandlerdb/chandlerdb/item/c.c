@@ -28,6 +28,7 @@ PyTypeObject *CKind = NULL;
 PyTypeObject *CAttribute = NULL;
 PyTypeObject *CDescriptor = NULL;
 PyTypeObject *ItemValue = NULL;
+PyTypeObject *StaleItemAttributeError = NULL;
 PyObject *Nil = NULL;
 PyObject *Default = NULL;
 
@@ -136,6 +137,10 @@ void initc(void)
 
     m = PyImport_ImportModule("chandlerdb.item.ItemValue");
     LOAD_TYPE(m, ItemValue);
+    Py_DECREF(m);
+
+    m = PyImport_ImportModule("chandlerdb.item.ItemError");
+    LOAD_TYPE(m, StaleItemAttributeError);
     Py_DECREF(m);
 
     m = PyImport_ImportModule("chandlerdb.schema.c");

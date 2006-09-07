@@ -136,6 +136,13 @@ class ReadOnlyAttributeError(AttributeError, ItemError):
         return self.__doc__ %(self.getItem().itsPath, self.args[1])
 
 
+class StaleItemAttributeError(AttributeError, ItemError):
+    __doc__ = "Stale Item '%s' has no attribute '%s'"
+
+    def __str__(self):
+        return self.__doc__ %(self.getItem()._repr_(), self.args[1])
+
+
 class KindlessItemError(TypeError, ItemError):
     __doc__ = "Item is kindless"
 

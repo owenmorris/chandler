@@ -49,6 +49,7 @@ extern PyTypeObject *CKind;
 extern PyTypeObject *CAttribute;
 extern PyTypeObject *CDescriptor;
 extern PyTypeObject *ItemValue;
+extern PyTypeObject *StaleItemAttributeError;
 
 extern PyObject *Nil;
 extern PyObject *Default;

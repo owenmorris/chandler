@@ -352,7 +352,19 @@ static PyObject *t_item_getattro(t_item *self, PyObject *name)
         }
     }
 
-    return PyObject_GenericGetAttr((PyObject *) self, name);
+    {
+        PyObject *value = PyObject_GenericGetAttr((PyObject *) self, name);
+
+        if (!value && self->status & STALE)
+        {
+            PyObject *tuple = PyTuple_Pack(2, self, name);
+
+            PyErr_SetObject((PyObject *) StaleItemAttributeError, tuple);
+            Py_DECREF(tuple);
+        }
+
+        return value;
+    }
 }
 
 static int t_item_setattro(t_item *self, PyObject *name, PyObject *value)
