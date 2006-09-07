@@ -2,84 +2,9 @@
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/ or internal/
 
-
 .PHONY: default install-core install distrib clean realclean downloads build-plugins
 
 default: install
-
-
-OS         = $(shell uname)
-PYTHON_VER = 2.4
-BP         =
-
-ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
-    OS = Cygwin
-endif
-
-ifeq ($(findstring WINNT,$(OS)),WINNT)
-    OS = Cygwin
-endif
-
-ifeq ($(DEBUG),1)
-    SNAP         = debug
-    DEBUG_SUFFIX = _d
-else
-    SNAP         =release
-    DEBUG_SUFFIX =
-endif
-
-# on Windows, CHANDLERHOME and CHANDLERBIN *must* be in Windows style
-# this is because of RunChandler.bat and RunPython.bat
-# so internally we need to convert them to unix style
-
-ifeq ($(CHANDLERHOME),)
-    CHANDLERHOME = $(shell pwd)
-endif
-
-ifeq ($(CHANDLERBIN),)
-    CHANDLERBIN = $(CHANDLERHOME)
-endif
-
-ifeq ($(CHANDLERARCHIVES),)
-    CHANDLERARCHIVES = ../downloads
-endif
-
-PLUGIN_ARCHIVES = $(CHANDLERARCHIVES)
-
-ifeq ($(OS),Cygwin)
-    C_BIN         = $(shell cygpath -aw $(CHANDLERBIN))
-    C_HOME        = $(shell cygpath -aw $(CHANDLERHOME))
-    SITE          = $(SNAP)/bin/Lib/site-packages
-    PLATFORM      = windows
-    EASYINSTALL   = $(CHANDLERBIN)/$(SNAP)/easy_install.exe
-    PLUGIN_PYTHON = CHANDLERHOME=$(shell cygpath -aw $(C_HOME)) $(CHANDLERBIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
-    SED_MODERN    = -r
-else
-    C_BIN  = $(CHANDLERBIN)
-    C_HOME = $(CHANDLERHOME)
-
-    ifeq ($(OS),Darwin)
-        FRAMEWORK     = Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
-        SITE          = $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
-        ARCH          = $(shell arch)
-        EASYINSTALL   = MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(C_BIN)/$(SNAP)/easy_install
-        PLUGIN_PYTHON = MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(C_HOME) $(C_BIN)/$(SNAP)/RunPython
-        SED_MODERN    = -E
-
-        ifeq ($(ARCH),ppc)
-            PLATFORM = macosx
-        else
-            PLATFORM = maciosx
-        endif
-    else
-        SITE          = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
-        PLATFORM      = linux
-        EASYINSTALL   = $(C_BIN)/$(SNAP)/easy_install
-        PLUGIN_PYTHON = CHANDLERHOME=$(C_HOME) $(C_BIN)/$(SNAP)/RunPython
-        SED_MODERN    =-r
-    endif
-endif
-
 
 BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-AmazonPlugin \
@@ -116,6 +41,84 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)D.tar.gz \
            $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.11.0-$(BP)3.tar.gz \
            $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.7.2-$(BP)1.tar.gz
 
+OS         = $(shell uname)
+PYTHON_VER = 2.4
+BP         =
+
+ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
+    OS = Cygwin
+endif
+
+ifeq ($(findstring WINNT,$(OS)),WINNT)
+    OS = Cygwin
+endif
+
+ifeq ($(DEBUG),1)
+    SNAP         = debug
+    DEBUG_SUFFIX = _d
+else
+    SNAP         =release
+    DEBUG_SUFFIX =
+endif
+
+# on Windows, CHANDLERHOME and CHANDLERBIN *must* be in Windows style
+# this is because of RunChandler.bat and RunPython.bat
+# so internally we need to convert them to unix style
+
+ifeq ($(CHANDLERHOME),)
+    ifeq ($(OS),Cygwin)
+        CHANDLERHOME = $(shell cygpath -aw $(shell pwd))
+    else
+        CHANDLERHOME = $(shell pwd)
+    endif
+endif
+
+ifeq ($(CHANDLERBIN),)
+    CHANDLERBIN = $(CHANDLERHOME)
+endif
+
+ifeq ($(CHANDLERARCHIVES),)
+    CHANDLERARCHIVES = ../downloads
+endif
+
+PLUGIN_ARCHIVES = $(CHANDLERARCHIVES)
+
+ifeq ($(OS),Cygwin)
+    C_BIN         = $(shell cygpath -au $(CHANDLERBIN))
+    C_HOME        = $(shell cygpath -au $(CHANDLERHOME))
+    SITE          = $(SNAP)/bin/Lib/site-packages
+    PLATFORM      = windows
+    EASYINSTALL   = $(C_BIN)/$(SNAP)/easy_install.exe
+    PLUGIN_PYTHON = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
+    RUN_PYTHON    = $(C_BIN)/$(SNAP)/RunPython.bat
+    SED_MODERN    = -r
+else
+    C_BIN  = $(CHANDLERBIN)
+    C_HOME = $(CHANDLERHOME)
+
+    ifeq ($(OS),Darwin)
+        FRAMEWORK     = Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
+        SITE          = $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
+        ARCH          = $(shell arch)
+        EASYINSTALL   = MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(C_BIN)/$(SNAP)/easy_install
+        PLUGIN_PYTHON = MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
+        RUN_PYTHON    = $(C_BIN)/$(SNAP)/RunPython
+        SED_MODERN    = -E
+
+        ifeq ($(ARCH),ppc)
+            PLATFORM = macosx
+        else
+            PLATFORM = maciosx
+        endif
+    else
+        SITE          = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
+        PLATFORM      = linux
+        EASYINSTALL   = $(C_BIN)/$(SNAP)/easy_install
+        PLUGIN_PYTHON = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
+        RUN_PYTHON    = $(C_BIN)/$(SNAP)/RunPython
+        SED_MODERN    =-r
+    endif
+endif
 
 # readline is only needed for OSX
 ifeq ($(OS),Darwin)
@@ -138,11 +141,12 @@ URL  = http://$(HOST)/external/$(PLATFORM)
 
 SETUPTOOLS_EGG  = $(CHANDLERARCHIVES)/setuptools-0.6c2-py2.4.egg
 SETUPTOOLS_ABS  = $(SETUPTOOLS_EGG)
-SETUPTOOLS_BIN  = $(CHANDLERBIN)/$(SNAP)
-SETUPTOOLS_SITE = $(CHANDLERBIN)/$(SITE)
+SETUPTOOLS_BIN  = $(C_BIN)/$(SNAP)
+SETUPTOOLS_SITE = $(C_BIN)/$(SITE)
 EASYINSTALL_BIN = $(EASYINSTALL)
 PLUGIN_ABS      = $(PLUGIN_ARCHIVES)
-PYTHON_BIN      = $(CHANDLERBIN)/$(SNAP)/RunPython
+PYTHON_BIN      = $(C_BIN)/$(SNAP)/RunPython
+TOOLS           = $(C_HOME)/tools/
 
 #
 # The following cygpaths are all done using
@@ -156,6 +160,7 @@ ifeq ($(OS),Cygwin)
     SETUPTOOLS_SITE := `cygpath -wa $(SETUPTOOLS_SITE)`
     EASYINSTALL_BIN := `cygpath -wa $(EASYINSTALL)`
     PLUGIN_ABS      := `cygpath -aw $(PLUGIN_ARCHIVES)`
+    TOOLS           := `cygpath -aw $(TOOLS)`\\
 endif
 
 ARCHIVES_INST = \
@@ -166,7 +171,7 @@ ARCHIVES_INST = \
 downloads: $(ARCHIVES)
 
 $(addprefix binaries-, $(BUILD_PLUGINS)):
-	cd $(CHANDLERHOME)/projects/$(subst binaries-,,$@); \
+	cd $(C_HOME)/projects/$(subst binaries-,,$@); \
     $(PLUGIN_PYTHON) setup.py develop \
       --script-dir=$(SETUPTOOLS_BIN) \
       --install-dir=$(SETUPTOOLS_SITE)
@@ -176,11 +181,11 @@ $(addprefix binaries-, $(BUILD_PLUGINS)):
 # and the egg installed in the normal manner
 #
 $(addprefix distrib-, $(BUILD_PLUGINS)):
-	cd $(CHANDLERHOME)/projects/$(subst distrib-,,$@); \
+	cd $(C_HOME)/projects/$(subst distrib-,,$@); \
   $(PLUGIN_PYTHON) setup.py develop -u \
     --script-dir=$(SETUPTOOLS_BIN) \
     --install-dir=$(SETUPTOOLS_SITE)
-	cd $(CHANDLERHOME)/projects/$(subst distrib-,,$@); \
+	cd $(C_HOME)/projects/$(subst distrib-,,$@); \
     $(PLUGIN_PYTHON) setup.py install \
       --install-scripts=$(SETUPTOOLS_BIN) \
       --install-lib=$(SETUPTOOLS_SITE)
@@ -214,12 +219,12 @@ $(ARCHIVES):
 	$(CURL) $@ $(URL)/$(notdir $@)
 
 $(ARCHIVES_INST):
-	tar -C $(CHANDLERBIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
+	tar -C $(C_BIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
 
 SETUPTOOLS_INST = \
     $(addsuffix .inst, \
-                $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
+                $(addprefix $(C_BIN)/$(SNAP)/, \
                             $(notdir $(SETUPTOOLS_EGG))))
 
 setuptools: $(SETUPTOOLS_INST)
@@ -238,9 +243,9 @@ $(SETUPTOOLS_INST): $(SETUPTOOLS_EGG)
 
 ifeq ($(OS),Cygwin)
 manifest_exe:
-	if [ -f "$(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest" ]; \
+	if [ -f "$(C_BIN)/$(SNAP)/bin/chandler.exe.manifest" ]; \
 	then \
-	    chmod +x $(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest; \
+	    chmod +x $(C_BIN)/$(SNAP)/bin/chandler.exe.manifest; \
 	fi
 else
 manifest_exe:
@@ -258,7 +263,7 @@ download: $(ARCHIVES) $(SETUPTOOLS_EGG)
 
 $(notdir $(shell echo $(ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
 	$(MAKE) $(shell echo $(ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
-	$(MAKE) $(shell echo $(ARCHIVES_INST) | sed "s=.*\($(CHANDLERBIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
+	$(MAKE) $(shell echo $(ARCHIVES_INST) | sed "s=.*\($(C_BIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
 
 
 ifeq ($(OS),Cygwin)
@@ -275,8 +280,8 @@ STRIP_OPTIONS=
 STRIP_OP=-name '*.so'
 endif
 strip:
-	find $(CHANDLERBIN)/release $(STRIP_OP) | xargs chmod +w
-	find $(CHANDLERBIN)/release $(STRIP_OP) | xargs strip $(STRIP_OPTIONS)
+	find $(C_BIN)/release $(STRIP_OP) | xargs chmod +w
+	find $(C_BIN)/release $(STRIP_OP) | xargs strip $(STRIP_OPTIONS)
 endif
 endif
 
@@ -284,22 +289,22 @@ debug:
 	$(MAKE) DEBUG=1 install
 
 purge:
-	$(PYTHON_BIN) $(C_HOME)/tools/purge.py $(C_HOME)
+	$(RUN_PYTHON) $(TOOLS)purge.py .
 
 check:
-	$(PYTHON_BIN) $(C_HOME)/tools/checker.py
+	$(RUN_PYTHON) $(TOOLS)checker.py
 
 lint:
-	$(PYTHON_BIN) $(C_HOME)/tools/lint.py
+	$(RUN_PYTHON) $(TOOLS)lint.py
 
 print-%:
 	@echo $* = $($*)
 
 tests:
-	$(CHANDLERHOME)/tools/do_tests.sh -u
+	$(C_HOME)/tools/do_tests.sh -u
 
 clean:
-	rm -rf $(CHANDLERBIN)/$(SNAP)
+	rm -rf $(C_BIN)/$(SNAP)
 	rm -rf __repository__
 	rm -f chandler.log randpool.dat
 	find . -name '*.pyc' | xargs rm -f
@@ -307,6 +312,6 @@ clean:
 
 realclean: clean
 	rm -f $(ARCHIVES)
-	rm -rf $(CHANDLERBIN)/debug
-	rm -rf $(CHANDLERBIN)/release
+	rm -rf $(C_BIN)/debug
+	rm -rf $(C_BIN)/release
 
