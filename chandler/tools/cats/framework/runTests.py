@@ -39,26 +39,38 @@ def checkRepo(logger):
     logger.addComment('Checking for repository corruption')
     QAUITestAppLib.App_ns.itsView.check()
 
+
+def run_test(logger, paramSet):
+    filenameAndTest = paramSet.split(':')
+    
+    #assume file name and and test name are the same if only one given
+    if len(filenameAndTest) < 2: filenameAndTest.append(filenameAndTest[0])
+        
+    teststring = 'from tools.cats.Functional.%s import %s' % (filenameAndTest[0], filenameAndTest[1])
+    exec(compile(teststring, '%s/%s.py' % (functional_dir, filenameAndTest[0]), 'exec'))
+    teststring = 'test = %s(name=\'%s\', logger=logger)' % (filenameAndTest[0], filenameAndTest[1])
+    exec(compile(teststring, '%s/%s.py' % (functional_dir, filenameAndTest[0]), 'exec'))
+    test.runTest()
+    if logger.debug == 2: checkRepo(logger)
+
+def run_test_wrapped(logger, paramSet):
+    try:
+        run_test(logger, paramSet)
+    except:
+        logger.traceback()
+    
 def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
     """Method to execute cats tests, must be in Functional directory."""
     
     logger = TestOutput(stdout=True, debug=debug, mask=mask, logName=logName) 
     logger.startSuite(name='ChandlerFunctionalTestSuite')
+    
+    # We'll normally run individual tests with an exception wrapper; 
+    # --catch=never will turn it off, so that a debugger can stop on 
+    # uncaught exceptions.
+    runner = Globals.options.catch != 'never' and run_test_wrapped or run_test
     for paramSet in tests.split(','):
-        try:
-            filenameAndTest = paramSet.split(':')
-            
-            #assume file name and and test name are the same if only one given
-            if len(filenameAndTest) < 2: filenameAndTest.append(filenameAndTest[0])
-                
-            teststring = 'from tools.cats.Functional.%s import %s' % (filenameAndTest[0], filenameAndTest[1])
-            exec(compile(teststring, '%s/%s.py' % (functional_dir, filenameAndTest[0]), 'exec'))
-            teststring = 'test = %s(name=\'%s\', logger=logger)' % (filenameAndTest[0], filenameAndTest[1])
-            exec(compile(teststring, '%s/%s.py' % (functional_dir, filenameAndTest[0]), 'exec'))
-            test.runTest()
-            if logger.debug == 2: checkRepo(logger)
-        except:
-            logger.traceback()
+        runner(logger, paramSet)
 
     if logger.debug < 2: checkRepo(logger)
     logger.endSuite()

@@ -57,9 +57,9 @@ def main():
 
         from application.Application import wxApplication
 
-        # Redirect stdio and stderr to a dialog if we're running the debug 
-        # version. This is done to catch asserts, which otherwise will never
-        # get seen by people who run Chandler using the launchers, e.g.
+        # Redirect stdio and stderr to a dialog if a non-default --catch option 
+        # was specified. This is done to catch asserts, which otherwise will
+        # never get seen by people who run Chandler using the launchers, e.g.
         # Aparna. If you're running release you can also set things up so 
         # that you can see stderr and stdout if you run in a shell or from
         # wing with a console.
@@ -67,12 +67,12 @@ def main():
         # useBestVisual - uses best screen resolutions on some old computers.
         #                 See wxApp.SetUseBestVisual
 
-        redirect = not Globals.options.nocatch
+        redirect = Globals.options.catch == 'normal'
         app = wxApplication(redirect=redirect, useBestVisual=True)
 
         app.MainLoop()
 
-    if Globals.options.nocatch:
+    if Globals.options.catch != 'normal':
         # When debugging, it's handy to run without the outer exception frame
         realMain()
     else:

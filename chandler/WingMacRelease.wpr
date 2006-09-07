@@ -4,7 +4,7 @@
 # Wing IDE project file                                          #
 ##################################################################
 [project attributes]
-debug.run-args = {loc('Chandler.py'): '--nocatch'}
+debug.run-args = {loc('Chandler.py'): '--catch=never'}
 proj.env-vars = {None: ('custom',
                         ['DYLD_LIBRARY_PATH=release/lib:release/db/lib:relea'\
                          'se/icu/lib',

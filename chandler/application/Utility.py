@@ -165,6 +165,7 @@ def initOptions(**kwds):
         'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
         'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
         'chandlerTests': ('', '--chandlerTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by new framework'),
+        'chandlerTestSuite': ('-T', '--chandlerTestSuite', 'b', False, None, 'run the functional test suite'),
         'chandlerTestDebug': ('-D', '--chandlerTestDebug', 's', 0, None, '0=print only failures, 1=print pass and fail, 2=print pass & fail & check repository after each test'),
         'chandlerTestMask': ('-M', '--chandlerTestMask', 's', 3, None, '0=print all, 1=hide reports, 2=also hide actions, 3=also hide test names'),
         'chandlerPerformanceTests': ('', '--chandlerPerformanceTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by performance new framework'),
@@ -178,7 +179,9 @@ def initOptions(**kwds):
         'ramdb':      ('-m', '--ramdb',      'b', False, None, ''),
         'restore':    ('-r', '--restore',    's', None,  None, 'repository backup to restore from before repository open'),
         'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
+        # --nocatch is deprecated and will be removed soon: use --catch=tests or --catch=never instead
         'nocatch':    ('-n', '--nocatch',    'b', False, 'CHANDLERNOCATCH', ''),
+        'catch':      ('',   '--catch',      's', 'normal', 'CHANDLERCATCH', '"normal" leaves outer and test exception handlers in place (the default); "tests" removes the outer one, and "never" removes both.'),
         'wing':       ('-w', '--wing',       'b', False, None, ''),
         'komodo':     ('-k', '--komodo',     'b', False, None, ''),
         'refreshui':  ('-u', '--refresh-ui', 'b', False, None, 'Refresh the UI from the repository during startup'),
@@ -244,6 +247,12 @@ def initOptions(**kwds):
     for (opt,val) in kwds.iteritems():
         setattr(options, opt, val)
 
+    # Convert a few options
+    if options.chandlerTestSuite:
+        options.scriptFile = "tools/cats/functional/FunctionalTestSuite.py"
+    if options.nocatch:
+        options.catch = "tests"
+        
     # Store up the remaining args
     options.args = args
 
