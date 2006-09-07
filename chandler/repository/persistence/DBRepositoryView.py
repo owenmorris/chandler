@@ -24,6 +24,7 @@ from chandlerdb.persistence.c import CView, DBLockDeadlockError
 from repository.item.RefCollections import RefList, TransientRefList
 from repository.item.Indexed import Indexed
 from repository.item.Sets import AbstractSet
+from repository.schema.Kind import Kind
 from repository.persistence.RepositoryError \
      import RepositoryError, MergeError, VersionConflictError
 from repository.persistence.RepositoryView \
@@ -396,9 +397,12 @@ class DBRepositoryView(OnDemandRepositoryView):
         for item in items():
             item._unloadItem(refCounted or item.isPinned(), self, False)
         for item in items():
-            if refCounted or item.isPinned():
-                if item.isSchema():
-                    self.find(item.itsUUID)
+            if (refCounted or item.isPinned()) and item.isSchema():
+                oldVersion = item.itsVersion
+                item = self.find(item.itsUUID)
+                if item is not None and item.itsVersion < oldVersion:
+                    if isinstance(item, Kind):
+                        item.flushCaches(None)
         for item in items():
             if refCounted or item.isPinned():
                 self.find(item.itsUUID)
