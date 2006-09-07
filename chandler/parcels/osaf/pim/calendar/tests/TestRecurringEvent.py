@@ -18,7 +18,7 @@ Unit tests for recurring events
 """
 
 import unittest, os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import dateutil.rrule
 
 from application import schema
@@ -78,6 +78,68 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
         ruleSetItem.addRule(ruleItem)
         return ruleSetItem
+
+    def testEndMatchesStart(self):
+        """
+        Events whose endTime matches the start of a range shouldn't be
+        included in that range.
+        
+        """
+        event      = self.event
+        rangeStart = datetime.combine(self.start.date(),
+                             time(0, tzinfo=ICUtzinfo.default)) + timedelta(1)
+        rangeEnd   = rangeStart + timedelta(1)
+        oneWeek    = timedelta(7)
+
+        event.endTime = rangeStart
+        self.failIf(event.isBetween(rangeStart, rangeEnd))
+        
+        event.duration = timedelta(hours=1)
+        event.anyTime  = True
+        self.failIf(event.isBetween(rangeStart, rangeEnd))
+
+        event.allDay = True
+        self.failIf(event.isBetween(rangeStart, rangeEnd))
+        
+        # reset event
+        event.anyTime = event.allDay = False
+        event.endTime = rangeStart
+        
+        # now test recurrence
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        def testBetween(expectedLength):        
+            eventsBetween = list(event.getOccurrencesBetween(rangeStart, rangeEnd))
+            self.assertEqual(len(eventsBetween), expectedLength)
+    
+            eventsBetween = list(event.getOccurrencesBetween(rangeStart + oneWeek,
+                                                             rangeEnd + oneWeek))
+            self.assertEqual(len(eventsBetween), expectedLength)
+            
+        testBetween(0)
+        
+        event.changeThisAndFuture('duration', timedelta(hours=1))
+        event.changeThisAndFuture('anyTime', True)
+        testBetween(0)
+        
+        event.changeThisAndFuture('anyTime', False)
+        event.changeThisAndFuture('allDay', True)
+        testBetween(0)
+        
+        # zero duration events
+        event.changeThisAndFuture('duration', timedelta(0))
+        event.changeThisAndFuture('startTime', rangeStart)
+        testBetween(1)
+
+        event.changeThisAndFuture('allDay', False)
+        testBetween(1)
+        
+
+        event.removeRecurrence()
+        self.failUnless(event.isBetween(rangeStart, rangeEnd))
+        
+        event.allDay = True
+        self.failUnless(event.isBetween(rangeStart, rangeEnd))
+        
 
     def testModificationEnum(self):
         self.assertEqual(self.event.modifies, None)

@@ -41,6 +41,7 @@ import itertools
 import StringIO
 import logging
 from util import indexes
+import operator
 
 from i18n import ChandlerMessageFactory as _
 
@@ -133,19 +134,28 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
         else:
             delta = delta + endVal - startVal
         testVal = getattr(view[key], endAttrName)
+        
+        if getattr(view[key], startAttrName) == testVal:
+            # zero duration events should be included, other events ending at
+            # start time shouldn't be
+            compare = operator.le
+        else:
+            compare = operator.lt
+
         if testVal is None:
             return 0 # interpret None as positive infinity, thus, a match
         if useTZ:
-            if startVal + delta < testVal:
+            if compare(startVal + delta, testVal):
                 return 0
         else:
-            if startVal.replace(tzinfo=None) + delta < testVal.replace(tzinfo=None):
+            if compare(startVal.replace(tzinfo=None) + delta,
+                       testVal.replace(tzinfo=None)):
                 return 0
         return 1
 
     lastStartKey = startColl.findInIndex(startIndex, 'last', mStart)
     if lastStartKey is None:
-        return #there were no keys starting after end
+        return #there were no keys starting before end
     if longDelta is not None:
         firstStartKey = startColl.findInIndex(startIndex, 'last',
                                     lambda key: mStart(key, longDelta))
@@ -154,7 +164,7 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
 
     firstEndKey = endColl.findInIndex(endIndex, 'first', mEnd)
     if firstEndKey is None:
-        return #there were no keys ending before start
+        return #there were no keys ending after start
     if longDelta is not None:
         lastEndKey = endColl.findInIndex(endIndex, 'first',
                                          lambda key: mEnd(key, longDelta))
@@ -603,10 +613,15 @@ class CalendarEventMixin(ContentItem):
         component of the endTime attribute if this is an allDay
         or anyTime event.
         """
+        allDay = self.anyTime or self.allDay
         endTime = self.endTime
         if endTime is None:
-            return self.effectiveStartTime
-        elif self.anyTime or self.allDay:
+            start = self.effectiveStartTime
+            if allDay and start is not None:
+                return start + timedelta(1)
+            else:
+                return start
+        elif allDay:
             # all day events include their endtime, so they end at midnight
             # one day later than their normal end date.
             return datetime.combine(endTime + timedelta(1),
@@ -792,16 +807,24 @@ class CalendarEventMixin(ContentItem):
 
         """
         prepDatetime = self.__getDatetimePrepFunction()
-
+        def lte(dt1, dt2):
+            return prepDatetime(dt1) <= prepDatetime(dt2)
+        def lt(dt1, dt2):
+            return prepDatetime(dt1) < prepDatetime(dt2)
+        
         if inclusive:
-            def compare(dt1, dt2):
-                return prepDatetime(dt1) <= prepDatetime(dt2)
+            beforecompare = lte
         else:
-            def compare(dt1, dt2):
-                return prepDatetime(dt1) < prepDatetime(dt2)
+            beforecompare = lt
 
-        return ((before is None or compare(self.startTime, before)) and
-               (after is None or (prepDatetime(self.endTime) >= prepDatetime(after))))
+        if self.effectiveStartTime == self.effectiveEndTime:
+            aftercompare = lte
+        else:
+            aftercompare = lt
+            
+        return ((before is None or beforecompare(self.effectiveStartTime, 
+                                                 before)) and
+                (after  is None or  aftercompare(after, self.effectiveEndTime)))
 
     def createDateUtilFromRule(self, ignoreIsCount = True, convertFloating=False):
         """Construct a dateutil.rrule.rruleset from self.rruleset.
@@ -914,7 +937,10 @@ class CalendarEventMixin(ContentItem):
             return None
 
         first = self.getMaster()
-        exact = after is not None and after == before
+        # allow events to match start exact matching if checking for a specific
+        # occurrence, or if self is a zero duration event and using after
+        exact = after is not None and (after == before or 
+                                       self.duration == timedelta(0))
 
         # take duration into account if after is set
         if not exact and after is not None:

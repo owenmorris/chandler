@@ -1019,7 +1019,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         # calculate how many unique days this appears on 
         days = 1 + (endTime.date() - startTime.date()).days
-        if endTime.time() == time(0):
+        if endTime.time() == time(0) and days > 1:
             # events that end at midnight end on the next day, but don't have
             # any duration then, so they have one fewer rects
             days -= 1
