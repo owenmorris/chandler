@@ -796,7 +796,9 @@ class SidebarBlock(Table):
 
                 buttonEvent = getattr (button, 'event', None)
                 if isinstance (buttonEvent, KindParameterizedEvent):
-                    if (filterKind is not None and filterKind.isKindOf (buttonEvent.kindParameter)):
+                    if (filterKind is not None and
+                        buttonEvent.kindParameter is not None and
+                        filterKind.isKindOf(buttonEvent.kindParameter)):
                         newFilterKind = buttonEvent.kindParameter
                         buttonToSelect = button
                         break
