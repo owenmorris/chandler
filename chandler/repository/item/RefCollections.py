@@ -777,20 +777,13 @@ class TransientRefList(RefList):
     def _setDirty(self, noMonitors=False):
         pass
 
-    def _removeRef(self, other, dictKey=None, noError=False):
-        return super(TransientRefList, self)._removeRef(other, dictKey, True)
-
     def _unloadRef(self, item):
 
         key = item.itsUUID
         self._flags |= CLinkedMap.LOAD
 
         if self.has_key(key, False):
-            link = self._get(key, False)
-            if link is not None:
-                link.value = key
-            else:
-                raise AssertionError, '%s: unloading non-loaded ref %s' %(self, item._repr_())
+            self._get(key, False).value = key
 
 
 class RefDict(object):

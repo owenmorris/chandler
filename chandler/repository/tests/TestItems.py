@@ -200,8 +200,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # Test iterating over reference attributes
         referenceAttributeNames = ['superKinds', 'attributes', 'clouds',
-                                   'subKinds', 'extent',
-                                   'inheritedSuperKinds', 'inheritingSubKinds']
+                                   'subKinds', 'extent']
         for i in kind.iterAttributeValues(referencesOnly=True):
             self.failUnless(i[0] in referenceAttributeNames, i[0])
             self.failUnless(isinstance(i[1], RefList) or
@@ -209,7 +208,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # Test hasTrueAttributeValue
         for i in referenceAttributeNames:
-            self.failUnless(kind.hasTrueAttributeValue(i) or i == 'inheritingSubKinds', i)
+            self.failUnless(kind.hasTrueAttributeValue(i))
 
 
 if __name__ == "__main__":

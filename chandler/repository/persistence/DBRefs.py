@@ -166,16 +166,13 @@ class PersistentRefs(object):
 
         if self.has_key(key, False):
             link = self._get(key, False)
-            if link is not None:
-                op, alias = self._changedRefs.get(key, (-1, link.alias))
-                if op == 0:
-                    link.value = key
-                else:
-                    self._remove(key)                   
-                    if link.alias is not None:
-                        del self._aliases[link.alias]
+            op, alias = self._changedRefs.get(key, (-1, link.alias))
+            if op == 0:
+                link.value = key
             else:
-                raise AssertionError, '%s: unloading non-loaded ref %s' %(self, item._repr_())
+                self._remove(key)                   
+                if link.alias is not None:
+                    del self._aliases[link.alias]
 
     def _removeRef_(self, key, link):
 

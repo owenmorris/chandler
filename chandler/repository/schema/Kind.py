@@ -51,20 +51,10 @@ class Kind(Item):
         self._initialValues = None
         self._initialReferences = None
         self._inheritedAttributes = {}
+        self._inheritedSuperKinds = set()
         self._notifyAttributes = set()
         self._allAttributes = {}
         self._allNames = {}
-
-        references = self._references
-
-        # recursion avoidance
-        refList = self._refList('inheritedSuperKinds',
-                                'inheritingSubKinds', None, False)
-        references['inheritedSuperKinds'] = refList
-
-        refList = self._refList('inheritingSubKinds',
-                                'inheritedSuperKinds', None, False)
-        references['inheritingSubKinds'] = refList
 
         self._status |= Item.SCHEMA | Item.PINNED
 
@@ -547,19 +537,24 @@ class Kind(Item):
 
         return iter(self._notifyAttributes)
 
-    def getInheritedSuperKinds(self):
+    def getInheritedSuperKindIDs(self):
 
         c = self.c
         references = self._references
-        inherited = references['inheritedSuperKinds']
+        inherited = self._inheritedSuperKinds
 
         if not c.superKindsCached:
             for superKind in references['superKinds']:
-                inherited.append(superKind)
-                inherited.extend(superKind.getInheritedSuperKinds())
+                inherited.add(superKind.itsUUID)
+                inherited.update(superKind.getInheritedSuperKindIDs())
             c.superKindsCached = True
 
         return inherited
+
+    def getInheritedSuperKinds(self):
+
+        view = self.itsView
+        return (view[uuid] for uuid in self.getInheritedSuperKindIDs())
 
     def _inheritAttribute(self, name):
 
@@ -662,7 +657,13 @@ class Kind(Item):
 
     def isKindOf(self, superKind):
 
-        return self is superKind or superKind in self.getInheritedSuperKinds()
+        if self is superKind:
+            return True
+
+        if not isinstance(superKind, Kind):
+            raise TypeError, (superKind, 'is not a kind')
+
+        return superKind.itsUUID in self.getInheritedSuperKindIDs()
 
     def getInitialValues(self, item, isNew):
 
@@ -734,8 +735,7 @@ class Kind(Item):
             self._notifyAttributes.clear()
             c.attributesCached = False
 
-        if not stale:
-            self.inheritedSuperKinds.clear()
+        self._inheritedSuperKinds.clear()
         c.superKindsCached = False
 
         self._inheritedAttributes.clear()
@@ -750,7 +750,7 @@ class Kind(Item):
 
         if not stale:
             for subKind in self._references.get('subKinds', Nil):
-                subKind.flushCaches('superKinds')
+                subKind.flushCaches(reason)
 
         if reason is not None:
             self._setupDescriptors(reason)
@@ -1027,25 +1027,27 @@ class Extent(Item):
 
     def _collectionChanged(self, op, change, name, other, filterKind=None):
 
+        view = self.itsView
         callable = Item._collectionChanged
 
         if name == 'extent':
             kind = self.kind
 
             if filterKind is not None:
-                filterKinds = filterKind.getInheritedSuperKinds()
+                filterKindIDs = filterKind.getInheritedSuperKindIDs()
                 if not (kind is filterKind or
-                        kind in filterKinds):
+                        kind.itsUUID in filterKindIDs):
                     callable(self, op, change, name, other)
-                    for superKind in kind.getInheritedSuperKinds():
+                    for superKindID in kind.getInheritedSuperKindIDs():
+                        superKind = view[superKindID]
                         if not (superKind is filterKind or
-                                superKind in filterKinds):
+                                superKindID in filterKindIDs):
                             callable(superKind.extent, op, change, name, other)
 
             else:
                 callable(self, op, change, name, other)
-                for superKind in kind.getInheritedSuperKinds():
-                    callable(superKind.extent, op, change, name, other)
+                for superKindID in kind.getInheritedSuperKindIDs():
+                    callable(view[superKindID].extent, op, change, name, other)
 
         else:
             callable(self, op, change, name, other)
