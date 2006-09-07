@@ -297,7 +297,6 @@ class AmazonItem(ContentItem):
     
     about = schema.One(redirectTo = 'ProductName')
     who = schema.One(redirectTo = 'Author')
-    date = schema.One(redirectTo = 'ReleaseDate')
 
     myKindID = None
     myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonItem"

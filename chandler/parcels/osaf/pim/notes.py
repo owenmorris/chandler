@@ -41,9 +41,6 @@ class Note(items.ContentItem):
     # redirections
     about = schema.One(redirectTo = "displayName")
 
-    date = schema.One(redirectTo = "createdOn")
-
-
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.

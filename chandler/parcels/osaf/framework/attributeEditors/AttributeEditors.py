@@ -162,25 +162,29 @@ def installParcel(parcel, oldVersion=None):
 
 _TypeToEditorInstances = {}
 
-def getSingleton (typeName):
+def getSingleton (typeName, format=None):
     """
     Get (and cache) a single shared Attribute Editor for this type.
     
     These 'singleton' attribute editor instances are used by the Table block
     and are moved about to edit different items' values as the user selects
-    them. We lazily create one of each at cache it at runtime.
+    them. We lazily create one of each and cache it at runtime.
 
     @param typeName: The name of the type of the attribute to be edited
+    @type typeName: String
+    @param format: Optional, customization for this editor
     @type typeName: String
     @return: The attribute editor instance
     @rtype: BaseAttributeEditor
     """
     try:
-        instance = _TypeToEditorInstances [typeName]
+        instance = _TypeToEditorInstances [(typeName, format)]
     except KeyError:
-        aeClass = getAEClass (typeName)
+        aeClass = getAEClass (typeName, format=format)
+        logger.debug("getSingleton(%s, %s) --> %s", 
+                     typeName, format, aeClass)
         instance = aeClass()
-        _TypeToEditorInstances [typeName] = instance
+        _TypeToEditorInstances [(typeName, format)] = instance
     return instance
 
 def getInstance(typeName, cardinality, item, attributeName, readOnly, presentationStyle):
@@ -1649,11 +1653,32 @@ class LobImageAttributeEditor (BaseAttributeEditor):
 
         control.SetBitmap(bmp)
 
-class DateTimeAttributeEditor(StringAttributeEditor):    
+class DateTimeAttributeEditor(StringAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
+        # Never used anymore, since we're drawing ourselves below and we're read-only.
+        return u''
+
+    def ReadOnly (self, (item, attribute)):
+        # @@@MOR Temporarily disable editing of DateTime.  This AE needs some
+        # more robust parsing of the date/time info the user enters.
+        return True
+
+    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
+        """
+        Draw the date & time, somewhat in the style that Apple Mail does:
+        Date left justified, time right justified.
+        """
+        item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
+
+        # Erase the bounding box
+        dc.SetBackgroundMode (wx.SOLID)
+        dc.SetPen (wx.TRANSPARENT_PEN)
+        dc.DrawRectangleRect (rect)
+
+        # Figure out what to draw.
         itemDateTime = getattr (item, attributeName, None) # getattr will work with properties
         if itemDateTime is None:
-            return u''
+            return # don't draw anything.
         
         # [grant] This means we always display datetimes in the
         # user's default timezone in the summary table.
@@ -1663,30 +1688,54 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         itemDate = itemDateTime.date()
         today = datetime.today()
         todayDate = today.date()
+        dateString = None
+        timeString = None
+        preferDate = True
         if itemDate > todayDate or itemDate < (today + timedelta(days=-5)).date():
             # Format as a date if it's after today, or in the distant past 
             # (same day last week or earlier). (We'll do day names for days
             # in the last week (below), but this excludes this day last week
             # from that, to avoid confusion.)
-            value = pim.mediumDateFormat.format(itemDateTime)
+            pass
         elif itemDate == todayDate:
-            # Today? Just use the time.
-            value = pim.shortTimeFormat.format(itemDateTime)
+            # Today? say so, and show the time if we only have room for one value
+            preferDate = False
+            dateString = _(u'Today')
         elif itemDate == (today + timedelta(days=-1)).date(): 
             # Yesterday? say so.
-            value = _(u'Yesterday')
+            dateString = _(u'Yesterday')
         else:
             # Do day names for days in the last week.
-            value = pim.weekdayName(itemDateTime)
+            dateString = pim.weekdayName(itemDateTime)
 
-        return value
+        if dateString is None:
+            dateString = pim.mediumDateFormat.format(itemDateTime)
+        if timeString is None:
+            timeString = pim.shortTimeFormat.format(itemDateTime)
 
-    def ReadOnly (self, (item, attribute)):
-        # @@@MOR Temporarily disable editing of DateTime.  This AE needs some
-        # more robust parsing of the date/time info the user enters.
-        return True
-
+        # Draw inside the lines.
+        dc.SetBackgroundMode (wx.TRANSPARENT)
+        rect.Inflate (-1, -1)
+        dc.SetClippingRect (rect)
         
+        dateWidth, ignored = dc.GetTextExtent(dateString)
+        timeWidth, ignored = dc.GetTextExtent(timeString)
+        spaceWidth, ignored = dc.GetTextExtent('  ')
+
+        # If we don't have room for both values, draw one, clipped if necessary.
+        if (dateWidth + timeWidth + spaceWidth) > rect.width:
+            if preferDate:
+                DrawingUtilities.DrawClippedTextWithDots(dc, dateString, rect)
+            else:
+                DrawingUtilities.DrawClippedTextWithDots(dc, timeString, rect,
+                                                         alignRight=True)
+        else:
+            # Enough room to draw both            
+            dc.DrawText(dateString, rect.x + 1, rect.y + 1)
+            dc.DrawText(timeString, rect.x + rect.width - (timeWidth + 2), rect.y + 1)
+        
+        dc.DestroyClippingRegion()
+            
 class DateAttributeEditor (StringAttributeEditor):
     
     # natural language strings for date

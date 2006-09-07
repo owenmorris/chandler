@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 class PhotoMixin(pim.ContentItem):
     schema.kindInfo(displayAttribute="displayName")
-    dateTaken = schema.One(schema.DateTime)
+    dateTaken = schema.One(schema.DateTimeTZ)
     file = schema.One(schema.Text)
     exif = schema.Mapping(schema.Text, initialValue={})
     photoBody = schema.One(schema.Lob)
@@ -44,7 +44,6 @@ class PhotoMixin(pim.ContentItem):
         self.processEXIF()
 
     about = schema.One(redirectTo = 'displayName')
-    date = schema.One(redirectTo = 'dateTaken')
     who = schema.One(redirectTo = 'creator')
 
     schema.addClouds(sharing = schema.Cloud(dateTaken, photoBody))
@@ -109,6 +108,16 @@ class PhotoMixin(pim.ContentItem):
         except Exception, e:
             logger.debug("Couldn't process EXIF of Photo %s (%s)" % \
                 (self.itsPath, e))
+
+    @schema.observer(dateTaken)
+    def onDateTakenChanged(self, op, attr):
+        self.updateRelevantDate(op, attr)
+
+    def addRelevantDates(self, dates):
+        super(PhotoMixin, self).addRelevantDates(dates)
+        dateTaken = getattr(self, 'dateTaken', None)
+        if dateTaken is not None:
+            dates.append((dateTaken, 'dateTaken'))
 
 
 class Photo(PhotoMixin, pim.Note):

@@ -554,9 +554,6 @@ class MailMessageMixin(MIMEContainer):
     about = schema.One(
         doc = "Redirector to 'subject'", redirectTo = 'subject',
     )
-    date = schema.One(
-        doc = "Redirector to 'dateSent'", redirectTo = 'dateSent',
-    )
 
     mimeType = schema.One(schema.Text, initialValue = 'message/rfc822')
 
@@ -595,6 +592,17 @@ class MailMessageMixin(MIMEContainer):
             self.subject = self.getAnyAbout()
         except AttributeError:
             pass
+
+    @schema.observer(dateSent)
+    def onDateSentChanged(self, op, name):
+        # Update our relevant-date attribute
+        self.updateRelevantDate(op, name)
+
+    def addRelevantDates(self, dates):
+        super(MailMessageMixin, self).addRelevantDates(dates)
+        dateSent = getattr(self, 'dateSent', None)
+        if dateSent is not None:
+            dates.append((dateSent, 'dateSent'))
 
     def getAnyAbout(self):
         """

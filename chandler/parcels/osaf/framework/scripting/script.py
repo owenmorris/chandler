@@ -50,7 +50,6 @@ class Script(pim.ContentItem):
 
     about = schema.One(redirectTo = 'displayName')
     who = schema.One(redirectTo = 'creator')
-    date = schema.One(redirectTo = 'lastRan')
 
 
     def __init__(self, itsName=None, itsParent=None, itsKind=None, itsView=None,

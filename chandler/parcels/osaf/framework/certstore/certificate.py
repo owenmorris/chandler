@@ -54,7 +54,7 @@ class Certificate(pim.ContentItem):
 
     who = schema.One(redirectTo = 'displayName')
     about = schema.One(redirectTo = 'trust')
-    date = schema.One(redirectTo = 'createdOn')
+
     type = schema.One(
         typeEnum,
         doc = 'Certificate type.',

@@ -99,12 +99,8 @@ Or you can just pass in none to get an untitled Script.
     >>> unnamedScript.displayName
     u'Untitled'
 
-Scripts keep track of the last time they ran.  This is used for date redirection::
-
-    >>> myScript.lastRan == myScript.date
-    True
-
-The lastRan attribute is updated when you execute() your script::
+Scripts keep track of the last time they ran. The lastRan attribute is updated 
+when you execute() your script::
 
     >>> from datetime import datetime 
     >>> beforeExecute = datetime.now()

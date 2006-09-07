@@ -436,7 +436,6 @@ class CalendarEventMixin(ContentItem):
 
     whoFrom = schema.One(redirectTo="organizer")
     about = schema.One(redirectTo="displayName")
-    date = schema.One(redirectTo="startTime")
 
     def __init__(self, *args, **kw):
         super(CalendarEventMixin, self).__init__(*args, **kw)
@@ -592,14 +591,18 @@ class CalendarEventMixin(ContentItem):
         component of the startTime attribute if this is an allDay
         or anyTime event.
         """
-        # If startTime's time is invalid, ignore it.
-        if not self.hasLocalAttributeValue('startTime'):
+        # Return None if we're not valid (eg, during stamping)
+        startTime = getattr(self, 'startTime', None)
+        anyTime = getattr(self, 'anyTime', None)
+        allDay = getattr(self, 'allDay', None)        
+        if None in (startTime, anyTime, allDay):
             return None
-        elif self.anyTime or self.allDay:
+        
+        if anyTime or allDay:
             startOfDay = time(0, tzinfo=ICUtzinfo.floating)
-            return datetime.combine(self.startTime, startOfDay)
+            return datetime.combine(startTime, startOfDay)
         else:
-            return self.startTime
+            return startTime
 
     effectiveStartTime = Calculated(
         schema.DateTimeTZ,
@@ -664,6 +667,14 @@ class CalendarEventMixin(ContentItem):
         if existing:
             self.dismissReminder(existing)
             
+        # Update our relevant-date attribute, too
+        self.updateRelevantDate(op, name)
+
+    def addRelevantDates(self, dates):
+        super(CalendarEventMixin, self).addRelevantDates(dates)
+        effectiveStartTime = getattr(self, 'effectiveStartTime', None)
+        if effectiveStartTime is not None:
+            dates.append((effectiveStartTime, 'startTime'))
 
     # begin recurrence related methods
 

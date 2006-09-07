@@ -49,15 +49,17 @@ def SetTextColorsAndFont(grid, attr, dc, isSelected):
     dc.SetFont (attr.GetFont())
 
 # used to be called "DrawWrappedText"
-def DrawClippedTextWithDots(dc, string, rect):
+def DrawClippedTextWithDots(dc, string, rect, alignRight=False):
     x = rect.x + 1
     y = rect.y + 1
     for line in unicode(string).split (os.linesep):
         # test for flicker by drawing a random character first each time we draw
         # line = chr(ord('a') + random.randint(0,25)) + line
         
-        dc.DrawText (line, x, y)
         lineWidth, lineHeight = dc.GetTextExtent (line)
+        localX = alignRight and (rect.x + 1 + rect.width - 2 - lineWidth) or x
+        dc.DrawText (line, localX, y)
+        
         # If the text doesn't fit within the box we want to clip it and
         # put '...' at the end.  This method may chop a character in half,
         # but is a lot faster than doing the proper calculation of where

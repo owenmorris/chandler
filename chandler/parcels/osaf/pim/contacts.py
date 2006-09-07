@@ -102,7 +102,6 @@ class Contact(items.ContentItem):
 
     who   = schema.Descriptor(redirectTo="contactName")
     about = schema.Descriptor(redirectTo="displayName")
-    date  = schema.Descriptor(redirectTo="createdOn")
 
     schema.addClouds(
         sharing = schema.Cloud(emailAddress, byCloud=[contactName])

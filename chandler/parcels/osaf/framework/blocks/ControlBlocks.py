@@ -298,6 +298,10 @@ class Column(schema.Item):
                                "evaluate the column value for the "
                                "item in the row.")
     
+    attributeSourceName = schema.One(schema.Importable,
+                                     doc="The origin of the value used for "
+                                     "this attribute in this row.")
+    
     indexAttributes = schema.Sequence(schema.Importable, defaultValue=None,
                                       doc="A list of attributes to index on")
     
@@ -315,6 +319,8 @@ class Column(schema.Item):
     width = schema.One(schema.Integer,  defaultValue = 20,
                        doc="The width of the column, "
                        "relative to other columns")
+
+    format = schema.One(schema.Text)
 
     scaleColumn = schema.One(schema.Boolean, defaultValue = False)
     readOnly = schema.One(schema.Boolean, initialValue=False)
@@ -458,28 +464,41 @@ class AttributeDelegate (ListDelegate):
             return col.heading
 
         attributeName = col.attributeName
+        actual = None
         if item is not None:
             try:
                 attribute = item.itsKind.getAttribute (attributeName)
             except NoSuchAttributeError:
                 # We don't need to redirect non-Chandler attributes (eg, itsKind).
-                heading = col.heading
+                pass
             else:
-                redirect = item.getAttributeAspect(attributeName, 'redirectTo')
-                if redirect is not None:
-                    names = redirect.split('.')
-                    for name in names [:-1]:
-                        item = item.getAttributeValue (name)
-                    actual = item.itsKind.getAttribute (names[-1]).getItemDisplayName()
-                    if col.heading == actual:
-                        heading = col.heading
-                    else:
-                        heading = _(u"%(heading)s (%(actual)s)") % {
-                            'heading':col.heading,
-                            'actual':actual }
+                # We got an attribute. Does the column specify an attribute
+                # source for this attribute? (eg, the relevantDate attribute has
+                # a corresponding relevantDateSource attribute containing the
+                # name of the attribute whose value is stored in the relevantDate
+                # attribute.) 
+                #
+                # @@@ i18n This mechanism needs localization, but since the 
+                # existing redirectTo usage hasn't been localized since 
+                # displayName went away, I'm not worrying about it now...
+                #
+                attributeSourceName = getattr(col, 'attributeSourceName', None)
+                if attributeSourceName is not None:
+                    actual = getattr(item, attributeSourceName, None)
                 else:
-                    # non-redirecting attribute, use that title
-                    heading = attribute.getItemDisplayName()
+                    redirect = item.getAttributeAspect(attributeName, 'redirectTo')
+                    if redirect is not None:
+                        names = redirect.split('.')
+                        for name in names [:-1]:
+                            item = item.getAttributeValue (name)
+                        actual = item.itsKind.getAttribute (names[-1]).getItemDisplayName()
+                    else:
+                        # non-redirecting attribute, use that title
+                        pass # heading = attribute.getItemDisplayName()
+        
+        if actual and actual != col.heading:
+            heading = _(u"%(heading)s (%(actual)s)") % {
+                'heading': col.heading, 'actual': actual }
         else:
             # no such attribute, use the column heading
             heading = col.heading
@@ -1007,6 +1026,10 @@ class Timer(Block):
         timer = wxPyTimer(self.parentBlock.widget, self.getWidgetID())
         return timer
 
+    def onDestroyWidget(self):
+        self.widget.Stop()
+        super(Timer, self).onDestroyWidget()
+
     def setFiringTime(self, when):
         # First turn off the old timer
         timer = self.widget
@@ -1084,7 +1107,7 @@ class ReminderTimer(Timer):
         self._inPrimeReminderTimer = True
         try:
             mainFrame = wx.GetApp().mainFrame
-            if createDialog and not mainFrame.IsShown():
+            if createDialog and (not mainFrame or not mainFrame.IsShown()):
                 # The main window isn't up yet; this happens on Mac when
                 # Chandler is started with a reminder already due. Wait a couple
                 # of seconds and try again.

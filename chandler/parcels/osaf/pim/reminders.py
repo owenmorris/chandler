@@ -119,8 +119,10 @@ class Remindable(schema.Item):
         )
     )
 
-    def getUserReminder(self, collectionToo=False, skipThis=None):
-        for attr in ("reminders", "expiredReminders"):
+    def getUserReminder(self, collectionToo=False, expiredToo=True, skipThis=None):
+        attrsToSearch = expiredToo and ("reminders", "expiredReminders") \
+                        or ("reminders",)
+        for attr in attrsToSearch:
             if (self.hasLocalAttributeValue(attr)):
                 collection = getattr(self, attr)
                 for reminder in collection:
@@ -159,7 +161,8 @@ class Remindable(schema.Item):
 
         # If we're supposed to, replace any old userReminder
         if replace:
-            (collection, userReminder) = self.getUserReminder(True, newReminder)
+            (collection, userReminder) = self.getUserReminder(collectionToo=True, 
+                                                              skipThis=newReminder)
 
             if userReminder is not None:
                 logger.debug("Removing %s from %s", userReminder, self)
@@ -297,3 +300,18 @@ class Remindable(schema.Item):
         fget=getNextReminderTime,
         doc="Firing time of this item's next reminder, "
             "or None for no unexpired reminders")
+
+    @schema.observer(reminders)
+    def onRemindersChanged(self, op, attr):
+        logger.debug("Hey, onRemindersChanged called!")
+        self.updateRelevantDate(op, attr)
+    
+    def addRelevantDates(self, dates):
+        """
+        Subclasses will override this to add relevant dates to this list;
+        each should be a tuple, (dateTimeValue, 'attributeName').
+        """
+        # Add our reminder, if we have one
+        reminder = self.getUserReminder(expiredToo=False)
+        if reminder is not None:
+            dates.append((reminder.getNextReminderTimeFor(self), 'reminder'))

@@ -187,6 +187,10 @@ class ContentItem(Remindable):
     # the other end of this biref)
     appearsIn = schema.Sequence()
 
+    # The date used for sorting the Date column
+    relevantDate = schema.One(schema.DateTimeTZ)
+    relevantDateSource = schema.One(schema.Importable)
+    
     schema.addClouds(
         sharing = schema.Cloud("displayName", body, createdOn, 'tags',
                                "description", lastModifiedBy, triageStatus,
@@ -589,6 +593,45 @@ class ContentItem(Remindable):
 
     sharedState = property(getSharedState)
 
+    def updateRelevantDate(self, op, attr):
+        # Update the relevant date. This could be a lot smarter.
+        logger.debug("Collecting relevant dates for %s", self)
+        dates = []
+        self.addRelevantDates(dates)
+        dates = filter(lambda x: x[0], dates)
+        dateCount = len(dates)
+        if dateCount == 0:
+            # No relevent dates? Eventually, we'll use lastModified; for now
+            # just delete the value.
+            if hasattr(self, 'relevantDate'): 
+                del self.relevantDate
+                self.relevantDateSource = 'None'
+            logger.debug("No relevant date for %s", self)
+            return
+        elif dateCount == 1:
+            # We have exactly one date; it doesn't matter whether it's in
+            # the future or the past -- just use it.
+            result = dates[0]
+        else:
+            # More than one: Use the first one after now if we have one, else
+            # the last one before now.
+            nowTuple = (datetime.now(tz=ICUtzinfo.default), 'now')
+            dates.append(nowTuple)
+            dates.sort()
+            nowIndex = dates.index(nowTuple)
+            try:
+                result = dates[nowIndex+1]
+            except IndexError:
+                result = dates[nowIndex-1]
+                
+        logger.debug("Relevant dates for %s is %s", self, result)
+        assert result[0] is not None
+        self.relevantDate, self.relevantDateSource = result
+        
+    @schema.observer(lastModified)
+    def onLastModifiedChanged(self, op, attr):
+        self.updateRelevantDate(op, attr)
+
     @schema.observer(triageStatus)
     def setTriageStatusChanged(self, op='set', attribute=None, when=None):
         """
@@ -845,12 +888,20 @@ class UserNotification(ContentItem):
     # redirections
     about = schema.One(redirectTo = "displayName")
 
-    date = schema.One(redirectTo = "timestamp")
-
     def __init__(self, *args, **kw):
         super(UserNotification, self).__init__(*args, **kw)
         if not hasattr(self, 'timestamp'):
             self.timestamp = datetime.now(ICUtzinfo.default)
+
+    @schema.observer(timestamp)
+    def onTimestampChanged(self, op, attr):
+        self.updateRelevantDate(op, attr)
+
+    def addRelevantDates(self, dates):
+        super(UserNotification, self).addRelevantDates(dates)
+        timestamp = getattr(self, 'timestamp', None)
+        if timestamp is not None:
+            dates.append((timestamp, 'timestamp'))
 
 
 class Principal(ContentItem):

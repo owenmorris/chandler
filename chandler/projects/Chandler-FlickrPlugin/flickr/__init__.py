@@ -34,6 +34,7 @@ from osaf.framework.blocks.MenusAndToolbars import MenuItem
 from osaf.startup import PeriodicTask
 from datetime import timedelta
 from osaf.usercollections import UserCollection
+from PyICU import ICUtzinfo
 
 _ = MessageFactory("Chandler-FlickrPlugin")
 
@@ -64,7 +65,8 @@ class FlickrPhotoMixin(PhotoMixin):
     
             self.imageURL = URL(photo.getURL(urlType="source"))
             self.datePosted = datetime.utcfromtimestamp(int(photo.dateposted))
-            self.dateTaken = dateutil.parser.parse(photo.datetaken)
+            self.dateTaken = dateutil.parser.parse(photo.datetaken, 
+                                default=datetime.now(tz=ICUtzinfo.default))
             try:
                 if photo.tags:
                     self.tags = [Tag.getTag(self.itsView, tag.text) for tag in photo.tags]
