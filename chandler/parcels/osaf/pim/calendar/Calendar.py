@@ -1455,14 +1455,6 @@ class CalendarEventMixin(ContentItem):
         else:
             RecurrenceDialog.getProxy(u'ui', self).removeFromCollection(collection, cutting)
 
-
-    @schema.observer(
-        modificationFor
-    )
-    def debugModificationFor(self, op, name):
-        if self.modificationFor == self:
-            import pdb; pdb.set_trace()
-
     @schema.observer(
         ContentItem.displayName, ContentItem.body, ContentItem.lastModified,
         startTime, duration, location, allDay, rruleset
