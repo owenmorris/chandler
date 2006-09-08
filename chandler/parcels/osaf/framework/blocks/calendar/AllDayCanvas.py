@@ -21,7 +21,7 @@ from application import schema
 from datetime import datetime, timedelta, date, time
 from CalendarCanvas import (
     CalendarCanvasItem, CalendarBlock, CalendarSelection,
-    wxCalendarCanvas, roundToColumnPosition
+    wxCalendarCanvas, roundToColumnPosition, widgetGuardedCallback
     )
 from CollectionCanvas import DragState
 from PyICU import GregorianCalendar, ICUtzinfo
@@ -264,8 +264,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if not currentCanvasItem.CanDrag():
             return
 
+        callback = widgetGuardedCallback(self.blockItem,
+                                         self.wxSynchronizeWidget)
         proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.item,
-                                          endCallback=self.wxSynchronizeWidget)
+                                          endCallback=callback)
         
         if self.dragState.dragged:
             (startTime, endTime) = self.GetDragAdjustedTimes()

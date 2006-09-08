@@ -140,6 +140,11 @@ def roundToColumnPosition(v, columnList):
     else:
         return columnList[-1]
 
+def widgetGuardedCallback(block, function):
+    """Call callback function only if the given object has a widget."""
+    if block.widget is not None:
+        function()
+
 # hue -> colorName mapping
 hueMap = dict((int(v), k) for k, v in confstyles.cfg.items('colors'))
 suffixes = 'GradientLeft', 'GradientRight', 'Outline', 'Text'
