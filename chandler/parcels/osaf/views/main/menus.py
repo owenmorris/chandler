@@ -77,7 +77,7 @@ def makeMainMenus(parcel):
         menuItems = []
         
         # include '-1' in the list of hours
-        for hour in chain([-1], xrange(5, 13)):
+        for hour in chain([-1], xrange(5, 13), [18], [24]):
 
             # create the event that will fire. Note that all events on
             # the same method
