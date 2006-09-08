@@ -1139,7 +1139,8 @@ class References(Values):
                     elif value is Nil and newValue is Nil:
                         continue
                     elif not (isuuid(value) or value in (None, Nil)):
-                        raise AssertionError, ("merging %s.%s" %(self._item._repr_(), name), value)
+                        continue
+
                     if newValue != value:
                         if name in dirties:
                             if value is Nil:

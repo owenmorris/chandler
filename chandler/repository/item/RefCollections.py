@@ -258,10 +258,8 @@ class RefList(LinkedMap, Indexed):
 
         try:
             sd = self._setFlag(RefList.SETDIRTY, False)
-            item = self.first()
-            while item is not None:
+            for item in self:
                 self.remove(item)
-                item = self.first()
         finally:
             self._setFlag(RefList.SETDIRTY, sd)
 

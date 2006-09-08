@@ -491,7 +491,8 @@ class Kind(Item):
             for superKind in references['superKinds']:
                 for name, attribute, kind in superKind.iterAttributes():
                     if name not in allAttributes:
-                        allAttributes[name] = (attribute.itsUUID, kind.itsUUID, False, False)
+                        allAttributes[name] = (attribute.itsUUID, kind.itsUUID,
+                                               False, False)
                         allNames[_hash(name)] = name
                         if attribute.getAspect('notify', False):
                             notifyAttributes.add(name)
@@ -725,8 +726,9 @@ class Kind(Item):
             c.notifyAttributes.clear()
             c.attributesCached = False
 
-        c.inheritedSuperKinds.clear()
-        c.superKindsCached = False
+        if c.superKindsCached:
+            c.inheritedSuperKinds.clear()
+            c.superKindsCached = False
 
         c.inheritedAttributes.clear()
         del c.notFoundAttributes[:]
@@ -739,10 +741,11 @@ class Kind(Item):
             self._values._clearTransient('classes')
             del self._values['classes']
 
+        if reason != 'unload':
+            self._setupDescriptors(reason)
+
         for subKind in self._references.get('subKinds', Nil):
             subKind.flushCaches(reason)
-
-        self._setupDescriptors(reason)
 
         if 'schemaHash' in self._values:
             del self.schemaHash

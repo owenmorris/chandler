@@ -630,9 +630,10 @@ class Indexed(object):
                                              item, attribute, count, repair):
                         if repair:
                             logger.warning("Rebuilding index '%s' installed on value '%s' of type %s in attribute '%s' on %s", name, self, type(self), attribute, item._repr_())
+                            kwds = index.getInitKeywords()
+                            kwds.pop('ranges', None)
                             indexes[name] = index = \
-                                self._createIndex(index.getIndexType(),
-                                                  **index.getInitKeywords())
+                                self._createIndex(index.getIndexType(), **kwds)
                             self.fillIndex(index)
                             self._setDirty(True)
 

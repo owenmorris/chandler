@@ -386,23 +386,33 @@ class DBRepositoryView(OnDemandRepositoryView):
             unloads = [item for item in self._registry.itervalues()
                        if item.itsVersion > newVersion]
             self._version = newVersion
-            self._refreshItems(unloads.__iter__)
+            self._refreshItems(unloads.__iter__, True)
             self.flushNotifications()
             return False
 
-    def _refreshItems(self, items):
+    def _refreshItems(self, items, backwards=False):
 
         refCounted = self.isRefCounted()
 
         for item in items():
             item._unloadItem(refCounted or item.isPinned(), self, False)
-        for item in items():
-            if (refCounted or item.isPinned()) and item.isSchema():
-                oldVersion = item.itsVersion
-                item = self.find(item.itsUUID)
-                if item is not None and item.itsVersion < oldVersion:
-                    if isinstance(item, Kind):
-                        item.flushCaches(None)
+
+        if backwards:
+            kinds = []
+            for item in items():
+                if (refCounted or item.isPinned()) and item.isSchema():
+                    item = self.find(item.itsUUID)
+                    if item is not None and isinstance(item, Kind):
+                        kinds.append(item)
+            for kind in kinds:
+                kind.flushCaches('unload')
+            for kind in kinds:
+                kind.flushCaches('reload')
+        else:
+            for item in items():
+                if (refCounted or item.isPinned()) and item.isSchema():
+                    self.find(item.itsUUID)
+
         for item in items():
             if refCounted or item.isPinned():
                 self.find(item.itsUUID)
@@ -877,7 +887,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         if dirty and newDirty:
             raise VersionConflictError, (item, newDirty, dirty)
 
-        self.logger.info('%s merged %s with newer versions, merge status: 0x%0.8x', self, item._repr_(), (item._status & CItem.MERGED))
+        #self.logger.info('%s merged %s with newer versions, merge status: 0x%0.8x', self, item._repr_(), (item._status & CItem.MERGED))
 
     def _applyIndexChanges(self, indexChanges, deletes):
 
