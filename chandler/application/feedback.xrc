@@ -137,6 +137,11 @@ the product.  You may optionally add additional information about how to reprodu
               <border>8</border>
             </object>
             <object class="sizeritem">
+              <object class="wxButton" name="restartButton">
+                <label>&amp;Restart</label>
+              </object>
+            </object>
+            <object class="sizeritem">
               <object class="wxButton" name="closeButton">
                 <label>&amp;Close</label>
               </object>

@@ -56,6 +56,7 @@ class xrcFRAME(wx.Frame):
         self.delButton = xrc.XRCCTRL(self, "delButton")
         self.sysInfo = xrc.XRCCTRL(self, "sysInfo")
         self.sendButton = xrc.XRCCTRL(self, "sendButton")
+        self.restartButton = xrc.XRCCTRL(self, "restartButton")
         self.closeButton = xrc.XRCCTRL(self, "closeButton")
 
 

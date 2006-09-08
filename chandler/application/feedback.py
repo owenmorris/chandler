@@ -68,6 +68,9 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             self.frame.sysInfo.InsertStringItem(0, 'os.getcwd')
             self.frame.sysInfo.SetStringItem(0, 1, '%s' % os.getcwd())
             index = 1
+            self.frame.sysInfo.InsertStringItem(index, 'sys.executable')
+            self.frame.sysInfo.SetStringItem(index, 1, '%s' % sys.executable)
+            index += 1
             for argv in sys.argv:
                 self.frame.sysInfo.InsertStringItem(index, 'sys.argv')
                 self.frame.sysInfo.SetStringItem(index, 1, '%s' % argv)
@@ -207,6 +210,7 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         self.frame.Bind(wx.EVT_BUTTON, self.OnCloseWindow, self.frame.closeButton)
         self.frame.Bind(wx.EVT_MENU, self.OnCloseWindow)
         self.frame.Bind(wx.EVT_BUTTON, self.OnSend, self.frame.sendButton)
+        self.frame.Bind(wx.EVT_BUTTON, self.OnRestart, self.frame.restartButton)
 
     def OnCloseWindow(self, event):
         if self.frame.disableFeedback.IsChecked():
@@ -222,6 +226,22 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             #wx.GetApp().Destroy()
         initRuntimeLog(Globals.options.profileDir)
 
+    def OnRestart(self, event):
+        try:
+            self.frame.sendButton.Disable()
+            self.frame.restartButton.Disable()
+            self.frame.closeButton.Disable() 
+            self.frame.restartButton.SetLabel(_(u'Restarting...'))
+    
+            import atexit
+            atexit.register(restart)
+        finally:
+            try:
+                from osaf.framework import scripting
+                scripting.app_ns().root.Quit()
+            except:
+                sys.exit()
+
     def logReport(self, feedbackXML, serverResponse):
         try:
             # chandler.log
@@ -229,14 +249,23 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             logger = logging.getLogger(__name__)
             logger.info(serverResponse)
             
-            # Log each report to a new file
-            # A response looks like this:
+            # Extract the actual report ID. Response looks like this:
             # desktop feedback submission #2006-09-07T13-25-10.279322 successful.
             import re
             feedbackId = re.compile('^.*(\d{4}\-\d{2}\-\d{2}T\d{2}\-\d{2}\-\d{2}\.\d{6}).*$').match(serverResponse).group(1)
-            f = open(os.path.join(Globals.options.profileDir, 'feedback-%s.xml' % feedbackId), 'w')
+            
+            # Show the ID so that users can report it in bugs etc.
+            self.frame.text.AppendText(_(u'\nFeedback report ID: %s' % feedbackId))
+                        
+            # Log each report to a new file
+            feedbackFile = os.path.join(Globals.options.profileDir, 'feedback-%s.xml' % feedbackId)
+            f = open(feedbackFile, 'w')
             f.write(feedbackXML)
             f.close()
+
+            # Show the path to the saved file
+            self.frame.text.AppendText(_(u'\nFeedback report saved locally at: %s' % feedbackFile))
+
         except:
             pass
 
@@ -279,7 +308,7 @@ def buildXML(comments, email, optional, required):
     Given the possible fields in the error dialog, build an XML file
     of the data.
     """
-    ret = ['<feedback xmlns="http://osafoundation.org/xmlns/feedback" version="0.1">']
+    ret = ['<feedback xmlns="http://osafoundation.org/xmlns/feedback" version="0.2">']
     
     # The required field consists of field: value lines, followed by either
     # traceback or arbitrary output that was printed to stdout or stderr.
@@ -327,3 +356,27 @@ def buildXML(comments, email, optional, required):
     
     return s
 
+def restart():
+    try:
+        import subprocess
+        
+        # argv[0] == Chandler.py
+        args = sys.argv[1:]
+        
+        # We obviously want to avoid silently blowing the repository
+        while '--create' in args:
+            args.remove('--create')
+        while '-c' in args:
+            args.remove('-c')
+        
+        # Ask the user for the (recovery) options
+        if '--ask' not in args:
+            args.append('--ask')
+            
+        if not os.path.basename(sys.executable).startswith('chandler'):
+            args.insert(0, sys.argv[0]) # Python needs Chandler.py
+            
+        subprocess.Popen([sys.executable] + args)
+    except:
+        pass
+    
