@@ -119,8 +119,8 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
         #             {
         #                'name' : item.getItemDisplayName(),
         #                'attribute' : attribute,
-        #                'local' : unicode(value),
-        #                'remote' : unicode(getattr(item, attribute))
+        #                'local' : unicode(getattr(item, attribute, Nil))
+        #                'remote' : unicode(value),
         #             }
         #         )
         #     )
