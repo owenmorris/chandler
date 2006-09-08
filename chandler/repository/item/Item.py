@@ -1436,9 +1436,10 @@ class Item(CItem):
         """
 
         if cloudAlias is not None:
-            clouds = self._kind.getClouds(cloudAlias)
-            for cloud in clouds:
-                cloud.deleteItems(self, recursive, cloudAlias)
+            if not self.isDeleted():
+                clouds = self._kind.getClouds(cloudAlias)
+                for cloud in clouds:
+                    cloud.deleteItems(self, recursive, cloudAlias)
 
         elif not self._status & (Item.DELETED | Item.DELETING | Item.DEFERRING):
 
