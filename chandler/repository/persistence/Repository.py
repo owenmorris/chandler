@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import logging, threading, PyLucene
+import sys, logging, threading, PyLucene
 
 from chandlerdb.util.c import UUID
 from chandlerdb.persistence.c import CRepository
@@ -102,11 +102,12 @@ class Repository(CRepository):
     def _init(self, **kwds):
 
         self._status = Repository.CLOSED
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger('repository')
 
         def addHandler():
             for handler in self.logger.handlers:
-                if isinstance(handler, logging.StreamHandler):
+                if (isinstance(handler, logging.StreamHandler) and
+                    handler.stream is sys.stderr):
                     return
             self.logger.addHandler(logging.StreamHandler())
 

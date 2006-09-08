@@ -453,6 +453,23 @@ class Indexed(object):
 
         self._setDirty(True)
 
+    def reindexKeys(self, keys, *indexNames):
+        """
+        Re-index an iterable of keys in one or more indexes.
+
+        The keys are first removed from the index and then re-inserted.
+        This is useful with sorted indexes whose sort order is currently
+        invalid because the items behind the C{keys} have changed in a way
+        that invalidated it.
+
+        C{keys} must be iterable more than once.
+        """
+
+        for indexName in indexNames:
+            self.getIndex(indexName).moveKeys(keys)
+
+        self._setDirty(True)
+
     def iterindexkeys(self, indexName, first=None, last=None):
 
         for key in self.getIndex(indexName).iterkeys(first, last):

@@ -458,6 +458,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             self._refreshItems(unloads.itervalues)
 
             if merges:
+                self.logger.info('%s merging %d items...', self, len(merges))
                 newChanges = {}
                 changes = {}
                 indexChanges = {}
@@ -887,7 +888,8 @@ class DBRepositoryView(OnDemandRepositoryView):
         if dirty and newDirty:
             raise VersionConflictError, (item, newDirty, dirty)
 
-        #self.logger.info('%s merged %s with newer versions, merge status: 0x%0.8x', self, item._repr_(), (item._status & CItem.MERGED))
+        if self.isDebug():
+            self.logger.debug('%s merged %s with newer versions, merge status: 0x%0.8x', self, item._repr_(), (item._status & CItem.MERGED))
 
     def _applyIndexChanges(self, indexChanges, deletes):
 
