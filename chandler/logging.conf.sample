@@ -12,7 +12,7 @@ level=WARNING
 handlers=chandler_log
 
 [handler_chandler_log]
-class=RotatingFileHandler
+class=handlers.RotatingFileHandler
 level=NOTSET
 formatter=form01
 args=(os.path.join(PROFILEDIR,'chandler.log'), 'a', 1000000, 2)
@@ -25,3 +25,4 @@ datefmt=
 level=NOTSET
 handlers=chandler_log
 qualname=repository
+propagate=0
