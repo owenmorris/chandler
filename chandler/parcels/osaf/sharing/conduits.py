@@ -104,9 +104,10 @@ class InMemoryConduit(Sharing.ShareConduit):
         try:
             item = self.share.format.importProcess(contentView, text,
                 item=into, updateCallback=updateCallback, stats=stats)
-        except Exception, e:
-            logging.exception(e)
-            raise Sharing.TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
+        except MalformedData:
+            logger.exception("Failed to parse resource for item %s: '%s'" %
+                (itemPath, text.encode('utf8', 'replace')))
+            raise
 
         return (item, shareDict[self.shareName][itemPath][0])
 

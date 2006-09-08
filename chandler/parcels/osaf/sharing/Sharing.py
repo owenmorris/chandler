@@ -15,6 +15,7 @@
 
 import time, urlparse, os, base64, logging, datetime
 from elementtree.ElementTree import ElementTree
+from xml.parsers import expat
 from application import schema
 from osaf import pim, messages, ChandlerException
 from i18n import ChandlerMessageFactory as _
@@ -45,6 +46,7 @@ __all__ = [
     'FileSystemConduit',
     'IllegalOperation',
     'ImportExportFormat',
+    'MalformedData',
     'Misconfigured',
     'NotAllowed',
     'NotFound',
@@ -879,7 +881,7 @@ class ShareConduit(pim.ContentItem):
             try:
                 (item, data) = self._getItem(contentView, itemPath, into=into,
                     updateCallback=updateCallback, stats=stats)
-            except TransformationFailed, e:
+            except MalformedData:
                 # This has already been logged; catch it and return None
                 # to allow the sync to proceed.
                 return None
@@ -1336,8 +1338,8 @@ class FileSystemConduit(ShareConduit):
 
         try:
             text = self.share.format.exportProcess(item)
-        except Exception, e:
-            logging.exception(e)
+        except:
+            logger.exception("Failed to export item")
             raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
 
         if text is None:
@@ -1369,9 +1371,11 @@ class FileSystemConduit(ShareConduit):
             item = self.share.format.importProcess(contentView, text,
                 extension=extension, item=into,
                 updateCallback=updateCallback, stats=stats)
-        except Exception, e:
-            logging.exception(e)
-            raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
+
+        except MalformedData:
+            logger.exception("Failed to parse resource for item %s: '%s'" %
+                (itemPath, text.encode('utf8', 'replace')))
+            raise
 
         stat = os.stat(path)
         return (item, stat.st_mtime)
@@ -1588,7 +1592,7 @@ class WebDAVConduit(ShareConduit):
             raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
         except zanshin.webdav.PermissionsError, err:
             message = _(u"Not authorized to PUT %(info)s") % {'info': self.getLocation()}
-            logging.exception(err)
+            logger.exception(err)
             raise NotAllowed(message)
 
         return result
@@ -1698,8 +1702,8 @@ class WebDAVConduit(ShareConduit):
 
         try:
             text = self.share.format.exportProcess(item)
-        except Exception, e:
-            logging.exception(e)
+        except:
+            logger.exception("Failed to export item")
             msg = _(u"Transformation failed for %(item)s") % {'item': item}
             raise TransformationFailed(msg)
 
@@ -1816,21 +1820,11 @@ class WebDAVConduit(ShareConduit):
         try:
             item = self.share.format.importProcess(contentView, text,
                 item=into, updateCallback=updateCallback, stats=stats)
-        except VersionMismatch:
-            raise
-        except Exception, e:
-            if isinstance(text, unicode):
-                text = text.encode('ascii', 'replace')
-            else:
-                print "Failed to parse resource, type(text):", type(text)
-                try:
-                    print "text:", text
-                except Exception, e:
-                    print e
+
+        except MalformedData:
             logger.exception("Failed to parse resource for item %s: '%s'" %
                 (itemPath, text.encode('utf8', 'replace')))
-            raise TransformationFailed(_(u"%(itemPath)s %(error)s (See chandler.log for text)") % \
-                                       {'itemPath': itemPath, 'error': e})
+            raise
 
         return (item, etag)
 
@@ -2189,9 +2183,6 @@ class SimpleHTTPConduit(WebDAVConduit):
 
     def _get(self, contentView, updateCallback=None):
 
-        # @@@MOR: we need to have importProcess return stats about what it did.
-        # Otherwise, since this is a monolithic .ics file, we don't know the
-        # details other than we either fetched the .ics file or we didn't
         stats = {
             'share' : self.share.itsUUID,
             'op' : 'get',
@@ -2257,9 +2248,10 @@ class SimpleHTTPConduit(WebDAVConduit):
             for item in cvSelf.share.contents:
                 cvSelf.share.items.append(item)
 
-        except Exception, e:
-            logging.exception(e)
-            raise TransformationFailed(_(u"Unable to parse data"))
+        except MalformedData:
+            logger.exception("Failed to parse: '%s'" %
+                text.encode('utf8', 'replace'))
+            raise
 
         lastModified = resp.headers.getHeader('Last-Modified')
         if lastModified:
@@ -2429,9 +2421,14 @@ class IllegalOperation(SharingError):
     denying an operation for some reason not covered by other exceptions.
     """
 
+class MalformedData(SharingError):
+    """
+    Exception raised when importProcess fails because of malformed data
+    """
+
 class TransformationFailed(SharingError):
     """
-    Exception raised if import or export process failed.
+    Exception raised if export process failed
     """
 
 class AlreadySubscribed(SharingError):
@@ -2597,26 +2594,21 @@ class CloudXMLFormat(ImportExportFormat):
     def importProcess(self, contentView, text, extension=None, item=None,
         updateCallback=None, stats=None):
 
-        root = ElementTree(file=StringIO(text)).getroot()
         try:
+            root = ElementTree(file=StringIO(text)).getroot()
+        except expat.ExpatError, e:
+            logger.exception("CloudXML parsing error")
+            raise MalformedData(str(e))
+        except:
+            logger.exception("CloudXML parsing error")
+            raise
 
-            # @@@MOR Disabling the use of queued notifications, as it is
-            # not needed at the moment.  Leaving it in (commented out) in
-            # case the need arises.
-
-            # self.itsView.recordChangeNotifications()
-
+        try:
             item = self._importElement(contentView, root, item=item,
                 updateCallback=updateCallback, stats=stats)
-
-        finally:
-
-            # self.itsView.playChangeNotifications()
-
-            # doc.freeDoc()
-            # I guess there's no equivalent in elementtree?
-
-            pass
+        except:
+            logger.exception("Error during import")
+            raise
 
         return item
 
