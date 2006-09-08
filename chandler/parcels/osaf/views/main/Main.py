@@ -820,6 +820,12 @@ class MainView(View):
             rv.commit()
             sharing.scheduleNow(rv, collection=collection, modeOverride='get')
 
+    def onToggleReadOnlyModeEvent(self, event):
+        sharing.setReadOnlyMode(not sharing.isReadOnlyMode())
+
+    def onToggleReadOnlyModeEventUpdateUI(self, event):
+        event.arguments['Check'] = sharing.isReadOnlyMode()
+
 
     def onEditMyNameEvent(self, event):
         rv = self.itsView

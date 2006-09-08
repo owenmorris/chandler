@@ -65,8 +65,10 @@ __all__ = [
     'WebDAVConduit',
     'changedAttributes',
     'getLinkedShares',
+    'isReadOnlyMode',
     'isShared',
     'localChanges',
+    'setReadOnlyMode',
     'splitUrl',
     'sync',
 ]
@@ -77,8 +79,20 @@ CLOUD_XML_VERSION = '2'
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
+# A flag to allow a developer to turn off all publishing while debugging
+_readOnlyMode = False
+def isReadOnlyMode():
+    return _readOnlyMode
+def setReadOnlyMode(active):
+    global _readOnlyMode
+    _readOnlyMode = active
+
 def sync(collectionOrShares, modeOverride=None, updateCallback=None,
     forceUpdate=None):
+
+    if _readOnlyMode:
+        modeOverride='get'
+        logger.warning("Sharing in read-only mode")
 
     def mergeFunction(code, item, attribute, value):
         # 'value' is the one from the *this* view

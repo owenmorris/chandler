@@ -124,6 +124,8 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('BackgroundSyncGetOnly').install(parcel)
 
+    BlockEvent.template('ToggleReadOnlyMode').install(parcel)
+
     BlockEvent.template('EditMyName').install(parcel)
 
     BlockEvent.template('CommitRepository').install(parcel)
