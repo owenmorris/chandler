@@ -1116,18 +1116,20 @@ class ReminderTimer(Timer):
             else:
                 # Update triagestatus on each pending reminder. Dismiss any
                 # internal reminders that exist only to trigger on startTime.
+                pending = self.getPendingReminders()
                 def processReminder((reminderTime, remindable, reminder)):
                     logger.debug("*** now-ing %s due to %s", remindable, 
                                  reminder)
                     remindable.triageStatus = 'now'
                     remindable.setTriageStatusChanged(when=reminderTime)
+                    assert not reminder.isDeleted()
                     if reminder.userCreated:
                         return True # this should appear in the list.
                     # This is a non-user reminder, which served only to let us
                     # bump the triageStatus. Discard it.
                     remindable.dismissReminder(reminder)
                     return False
-                pending = filter(processReminder, self.getPendingReminders())
+                pending = filter(processReminder, pending)
 
                 # Get the dialog if we have it; we'll create it if 'createDialog' and
                 # it doesn't exist.

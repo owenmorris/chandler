@@ -286,6 +286,7 @@ class Remindable(schema.Item):
         item, and the reminder)
         """
         (when, reminder) = self._getNextReminderAndTime()
+        assert not reminder.isDeleted()
         return (when, self, reminder)
         
     def getNextReminderTime(self):
