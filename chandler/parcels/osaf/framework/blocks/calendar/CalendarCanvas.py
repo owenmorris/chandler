@@ -1081,6 +1081,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         self.EnsureIndexes()
 
     def onDayModeEvent(self, event):
+        self.closeEditor()
         self.dayMode = event.arguments['dayMode']
         if self.dayMode:
             self.rangeIncrement = timedelta(days=1)
@@ -1142,6 +1143,10 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         
         return hits
 
+    def closeEditor(self):
+        if (getattr(self, 'widget', None) and 
+            getattr(self.widget, 'GrabFocusHack', None)):
+            self.widget.GrabFocusHack()
 
     # Managing the date range
 
@@ -1154,7 +1159,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         @param date: date to include
         @type date: datetime
         """
-
+        self.closeEditor()
         date = datetime.combine(date, time(tzinfo=ICUtzinfo.floating))
 
         if self.dayMode:
@@ -1183,12 +1188,14 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """
         Increments the calendar's current range.
         """
+        self.closeEditor()
         self.rangeStart += self.rangeIncrement
 
     def decrementRange(self):
         """
         Decrements the calendar's current range.
         """
+        self.closeEditor()
         self.rangeStart -= self.rangeIncrement
 
     # Get items from the collection

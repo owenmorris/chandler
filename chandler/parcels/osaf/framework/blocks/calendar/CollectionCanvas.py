@@ -741,8 +741,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                                   for canvasItem in self.canvasItemList
                                   if canvasItem.item == selectedItem]
 
-            # it's possible selecteCanvasItems will be empty canvasItemList was
-            # out of date.  That's OK, go ahead and return None in that case.
+            # it's possible selecteCanvasItems will be empty if canvasItemList
+            # was out of date.  That's OK, go ahead and return None in that case
             if len(selectedCanvasItems) == 1:
                 return selectedCanvasItems[0]
 
