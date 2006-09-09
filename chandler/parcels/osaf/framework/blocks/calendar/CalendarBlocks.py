@@ -42,6 +42,9 @@ if '__WXMAC__' in wx.PlatformInfo:
 else:
     PLATFORM_BORDER = wx.BORDER_STATIC
 
+zero_delta = timedelta(0)
+one_day = timedelta(1)
+
 class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                      minical.PyMiniCalendar):
 
@@ -167,14 +170,10 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
             # In the case of the latter, event may be the master, or
             # a modification; we're trying to avoid creating all the
             # items for individual computed occurrences.
-            if event.transparency == "confirmed":
-
-                if event.allDay:
-                    hours = 12.0
-                else:
-                    # @@@ Wrong for multiday events -- Grant
-                    hours = event.duration.seconds / (60 * 60)
-
+            if (event.transparency == "confirmed" and
+                (event.allDay or 
+                (not event.anyTime and event.duration != zero_delta))):
+                
                 assert(start.tzinfo is not None)
                 
                 # If timezones are enabled, we need to convert to the
@@ -183,16 +182,36 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                 if tzEnabled:
                     start = start.astimezone(defaultTzinfo)
             
-                # @@@ [grant] Again, multiday events
                 offset = (start.date() - startDate).days
                 
-                # We set a minimum "Busy" value of 0.25 for any
-                # day with a confirmed event.
-                fraction = busyFractions.get(offset, 0.0)
-                fraction = max(fraction, 0.25)
-                fraction += (hours / 12.0)
-                
-                busyFractions[offset] = min(fraction, 1.0)
+                midnightStart = datetime.combine(event.startTime.date(),
+                                                 time(0, tzinfo=defaultTzinfo))
+                if event.allDay:
+                    days = event.duration.days + 1
+                else:
+                    days = (event.endTime - midnightStart).days + 1
+
+                for day in xrange(days):
+                    if event.allDay:
+                        hours = 12.0
+                    elif event.anyTime:
+                        hours = 1.0
+                    else:
+                        dayStart = max(event.startTime,
+                                       midnightStart + timedelta(day))
+                        dayEnd   = min(event.endTime,
+                                       midnightStart + timedelta(day + 1))
+                        duration = dayEnd - dayStart
+                        # @@@ Wrong for multiday events -- Grant
+                        hours = duration.seconds / (60 * 60) + 24*duration.days
+                    
+                    # We set a minimum "Busy" value of 0.25 for any
+                    # day with a confirmed event.
+                    fraction = busyFractions.get(offset + day, 0.0)
+                    fraction = max(fraction, 0.25)
+                    fraction += (hours / 12.0)
+                    
+                    busyFractions[offset + day] = min(fraction, 1.0)
                 
         if self._eventsToAdd is not None:
             # First, set up busyFractions to contain the
@@ -304,10 +323,9 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                             updateBusy(matchingMod, modStart)
     
             offset = 0
-            timeDeltaDay = timedelta(days=1)
             while (startDate < endDate):
                 self.SetBusy(startDate, busyFractions.get(offset, 0.0))
-                startDate += timeDeltaDay
+                startDate += one_day
                 offset += 1
             
     
@@ -388,7 +406,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
 
     def __init__(self, *arguments, **keywords):
         super(PreviewArea, self).__init__(*arguments, **keywords)
-        self.rangeIncrement = timedelta(days=1)
+        self.rangeIncrement = one_day
 
     def onSelectItemsEvent(self, event):
         self.synchronizeWidget()
@@ -609,7 +627,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         else:
             startDay = minical.widget.getSelectedDate()
         startDay = startDay.replace(tzinfo=ICUtzinfo.default)
-        endDay = startDay + timedelta(days=1)
+        endDay = startDay + one_day
 
         if useHints and self.HavePendingNewEvents():
             addedEvents = self.GetPendingNewEvents((startDay, endDay))
