@@ -98,9 +98,9 @@ class Button(RectangularChild):
             normal.stateName = "%s.Unstamped" % self.icon
             stamped = MultiStateButton.BitmapInfo()
             stamped.normal   = "%sStamped" % self.icon
-            stamped.rollover = "%sRollover" % self.icon
-            stamped.disabled = "%sDisabled" % self.icon
-            stamped.selected = "%sPressed" % self.icon
+            stamped.rollover = "%sStampedRollover" % self.icon
+            stamped.disabled = "%sStampedDisabled" % self.icon
+            stamped.selected = "%sStampedPressed" % self.icon
             stamped.stateName = "%s.Stamped" % self.icon
             button = wxChandlerMultiStateButton (parentWidget, 
                                 id, 
