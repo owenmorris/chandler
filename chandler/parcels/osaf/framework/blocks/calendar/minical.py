@@ -621,8 +621,7 @@ class PyMiniCalendar(wx.PyControl):
 
                     if ((weekDate.month == startDate.month) and   # Only highlight days that fall in the current month
                         ((highlightWeek and                        # Highlighting week and the week we are drawing matches
-                          (self.GetWeek(weekDate, False) ==        # the currently selected week
-                           self.GetWeek(self.selectedDate, False))) or
+                          (self.CompareWeeks(weekDate, self.selectedDate))) or 
                          (not highlightWeek and                # Highlighting a single day
                           (weekDate == self.selectedDate)))):
 
@@ -792,6 +791,10 @@ class PyMiniCalendar(wx.PyControl):
         targetDate = self.FirstDayOfWeek(targetDate)
         (year, week, day) = targetDate.isocalendar()
         return week
+
+    def CompareWeeks(self, date1, date2):
+        yearAndWeek = lambda dt: self.FirstDayOfWeek(dt).isocalendar()[:2]
+        return yearAndWeek(date1) == yearAndWeek(date2)
 
     def IsDateInRange(self, date):
         """
