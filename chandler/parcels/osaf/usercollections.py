@@ -42,7 +42,7 @@ class UserCollection(schema.Annotation):
     
     renameable              = schema.One(schema.Boolean, defaultValue = True)
     color                   = schema.One(ColorType)
-    iconName                = schema.One(schema.Text)
+    iconName                = schema.One(schema.Text, defaultValue = "")
     iconNameHasKindVariant  = schema.One(schema.Boolean, defaultValue = False)
     colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
     dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)

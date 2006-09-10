@@ -490,7 +490,7 @@ class SSSidebarIconButton (SSSidebarButton):
 
         Names are made up of the following pieces:
 
-        'Sidebar', ButtonName, IconName, 'MouseDown', 'MouseOver', '.png'
+        'Sidebar', ButtonName, IconName, Checked, MouseState, Deactive, '.png'
 
         They all begin with 'Sidebar', followed by ButtonName. Today,
         we only have two buttons named: 'Icon', and 'SharingIcon'. The
@@ -498,8 +498,8 @@ class SSSidebarIconButton (SSSidebarButton):
         rules
 
         The ButtonName is followed by IconName. IconName is a property
-        of the collection, e.g. the AllCollection has an IconName of
-        'All'. The In, Out, and Trash collections have names 'In',
+        of the collection, e.g. the Dashboard has an IconName of
+        'Dashboard'. The In, Out, and Trash collections have names 'In',
         'Out' and 'Trash' respectively. Currently, new collections
         have no icon name, so the IconName can be empty. Another
         property of the collection is whether or not the IconName has
@@ -510,86 +510,56 @@ class SSSidebarIconButton (SSSidebarButton):
         'AllCalendarEventMixin', 'AllMailMessageMixin' and
         'AllTaskMixin'.
 
-        IconButtons are checkable. The checked state is indicated by
-        adding "MouseDown".
+        Another property of the collection, controlled by the allowOverlay,
+        attribute determintes whether or not it can be checked. If the
+        collection is checked, Checked is set to "Checked". Next comes
+        MouseState for checkable icons. It is "MouseDown" if the mouse
+        is down over the icon, "MouseOver" if the mouse is up, but over
+        the icon, or empty otherwise.
+        
+        Finally, comes Deactive, which equals "Deactive" when an collection
+        is deactive, i.e. it can't be checked.
 
-        Next comes 'MouseOver' if a different image is necessary for
-        the state when the mouse is over the item.
-
-        Here are the rules for defaults:
-
-        First we lookup the fully qualified name, e.g. 'Sidebar',
-        ButtonName, IconName, 'MouseDown', 'MouseOver', '.png'
-
-        If we don't find an image by that name we next lookup the name
-        without the IconName, e.g. 'Sidebar', ButtonName, 'MouseDown',
-        'MouseOver', '.png'. This allows us to specify a default icon
-        for MouseDown and MouseOver that is applied by default if you
-        don't have a special one for a particular icon.
-
-        If we still don't find an image, we next lookup the full image
-        name without MouseOver, e.g. 'Sidebar', ButtonName, IconName,
-        'MouseDown', '.png'. So if you don't have MouseOver icons they
-        don't get displayed.
-
-        Finally if we still don't have an image, we try to lookup the
-        name without an IconName or MouseOver, e.g 'Sidebar',
-        ButtonName, 'MouseDown', '.png'. This allows us to have a
-        default for buttons without MouseOver.
+        Finally after looking up the icon we colorise it if the colorizeIcon
+        attribute of the collection is True.
         """
-        colorizeIcon = True
-        imagePrefix = "Sidebar" + self.buttonName
-        mouseOver = ""
-        mouseDown = ""
-        imageSuffix = ".png"
+        sidebarBlock = self.buttonOwner
         userCollection = UserCollection(item)
-
-        selectedItem = self.buttonOwner.contents.getFirstSelectedItem()
-        if (selectedItem is not None and
-            UserCollection (selectedItem).outOfTheBoxCollection and
-            not UserCollection (item).outOfTheBoxCollection):
-                if self.getChecked (item):
-                    mouseDown = "MouseDownDeactive"
-                else:
-                    mouseDown = "Deactive"
-
-        else:
-            if mouseOverFlag:
-                mouseOver = "MouseOver"
-                if self.buttonState['screenMouseDown']:
-                    mouseDown = "MouseDown"
+    
+        imagePrefix = "Sidebar" + self.buttonName
+        if self.getChecked (item):
+            imagePrefix = imagePrefix + "Checked"
+        
+        if mouseOverFlag:
+            if self.buttonState['screenMouseDown']:
+                mouseState = "MouseDown"
             else:
-                if self.getChecked (item):
-                    mouseDown = "MouseDown"
-                else:
-                    colorizeIcon = userCollection.colorizeIcon
+                mouseState = "MouseOver"
+        else:
+            mouseState = ""
 
-        iconName = getattr(userCollection, "iconName", "")
-        filterKind = self.buttonOwner.filterKind
+        selectedItem = sidebarBlock.contents.getFirstSelectedItem()
+        if (not UserCollection (item).outOfTheBoxCollection and
+            ( (selectedItem is not None and UserCollection (selectedItem).outOfTheBoxCollection) or
+              sidebarBlock.filterKind in sidebarBlock.disallowOverlaysForFilterKinds) ):
+            deactive = "Deactive"
+        else:
+            deactive = ""
+
+        colorizeIcon = userCollection.colorizeIcon
+        imageSuffix = ".png"
+
+        iconName = userCollection.iconName
+        filterKind = sidebarBlock.filterKind
         if userCollection.iconNameHasKindVariant and filterKind is not None:
             iconName += os.path.basename (str (filterKind.itsPath))
 
-        # First lookup full image name
         app = wx.GetApp()
-        image = app.GetRawImage (imagePrefix + iconName + mouseDown + mouseOver + imageSuffix)
+        image = app.GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
         
-        # If that fails try the default image wihtout the name of the icon
-        if image is None:
-            image = app.GetRawImage (imagePrefix + mouseDown + mouseOver + imageSuffix)
-                
-        # If that fails try the full icon name wihtout mouseOver
-        if image is None:
-            image = app.GetRawImage (imagePrefix + iconName + mouseDown + imageSuffix)
-
-        # If that fails try the default image name wihtout mouseOver
-        if image is None:
-            image = app.GetRawImage (imagePrefix + mouseDown + imageSuffix)
-
-
-        if image is not None and colorizeIcon:
-            userCollection = UserCollection(item)
+        if image is not None and userCollection.colorizeIcon:
             userCollection.ensureColor()
-            color = getattr (UserCollection(item), 'color', None)
+            color = userCollection.color
             rgbValue = DrawingUtilities.color2rgb(color.red, color.green, color.blue)
             hsvValue = rgb_to_hsv(*rgbValue)
             image.RotateHue (hsvValue[0])
