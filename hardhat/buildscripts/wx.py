@@ -165,8 +165,8 @@ def installChandler(workingDir, log):
 
     Log('Removing release and debug directories', log)
 
-    os.rmdir(os.path.join(chandlerDir, 'release'))
-    os.rmdir(os.path.join(chandlerDir, 'debug'))
+    hardhatlib.rmdir_recursive(os.path.join(chandlerDir, 'release'))
+    hardhatlib.rmdir_recursive(os.path.join(chandlerDir, 'debug'))
 
     Log('Running make install', log)
 
