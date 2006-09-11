@@ -485,37 +485,37 @@ class SSSidebarIconButton (SSSidebarButton):
     def getButtonImage (self, item, mouseOverFlag):
         """
         The rules for naming icons are complicated, which is a
-        reflection of complexity of our sidebar design, so here is a
-        summary of the rules:
+        reflection of complexity of our sidebar design. Here is a
+        description of the rules:
 
         Names are made up of the following pieces:
 
-        'Sidebar', ButtonName, IconName, Checked, MouseState, Deactive, '.png'
+        'Sidebar', ButtonName, iconName, Checked, MouseState, Deactive, '.png'
 
         They all begin with 'Sidebar', followed by ButtonName. Today,
         we only have two buttons named: 'Icon', and 'SharingIcon'. The
         rules for Icon follow -- see getButtonImage for the SharingIcon
         rules
 
-        The ButtonName is followed by IconName. IconName is a property
-        of the collection, e.g. the Dashboard has an IconName of
-        'Dashboard'. The In, Out, and Trash collections have names 'In',
-        'Out' and 'Trash' respectively. Currently, new collections
-        have no icon name, so the IconName can be empty. Another
-        property of the collection is whether or not the IconName has
-        a kind variation, in which case the IconName is appended with
+        The ButtonName is followed by iconName. iconName is a property
+        of the collection, e.g. the Dashboard has an iconName of
+        'Dashboard'. The In, Out, and Trash collections have iconNames
+        'In', 'Out' and 'Trash' respectively. Currently, new collections
+        have no iconNme, so the iconName can be empty. Another
+        property of the collection is whether or not the iconName has
+        a kind variation, in which case the iconName is appended with
         the Kind, e.g. CalendarEventMixin, MailMessageMixin,
-        TaskMixin.  Currently, only the All collection has this
-        property, so the IconNames for the AllCollection are 'All',
-        'AllCalendarEventMixin', 'AllMailMessageMixin' and
-        'AllTaskMixin'.
+        TaskMixin.  Currently, only the Dashboard collection has this
+        property, so the iconNames for the Dashboard are 'Dashboard',
+        'DashboardCalendarEventMixin', 'DashboardMailMessageMixin' and
+        'DashboardTaskMixin'.
 
-        Another property of the collection, controlled by the allowOverlay,
-        attribute determintes whether or not it can be checked. If the
-        collection is checked, Checked is set to "Checked". Next comes
-        MouseState for checkable icons. It is "MouseDown" if the mouse
-        is down over the icon, "MouseOver" if the mouse is up, but over
-        the icon, or empty otherwise.
+        Another property of the collection, controlled by the allowOverlay
+        attribute, determines whether or not it can be checked. If the
+        collection is checked, Checked is the string "Checked". Next comes
+        MouseState for checkable icons. It is the string "MouseDown" if the
+        mouse is down over the icon, "MouseOver" if the mouse is up, but over
+        the icon, and empty otherwise.
         
         Finally, comes Deactive, which equals "Deactive" when an collection
         is deactive, i.e. it can't be checked.
@@ -531,7 +531,7 @@ class SSSidebarIconButton (SSSidebarButton):
             imagePrefix = imagePrefix + "Checked"
         
         if mouseOverFlag:
-            if self.buttonState['screenMouseDown']:
+            if self.buttonState['screenMouseDown'] != self.buttonState['blockChecked']:
                 mouseState = "MouseDown"
             else:
                 mouseState = "MouseOver"
