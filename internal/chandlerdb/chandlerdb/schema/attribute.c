@@ -35,9 +35,6 @@ static PyObject *t_attribute_invokeAfterChange(t_attribute *self,
 static PyObject *t_attribute__getCardinality(t_attribute *self, void *data);
 static int t_attribute__setCardinality(t_attribute *self, t_values *values,
                                        void *data);
-static PyObject *t_attribute__getPersisted(t_attribute *self, void *data);
-static int t_attribute__setPersisted(t_attribute *self, PyObject *value,
-                                     void *data);
 static PyObject *t_attribute__getRequired(t_attribute *self, void *data);
 static int t_attribute__setRequired(t_attribute *self, PyObject *value,
                                     void *data);
@@ -66,7 +63,6 @@ static PyObject *t_attribute__getProcess(t_attribute *self, void *data);
 
 static PyObject *_getRef_NAME;
 static PyObject *getFlags_NAME;
-static PyObject *persisted_NAME;
 static PyObject *cardinality_NAME;
 static PyObject *single_NAME, *list_NAME, *dict_NAME, *set_NAME;
 static PyObject *required_NAME;
@@ -97,10 +93,6 @@ static PyGetSetDef t_attribute_properties[] = {
       (getter) t_attribute__getCardinality,
       (setter) t_attribute__setCardinality,
       "cardinality property", NULL },
-    { "persisted",
-      (getter) t_attribute__getPersisted,
-      (setter) t_attribute__setPersisted,
-      "persisted property", NULL },
     { "required",
       (getter) t_attribute__getRequired,
       (setter) t_attribute__setRequired,
@@ -262,9 +254,6 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds)
         else if (!PyObject_Compare(cardinality, set_NAME))
             flags |= SET;
 
-        if (PyDict_GetItem(dict, persisted_NAME) == Py_False)
-            flags |= TRANSIENT;
-
         if (PyDict_GetItem(dict, required_NAME) == Py_True)
             flags |= REQUIRED;
 
@@ -382,15 +371,7 @@ static PyObject *t_attribute_getAspect(t_attribute *self, PyObject *args)
                     
         if (!(flags & REDIRECT))
         {
-            if (!PyObject_Compare(aspect, persisted_NAME))
-            {
-                if (flags & TRANSIENT)
-                    Py_RETURN_FALSE;
-
-                Py_RETURN_TRUE;
-            }
-
-            else if (!PyObject_Compare(aspect, redirectTo_NAME))
+            if (!PyObject_Compare(aspect, redirectTo_NAME))
                 Py_RETURN_NONE;
 
             else if (!PyObject_Compare(aspect, cardinality_NAME))
@@ -559,37 +540,6 @@ static int t_attribute__setCardinality(t_attribute *self, t_values *values,
     }
 }
 
-/* persisted property */
-
-static PyObject *t_attribute__getPersisted(t_attribute *self, void *data)
-{
-    if (!(self->flags & REDIRECT))
-    {
-        if (self->flags & TRANSIENT)
-            Py_RETURN_FALSE;
-
-        Py_RETURN_TRUE;    
-    }
-
-    PyErr_SetString(PyExc_AttributeError, "persisted");
-    return NULL;
-}
-
-static int t_attribute__setPersisted(t_attribute *self, PyObject *value,
-                                     void *data)
-{
-    if (value == Py_True)
-        self->flags &= ~TRANSIENT;
-    else if (value == Py_False)
-        self->flags |= TRANSIENT;
-    else
-    {
-        PyErr_SetObject(PyExc_ValueError, value);
-        return -1;
-    }
-
-    return 0;
-}
 
 /* required property */
 
@@ -1035,14 +985,12 @@ void _init_attribute(PyObject *m)
             PyDict_SetItemString_Int(dict, "KIND", KIND);
             PyDict_SetItemString_Int(dict, "NOINHERIT", NOINHERIT);
             PyDict_SetItemString_Int(dict, "DEFAULT", DEFAULT);
-            PyDict_SetItemString_Int(dict, "TRANSIENT", TRANSIENT);
             PyDict_SetItemString_Int(dict, "PROCESS", PROCESS);
             PyDict_SetItemString_Int(dict, "CARDINALITY", CARDINALITY);
             PyDict_SetItemString_Int(dict, "ATTRDICT", ATTRDICT);
 
             _getRef_NAME = PyString_FromString("_getRef");
             getFlags_NAME = PyString_FromString("getFlags");
-            persisted_NAME = PyString_FromString("persisted");
             cardinality_NAME = PyString_FromString("cardinality");
             single_NAME = PyString_FromString("single");
             list_NAME = PyString_FromString("list");

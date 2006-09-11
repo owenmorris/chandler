@@ -83,7 +83,6 @@ static PyObject *getAttribute_NAME;
 static PyObject *getAspect_NAME;
 static PyObject *getAttributeAspect_NAME;
 static PyObject *redirectTo_NAME;
-static PyObject *persisted_NAME;
 static PyObject *_redirectTo_NAME;
 static PyObject *logger_NAME;
 static PyObject *_verifyAssignment_NAME;
@@ -357,10 +356,13 @@ static PyObject *t_item_getattro(t_item *self, PyObject *name)
 
         if (!value && self->status & STALE)
         {
-            PyObject *tuple = PyTuple_Pack(2, self, name);
+            if (PyErr_ExceptionMatches(PyExc_AttributeError))
+            {
+                PyObject *tuple = PyTuple_Pack(2, self, name);
 
-            PyErr_SetObject((PyObject *) StaleItemAttributeError, tuple);
-            Py_DECREF(tuple);
+                PyErr_SetObject((PyObject *) StaleItemAttributeError, tuple);
+                Py_DECREF(tuple);
+            }
         }
 
         return value;
@@ -1000,7 +1002,7 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
 {
     PyObject *attribute = Py_None, *result;
     t_values *attrDict = NULL;
-    int dirty, noMonitors = 0, transient = 0;
+    int dirty, noMonitors = 0;
 
     if (self->status & NODIRTY)
         Py_RETURN_FALSE;
@@ -1034,25 +1036,9 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
             if (view->status & VERIFY && dirty & VDIRTY &&
                 verify(self, view, attrDict, attribute) < 0)
                 return NULL;
-            else
-            {
-                PyObject *args = PyTuple_Pack(5, attribute, persisted_NAME,
-                                              Py_True, Py_None, Py_True);
 
-                result = t_item_getAttributeAspect(self, args);
-                Py_DECREF(args);
-                if (result == NULL)
-                    return NULL;
-
-                transient = result == Py_False;
-                Py_DECREF(result);
-            }
-
-            if (!transient)
-            {
-                result = t_values__setDirty(attrDict, attribute);
-                Py_DECREF(result);
-            }
+            result = t_values__setDirty(attrDict, attribute);
+            Py_DECREF(result);
 
             if (!noMonitors)
             {
@@ -1065,33 +1051,29 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
 
         C_countAccess(self);
 
-        if (!transient)
-        {
-            dirty |= FDIRTY;
-            view->status |= FDIRTY;
+        dirty |= FDIRTY;
+        view->status |= FDIRTY;
             
-            if (!(self->status & DIRTY))
+        if (!(self->status & DIRTY))
+        {
+            if (!(view->status & LOADING))
             {
-                if (!(view->status & LOADING))
+                result = PyObject_CallMethodObjArgs((PyObject *) view,
+                                                    _logItem_NAME, self, NULL);
+                if (!result)
+                    return NULL;
+
+                if (PyObject_IsTrue(result))
                 {
-                    result =
-                        PyObject_CallMethodObjArgs((PyObject *) view,
-                                                   _logItem_NAME, self, NULL);
-                    if (!result)
-                        return NULL;
-
-                    if (PyObject_IsTrue(result))
-                    {
-                        self->status |= dirty;
-                        return result;
-                    }
-
-                    Py_DECREF(result);
+                    self->status |= dirty;
+                    return result;
                 }
+
+                Py_DECREF(result);
             }
-            else
-                self->status |= dirty;
         }
+        else
+            self->status |= dirty;
     }
     else
     {
@@ -1526,7 +1508,6 @@ void _init_item(PyObject *m)
             getAspect_NAME = PyString_FromString("getAspect");
             getAttributeAspect_NAME = PyString_FromString("getAttributeAspect");
             redirectTo_NAME = PyString_FromString("redirectTo");
-            persisted_NAME = PyString_FromString("persisted");
             _redirectTo_NAME = PyString_FromString("_redirectTo");
             logger_NAME = PyString_FromString("logger");
             _verifyAssignment_NAME = PyString_FromString("_verifyAssignment");
