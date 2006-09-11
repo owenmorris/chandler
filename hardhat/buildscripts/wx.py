@@ -129,9 +129,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, logfile, skipTests=F
 
     os.chdir(workingDir)
 
-    if srcChandler:
-        installChandler(workingDir, logfile)
-        srcExternal = True  # force external build to ensure svn version of python is installed
+    installChandler(workingDir, logfile)
 
     if srcExternal:
         buildExternal(workingDir, logfile)
@@ -161,7 +159,16 @@ def installChandler(workingDir, log):
 
     result = True
 
-    os.chdir(os.path.join(workingDir, 'chandler'))
+    chandlerDir = os.path.join(workingDir, 'chandler')
+
+    os.chdir(chandlerDir)
+
+    Log('Removing release and debug directories', log)
+
+    os.rmdir(os.path.join(chandlerDir, 'release'))
+    os.rmdir(os.path.join(chandlerDir, 'debug'))
+
+    Log('Running make install', log)
 
     outputList = hardhatutil.executeCommandReturnOutput([makeProgram, 'install'])
     hardhatutil.dumpOutputList(outputList, log)
@@ -328,7 +335,7 @@ def doFunctionalTests(workingDir, log):
                 pass
 
             cmd = [runChandler,
-                   '--create', '--nocatch',
+                   '--create', '--catch=tests',
                    '--profileDir=%s' % logDir,
                    '--parcelPath=tools/QATestScripts/DataFiles',
                    '--scriptTimeout=600', 
