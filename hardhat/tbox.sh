@@ -270,7 +270,7 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
             echo Running $TESTNAME | tee -a $BUILDLOG
     
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" --chandlerTestLogfile=FunctionalTestSuite.log &> $T_DIR/test.log
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600  --chandlerTestMask=0 --chandlerTestDebug=1 --scriptFile="$TESTNAME" --chandlerTestLogfile=FunctionalTestSuite.log &> $T_DIR/test.log
     
               # functional tests output a #TINDERBOX# Status = PASSED that we can scan for
             RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
