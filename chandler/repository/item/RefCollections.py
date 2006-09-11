@@ -67,9 +67,6 @@ class RefList(LinkedMap, Indexed):
     def _isUUID(self):
         return False
     
-    def _isTransient(self):
-        return False
-
     def _isDirty(self):
         return False
 
@@ -744,46 +741,6 @@ class RefList(LinkedMap, Indexed):
     READONLY  = 0x0010
 
 
-class TransientRefList(RefList):
-    """
-    A ref collection class for transient attributes.
-    """
-
-    def __init__(self, item, name, otherName, dictKey, readOnly):
-
-        super(TransientRefList, self).__init__(item, name, otherName, dictKey,
-                                               readOnly, CLinkedMap.NEW)
-
-    def _setOwner(self, item, name):
-
-        super(TransientRefList, self)._setOwner(item, name)
-        if item is not None:
-            self.view = item.itsView
-
-    def linkChanged(self, link, key):
-        pass
-    
-    def _check(self, logger, item, name, repair):
-        return True
-
-    def _load(self, key):
-        return False
-    
-    def _isTransient(self):
-        return True
-
-    def _setDirty(self, noMonitors=False):
-        pass
-
-    def _unloadRef(self, item):
-
-        key = item.itsUUID
-        self._flags |= CLinkedMap.LOAD
-
-        if self.has_key(key, False):
-            self._get(key, False).value = key
-
-
 class RefDict(object):
     """
     This class implements a dictionary of RefList instances.
@@ -816,9 +773,6 @@ class RefDict(object):
     def _isUUID(self):
         return False
     
-    def _isTransient(self):
-        return False
-
     def _refList(self, dictKey):
 
         if dictKey is None:

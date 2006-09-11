@@ -18,7 +18,7 @@ import logging, heapq, sys, gc, threading, os
 from Queue import Queue
 from itertools import izip
 
-from chandlerdb.util.c import UUID, isuuid, Nil, Default
+from chandlerdb.util.c import UUID, isuuid, Nil, Default, CLinkedMap
 from chandlerdb.item.c import CItem
 from chandlerdb.persistence.c import CView
 
@@ -29,7 +29,7 @@ from repository.persistence.RepositoryError import *
 from repository.item.Item import Item, MissingClass
 from repository.item.Children import Children
 from repository.item.Indexes import NumericIndex
-from repository.item.RefCollections import RefList, TransientRefList
+from repository.item.RefCollections import RefList
 
 
 class RepositoryView(CView):
@@ -63,8 +63,9 @@ class RepositoryView(CView):
     # 0.6.9: added 'afterChange' attribute aspect
     # 0.6.10: added new enumeration type: ConstantEnumeration
     # 0.6.11: removed Kind inheritedSuperKinds transient cache
+    # 0.6.12: removed 'persisted' aspect
     
-    CORE_SCHEMA_VERSION = 0x00060b00
+    CORE_SCHEMA_VERSION = 0x00060c00
 
     def __init__(self, repository, name, version):
         """
@@ -106,7 +107,7 @@ class RepositoryView(CView):
         return False
 
     def _createRefList(self, item, name, otherName, dictKey, 
-                       persisted, readOnly, new, uuid):
+                       readOnly, new, uuid):
 
         raise NotImplementedError, "%s._createRefList" %(type(self))
     
@@ -1452,10 +1453,9 @@ class NullRepositoryView(RepositoryView):
         raise AssertionError, "Null view cannot cancel"
 
     def _createRefList(self, item, name, otherName, dictKey, 
-                       persisted, readOnly, new, uuid):
+                       readOnly, new, uuid):
 
-        return NullViewRefList(item, name, otherName, dictKey,
-                               persisted, readOnly)
+        return NullViewRefList(item, name, otherName, dictKey, readOnly)
     
     def _createChildren(self, parent, new):
 
@@ -1591,17 +1591,38 @@ class NullViewLob(Lob):
         super(NullViewLob, self).__init__(*args, **kwds)
 
 
-class NullViewRefList(TransientRefList):
+class NullViewRefList(RefList):
 
-    def __init__(self, item, name, otherName, dictKey, persisted, readOnly):
+    def __init__(self, item, name, otherName, dictKey, readOnly):
 
         super(NullViewRefList, self).__init__(item, name, otherName, dictKey,
-                                              readOnly)
-        self._transient = not persisted
+                                              readOnly, CLinkedMap.NEW)
 
-    def _isTransient(self):
+    def _setOwner(self, item, name):
 
-        return self._transient
+        super(NullViewRefList, self)._setOwner(item, name)
+        if item is not None:
+            self.view = item.itsView
+
+    def linkChanged(self, link, key):
+        pass
+    
+    def _check(self, logger, item, name, repair):
+        return True
+
+    def _load(self, key):
+        return False
+    
+    def _setDirty(self, noMonitors=False):
+        pass
+
+    def _unloadRef(self, item):
+
+        key = item.itsUUID
+        self._flags |= CLinkedMap.LOAD
+
+        if self.has_key(key, False):
+            self._get(key, False).value = key
 
 
 class TransientWatch(object):

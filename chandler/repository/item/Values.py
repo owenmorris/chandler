@@ -161,14 +161,9 @@ class Values(CValues):
             
             if kind is not None:
                 attribute = kind.getAttribute(name, False, item)
-                persisted = attribute.c.persisted
             else:
                 attribute = None
-                persisted = True
 
-            if not persisted:
-                continue
-            
             if not (all or flags & Values.DIRTY != 0):
                 size += itemWriter._unchangedValue(item, name)
                 continue
@@ -197,15 +192,9 @@ class Values(CValues):
             else:
                 attribute = None
 
-            if attribute is not None:
-                persisted = c.persisted
-            else:
-                persisted = True
-
-            if persisted:
-                flags = self._flags.get(key, 0)
-                persisted = flags & Values.TRANSIENT == 0
-                flags &= Values.SAVEMASK
+            flags = self._flags.get(key, 0)
+            persisted = flags & Values.TRANSIENT == 0
+            flags &= Values.SAVEMASK
 
             if persisted:
                 if attribute is not None:
@@ -247,15 +236,7 @@ class Values(CValues):
             else:
                 attribute = None
 
-            if attribute is not None:
-                persisted = c.persisted
-            else:
-                persisted = True
-
-            if persisted:
-                persisted = not self._isTransient(name)
-
-            if persisted:
+            if not self._isTransient(name):
                 hash = _combine(hash, _hash(name))
                 value = self[name]
                 
@@ -774,14 +755,9 @@ class References(Values):
             
             if kind is not None:
                 attribute = kind.getAttribute(name, False, item)
-                persisted = attribute.c.persisted
             else:
                 attribute = None
-                persisted = True
 
-            if not persisted:
-                continue
-            
             if not (all or flags & Values.DIRTY != 0):
                 size += itemWriter._unchangedValue(item, name)
                 continue
@@ -805,27 +781,26 @@ class References(Values):
 
         for name, value in self._dict.iteritems():
             attribute = kind.getAttribute(name, False, item)
-            if attribute.c.persisted:
-                flags = self._flags.get(name, 0) & Values.SAVEMASK
-                attrs = { 'id': attribute.itsUUID.str64() }
-                if flags:
-                    attrs['flags'] = str(flags)
+            flags = self._flags.get(name, 0) & Values.SAVEMASK
+            attrs = { 'id': attribute.itsUUID.str64() }
+            if flags:
+                attrs['flags'] = str(flags)
 
-                if value is None:
-                    attrs['name'] = name
-                    attrs['type'] = 'none'
-                    generator.startElement('ref', attrs)
-                    generator.endElement('ref')
-                else:
-                    if withSchema and isuuid(value):
-                        value = self._getRef(name, value)
+            if value is None:
+                attrs['name'] = name
+                attrs['type'] = 'none'
+                generator.startElement('ref', attrs)
+                generator.endElement('ref')
+            else:
+                if withSchema and isuuid(value):
+                    value = self._getRef(name, value)
                     
-                    if value._isRefs():
-                        value._xmlValue(name, item, generator, withSchema,
-                                        version, attrs)
-                    else:
-                        self._xmlRef(name, value, generator, withSchema,
-                                     version, attrs)
+                if value._isRefs():
+                    value._xmlValue(name, item, generator, withSchema,
+                                    version, attrs)
+                else:
+                    self._xmlRef(name, value, generator, withSchema,
+                                 version, attrs)
 
         return 0
 
@@ -841,20 +816,19 @@ class References(Values):
 
         for name in names:
             attribute = kind.getAttribute(name, False, item)
-            if attribute.c.persisted:
-                hash = _combine(hash, _hash(name))
-                value = self[name]
+            hash = _combine(hash, _hash(name))
+            value = self[name]
                 
-                if value is None:
-                    hash = _combine(hash, 0)
-                elif isuuid(value):
-                    hash = _combine(hash, value._hash)
-                elif isitem(value):
-                    hash = _combine(hash, value._uuid._hash)
-                elif value._isRefs():
-                    hash = _combine(hash, value._hashValues())
-                else:
-                    raise TypeError, value
+            if value is None:
+                hash = _combine(hash, 0)
+            elif isuuid(value):
+                hash = _combine(hash, value._hash)
+            elif isitem(value):
+                hash = _combine(hash, value._uuid._hash)
+            elif value._isRefs():
+                hash = _combine(hash, value._hashValues())
+            else:
+                raise TypeError, value
 
         return hash
 
@@ -989,7 +963,7 @@ class References(Values):
         for key, value in self._dict.items():
             if value is not None:
                 if value._isRefs():
-                    if sameType or value._isTransient():
+                    if sameType:
                         previous = None
                         for other in value:
                             if other not in items:
@@ -1001,7 +975,7 @@ class References(Values):
                                     if alias is not None:
                                         value.setAlias(other, alias)
                     else:
-                        localValue = view._createRefList(item, value._name, value._otherName, None, True, False, True, UUID())
+                        localValue = view._createRefList(item, value._name, value._otherName, None, False, True, UUID())
                         value._copyIndexes(localValue)
                         for other in value:
                             if other in items:

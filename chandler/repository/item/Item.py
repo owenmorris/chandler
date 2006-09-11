@@ -2278,16 +2278,13 @@ class Item(CItem):
         if self._children is not None:
             self._children._unloadChild(child)
 
-    def _refList(self, name, otherName=None, dictKey=None, persisted=None):
+    def _refList(self, name, otherName=None, dictKey=None):
 
         if otherName is None:
             otherName = self.itsKind.getOtherName(name, self)
-        if persisted is None:
-            persisted = self.getAttributeAspect(name, 'persisted',
-                                                False, None, True)
 
         return self.itsView._createRefList(self, name, otherName, dictKey,
-                                           persisted, False, True, None)
+                                           False, True, None)
 
 
     def hashItem(self):

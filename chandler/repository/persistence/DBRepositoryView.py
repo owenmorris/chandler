@@ -21,7 +21,7 @@ from chandlerdb.item.c import CItem, isitem
 from chandlerdb.util.c import isuuid, Nil, Default, HashTuple
 from chandlerdb.persistence.c import CView, DBLockDeadlockError
 
-from repository.item.RefCollections import RefList, TransientRefList
+from repository.item.RefCollections import RefList
 from repository.item.Indexed import Indexed
 from repository.item.Sets import AbstractSet
 from repository.schema.Kind import Kind
@@ -141,13 +141,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                 yield item, self[uAttr]
 
     def _createRefList(self, item, name, otherName, dictKey,
-                       persisted, readOnly, new, uuid):
+                       readOnly, new, uuid):
 
-        if persisted:
-            return DBRefList(self, item, name, otherName, dictKey, readOnly,
-                             new, uuid)
-        else:
-            return TransientRefList(item, name, otherName, dictKey, readOnly)
+        return DBRefList(self, item, name, otherName, dictKey,
+                         readOnly, new, uuid)
 
     def _createChildren(self, parent, new):
 

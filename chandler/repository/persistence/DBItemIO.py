@@ -669,7 +669,7 @@ class DBValueReader(ValueReader):
             else:
                 otherName = kind.getOtherName(name, None)
             value = view._createRefList(None, name, otherName, None,
-                                        True, False, False, uuid)
+                                        False, False, uuid)
             offset = self._readIndexes(offset, data, value, afterLoadHooks)
 
             return offset, value
@@ -697,8 +697,7 @@ class DBValueReader(ValueReader):
                     offset, key = self.readSymbol(offset + 1, data)
                 offset, uuid = self.readUUID(offset, data)
                 value._dict[key] = view._createRefList(None, name, otherName,
-                                                       key, True, False, False,
-                                                       uuid)
+                                                       key, False, False, uuid)
 
             return offset, value
 

@@ -476,7 +476,7 @@ class ItemHandler(ValueHandler):
 
         if refList is None:
             refList = self.view._createRefList(None, name, otherName, None,
-                                               True, readOnly, self.new, uuid)
+                                               readOnly, self.new, uuid)
                 
         self.collections.append(refList)
 

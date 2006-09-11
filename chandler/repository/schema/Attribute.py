@@ -156,10 +156,6 @@ class Attribute(Item):
 
         self.c.cardinality = self._values
         
-    def _afterPersistedChange(self, op, name):
-
-        self.c.persisted = self._values.get('persisted', True)
-
     def _afterRequiredChange(self, op, name):
 
         self.c.required = self._values.get('required', False)
@@ -213,7 +209,7 @@ class Attribute(Item):
 
         return match
 
-    valueAspects = ('required', 'persisted', 'indexed', 'notify',
+    valueAspects = ('required', 'indexed', 'notify',
                     'cardinality', 'defaultValue', 'initialValue',
                     'inheritFrom', 'redirectTo', 'otherName', 'afterChange',
                     'deletePolicy', 'copyPolicy', 'countPolicy', 'domains')
