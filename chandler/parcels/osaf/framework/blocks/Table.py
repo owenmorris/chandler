@@ -164,11 +164,13 @@ class wxTable(DragAndDrop.DraggableWidget,
         blockItem = self.blockItem
         column = blockItem.columns[event.GetCol()]
         self.SetUseColSortArrows(column.useSortArrows)
-        indexName = column.attributeName
-        blockItem.contents.setCollectionIndex(indexName,
-                                              toggleDescending=True,
-                                              attributes=column.indexAttributes)
-        self.wxSynchronizeWidget()
+        # @@@ Work around bug 6639, by preventing sorting on the stamping columns for now.
+        if column.valueType != 'kind':
+            indexName = column.attributeName
+            blockItem.contents.setCollectionIndex(indexName,
+                                                  toggleDescending=True,
+                                                  attributes=column.indexAttributes)
+            self.wxSynchronizeWidget()
 
     def OnKeyDown(self, event):
 
