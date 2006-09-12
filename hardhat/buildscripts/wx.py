@@ -135,9 +135,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, logfile, skipTests=F
         buildExternal(workingDir, logfile)
 
     if srcWx:
-        buildWx(workingDir, logfile)
         changes = "-changes"
 
+    buildWx(workingDir, logfile)
     installWx(workingDir, logfile)
 
     if skipTests:
@@ -238,7 +238,7 @@ def buildWx(workingDir, log):
         else:
             modeText = ''
 
-        cmd        = [makeProgram, '-C %s' % wxDir, modeText, 'RELVER=tbox', 'build', 'install']
+        cmd        = [makeProgram, '-C %s' % wxDir, modeText, 'RELVER=tbox', 'realclean', 'build', 'install']
         outputList = hardhatutil.executeCommandReturnOutput(cmd)
         hardhatutil.dumpOutputList(outputList, log)
 
