@@ -535,9 +535,6 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                         
                     else:
                         eventItem = uidMatchItem
-                        if (eventItem.occurrenceFor is None and
-                            eventItem.occurrences is None):
-                                eventItem.occurrenceFor = eventItem
                         if eventItem.rruleset is not None:
                             # re-creating a recurring item from scratch, delete 
                             # old recurrence information
