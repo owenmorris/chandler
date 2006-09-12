@@ -16,7 +16,7 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import wx
 
-class TestVisibleHouse(ChandlerTestCase):
+class TestVisibleHours(ChandlerTestCase):
 
     def startTest(self):
     
