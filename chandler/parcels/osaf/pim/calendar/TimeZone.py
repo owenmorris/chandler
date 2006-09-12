@@ -19,6 +19,22 @@ import PyICU
 import datetime
 from i18n import ChandlerMessageFactory
 
+
+def reindexFloatingEvents(view):
+    """
+    When floating timezone changes, floating events need to be reindexed in the
+    events collection.
+    """
+    pim_ns = schema.ns("osaf.pim", view)
+    
+    floatingKeys = list(pim_ns.floatingEvents.iterkeys())
+    pim_ns.events.reindexKeys(floatingKeys, 'effectiveStart', 'effectiveEnd')
+    pim_ns.masterEvents.reindexKeys(floatingKeys, 'recurrenceEnd')
+                              
+    UTCKeys = list(pim_ns.UTCEvents.iterkeys())
+    pim_ns.events.reindexKeys(UTCKeys, 'effectiveStartNoTZ', 'effectiveEndNoTZ')
+    pim_ns.masterEvents.reindexKeys(UTCKeys, 'recurrenceEndNoTZ')
+
 class TimeZoneInfo(schema.Item):
     """
     Item that persists:
@@ -41,10 +57,10 @@ class TimeZoneInfo(schema.Item):
         if (canonicalDefault is not None and
             canonicalDefault is not PyICU.ICUtzinfo.floating):
             PyICU.ICUtzinfo.default = canonicalDefault
+            reindexFloatingEvents(self.itsView)
         # This next if is required to avoid an infinite recursion!
         if canonicalDefault is not default:
             self.default = canonicalDefault
-
 
     # List of well-known time zones (for populating drop-downs).
     # [i18n] Since ICU doesn't suitably localize strings like 'US/Pacific',

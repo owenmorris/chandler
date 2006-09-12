@@ -84,6 +84,7 @@ def ensureIndexed(coll):
     if not coll.hasIndex('__adhoc__'):
         coll.addIndex('__adhoc__', 'numeric')
 
+
 zero_delta = timedelta(0)
 LONG_TIME  = timedelta(7)
 

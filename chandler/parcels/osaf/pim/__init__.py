@@ -40,6 +40,7 @@ from collections import KindCollection, ContentCollection, \
      FilteredCollection, ListCollection, SmartCollection, AppCollection, \
      IndexedSelectionCollection
 from repository.item.Item import Item
+from PyICU import ICUtzinfo
 
 import tasks, mail, calendar.Calendar
 from i18n import ChandlerMessageFactory as _
@@ -91,6 +92,29 @@ class LongEventFilter(Item):
 
     def isLongEvent(self, view, uuid):
         return view.findValue(uuid, 'duration', zero_delta) > LONG_TIME
+
+class FloatingEventFilter(Item):
+
+    def isFloatingEvent(self, view, uuid):
+        anyTime, allDay, start = view.findValues(uuid, ('anyTime',   False),
+                                                       ('allDay',    False),
+                                                       ('startTime', None))
+        return (anyTime or allDay or (start is not None and
+                                     start.tzinfo == ICUtzinfo.floating))
+
+
+UTC = ICUtzinfo.getInstance("UTC")
+
+class UTCEventFilter(Item):
+
+    def isUTCEvent(self, view, uuid):
+        anyTime, allDay, start = view.findValues(uuid, ('anyTime',   False),
+                                                       ('allDay',    False),
+                                                       ('startTime', None))
+        if anyTime or allDay:
+            return False
+        return (start is not None and start.tzinfo == UTC)
+    
 
 def installParcel(parcel, oldVersion=None):
     view = parcel.itsView
@@ -168,9 +192,26 @@ def installParcel(parcel, oldVersion=None):
     events.addIndex("effectiveStartNoTZ", 'compare', compare='cmpStartTimeNoTZ',
                     monitor=('startTime', 'allDay', 'anyTime'))
     events.addIndex('effectiveEndNoTZ', 'compare', compare='cmpEndTimeNoTZ',
-                    monitor=('startTime', 'allDay', 'anyTime', 'duration'))    
+                    monitor=('startTime', 'allDay', 'anyTime', 'duration'))
     
     events.addIndex('icalUID', 'value', attribute='icalUID')
+    
+    # floatingEvents need to be reindexed in effectiveStart and effectiveEnd
+    # when the floating timezone changes
+    floatingEvents = FilteredCollection.update(parcel, 'floatingEvents',
+        source = events,
+        filterMethod= (FloatingEventFilter(None, parcel), 'isFloatingEvent'),
+        filterAttributes = ['anyTime', 'allDay', 'startTime'])
+    floatingEvents.addIndex('__adhoc__', 'numeric')
+
+    # UTCEvents need to be reindexed in effectiveStartNoTZ and effectiveEndNoTZ
+    # when the floating timezone changes, because UTC events are treated
+    # specially
+    UTCEvents = FilteredCollection.update(parcel, 'UTCEvents',
+        source = events,
+        filterMethod= (UTCEventFilter(None, parcel), 'isUTCEvent'),
+        filterAttributes = ['anyTime', 'allDay', 'startTime'])
+    UTCEvents.addIndex('__adhoc__', 'numeric')
 
     longEvents = FilteredCollection.update(parcel, 'longEvents',
         source = events,
