@@ -1110,27 +1110,24 @@ class References(Values):
                     value = self.get(name, Nil)
                     if isitem(value):
                         value = value.itsUUID
-                    elif value is Nil and newValue is Nil:
-                        continue
                     elif not (isuuid(value) or value in (None, Nil)):
                         continue
 
                     if newValue != value:
+                        if isuuid(newValue):
+                            newValue = view[newValue]
+
                         if name in dirties:
-                            if value is Nil:
-                                raise AssertionError, ("merging %s.%s" %(self._item._repr_(), name), value)
-                            item = view[newValue]
-                            if ask(MergeError.REF, name, item) is item:
-                                self._setRef(name, newValue)
-                                self._setDirty(name)
-                                if value is not None:
-                                    _item = self._item
-                                    kind = _item.itsKind
-                                    otherName = kind.getOtherName(name, _item)
+                            if ask(MergeError.REF, name, newValue) is newValue:
+                                if value not in (Nil, None):
+                                    item = self._item
+                                    kind = item.itsKind
+                                    otherName = kind.getOtherName(name, item)
                                     dangling.append((value, otherName,
-                                                     _item.itsUUID))
+                                                     item.itsUUID))
                             else:
-                                view._e_2_overlap(MergeError.REF, item, name)
+                                view._e_2_overlap(MergeError.REF,
+                                                  newValue, name)
 
                         if newValue is Nil:
                             self._removeRef(name, value)
