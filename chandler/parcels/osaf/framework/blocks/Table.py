@@ -615,7 +615,8 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
 
     def BeginEdit (self, row,  column, grid):
         assert getattr(self, 'editingCell', None) is None
-        self.editingCell = (row, column)
+        if __debug__:
+            self.editingCell = (row, column)
         
         item, attributeName = grid.GetElementValue (row, column)
         assert not item.isDeleted()
@@ -627,11 +628,8 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         self.control.ActivateInPlace()
 
     def EndEdit (self, row, column, grid):
-        if not hasattr(self, "editingCell"):
-            return
-        
+        # We'd better be editing the same cell we started with
         assert self.editingCell == (row, column)
-        self.editingCell = None
         
         value = self.delegate.GetControlValue (self.control)
         item, attributeName = grid.GetElementValue (row, column)
@@ -654,6 +652,8 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
             else:
                 attributeSetter (item, attributeName, value)
         self.delegate.EndControlEdit (item, attributeName, self.control)
+        if __debug__:
+            del self.editingCell
         return changed
 
     def Reset (self):
