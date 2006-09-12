@@ -240,11 +240,12 @@ class DBRepositoryView(OnDemandRepositoryView):
                                 names = dirtyNames()
                             if isuuid(attribute):  # item watchers
                                 if isuuid(watchers):
-                                    watchers = (self[w] for w in
+                                    watchers = (self.find(w) for w in
                                                 refs.iterKeys(self, watchers,
                                                               version))
                                 for watcher in watchers:
-                                    watcher('refresh', uItem, names)
+                                    if watcher is not None:
+                                        watcher('refresh', uItem, names)
                             elif isNew or attribute in names:
                                 value = self.findValue(uItem, attribute, None,
                                                        version)
@@ -254,13 +255,14 @@ class DBRepositoryView(OnDemandRepositoryView):
                                     else:
                                         continue
                                 if isuuid(watchers):
-                                    watchers = [self[w] for w in
+                                    watchers = (self.find(w) for w in
                                                 refs.iterKeys(self, watchers,
-                                                              version)]
+                                                              version))
                                 for uRef in refs.iterHistory(self, value, version - 1, version, True):
                                     if uRef in refreshes:
                                         for watcher in watchers:
-                                            watcher('refresh', 'collection', uItem, attribute, uRef)
+                                            if watcher is not None:
+                                                watcher('refresh', 'collection', uItem, attribute, uRef)
 
                 for name in kind._iterNotifyAttributes():
                     value = self.findValue(uItem, name, None, version)
@@ -279,11 +281,12 @@ class DBRepositoryView(OnDemandRepositoryView):
                             watchers = watchers.get(otherName, None)
                             if watchers:
                                 if isuuid(watchers):
-                                    watchers = (self[w] for w in
+                                    watchers = (self.find(w) for w in
                                                 refs.iterKeys(self, watchers,
                                                               version))
                                 for watcher in watchers:
-                                    watcher('changed', 'notification', uRef, otherName, uItem)
+                                    if watcher is not None:
+                                        watcher('changed', 'notification', uRef, otherName, uItem)
 
             watchers = self._watchers
             if watchers and uItem in watchers:
@@ -315,10 +318,11 @@ class DBRepositoryView(OnDemandRepositoryView):
                                 watchers = watchers.get(otherName, None)
                                 if watchers:
                                     if isuuid(watchers):
-                                        watchers = (self[w] for w in
+                                        watchers = (self.find(w) for w in
                                                     refs.iterKeys(self, watchers, version))
                                     for watcher in watchers:
-                                        watcher('changed', 'notification', uRef, otherName, uItem)
+                                        if watcher is not None:
+                                            watcher('changed', 'notification', uRef, otherName, uItem)
     
     def refresh(self, mergeFn=None, version=None, notify=True):
 
