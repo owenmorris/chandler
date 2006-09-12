@@ -42,6 +42,11 @@ binaries: strip
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
+test:
+	cd $(SRC); \
+    $(PYTHON) run_tests.py parsedatetime; \
+    echo testing done
+
 ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)

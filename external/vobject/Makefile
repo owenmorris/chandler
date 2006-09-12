@@ -52,6 +52,11 @@ binaries: strip
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
+test:
+	cd $(SRC); \
+    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) tests/tests.py -v; \
+    echo testing done
+
 ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)

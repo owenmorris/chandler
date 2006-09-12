@@ -85,3 +85,6 @@ expand: PyICU-$(VERSION)-expanded
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
+
+test:
+	$(MAKE) -C $(SRC) PYTHON=$(PYTHON) test; echo ok

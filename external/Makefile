@@ -24,6 +24,18 @@ SYSTEMS=db \
         parsedatetime \
         wx
 
+SYS_TESTS=dateutil \
+          elementtree \
+          m2crypto \
+          openssl \
+          parsedatetime \
+          vobject \
+          zanshin \
+          PyLucene \
+          PyICU \
+#          twisted -- cannot include twisted until we upgrade to 2.4
+
+
 .PHONY: systems env binaries sources expand install clean \
         $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)
 
@@ -44,6 +56,9 @@ $(addprefix expand-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
 
 $(addprefix install-, $(SYSTEMS)):
 	$(MAKE) -C $(subst install-,,$@) install
+
+$(addprefix test-, $(SYS_TESTS)):
+	$(MAKE) -C $(subst test-,,$@) test
 
 $(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS)):
 	$(MAKE) -C $(subst clean-,,$@) clean
@@ -79,6 +94,10 @@ sources: $(addprefix sources-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
 expand: $(addprefix expand-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
 
 install: $(addprefix install-, $(SYSTEMS))
+
+test: $(addprefix test-, $(SYS_TESTS))
+
+tests: test
 
 clean: $(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
 

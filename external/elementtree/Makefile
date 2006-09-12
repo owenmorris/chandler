@@ -35,6 +35,11 @@ binaries: strip
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
+test:
+	cd $(SRC); \
+    $(PYTHON) selftest.py; \
+    echo testing done
+
 ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)

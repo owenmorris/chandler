@@ -120,6 +120,8 @@ build: expand openssl
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
+test: tests
+
 ifneq (/,$(SRC)/$(BUILD))
 clean:
 	rm -rf $(SRC)/$(BUILD)
