@@ -258,7 +258,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                                    unscrolledPosition)
         self.dragState.dragged = True
         
-        canvasItem.resizeMode = None
         self.dragState._dragStarted = True
         self.dragState.originalDragBox = canvasItem
         self.dragState.currentPosition = unscrolledPosition
@@ -1074,6 +1073,7 @@ class TimedCanvasItem(CalendarCanvasItem):
         # the rating of conflicts - i.e. how far to indent this.  Just
         # a simple zero-based ordering - not a pixel count!
         self._conflictDepth = 0
+        self.resizeMode = None
 
     def UpdateDrawingRects(self, startTime=None, endTime=None):
 
