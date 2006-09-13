@@ -629,32 +629,33 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
 
     def EndEdit (self, row, column, grid):
         # We'd better be editing the same cell we started with
-        assert self.editingCell == (row, column)
-        
-        value = self.delegate.GetControlValue (self.control)
-        item, attributeName = grid.GetElementValue (row, column)
-        assert not item.isDeleted()
-        item = RecurrenceDialog.getProxy(u'ui', item)
-
-        if value == self.initialValue:
-            changed = False
-        # @@@ For now we do not want to allow users to blank out fields.  This should eventually be
-        #  replaced by proper editor validation.
-        elif value.strip() == '':
-            changed = False
-        else:
-            changed = True
-            # set the value using the delegate's setter, if it has one.
-            try:
-                attributeSetter = self.delegate.SetAttributeValue
-            except AttributeError:
-                grid.SetElementValue (row, column, value)
+        if not __debug__ or hasattr (self, "editingCell"):
+            assert self.editingCell == (row, column)
+            
+            value = self.delegate.GetControlValue (self.control)
+            item, attributeName = grid.GetElementValue (row, column)
+            assert not item.isDeleted()
+            item = RecurrenceDialog.getProxy(u'ui', item)
+    
+            if value == self.initialValue:
+                changed = False
+            # @@@ For now we do not want to allow users to blank out fields.  This should eventually be
+            #  replaced by proper editor validation.
+            elif value.strip() == '':
+                changed = False
             else:
-                attributeSetter (item, attributeName, value)
-        self.delegate.EndControlEdit (item, attributeName, self.control)
-        if __debug__:
-            del self.editingCell
-        return changed
+                changed = True
+                # set the value using the delegate's setter, if it has one.
+                try:
+                    attributeSetter = self.delegate.SetAttributeValue
+                except AttributeError:
+                    grid.SetElementValue (row, column, value)
+                else:
+                    attributeSetter (item, attributeName, value)
+            self.delegate.EndControlEdit (item, attributeName, self.control)
+            if __debug__:
+                del self.editingCell
+            return changed
 
     def Reset (self):
         self.delegate.SetControlValue (self.control, self.initialValue)
