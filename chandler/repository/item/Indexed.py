@@ -232,7 +232,7 @@ class Indexed(object):
                 elif key in index:
                     index.removeKey(key)
             
-            index.moveKeys(moves)
+            index.moveKeys(moves, None, True)
 
         self._setDirty(True)
 

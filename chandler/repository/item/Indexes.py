@@ -60,10 +60,10 @@ class Index(dict):
     def insertKey(self, key, afterKey):
         self._count += 1
 
-    def moveKey(self, key, afterKey=None):
+    def moveKey(self, key, afterKey=None, insertMissing=False):
         pass
 
-    def moveKeys(self, keys, afterKey=None):
+    def moveKeys(self, keys, afterKey=None, insertMissing=False):
         pass
 
     def removeKey(self, key):
@@ -266,10 +266,13 @@ class NumericIndex(Index):
 
         super(NumericIndex, self).insertKey(key, afterKey)
             
-    def moveKey(self, key, afterKey=None):
+    def moveKey(self, key, afterKey=None, insertMissing=False):
 
         if key not in self:
-            self.insertKey(key, afterKey)
+            if insertMissing:
+                self.insertKey(key, afterKey)
+            else:
+                raise KeyError, key
 
         else:
             skipList = self.skipList
@@ -285,10 +288,10 @@ class NumericIndex(Index):
 
             super(NumericIndex, self).moveKey(key, afterKey)
 
-    def moveKeys(self, keys, afterKey=None):
+    def moveKeys(self, keys, afterKey=None, insertMissing=False):
 
         for key in keys:
-            self.moveKey(key, afterKey)
+            self.moveKey(key, afterKey, insertMissing)
             
     def removeKey(self, key):
 
@@ -403,11 +406,13 @@ class SortedIndex(DelegatingIndex):
 
         return False
 
-    def moveKey(self, key, ignore=None):
+    def moveKey(self, key, ignore=None, insertMissing=False):
 
         index = self._index
         if key in index:
-            index.removeKey(key)
+            if not index.removeKey(key):
+                if not insertMissing:
+                    raise KeyError, key
         index.insertKey(key, index.skipList.after(key, self.compare))
 
         if self._subIndexes:
@@ -419,11 +424,13 @@ class SortedIndex(DelegatingIndex):
                     index.moveKey(key, ignore)
                     indexed._setDirty(True)
 
-    def moveKeys(self, keys, ignore=None):
+    def moveKeys(self, keys, ignore=None, insertMissing=False):
 
         index = self._index
         for key in keys:
-            index.removeKey(key)
+            if not index.removeKey(key):
+                if not insertMissing:
+                    raise KeyError, key
         for key in keys:
             index.insertKey(key, index.skipList.after(key, self.compare))
 
