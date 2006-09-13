@@ -55,9 +55,12 @@ class TestMoveToTrash(ChandlerTestCase):
         
         event.MoveToTrash()
         
-        scripting.User.emulate_sidebarClick(sidebar, 'My calendar')
+        # This is perhaps not necessary for the test, but it used to
+        # be here. It cannot be enabled until bug XXX is fixed.
+        #scripting.User.emulate_sidebarClick(sidebar, 'Dashboard')
     
         event.SelectItem(catchException=True)
+        event.Check_ItemInCollection("Trash")
         event.Check_ItemInCollection("Dashboard", expectedResult=False)
         event.Check_ItemSelected(expectedResult=False)
         
