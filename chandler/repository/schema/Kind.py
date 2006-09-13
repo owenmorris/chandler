@@ -741,14 +741,14 @@ class Kind(Item):
             self._values._clearTransient('classes')
             del self._values['classes']
 
-        if reason != 'unload':
-            self._setupDescriptors(reason)
-
-        for subKind in self._references.get('subKinds', Nil):
-            subKind.flushCaches(reason)
-
         if 'schemaHash' in self._values:
             del self.schemaHash
+
+        if reason != 'unload':
+            self._setupDescriptors(reason)
+            for subKind in self._references.get('subKinds', Nil):
+                subKind.flushCaches(reason)
+
 
     # begin typeness of Kind as SingleRef
     

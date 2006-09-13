@@ -255,9 +255,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                                     else:
                                         continue
                                 if isuuid(watchers):
-                                    watchers = (self.find(w) for w in
+                                    watchers = [self.find(w) for w in
                                                 refs.iterKeys(self, watchers,
-                                                              version))
+                                                              version)]
                                 for uRef in refs.iterHistory(self, value, version - 1, version, True):
                                     if uRef in refreshes:
                                         for watcher in watchers:
@@ -386,32 +386,45 @@ class DBRepositoryView(OnDemandRepositoryView):
             self.cancel()
             unloads = [item for item in self._registry.itervalues()
                        if item.itsVersion > newVersion]
-            self._version = newVersion
-            self._refreshItems(unloads.__iter__, True)
+            self._refreshItems(newVersion, unloads.__iter__)
             self.flushNotifications()
             return False
 
-    def _refreshItems(self, items, backwards=False):
+    def _refreshItems(self, version, items):
 
         refCounted = self.isRefCounted()
 
-        for item in items():
-            item._unloadItem(refCounted or item.isPinned(), self, False)
-
-        if backwards:
+        if version < self._version:
             kinds = []
             for item in items():
-                if (refCounted or item.isPinned()) and item.isSchema():
-                    item = self.find(item.itsUUID)
-                    if item is not None and isinstance(item, Kind):
-                        kinds.append(item)
-            for kind in kinds:
-                kind.flushCaches('unload')
-            for kind in kinds:
-                kind.flushCaches('reload')
+                if item.isSchema():
+                    if isinstance(item, Kind):
+                        item.flushCaches('unload')
+                        kinds.append(item.itsUUID)
+                item._unloadItem(refCounted or item.isPinned(), self, False)
+
+            self._version = version
+
+            if kinds:
+                try:
+                    # ensure all kinds are loaded before being initialized
+                    self._setLoading(True, False)
+                    kinds = [self.find(uuid) for uuid in kinds]
+                finally:
+                    self._setLoading(False, True)
+
+                for kind in kinds:
+                    if kind is not None:
+                        kind.flushCaches('reload')
+
         else:
             for item in items():
-                if (refCounted or item.isPinned()) and item.isSchema():
+                item._unloadItem(refCounted or item.isPinned(), self, False)
+
+            self._version = version
+
+            for item in items():
+                if item.isSchema():
                     self.find(item.itsUUID)
 
         for item in items():
@@ -453,10 +466,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                         scan = True
 
         oldVersion = self._version
-        self._version = newVersion
 
         try:
-            self._refreshItems(unloads.itervalues)
+            self._refreshItems(newVersion, unloads.itervalues)
 
             if merges:
                 self.logger.info('%s merging %d items...', self, len(merges))
@@ -492,8 +504,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                 except:
                     self.discardChangeNotifications()
-                    self._version = oldVersion
-                    self._refreshItems(unloads.itervalues)
+                    self._refreshItems(oldVersion, unloads.itervalues)
                     raise
 
                 try:
@@ -522,8 +533,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     if verify:
                         self._status |= CView.VERIFY
                     self.discardChangeNotifications()
-                    self._version = oldVersion
-                    self._refreshItems(unloads.itervalues)
+                    self._refreshItems(oldVersion, unloads.itervalues)
 
                     _unload(merges.iterkeys)
                     deletes.clear()
