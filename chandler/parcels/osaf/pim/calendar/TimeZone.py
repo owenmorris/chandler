@@ -29,11 +29,17 @@ def reindexFloatingEvents(view):
     
     floatingKeys = list(pim_ns.floatingEvents.iterkeys())
     pim_ns.events.reindexKeys(floatingKeys, 'effectiveStart', 'effectiveEnd')
-    pim_ns.masterEvents.reindexKeys(floatingKeys, 'recurrenceEnd')
+    
+    keys = pim_ns.masterEvents.getIndex('recurrenceEnd')
+    
+    masterFloatingKeys = [i for i in floatingKeys if i in keys]
+    pim_ns.masterEvents.reindexKeys(masterFloatingKeys, 'recurrenceEnd')
                               
     UTCKeys = list(pim_ns.UTCEvents.iterkeys())
     pim_ns.events.reindexKeys(UTCKeys, 'effectiveStartNoTZ', 'effectiveEndNoTZ')
-    pim_ns.masterEvents.reindexKeys(UTCKeys, 'recurrenceEndNoTZ')
+    
+    masterUTCKeys = [i for i in UTCKeys if i in keys]
+    pim_ns.masterEvents.reindexKeys(masterUTCKeys, 'recurrenceEndNoTZ')
 
 class TimeZoneInfo(schema.Item):
     """
