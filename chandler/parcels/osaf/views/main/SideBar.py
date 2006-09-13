@@ -150,10 +150,10 @@ class wxSidebar(wxTable):
             if (gridWindow.HasCapture()):
                 gridWindow.ReleaseMouse()
             for button in blockItem.buttons:
-                method = getattr (type (button), "onOverButton", False)
-                if method:
-                    if button.buttonState['overButton']:
-                        button.buttonState['overButton'] = False
+                if button.buttonState['overButton']:
+                    button.buttonState['overButton'] = False
+                    method = getattr (type (button), "onOverButton", None)
+                    if method is not None:
                         method (button, item)
 
         blockItem.stopNotificationDirt()
@@ -182,17 +182,23 @@ class wxSidebar(wxTable):
                             method = getattr (type (button), "getChecked", False)
                             checked = method and method (button, item)
                             imageRect = self.GetRectFromOffsets (cellRect, button.buttonOffsets)
+                            overButton = imageRect.InsideXY (x, y)
                             button.buttonState = {'imageRect': imageRect,
                                                   'screenMouseDown': checked,
                                                   'blockChecked': checked,
-                                                  'overButton': False}
+                                                  'overButton': overButton}
+                            if overButton:
+                                method = getattr (type (button), "onOverButton", None)
+                                if method is not None:
+                                    method (button, item)
+
                             self.RefreshRect (imageRect)
                     for button in blockItem.buttons:
-                        method = getattr (type (button), "onOverButton", False)
-                        if method:
-                            overButton = button.buttonState['imageRect'].InsideXY (x, y)
-                            if button.buttonState['overButton'] != overButton:
-                                button.buttonState['overButton'] = overButton
+                        overButton = button.buttonState['imageRect'].InsideXY (x, y)
+                        if button.buttonState['overButton'] != overButton:
+                            button.buttonState['overButton'] = overButton
+                            method = getattr (type (button), "onOverButton", None)
+                            if method is not None:
                                 method (button, item)
     
     
@@ -468,6 +474,113 @@ class SSSidebarButton (schema.Item):
     schema.addClouds(
         copying = schema.Cloud (byCloud = [buttonOwner])
     )
+
+class SSSidebarIconButton2 (SSSidebarButton):
+    def getChecked (self, item):
+        blockItem = self.buttonOwner
+        return (blockItem.filterKind not in blockItem.disallowOverlaysForFilterKinds and
+                item in blockItem.checkedItems)
+
+    def setChecked (self, item, checked):
+        checkedItems = self.buttonOwner.checkedItems
+        if checked:
+            checkedItems.add (item)
+        else:
+            checkedItems.remove (item)
+
+    def onOverButton (self, item):
+        sidebarWidget = self.buttonOwner.widget
+        sidebarWidget.RefreshRect (self.buttonState['imageRect'])
+
+    def getButtonImage (self, item, mouseOverFlag):
+        """
+        The rules for naming icons are complicated, which is a
+        reflection of complexity of our sidebar design. Here is a
+        description of the rules:
+
+        Names are made up of the following pieces:
+
+        'Sidebar', ButtonName, iconName, Checked, MouseState, Deactive, '.png'
+
+        They all begin with 'Sidebar', followed by ButtonName. Today,
+        we only have two buttons named: 'Icon', and 'SharingIcon'. The
+        rules for Icon follow -- see getButtonImage for the SharingIcon
+        rules
+
+        The ButtonName is followed by iconName. iconName is a property
+        of the collection, e.g. the Dashboard has an iconName of
+        'Dashboard'. The In, Out, and Trash collections have iconNames
+        'In', 'Out' and 'Trash' respectively. Currently, new collections
+        have no iconNme, so the iconName can be empty. Another
+        property of the collection is whether or not the iconName has
+        a kind variation, in which case the iconName is appended with
+        the Kind, e.g. CalendarEventMixin, MailMessageMixin,
+        TaskMixin.  Currently, only the Dashboard collection has this
+        property, so the iconNames for the Dashboard are 'Dashboard',
+        'DashboardCalendarEventMixin', 'DashboardMailMessageMixin' and
+        'DashboardTaskMixin'.
+
+        Another property of the collection, controlled by the allowOverlay
+        attribute, determines whether or not it can be checked. If the
+        collection is checked, Checked is the string "Checked". Next comes
+        MouseState for checkable icons. It is the string "MouseDown" if the
+        mouse is down over the icon, "MouseOver" if the mouse is up, but over
+        the icon, and empty otherwise.
+        
+        Finally, comes Deactive, which equals "Deactive" when an collection
+        is deactive, i.e. it can't be checked.
+
+        Finally after looking up the icon we colorise it if the colorizeIcon
+        attribute of the collection is True.
+        """
+        sidebarBlock = self.buttonOwner
+        userCollection = UserCollection(item)
+    
+        imagePrefix = "Sidebar" + self.buttonName
+        checked = self.getChecked (item)
+        
+        if mouseOverFlag and self.buttonState['overButton']:
+            if self.buttonState['screenMouseDown'] == (item in sidebarBlock.checkedItems):
+                mouseState = "MouseOver"
+            else:
+                mouseState = "MouseDown"
+        else:
+            mouseState = ""
+
+        if checked:
+            imagePrefix = imagePrefix + "Checked"
+
+        selectedItem = sidebarBlock.contents.getFirstSelectedItem()
+        if (not UserCollection (item).outOfTheBoxCollection and
+            ( (selectedItem is not None and UserCollection (selectedItem).outOfTheBoxCollection) or
+              sidebarBlock.filterKind in sidebarBlock.disallowOverlaysForFilterKinds) ):
+            deactive = "Deactive"
+        else:
+            deactive = ""
+
+        colorizeIcon = userCollection.colorizeIcon
+        imageSuffix = ".png"
+
+        iconName = userCollection.iconName
+        filterKind = sidebarBlock.filterKind
+        if userCollection.iconNameHasKindVariant and filterKind is not None:
+            iconName += os.path.basename (str (filterKind.itsPath))
+
+        app = wx.GetApp()
+        image = app.GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
+        
+        if image is not None and userCollection.colorizeIcon:
+            userCollection.ensureColor()
+            color = userCollection.color
+            rgbValue = DrawingUtilities.color2rgb(color.red, color.green, color.blue)
+            hsvValue = rgb_to_hsv(*rgbValue)
+            image.RotateHue (hsvValue[0])
+
+        if image is not None:
+            image = wx.BitmapFromImage (image)
+
+        return image
+
 
 class SSSidebarIconButton (SSSidebarButton):
     def getChecked (self, item):

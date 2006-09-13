@@ -38,10 +38,10 @@ def makeCPIATestMainView (parcel):
         tableTemplatePath = '//parcels/osaf/views/main/TableSummaryViewTemplate',
         calendarTemplatePath = '//parcels/osaf/views/main/CalendarSummaryViewTemplate')
     
-    IconButton = SSSidebarIconButton.update(
-        parcel, 'IconButton',
-        buttonName = 'Icon',
-        buttonOffsets = [1,17,16])
+    IconButton = SSSidebarIconButton2.update(
+        parcel, 'IconButton2',
+        buttonName = 'Icon2',
+        buttonOffsets = [0,25,19])
     
     SharingButton = SSSidebarSharingButton.update(
         parcel, 'SharingIcon',
@@ -59,15 +59,21 @@ def makeCPIATestMainView (parcel):
                                  heading = u'',
                                  scaleColumn = True,
                                  attributeName = u'displayName')],
+                          
         scaleWidthsToFit = True,
+        rowHeight = 19,
         border = RectType(0, 0, 4, 0),
-        editRectOffsets = [17, -17, 0],
+        editRectOffsets = [22, -17, 0],
         buttons = [IconButton, SharingButton],
         contents = sidebarSelectionCollection,
-        selectedItemToView = pim_ns.allCollection,
         elementDelegate = 'osaf.views.main.SideBar.SidebarElementDelegate',
         hideColumnHeadings = True,
-        filterKind = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView)).install(parcel)
+        defaultEditableAttribute = u'displayName',
+        filterKind = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView),
+        disallowOverlaysForFilterKinds = [None,
+                                          osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
+                                          osaf.pim.tasks.TaskMixin.getKind(repositoryView)]
+        ).install(parcel)
     Sidebar.contents.selectItem (pim_ns.allCollection)
 
     ApplicationBar = Toolbar.template(
@@ -96,10 +102,10 @@ def makeCPIATestMainView (parcel):
                 title = _(u'Tasks'),
                 toolbarItemKind = 'Radio',
                 helpString = _(u'View only tasks')),
-            ToolbarItem.template('ApplicationBarButton',
+            ToolbarItem.template('ApplicationBarEventButton',
                 event = main.ApplicationBarEvent,
                 bitmap = 'ApplicationBarEvent.png',
-                title = _(u'CalendarX'),
+                title = _(u'Calendar'),
                 selected = True,
                 toolbarItemKind = 'Radio',
                 helpString = _(u'View only events')),
@@ -125,7 +131,15 @@ def makeCPIATestMainView (parcel):
                 title = messages.SEND,
                 toolbarItemKind = 'Button',
                 helpString = _(u'Send the selected Item')),
-            ]) # Toolbar ApplicationBar
+            ToolbarItem.template('ApplicationSeparator3',
+                toolbarItemKind = 'Separator'),
+            ToolbarItem.template('ApplicationBarSearchField',
+                event = main.Search,
+                title = u'',
+                toolbarItemKind = 'Text',
+                helpString = _(u'Search field - enter text to find'))
+        ]
+    ) # Toolbar ApplicationBar
 
     MainViewInstance = MainView.template(
         'MainView',
@@ -142,14 +156,14 @@ def makeCPIATestMainView (parcel):
             main.ApplicationBarEvent,
             main.ApplicationBarTask,
             main.ApplicationBarMail,
-            main.ApplicationBarAll],
+            main.ApplicationBarAll,
+            ],
         childrenBlocks = [
             cpiatest.MenuBar,
             StatusBar.template('StatusBar'),
-            ReminderTimer.template('ReminderTimer',
-                                   event = main.ReminderTime),
             BoxContainer.template('ToolbarContainer',
                 orientationEnum = 'Vertical',
+                bufferedDraw = True,
                 childrenBlocks = [
                     ApplicationBar,
                     BoxContainer.template('SidebarContainerContainer',
@@ -165,7 +179,7 @@ def makeCPIATestMainView (parcel):
                                         orientationEnum = 'Vertical',
                                         childrenBlocks = [
                                             PreviewArea.template('PreviewArea',
-                                                contents = pim_ns.allEventsCollection,
+                                                contents = pim_ns.allCollection,
                                                 calendarContainer = None,
                                                 timeCharacterStyle = \
                                                     CharacterStyle.update(parcel, 
@@ -178,7 +192,7 @@ def makeCPIATestMainView (parcel):
                                                                           fontSize = 11),
                                                 stretchFactor = 0.0),
                                             MiniCalendar.template('MiniCalendar',
-                                                contents = pim_ns.allEventsCollection,
+                                                contents = pim_ns.allCollection,
                                                 calendarContainer = None,
                                                 stretchFactor = 0.0),
                                             ]) # BoxContainer PreviewAndMiniCalendar
