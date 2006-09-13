@@ -1326,6 +1326,9 @@ static int _t_sl__p4(t_sl *self, int lvl, t_point *point, int op,
     *prev = __t_sl__p4(self, point->prevKey, op, 0);
     *next = __t_sl__p4(self, point->nextKey, op, 1);
 
+    if (!*prev || !*next)
+        return -1;
+
     if (*prev != Py_None)
     {
         if (_t_node_setNext((t_node *) *prev, lvl,
