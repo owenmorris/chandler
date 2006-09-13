@@ -35,17 +35,18 @@ class TestCertstoreView(ChandlerTestCase):
             """
             Look for a sidebar collection with name, otherwise return False
             """
-            self.logger.startAction("Exactly one collection named %s" % name)
+            self.logger.startAction("Checking that we have exactly one collection named %s" % name)
             entries = []
             sidebarWidget = self.app_ns.sidebar.widget
             for i in range(sidebarWidget.GetNumberRows()):
                 collection = sidebarWidget.GetTable().GetValue(i,0)[0]
                 if collection.displayName == name:
                     entries.append(collection)
-            if len(entries) == 0:
-                self.logger.endAction(False, "Certificate Store not in sidebar")
-            if len(entries) > 1:
-                self.logger.endAction(True, "More than one Certificate Store not in sidebar")
+            lenEntries = len(entries)
+            if lenEntries != 1:
+                self.logger.endAction(False, "%s in sidebar %d times, expected 1" % (name, lenEntries))
+            else:
+                self.logger.endAction(True)
     
         exactlyOneSidebarCollectionNamed("Certificate Store")
     
