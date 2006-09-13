@@ -195,7 +195,10 @@ class UITestItem(object):
 
     def CalendarVisible(self):
         """In the calendar view?"""
-        return App_ns.ApplicationBarEventButton.widget.IsToggled()
+        # if the Dashboard is selected, the state of the ApplicationBar isn't
+        # enough to determine if the calendar is in view
+        return (App_ns.ApplicationBarEventButton.widget.IsToggled() 
+                and getattr(App_ns, 'TimedEvents', False))
 
     def SelectItem(self, catchException=False):
         """

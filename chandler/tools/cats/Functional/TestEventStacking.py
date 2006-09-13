@@ -27,15 +27,19 @@ class TestEventStacking(ChandlerTestCase):
         
         today = strftime('%m/%d/%y',localtime())
     
-        #Make sure we are in calendar view
+
         view = QAUITestAppLib.UITestView(self.logger)
-        view.SwitchToCalView()
+
         
         #Create a collection and select it
         collection = QAUITestAppLib.UITestItem("Collection", self.logger)
         collection.SetDisplayName(uw("stacked"))
         sidebar = self.app_ns.sidebar
         QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, uw("stacked"))
+        
+        # Make sure we are in calendar view, need to do this AFTER creating a
+        # collection, or we might be in the dashboard
+        view.SwitchToCalView()
         
         #make sure we are on current week
         view.GoToToday()
