@@ -97,7 +97,8 @@ class Reminder(schema.Item):
         return result
 
     def __repr__(self):
-        return "<Reminder @ %s>" % (self.absoluteTime or self.delta)
+        return "<%sReminder @ %s>" % (self.userCreated and "User" or "Internal", 
+                                      self.absoluteTime or self.delta)
 
 class Remindable(schema.Item):
     reminders = schema.Sequence(

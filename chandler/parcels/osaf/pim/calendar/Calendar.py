@@ -653,7 +653,11 @@ class CalendarEventMixin(ContentItem):
         except AttributeError:
             pass
         else:
-            if newStartTime is not None and \
+            # @@@ For now, occurrences don't handle individual values right,
+            # so don't do this if the event is a member of a recurrence set.
+            # (see bug 6701)
+            if getattr(self, 'rruleset', None) is None and \
+               newStartTime is not None and \
                newStartTime >= datetime.now(tz=ICUtzinfo.default):
                 # It's due, or in the future.
                 if existing is not None and newStartTime == existing.absoluteTime:

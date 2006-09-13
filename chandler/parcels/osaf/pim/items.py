@@ -595,7 +595,9 @@ class ContentItem(Remindable):
 
     def updateRelevantDate(self, op, attr):
         # Update the relevant date. This could be a lot smarter.
-        logger.debug("Collecting relevant dates for %s", self)
+        if self.isDeleted():
+            return
+        logger.debug("Collecting relevant dates for %r %s", self, self)
         dates = []
         self.addRelevantDates(dates)
         dates = filter(lambda x: x[0], dates)
@@ -606,7 +608,7 @@ class ContentItem(Remindable):
             if hasattr(self, 'relevantDate'): 
                 del self.relevantDate
                 self.relevantDateSource = 'None'
-            logger.debug("No relevant date for %s", self)
+            logger.debug("No relevant date for %r %s", self, self)
             return
         elif dateCount == 1:
             # We have exactly one date; it doesn't matter whether it's in
@@ -624,7 +626,7 @@ class ContentItem(Remindable):
             except IndexError:
                 result = dates[nowIndex-1]
                 
-        logger.debug("Relevant dates for %s is %s", self, result)
+        logger.debug("Relevant date for %r %s is %s", self, self, result)
         assert result[0] is not None
         self.relevantDate, self.relevantDateSource = result
         

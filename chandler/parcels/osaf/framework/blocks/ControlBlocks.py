@@ -33,6 +33,7 @@ import PyICU
 from util import MultiStateButton
 
 import application.dialogs.ReminderDialog as ReminderDialog
+import application.dialogs.RecurrenceDialog as RecurrenceDialog
 import Styles
 from datetime import datetime, time, timedelta
 from osaf.pim.calendar import Calendar
@@ -1031,6 +1032,10 @@ class Timer(Block):
         super(Timer, self).onDestroyWidget()
 
     def setFiringTime(self, when):
+        """ 
+        Set the timer. 
+        "when" can be a timedelta (relative to now) or a datetime (absolute).
+        """
         # First turn off the old timer
         timer = self.widget
         timer.Stop()
@@ -1038,7 +1043,12 @@ class Timer(Block):
         # Set the new time, if we have one. If it's in the past, fire "really soon". If it's way in the future,
         # don't bother firing.
         if when is not None:
-            td = (when - datetime.now(PyICU.ICUtzinfo.default))
+            if isinstance(when, timedelta):
+                td = when
+                if __debug__:
+                    when = datetime.now(PyICU.ICUtzinfo.default) + when
+            else:
+                td = (when - datetime.now(PyICU.ICUtzinfo.default))
             millisecondsUntilFiring = ((td.days * 86400) + td.seconds) * 1000L
             if millisecondsUntilFiring < 100:
                 millisecondsUntilFiring = 100
@@ -1093,9 +1103,9 @@ class ReminderTimer(Timer):
     def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary
         logger.debug("*** Got reminders time event!")
-        self.primeReminderTimer(True)
+        self.primeReminderTimer()
 
-    def primeReminderTimer(self, createDialog=False):
+    def primeReminderTimer(self):
         """
         Prime the reminder timer and maybe show or hide the dialog
         """
@@ -1107,32 +1117,35 @@ class ReminderTimer(Timer):
         self._inPrimeReminderTimer = True
         try:
             mainFrame = wx.GetApp().mainFrame
-            if createDialog and (not mainFrame or not mainFrame.IsShown()):
-                # The main window isn't up yet; this happens on Mac when
-                # Chandler is started with a reminder already due. Wait a couple
-                # of seconds and try again.
+            if not mainFrame.IsShown():
+                # The main window isn't up yet; try again shortly.
                 (nextReminderTime, closeIt) = (datetime.now(
                     PyICU.ICUtzinfo.default) + timedelta(seconds=1), False)
             else:
                 # Update triagestatus on each pending reminder. Dismiss any
                 # internal reminders that exist only to trigger on startTime.
                 pending = self.getPendingReminders()
-                def processReminder((reminderTime, remindable, reminder)):
-                    logger.debug("*** now-ing %s due to %s", remindable, 
-                                 reminder)
-                    remindable.triageStatus = 'now'
-                    remindable.setTriageStatusChanged(when=reminderTime)
-                    assert not reminder.isDeleted()
-                    if reminder.userCreated:
-                        return True # this should appear in the list.
-                    # This is a non-user reminder, which served only to let us
-                    # bump the triageStatus. Discard it.
-                    remindable.dismissReminder(reminder)
-                    return False
-                pending = filter(processReminder, pending)
+                if pending:
+                    def processReminder((reminderTime, remindable, reminder)):
+                        logger.debug("*** now-ing %s due to %s", remindable, 
+                                     reminder)
+                        remindable.triageStatus = 'now'
+                        remindable.setTriageStatusChanged(when=reminderTime)
+                        if reminder.isDeleted():
+                            logger.critical("Found deleted reminder on %r %s at %s",
+                                            remindable, remindable,
+                                            remindable.startTime)
+                        assert not reminder.isDeleted()
+                        if reminder.userCreated:
+                            return True # this should appear in the list.
+                        # This is a non-user reminder, which served only to let us
+                        # bump the triageStatus. Discard it.
+                        remindable.dismissReminder(reminder)
+                        return False
+                    pending = filter(processReminder, pending)
 
-                # Get the dialog if we have it; we'll create it if 'createDialog' and
-                # it doesn't exist.
+                # Get the dialog if we have it; we'll create it 
+                # if it doesn't exist.
                 if pending:
                     reminderDialog = self.getReminderDialog(True)
 

@@ -489,6 +489,13 @@ def makeNoteSubtree(parcel, oldVersion):
                            presentationStyle={'format': 'appearsIn'})],
             position=0.9999).install(parcel)    
 
+    # A timer block we use for triggering "unread' -> 'read'
+    unreadTimeout = BlockEvent.template('UnreadTimeout',
+                                        dispatchEnum = 'SendToSender').install(parcel)
+    unreadTimer = UnreadTimer.template("unreadTimerBlock",
+                                       event=unreadTimeout,
+                                       position=0.999).install(parcel)
+    
     # Finally, the subtree
     makeSubtree(parcel, osaf.pim.Note, [
         makeSpacer(parcel, height=6, position=0.01).install(parcel),
@@ -502,6 +509,7 @@ def makeNoteSubtree(parcel, oldVersion):
         makeSpacer(parcel, height=7, position=0.8999).install(parcel),
         notesBlock,
         appearsInArea,
+        unreadTimer,
     ])
 
 def makeCalendarEventSubtree(parcel, oldVersion):

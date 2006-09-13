@@ -1096,6 +1096,32 @@ def debugName(thing):
         widget = getattr(thing, 'control', None)
         return '%s on %s' % (thing.__class__.__name__, debugName(widget))
 
+    from osaf.pim import CalendarEventMixin, Note, Reminder
+    if isinstance(thing, CalendarEventMixin):
+        startTime = getattr(thing, 'startTime', None)
+        if startTime and getattr(thing, 'allDay', False):
+            timeMsg = "%s allDay" % startTime.date()
+        elif startTime and getattr(thing, 'anyTime', False):
+            timeMsg = "%s anyTime" % startTime.date()
+        else:
+            timeMsg = "%s" % startTime
+        if getattr(thing, 'rruleset', None):
+            recMsg = thing.getMaster() == thing and ", master" \
+                   or (", R%s" % thing.recurrenceID)
+        else:
+            recMsg = ""
+        return "%r %s @ %s%s" % (thing.__repr__(), 
+            getattr(thing, 'displayName', None), timeMsg, recMsg)
+
+    if isinstance(thing, Note):
+        return "%r %s" % (thing.__repr__(),
+                          getattr(thing, 'displayName', None))
+
+    if isinstance(thing, Reminder):
+        items = ["+%r" % r for r in thing.reminderItems]
+        items.extend("-%r" % debugName(r) for r in thing.expiredReminderItems)
+        return "%r on [%s]" % (thing.__repr__(), ", ".join(items))
+
     try:
         return thing.__repr__()
     except:

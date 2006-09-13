@@ -296,6 +296,37 @@ class SynchronizedSpacerBlock(DetailSynchronizer, ControlBlocks.StaticText):
     Generic Spacer Block class.
     """
 
+class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
+    """ A timer that sets the "read" attribute on any item we display. """
+    def onSetContentsEvent (self, event):
+        super(UnreadTimer, self).onSetContentsEvent(event)
+        # We only want to bother with this when the item is first selected,
+        # but we may not be rendered here, so set a flag; we'll check 
+        # it at synchronize time, below.
+        self.checkReadState = True
+    
+    def synchronizeWidget(self, useHints=False):
+        super(DetailSynchronizer, self).synchronizeWidget(useHints)
+        if getattr(self, 'checkReadState', False):
+            self.checkReadState = False
+            item = getattr(self, 'item', None) 
+            # @@@ For now, occurrences don't handle individual values right,
+            # so don't do this if the items is a member of a recurrence set.
+            # (see bug 6702)
+            if item is not None and not item.read and \
+               getattr(item, 'rruleset', None) is None:
+                logger.debug("Setting unread timer for %s", debugName(item))
+                self.setFiringTime(timedelta(seconds=1))
+            else:
+                logger.debug("Not setting unread timer for %s", debugName(item))
+                self.setFiringTime(None)
+            
+    def onUnreadTimeoutEvent(self, event):
+        item = getattr(self, 'item', None) 
+        if item is not None:
+            logger.debug("Clearing unread flag for %s", debugName(item))
+            self.item.read = True
+    
 class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
     def staticTextLabelValue (self, item):
         theLabel = self.title
