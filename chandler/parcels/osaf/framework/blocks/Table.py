@@ -430,11 +430,16 @@ class wxTable(DragAndDrop.DraggableWidget,
         assert (self.GetNumberCols() == gridTable.GetNumberCols() and
                 self.GetNumberRows() == gridTable.GetNumberRows())
 
-        # Update column widths
-
+        # Update column widths and sortedness
         for index, column in enumerate(self.blockItem.columns):
             self.SetColSize (index, column.width)
             self.ScaleColumn (index, column.scaleColumn)
+            if column.selected:
+                self.SetUseColSortArrows(column.useSortArrows)
+                self.SetSelectedCol(index)
+                self.blockItem.contents.setCollectionIndex(
+                    column.attributeName, toggleDescending=True,
+                    attributes=column.indexAttributes)
 
         self.ScaleWidthToFit (self.blockItem.scaleWidthsToFit)
 

@@ -49,22 +49,22 @@ class TestTableSelection(ChandlerTestCase):
     
         rowsToSelect = [1, 3, 4, 9, 11]
         rowHeight = dashboard.GetDefaultRowSize()
-        rowMiddle = rowHeight/2
+        rowOffset = rowHeight * 3/2 # 1 for the section header, 0.5 to middle of row
     
         # select the first row
-        self.scripting.User.emulate_click(dashboard, 100, rowsToSelect[0]*rowHeight + rowMiddle)
+        self.scripting.User.emulate_click(dashboard, 100, rowsToSelect[0]*rowHeight + rowOffset)
                            
         # select 3 more rows, with control key down for multi selection
         # except for mac which wants the meta key held down
         if sys.platform == 'darwin':
             for row in rowsToSelect[1:]:
                 self.scripting.User.emulate_click(dashboard, 100,
-                                   rowHeight*row + rowMiddle,
+                                   rowHeight*row + rowOffset,
                                    meta=True)
         else:
             for row in rowsToSelect[1:]:
                 self.scripting.User.emulate_click(dashboard, 100,
-                                   rowHeight*row + rowMiddle,
+                                   rowHeight*row + rowOffset,
                                    control=True)
         self.logger.endAction(True)
             
@@ -86,10 +86,9 @@ class TestTableSelection(ChandlerTestCase):
                             "Table Selection by Item")
     
         # check the grid widget itself to make sure the right rows are
-        # selected visually - this will fail if sections are enabled!
-        # (because you'll need to recalculate what rows correspond to what
-        # indexes)
-        expectedRows = [(i,i) for i in rowsToSelect]
+        # selected visually. (We offset each entry in rowsToSelect to 
+        # adjust for the section header)
+        expectedRows = [(i+1, i+1) for i in rowsToSelect]
         topLeft = [i for i,j in dashboard.GetSelectionBlockTopLeft()]
         bottomRight = [i for i,j in dashboard.GetSelectionBlockBottomRight()]
         gridSelectedRows = zip(topLeft, bottomRight)
