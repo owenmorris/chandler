@@ -665,7 +665,7 @@ static PyObject *t_value_container_setIndexed(t_value_container *self,
     if (!PyArg_ParseTuple(args, "OO", &txn, &uValue))
         return NULL;
 
-    if (!PyObject_TypeCheck(txn, CDBTxn))
+    if (txn != Py_None && !PyObject_TypeCheck(txn, CDBTxn))
     {
         PyErr_SetObject(PyExc_TypeError, txn);
         return NULL;
@@ -678,7 +678,7 @@ static PyObject *t_value_container_setIndexed(t_value_container *self,
     }
 
     {
-        DB_TXN *db_txn = ((t_txn *) txn)->txn;
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
         DB *db = (((t_container *) self)->db)->db;
         DBT key, data;
         unsigned char vFlags;
@@ -1239,7 +1239,7 @@ static PyObject *t_item_container_setItemStatus(t_item_container *self,
     if (!PyArg_ParseTuple(args, "OkOi", &txn, &version, &uItem, &status))
         return NULL;
 
-    if (!PyObject_TypeCheck(txn, CDBTxn))
+    if (txn != Py_None && !PyObject_TypeCheck(txn, CDBTxn))
     {
         PyErr_SetObject(PyExc_TypeError, txn);
         return NULL;
@@ -1252,7 +1252,7 @@ static PyObject *t_item_container_setItemStatus(t_item_container *self,
     }
 
     {
-        DB_TXN *db_txn = ((t_txn *) txn)->txn;
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
         DB *db = (((t_container *) self)->db)->db;
         DBT key, data;
         char keyBuffer[20];
