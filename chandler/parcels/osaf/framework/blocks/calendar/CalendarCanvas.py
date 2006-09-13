@@ -2015,9 +2015,12 @@ class CalendarControl(CalendarBlock):
             self.SelectCollectionInSidebar(allCollection)
         
         if not item.allDay and not item.anyTime:
-            timedEventsCanvas = self.calendarContainer.getTimedBlock().widget
-            timedEventsCanvas.ScrollToEvent(item)
-            timedEventsCanvas.SetPanelFocus()
+            timeBlock = self.calendarContainer.getTimedBlock()            
+            timedEventsCanvas = getattr(timeBlock, 'widget', None)
+            # if the dashboard is selected, the calendar won't be displayed
+            if timedEventsCanvas is not None:
+                timedEventsCanvas.ScrollToEvent(item)
+                timedEventsCanvas.SetPanelFocus()
         else:
             self.calendarContainer.getAllDayBlock().widget.SetPanelFocus()
             
