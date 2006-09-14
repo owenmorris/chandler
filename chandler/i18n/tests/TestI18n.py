@@ -19,9 +19,9 @@ class I18nTestCase(unittest.TestCase):
     def setUp(self):
         try:
             import wx
-            # A wx.App is needed for wx localizations
-            self._wx_app = wx.App()
-            self._wx_available = True
+            # A wx.App is needed for wx localizations, but check first
+            # if a GUI can be created in the current environment.
+            self._wx_available = wx.App.DisplayAvailable()
         except:
             self._wx_available = False
 
