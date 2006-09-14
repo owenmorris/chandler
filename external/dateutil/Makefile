@@ -39,8 +39,7 @@ install: $(TARBALL)
 
 test:
 	cd $(SRC); \
-    $(PYTHON) test.py -v; \
-    echo testing done
+    $(PYTHON) test.py -v
 
 
 ifneq (/,$(SRC)/$(BUILD))

@@ -54,8 +54,7 @@ install: $(TARBALL)
 
 test:
 	cd $(SRC); \
-    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) tests/tests.py -v; \
-    echo testing done
+    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) tests/tests.py -v
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

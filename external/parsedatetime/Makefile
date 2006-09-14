@@ -44,8 +44,7 @@ install: $(TARBALL)
 
 test:
 	cd $(SRC); \
-    $(PYTHON) run_tests.py parsedatetime; \
-    echo testing done
+    $(PYTHON) run_tests.py parsedatetime
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:

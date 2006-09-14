@@ -37,8 +37,7 @@ install: $(TARBALL)
 
 test:
 	cd $(SRC); \
-    $(PYTHON) selftest.py; \
-    echo testing done
+    $(PYTHON) selftest.py
 
 ifneq (/,$(SRC)/$(BUILD))
 clean:
