@@ -58,7 +58,8 @@ def installParcel(parcel, oldVersion=None):
         pim.SmartCollection.update(parcel, 'scriptsCollection',
             renameable = False,
             private = False,
-            source=scripts
+            source=scripts,
+            displayName='Scripts'
             )
     userScripts = UserCollection(scriptsCollection)
     userScripts.dontDisplayAsCalendar = True
