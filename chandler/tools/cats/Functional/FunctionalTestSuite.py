@@ -68,11 +68,9 @@ else:
     
 exclusions = {#tests to exclude on specific platfoms only
     'other':[
-        ("TestTableSelection","TestTableSelection"),#6726
     ],
     
     'mac':[
-        ("TestRemoveFromTrashOnImport","TestRemoveFromTrashOnImport"),#bug 6727
      
     ],
     
