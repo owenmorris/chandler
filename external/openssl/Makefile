@@ -1,6 +1,6 @@
 
-VERSION=0.9.8b
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+VERSION=0.9.8c
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 OPENSSL=$(BUILD_ROOT)/openssl
 SRC=$(OPENSSL)/openssl-$(VERSION)
 BUILD=build_$(SNAP)
@@ -22,7 +22,7 @@ endif
 
 $(SRC)/$(BUILD)/ms/$(DOMASM):
 	cd $(SRC); \
-      mkdir $(BUILD); \
+      mkdir -p $(BUILD); \
       cp Makefile.org Makefile.shared *.h $(BUILD)/; \
       cp -r crypto ssl apps certs tools util ms include test config engines $(BUILD)/; \
       cd $(BUILD); \
