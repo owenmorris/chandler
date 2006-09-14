@@ -255,7 +255,7 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             feedbackId = re.compile('^.*(\d{4}\-\d{2}\-\d{2}T\d{2}\-\d{2}\-\d{2}\.\d{6}).*$').match(serverResponse).group(1)
             
             # Show the ID so that users can report it in bugs etc.
-            self.frame.text.AppendText(_(u'\nFeedback report ID: %s' % feedbackId))
+            self.frame.text.AppendText(_(u'\nFeedback report ID: %(feedbackId)s') % {'feedbackId': feedbackId})
                         
             # Log each report to a new file
             feedbackFile = os.path.join(Globals.options.profileDir, 'feedback-%s.xml' % feedbackId)
@@ -264,7 +264,8 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             f.close()
 
             # Show the path to the saved file
-            self.frame.text.AppendText(_(u'\nFeedback report saved locally at: %s' % feedbackFile))
+            self.frame.text.AppendText(_(u'\nFeedback report saved locally at: %(feedbackFile)s') \
+                                       % {'feedbackFile': feedbackFile})
 
         except:
             pass
