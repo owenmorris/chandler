@@ -308,6 +308,8 @@ def initLogging(options):
 
         logger = logging.getLogger(__name__)
 
+        logger.info('=== logging initialized, Chandler version %s ===' % version.version)
+
         # If there is a logging FileHandler writing to a chandler.log,
         # then put twisted.log next to it.  Otherwise send twisted output
         # to twisted.log in the profile directory
