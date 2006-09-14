@@ -684,6 +684,11 @@ def makeMainMenus(parcel):
                                 title = u'CPIA Test',
                                 menuItemKind = 'Check',
                                 helpString = u'Switch to CPIA test'),
+                            MenuItem.template('CPIATest2MenuItem',
+                                event = main.ChooseCPIATest2MainView,
+                                title = u'CPIA Test 2',
+                                menuItemKind = 'Check',
+                                helpString = u'Switch to CPIA test 2'),
                             ]), # Menu SkinsMenu
                     Menu.template('MailTests',
                         title = u'&Mail Tests',
