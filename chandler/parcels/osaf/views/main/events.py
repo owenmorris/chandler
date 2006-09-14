@@ -282,12 +282,6 @@ def makeMainEvents(parcel):
         choice = 'CPIATestMainView',
         dispatchToBlockName = 'MainViewRoot').install(parcel)
 
-    ChoiceEvent.template(
-        'ChooseCPIATest2MainView',
-        methodName = 'onChoiceEvent',
-        choice = 'CPIATest2MainView',
-        dispatchToBlockName = 'MainViewRoot').install(parcel)
-
     BlockEvent.template(
         'RequestSelectSidebarItem',
         dispatchToBlockName = 'Sidebar').install(parcel)
