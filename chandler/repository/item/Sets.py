@@ -33,7 +33,7 @@ class AbstractSet(ItemValue, Indexed):
         self._otherName = None
         self.id = id
 
-    def __contains__(self, item, excludeMutating=False):
+    def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
         raise NotImplementedError, "%s.__contains__" %(type(self))
 
     def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
@@ -195,16 +195,16 @@ class AbstractSet(ItemValue, Indexed):
         else:
             return source[0].itsView, (source[0].itsUUID, source[1])
 
-    def _sourceContains(self, item, source, excludeMutating=False):
+    def _sourceContains(self, item, source,
+                        excludeMutating=False, excludeIndexes=False):
 
         if item is None:
             return False
 
-        if isinstance(source, AbstractSet):
-            return item in source
-        
-        return getattr(self._view[source[0]],
-                       source[1]).__contains__(item, excludeMutating)
+        if not isinstance(source, AbstractSet):
+            source = getattr(self._view[source[0]], source[1])
+
+        return source.__contains__(item, excludeMutating, excludeIndexes)
 
     def _getSource(self, source):
 
@@ -545,7 +545,7 @@ class EmptySet(AbstractSet):
 
         super(EmptySet, self).__init__(None, id)
 
-    def __contains__(self, item, excludeMutating=False):
+    def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
 
         return False
 
@@ -606,16 +606,18 @@ class Set(AbstractSet):
         view, self._source = self._prepareSource(source)
         super(Set, self).__init__(view, id)
 
-    def __contains__(self, item, excludeMutating=False):
+    def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
 
         if item is None:
             return False
 
-        index = self._anIndex()
-        if index is not None:
-            return item.itsUUID in index
+        if not excludeIndexes:
+            index = self._anIndex()
+            if index is not None:
+                return item.itsUUID in index
 
-        return self._sourceContains(item, self._source, excludeMutating)
+        return self._sourceContains(item, self._source,
+                                    excludeMutating, excludeIndexes)
 
     def _itervalues(self):
 
@@ -776,17 +778,20 @@ class BiSet(AbstractSet):
 
 class Union(BiSet):
 
-    def __contains__(self, item, excludeMutating=False):
+    def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
         
         if item is None:
             return False
 
-        index = self._anIndex()
-        if index is not None:
-            return item.itsUUID in index
+        if not excludeIndexes:
+            index = self._anIndex()
+            if index is not None:
+                return item.itsUUID in index
 
-        return (self._sourceContains(item, self._left, excludeMutating) or
-                self._sourceContains(item, self._right, excludeMutating))
+        return (self._sourceContains(item, self._left,
+                                     excludeMutating, excludeIndexes) or
+                self._sourceContains(item, self._right,
+                                     excludeMutating, excludeIndexes))
 
     def _itervalues(self):
 
@@ -831,17 +836,20 @@ class Union(BiSet):
 
 class Intersection(BiSet):
 
-    def __contains__(self, item, excludeMutating=False):
+    def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
         
         if item is None:
             return False
 
-        index = self._anIndex()
-        if index is not None:
-            return item.itsUUID in index
+        if not excludeIndexes:
+            index = self._anIndex()
+            if index is not None:
+                return item.itsUUID in index
 
-        return (self._sourceContains(item, self._left, excludeMutating) and
-                self._sourceContains(item, self._right, excludeMutating))
+        return (self._sourceContains(item, self._left,
+                                     excludeMutating, excludeIndexes) and
+                self._sourceContains(item, self._right,
+                                     excludeMutating, excludeIndexes))
 
     def _itervalues(self):
 
@@ -882,17 +890,20 @@ class Intersection(BiSet):
 
 class Difference(BiSet):
 
-    def __contains__(self, item, excludeMutating=False):
+    def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
         
         if item is None:
             return False
 
-        index = self._anIndex()
-        if index is not None:
-            return item.itsUUID in index
+        if not excludeIndexes:
+            index = self._anIndex()
+            if index is not None:
+                return item.itsUUID in index
 
-        return (self._sourceContains(item, self._left, excludeMutating) and
-                not self._sourceContains(item, self._right, excludeMutating))
+        return (self._sourceContains(item, self._left,
+                                     excludeMutating, excludeIndexes) and
+                not self._sourceContains(item, self._right,
+                                         excludeMutating, excludeIndexes))
 
     def _itervalues(self):
 
@@ -1020,17 +1031,19 @@ class MultiSet(AbstractSet):
 
 class MultiUnion(MultiSet):
 
-    def __contains__(self, item, excludeMutating=False):
+    def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
 
         if item is None:
             return False
 
-        index = self._anIndex()
-        if index is not None:
-            return item.itsUUID in index
+        if not excludeIndexes:
+            index = self._anIndex()
+            if index is not None:
+                return item.itsUUID in index
 
         for source in self._sources:
-            if self._sourceContains(item, source, excludeMutating):
+            if self._sourceContains(item, source,
+                                    excludeMutating, excludeIndexes):
                 return True
 
         return False
@@ -1085,17 +1098,19 @@ class MultiUnion(MultiSet):
 
 class MultiIntersection(MultiSet):
 
-    def __contains__(self, item, excludeMutating=False):
+    def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
 
         if item is None:
             return False
 
-        index = self._anIndex()
-        if index is not None:
-            return item.itsUUID in index
+        if not excludeIndexes:
+            index = self._anIndex()
+            if index is not None:
+                return item.itsUUID in index
 
         for source in self._sources:
-            if not self._sourceContains(item, source, excludeMutating):
+            if not self._sourceContains(item, source,
+                                        excludeMutating, excludeIndexes):
                 return False
 
         return True
@@ -1166,7 +1181,7 @@ class KindSet(Set):
         self._recursive = recursive
         super(KindSet, self).__init__((kind, 'extent'), id)
 
-    def __contains__(self, item, excludeMutating=False):
+    def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
 
         if item is None:
             return False
@@ -1194,9 +1209,10 @@ class KindSet(Set):
         
         return False
 
-    def _sourceContains(self, item, source, excludeMutating=False):
+    def _sourceContains(self, item, source,
+                        excludeMutating=False, excludeIndexes=False):
 
-        return item in self
+        return self.__contains__(item, excludeMutating, excludeIndexes)
 
     def _itervalues(self):
 
@@ -1254,16 +1270,18 @@ class FilteredSet(Set):
         super(FilteredSet, self).__init__(source, id)
         self.attributes = attrs
     
-    def __contains__(self, item, excludeMutating=False):
+    def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
 
         if item is None:
             return False
 
-        index = self._anIndex()
-        if index is not None:
-            return item.itsUUID in index
+        if not excludeIndexes:
+            index = self._anIndex()
+            if index is not None:
+                return item.itsUUID in index
 
-        if self._sourceContains(item, self._source, excludeMutating):
+        if self._sourceContains(item, self._source,
+                                excludeMutating, excludeIndexes):
             return self.filter(item.itsUUID)
 
         return False

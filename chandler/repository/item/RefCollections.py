@@ -169,7 +169,7 @@ class RefList(LinkedMap, Indexed):
                                     self._item.itsPath,
                                     self._name, self._otherName)
 
-    def __contains__(self, key, excludeMutating=False):
+    def __contains__(self, key, excludeMutating=False, excludeIndexes=False):
         """
         The C{in} operator works both with C{Item} values or C{UUID} keys.
 

@@ -204,7 +204,9 @@ class Indexed(object):
             _indexChanges = {}
 
             for indexName, index in indexes.iteritems():
-                _indexChanges[indexName] = dict(index._iterChanges())
+                _indexChanges[indexName] = (dict(index._iterChanges()),
+                                            index.getIndexType(),
+                                            index.getInitKeywords())
 
             if _indexChanges:
                 indexChanges[name] = _indexChanges
@@ -212,8 +214,17 @@ class Indexed(object):
     def _applyIndexChanges(self, view, indexChanges, deletes):
 
         indexes = self._indexes
-        for name, _indexChanges in indexChanges.iteritems():
-            index = indexes[name]
+        if indexes is None:
+            self._indexes = indexes = {}
+
+        for name, (_indexChanges, type, kwds) in indexChanges.iteritems():
+            index = indexes.get(name)
+            if index is None:
+                kwds.pop('ranges', None)
+                indexes[name] = index = self._createIndex(type, **kwds)
+                newIndex = True
+            else:
+                newIndex = False
             moves = []
 
             for key, value in _indexChanges.iteritems():
@@ -227,6 +238,9 @@ class Indexed(object):
                             view.logger.warning("while merging %s '%s' on attribute '%s' of item '%s', item for key '%s' was not found", index, name, attribute, item._repr_(), key)
                             if key in index:
                                 index.removeKey(key)
+                    elif newIndex:
+                        if self.__contains__(key, False, True):
+                            moves.append(key)
                     elif item.isDirty():
                         moves.append(key)
                 elif key in index:

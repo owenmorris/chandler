@@ -1043,6 +1043,29 @@ class TestMerge(RepositoryTestCase):
         self.assert_(m1.isDeleted())
         self.assert_(main.check(), 'main view did not check out')
 
+    def testMergeAddIndexDelete(self):
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m1.delete()
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        k.movies.addIndex('new', 'numeric')
+
+        main.commit(None)
+        self.assert_(main.check(), 'main view did not check out')
+
 
 if __name__ == "__main__":
 #    import hotshot
