@@ -310,10 +310,10 @@ clean:
 	find . -name '*.pyc' | xargs rm -f
 	find . -name '*.pyo' | xargs rm -f
 
-realclean: clean
+distclean: clean
 	rm -rf $(C_BIN)/debug
 	rm -rf $(C_BIN)/release
 
-wipe: clean
+realclean: distclean
 	rm -f $(ARCHIVES)
 
