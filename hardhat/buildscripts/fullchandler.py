@@ -133,6 +133,11 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             ret = 'success'
         else:
             for releaseMode in releaseModes:
+                #ret = doProjectTests(releaseMode, workingDir,
+                #                     outputDir, buildVersion, log)
+                #if ret != 'success':
+                #    break
+
                 ret = doTests(releaseMode, workingDir,
                               outputDir, buildVersion, log)
                 if ret != 'success':
@@ -180,6 +185,34 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     os.chdir(workingDir + '/external')
 
     return (ret + changes, svnRevisions['chandler'])
+
+def doProjectTests(mode, workingDir, outputDir, buildVersion, log):
+
+    testDir = os.path.join(workingDir, "external")
+    os.chdir(testDir)
+
+    try:
+        print "Testing " + mode
+        log.write(separator)
+        log.write("Testing " + mode + " ...\n")
+
+        if buildmode == "debug":
+            dbgStr = "DEBUG=1"
+        else:
+            dbgStr = ""
+
+        outputList = hardhatutil.executeCommandReturnOutput([buildenv['make'], dbgStr, 'test'])
+        hardhatutil.dumpOutputList(outputList, log)
+
+    except Exception, e:
+        print "a testing error"
+        doCopyLog("***Error during tests***", workingDir, logPath, log)
+        return "test_failed"
+    else:
+        doCopyLog("Tests successful", workingDir, logPath, log)
+
+    return "success"
+
 
 def doTests(mode, workingDir, outputDir, buildVersion, log):
 
@@ -384,6 +417,8 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
             # we get here only if the module is chandler or if changes have occurred
             # in external or internal
             if module == 'chandler':
+                if clean == 'realclean':
+                    clean = 'distclean'
                 makeTargets = dbgStr + " " + clean + " distrib"
             else:
                 makeTargets = dbgStr + " " + clean + " world"
