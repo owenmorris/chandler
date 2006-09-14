@@ -14,8 +14,7 @@
 
 
 from Sections import SectionedGridDelegate, SectionAttributeEditor
-from SideBar import (SidebarBlock, CPIATestSidebarBranchPointDelegate, 
-                     SidebarBranchPointDelegate)
+from SideBar import (SidebarBlock, SidebarBranchPointDelegate)
 from Dashboard import DashboardPrefs
 
 def installParcel(parcel, oldVersion=None):

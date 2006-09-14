@@ -233,6 +233,7 @@ def makeMainView (parcel):
         delegate = MainBranchPointDelegate).install(parcel)
 
     CPIATestMainView = schema.ns("osaf.views.cpiatest", repositoryView).MainView
+    CPIATest2MainView = schema.ns("osaf.views.cpiatest2", repositoryView).MainView
     FrameWindow.update(
         parcel, 'MainViewRoot',
         blockName = 'MainViewRoot',
@@ -240,7 +241,8 @@ def makeMainView (parcel):
         size = SizeType(1024,720),
         eventBoundary=True,
         views = {'MainView' : MainViewInstance,
-                 'CPIATestMainView' : CPIATestMainView},
+                 'CPIATestMainView' : CPIATestMainView,
+                 'CPIATest2MainView' : CPIATest2MainView},
         activeView = MainViewInstance,
         childrenBlocks = [MainBranchPointBlock])
 

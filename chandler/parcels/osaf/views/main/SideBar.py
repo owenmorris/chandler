@@ -1312,12 +1312,3 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         """
         return item
 
-class CPIATestSidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
-
-    templatePath = schema.One(schema.Text)
-
-    def _makeBranchForCacheKey(self, keyItem):
-        branch = self.findPath (self.templatePath)
-
-        assert isinstance (branch, Block.Block)
-        return self._copyItem(branch, onlyIfReadOnly=True)
