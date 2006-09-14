@@ -2,7 +2,7 @@
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/ or internal/
 
-.PHONY: default install-core install distrib clean realclean downloads build-plugins
+.PHONY: default install-core install distrib clean downloads build-plugins
 
 default: install
 
@@ -311,7 +311,9 @@ clean:
 	find . -name '*.pyo' | xargs rm -f
 
 realclean: clean
-	rm -f $(ARCHIVES)
 	rm -rf $(C_BIN)/debug
 	rm -rf $(C_BIN)/release
+
+wipe: clean
+	rm -f $(ARCHIVES)
 
