@@ -399,11 +399,9 @@ class PreviewPrefs(Preferences):
 class PreviewArea(CalendarCanvas.CalendarBlock):
     timeCharacterStyle = schema.One(Styles.CharacterStyle)
     eventCharacterStyle = schema.One(Styles.CharacterStyle)
-    linkCharacterStyle = schema.One(Styles.CharacterStyle)
 
     schema.addClouds(
-        copying = schema.Cloud(byRef=[timeCharacterStyle, eventCharacterStyle,
-                                      linkCharacterStyle])
+        copying = schema.Cloud(byRef=[timeCharacterStyle, eventCharacterStyle])
     )
 
     def __init__(self, *arguments, **keywords):
@@ -433,8 +431,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
         return wxPreviewArea(self.parentBlock.widget, 
                              self.getWidgetID(),
                              timeCharStyle = self.timeCharacterStyle,
-                             eventCharStyle = self.eventCharacterStyle,
-                             linkCharStyle = self.linkCharacterStyle)
+                             eventCharStyle = self.eventCharacterStyle)
 
 
 class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
@@ -442,7 +439,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
     hMargin = 6 # space on sides
     midMargin = 6 # space between time & date
     
-    def __init__(self, parent, id, timeCharStyle, eventCharStyle, linkCharStyle,
+    def __init__(self, parent, id, timeCharStyle, eventCharStyle, 
                  *arguments, **keywords):
         super(wxPreviewArea, self).__init__(parent, id, *arguments, **keywords)
         self.currentDaysItems = []
@@ -452,14 +449,9 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         self.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
         
         self.SetWindowStyle(PLATFORM_BORDER)
-        
-        self.useToday = True
-        self.maximized = False
-        self.titleFont = Styles.getFont(timeCharStyle)
-        
+                
         self.timeFont = Styles.getFont(timeCharStyle)
         self.eventFont = Styles.getFont(eventCharStyle)
-        self.linkFont = Styles.getFont(linkCharStyle)
         self.labelPosition = -1 # Note that we haven't measured things yet.
                 
     def OnPaint(self, event):
@@ -468,33 +460,12 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             self.Draw(dc)
 
     def _getItem(self, event):
-        """Return the appropriate item, or None for the expand/contract line."""                   
-        maxEvents = schema.ns("osaf.framework.blocks.calendar",
-                     self.blockItem.itsView).previewPrefs.maximumEventsDisplayed                 
+        pos = max(0, (event.GetPosition().y - self.vMargin) / self.lineHeight)
+        pos = min(len(self.currentDaysItems) - 1, pos)
+        return self.currentDaysItems[pos]
         
-        dayLength = len(self.currentDaysItems)
-        
-        pos = (event.GetPosition().y - self.vMargin) / self.lineHeight        
-        if self.useToday:
-            pos -= 1
-        if (dayLength > maxEvents and ((not self.maximized and 
-                                        pos == maxEvents - 1) or
-                                       (self.maximized and pos == dayLength))):
-            return None
-        else:
-            pos = max(0, pos)
-            pos = min(len(self.currentDaysItems) - 1, pos)
-            return self.currentDaysItems[pos]
-
-    def ExpandOrContract(self):
-        self.maximized = not self.maximized
-        self.Resize()
-
     def OnDClick(self, event):
         item = self._getItem(event)
-        if item is None:
-            self.ExpandOrContract()
-            return
         self._avoidDrawing = True
         # Select the calendar filter
         self.blockItem.postEventByName ('ApplicationBarEvent', {})
@@ -508,10 +479,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         self._avoidDrawing = False
 
     def OnClick(self, event):
-        item = self._getItem(event)
-        if item is None:
-            self.ExpandOrContract()
-            return        
+        item = self._getItem(event)    
         sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
         sidebarBPB.childrenBlocks.first().postEventByName (
            'SelectItemsBroadcast', {'items':[item]}
@@ -579,17 +547,8 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             self.timeFontOffset = (self.lineHeight - self.timeFontHeight)
             self.eventFontOffset = (self.lineHeight - self.eventFontHeight)
             
+        # Draw each event
         y = self.vMargin
-        # Draw title if appropriate
-        if self.useToday:
-            todayText = _("Today's events")
-            dc.SetFont(self.timeFont)
-            titleWidth = dc.GetTextExtent(todayText)[0]
-            xStart = (r.width - titleWidth)/2
-            dc.DrawText(todayText, xStart, y)
-            y += self.lineHeight
-        
-        # Draw each event            
         previewPrefs = schema.ns("osaf.framework.blocks.calendar",
                                  self.blockItem.itsView).previewPrefs
         for i, item in enumerate(self.currentDaysItems):
@@ -598,11 +557,17 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
                 # OnPaint gets called before wxSynchronizeWidget, so
                 # self.currentDaysItems has deleted items in it.
                 continue
-            
-            if (not self.maximized and 
-                i == previewPrefs.maximumEventsDisplayed - 1 and
-                len(self.currentDaysItems) - i > 1):
-                break
+
+            if i == previewPrefs.maximumEventsDisplayed - 1:
+                numEventsLeft = (len(self.currentDaysItems) - i)
+                if numEventsLeft > 1:
+                    dc.SetFont(self.eventFont)
+                    # this is the number of events that are not displayed
+                    # in the preview pane because there wasn't enough room
+                    dc.DrawText(_(u"%(numberOfEvents)d more confirmed...") % {'numberOfEvents': numEventsLeft},
+                                self.hMargin, y + self.eventFontOffset)
+                    y += self.lineHeight  #For end calculation
+                    break
 
             if not (item.allDay or item.anyTime):
                 # Draw the time
@@ -623,21 +588,6 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             dc.DrawText(item.displayName, x, y + self.eventFontOffset)
 
             y += self.lineHeight
-
-        if len(self.currentDaysItems) > previewPrefs.maximumEventsDisplayed:
-            if self.maximized:
-                expandText = _(u"- minimize")
-            else:
-                # this is the number of events that are not displayed
-                # in the preview pane because there wasn't enough room
-                numEventsLeft = (len(self.currentDaysItems) - 
-                                 (previewPrefs.maximumEventsDisplayed - 1))
-                expandText = _(u"+ %(numberOfEvents)d more...") %  \
-                                  {'numberOfEvents': numEventsLeft}
-                
-            dc.SetFont(self.linkFont)
-            dc.DrawText(expandText, self.hMargin, y + self.eventFontOffset)
-            y += self.lineHeight  
                 
             
         dc.DestroyClippingRegion()
@@ -645,8 +595,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
     def ChangeHeightAndAdjustContainers(self, newHeight):
         # @@@ hack until block-to-block attributes are safer to define: climb the tree
-        boxContainer = self.GetParent()
-        wxSplitter = boxContainer.GetParent()
+        wxSplitter = self.GetParent().GetParent()
         assert isinstance(wxSplitter, ContainerBlocks.wxSplitterWindow)
 
         currentHeight = self.GetSize()[1]
@@ -656,26 +605,16 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         # flicker between them, but it doesn't seem to be doing much. The WX
         # docs say they're only "hints", but maybe this is using them wrong.
         
-        wxSplitter.Freeze()
-        boxContainer.Freeze()
+        self.GetParent().GetParent().Freeze()
+        self.GetParent().Freeze()
         #adjust box container shared with minical.
         self.SetMinSize( (0, newHeight) )
         self.GetParent().Layout()
         
         #adjust splitter containing the box container
         wxSplitter.MoveSash(wxSplitter.GetSashPosition() + heightDelta)
-        boxContainer.Thaw()
-        wxSplitter.Thaw()
-
-    def Resize(self):
-        dc = wx.ClientDC(self)
-        drawnHeight = self.Draw(dc)
-
-        if drawnHeight == 0:
-            newHeight = 0
-        else:
-            newHeight = drawnHeight + 2*self.vMargin
-        self.ChangeHeightAndAdjustContainers(newHeight)        
+        self.GetParent().Thaw()
+        self.GetParent().GetParent().Thaw()
 
     def wxSynchronizeWidget(self, useHints=False):
         # We now want the preview area to always appear.  If the
@@ -684,11 +623,9 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         # day.
         minical = Block.Block.findBlockByName("MiniCalendar")
         if isMainCalendarVisible() or not minical:
-            self.useToday = True
             today = datetime.today()
             startDay = datetime.combine(today, time(0))
         else:
-            self.useToday = False
             startDay = minical.widget.getSelectedDate()
         startDay = startDay.replace(tzinfo=ICUtzinfo.default)
         endDay = startDay + one_day
@@ -709,8 +646,14 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
         
         self.currentDaysItems.sort(cmp = self.SortForPreview)
-        self.Resize()
+        dc = wx.ClientDC(self)
+        drawnHeight = self.Draw(dc)
 
+        if drawnHeight == 0:
+            newHeight = 0
+        else:
+            newHeight = drawnHeight + 2*self.vMargin
+        self.ChangeHeightAndAdjustContainers(newHeight)
 
     @staticmethod
     def SortForPreview(item1, item2):
