@@ -209,9 +209,23 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
 
         hardhatutil.dumpOutputList(outputList, log)
 
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        print "unit tests failed", e
+        log.write("***Error during unit tests***\n")
+        log.write("Test log:\n")
+        hardhatutil.dumpOutputList(e.outputList, log)
+        if e.args == 0:
+            err = ''
+        else:
+            err = '***Error '
+        log.write("%sexit code=%s\n" % (err, e.args))
+        log.write("NOTE: If the tests themselves passed but the exit code\n")
+        log.write("      reports failure, it means a shutdown problem.\n")
+        forceBuildNextCycle(log, workingDir)
+        return "test_failed"
     except Exception, e:
         print "a testing error", e
-        doCopyLog("***Error during tests***", workingDir, logPath, log)
+        doCopyLog("***Error during unit tests***", workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
     else:
@@ -238,7 +252,11 @@ def dumpTestLogs(log, chandlerLog, FuncTestLog, exitCode=0):
             pass
         log.write(separator)
 
-    log.write("exit code=%s\n" % exitCode)
+    if exitCode == 0:
+        err = ''
+    else:
+        err = '***Error '
+    log.write("%sexit code=%s\n" % (err, exitCode))
     log.write("NOTE: If the tests themselves passed but the exit code\n")
     log.write("      reports failure, it means a shutdown problem.\n")
 
@@ -369,7 +387,11 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
             log.write("***Error during performance tests***\n")
             log.write("Test log:\n")
             hardhatutil.dumpOutputList(e.outputList, log)
-            log.write("exit code=%s\n" % e.args)
+            if e.args == 0:
+                err = ''
+            else:
+                err = '***Error '
+            log.write("%sexit code=%s\n" % (err, e.args))
             log.write("NOTE: If the tests themselves passed but the exit code\n")
             log.write("      reports failure, it means a shutdown problem.\n")
             log.write("chandler.log:\n")
