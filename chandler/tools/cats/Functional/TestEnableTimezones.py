@@ -32,14 +32,14 @@ class TestEnableTimezones(ChandlerTestCase):
         
         def testDisabled(event, calendarBlock):
             # Test that the detail view does not display the timezone
-            self.logger.startAction("Test that the detail view does not display the timezone")
+            self.logger.startAction("Test that timezone hidden when not enabled")
             event.CheckDisplayedValues(EditTimeZone=(False, 'Floating'))
         
             # Test that the calendar view does not displays the timezone widget
             if calendarBlock.widget.tzChoice.IsShown():
                 self.logger.endAction(False, "Timezone widget shown incorrectly when timezones not enabled")
             else:
-                self.logger.endAction(True, "Timezone widget correctly not shown when timezones not enabled")
+                self.logger.endAction(True, "Timezone widget correctly hidden when timezones not enabled")
 
         # make user collection, since only user
         # collections can be displayed as a calendar
