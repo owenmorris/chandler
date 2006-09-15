@@ -34,37 +34,42 @@ class TestTableSelection(ChandlerTestCase):
         items = []
         for i in xrange(ITEM_COUNT):
             mail = QAUITestAppLib.UITestItem("MailMessage", self.logger)
-            # make sure the sorting is different for To vs. Subject
-            mail.SetAttr(displayName="Mail Message %s" % (ITEM_COUNT-i),
-                         toAddress = "%s@osafoundation.org" % alpha[i])
+            # make sure the sorting is different for To vs. Subject,
+            # and that the sort by Subject will be the order we're adding them.
+            mail.SetAttr(displayName="%s Mail Message" % alpha[i],
+                         toAddress = "x%s@osafoundation.org" % (ITEM_COUNT-i))
             items.append(mail.item)
             
         # action
         self.logger.startAction("Test summary view")
         dashboardBlock = self.app_ns.TableSummaryView
         dashboard = dashboardBlock.widget
-        
-        self.scripting.User.emulate_click(dashboard, 20, 20)
+        header_widget = dashboard.GetGridColLabelWindow()
+
+        # Select the About column
+        aboutMiddle = sum(map(lambda c: c.width, dashboardBlock.columns[0:3])) + \
+                      (dashboardBlock.columns[3].width / 2)
+        self.scripting.User.emulate_click(header_widget, aboutMiddle, 3)
         self.scripting.User.idle()
     
         rowsToSelect = [1, 3, 4, 9, 11]
         rowHeight = dashboard.GetDefaultRowSize()
-        rowOffset = rowHeight * 3/2 # 1 for the section header, 0.5 to middle of row
-    
+        rowMiddle = rowHeight / 2
+
         # select the first row
-        self.scripting.User.emulate_click(dashboard, 100, rowsToSelect[0]*rowHeight + rowOffset)
+        self.scripting.User.emulate_click(dashboard, 100, rowsToSelect[0]*rowHeight + rowMiddle)
                            
         # select 3 more rows, with control key down for multi selection
         # except for mac which wants the meta key held down
         if sys.platform == 'darwin':
             for row in rowsToSelect[1:]:
                 self.scripting.User.emulate_click(dashboard, 100,
-                                   rowHeight*row + rowOffset,
+                                   rowHeight*row + rowMiddle,
                                    meta=True)
         else:
             for row in rowsToSelect[1:]:
                 self.scripting.User.emulate_click(dashboard, 100,
-                                   rowHeight*row + rowOffset,
+                                   rowHeight*row + rowMiddle,
                                    control=True)
         self.logger.endAction(True)
             
@@ -86,9 +91,8 @@ class TestTableSelection(ChandlerTestCase):
                             "Table Selection by Item")
     
         # check the grid widget itself to make sure the right rows are
-        # selected visually. (We offset each entry in rowsToSelect to 
-        # adjust for the section header)
-        expectedRows = [(i+1, i+1) for i in rowsToSelect]
+        # selected visually.
+        expectedRows = [(i, i) for i in rowsToSelect]
         topLeft = [i for i,j in dashboard.GetSelectionBlockTopLeft()]
         bottomRight = [i for i,j in dashboard.GetSelectionBlockBottomRight()]
         gridSelectedRows = zip(topLeft, bottomRight)
@@ -96,24 +100,28 @@ class TestTableSelection(ChandlerTestCase):
         view.Check_Equality(expectedRows, gridSelectedRows, "Table grid selection")
     
         #
-        # now resort the table, and make sure we're still selecting the same item
+        # reverse the table, and make sure we're still selecting the same items
         #
-        header_widget = dashboard.GetGridColLabelWindow()
-    
-        # for some reason the first emulated click isn't doing anything
-        self.scripting.User.emulate_click(header_widget, 100, 3)
-        self.scripting.User.emulate_click(header_widget, 100, 3)
+        self.scripting.User.emulate_click(header_widget, aboutMiddle, 3)
         self.scripting.User.idle()
-    
-        # First sort by first column
+
         newSelectedItems = list(dashboardBlock.contents.iterSelection())
         newSelectedItems.sort(key=lambda x: x.itsUUID)
-        view.Check_Equality(expectedItems, newSelectedItems, "Selection by item after sorting #1")
+        view.Check_Equality(expectedItems, newSelectedItems, "Selection by item after reversing")
     
-        # Now sort by second column
-        self.scripting.User.emulate_click(header_widget, 200, 3)
+        # now sort by Who and check again
+        whoMiddle = sum(map(lambda c: c.width, dashboardBlock.columns[0:2])) + \
+                      (dashboardBlock.columns[2].width / 2)
+        self.scripting.User.emulate_click(header_widget, whoMiddle, 3)
         newSelectedItems = list(dashboardBlock.contents.iterSelection())
         newSelectedItems.sort(key=lambda x: x.itsUUID)
-        view.Check_Equality(expectedItems, newSelectedItems, "Selection by item after sorting #2")
+        view.Check_Equality(expectedItems, newSelectedItems, "Selection by item after sorting by Who")
     
+        # now sort by triage status (which uses sectioning) and check again
+        triageStatusMiddle = sum(map(lambda c: c.width, dashboardBlock.columns)) - \
+                             (dashboardBlock.columns[-1].width / 2)
+        self.scripting.User.emulate_click(header_widget, triageStatusMiddle, 3)
+        newSelectedItems = list(dashboardBlock.contents.iterSelection())
+        newSelectedItems.sort(key=lambda x: x.itsUUID)
+        view.Check_Equality(expectedItems, newSelectedItems, "Selection by item after sorting by Triage Status")
         

@@ -162,14 +162,14 @@ class wxTable(DragAndDrop.DraggableWidget,
     def OnLabelLeftClicked (self, event):
         assert (event.GetRow() == -1) # Currently Table only supports column headers
         blockItem = self.blockItem
-        column = blockItem.columns[event.GetCol()]
-        self.SetUseColSortArrows(column.useSortArrows)
+        column = self.blockItem.columns[event.GetCol()]
+        
         # @@@ Work around bug 6639, by preventing sorting on the stamping columns for now.
         if column.valueType != 'kind':
             indexName = column.attributeName
-            blockItem.contents.setCollectionIndex(indexName,
-                                                  toggleDescending=True,
-                                                  attributes=column.indexAttributes)
+            sameColumn = self.blockItem.contents.indexName == indexName
+            self.blockItem.contents.setCollectionIndex(indexName,
+                 toggleDescending=sameColumn, attributes=column.indexAttributes)
             self.wxSynchronizeWidget()
 
     def OnKeyDown(self, event):
@@ -431,15 +431,17 @@ class wxTable(DragAndDrop.DraggableWidget,
                 self.GetNumberRows() == gridTable.GetNumberRows())
 
         # Update column widths and sortedness
+        indexName = self.blockItem.contents.indexName
         for index, column in enumerate(self.blockItem.columns):
             self.SetColSize (index, column.width)
             self.ScaleColumn (index, column.scaleColumn)
-            if column.selected:
+            if indexName == '__adhoc__' and column.defaultSort:
+                indexName = column.attributeName
+                self.blockItem.contents.setCollectionIndex(indexName,
+                    attributes=column.indexAttributes)
+            if column.attributeName == indexName:
                 self.SetUseColSortArrows(column.useSortArrows)
                 self.SetSelectedCol(index)
-                self.blockItem.contents.setCollectionIndex(
-                    column.attributeName, toggleDescending=True,
-                    attributes=column.indexAttributes)
 
         self.ScaleWidthToFit (self.blockItem.scaleWidthsToFit)
 
