@@ -301,25 +301,22 @@ def doFunctionalTests(releaseMode, workingDir, log):
 
         outputList = hardhatutil.executeCommandReturnOutput(args)
 
+        for line in outputList:
+            if line.find('#TINDERBOX# Status = FAIL') >= 0 or \
+               line.find('#TINDERBOX# Status = UNCHECKED') >= 0:
+                raise hardhatutil.ExternalCommandErrorWithOutputList([0, outputList])
+
         hardhatutil.dumpOutputList(outputList, log)
 
         dumpTestLogs(log, chandlerLog, FuncTestLog)
 
-        for line in outputList:
-            if line.find('#TINDERBOX# Status = FAIL') >= 0 or \
-               line.find('#TINDERBOX# Status = UNCHECKED') >= 0:
-                print "functional tests failed"
-                log.write("***Error during functional tests***\n")
-
-                forceBuildNextCycle(log, workingDir)
-
-                return "test_failed"
-
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
-        dumpTestLogs(log, chandlerLog, FuncTestLog, e.args)
-
         print "functional tests failed", e
         log.write("***Error during functional tests***\n")
+
+        hardhatutil.dumpOutputList(e.outputList, log)
+
+        dumpTestLogs(log, chandlerLog, FuncTestLog, e.args)
 
         forceBuildNextCycle(log, workingDir)
 
