@@ -22,6 +22,8 @@ class I18nTestCase(unittest.TestCase):
             # A wx.App is needed for wx localizations, but check first
             # if a GUI can be created in the current environment.
             self._wx_available = wx.App.DisplayAvailable()
+            if self._wx_available:
+                self._wx_app = wx.App()
         except:
             self._wx_available = False
 
