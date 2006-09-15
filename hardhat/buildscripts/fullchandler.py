@@ -226,9 +226,23 @@ def doTests(mode, workingDir, outputDir, buildVersion, log):
         outputList = hardhatutil.executeCommandReturnOutput(['./tools/do_tests.sh', '-u', '-m %s' % mode])
         hardhatutil.dumpOutputList(outputList, log)
 
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        print "unit tests failed", e
+        log.write("***Error during unit tests***\n")
+        log.write("Test log:\n")
+        hardhatutil.dumpOutputList(e.outputList, log)
+        if e.args == 0:
+            err = ''
+        else:
+            err = '***Error '
+        log.write("%sexit code=%s\n" % (err, e.args))
+        log.write("NOTE: If the tests themselves passed but the exit code\n")
+        log.write("      reports failure, it means a shutdown problem.\n")
+        forceBuildNextCycle(log, workingDir)
+        return "test_failed"
     except Exception, e:
         print "a testing error"
-        doCopyLog("***Error during tests***", testDir, 'do_tests.log', log)
+        doCopyLog("***Error during unit tests***", testDir, 'do_tests.log', log)
         #doCopyLog("***Error during tests***", workingDir, logPath, log)
         return "test_failed"
     else:
