@@ -1126,8 +1126,49 @@ is using immediate error checking::
       ...
     ValueError: Assigning 'fizzy_2' to attribute 'format'...didn't match schema
 
+An attribute defined this way (as a tuple of strings) will sort by the values
+of those strings (so 'now', 'later", 'done' will sort 'done', 'later', 'now').
+If this isn't what you want, you can specify names and assign integer values 
+to them::
 
-Enumeration classes also can't be further subclassed::
+    >>> class PriorityEnum(schema.Enumeration):
+    ...    values = { 'low': -10, 'medium': 0, 'high': 10 }
+    
+    >>> class PrioritizedItem(schema.Item):
+    ...    priority = schema.One(PriorityEnum)
+
+Instead of assigning the names as strings, they'll be set up as attributes of
+your class::
+
+    >>> medPri = PrioritizedItem('med', rv)
+    >>> medPri.priority = PriorityEnum.medium
+    >>> medPri.priority
+    PriorityEnum.medium
+
+And they'll sort in the proper order::
+
+    >>> hiPri = PrioritizedItem('hi', rv, priority=PriorityEnum.high)
+    >>> lowPri = PrioritizedItem('lo', rv, priority=PriorityEnum.low)
+    
+    >>> sorted((medPri, hiPri, lowPri), key=lambda x: x.priority)
+    [<... lo ...>, <... med ...>, <... hi ...>]
+    
+If you don't want to specify specific numeric values, you can specify a list of
+``names`` instead of ``values``, and ascending integer values will be generated
+for you::
+
+    >>> class StatusEnum(schema.Enumeration):
+    ...     # Equivalent to: values = dict(before=0, during=1, after=2)
+    ...     names = 'before', 'during', 'after'
+
+    >>> class ItemWithStatus(schema.Item):
+    ...     status = schema.One(StatusEnum)
+    
+    >>> st = ItemWithStatus('st', rv, status=StatusEnum.after)
+    >>> st.status
+    StatusEnum.after
+
+Enumeration classes can't be further subclassed::
 
     >>> class ExtendedFormat(FeedFormat):
     ...     values = "ATOM_20", "FIZZY_19"
@@ -1135,8 +1176,9 @@ Enumeration classes also can't be further subclassed::
       ...
     TypeError: Enumerations cannot subclass or be subclassed
 
-And they can't include any attributes or methods besides ``values``, which
-must be a tuple of strings::
+And they can't include any attributes or methods besides ``values`` (which must 
+be a tuple of strings or a dict) or ``names`` (which must be a tuple of 
+strings), as described above::
 
     >>> class BrokenEnum(schema.Enumeration):
     ...     values = "error"

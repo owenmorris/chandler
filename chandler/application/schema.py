@@ -960,9 +960,14 @@ class EnumerationClass(Activator):
 
     def _create_schema_item(cls, view):
         if hasattr(cls, 'constants'):
+            names = getattr(cls, 'names', None)
+            if names is not None:
+                values = list(zip(names, range(len(names))))
+            else:
+                values = cls.values.items()
             return Types.ConstantEnumeration(
                 None, view['Schema'], itemFor(Types.ConstantEnumeration, view),
-                values=cls.values.items()
+                values=values
             )
         else:
             return Types.Enumeration(
