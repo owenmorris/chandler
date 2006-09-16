@@ -50,15 +50,19 @@ def SetTextColorsAndFont(grid, attr, dc, isSelected):
 
 # used to be called "DrawWrappedText"
 def DrawClippedTextWithDots(dc, string, rect, alignRight=False):
-    x = rect.x + 1
-    y = rect.y + 1
+    rectX = rect.x + 1
+    rectY = rect.y
+    rowHeight = rect.GetHeight()
     for line in unicode(string).split (os.linesep):
         # test for flicker by drawing a random character first each time we draw
         # line = chr(ord('a') + random.randint(0,25)) + line
-        
         lineWidth, lineHeight = dc.GetTextExtent (line)
-        localX = alignRight and (rect.x + 1 + rect.width - 2 - lineWidth) or x
-        dc.DrawText (line, localX, y)
+        if alignRight:
+            x = rect.x + rect.width - lineWidth - 1
+        else:
+            x = rectX
+        y = rectY + (rowHeight - lineHeight) / 2
+        dc.DrawText (line, x, y)
         
         # If the text doesn't fit within the box we want to clip it and
         # put '...' at the end.  This method may chop a character in half,
@@ -68,10 +72,10 @@ def DrawClippedTextWithDots(dc, string, rect, alignRight=False):
         # wrapping and hopefully won't be done at the python level.
         if lineWidth > rect.width - 2:
             width, height = dc.GetTextExtent('...')
-            x = rect.x + 1 + rect.width - 2 - width
-            dc.DrawRectangle(x, rect.y + 1, width + 1, height)
-            dc.DrawText('...', x, rect.y + 1)
-        y += lineHeight
+            x = rect.x + rect.width - width - 1
+            dc.DrawRectangle (x, y, width + 1, height)
+            dc.DrawText('...', x, y)
+        rectY += lineHeight
         
 
 def DrawWrappedText(dc, text, rect, measurements=None):
