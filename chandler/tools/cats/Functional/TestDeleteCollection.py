@@ -20,7 +20,11 @@ from i18n.tests import uw
 class TestDeleteCollection(ChandlerTestCase):
     
     def startTest(self):
-    
+        
+        #make sure we start in the calendar view
+        QAUITestAppLib.UITestItem("Collection", self.logger)
+        QAUITestAppLib.UITestView(self.logger).SwitchToCalView()
+        
         # creation
         col = QAUITestAppLib.UITestItem("Collection", self.logger)
         col.SetDisplayName(uw("ToBeDeleted"))
