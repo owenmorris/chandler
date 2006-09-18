@@ -43,6 +43,8 @@ class TestFlickr(ChandlerTestCase):
         self.logger.startAction('Get a flickr collection by tag')
         try:
             fc.fillCollectionFromFlickr(repView)
+        except socket.error:
+            self.logger.endAction(True, "socket.error (Flickr timed out?); skipping test")
         except socket.timeout:
             self.logger.endAction(True, "Flickr timed out; skipping test")
         except flickr.flickr.FlickrNotFoundError:
