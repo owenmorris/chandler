@@ -318,9 +318,12 @@ class UITestItem(object):
             # work around : emulate_return doesn't work
             #scripting.User.emulate_return()
             scripting.User.emulate_sidebarClick(App_ns.sidebar, "Dashboard")
-            #check this actually worked
-            #assert self.item.displayName == displayName, '%s != %s' % \
-              #(self.item.displayName.encode('raw_unicode_escape'), displayName.encode('raw_unicode_escape'))
+            # check this actually worked.  This assert was commented out, but
+            # SetDisplayName failure associated with weirdness when there's a
+            # Sidebar scrollbar have been causing errors like bug 6727, so we
+            # really want to know when the collection isn't successfully renamed
+            assert self.item.displayName == displayName, '%s != %s' % \
+              (self.item.displayName.encode('raw_unicode_escape'), displayName.encode('raw_unicode_escape'))
             if timeInfo:
                 self.logger.endAction(True)
 

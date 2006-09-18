@@ -201,6 +201,11 @@ def makeMainView (parcel):
                                                     CharacterStyle.update(parcel, 
                                                                           'PreviewEventStyle', 
                                                                           fontSize = 11),
+                                                linkCharacterStyle = \
+                                                    CharacterStyle.update(parcel, 
+                                                                          'PreviewLinkStyle', 
+                                                                          fontSize = 11,
+                                                                          fontStyle = 'underline'),
                                                 stretchFactor = 0.0),
                                             MiniCalendar.template('MiniCalendar',
                                                 contents = pim_ns.allCollection,
