@@ -308,7 +308,7 @@ def initLogging(options):
 
         logger = logging.getLogger(__name__)
 
-        logger.info('=== logging initialized, Chandler version %s ===' % version.version)
+        logger.warn('=== logging initialized, Chandler version %s ===' % version.version)
 
         # If there is a logging FileHandler writing to a chandler.log,
         # then put twisted.log next to it.  Otherwise send twisted output
@@ -487,7 +487,7 @@ def verifySchema(view):
     if parcelRoot is not None:
         if (not hasattr(parcelRoot, 'version') or
             parcelRoot.version != SCHEMA_VERSION):
-            logger.info("Schema version of repository doesn't match app")
+            logger.error("Schema version of repository (%s) doesn't match application's (%s)", parcelRoot.version, SCHEMA_VERSION)
             return False
     return True
 
