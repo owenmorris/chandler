@@ -22,9 +22,8 @@ __all__ = [
     'IMAPDelivery', 'MIMEBase', 'MIMEBinary', 'MIMEContainer', 'MIMENote',
     'MIMESecurity', 'MIMEText', 'MailDeliveryBase', 'MailDeliveryError',
     'MailMessage', 'MailMessageMixin', 'POPAccount', 'POPDelivery',
-    'SMTPAccount', 'SMTPDelivery',
-    'getCurrentSMTPAccount', 'getCurrentMailAccount', 'ACCOUNT_TYPES',
-]
+    'SMTPAccount', 'SMTPDelivery', 'replyToMessage', 'replyAllToMessage',
+    'forwardMessage', 'getCurrentSMTPAccount', 'getCurrentMailAccount', 'ACCOUNT_TYPES']
 
 
 import application
@@ -34,16 +33,117 @@ import items, notes
 import email.Utils as Utils
 import re as re
 import chandlerdb.item.ItemError as ItemError
+import PyICU
 
 from repository.util.Path import Path
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
+from repository.persistence.RepositoryError import RepositoryError, VersionConflictError
 
 """
 Design Issues:
       1. Is tries really needed
       2. Date sent string could probally be gotten rid of
 """
+
+def __actionOnMessage(view, mailMessage, action="REPLY"):
+    assert(isinstance(mailMessage, MailMessageMixin))
+    assert(action == "REPLY" or action == "REPLYALL" or action == "FORWARD")
+
+    newMessage = MailMessage(itsView=view)
+
+    #This could be None
+    newMessage.fromAddress = EmailAddress.getCurrentMeEmailAddress(view)
+
+    if action == "REPLY" or action == "REPLYALL":
+        if mailMessage.subject:
+            #XXX could use case insensitive compare
+            if mailMessage.subject.startswith(u"Re: "):
+                newMessage.subject = mailMessage.subject
+            else:
+                newMessage.subject = u"Re: %s" % mailMessage.subject
+
+        newMessage.inReplyTo = mailMessage.messageId
+
+        newMessage.referencesMID.extend(mailMessage.referencesMID)
+        newMessage.referencesMID.append(mailMessage.messageId)
+        origBody = mailMessage.body.split(u"\n")
+        buffer = [u"\n"]
+
+        addr = mailMessage.fromAddress
+
+        if addr.fullName:
+            txt = addr.fullName
+        else:
+            txt = addr.emailAddress
+
+        m = PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kMedium)
+
+        buffer.append(_(u"on %(date)s, %(emailAddress)s wrote:\n") % \
+                        {'date': m.format(mailMessage.dateSent),
+                         'emailAddress': txt})
+
+        for line in origBody:
+            if line.startswith(u">"):
+                buffer.append(u">%s" % line)
+            else:
+                buffer.append(u"> %s" % line)
+
+        newMessage.body = u"\n".join(buffer)
+
+        to = mailMessage.replyToAddress and mailMessage.replyToAddress or \
+             mailMessage.fromAddress
+
+        newMessage.toAddress.append(to)
+
+        if action == "REPLYALL":
+            addresses = {}
+
+            #The from address can be empty if no account info has been
+            #configured
+            if newMessage.fromAddress:
+                addresses[newMessage.fromAddress.emailAddress] = True
+
+            for addr in newMessage.toAddress:
+                addresses[addr.emailAddress] = True
+
+            for addr in mailMessage.toAddress:
+                if not addresses.has_key(addr.emailAddress):
+                    newMessage.ccAddress.append(addr)
+                    addresses[addr.emailAddress] = True
+
+            for addr in mailMessage.ccAddress:
+                if not addresses.has_key(addr.emailAddress):
+                    newMessage.ccAddress.append(addr)
+                    addresses[addr.emailAddress] = True
+    else:
+        #action == FORWARD
+        if mailMessage.subject:
+            if mailMessage.subject.startswith(u"Fwd: ") or \
+               mailMessage.subject.startswith(u"[Fwd: "):
+                newMessage.subject = mailMessage.subject
+            else:
+                newMessage.subject = u"Fwd: %s" % mailMessage.subject
+
+        newMessage.mimeParts.append(mailMessage)
+
+    try:
+        view.commit()
+    except RepositoryError, e:
+        raise
+    except VersionConflictError, e:
+        raise
+
+    return newMessage
+
+def replyToMessage(view, mailMessage):
+    return __actionOnMessage(view, mailMessage, "REPLY")
+
+def replyAllToMessage(view, mailMessage):
+    return __actionOnMessage(view, mailMessage, "REPLYALL")
+
+def forwardMessage(view, mailMessage):
+    return __actionOnMessage(view, mailMessage, "FORWARD")
 
 
 def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
@@ -541,6 +641,9 @@ class MailMessageMixin(MIMEContainer):
         'EmailAddress', initialValue = [], inverse = 'messagesCc',
     )
     subject = schema.One(schema.Text, indexed=True)
+    inReplyTo = schema.One(schema.Text, indexed=False)
+    referencesMID = schema.Sequence(schema.Text, initialValue = [])
+
     headers = schema.Mapping(
         schema.Text, doc = 'Catch-all for headers', initialValue = {},
     )

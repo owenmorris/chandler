@@ -111,7 +111,7 @@ class I18nManager(EggTranslations):
         # This is a signal that _I18nManager is being run with unit test
         # framework. Since the framework does not yet initialize the
         # _I18nManager before running the tests the translation API
-        # is diabled :(
+        # is disabled :(
         self._RUNNING_IN_UNIT_TEST = os.environ.has_key("UNIT_TESTING") and \
                                      os.environ["UNIT_TESTING"] == "True"
 

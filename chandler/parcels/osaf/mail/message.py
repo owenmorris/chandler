@@ -20,6 +20,7 @@ import email.Message as Message
 import email.Utils as emailUtils
 from email.MIMEText import MIMEText
 from email.MIMENonMultipart import MIMENonMultipart
+from email.MIMEMessage import MIMEMessage
 import logging as logging
 import mimetypes
 from datetime import datetime
@@ -153,8 +154,6 @@ def populateStaticHeaders(messageObject):
     if not messageObject.has_key('MIME-Version'):
         messageObject['MIME-Version'] = "1.0"
 
-    if not messageObject.has_key('Content-Type'):
-        messageObject['Content-Type'] = "text/plain; charset=utf-8; format=flowed"
 
     if not messageObject.has_key('Content-Transfer-Encoding'):
         messageObject['Content-Transfer-Encoding'] = "8bit"
@@ -313,7 +312,7 @@ def messageObjectToKind(view, messageObject, messageText=None,
         m.hasMimeParts = True
 
     body = constants.LF.join(bodyBuffer).replace(constants.CR, constants.EMPTY)
-    
+
     # If our private event-description header's there, and we made an event 
     # from this item, remove the header from the start of the body.
     eventDescriptionLength = int(messageObject.get(createChandlerHeader(\
@@ -360,24 +359,41 @@ def kindToMessageObject(mailMessage):
     populateHeaders(mailMessage, messageObject)
     populateHeader(messageObject, 'Subject', mailMessage.about, encode=True)
 
+    if getattr(mailMessage, "inReplyTo", None):
+        populateHeader(messageObject, 'In-Reply-To', mailMessage.inReplyTo, encode=False)
 
-    # If this message is an event, prepend the event description to the body,
-    # and add the event data as an attachment.
-    # @@@ This probably isn't the right place to do this (since it couples the
-    # email service to events and ICalendarness), but until we resolve the architectural
-    # questions around stamping, it's good enough.
+    if mailMessage.referencesMID and len(mailMessage.referencesMID):
+        messageObject["References"] = " ".join(mailMessage.referencesMID)
 
     try:
-        bodyText = mailMessage.body
+        payload = mailMessage.body
     except AttributeError:
-        bodyText = u""
+        payload = u""
+
+    hasAttachments =  mailMessage.getNumberOfAttachments() > 0
 
     try:
         timeDescription = mailMessage.getTimeDescription()
+        hasICal = True
     except AttributeError:
-        # Not an event - just add the body as-is.
-        messageObject.set_payload(bodyText.encode('utf-8'))
-    else:
+        hasICal = False
+
+    if not hasICal and not hasAttachments:
+        #There are no attachments or Ical events so just add the
+        #body text as the payload and return the messageObject
+        messageObject['Content-Type'] = "text/plain; charset=utf-8; format=flowed"
+        messageObject.set_payload(payload.encode("utf-8"))
+        return messageObject
+
+    messageObject.set_type("multipart/mixed")
+
+    if hasICal:
+         # If this message is an event, prepend the event description to the body,
+         # and add the event data as an attachment.
+         # @@@ This probably isn't the right place to do this (since it couples the
+         # email service to events and ICalendarness), but until we resolve the architectural
+         # questions around stamping, it's good enough.
+
         # It's an event - prepend the description to the body, make the
         # message multipart, and add the body & ICS event as parts. Also,
         # add a private header telling us how long the description is, so
@@ -398,10 +414,9 @@ def kindToMessageObject(mailMessage):
 
         payload = _(u"%(eventDescription)s\n\n%(bodyText)s\n") \
                    % {'eventDescription': evtDesc,
-                      'bodyText': bodyText
+                      'bodyText': payload
                      }
 
-        messageObject.set_type("multipart/mixed")
         messageObject.attach(MIMEText(payload.encode('utf-8'), _charset='utf-8'))
         messageObject.add_header(createChandlerHeader("EventDescriptionLength"),
                                  str(len(evtDesc)))
@@ -414,16 +429,31 @@ def kindToMessageObject(mailMessage):
         ics = calendar.serialize().encode('utf-8')
 
         # Attach the ICalendar object
-        icsPayload = MIMENonMultipart('text', 'calendar', 
+        icsPayload = MIMENonMultipart('text', 'calendar',
                                       method='REQUEST', charset='utf-8')
 
         fname = Header.Header(_(u"event.ics")).encode()
         icsPayload.add_header("Content-Disposition", "attachment", filename=fname)
         icsPayload.set_payload(ics)
         messageObject.attach(icsPayload)
+    else:
+        messageObject.attach(MIMEText(payload.encode('utf-8'), _charset='utf-8'))
 
-        # For debugging, print it to the log.
-        logger.debug(messageObject)
+    if hasAttachments:
+        #add the attachents to multipart container
+
+        attachments = mailMessage.getAttachments()
+
+        for attachment in attachments:
+            if isinstance(attachment, Mail.MailMessage):
+                try:
+                    rfc2822 = binaryToData(attachment.rfc2822Message)
+                except AttributeError:
+                    rfc2822 = kindToMessageText(attachment, False)
+
+                message = email.message_from_string(rfc2822)
+                rfc2822Payload = MIMEMessage(message)
+                messageObject.attach(rfc2822Payload)
 
     return messageObject
 
@@ -448,7 +478,7 @@ def kindToMessageText(mailMessage, saveMessage=True):
     except Exception, e:
         logger.debug(e)
         raise
-    messageText   = messageObject.as_string()
+    messageText = messageObject.as_string()
 
     if saveMessage:
         mailMessage.rfc2882Message = dataToBinary(mailMessage, "rfc2822Message", \
@@ -488,7 +518,18 @@ def __parseHeaders(view, messageObject, m):
         m.dateSent = getEmptyDate()
         m.dateSentString = ""
 
+    if messageObject['References']:
+        refList = messageObject['References'].split()
+
+        for ref in refList:
+            ref = ref.strip()
+            if ref:
+                m.referencesMID.append(ref)
+
+        del messageObject['References']
+
     __assignToKind(view, m, messageObject, 'Subject', 'String', 'subject')
+    __assignToKind(view, m, messageObject, 'In-Reply-To', 'String', 'inReplyTo')
     __assignToKind(view, m, messageObject, 'From', 'EmailAddress', 'fromAddress')
     __assignToKind(view, m, messageObject, 'Reply-To', 'EmailAddress', 'replyToAddress')
     __assignToKind(view, m.toAddress, messageObject, 'To', 'EmailAddressList')

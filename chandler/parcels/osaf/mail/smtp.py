@@ -149,11 +149,11 @@ class SMTPClient(object):
             except RepositoryError, e:
                 #Place holder for commit rollback
                 trace(e)
-                raise 
+                raise
             except VersionConflictError, e1:
                 #Place holder for commit rollback
                 trace(e1)
-                raise 
+                raise
 
         d = threads.deferToThread(_tryCommit)
         #XXX: May want to handle the case where the Repository fails
