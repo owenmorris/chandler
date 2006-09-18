@@ -249,7 +249,7 @@ def initOptions(**kwds):
 
     # Convert a few options
     if options.chandlerTestSuite:
-        options.scriptFile = "tools/cats/functional/FunctionalTestSuite.py"
+        options.scriptFile = "tools/cats/Functional/FunctionalTestSuite.py"
     if options.nocatch:
         options.catch = "tests"
         
