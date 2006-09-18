@@ -746,8 +746,9 @@ class Kind(Item):
 
         if reason != 'unload':
             self._setupDescriptors(reason)
-            for subKind in self._references.get('subKinds', Nil):
-                subKind.flushCaches(reason)
+
+        for subKind in self._references.get('subKinds', Nil):
+            subKind.flushCaches(reason)
 
 
     # begin typeness of Kind as SingleRef

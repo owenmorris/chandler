@@ -360,6 +360,7 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _refresh(self, mergeFn=None, version=None, notify=True):
 
         store = self.store
+
         if not version:
             newVersion = store.getVersion()
         else:
@@ -399,7 +400,6 @@ class DBRepositoryView(OnDemandRepositoryView):
             for item in items():
                 if item.isSchema():
                     if isinstance(item, Kind):
-                        item.flushCaches('unload')
                         kinds.append(item.itsUUID)
                 item._unloadItem(refCounted or item.isPinned(), self, False)
 
@@ -407,15 +407,17 @@ class DBRepositoryView(OnDemandRepositoryView):
 
             if kinds:
                 try:
-                    # ensure all kinds are loaded before being initialized
-                    self._setLoading(True, False)
-                    kinds = [self.find(uuid) for uuid in kinds]
+                    loading = self._setLoading(True)
+                    kinds = [kind for kind in (self.find(uuid)
+                                               for uuid in kinds)
+                             if kind is not None]
                 finally:
-                    self._setLoading(False, True)
+                    self._setLoading(loading, True)
 
                 for kind in kinds:
-                    if kind is not None:
-                        kind.flushCaches('reload')
+                    kind.flushCaches('unload')
+                for kind in kinds:
+                    kind.flushCaches('reload')
 
         else:
             for item in items():
