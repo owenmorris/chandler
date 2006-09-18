@@ -19,6 +19,10 @@ fileName = "PerfStampEvent.log"
 logger = QAUITestAppLib.QALogger(fileName, "Perf Stamp as Event")
 
 try:
+    # Creating a collection switches us to calendar view where we
+    # do the actual test
+    QAUITestAppLib.UITestItem("Collection")
+
     # creation
     note = QAUITestAppLib.UITestItem("Note", logger)
 

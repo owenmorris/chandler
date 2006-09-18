@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from application import schema
 import tools.QAUITestAppLib as QAUITestAppLib
 import os, wx
 
@@ -39,7 +40,11 @@ logger.SuspendProfiling()
     
 
 try:
-    # Create the event we're going to delete ...
+    # Creating a collection switches us to calendar view where we
+    # do the actual test
+    QAUITestAppLib.UITestItem("Collection")
+
+   # Create the event we're going to delete ...
     newEvent = QAUITestAppLib.UITestItem("Event", logger).item
 
     # ... and select it, so that the event's lozenge has
@@ -67,7 +72,7 @@ try:
     # Make sure the new event appears in the trash, and
     # no other collections.
     collections = list(newEvent.collections)
-    if collections != [App_ns.trashCollection]:
+    if collections != [schema.ns("osaf.pim", newEvent.itsView).trashCollection]:
         logger.ReportFailure("Event was not removed: it's in %s" %
                              (collections,))
     else:

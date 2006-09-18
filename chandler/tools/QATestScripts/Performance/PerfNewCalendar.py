@@ -19,11 +19,15 @@ fileName = "PerfNewCalendar.log"
 logger = QAUITestAppLib.QALogger(fileName, "Test New Calendar for performance")
 
 try:
+    # Creating a collection switches us to calendar view where we
+    # do the actual test
+    QAUITestAppLib.UITestItem("Collection")
+
     # action
     col = QAUITestAppLib.UITestItem("Collection", logger)
     
-    # verfication
-    col.Check_CollectionExistence("Untitled")
+    # verification
+    col.Check_CollectionExistence("Untitled-1")
     
 finally:
     # cleaning

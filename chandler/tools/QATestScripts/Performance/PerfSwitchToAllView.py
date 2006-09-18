@@ -19,6 +19,10 @@ fileName = "PerfSwitchToAllView.log"
 logger = QAUITestAppLib.QALogger(fileName, "Switching to All View for Performance")
 
 try:
+    # Creating a collection switches us to calendar view where we
+    # do the actual test
+    QAUITestAppLib.UITestItem("Collection")
+
     # creation
     testView = QAUITestAppLib.UITestView(logger)
     
