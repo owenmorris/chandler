@@ -19,6 +19,11 @@ class TestSwitchingViews(ChandlerTestCase):
 
     def startTest(self):
     
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+        QAUITestAppLib.UITestView(self.logger).SwitchToCalView()
+
         # creation
         testView = QAUITestAppLib.UITestView(self.logger)
         
@@ -31,4 +36,4 @@ class TestSwitchingViews(ChandlerTestCase):
         testView.SwitchToMailView()
         # switch to calendar view
         testView.SwitchToCalView()
-    
+
