@@ -19,7 +19,7 @@
 from calculated import Calculated
 from items import (
     ContentKind, ContentItem, ImportanceEnum, Group, Principal, 
-    Project, Tag, TriageEnum, getTriageStatusName, getTriageStatusOrder, 
+    Project, Tag, TriageEnum, getTriageStatusName,
     getNextTriageStatus, UserNotification
 )
 from notes import Note

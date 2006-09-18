@@ -20,7 +20,7 @@ from osaf.framework.blocks import (ControlBlocks, debugName, DrawingUtilities,
                                    Styles)
 from osaf.framework.attributeEditors import BaseAttributeEditor
 from osaf.pim import ContentItem
-from osaf.pim.items import getTriageStatusName, getTriageStatusOrder
+from osaf.pim.items import getTriageStatusName
 from util.divisions import get_divisions
 
 import logging
@@ -90,7 +90,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
         # Get the divisions
         self.sectionIndexes = get_divisions(self.blockItem.contents,
-                                            key=lambda x: getTriageStatusOrder(getattr(x, indexName)))
+                                            key=lambda x: getattr(x, indexName))
 
         # don't show section headers unless we have at least one section
         if len(self.sectionIndexes) == 0:

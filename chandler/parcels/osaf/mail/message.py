@@ -274,7 +274,7 @@ def messageObjectToKind(view, messageObject, messageText=None,
                 if m is not None:
                     # In case we found an existing event to update,
                     # force its triageStatus to 'now' (bug 6314)
-                    m.triageStatus = 'now'
+                    m.triageStatus = TriageEnum.now
                     break
 
     if m is None:

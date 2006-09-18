@@ -55,18 +55,19 @@ class ImportanceEnum(schema.Enumeration):
     values = "important", "normal", "fyi"
 
 class TriageEnum(schema.Enumeration):
-    values = "now", "later", "done"
+    values = { "now": 0 , "later": 5000, "done": 10000 }
 
-triageStatusNames = _(u"Now"), _(u"Later"), _(u"Done")
-triageStatusNamesDict = dict(zip(TriageEnum.values, triageStatusNames))
+triageStatusNames = { TriageEnum.now: _(u"Now"), 
+                      TriageEnum.later: _(u"Later"), 
+                      TriageEnum.done: _(u"Done") 
+                    }
 def getTriageStatusName(value):
-    return triageStatusNamesDict.get(value, u'')
+    return triageStatusNames[value]
 
-triageStatusOrder = dict((v, i) for i, v in enumerate(TriageEnum.values))
-def getTriageStatusOrder(value):
-    return triageStatusOrder[value]
 # Bug 6525: the clicking sequence isn't the sort order
-triageStatusClickSequence = { 'now': 'done', 'done': 'later', 'later' : 'now' }
+triageStatusClickSequence = { TriageEnum.now: TriageEnum.done, 
+                              TriageEnum.done: TriageEnum.later, 
+                              TriageEnum.later: TriageEnum.now }
 def getNextTriageStatus(value):
     return triageStatusClickSequence[value]
     
@@ -161,7 +162,7 @@ class ContentItem(Remindable):
     )
 
     triageStatus = schema.One(TriageEnum, indexed=True,
-                              defaultValue="now")
+                              defaultValue=TriageEnum.now)
     
     # For sorting by how recently triageStatus changed, we keep this attribute,
     # which is the time (in seconds) of the last change, negated for proper 

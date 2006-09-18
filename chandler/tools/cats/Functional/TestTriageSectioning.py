@@ -32,9 +32,9 @@ class TestTriageSectioning(ChandlerTestCase):
         self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, "TestTriageSectioning")
     
         items = []
-        for status in pim.TriageEnum.values:
+        for status in pim.TriageEnum.constants:
             item = QAUITestAppLib.UITestItem("Note", self.logger)
-            if status != 'now': # it should default to 'now'!
+            if status != pim.TriageEnum.now: # it should default to 'now'!
                 item.item.triageStatus = status
             items.append(item)
             

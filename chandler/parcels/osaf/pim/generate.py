@@ -47,7 +47,9 @@ def GenerateCalendarParticipant(view):
 LOCATIONS  = [u"Home", u"Office", u"School"]
 
 
-
+def randomEnum(cls):
+    return getattr(cls, cls.values.keys()[random.randint(0, len(cls.values)-1)])
+    
 def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
     event = Calendar.CalendarEvent(itsView=view)
     event.displayName = random.choice(HEADLINES)
@@ -88,7 +90,7 @@ def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
             event.location = Calendar.Location.getLocation(view, random.choice(LOCATIONS))
 
     event.importance = random.choice(pim.ImportanceEnum.values)
-    event.triageStatus = random.choice(pim.TriageEnum.values)
+    event.triageStatus = randomEnum(pim.TriageEnum)
     return event
 
 
@@ -157,7 +159,7 @@ def GenerateMailMessage(view, tzinfo=None):
         body = uw(body)
 
     message.body = body
-    message.triageStatus = random.choice(pim.TriageEnum.values)
+    message.triageStatus = randomEnum(pim.TriageEnum)
 
     return message
 
@@ -172,7 +174,7 @@ def GenerateNote(view, tzinfo=None):
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
     note.createdOn = datetime.now(tzinfo) + delta
-    note.triageStatus = random.choice(pim.TriageEnum.values)
+    note.triageStatus = randomEnum(pim.TriageEnum)
     return note
 
 def GenerateTask(view, tzinfo=None):
@@ -186,7 +188,7 @@ def GenerateTask(view, tzinfo=None):
     if TEST_I18N:
         task.displayName = uw(task.displayName)
 
-    task.triageStatus = random.choice(pim.TriageEnum.values)
+    task.triageStatus = randomEnum(pim.TriageEnum)
     return task
 
 def GenerateEventTask(view, days=30, tzinfo=None):

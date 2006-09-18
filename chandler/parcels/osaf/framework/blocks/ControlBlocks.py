@@ -37,7 +37,7 @@ import application.dialogs.RecurrenceDialog as RecurrenceDialog
 import Styles
 from datetime import datetime, time, timedelta
 from osaf.pim.calendar import Calendar
-from osaf.pim import Reminder
+from osaf.pim import Reminder, TriageEnum
 from repository.item.Monitors import Monitors
 from i18n import ChandlerMessageFactory as _
 
@@ -1130,7 +1130,7 @@ class ReminderTimer(Timer):
                     def processReminder((reminderTime, remindable, reminder)):
                         logger.debug("*** now-ing %s due to %s", remindable, 
                                      reminder)
-                        remindable.triageStatus = 'now'
+                        remindable.triageStatus = TriageEnum.now
                         remindable.setTriageStatusChanged(when=reminderTime)
                         if reminder.isDeleted():
                             logger.critical("Found deleted reminder on %r %s at %s",
