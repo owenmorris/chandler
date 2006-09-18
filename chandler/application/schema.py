@@ -962,7 +962,7 @@ class EnumerationClass(Activator):
         if hasattr(cls, 'constants'):
             names = getattr(cls, 'names', None)
             if names is not None:
-                values = list(zip(names, range(len(names))))
+                values = zip(names, range(len(names)))
             else:
                 values = cls.values.items()
             return Types.ConstantEnumeration(
