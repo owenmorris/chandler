@@ -41,11 +41,7 @@ allTests = [
                 ("TestMoveToTrash","TestMoveToTrash"), 
                 ("TestDeleteCollection","TestDeleteCollection"),
                 ("TestMulti","TestMulti"), 
-                # disabling TestCalView because of sporadic failures on Linux,
-                # bug 6733.  The problems are probably related to bug 6737,
-                # odd keystroke handling in the calendar, so hopefully fixing
-                # bug 6737 will also fix bug 6733 and this can be re-enabled.
-                #("TestCalView","TestCalView"),
+                ("TestCalView","TestCalView"),
                 ("TestRecurrenceImporting","TestRecurrenceImporting"), 
                 ("TestRecurringEvent","TestRecurringEvent"),  
                 ("TestSwitchingViews","TestSwitchingViews"),
@@ -72,6 +68,11 @@ else:
     
 exclusions = {#tests to exclude on specific platfoms only
     'other':[
+        # disabling TestCalView because of sporadic failures on Linux,
+        # bug 6733.  The problems are probably related to bug 6737,
+        # odd keystroke handling in the calendar, so hopefully fixing
+        # bug 6737 will also fix bug 6733 and this can be re-enabled.
+        ("TestCalView","TestCalView"),
     ],
     
     'mac':[
