@@ -6,6 +6,7 @@
 
   <ref name="attributes">
     <ref alias="collection" type="path">/CineGuide/Attributes/collection</ref>
+    <ref alias="set" type="path">/CineGuide/Attributes/set</ref>
   </ref>
 
   <attribute name="classes">

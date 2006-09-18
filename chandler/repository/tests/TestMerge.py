@@ -21,6 +21,7 @@ from datetime import date
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.persistence.RepositoryError import MergeError
 from repository.util.Path import Path
+from repository.item.Sets import Set
 
 
 class TestMerge(RepositoryTestCase):
@@ -1062,6 +1063,39 @@ class TestMerge(RepositoryTestCase):
         view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         k.movies.addIndex('new', 'numeric')
+
+        main.commit(None)
+        self.assert_(main.check(), 'main view did not check out')
+
+    def testMergeAddIndexElsewhereDelete(self):
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        k = main.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m3 = k.movies.next(m2)
+        m3.set = Set((k, 'movies'))
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m1.delete()
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m3 = k.movies.next(m2)
+        m = k.movies.last()
+        m.set = Set((m3, 'set'))
+        m.set.addIndex('new', 'numeric')
 
         main.commit(None)
         self.assert_(main.check(), 'main view did not check out')

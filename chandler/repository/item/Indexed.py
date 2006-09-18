@@ -241,7 +241,7 @@ class Indexed(object):
                     elif newIndex:
                         if self.__contains__(key, False, True):
                             moves.append(key)
-                    elif item.isDirty():
+                    else:
                         moves.append(key)
                 elif key in index:
                     index.removeKey(key)
