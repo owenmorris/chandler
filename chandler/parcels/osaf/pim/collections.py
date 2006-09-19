@@ -15,8 +15,6 @@
 
 __parcel__ = "osaf.pim"
 
-import logging, os
-
 from application import schema
 
 from chandlerdb.util.c import Default
@@ -26,9 +24,6 @@ from repository.item.Sets import \
 from repository.item.Collection import Collection
 
 from osaf.pim.items import ContentItem
-
-logger = logging.getLogger(__name__)
-DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
 
 
 class ContentCollection(ContentItem, Collection):
@@ -94,17 +89,10 @@ class ContentCollection(ContentItem, Collection):
         sharing = schema.Cloud(none=["displayName"]),
     )
 
-    def __str__(self):
-        """
-        for debugging
-        """
-        return "<%s%s:%s %s>" %(type(self).__name__, "", self.itsName,
-                                self.itsUUID.str16())
-
     # this delete hook is necessary because clearing 'sourceFor' depends on
     # watchers still be being there.
     def onItemDelete(self, view, isDeferring):
-        #KULDGE put in as debuging aid after bug 6686 9/14/06
+        #KLUDGE put in as debugging aid after bug 6686 9/14/06
         #remove after 3 months
         if self.itsName == 'allCollection':
             raise ValueError, ('deleting allCollection', self)
@@ -484,16 +472,9 @@ class AppCollection(ContentCollection):
         """
         Add an item to the collection.
         """
-        if DEBUG:
-            logger.debug("Adding %s to %s...",
-                         item.getItemDisplayName().encode('ascii', 'replace'),
-                         self.getItemDisplayName().encode('ascii', 'replace'))
         self.inclusions.add(item)
 
         if item in self.exclusions:
-            if DEBUG:
-                logger.debug("...removing from exclusions (%s)",
-                             self.exclusions.getItemDisplayName().encode('ascii', 'replace'))
             self.exclusions.remove(item)
 
         # If a trash is associated with this collection, remove the item
@@ -501,44 +482,28 @@ class AppCollection(ContentCollection):
         # reappear in any collection which has the item in its inclusions
 
         if self.trash is not None and item in self.trash:
-            if DEBUG:
-                logger.debug("...removing from trash (%s)",
-                             self.trash.getItemDisplayName().encode('ascii', 'replace'))
             self.trash.remove(item)
-
-        if DEBUG:
-            logger.debug("...done adding %s to %s",
-                         item.getItemDisplayName().encode('ascii', 'replace'),
-                         self.getItemDisplayName().encode('ascii', 'replace'))
 
     def remove(self, item):
         """
         Remove an item from the collection.
         """
 
-        if DEBUG:
-            logger.debug("Removing %s from %s...",
-                         item.getItemDisplayName().encode('ascii', 'replace'),
-                         self.getItemDisplayName().encode('ascii', 'replace'))
+        isDeleting = item.isDeleting()
 
-        if DEBUG:
-            logger.debug("...adding to exclusions (%s)",
-                         self.exclusions.getItemDisplayName().encode('ascii', 'replace'))
         # adding to exclusions before determining if the item should be added to
         # the trash was a problem at one point (bug 4551), but since the mine/
         # not-mine mechanism changed, this doesn't seem to be a problem anymore,
         # and removing from a mine collection was actually misbehaving if the
         # test was done first, so now logic for moving to the trash has moved
         # back to after addition to exclusions and removal from inclusions.
-        self.exclusions.add(item)
+        if not isDeleting:
+            self.exclusions.add(item)
 
         if item in self.inclusions:
-            if DEBUG:
-                logger.debug("...removing from inclusions (%s)",
-                             self.inclusions.getItemDisplayName().encode('ascii', 'replace'))
             self.inclusions.remove(item)
 
-        if self.trash is not None:
+        if not (isDeleting or self.trash is None):
             for collection in self.trash.trashFor:
                 if collection is not self and item in collection:
                     # it exists somewhere else, definitely don't add
@@ -546,16 +511,7 @@ class AppCollection(ContentCollection):
                     break
             else:
                 # we couldn't find it anywhere else, so it goes in the trash
-                if DEBUG:
-                    logger.debug("...adding to trash (%s)",
-                                 self.trash.getItemDisplayName().encode('ascii', 'replace'))
                 self.trash.add(item)
-
-        if DEBUG:
-            logger.debug("...done removing %s from %s",
-                         item.getItemDisplayName().encode('ascii', 'replace'),
-                         self.getItemDisplayName().encode('ascii', 'replace'))
-
 
     def __init__(self, itsName=None, itsParent=None,
                  itsKind=None, itsView=None,
