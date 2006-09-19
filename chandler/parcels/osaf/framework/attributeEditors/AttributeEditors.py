@@ -1767,7 +1767,7 @@ class DateAttributeEditor (StringAttributeEditor):
                 #invalidFlag is True if the string cannot be parsed successfully
                 if dateVar is not None and invalidFlag is False:
                     dateStr = pim.shortDateFormat.format(datetime(*dateVar[:3]))
-                    matchKey += " : %s" % dateStr
+                    matchKey = cls.textMatches[matchKey]+ " : %s" % dateStr
                     yield matchKey
             else:
                 cal = parsedatetime.Calendar()
@@ -1853,7 +1853,7 @@ class TimeAttributeEditor(StringAttributeEditor):
                 #invalidFlag is True if the string cannot be parsed successfully
                 if timeVar is not None and invalidFlag is False:
                     timeVar = pim.shortTimeFormat.format(datetime(*timeVar[:5]))
-                    matchKey += " - %s" %timeVar
+                    matchKey = cls.textMatches[matchKey]+ " - %s" %timeVar
                     yield matchKey
             else:
                 cal = parsedatetime.Calendar() 
