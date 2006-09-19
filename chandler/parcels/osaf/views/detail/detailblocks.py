@@ -423,7 +423,7 @@ def makeNoteSubtree(parcel, oldVersion):
         makeArea(parcel, 'ReminderRelativeArea',
             baseClass=ReminderRelativeAreaBlock,
             childrenBlocks=[
-                makeLabel(parcel, _(u''), borderTop=5),
+                makeLabel(parcel, u'', borderTop=5),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditReminderUnits',
                     baseClass=ReminderAEBlock,
@@ -444,7 +444,7 @@ def makeNoteSubtree(parcel, oldVersion):
         makeArea(parcel, 'ReminderAbsoluteArea',
             baseClass=ReminderAbsoluteAreaBlock,
             childrenBlocks=[                
-                makeLabel(parcel, _(u''), borderTop=4),
+                makeLabel(parcel, u'', borderTop=4),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditReminderDate',
                     baseClass=ReminderAEBlock,
