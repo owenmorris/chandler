@@ -948,6 +948,10 @@ class References(Values):
         item = self._item
         kind = item.itsKind
 
+        if isitem(other) and other.isDeleting():
+            logger.error("setting bi-ref on attribute '%s' of %s with an item that is being deleted: %s", key, item._repr_(), other._repr_())
+            return False
+
         if kind is not None and kind.getAttribute(key, True, item) is None:
             logger.error("setting bi-ref on attribute '%s' of %s, but '%s' is not defined for Kind %s %s", key, item._repr_(), key, kind.itsPath, type(item))
             return False
