@@ -308,13 +308,21 @@ class UITestItem(object):
             # select the collection
             self.SelectItem()
             # edit the collection displayName (double click)
-            scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName, double=True)
-            # select all
-            App_ns.root.SelectAll()
-            if timeInfo:
-                self.logger.startAction("Collection title setting")
-            # Type the new collection displayName
-            scripting.User.emulate_typing(displayName)
+
+            #scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName, double=True)
+            ## select all
+            #App_ns.root.SelectAll()
+            #if timeInfo:
+                #self.logger.startAction("Collection title setting")
+            ## Type the new collection displayName
+            #scripting.User.emulate_typing(displayName)
+            
+            # disabled above to fix sporadic functional test failures related to
+            # SetDisplayName failure
+            App_ns.sidebar.widget.DisableCellEditControl()
+            self.item.displayName = displayName
+            scripting.User.idle()
+            
             # work around : emulate_return doesn't work
             #scripting.User.emulate_return()
             scripting.User.emulate_sidebarClick(App_ns.sidebar, "Dashboard")

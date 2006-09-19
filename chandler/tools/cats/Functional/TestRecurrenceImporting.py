@@ -23,7 +23,7 @@ import osaf.framework.scripting as scripting
 
 class TestRecurrenceImporting(ChandlerTestCase):
 
-    def startTest(self):        
+    def startTest(self):
 
         path = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/DataFiles")
         # Upcast path to unicode since Sharing requires a unicode path
@@ -33,7 +33,12 @@ class TestRecurrenceImporting(ChandlerTestCase):
         self.logger.startAction('Importing TestRecurrence.ics')
         collection = share.get()
         self.app_ns.sidebarCollection.add(collection)
+        
+        # select the collection
+        sidebar = self.app_ns.sidebar
+        QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, collection.displayName)
         scripting.User.idle()
+        
         self.logger.endAction(True, "Importing calendar")
         
         def VerifyEventCreation(title):
