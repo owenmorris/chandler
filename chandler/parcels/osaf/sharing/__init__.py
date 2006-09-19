@@ -1631,28 +1631,35 @@ def getFilteredCollectionDisplayName(collection, filterClasses):
     Return a displayName for a collection, taking into account what the
     current sidebar filter is, and whether this is the All collection.
     """
-
-    #XXX: [i18n] logic needs to be refactored. It is impossible for a translator to 
-    #     determine context from these sentence fragments.
-
-    ext = u""
+    # In the case of the All collection, the name is fixed for each kind.
+    # l10n requires that each name be assigned specifically so the correct 
+    # translation can be done (i.e. "My" is not context free in most languages, e.g. French)
+    # In other cases, a compound name is built with the name of the collection and a
+    # qualifier specific to the kind.
+    
+    allName = _(u"My items")
+    ext = None
 
     if len(filterClasses) > 0:
         classString = filterClasses[0] # Only look at the first class
         if classString == "osaf.pim.tasks.TaskMixin":
-           ext = _(u" tasks")
-        if classString == "osaf.pim.mail.MailMessageMixin":
-           ext = _(u" mail")
-        if classString == "osaf.pim.calendar.Calendar.CalendarEventMixin":
-           ext = _(u" calendar")
-
-    name = collection.displayName
+            allName = _(u"My tasks")
+            ext = _(u"tasks")
+        elif classString == "osaf.pim.mail.MailMessageMixin":
+            allName = _(u"My mail")
+            ext = _(u"mail")
+        elif classString == "osaf.pim.calendar.Calendar.CalendarEventMixin":
+            allName = _(u"My calendar")
+            ext = _(u"calendar")
 
     if collection is schema.ns('osaf.pim', collection.itsView).allCollection:
-        name = _(u"My")
-        if ext == u"":
-            ext = _(u" items")
-
-    name += ext
+        name = allName
+    else:
+        if ext is not None:
+            # Genitive is different in each language so that requires an l10n string also
+            name = _(u"%(collectionName)s %(kindFilter)s") % {
+                'collectionName': collection.displayName, 'kindFilter': ext }
+        else:
+            name = collection.displayName
 
     return name
