@@ -24,7 +24,8 @@ import osaf.framework.scripting as scripting
 class TestRecurrenceImporting(ChandlerTestCase):
 
     def startTest(self):
-
+        
+        QAUITestAppLib.startTestInCalView(self.logger)
         path = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/DataFiles")
         # Upcast path to unicode since Sharing requires a unicode path
         path = unicode(path, sys.getfilesystemencoding())

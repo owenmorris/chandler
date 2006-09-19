@@ -38,6 +38,17 @@ from itertools import chain
 #Global AppProxy instance
 App_ns = scripting.app_ns()
 
+
+def startTestInCalView( logger):
+    """make a collection and select it"""
+    #Chandler now starts in the Dashboard and it doesn't display in calendar view
+    #tests that need to start out in calendar view can call this function
+    sb = App_ns.sidebar
+    if not GetCollectionRow('default'):
+        col = UITestItem("Collection", logger)
+        col.SetDisplayName('default')
+    scripting.User.emulate_sidebarClick(sb, 'default')
+    UITestView(logger).SwitchToCalView()
                        
 def getTime(date):
     """
