@@ -35,6 +35,7 @@ from i18n import ChandlerMessageFactory as _
 import constants
 from utils import *
 from utils import Counter
+from osaf.pim import TriageEnum
 
 logger = logging.getLogger(__name__)
 
