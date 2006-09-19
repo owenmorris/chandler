@@ -208,24 +208,30 @@ class MainView(View):
         except NotImplementedError:
             pass
 
+        self.selectItems([newItem])
+
+        return newItem
+
+    def selectItems(self, itemList):
         # Tell the summary view to select our new item
         sidebarBPB = self.findBlockByName ("SidebarBranchPointBlock")
         sidebarBPB.childrenBlocks.first().postEventByName (
             'SelectItemsBroadcast',
-            {'items':[newItem]})
+            {'items':itemList})
 
         # Put the focus into the Detail View
         detailRoot = self.findBlockByName("DetailRoot")
         if detailRoot:
             detailRoot.focus()
 
-        return newItem
-
     def onPrintPreviewEvent (self, event):
-        self.printEvent(True)
+        self.printEvent(1)
+
+    def onPageSetupEvent (self, event):
+        self.printEvent(2)
 
     def onPrintEvent (self, event):
-        self.printEvent(False)
+        self.printEvent(0)
 
     def printEvent(self, isPreview):
         block = self.findBlockByName ("TimedEvents")
@@ -235,10 +241,12 @@ class MainView(View):
             application.dialogs.Util.ok(None, message, title)
         else:
             printObject = Printing.Printing(wx.GetApp().mainFrame, block.widget)
-            if isPreview:
+            if isPreview == 1:
                 printObject.OnPrintPreview()
-            else:
+            elif isPreview == 0:
                 printObject.OnPrint()
+            elif isPreview == 2:
+                printObject.OnPageSetup()
 
     def onQuitEvent (self, event):
         """

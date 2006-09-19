@@ -74,6 +74,8 @@ def installParcel(parcel, oldName=None):
                                 dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
     
             BlockEvent.template('PrintPreview').install(parcel),
+
+            BlockEvent.template('PageSetup').install(parcel),
     
             BlockEvent.template('Remove',
                                 dispatchEnum = 'FocusBubbleUp',

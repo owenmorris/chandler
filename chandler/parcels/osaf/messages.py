@@ -32,6 +32,9 @@ ERROR = _(u"Error")
 
 """Menu Item / Markup bar button Titles"""
 SEND = _(u"Send")
+REPLY = _(u"Reply")
+REPLY_ALL = _(u"Reply All")
+FORWARD = _(u"Forward")
 STAMP_MAIL = _(u"Prepare as Message")
 STAMP_TASK = _(u"Put on Task list")
 STAMP_CALENDAR = _(u"Put on Calendar")

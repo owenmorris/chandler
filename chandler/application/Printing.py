@@ -28,15 +28,17 @@ class Printing(object):
         self.printData = wx.PrintData()
         self.printData.SetPaperId(wx.PAPER_LETTER)
         self.printData.SetPrintMode(wx.PRINT_MODE_PRINTER)
+        # default orientation is landscape
+        self.printData.SetOrientation(wx.LANDSCAPE)
         
-    def OnPrintSetup(self):
-        data = wx.PrintDialogData(self.printData)
-        printerDialog = wx.PrintDialog(self, data)
-        printerDialog.GetPrintDialogData().SetSetupDialog(True)
+    def OnPageSetup(self):
+        data = wx.PageSetupDialogData(self.printData)
+        data.CalculatePaperSizeFromId()
+        printerDialog = wx.PageSetupDialog(self.canvas, data)
         printerDialog.ShowModal()
-        self.printData = wx.PrintData(printerDialog.GetPrintDialogData().GetPrintData())
+        self.printData = wx.PrintData(printerDialog.GetPageSetupData().GetPrintData())
         printerDialog.Destroy()
-        
+
     def OnPrintPreview(self):
         data = wx.PrintDialogData(self.printData)
         previewPrintout = CanvasPrintout(self.canvas)

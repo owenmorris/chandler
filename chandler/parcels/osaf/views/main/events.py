@@ -106,6 +106,24 @@ def makeMainEvents(parcel):
         kindParameter = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView),
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
+    KindParameterizedEvent.template(
+        'ReplyMessage',
+        methodName = 'onReplyEvent',
+        kindParameter = osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
+        dispatchEnum = 'FocusBubbleUp').install(parcel)
+
+    KindParameterizedEvent.template(
+        'ReplyAllMessage',
+        methodName = 'onReplyAllEvent',
+        kindParameter = osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
+        dispatchEnum = 'FocusBubbleUp').install(parcel)
+
+    KindParameterizedEvent.template(
+        'ForwardMessage',
+        methodName = 'onForwardEvent',
+        kindParameter = osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
+        dispatchEnum = 'FocusBubbleUp').install(parcel)
+
     BlockEvent.template('SharingSubscribeToCollection').install(parcel)
 
     BlockEvent.template('CheckRepository').install(parcel)

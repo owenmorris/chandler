@@ -224,6 +224,84 @@ class FocusEventHandlers(Item):
             event.arguments['Enable'] = enable
             event.arguments['Check'] = enable and isStamped
 
+
+
+    def CanReplyOrForward(self, selectedItem):
+        pim_ns = schema.ns('osaf.pim', self.itsView)
+        #selection = self.__getSelectedItems()
+        #for selectedItem in selection:
+        if isinstance(selectedItem, Mail.MailMessageMixin):
+            selectedItem = selectedItem.getMembershipItem()
+            for otherCollection in selectedItem.appearsIn:
+                if otherCollection is pim_ns.inCollection:
+                    return True
+            else:
+                # Can't reply to something that's not in the inbox
+                return False
+
+    def onReplyOrForWardEvent(self, replyMethod):
+        pim_ns = schema.ns('osaf.pim', self.itsView)
+        main = schema.ns("osaf.views.main", self.itsView)
+        selection = self.__getSelectedItems()
+        replyMessage = None
+        replyCollection = None
+        # Note that this skips over any non-inbox items, so you
+        # *could* select-all-reply
+        for selectedItem in selection:
+            if self.CanReplyOrForward(selectedItem):
+                replyMessage = replyMethod(self.itsView, selectedItem)
+        # select the outbox collection if there was a reply
+        if replyMessage is not None:
+            sidebar = Block.Block.findBlockByName ("Sidebar")
+            sidebar.select(pim_ns.outCollection)
+            # select the last message replied/forwarded
+            main.MainView.selectItems([replyMessage])
+            # by default the "from" field is selected, which looks funny;
+            # so switch focus to the message body, except for "Forward",
+            # which goes to the "To" field
+            if replyMethod is not Mail.forwardMessage:
+                focusTarget = Block.Block.findBlockByName('NotesBlock')
+            else:
+                focusTarget = Block.Block.findBlockByName('EditMailTo')
+            if focusTarget is not None:
+                focusTarget.widget.SetFocus()
+
+    def onReplyOrForwardEventUpdateUI(self, event):
+        selection = self.__getSelectedItems()
+        # Note that this looks for *any* reply/forward-able message
+        for selectedItem in selection:
+            if self.CanReplyOrForward(selectedItem):
+                event.arguments['Enable'] = True
+                break
+        else:
+            event.arguments['Enable'] = False
+        # until we can get this called properly at item selection time,
+        # always enable
+        event.arguments['Enable'] = True
+
+
+    def onReplyEvent(self, event):
+        self.onReplyOrForWardEvent(Mail.replyToMessage)
+
+    def onReplyEventUpdateUI(self, event):
+        self.onReplyOrForwardEventUpdateUI(event)
+
+
+    def onReplyAllEvent(self, event):
+        self.onReplyOrForWardEvent(Mail.replyAllToMessage)
+
+    def onReplyAllEventUpdateUI(self, event):
+        self.onReplyOrForwardEventUpdateUI(event)
+
+
+    def onForwardEvent(self, event):
+        #import pdb;pdb.set_trace()
+        self.onReplyOrForWardEvent(Mail.forwardMessage)
+
+    def onForwardEventUpdateUI(self, event):
+        self.onReplyOrForwardEventUpdateUI(event)
+
+
     def onRunSelectedScriptEvent(self, event):
         # Triggered from "Tests | Run a Script"
         items = self.__getSelectedItems()
