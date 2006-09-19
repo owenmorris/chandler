@@ -555,7 +555,7 @@ class Block(schema.Item):
         # uses, happen outside isMutating.
         repoView = wx.GetApp().UIRepositoryView            
         item = repoView.find(uuid, False)
-        if item is not None and item.isMutating():
+        if item is not None and item.isDeleting():
             return
                 
         itemDict = Block.watchingItems.get(uuid, None)
