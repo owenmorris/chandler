@@ -1663,3 +1663,24 @@ def getFilteredCollectionDisplayName(collection, filterClasses):
             name = collection.displayName
 
     return name
+
+
+def fixTriageStatusCallback(share=None, uuids=None):
+    """ 
+    Set triageStatus on new 'now' items received from sharing, importing,
+    or restore.
+    """
+    now = datetime.datetime.now(tz=ICUtzinfo.default)
+    for u in uuids:
+        item = share.itsView.find(u)
+        # @@@ bug 6700: Can't do this for recurring events for now.
+        if getattr(item, 'rruleset', None) is not None:
+            continue
+        
+        relevantDate = getattr(item, 'relevantDate', None)
+        if relevantDate and item.triageStatus == pim.TriageEnum.now:
+            item.triageStatus = (relevantDate < now and pim.TriageEnum.done
+                                 or pim.TriageEnum.later)
+            item.setTriageStatusChanged(relevantDate)
+        
+register(NEWITEMSUNESTABLISHED, fixTriageStatusCallback)
