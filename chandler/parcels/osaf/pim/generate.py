@@ -91,7 +91,7 @@ def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
 
     event.itsItem.importance = random.choice(pim.ImportanceEnum.values)
     event.itsItem.triageStatus = randomEnum(pim.TriageEnum)
-    return event
+    return event.itsItem
 
 
 TITLES = [u"reading list", u"restaurant recommendation", u"vacation ideas",
@@ -129,8 +129,6 @@ def GenerateMailMessage(view, tzinfo=None):
 
     message.dateSent = datetime.now(tzinfo)
 
-
-
     if outbound:
         acc = Mail.getCurrentSMTPAccount(view)[0]
         message.outgoingMessage(acc)
@@ -159,9 +157,9 @@ def GenerateMailMessage(view, tzinfo=None):
         body = uw(body)
 
     message.body = body
-    message.triageStatus = randomEnum(pim.TriageEnum)
+    message.itsItem.triageStatus = randomEnum(pim.TriageEnum)
 
-    return message
+    return message.itsItem
 
 def GenerateNote(view, tzinfo=None):
     """ Generate one Note item """
@@ -189,7 +187,7 @@ def GenerateTask(view, tzinfo=None):
         task.summary = uw(task.summary)
 
     task.itsItem.triageStatus = randomEnum(pim.TriageEnum)
-    return task
+    return task.itsItem
 
 def GenerateEventTask(view, days=30, tzinfo=None):
     """ Generate one Task/Event stamped item """
@@ -296,11 +294,11 @@ def GenerateItems(view, count, function, collections=[], *args, **dict):
     results = []
     for index in range(count):
         newItem = function(view, *args, **dict)
-        
+
         if maxCollCount > 0:
             for index in range(random.randint(0, maxCollCount)):
-                collections[random.randint(0, len(collections)-1)].add(newItem)    
-            
+                collections[random.randint(0, len(collections)-1)].add(newItem)
+
         results.append(newItem)
 
     return results
