@@ -319,7 +319,7 @@ class BackgroundSyncHandler:
                 transparency='fyi',
                 body=str(stats)
             )
-            log.add(reportEvent)
+            log.add(reportEvent.itsItem)
 
             self.rv.commit()
 
