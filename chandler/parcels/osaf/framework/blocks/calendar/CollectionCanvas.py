@@ -27,6 +27,7 @@ from application.dialogs import Util
 from wx.lib import buttons
 from i18n import ChandlerMessageFactory as _
 from time import time as epochtime
+from osaf.pim import EventStamp
 
 # temporary hack because Mac/Linux force BitmapButtons to
 # have some specific borders
@@ -97,17 +98,24 @@ class CanvasItem(object):
     sophisticated.
     """
     
-    def __init__(self, bounds, item):
+    def __init__(self, bounds, itemOrEvent):
         """
         @param bounds: the bounds of the item as drawn on the canvas.
         @type bounds: wx.Rect
         @param item: the item drawn on the canvas in these bounds
-        @type item: Item
+        @type itemOrEvent: C{Item} or C{EventStamp}
         """
-
+        
         # @@@ scaffolding: resize bounds is the lower 5 pixels
         self._bounds = bounds
-        self.item = item
+        if isinstance(itemOrEvent, EventStamp):
+            self.item = itemOrEvent.itsItem
+        else:
+            self.item = itemOrEvent
+
+    @property
+    def event(self):
+        return EventStamp(self.item)
 
     def __repr__(self):
         return "<%s: item=%s box=%s>" % (self.__class__.__name__,

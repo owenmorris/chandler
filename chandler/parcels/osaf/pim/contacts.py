@@ -65,28 +65,20 @@ class Contact(items.ContentItem):
     )
 
     requestedTasks = schema.Sequence(
-        "osaf.pim.tasks.TaskMixin",
         doc="List of tasks requested by this user.",
-        inverse="requestor"
-    )
+    ) # inverse of tasks.TaskStamp.requestor
 
     taskRequests= schema.Sequence(
-        "osaf.pim.tasks.TaskMixin",
         doc="List of tasks requested for this user.",
-        otherName="requestee"   # XXX other end points to ContentItem???
-    )
+    ) # inverse of tasks.TaskStamp.requestee
 
     organizedEvents= schema.Sequence(
-        "osaf.pim.calendar.Calendar.CalendarEventMixin",
         doc="List of events this user has organized.",
-        inverse="organizer"
-    )
+    ) # inverse of EventStamp.organizer
 
     participatingEvents= schema.Sequence(
-        "osaf.pim.calendar.Calendar.CalendarEventMixin",
         doc="List of events this user is a participant.",
-        inverse="participants"
-    )
+    ) # inverse of EventStamp.participants
 
     sharerOf= schema.Sequence(  # Share
         doc="List of shares shared by this user.",

@@ -24,6 +24,9 @@ import email.Message as Message
 import email.Utils as emailUtils
 import unittest as unittest
 from repository.item.RefCollections import RefList
+from osaf.pim.stamping import has_stamp
+from osaf.pim.mail import MailStamp
+from osaf.pim.calendar import EventStamp
 
 from PyICU import ICUtzinfo
 from datetime import datetime
@@ -46,6 +49,70 @@ Content-Type: text/plain; charset=utf-8; format=flowed
 
 This is the body"""
 
+    __mailWithEvent = """Return-Path: <sir.strawberry@gmail.com>
+X-Original-To: capt.crunch@yahoo.com
+Delivered-To: capt.crunch@yahoo.com
+Received: from laweleka.osafoundation.org (laweleka.osafoundation.org [204.152.186.98])
+	by leilani.osafoundation.org (Postfix) with ESMTP id 1D5607FAFA
+	for <capt.crunch@yahoo.com>; Fri,  8 Sep 2006 09:16:44 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+	by laweleka.osafoundation.org (Postfix) with ESMTP id 07A71142276
+	for <capt.crunch@yahoo.com>; Fri,  8 Sep 2006 09:16:44 -0700 (PDT)
+Received: from laweleka.osafoundation.org ([127.0.0.1])
+	by localhost (laweleka.osafoundation.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 10491-10 for <capt.crunch@yahoo.com>;
+	Fri, 8 Sep 2006 09:16:42 -0700 (PDT)
+Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.226])
+	by laweleka.osafoundation.org (Postfix) with ESMTP id 9AC1614228B
+	for <capt.crunch@yahoo.com>; Fri,  8 Sep 2006 09:16:42 -0700 (PDT)
+Received: by wx-out-0506.google.com with SMTP id i30so925749wxd
+        for <capt.crunch@yahoo.com>; Fri, 08 Sep 2006 09:16:42 -0700 (PDT)
+Received: by 10.70.47.19 with SMTP id u19mr428339wxu;
+        Fri, 08 Sep 2006 09:16:41 -0700 (PDT)
+Received: from localhost ( [71.198.128.206])
+        by mx.gmail.com with ESMTP id 35sm421990wra.2006.09.08.09.16.40;
+        Fri, 08 Sep 2006 09:16:41 -0700 (PDT)
+Message-ID: <20060908161637.13058.91624@localhost>
+Date: Fri, 08 Sep 2006 09:16:37 -0700
+From: sir.strawberry@gmail.com
+To: capt.crunch@yahoo.com
+User-Agent: Chandler (0.7alpha3)
+Content-Transfer-Encoding: 8bit
+Subject: Interview w/ Count Chocula
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0937948688=="
+X-Chandler-EventDescriptionLength: 54
+
+--===============0937948688==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+
+V2hlbjogVHVlc2RheSwgU2VwIDUsIDIwMDYgMzowMCBQTSAtIDQ6MDAgUE0KV2hlcmU6IE96CgoK
+
+--===============0937948688==
+Content-Type: text/calendar; charset="utf-8"; method="REQUEST"
+MIME-Version: 1.0
+Content-Disposition: attachment; filename="event.ics"
+
+BEGIN:VCALENDAR
+VERSION:2.0
+METHOD:REQUEST
+PRODID:-//PYVOBJECT//NONSGML Version 1//EN
+BEGIN:VEVENT
+UID:bdf62c0c-39e8-11db-e3ed-8cdcc2c2c3d9
+DTSTART:20060905T150000
+DTEND:20060905T160000
+DESCRIPTION:
+LOCATION:Oz
+STATUS:CONFIRMED
+SUMMARY:Interview w/ Count Chocula
+END:VEVENT
+END:VCALENDAR
+
+--===============0937948688==--
+"""
+
     __addresses = [None, "    ", "john", "sd$%dsd@dsd-fffd!.com", "bill.jones@tc.unernet.com"]
 
     def __getMessageObject(self):
@@ -56,6 +123,9 @@ This is the body"""
 
     def __getMessageText(self):
         return self.__mail
+
+    def __getMultipartMessageText(self):
+        return self.__mailWithEvent
 
     def __getMailMessage(self):
         if self.__mailMessage is not None:
@@ -97,7 +167,7 @@ This is the body"""
         m.dateSent = datetime.fromtimestamp(emailUtils.mktime_tz(emailUtils.parsedate_tz(dateString)), ICUtzinfo.getInstance("Etc/GMT-7"))
         m.dateSentString = dateString
 
-        m.body = u"This is the body"
+        m.itsItem.body = u"This is the body"
         m.rfc2822Message = utils.dataToBinary(m, "rfc2822Message", self.__mail)
 
         self.__mailMessage = m
@@ -150,7 +220,7 @@ This is the body"""
         self.assertEquals(mOne.headers['Content-Type'], mTwo.headers['Content-Type'])
         self.assertEquals(mOne.headers['Content-Transfer-Encoding'], mTwo.headers['Content-Transfer-Encoding'])
         self.assertEquals(mOne.headers['Mime-Version'], mTwo.headers['Mime-Version'])
-        self.assertEquals(mOne.body, mTwo.body)
+        self.assertEquals(mOne.itsItem.body, mTwo.itsItem.body)
         self.assertEquals(utils.binaryToData(mOne.rfc2822Message), utils.binaryToData(mTwo.rfc2822Message))
 
 
@@ -208,6 +278,12 @@ This is the body"""
         self.assertNotEqual(mailKind, None)
 
         self.__compareMailMessages(mailKind, self.__getMailMessage())
+
+    def testMessageWithEvent(self):
+        eventMessage = message.messageTextToKind(self.rep.view, self.__getMultipartMessageText())
+        self.assertTrue(has_stamp(eventMessage, MailStamp))
+        self.assertTrue(has_stamp(eventMessage, EventStamp))
+        
 
     def testMessageObjectToKind(self):
         mailKind = message.messageObjectToKind(self.rep.view, self.__getMessageObject(), self.__mail)

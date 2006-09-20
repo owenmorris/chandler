@@ -20,6 +20,8 @@ import unittest, os
 
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 import osaf.pim.mail as Mail
+from osaf.pim import has_stamp, Note, ContentItem
+from application import schema
 
 from datetime import datetime
 from repository.util.Path import Path
@@ -60,28 +62,25 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(Mail.IMAPDelivery.getKind(view),
                          view.find(Path(mailPath, 'IMAPDelivery')))
 
-        self.assertEqual(Mail.MIMEBase.getKind(view),
+        self.assertEqual(schema.itemFor(Mail.MIMEBase, view),
                          view.find(Path(mailPath, 'MIMEBase')))
 
-        self.assertEqual(Mail.MIMENote.getKind(view),
+        self.assertEqual(schema.itemFor(Mail.MIMENote, view),
                          view.find(Path(mailPath, 'MIMENote')))
 
-        self.assertEqual(Mail.MailMessage.getKind(view),
-                         view.find(Path(mailPath, 'MailMessage')))
+        self.assertEqual(schema.itemFor(Mail.MailStamp, view),
+                         view.find(Path(mailPath, 'MailStamp')))
 
-        self.assertEqual(Mail.MailMessageMixin.getKind(view),
-                         view.find(Path(mailPath, 'MailMessageMixin')))
-
-        self.assertEqual(Mail.MIMEBinary.getKind(view),
+        self.assertEqual(schema.itemFor(Mail.MIMEBinary, view),
                          view.find(Path(mailPath, 'MIMEBinary')))
 
-        self.assertEqual(Mail.MIMEText.getKind(view),
+        self.assertEqual(schema.itemFor(Mail.MIMEText, view),
                          view.find(Path(mailPath, 'MIMEText')))
 
-        self.assertEqual(Mail.MIMEContainer.getKind(view),
+        self.assertEqual(schema.itemFor(Mail.MIMEContainer, view),
                          view.find(Path(mailPath, 'MIMEContainer')))
 
-        self.assertEqual(Mail.MIMESecurity.getKind(view),
+        self.assertEqual(schema.itemFor(Mail.MIMESecurity, view),
                          view.find(Path(mailPath, 'MIMESecurity')))
 
         self.assertEqual(Mail.EmailAddress.getKind(view),
@@ -98,15 +97,19 @@ class MailTest(TestDomainModel.DomainModelTestCase):
                                                      itsView=view)
         smtpDeliveryItem = Mail.SMTPDelivery("smtpDeliveryItem", itsView=view)
         imapDeliveryItem = Mail.IMAPDelivery("imapDeliveryItem", itsView=view)
-        mimeBaseItem = Mail.MIMEBase("mimeBaseItem", itsView=view)
-        mimeNoteItem = Mail.MIMENote("mimeNoteItem", itsView=view)
-        mailMessageItem = Mail.MailMessage("mailMessageItem", itsView=view)
-        mailMessageMixinItem = Mail.MailMessageMixin("mailMessageMixinItem",
-                                                     itsView=view)
-        mimeBinaryItem = Mail.MIMEBinary("mimeBinaryItem", itsView=view)
-        mimeTextItem = Mail.MIMEText("mimeTextItem", itsView=view)
-        mimeContainerItem = Mail.MIMEContainer("mimeContainerItem", itsView=view)
-        mimeSecurityItem = Mail.MIMESecurity("mimeSecurityItem", itsView=view)
+        
+        def makeAnnotationItem(cls, name):
+            kind = cls.targetType()
+            item = kind(name, itsView=view)
+            return cls(item) # return the annotation
+        
+        mimeBaseObject = makeAnnotationItem(Mail.MIMEBase, "mimeBaseItem")
+        mimeNoteObject = makeAnnotationItem(Mail.MIMENote, "mimeNoteItem")
+        mailMessageObject = Mail.MailMessage("mailMessageItem", itsView=view)
+        mimeBinaryObject = makeAnnotationItem(Mail.MIMEBinary, "mimeBinaryItem")
+        mimeTextObject = makeAnnotationItem(Mail.MIMEText, "mimeTextItem")
+        mimeContainerObject = makeAnnotationItem(Mail.MIMEContainer, "mimeContainerItem")
+        mimeSecurityObject = makeAnnotationItem(Mail.MIMESecurity, "mimeSecurityItem")
         emailAddressItem = Mail.EmailAddress("emailAddressItem", itsView=view)
 
         # Double check kinds
@@ -131,32 +134,26 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(imapDeliveryItem.itsKind,
                          Mail.IMAPDelivery.getKind(view))
 
-        self.assertEqual(mimeBaseItem.itsKind,
-                         Mail.MIMEBase.getKind(view))
+        def checkAnnotation(object, annotationClass, kindClass):
+            self.failUnless(isinstance(object, annotationClass))
+            self.assertEqual(object.itsItem.itsKind,
+                             kindClass.getKind(view))
+ 
+        checkAnnotation(mimeBaseObject, Mail.MIMEBase, ContentItem),
+        checkAnnotation(mimeNoteObject, Mail.MIMENote, ContentItem),
 
-        self.assertEqual(mimeNoteItem.itsKind,
-                         Mail.MIMENote.getKind(view))
+        checkAnnotation(mailMessageObject, Mail.MailStamp, Note)
+        self.failUnless(has_stamp(mailMessageObject, Mail.MailStamp))
 
-        self.assertEqual(mailMessageItem.itsKind,
-                         Mail.MailMessage.getKind(view))
+        checkAnnotation(mimeBinaryObject, Mail.MIMEBinary, ContentItem)
 
-        self.assertEqual(mailMessageMixinItem.itsKind,
-                         Mail.MailMessageMixin.getKind(view))
+        checkAnnotation(mimeTextObject, Mail.MIMEText, ContentItem)
 
-        self.assertEqual(mimeBinaryItem.itsKind,
-                         Mail.MIMEBinary.getKind(view))
+        checkAnnotation(mimeContainerObject, Mail.MIMEContainer, ContentItem)
 
-        self.assertEqual(mimeTextItem.itsKind,
-                         Mail.MIMEText.getKind(view))
+        checkAnnotation(mimeSecurityObject, Mail.MIMESecurity, ContentItem)
 
-        self.assertEqual(mimeContainerItem.itsKind,
-                         Mail.MIMEContainer.getKind(view))
-
-        self.assertEqual(mimeSecurityItem.itsKind,
-                         Mail.MIMESecurity.getKind(view))
-
-        self.assertEqual(emailAddressItem.itsKind,
-                         Mail.EmailAddress.getKind(view))
+        self.assertEqual(emailAddressItem.itsKind, Mail.EmailAddress.getKind(view))
 
         accountBaseItem = self.__populateAccount(accountBaseItem)
         smtpAccountItem = self.__populateAccount(smtpAccountItem)
@@ -169,21 +166,20 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         smtpDeliveryItem.state = "DRAFT"
         smtpDeliveryItem.deliveryError = mailDeliveryErrorItem
         imapDeliveryItem.uid = 0
-        mimeBaseItem.mimeType = "SGML"
-        mimeBinaryItem.mimeType = "APPLICATION"
-        mimeTextItem.mimeType = "PLAIN"
-        mimeContainerItem.mimeType = "ALTERNATIVE"
-        mimeSecurityItem.mimeType = "SIGNED"
+        mimeBaseObject.itsItem.mimeType = "SGML"
+        mimeBinaryObject.itsItem.mimeType = "APPLICATION"
+        mimeTextObject.itsItem.mimeType = "PLAIN"
+        mimeContainerObject.itsItem.mimeType = "ALTERNATIVE"
+        mimeSecurityObject.itsItem.mimeType = "SIGNED"
 
         # Literal properties
-        mailMessageItem.dateSent = datetime.now(ICUtzinfo.default)
-        mailMessageItem.dateReceived = datetime.now(ICUtzinfo.default)
-        mailMessageItem.subject = uw("Hello")
-        mailMessageItem.spamScore = 5
+        mailMessageObject.dateSent = datetime.now(ICUtzinfo.default)
+        mailMessageObject.subject = uw("Hello")
+        mailMessageObject.spamScore = 5
 
         # Item Properties
         emailAddressItem.emailAddress = u"test@test.com"
-        mailMessageItem.replyAddress = emailAddressItem
+        mailMessageObject.replyToAddress = emailAddressItem
 
         self._reopenRepository()
         view = self.rep.view
@@ -194,7 +190,7 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         #Test cloud membership
 
         items = mailMessageItem.getItemCloud('copying')
-        self.assertEqual(len(items), 1)
+        self.assertEqual(len(items), 2) # item & reply-to address
 
     def __populateAccount(self, account):
 

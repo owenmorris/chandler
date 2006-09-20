@@ -23,6 +23,7 @@ import osaf.sharing
 from  osaf.sharing.ICalendar import importICalendarFile, ICalendarImportError
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from osaf.framework.blocks.Block import Block
+from osaf.pim import Remindable, EventStamp
 
 logger = logging.getLogger(__name__)
 MAX_UPDATE_MESSAGE_LENGTH = 50
@@ -118,9 +119,9 @@ def isReadOnly(collection):
 class ImportDialog(FileChooserWithOptions):
     def __init__(self, parent, dialogTitle, view):
 
-        options = [dict(name='reminders', checked = True, 
+        options = [dict(name=Remindable.reminders.name, checked = True, 
                         label = _(u"Import reminders")),
-                   dict(name='transparency', checked = True,
+                   dict(name=EventStamp.transparency.name, checked = True,
                         label = _(u"Import event status"))]
         
         FileChooserWithOptions.__init__(

@@ -26,7 +26,7 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         view = self.view
 
         # Our test subject
-        e1 = pim.CalendarEvent(itsView=view)
+        e1 = pim.CalendarEvent(itsView=view).itsItem
 
         # We need a currentContact set for isAttributeModifiable to work;
         # normally this is set by the app
@@ -49,14 +49,14 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         self.assert_(not e1.isAttributeModifiable('displayName'))
 
         # ...an attribute that is sometimes shared (based on filterAttributes)
-        self.assert_(not e1.isAttributeModifiable('reminders'))
+        self.assert_(not e1.isAttributeModifiable(pim.Remindable.reminders.name))
 
         # ...an attribute which is pretty much never shared
         self.assert_(e1.isAttributeModifiable('read'))
 
         # Filter out reminderTime, and it should become modifiable:
-        share_ro.filterAttributes = ['reminders']
-        self.assert_(e1.isAttributeModifiable('reminders'))
+        share_ro.filterAttributes = [pim.Remindable.reminders.name]
+        self.assert_(e1.isAttributeModifiable(pim.Remindable.reminders.name))
 
         # Now also add the subject to a read-write share:
 
@@ -71,7 +71,7 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         self.assert_(e1.isAttributeModifiable('displayName'))
 
         # ...an attribute that is sometimes shared (based on filterAttributes)
-        self.assert_(e1.isAttributeModifiable('reminders'))
+        self.assert_(e1.isAttributeModifiable(pim.Remindable.reminders.name))
 
         # ...an attribute which is pretty much never shared
         self.assert_(e1.isAttributeModifiable('read'))

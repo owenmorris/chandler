@@ -47,6 +47,15 @@ class BranchSubtree(schema.Annotation):
     rootBlocks = schema.Sequence(Block, 
                                  inverse=Block.parentBranchSubtrees)
 
+class StampBranchSubtree(BranchSubtree):
+    """
+    A mapping between an Item and the list of top-level blocks ('rootBlocks') 
+    that should appear when an Item inheriting from that Kind is displayed. 
+    Each rootBlock entry should have its 'position' attribute specified, to 
+    enable it to be sorted with other root blocks.)
+    """
+    schema.kindInfo(annotates=schema.Item)
+
 class wxBranchPointBlock(wxBoxContainer):
     """ 
     A widget block that gives its BranchPointBlock a chance to change 

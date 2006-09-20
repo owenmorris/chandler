@@ -41,7 +41,7 @@ def makeMainEvents(parcel):
     NewItemEvent.update(
         parcel, 'NewNote',
         blockName = 'NewNote',
-        kindParameter = osaf.pim.notes.Note.getKind(repositoryView))
+        classParameter = osaf.pim.notes.Note)
 
     BlockEvent.template(
         'RunSelectedScript',
@@ -68,10 +68,10 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('ShowPyCrust').install(parcel)
 
-    KindParameterizedEvent.template(
+    ClassParameterizedEvent.template(
         'ApplicationBarMail',
-        methodName = 'onKindParameterizedEvent',
-        kindParameter = osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
+        methodName = 'onClassParameterizedEvent',
+        classParameter = osaf.pim.mail.MailStamp,
         dispatchToBlockName = 'Sidebar').install(parcel)
 
     BlockEvent.template(
@@ -88,40 +88,40 @@ def makeMainEvents(parcel):
         'FocusTogglePrivate',
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    KindParameterizedEvent.template(
+    ClassParameterizedEvent.template(
         'FocusStampMessage',
         methodName = 'onFocusStampEvent',
-        kindParameter = osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
+        classParameter = osaf.pim.mail.MailStamp,
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    KindParameterizedEvent.template(
+    ClassParameterizedEvent.template(
         'FocusStampTask',
         methodName = 'onFocusStampEvent',
-        kindParameter = osaf.pim.tasks.TaskMixin.getKind(repositoryView),
+        classParameter = osaf.pim.tasks.TaskStamp,
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    KindParameterizedEvent.template(
+    ClassParameterizedEvent.template(
         'FocusStampCalendar',
         methodName = 'onFocusStampEvent',
-        kindParameter = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView),
+        classParameter = osaf.pim.calendar.Calendar.EventStamp,
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    KindParameterizedEvent.template(
+    ClassParameterizedEvent.template(
         'ReplyMessage',
         methodName = 'onReplyEvent',
-        kindParameter = osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
+        classParameter = osaf.pim.mail.MailStamp,
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    KindParameterizedEvent.template(
+    ClassParameterizedEvent.template(
         'ReplyAllMessage',
         methodName = 'onReplyAllEvent',
-        kindParameter = osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
+        classParameter = osaf.pim.mail.MailStamp,
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    KindParameterizedEvent.template(
+    ClassParameterizedEvent.template(
         'ForwardMessage',
         methodName = 'onForwardEvent',
-        kindParameter = osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
+        classParameter = osaf.pim.mail.MailStamp,
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
     BlockEvent.template('SharingSubscribeToCollection').install(parcel)
@@ -175,27 +175,26 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'MainView').install(parcel)
 
-    KindParameterizedEvent.template(
+    ClassParameterizedEvent.template(
         'ApplicationBarAll',
-        methodName = 'onKindParameterizedEvent',
-        kindParameter = None,
+        methodName = 'onClassParameterizedEvent',
         dispatchToBlockName = 'Sidebar').install(parcel)
 
     NewItemEvent.update(
         parcel, 'NewMailMessage',
         blockName = 'NewMailMessage',
-        kindParameter = osaf.pim.mail.MailMessage.getKind(repositoryView))
+        classParameter = osaf.pim.mail.MailStamp)
 
-    KindParameterizedEvent.template(
+    ClassParameterizedEvent.template(
         'ApplicationBarEvent',
-        methodName = 'onKindParameterizedEvent',
-        kindParameter = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView),
+        methodName = 'onClassParameterizedEvent',
+        classParameter = osaf.pim.calendar.Calendar.EventStamp,
         dispatchToBlockName = 'Sidebar').install(parcel)
 
     NewItemEvent.update(
         parcel, 'NewCalendar',
         blockName = 'NewCalendar',
-        kindParameter = osaf.pim.calendar.Calendar.CalendarEvent.getKind(repositoryView))
+        classParameter = osaf.pim.calendar.Calendar.EventStamp)
 
     BlockEvent.template(
         'Delete',
@@ -242,7 +241,7 @@ def makeMainEvents(parcel):
     NewItemEvent.update(
         parcel, 'NewTask',
         blockName = 'NewTask',
-        kindParameter = osaf.pim.tasks.Task.getKind(repositoryView))
+        classParameter = osaf.pim.tasks.TaskStamp)
 
     BlockEvent.template('GenerateContentItems',
                         commitAfterDispatch = True).install(parcel)
@@ -271,10 +270,10 @@ def makeMainEvents(parcel):
     BlockEvent.template('GenerateContentItemsFromFile',
                        commitAfterDispatch = True).install(parcel)
 
-    KindParameterizedEvent.template(
+    ClassParameterizedEvent.template(
         'ApplicationBarTask',
-        methodName = 'onKindParameterizedEvent',
-        kindParameter = osaf.pim.tasks.TaskMixin.getKind(repositoryView),
+        methodName = 'onClassParameterizedEvent',
+        classParameter = osaf.pim.tasks.TaskStamp,
         dispatchToBlockName = 'Sidebar').install(parcel)
 
     BlockEvent.template('EmptyTrash').install(parcel)

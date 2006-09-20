@@ -18,13 +18,14 @@ import time
 from osaf import sharing
 import osaf.pim.mail as Mail
 from repository.item.Item import Item
-from osaf.pim import ContentItem, Note, ContentCollection
+from osaf.pim import ContentItem, Note, ContentCollection, has_stamp
 import application.dialogs.Util as Util
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from osaf.usercollections import UserCollection
 from osaf.framework.blocks import Block, BlockEvent, debugName, getProxiedItem
 from application import schema
+from application.dialogs.RecurrenceDialog import getProxy
 from chandlerdb.util.c import issingleref
 
 # hack workaround for bug 4747
@@ -54,9 +55,10 @@ class FocusEventHandlers(Item):
         """ Return the sendable state of this item """
         assert item is not None
         item = getattr(item, 'proxiedItem', item)
-        getSendabilityMethod = getattr(type(item), "getSendability", None)
-        return getSendabilityMethod is None and 'not' \
-               or getSendabilityMethod(item)
+        if has_stamp(item, Mail.MailStamp):
+            return Mail.MailStamp(item).getSendability()
+        else:
+            return 'not'
     
     def __getSelectedItems(self, event=None):
         """ Get the list of items selected in this view. """
@@ -148,9 +150,10 @@ class FocusEventHandlers(Item):
             # For now, make sure we've got a 'from' string.
             # @@@ BJS: this'll go away when we change 'from' to an
             # account picker popup.
-            if isinstance (item, Mail.MailMessageMixin):
-                if unicode(item.fromAddress).strip() == u'':
-                    item.fromAddress = item.getCurrentMeEmailAddress()
+            if has_stamp(item, Mail.MailStamp):
+                mailObject = Mail.MailStamp(item)
+                if unicode(mailObject.fromAddress).strip() == u'':
+                    mailObject.fromAddress = mailObject.getCurrentMeEmailAddress()
 
             Block.Block.postEventByNameWithSender('SendMail', {'item': item})
 
@@ -193,33 +196,37 @@ class FocusEventHandlers(Item):
 
     def onFocusStampEvent(self, event):
         selectedItems = self.__getProxiedSelectedItems(event)
-        kindParam = event.kindParameter
-        stampClass = kindParam.getItemClass()
+        stampClass = event.classParameter
         if len(selectedItems) > 0:
             # we don't want to try to stamp non-Note content items (e.g. Collections)
-            states = [ (isinstance(item, Note), isinstance(item, stampClass))
+            states = [ (isinstance(item, Note),
+                        has_stamp(item, stampClass))
                              for item in selectedItems]
             isNote, isStamped = states[0]
             assert len(set(states)) == 1
             assert isNote
             # stamp all items selected
             if isStamped:
-                operation = 'remove'
+                def doit(item):
+                    stampClass(item).remove()
             else:
-                operation = 'add'
+                def doit(item):
+                    stampClass(item).add()
+                
             for item in selectedItems:
-                item.StampKind(operation, event.kindParameter)
+                doit()
 
     def onFocusStampEventUpdateUI(self, event):
         selectedItems = self.__getSelectedItems()
-        stampClass = event.kindParameter.getItemClass()
+        stampClass = event.classParameter
         if len(selectedItems) > 0:
             # Collect the states of all the items, so that we can change all
             # the items if they're all in the same state.
-            states = [ (isinstance(item, Note), isinstance(item, stampClass))
+            states = [ (isinstance(item, Note),
+                        has_stamp(item, stampClass))
                              for item in selectedItems]
-            isNote, isStamped = states[0]
             # we don't want to try to stamp non-Note content items (e.g. Collections)
+            isNote, isStamped = states[0]
             enable = isNote and len(set(states)) == 1 # all Notes with the same states?
             event.arguments['Enable'] = enable
             event.arguments['Check'] = enable and isStamped
@@ -230,7 +237,7 @@ class FocusEventHandlers(Item):
         pim_ns = schema.ns('osaf.pim', self.itsView)
         #selection = self.__getSelectedItems()
         #for selectedItem in selection:
-        if isinstance(selectedItem, Mail.MailMessageMixin):
+        if has_stamp(selectedItem, Mail.MailStamp):
             selectedItem = selectedItem.getMembershipItem()
             for otherCollection in selectedItem.appearsIn:
                 if otherCollection is pim_ns.inCollection:
@@ -249,13 +256,14 @@ class FocusEventHandlers(Item):
         # *could* select-all-reply
         for selectedItem in selection:
             if self.CanReplyOrForward(selectedItem):
-                replyMessage = replyMethod(self.itsView, selectedItem)
+                replyMessage = replyMethod(self.itsView,
+                                           Mail.MailStamp(selectedItem))
         # select the outbox collection if there was a reply
         if replyMessage is not None:
             sidebar = Block.Block.findBlockByName ("Sidebar")
             sidebar.select(pim_ns.outCollection)
             # select the last message replied/forwarded
-            main.MainView.selectItems([replyMessage])
+            main.MainView.selectItems([replyMessage.itsItem])
             # by default the "from" field is selected, which looks funny;
             # so switch focus to the message body, except for "Forward",
             # which goes to the "To" field
@@ -295,7 +303,6 @@ class FocusEventHandlers(Item):
 
 
     def onForwardEvent(self, event):
-        #import pdb;pdb.set_trace()
         self.onReplyOrForWardEvent(Mail.forwardMessage)
 
     def onForwardEventUpdateUI(self, event):
@@ -440,11 +447,14 @@ class FocusEventHandlers(Item):
         
         trash = schema.ns('osaf.pim', self.itsView).trashCollection
         if selectedCollection == trash:
-            for selectedItem in selection:
-                selectedItem.delete()
+            def removeItem(item):
+                item.delete()
         else:
-            for selectedItem in selection:
-                selectedItem.removeFromCollection(selectedCollection)
+            def removeItem(item):
+                item.removeFromCollection(selectedCollection)
+
+        for selectedItem in selection:
+            removeItem(getProxy(u'ui', selectedItem))
 
     def onDeleteEvent(self, event):
         # Destructive action, worth an extra assert
@@ -456,11 +466,14 @@ class FocusEventHandlers(Item):
 
         trash = schema.ns('osaf.pim', self.itsView).trashCollection
         if selectedCollection == trash:
-            for selectedItem in selection:
-                selectedItem.delete()
+            def deleteItem(item):
+                item.delete()
         else:
-            for selectedItem in selection:
-                selectedItem.addToCollection(trash)
+            def deleteItem(item):
+                item.addToCollection(trash)
+        
+        for selectedItem in selection:
+            deleteItem(getProxy(u'ui', selectedItem))
 
 def AllItemsInCollection(items, collection):
     """

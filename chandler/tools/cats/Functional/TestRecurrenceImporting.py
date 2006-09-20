@@ -44,7 +44,7 @@ class TestRecurrenceImporting(ChandlerTestCase):
         
         def VerifyEventCreation(title):
             self.logger.startAction("Verify event titled %s exists" % title)
-            testEvent = self.app_ns.item_named(pim.CalendarEvent, title)
+            testEvent = self.app_ns.item_named(pim.EventStamp, title)
             if testEvent is not None:
                 self.logger.endAction(True, " '%s' exists" % title)
             else:

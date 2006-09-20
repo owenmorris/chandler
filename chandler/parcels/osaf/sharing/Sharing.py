@@ -142,6 +142,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
         #     )
 
         LOCAL_CHANGES_WIN = False
+        
         if LOCAL_CHANGES_WIN:
             return getattr(item, attribute, Nil) # Change from *other* views
         else:
@@ -232,7 +233,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
             #
             # We need to detect/delete them from the repository.  This means
             # looking through the stats to find the items we just got, seeing
-            # which ones are CalendarEventMixin, and removing any that don't
+            # which ones have EventStamp, and removing any that don't
             # have a startTime.  Next, we need to adjust the manifests so that
             # during the PUT phase we don't remove the .xml resources from
             # the server
@@ -243,8 +244,9 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
                 share = metaView.findUUID(stat['share'])
                 for uuid in stat['added']:
                     item = contentView.findUUID(uuid)
-                    if isinstance(item, pim.CalendarEventMixin):
-                        if not hasattr(item, 'startTime'):
+                    if pim.has_stamp(item, pim.EventStamp):
+                        event = pim.EventStamp(item)
+                        if not hasattr(event, 'startTime'):
                             if updateCallback:
                                 updateCallback(msg=_(u"Incomplete Event Detected: '%(name)s'") % { 'name': item.getItemDisplayName() } )
 
@@ -292,9 +294,9 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
         for stat in stats:
             for uuid in stat['modified']:
                 item = contentView.findUUID(uuid)
-                if (isinstance(item, pim.CalendarEventMixin) and
-                    item.rruleset is not None):
-                    modifiedRecurringEvents.append(item)
+                if (pim.has_stamp(item, pim.EventStamp) and
+                    pim.EventStamp(item).rruleset is not None):
+                    modifiedRecurringEvents.append(pim.EventStamp(item))
 
         if modifiedRecurringEvents:
             # Refresh so that we can mess up all the occurrences
@@ -309,13 +311,12 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
                 # become a modification, which means we should
                 # call getMaster() here and not earlier when
                 # calculating modifiedRecurringEvents.
-                masterOccurrences = event.getMaster().occurrences
+                masterOccurrences = event.getMaster().occurrences or []
 
-                if masterOccurrences is not None:
-                    for occurrence in masterOccurrences:
-                        if (occurrence.rruleset is None or
-                            occurrence.rruleset.isDeferred()):
-                            occurrence.delete(recursive=True)
+                for occurrence in masterOccurrences:
+                    rruleset = pim.EventStamp(occurrence).rruleset
+                    if (rruleset is None or rruleset.isDeferred()):
+                        occurrence.delete(recursive=True)
 
 
         newItemsNeedsCalling = needsCalling(NEWITEMS)
@@ -474,9 +475,11 @@ class Share(pim.ContentItem):
     items = schema.Sequence(pim.ContentItem, initialValue=[],
         otherName = 'sharedIn')
 
-    conduit = schema.One('ShareConduit', inverse='share', initialValue=None)
+    conduit = schema.One(initialValue=None)
+    # inverse of ShareConduit.share
 
-    format = schema.One('ImportExportFormat',inverse='share',initialValue=None)
+    format = schema.One(initialValue=None)
+    # inverse of ImportExportFormat.share
 
     sharer = schema.One(
         pim.Contact,
@@ -500,6 +503,7 @@ class Share(pim.ContentItem):
 
     filterAttributes = schema.Sequence(schema.Text, initialValue=[])
 
+    # @@@ [grant] Try inverse, and explicit attributes
     leads = schema.Sequence('Share', initialValue=[], otherName='follows')
     follows = schema.One('Share', otherName='leads')
 
@@ -722,6 +726,20 @@ class ShareConduit(pim.ContentItem):
         return result
 
 
+    @staticmethod
+    def _matchesFilterClasses(item, filterClasses):
+        if not filterClasses:
+            return True
+
+        for cls in filterClasses or [type(item)]:
+            if issubclass(cls, pim.Stamp):
+                matches = pim.has_stamp(item, cls)
+            else:
+                matches = isinstance(item, cls)
+            if matches:
+                return True
+            else:
+                return False
 
     def _put(self, contentView, startVersion, endVersion, updateCallback=None,
         forceUpdate=None):
@@ -809,10 +827,9 @@ class ShareConduit(pim.ContentItem):
 
                             if item is not cvSelf.share and (
                                 item is None or
-                                item not in cvSelf.share.contents or (
-                                    filterClasses and
-                                    not isinstance(item, filterClasses)
-                                )
+                                item not in cvSelf.share.contents or 
+                                not self._matchesFilterClasses(item,
+                                                               filterClasses)
                             ):
 
                                 if updateCallback and updateCallback(msg=_(u"Removing item from server: '%(path)s'") % { 'path' : path }):
@@ -840,7 +857,7 @@ class ShareConduit(pim.ContentItem):
                         continue
 
                     # Skip any items not matching the filtered classes
-                    if filterClasses and not isinstance(item, filterClasses):
+                    if not self._matchesFilterClasses(item, filterClasses):
                         continue
 
                     # Put the item
@@ -924,7 +941,6 @@ class ShareConduit(pim.ContentItem):
 
 
     def _get(self, contentView, updateCallback=None, getPhrase=None):
-
         # cvSelf (contentViewSelf) is me as I was in the past
         cvSelf = contentView.findUUID(self.itsUUID)
 
@@ -1886,7 +1902,7 @@ class WebDAVConduit(ShareConduit):
             if getattr(self, 'ticket', False):
                 resource.ticketId = self.ticket
             # @@@ [grant] Error handling and reporting here
-            # are crapski
+            # are sub-optimal
             try:
                 self._getServerHandle().blockUntil(resource.propfind, depth=0)
             except zanshin.webdav.ConnectionError, err:
@@ -2595,6 +2611,55 @@ class ImportExportFormat(pim.ContentItem):
 class CloudXMLFormat(ImportExportFormat):
 
     cloudAlias = schema.One(schema.Text, initialValue='sharing')
+    
+    # The following attributes are used to make sure that Cloud XML
+    # is backwards compatible with the pre-annotation-as-stamping
+    # world.
+
+    # STAMP_MAP tells us what "old"-world class to use in place
+    # of a given Stamp subclass when writing out Cloud XML
+    STAMP_MAP = {
+        pim.EventStamp: 'osaf.pim.calendar.Calendar.CalendarEvent',
+        pim.TaskStamp: 'osaf.pim.tasks.Task',
+        pim.mail.MailStamp: 'osaf.pim.mail.MailMessage',
+    }
+    
+    # CLASS_NAME_TO_STAMP tells us how to map a share's filterClasses
+    # attribute between the "old" and "new" world..
+    CLASS_NAME_TO_STAMP  = dict(
+        (clsName + "Mixin", "%s.%s" % (cls.__module__, cls.__name__))
+            for cls, clsName in STAMP_MAP.iteritems()
+    )
+
+    
+    # ELEMENT_MAP has XML element names as keys, and tuples
+    # of stamp classes as values. It tells us what stamps
+    # to use for a given Cloud XML element.
+    ELEMENT_MAP = {
+        'CalendarEvent': (pim.EventStamp,),
+        'Task': (pim.TaskStamp,),
+        'MailMessage': (pim.mail.MailStamp,),
+        # The following are entries for pre-fab combinations
+        # of Mixin classes in the old world.
+        'MailedEvent': (pim.EventStamp, pim.mail.MailStamp),
+        'MailedTask': (pim.TaskStamp, pim.mail.MailStamp),
+    }
+    
+    # In the old world, pim.mail defined all these classes as subclasses
+    # of ContentItem, and then made MailMessageMixin a subclass of
+    # MIMEContainer. In the new world, MailStamp (the equivalent of
+    # MailMessageMixin) can't inherit from ContentItem (since it's an
+    # Annotation), and so these classes all inherit from Annotation.
+    # This makes it hard to figure out what to write out for a given
+    # MIME object.
+    MIME_CLASSES = (
+        pim.mail.MIMEBase,
+        pim.mail.MIMENote,
+        pim.mail.MIMEContainer,
+        pim.mail.MIMEBinary,
+        pim.mail.MIMESecurity,
+        pim.mail.MIMEText,
+    )
 
     def fileStyle(self):
         return self.STYLE_DIRECTORY
@@ -2626,8 +2691,6 @@ class CloudXMLFormat(ImportExportFormat):
 
         return item
 
-
-
     def exportProcess(self, item, depth=0, items=None):
 
         if items is None:
@@ -2640,9 +2703,6 @@ class CloudXMLFormat(ImportExportFormat):
             result = ''
             versionString = ''
 
-        # Collect the set of attributes that are used in this format
-        attributes = self.share.getSharedAttributes(item)
-
         indent = "   "
 
         if items.has_key(item.itsUUID):
@@ -2654,34 +2714,135 @@ class CloudXMLFormat(ImportExportFormat):
         items[item.itsUUID] = 1
 
         result += indent * depth
+        
+        stampClasses = None
+        
+        try:
+            stampClasses = set(pim.Stamp(item).stamp_types)
+        except TypeError:
+            pass
 
-        if item.itsKind.isMixin():
-            classNames = []
-            for kind in item.itsKind.superKinds:
-                klass = kind.classes['python']
-                className = "%s.%s" % (klass.__module__, klass.__name__)
-                classNames.append(className)
-            classes = ",".join(classNames)
+        if stampClasses:
+            # Figure out the element name
+            
+            for eltName, eltStampClasses in self.ELEMENT_MAP.iteritems():
+                if set(eltStampClasses) == stampClasses:
+                    elementName = eltName
+                    classes = ",".join(self.STAMP_MAP[cls]
+                                       for cls in eltStampClasses)
+                    break
+            else:
+                raise VersionMismatch, "Can't match stamp classes '%s'" % (stampClasses,)
+
         else:
-            klass = item.itsKind.classes['python']
-            classes = "%s.%s" % (klass.__module__, klass.__name__)
+            elementName = item.itsKind.itsName
+            if item.itsKind.isMixin():
+                classNames = []
+                for kind in item.itsKind.superKinds:
+                    klass = kind.classes['python']
+                    className = "%s.%s" % (klass.__module__, klass.__name__)
+                    classNames.append(className)
+                classes = ",".join(classNames)
+            else:
+                klass = item.itsKind.classes['python']
+                classes = "%s.%s" % (klass.__module__, klass.__name__)
 
-        result += "<%s %sclass='%s' uuid='%s'>\n" % (item.itsKind.itsName,
+        # Collect the set of attributes that are used in this format
+        def getNameAndAttributes():
+            attributes = self.share.getSharedAttributes(item)
+            hasMailStamp = pim.has_stamp(item, pim.mail.MailStamp)
+            attrs = []
+            mailClass = None
+            
+            if hasMailStamp and not pim.mail.MailStamp.subject.name in attributes:
+                attributes.append(pim.mail.MailStamp.subject.name)
+            
+            for attrName in attributes:
+            
+                # @@@ [grant] A hack; cloud xml seems to write out 'subject'
+                # sometimes, and 'displayName' @ others. This might have
+                # something to do with the order of redirected attributes?
+                if hasMailStamp and attrName in ('displayName', 'title'):
+                    continue
+                
+                    
+                splitComponents = attrName.rsplit(".", 1)
+                
+                if len(splitComponents) == 2: # an "annotation" attribute
+                    try:
+                        annotationClass = schema.importString(splitComponents[0])
+                    except ImportError:
+                        # raise? how did this happen, eh?
+                        continue
+
+                    if annotationClass in self.MIME_CLASSES:
+                        # Here, we decide that we should use annotationClass
+                        # for writing out the element if it turns out
+                        # that item has a value for the attribute, and
+                        # that value isn't the same is the attribute's
+                        # initialValue....
+                        if not hasattr(item, attrName):
+                            continue
+                        
+                        initial = item.getAttributeAspect(attrName,
+                                                          'initialValue')
+                        itemValue = getattr(item, attrName)
+                        
+                        if (item.getAttributeAspect(attrName, 'cardinality') ==
+                            'list'):
+                            itemValue = list(itemValue)
+                        
+                        # ... with the exception of hasMimeParts and
+                        # mimeParts, which always seem to have been written
+                        # in the "old" world.
+                        if ( (not (hasMailStamp and splitComponents[-1] in
+                                ('hasMimeParts', 'mimeParts'))) and
+                                itemValue == initial ):
+                            continue
+                            
+                        if mailClass is None:
+                            mailClass = annotationClass
+                        elif issubclass(annotationClass, mailClass):
+                            mailClass = annotationClass
+
+                    elif not annotationClass in (stampClasses or []):
+                        continue
+
+                if not hasattr(item, attrName):
+                    continue
+                    
+                attrs.append((splitComponents[-1], attrName))
+                
+            if mailClass is not None and not hasMailStamp:
+                # Here, we base the XML element name we write out
+                # (e.g. MIMEBinary vs MIMEText) on the Content-Type
+                # of the MIME part.
+                if mailClass == pim.mail.MIMENote:
+                    if getattr(item, mailClass.mimeType.name,
+                               "text/plain").startswith("text/"):
+                        mailClass = pim.mail.MIMEText
+                    else:
+                        mailClass = pim.mail.MIMEBinary
+                        
+                return mailClass.__name__, "%s.%s" % (mailClass.__module__, mailClass.__name__), attrs
+            else:
+                return elementName, classes, attrs
+                
+        elementName, classes, attributes = getNameAndAttributes()
+
+        result += "<%s %sclass='%s' uuid='%s'>\n" % (elementName,
                                                     versionString,
                                                     classes,
                                                     item.itsUUID)
 
         depth += 1
+        
 
-        for attrName in attributes:
-
-            if not hasattr(item, attrName):
-                continue
+        for attrXmlName, attrName in attributes:
 
             attrValue = item.getAttributeValue(attrName)
             if attrValue is None:
                 continue
-
 
             otherName = item.itsKind.getOtherName(attrName, item, None)
             cardinality = item.getAttributeAspect(attrName, 'cardinality')
@@ -2690,7 +2851,7 @@ class CloudXMLFormat(ImportExportFormat):
             result += indent * depth
 
             if otherName: # it's a bidiref
-                result += "<%s>\n" % attrName
+                result += "<%s>\n" % attrXmlName
 
                 if cardinality == 'single':
                     if attrValue is not None:
@@ -2714,7 +2875,7 @@ class CloudXMLFormat(ImportExportFormat):
                 if attrName == 'title':
                     result += "<%s" % 'displayName'
                 else:
-                    result += "<%s" % attrName
+                    result += "<%s" % attrXmlName
 
                 if cardinality == 'single':
 
@@ -2724,9 +2885,6 @@ class CloudXMLFormat(ImportExportFormat):
                     else:
                         (mimeType, encoding, attrValue) = \
                             serializeLiteral(attrValue, attrType)
-                        attrValue = attrValue.replace('&', '&amp;')
-                        attrValue = attrValue.replace('<', '&lt;')
-                        attrValue = attrValue.replace('>', '&gt;')
 
                         # @@@MOR 0.6 sharing compatibility
                         # Pretend body is a Lob for the benefit of 0.6 clients
@@ -2734,6 +2892,10 @@ class CloudXMLFormat(ImportExportFormat):
                             mimeType = "text/plain"
                             encoding = "utf-8"
                             attrValue = base64.b64encode(attrValue)
+                        else:
+                            attrValue = attrValue.replace('&', '&amp;')
+                            attrValue = attrValue.replace('<', '&lt;')
+                            attrValue = attrValue.replace('>', '&gt;')
 
                         if mimeType:
                             result += " mimetype='%s'" % mimeType
@@ -2749,6 +2911,37 @@ class CloudXMLFormat(ImportExportFormat):
                     result += ">"
                     depth += 1
                     result += "\n"
+                    
+                    if isinstance(item, Share):
+                    
+                        if attrXmlName == "filterAttributes":
+                            # In the stamping-as-annotation world, all the
+                            # attribute names in Share.filterAttributes are
+                            # annotation attributes; i.e. they are prefixed
+                            # by the 'fully-qualified' annotation class name.
+                            # The following makes sure that we share only the
+                            # part of the name after the last '.'; note that
+                            # it still works if rfind fails (i.e. returns -1)
+                            # 
+                            attrValue = list(x[x.rfind(".")+1:]
+                                             for x in attrValue)
+                        elif (attrXmlName == "filterClasses") and attrValue:
+                            # Similarly, since the class names have changed
+                            # (from xxxMixin to xxxStamp) some translation
+                            # is needed for Share.filterClasses
+                            newValues = []
+                            for value in attrValue:
+                                try:
+                                    cls = schema.importString(value)
+                                except ImportError:
+                                    pass
+                                else:
+                                    value = self.STAMP_MAP.get(cls, value)
+                                    if not value.endswith('Mixin'):
+                                        value += 'Mixin'
+                                newValues.append(value)
+                            attrValue = newValues
+                                
 
                     for value in attrValue:
                         result += indent * depth
@@ -2786,11 +2979,11 @@ class CloudXMLFormat(ImportExportFormat):
             if attrName == 'title':
                 result += "</%s>\n" % 'displayName'
             else:
-                result += "</%s>\n" % attrName
+                result += "</%s>\n" % attrXmlName
 
         depth -= 1
         result += indent * depth
-        result += "</%s>\n" % item.itsKind.itsName
+        result += "</%s>\n" % elementName
         return result
 
 
@@ -2824,6 +3017,15 @@ class CloudXMLFormat(ImportExportFormat):
         view = contentView
         kind = None
         kinds = []
+        
+        stampClasses = self.ELEMENT_MAP.get(element.tag, [])
+
+        if stampClasses:
+            for cls in stampClasses:
+                kind = cls.targetType().getKind(view)
+                if not kind in kinds:
+                    kinds.append(kind)
+            
 
         versionString = element.get('version')
         if versionString and versionString != CLOUD_XML_VERSION:
@@ -2847,13 +3049,25 @@ class CloudXMLFormat(ImportExportFormat):
         if classNameList:
             classNameList = classNameList.split(",")
             for classPath in classNameList:
-                try:
-                    klass = schema.importString(classPath)
-                    kind = klass.getKind(view)
-                    if kind is not None:
-                        kinds.append(kind)
-                except ImportError:
-                    pass
+                if stampClasses:
+                    for cls, clsPath in self.STAMP_MAP.iteritems():
+                        if clsPath == classPath:
+                            if not cls in stampClasses:
+                                stampClasses.append(cls)
+                            break
+                else:
+                    try:
+                        klass = schema.importString(classPath)
+                    except ImportError:
+                        pass
+                    else:
+                        if klass in self.MIME_CLASSES:
+                            kind = schema.itemFor(klass.targetType(), view)
+                        else:
+                            kind = klass.getKind(view)
+
+                        if kind is not None:
+                            kinds.append(kind)
         else:
             # No kind means we're simply looking up an item by uuid and
             # returning it
@@ -2901,8 +3115,6 @@ class CloudXMLFormat(ImportExportFormat):
             if stats and uuid not in stats['modified']:
                 stats['modified'].append(uuid)
 
-
-
         # we have an item, now set attributes
 
         # Set a temporary attribute that items can check to see if they're in
@@ -2911,15 +3123,26 @@ class CloudXMLFormat(ImportExportFormat):
 
         try:
             attributes = self.share.getSharedAttributes(item)
-            for attrName in attributes:
+            
+            if (pim.mail.MailStamp in stampClasses and 
+                not pim.mail.MailStamp.subject.name in attributes):
+                    attributes.append(pim.mail.MailStamp.subject.name)
+
+            for attrName in attributes:                
 
                 # Since 'displayName' is being renamed 'title', let's keep
                 # existing shares backwards-compatible and continue to read/
                 # write 'displayName':
                 if attrName == 'title':
-                    attrElement = self._getElement(element, 'displayName')
+                    elementName = 'displayName'
                 else:
-                    attrElement = self._getElement(element, attrName)
+                    lastDot = attrName.rfind(".")
+                    if lastDot != -1:
+                        elementName = attrName[lastDot + 1:]
+                    else:
+                        elementName = attrName
+
+                    attrElement = self._getElement(element, elementName)
 
                 if attrElement is None:
                     if item.hasLocalAttributeValue(attrName):
@@ -3013,6 +3236,10 @@ class CloudXMLFormat(ImportExportFormat):
                             setattr(item, attrName, value)
 
                     elif cardinality == 'list':
+                        isFilterAttributes = (attrName == 'filterAttributes' and
+                                              isinstance(item, Share))
+                        isFilterClasses = (attrName == 'filterClasses' and
+                                              isinstance(item, Share))
 
                         values = []
                         for child in attrElement.getchildren():
@@ -3035,6 +3262,25 @@ class CloudXMLFormat(ImportExportFormat):
                                 content = unicode(child.text or u"")
                                 value = attrType.makeValue(content)
 
+                            # For Share.filterAttributes, we need to map
+                            # 'unqualified' attribute names to annotation-
+                            # style ones. To do this, we look through all
+                            # the Stamp classes we know, as well as
+                            # pim.Remindable, to find a matching attribute.
+                            # There is an inverse hack to this in exportProcess.
+                            if isFilterAttributes:
+                                for cls in self.STAMP_MAP.iterkeys():
+                                    schemaAttr = getattr(cls, value, None)
+                                    if schemaAttr is not None:
+                                        break
+                                else:
+                                    schemaAttr = getattr(pim.Remindable, value, None)
+
+                                if schemaAttr is not None:
+                                    value = schemaAttr.name
+                                    
+                            if isFilterClasses:
+                                value = self.CLASS_NAME_TO_STAMP.get(value, value)
 
                             values.append(value)
 
@@ -3045,6 +3291,11 @@ class CloudXMLFormat(ImportExportFormat):
 
                     elif cardinality == 'dict':
                         pass
+
+            # Lastly, install stamps as needed
+            for cls in stampClasses:
+                if not pim.has_stamp(item, cls):
+                    cls(item).add()
 
         finally:
             del item._share_importing

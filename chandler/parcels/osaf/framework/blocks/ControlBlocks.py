@@ -37,7 +37,7 @@ import application.dialogs.RecurrenceDialog as RecurrenceDialog
 import Styles
 from datetime import datetime, time, timedelta
 from osaf.pim.calendar import Calendar
-from osaf.pim import Reminder, TriageEnum
+from osaf.pim import EventStamp, Remindable, TriageEnum
 from repository.item.Monitors import Monitors
 from i18n import ChandlerMessageFactory as _
 
@@ -271,15 +271,15 @@ class HTML(RectangularChild):
 class columnType(schema.Enumeration):
     """
     Indicates the type of the value used in the column, that
-    determines the way that attributeName or kind is used
+    determines the way that attributeName or stamp is used
 
     An 'attribute' column gets the value of the item using
     attributeName as the attribute name.
 
-    A 'kind' column gets the value of the item passing kind
+    A 'stamp' column gets the value of the item passing stamp
     to the attribute editor.
     """
-    values = 'attribute', 'kind'
+    values = 'attribute', 'stamp'
 
 
 class Column(schema.Item):
@@ -313,9 +313,8 @@ class Column(schema.Item):
     useSortArrows = schema.One(schema.Boolean, defaultValue=True,
                                doc="Show arrows when sorting by this column?")
     
-    kind = schema.One(schema.Kind, 
-                      doc="The Kind used "
-                      "for 'kind' columns")
+    stamp = schema.One(schema.Class, doc="The pim.Stamp class "
+                      "for 'stamp' columns")
 
     width = schema.One(schema.Integer,  defaultValue = 20,
                        doc="The width of the column, "
@@ -326,14 +325,14 @@ class Column(schema.Item):
     scaleColumn = schema.One(schema.Boolean, defaultValue = False)
     readOnly = schema.One(schema.Boolean, initialValue=False)
     defaultSort = schema.One(schema.Boolean, initialValue=False)
-    
+      
     schema.addClouds(
-        copying = schema.Cloud(byRef=[kind])
+        copying = schema.Cloud(byRef=[stamp])
     )
 
     def getAttributeEditorValue(self):
-        if self.valueType == 'kind':
-            return self.kind
+        if self.valueType == 'stamp':
+            return self.stamp
         else:
             return self.attributeName
         
@@ -410,8 +409,8 @@ class AttributeDelegate (ListDelegate):
         else:
             col = self.blockItem.columns[column]
             
-            if col.valueType == 'kind':
-                typeName = col.kind.itsName
+            if col.valueType == 'stamp':
+                typeName = col.stamp.__name__ # ?
                 
             elif col.valueType == 'attribute':
                 attributeName = col.attributeName
@@ -452,8 +451,8 @@ class AttributeDelegate (ListDelegate):
         itemIndex = self.RowToIndex(row)
         assert itemIndex != -1
         
-        # just for now, you can't 'set' a kind
-        assert self.blockItem.columns[column].valueType != 'kind'
+        # just for now, you can't 'set' a stamp
+        assert self.blockItem.columns[column].valueType != 'stamp'
         
         item = self.blockItem.contents [itemIndex]
         attributeName = self.blockItem.columns[column].attributeName
@@ -462,7 +461,7 @@ class AttributeDelegate (ListDelegate):
 
     def GetColumnHeading (self, column, item):
         col = self.blockItem.columns[column]
-        if col.valueType == 'kind':
+        if col.valueType == 'stamp':
             return col.heading
 
         attributeName = col.attributeName
@@ -1056,11 +1055,11 @@ class Timer(Block):
             elif millisecondsUntilFiring > sys.maxint:
                 millisecondsUntilFiring = sys.maxint
 
-            logger.debug("*** setFiringTime: will fire at %s in %s minutes" 
+            logger.warning("*** setFiringTime: will fire at %s in %s minutes" 
                          % (when, millisecondsUntilFiring / 60000))
             timer.Start(millisecondsUntilFiring, True)
         else:
-            logger.debug("*** setFiringTime: No new time.")
+            logger.warning("*** setFiringTime: No new time.")
             pass
 
 class ReminderTimer(Timer):
@@ -1069,12 +1068,12 @@ class ReminderTimer(Timer):
     """
     
     def synchronizeWidget (self, *args, **kwds):
-        logger.debug("*** Synchronizing ReminderTimer widget!")
+        logger.warning("*** Synchronizing ReminderTimer widget!")
         super(ReminderTimer, self).synchronizeWidget(*args, **kwds)
         if not wx.GetApp().ignoreSynchronizeWidget:
             self.primeReminderTimer()
     
-    def getPendingReminders (self):
+    def getPendingReminders(self):
         """
         Return a list of all reminder tuples with fire times in the past, 
         sorted by reminderTime.
@@ -1087,7 +1086,7 @@ class ReminderTimer(Timer):
         now = datetime.now(PyICU.ICUtzinfo.default)
 
         def matches(key):
-            if view[key].nextReminderTime <= now:
+            if Remindable(view[key]).nextReminderTime <= now:
                 return 0
             return -1
 
@@ -1095,7 +1094,7 @@ class ReminderTimer(Timer):
         lastPastKey = itemsWithReminders.findInIndex('reminderTime', 'last', matches)
 
         if lastPastKey is not None:
-            return [item.getNextReminderTuple()
+            return [Remindable(item).getNextReminderTuple()
                     for item in (view[key] for key in
                      itemsWithReminders.iterindexkeys('reminderTime', None, lastPastKey))]
 
@@ -1103,7 +1102,7 @@ class ReminderTimer(Timer):
     
     def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary
-        logger.debug("*** Got reminders time event!")
+        logger.warning("*** Got reminders time event!")
         self.primeReminderTimer()
 
     def primeReminderTimer(self):
@@ -1112,7 +1111,7 @@ class ReminderTimer(Timer):
         """
         # Ignore prime calls while we're priming
         if getattr(self, '_inPrimeReminderTimer', False):
-            logger.debug("(** skipping recursive call to primeReminderTimer")
+            logger.warning("(** skipping recursive call to primeReminderTimer")
             return
         
         self._inPrimeReminderTimer = True
@@ -1130,8 +1129,8 @@ class ReminderTimer(Timer):
                     def processReminder((reminderTime, remindable, reminder)):
                         logger.debug("*** now-ing %s due to %s", remindable, 
                                      reminder)
-                        remindable.triageStatus = TriageEnum.now
-                        remindable.setTriageStatusChanged(when=reminderTime)
+                        remindable.itsItem.triageStatus = TriageEnum.now
+                        remindable.itsItem.setTriageStatusChanged(when=reminderTime)
                         if reminder.isDeleted():
                             logger.critical("Found deleted reminder on %r %s at %s",
                                             remindable, remindable,
@@ -1164,7 +1163,7 @@ class ReminderTimer(Timer):
                 itemsWithReminders = schema.ns('osaf.pim', self.itsView).itemsWithReminders
                 firstReminder = itemsWithReminders.firstInIndex('reminderTime')
                 if firstReminder is not None:
-                    nextReminderTime = firstReminder.nextReminderTime
+                    nextReminderTime = Remindable(firstReminder).nextReminderTime
     
             if closeIt:
                 self.closeReminderDialog()
@@ -1196,7 +1195,7 @@ class ReminderTimer(Timer):
             reminderDialog.Destroy()
 
     def setFiringTime(self, when):
-        logger.debug("*** next reminder due %s", when)
+        logger.warning("*** next reminder due %s", when)
         super(ReminderTimer, self).setFiringTime(when)
 
 class PresentationStyle(schema.Item):
@@ -1304,7 +1303,7 @@ class AEBlock(BoxContainer):
                                       self.parentBlock.widget,
                                       self.getWidgetID(), self, font)
         widget.SetFont(font)
-        # logger.debug("Instantiated a %s, forEditing = %s" % (widget, forEditing))
+        # logger.warning("Instantiated a %s, forEditing = %s" % (widget, forEditing))
 
         # Cache a little information in the widget.
         widget.editor = editor
@@ -1315,7 +1314,7 @@ class AEBlock(BoxContainer):
 
         return widget
 
-    def synchronizeWidget (self, useHints=False):
+    def synchronizeWidget(self, useHints=False):
         """
         Override to call the editor to do the synchronization.
 
@@ -1405,7 +1404,7 @@ class AEBlock(BoxContainer):
                 #   making BeginControlEdit on those ctrls call wx.SetEditable
                 #   (or not) when appropriate.
                 assert False, "Please let Bryan know you've found a case where this happens!"
-                logger.debug("AEBlock.lookupEditor %s: Rerendering", 
+                logger.warning("AEBlock.lookupEditor %s: Rerendering", 
                              getattr(self, 'blockName', '?'))
                 self.unRender()
                 self.render()
@@ -1413,10 +1412,10 @@ class AEBlock(BoxContainer):
                 return getattr(self.widget, 'editor', None)
 
         # We need a new editor - create one.
-        #logger.debug("Creating new AE for %s (%s.%s), ro=%s", 
+        #logger.warning("Creating new AE for %s (%s.%s), ro=%s", 
                      #typeName, item, attributeName, readOnly)
-        selectedEditor = AttributeEditors.getInstance\
-                       (typeName, cardinality, item, attributeName, readOnly, presentationStyle)
+        selectedEditor = AttributeEditors.getInstance(typeName, cardinality,
+                            item, attributeName, readOnly, presentationStyle)
 
         # Note the characteristics that made us pick this editor
         selectedEditor.typeName = typeName
@@ -1453,11 +1452,11 @@ class AEBlock(BoxContainer):
         else:
             result = not isAttrModifiable(attributeName)
 
-        #logger.debug("AEBlock: %s %s readonly", attributeName,
+        #logger.warning("AEBlock: %s %s readonly", attributeName,
                      #result and "is" or "is not")
         return result
 
-    def onSetContentsEvent (self, event):
+    def onSetContentsEvent(self, event):
         self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
         assert not hasattr(self, 'widget')
@@ -1509,7 +1508,7 @@ class AEBlock(BoxContainer):
         @param event: The wx event representing the click
         @type event: wx.Event
         """
-        #logger.debug("AEBlock: %s widget got clicked on", self.attributeName)
+        #logger.warning("AEBlock: %s widget got clicked on", self.attributeName)
 
         # If the widget didn't get focus as a result of the click,
         # grab focus now.
@@ -1519,7 +1518,7 @@ class AEBlock(BoxContainer):
         if oldFocus is not self:
             Block.finishEdits(oldFocus) # finish any edits in progress
 
-            #logger.debug("Grabbing focus.")
+            #logger.warning("Grabbing focus.")
             wx.Window.SetFocus(self.widget)
 
         event.Skip()
@@ -1531,7 +1530,7 @@ class AEBlock(BoxContainer):
         @param event: The wx event representing the lose-focus event
         @type event: wx.Event
         """
-        #logger.debug("AEBlock: %s, widget losing focus" % self.blockName)
+        #logger.warning("AEBlock: %s, widget losing focus" % self.blockName)
         
         if event is not None:
             event.Skip()
@@ -1539,7 +1538,7 @@ class AEBlock(BoxContainer):
         # Workaround for wx Mac crash bug, 2857: ignore the event if we're being deleted
         widget = getattr(self, 'widget', None)
         if widget is None or widget.IsBeingDeleted() or widget.GetParent().IsBeingDeleted():
-            #logger.debug("AEBlock: skipping onLoseFocus because the widget is being deleted.")
+            #logger.warning("AEBlock: skipping onLoseFocus because the widget is being deleted.")
             return
 
         # Make sure the value is written back to the item. 

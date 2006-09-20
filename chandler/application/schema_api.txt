@@ -307,6 +307,32 @@ Test error messages:
     Traceback (most recent call last):
       ...
     TypeError: 'foo' is not a schema.Descriptor (One, Many, Sequence, etc.)
+    
+Test observers on Annotations:
+
+   >>> class ExampleAnnotation(schema.Annotation):
+   ...     schema.kindInfo(annotates=schema.Item)
+   ...     blat = schema.One(schema.Integer)
+   ...     @schema.observer(blat)
+   ...     def blat_changed(self, op, name):
+   ...         print "%s changed (%s) in ExampleAnnotation" % (name, op)
+    >>> rv = NullRepositoryView(verify=True)
+    >>> e = ExampleAnnotation(schema.Item(itsView = rv))
+    >>> e.blat = 1
+    application.tests.ExampleAnnotation.blat changed (set) in ExampleAnnotation
+    >>> del e.blat
+    application.tests.ExampleAnnotation.blat changed (remove) in ExampleAnnotation
+
+   >>> class ExampleAnnotation2(schema.Annotation):
+   ...     schema.kindInfo(annotates=schema.Item)
+   ...     blat = schema.One(schema.Integer)
+   ...     @schema.observer(blat)
+   ...     def __blat_changed(self, op, name):
+   ...         print "%s changed (%s) in ExampleAnnotation2" % (name, op)
+    >>> rv = NullRepositoryView(verify=True)
+    >>> e = ExampleAnnotation2(schema.Item(itsView = rv))
+    >>> e.blat = 1
+    application.tests.ExampleAnnotation2.blat changed (set) in ExampleAnnotation2
 
 
 

@@ -29,7 +29,7 @@ Issues:
  - Consider using the common icalendar task attributes (i.e.
    percentComplete)
 """
-from Calendar import Calendar as __Calendar
-from Calendar import CalendarEvent, CalendarEventMixin, Location, RecurrencePattern
+from Calendar import EventStamp as __EventStamp
+from Calendar import EventStamp, Location, RecurrencePattern
 
 from TimeZone import TimeZoneInfo, formatTime, shortTZ

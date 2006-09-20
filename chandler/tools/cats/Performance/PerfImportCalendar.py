@@ -30,7 +30,7 @@ class PerfImportCalendar(ChandlerTestCase):
         # verification
         def VerifyEventCreation(title):
             self.logger.startAction("Testing event creation " + title )
-            testEvent = self.app_ns.item_named(pim.CalendarEvent, title)
+            testEvent = self.app_ns.item_named(pim.EventStamp, title)
             if testEvent is not None:
                 self.logger.endAction(True, "Testing event creation: '%s'" % title)
             else:

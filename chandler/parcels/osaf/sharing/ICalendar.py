@@ -23,7 +23,8 @@ __all__ = [
 
 import Sharing
 import application.Parcel
-from osaf.pim import ContentCollection, SmartCollection, CalendarEventMixin, CalendarEvent
+from osaf.pim import (ContentCollection, SmartCollection, Remindable,
+                      EventStamp, CalendarEvent, has_stamp)
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet
 import osaf.pim.calendar.TimeZone as TimeZone
@@ -67,8 +68,8 @@ def itemsToVObject(view, items, cal=None, filters=None):
 
     """
 
-    def populate(comp, item):
-        """Populate the given vobject vevent with data from item."""
+    def populateEvent(comp, event):
+        """Populate the given vobject vevent with data from event."""
         
         def makeDateTimeValue(dt, asDate=False):
             if asDate:
@@ -78,9 +79,11 @@ def itemsToVObject(view, items, cal=None, filters=None):
             else:
                 return dt
         
-        if item.getAttributeValue('icalUID', default=None) is None:
+        item = event.itsItem
+        
+        if item.getAttributeValue(EventStamp.icalUID.name, default=None) is None:
             item.icalUID = unicode(item.itsUUID)
-        comp.add('uid').value = item.icalUID
+        comp.add('uid').value = event.icalUID
 
         try:
             comp.add('summary').value = item.displayName
@@ -91,41 +94,41 @@ def itemsToVObject(view, items, cal=None, filters=None):
             dtstartLine = comp.add('dtstart')
             
             # allDay-ness overrides anyTime-ness
-            if item.anyTime and not item.allDay:
+            if event.anyTime and not event.allDay:
                 dtstartLine.x_osaf_anytime_param = 'TRUE'
                 
-            dtstartLine.value = makeDateTimeValue(item.startTime,
-                                    item.anyTime or item.allDay)
+            dtstartLine.value = makeDateTimeValue(event.startTime,
+                                    event.anyTime or event.allDay)
 
         except AttributeError:
             comp.dtstart = [] # delete the dtstart that was added
         
         try:
-            if not (item.duration == datetime.timedelta(0) or (
-                    (item.anyTime or item.allDay) and 
-                    item.duration <= oneDay)):
+            if not (event.duration == datetime.timedelta(0) or (
+                    (event.anyTime or event.allDay) and 
+                    event.duration <= oneDay)):
                 dtendLine = comp.add('dtend')
                 #convert Chandler's notion of allDay duration to iCalendar's
-                if item.allDay:
-                    dtendLine.value = item.endTime.date() + oneDay
+                if event.allDay:
+                    dtendLine.value = event.endTime.date() + oneDay
                 else:
-                    if item.anyTime:
+                    if event.anyTime:
                         dtendLine.x_osaf_anytime_param = 'TRUE'
 
                     # anyTime should be exported as allDay for non-Chandler apps
-                    dtendLine.value = makeDateTimeValue(item.endTime,
-                                                        item.anyTime)
+                    dtendLine.value = makeDateTimeValue(event.endTime,
+                                                        event.anyTime)
 
         except AttributeError:
             comp.dtend = [] # delete the dtend that was added
             
 
-        if not filters or "transparency" not in filters:
+        if not filters or EventStamp.transparency.name not in filters:
             try:
-                status = item.transparency.upper()
+                status = event.transparency.upper()
                 # anytime events should be interpreted as not taking up time,
                 # but all-day shouldn't
-                if status == 'FYI' or (not item.allDay and item.anyTime):
+                if status == 'FYI' or (not event.allDay and event.anyTime):
                     status = 'CANCELLED'
                 comp.add('status').value = status
             except AttributeError:
@@ -137,41 +140,42 @@ def itemsToVObject(view, items, cal=None, filters=None):
             pass
         
         try:
-            comp.add('location').value = item.location.displayName
+            comp.add('location').value = event.location.displayName
         except AttributeError:
             pass
 
-        if not filters or "reminders" not in filters:
-            firstReminder = item.getUserReminder()
+        if not filters or Remindable.reminders.name not in filters:
+            firstReminder = Remindable(item).getUserReminder()
             if firstReminder is not None:
                 if firstReminder.absoluteTime is not None:
                     value = firstReminder.absoluteTime
                 else:
                     # @@@ For now, all relative reminders are relative to starttime
-                    assert firstReminder.relativeTo == 'effectiveStartTime'
+                    assert firstReminder.relativeTo == EventStamp.effectiveStartTime.name
                     value = firstReminder.delta
                 comp.add('valarm').add('trigger').value = value
         
-        if item.getAttributeValue('modificationFor', default=None) is not None:
+        if event.modificationFor is not None:
             recurrenceid = comp.add('recurrence-id')
-            master = item.getMaster()
-            allDay = master.allDay or master.anyTime
+            masterEvent = event.getMaster()
+            allDay = masterEvent.allDay or masterEvent.anyTime
             
-            recurrenceid.value = makeDateTimeValue(item.recurrenceID, allDay)
+            recurrenceid.value = makeDateTimeValue(event.recurrenceID, allDay)
         
         # logic for serializing rrules needs to move to vobject
         try: # hack, create RRULE line last, because it means running transformFromNative
-            if item.getMaster() == item and item.rruleset is not None:
+            if event.getMaster().itsItem is event.itsItem and event.rruleset is not None:
                 # False because we don't want to ignore isCount for export
                 # True because we don't want to use ICUtzinfo.floating
-                cal.vevent_list[-1].rruleset = item.createDateUtilFromRule(False, True)
+                cal.vevent_list[-1].rruleset = event.createDateUtilFromRule(False, True)
         except AttributeError:
             pass
-        # end of populate function
+        # end of populateEvent function
 
-    def populateModifications(item, cal):
-        for modification in item.getAttributeValue('modifications', default=[]):
-            populate(cal.add('vevent'), modification)
+    def populateModifications(event, cal):
+        for modification in itertools.imap(EventStamp,
+                                           event.modifications or []):
+            populateEvent(cal.add('vevent'), modification)
             if modification.modifies == 'thisandfuture':
                 populateModifications(modification, cal)
         #end helper functions
@@ -181,14 +185,15 @@ def itemsToVObject(view, items, cal=None, filters=None):
     for item in items: # main loop
         try:
             # ignore any events that aren't masters
-            if item.getMaster() == item:
-                populate(cal.add('vevent'), item)
+            event = EventStamp(item)
+            if event.getMaster() == event:
+                populateEvent(cal.add('vevent'), event)
             else:
                 continue
         except:
             continue
         
-        populateModifications(item, cal)
+        populateModifications(event, cal)
 
     return cal
 
@@ -205,7 +210,8 @@ def itemsToFreeBusy(view, start, end, calname = None):
     all = schema.ns("osaf.pim", view).allCollection
     normal    = Calendar.eventsInRange(view, start, end, all)
     recurring = Calendar.recurringEventsInRange(view, start, end, all)
-    events = Calendar._sortEvents(itertools.chain(normal, recurring))
+    events = Calendar._sortEvents(itertools.chain(normal, recurring),
+                                  attrName='effectiveStartTime')
     
     
     def toUTC(dt):
@@ -377,10 +383,6 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
     """
     newItemParent = view.findPath("//userdata")
     
-    eventKind = view.findPath(_calendarEventPath)
-    taskKind  = view.findPath(_taskPath)
-    textKind  = view.findPath(_lobPath)
-    
     countNew = 0
     countUpdated = 0
     
@@ -414,9 +416,8 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
 
             try:
                 if DEBUG: logger.debug("got VEVENT")
-                pickKind = eventKind
 
-                displayName = event.getChildValue('summary', u"")
+                summary     = event.getChildValue('summary', u"")
                 description = event.getChildValue('description')
                 location    = event.getChildValue('location')
                 status      = event.getChildValue('status', "").lower()
@@ -425,7 +426,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                 dtend       = event.getChildValue('dtend')
                 due         = event.getChildValue('due')
                 uid         = event.getChildValue('uid')
-
+                
                 if status in ('confirmed', 'tentative'):
                     pass
                 elif status == 'cancelled': #Chandler doesn't have CANCELLED
@@ -516,18 +517,19 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                                         "not supported")
                             continue
                         elif range == 'THIS':
-                            itemChangeCallback = CalendarEventMixin.changeThis
+                            itemChangeCallback = EventStamp.changeThis
                             # check if this is a modification to a master event
                             # if so, avoid changing the master's UUID when
                             # creating a modification
                             if eventItem.getMaster() == eventItem:
                                 mod = eventItem._cloneEvent()
-                                mod.modificationFor = mod.occurrenceFor = eventItem
-                                if eventItem.hasLocalAttributeValue('occurrenceFor'):
+                                mod.modificationFor = mod.occurrenceFor = eventItem.itsItem
+                                if eventItem.itsItem.hasLocalAttributeValue(
+                                                EventStamp.occurrenceFor.name):
                                     del eventItem.occurrenceFor
                                 eventItem = mod
                         elif range == 'THISANDFUTURE':
-                            itemChangeCallback = CalendarEventMixin.changeThisAndFuture
+                            itemChangeCallback = EventStamp.changeThisAndFuture
                         else:
                             logger.info("RECURRENCE-ID RANGE not recognized. " \
                                         "RANGE = %s" % range)
@@ -548,19 +550,25 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                             if getattr(eventItem, 'modifications', None):
                                 for mod in eventItem.modifications:
                                     mod.delete()
+
                             eventItem.removeRecurrence()
                             
-                        itemChangeCallback = CalendarEventMixin.changeThis
+                        itemChangeCallback = EventStamp.changeThis
                         countUpdated += 1
-                        if stats and eventItem.itsUUID not in stats['modified']:
-                            stats['modified'].append(eventItem.itsUUID)
+                        if stats and eventItem.itsItem.itsUUID not in stats['modified']:
+                            stats['modified'].append(eventItem.itsItem.itsUUID)
 
                     if DEBUG: logger.debug("Changing eventItem: %s" % str(eventItem))
                     
                 changesDict = {}
-                change = changesDict.__setitem__
+                def change(key, value):
+                    try:
+                        key = getattr(EventStamp, key).name
+                    except AttributeError:
+                        pass
+                    changesDict[key] = value
                                 
-                change('displayName', displayName)
+                change('summary', summary)
 
                 if anyTime:
                     change('anyTime', True)
@@ -577,7 +585,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                 change('startTime', dtstart)
                 change('duration', duration)
                 
-                if not filters or "transparency" not in filters:
+                if not filters or EventStamp.transparency.name not in filters:
                     change('transparency', status)
                 
                 # DESCRIPTION <-> body  
@@ -590,33 +598,35 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     
                 # rruleset and userReminderInterval/userReminderTime must be set last
                 changeLast = []
-                if not filters or "reminders" not in filters:
+                # Need to update this for Remindable
+                if not filters or Remindable.reminders.name not in filters:
                     if reminderDelta is not None:
-                        changeLast.append(('userReminderInterval', 
+                        changeLast.append((Remindable.userReminderInterval.name, 
                                            reminderDelta))
                     elif reminderAbsoluteTime is None:
-                        changeLast.append(('userReminderTime', 
+                        changeLast.append((Remindable.userReminderTime.name, 
                                            reminderAbsoluteTime))
                 
                 rruleset = event.rruleset
                 if rruleset is not None:
                     ruleSetItem = RecurrenceRuleSet(None, itsView=view)
                     ruleSetItem.setRuleFromDateUtil(rruleset)
-                    changeLast.append(('rruleset', ruleSetItem))
-                
+                    changeLast.append((EventStamp.rruleset.name, ruleSetItem))
+                    
                 if itemChangeCallback is None:
                     # create a new item
                     # setting icalUID in the constructor doesn't seem to work
                     #change('icalUID', uid)
-                    eventItem = pickKind.newItem(None, newItemParent, **changesDict)
+                    eventItem = CalendarEvent(None, newItemParent, **changesDict)
+                    item = eventItem.itsItem
                     # set icalUID seperately to make sure uid_map gets set
                     # @@@MOR Needed anymore since we got rid of uid_map?
                     eventItem.icalUID = uid
                     for tup in changeLast:
                         eventItem.changeThis(*tup)
                     countNew += 1
-                    if stats and eventItem.itsUUID not in stats['added']:
-                        stats['added'].append(eventItem.itsUUID)
+                    if stats and item.itsUUID not in stats['added']:
+                        stats['added'].append(item.itsUUID)
                 else:
                     # update an existing item
                     if rruleset is None and recurrenceID is None \
@@ -629,11 +639,11 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
 
                         # Only change a datetime if it's really different
                         # from what the item already has:
-                        if type(val) is datetime.datetime and hasattr(eventItem,
-                            attr):
-                            oldValue = getattr(eventItem, attr)
-                            if (oldValue == val and
-                                oldValue.tzinfo == val.tzinfo):
+                        if type(val) is datetime.datetime:
+                             oldValue = getattr(eventItem.itsItem, attr, None)
+                             if (oldValue is not None and 
+                                 oldValue == val and
+                                 oldValue.tzinfo == val.tzinfo):
                                 continue
 
                         itemChangeCallback(eventItem, attr, val)
@@ -644,11 +654,11 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
 
 
 
-                if DEBUG: logger.debug(u"Imported %s %s" % (eventItem.displayName,
+                if DEBUG: logger.debug(u"Imported %s %s" % (eventItem.summary,
                  eventItem.startTime))
 
                 if updateCallback:
-                    msg="'%s'" % eventItem.getItemDisplayName()
+                    msg="'%s'" % eventItem.itsItem.getItemDisplayName()
                     # the work parameter tells the callback whether progress
                     # should be tracked, this only makes sense if we might have
                     # more than one event.
@@ -673,14 +683,12 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
     else:
         # an empty ics file, what to do?
         pass
-
+    
     logger.info("...iCalendar import of %d new items, %d updated" % \
      (countNew, countUpdated))
     
     return itemlist, calname
 
-_calendarEventPath = "//parcels/osaf/pim/calendar/CalendarEvent"
-_taskPath = "//parcels/osaf/pim/EventTask"
 _lobPath = "//Schema/Core/Lob"
 
 def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
@@ -696,7 +704,6 @@ def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
     """
     
     newItemParent = view.findPath("//userdata")
-    eventKind = view.findPath(_calendarEventPath)
     
     countNew = 0
     countUpdated = 0
@@ -755,8 +762,8 @@ def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
                              'duration'     : duration,
                              'isFreeBusy'   : True,
                              'anyTime'      : False,
-                             'displayName'  : '' }
-                    eventItem = eventKind.newItem(None, newItemParent, **vals)
+                             'summary'  : '' }
+                    eventItem = CalendarEvent(None, newItemParent, **vals)
                     busyCollection.add(eventItem)
                     countNew += 1
 
@@ -777,7 +784,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         return "text/calendar"
 
     def acceptsItem(self, item):
-        return isinstance(item, (CalendarEventMixin, Sharing.Share))
+        has_stamp(item, EventStamp) or isinstance(item, Sharing.Share)
 
     def importProcess(self, contentView, text, extension=None, item=None,
                       updateCallback=None, stats=None):
@@ -817,13 +824,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
             # finally, add each new event to the collection
             for event in events:
-                item.add(event.getMaster())
+                item.add(event.getMaster().itsItem)
 
             return item
 
         else:
             # if fileStyle isn't single, item must be a collection
-            return events[0].getMaster()
+            return events[0].getMaster().itsItem
 
     def exportProcess(self, share, depth=0):
         cal = itemsToVObject(self.itsView, share.contents,
@@ -847,18 +854,18 @@ class CalDAVFormat(ICalendarFormat):
 
     def fileStyle(self):
         return self.STYLE_DIRECTORY
+    
     def acceptsItem(self, item):
-        return isinstance(item, CalendarEventMixin)
+        return has_stamp(item, EventStamp)
 
     def exportProcess(self, item, depth=0):
         """
         Item may be a Share or an individual Item, return None if Share.
         """
-        if not isinstance(item, CalendarEventMixin):
-            return None
-        cal = itemsToVObject(self.itsView, [item],
-                             filters=self.share.filterAttributes)
-        return cal.serialize().encode('utf-8')
+        if has_stamp(item, EventStamp):
+            cal = itemsToVObject(self.itsView, [item],
+                                 filters=self.share.filterAttributes)
+            return cal.serialize().encode('utf-8')
 
     
     

@@ -26,7 +26,7 @@ class TestImporting(ChandlerTestCase):
         
         def VerifyEventCreation(title):
             self.logger.startAction("Verify events imported")
-            testEvent = self.app_ns.item_named(pim.CalendarEvent, title)
+            testEvent = self.app_ns.item_named(pim.EventStamp, title)
             if testEvent is not None:
                 self.logger.endAction(True, "Testing event creation: '%s'" % title)
             else:

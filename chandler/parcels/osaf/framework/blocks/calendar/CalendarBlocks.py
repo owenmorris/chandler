@@ -123,8 +123,8 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                 if self._eventsToAdd is None: self._eventsToAdd = set()
                 
                 # Include confirmed events only
-                self._eventsToAdd.update(item for item in addedEvents if
-                                         item.transparency == 'confirmed')
+                self._eventsToAdd.update(event for event in addedEvents if
+                                         event.transparency == 'confirmed')
             else:
                 self._eventsToAdd = None
 
@@ -245,9 +245,9 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
             events = self.blockItem.contents
             view = self.blockItem.itsView            
             
-            for item in Calendar.eventsInRange(view, startDatetime, endDatetime,
+            for event in Calendar.eventsInRange(view, startDatetime, endDatetime,
                                                events):                                                
-                    updateBusy(item, item.effectiveStartTime)
+                    updateBusy(event, event.effectiveStartTime)
     
             # Next, try to find all generated events in the given
             # datetime range
@@ -275,7 +275,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
 
     
             for key in keys:
-                masterEvent = view[key]
+                masterEvent = pim.EventStamp(view[key])
                 rruleset = masterEvent.createDateUtilFromRule()
                 
                 # If timezones have been disabled in the UI, we want to
@@ -286,7 +286,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
                     startDatetime = startDatetime.replace(tzinfo=tzinfo)
                     endDatetime = endDatetime.replace(tzinfo=tzinfo)
                 
-                modifications = list(masterEvent.modifications or [])
+                modifications = map(pim.EventStamp, masterEvent.modifications or [])
                 
                 for recurDatetime in rruleset.between(startDatetime, endDatetime,
                                                       True):
@@ -592,8 +592,8 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         # Draw each event            
         previewPrefs = schema.ns("osaf.framework.blocks.calendar",
                                  self.blockItem.itsView).previewPrefs
-        for i, item in enumerate(self.currentDaysItems):
-            if item.isDeleted():
+        for i, event in enumerate(self.currentDaysItems):
+            if event.itsItem.isDeleted():
                 # This is to fix bug 4322, after removing recurrence,
                 # OnPaint gets called before wxSynchronizeWidget, so
                 # self.currentDaysItems has deleted items in it.
@@ -604,10 +604,10 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
                 len(self.currentDaysItems) - i > 1):
                 break
 
-            if not (item.allDay or item.anyTime):
+            if not (event.allDay or event.anyTime):
                 # Draw the time
                 dc.SetFont(self.timeFont)
-                formattedTime = pim.shortTimeFormat.format(item.startTime)
+                formattedTime = pim.shortTimeFormat.format(event.startTime)
                 preSep = formattedTime[:formattedTime.find(self.timeSeparator)]
                 prePos = self.colonPosition - dc.GetTextExtent(preSep)[0]
                 dc.DrawText(formattedTime, prePos, y + self.timeFontOffset)
@@ -620,7 +620,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             # Draw the event text. It'll be clipped automatically because we
             # set a clipregion above.
             dc.SetFont(self.eventFont)
-            dc.DrawText(item.displayName, x, y + self.eventFontOffset)
+            dc.DrawText(event.summary, x, y + self.eventFontOffset)
 
             y += self.lineHeight
 
@@ -705,24 +705,27 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
                 if item not in self.currentDaysItems:
                     self.currentDaysItems.append(item)
         else:
-            inRange = self.blockItem.getItemsInRange((startDay, endDay), dayItems=True, timedItems=True)
-            self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
+            inRange = self.blockItem.getEventsInRange((startDay, endDay),
+                                              dayItems=True, timedItems=True)
+            self.currentDaysItems = [event for event in inRange
+                                       if event.transparency == "confirmed"]
         
         self.currentDaysItems.sort(cmp = self.SortForPreview)
         self.Resize()
 
 
     @staticmethod
-    def SortForPreview(item1, item2):
-        if item1.isStale() or item2.isStale():
+    def SortForPreview(event1, event2):
+        if event1.itsItem.isStale() or event2.itsItem.isStale():
             # sort stale or deleted items first, False < True
-            return cmp(not item1.isStale(), not item2.isStale())
-        if (item1.anyTime or item1.allDay) and (item2.anyTime or item2.allDay):
-            return cmp(item1.displayName, item2.displayName)
-        if item1.anyTime or item1.allDay:
+            return cmp(not event1.itsItem.isStale(),
+                       not event2.itsItem.isStale())
+        if (event1.anyTime or event1.allDay) and (event2.anyTime or event2.allDay):
+            return cmp(event1.summary, event2.summary)
+        if event1.anyTime or event1.allDay:
             return -1
-        if item2.anyTime or item2.allDay:
+        if event2.anyTime or event2.allDay:
             return 1
-        return (cmp(item1.startTime, item2.startTime)
-               or cmp(item1.duration, item2.duration)
-               or cmp(item1.displayName, item2.displayName))
+        return (cmp(event1.startTime, event2.startTime)
+               or cmp(event1.duration, event2.duration)
+               or cmp(event1.summary, event2.summary))

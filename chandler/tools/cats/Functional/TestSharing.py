@@ -24,6 +24,7 @@ from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import osaf.pim as pim
 from i18n.tests import uw
 from osaf.framework.blocks.Block import Block
+from repository.item.Item import MissingClass
 
 
 class TestSharing(ChandlerTestCase):
@@ -69,10 +70,10 @@ class TestSharing(ChandlerTestCase):
         self.logger.startAction("Sharing dialog")
         collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
         if collection is not None:
-            if sidebar.filterKind is None:
+            if sidebar.filterClass is MissingClass:
                 filterClassName = None 
             else:
-                klass = sidebar.filterKind.classes['python']
+                klass = sidebar.filterClass
                 filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
             win = ShowPublishDialog(wx.GetApp().mainFrame, view=self.app_ns.itsView,
                                     collection=collection,

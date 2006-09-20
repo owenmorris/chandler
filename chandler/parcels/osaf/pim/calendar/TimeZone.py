@@ -26,9 +26,10 @@ def reindexFloatingEvents(view):
     events collection.
     """
     pim_ns = schema.ns("osaf.pim", view)
+    events = pim_ns.EventStamp.getCollection(view)
     
     floatingKeys = list(pim_ns.floatingEvents.iterkeys())
-    pim_ns.events.reindexKeys(floatingKeys, 'effectiveStart', 'effectiveEnd')
+    events.reindexKeys(floatingKeys, 'effectiveStart', 'effectiveEnd')
     
     keys = pim_ns.masterEvents.getIndex('recurrenceEnd')
     
@@ -36,7 +37,7 @@ def reindexFloatingEvents(view):
     pim_ns.masterEvents.reindexKeys(masterFloatingKeys, 'recurrenceEnd')
                               
     UTCKeys = list(pim_ns.UTCEvents.iterkeys())
-    pim_ns.events.reindexKeys(UTCKeys, 'effectiveStartNoTZ', 'effectiveEndNoTZ')
+    events.reindexKeys(UTCKeys, 'effectiveStartNoTZ', 'effectiveEndNoTZ')
     
     masterUTCKeys = [i for i in UTCKeys if i in keys]
     pim_ns.masterEvents.reindexKeys(masterUTCKeys, 'recurrenceEndNoTZ')

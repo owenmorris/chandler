@@ -21,15 +21,15 @@ __all__ = [
     'AccountBase', 'DownloadAccountBase', 'EmailAddress', 'IMAPAccount',
     'IMAPDelivery', 'MIMEBase', 'MIMEBinary', 'MIMEContainer', 'MIMENote',
     'MIMESecurity', 'MIMEText', 'MailDeliveryBase', 'MailDeliveryError',
-    'MailMessage', 'MailMessageMixin', 'POPAccount', 'POPDelivery',
-    'SMTPAccount', 'SMTPDelivery', 'replyToMessage', 'replyAllToMessage',
-    'forwardMessage', 'getCurrentSMTPAccount', 'getCurrentMailAccount', 'ACCOUNT_TYPES']
+    'MailMessage', 'MailStamp', 'POPAccount', 'POPDelivery', 'SMTPAccount',
+    'SMTPDelivery', 'replyToMessage', 'replyAllToMessage', 'forwardMessage',
+    'getCurrentSMTPAccount', 'getCurrentMailAccount', 'ACCOUNT_TYPES']
 
 
 import application
 from application import schema
 import repository.item.Item as Item
-import items, notes
+import items, notes, stamping, collections
 import email.Utils as Utils
 import re as re
 import chandlerdb.item.ItemError as ItemError
@@ -47,7 +47,7 @@ Design Issues:
 """
 
 def __actionOnMessage(view, mailMessage, action="REPLY"):
-    assert(isinstance(mailMessage, MailMessageMixin))
+    assert(stamping.has_stamp(mailMessage, MailStamp))
     assert(action == "REPLY" or action == "REPLYALL" or action == "FORWARD")
 
     newMessage = MailMessage(itsView=view)
@@ -125,7 +125,7 @@ def __actionOnMessage(view, mailMessage, action="REPLY"):
             else:
                 newMessage.subject = u"Fwd: %s" % mailMessage.subject
 
-        newMessage.mimeParts.append(mailMessage)
+        newMessage.mimeParts.append(mailMessage.itsItem)
 
     try:
         view.commit()
@@ -268,11 +268,9 @@ class AccountBase(items.ContentItem):
         initialValue = 300,
     )
     mailMessages = schema.Sequence(
-        'MailMessageMixin',
         doc = 'Mail Messages sent or retrieved with this account ',
         initialValue = [],
-        inverse = 'parentAccount',
-    )
+    ) # inverse of MailStamp.parentAccount
     timeout = schema.One(
         schema.Integer,
         doc = 'The number of seconds before timing out a stalled connection',
@@ -299,21 +297,17 @@ class DownloadAccountBase(AccountBase):
     )
 
     defaultSMTPAccount = schema.One(
-        'SMTPAccount',
         doc = 'Which SMTP account to use for sending mail from this account',
         initialValue = None,
-        inverse = 'accounts',
-    )
+    ) # inverse of SMTPAccount.accounts
     downloadMax = schema.One(
         schema.Integer,
         doc = 'The maximum number of messages to download before forcing a repository commit',
         initialValue = 20,
     )
     replyToAddress = schema.One(
-        'EmailAddress',
-        initialValue = None,
-        inverse = 'accounts',
-    )
+        initialValue = None
+    ) # inverse of EmailAddress.accounts
     emailAddress = schema.One(
         redirectTo = 'replyToAddress.emailAddress',
     )
@@ -432,11 +426,9 @@ class MailDeliveryError(items.ContentItem):
     errorString = schema.One(schema.Text, initialValue = u'')
     errorDate = schema.One(schema.DateTime)
     mailDelivery = schema.One(
-        'MailDeliveryBase',
         doc = 'The Mail Delivery that cause this error',
-        initialValue = None,
-        inverse = 'deliveryErrors',
-    )
+        initialValue = None
+    ) # inverse of MailDeliveryBase.deliveryErrors
 
 
 class MailDeliveryBase(items.ContentItem):
@@ -447,11 +439,9 @@ class MailDeliveryBase(items.ContentItem):
     )
 
     mailMessage = schema.One(
-        'MailMessageMixin',
         doc = 'Message which this delivery item refers to',
         initialValue = None,
-        inverse = 'deliveryExtension',
-    )
+    ) # inverse MailStamp.deliveryExtension
     deliveryErrors = schema.Sequence(
         MailDeliveryError,
         doc = 'Mail Delivery Errors associated with this transport',
@@ -550,29 +540,33 @@ class POPDelivery(MailDeliveryBase):
     )
 
 
-class MIMEBase(items.ContentItem):
-    schema.kindInfo(
-        description="Super kind for MailMessage and the various MIME kinds",
-    )
+class MIMEBase(schema.Annotation):
+    """Superclass for MailMessage and the various MIME annotation classes"""
+    schema.kindInfo(annotates=items.ContentItem)
 
     mimeType = schema.One(schema.Text, initialValue = '')
 
     mimeContainer = schema.One(
-        'MIMEContainer', initialValue = None, inverse = 'mimeParts',
-    )
+        initialValue = None
+    ) # inverse of MIMEContainer.mimeParts
 
     schema.addClouds(
         sharing = schema.Cloud(mimeType),
     )
 
+    def __init__(self, item=None, itsView=None):
+       if item is None:
+           item = notes.Note(itsView=itsView)
+       super(MIMEBase, self).__init__(item)
+
 
 class MIMENote(MIMEBase):
     # @@@MOR This used to subclass notes.Note also, but since that superKind
     # was removed from MIMENote's superKinds list
+    """MIMEBase and Note, rolled into one"""
 
-    schema.kindInfo(
-        description="MIMEBase and Note, rolled into one",
-    )
+    schema.kindInfo(annotates=items.ContentItem)
+
 
     filename = schema.One(
         schema.Text, initialValue = u'',
@@ -585,6 +579,7 @@ class MIMENote(MIMEBase):
 
 
 class MIMEContainer(MIMEBase):
+    schema.kindInfo(annotates=items.ContentItem)
 
     hasMimeParts = schema.One(schema.Boolean, initialValue = False)
     mimeParts = schema.Sequence(
@@ -595,18 +590,26 @@ class MIMEContainer(MIMEBase):
     schema.addClouds(sharing = schema.Cloud(hasMimeParts, mimeParts))
 
 
-class MailMessageMixin(MIMEContainer):
+class MailStamp(MIMEContainer, stamping.Stamp):
     """
-    MailMessageMixin is the bag of Message-specific attributes.
+    
+    MailStamp is the bag of Message-specific attributes.
 
-    Used to mixin mail message attributes into a content item.
+    Used to stamp a content item with mail message attributes.
 
     Issues:
       - Once we have attributes and a cloud defined for Attachment,
         we need to include attachments by cloud, and not by value.
       - Really not sure what to do with the 'downloadAccount' attribute
         and how it should be included in the cloud.  For now it's byValue.
+      - The modelling of the various subclasses of MIMEBase as Annotations
+        seems artificial. Note, however, that you can't inherit from both
+        Item and Annotation, so this seemed like the way to go.
     """
+    
+    schema.kindInfo(annotates = notes.Note)
+    __use_collection__ = True
+    
     deliveryExtension = schema.One(
         MailDeliveryBase,
         initialValue = None,
@@ -621,26 +624,30 @@ class MailMessageMixin(MIMEContainer):
     dateSentString = schema.One(schema.Text, initialValue = '')
     dateSent = schema.One(schema.DateTimeTZ, indexed=True)
     messageId = schema.One(schema.Text, initialValue = '')
+    
+    about = schema.One(redirectTo = 'about')
+
+
+    # inverse of EmailAddress.messagesTo
     toAddress = schema.Sequence(
-        'EmailAddress',
         initialValue = [],
-        inverse = 'messagesTo',
     )
+
+    # inverse of EmailAddress.messagesFrom
     fromAddress = schema.One(
-        'EmailAddress',
         initialValue = None,
-        inverse = 'messagesFrom',
     )
-    replyToAddress = schema.One(
-        'EmailAddress', initialValue = None, inverse = 'messagesReplyTo',
-    )
-    bccAddress = schema.Sequence(
-        'EmailAddress', initialValue = [], inverse = 'messagesBcc',
-    )
-    ccAddress = schema.Sequence(
-        'EmailAddress', initialValue = [], inverse = 'messagesCc',
-    )
-    subject = schema.One(schema.Text, indexed=True)
+    # inverse of EmailAddress.messagesReplyTo
+    replyToAddress = schema.One(initialValue = None)
+    
+    # inverse of EmailAddress.messagesBcc
+    bccAddress = schema.Sequence(initialValue = [])
+
+    # inverse of EmailAddress.messagesCc
+    ccAddress = schema.Sequence(initialValue = [])
+    
+    subject = schema.One(redirectTo='displayName')
+    body = schema.One(redirectTo='body')
     inReplyTo = schema.One(schema.Text, indexed=False)
     referencesMID = schema.Sequence(schema.Text, initialValue = [])
 
@@ -648,22 +655,23 @@ class MailMessageMixin(MIMEContainer):
         schema.Text, doc = 'Catch-all for headers', initialValue = {},
     )
     chandlerHeaders = schema.Mapping(schema.Text, initialValue = {})
-    who = schema.One(
-        doc = "Redirector to 'toAddress'", redirectTo = 'toAddress',
-    )
-    whoFrom = schema.One(
-        doc = "Redirector to 'fromAddress'", redirectTo = 'fromAddress',
-    )
-    about = schema.One(
-        doc = "Redirector to 'subject'", redirectTo = 'subject',
-    )
+    
+    #who = schema.One(
+    #    doc = "Redirector to 'toAddress'", redirectTo = 'toAddress',
+    #)
+    #whoFrom = schema.One(
+    #    doc = "Redirector to 'fromAddress'", redirectTo = 'fromAddress',
+    #)
 
-    mimeType = schema.One(schema.Text, initialValue = 'message/rfc822')
+    # @@@ [grant] This doesn't seem to work; need to check what's going
+    # on with schema.observer here.
+    #@schema.observer(toAddress)
+    #def updateWho(self, op, name):
+    #    self.itsItem.who = u", ".join(unicode(x) for x in self.toAddress)
 
     schema.addClouds(
         sharing = schema.Cloud(
             fromAddress, toAddress, ccAddress, bccAddress, replyToAddress,
-            subject
         ),
         copying = schema.Cloud(
             fromAddress, toAddress, ccAddress, bccAddress, replyToAddress,
@@ -676,49 +684,29 @@ class MailMessageMixin(MIMEContainer):
         Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
-        try:
-            super(MailMessageMixin, self).InitOutgoingAttributes()
-        except AttributeError:
-            pass
-        MailMessageMixin._initMixin(self) # call our init, not the method of a subclass
+        self.itsItem.InitOutgoingAttributes()
 
-    def _initMixin(self):
+    def add(self):
         """
         Init only the attributes specific to this mixin.
         Called when stamping adds these attributes, and from __init__ above.
         """
+        
+        super(MailStamp, self).add()
+        
         # default the fromAddress to "me"
-        self.fromAddress = EmailAddress.getCurrentMeEmailAddress(self.itsView)
-
-        # default the subject to any super class "about" definition
-        try:
-            self.subject = self.getAnyAbout()
-        except AttributeError:
-            pass
+        if getattr(self, 'fromAddress', None) is None:
+            self.fromAddress = EmailAddress.getCurrentMeEmailAddress(self.itsItem.itsView)
 
     @schema.observer(dateSent)
     def onDateSentChanged(self, op, name):
         # Update our relevant-date attribute
-        self.updateRelevantDate(op, name)
+        self.itsItem.updateRelevantDate(op, name)
 
     def addRelevantDates(self, dates):
-        super(MailMessageMixin, self).addRelevantDates(dates)
         dateSent = getattr(self, 'dateSent', None)
         if dateSent is not None:
             dates.append((dateSent, 'dateSent'))
-
-    def getAnyAbout(self):
-        """
-        Get any non-empty definition for the "about" attribute.
-        """
-        try:
-            # don't bother returning our default: an empty string
-            if self.subject:
-                return self.subject
-
-        except AttributeError:
-            pass
-        return super(MailMessageMixin, self).getAnyAbout()
 
     def outgoingMessage(self, account, type='SMTP'):
         assert type == "SMTP", "Only SMTP currently supported"
@@ -726,7 +714,7 @@ class MailMessageMixin(MIMEContainer):
         assert isinstance(account, SMTPAccount)
 
         if self.deliveryExtension is None:
-            self.deliveryExtension = SMTPDelivery(itsView=self.itsView)
+            self.deliveryExtension = SMTPDelivery(itsView=self.itsItem.itsView)
 
         self.isOutbound = True
         self.parentAccount = account
@@ -736,9 +724,9 @@ class MailMessageMixin(MIMEContainer):
 
         if self.deliveryExtension is None:
             if type == "IMAP":
-                 self.deliveryExtension = IMAPDelivery(itsView=self.itsView)
+                 self.deliveryExtension = IMAPDelivery(itsView=self.itsItem.itsView)
             elif type == "POP":
-                 self.deliveryExtension = POPDelivery(itsView=self.itsView)
+                 self.deliveryExtension = POPDelivery(itsView=self.itsItem.itsView)
 
         self.isOutbound = False
         self.parentAccount = account
@@ -786,19 +774,23 @@ class MailMessageMixin(MIMEContainer):
                     (ignoreAttr == 'fromAddress' or self.fromAddress is not None))
         return sendable and 'sendable' or 'not'
 
-class MailMessage(MailMessageMixin, notes.Note):
-    schema.kindInfo(
-        displayAttribute = "subject",
-        description = "MailMessageMixin, and Note, all rolled up into one",
-    )
-
+def MailMessage(*args, **keywds):
+    """Return a newly created Note, stamped with MailStamp."""
+    note = notes.Note(*args, **keywds)
+    message = MailStamp(note)
+    
+    message.add()
+    
+    return message
+    
 
 class MIMEBinary(MIMENote):
-
+    schema.kindInfo(annotates=items.ContentItem)
     data = schema.One(schema.Lob, indexed=False)
 
 
 class MIMEText(MIMENote):
+    schema.kindInfo(annotates=items.ContentItem)
 
     charset = schema.One(
         schema.Text,
@@ -811,22 +803,40 @@ class MIMEText(MIMENote):
 
 
 class MIMESecurity(MIMEContainer):
+    schema.kindInfo(annotates=items.ContentItem)
     pass
+    
+class CollectionInvitation(schema.Annotation):
+    schema.kindInfo(annotates = collections.ContentCollection)
+    
+    invitees = schema.Sequence(
+        doc="The people who are being invited to share in this item; filled "
+        "in when the user types in the DV's 'invite' box, then cleared on "
+        "send (entries copied to the share object).\n\n"
+        "Issue: Bad that we have just one of these per item collection, "
+        "though an item collection could have multiple shares post-0.5",
+        initialValue=()
+    ) # inverse of EmailAddress
+
+
 
 class EmailAddress(items.ContentItem):
+    """An item that represents a simple email address, plus
+all the info we might want to associate with it, like
+lists of message to and from this address.
 
+Example: abe@osafoundation.org
+
+Issues:
+   Someday we might want to have other attributes.  One example
+   might be an 'is operational' flag that tells whether this
+   address is still in service, or whether mail to this has been
+   bouncing lately. Another example might be a 'superseded by'
+   attribute, which would point to another Email Address item.
+   
+"""
     schema.kindInfo(
         displayAttribute = "emailAddress",
-        description = "An item that represents a simple email address, plus "
-                      "all the info we might want to associate with it, like "
-                      "lists of message to and from this address.\n\n"
-            "Example: abe@osafoundation.org\n\n"
-            "Issues:\n"
-            "   Someday we might want to have other attributes.  One example "
-            "might be an 'is operational' flag that tells whether this "
-            "address is still in service, or whether mail to this has been "
-            "bouncing lately. Another example might be a 'superceded by' "
-            "attribute, which would point to another Email Address item.\n",
     )
 
     emailAddress = schema.One(
@@ -858,39 +868,39 @@ class EmailAddress(items.ContentItem):
         inverse = DownloadAccountBase.replyToAddress,
     )
     messagesBcc = schema.Sequence(
-        MailMessageMixin,
+        MailStamp,
         doc = 'A list of messages with their Bcc: header referring to this address',
         initialValue = [],
-        inverse = MailMessageMixin.bccAddress,
+        inverse = MailStamp.bccAddress,
     )
     messagesCc = schema.Sequence(
-        MailMessageMixin,
+        MailStamp,
         doc = 'A list of messages with their cc: header referring to this address',
         initialValue = [],
-        inverse = MailMessageMixin.ccAddress,
+        inverse = MailStamp.ccAddress,
     )
     messagesFrom = schema.Sequence(
-        MailMessageMixin,
+        MailStamp,
         doc = 'A list of messages with their From: header referring to this address',
         initialValue = [],
-        inverse = MailMessageMixin.fromAddress,
+        inverse = MailStamp.fromAddress,
     )
     messagesReplyTo = schema.Sequence(
-        MailMessageMixin,
+        MailStamp,
         doc = 'A list of messages with their Reply-To: header referring to this address',
         initialValue = [],
-        inverse = MailMessageMixin.replyToAddress,
+        inverse = MailStamp.replyToAddress,
     )
     messagesTo = schema.Sequence(
-        MailMessageMixin,
+        MailStamp,
         doc = 'A list of messages with their To: header referring to this address',
         initialValue = [],
-        inverse = MailMessageMixin.toAddress,
+        inverse = MailStamp.toAddress,
     )
     inviteeOf = schema.Sequence(
-        'osaf.pim.collections.ContentCollection',
+        collections.ContentCollection,
         doc = 'List of collections that the user is about to be invited to share with.',
-        inverse = 'invitees',
+        inverse = CollectionInvitation.invitees,
     )
 
     schema.addClouds(

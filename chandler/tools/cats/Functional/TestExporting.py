@@ -37,7 +37,7 @@ class TestExporting(ChandlerTestCase):
      
         self.logger.startAction("Export Test Calendar")
         collection = ListCollection(itsView=appView)
-        for event in Calendar.CalendarEvent.iterItems(appView):
+        for event in Calendar.EventStamp.getCollection(appView):
             collection.add(event)
         share.contents = collection
         try:

@@ -120,16 +120,16 @@ class SMTPClient(object):
            passed to this classes __init__ method
 
            @param mailMessage: A MailMessage domain model object
-           @type mailMessage: C{Mail.MailMessageMixin}
+           @type mailMessage: C{Mail.MailStamp}
 
            @return: C{None}
         """
-        assert isinstance(mailMessage, Mail.MailMessageMixin)
+        assert isinstance(mailMessage, Mail.MailStamp)
 
         if __debug__:
             trace("sendMail")
 
-        reactor.callFromThread(self._prepareForSend, mailMessage.itsUUID)
+        reactor.callFromThread(self._prepareForSend, mailMessage.itsItem.itsUUID)
 
     def testAccountSettings(self):
         """Tests the user entered settings for C{SMTPAccount}"""
@@ -200,7 +200,7 @@ class SMTPClient(object):
 
         try:
             if self.mailMessage is not None:
-                sending = (self.mailMessage.itsUUID == mailMessageUUID)
+                sending = (self.mailMessage.itsItem.itsUUID == mailMessageUUID)
     
                 """Check that the mailMessage in not already Queued"""
                 if mailMessageUUID in self.pending:
@@ -679,4 +679,4 @@ class SMTPClient(object):
         m = self.view.findUUID(mailMessageUUID)
 
         assert m is not None, "No MailMessage for UUID: %s" % mailMessageUUID
-        return m
+        return Mail.MailStamp(m)

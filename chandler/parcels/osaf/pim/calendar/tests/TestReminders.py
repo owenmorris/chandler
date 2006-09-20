@@ -15,7 +15,7 @@
 
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 import unittest
-from osaf.pim import CalendarEvent, Reminder
+from osaf.pim import CalendarEvent, Reminder, Remindable
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 from PyICU import ICUtzinfo
 import repository.item
@@ -30,48 +30,57 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
                                                    tzinfo = ICUtzinfo.default),
                                 duration=timedelta(hours=1),
                                 allDay=False, anyTime=False)
+        remindable = Remindable(anEvent)
         
         absoluteReminderTime = datetime(2005,3,8,11,00, tzinfo=ICUtzinfo.default)
-        absoluteReminder = anEvent.setUserReminderTime(absoluteReminderTime)
+        absoluteReminder = remindable.setUserReminderTime(absoluteReminderTime)
         
         # Make sure it got connected right: one expired absolute reminder.
-        self.failIf(len(anEvent.reminders))
-        self.failUnless(len(anEvent.expiredReminders) == 1 \
-                        and anEvent.expiredReminders.first() is absoluteReminder)
-        self.failUnless(anEvent.userReminderTime == absoluteReminderTime)
-        self.failUnless(anEvent.userReminderInterval is None)
-        self.failUnless(anEvent.nextReminderTime == Reminder.farFuture)
+        self.failIf(len(remindable.reminders))
+        self.failUnless(len(remindable.expiredReminders) == 1 \
+                        and remindable.expiredReminders.first() is absoluteReminder)
+        self.failUnless(remindable.userReminderTime == absoluteReminderTime)
+        self.failUnless(remindable.userReminderInterval is None)
+        self.failUnless(remindable.nextReminderTime == Reminder.farFuture)
         
         # Replace the absoluteReminder with a relative one
         relativeReminderInterval = timedelta(minutes=-10)
-        relativeReminder = anEvent.setUserReminderInterval(relativeReminderInterval)
+        relativeReminder = remindable.setUserReminderInterval(relativeReminderInterval)
 
         # Make sure it all got reconnected correctly: one expired relative reminder
-        self.failIf(len(anEvent.reminders))
-        self.failUnless(len(anEvent.expiredReminders) == 1 \
-                        and anEvent.expiredReminders.first() is relativeReminder)
-        self.failUnless(anEvent.userReminderInterval == relativeReminderInterval)
-        self.failUnless(anEvent.userReminderTime is None)
-        self.failUnless(anEvent.nextReminderTime == Reminder.farFuture)
+        self.failIf(len(remindable.reminders))
+        self.failUnless(len(remindable.expiredReminders) == 1 \
+                        and remindable.expiredReminders.first() is relativeReminder)
+        self.failUnless(remindable.userReminderInterval == relativeReminderInterval)
+        self.failUnless(remindable.userReminderTime is None)
+        self.failUnless(remindable.nextReminderTime == Reminder.farFuture)
 
         # Snooze the reminder for 5 minutes.
-        snoozeReminder = anEvent.snoozeReminder(relativeReminder,
-                                                timedelta(minutes=5))
+        snoozeReminder = remindable.snoozeReminder(relativeReminder,
+                                                   timedelta(minutes=5))
+        # (should move the old reminder to expired)
+        self.failUnlessEqual(list(remindable.expiredReminders),
+                             [relativeReminder])
+        self.failUnlessEqual(list(remindable.reminders), [snoozeReminder ])
         # Check connections: the relative expired reminder remains, plus an
         # active absolute reminder that we won't keep when it fires.
-        self.failUnless(list(anEvent.expiredReminders) == [ relativeReminder ])
-        self.failUnless(list(anEvent.reminders) == [ snoozeReminder ])
+        self.failUnlessEqual(list(remindable.expiredReminders),
+                             [relativeReminder ])
+        self.failUnlessEqual(list(remindable.reminders),
+                             [snoozeReminder ])
         self.failUnless(snoozeReminder.keepExpired == False)
-        self.failUnless(snoozeReminder.reminderItems.first() is anEvent)
-        self.failUnless(anEvent.nextReminderTime != Reminder.farFuture)
+        self.failUnlessEqual(snoozeReminder.reminderItems.first(),
+                             remindable.itsItem)
+        self.failIfEqual(remindable.nextReminderTime, Reminder.farFuture)
 
         # Dismiss the snoozed reminder
-        anEvent.dismissReminder(snoozeReminder)
+        remindable.dismissReminder(snoozeReminder)
         # (should destroy the snoozed reminder, leaving only the expired one)
-        self.failIf(len(anEvent.reminders))
-        self.failUnless(list(anEvent.expiredReminders) == [ relativeReminder ])
+        self.failUnlessEqual(list(remindable.reminders), [])
+        self.failUnlessEqual(list(remindable.expiredReminders),
+                             [relativeReminder])
         self.failUnless(relativeReminder.reminderItems.first() is None)
-        self.failUnless(anEvent.nextReminderTime == Reminder.farFuture)
+        self.failUnlessEqual(remindable.nextReminderTime, Reminder.farFuture)
 
 if __name__ == "__main__":
     unittest.main()

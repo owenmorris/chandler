@@ -21,6 +21,7 @@ import email.Utils as emailUtils
 from email.MIMEText import MIMEText
 from email.MIMENonMultipart import MIMENonMultipart
 from email.MIMEMessage import MIMEMessage
+from osaf.pim.items import TriageEnum
 import logging as logging
 import mimetypes
 from datetime import datetime
@@ -28,6 +29,7 @@ from PyICU import ICUtzinfo
 
 #Chandler imports
 import osaf.pim.mail as Mail
+from osaf.pim import has_stamp, EventStamp, Remindable
 from PyICU import UnicodeString
 from i18n import ChandlerMessageFactory as _
 
@@ -238,7 +240,7 @@ def messageObjectToKind(view, messageObject, messageText=None,
            "messageObject must be a Python email.Message.Message instance"
 
     assert len(messageObject.keys()) > 0, \
-           "messageObject data is not a valid RFC2882 message"
+           "messageObject data is not a valid RFC2822 message"
 
     assert messageText is None or isinstance(messageText, str), \
            "messageText can either be a string or None"
@@ -253,17 +255,18 @@ def messageObjectToKind(view, messageObject, messageText=None,
             import osaf.sharing.ICalendar as ICalendar
             try:
                 items = ICalendar.itemsFromVObject(view, mailobj.get_payload(),
-                                                   filters=('reminders',))[0]
+                                                   filters=(Remindable.reminders.name,))[0]
             except:
-                # ignore parts we can't parse
+                # ignore parts we can't parse [log something?]
                 pass
             else:
                 if len(items) > 0:
                     # We got something - stamp the first thing as a MailMessage
                     # and use it. (If it was an existing event, we'll reuse it.)
                     m = items[0]
-                    if not isinstance(m, Mail.MailMessageMixin):
-                        m.StampKind('add', Mail.MailMessageMixin.getKind(view)) 
+                    if not has_stamp(m, Mail.MailStamp):
+                        m = Mail.MailStamp(m)
+                        m.add()
                     return m
         return None
 
@@ -275,7 +278,7 @@ def messageObjectToKind(view, messageObject, messageText=None,
                 if m is not None:
                     # In case we found an existing event to update,
                     # force its triageStatus to 'now' (bug 6314)
-                    m.triageStatus = TriageEnum.now
+                    m.itsItem.triageStatus = TriageEnum.now
                     break
 
     if m is None:
@@ -318,10 +321,10 @@ def messageObjectToKind(view, messageObject, messageText=None,
     # from this item, remove the header from the start of the body.
     eventDescriptionLength = int(messageObject.get(createChandlerHeader(\
         "EventDescriptionLength"), "0"))
-    if eventDescriptionLength and isinstance(m, Mail.MailMessageMixin):
+    if eventDescriptionLength and has_stamp(m, Mail.MailStamp):
         body = body[eventDescriptionLength:]
 
-    m.body = body
+    m.itsItem.body = body
 
     __parseHeaders(view, messageObject, m)
 
@@ -341,24 +344,26 @@ def kindToMessageObject(mailMessage):
     @return: C{Message.Message}
     """
 
-    assert isinstance(mailMessage, Mail.MailMessageMixin), \
-           "mailMessage must be an instance of Kind Mail.MailMessage"
+    assert has_stamp(mailMessage, Mail.MailStamp), \
+           "mailMessage must have been stamped as a Mail.MailStamp"
 
     messageObject = Message.Message()
 
     """
     Create a messageId if none exists
     """
-    if not hasValue(mailMessage.messageId):
-        mailMessage.messageId = createMessageID()
+    
+    stampedMail = Mail.MailStamp(mailMessage)
+    if not hasValue(stampedMail.messageId):
+        stampedMail.messageId = createMessageID()
 
-    populateHeader(messageObject, 'Message-ID', mailMessage.messageId)
-    populateHeader(messageObject, 'Date', mailMessage.dateSentString)
-    populateEmailAddresses(mailMessage, messageObject)
+    populateHeader(messageObject, 'Message-ID', stampedMail.messageId)
+    populateHeader(messageObject, 'Date', stampedMail.dateSentString)
+    populateEmailAddresses(stampedMail, messageObject)
     populateStaticHeaders(messageObject)
-    populateChandlerHeaders(mailMessage, messageObject)
-    populateHeaders(mailMessage, messageObject)
-    populateHeader(messageObject, 'Subject', mailMessage.about, encode=True)
+    populateChandlerHeaders(stampedMail, messageObject)
+    populateHeaders(stampedMail, messageObject)
+    populateHeader(messageObject, 'Subject', stampedMail.about, encode=True)
 
     if getattr(mailMessage, "inReplyTo", None):
         populateHeader(messageObject, 'In-Reply-To', mailMessage.inReplyTo, encode=False)
@@ -371,10 +376,11 @@ def kindToMessageObject(mailMessage):
     except AttributeError:
         payload = u""
 
+    event = EventStamp(mailMessage)
     hasAttachments =  mailMessage.getNumberOfAttachments() > 0
 
     try:
-        timeDescription = mailMessage.getTimeDescription()
+        timeDescription = event.getTimeDescription()
         hasICal = True
     except AttributeError:
         hasICal = False
@@ -403,7 +409,7 @@ def kindToMessageObject(mailMessage):
         # completely on some clients...
         # @@@ In formatting the prepended description, I'm adding an extra newline
         # at the end so that Apple Mail will display the .ics attachment on its own line.
-        location = unicode(getattr(mailMessage, 'location', u''))
+        location = unicode(getattr(event, 'location', u''))
         if len(location.strip()) > 0:
             evtDesc =  _(u"When: %(whenValue)s\nWhere: %(locationValue)s") \
                        % { 'whenValue': timeDescription,
@@ -424,8 +430,8 @@ def kindToMessageObject(mailMessage):
 
         # Format this message as an ICalendar object
         import osaf.sharing.ICalendar as ICalendar
-        calendar = ICalendar.itemsToVObject(mailMessage.itsView, [ mailMessage ],
-                                             filters=('reminders',))
+        calendar = ICalendar.itemsToVObject(mailMessage.itsItem.itsView,
+                        [event], filters=(Remindable.reminders.name,))
         calendar.add('method').value="REQUEST"
         ics = calendar.serialize().encode('utf-8')
 
@@ -446,9 +452,9 @@ def kindToMessageObject(mailMessage):
         attachments = mailMessage.getAttachments()
 
         for attachment in attachments:
-            if isinstance(attachment, Mail.MailMessage):
+            if has_stamp(attachment, Mail.MailStamp):
                 try:
-                    rfc2822 = binaryToData(attachment.rfc2822Message)
+                    rfc2822 = binaryToData(Mail.MailStamp(attachment).rfc2822Message)
                 except AttributeError:
                     rfc2822 = kindToMessageText(attachment, False)
 
@@ -467,13 +473,14 @@ def kindToMessageText(mailMessage, saveMessage=True):
     @param mailMessage: A C{email.Message} object representation of a mail message
     @type mailMessage: C{email.Message}
     @param saveMessage: save the message text converted from the C{email.Message}
-                        in the mailMessage.rfc2882Message attribute
+                        in the mailMessage.rfc2822Message attribute
     @type saveMessage: C{Boolean}
     @return: C{str}
     """
 
-    assert isinstance(mailMessage, Mail.MailMessageMixin), \
-    "mailMessage must be an instance of Kind Mail.MailMessage"
+    assert has_stamp(mailMessage, Mail.MailStamp), \
+           "mailMessage must have been stamped as a Mail.MailStamp"
+
     try:
         messageObject = kindToMessageObject(mailMessage)
     except Exception, e:
@@ -482,8 +489,8 @@ def kindToMessageText(mailMessage, saveMessage=True):
     messageText = messageObject.as_string()
 
     if saveMessage:
-        mailMessage.rfc2882Message = dataToBinary(mailMessage, "rfc2822Message", \
-                                                  messageText, 'message/rfc822', 'bz2')
+        mailMessage.rfc2822Message = dataToBinary(mailMessage, "rfc2822Message",
+                                           messageText, 'message/rfc822', 'bz2')
 
     return messageText
 
@@ -838,7 +845,7 @@ def __handleBinary(view, mimePart, parentMIMEContainer,
     mimeBinary.data = dataToBinary(mimeBinary, "data", data,
                                    mimeBinary.mimeType, compression)
 
-    parentMIMEContainer.mimeParts.append(mimeBinary)
+    parentMIMEContainer.mimeParts.append(mimeBinary.itsItem)
 
 def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
                  counter, buf, level, compression):
@@ -872,9 +879,9 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
         if lang:
             mimeText.lang = lang
 
-        mimeText.body = getUnicodeValue(body, charset)
+        mimeText.itsItem.body = getUnicodeValue(body, charset)
 
-        parentMIMEContainer.mimeParts.append(mimeText)
+        parentMIMEContainer.mimeParts.append(mimeText.itsItem)
         parentMIMEContainer.hasMimeParts = True
 
 def __getFileName(mimePart, counter):

@@ -104,7 +104,7 @@ class InMemoryConduit(Sharing.ShareConduit):
         try:
             item = self.share.format.importProcess(contentView, text,
                 item=into, updateCallback=updateCallback, stats=stats)
-        except MalformedData:
+        except Sharing.MalformedData:
             logger.exception("Failed to parse resource for item %s: '%s'" %
                 (itemPath, text.encode('utf8', 'replace')))
             raise

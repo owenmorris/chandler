@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MailMessage version='2' class='osaf.pim.mail.MailMessage' uuid='5b44e42a-420a-11db-b64e-0016cbca6aed'>
+   <fromAddress>
+      <EmailAddress class='osaf.pim.mail.EmailAddress' uuid='5b446b8a-420a-11db-b64e-0016cbca6aed'>
+         <emailAddress>someone@somewhere.example.com</emailAddress>
+         <fullName>Sum Won</fullName>
+         <body mimetype='text/plain' encoding='utf-8'></body>
+         <createdOn>2006-09-10 17:3:11.000000 US/Pacific</createdOn>
+         <tags>
+         </tags>
+         <triageStatus>done</triageStatus>
+         <triageStatusChanged>1158958218.0</triageStatusChanged>
+      </EmailAddress>
+   </fromAddress>
+   <toAddress>
+      <EmailAddress class='osaf.pim.mail.EmailAddress' uuid='5b44b9aa-420a-11db-b64e-0016cbca6aed'>
+         <emailAddress>someone-else@example.com</emailAddress>
+         <fullName>Sum Wonelse</fullName>
+         <body mimetype='text/plain' encoding='utf-8'></body>
+         <createdOn>2006-09-10 17:3:9.000000 US/Pacific</createdOn>
+         <tags>
+         </tags>
+         <triageStatus>done</triageStatus>
+         <triageStatusChanged>1158958391.0</triageStatusChanged>
+      </EmailAddress>
+   </toAddress>
+   <ccAddress>
+   </ccAddress>
+   <bccAddress>
+   </bccAddress>
+   <mimeType>message/rfc822</mimeType>
+   <subject>This is the subject</subject>
+   <body mimetype='text/plain' encoding='utf-8'>VGhpcyBpcyBhIGhpZ2hseQpwb2lnbmFudCBlbWFpbCBtZXNzYWdlCg==</body>
+   <createdOn>2006-08-27 12:1:0.000000 US/Pacific</createdOn>
+   <tags>
+   </tags>
+   <triageStatus>later</triageStatus>
+   <triageStatusChanged>1159945337.0</triageStatusChanged>
+   <hasMimeParts>False</hasMimeParts>
+   <mimeParts>
+   </mimeParts>
+</MailMessage>

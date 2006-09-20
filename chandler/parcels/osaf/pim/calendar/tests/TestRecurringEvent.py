@@ -23,7 +23,8 @@ import dateutil.rrule
 
 from application import schema
 import osaf.pim.calendar.Calendar as Calendar
-from osaf.pim.tasks import TaskMixin
+from osaf.pim.tasks import TaskStamp
+from osaf.pim import EventStamp, has_stamp
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 from PyICU import ICUtzinfo
 from i18n.tests import uw
@@ -31,7 +32,6 @@ from i18n.tests import uw
 from application.dialogs.RecurrenceDialog import getProxy
 from itertools import chain
 
-import osaf.pim
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 from chandlerdb.item.ItemError import NoSuchAttributeError
 
@@ -63,7 +63,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         event.startTime = self.start
         event.endTime = event.startTime + timedelta(hours=1)
         event.anyTime = False
-        event.displayName = uw("Sample event")
+        event.summary = uw("Sample event")
         return event
 
     def _createRuleSetItem(self, freq):
@@ -114,23 +114,29 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
             eventsBetween = list(event.getOccurrencesBetween(rangeStart + oneWeek,
                                                              rangeEnd + oneWeek))
             self.assertEqual(len(eventsBetween), expectedLength)
+
+        def makeThisAndFutureChange(attr, value):
+            # A helper, because EventStamp.changeThisAndFuture() takes a
+            # "fully-qualified" attribute name
+            attrName = getattr(EventStamp, attr).name
+            event.changeThisAndFuture(attrName, value)
             
         testBetween(0)
         
-        event.changeThisAndFuture('duration', timedelta(hours=1))
-        event.changeThisAndFuture('anyTime', True)
+        makeThisAndFutureChange('duration', timedelta(hours=1))
+        makeThisAndFutureChange('anyTime', True)
         testBetween(0)
         
-        event.changeThisAndFuture('anyTime', False)
-        event.changeThisAndFuture('allDay', True)
+        makeThisAndFutureChange('anyTime', False)
+        makeThisAndFutureChange('allDay', True)
         testBetween(0)
         
         # zero duration events
-        event.changeThisAndFuture('duration', timedelta(0))
-        event.changeThisAndFuture('startTime', rangeStart)
+        makeThisAndFutureChange('duration', timedelta(0))
+        makeThisAndFutureChange('startTime', rangeStart)
         testBetween(1)
 
-        event.changeThisAndFuture('allDay', False)
+        makeThisAndFutureChange('allDay', False)
         testBetween(1)
         
 
@@ -143,7 +149,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
     def testModificationEnum(self):
         self.assertEqual(self.event.modifies, None)
-        self.modifies = "this"
+        self.event.modifies = "this"
 
     def testSimpleRuleBehavior(self):
         # self.event.occurrenceFor should default to None
@@ -160,7 +166,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         self.assert_(second.isGenerated)
         self.assertEqual(self.event.createDateUtilFromRule()[1], secondStart)
         self.assertEqual(second.startTime, secondStart)
-        self.assertEqual(second.displayName, self.event.displayName)
+        self.assertEqual(second.summary, self.event.summary)
 
         # make sure getNextOccurrence returns the same item when called twice
         self.assertEqual(second, self.event.getNextOccurrence())
@@ -175,7 +181,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(fourth, third.getNextOccurrence())
 
         # create a modification to be automatically deleted
-        fourth.displayName = uw("changed title")
+        fourth.summary = uw("changed title")
 
         second.cleanRule()
         self.assertEqual(len(self.event.occurrences), 2)
@@ -206,10 +212,12 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         # setting the rule should trigger _getFirstGeneratedOccurrence
         self.assertEqual(len(self.event.occurrences), 1)
+        # We should really check this for other generated occurrences!
+        self.failUnless(has_stamp(self.event.occurrences.first(), EventStamp))
 
 
     def testThisModification(self):
-        self.event.displayName = uw("Master Event") #no rruleset, so no modification
+        self.event.summary = uw("Master Event") #no rruleset, so no modification
         self.event.rruleset = self._createRuleSetItem('weekly')
         self.assertEqual(self.event.modifies, None)
 
@@ -218,17 +226,17 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         calmod.changeThis('displayName', uw('Modified occurrence'))
 
-        self.assertEqual(calmod.modificationFor, self.event)
+        self.assertEqual(calmod.modificationFor, self.event.itsItem)
         self.assertEqual(calmod.getFirstInRule(), self.event)
 
-        self.assertEqual(list(self.event.modifications), [calmod])
+        self.assertEqual(list(self.event.modifications), [calmod.itsItem])
 
         evtaskmod = calmod.getNextOccurrence()
 
-        evtaskmod.StampKind('add', TaskMixin.getKind(self.rep.view))
+        TaskStamp(evtaskmod).add()
 
         # changes to an event should, by default, create a THIS modification
-        self.assertEqual(evtaskmod.modificationFor, self.event)
+        self.assertEqual(EventStamp(evtaskmod.modificationFor), self.event)
         self.assertEqual(evtaskmod.getFirstInRule(), self.event)
 
         for modOrMaster in [calmod, evtaskmod, self.event]:
@@ -236,11 +244,11 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         # make a THIS modification ...
         occurrenceOfMaster = self.event.getRecurrenceID(self.event.startTime)
-        occurrenceOfMaster.displayName = uw("Modification to master")
+        occurrenceOfMaster.summary = uw("Modification to master")
         # that should leave self.event still a master
         self.assertEqual(None, self.event.occurrenceFor)
         # ... and leave its displayName unchanged
-        self.assertNotEqual(self.event.displayName,
+        self.assertNotEqual(self.event.summary,
                             uw("Modification to master"))
 
         # test getNextOccurrence ordering, bug 4083
@@ -282,31 +290,30 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(len(list(self.event._generateRule())), count)
 
         threeWeeks = self.start + timedelta(days=21)
-        occurs = self.event.getOccurrencesBetween(threeWeeks + 
-                                timedelta(minutes=30),
-                                datetime(2005, 8, 15, 14,
-                                         tzinfo=ICUtzinfo.default))
-        self.assertEqual(list(occurs)[0].startTime, threeWeeks)
-        self.assertEqual(list(occurs)[1].startTime,
+        occurs = list(self.event.getOccurrencesBetween(
+                        threeWeeks +  timedelta(minutes=30),
+                        datetime(2005, 8, 15, 14, tzinfo=ICUtzinfo.default)))
+        self.assertEqual(occurs[0].startTime, threeWeeks)
+        self.assertEqual(occurs[1].startTime,
                          datetime(2005, 8, 15, 13, tzinfo=ICUtzinfo.default))
         self.rep.check()
 
     def testRuleSetChangeThisAndFuture(self):
         # Make a ruleset change the way the detail view does it
         newRuleset = self._createRuleSetItem('weekly')
-        self.event.changeThisAndFuture('rruleset', newRuleset)
+        self.event.changeThisAndFuture(EventStamp.rruleset.name, newRuleset)
         occurrence = self.event.getRecurrenceID(self.event.startTime)
         self.failUnless(self.event.occurrences is not None)
         self.failUnless(self.event.occurrenceFor is None)
-        self.failUnlessEqual(occurrence.occurrenceFor, self.event)
+        self.failUnlessEqual(occurrence.occurrenceFor, self.event.itsItem)
         self.failUnlessEqual(occurrence.startTime, self.event.startTime)
         
         # Now, make a THISANDFUTURE change on the first occurrence
-        occurrence.changeThisAndFuture('rruleset',
+        occurrence.changeThisAndFuture(EventStamp.rruleset.name,
                                        self._createRuleSetItem('monthly'))
         
         # Make sure that the first occurrence is preserved                               
-        self.failUnlessEqual(occurrence.occurrenceFor, self.event)
+        self.failUnlessEqual(occurrence.occurrenceFor, self.event.itsItem)
         self.failUnlessEqual(occurrence.startTime, self.event.startTime)
         self.failUnless(occurrence.rruleset is self.event.rruleset)
         
@@ -319,7 +326,8 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         third = first.getNextOccurrence().getNextOccurrence()
         
         # Make that occur weekly
-        third.changeThisAndFuture('rruleset', self._createRuleSetItem('weekly'))
+        third.changeThisAndFuture(EventStamp.rruleset.name,
+                                  self._createRuleSetItem('weekly'))
         
         # Check that third is now a master
         self.failUnlessEqual(third.occurrenceFor, None)
@@ -329,12 +337,12 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         
         # Now, move first's events ahead in time
         first = self.event.getRecurrenceID(self.event.startTime)
-        first.changeThisAndFuture('startTime',
+        first.changeThisAndFuture(EventStamp.startTime.name,
                                   self.event.startTime + timedelta(minutes=20))
         self.failUnlessEqual(len(list(self.event._generateRule())), 2)
 
     def testIcalUID(self):
-        self.assertEqual(self.event.icalUID, unicode(self.event.itsUUID))
+        self.assertEqual(self.event.icalUID, unicode(self.event.itsItem.itsUUID))
         self.event.rruleset = self._createRuleSetItem('weekly')
         self.assertEqual(self.event.icalUID, 
                          self.event.getNextOccurrence().icalUID)
@@ -355,7 +363,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         occurrences = self.event.getOccurrencesBetween(self.start, oneWeek)
 
-        self.failIf(self.event in occurrences)
+        self.failIf(self.event.itsItem in occurrences)
 
     def testRemoveRecurrence(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
@@ -369,23 +377,21 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         self.event.rruleset = self._createRuleSetItem('weekly')
         third = self.event.getNextOccurrence().getNextOccurrence()
-        third.changeThisAndFuture('startTime', third.startTime + timedelta(hours=1))
+        third.changeThisAndFuture(EventStamp.startTime.name, third.startTime + timedelta(hours=1))
         second = self.event.getNextOccurrence()
 
         rule = third.rruleset.rrules.first()
 
         third.removeRecurrence()
         self.failUnless(third.occurrences is None)
-        self.failIf(second.isDeleted())
-        self.failUnless(rule.isDeleted())
+        self._checkDeleted([rule], [second])
 
         # test a THIS modification to master, then removing recurrence
         self.event.rruleset = self._createRuleSetItem('weekly')
         eventModified = self.event.getRecurrenceID(self.event.startTime)
         eventModified.startTime += timedelta(hours=1)
         eventModified.removeRecurrence()
-        self.failUnless(self.event.isDeleted())
-        self.failIf(eventModified.isDeleted())
+        self._checkDeleted([self.event], [eventModified])
         # bug 4084, rruleset isn't getting deleted from eventModified
         self.failIf(eventModified.hasLocalAttributeValue('rruleset'))
         # bug 4681, removeRecurrence doesn't work for AllDay events
@@ -398,21 +404,24 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
     def testProxy(self):
         self.failIf(self.event.isProxy())
 
-        proxy = getProxy('test', self.event)
+        proxy = getProxy('test', self.event.itsItem)
+        stampedProxy = EventStamp(proxy)
         proxy.dialogUp = True # don't try to create a dialog in a test
-        self.assert_(proxy.isProxy())
-        self.assertEqual(proxy, self.event)
+        self.failUnless(proxy.isProxy())
+        self.assertEqual(proxy, self.event.itsItem)
         self.assertEqual(proxy.currentlyModifying, None)
-        self.assert_(proxy is getProxy('test', proxy))
+        self.failUnless(proxy is getProxy('test', proxy))
 
-        proxy.rruleset = self._createRuleSetItem('weekly')
-        self.assert_(self.event in proxy.rruleset.events)
-        self.assertEqual(proxy.getNextOccurrence().occurrenceFor, self.event)
-        self.assertEqual(len(list(proxy._generateRule())), self.weekly['count'])
+        stampedProxy.rruleset = self._createRuleSetItem('weekly')
+        self.failUnless(self.event.itsItem in stampedProxy.rruleset.events)
+        self.assertEqual(stampedProxy.getNextOccurrence().occurrenceFor,
+                         self.event.itsItem)
+        self.assertEqual(len(list(stampedProxy._generateRule())),
+                         self.weekly['count'])
 
-        proxy.startTime = self.start + timedelta(days=1)
+        stampedProxy.startTime = self.start + timedelta(days=1)
         self.assertEqual(self.event.startTime, self.start)
-        self.assertEqual(proxy.startTime, self.start + timedelta(days=1))
+        self.assertEqual(stampedProxy.startTime, self.start + timedelta(days=1))
 
 
     def testThisAndFutureModification(self):
@@ -427,18 +436,18 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(second.modificationFor, None)
 
         self.assert_(list(self.event.rruleset.rrules)[0].until < second.startTime)
-        self.assertEqual(second.displayName, uw('Modified title'))
+        self.assertEqual(second.summary, uw('Modified title'))
         self.assertEqual(list(second.rruleset.rrules)[0].freq, 'weekly')
         self.assertEqual(second.startTime, second.recurrenceID)
-        self.assertEqual(second.icalUID, unicode(second.itsUUID))
+        self.assertEqual(second.icalUID, unicode(second.itsItem.itsUUID))
         self.assertEqual(second.getLastUntil(), lastUntil)
 
         # make sure second is not one of its own occurrences
-        self.failIf(second in second.occurrences)
+        self.failIf(second.itsItem in second.occurrences)
         # make sure a backup occurrence is created
         self.assertEqual(len(list(second.occurrences)), 1)
         third = second.getNextOccurrence()
-        self.assertEqual(third.displayName, uw('Modified title'))
+        self.assertEqual(third.summary, uw('Modified title'))
 
         # create a changed fourth event to make sure its recurrenceID gets moved
         # when third's startTime is changed
@@ -447,7 +456,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         thirdStart = third.startTime
         thirdChangedStart = thirdStart + timedelta(hours=1)
-        third.changeThisAndFuture('startTime', thirdChangedStart)
+        third.changeThisAndFuture(EventStamp.startTime.name, thirdChangedStart)
 
         # fourth's time shouldn't have changed, but its recurrenceID should have
         self.assertEqual(fourth.startTime - thirdStart, timedelta(weeks=1))
@@ -469,11 +478,11 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         self.assertEqual(len(list(second.occurrences)), 1) # should use checkOccurrencesMatchEvent()
         self.assertEqual(third.startTime, thirdChangedStart)
-        self.assertEqual(third.displayName, uw('Modified title'))
+        self.assertEqual(third.summary, uw('Modified title'))
         self.assertEqual(third.getLastUntil(), thirdLastUntil)
 
         # change second's rule 
-        second.changeThisAndFuture('rruleset', 
+        second.changeThisAndFuture(EventStamp.rruleset.name, 
                                    third.rruleset.copy(cloudAlias='copying'))
         newthird = second.getNextOccurrence()
 
@@ -487,13 +496,13 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         secondModified = second.getRecurrenceID(second.startTime)
 
         self.assertEqual(second.occurrenceFor, None)
-        self.assertNotEqual(secondModified.displayName, second.displayName)
+        self.assertNotEqual(secondModified.summary, second.summary)
         self.assertEqual(second.getNextOccurrence(), newthird)
-        self.assertEqual(newthird.displayName, uw('Twice modified title'))
+        self.assertEqual(newthird.summary, uw('Twice modified title'))
 
         # make a THISANDFUTURE change to the THIS modification
         # FIXME: time changes need to preserve modifications for 0.6
-        secondModified.changeThisAndFuture('duration', timedelta(hours=2))
+        secondModified.changeThisAndFuture(EventStamp.duration.name, timedelta(hours=2))
         second = secondModified
         third = second.getNextOccurrence()
         self.assertNotEqual(newthird, third)
@@ -510,33 +519,33 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(second.getNextOccurrence().startTime,
                          datetime(2005, 7, 18, 13, tzinfo=ICUtzinfo.default))
 
-        third.lastModified = uw('Changed lastModified.')
+        third.itsItem.lastModified = uw('Changed lastModified.')
         fourth = third.getNextOccurrence()
         fourth.startTime += timedelta(hours=4)
 
         # propagating thisandfuture modification to this
         third.changeThisAndFuture('displayName', uw('Yet another title'))
         thirdModified = third
-        third = third.occurrenceFor
+        third = EventStamp(third.occurrenceFor)
         # Because fourth is a modification, its title should NOT have changed
-        self.assertEqual(fourth.displayName, uw('Twice modified title'))
+        self.assertEqual(fourth.summary, uw('Twice modified title'))
 
         self.assertNotEqual(thirdModified.icalUID, second.icalUID)
         self.assertEqual(thirdModified.icalUID, third.icalUID)
         self.assertEqual(third.icalUID, fourth.icalUID)
         self.assertEqual(third.rruleset, fourth.rruleset)
 
-        self.assertEqual(third.displayName, uw('Yet another title'))
-        self.failIf(third.hasLocalAttributeValue('lastModified'))
-        self.assertEqual(thirdModified.lastModified, uw('Changed lastModified.'))
+        self.assertEqual(third.summary, uw('Yet another title'))
+        self.failIf(third.itsItem.hasLocalAttributeValue('lastModified'))
+        self.assertEqual(thirdModified.itsItem.lastModified, uw('Changed lastModified.'))
 
-        self.assertEqual(fourth.modificationFor, third)
+        self.assertEqual(EventStamp(fourth.modificationFor), third)
 
         # check propagation if first in rule is overridden with a THIS mod
         thirdModified.changeThisAndFuture('displayName', uw('Changed again'))
-        self.failUnless(thirdModified.occurrenceFor is third)
-        self.assertEqual(thirdModified.displayName, uw('Changed again'))
-        self.assertEqual(third.displayName, uw('Changed again'))
+        self.failUnless(thirdModified.occurrenceFor is third.itsItem)
+        self.assertEqual(thirdModified.summary, uw('Changed again'))
+        self.assertEqual(third.summary, uw('Changed again'))
 
         # THIS mod to master with no occurrences because of later modifications 
         # doesn't create a mod
@@ -547,7 +556,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         # change master event back to the original rule
         oldrule = self.event.rruleset
-        self.event.changeThisAndFuture('rruleset',
+        self.event.changeThisAndFuture(EventStamp.rruleset.name,
                                       third.rruleset.copy(cloudAlias='copying'))
 
         self.assert_(oldrule.isDeleted)
@@ -557,7 +566,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         # and master's lastUntil
         delta = timedelta(hours=3) + self.start - self.event.startTime
         lastUntil = self.event.getLastUntil()
-        self.event.changeThisAndFuture('startTime', self.start + timedelta(hours=3))
+        self.event.changeThisAndFuture(EventStamp.startTime.name, self.start + timedelta(hours=3))
         self.assertEqual(self.event.startTime, self.event.recurrenceID)
         self.assertEqual(self.event.getLastUntil(), delta + lastUntil)
 
@@ -572,9 +581,9 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         # Test moving a later THIS modification when changing an earlier mod
 
         second = self.event.getNextOccurrence()
-        second.displayName = uw("second")
+        second.summary = uw("second")
         third = second.getNextOccurrence()
-        third.displayName = uw("third")
+        third.summary = uw("third")
 
         second.changeThisAndFuture('displayName', uw('changed title'))
 
@@ -584,12 +593,14 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
     def _checkDeleted(self, items, notdeleted):
         for item in chain(items, notdeleted):
+             # Ignore any stamps when getting the isDeleted method
+            isDeleted = getattr(item, 'itsItem', item).isDeleted()
             if item in notdeleted:
-                self.failIf(item.isDeleted(),
+                self.failIf(isDeleted,
                             "Item was deleted, but shouldn't have been: %s"
                             % repr(item))
             else:
-                self.assert_(item.isDeleted(),
+                self.failUnless(isDeleted,
                              "Item wasn't deleted: %s" % repr(item))
 
     def testDelete(self):
@@ -604,7 +615,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         # THIS modification
         rruleset = event.rruleset = self._createRuleSetItem('weekly')
-        event.getNextOccurrence().displayName = 'changed'
+        event.getNextOccurrence().summary = 'changed'
         event.removeRecurrence()
         self.failUnless(event.occurrences is None)
         self._checkDeleted([rruleset], [event])
@@ -634,14 +645,14 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         rruleset = event.rruleset = self._createRuleSetItem('weekly')
         second = event.getNextOccurrence()
         second.deleteThis()
-        self.failUnless(second.isDeleted())
+        self._checkDeleted([second], [])
         self.assertEqual(rruleset.exdates, [self.start + timedelta(days=7)])
         event.removeRecurrence()
 
         # deleteThis on a master
         rruleset = event.rruleset = self._createRuleSetItem('weekly')
         event.deleteThis()
-        self.failIf(event.isDeleted())
+        self._checkDeleted([], [event])
         self.assertEqual(rruleset.exdates, [self.start])
         self.assertEqual(event.occurrenceFor, None)
         event.removeRecurrence()
@@ -649,9 +660,9 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         # deleteThis on a THIS modification
         rruleset = event.rruleset = self._createRuleSetItem('weekly')
         second = event.getNextOccurrence()
-        second.changeThis('startTime', self.start + timedelta(hours=1))
+        second.changeThis(EventStamp.startTime.name, self.start + timedelta(hours=1))
         second.deleteThis()
-        self.assert_(second.isDeleted())
+        self._checkDeleted([second], [])
         self.assertEqual(rruleset.exdates, [self.start + timedelta(days=7)])
         event.removeRecurrence()
 
@@ -702,7 +713,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         twoWeeks = extraDay.getNextOccurrence()
         self.assertEqual(twoWeeks.startTime, self.start + timedelta(days=14))
 
-        extraDay.changeThisAndFuture('startTime',
+        extraDay.changeThisAndFuture(EventStamp.startTime.name,
                                      extraDay.startTime + timedelta(hours=1))
         self.assertEqual(rruleset.rdates,  [])
         self.assertEqual(rruleset.exdates, [])
@@ -719,9 +730,9 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         self.assert_(event.allDay)
         self.assertEqual(self.start, event.startTime)
         second = event.getNextOccurrence()
-        self.assert_(second.allDay)
-        second.changeThis('allDay', False)
-        self.assert_(not second.allDay)        
+        self.failUnless(second.allDay)
+        second.changeThis(EventStamp.allDay.name, False)
+        self.failIf(second.allDay)        
 
     def testNeverEndingEvents(self):
         ruleItem = RecurrenceRule(None, itsView=self.rep.view)
@@ -733,7 +744,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         # make a THISANDFUTURE modification
 
         second = self.event.getNextOccurrence()
-        second.changeThisAndFuture('startTime',
+        second.changeThisAndFuture(EventStamp.startTime.name,
                                    self.start + timedelta(minutes=30))
         self.failIf(second.rruleset.rrules.first().hasLocalAttributeValue('until'))
 
@@ -750,10 +761,11 @@ class NaiveTimeZoneRecurrenceTest(TestDomainModel.DomainModelTestCase):
         exactly 1 event, and that event corresponds to self.event. 
         """
         self.failUnlessEqual(len(occurrences), 1)
-        self.failIf(occurrences[0] is self.event)
-        self.failUnless(occurrences[0].occurrenceFor is self.event)
-        self.failUnlessEqual(occurrences[0].startTime, self.event.startTime)
-        self.failUnlessEqual(occurrences[0].endTime, self.event.endTime)
+        firstOccurrence = EventStamp(occurrences[0])
+        self.failIfEqual(firstOccurrence, self.event)
+        self.failUnlessEqual(firstOccurrence.occurrenceFor, self.event.itsItem)
+        self.failUnlessEqual(firstOccurrence.startTime, self.event.startTime)
+        self.failUnlessEqual(firstOccurrence.endTime, self.event.endTime)
 
     def setUp(self):
         # We want to set up the default timezone, and whether we're
@@ -784,7 +796,7 @@ class NaiveTimeZoneRecurrenceTest(TestDomainModel.DomainModelTestCase):
         self.event.startTime = start
         self.event.duration = timedelta(hours=2)
         self.event.anyTime = False
-        self.event.displayName = uw("Sneaky recurring event")
+        self.event.summary = uw("Sneaky recurring event")
 
         ruleItem = RecurrenceRule(None, itsView=self.rep.view, freq='weekly')
         ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)

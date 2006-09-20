@@ -62,12 +62,22 @@ SUBCOLLECTION = u".chandler"
 # server (@@@MOR This should change to using a schema decoration instead
 # of thie explicit list):
 
-CALDAVFILTER = [
-    'allDay', 'anyTime', 'duration', 'expiredReminders', 'isGenerated',
-    'location', 'modifications', 'modifies', 'occurrenceFor',
-    'recurrenceID', 'reminders', 'rruleset', 'startTime',
-    'transparency'
-]
+CALDAVFILTER = [attr.name for attr in (
+                    pim.EventStamp.allDay,
+                    pim.EventStamp.anyTime,
+                    pim.EventStamp.duration,
+                    pim.Remindable.expiredReminders,
+                    pim.EventStamp.isGenerated,
+                    pim.EventStamp.location,
+                    pim.EventStamp.modifications,
+                    pim.EventStamp.modifies,
+                    pim.EventStamp.occurrenceFor,
+                    pim.EventStamp.recurrenceID,
+                    pim.Remindable.reminders,
+                    pim.EventStamp.rruleset,
+                    pim.EventStamp.startTime,
+                    pim.EventStamp.transparency,
+                )]
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -895,7 +905,7 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                                           account=account)
         share.mode = "get"
         share.filterClasses = \
-            ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
+            ["osaf.pim.calendar.Calendar.EventStamp"]
 
         if updateCallback:
             updateCallback(msg=_(u"Subscribing to calendar..."))
@@ -932,7 +942,7 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                                           ticket=ticket)
         share.mode = "get"
         share.filterClasses = \
-            ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
+            ["osaf.pim.calendar.Calendar.EventStamp"]
 
         if updateCallback:
             updateCallback(msg=_(u"Subscribing to freebusy..."))
@@ -966,8 +976,7 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
         if ticket:
             share.conduit.ticketFreeBusy = ticket
         share.mode = "get"
-        share.filterClasses = \
-            ["osaf.pim.calendar.Calendar.CalendarEventMixin"]
+        share.filterClasses = ["osaf.pim.calendar.Calendar.EventStamp"]
 
         if updateCallback:
             updateCallback(msg=_(u"Subscribing to freebusy..."))
@@ -1120,8 +1129,11 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                 # event status (transparency).  Let's assume not.  However,
                 # we *can* determine their intention for sharing triage
                 # status.
-                share.filterAttributes = ['reminders', 'expiredReminders',
-                    'transparency']
+                share.filterAttributes = [
+                     pim.Remindable.reminders.name,
+                     pim.Remindable.expiredReminders.name,
+                     pim.EventStamp.transparency.name
+                ]
                 if 'triageStatus' in getattr(subShare, 'filterAttributes', []):
                     share.filterAttributes.append('triageStatus')
 
@@ -1642,13 +1654,13 @@ def getFilteredCollectionDisplayName(collection, filterClasses):
 
     if len(filterClasses) > 0:
         classString = filterClasses[0] # Only look at the first class
-        if classString == "osaf.pim.tasks.TaskMixin":
+        if classString == "osaf.pim.tasks.TaskStamp":
             allName = _(u"My tasks")
             ext = _(u"tasks")
-        elif classString == "osaf.pim.mail.MailMessageMixin":
+        elif classString == "osaf.pim.mail.MailStamp":
             allName = _(u"My mail")
             ext = _(u"mail")
-        elif classString == "osaf.pim.calendar.Calendar.CalendarEventMixin":
+        elif classString == "osaf.pim.calendar.Calendar.EventStamp":
             allName = _(u"My calendar")
             ext = _(u"calendar")
 

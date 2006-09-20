@@ -59,15 +59,13 @@ class ContentCollection(ContentItem, Collection):
     )
 
     invitees = schema.Sequence(
-        "osaf.pim.mail.EmailAddress",
         doc="The people who are being invited to share in this item; filled "
             "in when the user types in the DV's 'invite' box, then cleared on "
             "send (entries copied to the share object).\n\n"
             "Issue: Bad that we have just one of these per item collection, "
             "though an item collection could have multiple shares post-0.5",
-        inverse="inviteeOf",
         initialValue=()
-    )
+    ) # inverse of osaf.pim.mail.EmailAddress.inviteeOf
 
     # redirections 
     about = schema.Descriptor(redirectTo="displayName")
@@ -418,7 +416,7 @@ class FilteredCollection(SingleSourceWrapperCollection):
 
     filterExpression = schema.One(schema.Text)
     filterMethod = schema.One(schema.Tuple)
-    filterAttributes = schema.Sequence(schema.Symbol, initialValue=[])
+    filterAttributes = schema.Sequence(schema.Importable, initialValue=[])
 
     def _sourcesChanged_(self):
 

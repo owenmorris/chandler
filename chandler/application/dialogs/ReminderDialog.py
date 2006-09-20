@@ -125,7 +125,7 @@ class ReminderDialog(wx.Dialog):
         self.reminderControls['dismissAll'].Enable(haveAnyItems)
         return haveAnyItems
     
-    def UpdateList (self, reminderTuples):
+    def UpdateList(self, reminderTuples):
         """ Update our reminder list; return info about our next firing.
         
         We return a tuple containing a time (or None) and a flag that indicates
@@ -150,7 +150,7 @@ class ReminderDialog(wx.Dialog):
             if reminderTime < datetime.now(ICUtzinfo.default):
                 # Another pending reminder; add it to the list.
                 index = listCtrl.InsertStringItem(sys.maxint, 
-                                                  remindable.displayName)
+                                                  remindable.itsItem.displayName)
                 self.remindersInList[index] = t
 
                 # Make a relative expression of its time ("3 minutes from now")

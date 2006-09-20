@@ -25,7 +25,7 @@ import logging
 import application.Globals as Globals
 import osaf.pim.calendar.Calendar as Calendar
 from osaf import pim
-from osaf.pim.tasks import Task, TaskMixin
+from osaf.pim.tasks import Task, TaskStamp
 import osaf.pim.mail as Mail
 from PyICU import ICUtzinfo
 import i18n
@@ -185,7 +185,7 @@ def GenerateCalendarEvent(view, args):
             reminderInterval = random.choice(REMINDERS)
         else:
             reminderInterval = string.atoi(args[7])
-        event.userReminderInterval = timedelta(minutes=-reminderInterval)
+        pim.Remindable(event).userReminderInterval = timedelta(minutes=-reminderInterval)
 
     #location
     if args[8]=='*': # semi-random data
@@ -323,7 +323,7 @@ def ReturnCompleteDatetime(date, time='', tz=None):
 def GenerateEventTask(view, args):
     """ Generate one Task/Event stamped item """
     event = GenerateCalendarEvent(view, args)
-    event.StampKind('add', TaskMixin.getKind(event.itsView))
+    TaskStamp(event).add()
     return event
 
 
@@ -400,17 +400,17 @@ def GenerateMailMessage(view, args):
     if args[7]=='*':
         type = random.randint(0, 1)
         if type:
-            message.StampKind('add', Calendar.CalendarEventMixin.getKind(message.itsView))
+            Calendar.EventStamp(message).add()
     elif args[7]=='TRUE':
-        message.StampKind('add', Calendar.CalendarEventMixin.getKind(message.itsView))
+            Calendar.EventStamp(message).add()
 
     # Stamp Task
     if args[8]=='*':
         type = random.randint(0, 1)
         if type:
-            message.StampKind('add', TaskMixin.getKind(message.itsView))
+            TaskStamp(message).add()
     elif args[8]=='TRUE':
-        message.StampKind('add', TaskMixin.getKind(message.itsView))
+        TaskStamp(message).add()
 
     # body
     if args[9]=='*':

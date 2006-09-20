@@ -40,7 +40,7 @@ try:
         global logger
         global App_ns
         global pim
-        testEvent = App_ns.item_named(pim.CalendarEvent, title)
+        testEvent = App_ns.item_named(pim.EventStamp, title)
         if testEvent is not None:
             logger.ReportPass("Testing event creation: '%s'" % title)
         else:

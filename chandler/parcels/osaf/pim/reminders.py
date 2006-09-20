@@ -14,7 +14,9 @@
 
 
 from application import schema
-from calculated import Calculated
+from osaf.pim.items import ContentItem, cmpTimeAttribute
+from osaf.pim.calendar.Calendar import EventStamp
+
 from datetime import datetime, time, timedelta
 from PyICU import ICUtzinfo
 import logging
@@ -58,14 +60,10 @@ class Reminder(schema.Item):
             "after it fires?")
     
     reminderItems = schema.Sequence(
-        "Remindable",
-        inverse="reminders",
         initialValue=[]
     )
 
     expiredReminderItems = schema.Sequence(
-        "Remindable",
-        inverse="expiredReminders",
         initialValue=[]
     )
 
@@ -81,7 +79,8 @@ class Reminder(schema.Item):
         - otherwise, get the relative-to time from our remindable
         - otherwise, use a time in the far future.
         """
-        return self.absoluteTime or getattr(remindable, self.relativeTo) \
+        return self.absoluteTime or \
+                getattr(remindable.itsItem, self.relativeTo) \
                or Reminder.farFuture
 
     def getNextReminderTimeFor(self, remindable):
@@ -100,7 +99,9 @@ class Reminder(schema.Item):
         return "<%sReminder @ %s>" % (self.userCreated and "User" or "Internal", 
                                       self.absoluteTime or self.delta)
 
-class Remindable(schema.Item):
+class Remindable(schema.Annotation):
+    schema.kindInfo(annotates=ContentItem)
+    
     reminders = schema.Sequence(
         Reminder,
         inverse=Reminder.reminderItems,
@@ -114,18 +115,24 @@ class Remindable(schema.Item):
     )
 
     schema.addClouds(
-        copying = schema.Cloud(reminders,expiredReminders),
+        copying = schema.Cloud(reminders, expiredReminders),
         sharing = schema.Cloud(
             byCloud = [reminders, expiredReminders]
         )
     )
 
+    @schema.Comparator
+    def cmpReminderTime(self, remindable):
+        return cmpTimeAttribute(self, remindable, 'reminderFireTime')
+
+
     def getUserReminder(self, collectionToo=False, expiredToo=True, skipThis=None):
-        attrsToSearch = expiredToo and ("reminders", "expiredReminders") \
-                        or ("reminders",)
+        attrsToSearch = (expiredToo and (Remindable.reminders,
+                                         Remindable.expiredReminders)
+                                    or (Remindable.reminders,))
         for attr in attrsToSearch:
-            if (self.hasLocalAttributeValue(attr)):
-                collection = getattr(self, attr)
+            if (self.itsItem.hasLocalAttributeValue(attr.name)):
+                collection = getattr(self.itsItem, attr.name)
                 for reminder in collection:
                     if reminder.userCreated and reminder is not skipThis:
                         return collectionToo and (collection, reminder) or reminder
@@ -142,7 +149,7 @@ class Remindable(schema.Item):
         # in the UI.
         if kwds.get('delta') or kwds.get('absoluteTime'):
             # We're creating a new reminder.
-            newReminder = Reminder(None, itsView=self.itsView, **kwds)
+            newReminder = Reminder(None, itsView=self.itsItem.itsView, **kwds)
             logger.debug("Adding %s to %s", newReminder, self)
 
             addThisTo = self.reminders
@@ -213,7 +220,7 @@ class Remindable(schema.Item):
     def snoozeReminder(self, reminder, delay):
         """ Snooze this reminder for this long. """
         # Make a new reminder for this event
-        newReminder = Reminder(None, itsView=self.itsView,
+        newReminder = Reminder(None, itsView=self.itsItem.itsView,
                                absoluteTime=(datetime.now(ICUtzinfo.default) +
                                              delay),
                                keepExpired=False,
@@ -238,14 +245,17 @@ class Remindable(schema.Item):
         return userReminder.delta
 
     def setUserReminderInterval(self, delta):
-        assert hasattr(self, 'effectiveStartTime')
-        return self.makeReminder(delta=delta, relativeTo='effectiveStartTime',
+        EventStamp = schema.ns("osaf.pim", self.itsItem.itsView).EventStamp
+        attrName = EventStamp.effectiveStartTime.name
+        assert hasattr(self.itsItem, attrName)
+        return self.makeReminder(delta=delta, relativeTo=attrName,
                                  checkExpired=True, keepExpired=True, 
                                  replace=True)
 
-    userReminderInterval = Calculated(
+
+    userReminderInterval = schema.Calculated(
         schema.TimeDelta,
-        basedOn=('reminders',),
+        basedOn=(reminders,),
         fget=getUserReminderInterval,
         fset=setUserReminderInterval,
         doc="User-set reminder interval, computed from the first unexpired reminder."
@@ -262,9 +272,9 @@ class Remindable(schema.Item):
                                  checkExpired=True, keepExpired=True, 
                                  replace=True)
     
-    userReminderTime = Calculated(
+    userReminderTime = schema.Calculated(
         schema.DateTimeTZ,
-        basedOn=('reminders',),
+        basedOn=(reminders,),
         fget=getUserReminderTime,
         fset=setUserReminderTime,
         doc="User-set absolute reminder time."
@@ -296,9 +306,10 @@ class Remindable(schema.Item):
         """
         return self._getNextReminderAndTime()[0]
     
-    nextReminderTime = Calculated(
+    nextReminderTime = schema.Calculated(
         schema.DateTimeTZ,
-        basedOn=('startTime', 'allDay', 'anyTime', 'reminders'),
+        basedOn=(EventStamp.startTime, EventStamp.allDay, EventStamp.anyTime,
+                 reminders,),
         fget=getNextReminderTime,
         doc="Firing time of this item's next reminder, "
             "or None for no unexpired reminders")
@@ -306,7 +317,7 @@ class Remindable(schema.Item):
     @schema.observer(reminders)
     def onRemindersChanged(self, op, attr):
         logger.debug("Hey, onRemindersChanged called!")
-        self.updateRelevantDate(op, attr)
+        self.itsItem.updateRelevantDate(op, attr)
     
     def addRelevantDates(self, dates):
         """

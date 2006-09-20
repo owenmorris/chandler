@@ -23,6 +23,7 @@ import wx
 from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
+from osaf.pim import EventStamp, Stamp, has_stamp
 
 logger = logging.getLogger(__name__)
 
@@ -172,7 +173,9 @@ def getProxy(context, obj, createNew=True, endCallback=None):
     is already a cached proxy for obj.
     
     """
-    if hasattr(obj, 'changeThis') and hasattr(obj, 'changeThisAndFuture'):      
+    if has_stamp(obj, EventStamp):
+        # Don't cache an EventStamp object
+        obj = EventStamp(obj).itsItem
         if (not _proxies.has_key(context) or
             _proxies[context][0] != obj.itsUUID):
             if createNew:
@@ -187,6 +190,7 @@ def getProxy(context, obj, createNew=True, endCallback=None):
             
             # Before we return it, update its __class__ in case it was stamped
             # since the last time it got used. (see bug 4660)
+            # @@@ [grant] unnecessary in the stamping-as-annotation world
             proxy.__class__ = obj.__class__
 
         # sometimes a cancel requires that some UI element needs to
@@ -198,11 +202,14 @@ def getProxy(context, obj, createNew=True, endCallback=None):
     else:
         return obj
 
+
 class OccurrenceProxy(object):
     """Proxy which pops up a RecurrenceDialog when it's changed."""
     __class__ = 'temp'
     proxyAttributes = 'proxiedItem', 'currentlyModifying', '__class__', \
-                      'dialogUp', 'changeBuffer', 'endCallbacks'
+                      'dialogUp', 'changeBuffer', 'endCallbacks', \
+                      EventStamp.IGNORE_CHANGE_ATTR
+
     
     def __init__(self, item):
         self.proxiedItem = item
@@ -231,6 +238,12 @@ class OccurrenceProxy(object):
     def __str__(self):
         return "Proxy for %s" % self.proxiedItem.__str__()
         
+    def __delattr__(self, name):
+        if name in self.proxyAttributes:
+            object.__delattr__(self, name)
+        else:
+            delattr(self.proxiedItem, name)
+
     def __getattr__(self, name):
         """Get the last name version set in changeBuffer, or get from proxy."""
         for change in reversed(self.changeBuffer):
@@ -245,7 +258,7 @@ class OccurrenceProxy(object):
     def __setattr__(self, name, value):
         if name in self.proxyAttributes:
             object.__setattr__(self, name, value)
-        elif self.proxiedItem.rruleset is None:
+        elif EventStamp(self.proxiedItem).rruleset is None:
             setattr(self.proxiedItem, name, value)
         else:
             testedEqual = False
@@ -275,11 +288,22 @@ class OccurrenceProxy(object):
             if testedEqual:
                 pass
             elif self.currentlyModifying is None:
-                change = dict(method=self.propagateChange,
-                              args = (name, value),
-                              question = _(u'"%(displayName)s" is a recurring event. Do you want to change:'),
-                              affects_getattr = True,
-                              disabled_buttons=('all',))
+                change = dict(method = self.propagateChange,
+                              args = (name, value))
+                              
+
+                if name == Stamp.stamp_types.name:
+                    change.update(
+                        question = _(u'"%(displayName)s" is a recurring event. Do you want to stamp:'),
+                        disabled_buttons=('all', 'future')
+                    )
+                else:
+                    change.update(
+                        question = _(u'"%(displayName)s" is a recurring event. Do you want to change:'),
+                        affects_getattr = True,
+                        disabled_buttons=('all',)
+                    )
+
                 self.delayChange(change)
             else:
                 self.propagateChange(name, value)
@@ -288,8 +312,9 @@ class OccurrenceProxy(object):
         """
         Add self to the given collection, or queue the add.
         """
-        if self.proxiedItem.rruleset is None:
-            collection.add(self.proxiedItem.getMaster())
+        proxiedEvent = EventStamp(self.proxiedItem)
+        if proxiedEvent.rruleset is None:
+            collection.add(proxiedEvent.getMaster().itsItem)
         else:
             trash = schema.ns('osaf.pim',
                 self.proxiedItem.itsView).trashCollection
@@ -307,8 +332,9 @@ class OccurrenceProxy(object):
         """
         Remove self from the given collection, or queue the removal.
         """
-        if self.proxiedItem.rruleset is None:
-            collection.remove(self.proxiedItem.getMaster())
+        proxiedEvent = EventStamp(self.proxiedItem)
+        if proxiedEvent.rruleset is None:
+            collection.remove(EventStamp(proxiedEvent).getMaster().itsItem)
         else:
             change = dict(method=self.propagateDelete,
                           args=(collection,),
@@ -316,28 +342,6 @@ class OccurrenceProxy(object):
             if cutting:
                 change['question'] = _(u'"%(displayName)s" is a recurring event. Do you want to cut:')
                 change['disabled_buttons']=('future', 'this')
-            self.delayChange(change)
-
-    def StampKind(self, *args, **kwds):
-        """
-        We have to make sure to propagate the change to __class__ even on
-        non-recurring events.
-        
-        For recurring events, propagate StampKind()
-        """
-        if self.proxiedItem.rruleset is None:
-            self.proxiedItem.StampKind(*args, **kwds)
-
-            # need to make sure our __class__ matches the newly stamped item
-            self.__class__ = self.proxiedItem.__class__
-            assert self.__class__ is self.proxiedItem.__class__, "couldn't make the conversion from %s to %s" % (self.__class__.__name__, self.proxiedItem.__class__)
-        else:
-            change = dict(method=self.propagateStampKind,
-                          args = args,
-                          kwds = kwds,
-                          question = _(u'"%(displayName)s" is a recurring event. Do you want to stamp:'),
-                          disabled_buttons=('all','future'))
-
             self.delayChange(change)
 
     def delayChange(self, change):
@@ -373,13 +377,15 @@ class OccurrenceProxy(object):
             self.currentlyModifying = None
     
     def propagateChange(self, name, value):
-        table = {'this'          : self.proxiedItem.changeThis,
-                 'thisandfuture' : self.proxiedItem.changeThisAndFuture}
+        proxiedEvent = EventStamp(self.proxiedItem)
+        table = {'this'          : proxiedEvent.changeThis,
+                 'thisandfuture' : proxiedEvent.changeThisAndFuture}
         table[self.currentlyModifying](name, value)
 
     def propagateDelete(self, collection):
-        table = {'this'          : self.proxiedItem.deleteThis,
-                 'thisandfuture' : self.proxiedItem.deleteThisAndFuture,
+        proxiedEvent = EventStamp(self.proxiedItem)
+        table = {'this'          : proxiedEvent.deleteThis,
+                 'thisandfuture' : proxiedEvent.deleteThisAndFuture,
                  'all'           : lambda: self.trashAddOrDelete(collection)
                 }
         table[self.currentlyModifying]()
@@ -395,20 +401,15 @@ class OccurrenceProxy(object):
 
         """
         trash = schema.ns('osaf.pim', self.proxiedItem.itsView).trashCollection
-        master = self.proxiedItem.getMaster()
+        masterItem = EventStamp(self.proxiedItem).getMaster().itsItem
         if collection == trash:
-            collection.add(master)
+            collection.add(masterItem)
         else:
-            collection.remove(master)
+            collection.remove(masterItem)
 
 
     def propagateAddToCollection(self, collection):
-        collection.add(self.proxiedItem.getMaster())
-
-    def propagateStampKind(self, *args, **kwds):
-        # todo: process currentlyModifying
-        self.proxiedItem.changeThis()
-        self.proxiedItem.StampKind(*args, **kwds)
+        collection.add(EventStamp(self.proxiedItem).getMaster().itsItem)
 
     def cancelBuffer(self):
         self.changeBuffer = []
@@ -421,4 +422,4 @@ class OccurrenceProxy(object):
         When testing an item for membership, what we generally care
         about is the master event.
         """
-        return self.proxiedItem.getMaster().getMembershipItem()
+        return EventStamp(self.proxiedItem).getMaster().itsItem.getMembershipItem()

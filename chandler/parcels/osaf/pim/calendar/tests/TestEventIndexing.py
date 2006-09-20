@@ -30,7 +30,7 @@ class TestEventIndexing(TimeZoneTestCase):
         event.startTime = startTime
         event.endTime = event.startTime + timedelta(hours=1)
         event.anyTime = False
-        event.displayName = uw("Sample event")
+        event.summary = uw("Sample event")
         return event    
     
     def setUp(self):

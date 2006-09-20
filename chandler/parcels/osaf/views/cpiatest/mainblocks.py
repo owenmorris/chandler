@@ -20,6 +20,7 @@ from osaf.views.main.SideBar import *
 from osaf.pim.structs import SizeType, RectType
 from osaf import pim
 from osaf import messages
+from repository.item.Item import MissingClass
 from i18n import ChandlerMessageFactory as _
 import osaf.pim.calendar
 from application import schema
@@ -69,10 +70,10 @@ def makeCPIATestMainView (parcel):
         elementDelegate = 'osaf.views.main.SideBar.SidebarElementDelegate',
         hideColumnHeadings = True,
         defaultEditableAttribute = u'displayName',
-        filterKind = osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(repositoryView),
-        disallowOverlaysForFilterKinds = [None,
-                                          osaf.pim.mail.MailMessageMixin.getKind(repositoryView),
-                                          osaf.pim.tasks.TaskMixin.getKind(repositoryView)]
+        filterClass = pim_ns.EventStamp,
+        disallowOverlaysForFilterClasses = [MissingClass,
+                                          osaf.pim.mail.MailStamp,
+                                          osaf.pim.tasks.TaskStamp]
         ).install(parcel)
     Sidebar.contents.selectItem (pim_ns.allCollection)
 

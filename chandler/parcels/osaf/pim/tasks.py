@@ -16,10 +16,11 @@
 """ Class used for Items of Kind Task
 """
 
-__all__ = ['TaskStatusEnum', 'TaskMixin', 'Task', 'TaskEventExtraMixin']
+__all__ = ['TaskStamp', 'Task']
 
 import items, notes
 from contacts import Contact
+from stamping import Stamp
 
 from datetime import datetime, timedelta
 from application import schema
@@ -27,29 +28,15 @@ from application import schema
 from PyICU import ICUtzinfo
 
 
-class TaskStatusEnum(schema.Enumeration):
-    values = "todo", "blocked", "done", "deferred"
-
-
-class TaskMixin(items.ContentItem):
+class TaskStamp(Stamp):
     """
-    This is the set of Task-specific attributes.
-
-    Task Mixin is the bag of Task-specific attributes.
-    We only instantiate these Items when we "unstamp" an
-    Item, to save the attributes for later "restamping".
+    TaskStamp is the bag of Task-specific attributes.
     """
 
-    schema.kindInfo(
-        description =
-            "This Kind is 'mixed in' to others kinds to create Kinds that "
-            "can be instantiated"
-    )
+    schema.kindInfo(annotates = notes.Note)
 
-    reminderTime = schema.One(
-        schema.DateTimeTZ,
-        doc = 'This may not be general enough',
-    )
+    __use_collection__ = True
+    
     requestor = schema.One(
         Contact,
         description =
@@ -59,20 +46,17 @@ class TaskMixin(items.ContentItem):
         inverse = Contact.requestedTasks,
     )
     requestee = schema.Sequence(
-        items.ContentItem,
+        Contact,
         description =
             "Issues:\n"
             '   Type could be Contact, EmailAddress or String\n'
             '   Think about using the icalendar terminology\n',
-        otherName = 'taskRequests',
+        inverse = Contact.taskRequests,
     )
 
-    taskStatus = schema.One(
-        TaskStatusEnum,
-    )
     dueDate = schema.One(schema.DateTimeTZ)
-    whoFrom = schema.One(redirectTo = 'requestor')
-    about = schema.One(redirectTo = 'displayName')
+    #whoFrom = schema.One(redirectTo = 'requestor')
+    summary = schema.One(redirectTo = 'displayName')
 
     schema.addClouds(
         copying = schema.Cloud(
@@ -81,94 +65,29 @@ class TaskMixin(items.ContentItem):
     )
 
     def InitOutgoingAttributes (self):
-        """ Init any attributes on ourself that are appropriate for
-        a new outgoing item.
-        """
-        try:
-            super(TaskMixin, self).InitOutgoingAttributes ()
-        except AttributeError:
-            pass
+        self.itsItem.InitOutgoingAttributes()
 
-        TaskMixin._initMixin (self) # call our init, not the method of a subclass
-
-    def _initMixin (self):
+    def add(self):
         """
-          Init only the attributes specific to this mixin.
-        Called when stamping adds these attributes, and from __init__ above.
+          Set up the attributes specific to this mixin.
+        Called when stamping adds these attributes.
         """
-        # default status is To Do
-        self.taskStatus = 'todo'
-
+        
+        super(TaskStamp, self).add()
+        
         # default due date is 1 hour hence
-        self.dueDate = datetime.now(ICUtzinfo.default) + timedelta(hours=1)
-
-        # default the title to any super class "about" definition
-        try:
-            self.about = self.getAnyAbout ()
-        except AttributeError:
-            pass
+        # (?) Grant
+        if not hasattr(self, 'dueDate'):
+            self.dueDate = datetime.now(ICUtzinfo.default) + timedelta(hours=1)
 
         # TBD - default the requestee to any super class "who" definition
         # requestee attribute is currently not implemented.
 
-class TaskEventExtraMixin(items.ContentItem):
-    """
-      Task Event Extra Mixin is the bag of attributes that
-    appears when you have an Item that is both a Task and a
-    CalendarEvent.
-    We only instantiate these Items when we "unstamp" an
-    Item, to save the attributes for later "restamping".
-    """
+def Task(*args, **keywds):
+    note = notes.Note(*args, **keywds)
+    result = TaskStamp(note)
 
-    schema.kindInfo(
-        description =
-            "The attributes specific to an item that is both a task and an "
-            "event.  This is additional 'due by' information. "
-    )
-
-    dueByDate = schema.One(
-        schema.DateTimeTZ,
-        doc = 'The date when a Task Event is due.',
-    )
-    dueByRecurrence = schema.Sequence(
-        'osaf.pim.calendar.Calendar.RecurrencePattern',
-        doc = 'Recurrence information for a Task Event.',
-    )
-    dueByTickler = schema.One(
-        schema.DateTimeTZ,
-        doc = 'The reminder information for a Task Event.',
-    )
-
-    def InitOutgoingAttributes (self):
-        """ Init any attributes on ourself that are appropriate for
-        a new outgoing item.
-        """
-        try:
-            super(TaskEventExtraMixin, self).InitOutgoingAttributes ()
-        except AttributeError:
-            pass
-        TaskEventExtraMixin._initMixin (self) # call our init, not the method of a subclass
-
-    def _initMixin (self):
-        """
-          Init only the attributes specific to this mixin.
-        Called when stamping adds these attributes, and from __init__ above.
-        """
-        # default the dueByDate to the task's dueDate
-        try:
-            self.dueByDate = self.dueDate
-        except AttributeError:
-            pass
-
-
-class Task(TaskMixin, notes.Note):
-    """
-    Task type
-
-    Issues:
-      - Do we want to support the idea of tasks having sub-tasks? If so,
-        then we need to add attributes for 'superTask' and 'subTasks'.
-
-      - Task should maybe have a 'Timezone' attribute.
-    """
-
+    result.add()
+    
+    return result # Set some keywords? Could filter out all the attribut names
+                  # that don't apply to the Note kind

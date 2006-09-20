@@ -76,6 +76,7 @@ exclusions = {#tests to exclude on specific platfoms only
     ],
     
     'mac':[
+        ("TestSharing","TestSharing"),
      
     ],
     

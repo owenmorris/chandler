@@ -18,6 +18,7 @@
 import MailTestCase as MailTestCase
 import osaf.mail.message as message
 import osaf.mail.utils as utils
+from osaf.pim.stamping import has_stamp
 from osaf.pim.mail import *
 import unittest as unittest
 
@@ -214,9 +215,9 @@ This is the body"""
         self.messageTwo = message.messageTextToKind(self.rep.view, self.M2)
         self.messageThree = message.messageTextToKind(self.rep.view, self.M3)
 
-        self.assertTrue(isinstance(self.messageOne, MailMessage))
-        self.assertTrue(isinstance(self.messageTwo, MailMessage))
-        self.assertTrue(isinstance(self.messageThree, MailMessage))
+        self.assertTrue(isinstance(self.messageOne, MailStamp))
+        self.assertTrue(isinstance(self.messageTwo, MailStamp))
+        self.assertTrue(isinstance(self.messageThree, MailStamp))
 
     def _createMeAddress(self):
         from application import schema
@@ -333,8 +334,9 @@ This is the body"""
         attachments = newMessage.getAttachments()
 
         for attachment in attachments:
-            self.assertTrue(isinstance(attachment, MailMessage))
-            rfc2822 = utils.binaryToData(attachment.rfc2822Message)
+            self.assertTrue(isinstance(attachment, MailStamp.targetType()))
+            self.assertTrue(has_stamp(attachment, MailStamp))
+            rfc2822 = utils.binaryToData(MailStamp(attachment).rfc2822Message)
             self.assertEquals(self.M2, rfc2822)
             break
 

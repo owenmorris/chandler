@@ -21,6 +21,7 @@ import application.dialogs.RecurrenceDialog as RecurrenceDialog
 from osaf.pim.items import ContentItem
 from osaf.pim.collections import ContentCollection
 from osaf.usercollections import UserCollection
+from repository.item.Item import MissingClass
 import wx
 import logging
 
@@ -783,11 +784,11 @@ class Block(schema.Item):
                 blockItem.postEventByName ("SelectItemsBroadcast", arguments)
                 
                 # Let the block know about the preferred kind
-                method = getattr(type(blockItem), 'setPreferredKind', None)
+                method = getattr(blockItem, 'setPreferredClass', None)
                 if method is not None:
-                    preferredKind = getattr(UserCollection (item), 'preferredKind', False)
-                    if preferredKind is not False:
-                        method(blockItem, preferredKind)
+                    preferredClass = getattr(UserCollection(item), 'preferredClass', False)
+                    if preferredClass is not False:
+                        method(preferredClass)
         return item
 
     def synchronizeWidget (self, useHints=False):
@@ -1096,8 +1097,8 @@ def debugName(thing):
         widget = getattr(thing, 'control', None)
         return '%s on %s' % (thing.__class__.__name__, debugName(widget))
 
-    from osaf.pim import CalendarEventMixin, Note, Reminder
-    if isinstance(thing, CalendarEventMixin):
+    from osaf.pim import has_stamp, EventStamp, Note, Reminder
+    if has_stamp(thing, EventStamp):
         startTime = getattr(thing, 'startTime', None)
         if startTime and getattr(thing, 'allDay', False):
             timeMsg = "%s allDay" % startTime.date()
@@ -1273,16 +1274,16 @@ class ColorEvent(BlockEvent):
     from osaf.pim.structs import ColorType
     color = schema.One(ColorType, required = True)
 
-class KindParameterizedEvent(BlockEvent):
-    kindParameter = schema.One(
-        schema.TypeReference('//Schema/Core/Kind'),
-        defaultValue = None
+class ClassParameterizedEvent(BlockEvent):
+    classParameter = schema.One(
+        schema.Class,
+        defaultValue = MissingClass
     )
     schema.addClouds(
-        copying = schema.Cloud(byRef=[kindParameter])
+        copying = schema.Cloud(byRef=[classParameter])
     )
     
-class NewItemEvent(KindParameterizedEvent):
+class NewItemEvent(ClassParameterizedEvent):
     """
     Creates a new Item, adds it to a C{collection} and displays it properly.
 
@@ -1291,20 +1292,31 @@ class NewItemEvent(KindParameterizedEvent):
     information to create the item. If C{onNewItem} returns None, no Item will
     be created.
 
-    If you don't implement C{onNewItem} an Item of C{kindParamter} Kind is
-    created. If C{kindParamter} is None, a Kind matching the ApplicationBar is
-    created, e.g. if you're in Calendar View you'll get a Calendar Item. If
-    you're in All you'll get a Note.
+    If you don't implement C{onNewItem} the C{classParameter} attribute
+    is used to determine what item to create. The attribute has a default
+    value of C{MissingClass}; in this case in Item matching the ApplicationBar
+    is created; e.g. if you're in Calendar View you'll get an Item that has
+    been stamped as an Event; if you're in All you'll get a Note.
+    
+    To create a specific item, you can either:
+    
+       1. Specify a Kind's class as the C{classParameter} e.g. C{osaf.pim.Note}
+       will force creation of a Note, no matter what's selected in the
+       ApplicationBar.
+       
+        2. Specify a subclass of C{osaf.pim.Stamp} to create a Note with the
+        appropriate stamp. E.g. C{osaf.pim.Task} will get you a Task Item
+        (i.e. a Note stamped as a Task).
 
-    The view in the sidebar is switched to match the kind, e.g. if you create a
-    CalendarItem, you'll switch to the Calendar View. If there isn't a
+    The view in the sidebar is switched to match the kind, e.g. if you create
+    an Event, you'll switch to the Calendar View. If there isn't a
     kind specific view, you'll switch to All view.
 
     If the C{collection} is None or it's not a UserCollection, the Item will be
     added to the all collection.
     
-    If you specify a C{collectionAddEvent} that references an AddToSidebarEvent and
-    your C{collection} is not in the Sidebar, it will be used to add your
+    If you specify a C{collectionAddEvent} that references an AddToSidebarEvent
+    and your C{collection} is not in the Sidebar, it will be used to add your
     C{collection} if it's not in the sidebar.
     """
     collection = schema.One(ContentCollection, defaultValue = None)
@@ -1343,18 +1355,18 @@ AddToSidebarEvent = AddToViewableCollectionEvent
     By default the item will be selected and it's displayName will be
     disambiguated, i.e. a "-NN" suffix added to make it unique.
 
-    By setting the preferredKind UserCollection attribute of your collection,
+    By setting the preferredClass UserCollection attribute of your collection,
     it will be displayed in a particular application area as follows:
 
-    If preferredKind attribute is absent (the default) then the collection
+    If preferredClass attribute is absent (the default) then the collection
     will be the current application area.
 
-    If preferredKind attribute is None the collection will be viewed in All
+    If preferredClass attribute is MissingClass the collection will be viewed in All
 
-    if preferredKind attribute is the kind associated with another application
-    area it will be displayed in that area. For example if preferredKind is
+    if preferredClass attribute is the kind associated with another application
+    area it will be displayed in that area. For example if preferredClass is
 
-    schema.ns('osaf.pim.calendar.Calendar', theView).CalendarEventMixin.getKind (theView)
+    schema.ns('osaf.pim', theView).EventStamp
 
     it will be displayed in the calendar area.
 

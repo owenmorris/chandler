@@ -24,6 +24,7 @@ from osaf import sharing
 from util import task, viewpool
 from i18n import ChandlerMessageFactory as _
 import SyncProgress
+from osaf.pim import Remindable, EventStamp
 
 logger = logging.getLogger(__name__)
 
@@ -227,9 +228,9 @@ class PublishCollectionDialog(wx.Dialog):
 
     def _loadAttributeFilterState(self, share):
         # @@@ Jeffrey: Needs updating for new reminders?
-        self.CheckboxShareAlarms.SetValue("reminders" not in \
+        self.CheckboxShareAlarms.SetValue(Remindable.reminders.name not in \
                                           share.filterAttributes)
-        self.CheckboxShareStatus.SetValue("transparency" not in \
+        self.CheckboxShareStatus.SetValue(EventStamp.transparency.name not in \
                                           share.filterAttributes)
         self.CheckboxShareTriage.SetValue("triageStatus" not in \
                                           share.filterAttributes)
@@ -240,10 +241,10 @@ class PublishCollectionDialog(wx.Dialog):
         if self.publishType == 'collection':
             # @@@ Jeffrey: Needs updating for new reminders?
             if not self.CheckboxShareAlarms.GetValue():
-                attrs.append('reminders')
-                attrs.append('expiredReminders')
+                attrs.append(Remindable.reminders.name)
+                attrs.append(Remindable.expiredReminders.name)
             if not self.CheckboxShareStatus.GetValue():
-                attrs.append('transparency')
+                attrs.append(EventStamp.transparency.name)
             if not self.CheckboxShareTriage.GetValue():
                 attrs.append('triageStatus')
                 attrs.append('triageStatusChanged')
@@ -253,20 +254,20 @@ class PublishCollectionDialog(wx.Dialog):
     def _saveAttributeFilterState(self, share):
         # @@@ Jeffrey: Needs updating for new reminders?
         if not self.CheckboxShareAlarms.GetValue():
-            if "reminders" not in share.filterAttributes:
-                share.filterAttributes.append("reminders")
-                share.filterAttributes.append("expiredReminders")
+            if Remindable.reminders.name not in share.filterAttributes:
+                share.filterAttributes.append(Remindable.reminders.name)
+                share.filterAttributes.append(Remindable.expiredReminders.name)
         else:
-            if "reminders" in share.filterAttributes:
-                share.filterAttributes.remove("reminders")
-                share.filterAttributes.remove("expiredReminders")
+            if Remindable.reminders.name in share.filterAttributes:
+                share.filterAttributes.remove(Remindable.reminders.name)
+                share.filterAttributes.remove(Remindable.expiredReminders.name)
 
         if not self.CheckboxShareStatus.GetValue():
-            if "transparency" not in share.filterAttributes:
-                share.filterAttributes.append("transparency")
+            if EventStamp.transparency.name not in share.filterAttributes:
+                share.filterAttributes.append(EventStamp.transparency.name)
         else:
-            if "transparency" in share.filterAttributes:
-                share.filterAttributes.remove("transparency")
+            if EventStamp.transparency.name in share.filterAttributes:
+                share.filterAttributes.remove(EventStamp.transparency.name)
 
         if not self.CheckboxShareTriage.GetValue():
             if "triageStatus" not in share.filterAttributes:
@@ -279,7 +280,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         # Make sure no matter what we keep filtering out the attributes that
         # never belong in the XML fork of a CalDAV share:
-        if "allDay" in share.filterAttributes: # this is such an XML fork
+        if EventStamp.allDay.name in share.filterAttributes: # this is such an XML fork
             for attr in sharing.CALDAVFILTER:
                 if attr not in share.filterAttributes:
                     share.filterAttributes.append(attr)
@@ -312,7 +313,7 @@ class PublishCollectionDialog(wx.Dialog):
             else:
                 self.CheckboxTasks.SetValue(False)
 
-            if 'osaf.pim.calendar.Calendar.CalendarEventMixin' in self.filterClasses:
+            if 'osaf.pim.calendar.Calendar.EventStamp' in self.filterClasses:
                 self.CheckboxEvents.SetValue(True)
             else:
                 self.CheckboxEvents.SetValue(False)
@@ -327,13 +328,13 @@ class PublishCollectionDialog(wx.Dialog):
         if not self.RadioItems.GetValue():  # Filtering
 
             if self.CheckboxMail.GetValue():
-                self.filterClasses.append('osaf.pim.mail.MailMessageMixin')
+                self.filterClasses.append('osaf.pim.mail.MailStamp')
 
             if self.CheckboxTasks.GetValue():
-                self.filterClasses.append('osaf.pim.tasks.TaskMixin')
+                self.filterClasses.append('osaf.pim.tasks.TaskStamp')
 
             if self.CheckboxEvents.GetValue():
-                self.filterClasses.append('osaf.pim.calendar.Calendar.CalendarEventMixin')
+                self.filterClasses.append('osaf.pim.calendar.Calendar.EventStamp')
 
         for share in self.collection.shares:
             share.filterClasses = self.filterClasses
@@ -429,12 +430,12 @@ class PublishCollectionDialog(wx.Dialog):
                     ext = _(u'items')
                     if classesToInclude:
                         classString = classesToInclude[0]
-                        if classString == "osaf.pim.tasks.TaskMixin":
+                        if classString == "osaf.pim.tasks.TaskStamp":
                             ext = _(u'tasks')
-                        elif classString == "osaf.pim.mail.MailMessageMixin":
+                        elif classString == "osaf.pim.mail.MailStamp":
                             ext = _(u'mail')
                         elif classString == \
-                            "osaf.pim.calendar.Calendar.CalendarEventMixin":
+                            "osaf.pim.calendar.Calendar.EventStamp":
                             ext = _(u'calendar')
 
                     args = { 'username' : account.username, 'ext' : ext }

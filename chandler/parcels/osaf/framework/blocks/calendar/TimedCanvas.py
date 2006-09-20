@@ -158,7 +158,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             for event in addedEvents:
 
                 # skip all-day items, and items we've already drawn
-                if (Calendar.isDayItem(event) or event in self.visibleItems):
+                if (Calendar.isDayEvent(event) or event in self.visibleItems):
                     continue
 
                 insertInSortedList(self.visibleItems, event)
@@ -166,13 +166,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 canvasItem = TimedCanvasItem(collection, primaryCollection,
                                              event, self)
                 
-                insertInSortedList(self.canvasItemList, canvasItem, 'item')
+                insertInSortedList(self.canvasItemList, canvasItem, 'event')
 
                 numAdded += 1
 
         else:
             self.ClearPendingNewEvents()
-            self.visibleItems = list(self.blockItem.getItemsInRange(currentRange, 
+            self.visibleItems = list(self.blockItem.getEventsInRange(currentRange, 
                                                                     timedItems=True))
 
             self.MakeCanvasItems(resort=True)
@@ -245,9 +245,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         canvasItem = TimedCanvasItem(collection, primaryCollection, item, self)        
         
         unscrolledPosition = wx.Point(*self.CalcUnscrolledPosition(x, y))
+        event = canvasItem.event
         start = self.getDateTimeFromPosition(unscrolledPosition,
-                                             item.startTime.tzinfo)
-        end = start + max(item.duration, timedelta(hours=1))
+                                             event.startTime.tzinfo)
+        end = start + max(event.duration, timedelta(hours=1))
         
         canvasItem.UpdateDrawingRects(start, end)
         
@@ -442,20 +443,21 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 dc.DrawRectangleRect(rect)
 
     @staticmethod
-    def sortByStartTime(item1, item2):
+    def sortByStartTime(event1, event2):
         """
         Comparison function for sorting, mostly by start time
         """
-        if item1.isStale() or item2.isStale():
+        if event1.itsItem.isStale() or event2.itsItem.isStale():
             # sort stale or deleted items first, False < True
-            return cmp(not item1.isStale(), not item2.isStale())
-            
-        dateResult = cmp(item1.startTime, item2.startTime)
+            return cmp(not event1.itsItem.isStale(),
+                       not event2.itsItem.isStale())
+                       
+        dateResult = cmp(event1.startTime, event2.startTime)
         
-        # when two items start at the same time, we actually want to show the
+        # when two events start at the same time, we actually want to show the
         # SHORTER event last, so that painting draws it on top
         if dateResult == 0:
-            dateResult = cmp(item2.endTime, item1.endTime)
+            dateResult = cmp(event2.endTime, event1.endTime)
         return dateResult
 
     def RebuildCanvasItems(self, resort=False):
@@ -481,18 +483,18 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         primaryCollection = self.blockItem.contentsCollection
                 
         # First generate a sorted list of TimedCanvasItems
-        for item in self.visibleItems:
-            if item.isStale():
+        for event in self.visibleItems:
+            if event.itsItem.isStale():
                 continue
-            collection = self.blockItem.getContainingCollection(item, primaryCollection)
+            collection = self.blockItem.getContainingCollection(event.itsItem, primaryCollection)
             canvasItem = TimedCanvasItem(collection, primaryCollection,
-                                         item, self)
+                                         event, self)
             canvasItemList.append(canvasItem)
 
             # if we're dragging, update the drag state to reflect the
             # newly rebuild canvasItem
             # (should probably happen in CollectionCanvas?)
-            if currentDragItem is item:
+            if currentDragItem is event.itsItem:
                 dragState.currentDragBox = canvasItem
 
         if self.coercedCanvasItem is not None:
@@ -572,7 +574,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         for canvasItem in self.canvasItemList:
             item = canvasItem.item
-            if item == draggedOutItem or item.isStale():
+            
+            if item is draggedOutItem or item.isStale():
                 # don't render deleted items or items we're dragging out of the
                 # canvas
                 continue
@@ -595,9 +598,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.drawOrderedCanvasItems = ordered
 
     def CheckConflicts(self):
-        assert (sorted([i for i in self.visibleItems if not i.isStale()],
+        assert (sorted([i for i in self.visibleItems if not i.itsItem.isStale()],
                        self.sortByStartTime) == 
-                [i for i in self.visibleItems if not i.isStale()])
+                [i for i in self.visibleItems if not i.itsItem.isStale()])
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
             if self.coercedCanvasItem is not canvasItem \
                and not canvasItem.item.isStale():
@@ -622,7 +625,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 self.orderLast.remove(item)
             self.orderLast.append(item)
             for i, canvasItem in enumerate(self.drawOrderedCanvasItems):
-                if canvasItem.item == item:
+                if canvasItem.item is item:
                     del self.drawOrderedCanvasItems[i]
                     self.drawOrderedCanvasItems.append(canvasItem)
                     break
@@ -671,7 +674,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             
         elif direction in ("LEFT", "RIGHT"):
             # try to go back or forward one day, and find the nearest event
-            currentDate = currentCanvasItem.item.startTime.date()
+            currentDate = currentCanvasItem.event.startTime.date()
             if direction == "LEFT":
                 delta = -1
                 searchEnd = -1
@@ -684,7 +687,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             
             for idx in range(newItemIndex, searchEnd, delta):
                 newCanvasItem = self.canvasItemList[idx]
-                newDate = newCanvasItem.item.startTime.date()
+                newDate = newCanvasItem.event.startTime.date()
                 
                 if foundDecentItem:
                     # we've already gone back/forward at least a day, so if we
@@ -693,7 +696,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                         break
                     
                     # look to see if there is something even better
-                    newTimeDiff = abs(newCanvasItem.item.startTime - bestTime)
+                    newTimeDiff = abs(newCanvasItem.event.startTime - bestTime)
                     if newTimeDiff < timeDiff:
                         timeDiff = newTimeDiff
                         newItemIndex = idx
@@ -704,14 +707,14 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                     
                     # found first/last item in a different date. Save
                     # for now as it is the best we have so far
-                    bestTime = currentCanvasItem.item.startTime.replace(
+                    bestTime = currentCanvasItem.event.startTime.replace(
                         year=newDate.year, month=newDate.month,
                         day=newDate.day)
                     
                     bestDate = newDate
                     
                     newItemIndex = idx
-                    timeDiff = abs(newCanvasItem.item.startTime - bestTime)
+                    timeDiff = abs(newCanvasItem.event.startTime - bestTime)
                 
 
         if 0 <= newItemIndex < len(self.canvasItemList):
@@ -724,7 +727,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         kwargs = dict(startTime=newTime, duration=duration, anyTime=False)
         if displayName is not None:
-            kwargs['displayName'] = displayName
+            kwargs['summary'] = displayName
         
         event = self.CreateEmptyEvent(**kwargs)
 
@@ -872,12 +875,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if self.dragState.dragged:
             (startTime, endTime) = self.GetDragAdjustedTimes()
             duration = endTime - startTime
-            proxy.duration = duration
-            proxy.startTime = startTime
+            stampedProxy = Calendar.EventStamp(proxy)
+            stampedProxy.duration = duration
+            stampedProxy.startTime = startTime
         
-        if self.coercedCanvasItem is not None:
-            self.coercedCanvasItem = None
-            proxy.allDay = proxy.anyTime = False
+            if self.coercedCanvasItem is not None:
+                self.coercedCanvasItem = None
+                stampedProxy.allDay = stampedProxy.anyTime = False
         self.dragState = None
         
     def OnEndDragItem(self):
@@ -915,10 +919,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         tzprefs = schema.ns('osaf.app', self.blockItem.itsView).TimezonePrefs
         useTZ = tzprefs.showUI
         
-        item = self.dragState.originalDragBox.item
+        event = Calendar.EventStamp(self.dragState.originalDragBox.item)
         resizeMode = self.dragState.originalDragBox.resizeMode
         
-        oldTZ = item.startTime.tzinfo
+        oldTZ = event.startTime.tzinfo
         
         if useTZ:
             tzinfo = oldTZ
@@ -926,10 +930,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             tzinfo = ICUtzinfo.floating
 
         if resizeMode is None:
-            # moving an item, need to adjust just the start time
-            # for the relative position of the mouse in the item
+            # moving an event, need to adjust just the start time
+            # for the relative position of the mouse in the event
             newStartTime = self.GetDragAdjustedStartTime(tzinfo)
-            newEndTime = newStartTime + item.duration
+            newEndTime = newStartTime + event.duration
 
         # top/bottom resizes: just set the appropriate start/end
         # to where the mouse is
@@ -940,10 +944,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 
             if resizeMode == TimedCanvasItem.RESIZE_MODE_START:
                 newStartTime = dragTime
-                newEndTime = item.endTime
+                newEndTime = event.endTime
             elif resizeMode == TimedCanvasItem.RESIZE_MODE_END:
                 newEndTime = dragTime
-                newStartTime = item.startTime
+                newStartTime = event.startTime
 
         if newEndTime < newStartTime:
             newEndTime = newStartTime + timedelta(minutes=15)
@@ -1081,16 +1085,18 @@ class TimedCanvasItem(CalendarCanvasItem):
         item = self.item
         if item == self._calendarCanvas.activeProxy:
             # items and proxies compare as equal, but they're not quite
-            item = self._calendarCanvas.activeProxy        
+            event = Calendar.EventStamp(self._calendarCanvas.activeProxy)
+        else:
+            event = self.event
 
         if not startTime:
-            startTime = item.startTime
+            startTime = event.startTime
             
         if not endTime:
             # We're not using the calculated attribute (self.endTime), because
             # proxy handling of changed attributes isn't smart enough to handle
             # calculated attributes
-            endTime = startTime + item.duration
+            endTime = startTime + event.duration
        
         if self._calendarCanvas.blockItem.dayMode:
             # in day mode, canvasitems are drawn side-by-side
@@ -1215,14 +1221,15 @@ class TimedCanvasItem(CalendarCanvasItem):
                 continue
             # we know we're done when we stop hitting conflicts
             # 
-            # have a guarantee that conflict.startTime >= item.endTime
+            # have a guarantee that conflict.startTime >= event.endTime
             # Since item.endTime < item.startTime, we know we're
             # done
 
             # plus, we also have to make sure that two zero-length
             # events that have the same start time still conflict
-            if ((conflict.item.startTime >= self.item.endTime) and
-                (conflict.item.startTime != self.item.startTime)):
+            
+            if ((conflict.event.startTime >= self.event.endTime) and
+                (conflict.event.startTime != self.event.startTime)):
                  break
 
             # item and conflict MUST conflict now

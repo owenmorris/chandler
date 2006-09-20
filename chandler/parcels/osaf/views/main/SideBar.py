@@ -15,14 +15,14 @@
 
 __parcel__ = "osaf.views.main"
 
-from osaf.framework.blocks import ControlBlocks, KindParameterizedEvent
+from osaf.framework.blocks import ControlBlocks, ClassParameterizedEvent
 import wx, os
 from osaf.framework.blocks import (
     Block, BranchPoint, DrawingUtilities, Table, wxTable, GridCellAttributeEditor
     )
 
 from osaf.pim import (
-    ContentCollection, IntersectionCollection, KindCollection,
+    ContentCollection, IntersectionCollection,
     UnionCollection, IndexedSelectionCollection, AppCollection
     )
     
@@ -31,6 +31,7 @@ from osaf.framework.prompts import promptYesNoCancel
 from osaf import sharing, pim
 from osaf.usercollections import UserCollection
 from osaf.sharing import ChooseFormat
+from repository.item.Item import MissingClass
 from application import schema
 from i18n import ChandlerMessageFactory as _
 
@@ -162,7 +163,7 @@ class wxSidebar(wxTable):
             
             allowOverlay = (item is not None and
                             UserCollection (item).allowOverlay and
-                            blockItem.filterKind not in blockItem.disallowOverlaysForFilterKinds and
+                            blockItem.filterClass not in blockItem.disallowOverlaysForFilterClasses and
                             
                             (selectedItem is None or
                              not UserCollection (selectedItem).outOfTheBoxCollection))
@@ -478,7 +479,7 @@ class SSSidebarButton (schema.Item):
 class SSSidebarIconButton2 (SSSidebarButton):
     def getChecked (self, item):
         blockItem = self.buttonOwner
-        return (blockItem.filterKind not in blockItem.disallowOverlaysForFilterKinds and
+        return (blockItem.filterClass not in blockItem.disallowOverlaysForFilterClasses and
                 item in blockItem.checkedItems)
 
     def setChecked (self, item, checked):
@@ -513,12 +514,12 @@ class SSSidebarIconButton2 (SSSidebarButton):
         'In', 'Out' and 'Trash' respectively. Currently, new collections
         have no iconNme, so the iconName can be empty. Another
         property of the collection is whether or not the iconName has
-        a kind variation, in which case the iconName is appended with
-        the Kind, e.g. CalendarEventMixin, MailMessageMixin,
-        TaskMixin.  Currently, only the Dashboard collection has this
+        a class variation, in which case the iconName is appended with
+        the class, e.g. EventStamp, MailStamp, or TaskStamp
+        Currently, only the Dashboard collection has this
         property, so the iconNames for the Dashboard are 'Dashboard',
-        'DashboardCalendarEventMixin', 'DashboardMailMessageMixin' and
-        'DashboardTaskMixin'.
+        'DashboardEventStamp', 'DashboardMailStamp' and
+        'DashboardTaskStamp'.
 
         Another property of the collection, controlled by the allowOverlay
         attribute, determines whether or not it can be checked. If the
@@ -553,7 +554,7 @@ class SSSidebarIconButton2 (SSSidebarButton):
         selectedItem = sidebarBlock.contents.getFirstSelectedItem()
         if (not UserCollection (item).outOfTheBoxCollection and
             ( (selectedItem is not None and UserCollection (selectedItem).outOfTheBoxCollection) or
-              sidebarBlock.filterKind in sidebarBlock.disallowOverlaysForFilterKinds) ):
+              sidebarBlock.filterClass in sidebarBlock.disallowOverlaysForFilterClasses) ):
             deactive = "Deactive"
         else:
             deactive = ""
@@ -562,9 +563,9 @@ class SSSidebarIconButton2 (SSSidebarButton):
         imageSuffix = ".png"
 
         iconName = userCollection.iconName
-        filterKind = sidebarBlock.filterKind
-        if userCollection.iconNameHasKindVariant and filterKind is not None:
-            iconName += os.path.basename (str (filterKind.itsPath))
+        filterClass = sidebarBlock.filterClass
+        if userCollection.iconNameHasClassVariant and filterClass is not MissingClass:
+            iconName += filterClass.__name__
 
         app = wx.GetApp()
         image = app.GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
@@ -585,7 +586,7 @@ class SSSidebarIconButton2 (SSSidebarButton):
 class SSSidebarIconButton (SSSidebarButton):
     def getChecked (self, item):
         blockItem = self.buttonOwner
-        return (blockItem.filterKind not in blockItem.disallowOverlaysForFilterKinds and
+        return (blockItem.filterClass not in blockItem.disallowOverlaysForFilterClasses and
                 item in blockItem.checkedItems)
 
     def setChecked (self, item, checked):
@@ -610,18 +611,19 @@ class SSSidebarIconButton (SSSidebarButton):
         rules for Icon follow -- see getButtonImage for the SharingIcon
         rules
 
-        The ButtonName is followed by iconName. iconName is a property
-        of the collection, e.g. the Dashboard has an iconName of
-        'Dashboard'. The In, Out, and Trash collections have iconNames
-        'In', 'Out' and 'Trash' respectively. Currently, new collections
-        have no iconNme, so the iconName can be empty. Another
-        property of the collection is whether or not the iconName has
-        a kind variation, in which case the iconName is appended with
-        the Kind, e.g. CalendarEventMixin, MailMessageMixin,
-        TaskMixin.  Currently, only the Dashboard collection has this
-        property, so the iconNames for the Dashboard are 'Dashboard',
-        'DashboardCalendarEventMixin', 'DashboardMailMessageMixin' and
-        'DashboardTaskMixin'.
+        The ButtonName is followed by IconName. IconName is a property
+        of the collection, e.g. the Dashboard has an IconName of
+        'Dashboard'. The In, Out, and Trash collections have names 'In',
+        'Out' and 'Trash' respectively. Currently, new collections
+        have no icon name, so the IconName can be empty. Another
+        property of the collection is whether or not the IconName has
+        a class variation, in which case the IconName is appended with
+        the class name, e.g. EventStamp, MailStamp,
+        TaskStamp.  Currently, only the Dashboard collection has this
+        property, so the IconNames for the Dashboard are 'Dashboard',
+        'DashboardEventStamp', 'DashboardMailStamp' and
+        'DashboardTaskStamp'.
+        
 
         Another property of the collection, controlled by the allowOverlay
         attribute, determines whether or not it can be checked. If the
@@ -654,7 +656,7 @@ class SSSidebarIconButton (SSSidebarButton):
         selectedItem = sidebarBlock.contents.getFirstSelectedItem()
         if (not UserCollection (item).outOfTheBoxCollection and
             ( (selectedItem is not None and UserCollection (selectedItem).outOfTheBoxCollection) or
-              sidebarBlock.filterKind in sidebarBlock.disallowOverlaysForFilterKinds) ):
+              sidebarBlock.filterClass in sidebarBlock.disallowOverlaysForFilterClasses) ):
             deactive = "Deactive"
         else:
             deactive = ""
@@ -663,9 +665,10 @@ class SSSidebarIconButton (SSSidebarButton):
         imageSuffix = ".png"
 
         iconName = userCollection.iconName
-        filterKind = sidebarBlock.filterKind
-        if userCollection.iconNameHasKindVariant and filterKind is not None:
-            iconName += os.path.basename (str (filterKind.itsPath))
+        filterClass = sidebarBlock.filterClass
+        if (userCollection.iconNameHasClassVariant and
+            filterClass is not MissingClass):
+            iconName += filterClass.__name__
 
         app = wx.GetApp()
         image = app.GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
@@ -760,13 +763,12 @@ class SSSidebarSharingButton (SSSidebarButton):
 
         share = sharing.getShare(item)
         if share is not None:
-            filterKind = self.buttonOwner.filterKind
+            filterClass = self.buttonOwner.filterClass
 
             if share.filterClasses:
                 partial = "Partial"
-                if filterKind is not None:
-                    klass = filterKind.classes['python']
-                    className = "%s.%s" % (klass.__module__, klass.__name__)
+                if filterClass is not MissingClass:
+                    className = "%s.%s" % (filterClass.__module__, filterClass.__name__)
                     if className in share.filterClasses:
                         partial = ""
 
@@ -829,12 +831,10 @@ class SSSidebarSharingButton (SSSidebarButton):
     
 
 class SidebarBlock(Table):
-    filterKind = schema.One(
-        schema.TypeReference('//Schema/Core/Kind'), initialValue = None,
-    )
+    filterClass = schema.One(schema.Class, initialValue = MissingClass)
 
-    disallowOverlaysForFilterKinds = schema.Sequence(
-        schema.TypeReference('//Schema/Core/Kind'), initialValue = [],
+    disallowOverlaysForFilterClasses = schema.Sequence(
+        schema.Class, initialValue = [],
     )
 
     # A set of the items in the sidebar that are checked
@@ -854,7 +854,7 @@ class SidebarBlock(Table):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byRef = [filterKind],
+            byRef = [filterClass],
             byCloud = [buttons]
         )
     )
@@ -867,39 +867,41 @@ class SidebarBlock(Table):
         widget.RegisterDataType ("Item", SSSidebarRenderer(), SSSidebarEditor("Item"))
         return widget
 
-    def onKindParameterizedEvent (self, event):
-        self.setPreferredKind (event.kindParameter)
+    def onClassParameterizedEvent(self, event):
+        self.setPreferredClass(event.classParameter)
 
-    def setPreferredKind (self, filterKind):
-        if self.filterKind != filterKind:
+    def setPreferredClass(self, filterClass):
+        if self.filterClass != filterClass:
 
             # We need to update the click state of the toolbar as well
             toolbar = Block.Block.findBlockByName("ApplicationBar")
             for button in toolbar.childrenBlocks:
-
-                buttonEvent = getattr (button, 'event', None)
-                if isinstance (buttonEvent, KindParameterizedEvent):
-                    if (filterKind is not None and
-                        buttonEvent.kindParameter is not None and
-                        filterKind.isKindOf(buttonEvent.kindParameter)):
-                        newFilterKind = buttonEvent.kindParameter
+            
+                try:
+                    buttonClass = button.event.classParameter
+                except AttributeError:
+                    pass
+                else:
+                    if (filterClass is not MissingClass and
+                        issubclass(filterClass, buttonClass)):
+                        newFilterStamp = buttonClass
                         buttonToSelect = button
                         break
             else:
                 #If we don't have a button with the appropriate kind
                 #We'll switch to all
-                newFilterKind = None
-                buttonToSelect = self.findBlockByName ("ApplicationBarAllButton")
+                newFilterStamp = MissingClass
+                buttonToSelect = self.findBlockByName("ApplicationBarAllButton")
 
-            self.filterKind = newFilterKind
+            self.filterClass = newFilterStamp
             buttonToSelect.widget.selectTool()
             self.widget.Refresh()
             self.postEventByName("SelectItemsBroadcast",
                                  {'items':list(self.contents.iterSelection())})
 
-    def onKindParameterizedEventUpdateUI (self, event):
+    def onClassParameterizedEventUpdateUI (self, event):
         # check the appropriate menu item
-        event.arguments['Check'] = event.kindParameter == self.filterKind
+        event.arguments['Check'] = event.classParameter == self.filterClass
 
     def onRequestSelectSidebarItemEvent (self, event):
         # Request the sidebar to change selection
@@ -1130,7 +1132,6 @@ class SidebarBlock(Table):
                          'dashboard': allCollection.displayName}
     
             if selectedItem is None:
-                enabled = False
                 menuTitle = _(u'Keep out of %(dashboard)s') % arguments
             elif UserCollection(selectedItem).outOfTheBoxCollection:
                 enabled = False
@@ -1151,7 +1152,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
     tableTemplatePath = schema.One(schema.Text)
     calendarTemplatePath = schema.One(schema.Text)
     itemTupleKeyToCacheKey = schema.Mapping(schema.Item, initialValue = {})
-    kindToKindCollectionCache = schema.Mapping(schema.Item, initialValue = {})
+    stampToCollectionCache = schema.Mapping(schema.Item, initialValue = {})
 
     schema.addClouds(
         copying = schema.Cloud(byRef=[itemTupleKeyToCacheKey])
@@ -1175,7 +1176,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             # consumers know what the 'primary' collection is.
             if item is not None:
                 collectionList.append (item)
-            if (sidebar.filterKind not in sidebar.disallowOverlaysForFilterKinds and
+            if (sidebar.filterClass not in sidebar.disallowOverlaysForFilterClasses and
                 not (item is not None and UserCollection (item).outOfTheBoxCollection)):
                 for theItem in sidebar.contents:
                     if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
@@ -1190,13 +1191,13 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             tupleList = [theItem.itsUUID for theItem in collectionList]
             tupleList.sort()
 
-            filterKind = sidebar.filterKind
-            if not filterKind is None:
-                tupleList.append (filterKind.itsUUID)
+            filterClass = sidebar.filterClass
+            if filterClass is not MissingClass:
+                tupleList.append(filterClass)
             
-            tupleKey = tuple (tupleList)
+            tupleKey = tuple(tupleList)
 
-            key = self.itemTupleKeyToCacheKey.get (tupleKey, None)
+            key = self.itemTupleKeyToCacheKey.get(tupleKey, None)
             if key is None:
                 # we don't have a cached version of this key, so we'll
                 # create a new one
@@ -1235,18 +1236,20 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
 
                 # Handle filtered collections by intersecting with
-                # the kind collection
-                if filterKind is not None:
-                    kindCollection = self.kindToKindCollectionCache.get(filterKind, None)
-                    if kindCollection is None:
-                        kindCollection = KindCollection(itsView=self.itsView,
-                                                        kind=filterKind,
-                                                        recursive=True)
-                        self.kindToKindCollectionCache [filterKind] = kindCollection
+                # the stamp collection
+                if filterClass is not MissingClass:
+                    stampCollection = self.stampToCollectionCache.get(filterClass, None)
+                    if stampCollection is None:
+                        if filterClass is not MissingClass:
+                            stampCollection = filterClass.getCollection(self.itsView)
+                        else:
+                            stampCollection = schema.ns("osaf.pim", self.itsView).allCollection
+                        self.stampToCollectionCache[filterClass] = stampCollection
                     newKey = IntersectionCollection(itsView=self.itsView,
-                                                    sources=[key, kindCollection])
+                                                    sources=[key, stampCollection])
                     UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
-                    displayName += u" filtered by " + filterKind.itsName
+                    displayName += u" filtered by " + filterClass.__name__
+                    
                     key = newKey
 
                 # Finally, create a UI wrapper collection to manage
@@ -1284,9 +1287,9 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         return key
 
     def _makeBranchForCacheKey(self, keyItem):
-        filterKind = Block.Block.findBlockByName("Sidebar").filterKind
+        filterClass = Block.Block.findBlockByName("Sidebar").filterClass
         if (not UserCollection(keyItem).dontDisplayAsCalendar and
-            filterKind is schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)):
+            filterClass is pim.EventStamp):
                 template = self.findPath (self.calendarTemplatePath)
                 keyUUID = template.itsUUID
                 branch = self.keyUUIDToBranch.get (keyUUID, None)

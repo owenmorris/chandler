@@ -189,8 +189,8 @@ class RecurrenceRule(items.ContentItem):
         schema.Integer,
         defaultValue=None
     )
-    rruleFor = schema.One('RecurrenceRuleSet', inverse='rrules')
-    exruleFor = schema.One('RecurrenceRuleSet', inverse='exrules')
+    rruleFor = schema.One() # inverse of RecurrenceRuleSet.rruleset
+    exruleFor = schema.One()  # inverse of RecurrenceRuleSet.exrules
 
     schema.addClouds(
         sharing = schema.Cloud(freq, isCount, until, untilIsDate, interval,
@@ -415,9 +415,7 @@ class RecurrenceRuleSet(items.ContentItem):
         schema.DateTimeTZ,
     )
     events = schema.Sequence(
-        "osaf.pim.calendar.Calendar.CalendarEventMixin",
-        inverse="rruleset"
-    )
+    ) # inverse of EventStamp.rruleset
 
     schema.addClouds(
         copying = schema.Cloud(rrules, exrules, rdates, exdates),
@@ -429,10 +427,11 @@ class RecurrenceRuleSet(items.ContentItem):
         """If the RuleSet changes, update the associated event."""
         if not getattr(self, '_ignoreValueChanges', False):
             if self.hasLocalAttributeValue('events'):
-                for event in self.events:
-                    event.getFirstInRule().cleanRule()
-                    # assume we have only one conceptual event per rrule
-                    break
+                    for eventItem in self.events:
+                        pimNs = schema.ns("osaf.pim", self.itsView)
+                        pimNs.EventStamp(eventItem).getFirstInRule().cleanRule()
+                        # assume we have only one conceptual event per rrule
+                        break
 
     def addRule(self, rule, rrulesorexrules='rrules'):
         """Add an rrule or exrule, defaults to rrule.

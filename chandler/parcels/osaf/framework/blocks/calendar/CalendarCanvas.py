@@ -22,6 +22,7 @@ import wx
 import wx.colheader
 
 from repository.item.Monitors import Monitors
+from repository.item.Item import MissingClass
 from chandlerdb.item.ItemError import NoSuchItemInCollectionError
 
 from datetime import datetime, timedelta, date, time
@@ -29,7 +30,7 @@ from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo, TimeZone
 
 from osaf.pim.calendar import (Calendar, TimeZoneInfo, formatTime, DateTimeUtil,
                                shortTZ)
-from osaf.pim import ContentCollection
+from osaf.pim import ContentCollection, has_stamp
 from osaf.usercollections import UserCollection
 from application.dialogs import RecurrenceDialog, Util, TimeZoneList
 
@@ -206,7 +207,7 @@ class CalendarSelection(schema.Annotation):
     about selection of recurrence.
 
     Recurring items don't appear in the current collection, only the
-    master events do. This means that we have to build a seperate
+    master events do. This means that we have to build a separate
     container (self.selectedOccurrences) just for recurring items that
     are selected.
 
@@ -224,7 +225,7 @@ class CalendarSelection(schema.Annotation):
         """
 
         def ActualMethod(self, item):
-            if item.hasTrueAttributeValue('recurrenceID'):
+            if item.hasTrueAttributeValue(Calendar.EventStamp.recurrenceID.name):
                 return method(self, item)
             else:
                 # call an identically named function in the outer
@@ -240,7 +241,7 @@ class CalendarSelection(schema.Annotation):
 
     @delegated
     def __contains__(self, item):
-        return self.itsItem.__contains__(item.getMaster())
+        return self.itsItem.__contains__(Calendar.EventStamp(item).getMaster().itsItem)
 
     # these mimic the behavior of the collection
 
@@ -262,7 +263,7 @@ class CalendarSelection(schema.Annotation):
         self.selectedOccurrences.remove(item)
 
     def setSelectionToItem(self, item):
-        if item.hasTrueAttributeValue('recurrenceID'):
+        if item.hasTrueAttributeValue(Calendar.EventStamp.recurrenceID.name):
             self.itsItem.clearSelection()
             self.selectedOccurrences = set((item,))
         else:
@@ -301,7 +302,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                    self.textMargin + 1)
 
         # use PyICU to pre-cache the time string
-        self.timeString = formatTime(self.item.startTime, noTZ=True)
+        self.timeString = formatTime(self.event.startTime, noTZ=True)
 
         self.colorInfo = ColorInfo(collection)
         
@@ -329,15 +330,15 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return size
 
     def invertColors(self):
-        item = self.item
-        return (self.anyOrZero() or item.transparency == 'fyi')
+        return (self.anyOrZero() or self.event.transparency == 'fyi')
     
     def dashedLine(self):
-        return self.item.transparency == 'tentative'
+        return self.event.transparency == 'tentative'
     
     def anyOrZero(self):
-        item = self.item
-        return (item.anyTime or item.duration == zero_delta) and not item.allDay
+        event = self.event
+        return ((event.anyTime or event.duration == zero_delta)
+                 and not event.allDay)
         
     
     
@@ -360,14 +361,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     
             return self.colorInfo.visibleColors
             
-    def GetAnyTimeOrAllDay(self):
-        item = self.item
-        anyTime = getattr(item, 'anyTime', False)
-        allDay = getattr(item, 'allDay', False)
-
-        return anyTime or allDay
-
-
     @staticmethod
     def FindFirstGapInSequence(seq):
         """
@@ -386,17 +379,17 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return index+1
 
     def CanDrag(self):
-        item = self.item.getMaster()
-        return (item.isAttributeModifiable('startTime') and
-                item.isAttributeModifiable('duration'))
+        item = self.event.getMaster().itsItem
+        return (item.isAttributeModifiable(Calendar.EventStamp.startTime.name) and
+                item.isAttributeModifiable(Calendar.EventStamp.duration.name))
 
     def CanChangeTitle(self):
-        item = self.item.getMaster()
-        return item.isAttributeModifiable('displayName')
+        item = self.event.getMaster().itsItem
+        return item.isAttributeModifiable(Calendar.EventStamp.summary.name)
     
     def SetTimeHeight(self, dc, styles, timeString = 'DummyValue'):
         """Initialize timeHeight for displaying edit window."""
-        if self.GetAnyTimeOrAllDay():                
+        if Calendar.isDayEvent(self.event):                
             self.timeHeight = 0
         else:
             timeHeight = dc.GetFullTextExtent(timeString,
@@ -414,16 +407,16 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
     def Draw(self, dc, styles, selected, rightSideCutOff=False):
         # @@@ add a general cutoff parameter?
-        item = self.item
+        event = self.event
         # recurring items, when deleted or stamped non-Calendar, are sometimes
         # passed to Draw before wxSynchronize is called, ignore those items
-        CalendarEventKind = Calendar.CalendarEventMixin.getKind(item.itsView)
-        if (item.isDeleted() or
-            not item.itsKind.isKindOf(CalendarEventKind)):
+        
+        if (event.itsItem.isDeleted() or
+            not has_stamp(event, Calendar.EventStamp)):
             return
-        isAnyTimeOrAllDay = self.GetAnyTimeOrAllDay()
-        allCollection = schema.ns('osaf.pim', item.itsView).allCollection
-        # Draw one event - an event consists of one or more bounds	
+        isAnyTimeOrAllDay = Calendar.isDayEvent(event)
+        allCollection = schema.ns('osaf.pim', event.itsItem.itsView).allCollection
+        # Draw one event - an event consists of one or more bounds
        
         clipRect = None
         (cx,cy,cwidth,cheight) = dc.GetClippingBox()
@@ -448,7 +441,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     timeHeight = 0
                 else:
                     # When a canvas item is being dragged, it will have a
-                    # startTime set on it different from item.starTime. If
+                    # startTime set on it different from event.starTime. If
                     # this isn't set, use the cached timeString
                     startTime = getattr(self, 'startTime', None)
                     if startTime:
@@ -522,7 +515,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     # collection swatches should be drawn if the item is
                     # in at least one other collection (not counting the
                     # dashboard).
-                    master = item.getMaster()
+                    master = event.getMaster()
                     colls = len(getattr(master, 'appearsIn', []))
                     # for some reason primaryCollection and allCollection don't
                     # compare as equal when they ought to, so compare UUIDs
@@ -555,7 +548,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         # of the time string.  This isn't necessarily true,
                         # so this isn't really localized yet.
                         if textWidth < width:
-                            tzString = shortTZ(item.startTime)
+                            tzString = shortTZ(event.startTime)
                             if len(tzString) > 0:
                                 dc.SetFont(superscript)
                                 DrawClippedText(dc, tzString, x + textWidth,
@@ -568,7 +561,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         endTime = getattr(self, 'endTime', None)
                         if endTime:
                             timeString = formatTime(endTime, noTZ=True)
-                            tzString = shortTZ(item.startTime)
+                            tzString = shortTZ(event.startTime)
                             
                             textWidth = dc.GetFullTextExtent(timeString,
                                                         styles.eventTimeFont)[0]
@@ -640,7 +633,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                             rightMargin += (margin + SWATCH_WIDTH +
                                             2 * SWATCH_BORDER)
                         else:
-                            textWidth = dc.GetFullTextExtent(item.displayName,
+                            textWidth = dc.GetFullTextExtent(event.summary,
                                               styles.eventLabelFont)[0]                            
                             
                             oneWidth = (SWATCH_SEPARATION + SWATCH_WIDTH +
@@ -675,9 +668,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                 itemRect.height - lostHeight - self.textOffset.y)
            
                     dc.SetFont(styles.eventLabelFont)
-                    drawingItem = item
+                    drawingItem = event.itsItem
                     if selected:
-                        drawingItem = RecurrenceDialog.getProxy(u'ui', item)
+                        drawingItem = RecurrenceDialog.getProxy(u'ui', drawingItem)
                     DrawWrappedText(dc, drawingItem.displayName, textRect,
                                     styles.eventLabelMeasurements)
        
@@ -690,10 +683,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         topLeft and bottomRight must be vectors (lists which can be added and
         subtracted like vectors)
         """
-        master = self.item.getMaster()
-        app_ns = schema.ns('osaf.app', self.item.itsView)
+        master = self.event.getMaster()
+        app_ns = schema.ns('osaf.app', self.event.itsItem.itsView)
         sidebarCollections = app_ns.sidebarCollection
-        allCollection = schema.ns('osaf.pim', self.item.itsView).allCollection
+        allCollection = schema.ns('osaf.pim', self.event.itsView).allCollection
         if self.isActive:
             fillColorLozengeType = 'UnselectedGradientRight'
             outlinePre1 = 'Selected'
@@ -943,15 +936,17 @@ class CalendarNotificationHandler(object):
             except KeyError:
                 # print "Couldn't find new item %s" % itemUUID
                 continue
-            
-            if (hasattr(item, 'startTime') and
-                hasattr(item, 'duration')):
                 
-                if item.rruleset is not None:
-                    for event in item.getOccurrencesBetween(startTime, endTime):
+            if has_stamp(item, Calendar.EventStamp):
+                event = Calendar.EventStamp(item)
+            
+                if (hasattr(event, 'startTime') and
+                    hasattr(event, 'duration')):
+                    
+                    if event.rruleset is not None:
+                        addedEvents.update(event.getOccurrencesBetween(startTime, endTime))
+                    elif not (event.startTime > endTime or event.endTime < startTime):
                         addedEvents.append(event)
-                elif not (item.startTime > endTime or item.endTime < startTime):
-                    addedEvents.append(item)
 
         self._pendingNewEvents = set()
         return addedEvents
@@ -1200,21 +1195,22 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 
     # Get items from the collection
 
-    def itemIsInRange(self, item, start, end):
+    def eventIsInRange(self, event, start, end):
         """
-        Helpful utility to determine if an item is within a given range.
-        Assumes the item has a startTime and endTime attribute.
+        Helpful utility to determine if an event is within a given range.
+        Assumes the event has a startTime and endTime attribute.
         """
         tzprefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
         if tzprefs.showUI:
-            return ((item.effectiveStartTime <= end) and (item.effectiveEndTime >= start))
+            return ((event.effectiveStartTime <= end) and
+                    (event.effectiveEndTime >= start))
         else:
-            return ((item.effectiveStartTime.replace(tzinfo=None) <=
+            return ((event.effectiveStartTime.replace(tzinfo=None) <=
                                          end.replace(tzinfo=None)) and
-                      (item.effectiveEndTime.replace(tzinfo=None) >=
+                      (event.effectiveEndTime.replace(tzinfo=None) >=
                                        start.replace(tzinfo=None)))
 
-    def generateItemsInRange(self, date, nextDate, dayItems, timedItems):
+    def generateEventsInRange(self, date, nextDate, dayItems, timedItems):
         # wish we could put this somewhere more useful, but
         # self.contents can be set upon object initialization
         self.EnsureIndexes()
@@ -1225,19 +1221,19 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         
         return chain(normalEvents, recurringEvents)
 
-    def getItemsInRange(self, (date, nextDate), dayItems=False, timedItems=False):
+    def getEventsInRange(self, (date, nextDate), dayItems=False, timedItems=False):
         """
-        Convenience method to look for the items in the block's contents
+        Convenience method to look for the events in the block's contents
         that appear on the given date. We might be able to push this
-        to Queries, but itemIsInRange is actually fairly complex.
+        to Queries, but eventIsInRange is actually fairly complex.
 
         @type date: datetime
         @type nextDate: datetime
 
-        @param dayItems: return day items (items that have no start time)
-        @param timedItems: return timed items
+        @param dayItems: return day events (events that have no start time)
+        @param timedItems: return timed events
 
-        @return: the items in this collection that appear within the given range
+        @return: the events in this collection that appear within the given range
         @rtype: generator of Items
         """
         assert dayItems or timedItems, "dayItems or timedItems must be True"
@@ -1252,35 +1248,38 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         else:
             nextDate = nextDate.astimezone(defaultTzinfo)
 
-        for item in self.generateItemsInRange(date, nextDate, dayItems, timedItems):
-            if (hasattr(item, 'startTime') and hasattr(item, 'duration')):
-                assert self.itemIsInRange(item, date, nextDate), \
-                    "generateItemsInRange returned an item outside the range."
-                yield item
+        for event in self.generateEventsInRange(date, nextDate, dayItems, timedItems):
+            if (hasattr(event, 'startTime') and hasattr(event, 'duration')):
+                assert self.eventIsInRange(event, date, nextDate), \
+                    "generateEventsInRange returned an event outside the range."
+                yield event
 
-    def getItemsInCurrentRange(self, *arguments, **keywords):
+    def getEventsInCurrentRange(self, *arguments, **keywords):
         currentRange = self.GetCurrentDateRange()
-        return self.getItemsInRange(currentRange, *arguments, **keywords)
+        return self.getEventsInRange(currentRange, *arguments, **keywords)
 
 
     def GetCurrentDateRange(self):
         return (self.rangeStart,  self.rangeStart + self.rangeIncrement)
 
-    def getContainingCollection(self, event, defaultCollection=None):
+    def getContainingCollection(self, item, defaultCollection=None):
         """
         Get the collection which contains the event, since it has
         all the right color information.
         """
 
+        event = Calendar.EventStamp(item)
+        
         # generated events need to defer to their parent event
-        if event.occurrenceFor != event:
+        if event.occurrenceFor is not item:
             event = event.getMaster()
+            item = event.itsItem
             
         collections = self.contents.collectionList
         firstSpecialCollection = None
         for coll in collections:
 
-            if (event in coll):
+            if (item in coll):
                 if UserCollection(coll).outOfTheBoxCollection:
                     # save it for later, we might be returning it
                     firstSpecialCollection = coll
@@ -1370,15 +1369,15 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         
 
     def StampDraggedItem(self, item):
-        eventKind = Calendar.CalendarEventMixin.getKind(self.blockItem.itsView)
-        if not item.isItemOf(eventKind) and \
-           getattr(self, 'fileDragPosition', None) is not None:
+        if ((not has_stamp(item, Calendar.EventStamp)) and 
+           getattr(self, 'fileDragPosition', None) is not None):
             startTime = self.getDateTimeFromPosition(self.fileDragPosition)
-            item.StampKind('add', eventKind)
+            event = Calendar.EventStamp(item)
+            event.add()
             # make the event's middle happen at startTime
-            item.startTime = startTime - timedelta(minutes=30)
-            item.duration = timedelta(hours=1)
-            item.allDay = item.anyTime = False
+            event.startTime = startTime - timedelta(minutes=30)
+            event.duration = timedelta(hours=1)
+            event.allDay = event.anyTime = False
                 
     def GrabFocusHack(self):
         if self.editor.IsShown():
@@ -1389,16 +1388,12 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         # while we're editing it, finish editing.
         if (notificationType == 'collectionChange'):
             op, coll, name, uuid = data
-            if op == 'changed' and self.editor.item is not None and \
-               self.editor.item.itsUUID == uuid:
+            if op == 'changed' and self.editor.event is not None and \
+               self.editor.event.itsItem.itsUUID == uuid:
                 self.GrabFocusHack()
         super(wxCalendarCanvas, self).onItemNotification(notificationType, data)
 
     def RefreshCanvasItems(self, resort=True):
-        # [@@@] grant setting resort=True here avoids a
-        # wiggling events problem (if you drag an event
-        # from Tuesday to Thursday, Wednesday's events
-        # momentarily acquire an indent).
         self.RebuildCanvasItems(resort)
         self.Refresh()
         
@@ -1477,13 +1472,14 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
 
         event = Calendar.CalendarEvent(itsView=view, **initialValues)
         event.InitOutgoingAttributes()
-        # Keep InitOutgoingAttributes from clobbering displayName
-        if initialValues.has_key('displayName'):
-            event.displayName = initialValues['displayName']
+        # Keep InitOutgoingAttributes from clobbering summary
+        if initialValues.has_key('summary'):
+            event.summary = initialValues['summary']
 
-        self.blockItem.contentsCollection.add(event)
+        item = event.itsItem
+        self.blockItem.contentsCollection.add(item)
 
-        self.OnSelectItem(event)
+        self.OnSelectItem(item)
 
         view.commit()
         return event
@@ -1628,6 +1624,10 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         self.ClearPendingNewEvents()
 
 class wxInPlaceEditor(AttributeEditors.wxEditText):
+
+    event = None
+    _unfocusing = False
+    
     def __init__(self, parent, defocusCallback=None, *arguments, **keywords):
         
         # Windows and Mac add an extra vertical scrollbar for TE_MULTILINE,
@@ -1674,8 +1674,6 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
                                               *arguments, **keywords)
 
         self.defocusCallback = defocusCallback
-        self.item = None
-        self._unfocusing = False
         self.Hide()
 
         self.Bind(wx.EVT_CHAR, self.OnChar)
@@ -1683,12 +1681,12 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         parent.Bind(wx.EVT_SIZE, self.OnSize)
 
     def SaveItem(self):
-        if ((self.item != None) and (not self.IsBeingDeleted())):
-            if self.item.displayName != self.GetValue():
+        if ((self.event is not None) and (not self.IsBeingDeleted())):
+            if self.event.summary != self.GetValue():
                 parentBlock = self.GetParent()
-                proxy = RecurrenceDialog.getProxy(u'ui', self.item,
+                proxy = RecurrenceDialog.getProxy(u'ui', self.event,
                                     endCallback=parentBlock.wxSynchronizeWidget)
-                proxy.displayName = self.GetValue()
+                Calendar.EventStamp(proxy).summary = self.GetValue()
 
     def ResetFocus(self):
         if self.defocusCallback:
@@ -1741,14 +1739,14 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
             event.Skip()
 
     def SetItem(self, item, position, size, pointSize):
-        self.item = item
+        self.event = Calendar.EventStamp(item)
 
-        if item.displayName != '':
-            # item.displayName == '' is used as a flag to determine if this
+        if self.event.summary != '':
+            # event.summary == '' is used as a flag to determine if this
             # SetItem is for a new item and was initiated by typing.  In this
             # case, calling SetValue would clobber characters typed in the time
             # between initiation of EditCurrentItem and the call to SetItem.
-            self.SetValue(item.displayName)
+            self.SetValue(self.event.summary)
 
         newSize = wx.Size(size.width, size.height)
 
@@ -1772,9 +1770,9 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         
         self.Show()
         self.SetFocus()
-        # if displayName is empty, a keyboard edit is likely in progress, don't
+        # if summary is empty, a keyboard edit is likely in progress, don't
         # interrupt it.
-        if item.displayName != '':
+        if self.event.summary != '':
             self.SetSelection(-1, -1)
 
     def OnSize(self, event):
@@ -1855,11 +1853,11 @@ class CalendarContainer(BoxContainer):
         Create a new event from the menu - try to use contextual
         information from the view to create it in a normal place.
         """
-        calendarKind = Calendar.CalendarEvent.getKind(self.itsView)
-        kindParameter = event.kindParameter
+        classParameter = event.classParameter
         
         # if it's one of ours or None we'll handle it otherwise bubble it up
-        if kindParameter is calendarKind or kindParameter is None:
+        if (classParameter is Calendar.EventStamp or
+            classParameter is MissingClass):
             timedEventsCanvas = self.getTimedBlock().widget
 
             startTime, duration = timedEventsCanvas.GetNewEventTime()
@@ -2007,15 +2005,15 @@ class CalendarControl(CalendarBlock):
         @type event: osaf.framework.blocks.Block.BlockEvent.
                      event.arguments['item']: C{item}
         """
-        item = event.arguments['item']
-        self.postDateChanged(item.startTime)
+        eventItem = Calendar.EventStamp(event.arguments['item'])
+        self.postDateChanged(eventItem.startTime)
         
-        if item.getMaster() not in self.contents:
+        if eventItem.getMaster().itsItem not in self.contents:
             allCollection = schema.ns('osaf.pim', self.itsView).allCollection
             self.SelectCollectionInSidebar(allCollection)
         
-        if not item.allDay and not item.anyTime:
-            timeBlock = self.calendarContainer.getTimedBlock()            
+        if not eventItem.allDay and not eventItem.anyTime:
+            timeBlock = self.calendarContainer.getTimedBlock()
             timedEventsCanvas = getattr(timeBlock, 'widget', None)
             # if the dashboard is selected, the calendar won't be displayed
             if timedEventsCanvas is not None:
@@ -2024,7 +2022,8 @@ class CalendarControl(CalendarBlock):
         else:
             self.calendarContainer.getAllDayBlock().widget.SetPanelFocus()
             
-        self.postEventByName("SelectItemsBroadcast", {'items':[item]})
+        self.postEventByName("SelectItemsBroadcast",
+                             {'items':[eventItem.itsItem]})
 
 
     def setRange(self, date):

@@ -42,6 +42,7 @@ from osaf.framework.blocks import *
 import osaf.pim
 from i18n import ChandlerMessageFactory as _
 from osaf.pim.structs import SizeType, RectType
+from osaf.pim.mail import MailStamp
 
 
 _uniqueNameIndicies = {} 
@@ -258,8 +259,6 @@ def installParcel(parcel, oldVersion=None):
     
     # Make the various kind-specific subtrees
     makeNoteSubtree(parcel, oldVersion)
-    makeMailSubtree(parcel, oldVersion)
-    makeCalendarEventSubtree(parcel, oldVersion)
     makeEmptySubtree(parcel, oldVersion)
                       
 def registerAttributeEditors(parcel, oldVersion):
@@ -297,6 +296,299 @@ def makeRootStuff(parcel, oldVersion):
     makeSpacer(parcel, height=6, name='TopSpacer', position=0.01).install(parcel)
     makeSpacer(parcel, width=8, name='HorizontalSpacer').install(parcel)
 
+def makeCalendarArea(parcel, oldVersion):
+    blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
+
+    locationArea = \
+        CalendarLocationAreaBlock.template('CalendarLocationArea',
+            childrenBlocks=[
+                makeSpacer(parcel, SizeType(0, 22)),
+                makeEditor(parcel, 'CalendarLocation',
+                           viewAttribute=pim.EventStamp.location.name,
+                           presentationStyle={'sampleText': u'location',
+                                              'editInPlace': True})],
+            stretchFactor=0.0,
+            minimumSize=SizeType(300,10),
+            border=RectType(0, 6, 0, 6))
+
+    if '__WXMSW__' in wx.PlatformInfo:
+        allDaySpacerWidth = 8
+    else:
+        allDaySpacerWidth = 6
+
+    allDayArea = \
+        makeArea(parcel, 'CalendarAllDayArea',
+            baseClass=CalendarAllDayAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'all-day'), borderTop=4),
+                makeSpacer(parcel, width=allDaySpacerWidth),
+                makeEditor(parcel, 'EditAllDay',
+                    viewAttribute=pim.EventStamp.allDay.name,
+                    stretchFactor=0.0,
+                    minimumSize=SizeType(16,-1))])
+
+    startTimeArea = \
+        makeArea(parcel, 'CalendarStartTimeArea',
+            childrenBlocks=[
+                makeLabel(parcel, _(u'starts'), borderTop=4),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditCalendarStartDate',
+                    viewAttribute=pim.EventStamp.startTime.name,
+                    presentationStyle={'format': 'calendarDateOnly'},
+                    stretchFactor=0.0,
+                    size=SizeType(75, -1)),
+                CalendarConditionalLabelBlock.template('CalendarStartAtLabel',
+                    title=_(u'at'),
+                    characterStyle=blocks.LabelStyle,
+                    textAlignmentEnum='Center',
+                    stretchFactor=0.0,
+                    border=RectType(4, 4, 0, 4)),
+                makeEditor(parcel, 'EditCalendarStartTime',
+                    baseClass=CalendarTimeAEBlock,
+                    viewAttribute=pim.EventStamp.startTime.name,
+                    presentationStyle={'format': 'calendarTimeOnly'},
+                    stretchFactor=0.0,
+                    size=SizeType(85, -1))])
+    
+    endTimeArea = \
+        makeArea(parcel, 'CalendarEndTimeArea',
+            childrenBlocks=[
+                makeLabel(parcel, _(u'ends'), borderTop=4),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditCalendarEndDate',
+                    viewAttribute=pim.EventStamp.endTime.name,
+                    presentationStyle={'format': 'calendarDateOnly'},
+                    stretchFactor=0.0,
+                    size=SizeType(75, -1)),
+                CalendarConditionalLabelBlock.template('CalendarEndAtLabel',
+                    title=_(u'at'),
+                    characterStyle=blocks.LabelStyle,
+                    textAlignmentEnum='Center',
+                    stretchFactor=0.0,
+                    border=RectType(4, 4, 0, 4)),
+                makeEditor(parcel, 'EditCalendarEndTime',
+                    baseClass=CalendarTimeAEBlock,
+                    viewAttribute=pim.EventStamp.endTime.name,
+                    presentationStyle={'format': 'calendarTimeOnly'},
+                    stretchFactor=0.0,
+                    size=SizeType(85, -1))])
+
+    timeZoneArea = \
+        makeArea(parcel, 'CalendarTimeZoneArea',
+            baseClass=CalendarTimeZoneAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'time zone')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditTimeZone',
+                    baseClass=CalendarTimeZoneAEBlock,
+                    viewAttribute=pim.EventStamp.startTime.name,
+                    presentationStyle={'format': 'timeZoneOnly'},
+                    stretchFactor=0.0,
+                    minimumSize=SizeType(100, -1))])
+
+    transparencyArea = \
+        makeArea(parcel, 'CalendarTransparencyArea',
+            baseClass=CalendarTransparencyAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'status')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditTransparency',
+                    viewAttribute=pim.EventStamp.transparency.name,
+                    presentationStyle={
+                        'format': 'popup',
+                        # It'd be nice to not maintain the transparency choices 
+                        # separately from the enum values; currently, the 
+                        # choices must match the enum's items and ordering.
+                        # @@@ XXX i18n!
+                        'choices': [_(u'Confirmed'), _(u'Tentative'), _(u'FYI')]},
+                    stretchFactor=0.0,
+                    minimumSize=SizeType(100, -1))])
+  
+    recurrencePopupArea = \
+        makeArea(parcel, 'CalendarRecurrencePopupArea',
+            baseClass=CalendarRecurrencePopupAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'occurs')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditRecurrence',
+                    viewAttribute=pim.EventStamp.rruleset.name,
+                    presentationStyle={
+                        'format': 'occurs',
+                        # These choices must match the enumerated indexes in the
+                        # RecurrenceAttributeEditor python code
+                        'choices': [_(u'Once'), _(u'Daily'), _(u'Weekly'),
+                                    _(u'Biweekly'), _(u'Monthly'), _(u'Yearly'),
+                                    _(u'Custom...')]},
+                    stretchFactor=0.0,
+                    minimumSize=SizeType(100, -1))])
+
+    recurrenceCustomArea = \
+        makeArea(parcel, 'CalendarRecurrenceCustomArea',
+            baseClass=CalendarRecurrenceCustomAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, u'', borderTop=2), # leave label blank.
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'CalCustomValue',
+                    viewAttribute=pim.EventStamp.rruleset.name,
+                    presentationStyle={'format': 'custom'},
+                    minimumSize=SizeType(300, -1))])
+                                           
+    recurrenceEndArea = \
+        makeArea(parcel, 'CalendarRecurrenceEndArea',
+            baseClass=CalendarRecurrenceEndAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'ends')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditRecurrenceEnd',
+                    viewAttribute=pim.EventStamp.rruleset.name,
+                    presentationStyle={'format': 'ends'},
+                    stretchFactor=0.0,
+                    size=SizeType(75, -1))])
+ 
+    timeDescriptionArea = \
+        makeArea(parcel, 'CalendarTimeDescriptionArea',
+            childrenBlocks=[
+                makeLabel(parcel, _(u'when'), borderTop=2),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'TimeDescription',
+                    viewAttribute=pim.EventStamp.timeDescription.name,
+                    presentationStyle={ 'format' : 'static' },
+                    )])
+    
+    timeEditArea = \
+        makeArea(parcel, 'CalendarTimeEditArea',
+            orientationEnum='Vertical',
+            childrenBlocks=[
+                allDayArea,
+                makeSpacer(parcel, height=4),
+                startTimeArea,
+                makeSpacer(parcel, height=1),
+                endTimeArea,
+                makeSpacer(parcel, height=7,
+                           baseClass=CalendarTimeZoneSpacerBlock),
+                timeZoneArea,
+                makeSpacer(parcel, height=7,
+                           baseClass=CalendarTransparencySpacerBlock),
+                transparencyArea,
+                makeSpacer(parcel, height=7,
+                           baseClass=CalendarRecurrencePopupSpacerBlock),
+                recurrencePopupArea,
+                makeSpacer(parcel, height=1,
+                           baseClass=CalendarRecurrenceCustomSpacerBlock),
+                recurrenceCustomArea,
+                recurrenceEndArea,
+            ])
+    
+    return makeArea(parcel, 'CalendarDetails',
+            baseClass=EventAreaBlock,
+            orientationEnum='Vertical',
+            position=0.8,
+            childrenBlocks = [
+                locationArea,
+                makeSpacer(parcel, height=4),
+                #timeDescriptionArea,
+                timeEditArea]).install(parcel)
+ 
+def makeMailArea(parcel, oldVersion):
+    blocks = schema.ns("osaf.framework.blocks", parcel.itsView)    
+    outboundFromArea = \
+        makeArea(parcel, 'OutboundFromArea',
+            baseClass=OutboundOnlyAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'from')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditMailOutboundFrom',
+                    presentationStyle={'format': 'outbound'},
+                    viewAttribute=MailStamp.fromAddress.name)],
+            position=0.1).install(parcel)
+    inboundFromArea = \
+        makeArea(parcel, 'InboundFromArea',
+            baseClass=InboundOnlyAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'from')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditMailInboundFrom',
+                viewAttribute=MailStamp.fromAddress.name)],
+            position=0.1).install(parcel)
+
+    toArea = \
+        makeArea(parcel, 'ToArea',
+            childrenBlocks=[
+                makeLabel(parcel, _(u'to')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditMailTo',
+                viewAttribute=MailStamp.toAddress.name)],
+            position=0.11).install(parcel)
+    ccArea = \
+        makeArea(parcel, 'CcArea',
+            childrenBlocks=[
+                makeLabel(parcel, _(u'cc')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditMailCc',
+                viewAttribute=MailStamp.ccAddress.name)],
+            position=0.111).install(parcel)
+    bccArea = \
+        makeArea(parcel, 'BccArea',
+            baseClass=OutboundOnlyAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'bcc')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditMailBcc',
+                viewAttribute=MailStamp.bccAddress.name)],
+            position=0.112,
+            border=RectType(0, 0, 6, 6)).install(parcel)
+
+    #acceptShareButton = \
+        #AcceptShareButtonBlock.template('AcceptShareButton').install(parcel)
+        ## (We'll flesh out this definition below; we predeclare it for the event.)        
+    #acceptShareEvent = \
+        #BlockEvent.template('AcceptShare',
+            #'SendToBlockByReference',
+            #destinationBlockReference=acceptShareButton).install(parcel)
+
+    #acceptShareButton = \
+        #AcceptShareButtonBlock.template('AcceptShareButton',
+            #title=_(u'Accept this sharing invitation'),
+            #buttonKind='Text',
+            #position=0.88,
+            #stretchFactor=0.0,
+            #size=SizeType(80, 30),
+            #minimumSize=SizeType(220, 24),
+            #alignmentEnum='alignCenter',
+            #event=acceptShareEvent,
+            #border=RectType(6, 6, 6, 6)).install(parcel)
+    
+    #attachmentArea = \
+        #makeArea(parcel, 'AttachmentArea',
+            #baseClass=AttachmentAreaBlock,
+            #childrenBlocks=[
+                #makeLabel(parcel, _(u'attachments')),
+                #makeSpacer(parcel, width=8),
+                #AttachmentTextFieldBlock.template('AttachmentTextField',
+                    #characterStyle=blocks.TextStyle,
+                    #lineStyleEnum='MultiLine',
+                    #readOnly=True,
+                    #textAlignmentEnum='Left',
+                    #minimumSize=SizeType(100, 48),
+                    #border=RectType(2, 2, 2, 2))],
+            #position=0.98).install(parcel)
+    
+    return makeArea(parcel, 'MailDetails',
+            baseClass=MailAreaBlock,
+            orientationEnum='Vertical',
+            position=0.1,
+            childrenBlocks = [
+                outboundFromArea, 
+                inboundFromArea, 
+                toArea,
+                ccArea,
+                bccArea,
+                # @@@ Disabled until we resume work on sharing invitations
+                # acceptShareButton,
+                # @@@ disabled until we rewrite the attachment AE.
+                # attachmentArea,
+            ]).install(parcel)
+
 def makeMarkupBar(parcel, oldVersion):
     """
     Build the markup bar.
@@ -304,7 +596,8 @@ def makeMarkupBar(parcel, oldVersion):
 
     # Each button just sends this event to itself.
     buttonPressed = BlockEvent.template('ButtonPressed',
-                                        dispatchEnum = 'SendToSender').install(parcel)
+                                    dispatchEnum='SendToSender',
+                                    commitAfterDispatch=True).install(parcel)
 
     # The buttons.
     mailMessageButton = \
@@ -318,7 +611,7 @@ def makeMarkupBar(parcel, oldVersion):
                                         minimumSize=SizeType(30, 18))
 
     taskStamp = \
-        TaskStampBlock.template('TaskStamp',
+        TaskStampButtonBlock.template('TaskStamp',
                                 title=messages.STAMP_TASK,
                                 buttonKind="Stamp",
                                 icon="MarkupTask",
@@ -333,7 +626,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     minimumSize=SizeType(30, 18))
 
     calendarStamp = \
-        CalendarStampBlock.template('CalendarStamp',
+        CalendarStampButtonBlock.template('CalendarStamp',
                                     title=messages.STAMP_CALENDAR,
                                     buttonKind="Stamp",
                                     icon="MarkupEvent",
@@ -387,6 +680,7 @@ def makeNoteSubtree(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
 
     # First, the headline AEBlock and the area it sits in
+    # First, the headline AEBlock and the area it sits in
     headlineAEBlock = makeEditor(parcel, 'HeadlineBlock',
                                  viewAttribute=u'about',
                                  characterStyle=blocks.BigTextStyle,
@@ -414,7 +708,7 @@ def makeNoteSubtree(parcel, oldVersion):
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditReminderType',
                     baseClass=ReminderAEBlock,
-                    viewAttribute=u'reminders',
+                    viewAttribute=pim.Remindable.reminders.name,
                     presentationStyle={ 'format': 'reminderType' },
                     stretchFactor=0.0,
                     minimumSize=SizeType(100, -1))],
@@ -427,14 +721,14 @@ def makeNoteSubtree(parcel, oldVersion):
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditReminderUnits',
                     baseClass=ReminderAEBlock,
-                    viewAttribute=u'userReminderInterval',
+                    viewAttribute=pim.Remindable.userReminderInterval.name,
                     presentationStyle={ 'format': 'reminderUnits' },
                     stretchFactor=0.0,
                     size=SizeType(35, -1)),
                 makeSpacer(parcel, width=4),
                 makeEditor(parcel, 'EditReminderScale',
                     baseClass=ReminderAEBlock,
-                    viewAttribute=u'userReminderInterval',
+                    viewAttribute=pim.Remindable.userReminderInterval.name,
                     presentationStyle={ 'format': 'reminderScale' },
                     stretchFactor=0.0,
                     minimumSize=SizeType(80, -1)),
@@ -448,7 +742,7 @@ def makeNoteSubtree(parcel, oldVersion):
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditReminderDate',
                     baseClass=ReminderAEBlock,
-                    viewAttribute=u'userReminderTime',
+                    viewAttribute=pim.Remindable.userReminderTime.name,
                     presentationStyle={'format': 'dateOnly'},
                     stretchFactor=0.0,
                     size=SizeType(75, -1)),
@@ -460,7 +754,7 @@ def makeNoteSubtree(parcel, oldVersion):
                     border=RectType(4, 4, 0, 4)),
                 makeEditor(parcel, 'EditReminderTime',
                     baseClass=ReminderAEBlock,
-                    viewAttribute=u'userReminderTime',
+                    viewAttribute=pim.Remindable.userReminderTime.name,
                     presentationStyle={'format': 'timeOnly'},
                     stretchFactor=0.0,
                     size=SizeType(85, -1)),
@@ -507,302 +801,13 @@ def makeNoteSubtree(parcel, oldVersion):
         reminderRelativeArea,
         reminderAbsoluteArea,
         makeSpacer(parcel, height=7, position=0.8999).install(parcel),
+        makeCalendarArea(parcel, oldVersion),
+        makeMailArea(parcel, oldVersion),
         notesBlock,
         appearsInArea,
         unreadTimer,
     ])
 
-def makeCalendarEventSubtree(parcel, oldVersion):
-    blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
-
-    locationArea = \
-        CalendarLocationAreaBlock.template('CalendarLocationArea',
-            childrenBlocks=[
-                makeSpacer(parcel, SizeType(0, 22)),
-                makeEditor(parcel, 'CalendarLocation',
-                           viewAttribute=u'location',
-                           presentationStyle={'sampleText': u'',
-                                              'editInPlace': True})],
-            stretchFactor=0.0,
-            minimumSize=SizeType(300,10),
-            border=RectType(0, 6, 0, 6))
-
-    if '__WXMSW__' in wx.PlatformInfo:
-        allDaySpacerWidth = 8
-    else:
-        allDaySpacerWidth = 6
-
-    allDayArea = \
-        makeArea(parcel, 'CalendarAllDayArea',
-            baseClass=CalendarAllDayAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'all-day'), borderTop=4),
-                makeSpacer(parcel, width=allDaySpacerWidth),
-                makeEditor(parcel, 'EditAllDay',
-                    viewAttribute=u'allDay',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(16,-1))])
-
-    startTimeArea = \
-        makeArea(parcel, 'CalendarStartTimeArea',
-            childrenBlocks=[
-                makeLabel(parcel, _(u'starts'), borderTop=4),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditCalendarStartDate',
-                    viewAttribute=u'startTime',
-                    presentationStyle={'format': 'calendarDateOnly'},
-                    stretchFactor=0.0,
-                    size=SizeType(75, -1)),
-                CalendarConditionalLabelBlock.template('CalendarStartAtLabel',
-                    title=_(u'at'),
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Center',
-                    stretchFactor=0.0,
-                    border=RectType(4, 4, 0, 4)),
-                makeEditor(parcel, 'EditCalendarStartTime',
-                    baseClass=CalendarTimeAEBlock,
-                    viewAttribute=u'startTime',
-                    presentationStyle={'format': 'calendarTimeOnly'},
-                    stretchFactor=0.0,
-                    size=SizeType(85, -1))])
-    
-    endTimeArea = \
-        makeArea(parcel, 'CalendarEndTimeArea',
-            childrenBlocks=[
-                makeLabel(parcel, _(u'ends'), borderTop=4),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditCalendarEndDate',
-                    viewAttribute=u'endTime',
-                    presentationStyle={'format': 'calendarDateOnly'},
-                    stretchFactor=0.0,
-                    size=SizeType(75, -1)),
-                CalendarConditionalLabelBlock.template('CalendarEndAtLabel',
-                    title=_(u'at'),
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Center',
-                    stretchFactor=0.0,
-                    border=RectType(4, 4, 0, 4)),
-                makeEditor(parcel, 'EditCalendarEndTime',
-                    baseClass=CalendarTimeAEBlock,
-                    viewAttribute=u'endTime',
-                    presentationStyle={'format': 'calendarTimeOnly'},
-                    stretchFactor=0.0,
-                    size=SizeType(85, -1))])
-
-    timeZoneArea = \
-        makeArea(parcel, 'CalendarTimeZoneArea',
-            baseClass=CalendarTimeZoneAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'time zone')),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditTimeZone',
-                    baseClass=CalendarTimeZoneAEBlock,
-                    viewAttribute=u'startTime',
-                    presentationStyle={'format': 'timeZoneOnly'},
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(100, -1))])
-
-    transparencyArea = \
-        makeArea(parcel, 'CalendarTransparencyArea',
-            baseClass=CalendarTransparencyAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'status')),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditTransparency',
-                    viewAttribute=u'transparency',
-                    presentationStyle={
-                        'format': 'popup',
-                        # It'd be nice to not maintain the transparency choices 
-                        # separately from the enum values; currently, the 
-                        # choices must match the enum's items and ordering.
-                        # @@@ XXX i18n!
-                        'choices': [_(u'Confirmed'), _(u'Tentative'), _(u'FYI')]},
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(100, -1))])
-  
-    recurrencePopupArea = \
-        makeArea(parcel, 'CalendarRecurrencePopupArea',
-            baseClass=CalendarRecurrencePopupAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'occurs')),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditRecurrence',
-                    viewAttribute=u'rruleset',
-                    presentationStyle={
-                        'format': 'occurs',
-                        # These choices must match the enumerated indexes in the
-                        # RecurrenceAttributeEditor python code
-                        'choices': [_(u'Once'), _(u'Daily'), _(u'Weekly'),
-                                    _(u'Biweekly'), _(u'Monthly'), _(u'Yearly'),
-                                    _(u'Custom...')]},
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(100, -1))])
-
-    recurrenceCustomArea = \
-        makeArea(parcel, 'CalendarRecurrenceCustomArea',
-            baseClass=CalendarRecurrenceCustomAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, u'', borderTop=2), # leave label blank.
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'CalCustomValue',
-                    viewAttribute=u'rruleset',
-                    presentationStyle={'format': 'custom'},
-                    minimumSize=SizeType(300, -1))])
-                                           
-    recurrenceEndArea = \
-        makeArea(parcel, 'CalendarRecurrenceEndArea',
-            baseClass=CalendarRecurrenceEndAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'ends')),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditRecurrenceEnd',
-                    viewAttribute=u'rruleset',
-                    presentationStyle={'format': 'ends'},
-                    stretchFactor=0.0,
-                    size=SizeType(75, -1))])
- 
-    timeDescriptionArea = \
-        makeArea(parcel, 'CalendarTimeDescriptionArea',
-            childrenBlocks=[
-                makeLabel(parcel, _(u'when'), borderTop=2),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'TimeDescription',
-                    viewAttribute=u'timeDescription',
-                    presentationStyle={ 'format' : 'static' },
-                    )])
-    
-    timeEditArea = \
-        makeArea(parcel, 'CalendarTimeEditArea',
-            orientationEnum='Vertical',
-            childrenBlocks=[
-                allDayArea,
-                makeSpacer(parcel, height=4),
-                startTimeArea,
-                makeSpacer(parcel, height=1),
-                endTimeArea,
-                makeSpacer(parcel, height=7,
-                           baseClass=CalendarTimeZoneSpacerBlock),
-                timeZoneArea,
-                makeSpacer(parcel, height=7,
-                           baseClass=CalendarTransparencySpacerBlock),
-                transparencyArea,
-                makeSpacer(parcel, height=7,
-                           baseClass=CalendarRecurrencePopupSpacerBlock),
-                recurrencePopupArea,
-                makeSpacer(parcel, height=1,
-                           baseClass=CalendarRecurrenceCustomSpacerBlock),
-                recurrenceCustomArea,
-                recurrenceEndArea,
-            ])
-    
-    calendarDetails = \
-        makeArea(parcel, 'CalendarDetails',
-            orientationEnum='Vertical',
-            position=0.8,
-            childrenBlocks = [
-                locationArea,
-                makeSpacer(parcel, height=4),
-                #timeDescriptionArea,
-                timeEditArea]).install(parcel)
-
-    makeSubtree(parcel, osaf.pim.CalendarEventMixin, [ calendarDetails ])
- 
-def makeMailSubtree(parcel, oldVersion):
-    blocks = schema.ns("osaf.framework.blocks", parcel.itsView)    
-    outboundFromArea = \
-        makeArea(parcel, 'OutboundFromArea',
-            baseClass=OutboundOnlyAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'from')),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditMailOutboundFrom',
-                    presentationStyle={'format': 'outbound'},
-                    viewAttribute=u'fromAddress')],
-            position=0.1).install(parcel)
-    inboundFromArea = \
-        makeArea(parcel, 'InboundFromArea',
-            baseClass=InboundOnlyAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'from')),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditMailInboundFrom',
-                    viewAttribute=u'fromAddress')],
-            position=0.1).install(parcel)
-
-    toArea = \
-        makeArea(parcel, 'ToArea',
-            childrenBlocks=[
-                makeLabel(parcel, _(u'to')),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditMailTo',
-                    viewAttribute=u'toAddress')],
-            position=0.11).install(parcel)
-    ccArea = \
-        makeArea(parcel, 'CcArea',
-            childrenBlocks=[
-                makeLabel(parcel, _(u'cc')),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditMailCc',
-                    viewAttribute=u'ccAddress')],
-            position=0.111).install(parcel)
-    bccArea = \
-        makeArea(parcel, 'BccArea',
-            baseClass=OutboundOnlyAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'bcc')),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditMailBcc',
-                    viewAttribute=u'bccAddress')],
-            position=0.112,
-            border=RectType(0, 0, 6, 6)).install(parcel)
-
-    #acceptShareButton = \
-        #AcceptShareButtonBlock.template('AcceptShareButton').install(parcel)
-        ## (We'll flesh out this definition below; we predeclare it for the event.)        
-    #acceptShareEvent = \
-        #BlockEvent.template('AcceptShare',
-            #'SendToBlockByReference',
-            #destinationBlockReference=acceptShareButton).install(parcel)
-
-    #acceptShareButton = \
-        #AcceptShareButtonBlock.template('AcceptShareButton',
-            #title=_(u'Accept this sharing invitation'),
-            #buttonKind='Text',
-            #position=0.88,
-            #stretchFactor=0.0,
-            #size=SizeType(80, 30),
-            #minimumSize=SizeType(220, 24),
-            #alignmentEnum='alignCenter',
-            #event=acceptShareEvent,
-            #border=RectType(6, 6, 6, 6)).install(parcel)
-    
-    #attachmentArea = \
-        #makeArea(parcel, 'AttachmentArea',
-            #baseClass=AttachmentAreaBlock,
-            #childrenBlocks=[
-                #makeLabel(parcel, _(u'attachments')),
-                #makeSpacer(parcel, width=8),
-                #AttachmentTextFieldBlock.template('AttachmentTextField',
-                    #characterStyle=blocks.TextStyle,
-                    #lineStyleEnum='MultiLine',
-                    #readOnly=True,
-                    #textAlignmentEnum='Left',
-                    #minimumSize=SizeType(100, 48),
-                    #border=RectType(2, 2, 2, 2))],
-            #position=0.98).install(parcel)
-    
-    makeSubtree(parcel, osaf.pim.mail.MailMessageMixin, [
-        outboundFromArea, 
-        inboundFromArea, 
-        toArea,
-        ccArea,
-        bccArea,
-        # @@@ Disabled until we resume work on sharing invitations
-        # acceptShareButton,
-        # @@@ disabled until we rewrite the attachment AE.
-        # attachmentArea,
-    ])
-    
 def makeEmptySubtree(parcel, oldVersion):
   # An empty panel, used when there's no item selected in the detail view
   # (We use the Block kind as the key, though it's not a content kind)

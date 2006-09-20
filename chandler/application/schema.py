@@ -378,6 +378,47 @@ class Sequence(Descriptor):
 class Mapping(Descriptor):
     cardinality = 'dict'
 
+class Calculated(property, ActiveDescriptor):
+    __slots__ = ['basedOn', 'type', 'name']
+    basedOn = ()
+    type = name = None
+
+    def __new__(cls, schema_type, basedOn, fget, fset=None, fdel=None,
+                doc=None):
+        return property.__new__(cls, fget, fset, fdel, doc)
+
+    def __init__(self, schema_type, basedOn, fget, fset=None, fdel=None,
+                 doc=None):
+        property.__init__(self, fget, fset, fdel, doc)
+        self.type = schema_type
+        self.basedOn = basedOn
+        
+    def activateInClass(self,cls,name):
+        if issubclass(cls, Annotation):
+            def wrapForAnnotation(f):
+                if f is None:
+                    return None
+                else:
+                    def newFn(item, *args):
+                        return f(cls(item), *args)
+                    return newFn
+
+            fullname = "%s.%s.%s" % (parcel_name(cls.__module__),
+                                     cls.__name__, name)
+
+            fset = wrapForAnnotation(self.fset)
+            fget = wrapForAnnotation(self.fget)
+            fdel = wrapForAnnotation(self.fdel)
+            
+            newProp = Calculated(self.type, self.basedOn, fget, fset=fset,
+                                 fdel=fdel, doc=self.__doc__)
+            self.name = fullname
+            newProp.name = fullname
+        
+            setattr(_target_type(cls),fullname,newProp)
+
+        setattr(cls,name,self)
+
 
 class Endpoint(object):
     """Represent an endpoint"""
@@ -724,6 +765,23 @@ class Redirector(object):
     def __delete__(self, ob):
         delattr(ob.itsItem, self.name)
 
+class Comparator(ActiveDescriptor):
+    # [@@@] grant -- need to make sure this only
+    # works inside annotations
+
+    def __init__(self, fn):
+        self.fn = fn
+
+    def activateInClass(self,cls,name):
+        self.name = "%s.%s.%s" % (parcel_name(cls.__module__),
+                                  cls.__name__, name)
+        fn = self.fn
+        targetType = _target_type(cls)
+        def newFn(this, other):
+            return fn(cls(this), cls(other))
+        newFn.__name__ = name
+        setattr(targetType, self.name, newFn)
+
 
 class AnnotationClass(type):
     """Metaclass for annotation types"""
@@ -739,6 +797,8 @@ class AnnotationClass(type):
         return super(AnnotationClass,cls).__new__(cls,name,bases,cdict)
 
     def __init__(cls,name,bases,cdict):
+        # We need to process Calculateds last, because the methods
+        # they use may not have been added to the class yet.
         for name,ob in cdict.items():
             if isinstance(ob,Descriptor):
                 basename = "%s.%s." % (parcel_name(cls.__module__), cls.__name__)
@@ -765,10 +825,49 @@ class AnnotationClass(type):
             if isinstance(attr,Redirector):
                 itemFor(attr.cdesc, view)     # ensure all attributes exist
 
+        targetClass = cls.targetType()
         kind = itemFor(cls.targetType(), view)
         for alias, cloud_def in cls.__dict__.get('__kind_clouds__',{}).items():
             cloud_def.make_cloud(kind,alias)
 
+        for name, attrNames in cls.__dict__.get('__after_change__',{}).items():
+        
+            if name.startswith('__'):
+                # support private name mangling
+                name = '_%s%s' % (cls.__name__, name)
+
+            # Stash some variables in a dict so we don't clobber them
+            # in later invocations of this function
+            methodParams = {
+                'prefix' : "%s.%s." % (parcel_name(cls.__module__),cls.__name__),
+                'name' : name
+            }
+            def wrappedMethod(item, op, attrName):
+                #prefix = methodParams['prefix']
+                #if attrName.startswith(prefix):
+                #    attrName = attrName[len(prefix):]
+                return getattr(cls, methodParams['name'])(cls(item), op, attrName)
+                
+            name = methodParams['prefix'] + name
+            wrappedMethod.__name__ = name
+            setattr(targetClass, name, wrappedMethod)
+
+            # @@@ [grant] copy-n-paste job from ItemClass._init_schema_item
+            for attrName in attrNames:
+                if isinstance(attrName,Descriptor):
+                    attr = itemFor(attrName, view)
+                else:
+                    attr = kind.getAttribute(attrName, True)
+                if attr is not None:
+                    if hasattr(attr, 'afterChange'):
+                        afterChange = attr.afterChange
+                        if name not in afterChange:
+                            afterChange.append(name)
+                    else:
+                        attr.afterChange = [name]
+                else:
+                    view.logger.warn("no attribute '%s' defined for kind for %s",
+                                 attrName, cls)
         def fixup():
             annInfo.itsParent = parcel_for_module(cls.__module__, view)
             annInfo.itsName = cls.__name__
@@ -800,6 +899,33 @@ class Annotation:
 
     def __repr__(self):
         return "%s(%r)" % (type(self).__name__, self.itsItem)
+
+    @classmethod
+    def addIndex(cls, collection, name, type, **keywds):
+        # compare is tricky, since it takes a method name,
+        # but that might not be defined on the item class.
+        compare = keywds.get('compare', None)
+        if compare is not None:
+            compare = getattr(cls, compare)
+            if not isinstance(compare, Comparator):
+                raise ValueError, "'compare' value must be a schema.Comparator"
+        
+            keywds['compare'] = compare.name
+            
+        for key in ('attributes', 'monitor'):
+            unconverted = keywds.get(key, None)
+            if unconverted is not None:
+                try:
+                    keywds[key] = tuple(x.name for x in unconverted)
+                except TypeError:
+                    keywds[key] = unconverted.name
+                
+        attribute = keywds.get('attribute')
+        if attribute is not None:
+            keywds['attribute'] = attribute.name
+        
+        return collection.addIndex(name, type, **keywds)
+    
 
 
 class StructClass(Activator):
@@ -1078,7 +1204,7 @@ def observer(*attrs):
         @addClassAdvisor
         def callback(cls):
             for attr in attrs:
-                if attr.owner is None or not issubclass(cls,attr.owner):
+                if attr.owner is None or not issubclass(_target_type(cls), _target_type(attr.owner)):
                     raise TypeError(
                         "%r does not belong to %r or its superclasses"
                         % (attr, cls)

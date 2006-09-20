@@ -14,7 +14,7 @@
 
 
 """Classes used for Calendar parcel kinds.
-   @group Main classes: CalendarEventMixin, CalendarEvent, Location,
+   @group Main classes: EventStamp, CalendarEvent, Location,
    TimeTransparencyEnum
    @group Unused classes: Calendar, ModificationEnum, RecurrencePattern
 """
@@ -25,12 +25,10 @@ import application
 
 from application import schema
 from osaf.pim.contacts import Contact
-from osaf.pim.calculated import Calculated
-from osaf.pim.items import ContentItem
+from osaf.pim.items import ContentItem, cmpTimeAttribute
+from osaf.pim.stamping import Stamp, has_stamp
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
-from application.dialogs import RecurrenceDialog
-import wx
 
 from TimeZone import formatTime
 from osaf.pim.calendar.TimeZone import coerceTimeZone, TimeZoneInfo
@@ -60,25 +58,16 @@ class TimeTransparencyEnum(schema.Enumeration):
 class ModificationEnum(schema.Enumeration):
     values="this", "thisandfuture"
 
-def _sortEvents(eventlist, reverse=False):
-    """Helper function for working with events."""
-    def cmpEventStarts(event1, event2):
-        return cmp(event1.effectiveStartTime, event2.effectiveStartTime)
-    eventlist = list(eventlist)
-    eventlist.sort(cmp=cmpEventStarts)
-    if reverse: eventlist.reverse()
-    return eventlist
-
 def findUID(view, uid):
     """
     Return the master event whose icalUID matched uid, or None.
     """
-    events = schema.ns('osaf.pim', view).events
-    event = indexes.valueLookup(events, 'icalUID', 'icalUID', uid)
-    if event is None:
+    events = EventStamp.getCollection(view)
+    eventItem = indexes.valueLookup(events, 'icalUID', EventStamp.icalUID.name, uid)
+    if eventItem is None:
         return None
     else:
-        return event.getMaster()
+        return EventStamp(eventItem).getMaster()
 
 def ensureIndexed(coll):
     if not coll.hasIndex('__adhoc__'):
@@ -115,7 +104,7 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
             delta = zero_delta
         else:
             delta = delta + endVal - startVal
-        testVal = getattr(view[key], startAttrName)
+        testVal = getattr(EventStamp(view[key]), startAttrName)
         if testVal is None:
             return -1 # interpret None as negative infinity
         # note that we're NOT using >=, if we did, we'd include all day
@@ -134,9 +123,9 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
             delta = zero_delta
         else:
             delta = delta + endVal - startVal
-        testVal = getattr(view[key], endAttrName)
-        
-        if getattr(view[key], startAttrName) == testVal:
+        testVal = getattr(EventStamp(view[key]), endAttrName)
+
+        if getattr(EventStamp(view[key]), startAttrName) == testVal:
             # zero duration events should be included, other events ending at
             # start time shouldn't be
             compare = operator.le
@@ -191,20 +180,15 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
            and key not in ignores:
             yield key
 
-def isDayItem(item):
-    anyTime = False
-    try:
-        anyTime = item.anyTime
-    except AttributeError:
-        pass
-
-    allDay = False
-    try:
-        allDay = item.allDay
-    except AttributeError:
-        pass
-
-    return allDay or anyTime
+def isDayEvent(event):
+    """
+    Determines whether an event has "dayness"; i.e. whether you would want
+    to display it at a specific start time or not.
+    
+    @param event: The event you're interested in
+    @type event: C{EventStamp}
+    """
+    return getattr(event, 'anyTime', False) or getattr(event, 'allDay', False)
 
 def eventsInRange(view, start, end, filterColl = None, dayItems=True,
                   timedItems=True):
@@ -235,16 +219,19 @@ def eventsInRange(view, start, end, filterColl = None, dayItems=True,
         startIndex = 'effectiveStartNoTZ'
         endIndex   = 'effectiveEndNoTZ'
 
-    allEvents  = schema.ns("osaf.pim", view).events
+    allEvents  = EventStamp.getCollection(view)
     longEvents = schema.ns("osaf.pim", view).longEvents
     keys = getKeysInRange(view, start, 'effectiveStartTime', startIndex,
                           allEvents, end,'effectiveEndTime', endIndex,
                           allEvents, filterColl, '__adhoc__', tzprefs.showUI,
                           longDelta = LONG_TIME, longCollection=longEvents)
     for key in keys:
-        if (view[key].rruleset is None and
-            ((dayItems and timedItems) or isDayItem(view[key]) == dayItems)):
-            yield view[key]
+        event = EventStamp(view[key])
+        # Should probably assert has_stamp(event, EventStamp)
+        if (has_stamp(event, EventStamp) and
+            event.rruleset is None and
+            ((dayItems and timedItems) or isDayEvent(event) == dayItems)):
+            yield event
 
 def recurringEventsInRange(view, start, end, filterColl = None,
                            dayItems = True, timedItems = True):
@@ -266,28 +253,65 @@ def recurringEventsInRange(view, start, end, filterColl = None,
                           masterEvents, end, 'recurrenceEnd', endIndex,
                           masterEvents, filterColl, '__adhoc__')
     for key in keys:
-        masterEvent = view[key]
+        masterEvent = EventStamp(view[key])
         for event in masterEvent.getOccurrencesBetween(start, end):
             # One or both of dayItems and timedItems must be
             # True. If both, then there's no need to test the
             # item's day-ness.  If only one is True, then
             # dayItems' value must match the return of
-            # isDayItem.
+            # isDayEvent.
             if ((event.occurrenceFor is not None) and
                 ((dayItems and timedItems) or
-                 isDayItem(event) == dayItems)):
+                 isDayEvent(event) == dayItems)):
                     yield event
 
+class Location(ContentItem):
+    """Stub Kind for Location."""
 
 
-class CalendarEventMixin(ContentItem):
+    eventsAtLocation = schema.Sequence(
+    ) # inverse of EventStamp.location
+
+
+    @classmethod
+    def getLocation (cls, view, locationName):
+        """
+        Factory Method for getting a Location.
+
+        Lookup or create a Location based on the supplied name string.
+
+        If a matching Location object is found in the repository, it
+        is returned.  If there is no match, then a new item is created
+        and returned.
+
+        @param locationName: name of the Location
+        @type locationName: C{String}
+        @return: C{Location} created or found
+        """
+        # make sure the locationName looks reasonable
+        assert locationName, "Invalid locationName passed to getLocation factory"
+        locations = schema.ns('osaf.pim', view).locations
+
+        def callback(key):
+            return cmp(locationName, view[key].displayName)
+
+        existing = locations.findInIndex('locationName', 'exact', callback)
+        if existing is not None:
+            return view[existing]
+        else:
+            # make a new Location
+            newLocation = Location(itsView=view)
+            newLocation.displayName = locationName
+            return newLocation
+
+
+
+class EventStamp(Stamp):
     """
-    This is the set of CalendarEvent-specific attributes. This Kind is 'mixed
-    in' to others kinds to create Kinds that can be instantiated.
-
-    Calendar Event Mixin is the bag of Event-specific attributes.
-    We only instantiate these Items when we "unstamp" an
-    Item, to save the attributes for later "restamping".
+    EventStamp is the bag of Event-specific attributes. Like other Stamp
+    subclasses, an Item can have values for these attributes without
+    "having" the stamp; you have to call the add() method to make the
+    stamp be present.
 
     @group Main Public Methods: changeThis, changeThisAndFuture, setRuleFromDateUtil,
     getLastUntil, getRecurrenceEnd, getMaster, createDateUtilFromRule,
@@ -298,14 +322,18 @@ class CalendarEventMixin(ContentItem):
     @group Comparison Methods for Indexing: cmpStartTime,
     cmpEndTime, cmpRecurEnd
 
-    @group Semi-Private Methods: addToCollection, changeNoModification,
+    @group Semi-Private Methods: changeNoModification,
     cleanRule, copyCollections, getEffectiveEndTime, getEffectiveStartTime,
     getEndTime, getFirstInRule, InitOutgoingAttributes, isBetween, isProxy,
     moveCollections, moveRuleEndBefore, onEventChanged, removeFutureOccurrences,
-    setEndTime, StampKind, updateRecurrenceEnd, __init__, removeFromCollection
+    setEndTime, updateRecurrenceEnd, __init__
 
     """
 
+    schema.kindInfo(annotates=Note)
+    
+    __use_collection__ = True
+    
     startTime = schema.One(
         schema.DateTimeTZ,
         indexed=True,
@@ -344,11 +372,12 @@ class CalendarEventMixin(ContentItem):
     )
 
     location = schema.One(
-        "Location",
+        Location,
+        inverse=Location.eventsAtLocation,
         doc="We might want to think about having Location be just a 'String', "
             "rather than a reference to a 'Location' item.",
         indexed=True
-     )
+     ) # inverse of Location.eventsAtLocation
 
     rruleset = schema.One(
         Recurrence.RecurrenceRuleSet,
@@ -382,28 +411,22 @@ class CalendarEventMixin(ContentItem):
     )
 
     modifications = schema.Sequence(
-        "CalendarEventMixin",
         doc = "A list of occurrences that have been modified",
         defaultValue=None,
-        inverse="modificationFor"
-    )
+    ) # inverse of modificationFor
 
     modificationFor = schema.One(
-        "CalendarEventMixin",
         defaultValue=None,
-        inverse="modifications"
+        inverse=modifications
     )
 
     occurrences = schema.Sequence(
-        "CalendarEventMixin",
         defaultValue=None,
-        inverse="occurrenceFor"
-    )
+    ) # inverse = occurrenceFor
 
     occurrenceFor = schema.One(
-        "CalendarEventMixin",
         defaultValue=None,
-        inverse="occurrences"
+        inverse=occurrences
     )
 
     isGenerated = schema.One(
@@ -432,94 +455,102 @@ class CalendarEventMixin(ContentItem):
                 occurrenceFor]
         )
     )
+    
+    IGNORE_CHANGE_ATTR = "%s.EventStamp.__ignoreValueChange" % (__module__,)
 
     # Redirections
 
-    whoFrom = schema.One(redirectTo="organizer")
-    about = schema.One(redirectTo="displayName")
+    #whoFrom = schema.One(redirectTo="organizer")
+    summary = schema.One(redirectTo="displayName")
 
-    def __init__(self, *args, **kw):
-        super(CalendarEventMixin, self).__init__(*args, **kw)
-        if not kw.has_key('icalUID'):
-            self.icalUID = unicode(self.itsUUID)
+    def __disableRecurrenceChanges(self):
+        item = self.itsItem
+        disable = not getattr(item, EventStamp.IGNORE_CHANGE_ATTR, False)
+        if disable:
+            setattr(item, EventStamp.IGNORE_CHANGE_ATTR, True)
+        return disable
+        
+    def __enableRecurrenceChanges(self):
+        item = self.itsItem
+        delattr(item, EventStamp.IGNORE_CHANGE_ATTR)
+            
+                        
 
     def InitOutgoingAttributes(self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
-        try:
-            super(CalendarEventMixin, self).InitOutgoingAttributes()
-        except AttributeError:
-            pass
+        self.itsItem.InitOutgoingAttributes()
+        self.summary = _(u"New Event")
 
-        CalendarEventMixin._initMixin(self) # call our init, not the method of a subclass
 
-        # New item initialization
-        self.displayName = _(u"New Event")
 
-    def _initMixin(self):
+    def add(self):
         """
           Init only the attributes specific to this mixin.
         Called when stamping adds these attributes, and from __init__ above.
         """
-        if not self.hasLocalAttributeValue('startTime'):
+        disabled = self.__disableRecurrenceChanges()
+        super(EventStamp, self).add()
+        if disabled: self.__enableRecurrenceChanges()
+        
+        if not hasattr(self, 'startTime'):
             # start at the nearest half hour, duration of an hour
-            defaultTz = TimeZoneInfo.get(self.itsView).default
+            defaultTz = TimeZoneInfo.get(self.itsItem.itsView).default
             now = datetime.now(defaultTz)
             roundedTime = time(hour=now.hour, minute=(now.minute/30)*30,
                                tzinfo = defaultTz)
             self.startTime = datetime.combine(now, roundedTime)
-        if not self.hasLocalAttributeValue('duration'):
+        if not hasattr(self, 'duration'):
             self.duration = timedelta(hours=1)
 
         # set the organizer to "me"
-        self.organizer = schema.ns("osaf.pim", self.itsView).currentContact.item
-
-        # give a starting display name
-        try:
-            self.displayName = self.getAnyAbout ()
-        except AttributeError:
-            pass
+        if not hasattr(self, 'organizer'):
+            self.organizer = schema.ns("osaf.pim", self.itsItem.itsView).currentContact.item
 
         if not hasattr(self, 'icalUID'):
-            self.icalUID = unicode(self.itsUUID)
+            self.icalUID = unicode(self.itsItem.itsUUID)
 
         # TBD - set participants to any existing "who"
         # participants are currently not implemented.
 
-    def StampKind (self, operation, mixinKind):
+    def remove(self):
         """
-        Override StampKind to deal with unstamping CalendarEventMixin on
+        Override remove to deal with unstamping EventStamp on
         recurring events.
 
-        When unstamping CalendarEventMixin, first add the item's recurrenceID
+        When removing EventStamp, first add the item's recurrenceID
         to the exclusion list, so the item doesn't reappear after unstamping.
 
         """
-        if operation == 'remove' and \
-           not self._findStampedKind(operation, mixinKind).isKindOf(CalendarEventMixin.getKind(self.itsView)):
-            if self.rruleset is not None:          
-                self._ignoreValueChanges = True
-                rruleset = self.rruleset
-                self.occurrenceFor = None
-                self.rruleset = None
-                if getattr(rruleset, 'exdates', None) is None:
-                    rruleset.exdates=[]
-                rruleset.exdates.append(self.recurrenceID)
-                del self._ignoreValueChanges
+        didDisable = self.__disableRecurrenceChanges()
+
+        rruleset = self.rruleset
+        self.occurrenceFor = None
+        self.rruleset = None
+        
+        if rruleset is not None:
+            if getattr(rruleset, 'exdates', None) is None:
+                rruleset.exdates=[]
+            rruleset.exdates.append(self.recurrenceID)
             
+        if didDisable:
+            self.__enableRecurrenceChanges()
+
             # Delete any relative user reminders, as well as any startTime
             # triageStatus transition reminders
-            doomed = [ r for r in self.reminders
-                       if ((r.userCreated and r.absoluteTime is None) or 
-                           (not r.userCreated and r.keepExpired)) ]
-            doomed.extend(r for r in self.expiredReminders
-                          if r.absoluteTime is None)
-            for r in doomed:
+            from osaf.pim.reminders import Remindable
+            remindable = Remindable(self)
+            doomed = iter(r for r in remindable.reminders
+                          if ((r.userCreated and r.absoluteTime is None) or 
+                              (not r.userCreated and r.keepExpired)))
+            moreDoomed = iter(r for r in remindable.expiredReminders
+                              if r.absoluteTime is None)
+            for r in itertools.chain(doomed, moreDoomed):
                 logger.debug("Destroying obsolete %s on %s", r, self)
-                self.dismissReminder(r, dontExpire=True)
+                remindable.dismissReminder(r, dontExpire=True)
 
-        super(CalendarEventMixin, self).StampKind(operation, mixinKind)
+        super(EventStamp, self).remove()
 
     def getTimeDescription(self):
         """
@@ -556,30 +587,30 @@ class CalendarEventMixin(ContentItem):
             'recurrence': recurrenceDescription,
         }
 
-    timeDescription = Calculated(
+    timeDescription = schema.Calculated(
         schema.Text,
-        basedOn=('startTime', 'duration', 'recurrence'),
+        basedOn=(startTime, duration, rruleset),
         fget=getTimeDescription,
         doc="A human-readable description of the time-related attributes.",
     )
 
     def getEndTime(self):
-        if (self.hasLocalAttributeValue("startTime") and
-            self.hasLocalAttributeValue("duration")):
+        if (self.itsItem.hasLocalAttributeValue(EventStamp.startTime.name) and
+            self.itsItem.hasLocalAttributeValue(EventStamp.duration.name)):
             return self.startTime + self.duration
         else:
             return None
 
     def setEndTime(self, dateTime):
-        if self.hasLocalAttributeValue("startTime"):
+        if self.itsItem.hasLocalAttributeValue(EventStamp.startTime.name):
             duration = dateTime - self.startTime
             if duration < timedelta(0):
                 raise ValueError, "End time must not be earlier than start time"
             self.duration = duration
 
-    endTime = Calculated(
+    endTime = schema.Calculated(
         schema.DateTimeTZ,
-        basedOn=('startTime', 'duration'),
+        basedOn=(startTime, duration),
         fget=getEndTime,
         fset=setEndTime,
         doc="End time, computed from startTime + duration."
@@ -605,9 +636,9 @@ class CalendarEventMixin(ContentItem):
         else:
             return startTime
 
-    effectiveStartTime = Calculated(
+    effectiveStartTime = schema.Calculated(
         schema.DateTimeTZ,
-        basedOn=('startTime', 'allDay', 'anyTime'),
+        basedOn=(startTime, allDay, anyTime),
         fget=getEffectiveStartTime,
         doc="Start time, without time if allDay/anyTime")
 
@@ -633,14 +664,15 @@ class CalendarEventMixin(ContentItem):
         else:
             return endTime
 
-    effectiveEndTime = Calculated(
+    effectiveEndTime = schema.Calculated(
         schema.DateTimeTZ,
-        basedOn=('startTime', 'allDay', 'anyTime', 'duration'),
+        basedOn=(startTime, allDay, anyTime, duration),
         fget=getEffectiveEndTime,
         doc="End time, without time if allDay/anyTime")
 
     @schema.observer(startTime, allDay, anyTime)
     def onStartTimeChanged(self, op, name):
+        from osaf.pim.reminders import Remindable
         # Update the reminder we use to update triageStatus at startTime, 
         # if it's in the future. First, find any existing startTime reminder.
         existing = [ r for r in self.reminders if not r.userCreated ]
@@ -665,18 +697,18 @@ class CalendarEventMixin(ContentItem):
                 
                 # Create a new reminder for the new time. (We don't just update 
                 # the old because we want notifications to fire on this change)
-                self.makeReminder(absoluteTime=newStartTime, userCreated=False,
-                                     checkExpired=True, keepExpired=False)
+                Remindable(self).makeReminder(absoluteTime=newStartTime,
+                                     userCreated=False, checkExpired=True,
+                                     keepExpired=False)
                     
         # If we had an existing startTime reminder, dismiss it.
         if existing:
-            self.dismissReminder(existing)
+            Remindable(self).dismissReminder(existing)
             
         # Update our relevant-date attribute, too
-        self.updateRelevantDate(op, name)
+        self.itsItem.updateRelevantDate(op, name)
 
     def addRelevantDates(self, dates):
-        super(CalendarEventMixin, self).addRelevantDates(dates)
         effectiveStartTime = getattr(self, 'effectiveStartTime', None)
         if effectiveStartTime is not None:
             dates.append((effectiveStartTime, 'startTime'))
@@ -687,19 +719,19 @@ class CalendarEventMixin(ContentItem):
         """Return the rule's master, equivalent to getMaster, different only
         when THISANDFUTURE modifications stay connected to masters.
 
-        @rtype: C{CalendarEventMixin}
+        @rtype: C{EventStamp}
 
         """
         first = self.modificationFor
         if first is not None:
-            return first
+            return type(self)(first)
 
         first = self.occurrenceFor
-        if first is self or first is None:
+        if first is None or first is self.itsItem:
             # could be None if a master's first date has a "this" modification
             return self
 
-        return first
+        return type(self)(first)
 
     def getLastUntil(self):
         """Find the last modification's rruleset, return it's until value.
@@ -758,7 +790,7 @@ class CalendarEventMixin(ContentItem):
         Calculate what recurrenceEnd should be and set it or delete it if it's
         None.
         """
-        if self != self.getMaster():
+        if self.itsItem is not self.getMaster():
             end = None
         else:
             end = self.getRecurrenceEnd()
@@ -772,15 +804,16 @@ class CalendarEventMixin(ContentItem):
     def getMaster(self):
         """Return the master event in modifications or occurrences.
 
-        @rtype: C{CalendarEventMixin}
+        @rtype: C{EventStamp}
 
         """
         if self.modificationFor is not None:
-            return self.modificationFor.getMaster()
-        elif self.occurrenceFor in (self, None):
+            masterEvent = type(self)(self.modificationFor).getMaster()
+        elif self.occurrenceFor in (self.itsItem, None):
             return self
         else:
-            return self.occurrenceFor.getMaster()
+            masterEvent = type(self)(self.occurrenceFor).getMaster()
+        return masterEvent
 
     def __getDatetimePrepFunction(self):
         """
@@ -792,7 +825,7 @@ class CalendarEventMixin(ContentItem):
         [cf Bug 5598].
         """
 
-        if schema.ns('osaf.app', self.itsView).TimezonePrefs.showUI:
+        if schema.ns('osaf.app', self.itsItem.itsView).TimezonePrefs.showUI:
             # If timezones are enabled, just return the original
             # datetime.
             def prepare(dt):
@@ -862,14 +895,14 @@ class CalendarEventMixin(ContentItem):
 
         """
         if self.rruleset is None:
-            ruleItem=Recurrence.RecurrenceRuleSet(None, itsView=self.itsView)
+            ruleItem=Recurrence.RecurrenceRuleSet(None, itsView=self.itsItem.itsView)
             ruleItem.setRuleFromDateUtil(rule)
             self.rruleset = ruleItem
         else:
             if self.getFirstInRule() != self:
-                rruleset = Recurrence.RecurrenceRuleSet(None, itsView=self.itsView)
+                rruleset = Recurrence.RecurrenceRuleSet(None, itsView=self.itsItem.itsView)
                 rruleset.setRuleFromDateUtil(rule)
-                self.changeThisAndFuture('rruleset', rruleset)
+                self.changeThisAndFuture(type(self).rruleset.name, rruleset)
             else:
                 self.rruleset.setRuleFromDateUtil(rule)
 
@@ -878,12 +911,23 @@ class CalendarEventMixin(ContentItem):
         if self.hasLocalAttributeValue('rruleset') and self.getMaster() == self:
             self.deleteAll()
         else:
-            self._ignoreValueChanges = True
-            super(CalendarEventMixin, self).delete(*args, **kwargs)
+            self.__disableRecurrenceChanges()
+            self.itsItem.delete(*args, **kwargs)
+
+
+    def _restoreStamps(self, clonedEvent):
+        disabledChanges = clonedEvent.__disableRecurrenceChanges()
+        for stampClass in Stamp(self).stamp_types:
+            stampClass(clonedEvent).add()
+        if disabledChanges:
+            clonedEvent.__enableRecurrenceChanges()
 
     def _cloneEvent(self):
-
-        clone = self.clone(None, None, ('collections',))
+         # Exclude stamps, since add() does something good here
+        clonedItem = self.itsItem.clone(None, None, ('collections', Stamp.stamp_types.name))
+        clone = EventStamp(clonedItem)
+        self._restoreStamps(clone)
+        
         clone.updateRecurrenceEnd()
 
         return clone
@@ -894,17 +938,30 @@ class CalendarEventMixin(ContentItem):
         """
 
         first = self.getFirstInRule()
-        if first is not self:
+        if first != self:
             return first._createOccurrence(recurrenceID)
+            
+        item = first.itsItem
+        # It's possible this method has been called on a proxy; in that
+        # case, we should make sure we're dealing with the "real"
+        # item.
+        item = getattr(first.itsItem, 'proxiedItem', item)
+        
+        values = {
+            EventStamp.isGenerated.name: True,
+            EventStamp.recurrenceID.name: recurrenceID,
+            EventStamp.startTime.name: recurrenceID,
+            EventStamp.occurrenceFor.name: item,
+            EventStamp.modificationFor.name: None,
+        }
 
-        item = self.clone(None, None, ('collections', 'recurrenceEnd'), False,
-                          isGenerated=True,
-                          recurrenceID=recurrenceID,
-                          startTime=recurrenceID,
-                          occurrenceFor=first,
-                          modificationFor=None)
-        item._fixReminders()
-        return item
+        item = self.itsItem.clone(None, None,
+                          ('collections', EventStamp.recurrenceEnd.name, Stamp.stamp_types.name),
+                          False, **values)
+        event = EventStamp(item)
+        self._restoreStamps(event)
+        event._fixReminders()
+        return event
 
     def getNextOccurrence(self, after=None, before=None):
         """Return the next occurrence for the recurring event self is part of.
@@ -916,6 +973,8 @@ class CalendarEventMixin(ContentItem):
 
         @param before: Latest start time allowed
         @type  before: C{datetime} or C{None}
+        
+        @rtype: C{EventStamp}
 
         """
 
@@ -937,7 +996,8 @@ class CalendarEventMixin(ContentItem):
             withMaster = []
             if first.occurrenceFor is not None:
                 withMaster.append(first)
-            for mod in itertools.chain(withMaster, first.modifications or []):
+            modEvents = itertools.imap(EventStamp, first.modifications or [])
+            for mod in itertools.chain(withMaster, modEvents):
                 if test(mod):
                     if nextEvent is None:
                         nextEvent = mod
@@ -990,6 +1050,7 @@ class CalendarEventMixin(ContentItem):
         return checkModifications(first, before)
 
     def _fixReminders(self):
+        from osaf.pim.reminders import Remindable
         # When creating generated events, this function is
         # called so that all reminders in the past are marked
         # expired, and the rest are not. This helps avoid a
@@ -1010,10 +1071,11 @@ class CalendarEventMixin(ContentItem):
         # us back in this # method, etc, etc.
 
         # Figure out what (if anything) has changed ...
-        nowExpired = [r for r in self.reminders
-                        if expired(r)]
+        remindable = Remindable(self)
+        nowExpired = [r for r in remindable.reminders
+                         if expired(r)]
 
-        nowNotExpired = [r for r in self.expiredReminders
+        nowNotExpired = [r for r in remindable.expiredReminders
                            if not expired(r)]
 
         # ... and update the collections accordingly
@@ -1027,8 +1089,8 @@ class CalendarEventMixin(ContentItem):
                 reminder.delete()
 
         for reminder in nowNotExpired:
-            self.reminders.add(reminder)
-            self.expiredReminders.remove(reminder)
+            remindable.reminders.add(reminder)
+            remindable.expiredReminders.remove(reminder)
 
 
     def _generateRule(self, after=None, before=None, inclusive=False):
@@ -1042,7 +1104,7 @@ class CalendarEventMixin(ContentItem):
 
         if (first.modifications is not None and
             (after is None or prepDatetime(after) < prepDatetime(first.startTime))):
-            for mod in first.modifications:
+            for mod in itertools.imap(EventStamp, first.modifications):
                 if prepDatetime(mod.startTime) <= prepDatetime(event.startTime):
                     event = mod
                     
@@ -1059,7 +1121,7 @@ class CalendarEventMixin(ContentItem):
             rruleset = self.createDateUtilFromRule()
 
             recurrenceID = event.recurrenceID
-            if isDayItem(event):
+            if isDayEvent(event):
                 recurrenceID = datetime.combine(
                                     recurrenceID.date(),
                                     time(0, tzinfo=recurrenceID.tzinfo))
@@ -1114,6 +1176,7 @@ class CalendarEventMixin(ContentItem):
                 return None
             iter = _sortEvents(self.occurrences)
         for occurrence in iter:
+            occurrence = EventStamp(occurrence)
             if occurrence.isGenerated:
                 return occurrence
         # no generated occurrences
@@ -1135,7 +1198,7 @@ class CalendarEventMixin(ContentItem):
                           allowed
         @type  inclusive: C{bool}
 
-        @rtype: C{list} containing 0 or more C{CalendarEventMixin}s
+        @rtype: C{list} containing 0 or more C{EventStamp}s
 
         """
         master = self.getMaster()
@@ -1153,17 +1216,16 @@ class CalendarEventMixin(ContentItem):
         @param recurrenceID:
         @type  recurrenceID: C{datetime}
 
-        @rtype: C{datetime} or C{None}
+        @rtype: C{EventStamp}, or C{NoneType}
 
         """
         first = self.getFirstInRule()
 
         # When an event is imported via sharing, the constructor is bypassed
         # and we need to make sure occurrences has a value
-        if first.occurrences is not None:
-            for occurrence in first.occurrences:
-                if occurrence.recurrenceID == recurrenceID:
-                    return occurrence
+        for occurrence in itertools.imap(EventStamp, first.occurrences or []):
+            if occurrence.recurrenceID == recurrenceID:
+                return occurrence
         return None
 
     def getRecurrenceID(self, recurrenceID):
@@ -1194,22 +1256,20 @@ class CalendarEventMixin(ContentItem):
 
     def changeNoModification(self, attr, value):
         """Set _ignoreValueChanges flag, set the attribute, then unset flag."""
-        flagStart = getattr(self, '_ignoreValueChanges', None)
-        self._ignoreValueChanges = True
-        setattr(self, attr, value)
-        if flagStart is None:
-            del self._ignoreValueChanges
+        flagStart = self.__disableRecurrenceChanges()
+        setattr(self.itsItem, attr, value)
+        if flagStart:
+            self.__enableRecurrenceChanges()
 
-    def _propagateChange(self, modification):
+    def _propagateChange(self, modEvent):
         """Move later modifications to self."""
-        # [@@@] grant != or is not?
-        if (modification.occurrenceFor != self and
-            modification.recurrenceID > self.startTime):
+        if (modEvent.occurrenceFor is not self.itsItem and
+            modEvent.recurrenceID > self.startTime):
             # future 'this' modifications in master should move to self
-            modification.modificationFor = self
-            modification.occurrenceFor = self
-            modification.rruleset = self.rruleset
-            modification.icalUID = self.icalUID
+            modEvent.modificationFor = self.itsItem
+            modEvent.occurrenceFor = self.itsItem
+            modEvent.rruleset = self.rruleset
+            modEvent.icalUID = self.icalUID
 
     def changeThisAndFuture(self, attr=None, value=None):
         """Modify this and all future events."""
@@ -1231,27 +1291,28 @@ class CalendarEventMixin(ContentItem):
             return first.changeThisAndFuture(attr, value)
             
         
-        self._ignoreValueChanges = True
+        disabledSelf = self.__disableRecurrenceChanges()
 
         # all day events' startTime is at midnight
         startMidnight = datetime.combine(self.startTime.date(),
                                          time(0, tzinfo=self.startTime.tzinfo))
 
-        if attr in ('startTime', 'allDay', 'anyTime'):
+        if attr in (EventStamp.startTime.name, EventStamp.allDay.name,
+                    EventStamp.anyTime.name):
             # if startTime changes (and an allDay/anyTime change changes
             # effective startTime), all future occurrences need to be shifted
             # appropriately
             startTimeDelta = zero_delta
-            if attr == 'startTime':
+            if attr == EventStamp.startTime.name:
                 startTimeDelta = (value - self.startTime)
             # don't move future occurrences unless allDayness (anyTime or
             # allDay) changes
             else:
-                if attr == 'allDay':
+                if attr == EventStamp.allDay.name:
                     otherAllDayness = self.anyTime
                 else:
                     otherAllDayness = self.allDay
-                if (value or otherAllDayness) != (getattr(self, attr) or
+                if (value or otherAllDayness) != (getattr(self.itsItem, attr) or
                                                   otherAllDayness):
                     if value == False:
                         startTimeDelta = self.startTime - startMidnight
@@ -1261,13 +1322,13 @@ class CalendarEventMixin(ContentItem):
             if startTimeDelta != zero_delta:
                 self.rruleset.moveDatesAfter(recurrenceID, startTimeDelta)
 
-        setattr(self, attr, value)
+        setattr(self.itsItem, attr, value)
 
         def makeThisAndFutureMod():
             # Changing occurrenceFor before changing rruleset is important, it
             # keeps the rruleset change from propagating inappropriately
             del self.occurrenceFor
-            if attr != 'rruleset':
+            if attr != EventStamp.rruleset.name:
                 self.rruleset = self.rruleset.copy(cloudAlias='copying')
                 self.rruleset.removeDates(datetime.__lt__, self.startTime)
             # We have to pass in master because occurrenceFor has been changed
@@ -1278,24 +1339,26 @@ class CalendarEventMixin(ContentItem):
                 self.recurrenceID = startMidnight
             else:
                 self.recurrenceID = self.startTime
-            self.icalUID = unicode(self.itsUUID)
+            self.icalUID = unicode(self.itsItem.itsUUID)
             self.copyCollections(master, self)
 
         # determine what type of change to make
-        if attr == 'rruleset': # rule change, thus a destructive change
+        if attr == EventStamp.rruleset.name: # rule change, thus a destructive change
             if self == master:
                 rruleset = master.createDateUtilFromRule()
-                for occurrence in self.occurrences or []:
-                    occurrence._ignoreValueChanges = True
+                for occurrence in itertools.imap(EventStamp,
+                                                 self.occurrences or []):
+                    disabled = occurrence.__disableRecurrenceChanges()
                     if occurrence.recurrenceID in rruleset:
                         # Make sure each occurrence has our rruleset
-                        setattr(occurrence, attr, value)
-                        del occurrence._ignoreValueChanges
+                        setattr(occurrence.itsItem, attr, value)
+                        if disabled:
+                            occurrence.__enableRecurrenceChanges()
                     else:
                         del occurrence.rruleset
                         del occurrence.occurrenceFor
                         del occurrence.modificationFor
-                        occurrence.delete()
+                        occurrence.itsItem.delete()
                 if self.occurrences is None:
                     # Make sure we have at least one occurrence
                     self.getRecurrenceID(self.startTime)
@@ -1318,38 +1381,41 @@ class CalendarEventMixin(ContentItem):
                     # create a new event, cloned from first, make it a
                     # thisandfuture modification with self overriding it
                     newfirst = first._cloneEvent()
-                    newfirst._ignoreValueChanges = True
+                    disabled = newfirst.__disableRecurrenceChanges()
+                    newfirstItem = newfirst.itsItem
                     newfirst.rruleset = self.rruleset.copy(cloudAlias='copying')
                     # There are two events in play, self (which has been
                     # changed), and newfirst, a non-displayed item used to
                     # define generated events.  Make sure the current change
                     # is applied to both items, and that both items have the
                     # same rruleset.
-                    setattr(newfirst, attr, value)
+                    setattr(newfirst.itsItem, attr, value)
                     self.rruleset = newfirst.rruleset
                     newfirst.startTime = self.recurrenceID
                     newfirst.occurrenceFor = None #self overrides newfirst
-                    newfirst.icalUID = self.icalUID = str(newfirst.itsUUID)
+                    newfirst.icalUID = self.icalUID = str(
+                                                   newfirst.itsItem.itsUUID)
                     newfirst._makeGeneralChange()
-                    self.occurrenceFor = self.modificationFor = newfirst
+                    self.occurrenceFor = self.modificationFor = newfirstItem
                     self.copyCollections(master, newfirst)
                     # move THIS modifications after self to newfirst
-                    if first.hasLocalAttributeValue('modifications'):
-                        for mod in first.modifications:
-                            if mod.recurrenceID > newfirst.startTime:
-                                mod.occurrenceFor = newfirst
-                                mod.modificationFor = newfirst
-                                mod.icalUID = newfirst.icalUID
-                                mod.rruleset = newfirst.rruleset
-                                #rruleset needs to change, so does icalUID
-                    del newfirst._ignoreValueChanges
+                    for mod in itertools.imap(EventStamp,
+                                              first.modifications or []):
+                        if mod.recurrenceID > newfirst.startTime:
+                            mod.occurrenceFor = newfirstItem
+                            mod.modificationFor = newfirstItem
+                            mod.icalUID = newfirst.icalUID
+                            mod.rruleset = newfirst.rruleset
+                            #rruleset needs to change, so does icalUID
+                    if disabled:
+                        newfirst.__enableRecurrenceChanges()
                 else:
                     # self was a THIS modification to the master, setattr needs
                     # to be called on master
-                    if attr == 'startTime':
+                    if attr == EventStamp.startTime.name:
                         newStart = master.startTime + startTimeDelta
-                        master.changeNoModification('startTime', newStart)
-                        master.changeNoModification('recurrenceID', newStart)
+                        master.changeNoModification(EventStamp.startTime.name, newStart)
+                        master.changeNoModification(EventStamp.recurrenceID.name, newStart)
                         self.recurrenceID = newStart
                     else:
                         master.changeNoModification(attr, value)
@@ -1363,13 +1429,12 @@ class CalendarEventMixin(ContentItem):
                     self.recurrenceID = self.startTime
             master._deleteGeneratedOccurrences()
 
-            if master.modifications:
-                for mod in master.modifications:
-                    self._propagateChange(mod)
-                    # change recurrenceIDs for modifications if startTime change
-                    if attr == 'startTime' and mod.modificationFor == self:
-                        mod.changeNoModification('recurrenceID',
-                            mod.recurrenceID + startTimeDelta)
+            for mod in itertools.imap(EventStamp, master.modifications or []):
+                self._propagateChange(mod)
+                # change recurrenceIDs for modifications if startTime change
+                if attr == EventStamp.startTime.name and mod.modificationFor == self.itsItem:
+                    mod.changeNoModification(EventStamp.recurrenceID.name,
+                        mod.recurrenceID + startTimeDelta)
             if not isFirst:
                 master.moveRuleEndBefore(recurrenceID)
 
@@ -1380,7 +1445,7 @@ class CalendarEventMixin(ContentItem):
             self._deleteGeneratedOccurrences()
             self._getFirstGeneratedOccurrence(True)
 
-        del self._ignoreValueChanges
+        if disabledSelf: self.__enableRecurrenceChanges()
 
     def moveCollections(self, fromItem, toItem):
         """Move all collection references from one item to another."""
@@ -1388,8 +1453,11 @@ class CalendarEventMixin(ContentItem):
             collection.add(toItem)
             collection.remove(fromItem)
 
-    def copyCollections(self, fromItem, toItem):
+    def copyCollections(self, fromEvent, toEvent):
         """Copy all collection references from one item to another."""
+        fromItem = EventStamp(fromEvent).itsItem
+        toItem = EventStamp(toEvent).itsItem
+        
         for collection in getattr(fromItem, 'collections', []):
             collection.add(toItem)
 
@@ -1418,51 +1486,18 @@ class CalendarEventMixin(ContentItem):
                     # if backup is None, that means that the master's
                     # occurrence isn't included in the rule. Hmm, that's
                     # confusing. Maybe we should raise?
-                    if master == self:
+                    if master.itsItem == self.itsItem:
                         self.recurrenceID = self.startTime
             else:
-                self.modificationFor = first
+                self.modificationFor = first.itsItem
                 self._makeGeneralChange()
                 self._getFirstGeneratedOccurrence(True)
         if attr is not None:
-            setattr(self, attr, value)
-
-    def addToCollection(self, collection):
-        """
-        If recurring, create a proxy and use its addToCollection().
-
-        This method should be used by UI related code, when user feedback is
-        appropriate.  To add to collections unrelated to UI, use
-        collection.add().
-
-        """
-        if self.rruleset is None:
-            super(CalendarEventMixin, self).addToCollection(collection)
-        else:
-            RecurrenceDialog.getProxy(u'ui', self).addToCollection(collection)
-
-
-    def removeFromCollection(self, collection, cutting=False):
-        """
-        If recurring, create a proxy and use its removeFromCollection().
-
-        This method should be used by UI related code, when user feedback is
-        appropriate.  To remove from collections unrelated to UI, use
-        collection.remove().
-
-        @param cutting: Whether this removal is associated with a cut, or just
-                        a removal.
-        @type  cutting: C{bool}
-
-        """
-        if self.rruleset is None:
-            super(CalendarEventMixin, self).removeFromCollection(collection, cutting)
-        else:
-            RecurrenceDialog.getProxy(u'ui', self).removeFromCollection(collection, cutting)
+            setattr(self.itsItem, attr, value)
 
     @schema.observer(
         ContentItem.displayName, ContentItem.body, ContentItem.lastModified,
-        startTime, duration, location, allDay, rruleset
+        startTime, duration, location, allDay, rruleset, Stamp.stamp_types
     )
     def onEventChanged(self, op, name):
         """
@@ -1470,12 +1505,13 @@ class CalendarEventMixin(ContentItem):
         after an attribute has been changed.
 
         """
+        
         # allow initialization code to avoid triggering onEventChanged
-        rruleset = name == 'rruleset'
+        rruleset = (name == EventStamp.rruleset.name)
         
         if (self.rruleset is None or
-            getattr(self, '_share_importing', False) or
-            getattr(self, '_ignoreValueChanges', False)):
+            getattr(self.itsItem, type(self).IGNORE_CHANGE_ATTR, False) or
+            getattr(self.itsItem, '_share_importing', False)):
             return
         # avoid infinite loops
         if rruleset:
@@ -1493,7 +1529,7 @@ class CalendarEventMixin(ContentItem):
                 logger.debug("about to changeThis in onEventChanged(name=%s) for %s", name, str(self))
                 logger.debug("value is: %s", getattr(self, name))
             if self == self.getFirstInRule():
-                if name == "duration":
+                if name == EventStamp.duration.name:
                     self.updateRecurrenceEnd()
                 # A direct change to a master's attribute becomes
                 # a THISANDFUTURE change.
@@ -1502,28 +1538,28 @@ class CalendarEventMixin(ContentItem):
                 makeChange = self.changeThis
 
             if name and op == 'set':
-                makeChange(name, getattr(self, name))
+                makeChange(name, getattr(self.itsItem, name))
             else:
                 makeChange()
 
     def _deleteGeneratedOccurrences(self):
-        occurrences = self.getFirstInRule().occurrences or []
-        for event in occurrences:
+        for event in itertools.imap(EventStamp,
+                                    self.getFirstInRule().occurrences or []):
             if event.isGenerated:
                 # don't let deletion result in spurious onEventChanged calls
-                event._ignoreValueChanges = True
-                event.delete()
+                event.__disableRecurrenceChanges()
+                event.itsItem.delete()
 
     def cleanRule(self):
         """Delete generated occurrences in the current rule, create a backup."""
         first = self.getFirstInRule()
         self._deleteGeneratedOccurrences()
-        if first.hasLocalAttributeValue('modifications'):
+        if first.itsItem.hasLocalAttributeValue(EventStamp.modifications.name):
             until = first.rruleset.rrules.first().calculatedUntil()
-            for mod in first.modifications:
+            for mod in itertools.imap(EventStamp, first.modifications):
                 # this won't work for complicated rrulesets
-                if until != None and (mod.recurrenceID > until):
-                    mod._ignoreValueChanges = True
+                if until is not None and (mod.recurrenceID > until):
+                    mod.__disableRecurrenceChanges()
                     mod.delete()
 
         # create a backup
@@ -1559,7 +1595,7 @@ class CalendarEventMixin(ContentItem):
         if getattr(rruleset, 'exdates', None) is None:
             rruleset.exdates=[]
         rruleset.exdates.append(recurrenceID)
-        if getattr(self, 'occurrenceFor', None) == self:
+        if getattr(self, 'occurrenceFor', None) is self.itsItem:
             self.occurrenceFor = None
         else:
             self.delete()
@@ -1567,11 +1603,12 @@ class CalendarEventMixin(ContentItem):
     def deleteAll(self):
         """Delete master, all its modifications, occurrences, and rules."""
         master = self.getMaster()
-        for event in master.occurrences:
-            if event in (master, self): #don't delete master or self quite yet
+        itemsToSkip = (master.itsItem, self.itsItem)
+        for event in itertools.imap(EventStamp, master.occurrences):
+            if event.itsItem in itemsToSkip: #don't delete master or self quite yet
                 continue
-            event._ignoreValueChanges = True
-            event.delete(recursive=True)
+            event.__disableRecurrenceChanges()
+            event.itsItem.delete(recursive=True)
 
         rruleset = self.rruleset
         rruleset._ignoreValueChanges = True
@@ -1579,17 +1616,17 @@ class CalendarEventMixin(ContentItem):
         del self.rruleset
         rruleset._ignoreValueChanges = True
         rruleset.delete(recursive=True)
-        self._ignoreValueChanges = True
+        self.__disableRecurrenceChanges()
         master.delete(recursive=True)
         self.delete(recursive=True)
 
     def removeFutureOccurrences(self):
         """Delete all future occurrences and modifications."""
         master = self.getMaster()
-        for event in master.occurrences:
+        for event in itertools.imap(EventStamp, master.occurrences):
             if event.startTime >  self.startTime:
-                event._ignoreValueChanges = True
-                event.delete()
+                event.__disableRecurrenceChanges()
+                event.itsItem.delete()
 
         self._getFirstGeneratedOccurrence(True)
 
@@ -1601,16 +1638,16 @@ class CalendarEventMixin(ContentItem):
         """
         master = self.getMaster()
         if not master.recurrenceID in (None, master.startTime):
-            master.changeNoModification('recurrenceID', master.startTime)
+            master.changeNoModification(EventStamp.recurrenceID.name, master.startTime)
         rruleset = master.rruleset
         if rruleset is not None:
             rruleset._ignoreValueChanges = True
             masterHadModification = False
             
-            for event in master.occurrences or []:
+            for event in itertools.imap(EventStamp, master.occurrences or []):
 
                 if (event.recurrenceID == master.startTime and
-                    event in (master.modifications or [])):
+                    event.itsItem in (master.modifications or [])):
                     
                     # A THIS modification to master, make it the new master
                     self.moveCollections(master, event)
@@ -1619,24 +1656,24 @@ class CalendarEventMixin(ContentItem):
                     del event.modificationFor
                     # events with the same icalUID but different UUID drive
                     # sharing crazy, so change icalUID of master
-                    event.icalUID = unicode(event.itsUUID)
+                    event.icalUID = unicode(event.itsItem.itsUUID)
                     masterHadModification = True
                 else:
                     # Since we're possibly doing delayed deleting (if we're
                     # in the background sharing mode) let's remove the events
                     # from occurrences:
-                    master.occurrences.remove(event)
+                    master.occurrences.remove(event.itsItem)
                     # now that we've disconnected this event from the master,
                     # event.delete() will erroneously dispatch to deleteAll() if
                     # event.rruleset exists, so disconnect from the rruleset
                     del event.rruleset
-                    event.delete()
+                    event.itsItem.delete()
 
             rruleset._ignoreValueChanges = True
             rruleset.delete()
 
             if masterHadModification:
-                master.delete()
+                master.itsItem.delete()
             else:
                 del master.recurrenceID
                 del master.rruleset
@@ -1688,82 +1725,60 @@ class CalendarEventMixin(ContentItem):
             # go ask the master.
             return master.isAttributeModifiable(attribute)
         # Otherwise, just do it the normal way.
-        return super(CalendarEventMixin, self).isAttributeModifiable(attribute)
+        return super(EventStamp, self).isAttributeModifiable(attribute)
 
-    # for use in indexing CalendarEventMixins
-    def cmpStartTime(self, item):
-        return self.cmpTimeAttribute(item, 'effectiveStartTime')
+    # for use in indexing EventStamps
+    @schema.Comparator
+    def cmpStartTime(self, event):
+        return cmpTimeAttribute(self, event, 'effectiveStartTime')
 
-    def cmpEndTime(self, item):
-        return self.cmpTimeAttribute(item, 'effectiveEndTime')
+    @schema.Comparator
+    def cmpEndTime(self, event):
+        return cmpTimeAttribute(self, event, 'effectiveEndTime')
 
-    def cmpRecurEnd(self, item):
-        return self.cmpTimeAttribute(item, 'recurrenceEnd')
+    @schema.Comparator
+    def cmpRecurEnd(self, event):
+        return cmpTimeAttribute(self, event, 'recurrenceEnd')
 
     # comparisons which strip timezones
-    def cmpStartTimeNoTZ(self, item):
-        return self.cmpTimeAttribute(item, 'effectiveStartTime', False)
+    @schema.Comparator
+    def cmpStartTimeNoTZ(self, event):
+        return cmpTimeAttribute(self, event, 'effectiveStartTime', False)
 
-    def cmpEndTimeNoTZ(self, item):
-        return self.cmpTimeAttribute(item, 'effectiveEndTime', False)
+    @schema.Comparator
+    def cmpEndTimeNoTZ(self, event):
+        return cmpTimeAttribute(self, event, 'effectiveEndTime', False)
 
-    def cmpRecurEndNoTZ(self, item):
-        return self.cmpTimeAttribute(item, 'recurrenceEnd', False)
+    @schema.Comparator
+    def cmpRecurEndNoTZ(self, event):
+        return cmpTimeAttribute(self, event, 'recurrenceEnd', False)
 
-class CalendarEvent(CalendarEventMixin, Note):
+def CalendarEvent(*args, **kw):
     """An unstamped event."""
 
-    def __init__(self, *args, **kw):
-        kw.setdefault('participants',[])
-        super (CalendarEvent, self).__init__(*args, **kw)
+    # This seems wonky.... which attributes belong to Note, and
+    # which belong to Event? Maybe the code that calls this should
+    # operate on a Note instead?
+    kw.setdefault('participants', [])
+    
+    for key in kw.keys():
+        attr = getattr(EventStamp, key, None)
+        if isinstance(attr, schema.Descriptor):
+            kw[attr.name] = kw[key]
+            del kw[key]
+            
+    
+    note = Note(*args, **kw)
+    result = EventStamp(note)
+    result.add()
+        
+    return result
 
-
-class Calendar(ContentItem):
-    """Unused, should be removed."""
-
-
-
-class Location(ContentItem):
-    """Stub Kind for Location."""
-
-
-    eventsAtLocation = schema.Sequence(
-        CalendarEventMixin,
-        inverse=CalendarEventMixin.location
-    )
-
-
-    @classmethod
-    def getLocation (cls, view, locationName):
-        """
-        Factory Method for getting a Location.
-
-        Lookup or create a Location based on the supplied name string.
-
-        If a matching Location object is found in the repository, it
-        is returned.  If there is no match, then a new item is created
-        and returned.
-
-        @param locationName: name of the Location
-        @type locationName: C{String}
-        @return: C{Location} created or found
-        """
-        # make sure the locationName looks reasonable
-        assert locationName, "Invalid locationName passed to getLocation factory"
-        locations = schema.ns('osaf.pim', view).locations
-
-        def callback(key):
-            return cmp(locationName, view[key].displayName)
-
-        existing = locations.findInIndex('locationName', 'exact', callback)
-        if existing is not None:
-            return view[existing]
-        else:
-            # make a new Location
-            newLocation = Location(itsView=view)
-            newLocation.displayName = locationName
-            return newLocation
-
+def _sortEvents(itemlist, reverse=False, attrName=EventStamp.effectiveStartTime.name):
+    """Helper function for working with events."""
+    def key(item):
+         return getattr(item, attrName)
+    return sorted(itemlist, key=key, reverse=reverse)
 
 class RecurrencePattern(ContentItem):
     """Unused, should be removed."""

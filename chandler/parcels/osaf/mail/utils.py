@@ -235,13 +235,17 @@ def isString(var):
     return False
 
 
-def dataToBinary(contentItem, attribute, data,
+def dataToBinary(mailMessage, attribute, data,
                  mimeType="application/octet-stream",
                  compression='bz2', indexed=False):
     """
-    Converts non-string data to a C{TLob}.
+    Converts non-string data to a C{Lob}.
     """
-    lobType = contentItem.getAttributeAspect(attribute, 'type')
+    
+    contentItem = mailMessage.itsItem
+    itemAttributeName = getattr(type(mailMessage), attribute).name
+    
+    lobType = contentItem.getAttributeAspect(itemAttributeName, 'type')
     assert lobType.itsName == 'Lob', "The attribute must be of type Lob"
 
     return lobType.makeValue(data, mimetype=mimeType, indexed=indexed,

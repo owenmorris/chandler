@@ -17,13 +17,14 @@ A helper class which sets up and tears down dual RamDB repositories
 """
 
 import unittest, os, sys
+from util.testcase import SingleRepositoryTestCase
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
 from application import schema
 from osaf import pim, sharing
 import osaf.sharing.ICalendar as ICalendar
-from osaf.pim import ListCollection
+from osaf.pim import ListCollection, Remindable
 import osaf.pim.calendar.Calendar as Calendar
 import datetime
 import vobject
@@ -33,53 +34,14 @@ from dateutil import tz
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 from i18n.tests import uw
 
-class ICalendarTestCase(unittest.TestCase):
+class ICalendarTestCase(SingleRepositoryTestCase):
 
-    def runTest(self):
-        self._setup()
-        self.SummaryAndDateTimeImported()
-        self.DateImportAsAllDay()
-        self.ItemsToVobject()
-        self.writeICalendarUnicodeBug3338()
-        self.importRecurrence()
-        self.importRecurrenceWithTimezone()
-        self.importReminders()
-        self.exportRecurrence()
-        self.ExportFreeBusy()
-        self._teardown()
-
-    def _setup(self):
-
-        rootdir = os.environ['CHANDLERHOME']
-        packs = (
-         os.path.join(rootdir, 'repository', 'packs', 'chandler.pack'),
-        )
-        parcelpath = [os.path.join(rootdir, 'parcels')]
-
-        namespaces = [
-         'osaf.sharing',
-         'osaf.pim.calendar',
-        ]
-
-        self.repo = self._initRamDB(packs)
-        view = self.repo.view
-        self.manager = Parcel.Manager.get(view, path=parcelpath)
-        self.manager.loadParcels(namespaces)
+    def setUp(self):
+        super(ICalendarTestCase, self).setUp()
+        
         # create a sandbox root
-        self.sandbox = Item.Item("sandbox", view, None)
-        view.commit()
-
-    def _teardown(self):
-        pass
-
-    def _initRamDB(self, packs):
-        repo = DBRepository.DBRepository(None)
-        repo.create(ramdb=True, stderr=False, refcounted=True)
-        view = repo.view
-        for pack in packs:
-            view.loadPack(pack)
-        view.commit()
-        return repo
+        self.sandbox = Item.Item("sandbox", self.view, None)
+        self.view.commit()
 
     def Import(self, view, filename):
 
@@ -91,28 +53,31 @@ class ICalendarTestCase(unittest.TestCase):
 
         sandbox = view.findPath("//sandbox")
 
-        conduit = sharing.FileSystemConduit(itsParent=sandbox, sharePath=sharePath,
+        conduit = sharing.FileSystemConduit(itsParent=self.sandbox, sharePath=sharePath,
                                             shareName=filename)
-        format = ICalendar.ICalendarFormat(itsParent=sandbox)
-        self.share = sharing.Share(itsParent=sandbox, conduit=conduit,
+        format = ICalendar.ICalendarFormat(itsParent=self.sandbox)
+        self.share = sharing.Share(itsParent=self.sandbox, conduit=conduit,
                                    format=format)
         self.share.sync(modeOverride='get')
         return format
 
-    def SummaryAndDateTimeImported(self):
-        format = self.Import(self.repo.view, u'Chandler.ics')
-        event = Calendar.findUID(self.repo.view, 'BED962E5-6042-11D9-BE74-000A95BB2738')
-        self.assert_(event.displayName == u'3 ho\u00FCr event',
-         u"SUMMARY of first VEVENT not imported correctly, displayName is %s"
-         % event.displayName)
+    def testSummaryAndDateTimeImported(self):
+        format = self.Import(self.view, u'Chandler.ics')
+        event = pim.EventStamp(Calendar.findUID(
+                                    self.view,
+                                   'BED962E5-6042-11D9-BE74-000A95BB2738'))
+        self.assertEqual(event.summary, u'3 ho\u00FCr event',
+                 u"SUMMARY of first VEVENT not imported correctly, displayName is %s"
+                 % event.summary)
         evtime = datetime.datetime(2005,1,1, hour = 23, tzinfo = ICalendar.utc)
         self.assert_(event.startTime == evtime,
          "startTime not set properly, startTime is %s"
          % event.startTime)
 
-    def DateImportAsAllDay(self):
-        format = self.Import(self.repo.view, u'AllDay.ics')
-        event = Calendar.findUID(self.repo.view, 'testAllDay')
+    def testDateImportAsAllDay(self):
+        format = self.Import(self.view, u'AllDay.ics')
+        event = pim.EventStamp(Calendar.findUID(self.view, 'testAllDay'))
+        self.failUnless(pim.has_stamp(event, pim.EventStamp))
         self.assert_(event.startTime ==
                      datetime.datetime(2005,1,1, tzinfo=ICUtzinfo.floating),
          "startTime not set properly for all day event, startTime is %s"
@@ -121,30 +86,30 @@ class ICalendarTestCase(unittest.TestCase):
          "allDay not set properly for all day event, allDay is %s"
          % event.allDay)
 
-    def ExportFreeBusy(self):
-        format = self.Import(self.repo.view, u'AllDay.ics')
+    def testExportFreeBusy(self):
+        format = self.Import(self.view, u'AllDay.ics')
         collection = self.share.contents
-        schema.ns('osaf.pim', self.repo.view).mine.addSource(collection)
+        schema.ns('osaf.pim', self.view).mine.addSource(collection)
 
         start = datetime.datetime(2005,1,1, tzinfo=ICUtzinfo.floating)
         end = start + datetime.timedelta(2)
 
-        cal = ICalendar.itemsToFreeBusy(self.repo.view, start, end)
+        cal = ICalendar.itemsToFreeBusy(self.view, start, end)
         self.assertEqual(cal.vfreebusy.freebusy.value[0][1], datetime.timedelta(1))
 
-    def ItemsToVobject(self):
+    def testItemsToVobject(self):
         """Tests itemsToVObject, which converts Chandler items to vobject."""
-        event = Calendar.CalendarEvent(itsView = self.repo.view)
+        event = Calendar.CalendarEvent(itsView = self.view)
         event.anyTime = False
-        event.displayName = uw("test")
+        event.summary = uw("test")
         event.startTime = datetime.datetime(2010, 1, 1, 10,
                                             tzinfo=ICUtzinfo.default)
         event.endTime = datetime.datetime(2010, 1, 1, 11,
                                           tzinfo=ICUtzinfo.default)
 
-        cal = ICalendar.itemsToVObject(self.repo.view, [event])
+        cal = ICalendar.itemsToVObject(self.view, [event])
 
-        self.assert_(cal.vevent.summary.value == uw("test"),
+        self.failUnlessEqual(cal.vevent.summary.value, uw("test"),
          u"summary not set properly, summary is %s"
          % cal.vevent.summary.value)
 
@@ -153,86 +118,89 @@ class ICalendarTestCase(unittest.TestCase):
          "dtstart not set properly, dtstart is %s"
          % cal.vevent.summary.value)
 
-        event = Calendar.CalendarEvent(itsView = self.repo.view)
-        event.displayName = uw("test2")
+        event = Calendar.CalendarEvent(itsView = self.view)
+        event.summary = uw("test2")
         event.startTime = datetime.datetime(2010, 1, 1, 
                                             tzinfo=ICUtzinfo.floating)
         event.allDay = True
 
-        cal = ICalendar.itemsToVObject(self.repo.view, [event])
+        cal = ICalendar.itemsToVObject(self.view, [event])
 
         self.assert_(cal.vevent.dtstart.value == datetime.date(2010,1,1),
          u"dtstart for allDay event not set properly, dtstart is %s"
          % cal.vevent.summary.value)
          # test bug 3509, all day event duration is off by one
 
-    def writeICalendarUnicodeBug3338(self):
-        event = Calendar.CalendarEvent(itsView = self.repo.view)
-        event.displayName = u"unicode \u0633\u0644\u0627\u0645"
+    def testWriteICalendarUnicodeBug3338(self):
+        event = Calendar.CalendarEvent(itsView = self.view)
+        event.summary = u"unicode \u0633\u0644\u0627\u0645"
         event.startTime = datetime.datetime(2010, 1, 1, 10,
                                             tzinfo=ICUtzinfo.default)
         event.endTime = datetime.datetime(2010, 1, 1, 11,
                                           tzinfo=ICUtzinfo.default)
 
         coll = ListCollection("testcollection", itsParent=self.sandbox)
-        coll.add(event)
+        coll.add(event.itsItem)
         filename = u"unicode_export.ics"
 
         conduit = sharing.FileSystemConduit("conduit", sharePath=u".",
-                            shareName=filename, itsView=self.repo.view)
-        format = ICalendar.ICalendarFormat("format", itsView=self.repo.view)
+                            shareName=filename, itsView=self.view)
+        format = ICalendar.ICalendarFormat("format", itsView=self.view)
         self.share = sharing.Share("share",contents=coll, conduit=conduit,
-                                    format=format, itsView=self.repo.view)
+                                    format=format, itsView=self.view)
         if self.share.exists():
             self.share.destroy()
         self.share.create()
         self.share.sync(modeOverride='put')
         cal=vobject.readComponents(file(filename, 'rb')).next()
-        self.assertEqual(cal.vevent.summary.value, event.displayName)
+        self.assertEqual(cal.vevent.summary.value, event.summary)
         self.share.destroy()
 
-    def importRecurrence(self):
-        format = self.Import(self.repo.view, u'Recurrence.ics')
-        event = Calendar.findUID(self.repo.view, '5B30A574-02A3-11DA-AA66-000A95DA3228')
+    def testImportRecurrence(self):
+        format = self.Import(self.view, u'Recurrence.ics')
+        event = Calendar.findUID(self.view, '5B30A574-02A3-11DA-AA66-000A95DA3228')
         third = event.getNextOccurrence().getNextOccurrence()
-        self.assertEqual(third.displayName, u'\u00FCChanged title')
+        self.assertEqual(third.summary, u'\u00FCChanged title')
         self.assertEqual(third.recurrenceID, datetime.datetime(2005, 8, 10, 
                                                     tzinfo=ICUtzinfo.floating))
         # while were at it, test bug 3509, all day event duration is off by one
         self.assertEqual(event.duration, datetime.timedelta(0))
         # make sure we imported the floating EXDATE
-        event = Calendar.findUID(self.repo.view, '07f3d6f0-4c04-11da-b671-0013ce40e90f')
+        event = Calendar.findUID(self.view, '07f3d6f0-4c04-11da-b671-0013ce40e90f')
         self.assertEqual(event.rruleset.exdates[0], datetime.datetime(2005, 12, 6, 12, 30,
                                                     tzinfo=ICUtzinfo.floating))
 
-    def importRecurrenceWithTimezone(self):
-        format = self.Import(self.repo.view, u'RecurrenceWithTimezone.ics')
-        event = Calendar.findUID(self.repo.view, 'FF14A660-02A3-11DA-AA66-000A95DA3228')
+    def testImportRecurrenceWithTimezone(self):
+        format = self.Import(self.view, u'RecurrenceWithTimezone.ics')
+        event = Calendar.findUID(self.view, 'FF14A660-02A3-11DA-AA66-000A95DA3228')
         # THISANDFUTURE change creates a new event, so there's nothing in
         # event.modifications
         self.assertEqual(event.modifications, None)
 
-    def importUnusualTzid(self):
-        format = self.Import(self.repo.view, u'UnusualTzid.ics')
-        event = Calendar.findUID(self.repo.view, '42583280-8164-11da-c77c-0011246e17f0')
-        self.assertEqual(event.startTime.tzinfo, ICUtzinfo.getInstance('US/Mountain'))
+    def testImportUnusualTzid(self):
+        format = self.Import(self.view, u'UnusualTzid.ics')
+        event = pim.EventStamp(Calendar.findUID(
+                                self.view,
+                                '42583280-8164-11da-c77c-0011246e17f0'))
+        self.assertEqual(event.startTime.tzinfo,
+                         ICUtzinfo.getInstance('US/Mountain'))
 
-    def importReminders(self):
-        format = self.Import(self.repo.view, u'RecurrenceWithAlarm.ics')
-        future = Calendar.findUID(self.repo.view, 'RecurringAlarmFuture')
-        reminder = future.getUserReminder()
+    def testImportReminders(self):
+        format = self.Import(self.view, u'RecurrenceWithAlarm.ics')
+        future = Calendar.findUID(self.view, 'RecurringAlarmFuture')
+        reminder = Remindable(future).getUserReminder()
         # this will start failing in 2015...
         self.assertEqual(reminder.delta, datetime.timedelta(minutes=-5))
-        second = future.getNextOccurrence()
-        self.assert_(reminder in second.reminders)
+        second = pim.EventStamp(future).getNextOccurrence()
+        self.assert_(reminder in Remindable(second).reminders)
 
-        past = Calendar.findUID(self.repo.view, 'RecurringAlarmPast')
-        reminder = past.getUserReminder()
+        past = Calendar.findUID(self.view, 'RecurringAlarmPast')
+        reminder = Remindable(past).getUserReminder()
         self.assertEqual(reminder.delta, datetime.timedelta(hours=-1))
-        second = past.getNextOccurrence()
-        self.assert_(reminder in second.expiredReminders)
+        second = pim.EventStamp(past).getNextOccurrence()
+        self.assert_(reminder in Remindable(second).expiredReminders)
 
-    def exportRecurrence(self):
+    def testExportRecurrence(self):
         eastern = ICUtzinfo.getInstance("US/Eastern")
         start = datetime.datetime(2005,2,1, tzinfo = eastern)
         vevent = vobject.icalendar.RecurringComponent(name='VEVENT')
@@ -241,28 +209,28 @@ class ICalendarTestCase(unittest.TestCase):
         vevent.add('dtstart').value = start
 
         # not creating a RuleSetItem, although it would be required for an item
-        ruleItem = RecurrenceRule(None, itsView=self.repo.view)
+        ruleItem = RecurrenceRule(None, itsView=self.view)
         ruleItem.freq = 'daily'
-        ruleSetItem = RecurrenceRuleSet(None, itsView=self.repo.view)
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
         ruleSetItem.addRule(ruleItem)
 
         vevent.rruleset = ruleSetItem.createDateUtilFromRule(start)
         self.assertEqual(vevent.rrule.value, 'FREQ=DAILY')
 
 
-        event = Calendar.CalendarEvent(itsView = self.repo.view)
+        event = Calendar.CalendarEvent(itsView = self.view)
         event.anyTime = False
-        event.displayName = uw("blah")
+        event.summary = uw("blah")
         event.startTime = start
         event.endTime = datetime.datetime(2005,3,1,1, tzinfo = eastern)
 
-        ruleItem = RecurrenceRule(None, itsView=self.repo.view)
+        ruleItem = RecurrenceRule(None, itsView=self.view)
         ruleItem.until = datetime.datetime(2005,3,1, tzinfo = eastern)
-        ruleSetItem = RecurrenceRuleSet(None, itsView=self.repo.view)
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
         ruleSetItem.addRule(ruleItem)
         event.rruleset = ruleSetItem
 
-        vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
+        vcalendar = ICalendar.itemsToVObject(self.view, [event])
 
         self.assertEqual(vcalendar.vevent.dtstart.serialize(),
                          'DTSTART;TZID=US/Eastern:20050201T000000\r\n')
@@ -272,13 +240,13 @@ class ICalendarTestCase(unittest.TestCase):
 
         # move the second occurrence one day later
         nextEvent = event.getNextOccurrence()
-        nextEvent.changeThis('startTime',
+        nextEvent.changeThis(pim.EventStamp.startTime.name,
                              datetime.datetime(2005,2,9,
                                                tzinfo=ICUtzinfo.floating))
 
         nextEvent.getNextOccurrence().deleteThis()
 
-        vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
+        vcalendar = ICalendar.itemsToVObject(self.view, [event])
         modified = vcalendar.vevent_list[1]
         self.assertEqual(modified.dtstart.serialize(),
                          'DTSTART:20050209T000000\r\n')

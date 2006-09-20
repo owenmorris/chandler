@@ -68,12 +68,14 @@ def GetCollectionRow(cellName):
 # this probably shouldn't live here, but it's helpful for finding occurrences
 # of recurring events.  If you can, use event.getNextOccurrence instead.
 def GetOccurrence(name, date):
-    master = App_ns.item_named(pim.CalendarEvent, name).getMaster()
-    start = datetime.combine(date, time(0, tzinfo=ICUtzinfo.floating))
-    end   = start + timedelta(1)
-    occurrences = list(master.getOccurrencesBetween(start,end))
-    if len(occurrences) > 0:
-        return occurrences[0]
+    item = App_ns.item_named(pim.Note, name)
+    if pim.has_stamp(item, pim.EventStamp):
+        master = pim.EventStamp(item).getMaster()
+        start = datetime.combine(date, time(0, tzinfo=ICUtzinfo.floating))
+        end   = start + timedelta(1)
+        occurrences = list(master.getOccurrencesBetween(start,end))
+        if len(occurrences) > 0:
+            return occurrences[0]
 
 # Sets the value of a choice widget, propagating the wx event
 def SetChoice(choiceWidget, string):
@@ -102,12 +104,12 @@ class UITestItem(object):
         
         if type not in DataTypes:
             # "Copy constructor"
-            if isinstance(type,pim.calendar.CalendarEvent):
+            if pim.has_stamp(type, pim.EventStamp):
                 self.isEvent = True
                 self.view = App_ns.itsView
                 self.logger = logger
-                self.item = type
-                self.recurring = hasattr(type, 'recurrenceID')
+                self.item = pim.EventStamp(type).itsItem
+                self.recurring = hasattr(pim.EventStamp(type), 'recurrenceID')
             else:
                 return
         else:
@@ -119,7 +121,9 @@ class UITestItem(object):
             setattr(self, 'is' + type, True)
             constructorName = DataTypes[type]
             constructor = getattr(App_ns.root, constructorName)
-            self.item = constructor()
+            item = constructor()
+            # A cheesy hack for annotation classes
+            self.item = getattr(item, 'itsItem', item)
             
             # Give the Yield
             scripting.User.idle()
@@ -491,7 +495,8 @@ class UITestItem(object):
         @type timeInfo: boolean
         """
         if self.isMailMessage:
-            blockName = (self.item.isOutbound and "EditMailOutboundFrom" 
+            blockName = (pim.mail.MailStamp(self.item).isOutbound and
+                         "EditMailOutboundFrom" 
                          or "EditMailInboundFrom")
             self.SetEditableBlock(blockName, "from address", fromAdd, 
                                   timeInfo=timeInfo)
@@ -660,10 +665,11 @@ class UITestItem(object):
             else:
                 if self.logger: self.logger.ReportPass("(On SMTP account)")
                 # wait for mail delivery    
+                mailMessage = pim.mail.MailStamp(self.item)
                 while not sent:
                     wx.GetApp().Yield()
                     try:
-                        sent = self.item.deliveryExtension.state
+                        sent = mailMessage.deliveryExtension.state
                     except AttributeError:
                         sent = None
             if timeInfo:
@@ -944,7 +950,7 @@ class UITestItem(object):
         for field,value in dict.iteritems():
             if field == "displayName": # display name checking
                 if self.isMailMessage:
-                    d_name = self.item.subject
+                    d_name = pim.mail.MailStamp(self.item).subject
                 else:
                     d_name = self.item.displayName
                 if not value == d_name:
@@ -952,7 +958,7 @@ class UITestItem(object):
                 else:
                     if self.logger: self.logger.ReportPass("(On display name Checking)")
             elif field == "startDate": # start date checking
-                startTime = self.item.startTime
+                startTime = pim.EventStamp(self.item).startTime
                 s_date = self.formatDate("%s/%s/%s" % (startTime.month, startTime.day, startTime.year) )
                 dictDate = self.formatDate(value)
                 if not dictDate == s_date :
@@ -960,14 +966,14 @@ class UITestItem(object):
                 else:
                     if self.logger: self.logger.ReportPass("(On start date Checking)")
             elif field == "startTime": # start time checking
-                startTime = self.item.startTime
+                startTime = pim.EventStamp(self.item).startTime
                 s_time = getTime(startTime)
                 if not value == s_time :
                     if self.logger: self.logger.ReportFailure("(On start time Checking) || object start time = %s ; expected start time = %s" % (s_time, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On start time Checking)")
             elif field == "endDate": # end date checking
-                endTime = self.item.endTime
+                endTime = pim.EventStamp(self.item).endTime
                 e_date = self.formatDate("%s/%s/%s" % (endTime.month, endTime.day, endTime.year))
                 dictDate = self.formatDate(value)
                 if not dictDate == e_date :
@@ -975,7 +981,7 @@ class UITestItem(object):
                 else:
                     if self.logger: self.logger.ReportPass("(On end date Checking)")
             elif field == "endTime": # end time checking
-                endTime = self.item.endTime
+                endTime = pim.EventStamp(self.item).endTime
                 e_time = getTime(endTime)
                 if not value == e_time :
                     if self.logger: self.logger.ReportFailure("(On end time Checking) || object end time = %s ; expected end time = %s" % (e_time, value))
@@ -983,7 +989,7 @@ class UITestItem(object):
                     if self.logger: self.logger.ReportPass("(On end time Checking)")
             elif field == "location": # location checking
                 #Convert the location item to a unicode string
-                loc = unicode(self.item.location)
+                loc = unicode(pim.EventStamp(self.item).location)
 
                 if not value == loc:
                     if self.logger: self.logger.ReportFailure("(On location Checking) || object location = %s ; expected location = %s" % (loc, value))
@@ -996,65 +1002,56 @@ class UITestItem(object):
                 else:
                      if self.logger: self.logger.ReportPass("(On body Checking)")
             elif field == "fromAddress": # from address checking
-                f = self.item.fromAddress
+                f = pim.mail.MailStamp(item).fromAddress
                 if not value == f :
                     if self.logger: self.logger.ReportFailure("(On from address Checking) || object from address = %s ; expected from address = %s" % (f, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On from address Checking)")
             elif field == "toAddress": # to address checking
-                t = self.item.toAddress
+                t = pim.mail.MailStamp(item).toAddress
                 if not value == t:
                     if self.logger: self.logger.ReportFailure("(On to address Checking) || object to address = %s ; expected to address = %s" % (t, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On to address Checking)")
             elif field == "status": # status checking
-                status = self.item.transparency.upper()
+                status = pim.EventStamp(self.item).transparency.upper()
                 if not value == status:
                     if self.logger: self.logger.ReportFailure("(On status Checking) || object status = %s ; expected status = %s" % (status, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On status Checking)")
             elif field == "timeZone": # time zone checking
-                timeZone = self.item.startTime.tzname()
+                timeZone = pim.EventStamp(self.item).startTime.tzname()
                 if not value == timeZone :
                     if self.logger: self.logger.ReportFailure("(On time zone Checking) || object time zone = %s ; expected time zone = %s" % (timeZone, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On time zone Checking)")
             elif field == "alarm": # status checking
-                alarm = self.item.startTime - self.item.reminderTime
+                alarm = pim.EventStamp(self.item).startTime - pim.Remindable(self.item).reminderTime
                 field = timedelta(minutes = string.atoi(value))
                 if not field == alarm:
                     if self.logger: self.logger.ReportFailure("(On alarm Checking) || object alarm = %s ; expected alarm = %s" % (alarm, field))
                 else:
                     if self.logger: self.logger.ReportPass("(On alarm Checking)")
             elif field == "allDay": # status checking
-                allDay = self.item.allDay
+                allDay = pim.EventStamp(self.item).allDay
                 if not value == allDay:
                     if self.logger: self.logger.ReportFailure("(On all Day Checking) || object all day = %s ; expected all day = %s" % (allDay, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On all Day Checking)")
             elif field == "stampMail": # Mail stamp checking
-                if "MailMessage" in str(self.item.getKind()):
-                    stampMail = True
-                else:
-                    stampMail = False
+                stampMail = pim.has_stamp(self.item, pim.mail.MailStamp)
                 if not value == stampMail:
                     if self.logger: self.logger.ReportFailure("(On Mail Stamp Checking) || object Mail Stamp = %s ; expected Mail Stamp = %s" % (stampMail, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On Mail Stamp Checking)")
             elif field == "stampTask": # Task stamp checking
-                if "Task" in str(self.item.getKind()):
-                    stampTask = True
-                else:
-                    stampTask = False
+                stampTask = pim.has_stamp(self.item, pim.TaskStamp)
                 if not value == stampTask:
                     if self.logger: self.logger.ReportFailure("(On Task Stamp Checking) || object Task Stamp = %s ; expected Task Stamp = %s" % (stampTask, value))
                 else:
                     if self.logger: self.logger.ReportPass("(On Task Stamp Checking)")
             elif field == "stampEvent": # Event stamp checking
-                if "CalendarEvent" in str(self.item.getKind()):
-                    stampEvent = True
-                else:
-                    stampEvent = False
+                stampEvent = pim.has_stamp(self.item, pim.EventStamp)
                 if not value == stampEvent:
                     if self.logger: self.logger.ReportFailure("(On Event Stamp Checking) || object Event Stamp = %s ; expected Event Stamp = %s" % (stampEvent, value))
                 else:

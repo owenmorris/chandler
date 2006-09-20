@@ -79,14 +79,14 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         tzinfo = ICUtzinfo.default
         for i in xrange(6):
             c = pim.CalendarEvent(None, sandbox)
-            c.displayName = events[i % 6]
+            c.summary = events[i % 6]
             c.organizer = contacts[0]
             c.participants = [contacts[1], contacts[2]]
             c.startTime=datetime.datetime(2005, 10, 31, 12, 0, 0, 0, tzinfo)
             c.duration=datetime.timedelta(minutes=60)
             c.anyTime=False
-            self.uuids[c.itsUUID] = c.displayName
-            coll.add(c)
+            self.uuids[c.itsItem.itsUUID] = c.summary
+            coll.add(c.itsItem)
 
     def prepareCosmoAccount(self):
         view = self.views[0]
@@ -177,13 +177,15 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
                 break
 
         item0 = view0.findUUID(uuid)
+        event0 = pim.EventStamp(item0)
         item0.displayName = u"meeting rescheduled"
-        oldStart = item0.startTime
+        oldStart = event0.startTime
 
         tzinfo = ICUtzinfo.default
         newStart = datetime.datetime(2005, 11, 1, 12, 0, 0, 0, tzinfo)
         item1 = view1.findUUID(uuid)
-        item1.startTime = newStart
+        event1 = pim.EventStamp(item1)
+        event1.startTime = newStart
 
         sharing.sync(coll0)
         sharing.sync(coll1)
@@ -195,10 +197,10 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(item1.displayName, u"meeting rescheduled",
          u"displayName is %s" % (item1.displayName))
 
-        self.assertEqual(item0.startTime, newStart,
-         u"startTime is %s" % (item0.startTime))
-        self.assertEqual(item1.startTime, newStart,
-         u"startTime is %s" % (item1.startTime))
+        self.assertEqual(event0.startTime, newStart,
+         u"startTime is %s" % (event0.startTime))
+        self.assertEqual(event1.startTime, newStart,
+         u"startTime is %s" % (event1.startTime))
 
     def Remove(self):
 

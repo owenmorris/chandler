@@ -25,6 +25,7 @@ from osaf.pim.structs import SizeType, RectType
 from osaf.pim import KindCollection
 from osaf.usercollections import UserCollection
 from osaf.framework.certstore import certificate
+from repository.item.Item import MissingClass
 from application import schema
 import osaf.views.detail as Detail
 
@@ -59,8 +60,8 @@ def installParcel(parcel, oldVersion=None):
         kind = certstore.Certificate.getKind(parcel.itsView),
         recursive = True)
     
-    #setting the preferredKind to None is a hint to display it in the All View
-    UserCollection (certificateCollection).preferredKind = None
+    #setting the preferredClass to MissingClass is a hint to display it in the All View
+    UserCollection (certificateCollection).preferredClass = MissingClass
 
     addCertificateToSidebarEvent = Block.AddToSidebarEvent.update(
         parcel, 'addCertificateToSidebarEvent',
@@ -92,7 +93,7 @@ def installParcel(parcel, oldVersion=None):
         blockName = 'importCertificateEvent',
         collection = certificateCollection,
         collectionAddEvent = addCertificateToSidebarEvent,
-        kindParameter = certstore.Certificate.getKind(parcel.itsView))
+        classParameter = certstore.Certificate)
 
     blocks.MenuItem.update(
         parcel, "CertificateImport",

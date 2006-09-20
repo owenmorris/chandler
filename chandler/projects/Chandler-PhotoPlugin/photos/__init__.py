@@ -46,7 +46,7 @@ def installParcel(parcel, old_version=None):
     newImageEvent = NewImageEvent.update(
         parcel, 'NewImage',
         blockName = 'NewImage',
-        kindParameter = Note.getKind (parcel.itsView),
+        classParameter = Note,
         allCollection = schema.ns ('osaf.pim', parcel.itsView).allCollection)
 
     # Add menu item to Chandler

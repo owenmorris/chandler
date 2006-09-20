@@ -22,6 +22,7 @@ from osaf.sharing import Sharing, unpublish
 from osaf import sharing
 import osaf.sharing.ICalendar as ICalendar
 import tools.QAUITestAppLib as QAUITestAppLib
+from repository.item.Item import MissingClass
 import osaf.pim as pim
 from i18n.tests import uw
 from osaf.framework.blocks.Block import Block
@@ -80,10 +81,10 @@ try:
     # Sharing dialog
     collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
     if collection is not None:
-        if sidebar.filterKind is None:
-            filterClassName = None 
+        if sidebar.filterClass in (None, MissingClass):
+            filterClassName = None
         else:
-            klass = sidebar.filterKind.classes['python']
+            klass = sidebar.filterClass
             filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
         win = ShowPublishDialog(wx.GetApp().mainFrame, view=App_ns.itsView,
                                 collection=collection,

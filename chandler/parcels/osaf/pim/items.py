@@ -21,18 +21,14 @@ __parcel__ = "osaf.pim"
 import time
 from datetime import datetime
 
-from application.Parcel import Parcel
 from application import schema
-from repository.util.Path import Path
-from repository.util.Lob import Lob
-from repository.item.RefCollections import RefList
 from repository.schema.Kind import Kind
 import repository.item.Item as Item
+from chandlerdb.item.ItemError import NoLocalValueForAttributeError
 import logging
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from PyICU import ICUtzinfo
-from reminders import Remindable
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +67,32 @@ triageStatusClickSequence = { TriageEnum.now: TriageEnum.done,
 def getNextTriageStatus(value):
     return triageStatusClickSequence[value]
     
-class ContentItem(Remindable):
+# For use in indexing time-related attributes. We only use this for 
+# reminderFireTime here, but CalendarEventMixin uses this a lot more...
+def cmpTimeAttribute(item, other, attr, useTZ=True):
+    """Compare item and self.attr, ignore timezones if useTZ is False."""
+    otherTime = getattr(other, attr, None)
+    itemTime = getattr(item, attr, None)
+
+    if otherTime is None:
+        if itemTime is None:
+            # both attributes are None, so item and other compare as equal
+            return 0
+        else:
+            return -1
+    elif not useTZ:
+        otherTime = otherTime.replace(tzinfo = None)
+
+    if itemTime is None:
+        return 1
+    elif not useTZ:
+        itemTime = itemTime.replace(tzinfo = None)
+
+    return cmp(itemTime, otherTime)
+
+
+    
+class ContentItem(schema.Item):
     """
     Content Item
 
@@ -132,12 +153,6 @@ class ContentItem(Remindable):
         initialValue=False,
         doc="A flag indicating whether the this item has "
             "been 'viewed' by the user"
-    )
-
-    previousStamps = schema.Sequence(
-        schema.Item,
-        doc="A list of mixin items that were used as stamps on this "
-            "item previously."
     )
 
     createdOn = schema.One(
@@ -206,8 +221,7 @@ class ContentItem(Remindable):
             now = datetime.now(ICUtzinfo.default)
             self.createdOn = now
         if not hasattr(self, 'triageStatusChanged'):
-            self.setTriageStatusChanged(when=now or 
-                                        datetime.now(ICUtzinfo.default))
+            self.setTriageStatusChanged(when=now)
             
     def __str__ (self):
         if self.isStale():
@@ -222,7 +236,7 @@ class ContentItem(Remindable):
 
         return self.getItemDisplayName()
 
-    def InitOutgoingAttributes (self):
+    def InitOutgoingAttributes(self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
@@ -280,221 +294,6 @@ class ContentItem(Remindable):
         """
         return self
 
-    """
-    STAMPING SUPPORT
-
-    Allow changing an Item's class and kind to dynamically
-    add or remove capabilities.
-    """
-
-    def StampKind (self, operation, mixinKind):
-        """
-          Stamp ourself into the new kind defined by the
-        Mixin Kind passed in mixinKind.
-        * Take the current kind, the operation and the Mixin,
-        and compute the future Kind.
-        * Prepare to become the future Kind, which may mean creating
-        one or more Mixins, or saving off Mixins.
-        * Stamp ourself to the new Kind.
-        * Move the attributes from the Mixin.
-        """
-        newKind = self._findStampedKind (operation, mixinKind)
-        addedKinds = self._addedKinds (newKind, operation, mixinKind)
-
-        all = schema.ns("osaf.pim", self.itsView).allCollection
-        inAllBeforeStamp = self in all
-
-        if newKind is not None:
-            self.itsKind = newKind
-        else:
-            self.mixinKinds ((operation, mixinKind)) # create a class on-the-fly
-
-        # [Bug:6151] If you unstamp a received email, it stops being in the "In"
-        # collection, and is therefore no longer "mine", and disappears
-        # completely. So, for now explicitly add self back to the all collection
-        # in this case.
-        if inAllBeforeStamp and not self in all:
-            all.add(self)
-
-        self._stampPostProcess (addedKinds) # initialize attributes of added kinds
-
-        # make sure the respository knows about the item's new Kind
-        #  to trigger updates in the UI.
-        # @@@BJS: I'm pretty sure this isn't necessary, so I'm commenting it out to speed things up.
-        # self.itsView.commit ()
-
-    def _stampPostProcess (self, addedKinds):
-        """
-          Post-process an Item for Stamping.  If we have added a kind (or kinds),
-        we want to initialize the new attributes appropriately, by calling
-        the _initMixin method explicitly on the newly stamped item.
-        """
-        # check if we're restamping and get or create the mixin
-        for addedKind in addedKinds:
-            # ask the mixin to init its attributes.
-            mixinClass = addedKind.getItemClass ()
-            try:
-                # get the init method associated with the mixin class added
-                mixinInitMethod = getattr (mixinClass, '_initMixin')
-            except AttributeError:
-                pass
-            else:
-                # call the unbound method with our expanded self to init those attributes
-                mixinInitMethod (self)
-
-    """
-      STAMPING TARGET-KIND DETERMINATION
-
-    This section of code is responsible for selecting an appropriate futureKind
-    to use when stamping.  If no futureKind can be determined, the stamping
-    can still take place building the python class on-the-fly.  But selecting
-    a preexisting Kind solves a few esoteric problems for us:
-        1) Unifies class ordering.  We'd like a task item stamped as mail to be
-            the same as a mail item stamped as a task.  The class order is
-            important because we have multiple definitions of the redirectTo
-            attributes.
-        2) Implements our "synergy mixin" requirement.  When an item is both
-            a task and an event it gains an additional set of attributes
-            due to synergy between the two kinds.  This represents an
-            additional mixin that needs to be added (or removed).
-    """
-
-    def _candidateStampedKinds (self):
-        """
-        return the list of candidate kinds for stamping
-        right now, we consider only ContentItems.
-        """
-        contentItemKind = ContentItem.getKind(self.itsView)
-        contentItemKinds = set((contentItemKind,))
-        def collectSubKinds(aKind):
-            subKinds = getattr(aKind, 'subKinds', None)
-            if subKinds is not None:
-                contentItemKinds.update(subKinds)
-                map(collectSubKinds, subKinds)
-        collectSubKinds(contentItemKind)
-        return contentItemKinds
-
-    def _computeTargetKindSignature (self, operation, stampKind):
-        """
-        Compute the Kind Signature for stamping.
-        Takes the operation, the kind of self, the stampKind,
-        and computes a target kind signature, which is a list
-        of superKinds.
-        returns a tuple with the signature, and the allowed
-        extra kinds
-        @return: a C{Tuple} (kindSignature, allowedExtra)
-           where kindSignature is a list of kinds, and
-           allowedExtra is an integer telling how many
-           extra kinds are allowed beyond what's in the target.
-        """
-        myKind = self.itsKind
-        soughtSignature = _SuperKindSignature (myKind)
-        stampSignature = _SuperKindSignature (stampKind)
-        if operation == 'add':
-            stampAdditions = []
-            for stampSuperKind in stampSignature:
-                if not stampSuperKind in soughtSignature:
-                    stampAdditions.append(stampSuperKind)
-            if len(stampAdditions) == 0:
-                logger.warning("Trying to stamp with a Kind Signature already present.")
-                logger.warning("%s has signature %s which overlaps with %s whose signature is %s)" % \
-                                (stampKind.itsName, stampSignature, \
-                                 myKind.itsName, soughtSignature))
-                raise StampAlreadyPresentError # no new class was added
-            soughtSignature.extend(stampAdditions)
-            extrasAllowed = 1
-        else:
-            assert operation == 'remove', "invalid Stamp operation in ContentItem.NewStampedKind: "+operation
-            if not stampSignature.properSubsetOf(soughtSignature):
-                logger.warning("Trying to unstamp with a Kind Signature not already present.")
-                logger.warning("%s has signature %s which is not present in %s: %s" % \
-                                    (stampKind.itsName, stampSignature, \
-                                     myKind.itsName, soughtSignature))
-                raise StampNotPresentError # Can't remove a stamp that's not there
-            for stampSuperKind in stampSignature:
-                soughtSignature.remove(stampSuperKind)
-            extrasAllowed = -1
-        return (soughtSignature, extrasAllowed)
-
-    def _findStampedKind (self, operation, stampKind):
-        """
-        Return the new Kind that results from self being
-        stamped with the Mixin Kind specified.
-        @param self: an Item that will be stamped
-        @type self: C{Item}
-        @param operation: 'add' to add the Mixin, 'remove' to remove
-        @type operation: C{String}
-        @param stampKind: the Mixin Kind to be added or removed
-        @type stampKind: C{Kind} of the Mixin
-        @return: a C{Kind}
-        """
-        signature = self._computeTargetKindSignature(operation, stampKind)
-        if signature is None:
-            return None
-        soughtSignature, extrasAllowed = signature
-        exactMatches = []
-        closeMatches = []
-        candidates = self._candidateStampedKinds()
-        for candidate in candidates:
-            candidateSignature = _SuperKindSignature(candidate)
-            extras = len(candidateSignature) - len(soughtSignature)
-            if extras != 0 and (extras - extrasAllowed) != 0:
-                continue
-            shortList = soughtSignature
-            longList = candidateSignature
-            if extras < 0:
-                shortList = candidateSignature
-                longList = soughtSignature
-            if shortList.properSubsetOf(longList):
-                # found a potential match
-                if extras == 0:
-                    # exact match
-                    exactMatches.append(candidate)
-                else:
-                    # close match - keep searching for a better match
-                    closeMatches.append(candidate)
-
-        # finished search.  Better have only one exact match or else the match is ambiguous.
-        if len(exactMatches) == 1:
-            return exactMatches[0]
-        elif len(exactMatches) == 0:
-            if len(closeMatches) == 1:
-                # zero exact matches is OK when "mixin synergy" is involved.
-                return closeMatches[0]
-
-        # Couldn't find a single exact match or a single close match.
-        logger.debug ("Couldn't find suitable candidates for stamping %s with %s." \
-                        % (self.itsKind.itsName, stampKind.itsName))
-        logger.debug ("Exact matches: %s" % exactMatches)
-        logger.debug ("Close matches: %s" % closeMatches)
-        # ReKind with the Mixin Kind on-the-fly
-        return None
-
-    def _addedKinds (self, newKind, operation, mixinKind):
-        """
-        Return the list of kinds added by the stamping.
-        @param newKind: the kind to be used when stamped, or None if unknown
-        @type newKind: C{Kind}
-        @param operation: wheather adding or removing the kind
-        @type operation: C{String}
-        @param mixinKind: the kind being added or removed
-        @type mixinKind: C{Kind}
-        @return: a C{List} of kinds added
-        """
-        if newKind is None:
-            if operation == 'add':
-                return [mixinKind]
-            else:
-                assert operation == 'remove', "invalid Stamp operation in ContentItem._addedOrRemovedKinds: "+operation
-                return []
-        newSignature = _SuperKindSignature (newKind)
-        oldSignature = _SuperKindSignature (self.itsKind)
-        addedKinds = []
-        if len (oldSignature) < len (newSignature):
-            for aKind in newSignature:
-                if not aKind in oldSignature:
-                    addedKinds.append (aKind)
-        return addedKinds
 
     """
     ACCESSORS
@@ -593,6 +392,10 @@ class ContentItem(Remindable):
         return state
 
     sharedState = property(getSharedState)
+    
+    def addRelevantDates(self, dates):
+        from osaf.pim.reminders import Remindable
+        Remindable(self).addRelevantDates(dates)
 
     def updateRelevantDate(self, op, attr):
         # Update the relevant date. This could be a lot smarter.
@@ -604,7 +407,7 @@ class ContentItem(Remindable):
         dates = filter(lambda x: x[0], dates)
         dateCount = len(dates)
         if dateCount == 0:
-            # No relevent dates? Eventually, we'll use lastModified; for now
+            # No relevant dates? Eventually, we'll use lastModified; for now
             # just delete the value.
             if hasattr(self, 'relevantDate'): 
                 del self.relevantDate
@@ -646,7 +449,7 @@ class ContentItem(Remindable):
         """
         when = when or datetime.now(tz=ICUtzinfo.default)
         self.triageStatusChanged = time.mktime(when.utctimetuple())
-        logger.debug("%s.triageStatus = %s @ %s", self, self.triageStatus, when)
+        logger.debug("%s.triageStatus = %s @ %s", self, getattr(self, 'triageStatus', None), when)
 
     def getBasedAttributes(self, attribute):
         """ Determine the schema attributes that affect this attribute
@@ -665,7 +468,14 @@ class ContentItem(Remindable):
         # Not redirected. If it's Calculated, see what it's based on;
         # otherwise, just return a list containing its own name.
         descriptor = getattr(self.__class__, attribute, None)
-        return getattr(descriptor, 'basedOn', (attribute,))
+        try:
+            basedOn = descriptor.basedOn
+        except AttributeError:
+            return (attribute,)
+        else:
+            return tuple(desc.name for desc in basedOn)
+            
+
 
     def isAttributeModifiable(self, attribute):
         # fast path -- item is unshared; have at it!
@@ -697,117 +507,6 @@ class ContentItem(Remindable):
                             isSharedInAnyReadOnlyShares = True
 
         return not isSharedInAnyReadOnlyShares
-
-    # For use in indexing time-related attributes. We only use this for 
-    # nextReminderTime here, but CalendarEventMixin uses this a lot more...
-    def cmpTimeAttribute(self, item, attr, useTZ=True):
-        """Compare item and self.attr, ignore timezones if useTZ is False."""
-        itemTime = getattr(item, attr, None)
-        selfTime = getattr(self, attr, None)
-
-        if itemTime is None:
-            if selfTime is None:
-                # both attributes are None, so item and self compare as equal
-                return 0
-            else:
-                return -1
-        elif not useTZ:
-            itemTime = itemTime.replace(tzinfo = None)
-
-        if selfTime is None:
-            return 1
-        elif not useTZ:
-            selfTime = selfTime.replace(tzinfo = None)
-
-        return cmp(selfTime, itemTime)
-
-    def cmpReminderTime(self, item):
-        return self.cmpTimeAttribute(item, 'nextReminderTime')
-
-"""
-STAMPING SUPPORT CLASSES
-"""
-class StampAlreadyPresentError(ValueError):
-    """
-    Stamping could not be performed because the stamp is already present,
-    and no new class would be added.
-    """
-
-class StampNotPresentError(ValueError):
-    """
-    A Stamp could not be removed because the stamp is not already
-    present in the item to be unstamped.
-    """
-
-class _SuperKindSignature(list):
-    """
-    A list of unique superkinds, used as a signature to identify
-    the structure of a Kind for stamping.
-    The signature is the list of twig node superkinds of the Kind.
-    Using a tree analogy, a twig is the part farthest from the leaf
-    that has no braching.
-
-    Specifically, a twig node in the SuperKind hierarchy is a node
-    that has at most one superkind, and whose superkind has at
-    most one superkind, all they way up.
-
-    The twig superkinds list makes the best signature for two reasons:
-      1. it bypasses all the branching, allowing (A, (B,C)) to match
-         ((A, B), C)
-      2. it uses the most specialized form when there is no branching,
-         thus if D has superKind B, and D has no other superKinds,
-         D is more specialized, so we want to use it over B.
-    """
-    def __init__(self, aKind, *args, **kwds):
-        """
-        construct with a single Kind
-        """
-        super(_SuperKindSignature, self).__init__(*args, **kwds)
-        onTwig = self.appendTwigSuperkinds(aKind)
-        if onTwig:
-            assert len(self) == 0, "Error building superKind Signature"
-            self.append(aKind)
-
-    def appendTwigSuperkinds(self, aKind):
-        """
-        called with a kind, appends all the twig superkinds
-        and returns True iff there's been no branching within
-        this twig
-        """
-        supers = aKind.getAttributeValue('superKinds', default = [])
-        numSupers = len(supers)
-        onTwig = True
-        for kind in supers:
-            onTwig = self.appendTwigSuperkinds(kind)
-            if onTwig and numSupers > 1:
-                self.appendUnique(kind)
-        return numSupers < 2 and onTwig
-
-    def appendUnique(self, item):
-        if not item in self:
-            self.append(item)
-
-    def extend(self, sequence):
-        for item in sequence:
-            self.appendUnique(item)
-
-    def properSubsetOf(self, sequence):
-        """
-        return True if self is a proper subset of sequence
-        meaning all items in self are in sequence
-        """
-        for item in self:
-            if not item in sequence:
-                return False
-        return True
-
-    def __str__(self):
-        readable = []
-        for item in self:
-            readable.append(item.itsName)
-        theList = ', '.join(readable)
-        return '['+theList+']'
-
 
 class Tag(ContentItem):
 

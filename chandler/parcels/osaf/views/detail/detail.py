@@ -34,7 +34,8 @@ from osaf.framework.blocks import \
 from osaf import sharing
 import osaf.pim.mail as Mail
 import osaf.pim.items as items
-from osaf.pim.tasks import TaskMixin
+import osaf.pim.notes as notes
+from osaf.pim.tasks import TaskStamp
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.calendar.Recurrence as Recurrence
 from osaf.pim.calendar import TimeZoneInfo
@@ -60,7 +61,7 @@ import parsedatetime.parsedatetime as parsedatetime
 
 logger = logging.getLogger(__name__)
     
-class DetailRootBlock (FocusEventHandlers, ControlBlocks.ContentItemDetail):
+class DetailRootBlock(FocusEventHandlers, ControlBlocks.ContentItemDetail):
     """
     Root of the Detail View. The prototype instance of this block is copied
     by the BranchPointBlock mechanism every time we build a detail view for a
@@ -206,6 +207,7 @@ class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
         # but I couldn't decide how to work in a lambda function, so I backed off and
         # opted for clarity.)
         decoratedSubtreeList = [] # each entry will be (position, path, subtreechild)
+        
         itemKinds = set(keyItem.getInheritedSuperKinds())
         itemKinds.add(keyItem)
         for itemKind in itemKinds:
@@ -234,7 +236,7 @@ class DetailSynchronizer(Item):
     Mixin class that handles synchronization and notification common to most
     of the blocks in the detail view.
     """
-    def onSetContentsEvent (self, event):
+    def onSetContentsEvent(self, event):
         #logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
                      #event.arguments['item'], event.arguments['collection'])
         self.setContentsOnBlock(event.arguments['item'],
@@ -247,10 +249,10 @@ class DetailSynchronizer(Item):
         super(DetailSynchronizer, self).synchronizeWidget(useHints)
         self.show(self.item is not None and self.shouldShow(self.item))
     
-    def shouldShow (self, item):
+    def shouldShow(self, item):
         return True
 
-    def show (self, shouldShow):
+    def show(self, shouldShow):
         # if the show status has changed, tell our widget, and return True
         try:
             widget = self.widget
@@ -298,7 +300,7 @@ class SynchronizedSpacerBlock(DetailSynchronizer, ControlBlocks.StaticText):
 
 class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
     """ A timer that sets the "read" attribute on any item we display. """
-    def onSetContentsEvent (self, event):
+    def onSetContentsEvent(self, event):
         super(UnreadTimer, self).onSetContentsEvent(event)
         # We only want to bother with this when the item is first selected,
         # but we may not be rendered here, so set a flag; we'll check 
@@ -327,16 +329,16 @@ class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
             logger.debug("Clearing unread flag for %s", debugName(item))
             self.item.read = True
     
-class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
-    def staticTextLabelValue (self, item):
+class StaticTextLabel(DetailSynchronizer, ControlBlocks.StaticText):
+    def staticTextLabelValue(self, item):
         theLabel = self.title
         return theLabel
 
-    def synchronizeLabel (self, value):
-        label = self.widget.GetLabel ()
+    def synchronizeLabel(self, value):
+        label = self.widget.GetLabel()
         relayout = label != value
         if relayout:
-            self.widget.SetLabel (value)
+            self.widget.SetLabel(value)
         return relayout
 
     def synchronizeWidget(self, useHints=False):
@@ -355,11 +357,11 @@ def GetRedirectAttribute(item, defaultAttr):
     return attributeName
 
 
-class StaticRedirectAttribute (StaticTextLabel):
+class StaticRedirectAttribute(StaticTextLabel):
     """
     Static text label that displays the attribute value.
     """
-    def staticTextLabelValue (self, item):
+    def staticTextLabelValue(self, item):
         try:
             value = item.getAttributeValue(GetRedirectAttribute(item, self.whichAttribute()))
             theLabel = unicode(value)
@@ -367,38 +369,44 @@ class StaticRedirectAttribute (StaticTextLabel):
             theLabel = u""
         return theLabel
 
-class StaticRedirectAttributeLabel (StaticTextLabel):
+class StaticRedirectAttributeLabel(StaticTextLabel):
     """
     Static Text that displays the name of the selected item's Attribute.
     """
-    def staticTextLabelValue (self, item):
-        redirectAttr = GetRedirectAttribute(item, self.whichAttribute ())
+    def staticTextLabelValue(self, item):
+        redirectAttr = GetRedirectAttribute(item, self.whichAttribute())
         # lookup better names for display of some attributes
-        if item.hasAttributeAspect (redirectAttr, 'displayName'):
-            redirectAttr = item.getAttributeAspect (redirectAttr, 'displayName')
+        if item.hasAttributeAspect(redirectAttr, 'displayName'):
+            redirectAttr = item.getAttributeAspect(redirectAttr, 'displayName')
         return redirectAttr
 
 class DetailSynchronizedContentItemDetail(DetailSynchronizer, ControlBlocks.ContentItemDetail):
     pass
 
-class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.AEBlock):
+class DetailSynchronizedAttributeEditorBlock(DetailSynchronizer, ControlBlocks.AEBlock):
     """
     A L{ControlBlocks.AEBlock} that participates in detail view synchronization.
     """
-    def OnDataChanged (self):
+    def OnDataChanged(self):
         # (this is how we find out about drag-and-dropped text changes!)
         self.saveValue()
 
-    def OnFinishChangesEvent (self, event):
+    def OnFinishChangesEvent(self, event):
         self.saveValue(validate=True)
 
 class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
     """
     Common base class for the stamping buttons in the Markup Bar.
     """
-    def stampMixinClass(self):
+    
+    def getWatchList(self):
+        # Tell us if this item's stamps change.
+        return [ (self.item, pim.Stamp.stamp_types.name) ]
+
+    @property
+    def stampClass(self):
         # return the class of this stamp's Mixin Kind (bag of kind-specific attributes)
-        raise NotImplementedError, "%s.stampMixinClass()" % (type(self))
+        raise NotImplementedError, "%s.stampClass()" % (type(self))
         
     def synchronizeWidget(self, useHints=False):
         super(DetailStampButton, self).synchronizeWidget(useHints)
@@ -406,34 +414,26 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
         # toggle this button to reflect the kind of the selected item
         item = self.item
         if item is not None:
-            mixinClass = self.stampMixinClass()
-            mixinKind = mixinClass.getKind(self.itsView)
-            stamped = item.isItemOf(mixinKind)
-            if __debug__:
-                looksStampedbyClass = isinstance(item, mixinClass)
-                assert looksStampedbyClass == stamped, \
-                    "Class/Kind mismatch! Item is class %s, kind %s; " \
-                    "stamping with class %s, kind %s" % (
-                     item.__class__.__name__, 
-                     item.itsKind.itsName,
-                     mixinClass.__name__, 
-                     mixinKind.itsName)
+            stampClass = self.stampClass
+            stamped = pim.has_stamp(item, stampClass)
             self.widget.SetState("%s.%s" % (self.icon,
                                  stamped and "Stamped" or "Unstamped"))
 
-    def onButtonPressedEvent (self, event):
-        # Rekind the item by adding or removing the associated Mixin Kind
+    def onButtonPressedEvent(self, event):
+        # Add or remove the associated Stamp type
         Block.Block.finishEdits()
         item = self.item
         if item is None or not self._isStampable(item):
             return
             
-        mixinKind = self.stampMixinClass().getKind(self.itsView)
-        operation = item.itsKind.isKindOf(mixinKind) and 'remove' or 'add'
+        stampClass = self.stampClass
+        if pim.has_stamp(item, self.stampClass):
+            stampClass(item).remove()
+        else:
+            stampClass(item).add()
+            
         
-        # Now change the kind and class of this item
         #logger.debug("%s: stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
-        item.StampKind(operation, mixinKind)
         #logger.debug("%s: done stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
 
     def onButtonPressedEventUpdateUI(self, event):
@@ -450,21 +450,21 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
         # unstamping of shared items:
         # @@@BJS Stamping now works from the attribute editors for the stamping
         # columns in the summary too, so I've made the same change there: 
-        # see AttributEditors.py's KindAttributeEditor.ReadOnly().
-        return (item.isItemOf(items.ContentItem.getKind(self.itsView)) and
+        # see AttributEditors.py's StampAttributeEditor.ReadOnly().
+        return (item.isItemOf(notes.Note.getKind(self.itsView)) and
             (item.getSharedState() == items.ContentItem.UNSHARED))
 
 class MailMessageButtonBlock(DetailStampButton):
     """ Mail Message Stamping button in the Markup Bar. """
-    def stampMixinClass(self): return Mail.MailMessageMixin
+    stampClass = Mail.MailStamp
     
-class CalendarStampBlock(DetailStampButton):
+class CalendarStampButtonBlock(DetailStampButton):
     """ Calendar button in the Markup Bar. """
-    def stampMixinClass(self): return Calendar.CalendarEventMixin
+    stampClass = Calendar.EventStamp
 
-class TaskStampBlock(DetailStampButton):
+class TaskStampButtonBlock(DetailStampButton):
     """ Task button in the Markup Bar. """
-    def stampMixinClass(self): return TaskMixin
+    stampClass = TaskStamp
 
 class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.Button):
     """ "Never share" button in the Markup Bar. """
@@ -510,13 +510,13 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.Button):
                (self.item.getSharedState() == ContentItem.READONLY)
         event.arguments ['Enable'] = enable        
 
-class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
+class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):
     """
     EditText field connected to some attribute of a ContentItem
     Override LoadAttributeIntoWidget, SaveAttributeFromWidget in subclasses.
     """
-    def instantiateWidget (self):
-        widget = super (EditTextAttribute, self).instantiateWidget()
+    def instantiateWidget(self):
+        widget = super(EditTextAttribute, self).instantiateWidget()
         # We need to save off the changed widget's data into the block periodically
         # Hopefully OnLoseFocus is getting called every time we lose focus.
         widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
@@ -533,7 +533,7 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         if item is not None and widget is not None:
             self.saveAttributeFromWidget(item, widget, validate=validate)
         
-    def loadTextValue (self, item):
+    def loadTextValue(self, item):
         # load the edit text from our attribute into the field
         if item is None:
             item = self.item
@@ -541,21 +541,21 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
             widget = self.widget
             self.loadAttributeIntoWidget(item, widget)
     
-    def onLoseFocus (self, event):
+    def onLoseFocus(self, event):
         # called when we get an event; to saves away the data and skips the event
         self.saveValue(validate=True)
         event.Skip()
         
-    def onKeyPressed (self, event):
+    def onKeyPressed(self, event):
         # called when we get an event; to saves away the data and skips the event
         self.saveValue(validate = event.m_keyCode == wx.WXK_RETURN and self.lineStyleEnum != "MultiLine")
         event.Skip()
         
-    def OnDataChanged (self):
+    def OnDataChanged(self):
         # event that an edit operation has taken place
         self.saveValue()
 
-    def OnFinishChangesEvent (self, event):
+    def OnFinishChangesEvent(self, event):
         self.saveValue(validate=True)
 
     def synchronizeWidget(self, useHints=False):
@@ -563,11 +563,11 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         if self.item is not None:
             self.loadTextValue(self.item)
             
-    def saveAttributeFromWidget (self, item, widget, validate):  
+    def saveAttributeFromWidget(self, item, widget, validate):  
        # subclasses need to override this method
        raise NotImplementedError, "%s.SaveAttributeFromWidget()" % (type(self))
 
-    def loadAttributeIntoWidget (self, item, widget):  
+    def loadAttributeIntoWidget(self, item, widget):  
        # subclasses need to override this method
        raise NotImplementedError, "%s.LoadAttributeIntoWidget()" % (type(self))
 
@@ -597,9 +597,9 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     
 # @@@ disabled until we start using this UI again
 #class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
-    #def shouldShow (self, item):
+    #def shouldShow(self, item):
         #showIt = False
-        #if item is not None and not item.isOutbound:
+        #if item is not None and not pim.mail.MailStamp(item).isOutbound:
             #try:
                 #MailSharing.getSharingHeaderInfo(item)
             #except:       
@@ -660,7 +660,7 @@ def getAppearsInNames(item):
     return collectionNames
     
 class AppearsInAEBlock(DetailSynchronizedAttributeEditorBlock):
-    def shouldShow (self, item):
+    def shouldShow(self, item):
         return len(getAppearsInNames(item)) > 0
 
 class AppearsInAttributeEditor(StaticStringAttributeEditor):
@@ -679,40 +679,42 @@ class AppearsInAttributeEditor(StaticStringAttributeEditor):
 # themselves based on readonlyness and attribute values
 
 class CalendarAllDayAreaBlock(DetailSynchronizedContentItemDetail):
-    def shouldShow (self, item):
-        return item.isAttributeModifiable('allDay')
+    def shouldShow(self, item):
+        return item.isAttributeModifiable(pim.EventStamp.allDay.name)
 
     def getWatchList(self):
         watchList = super(CalendarAllDayAreaBlock, self).getWatchList()
-        watchList.append((self.item, 'allDay'))
+        watchList.append((self.item, pim.EventStamp.allDay.name))
         return watchList
 
 class CalendarLocationAreaBlock(DetailSynchronizedContentItemDetail):
-    def shouldShow (self, item):
-        return item.isAttributeModifiable('location') \
-               or hasattr(item, 'location')
+    def shouldShow(self, item):
+        attributeName = pim.EventStamp.location.name
+        return item.isAttributeModifiable(attributeName) \
+               or hasattr(item, attributeName)
 
     def getWatchList(self):
         watchList = super(CalendarLocationAreaBlock, self).getWatchList()
-        watchList.append((self.item, 'location'))
+        watchList.append((self.item, pim.EventStamp.location.name))
         return watchList
         
 class TimeConditionalBlock(Item):
-    def shouldShow (self, item):
-        return not item.allDay and \
-               (item.isAttributeModifiable('startTime') \
-                or not item.anyTime)
+    def shouldShow(self, item):
+        event = pim.EventStamp(item)
+        return not event.allDay and \
+               (item.isAttributeModifiable(pim.EventStamp.startTime.name) \
+                or not event.anyTime)
 
     def getWatchList(self):
         watchList = super(TimeConditionalBlock, self).getWatchList()
-        watchList.extend(((self.item, 'allDay'), 
-                          (self.item, 'anyTime')))
+        watchList.extend(((self.item, pim.EventStamp.allDay.name), 
+                          (self.item, pim.EventStamp.anyTime.name)))
         return watchList
 
 class CalendarConditionalLabelBlock(TimeConditionalBlock, StaticTextLabel):
     pass    
 
-class CalendarTimeAEBlock (TimeConditionalBlock,
+class CalendarTimeAEBlock(TimeConditionalBlock,
                            DetailSynchronizedAttributeEditorBlock):
     pass
 
@@ -775,13 +777,14 @@ def getReminderType(reminder):
 class ReminderConditionalBlock(Item):
     def shouldShow(self, item):
         # Don't show if we have no reminder and the user can't add one.
-        reminder = item.getUserReminder()
-        return reminder is not None or item.isAttributeModifiable('reminders')
-    
+        reminder = pim.Remindable(item).getUserReminder()
+        return(reminder is not None or
+                item.isAttributeModifiable(pim.Remindable.reminders.name))
+
     def getWatchList(self):
         watchList = super(ReminderConditionalBlock, self).getWatchList()
-        watchList.extend([(self.item, 'reminders'),
-                          (self.item, 'expiredReminders')])
+        watchList.extend([(self.item, pim.Remindable.reminders.name),
+                          (self.item, pim.Remindable.expiredReminders.name)])
         return watchList
 
 class ReminderSpacerBlock(ReminderConditionalBlock,
@@ -790,25 +793,30 @@ class ReminderSpacerBlock(ReminderConditionalBlock,
 
 class ReminderTypeAreaBlock(ReminderConditionalBlock,
                             DetailSynchronizedContentItemDetail):
-    pass
+    def getWatchList(self):
+        watchList = super(ReminderTypeAreaBlock, self).getWatchList()
+        watchList.extend([(self.item, pim.Stamp.stamp_types.name),])
+        return watchList
 
 class ReminderRelativeAreaBlock(ReminderConditionalBlock,
                                 DetailSynchronizedContentItemDetail):
     def shouldShow(self, item):
-        return super(ReminderRelativeAreaBlock, self).shouldShow(item) and \
-               getReminderType(item.getUserReminder()) in ('before', 'after')
+        return (super(ReminderRelativeAreaBlock, self).shouldShow(item) and
+                (getReminderType(pim.Remindable(item).getUserReminder())
+                 in ('before', 'after')))
     
 class ReminderAbsoluteAreaBlock(ReminderConditionalBlock,
                                 DetailSynchronizedContentItemDetail):
     def shouldShow(self, item):
-        return super(ReminderAbsoluteAreaBlock, self).shouldShow(item) and \
-               getReminderType(item.getUserReminder()) == 'custom'
+        return (super(ReminderAbsoluteAreaBlock, self).shouldShow(item) and
+                (getReminderType(pim.Remindable(item).getUserReminder())
+                 == 'custom'))
 
 class ReminderAEBlock(DetailSynchronizedAttributeEditorBlock):
     def getWatchList(self):
         watchList = super(ReminderAEBlock, self).getWatchList()
-        watchList.extend([(self.item, 'reminders'),
-                          (self.item, 'expiredReminders')])
+        watchList.extend([(self.item, pim.Remindable.reminders.name),
+                          (self.item, pim.Remindable.expiredReminders.name)])
         return watchList
     
 class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
@@ -819,7 +827,7 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         # Custom omitted - see below.
     }
     
-    def GetControlValue (self, control):
+    def GetControlValue(self, control):
         """
         Get the value from the control: 'none', 'before', 'after',
         or 'custom'
@@ -827,7 +835,7 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         index = control.GetSelection()
         return (index != wx.NOT_FOUND) and control.GetClientData(index) or 'none'
 
-    def SetControlValue (self, control, value):
+    def SetControlValue(self, control, value):
         """
         Select the choice that matches this value ('none', 'before', 'after',
         or 'custom')
@@ -837,7 +845,8 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         existingValue = (existingSelectionIndex != wx.NOT_FOUND) \
                       and control.GetClientData(existingSelectionIndex) \
                       or None
-        hasStart = getattr(self.item.__class__, 'startTime', None) is not None
+        hasStart = pim.has_stamp(self.item, pim.EventStamp)
+
         if existingValue != value or control.GetCount() != (hasStart and 4 or 2):
             # rebuild the list of choices
             control.Clear()
@@ -851,48 +860,49 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         choiceIndex = self.reminderIndexes.get(value, hasStart and 3 or 1)
         control.Select(choiceIndex)
 
-    def GetAttributeValue (self, item, attributeName):
+    def GetAttributeValue(self, item, attributeName):
         """
         Get the value from the specified attribute of the item.
         """
-        return getReminderType(item.getUserReminder())
+        return getReminderType(pim.Remindable(item).getUserReminder())
 
-    def SetAttributeValue (self, item, attributeName, value):
+    def SetAttributeValue(self, item, attributeName, value):
         """
         Set the value of the attribute given by the value.
         """
         if self.ReadOnly((item, attributeName)):
             return
 
-        reminder = item.getUserReminder()
+        remindable = pim.Remindable(item)
+        reminder = remindable.getUserReminder()
         reminderType = getReminderType(reminder)
         if value == reminderType:
             return
         
         self.control.blockItem.stopWatchingForChanges()
         if value == 'none':
-            item.userReminderTime = None
+            remindable.userReminderTime = None
         elif value in ('before', 'after'):
             if reminderType in ('before', 'after'):
                 # Just change the sign of the old reminder
                 (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
-                item.userReminderInterval = scaleTimeDelta(units, scale, not isAfter)
+                remindable.userReminderInterval = scaleTimeDelta(units, scale, not isAfter)
             else:
                 # Make a new 15-minute reminder with the right sign.
-                item.userReminderInterval = scaleTimeDelta(15, 0, value == 'after')
+                remindable.userReminderInterval = scaleTimeDelta(15, 0, value == 'after')
         else:
             assert value == 'custom'
             # Absolute: today's date at 5PM
-            item.userReminderTime = datetime.now(tz=ICUtzinfo.default)\
+            remindable.userReminderTime = datetime.now(tz=ICUtzinfo.default)\
                 .replace(hour=17, minute=0, second=0, microsecond=0)
             
         self.control.blockItem.watchForChanges()
                         
         if False:
-            active = "\n  ".join(unicode(r) for r in item.reminders) or "None"
-            inactive = "\n  ".join(unicode(r) for r in item.expiredReminders) or "None"            
+            active = "\n  ".join(unicode(r) for r in remindable.reminders) or "None"
+            inactive = "\n  ".join(unicode(r) for r in remindable.expiredReminders) or "None"            
             logger.debug("Reminders on %s:\n  Active:\n    %s\n  Expired:\n    %s", 
-                         item, active, inactive)
+                         remindable, active, inactive)
 
 class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
     choices = [_(u'minutes'),
@@ -902,18 +912,18 @@ class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
     def GetChoices(self):
         return self.choices
     
-    def GetAttributeValue (self, item, attributeName):
-        reminder = item.getUserReminder()
+    def GetAttributeValue(self, item, attributeName):
+        reminder = pim.Remindable(item).getUserReminder()
         reminderType = getReminderType(reminder)
         if reminderType not in ('before', 'after'):
             return 0
         (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
         return scale
             
-    def SetAttributeValue (self, item, attributeName, value):
+    def SetAttributeValue(self, item, attributeName, value):
         if value is None:
             return
-        reminder = item.getUserReminder()
+        reminder = pim.Remindable(item).getUserReminder()
         reminderType = getReminderType(reminder)
         if reminderType not in ('before', 'after'):
             return
@@ -922,15 +932,15 @@ class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
         if scale == value:
             return # unchanged
         
-        item.userReminderInterval = scaleTimeDelta(units, value, isAfter)
+        setattr(item, attributeName, scaleTimeDelta(units, value, isAfter))
 
-    def GetControlValue (self, control):
+    def GetControlValue(self, control):
         choiceIndex = control.GetSelection()
         return choiceIndex != wx.NOT_FOUND and choiceIndex or None
 
-    def SetControlValue (self, control, value):
+    def SetControlValue(self, control, value):
         existingValue = self.GetControlValue(control)
-        if existingValue is None or existingValue != value:            
+        if existingValue is None or existingValue != value:
             # rebuild the list of choices
             choices = self.GetChoices()
             if len(choices) != control.GetCount():
@@ -939,9 +949,9 @@ class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
             control.SetSelection(value)
 
 class ReminderUnitsAttributeEditor(StringAttributeEditor):    
-    def GetAttributeValue (self, item, attributeName):
+    def GetAttributeValue(self, item, attributeName):
         # Get the existing reminder, and figure out what kind it is
-        reminder = item.getUserReminder()
+        reminder = pim.Remindable(item).getUserReminder()
         reminderType = getReminderType(reminder)
 
         if reminderType not in ('before', 'after'):
@@ -951,8 +961,8 @@ class ReminderUnitsAttributeEditor(StringAttributeEditor):
         (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
         return unicode(units)
                             
-    def SetAttributeValue (self, item, attributeName, valueString):
-        reminder = item.getUserReminder()
+    def SetAttributeValue(self, item, attributeName, valueString):
+        reminder = pim.Remindable(item).getUserReminder()
         reminderType = getReminderType(reminder)
         if reminderType not in ('before', 'after'):
             assert False
@@ -972,19 +982,20 @@ class ReminderUnitsAttributeEditor(StringAttributeEditor):
 
         (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
         if units != value:
-            item.userReminderInterval = scaleTimeDelta(value, scale, isAfter)
+            pim.Remindable(item).userReminderInterval = scaleTimeDelta(value, scale, isAfter)
 
 class TransparencyConditionalBlock(Item):
-    def shouldShow (self, item):
+    def shouldShow(self, item):
         # don't show for anyTime or @time events (but do show for allDay
         # events, which happen to be anyTime too)
-        return not ((item.anyTime and not item.allDay) or not item.duration)
+        event = pim.EventStamp(item)
+        return not ((event.anyTime and not event.allDay) or not event.duration)
 
     def getWatchList(self):
         watchList = super(TransparencyConditionalBlock, self).getWatchList()
-        watchList.extend(((self.item, 'anyTime'), 
-                          (self.item, 'allDay'), 
-                          (self.item, 'duration')))
+        watchList.extend(((self.item, pim.EventStamp.anyTime.name), 
+                          (self.item, pim.EventStamp.allDay.name), 
+                          (self.item, pim.EventStamp.duration.name)))
         return watchList
 
 class CalendarTransparencySpacerBlock(TransparencyConditionalBlock, 
@@ -995,10 +1006,34 @@ class CalendarTransparencyAreaBlock(TransparencyConditionalBlock,
                                     DetailSynchronizedContentItemDetail):
     pass
 
+
+class StampAreaBlock(DetailSynchronizedContentItemDetail):
+    stampClass = None
+    
+    def shouldShow(self, item):
+        return (self.stampClass is not None and
+                pim.has_stamp(item, self.stampClass))
+                
+    def getWatchList(self):
+        watchList = super(StampAreaBlock, self).getWatchList()
+        watchList.extend(((self.item, pim.Stamp.stamp_types.name),),)
+        return watchList
+        
+class MailAreaBlock(StampAreaBlock):
+    stampClass = pim.mail.MailStamp
+
+class EventAreaBlock(StampAreaBlock):
+    stampClass = pim.EventStamp
+
+class TaskAreaBlock(StampAreaBlock):
+    stampClass = pim.TaskStamp
+
+
 class TimeZoneConditionalBlock(Item):
-    def shouldShow (self, item):
+    def shouldShow(self, item):
         # allDay and anyTime items never show the timezone popup
-        if item.allDay or item.anyTime:
+        event = pim.EventStamp(item)
+        if event.allDay or event.anyTime:
             return False
 
         # Otherwise, it depends on the preference
@@ -1008,8 +1043,8 @@ class TimeZoneConditionalBlock(Item):
     def getWatchList(self):
         watchList = super(TimeZoneConditionalBlock, self).getWatchList()
         tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
-        watchList.extend(((self.item, 'allDay'),
-                          (self.item, 'anyTime'),
+        watchList.extend(((self.item, pim.EventStamp.allDay.name),
+                          (self.item, pim.EventStamp.anyTime.name),
                           (tzPrefs, 'showUI')))
         return watchList
 
@@ -1038,7 +1073,7 @@ class RecurrenceConditionalBlock(Item):
     def recurrenceVisibility(self, item):
         result = 0
         freq = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
-        modifiable = item.isAttributeModifiable('rruleset')
+        modifiable = item.isAttributeModifiable(pim.EventStamp.rruleset.name)
         
         # Show the popup only if it's modifiable, or if it's not
         # modifiable but not the default value.
@@ -1054,8 +1089,9 @@ class RecurrenceConditionalBlock(Item):
                 if modifiable:
                     result |= self.showEnds
                 else:
+                    event = pim.EventStamp(item)
                     try:
-                        endDate = item.rruleset.rrules.first().until
+                        endDate = event.rruleset.rrules.first().until
                     except AttributeError:
                         pass
                     else:
@@ -1068,10 +1104,11 @@ class RecurrenceConditionalBlock(Item):
         
     def getWatchList(self):
         watchList = super(RecurrenceConditionalBlock, self).getWatchList()
-        watchList.append((self.item, 'rruleset'))
+        watchList.append((self.item, pim.EventStamp.rruleset.name))
         if self.visibilityFlags & RecurrenceConditionalBlock.showEnds:
+            event = pim.EventStamp(self.item)
             try:
-                firstRRule = self.item.rruleset.rrules.first()
+                firstRRule = event.rruleset.rrules.first()
             except AttributeError:
                 pass
             else:
@@ -1146,18 +1183,19 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
             value = datetime.combine(dateTimeValue.date(), oldValue.timetz())
             
             if oldValue != value:
-                if attributeName == 'endTime':
+                if attributeName == pim.EventStamp.endTime.name:
                     # Changing the end date or time such that it becomes 
                     # earlier than the existing start date+time will 
                     # change the start date+time to be the same as the 
                     # end date+time (that is, an @time event, or a 
                     # single-day anytime event if the event had already 
                     # been an anytime event).
-                    if value < item.startTime:
-                        item.startTime = value
-                    item.endTime = value
-                elif attributeName == 'startTime':
-                    item.startTime = value
+                    event = pim.EventStamp(item)
+                    if value < event.startTime:
+                        event.startTime = value
+                    event.endTime = value
+                elif attributeName == pim.EventStamp.startTime.name:
+                    setattr(item, attributeName, value)
                 else:
                     assert False, "this attribute editor is really just for " \
                                   "start or endtime"
@@ -1169,9 +1207,10 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
 class CalendarTimeAttributeEditor(TimeAttributeEditor):
     zeroHours = pim.durationFormat.parse(_(u"0:00"))
     
-    def GetAttributeValue (self, item, attributeName):
-        noTime = getattr(item, 'allDay', False) \
-               or getattr(item, 'anyTime', False)
+    def GetAttributeValue(self, item, attributeName):
+        event = pim.EventStamp(item)
+        noTime = getattr(event, 'allDay', False) \
+               or getattr(event, 'anyTime', False)
         if noTime:
             value = u''
         else:
@@ -1179,23 +1218,24 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
+        event = pim.EventStamp(item)
         newValueString = valueString.replace('?','').strip()
-        iAmStart = attributeName == 'startTime'
+        iAmStart = attributeName == pim.EventStamp.startTime.name
         changed = False
         forceReload = False
         if len(newValueString) == 0:
-            if not item.anyTime: # If we're not already anytime
+            if not event.anyTime: # If we're not already anytime
                 # Clearing an event's start time (removing the value in it, causing 
                 # it to show "HH:MM") will remove both time values (making it an 
                 # anytime event).
                 if iAmStart:
-                    item.anyTime = True
+                    event.anyTime = True
                     changed = True
                 else:
                     # Clearing an event's end time will make it an at-time event
                     zeroTime = timedelta()
-                    if item.duration != zeroTime:
-                        item.duration = zeroTime
+                    if event.duration != zeroTime:
+                        event.duration = zeroTime
                         changed = True
                 forceReload = True
         else:
@@ -1253,10 +1293,10 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                     else:
                         # Guess that the user wants the hour closest to the
                         # old time's hour, or noon if we didn't have one.
-                        if item.allDay or item.anyTime:
+                        if event.allDay or event.anyTime:
                             oldHour = 12
                         else:
-                            oldHour = item.startTime.hour
+                            oldHour = event.startTime.hour
                         amDiff = abs(oldHour - hour)
                         pmDiff = abs(oldHour - (hour + 12))
                         meridian = " " + (amDiff >= pmDiff and pm or am)
@@ -1292,20 +1332,20 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
             value = datetime.combine(oldValue.date(), gotTime.timetz())
             # Preserve the time zone!
             value = value.replace(tzinfo=oldValue.tzinfo)
-            if item.anyTime or oldValue != value:
+            if event.anyTime or oldValue != value:
                 # Something changed.                
                 # Implement the rules for changing one of the four values:
-                if item.anyTime:
+                if event.anyTime:
                     # On an anytime event (single or multi-day; both times 
                     # blank & showing the "HH:MM" hint), entering a valid time 
                     # in either time field will set the other date and time 
                     # field to effect a one-hour event on the corresponding date. 
-                    item.anyTime = False
+                    event.anyTime = False
                     if iAmStart:
-                        item.startTime = value
+                        event.startTime = value
                     else:
-                        item.startTime = value - timedelta(hours=1)
-                    item.duration = timedelta(hours=1)
+                        event.startTime = value - timedelta(hours=1)
+                    event.duration = timedelta(hours=1)
                 else:
                     if not iAmStart:
                         # Changing the end date or time such that it becomes 
@@ -1314,10 +1354,10 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                         # date+time (that is, an @time event, or a single-day 
                         # anytime event if the event had already been an 
                         # anytime event).
-                        if value < item.startTime:
-                            item.startTime = value
-                    setattr (item, attributeName, value)
-                    item.anyTime = False
+                        if value < event.startTime:
+                            event.startTime = value
+                    setattr(item, attributeName, value)
+                    event.anyTime = False
                 changed = True
 
         if changed or forceReload:
@@ -1344,11 +1384,12 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         """
         Map the frequency of this item to one of our menu choices.
         """
-        if item.isCustomRule(): # It's custom if it says it is.
+        event = pim.EventStamp(item)
+        if event.isCustomRule(): # It's custom if it says it is.
             return RecurrenceAttributeEditor.customIndex
         # Otherwise, try to map its frequency to our menu list
         try:
-            rrule = item.rruleset.rrules.first() 
+            rrule = event.rruleset.rrules.first() 
             freq = rrule.freq
             # deal with biweekly special case
             if freq == 'weekly' and rrule.interval == 2:
@@ -1396,13 +1437,16 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         # Changing the recurrence period on a non-master item could delete 
         # this very 'item'; we'll try to select the "same" occurrence
         # afterwards ...
-        master = item.getMaster()
-        recurrenceID = item.recurrenceID or item.startTime
+        assert pim.has_stamp(item, pim.EventStamp)
+        
+        event = pim.EventStamp(item)
+        master = event.getMaster()
+        recurrenceID = event.recurrenceID or event.startTime
         
         if value == RecurrenceAttributeEditor.onceIndex:
-            item.removeRecurrence()
+            event.removeRecurrence()
         else:
-            oldIndex = self.GetAttributeValue(item, attributeName)
+            oldIndex = self.GetAttributeValue(event, attributeName)
             
             # If nothing has changed, return. This avoids building
             # a whole new ruleset, and the teardown of occurrences,
@@ -1419,43 +1463,44 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             rruleset = Recurrence.RecurrenceRuleSet(None, itsView=item.itsView)
             rruleset.setRuleFromDateUtil(Recurrence.dateutil.rrule.rrule(duFreq,
                                          interval=interval))
-            until = item.getLastUntil()
+            until = event.getLastUntil()
             if until is not None:
                 rruleset.rrules.first().until = until
             elif hasattr(rruleset.rrules.first(), 'until'):
                 del rruleset.rrules.first().until
             rruleset.rrules.first().untilIsDate = True
-            item.changeThisAndFuture('rruleset', rruleset)
+            event.changeThisAndFuture(pim.EventStamp.rruleset.name, rruleset)
 
         itemToSelect = item
         
-        if master.isDeleted() or not item.isDeleted():
+        if master.itsItem.isDeleted() or not item.isDeleted():
             # master can get deleted if it had a THIS modification
             # (it gets replaced by its first occurrence).
             # An occurrence can become a master by because we just did
             # a THISANDFUTURE change.
-            master = itemToSelect = item.getMaster()
+            master = itemToSelect = event.getMaster().itsItem
             
         if item.isDeleted():
             itemToSelect = master.getRecurrenceID(recurrenceID) or master
+            itemToSelect = itemToSelect.itsItem
         
         itemToSelect = getattr(itemToSelect, 'proxiedItem', itemToSelect)
         item = getattr(item, 'proxiedItem', item)
         
         if itemToSelect is not item:
             sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
-            sidebarBPB.childrenBlocks.first().postEventByName (
+            sidebarBPB.childrenBlocks.first().postEventByName(
                'SelectItemsBroadcast', {'items':[itemToSelect]}
             )
     
-    def GetControlValue (self, control):
+    def GetControlValue(self, control):
         """
         Get the value for the current selection.
         """ 
         choiceIndex = control.GetSelection()
         return choiceIndex
 
-    def SetControlValue (self, control, value):
+    def SetControlValue(self, control, value):
         """
         Select the choice that matches this index value.
         """
@@ -1473,7 +1518,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
 
 class RecurrenceCustomAttributeEditor(StaticStringAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
-        return item.getCustomDescription()
+        return pim.EventStamp(item).getCustomDescription()
         
 class RecurrenceEndsAttributeEditor(DateAttributeEditor):
     # If we haven't already, remap the configured item & attribute 
@@ -1485,26 +1530,27 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
         if attributeName != 'until':
             attributeName = 'until'
             try:
-                item = item.rruleset.rrules.first()
+                item = pim.EventStamp(item).rruleset.rrules.first()
             except AttributeError:
                 return u''
         return super(RecurrenceEndsAttributeEditor, self).\
                GetAttributeValue(item, attributeName)
         
     def SetAttributeValue(self, item, attributeName, valueString):
-        eventTZ = item.startTime.tzinfo
+        event = pim.EventStamp(item)
+        eventTZ = event.startTime.tzinfo
         
         if attributeName != 'until':
             attributeName = 'until'        
             try:
-                item = item.rruleset.rrules.first()
+                item = event.rruleset.rrules.first()
             except AttributeError:
                 assert False, "Hey - Setting 'ends' on an event without a recurrence rule?"
         
         # If the user removed the string, remove the attribute.
         newValueString = valueString.replace('?','').strip()
-        if len(newValueString) == 0 and hasattr(item, 'until'):
-            del item.until
+        if len(newValueString) == 0 and hasattr(item, attributeName):
+            delattr(item, attributeName)
         else:
             try:
                 oldValue = getattr(item, attributeName, None)
@@ -1534,7 +1580,7 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
                 # (because setting recurrence-end could cause this item
                 # to be destroyed, which'd cause this widget to be deleted,
                 # and we still have references to it in our call stack)
-                def changeRecurrenceEnd(self, item, newEndValue):                    
+                def changeRecurrenceEnd(self, item, newEndValue):
                     item.untilIsDate = True
                     item.until = value
                 wx.CallAfter(changeRecurrenceEnd, self, item, value)
@@ -1545,22 +1591,22 @@ class OutboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
     (like the outbound version of 'from', and 'bcc' which won't ever
     show a value for inbound messages.)
     """
-    def shouldShow (self, item):
-        return item.isOutbound
+    def shouldShow(self, item):
+        return pim.mail.MailStamp(item).isOutbound
 
     def whichAttribute(self):
-        return 'isOutbound'
+        return pim.mail.MailStamp.isOutbound.name
            
 class InboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
     """
     This block will only be visible on inbound messages
     (like the inbound version of 'from'.)
     """
-    def shouldShow (self, item):
-        return not item.isOutbound
+    def shouldShow(self, item):
+        return not pim.mail.MailStamp(item).isOutbound
 
     def whichAttribute(self):
-        return 'isOutbound'
+        return pim.mail.MailStamp.isOutbound.name
 
 class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
     """
@@ -1614,7 +1660,7 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
         choices.append(_(u"Configure email accounts..."))            
         return choices
     
-    def GetControlValue (self, control):
+    def GetControlValue(self, control):
         choiceIndex = control.GetSelection()
         if choiceIndex == -1:
             return None
@@ -1622,7 +1668,7 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
             return u''
         return control.GetString(choiceIndex)
 
-    def SetControlValue (self, control, value):
+    def SetControlValue(self, control, value):
         """
         Select the choice with the given text.
         """
@@ -1695,7 +1741,7 @@ class EmptyPanelBlock(ControlBlocks.ContentItemDetail):
     """
     A bordered panel, which we use when no item is selected in the calendar.
     """
-    def instantiateWidget (self):
+    def instantiateWidget(self):
         # Make a box with a sunken border - wxBoxContainer will take care of
         # getting the background color from our attribute.
         style = '__WXMAC__' in wx.PlatformInfo \

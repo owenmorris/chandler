@@ -52,10 +52,10 @@ def randomEnum(cls):
     
 def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
     event = Calendar.CalendarEvent(itsView=view)
-    event.displayName = random.choice(HEADLINES)
+    event.summary = random.choice(HEADLINES)
 
     if TEST_I18N:
-        event.displayName = uw(event.displayName)
+        event.summary = uw(event.summary)
 
     # Choose random days, hours
     startDelta = timedelta(days=random.randint(0, days),
@@ -80,7 +80,7 @@ def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
     # Maybe a nice reminder?
     reminderInterval = random.choice(REMINDERS)
     if reminderInterval is not None:
-        event.userReminderInterval = timedelta(minutes=-reminderInterval)
+        pim.Remindable(event).userReminderInterval = timedelta(minutes=-reminderInterval)
         
     # Add a location to 2/3 of the events
     if random.randrange(3) > 0:
@@ -89,8 +89,8 @@ def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
         else:
             event.location = Calendar.Location.getLocation(view, random.choice(LOCATIONS))
 
-    event.importance = random.choice(pim.ImportanceEnum.values)
-    event.triageStatus = randomEnum(pim.TriageEnum)
+    event.itsItem.importance = random.choice(pim.ImportanceEnum.values)
+    event.itsItem.triageStatus = randomEnum(pim.TriageEnum)
     return event
 
 
@@ -143,16 +143,16 @@ def GenerateMailMessage(view, tzinfo=None):
         message.incomingMessage(acc)
 
     if type == EVENT:
-        message.StampKind('add', Calendar.CalendarEventMixin.getKind(message.itsView))
+        Calendar.EventStamp(message).add()
         body += M_EVENT
 
     if type == TASK:
-        message.StampKind('add', pim.TaskMixin.getKind(message.itsView))
+        pim.TaskStamp(message).add()
         body += M_TASK
 
     if type == BOTH:
-        message.StampKind('add', pim.TaskMixin.getKind(message.itsView))
-        message.StampKind('add', Calendar.CalendarEventMixin.getKind(message.itsView))
+        Calendar.EventStamp(message).add()
+        pim.TaskStamp(message).add()
         body += M_BOTH
 
     if TEST_I18N:
@@ -183,18 +183,18 @@ def GenerateTask(view, tzinfo=None):
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
     task.dueDate = datetime.today().replace(tzinfo=tzinfo) + delta
-    task.displayName = random.choice(TITLES)
+    task.summary = random.choice(TITLES)
 
     if TEST_I18N:
-        task.displayName = uw(task.displayName)
+        task.summary = uw(task.summary)
 
-    task.triageStatus = randomEnum(pim.TriageEnum)
+    task.itsItem.triageStatus = randomEnum(pim.TriageEnum)
     return task
 
 def GenerateEventTask(view, days=30, tzinfo=None):
     """ Generate one Task/Event stamped item """
     event = GenerateCalendarEvent(view, days, tzinfo=tzinfo)
-    event.StampKind('add', pim.TaskMixin.getKind(event.itsView))
+    pim.TaskStamp(event).add()
     return event
 
 DOMAIN_LIST = [u'flossrecycling.com', u'flossresearch.org', u'rosegardens.org',

@@ -52,16 +52,16 @@ def makeSummaryBlocks(parcel):
                 columns = [
                     Column.update(parcel, 'SumColTask',
                                   icon = 'ColHTask',
-                                  valueType = 'kind',
-                                  kind = pim.TaskMixin.getKind(repositoryView),
+                                  valueType = 'stamp',
+                                  stamp = pim.TaskStamp,
                                   attributeName = 'taskStatus',
                                   width = iconColumnWidth,
                                   useSortArrows = False,
                                   readOnly = True),
                     Column.update(parcel, 'SumColMail',
                                   icon = 'ColHMail',
-                                  valueType = 'kind',
-                                  kind = pim.mail.MailMessageMixin.getKind(repositoryView),
+                                  valueType = 'stamp',
+                                  stamp = pim.mail.MailStamp,
                                   attributeName = 'communicationStatus',
                                   width = iconColumnWidth,
                                   useSortArrows = False,
@@ -79,9 +79,9 @@ def makeSummaryBlocks(parcel):
                                   scaleColumn = True),
                     Column.update(parcel, 'SumColCalendarEvent',
                                   icon = 'ColHEvent',
-                                  valueType = 'kind',
+                                  valueType = 'stamp',
                                   attributeName = 'calendarStatus',
-                                  kind = pim.CalendarEventMixin.getKind(repositoryView),
+                                  stamp = pim.EventStamp,
                                   useSortArrows = False,
                                   width = iconColumnWidth,
                                   readOnly = True),
@@ -206,8 +206,9 @@ def makeSummaryBlocks(parcel):
         calendarContainer = CalendarSummaryView)
                                 
     # Precache detail views for the basic pim types (and "Block",
-    # which is the key used for the None item)
-    for keyType in (pim.Note, pim.CalendarEvent, pim.Task,
-                    pim.mail.MailMessage, Block.Block):
-        detailBranchPointDelegate.getBranchForKeyItem(keyType.getKind(view))
+    # which is the key used for the None item). Note that the basic
+    # stamps (Event, Task, Mail) are now covered by Note
+    for keyType in (pim.Note, Block.Block):
+        detailBranchPointDelegate.getBranchForKeyItem(
+                            schema.itemFor(keyType, view))
     

@@ -16,6 +16,7 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 from application import schema
 from application.dialogs import RecurrenceDialog
+from osaf.pim import EventStamp
 import osaf.framework.scripting as scripting
 import wx
 from i18n.tests import uw
@@ -114,7 +115,7 @@ class TestNewEvent(ChandlerTestCase):
             EditRecurrenceEnd=(True, evtRecurrenceEnd))
     
         # Select the second occurrence and delete it
-        masterEvent = event.item
+        masterEvent = EventStamp(event.item)
         secondEvent = QAUITestAppLib.UITestItem(masterEvent.getNextOccurrence(), self.logger)
         secondEvent.SelectItem()
         secondEvent.CheckDisplayedValues("Checking 2nd occurrence",

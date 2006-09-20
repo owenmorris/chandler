@@ -21,7 +21,7 @@ import wx
 
 from Block import (
     RectangularChild, BlockEvent, NewItemEvent, ChoiceEvent, ColorEvent,
-    KindParameterizedEvent, AddToSidebarEvent, NewBlockWindowEvent, 
+    ClassParameterizedEvent, AddToSidebarEvent, NewBlockWindowEvent, 
     EventList, debugName, getProxiedItem, WithoutSynchronizeWidget,
     IgnoreSynchronizeWidget, DispatchHook, DispatcHookList, BlockDispatchHook
 )
@@ -31,7 +31,10 @@ from ContainerBlocks import (
     SplitterWindow, TabbedContainer, ViewContainer
 )
 
-from BranchPoint import BranchPointDelegate, BranchPointBlock, BranchSubtree
+from BranchPoint import (
+    BranchPointDelegate, BranchPointBlock, BranchSubtree,
+    StampBranchSubtree
+)
 
 from Views import View
 

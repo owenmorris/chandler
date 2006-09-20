@@ -21,10 +21,12 @@ from datetime import datetime, timedelta
 from PyICU import ICUtzinfo
 
 import osaf.pim.calendar.Calendar as Calendar
+import osaf.pim.stamping as stamping
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 import osaf.pim.generate as generate
 import repository.item
 
+from application import schema
 from repository.util.Path import Path
 from i18n.tests import uw
 
@@ -38,28 +40,32 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         """ Simple test for creating instances of calendar related kinds """
 
         self.loadParcel("osaf.pim.calendar")
+        
+        def getEventValue(event, attrName):
+            try:
+                attrName = getattr(type(event), attrName).name
+            except AttributeError:
+                pass
+            return event.itsItem.getAttributeValue(attrName)
 
         def _verifyCalendarEvent(event):
-            self.assertEqual(event.displayName, uw("simple headline"))
-            self.assertEqual(event.getItemDisplayName(), uw("simple headline"))
+            self.failUnless(stamping.has_stamp(event, Calendar.EventStamp))
+            
+            self.assertEqual(event.summary, uw("simple headline"))
 
-            self.assertEqual(event.importance, 'fyi')
-            self.assertEqual(event.getAttributeValue('importance'), 'fyi')
+            self.assertEqual(event.itsItem.importance, 'fyi')
+            self.assertEqual(getEventValue(event, 'importance'), 'fyi')
 
             self.assertEqual(event.transparency, "confirmed")
-            self.assertEqual(event.getAttributeValue('transparency'), "confirmed")
+            self.assertEqual(getEventValue(event, 'transparency'), "confirmed")
 
             self.assertEqual(event.allDay, False)
-            self.assertEqual(event.getAttributeValue('allDay'), False)
+            self.assertEqual(getEventValue(event, 'allDay'), False)
 
             self.assertEqual(event.anyTime, True)
-            self.assertEqual(event.getAttributeValue('anyTime'), True)
+            self.assertEqual(getEventValue(event, 'anyTime'), True)
 
-        def _verifyCalendarItems(calendar, location, recurrence):
-            self.assertEqual(calendar.displayName, uw("simple calendar"))
-            self.assertEqual(calendar.getAttributeValue('displayName'),
-                              uw("simple calendar"))
-
+        def _verifyCalendarItems(location, recurrence):
             self.assertEqual(location.displayName, uw("simple location"))
             self.assertEqual(location.getAttributeValue('displayName'),
                               uw("simple location"))
@@ -68,10 +74,8 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         calendarPath = Path('//parcels/osaf/pim/calendar')
         view = self.rep.view
 
-        self.assertEqual(Calendar.CalendarEvent.getKind(view),
-                         view.find(Path(calendarPath, 'CalendarEvent')))
-        self.assertEqual(Calendar.Calendar.getKind(view),
-                         view.find(Path(calendarPath, 'Calendar')))
+        self.assertEqual(schema.itemFor(Calendar.EventStamp, view),
+                         view.find(Path(calendarPath, 'EventStamp')))
         self.assertEqual(Calendar.Location.getKind(view),
                          view.find(Path(calendarPath, 'Location')))
         self.assertEqual(Calendar.RecurrencePattern.getKind(view),
@@ -80,25 +84,22 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         # Construct a sample item
         calendarEventItem = Calendar.CalendarEvent("calendarEventItem",
                                                    itsView=view)
-        calendarItem = Calendar.Calendar("calendarItem", itsView=view)
         locationItem = Calendar.Location("locationItem", itsView=view)
         recurrenceItem = Calendar.RecurrencePattern("recurrenceItem", itsView=view)
 
         # CalendarEvent properties
-        calendarEventItem.displayName = uw("simple headline")
-        calendarEventItem.importance = "fyi"
+        calendarEventItem.summary = uw("simple headline")
+        calendarEventItem.itsItem.importance = "fyi"
         _verifyCalendarEvent(calendarEventItem)
         calendarEventItem.location = locationItem
 
         # Calendar properties
-        calendarItem.displayName = uw("simple calendar")
         locationItem.displayName = uw("simple location")
-        _verifyCalendarItems(calendarItem, locationItem,
-                             recurrenceItem)
+        _verifyCalendarItems(locationItem, recurrenceItem)
 
         # Check cloud membership - event + location
 
-        items = calendarEventItem.getItemCloud('copying')
+        items = calendarEventItem.itsItem.getItemCloud('copying')
         self.assertEqual(len(items), 2)
 
         # Re-examine items
@@ -106,14 +107,13 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         view = self.rep.view
         contentItemParent = view.findPath("//userdata")
 
-        calendarEventItem = contentItemParent.getItemChild("calendarEventItem")
-        calendarItem = contentItemParent.getItemChild("calendarItem")
+        calendarEventItem = Calendar.EventStamp(
+                    contentItemParent.getItemChild("calendarEventItem"))
         locationItem = contentItemParent.getItemChild("locationItem")
         recurrenceItem = contentItemParent.getItemChild("recurrenceItem")
 
         _verifyCalendarEvent(calendarEventItem)
-        _verifyCalendarItems(calendarItem, locationItem,
-                             recurrenceItem)
+        _verifyCalendarItems(locationItem, recurrenceItem)
 
     def testTimeFields(self):
         """ Test time related fields and methods """
@@ -122,39 +122,39 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
 
         # Test getting duration, setting endTime
         view = self.rep.view
-        firstItem = Calendar.CalendarEvent(itsView=view)
-        firstItem.anyTime = False
-        firstItem.startTime = datetime(2003, 2, 1, 10, tzinfo=ICUtzinfo.default)
-        firstItem.endTime = datetime(2003, 2, 1, 11, 30,
+        firstEvent = Calendar.CalendarEvent(itsView=view)
+        firstEvent.anyTime = False
+        firstEvent.startTime = datetime(2003, 2, 1, 10, tzinfo=ICUtzinfo.default)
+        firstEvent.endTime = datetime(2003, 2, 1, 11, 30,
                                      tzinfo=ICUtzinfo.default)
-        self.assertEqual(firstItem.duration, timedelta(hours=1.5))
+        self.assertEqual(firstEvent.duration, timedelta(hours=1.5))
 
         # Test setting duration and getting endTime
-        secondItem = Calendar.CalendarEvent(itsView=view)
-        secondItem.anyTime = False
-        secondItem.startTime = datetime(2003, 3, 5, 9, tzinfo=ICUtzinfo.default)
-        secondItem.duration = timedelta(hours=1.5)
-        self.assertEqual(secondItem.endTime,
+        secondEvent = Calendar.CalendarEvent(itsView=view)
+        secondEvent.anyTime = False
+        secondEvent.startTime = datetime(2003, 3, 5, 9, tzinfo=ICUtzinfo.default)
+        secondEvent.duration = timedelta(hours=1.5)
+        self.assertEqual(secondEvent.endTime,
                          datetime(2003, 3, 5, 10, 30, tzinfo=ICUtzinfo.default))
 
         # Test changing startTime (shouldn't change duration)
-        firstItem.startTime = datetime(2003, 3, 4, 12, 45,
+        firstEvent.startTime = datetime(2003, 3, 4, 12, 45,
                                        tzinfo=ICUtzinfo.default)
-        self.assertEqual(firstItem.duration, timedelta(hours=1.5))
-        self.assertEqual(firstItem.startTime,
+        self.assertEqual(firstEvent.duration, timedelta(hours=1.5))
+        self.assertEqual(firstEvent.startTime,
                          datetime(2003, 3, 4, 12, 45, tzinfo=ICUtzinfo.default))
 
         # Test allDay
-        firstItem.allDay = True
-        self.assertEqual(firstItem.allDay, True)
-        firstItem.allDay = False
-        self.assertEqual(firstItem.allDay, False)
+        firstEvent.allDay = True
+        self.assertEqual(firstEvent.allDay, True)
+        firstEvent.allDay = False
+        self.assertEqual(firstEvent.allDay, False)
 
         # Test anyTime
-        firstItem.anyTime = True
-        self.assertEqual(firstItem.anyTime, True)
-        firstItem.anyTime = False
-        self.assertEqual(firstItem.anyTime, False)
+        firstEvent.anyTime = True
+        self.assertEqual(firstEvent.anyTime, True)
+        firstEvent.anyTime = False
+        self.assertEqual(firstEvent.anyTime, False)
 
     def testDeleteItem(self):
 
@@ -163,7 +163,8 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         self.loadParcel("osaf.pim.calendar")
 
         view = self.rep.view
-        item = Calendar.CalendarEvent(itsView=view)
+        event = Calendar.CalendarEvent(itsView=view)
+        item = event.itsItem
         path = item.itsPath
         item.delete()
         del item

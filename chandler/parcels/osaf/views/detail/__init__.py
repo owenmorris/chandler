@@ -24,13 +24,14 @@ from detailblocks import (
 
 from detail import (
     CalendarAllDayAreaBlock,
+    EventAreaBlock,
     CalendarConditionalLabelBlock,
     CalendarLocationAreaBlock, 
     CalendarRecurrenceCustomAreaBlock, 
     CalendarRecurrenceEndAreaBlock, 
     CalendarRecurrencePopupAreaBlock, 
     CalendarRecurrenceSpacer2Area, 
-    CalendarStampBlock,
+    CalendarStampButtonBlock,
     CalendarTimeAEBlock,
     CalendarTimeZoneAreaBlock,
     DetailRootBlock, 
@@ -41,12 +42,15 @@ from detail import (
     EmptyPanelBlock,
     HTMLDetailArea,
     InboundOnlyAreaBlock,
+    MailAreaBlock,
     MailMessageButtonBlock,
     OutboundOnlyAreaBlock,
     PrivateSwitchButtonBlock, 
+    StampAreaBlock,
     StaticRedirectAttribute,
     StaticRedirectAttributeLabel, 
     StaticTextLabel, 
-    TaskStampBlock
+    TaskAreaBlock,
+    TaskStampButtonBlock,
 )
     

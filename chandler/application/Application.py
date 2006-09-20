@@ -801,7 +801,10 @@ class wxApplication (wx.App):
         if self.ignoreIdle: return                # workaround for bug 4732
 
         self.propagateAsynchronousNotifications()
-
+        
+        if not hasattr(self, "_floatingEventsColl"):
+            self._floatingEventsColl = schema.ns("osaf.pim", self.UIRepositoryView).floatingEvents
+        
         focus = wx.Window_FindFocus()
         if self.focus != focus:
             self.focus = focus

@@ -50,7 +50,7 @@ class TestImportOverwrite(ChandlerTestCase):
         share = Sharing.OneTimeFileSystemShare(path, 'tempOverwriteTest.ics', ICalendar.ICalendarFormat, itsView=appView)
 
         collection = ListCollection(itsView=appView)
-        for tmpEvent in Calendar.CalendarEvent.iterItems(appView):
+        for tmpEvent in Calendar.EventStamp.getCollection(appView):
             collection.add(tmpEvent)
         share.contents = collection
         share.put()

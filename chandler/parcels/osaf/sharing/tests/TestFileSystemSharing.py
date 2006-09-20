@@ -91,14 +91,14 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
         tzinfo = ICUtzinfo.default
         for i in xrange(5):
             c = pim.CalendarEvent(itsParent=sandbox)
-            c.displayName = events[i % 5]
+            c.summary = events[i % 5]
             c.organizer = contacts[0]
             c.participants = [contacts[1], contacts[2]]
             c.startTime=datetime.datetime(2005, 10, 31, 12, 0, 0, 0, tzinfo)
             c.duration=datetime.timedelta(minutes=60)
             c.anyTime=False
-            self.uuids[c.itsUUID] = c.displayName
-            coll.add(c)
+            self.uuids[c.itsItem.itsUUID] = c.summary
+            coll.add(c.itsItem)
 
     def PrepareShares(self):
         view0 = self.views[0]
@@ -173,13 +173,15 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
                 break
 
         item0 = view0.findUUID(uuid)
+        event0 = pim.EventStamp(item0)
         item0.displayName = uw("meeting rescheduled")
-        oldStart = item0.startTime
+        oldStart = event0.startTime
 
         tzinfo = ICUtzinfo.default
         newStart = datetime.datetime(2005, 11, 1, 12, 0, 0, 0, tzinfo)
         item1 = view1.findUUID(uuid)
-        item1.startTime = newStart
+        event1 = pim.EventStamp(item1)
+        event1.startTime = newStart
 
         view0.commit()
         sharing.sync(coll0)
@@ -205,10 +207,10 @@ class CosmoSharingTestCase(testcase.DualRepositoryTestCase):
          "displayName unequal: %s vs %s" % (item1.displayName.encode("utf8"),
                                             testMessage.encode("utf8")))
 
-        self.assertEqual(item0.startTime, newStart,
-         "startTimes unequal: %s vs %s" % (item0.startTime, newStart))
-        self.assertEqual(item1.startTime, newStart,
-         "startTimes unequal: %s vs %s" % (item1.startTime, newStart))
+        self.assertEqual(event0.startTime, newStart,
+         "startTimes unequal: %s vs %s" % (event0.startTime, newStart))
+        self.assertEqual(event1.startTime, newStart,
+         "startTimes unequal: %s vs %s" % (event1.startTime, newStart))
 
     def Remove(self):
 

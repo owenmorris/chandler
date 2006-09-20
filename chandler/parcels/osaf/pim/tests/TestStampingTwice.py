@@ -19,7 +19,7 @@ Unit tests for notes parcel
 import unittest, os
 
 import osaf.pim.tests.TestDomainModel as TestDomainModel
-from osaf.pim.tasks import Task, TaskMixin
+from osaf.pim.tasks import Task, TaskStamp
 import osaf.pim.mail as Mail
 import osaf.pim.calendar.Calendar as Calendar
 import logging
@@ -40,16 +40,14 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         view = self.rep.view
 
         # Get the stamp kinds
-        taskMixin = TaskMixin.getKind(view)
-        eventMixin = Calendar.CalendarEventMixin.getKind(view)
-        add = 'add'
-        remove = 'remove'
+        taskStamp = TaskStamp
+        eventStamp = Calendar.EventStamp
 
         # Create a Task, and do all kinds of stamping on it
         aTask = Task("aTask", itsView=view)
 
-        aTask.StampKind(add, eventMixin)
-        aTask.StampKind(remove, taskMixin)
+        eventStamp(aTask).add()
+        taskStamp(aTask).remove()
 
     def testStampingAgain(self):
         self.testStamping()

@@ -40,24 +40,24 @@ class CollectionColors(schema.Item):
 class UserCollection(schema.Annotation):
     schema.kindInfo(annotates=ContentCollection)
     
-    renameable              = schema.One(schema.Boolean, defaultValue = True)
-    color                   = schema.One(ColorType)
-    iconName                = schema.One(schema.Text, defaultValue = "")
-    iconNameHasKindVariant  = schema.One(schema.Boolean, defaultValue = False)
-    colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
-    dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
-    outOfTheBoxCollection   = schema.One(schema.Boolean, defaultValue = False)
-    canAdd                  = schema.One(schema.Boolean, defaultValue = True)
-    allowOverlay            = schema.One(schema.Boolean, defaultValue = True)
+    renameable               = schema.One(schema.Boolean, defaultValue = True)
+    color                    = schema.One(ColorType)
+    iconName                 = schema.One(schema.Text, defaultValue = "")
+    iconNameHasClassVariant  = schema.One(schema.Boolean, defaultValue = False)
+    colorizeIcon             = schema.One(schema.Boolean, defaultValue = True)
+    dontDisplayAsCalendar    = schema.One(schema.Boolean, defaultValue = False)
+    outOfTheBoxCollection    = schema.One(schema.Boolean, defaultValue = False)
+    canAdd                   = schema.One(schema.Boolean, defaultValue = True)
+    allowOverlay             = schema.One(schema.Boolean, defaultValue = True)
     """
-      preferredKind is used as a hint to the user-interface to choose the right
-      view for the display, e.g. CalendarView for collections that have a preferredKind
-      of CalendarEventMixin's kind.
+      preferredClass is used as a hint to the user-interface to choose the right
+      view for the display, e.g. CalendarView for collections that have a
+      preferredClass of EventStamp.
     """
-    preferredKind           = schema.One(schema.TypeReference('//Schema/Core/Kind'))
+    preferredClass           = schema.One(schema.Class)
 
     schema.addClouds(
-        copying = schema.Cloud(byRef=[preferredKind]),
+        copying = schema.Cloud(byRef=[preferredClass]),
     )
 
     def ensureColor(self):
@@ -107,7 +107,7 @@ def installParcel(parcel, oldVersion=None):
     allUC.setValues(renameable=False,
                     outOfTheBoxCollection = True,
                     iconName = "Dashboard",
-                    iconNameHasKindVariant = True,
+                    iconNameHasClassVariant = True,
                     colorizeIcon = False,
                     dontDisplayAsCalendar = True,
                     allowOverlay = False)

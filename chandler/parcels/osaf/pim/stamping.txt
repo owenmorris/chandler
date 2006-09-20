@@ -1,0 +1,260 @@
+====================
+Stamping in Chandler
+====================
+
+.. contents:: **Table of Contents**
+
+
+Setup
+-----
+
+First, we'll import the modules we'll need:
+
+>>> import application.schema as schema
+>>> from repository.persistence.RepositoryView import NullRepositoryView
+>>> from osaf.pim import *
+>>> repoView = NullRepositoryView()
+
+
+... and create an example class we'll use to be able to identify items we've
+created easily (and to make the doctests more readable):
+
+>>> class ExampleItem(ContentItem):
+...    def __repr__(self): return u"<ExampleItem: %s>" % (self.displayName)
+
+
+Stamping basics
+---------------
+
+Now, we're ready to go define a new stamp. To do this, we subclass
+``Stamp`` (which has been imported from ``osaf.pim``):
+
+>>> class MyStamp(Stamp):
+...
+...     schema.kindInfo(annotates=ContentItem)
+...
+...     extra = schema.One(schema.Text)
+...
+>>>
+
+In this example, we've only defined one attribute, ``extra`` that's associated
+with the stamp, but since ``Stamp`` subclasses the schema's ``Annotation``,
+it's quite possible to have many attributes in a stamp.
+
+Let’s now go ahead and make a new item:
+
+>>> item = ExampleItem(itsView=repoView, displayName=u"whoa")
+
+The ``stamps`` method of the ``Stamp`` annotation class returns an
+iterable that tells us which stamps the item has. Since we haven’t
+yet stamped the item, this is empty:
+
+>>> list(Stamp(item).stamps)
+[]
+
+You can stamp items using your ``Stamp`` subclass’s ``add()``
+method:
+
+>>> MyStamp(item).add()
+
+and now we can check that the appropriate stamp has been added.
+
+>>> list(Stamp(item).stamps)
+[MyStamp(<ExampleItem: whoa>)]
+
+Notice that the objects returned by ``stamps`` are instances of ``Stamp``
+subclasses, not the subclasses themselves.
+
+Once an item has been stamped, you can access its attributes like any
+``Annotation``:
+
+>>> MyStamp(item).extra = u"This is so cool"
+>>> MyStamp(item).extra
+u'This is so cool'
+
+There's an API for seeing if an object has a given stamp, ``has_stamp``:
+
+>>> has_stamp(item, MyStamp)
+True
+>>> has_stamp(item, Stamp)
+False
+>>> has_stamp("not an item", MyStamp)
+False
+
+You can remove a stamp from an item:
+
+>>> MyStamp(item).remove()
+>>> list(Stamp(item).stamps)
+[]
+>>> has_stamp(item, MyStamp)
+False
+
+Note that this doesn't remove the stamped attributes (unless you override
+``remove()`` in your subclass:
+
+>>> MyStamp(item).extra
+u'This is so cool'
+
+What happens if you try to stamp an item twice?
+
+>>> MyStamp(item).add()
+>>> MyStamp(item).add()
+Traceback (most recent call last):
+    ...
+StampAlreadyPresentError: Item <ExampleItem: whoa> already has stamp MyStamp(<ExampleItem: whoa>)
+
+We can check that the original stamp is still there, though:
+
+>>> list(Stamp(item).stamps)
+[MyStamp(<ExampleItem: whoa>)]
+
+Of course, you can add stamps to more than one object, viz::
+
+>>> newItem = ExampleItem(itsView=repoView, displayName=u"nellie")
+>>> MyStamp(newItem).add()
+>>> MyStamp(newItem).remove()
+
+Equality Testing
+----------------
+
+For convenience, you can compare Stamp instances for equality. Two instances
+of a given class will only match if they have the same underlying item:
+
+>>> stamp1 = MyStamp(item)
+>>> stamp2 = MyStamp(item)
+>>> stamp1 == stamp2
+True
+>>> stamp1 is stamp2
+False
+>>> stamp1 == MyStamp(newItem)
+False
+
+Also, instances of different Stamps are never equal:
+
+>>> class MyExtendedStamp(MyStamp):
+...     schema.kindInfo(annotates=ContentItem)
+...
+>>> MyExtendedStamp(item) == MyStamp(item)
+False
+
+Multiple stamps
+---------------
+
+>>> class SecondStamp(Stamp):
+...
+...     schema.kindInfo(annotates=ContentItem)
+...
+...     count = schema.One(schema.Integer)
+...
+
+>>> list(Stamp(item).stamps)
+[MyStamp(<ExampleItem: whoa>)]
+
+>>> SecondStamp(item).add()
+>>> list(sorted(Stamp(item).stamps))
+[MyStamp(<ExampleItem: whoa>), SecondStamp(<ExampleItem: whoa>)]
+>>> MyStamp(item).remove()
+>>> list(Stamp(item).stamps)
+[SecondStamp(<ExampleItem: whoa>)]
+
+Collections of stamped items
+----------------------------
+
+Now, let’s try an example where we support a collection of all stamped items. We
+do this by setting __use_collection__ to ``True`` in our ``Stamp`` subclass
+([grant] This may just happen for all stamps):
+
+>>> class MyIndexedStamp(Stamp):
+...
+...     __use_collection__ = True
+...
+...     schema.kindInfo(annotates=ContentItem)
+...
+...     extra = schema.One(schema.Text)
+...
+
+The `getCollection()` class method can be used to iterate on the items that
+have a given stamp:
+>>> list(MyIndexedStamp.getCollection(item.itsView))
+[]
+>>> MyIndexedStamp(item).add()
+>>> list(MyIndexedStamp.getCollection(item.itsView))
+[<ExampleItem: whoa>]
+>>> MyIndexedStamp(newItem).add()
+>>> list(MyIndexedStamp.getCollection(item.itsView))
+[<ExampleItem: whoa>, <ExampleItem: nellie>]
+>>> MyIndexedStamp(item).remove(); list(MyIndexedStamp.getCollection(newItem.itsView))
+[<ExampleItem: nellie>]
+
+Ref collections and stamping
+----------------------------
+
+A ``Stamp`` subclass can define 
+
+>>> class StampWithBiRef(Stamp):
+...
+...     schema.kindInfo(annotates=ContentItem)
+...     children = schema.Sequence()
+...     parent = schema.One(inverse=children)
+
+>>> mommy = ExampleItem(itsView=repoView, displayName=u"parent")
+>>> baby = ExampleItem(itsView=repoView, displayName=u"baby")
+>>> StampWithBiRef(mommy).add()
+>>> StampWithBiRef(baby).add()
+>>> StampWithBiRef(baby).parent = mommy
+>>> list(StampWithBiRef(mommy).children)
+[<ExampleItem: baby>]
+
+
+Indexing stamped attributes
+---------------------------
+
+The ``schema.Annotation`` class (and therefore its subclass) has been
+extended to allow creation of repository indexes. Here’s an example:
+
+>>> from datetime import datetime
+>>> class StampWithIndex(Stamp):
+...     __use_collection__ = True
+...
+...     schema.kindInfo(annotates=ContentItem)
+...     someDate = schema.One(schema.DateTime,
+...                           defaultValue=datetime.now())
+...
+...     @schema.Comparator
+...     def compareWithItem(self, other):
+...          """
+...          For some reason, we want datetimes on the same day
+...          to compare equal.
+...          """
+...          return cmp(self.someDate.date(),
+...                     other.someDate.date())
+
+Here the ``@schema.Comparator`` decorator is needed if you want to define
+a ``'compare'`` index on a collection:
+
+>>> StampWithIndex.addIndex(repoView, 'testIndex', 'compare',
+...                         compare='compareWithItem',
+...                         monitor=(StampWithIndex.someDate,))
+<CompareIndex: 0>
+
+(The first argument to ``Stamp.addIndex`` is either a specific collection, or
+a repository view: In the latter case, the ``Stamp`` subclass’s
+own collection is used).
+
+After stamping a couple of items with ``StampWithIndex``:
+>>> StampWithIndex(mommy).add()
+>>> StampWithIndex(baby).add()
+>>> StampWithIndex(mommy).someDate = datetime(2001, 01, 01)
+
+we can use the ``Collection.getByIndex()`` method to retrieve items
+according to their position in the index:
+
+>>> StampWithIndex.getCollection(repoView).getByIndex('testIndex', 0)
+<ExampleItem: parent>
+>>> StampWithIndex(baby).someDate = datetime(1999, 01, 01)
+>>> StampWithIndex.getCollection(repoView).getByIndex('testIndex', 0)
+<ExampleItem: baby>
+
+Since repository indexes deal with items (i.e. ``Annotation`` and ``Stamp``
+objects aren’t persistent), the return values here are ``Item`` instances.
+

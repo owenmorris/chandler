@@ -21,7 +21,7 @@ __parcel__ = "osaf.framework.attributeEditors"
 import os, cStringIO, re
 import wx
 from wx.lib.scrolledpanel import ScrolledPanel
-from osaf.pim.tasks import TaskMixin
+from osaf.pim.tasks import TaskStamp
 import osaf.pim as pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
@@ -132,7 +132,7 @@ def installParcel(parcel, oldVersion=None):
     aeDict = {
         '_default': 'RepositoryAttributeEditor',
         'Boolean': 'CheckboxAttributeEditor',
-        'CalendarEventMixin': 'CalendarKindAttributeEditor',
+        'EventStamp': 'EventStampAttributeEditor',
         'Contact': 'ContactAttributeEditor',
         'ContactName': 'ContactNameAttributeEditor', 
         'ContentItem': 'StringAttributeEditor', 
@@ -149,8 +149,8 @@ def installParcel(parcel, oldVersion=None):
         'Item': 'ItemNameAttributeEditor',
         'image/jpeg': 'LobImageAttributeEditor',
         'Location': 'LocationAttributeEditor',
-        'MailMessageMixin': 'MailKindAttributeEditor',
-        'TaskMixin': 'TaskKindAttributeEditor',
+        'MailStamp': 'MailStampAttributeEditor',
+        'TaskStamp': 'TaskStampAttributeEditor',
         'Text': 'StringAttributeEditor',
         'Text+static': 'StaticStringAttributeEditor',
         'Timedelta': 'TimeDeltaAttributeEditor',
@@ -1890,7 +1890,7 @@ class TimeAttributeEditor(StringAttributeEditor):
         value = value.replace(tzinfo=oldValue.tzinfo)
         
         if value != oldValue:
-            setattr (item, attributeName, value)
+            setattr(item, attributeName, value)
             
         # Refresh the value in the control
         self.SetControlValue(self.control, 
@@ -2449,14 +2449,14 @@ class IconAttributeEditor (BaseAttributeEditor):
                 y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
                 dc.DrawBitmap (image, x, y, True)
 
-class KindAttributeEditor(IconAttributeEditor):
+class StampAttributeEditor(IconAttributeEditor):
     """
     Base class for attribute editors used for the stamping 
     columns in the summary. Subclasses need to define a 
-    "mixinClass" class attribute that points at the mixin class to be used.
+    "stampClass" attribute that points at the stamp class to be used.
     """
     def __init__(self, *args, **kwds):
-        super(KindAttributeEditor, self).__init__(*args, **kwds)
+        super(StampAttributeEditor, self).__init__(*args, **kwds)
         IconAttributeEditor.bitmapCache.AddStates(\
             multibitmaps=self.makeStates(),
             bitmapProvider=wx.GetApp().GetImage)
@@ -2482,8 +2482,8 @@ class KindAttributeEditor(IconAttributeEditor):
         return (unstamped, stamped)
 
     def ReadOnly(self, (item, attributeName)):
-        # Our "attributeName" is a Kind; substitute a real attribute.
-        readOnly = super(KindAttributeEditor, self).ReadOnly((item, 'body'))
+        # Our "attributeName" is a Stamp; substitute a real attribute.
+        readOnly = super(StampAttributeEditor, self).ReadOnly((item, 'body'))
 
         # @@@BJS: added Morgan's temporary disabling of stamping of shared
         # items, as in Detail.py's DetailStampButton._isStampable()
@@ -2493,7 +2493,7 @@ class KindAttributeEditor(IconAttributeEditor):
 
     def getImageVariation(self, item, attributeName):
         """ Pick the right variation """
-        result = super(KindAttributeEditor, self).getImageVariation(item, attributeName)
+        result = super(StampAttributeEditor, self).getImageVariation(item, attributeName)
         if result != 'normal':
             return result
         
@@ -2501,18 +2501,18 @@ class KindAttributeEditor(IconAttributeEditor):
         return (rolledOverItem is item) and "rollover" or "normal"
 
     def GetAttributeValue(self, item, attributeName):
-        isStamped = item.isItemOf(self.mixinClass.getKind(item.itsView))
+        isStamped = pim.has_stamp(item, self.stampClass)
         return self._getStateName(isStamped)
     
     def SetAttributeValue(self, item, attributeName, value):
-        mixinKind = self.mixinClass.getKind(item.itsView)
-        stampedNess = item.isItemOf(mixinKind)
-        if stampedNess != (value == self._getStateName(True)):
+        isStamped = pim.has_stamp(item, self.stampClass)
+        if isStamped != (value == self._getStateName(True)):
             # Stamp or unstamp the item
-            operation = stampedNess and 'remove' or 'add'
-            #logger.debug("%s: stamping: %s %s to %s", debugName(self), 
-                         #operation, mixinKind, debugName(item))
-            item.StampKind(operation, mixinKind)
+            stampedObject = self.stampClass(item)
+            if isStamped:
+                stampedObject.remove()
+            else:
+                stampedObject.add()
 
     def OnMouseChange(self, event, cell, isIn, isDown, (item, attributeName)):
         """
@@ -2531,8 +2531,8 @@ class KindAttributeEditor(IconAttributeEditor):
         # trigger an advance if appropriate.
         if isDown != getattr(self, 'wasDown', False):
             if isIn and not isDown:
-                stampedNess = item.isItemOf(self.mixinClass.getKind(item.itsView))
-                newValue = self._getStateName(not stampedNess)
+                isStamped = pim.has_stamp(item, self.stampClass)
+                newValue = self._getStateName(not isStamped)
                 self.SetAttributeValue(item, attributeName, newValue)                
             if isDown:
                 self.wasDown = True
@@ -2544,15 +2544,15 @@ class KindAttributeEditor(IconAttributeEditor):
             #logger.debug("AE Calling event.Skip")
             event.Skip()
             
-class CalendarKindAttributeEditor(KindAttributeEditor):
-    mixinClass = Calendar.CalendarEventMixin
+class EventStampAttributeEditor(StampAttributeEditor):
+    stampClass = Calendar.EventStamp
     iconPrefix = "SumEvent"
     
-class TaskKindAttributeEditor(KindAttributeEditor):
-    mixinClass = TaskMixin
+class TaskStampAttributeEditor(StampAttributeEditor):
+    stampClass = TaskStamp
     iconPrefix = "SumTask"
 
-class MailKindAttributeEditor(KindAttributeEditor):
-    mixinClass = Mail.MailMessageMixin
+class MailStampAttributeEditor(StampAttributeEditor):
+    stampClass = Mail.MailStamp
     iconPrefix = "SumMail"
     

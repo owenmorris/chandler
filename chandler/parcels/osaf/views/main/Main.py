@@ -28,6 +28,7 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, RestoreShares, autosyncprefs
 )
 
+from repository.item.Item import MissingClass
 from osaf import pim, sharing, messages, webserver, search, settings
 
 from osaf.pim import Contact, ContentCollection, mail, IndexedSelectionCollection
@@ -125,8 +126,9 @@ class MainView(View):
             itemCollection = share.contents
 
             for addresseeContact in mailMessage.toAddress:
-                if addresseeContact in itemCollection.invitees:
-                    itemCollection.invitees.remove(addresseeContact)
+                invitation = mail.CollectionInvitation(itemCollection)
+                if addresseeContact in invitation.invitees:
+                    invitation.invitees.remove(addresseeContact)
 
     def onAboutEvent(self, event):
         # The "Help | About Chandler..." menu item
@@ -150,32 +152,44 @@ class MainView(View):
         AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame,
                                                         rv=self.itsView)
 
-    def onNewItemEvent (self, event):
+    def onNewItemEvent(self, event):
         # Create a new Content Item
-
+        
         allCollection = schema.ns('osaf.pim', self).allCollection
-        sidebar = Block.findBlockByName ("Sidebar")
-        kindParameter = getattr (event, "kindParameter", None)
+        sidebar = Block.findBlockByName("Sidebar")
+        classParameter = event.classParameter
 
-        # onNewItem method takes precedence of kindParameter
-        onNewItemMethod = getattr (type (event), "onNewItem", None)
-        if onNewItemMethod:
-            newItem = onNewItemMethod (event)
+        # onNewItem method takes precedence of classParameter
+        onNewItemMethod = getattr(event, "onNewItem", None)
+        if onNewItemMethod is not None:
+            newItem = onNewItemMethod()
             if newItem is None:
                 return
         else:
-            # A kindParameter of None stamps a Note with the sidebar's filterKind
-            if kindParameter is None:
+            # A classParameter of MissingClass stamps a Note with the sidebar's
+            # filterClass
+            
+            if classParameter is MissingClass:
+                classParameter = sidebar.filterClass
+                
+            if issubclass(classParameter, pim.Stamp):
+                stampClass = classParameter
+            else:
+                stampClass = MissingClass
+             
+            if classParameter is MissingClass or stampClass is not MissingClass:
                 kindToCreate = pim.Note.getKind(self.itsView)
             else:
-                kindToCreate = kindParameter
-
-            newItem = kindToCreate.newItem (None, None)
-
-            if (kindParameter is None and sidebar.filterKind is not None):
-                newItem.StampKind ('add', sidebar.filterKind)
+                kindToCreate = classParameter.getKind(self.itsView)
             
-            newItem.InitOutgoingAttributes ()
+            newItem = kindToCreate.newItem(None, None)
+
+            if stampClass is not MissingClass:
+                stampObject = stampClass(newItem)
+                stampObject.add()
+                stampObject.InitOutgoingAttributes()
+            else:
+                newItem.InitOutgoingAttributes ()
 
         collection = event.collection
         selectedCollection = self.getSidebarSelectedCollection()
@@ -190,12 +204,11 @@ class MainView(View):
             # Tell the sidebar we want to go to the All collection
             collection = allCollection
         
-        # The kindParameter is used to specify the viewer
-        if kindParameter is not None:
-            sidebar.setPreferredKind (kindParameter)
+        # The stampClass is used to specify the viewer
+        sidebar.setPreferredClass(stampClass)
 
         if not collection in sidebar.contents and event.collectionAddEvent is not None:
-            Block.post (event.collectionAddEvent, {}, self)
+            Block.post(event.collectionAddEvent, {}, self)
 
         if collection in sidebar.contents and collection is not selectedCollection:
             sidebar.postEventByName("SelectItemsBroadcast", {'items':[collection]})
@@ -320,17 +333,17 @@ class MainView(View):
         event.arguments ['Enable'] = False
         event.arguments ['Text'] = messages.SEND
 
-    def onSendMailEvent (self, event):
+    def onSendMailEvent(self, event):
         # commit changes, since we'll be switching to Twisted thread
         self.RepositoryCommitWithStatus()
     
         # get default SMTP account
-        item = event.arguments ['item']
+        mailToSend = mail.MailStamp(event.arguments['item'])
 
         # determine the account through which we'll send this message;
         # we'll use default SMTP account associated with the first account that's
         # associated with the message's "from" address.
-        fromAddress = item.fromAddress
+        fromAddress = mailToSend.fromAddress
         assert fromAddress is not None and fromAddress.accounts is not None
         downloadAccount = fromAddress.accounts.first()
         account = (downloadAccount is not None and downloadAccount.defaultSMTPAccount
@@ -340,7 +353,8 @@ class MainView(View):
         self.setStatusMessage (_(u'Sending mail...'))
 
         # Now send the mail
-        Globals.mailService.getSMTPInstance(account).sendMail(item)
+        smtpInstance = Globals.mailService.getSMTPInstance(account)
+        smtpInstance.sendMail(mailToSend)
 
     def onShareItemEvent (self, event):
         """
@@ -374,13 +388,14 @@ class MainView(View):
 
         # Copy the invitee list into the share's list. As we go, collect the 
         # addresses we'll notify.
-        if len (itemCollection.invitees) == 0:
+        invitees = mail.CollectionInvitation(itemCollection).invitees
+        if len (invitees) == 0:
             self.setStatusMessage (_(u"No invitees!"))
             return
         inviteeList = []
         inviteeStringsList = []
 
-        for invitee in itemCollection.invitees:
+        for invitee in invitees:
             inviteeList.append(invitee)
             inviteeStringsList.append(invitee.emailAddress)
             inviteeContact = Contact.getContactForEmailAddress(self.itsView, invitee.emailAddress)
@@ -537,7 +552,7 @@ class MainView(View):
             return
 
         for item in collection:
-            if isinstance(item, pim.CalendarEventMixin):
+            if pim.has_stamp(item, pim.EventStamp):
                 break
         else:
             message = _(u"This collection contains no events")
@@ -553,8 +568,10 @@ class MainView(View):
         except UnicodeEncodeError:
             name = str(collection.itsUUID)
 
-        options = [dict(name='reminders', checked = True, label = _(u"Export reminders")),
-                   dict(name='transparency', checked = True, label = _(u"Export event status"))]
+        options = [dict(name=pim.Remindable.reminders.name, checked = True,
+                        label = _(u"Export reminders")),
+                   dict(name=pim.EventStamp.transparency.name, checked = True,
+                        label = _(u"Export event status"))]
         res = ImportExport.showFileChooserWithOptions(wx.GetApp().mainFrame,
                                        _(u"Choose a filename to export to"),
                                             os.path.join(getDesktopDir(),
@@ -574,10 +591,10 @@ class MainView(View):
 
                 share = sharing.OneTimeFileSystemShare(dir, filename,
                                 ICalendar.ICalendarFormat, itsView=self.itsView)
-                if not optionResults['reminders']:
-                    share.filterAttributes.append('reminders')
-                if not optionResults['transparency']:
-                    share.filterAttributes.append('transparency')
+                if not optionResults[pim.Remindable.reminders.name]:
+                    share.filterAttributes.append(pim.Remindable.reminders.name)
+                if not optionResults[pim.EventStamp.transparency.name]:
+                    share.filterAttributes.append(pim.EventStamp.transparency.name)
                 share.contents = collection
                 share.put()
                 self.setStatusMessage(_(u"Export completed"))
@@ -956,13 +973,13 @@ class MainView(View):
         if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
             return
 
-        collection = self.getSidebarSelectedCollection ()
+        collection = self.getSidebarSelectedCollection()
         if collection is not None:
             sidebar = Block.findBlockByName("Sidebar")
-            if sidebar.filterKind is None:
+            if sidebar.filterClass in (None, MissingClass):
                 filterClassName = None
             else:
-                klass = sidebar.filterKind.classes['python']
+                klass = sidebar.filterClass
                 filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
 
             mainFrame = wx.GetApp().mainFrame
@@ -981,8 +998,8 @@ class MainView(View):
 
             sidebar = Block.findBlockByName("Sidebar")
             filterClasses = []
-            if sidebar.filterKind is not None:
-                klass = sidebar.filterKind.classes['python']
+            if sidebar.filterClass is not None:
+                klass = sidebar.filterClass
                 className = "%s.%s" % (klass.__module__, klass.__name__)
                 filterClasses.append(className)
 

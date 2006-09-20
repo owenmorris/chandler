@@ -99,15 +99,15 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         lob = view.findPath("//Schema/Core/Lob")
         for i in xrange(6):
             c = pim.CalendarEvent(itsParent=sandbox)
-            c.displayName = events[i % 6]
+            c.summary = events[i % 6]
             c.organizer = contacts[0]
             c.participants = [contacts[1], contacts[2]]
             c.startTime=datetime.datetime(2005, 10, 31, 12, 0, 0, 0, tzinfo)
             c.duration=datetime.timedelta(minutes=60)
             c.anyTime=False
-            c.body = uw("unicode test")
-            self.uuids[c.itsUUID] = c.displayName
-            coll.add(c)
+            c.itsItem.body = uw("unicode test")
+            self.uuids[c.itsItem.itsUUID] = c.summary
+            coll.add(c.itsItem)
 
     def PrepareShares(self):
 
@@ -234,13 +234,15 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
         # Make non-overlapping changes to the item
         item0 = view0.findUUID(uuid)
+        event0 = pim.EventStamp(item0)
         item0.displayName = uw("meeting rescheduled")
-        oldStart = item0.startTime
+        oldStart = event0.startTime
 
         tzinfo = ICUtzinfo.getDefault()
         newStart = datetime.datetime(2005, 11, 1, 12, 0, 0, 0, tzinfo)
         item1 = view1.findUUID(uuid)
-        item1.startTime = newStart
+        event1 = pim.EventStamp(item1)
+        event1.startTime = newStart
 
         view0.commit()
         stats = sharing.sync(coll0)
@@ -283,19 +285,19 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(item1.displayName, uw("meeting rescheduled"),
          u"displayName is %s" % (item1.displayName))
 
-        self.assertEqual(item0.startTime, newStart,
-         u"startTime is %s" % (item0.startTime))
-        self.assertEqual(item1.startTime, newStart,
-         u"startTime is %s" % (item1.startTime))
+        self.assertEqual(event0.startTime, newStart,
+         u"startTime is %s" % (event0.startTime))
+        self.assertEqual(event1.startTime, newStart,
+         u"startTime is %s" % (event1.startTime))
 
 
 
         # Make overlapping changes to the item
 
         newStart0 = datetime.datetime(2006, 1, 1, 12, 0, 0, 0, tzinfo)
-        item0.startTime = newStart0
+        event0.startTime = newStart0
         newStart1 = datetime.datetime(2006, 1, 2, 12, 0, 0, 0, tzinfo)
-        item1.startTime = newStart1
+        event1.startTime = newStart1
 
         view0.commit()
         stats = sharing.sync(coll0)
@@ -334,10 +336,10 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
 
         # Since we sync'd coll0 first, its change wins out over coll1
-        self.assertEqual(item0.startTime, newStart0,
-         u"startTime is %s" % (item0.startTime))
-        self.assertEqual(item1.startTime, newStart0,
-         u"startTime is %s" % (item1.startTime))
+        self.assertEqual(event0.startTime, newStart0,
+         u"startTime is %s" % (event0.startTime))
+        self.assertEqual(event1.startTime, newStart0,
+         u"startTime is %s" % (event1.startTime))
 
         item0.body = uw("view0 change")
         item1.body = uw("view1 change")
