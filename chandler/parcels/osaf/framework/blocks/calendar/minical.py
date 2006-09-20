@@ -128,6 +128,8 @@ class PyMiniCalendar(wx.PyControl):
         self.firstDayOfWeek = GregorianCalendar().getFirstDayOfWeek()
         
         self.busyPercent = {}
+                
+        self.hoverDate = None
 
         # I'm sure this will really get initialized in RecalcGeometry
         self.rowOffset = 0
@@ -619,7 +621,8 @@ class PyMiniCalendar(wx.PyControl):
                     highlightWeek = (self.GetWindowStyle() &
                                      CAL_HIGHLIGHT_WEEK) != 0
 
-                    if ((weekDate.month == startDate.month) and   # Only highlight days that fall in the current month
+                    if self.hoverDate == weekDate or (
+                        (weekDate.month == startDate.month) and   # Only highlight days that fall in the current month
                         ((highlightWeek and                        # Highlighting week and the week we are drawing matches
                           (self.CompareWeeks(weekDate, self.selectedDate))) or 
                          (not highlightWeek and                # Highlighting a single day

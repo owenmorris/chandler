@@ -25,17 +25,20 @@ import minical
 from application import schema
 
 from osaf.framework.blocks import (
-    Block, Styles, DrawingUtilities, ContainerBlocks
+    Block, Styles, DrawingUtilities, ContainerBlocks, DragAndDrop
     )
 
 from osaf.framework import Preferences
 import osaf.pim as pim
 import CalendarCanvas
 import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim import EventStamp, has_stamp
 from datetime import datetime, date, time, timedelta
 from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
 from application import styles
+
+from application.dialogs import RecurrenceDialog
 
 if '__WXMAC__' in wx.PlatformInfo:
     PLATFORM_BORDER = wx.BORDER_NONE
@@ -45,8 +48,11 @@ else:
 zero_delta = timedelta(0)
 one_day = timedelta(1)
 
-class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
-                     minical.PyMiniCalendar):
+class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
+                     DragAndDrop.ItemClipboardHandler,
+                     CalendarCanvas.CalendarNotificationHandler,
+                     minical.PyMiniCalendar, 
+                     ):
 
     # Used to limit the frequency with which we repaint the minicalendar.
     # This used to be a real issue, but with the 0.6 notification system,
@@ -62,6 +68,52 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
      # because more general changes (i.e. ones we don't know
      # how to optimize) require a full recalculation.
 
+    def OnHover(self, x, y, dragResult):
+        """
+        Override this to perform an action when a drag cursor is
+        hovering over the widget.
+        
+        @return: A wxDragResult other than dragResult if you want to change
+                 the drag operation
+        """
+        (region, value) =  self.HitTest(wx.Point(x, y))
+        if region in (minical.CAL_HITTEST_DAY,
+                      minical.CAL_HITTEST_SURROUNDING_WEEK):
+            if self.hoverDate != value:
+                self.hoverDate = value
+                self.Refresh()
+        else:
+            self.hoverDate = None
+        
+        # only allow drag and drop of items
+        if self.GetDraggedFromWidget() is None:
+            return wx.DragNone
+        else:
+            return dragResult
+
+    def AddItems(self, itemList):
+        """
+        Override this to add the dropped items to your widget.
+        """
+        if self.hoverDate is not None:        
+            for item in itemList:
+                proxy = RecurrenceDialog.getProxy(u'ui', item,
+                                        endCallback=self.wxSynchronizeWidget)
+                event = EventStamp(proxy)
+                if not has_stamp(proxy, EventStamp):
+                    event.add() # stamp as an event
+                    event.anyTime = True
+                oldTime = getattr(event, 'startTime', self.hoverDate).timetz()
+                event.startTime = datetime.combine(self.hoverDate, oldTime)
+        
+        self.hoverDate = None
+        self.Refresh()
+
+    def OnLeave(self):
+        """
+        Override this to perform an action when hovering terminates.
+        """
+        self.hoverDate = None
 
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
@@ -79,6 +131,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
         self.Bind(minical.EVT_MINI_CALENDAR_UPDATE_BUSY,
                   self.setFreeBusy)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+
 
     def wxSynchronizeWidget(self, useHints=False):
         style = PLATFORM_BORDER
@@ -243,7 +296,7 @@ class wxMiniCalendar(CalendarCanvas.CalendarNotificationHandler,
             endDatetime = datetime.combine(endDate, startOfDay)
 
             events = self.blockItem.contents
-            view = self.blockItem.itsView            
+            view = self.blockItem.itsView
             
             for event in Calendar.eventsInRange(view, startDatetime, endDatetime,
                                                events):                                                
