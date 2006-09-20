@@ -79,6 +79,21 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         ruleSetItem.addRule(ruleItem)
         return ruleSetItem
 
+ 	
+
+    def testOccurrenceMatchingMaster(self):
+        """
+        Make sure an occurrence with the same startTime as master is created
+        when calling getNextOccurrence.
+
+        """
+        event = self.event
+        event.anyTime = True
+        event.rruleset = self._createRuleSetItem('daily')
+        start = event.effectiveStartTime
+        occurrence = event.getNextOccurrence(start, start)
+        self.assertEqual(occurrence.effectiveStartTime, start)
+
     def testEndMatchesStart(self):
         """
         Events whose endTime matches the start of a range shouldn't be
@@ -253,14 +268,17 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         # test getNextOccurrence ordering, bug 4083
         generated = evtaskmod.getNextOccurrence()
-        self.assertEqual(self.event.getNextOccurrence(), calmod)
+        self.assertEqual(self.event.getNextOccurrence().getNextOccurrence(),
+                         calmod)
 
         evtaskmod.startTime = calmod.startTime - timedelta(hours=1)
-        self.assertEqual(self.event.getNextOccurrence(), evtaskmod)
+        self.assertEqual(self.event.getNextOccurrence().getNextOccurrence(),
+                         evtaskmod)
         self.assertEqual(calmod.getNextOccurrence(), generated)
 
         evtaskmod.startTime = generated.startTime + timedelta(hours=1)
-        self.assertEqual(self.event.getNextOccurrence(), calmod)
+        self.assertEqual(self.event.getNextOccurrence().getNextOccurrence(),
+                         calmod)
         self.assertEqual(calmod.getNextOccurrence(), generated)
         self.assertEqual(generated.getNextOccurrence(), evtaskmod)
 
@@ -497,7 +515,8 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         self.assertEqual(second.occurrenceFor, None)
         self.assertNotEqual(secondModified.summary, second.summary)
-        self.assertEqual(second.getNextOccurrence(), newthird)
+        self.assertEqual(second.getNextOccurrence().getNextOccurrence(),
+                         newthird)
         self.assertEqual(newthird.summary, uw('Twice modified title'))
 
         # make a THISANDFUTURE change to the THIS modification
@@ -580,7 +599,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         # Test moving a later THIS modification when changing an earlier mod
 
-        second = self.event.getNextOccurrence()
+        second = self.event.getNextOccurrence().getNextOccurrence()
         second.summary = uw("second")
         third = second.getNextOccurrence()
         third.summary = uw("third")

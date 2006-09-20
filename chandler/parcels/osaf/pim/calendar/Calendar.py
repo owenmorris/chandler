@@ -967,6 +967,9 @@ class EventStamp(Stamp):
         """Return the next occurrence for the recurring event self is part of.
 
         If self is the only occurrence, or the last occurrence, return None.
+        
+        If self is a master event, return the earliest occurrence.  That
+        occurrence's startTime may match self.startTime.
 
         @param after: Earliest end time allowed
         @type  after: C{datetime} or C{None}
@@ -988,22 +991,19 @@ class EventStamp(Stamp):
             if after is None:
                 # isBetween isn't quite what we want if after is None
                 def test(mod):
-                    return ((self.startTime < mod.startTime) and
-                           (before is None or (mod.startTime < before)))
+                    return ((self is first or
+                        self.effectiveStartTime < mod.effectiveStartTime) and
+                       (before is None or (mod.effectiveStartTime < before)))
             else:
                 def test(mod):
                     return mod.isBetween(after, before)
-            withMaster = []
-            if first.occurrenceFor is not None:
-                withMaster.append(first)
-            modEvents = itertools.imap(EventStamp, first.modifications or [])
-            for mod in itertools.chain(withMaster, modEvents):
+            for mod in itertools.imap(EventStamp, first.modifications or []):
                 if test(mod):
                     if nextEvent is None:
                         nextEvent = mod
                     # sort by recurrenceID if startTimes are equal
-                    elif ((mod.startTime < nextEvent.startTime) or
-                         ((mod.startTime == nextEvent.startTime)
+                    elif ((mod.effectiveStartTime < nextEvent.effectiveStartTime) or
+                         ((mod.effectiveStartTime == nextEvent.effectiveStartTime)
                           and (mod.recurrenceID  < nextEvent.recurrenceID))):
                         nextEvent = mod
             return nextEvent
@@ -1013,8 +1013,8 @@ class EventStamp(Stamp):
             return None
 
         first = self.getMaster()
-        # allow events to match start exact matching if checking for a specific
-        # occurrence, or if self is a zero duration event and using after
+        # use exact matching if checking for a specific occurrence, or if self
+        # is a zero duration event and using after
         exact = after is not None and (after == before or 
                                        self.duration == timedelta(0))
 
@@ -1022,7 +1022,7 @@ class EventStamp(Stamp):
         if not exact and after is not None:
             start = prepDatetime(after) - first.duration
         else:
-            start = prepDatetime(self.startTime)
+            start = prepDatetime(self.effectiveStartTime)
 
         if before is not None:
             before = prepDatetime(before)
@@ -1109,10 +1109,11 @@ class EventStamp(Stamp):
                     event = mod
                     
         if event is first and first.rruleset is not None:
-            startTime = self.startTime
-            event = first.getNextOccurrence(startTime, startTime) or first
+            startTime = self.effectiveStartTime
+            # get the occurrence that matches first
+            event = first.getNextOccurrence(startTime, startTime)
 
-        if not event.isBetween(after, before):
+        if event is None or not event.isBetween(after, before):
             event = first.getNextOccurrence(after, before)
         else:
             # [Bug 5482], [Bug 5627], [Bug 6174]
