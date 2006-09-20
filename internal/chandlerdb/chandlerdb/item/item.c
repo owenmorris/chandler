@@ -43,6 +43,7 @@ static PyObject *t_item__isNoDirty(t_item *self);
 static PyObject *t_item__isCopyExport(t_item *self);
 static PyObject *t_item__isImporting(t_item *self);
 static PyObject *t_item_isMutating(t_item *self);
+static PyObject *t_item_isMutatingOrDeleting(t_item *self);
 static PyObject *t_item__isRepository(t_item *self);
 static PyObject *t_item__isView(t_item *self);
 static PyObject *t_item__isItem(t_item *self);
@@ -135,6 +136,7 @@ static PyMethodDef t_item_methods[] = {
     { "_isCopyExport", (PyCFunction) t_item__isCopyExport, METH_NOARGS, "" },
     { "_isImporting", (PyCFunction) t_item__isImporting, METH_NOARGS, "" },
     { "isMutating", (PyCFunction) t_item_isMutating, METH_NOARGS, NULL },
+    { "isMutatingOrDeleting", (PyCFunction) t_item_isMutatingOrDeleting, METH_NOARGS, NULL },
     { "_isRepository", (PyCFunction) t_item__isRepository, METH_NOARGS, "" },
     { "_isView", (PyCFunction) t_item__isView, METH_NOARGS, "" },
     { "_isItem", (PyCFunction) t_item__isItem, METH_NOARGS, "" },
@@ -300,6 +302,8 @@ static PyObject *t_item_repr(t_item *self)
 
         if (self->status & DELETED)
             status = " (deleted)";
+        if (self->status & DELETING)
+            status = " (deleting)";
         else if (self->status & DEFERRED)
             status = " (deferred)";
         else if (self->status & STALE)
@@ -511,6 +515,14 @@ static PyObject *t_item__isImporting(t_item *self)
 static PyObject *t_item_isMutating(t_item *self)
 {
     if (self->status & MUTATING)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject *t_item_isMutatingOrDeleting(t_item *self)
+{
+    if (self->status & (MUTATING | DELETING))
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
@@ -978,7 +990,7 @@ static int verify(t_item *self, t_view *view,
             PyObject *msgAttr = PyObject_Str(attribute);
             PyObject *msgItem = t_item_repr(self);
                                                 
-            PyErr_Format(PyExc_ValueError, "Assigning %s to attribute '%s' on %s didn't match schema",
+            PyErr_Format(PyExc_ValueError, "Assigning %s to attribute '%s' on %s didn't match schema or failed (see log for explanation)",
                          PyString_AsString(msgValue),
                          PyString_AsString(msgAttr),
                          PyString_AsString(msgItem));
