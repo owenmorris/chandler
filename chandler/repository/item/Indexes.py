@@ -582,8 +582,7 @@ class SortedIndex(DelegatingIndex):
                     sorted = compare(prevKey, key) <= 0
                 if not sorted:
                     logger.error("Sorted %s index '%s' installed on value '%s' of type %s in attribute '%s' on %s is not sorted properly: value for %s is %s than the value for %s", self.getIndexType(), name, value, type(value), attribute, item._repr_(), repr(prevKey), word, repr(key))
-                    result = True #Kludge to green tinderboxes until bug #6387  is fixed
-                    # result = False
+                    result = False
 
             prevKey = key
 
