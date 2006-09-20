@@ -19,6 +19,7 @@ import application.Globals as Globals
 from application import schema
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
 from osaf.pim.items import ContentItem
+from osaf.pim.calendar import Calendar
 from osaf.pim.collections import ContentCollection
 from osaf.usercollections import UserCollection
 from repository.item.Item import MissingClass
@@ -1099,16 +1100,17 @@ def debugName(thing):
 
     from osaf.pim import has_stamp, EventStamp, Note, Reminder
     if has_stamp(thing, EventStamp):
-        startTime = getattr(thing, 'startTime', None)
-        if startTime and getattr(thing, 'allDay', False):
+        eventThing = EventStamp(thing)
+        startTime = getattr(eventThing, 'startTime', None)
+        if startTime and getattr(eventThing, 'allDay', False):
             timeMsg = "%s allDay" % startTime.date()
-        elif startTime and getattr(thing, 'anyTime', False):
+        elif startTime and getattr(eventThing, 'anyTime', False):
             timeMsg = "%s anyTime" % startTime.date()
         else:
             timeMsg = "%s" % startTime
-        if getattr(thing, 'rruleset', None):
-            recMsg = thing.getMaster() == thing and ", master" \
-                   or (", R%s" % thing.recurrenceID)
+        if eventThing.isRecurring():
+            recMsg = eventThing.getMaster() == eventThing and ", master" \
+                   or (", R%s" % eventThing.recurrenceID)
         else:
             recMsg = ""
         return "%r %s @ %s%s" % (thing.__repr__(), 

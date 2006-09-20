@@ -302,21 +302,29 @@ class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
     """ A timer that sets the "read" attribute on any item we display. """
     def onSetContentsEvent(self, event):
         super(UnreadTimer, self).onSetContentsEvent(event)
-        # We only want to bother with this when the item is first selected,
+        
+        # Don't do any of the below for now - this doesn't work right in
+        # functional tests.
+        return
+    
+        # If this item isn't 'read' yet,
+        # @@@ and isn't a recurrence (see bug 6702),
+        # note that we'll need to set the timer to maybe mark it read.
+        #
+        # (We only want to bother with this when the item is first selected,
         # but we may not be rendered here, so set a flag; we'll check 
-        # it at synchronize time, below.
-        self.checkReadState = True
+        # it at synchronize time, below.)
+        item = getattr(self, 'item', None)
+        self.checkReadState = (item is not None and not item.read and
+                               not Calendar.isRecurring(item))        
     
     def synchronizeWidget(self, useHints=False):
         super(DetailSynchronizer, self).synchronizeWidget(useHints)
         if getattr(self, 'checkReadState', False):
             self.checkReadState = False
             item = getattr(self, 'item', None) 
-            # @@@ For now, occurrences don't handle individual values right,
-            # so don't do this if the items is a member of a recurrence set.
-            # (see bug 6702)
             if item is not None and not item.read and \
-               getattr(item, 'rruleset', None) is None:
+               not Calendar.isRecurring(item):
                 logger.debug("Setting unread timer for %s", debugName(item))
                 self.setFiringTime(timedelta(seconds=1))
             else:

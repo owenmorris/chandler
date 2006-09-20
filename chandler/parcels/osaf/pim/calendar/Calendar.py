@@ -688,7 +688,7 @@ class EventStamp(Stamp):
             # @@@ For now, occurrences don't handle individual values right,
             # so don't do this if the event is a member of a recurrence set.
             # (see bug 6701)
-            if getattr(self, 'rruleset', None) is None and \
+            if not self.isRecurring() and \
                newStartTime is not None and \
                newStartTime >= datetime.now(tz=ICUtzinfo.default):
                 # It's due, or in the future.
@@ -1753,6 +1753,15 @@ class EventStamp(Stamp):
     def cmpRecurEndNoTZ(self, event):
         return cmpTimeAttribute(self, event, 'recurrenceEnd', False)
 
+    def isRecurring(self):
+        """ Is this Event a recurring event? """
+        return self.rruleset is not None
+    
+def isRecurring(item):
+    """ Is this item a recurring event? """
+    return (has_stamp(item, EventStamp) and 
+            EventStamp(item).isRecurring())
+    
 def CalendarEvent(*args, **kw):
     """An unstamped event."""
 

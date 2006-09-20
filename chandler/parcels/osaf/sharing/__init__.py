@@ -30,6 +30,7 @@ from application import schema, Utility, dialogs
 from application.Parcel import Reference
 from application.Utility import getDesktopDir
 from osaf import pim
+from osaf.pim.calendar import Calendar
 from i18n import ChandlerMessageFactory as _
 import vobject
 
@@ -1676,6 +1677,7 @@ def getFilteredCollectionDisplayName(collection, filterClasses):
 
     return name
 
+x = Calendar.isRecurring
 
 def fixTriageStatusCallback(share=None, uuids=None):
     """ 
@@ -1686,7 +1688,7 @@ def fixTriageStatusCallback(share=None, uuids=None):
     for u in uuids:
         item = share.itsView.find(u)
         # @@@ bug 6700: Can't do this for recurring events for now.
-        if getattr(item, 'rruleset', None) is not None:
+        if Calendar.isRecurring(item):
             continue
         
         relevantDate = getattr(item, 'relevantDate', None)
