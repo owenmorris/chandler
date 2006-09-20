@@ -944,7 +944,7 @@ class CalendarNotificationHandler(object):
                     hasattr(event, 'duration')):
                     
                     if event.rruleset is not None:
-                        addedEvents.update(event.getOccurrencesBetween(startTime, endTime))
+                        addedEvents.extend(event.getOccurrencesBetween(startTime, endTime))
                     elif not (event.startTime > endTime or event.endTime < startTime):
                         addedEvents.append(event)
 
