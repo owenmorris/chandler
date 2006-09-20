@@ -47,8 +47,8 @@ class TestTableSelection(ChandlerTestCase):
         header_widget = dashboard.GetGridColLabelWindow()
 
         # Select the About column
-        aboutMiddle = sum(map(lambda c: c.width, dashboardBlock.columns[0:3])) + \
-                      (dashboardBlock.columns[3].width / 2)
+        aboutMiddle = sum(dashboard.GetColSize(i) for i in range(3)) + \
+                      dashboard.GetColSize(3) / 2
         self.scripting.User.emulate_click(header_widget, aboutMiddle, 3)
         self.scripting.User.idle()
     
