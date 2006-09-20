@@ -1677,8 +1677,6 @@ def getFilteredCollectionDisplayName(collection, filterClasses):
 
     return name
 
-x = Calendar.isRecurring
-
 def fixTriageStatusCallback(share=None, uuids=None):
     """ 
     Set triageStatus on new 'now' items received from sharing, importing,
