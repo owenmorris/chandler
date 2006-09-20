@@ -1124,7 +1124,7 @@ is using immediate error checking::
     >>> fg.format = "fizzy_2"
     Traceback (most recent call last):
       ...
-    ValueError: Assigning 'fizzy_2' to attribute 'format'...didn't match schema
+    ValueError: Assigning 'fizzy_2' to attribute 'format'...didn't match schema or failed (see log for explanation)
 
 An attribute defined this way (as a tuple of strings) will sort by the values
 of those strings (so 'now', 'later", 'done' will sort 'done', 'later', 'now').
