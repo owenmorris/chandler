@@ -1334,26 +1334,25 @@ class FilteredSet(Set):
             op = self._sourceChanged(self._source, op, change,
                                      sourceOwner, sourceName, other, source)
 
+            if op == 'add':
+                if not self.filter(other):
+                    op = None
+            elif op == 'remove':
+                index = self._anIndex()
+                if index is not None:
+                    if other not in index:
+                        op = None
+                elif not self.filter(other):
+                    otherItem = self._view.find(other, False)
+                    if not (otherItem is None or otherItem.isDeleting()):
+                        op = None
+
         elif change == 'notification':
             if other not in self:
                 op = None
 
-        if op is not None:
-            if change == 'collection':
-                if op == 'add':
-                    if not self.filter(other):
-                        op = None
-                elif op == 'remove':
-                    index = self._anIndex()
-                    if index is not None:
-                        if other not in index:
-                            op = None
-                    elif not self.filter(other):
-                        otherItem = self._view.find(other, False)
-                        if not (otherItem is None or otherItem.isDeleting()):
-                            op = None
-            if not (inner is True or op is None):
-                self._collectionChanged(op, change, other)
+        if not (inner is True or op is None):
+            self._collectionChanged(op, change, other)
 
         return op
 

@@ -232,12 +232,7 @@ class Indexed(object):
                     item = view.find(key)
                     if item is None:
                         if key not in deletes:
-                            # bug 6654: it looks like index got out of sync
-                            # elsewhere and is causing trouble here
-                            item, attribute = self._getOwner()
-                            view.logger.warning("while merging %s '%s' on attribute '%s' of item '%s', item for key '%s' was not found", index, name, attribute, item._repr_(), key)
-                            if key in index:
-                                index.removeKey(key)
+                            raise AssertionError, (key, "item not found", key)
                     elif newIndex:
                         if self.__contains__(key, False, True):
                             moves.append(key)
