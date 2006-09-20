@@ -22,10 +22,6 @@ try:
     # creation
     QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
 
-    # make user collection, since only user
-    # collections can be displayed as a calendar
-    col = QAUITestAppLib.UITestItem("Collection", logger)
-
     # action
     event = QAUITestAppLib.UITestItem("Event", logger)
     

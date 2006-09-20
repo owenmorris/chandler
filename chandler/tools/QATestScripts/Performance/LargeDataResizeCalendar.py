@@ -26,6 +26,10 @@ App_ns = app_ns()
 try:
     # Test Phase: Initialization
 
+    # Do the test in the large calendar
+    User.emulate_sidebarClick(App_ns.sidebar, 'Generated3000', overlay=False)
+    User.idle()
+
     # Start at the same date every time
     testdate = datetime(2005, 11, 27, tzinfo=ICUtzinfo.default)
     App_ns.root.SelectedDateChanged(start=testdate)
@@ -34,11 +38,6 @@ try:
     (x, y) = frame.GetSize()
     x += 20
     y += 20
-
-    # Load a large calendar
-    # NOTE: Don't do this when we restore from backed up repository
-    testView = QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
-    scripting.User.idle()
 
     # Test Phase: Action
 

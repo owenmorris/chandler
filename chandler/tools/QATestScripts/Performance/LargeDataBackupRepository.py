@@ -22,11 +22,18 @@ App_ns = app_ns()
 fileName = "LargeDataBackupRepository.log"
 logger = QAUITestAppLib.QALogger(fileName, "Backing up 3000 event repository")
 
-name = 'Generated3000'
+largeCollectionName = 'Generated3000'
+smallCollectionName = 'SmallCollection'
 
 try:
     # import
-    QAUITestAppLib.UITestView(logger, u'%s.ics' % name)
+    QAUITestAppLib.UITestView(logger, u'%s.ics' % largeCollectionName)
+    
+    # Start in the small collection
+    col = QAUITestAppLib.UITestItem("Collection")
+    col.SetDisplayName(smallCollectionName)
+    User.emulate_sidebarClick(App_ns.sidebar, smallCollectionName)
+    User.idle()
     
     # verification of import
     def VerifyEventCreation(title):
@@ -47,13 +54,13 @@ try:
     # Current tests measure the first time you switch or overlay.
     # If you want to measure the subsequent times, enable this section.
     if 0:
-        User.emulate_sidebarClick(App_ns.sidebar, name,  overlay=False)
+        User.emulate_sidebarClick(App_ns.sidebar, largeCollectionName, overlay=False)
         User.idle()
-        User.emulate_sidebarClick(App_ns.sidebar, "Dashboard",  overlay=False)
+        User.emulate_sidebarClick(App_ns.sidebar, smallCollectionName, overlay=False)
         User.idle()
-        User.emulate_sidebarClick(App_ns.sidebar, name,  overlay=True)
+        User.emulate_sidebarClick(App_ns.sidebar, largeCollectionName, overlay=True)
         User.idle()
-        User.emulate_sidebarClick(App_ns.sidebar, name,  overlay=True)
+        User.emulate_sidebarClick(App_ns.sidebar, largeCollectionName, overlay=True)
         User.idle()
         
     # backup

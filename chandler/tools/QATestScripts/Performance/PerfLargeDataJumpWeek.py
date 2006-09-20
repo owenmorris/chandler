@@ -25,9 +25,9 @@ App_ns = app_ns()
 try:
     # Test Phase: Initialization
 
-    # make user collection, since only user
-    # collections can be displayed as a calendar
-    col = QAUITestAppLib.UITestItem("Collection", logger)
+    # Do the test in the large calendar
+    User.emulate_sidebarClick(App_ns.sidebar, 'Generated3000', overlay=False)
+    User.idle()
 
     # Start at the same date every time
     testdate = datetime(2005, 11, 27, tzinfo=ICUtzinfo.default)

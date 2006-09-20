@@ -28,9 +28,9 @@ try:
     # Look at the same date every time -- do this before we import
     # to save time and grief
     
-    # make user collection, since only user
-    # collections can be displayed as a calendar
-    col = QAUITestAppLib.UITestItem("Collection", logger)
+    # Do the test in the large calendar
+    User.emulate_sidebarClick(App_ns.sidebar, 'Generated3000', overlay=False)
+    User.idle()
 
     testdate = datetime(2005, 12, 14, tzinfo=ICUtzinfo.default)
     App_ns.root.SelectedDateChanged(start=testdate)
