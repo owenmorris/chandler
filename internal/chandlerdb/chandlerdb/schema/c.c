@@ -64,6 +64,7 @@ void initc(void)
     _init_descriptor(m);
     _init_attribute(m);
     _init_kind(m);
+    _init_redirector(m);
 
     cobj = PyCObject_FromVoidPtr(_countAccess, NULL);
     PyModule_AddObject(m, "C_countAccess", cobj);

@@ -40,5 +40,6 @@ extern PyObject *PyExc_StaleItemError;
 void _init_descriptor(PyObject *m);
 void _init_attribute(PyObject *m);
 void _init_kind(PyObject *m);
+void _init_redirector(PyObject *m);
 
 void PyDict_SetItemString_Int(PyObject *dict, char *key, int value);

@@ -58,6 +58,7 @@ def main():
                                 sources=['chandlerdb/schema/descriptor.c',
                                          'chandlerdb/schema/attribute.c',
                                          'chandlerdb/schema/kind.c',
+                                         'chandlerdb/schema/redirector.c',
                                          'chandlerdb/schema/c.c']))
 
     extensions.append(Extension('chandlerdb.item.c',
