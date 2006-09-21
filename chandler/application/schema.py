@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 
+from chandlerdb.schema.c import Redirector
 from repository.persistence.RepositoryView import NullRepositoryView
 from repository.item.Item import Item as Base
 from repository.item.Collection import CollectionClass as BaseCollectionClass
@@ -744,26 +745,6 @@ class AnnotationItem(Item):
     """Persistent data for Annotation types"""
     annotates = One(Class)
 
-
-class Redirector(object):
-    """Descriptor that does annotation attribute redirection"""
-
-    def __init__(self, cdesc):
-        self.cdesc = cdesc
-        self.name = cdesc.name
-        self.__doc__ = cdesc.__doc__
-
-    def __get__(self, ob, typ=None):
-        if ob is None:
-            # pretend to be the original descriptor if retrieved from class
-            return self.cdesc
-        return getattr(ob.itsItem, self.name)
-
-    def __set__(self, ob, val):
-        setattr(ob.itsItem, self.cdesc.name, val)
-
-    def __delete__(self, ob):
-        delattr(ob.itsItem, self.name)
 
 class Comparator(ActiveDescriptor):
     # [@@@] grant -- need to make sure this only
