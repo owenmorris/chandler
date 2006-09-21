@@ -1014,10 +1014,6 @@ class EggTranslations(object):
                 if key in self._gtCache:
                     return self._gtCache[key].ugettext(txt, *args)
 
-            if __debug__:
-                logger.debug(u"No EggTranslations found for %s %s %s",
-                             project, name, self._localeSet)
-
             return args and args[0] or txt
 
         key = (project, name, self._localeSet[0])
@@ -1025,10 +1021,6 @@ class EggTranslations(object):
         if key in self._gtCache:
             return self._gtCache[key].ugettext(txt, *args)
 
-
-        if __debug__:
-            logger.debug(u"No EggTranslations found for %s %s %s",
-                         project, name, self._localeSet)
 
         return args and args[0] or txt
 
