@@ -20,8 +20,7 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.TestOutput import TestOutput
 from tools.cats.framework.runTests import run_tests
 import os, sys
-
-functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/Functional")
+import osaf.framework.scripting as scripting
 
 #initialization
 
@@ -89,6 +88,9 @@ exclusions = {#tests to exclude on specific platfoms only
 }
 
 tests_to_run = filter(lambda test : test not in exclusions['all'] and test not in exclusions[platform], allTests)
-teststring = ''.join(['%s:%s,' % (test, klass) for test, klass in tests_to_run])[:-1]
-
-run_tests(teststring)
+if len(tests_to_run) > 0:
+    teststring = ''.join(['%s:%s,' % (test, klass) for test, klass in tests_to_run])[:-1]
+    run_tests(teststring)
+else:
+    print 'NO NON-EXCLUDED TESTS TO RUN'
+    scripting.app_ns().root.Quit()
