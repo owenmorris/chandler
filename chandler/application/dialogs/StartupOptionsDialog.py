@@ -59,6 +59,9 @@ class StartupOptionsDialog(wx.Dialog):
         # as far as the wxPython extension is concerned.
         self.this = pre.this
 
+        icon = wx.Icon("icons/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
+        self.SetIcon(icon)
+
         # Do we have an existing repository?
         repoDir = locateRepositoryDirectory(Globals.options.profileDir)
         repoExists = os.path.exists(repoDir)

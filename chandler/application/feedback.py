@@ -12,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
 import os, sys, time, codecs
 from cgi import escape
 import wx
@@ -190,6 +189,11 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         
         self.frame = xrcFRAME(None)
         self.text = self.frame.text # superclass expects self.text
+        try:
+            icon = wx.Icon("icons/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
+            self.frame.SetIcon(icon)
+        except:
+            pass
         
         self._fillRequiredSection(st)
         self._fillOptionalSection()

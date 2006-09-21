@@ -37,6 +37,12 @@ class ErrorDialog(wx.Dialog):
         # as far as the wxPython extension is concerned.
         self.this = pre.this
 
+        try:
+            icon = wx.Icon("icons/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
+            self.SetIcon(icon)
+        except:
+            pass
+
         # Now continue with the normal construction of the dialog
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)

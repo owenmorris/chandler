@@ -1047,6 +1047,10 @@ class StartupSplash(wx.Frame):
         self.CenterOnScreen()
         self.SetBackgroundColour(wx.WHITE)
 
+        icon = wx.Icon("icons/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
+        self.SetIcon(icon)
+        self.SetTitle(_(u'Chandler starting...'))
+        
         # Progress Text dictionary
         #                    name            weight      text
         self.statusTable = {'crypto'      : ( 5,  _(u"Initializing crypto services")),
