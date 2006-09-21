@@ -412,10 +412,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                                                for uuid in kinds)
                              if kind is not None]
                 finally:
+                    for kind in kinds:
+                        kind.flushCaches('unload')
                     self._setLoading(loading, True)
 
-                for kind in kinds:
-                    kind.flushCaches('unload')
                 for kind in kinds:
                     kind.flushCaches('reload')
 
