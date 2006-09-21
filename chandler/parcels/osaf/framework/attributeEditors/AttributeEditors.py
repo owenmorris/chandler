@@ -310,7 +310,7 @@ class BaseAttributeEditor (object):
         @type rect: Rect
         @param item: the item whose attribute we'll be drawing
         @type item: Item
-        @param isInSelection: True if
+        @param isInSelection: True if this row is selected
         @type isInSelection: Boolean
         """
         raise NotImplementedError
@@ -2416,22 +2416,57 @@ class IconAttributeEditor (BaseAttributeEditor):
     """
     bitmapCache = MultiStateBitmapCache()
 
+    # A mapping from the various variation inputs (is the mouse down? is
+    # the mouse over us? are we in a selected row? is this item readonly?)
+    # to the variation name we should use
+    rolledOverBit = 1
+    selectedBit = 2
+    mouseDownBit = 4
+    readOnlyBit = 8
+    variationMap = {
+        0 : 'normal',
+        rolledOverBit: 'rollover',
+        selectedBit: 'selected',
+        selectedBit | rolledOverBit: 'rolloverselected',
+        mouseDownBit: 'normal', # note, this is the not-rollover case: mouse out
+        mouseDownBit | rolledOverBit: 'mousedown', # mouse in
+        mouseDownBit | selectedBit: 'selected',
+        mouseDownBit | selectedBit | rolledOverBit: 'rolloverselected',
+        # @@@ Change these if we need special read/only icons
+        readOnlyBit: "normal",
+        readOnlyBit | rolledOverBit: "normal",
+        readOnlyBit | selectedBit: "selected",
+        readOnlyBit | selectedBit | rolledOverBit: 'selected',
+        readOnlyBit | mouseDownBit: 'normal', 
+        readOnlyBit | mouseDownBit | rolledOverBit: 'normal',
+        readOnlyBit | mouseDownBit | selectedBit: 'selected',
+        readOnlyBit | mouseDownBit | selectedBit | rolledOverBit: 'selected',
+    }
+
+    def __init__(self, *args, **kwds):
+        super(IconAttributeEditor, self).__init__(*args, **kwds)
+        IconAttributeEditor.bitmapCache.AddStates(\
+            multibitmaps=self.makeStates(),
+            bitmapProvider=wx.GetApp().GetImage)
+
     def GetAttributeValue (self, item, attributeName):
         """ 
-        Simple implementation assumes that an icon should be shown if
-        the configured attribute is non-entry, and left blank otherwise.
+        Get the current state name. Simple implementation assumes that the 
+        configured attribute holds it, and if no attribute value is present,
+        no icon should be shown.
         """
-        try:
-            value = getattr (item, attributeName) # getattr will work with properties
-        except AttributeError:
-            value = ""
-        return value
+        return getattr(item, attributeName, '')
     
-    def getImageVariation(self, item, attributeName):
+    def getImageVariation(self, item, attributeName, isDown, isSelected, isOver):
         """ Pick the right variation """
-        # By default, our two choices only depend on readonlyness.
-        return self.ReadOnly((item, attributeName)) and 'disabled' or 'normal'
-    
+        readOnly = self.ReadOnly((item, attributeName)) \
+                 and IconAttributeEditor.readOnlyBit or 0
+        selected = isSelected and IconAttributeEditor.selectedBit or 0
+        mouseDown = isDown and IconAttributeEditor.mouseDownBit or 0
+        rolledOver = isOver and IconAttributeEditor.rolledOverBit or 0
+        return IconAttributeEditor.variationMap[readOnly | selected |
+                                                mouseDown | rolledOver]
+
     def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
         """
         Draw the appropriate variation from the set of icons for this state.
@@ -2439,80 +2474,22 @@ class IconAttributeEditor (BaseAttributeEditor):
         proxyItem = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
         dc.SetPen (wx.TRANSPARENT_PEN)
         dc.DrawRectangleRect(rect) # always draw the background
-        value = self.GetAttributeValue(proxyItem, attributeName)
-        if len(value):
-            imageSet = self.bitmapCache.get(value)
-            imageVariation = self.getImageVariation(item, attributeName)
-            image = getattr(imageSet, imageVariation, None)
-            if image is not None:
-                x = rect.GetLeft() + (rect.GetWidth() - image.GetWidth()) / 2
-                y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
-                dc.DrawBitmap (image, x, y, True)
-
-class StampAttributeEditor(IconAttributeEditor):
-    """
-    Base class for attribute editors used for the stamping 
-    columns in the summary. Subclasses need to define a 
-    "stampClass" attribute that points at the stamp class to be used.
-    """
-    def __init__(self, *args, **kwds):
-        super(StampAttributeEditor, self).__init__(*args, **kwds)
-        IconAttributeEditor.bitmapCache.AddStates(\
-            multibitmaps=self.makeStates(),
-            bitmapProvider=wx.GetApp().GetImage)
-    
-    def _getStateName(self, isStamped):
-        return "%s.%s" % (self.iconPrefix,
-                         isStamped and "Stamped" or "Unstamped")
+        state = self.GetAttributeValue(proxyItem, attributeName)
+        imageSet = self.bitmapCache.get(state)
+        if imageSet is None:
+            return # no images for this state (or we didn't get a state value)
         
-    def makeStates(self):
-        prefix = self.iconPrefix
-        unstamped = BitmapInfo()
-        unstamped.stateName = self._getStateName(False)
-        unstamped.normal   = "pixel"
-        unstamped.rollover = "%sRollover" % prefix
-        unstamped.disabled = "pixel"
-        unstamped.selected = "%sPressed" % prefix
-        stamped = BitmapInfo()
-        stamped.stateName = self._getStateName(True)
-        stamped.normal   = "%sStamped" % prefix
-        stamped.rollover = "%sRollover" % prefix
-        stamped.disabled = "%sStamped" % prefix
-        stamped.selected = "%sPressed" % prefix
-        return (unstamped, stamped)
+        isDown = getattr(self, 'wasDown', False)
+        isOver = getattr(self, 'rolledOverItem', None) is item
 
-    def ReadOnly(self, (item, attributeName)):
-        # Our "attributeName" is a Stamp; substitute a real attribute.
-        readOnly = super(StampAttributeEditor, self).ReadOnly((item, 'body'))
-
-        # @@@BJS: added Morgan's temporary disabling of stamping of shared
-        # items, as in Detail.py's DetailStampButton._isStampable()
-        readOnly = readOnly or (item.getSharedState() != ContentItem.UNSHARED)
+        imageVariation = self.getImageVariation(item, attributeName, 
+                                                isDown, isInSelection, isOver)
         
-        return readOnly
-
-    def getImageVariation(self, item, attributeName):
-        """ Pick the right variation """
-        result = super(StampAttributeEditor, self).getImageVariation(item, attributeName)
-        if result != 'normal':
-            return result
-        
-        rolledOverItem = getattr(self, 'rolledOverItem', None)
-        return (rolledOverItem is item) and "rollover" or "normal"
-
-    def GetAttributeValue(self, item, attributeName):
-        isStamped = pim.has_stamp(item, self.stampClass)
-        return self._getStateName(isStamped)
-    
-    def SetAttributeValue(self, item, attributeName, value):
-        isStamped = pim.has_stamp(item, self.stampClass)
-        if isStamped != (value == self._getStateName(True)):
-            # Stamp or unstamp the item
-            stampedObject = self.stampClass(item)
-            if isStamped:
-                stampedObject.remove()
-            else:
-                stampedObject.add()
+        image = getattr(imageSet, imageVariation, None)
+        if image is not None:
+            x = rect.GetLeft() + (rect.GetWidth() - image.GetWidth()) / 2
+            y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
+            dc.DrawBitmap(image, x, y, True)
 
     def OnMouseChange(self, event, cell, isIn, isDown, (item, attributeName)):
         """
@@ -2529,11 +2506,11 @@ class StampAttributeEditor(IconAttributeEditor):
 
         # Note down-ness changes; eat the event if the downness changed, and
         # trigger an advance if appropriate.
-        if isDown != getattr(self, 'wasDown', False):
+        downChanged = isDown != getattr(self, 'wasDown', False)
+        advanceStateMethod = getattr(self, 'advanceState', None)
+        if downChanged and advanceStateMethod is not None:
             if isIn and not isDown:
-                isStamped = pim.has_stamp(item, self.stampClass)
-                newValue = self._getStateName(not isStamped)
-                self.SetAttributeValue(item, attributeName, newValue)                
+                advanceStateMethod(item, attributeName)
             if isDown:
                 self.wasDown = True
             else:
@@ -2543,7 +2520,67 @@ class StampAttributeEditor(IconAttributeEditor):
         else:
             #logger.debug("AE Calling event.Skip")
             event.Skip()
-            
+    
+class StampAttributeEditor(IconAttributeEditor):
+    """
+    Base class for attribute editors used for the stamping 
+    columns in the summary. Subclasses need to define a 
+    "stampClass" attribute that points at the stamp class to be used.
+    """
+    
+    noImage = "pixel" # filename of a one-pixel transparent png
+
+    def _getStateName(self, isStamped):
+        return "%s.%s" % (self.iconPrefix,
+                         isStamped and "Stamped" or "Unstamped")
+        
+    def makeStates(self):
+        prefix = self.iconPrefix
+        states = []
+        for (state, normal, selected) in ((False, StampAttributeEditor.noImage,
+                                                  StampAttributeEditor.noImage),
+                                          (True, "%sStamped" % prefix,
+                                                 "%sStamped-Reversed" % prefix)):
+            bmInfo = BitmapInfo()
+            bmInfo.stateName = self._getStateName(state)
+            bmInfo.normal = normal
+            bmInfo.selected = selected
+            bmInfo.rollover = "%sRollover" % prefix
+            bmInfo.rolloverselected = "%sRollover-Reversed" % prefix
+            bmInfo.mousedown = "%sPressed" % prefix
+            states.append(bmInfo)
+
+        return states
+
+    def ReadOnly(self, (item, attributeName)):
+        # Our "attributeName" is a Stamp; substitute a real attribute.
+        readOnly = super(StampAttributeEditor, self).ReadOnly((item, 'body'))
+
+        # @@@BJS: added Morgan's temporary disabling of stamping of shared
+        # items, as in Detail.py's DetailStampButton._isStampable()
+        readOnly = readOnly or (item.getSharedState() != ContentItem.UNSHARED)
+        
+        return readOnly
+    
+    def GetAttributeValue(self, item, attributeName):
+        isStamped = pim.has_stamp(item, self.stampClass)
+        return self._getStateName(isStamped)
+    
+    def SetAttributeValue(self, item, attributeName, value):
+        isStamped = pim.has_stamp(item, self.stampClass)
+        if isStamped != (value == self._getStateName(True)):
+            # Stamp or unstamp the item
+            stampedObject = self.stampClass(item)
+            if isStamped:
+                stampedObject.remove()
+            else:
+                stampedObject.add()
+
+    def advanceState(self, item, attributeName):
+        isStamped = pim.has_stamp(item, self.stampClass)
+        newValue = self._getStateName(not isStamped)
+        self.SetAttributeValue(item, attributeName, newValue)        
+
 class EventStampAttributeEditor(StampAttributeEditor):
     stampClass = Calendar.EventStamp
     iconPrefix = "SumEvent"

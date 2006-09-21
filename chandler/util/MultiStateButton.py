@@ -22,13 +22,12 @@ import sys
 import wx
 from wx.lib.buttons import GenBitmapButton
 
+# Variations we support
+allVariations = ["normal", "rollover", "selected", "rolloverselected", "mousedown", "disabled", "focus"]
+
 class BitmapInfo(object):
-    __slots__ = ("normal",   "normalBitmap",
-                 "rollover", "rolloverBitmap",
-                 "disabled", "disabledBitmap",
-                 "focus",    "focusBitmap",
-                 "selected", "selectedBitmap",
-                 "stateName")
+    __slots__ = (['stateName'] + allVariations +
+                 map(lambda x: x + "Bitmap", allVariations))
 
 class MultiStateBitmapCache(dict):
     """
@@ -58,7 +57,7 @@ class MultiStateBitmapCache(dict):
                 paths["rollover"] = None
             elif isinstance(entry, BitmapInfo):
                 stateName = getattr(entry, "stateName", None)
-                for variation in ("normal", "rollover", "disabled", "focus", "selected"):
+                for variation in allVariations:
                     bitmaps[variation] = getattr(entry, variation + "Bitmap", None)
                     paths[variation] = getattr(entry, variation, None)
             else:
@@ -73,7 +72,7 @@ class MultiStateBitmapCache(dict):
 
             if not self.has_key(stateName):
                 self[stateName] = BitmapInfo()
-                for variation in ("normal", "rollover", "disabled", "focus", "selected"):
+                for variation in allVariations:
                     if bitmaps.get(variation) is not None:
                         setattr(self[stateName], variation, bitmaps[variation])
                     elif paths.get(variation) is not None:
