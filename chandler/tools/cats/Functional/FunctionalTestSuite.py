@@ -94,3 +94,4 @@ if len(tests_to_run) > 0:
 else:
     print 'NO NON-EXCLUDED TESTS TO RUN'
     scripting.app_ns().root.Quit()
+    
