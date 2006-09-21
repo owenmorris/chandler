@@ -162,6 +162,13 @@ def save(rv, filename):
     cfg.set('timezones', 'type', 'show timezones')
     cfg.set('timezones', 'show_timezones', showTZ)
 
+    # Visible hours
+    cfg.add_section("visible_hours")
+    cfg.set('visible_hours', 'type', 'visible hours')
+    calPrefs = schema.ns("osaf.framework.blocks.calendar", rv).calendarPrefs
+    cfg.set("visible_hours", "height_mode", calPrefs.hourHeightMode)
+    cfg.set("visible_hours", "num_hours", calPrefs.visibleHours)
+
     output = file(filename, "w")
     cfg.write(output)
     output.close()
@@ -344,3 +351,11 @@ def restore(rv, filename):
         if cfg.has_option('timezones', 'show_timezones'):
             show = cfg.getboolean('timezones', 'show_timezones')
             schema.ns('osaf.app', rv).TimezonePrefs.showUI = show
+
+    # Visible hours
+    if cfg.has_section("visible_hours"):
+        calPrefs = schema.ns("osaf.framework.blocks.calendar", rv).calendarPrefs
+        if cfg.has_option("visible_hours", "height_mode"):
+            calPrefs.hourHeightMode = cfg.get("visible_hours", "height_mode")
+        if cfg.has_option("visible_hours", "num_hours"):
+            calPrefs.visibleHours = cfg.getint("visible_hours", "num_hours")
