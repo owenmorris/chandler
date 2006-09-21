@@ -35,7 +35,7 @@ import osaf.sharing.ICalendar as ICalendar
 import os, sys
 from itertools import chain
 from i18n.tests import uw
-from osaf.sharing import Sharing, unpublish 
+from osaf.sharing import unpublish 
 from osaf.framework.blocks.Block import Block
 from application.dialogs.PublishCollection import ShowPublishDialog
 import application.dialogs.SubscribeCollection as SubscribeCollection
@@ -84,7 +84,7 @@ def publishSubscribe(testClass):
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
     path = unicode(path, 'utf8')
-    share = Sharing.OneTimeFileSystemShare(path, u'testSharing.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
+    share = Sharing.Sharing.OneTimeFileSystemShare(path, u'testSharing.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
 
     collection = share.get()
     App_ns.sidebarCollection.add(collection)
