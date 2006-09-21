@@ -90,8 +90,6 @@ class BranchPointBlock(BoxContainer):
         otherName = 'branchPointSelectedItemOwner'
     )
 
-    setFocus = schema.One (schema.Boolean, defaultValue = False)
-
     schema.addClouds(
         copying = schema.Cloud(
             byRef = [delegate,colorStyle,detailItem,selectedItem]
@@ -156,7 +154,7 @@ class BranchPointBlock(BoxContainer):
                                                              keyItem)
 
         detailItemChanged = self.detailItem is not detailItem
-
+            
         self.detailItem = detailItem
 
         # Set contents on the root of the tree of blocks
@@ -207,9 +205,6 @@ class BranchPointBlock(BoxContainer):
                     if resyncMethod is not None:
                         resyncMethod()
 
-                if self.setFocus:
-                    newView.postEventByName("SetFocus", {})
-
             IgnoreSynchronizeWidget(False, Rerender)
 
 
@@ -234,7 +229,7 @@ class BranchPointDelegate(schema.Item):
     )
 
     keyUUIDToBranch = schema.Mapping(Block, initialValue = {})
-    
+
     def deleteCache(self):
         for item in self.keyUUIDToBranch.itervalues():
             if isitem(item):

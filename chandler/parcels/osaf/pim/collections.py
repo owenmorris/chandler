@@ -810,7 +810,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
         Returns C{True}/C{False} based on if the item is actually
         selected or not
         """
-        return item is not None and self.isSelected(self.index(item))
+        return self.isSelected(self.index(item))
 
     def iterSelection(self):
         """
