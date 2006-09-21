@@ -55,7 +55,6 @@ allTests = [
                 ("TestRemoveFromTrashOnImport","TestRemoveFromTrashOnImport"),
                 ("TestEnableTimezones","TestEnableTimezones"),
                 ("TestSwitchTimezone","TestSwitchTimezone"),
-                ("TestSubscribe", "TestSubscribe"),
                 ("TestBlocks","TestBlocks"), 
                 ]
 
@@ -87,7 +86,6 @@ exclusions = {#tests to exclude on specific platfoms only
     'all':[ #tests to exclude on all platforms       
         ("TestDates","TestDates"), #Chandler not handling daylightsavings bug#5038
         ("TestEditModeOnEnter","TestEditModeOnEnter"), #Chandler bug 5744
-        ("TestSubscribe", "TestSubscribe"),# new test not yet working
         ]
 }
 

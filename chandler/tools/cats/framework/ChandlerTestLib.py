@@ -34,9 +34,155 @@ import osaf.framework.scripting as scripting
 import osaf.sharing.ICalendar as ICalendar
 import os, sys
 from itertools import chain
+from i18n.tests import uw
+from osaf.sharing import Sharing, unpublish 
+from osaf.framework.blocks.Block import Block
+from application.dialogs.PublishCollection import ShowPublishDialog
+import application.dialogs.SubscribeCollection as SubscribeCollection
+from osaf import sharing
+from repository.item.Item import MissingClass
 
 #Global AppProxy instance
 App_ns = scripting.app_ns()
+
+
+def sidebarCollectionNamed(name):
+    """
+    Look for a sidebar collection with name, otherwise return None
+    """
+    sidebarWidget = App_ns.sidebar.widget
+    for i in range(sidebarWidget.GetNumberRows()):
+        collection = sidebarWidget.GetTable().GetValue(i,0)[0]
+        if collection.displayName == name:
+            return collection
+    return None
+
+
+def publishSubscribe(testClass):
+    """
+    A function to publish and subscribe a collection.
+    """
+    # action
+    # Webdav Account Setting
+    ap = UITestAccounts(testClass.logger)
+    ap.Open() # first, open the accounts dialog window
+    ap.CreateAccount("WebDAV")
+    ap.TypeValue("displayName", uw("Publish Test WebDAV"))
+    ap.TypeValue("host", "qacosmo.osafoundation.org")
+    ap.TypeValue("path", "cosmo/home/demo1")
+    ap.TypeValue("username", "demo1")
+    ap.TypeValue("password", "ad3leib5")
+    ap.TypeValue("port", "8080")
+    ap.ToggleValue("ssl", False)
+    ap.ToggleValue("default", True)
+    ap.Ok()
+
+    # verification
+    ap.VerifyValues("WebDAV", uw("Publish Test WebDAV"), host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
+
+    # import events so test will have something to share even when run by itself
+    path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
+    # Upcast path to unicode since Sharing requires a unicode path
+    path = unicode(path, 'utf8')
+    share = Sharing.OneTimeFileSystemShare(path, u'testSharing.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
+
+    collection = share.get()
+    App_ns.sidebarCollection.add(collection)
+    scripting.User.idle()
+
+    # Collection selection
+    sidebar = App_ns.sidebar
+    scripting.User.emulate_sidebarClick(sidebar, "testSharing")
+
+    # Sharing dialog
+    collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
+    if collection is not None:
+        if sidebar.filterClass is MissingClass:
+            filterClassName = None
+        else:
+            klass = sidebar.filterClass
+            filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
+        win = ShowPublishDialog(wx.GetApp().mainFrame, view=App_ns.itsView,
+                                collection=collection,
+                                filterClassName=filterClassName,
+                                modal=False)
+        #Share button call
+        
+        app = wx.GetApp()
+        
+        # We are interested in seeing how quickly we can upload the collection
+        testClass.logger.startAction('Publish')
+        win.PublishCollection()
+        while not win.done:
+            app.Yield()
+        testClass.logger.endAction(True)
+
+        if not win.success:        
+            testClass.logger.endAction(False, "(On publish collection)")
+        
+        # Get a read-write ticket to the published collection
+        # XXX This is ripped from PublishCollection
+        if win.publishType == 'freebusy':
+            share = sharing.getFreeBusyShare(win.collection)
+        else:
+            share = sharing.getShare(win.collection)
+        urls = sharing.getUrls(share)
+        if len(urls) == 1:
+            urlString = urls[0]
+        elif win.publishType == 'freebusy':
+            urlString = urls[1]
+        else:
+            urlString = urls[0] # read-write
+        
+        #Done button call
+        win.OnPublishDone(None)
+        app.Yield()
+
+        # Unsubscribe and delete the (local) collection we just published so
+        # that we can subscribe to it below.
+        sharing.unsubscribe(collection)
+        App_ns.root.Remove()
+        scripting.User.idle()
+
+        # Subscribe to the remote collection
+        win = SubscribeCollection.Show(wx.GetApp().mainFrame,
+            view=App_ns.itsView, modal=False)
+        url = win.toolPanel.GetChildren()[1]
+        url.SetFocus()
+        url.Clear()
+
+        # Need to have this or first letter of URL is not
+        # typed into control on Linux
+        scripting.User.idle()
+        
+        scripting.User.emulate_typing(urlString)
+        
+        # We are interested in seeing how quickly we can download the collection
+        testClass.logger.startAction('Subscribe')
+        win.OnSubscribe(None)
+        try:
+            while win.subscribing:
+                app.Yield()
+        except wx.PyDeadObjectError:
+            # XXX The C++ part of the dialog was gone, so we are no longer
+            # XXX supposed to touch any attributes of the dialog. In our
+            # XXX case this is safe, so just ignore. This seems to be needed
+            # XXX on Linux only.
+            pass
+        testClass.logger.endAction(True)
+        
+        scripting.User.idle()
+    
+        # verification
+        if scripting.User.emulate_sidebarClick(App_ns.sidebar, "testSharing"):
+            # cleanup
+            # cosmo can only handle so many shared calendars
+            # so remove this one when done
+            collection = sidebarCollectionNamed('testSharing')
+            unpublish(collection)
+            App_ns.root.Remove()
+        else:
+            testClass.logger.endAction(False, "(On Subscribe collection)")
 
 
 def startTestInCalView( logger):
@@ -297,7 +443,7 @@ class UITestItem(object):
             return False
         else:
             if timeInfo:
-               self.logger.startAction("%s setting" % menuName)
+                self.logger.startAction("%s setting" % menuName)
             # Emulate the mouse click in the menu
             scripting.User.emulate_click(block)
             block.widget.SetStringSelection(menuChoice)
@@ -863,15 +1009,15 @@ class UITestItem(object):
             self.logger.report(True, name="CheckMenuBlock", comment="(On %s Checking)" % description)
             
     def formatDate(self, dateStr):
-            """if year has 4 digits removes first 2
-                 also removes leading zeros from month/ day
-                 to resolve bug 5031"""
-            month, day, year = dateStr.split('/')
-            month = str(int(month)) # get rid of leading zeros
-            day = str(int(day))
-            if len(year) == 4:
-                year = year[2:]
-            return  '%s/%s/%s' % (month, day, year)
+        """if year has 4 digits removes first 2
+             also removes leading zeros from month/ day
+             to resolve bug 5031"""
+        month, day, year = dateStr.split('/')
+        month = str(int(month)) # get rid of leading zeros
+        day = str(int(day))
+        if len(year) == 4:
+            year = year[2:]
+        return  '%s/%s/%s' % (month, day, year)
                     
 
     def CheckButton(self, buttonName, description, value):
@@ -1024,7 +1170,7 @@ class UITestItem(object):
                 if not value == body :
                     self.logger.report(False, name="Check_Object", comment="(On body Checking) || object body = %s ; expected body = %s" % (body, value))
                 else:
-                     self.logger.report(True, name="Check_Object", comment="(On body Checking)")
+                    self.logger.report(True, name="Check_Object", comment="(On body Checking)")
             elif field == "fromAddress": # from address checking
                 f = "%s" %pim.mail.MailStamp(item).fromAddress
                 if not value == f :
@@ -1578,13 +1724,13 @@ class UITestView(object):
             #it's a new event
             if not canvasItem :
                 for elem in reversed(self.timedCanvas.widget.canvasItemList):
-                # It's possible for the event to appear a few pixels
-                # lower than pos, if pos is near a dividing line in
-                # the calendar
+                    # It's possible for the event to appear a few pixels
+                    # lower than pos, if pos is near a dividing line in
+                    # the calendar
                     if elem.isHit(pos) or elem.isHit(pos+(0,5)):
-                            canvasItem = elem
-                            self.logger.report(True, name="DoubleClickInCalView", comment="On double click in Calendar view checking (event creation)")
-                            break
+                        canvasItem = elem
+                        self.logger.report(True, name="DoubleClickInCalView", comment="On double click in Calendar view checking (event creation)")
+                        break
             else:
                 self.logger.report(True, name="DoubleClickInCalView", comment="On double click in Calendar view checking (event selection)")
 
