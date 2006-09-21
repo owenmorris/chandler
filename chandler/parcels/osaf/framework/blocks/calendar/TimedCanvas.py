@@ -746,14 +746,20 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         canvasItem.setResizeMode(canvasItem.RESIZE_MODE_END)
         return canvasItem
 
-    def EditCurrentItem(self):
+    def EditCurrentItem(self, keyPressed = False):
         """
         Extend EditCurrentItem to cause edits when a background region is
         selected to create an empty item then edit it.
         """
         canvasItem = self.SelectedCanvasItem()
         if canvasItem is None and self._bgSelectionStartTime is not None:
-            canvasItem = self.OnCreateItem(None)
+            if keyPressed:
+                # an empty displayName (rather than the default, "New Event")
+                # is used as a flag to indicate that a key has been pressed
+                # when the inPlaceEditor sets its contents
+                canvasItem = self.OnCreateItem(None, '')
+            else:
+                canvasItem = self.OnCreateItem(None)
         if canvasItem is not None:
             self.OnEditItem(canvasItem)
 

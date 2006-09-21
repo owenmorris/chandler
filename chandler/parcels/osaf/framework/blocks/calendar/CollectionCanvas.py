@@ -757,7 +757,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         return None                     # oops, more than one item selected
 
-    def EditCurrentItem(self):
+    def EditCurrentItem(self, keyPressed = False):
         currentCanvasItem = self.SelectedCanvasItem()
         if currentCanvasItem is not None:
             self.OnEditItem(currentCanvasItem)
@@ -819,7 +819,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                 event.MetaDown()):
             
             # normal key presses should cause the item to start being edited
-            self.EditCurrentItem()
+            self.EditCurrentItem(True)
             if keyCode not in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
                 # don't eat non-enter keypresses 
                 self.SaveCharTyped(event)

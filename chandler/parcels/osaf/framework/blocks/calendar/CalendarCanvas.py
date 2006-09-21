@@ -1611,7 +1611,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         """
         key = unichr(event.GetUnicodeKey())
 
-        # Seeting the insertion point seems to work when several keys are typed
+        # Setting the insertion point seems to work when several keys are typed
         # before the edit widget is displayed, but perhaps there's a better
         # way to achieve this?
 
@@ -1740,12 +1740,8 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
 
     def SetItem(self, item, position, size, pointSize):
         self.event = Calendar.EventStamp(item)
-
-        if self.event.summary != '':
-            # event.summary == '' is used as a flag to determine if this
-            # SetItem is for a new item and was initiated by typing.  In this
-            # case, calling SetValue would clobber characters typed in the time
-            # between initiation of EditCurrentItem and the call to SetItem.
+        newKeyPressedItem = self.event.summary == ''
+        if not newKeyPressedItem:
             self.SetValue(self.event.summary)
 
         newSize = wx.Size(size.width, size.height)
@@ -1772,7 +1768,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         self.SetFocus()
         # if summary is empty, a keyboard edit is likely in progress, don't
         # interrupt it.
-        if self.event.summary != '':
+        if not newKeyPressedItem:
             self.SetSelection(-1, -1)
 
     def OnSize(self, event):
