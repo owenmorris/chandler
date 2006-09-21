@@ -25,6 +25,7 @@ from util import task, viewpool
 from i18n import ChandlerMessageFactory as _
 import SyncProgress
 from osaf.pim import Remindable, EventStamp
+import zanshin
 
 logger = logging.getLogger(__name__)
 
@@ -461,7 +462,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.done = False
         self.currentTask.start(inOwnThread=True)
 
-    def _shareError(self, e):
+    def _shareError(self, err):
 
         viewpool.releaseView(self.taskView)
 
@@ -469,9 +470,25 @@ class PublishCollectionDialog(wx.Dialog):
         self._hideUpdate()
         logger.exception("Failed to publish collection")
         try:
-            #XXX: [i18n] Will need to capture and translate m2crypto and zanshin errors
-            self._showStatus(_(u"\nSharing error:\n%(error)s\n") % {'error': e})
-        except:
+            if isinstance(err, zanshin.error.ConnectionError):
+                logger.exception("Connection error during publish")
+
+                # Note: do not localize the 'startswith' strings -- these need
+                # to match twisted error messages:
+                if err.message.startswith("DNS lookup failed"):
+                    msg = _(u"Unable to look up server's address via DNS")
+                elif err.message.startswith("Connection was refused"):
+                    msg = _(u"Connection refused by server")
+                else:
+                    msg = err.message
+            else:
+                msg = err
+
+            self._showStatus(_(u"\nSharing error:\n%(error)s\n") %
+                {'error': msg})
+
+        except Exception, e:
+            logger.exception("Error displaying exception")
             self._showStatus(_(u"\nSharing error:\n(Can't display error message;\nSee chandler.log for more details)\n"))
         # self._showStatus("Exception:\n%s" % traceback.format_exc(10))
 
