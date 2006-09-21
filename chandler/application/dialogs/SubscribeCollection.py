@@ -17,7 +17,7 @@ import os, sys
 import logging
 import wx
 import wx.xrc
-from osaf import sharing
+from osaf import sharing, usercollections
 from util import task, viewpool
 from application import schema, Globals
 from i18n import ChandlerMessageFactory as _
@@ -33,7 +33,8 @@ class SubscribeDialog(wx.Dialog):
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, view=None, url=None, name=None, modal=True,
-         immediate=False, mine=None, publisher=None, freebusy=False):
+         immediate=False, mine=None, publisher=None, freebusy=False,
+         color=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
@@ -45,6 +46,7 @@ class SubscribeDialog(wx.Dialog):
         self.mine = mine
         self.publisher = publisher
         self.freebusy = freebusy
+        self.color = color
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
         self.toolPanel = self.resources.LoadPanel(self, "Subscribe")
@@ -135,6 +137,9 @@ class SubscribeDialog(wx.Dialog):
             schema.ns('osaf.pim', self.view).mine.addSource(collection)
 
         schema.ns("osaf.app", self.view).sidebarCollection.add(collection)
+
+        if self.color:
+            usercollections.UserCollection(collection).color = self.color
 
         if self.modal:
             self.EndModal(True)
@@ -295,7 +300,7 @@ class SubscribeDialog(wx.Dialog):
             self.Destroy()
 
 def Show(parent, view=None, url=None, name=None, modal=False, immediate=False,
-         mine=None, publisher=None, freebusy=False):
+         mine=None, publisher=None, freebusy=False, color=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SubscribeCollection.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
@@ -305,7 +310,7 @@ def Show(parent, view=None, url=None, name=None, modal=False, immediate=False,
     win = SubscribeDialog(parent, _(u"Subscribe to Shared Collection"),
                           resources=resources, view=view, url=url, name=name,
                           modal=modal, immediate=immediate, mine=mine,
-                          publisher=publisher, freebusy=freebusy)
+                          publisher=publisher, freebusy=freebusy, color=color)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()

@@ -17,7 +17,8 @@
 
 import ConfigParser, logging
 from application import schema
-from osaf import pim, sharing
+from osaf import pim, sharing, usercollections
+from osaf.pim.structs import ColorType
 from application.dialogs import SubscribeCollection
 from chandlerdb.util.c import UUID
 
@@ -64,6 +65,13 @@ def save(rv, filename):
             cfg.set(section_name, "type", "share")
             cfg.set(section_name, "title", share.contents.displayName)
             cfg.set(section_name, "mine", col in mine.sources)
+            uc = usercollections.UserCollection(col)
+            if getattr(uc, "color", False):
+                color = uc.color
+                cfg.set(section_name, "red", color.red)
+                cfg.set(section_name, "green", color.green)
+                cfg.set(section_name, "blue", color.blue)
+                cfg.set(section_name, "alpha", color.alpha)
             urls = sharing.getUrls(share)
             if sharing.isSharedByMe(share):
                 cfg.set(section_name, "publisher", "True")
@@ -237,10 +245,20 @@ def restore(rv, filename):
                 if cfg.has_option(section, "freebusy"):
                     freebusy = cfg.getboolean(section, "freebusy")
                 title = cfg.get(section, "title")
+
+                if cfg.has_option(section, "red"):
+                    red = cfg.getint(section, "red")
+                    blue = cfg.getint(section, "blue")
+                    green = cfg.getint(section, "green")
+                    alpha = cfg.getint(section, "alpha")
+                    color = ColorType(red, green, blue, alpha)
+                else:
+                    color = None
+
                 SubscribeCollection.Show(None, view=rv, url=url, name=title,
                                          modal=False, immediate=True,
                                          mine=mine, publisher=publisher,
-                                         freebusy=freebusy)
+                                         freebusy=freebusy, color=color)
 
     # smtp accounts
     for section in cfg.sections():
