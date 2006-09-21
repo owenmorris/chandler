@@ -493,8 +493,8 @@ class UITestItem(object):
             # really want to know when the collection isn't successfully renamed
             assert self.item.displayName == displayName, '%s != %s' % \
               (self.item.displayName.encode('raw_unicode_escape'), displayName.encode('raw_unicode_escape'))
-            if timeInfo:
-                self.logger.endAction(True)
+            #if timeInfo:
+                #self.logger.endAction(True)
 
     def SetStartTime(self, startTime, timeInfo=True):
         """
