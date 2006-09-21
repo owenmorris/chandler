@@ -156,7 +156,17 @@ class SubscribeDialog(wx.Dialog):
             self._showStatus(_(u"You are already subscribed"))
         else:
             logger.exception("Error during subscribe")
-            self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})
+
+            # Note: do not localize the 'startswith' strings -- these need to
+            # match twisted error messages:
+            if err.message.startswith("DNS lookup failed"):
+                msg = _(u"Unable to look up that server's address via DNS")
+            elif err.message.startswith("Connection was refused by other side"):
+                msg = _(u"Connection refused by server")
+            else:
+                msg = err.message
+
+            self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': msg})
 
         self.subscribing = False
 
