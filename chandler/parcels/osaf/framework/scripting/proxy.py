@@ -109,7 +109,9 @@ class RootProxy(BlockProxy):
         # finish timing
         if timing is not None:
             timing.end_timer(startTime, eventName)
-        # let the Application get some time
+        # Next propagate notifications so the UI will match the data.
+        # Then call Yeild to process an pending events
+        wx.GetApp().propagateAsynchronousNotifications()
         wx.GetApp().Yield()
         return result
 

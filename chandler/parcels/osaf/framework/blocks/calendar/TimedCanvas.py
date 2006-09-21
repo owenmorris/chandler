@@ -40,6 +40,9 @@ class TimedEventsCanvas(CalendarBlock):
 
     scrollY = schema.One(schema.Integer, initialValue = -1)
 
+    def onSetFocusEvent (self, event):
+        self.widget.SetFocus()
+
     def render(self, *args, **kwds):
         super(TimedEventsCanvas, self).render(*args, **kwds)
 

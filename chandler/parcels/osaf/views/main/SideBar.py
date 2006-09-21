@@ -62,6 +62,8 @@ class wxSidebar(wxTable):
         gridWindow = self.GetGridWindow()
         gridWindow.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
         gridWindow.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
+        gridWindow.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
+
         self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
 
     def onKeyDown(self, event):
@@ -71,6 +73,11 @@ class wxSidebar(wxTable):
                 self.DisableCellEditControl()
                 return
         event.Skip()
+
+    def OnSetFocus (self, event):
+        if hasattr (self, "setFocus"):
+            del self.setFocus
+            event.Skip()
 
     def CalculateCellRect (self, row):
         if row >= 0:
@@ -261,6 +268,11 @@ class wxSidebar(wxTable):
                     if imageRect.InsideXY (x, y) == (screenMouseDown == buttonState['blockChecked']):
                         buttonState['screenMouseDown'] = not screenMouseDown
                         self.RefreshRect (imageRect)
+            
+            if event.LeftDown():
+                if blockItem.contents.isItemSelected (item):
+                    self.setFocus = True
+
         finally:
             blockItem.startNotificationDirt()
 

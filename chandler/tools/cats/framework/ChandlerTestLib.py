@@ -175,6 +175,8 @@ def publishSubscribe(testClass):
     
         # verification
         if scripting.User.emulate_sidebarClick(App_ns.sidebar, "testSharing"):
+            # We need to click twice to move the focus to the sidebar
+            scripting.User.emulate_sidebarClick(App_ns.sidebar, "testSharing")
             # cleanup
             # cosmo can only handle so many shared calendars
             # so remove this one when done

@@ -466,6 +466,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
     def onSelectItemsEvent(self, event):
         self.synchronizeWidget()
         #self.widget.Refresh() 
+
     def onSetContentsEvent(self, event):
         #We want to ignore, because view changes could come in here, and we
         #never want to change our collection

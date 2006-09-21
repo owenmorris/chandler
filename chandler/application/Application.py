@@ -772,6 +772,12 @@ class wxApplication (wx.App):
         finally:
             self.ignoreIdle = False
 
+    def fireAsynchronousNotifications(self):
+
+        # Fire set notifications that require mapChanges
+        # and pickup changes from other views
+        self.repository.view.refresh(_mergeFunction)
+
     def propagateAsynchronousNotifications(self):
 
         # Fire set notifications that require mapChanges
