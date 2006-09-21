@@ -665,9 +665,12 @@ class MailStamp(MIMEContainer, stamping.Stamp):
 
     # @@@ [grant] This doesn't seem to work; need to check what's going
     # on with schema.observer here.
-    #@schema.observer(toAddress)
-    #def updateWho(self, op, name):
-    #    self.itsItem.who = u", ".join(unicode(x) for x in self.toAddress)
+    @schema.observer(toAddress, stamping.Stamp.stamp_types)
+    def updateWho(self, op, name):
+        if op == 'set' and stamping.has_stamp(self, MailStamp):
+            self.itsItem.who = u", ".join(unicode(x) for x in self.toAddress)
+        else:
+            self.itsItem.who = u""
 
     schema.addClouds(
         sharing = schema.Cloud(

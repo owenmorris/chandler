@@ -209,6 +209,38 @@ class MailTest(TestDomainModel.DomainModelTestCase):
             account.fullName = uw("test")
             account.replyToAddress = Mail.EmailAddress(itsView=account.itsView)
             account.replyToAddress.emailAddress = "test@test.com"
+            
+class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
+    def setUp(self):
+        super(MailWhoTestCase, self).setUp()
+        self.loadParcel("osaf.pim.mail")
+        self.address = Mail.EmailAddress(
+                        itsView=self.rep.view,
+                        fullName=u"Grant Baillie",
+                        emailAddress=u"grant@example.com")
 
+    def testWho(self):
+        msg = Mail.MailMessage(itsView=self.rep.view, subject=u"Hi!")
+        msg.toAddress=[self.address]
+        
+        # Make sure the 'who' field was set correctly
+        self.failUnlessEqual(msg.itsItem.who,
+                             u"Grant Baillie <grant@example.com>")
+       
+         # Now, remove the stamp...
+        msg.remove()
+        
+        # ... and check the who field is blank
+        self.failUnlessEqual(msg.itsItem.who, u"")
+                             
+    def testNoStamp(self):
+        # Make sure that, even if we create a Note with a toAddress,
+        # that doesn't show up in the who field
+        note = Note(itsView=self.rep.view)
+        notStampedMsg = Mail.MailStamp(note)
+        notStampedMsg.toAddress=[self.address]
+        self.failUnlessEqual(notStampedMsg.itsItem.who, u"")
+                             
+    
 if __name__ == "__main__":
     unittest.main()

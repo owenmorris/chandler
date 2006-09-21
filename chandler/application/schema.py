@@ -817,21 +817,18 @@ class AnnotationClass(type):
                 # support private name mangling
                 name = '_%s%s' % (cls.__name__, name)
 
-            # Stash some variables in a dict so we don't clobber them
-            # in later invocations of this function
-            methodParams = {
-                'prefix' : "%s.%s." % (parcel_name(cls.__module__),cls.__name__),
-                'name' : name
-            }
-            def wrappedMethod(item, op, attrName):
-                #prefix = methodParams['prefix']
-                #if attrName.startswith(prefix):
-                #    attrName = attrName[len(prefix):]
-                return getattr(cls, methodParams['name'])(cls(item), op, attrName)
-                
-            name = methodParams['prefix'] + name
-            wrappedMethod.__name__ = name
-            setattr(targetClass, name, wrappedMethod)
+            def makeNewMethod(cls, fullname, name):
+                meth = getattr(cls,name)
+                def wrappedMethod(item, op, attrName):
+                    return meth(cls(item), op, attrName)
+                wrappedMethod.__name__ = name
+                wrappedMethod.__doc__ = meth.__doc__
+                return wrappedMethod
+               
+            shortName = name
+            name = "%s.%s.%s" % (parcel_name(cls.__module__), cls.__name__,
+                                     name)
+            setattr(targetClass, name, makeNewMethod(cls, name, shortName))
 
             # @@@ [grant] copy-n-paste job from ItemClass._init_schema_item
             for attrName in attrNames:

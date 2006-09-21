@@ -675,7 +675,8 @@ class EventStamp(Stamp):
         from osaf.pim.reminders import Remindable
         # Update the reminder we use to update triageStatus at startTime, 
         # if it's in the future. First, find any existing startTime reminder.
-        existing = [ r for r in self.reminders if not r.userCreated ]
+        existing = [r for r in getattr(Remindable(self), 'reminders', [])
+                      if not r.userCreated]
         assert len(existing) <= 1
         existing = len(existing) and existing[0] or None
         assert not existing or existing.absoluteTime is not None
