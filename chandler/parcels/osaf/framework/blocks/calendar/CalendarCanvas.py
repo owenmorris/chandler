@@ -1631,41 +1631,17 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
     def __init__(self, parent, defocusCallback=None, *arguments, **keywords):
         
         # Windows and Mac add an extra vertical scrollbar for TE_MULTILINE,
-        # and GTK does not. Further, if GTK is not multiline, then the single
-        # line mode looks really wonky with a huge cursor. The undocumented
-        # flag TE_NO_VSCROLL solves the former problem but introduces another:
-        # text does not scroll at all. On MSW, not only does the text not
-        # scroll, but also what text does not fit in the editor window gets
-        # truncated. (!)
+        # GTK doesn't. Further, if GTK is not multiline, then the single
+        # line mode looks really wonky with a huge cursor.
         #
-        # FIXME: eventually, this TextCtrl style should be (for all platforms,
-        # pending fixes in wx):
-        # style = wx.NO_BORDER | wx.TE_NO_VSCROLL | wx.TE_MULTILINE
-        
-        # For now, we will differentiate based on platform: 
-        
-        style = wx.NO_BORDER
-        
-        if   '__WXMAC__' in wx.PlatformInfo:
-                # Mac behavior doesn't allow any scrolling
-                style |= wx.TE_MULTILINE 
-                style |= wx.TE_NO_VSCROLL 
-
-        elif '__WXGTK__' in wx.PlatformInfo:
-                # GTK behavior works well with the multiline
-                style |= wx.TE_MULTILINE
-                style |= wx.TE_NO_VSCROLL
-                #style |= wx.TE_PROCESS_ENTER # this works but causes an assertion error
-
-        else:
-                # MSW behavior truncates titles that doesn't fit in
-                # the event window.  TE_PROCESS_ENTER is supposedly
-                # not needed when using TE_MULTILINE flag.  (in fact
-                # raises assertion error), but it apparently *is*
-                # needed to not allow newlines in the input field. (at
-                # least in GTK.)
-                style |= wx.TE_PROCESS_ENTER 
-                                             
+        # The undocumented flag TE_NO_VSCROLL solves these problems but
+        # introduces another: text does not scroll at all on Mac and MSW. On
+        # MSW, not only does the text not scroll, but you can't enter text
+        # beyond the size of the editor if TE_NO_VSCROLL and TE_MULTILINE are
+        # both set, so on Windows we stick with the a single line for now
+        style = wx.NO_BORDER | wx.TE_PROCESS_ENTER |  wx.TE_NO_VSCROLL
+        if '__WXMSW__' not in wx.PlatformInfo:
+            style |= wx.TE_MULTILINE
 
         super(wxInPlaceEditor, self).__init__(parent,
                                               -1, "", wx.DefaultPosition,
