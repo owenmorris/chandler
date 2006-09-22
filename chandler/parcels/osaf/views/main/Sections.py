@@ -74,7 +74,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         self.sectionRows = []
         self.sectionLabels = []
         self.sectionIndexes = []
-        self.sectionColors = []        
+        self.sectionColors = []
         self.totalRows = len(self.blockItem.contents)
         
         dashboardPrefs = schema.ns('osaf.views.main',
@@ -122,7 +122,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             
             self.sectionRows.append((sectionRow, sectionVisible, sectionTotal))
             self.totalRows += sectionVisible + 1
-            
+
             # Get the color name we'll use for this section
             # For now, it's just the attribute value.
             sectionValue = getattr(self.blockItem.contents[self.sectionIndexes[section]], 

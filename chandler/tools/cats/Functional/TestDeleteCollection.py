@@ -31,7 +31,9 @@ class TestDeleteCollection(ChandlerTestCase):
     
         # action
         sb = self.app_ns.sidebar
-        # move focus from collection name text to collection
+        # move focus from collection name text to collection. This
+        # requires 2 clicks
+        scripting.User.emulate_sidebarClick(sb, uw("ToBeDeleted"))
         scripting.User.emulate_sidebarClick(sb, uw("ToBeDeleted"))
         col.DeleteCollection()
     

@@ -141,6 +141,10 @@ def publishSubscribe(testClass):
         # Unsubscribe and delete the (local) collection we just published so
         # that we can subscribe to it below.
         sharing.unsubscribe(collection)
+
+        # Two clicks are required to select the collection
+        scripting.User.emulate_sidebarClick(sidebar, "testSharing")
+        scripting.User.emulate_sidebarClick(sidebar, "testSharing")
         App_ns.root.Remove()
         scripting.User.idle()
 
@@ -175,6 +179,8 @@ def publishSubscribe(testClass):
     
         # verification
         if scripting.User.emulate_sidebarClick(App_ns.sidebar, "testSharing"):
+            # We need to click twice to move the focus to the sidebar
+            scripting.User.emulate_sidebarClick(App_ns.sidebar, "testSharing")
             # cleanup
             # cosmo can only handle so many shared calendars
             # so remove this one when done

@@ -236,7 +236,8 @@ def makeMainView(parcel):
                                 delegate = SidebarBranchPointDelegateInstance,
                                 detailItem = pim_ns.allCollection,
                                 selectedItem = pim_ns.allCollection,
-                                detailItemCollection = pim_ns.allCollection),
+                                detailItemCollection = pim_ns.allCollection,
+                                setFocus = True),
                             ]) # BoxContainer SidebarContainerContainer
                     ]) # BoxContainer ToolbarContainer
             ]).install(parcel) # MainViewInstance MainView
