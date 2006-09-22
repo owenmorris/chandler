@@ -791,7 +791,7 @@ class EventStamp(Stamp):
         Calculate what recurrenceEnd should be and set it or delete it if it's
         None.
         """
-        if self.itsItem is not self.getMaster():
+        if self is not self.getMaster():
             end = None
         else:
             end = self.getRecurrenceEnd()

@@ -654,9 +654,10 @@ class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):
 def getAppearsInNames(item):
     # Only a recurrence master appears 'in' the collection (for 0.6, anyway)
     # so if this item lets us get its master, do so and use that instead.
-    getMasterMethod = getattr(item, 'getMaster', None)
-    if getMasterMethod is not None:
-        item = getMasterMethod()
+    if pim.has_stamp(item, pim.EventStamp):
+        getMasterMethod = getattr(pim.EventStamp(item), 'getMaster', None)
+        if getMasterMethod is not None:
+            item = getMasterMethod()
 
     if not hasattr(item, 'appearsIn'):
         return () # we won't be visible if this happens.

@@ -2585,6 +2585,60 @@ class EventStampAttributeEditor(StampAttributeEditor):
     stampClass = Calendar.EventStamp
     iconPrefix = "SumEvent"
     
+    def makeStates(self):
+        states = [
+            BitmapInfo(stateName="%s.Unstamped" % self.iconPrefix,
+                       normal=StampAttributeEditor.noImage,
+                       selected=StampAttributeEditor.noImage,
+                       rollover="EventTicklerRollover",
+                       rolloverselected="EventTicklerRolloverSelected",
+                       mousedown="EventTicklerMousedown"),
+            BitmapInfo(stateName="%s.Stamped" % self.iconPrefix,
+                       normal="SumEventStamped",
+                       selected="SumEventStamped-Reversed",
+                       rollover="EventTicklerRollover",
+                       rolloverselected="EventTicklerRolloverSelected",
+                       mousedown="EventTicklerMousedown"),
+            BitmapInfo(stateName="%s.Tickled" % self.iconPrefix,
+                       normal="EventTickled",
+                       selected="EventTickledSelected",
+                       rollover="EventTicklerRollover",
+                       rolloverselected="EventTicklerRolloverSelected",
+                       mousedown="EventTicklerMousedown"),
+        ]
+        return states
+    
+    def GetAttributeValue(self, item, attributeName):
+        return pim.Remindable(item).getUserReminder(expiredToo=False) \
+            and ("%s.Tickled" % self.iconPrefix) \
+            or super(EventStampAttributeEditor, self).\
+                     GetAttributeValue(item, attributeName)
+
+    def SetAttributeValue(self, item, attributeName, value):
+        # Don't bother implementing this - the only changes made in
+        # this editor are done via advanceState
+        pass
+        
+    def advanceState(self, item, attributeName):
+        # If there is one, remove the existing reminder
+        remindable = pim.Remindable(item)
+        if remindable.getUserReminder(expiredToo=False) is not None:
+            remindable.userReminderTime = None
+            return
+
+        # No existing one -- create one.
+        now = datetime.now(tz=ICUtzinfo.default)
+        if now.hour < 17:
+            # Today at 5PM
+            reminderTime = now.replace(hour=17, minute=0, 
+                                       second=0, microsecond=0)
+        else:
+            # Tomorrow at 8AM
+            reminderTime = now.replace(hour=8, minute=0,
+                                       second=0, microsecond=0) + \
+                           timedelta(days=1)
+        remindable.userReminderTime = reminderTime
+        
 class TaskStampAttributeEditor(StampAttributeEditor):
     stampClass = TaskStamp
     iconPrefix = "SumTask"
