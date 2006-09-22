@@ -214,7 +214,7 @@ class FocusEventHandlers(Item):
                     stampClass(item).add()
                 
             for item in selectedItems:
-                doit()
+                doit(item)
 
     def onFocusStampEventUpdateUI(self, event):
         selectedItems = self.__getSelectedItems()
