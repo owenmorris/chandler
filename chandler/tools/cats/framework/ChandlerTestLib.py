@@ -142,8 +142,7 @@ def publishSubscribe(testClass):
         # that we can subscribe to it below.
         sharing.unsubscribe(collection)
 
-        # Two clicks are required to select the collection
-        scripting.User.emulate_sidebarClick(sidebar, "testSharing")
+        # Two clicks are required to select the collection (this is the second)
         scripting.User.emulate_sidebarClick(sidebar, "testSharing")
         App_ns.root.Remove()
         scripting.User.idle()
