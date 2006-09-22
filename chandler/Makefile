@@ -30,7 +30,7 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)D.tar.gz \
            $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.5-62-$(BP)5.tar.gz \
            $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-2-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)4.tar.gz \
-           $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.7.0.0-r100-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.7.0.0-r104-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)4.tar.gz \
            $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)3.tar.gz \
            $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.3.0-r149-$(BP)1.tar.gz \
