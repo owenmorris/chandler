@@ -347,11 +347,10 @@ static PyObject *t_item_getattro(t_item *self, PyObject *name)
 
         if (c->flags & DESCRIPTORS_INSTALLED)
         {
-            t_descriptor *descriptor = (t_descriptor *)
-                PyDict_GetItem(c->descriptors, name);
+            PyObject *descriptor = PyDict_GetItem(c->descriptors, name);
 
             if (descriptor)
-                return CDescriptor_get(descriptor, self, NULL);
+                return descriptor->ob_type->tp_descr_get(descriptor, (PyObject *) self, NULL);
         }
     }
 
@@ -383,11 +382,10 @@ static int t_item_setattro(t_item *self, PyObject *name, PyObject *value)
 
         if (c->flags & DESCRIPTORS_INSTALLED)
         {
-            t_descriptor *descriptor = (t_descriptor *)
-                PyDict_GetItem(c->descriptors, name);
+            PyObject *descriptor = PyDict_GetItem(c->descriptors, name);
 
             if (descriptor)
-                return CDescriptor_set(descriptor, self, value);
+                return descriptor->ob_type->tp_descr_set(descriptor, (PyObject *) self, value);
         }
     }
 

@@ -20,8 +20,3 @@ typedef struct {
     PyObject *name;
     t_attribute *attr;
 } t_descriptor;
-
-typedef PyObject *(*CDescriptor_get_fn)(t_descriptor *self,
-                                        t_item *item, PyObject *type);
-typedef int (*CDescriptor_set_fn)(t_descriptor *self,
-                                  t_item *item, PyObject *value);

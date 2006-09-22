@@ -40,10 +40,10 @@ class StaleItemError(ValueError, ItemError):
 
 
 class DirtyItemError(ValueError, ItemError):
-    __doc__ = "Item %s has changed, cannot be unloaded"
+    __doc__ = "Item is dirty, cannot be unloaded"
 
     def __str__(self):
-        return self.getItem().itsPath
+        return self.getItem()._repr_()
 
     
 class InvalidChildError(ValueError, ItemError):

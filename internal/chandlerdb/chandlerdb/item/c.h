@@ -59,8 +59,6 @@ extern PyUUID_Check_fn PyUUID_Check;
 extern C_countAccess_fn C_countAccess;
 
 extern CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange;
-extern CDescriptor_get_fn CDescriptor_get;
-extern CDescriptor_set_fn CDescriptor_set;
 
 void _init_item(PyObject *m);
 void _init_values(PyObject *m);

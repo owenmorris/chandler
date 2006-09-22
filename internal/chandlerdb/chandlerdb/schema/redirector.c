@@ -158,6 +158,7 @@ static PyObject *t_redirector___get__(t_redirector *self,
 {
     if (obj == NULL || obj == Py_None)
     {
+        /* pretend to be the original descriptor if retrieved from class */
         Py_INCREF(self->cdesc);
         return self->cdesc;
     }

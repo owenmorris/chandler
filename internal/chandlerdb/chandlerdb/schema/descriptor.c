@@ -359,17 +359,9 @@ void _init_descriptor(PyObject *m)
     {
         if (m)
         {
-            PyObject *cobj;
-
             Py_INCREF(&DescriptorType);
             PyModule_AddObject(m, "CDescriptor", (PyObject *) &DescriptorType);
             CDescriptor = &DescriptorType;
-
-            cobj = PyCObject_FromVoidPtr(t_descriptor___get__, NULL);
-            PyModule_AddObject(m, "CDescriptor_get", cobj);
-
-            cobj = PyCObject_FromVoidPtr(t_descriptor___set__, NULL);
-            PyModule_AddObject(m, "CDescriptor_set", cobj);
 
             _getRef_NAME = PyString_FromString("_getRef");
             getAttributeValue_NAME = PyString_FromString("getAttributeValue");
