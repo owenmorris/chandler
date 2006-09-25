@@ -108,14 +108,15 @@ class CanvasItem(object):
         
         # @@@ scaffolding: resize bounds is the lower 5 pixels
         self._bounds = bounds
+        
         if isinstance(itemOrEvent, EventStamp):
-            self.item = itemOrEvent.itsItem
+            self.event = EventStamp(itemOrEvent)
         else:
-            self.item = itemOrEvent
+            self.event = itemOrEvent.itsItem
 
     @property
-    def event(self):
-        return EventStamp(self.item)
+    def item(self):
+        return self.event.itsItem
 
     def __repr__(self):
         return "<%s: item=%s box=%s>" % (self.__class__.__name__,
