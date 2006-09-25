@@ -104,10 +104,9 @@ __all__ = ['messageTextToKind', 'messageObjectToKind', 'kindToMessageObject', 'k
 
 def decodeHeader(header, charset=constants.DEFAULT_CHARSET):
     try:
-        decoded    = Header.make_header(Header.decode_header(header))
-        unicodeStr = decoded.__unicode__()
-
-        return  constants.EMPTY.join(unicodeStr.splitlines())
+        h = Header.decode_header(header)
+        buf = [b[0].decode(b[1] or 'ascii') for b in h]
+        return u''.join(buf)
 
     except(UnicodeError, UnicodeDecodeError, LookupError):
         return unicode("".join(header.splitlines()), charset, 'ignore')
@@ -611,9 +610,6 @@ def __getEmailAddress(view, name, addr):
     Use any existing EmailAddress, but don't update them
     because that will cause the item to go stale in the UI thread.
     """
-    #XXX: This method needs much better performance
-    #return Mail.EmailAddress.getEmailAddress(view, addr, name, True)
-
     if Mail.EmailAddress.isValidEmailAddress(addr):
         address = Mail.EmailAddress.findEmailAddress(view, addr)
         if address is None:
