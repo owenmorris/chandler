@@ -219,18 +219,25 @@ class FocusEventHandlers(Item):
     def onFocusStampEventUpdateUI(self, event):
         selectedItems = self.__getSelectedItems()
         stampClass = event.classParameter
-        if len(selectedItems) > 0:
+        enable = False
+        states = set()
+        
+        for item in selectedItems:
+            # we don't want to try to stamp non-Note content items
+            # (e.g. Collections)
+            enable = isinstance(item, Note)
+            if not enable:
+                break
+                
             # Collect the states of all the items, so that we can change all
             # the items if they're all in the same state.
-            states = [ (isinstance(item, Note),
-                        has_stamp(item, stampClass))
-                             for item in selectedItems]
-            # we don't want to try to stamp non-Note content items (e.g. Collections)
-            isNote, isStamped = states[0]
-            enable = isNote and len(set(states)) == 1 # all Notes with the same states?
-            event.arguments['Enable'] = enable
-            event.arguments['Check'] = enable and isStamped
+            states.add(has_stamp(item, stampClass))
+        
+        enable = enable and (len(states) == 1)
 
+        event.arguments['Enable'] = enable
+        # next() won't raise because len(status) is 1
+        event.arguments['Check'] = enable and iter(states).next()
 
 
     def CanReplyOrForward(self, selectedItem):
