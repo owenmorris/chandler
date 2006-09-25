@@ -1672,12 +1672,6 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
             self.defocusCallback()
         
     def SaveAndHide(self):
-        # This assert seems wrong: On Linux, during TestAllDay, we see OnSize
-        # call Hide, which calls OnKillFocus, which calls this method. By the
-        # time we get here, IsShown reports False, even though we still do want
-        # to save the value. So, I'm commenting this out for now (at least until
-        # my friend Alec can review it).
-        # assert self.IsShown(), "Shouldn't be saving the editor value if it isn't visible!"
         self.SaveItem()
         self._unfocusing = True
         self.Hide()
