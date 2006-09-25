@@ -50,7 +50,7 @@ def makeMainView(parcel):
     IconButton = SSSidebarIconButton.update(
         parcel, 'IconButton',
         buttonName = 'Icon',
-        buttonOffsets = [1,22,19])
+        buttonOffsets = [0,21,19])
     
     SharingButton = SSSidebarSharingButton.update(
         parcel, 'SharingIcon',
