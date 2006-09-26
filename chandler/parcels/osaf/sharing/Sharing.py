@@ -232,21 +232,24 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
             # but not .ics resources)
             #
             # We need to detect/delete them from the repository.  This means
-            # looking through the stats to find the items we just got, seeing
-            # which ones have EventStamp, and removing any that don't
-            # have a startTime.  Next, we need to adjust the manifests so that
-            # during the PUT phase we don't remove the .xml resources from
-            # the server
-            #
-            halfBakedEvents = []
-            for stat in stats:
-                # Get share from metadata view
-                share = metaView.findUUID(stat['share'])
-                for uuid in stat['added']:
+            # looking through the stats to find the items we just got from the
+            # XML fork (shares[0]), and making sure those items were also
+            # modified via the ICS fork.  Any events that don't have an ICS
+            # fork are removed locally. Next, we need to adjust the manifests
+            # so that during the PUT phase we don't remove the .xml resources
+            # from the server.
+
+            if (isinstance(shares[0].conduit, WebDAVConduit) and
+                isinstance(shares[1].conduit, CalDAVConduit)):
+                share0 = metaView.findUUID(shares[0].itsUUID)
+                share1 = metaView.findUUID(shares[1].itsUUID)
+                # This is a hybrid share, XML + ICS
+
+                for uuid in stats[0]['added']:
                     item = contentView.findUUID(uuid)
-                    if pim.has_stamp(item, pim.EventStamp):
-                        event = pim.EventStamp(item)
-                        if not hasattr(event, 'startTime'):
+                    if uuid not in stats[1]['modified']:
+                        item = contentView.findUUID(uuid)
+                        if pim.has_stamp(item, pim.EventStamp):
                             if updateCallback:
                                 updateCallback(msg=_(u"Incomplete Event Detected: '%(name)s'") % { 'name': item.getItemDisplayName() } )
 
@@ -254,9 +257,12 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
                             # during PUT (otherwise we would remove the .xml
                             # resource since the item isn't in our local copy
                             # of the collection:
-                            itemPath = share.conduit._getItemPath(item)
-                            share.conduit._addToManifest(itemPath, None)
+                            itemPath = share0.conduit._getItemPath(item)
+                            share0.conduit._addToManifest(itemPath, None)
+                            logger.info("Incomplete event: '%s' %s" %
+                                (item.displayName, itemPath))
                             item.delete(True)
+
 
         for share in shares:
             cvShare = contentView[share.itsUUID]
