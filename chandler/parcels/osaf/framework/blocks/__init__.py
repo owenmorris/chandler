@@ -74,7 +74,7 @@ def installParcel(parcel, oldName=None):
                                 commitAfterDispatch = True).install(parcel),
     
             BlockEvent.template('SelectAll',
-                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+                                dispatchEnum = 'FocusBubbleUp').install(parcel),
     
             BlockEvent.template('PrintPreview').install(parcel),
 
@@ -93,7 +93,7 @@ def installParcel(parcel, oldName=None):
                                 commitAfterDispatch = True).install(parcel),
 
             BlockEvent.template('Print',
-                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+                                dispatchEnum = 'FocusBubbleUp').install(parcel),
     
             BlockEvent.template('Copy',
                                 dispatchEnum = 'FocusBubbleUp',
@@ -103,16 +103,16 @@ def installParcel(parcel, oldName=None):
                                 dispatchEnum = 'FocusBubbleUp').install(parcel),
     
             BlockEvent.template('Quit',
-                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+                                dispatchEnum = 'FocusBubbleUp').install(parcel),
     
             BlockEvent.template('About',
-                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+                                dispatchEnum = 'FocusBubbleUp').install(parcel),
     
             BlockEvent.template('Close',
-                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+                                dispatchEnum = 'FocusBubbleUp').install(parcel),
     
             BlockEvent.template('Open',
-                                dispatchEnum = 'ActiveViewBubbleUp').install(parcel),
+                                dispatchEnum = 'FocusBubbleUp').install(parcel),
     
             BlockEvent.template('SelectItemsBroadcast',
                                 dispatchEnum = 'BroadcastInsideMyEventBoundary',
