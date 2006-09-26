@@ -248,12 +248,15 @@ def emulate_return(block=None):
         ent.SetEventObject(widget)
 
         #work around for mac bug
-        widget.ProcessEvent(tu) #for start/end time and location field
+        if widget is not None:
+            widget.ProcessEvent(tu) #for start/end time and location field
         #work around for canvasItem
-        widget.ProcessEvent(kf) #for canvasItem title
-        # events processing
-        widget.ProcessEvent(ret_d)
-        widget.ProcessEvent(ret_up)
+        if widget is not None:
+            widget.ProcessEvent(kf) #for canvasItem title
+            # events processing
+        
+            widget.ProcessEvent(ret_d)
+            widget.ProcessEvent(ret_up)
         # Give Yield & Idle to the App
         idle()
         return True
