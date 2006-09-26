@@ -545,6 +545,16 @@ class EmptySet(AbstractSet):
 
         super(EmptySet, self).__init__(None, id)
 
+    def _setOwner(self, item, attribute):
+
+        result = super(EmptySet, self)._setOwner(item, attribute)
+        if item is None:
+            self._view = None
+        else:
+            self._view = item.itsView
+
+        return result
+
     def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
 
         return False
