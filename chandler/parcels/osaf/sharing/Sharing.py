@@ -239,7 +239,8 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
             # so that during the PUT phase we don't remove the .xml resources
             # from the server.
 
-            if (isinstance(shares[0].conduit, WebDAVConduit) and
+            if (len(shares) > 1 and
+                isinstance(shares[0].conduit, WebDAVConduit) and
                 isinstance(shares[1].conduit, CalDAVConduit)):
                 share0 = metaView.findUUID(shares[0].itsUUID)
                 share1 = metaView.findUUID(shares[1].itsUUID)
