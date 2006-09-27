@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os, sys, time, codecs
+import os, sys, time, codecs, platform
 from cgi import escape
 import wx
 from i18n import ChandlerSafeTranslationMessageFactory as _
@@ -171,11 +171,9 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             self.frame.text.AppendText('Chandler Version: %s\n' % version.version)
             
             self.frame.text.AppendText('OS: %s\n' % os.name)
-            self.frame.text.AppendText('Platform: %s\n' % sys.platform)
-            try:
-                self.frame.text.AppendText('Windows Version: %s\n' % str(sys.getwindowsversion()))
-            except:
-                pass
+            self.frame.text.AppendText('Platform Type: %s\n' % sys.platform)
+            self.frame.text.AppendText('Platform Details: %s\n' % platform.platform())
+            self.frame.text.AppendText('Architecture: %s\n' % platform.machine())
             self.frame.text.AppendText('Python Version: %s\n' % sys.version)
         except:
             pass
@@ -313,7 +311,7 @@ def buildXML(comments, email, optional, required):
     Given the possible fields in the error dialog, build an XML file
     of the data.
     """
-    ret = ['<feedback xmlns="http://osafoundation.org/xmlns/feedback" version="0.2">']
+    ret = ['<feedback xmlns="http://osafoundation.org/xmlns/feedback" version="0.3">']
     
     # The required field consists of field: value lines, followed by either
     # traceback or arbitrary output that was printed to stdout or stderr.
