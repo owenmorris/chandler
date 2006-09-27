@@ -174,7 +174,7 @@ $(addprefix binaries-, $(BUILD_PLUGINS)):
 	cd $(C_HOME)/projects/$(subst binaries-,,$@); \
     $(PLUGIN_PYTHON) setup.py develop \
       --script-dir=$(SETUPTOOLS_BIN) \
-      --install-dir=$(C_HOME)
+      --install-dir=$(SETUPTOOLS_SITE)
 
 #
 # for distribution the egg develop mode has to be turned off
@@ -184,7 +184,7 @@ $(addprefix distrib-, $(BUILD_PLUGINS)):
 	cd $(C_HOME)/projects/$(subst distrib-,,$@); \
   $(PLUGIN_PYTHON) setup.py develop -u \
     --script-dir=$(SETUPTOOLS_BIN) \
-    --install-dir=$(C_HOME)
+    --install-dir=$(SETUPTOOLS_SITE)
 	cd $(C_HOME)/projects/$(subst distrib-,,$@); \
     $(PLUGIN_PYTHON) setup.py install \
       --install-scripts=$(SETUPTOOLS_BIN) \
