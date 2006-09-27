@@ -49,6 +49,8 @@ class TestFlickr(ChandlerTestCase):
             self.logger.endAction(True, "IOError (%s); skipping test" % str(e))
         except flickr.flickr.FlickrNotFoundError:
             self.logger.endAction(True, "Flickr search returned nothing; skipping test")
+        except flickr.flickr.FlickrError, e:
+            self.logger.endAction(True, "Flickr service error (%s); skipping test" % str(e))
         else:
     
             # Add the channel to the sidebar
