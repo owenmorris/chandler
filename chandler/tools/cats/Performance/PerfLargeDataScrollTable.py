@@ -1,3 +1,11 @@
+print """
+####
+#### WARNING
+#### THIS FILE IS NOT BEING USED TO TEST PERFORMANCE 
+#### THIS FILE IS STILL IN DEVELOPMENT.  USE THE FILES IN      
+#### tools/QATestScripts/Performance                                  
+####
+"""
 #   Copyright (c) 2003-2006 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
