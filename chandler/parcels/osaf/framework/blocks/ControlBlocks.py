@@ -1136,7 +1136,7 @@ class ReminderTimer(Timer):
                                             remindable, remindable,
                                             remindable.startTime)
                         assert not reminder.isDeleted()
-                        if reminder.userCreated:
+                        if reminder.promptUser:
                             return True # this should appear in the list.
                         # This is a non-user reminder, which served only to let us
                         # bump the triageStatus. Discard it.

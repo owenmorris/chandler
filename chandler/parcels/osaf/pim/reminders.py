@@ -47,6 +47,16 @@ class Reminder(schema.Item):
         doc="Offset relative to 'relativeTo' that this reminder should occur",
     )
     
+    # These flags represent what kind of reminder this is:
+    # userCreated promptUser keepExpired
+    #   True        True       True    a relative or absolute user reminder;
+    #                                  only one of these can exist on an item,
+    #                                  in its 'reminders' or 'expiredReminders'.
+    #   False       True       False   A 'snooze' reminder.
+    #   False       False      False   An internal reminder relative to the
+    #                                  the effectiveStartTime of an event, used
+    #                                  to update its triageStatus when it fires.
+    
     userCreated = schema.One(
         schema.Boolean,
         defaultValue=True,
@@ -59,6 +69,11 @@ class Reminder(schema.Item):
         doc="Should we keep this around (in the Remindable's expiredReminders) "
             "after it fires?")
     
+    promptUser = schema.One(
+        schema.Boolean,
+        defaultValue=True,
+        doc="Should we show this reminder to the user when it goes off?")
+    
     reminderItems = schema.Sequence(
         initialValue=[]
     )
@@ -69,7 +84,7 @@ class Reminder(schema.Item):
 
     schema.addClouds(
         sharing = schema.Cloud(absoluteTime, delta, relativeTo, 
-                               userCreated, keepExpired)
+                               userCreated, keepExpired, promptUser)
     )
 
     def getBaseTimeFor(self, remindable):
@@ -96,7 +111,8 @@ class Reminder(schema.Item):
         return result
 
     def __repr__(self):
-        return "<%sReminder @ %s>" % (self.userCreated and "User" or "Internal", 
+        return "<%sReminder @ %s>" % (self.userCreated and "User" or 
+                                      self.promptUser and "Snooze" or "Internal", 
                                       self.absoluteTime or self.delta)
 
 class Remindable(schema.Annotation):

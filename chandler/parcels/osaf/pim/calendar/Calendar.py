@@ -700,7 +700,7 @@ class EventStamp(Stamp):
                 # the old because we want notifications to fire on this change)
                 Remindable(self).makeReminder(absoluteTime=newStartTime,
                                      userCreated=False, checkExpired=True,
-                                     keepExpired=False)
+                                     keepExpired=False, promptUser=False)
                     
         # If we had an existing startTime reminder, dismiss it.
         if existing:
