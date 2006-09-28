@@ -1176,13 +1176,16 @@ def executeShell(buildenv):
 def handleManifest(buildenv, filename, fatalErrors=True):
 
     params = {}
-    params["src"] = None
-    params["dest"] = None
+    params["src"]       = None
+    params["dest"]      = None
+    params["link"]      = None
     params["recursive"] = True
-    params["glob"] = "*"
-    params["exclude"] = "\.svn"
-    srcdir = buildenv['root']
+    params["glob"]      = "*"
+    params["exclude"]   = "\.svn"
+
+    srcdir  = buildenv['root']
     destdir = buildenv['distdir']
+    linkdir = None
 
     if fatalErrors:
         hhMsg = HARDHAT_ERROR
@@ -1207,6 +1210,9 @@ def handleManifest(buildenv, filename, fatalErrors=True):
             if name == "dest":
                 destdir = os.path.join(buildenv['distdir'],value)
                 log(buildenv, HARDHAT_MESSAGE, "HardHat", "dest=" + destdir)
+            if name == "link":
+                linkdir = value
+                log(buildenv, HARDHAT_MESSAGE, "HardHat", "link=" + linkdir)
             if name == "glob":
                 params['glob'] = value.split(",")
                 log(buildenv, HARDHAT_MESSAGE, "HardHat", "pattern=" + value)
@@ -1220,30 +1226,48 @@ def handleManifest(buildenv, filename, fatalErrors=True):
                 params["exclude"] = value.split(",")
                 log(buildenv, HARDHAT_MESSAGE, "HardHat", "exclude=" + value)
         else:
-            abspath = os.path.join(srcdir,line)
-            if os.path.isdir(abspath):
-                log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
-                copyto = os.path.join(buildenv['distdir'], params["dest"], line)
-                _copyTree(abspath, copyto, params["recursive"], params["glob"], params["exclude"])
-            else:
-                if os.path.exists(abspath):
-                    log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
-                    copyto = os.path.join(buildenv['distdir'], params["dest"],
-                     line)
-                    createpath = os.path.dirname(copyto)
-                    mkdirs(createpath)
-                    if os.path.islink(abspath):
-                        linkto = os.readlink(abspath)
-                        os.symlink(linkto, copyto)
+            if linkdir is not None:
+                if buildenv['os'] <> 'win':
+                    srcpath  = os.path.abspath(os.path.join(destdir, linkdir, line))
+                    linkpath = os.path.join(linkdir, line)
+
+                    if os.path.isdir(srcpath):
+                        log(buildenv, HARDHAT_MESSAGE, "HardHat", "linking %s to %s in %s" % (linkpath, line, destdir))
+
+                        mkdirs(destdir)
+                        os.chdir(destdir)
+                        os.symlink(linkpath, line)
                     else:
-                        shutil.copy(abspath, copyto)
+                        log(buildenv, hhMsg, "HardHat", "Linking only allowed for directories")
                 else:
-                    log(buildenv, hhMsg, "HardHat", "File missing: " 
-                     + abspath)
-                    if fatalErrors:
-                        raise HardHatError, 'File missing: ' + abspath
+                    log(buildenv, hhMsg, "HardHat", "Linking only allowed for POSIX systems")
+
+                linkdir = None
+            else:
+                abspath = os.path.join(srcdir,line)
+                if os.path.isdir(abspath):
+                    log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
+                    copyto = os.path.join(buildenv['distdir'], params["dest"], line)
+                    _copyTree(abspath, copyto, params["recursive"], params["glob"], params["exclude"])
+                else:
+                    if os.path.exists(abspath):
+                        log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
+                        copyto = os.path.join(buildenv['distdir'], params["dest"],
+                         line)
+                        createpath = os.path.dirname(copyto)
+                        mkdirs(createpath)
+                        if os.path.islink(abspath):
+                            linkto = os.readlink(abspath)
+                            os.symlink(linkto, copyto)
+                        else:
+                            shutil.copy(abspath, copyto)
                     else:
-                        continue
+                        log(buildenv, hhMsg, "HardHat", "File missing: " 
+                         + abspath)
+                        if fatalErrors:
+                            raise HardHatError, 'File missing: ' + abspath
+                        else:
+                            continue
 
 #expand $(VAR) with value of VAR environment variable
 #expand ${program} with full path of directory containing program from PATH
@@ -1284,7 +1308,7 @@ def expandVars(line):
     line = replaceVars(line, '${', '}', pathFind)
 
     return line
-    
+
 
 def _copyTree(srcdir, destdir, recursive, patterns, excludes):
     """
