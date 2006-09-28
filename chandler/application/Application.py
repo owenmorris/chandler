@@ -687,6 +687,18 @@ class wxApplication (wx.App):
         block = Block.idToBlock.get (wxID, None)
         if block is not None:
 
+            # Similar to below, when the Backspace key is used an as
+            # accelerator on wxMac and the currently focused widget is
+            # a textctrl then we *must* Skip the event otherwise the
+            # text control will either do nothing, or will treat it as
+            # a Delete key instead.
+            if '__WXMAC__' in wx.PlatformInfo and \
+                   event.GetEventType() == wx.EVT_MENU.evtType[0] and \
+                   block.accel == "Back" and \
+                   isinstance(wx.Window.FindFocus(), (wx.TextCtrl, wx.ComboBox)):
+                event.Skip()
+                return
+
             #An interesting problem occurs on Mac (see Bug #219). If a dialog is
             #the topmost windw, standard events like cut/copy/paste get processed
             #by this handler instead of the dialog, causing cut/copy/paste to stop
