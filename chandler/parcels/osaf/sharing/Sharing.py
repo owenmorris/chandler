@@ -2639,18 +2639,28 @@ class CloudXMLFormat(ImportExportFormat):
     )
 
     
-    # ELEMENT_MAP has XML element names as keys, and tuples
-    # of stamp classes as values. It tells us what stamps
-    # to use for a given Cloud XML element.
-    ELEMENT_MAP = {
-        'CalendarEvent': (pim.EventStamp,),
-        'Task': (pim.TaskStamp,),
-        'MailMessage': (pim.mail.MailStamp,),
+    # ELEMENT_ENTRIES is a list of three element tuples:
+    #
+    #  - An XML element name (tag, in elementtree parlance)
+    #  - A tuple of stamp classes
+    #  - Optionally, the "old-world" class name
+    #
+    # This allows us to use the correct element name when writing
+    # out cloud XML, as well as pick the correct python class
+    # name(s). When reading cloud XML, it lets us pick the
+    # correct combination of stamps for an input element.
+    ELEMENT_ENTRIES = [
+        ('CalendarEvent', (pim.EventStamp,), None),
+        ('Task', (pim.TaskStamp,), None),
+        ('MailMessage', (pim.mail.MailStamp,), None),
         # The following are entries for pre-fab combinations
         # of Mixin classes in the old world.
-        'MailedEvent': (pim.EventStamp, pim.mail.MailStamp),
-        'MailedTask': (pim.TaskStamp, pim.mail.MailStamp),
-    }
+        ('EventTask', (pim.EventStamp, pim.TaskStamp), 'osaf.pim.EventTask'),
+        ('MailedEvent', (pim.EventStamp, pim.mail.MailStamp), 'osaf.pim.mail.MailedEvent'),
+        ('MailedTask', (pim.TaskStamp, pim.mail.MailStamp), 'osaf.pim.mail.MailedTask'),
+        ('MailedEventTask', (pim.TaskStamp, pim.mail.MailStamp, pim.EventStamp),
+         'osaf.pim.MailedEventTask'),
+    ]
     
     # In the old world, pim.mail defined all these classes as subclasses
     # of ContentItem, and then made MailMessageMixin a subclass of
@@ -2732,11 +2742,14 @@ class CloudXMLFormat(ImportExportFormat):
         if stampClasses:
             # Figure out the element name
             
-            for eltName, eltStampClasses in self.ELEMENT_MAP.iteritems():
+            for eltName, eltStampClasses, eltClassName in self.ELEMENT_ENTRIES:
                 if set(eltStampClasses) == stampClasses:
                     elementName = eltName
-                    classes = ",".join(self.STAMP_MAP[cls]
-                                       for cls in eltStampClasses)
+                    if eltClassName is not None:
+                        classes = eltClassName
+                    else:
+                        classes = ",".join(self.STAMP_MAP[cls]
+                                           for cls in eltStampClasses)
                     break
             else:
                 raise VersionMismatch, "Can't match stamp classes '%s'" % (stampClasses,)
@@ -3025,13 +3038,16 @@ class CloudXMLFormat(ImportExportFormat):
         kind = None
         kinds = []
         
-        stampClasses = self.ELEMENT_MAP.get(element.tag, [])
-
-        if stampClasses:
-            for cls in stampClasses:
-                kind = cls.targetType().getKind(view)
-                if not kind in kinds:
-                    kinds.append(kind)
+        for eltName, eltStampClasses, eltClassName in self.ELEMENT_ENTRIES:
+            if element.tag == eltName:
+                stampClasses = eltStampClasses
+                for cls in stampClasses:
+                    kind = cls.targetType().getKind(view)
+                    if not kind in kinds:
+                        kinds.append(kind)
+                break
+        else:
+            stampClasses = []
             
 
         versionString = element.get('version')

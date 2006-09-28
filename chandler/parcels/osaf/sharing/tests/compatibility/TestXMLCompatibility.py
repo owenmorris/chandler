@@ -17,10 +17,7 @@ from chandlerdb.util.c import UUID
 CLASS_MAP = {
     'CalendarEvent': (pim, 'EventStamp'),
     'MailMessage': (pim.mail, 'MailStamp'),
-    'EmailAddress': (pim.mail, 'EmailAddress'),
     'Task': (pim, 'TaskStamp'),
-    'Share': (sharing, 'Share'),
-    'ListCollection': (pim, 'ListCollection'),
 }
 
 
@@ -80,19 +77,19 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
         # Create the given object, usually so that we can go ahead
         # and export it.
         if isinstance(typeOrName, type):
-            cls = typeOrName
+            itemClass = typeOrName
         else:
             module, className = CLASS_MAP[typeOrName]
-            cls = getattr(module, className, None)
-            if cls is None:
-                cls = getattr(module, typeOrName)
+            itemClass = getattr(module, className, None)
+            if itemClass is None:
+                itemClass = getattr(module, typeOrName)
 
-        if issubclass(cls, schema.Annotation):
-            annotationClass = cls
-            cls = annotationClass.targetType()
+        if issubclass(itemClass, schema.Annotation):
+            annotationClasses = [itemClass]
+            itemClass = itemClass.targetType()
         else:
-            annotationClass = None
-        
+            annotationClasses = []
+
         objectAttrs = dict(attributes)
         try:
             del objectAttrs['itsUUID']
@@ -104,34 +101,49 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
             
         # A cheesy hack for our only computed attribute
         try:
+            del objectAttrs['stamp_types']
+        except KeyError:
+            pass
+        else:
+            for cls in attributes['stamp_types']:
+                if not cls in annotationClasses:
+                    annotationClasses.append(cls)
+            del attributes['stamp_types']
+
+        # A cheesy hack for our only computed attribute
+        try:
             triageStatusChanged = attributes['triageStatusChanged']
         except KeyError:
             triageStatusChanged = None
         else:
             del objectAttrs['triageStatusChanged']
 
-        if annotationClass is not None:
+        if annotationClasses:
             # Translate the "unqualified" attribute names to fully-qualified
             # ones ... for the given stamp class
             for attr, value in attributes.iteritems():
-                schemaAttribute = getattr(annotationClass, attr, None)
-                if schemaAttribute is not None:
-                    del objectAttrs[attr]
-                    objectAttrs[schemaAttribute.name] = value
+                for cls in annotationClasses:
+                    schemaAttribute = getattr(cls, attr, None)
+                    if schemaAttribute is not None:
+                        del objectAttrs[attr]
+                        objectAttrs[schemaAttribute.name] = value
+                        break
             
 
         if self.GENERATE_OUTPUT: # Note: for pre-stamping-as-annotation code!
-            result = cls(itsParent=self.share, **objectAttrs)
+            result = itemClass(itsParent=self.share, **objectAttrs)
         else:
-            kind = cls.getKind(self.view)
+            kind = itemClass.getKind(self.view)
             result = kind.instantiateItem(None, self.share, uuid, withInitialValues=True)
                                             
             for key, value in objectAttrs.iteritems():
                 setattr(result, key, value)
                
                 
-            if annotationClass is not None and issubclass(annotationClass, pim.Stamp): 
-                annotationClass(result).add()
+            if annotationClasses:
+                 for cls in annotationClasses:
+                    if issubclass(cls, pim.Stamp): 
+                        cls(result).add()
 
         if triageStatusChanged is not None:
             result.triageStatusChanged = triageStatusChanged
@@ -357,7 +369,7 @@ class MailTestCase(SharingTestCase):
     def setUp(self):
         super(MailTestCase, self).setUp()
         
-        self.fromAddress = self._createObject('EmailAddress', dict(
+        self.fromAddress = self._createObject(pim.mail.EmailAddress, dict(
                itsUUID=UUID('5b446b8a-420a-11db-b64e-0016cbca6aed'),
                 emailAddress="someone@somewhere.example.com",
                 fullName="Sum Won",
@@ -366,7 +378,7 @@ class MailTestCase(SharingTestCase):
                 triageStatus = pim.TriageEnum.done,
                 triageStatusChanged = 1158958218.0))
         
-        self.toAddress = self._createObject('EmailAddress', dict(
+        self.toAddress = self._createObject(pim.mail.EmailAddress, dict(
                itsUUID=UUID('5b44b9aa-420a-11db-b64e-0016cbca6aed'),
                emailAddress="someone-else@example.com",
                fullName="Sum Wonelse",
@@ -429,7 +441,7 @@ class ComplexMailTestCase(SharingTestCase):
     def setUp(self):
         super(ComplexMailTestCase, self).setUp()
 
-        address = self._createObject('EmailAddress', dict(
+        address = self._createObject(pim.mail.EmailAddress, dict(
                itsUUID=UUID('09dd5f96-442a-11db-bd6e-0016cbca6aed'),
                 emailAddress="anthony@interlink.com.au",
                 fullName="Anthony Baxter",
@@ -506,6 +518,143 @@ class ComplexMailTestCase(SharingTestCase):
         expected = dict((key, self.attributes.get(key)) for key in
                             ('subject', 'fromAddress', 'toAddress'))
         self.checkImportedAttributes(mailObject, expected=expected)
+
+class EventTaskTestCase(SharingTestCase):
+
+    filename = "EventTask.xml"
+        
+    attributes = {
+        'itsUUID': UUID('711cc574-4cff-11db-af32-c2da3320d5d3'),
+        'displayName': u'Hi',
+        'allDay': False,
+        'anyTime': False,
+        'icalUID': '711cc574-4cff-11db-af32-c2da3320d5d3',
+        'createdOn':
+            datetime.datetime(2006, 9, 25, 18, 36, 33,
+                              tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+        'startTime':
+            datetime.datetime(2006, 9, 10, 16, 0,
+                              tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+        'duration': datetime.timedelta(minutes=60),
+        'triageStatus': pim.TriageEnum.now,
+        'triageStatusChanged': 1159263393.0,
+        'participants': [],
+        'stamp_types': [pim.TaskStamp],
+    }
+    
+    def setUp(self):
+        super(EventTaskTestCase, self).setUp()
+        
+        contactName = self._createObject(pim.ContactName, dict(
+            itsUUID=UUID('9b65343e-49b1-11db-e5fa-f7316ff1be10'),
+            firstName=u'Chandler',
+            lastName=u'User',
+            createdOn=datetime.datetime(2006, 9, 21, 13, 41, 50, 272075,
+                                    tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+            triageStatus=pim.TriageEnum.now,
+            triageStatusChanged=1158900110.0))
+          
+        contact = self._createObject(pim.Contact, dict(
+            itsUUID=UUID('9b839032-49b1-11db-e5fa-f7316ff1be10'),
+            contactName=contactName,
+            displayName=u'Me',
+            createdOn=datetime.datetime(2006, 9, 21, 13, 41, 50, 470953,
+                                    tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+            triageStatus=pim.TriageEnum.now,
+            triageStatusChanged=1158900110.0))
+            
+        
+        self.attributes = dict(self.attributes)
+        self.attributes.update(organizer=contact)
+        
+        
+
+    def testExport(self):
+        event = self.createObject('CalendarEvent')
+        
+        # @@@ [grant] Hack for working against both 2006/09/10 trunk
+        # and stamping-as-annotation branch
+        item = getattr(event, 'itsItem', event)
+        self.runExportTest(item)
+        
+    def testImport(self):
+        
+        eventItem = self.importObject()
+        
+        # Check the base item (i.e. the notes)
+        self.failUnless(isinstance(eventItem, pim.Note))
+        expected = dict((key, self.attributes.get(key)) for key in
+                            ('itsUUID', 'displayName', 'createdOn',
+                             'triageStatusChanged', 'triageStatus'))
+        self.checkImportedAttributes(eventItem, expected=expected)
+        
+        # Make sure we ended up with the right stamps
+        self.failUnlessEqual(set(pim.Stamp(eventItem).stamp_types),
+                             set([pim.EventStamp, pim.TaskStamp]))
+
+        # ... and now check various stamped attributes. (Many of the event
+        # ones will be missing because we applied the CALDAVFILTER).
+        event = pim.EventStamp(eventItem)
+        expected = dict((key, self.attributes.get(key)) for key in
+                            ('icalUID', 'organizer'))
+        self.checkImportedAttributes(event, expected=expected)
+
+
+class MailedEventTaskTestCase(SharingTestCase):
+
+    filename = "MailedEventTask.xml"
+        
+    attributes = {
+        'itsUUID': UUID('711cc574-4cff-11db-af32-c2da3320d5d3'),
+        'displayName': 'Here we go.....',
+        'allDay': False,
+        'anyTime': False,
+        'icalUID': '711cc574-4cff-11db-af32-c2da3320d5d3',
+        'createdOn':
+            datetime.datetime(2006, 9, 25, 18, 36, 33, 571631,
+                              tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+        'startTime':
+            datetime.datetime(2006, 9, 10, 16, 0,
+                              tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+        'duration': datetime.timedelta(minutes=60),
+        'mimeType': 'message/rfc822',
+        'triageStatus': pim.TriageEnum.later,
+        'triageStatusChanged': 1158900317.0,
+        'participants': [],
+        'stamp_types': [pim.TaskStamp, pim.mail.MailStamp],
+    }
+
+    def testExport(self):
+        event = self.createObject('CalendarEvent')
+        
+        # @@@ [grant] Hack for working against both 2006/09/10 trunk
+        # and stamping-as-annotation branch
+        item = getattr(event, 'itsItem', event)
+        self.runExportTest(item)
+        
+    def testImport(self):
+        
+        eventItem = self.importObject()
+        
+        # Check the base item (i.e. the notes)
+        self.failUnless(isinstance(eventItem, pim.Note))
+
+        # Make sure we ended up with the right stamps
+        self.failUnlessEqual(set(pim.Stamp(eventItem).stamp_types),
+                             set([pim.EventStamp, pim.TaskStamp,
+                                  pim.mail.MailStamp]))
+
+        expected = dict((key, self.attributes.get(key)) for key in
+                            ('itsUUID', 'displayName', 'createdOn',
+                             'triageStatusChanged', 'triageStatus'))
+        self.checkImportedAttributes(eventItem, expected=expected)
+        
+        # ... and now check various stamped attributes. (Many of the event
+        # ones will be missing because we applied the CALDAVFILTER).
+        event = pim.EventStamp(eventItem)
+        expected = dict((key, self.attributes.get(key)) for key in
+                            ('icalUID', 'organizer'))
+        self.checkImportedAttributes(event, expected=expected)
         
 class ShareTestCase(SharingTestCase):
 
@@ -524,7 +673,7 @@ class ShareTestCase(SharingTestCase):
     def setUp(self):
         super(ShareTestCase, self).setUp()
 
-        collection = self._createObject('ListCollection', dict(
+        collection = self._createObject(pim.ListCollection, dict(
                itsUUID=UUID('d1511b12-47ea-11db-a812-0016cbca6aed'),
                displayName=u'A new collection',
                createdOn = datetime.datetime(2005, 4, 11, 8, 12, 33,
@@ -550,7 +699,7 @@ class ShareTestCase(SharingTestCase):
         self.attributes.update(contents=collection, filterClasses=classNames)
     
     def testExport(self):
-        share = self.createObject('Share')
+        share = self.createObject(sharing.Share)
         self.runExportTest(share)
 
     def testImport(self):

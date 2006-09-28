@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MailedEventTask version='2' class='osaf.pim.MailedEventTask' uuid='711cc574-4cff-11db-af32-c2da3320d5d3'>
+   <body mimetype='text/plain' encoding='utf-8'></body>
+   <createdOn>2006-09-25 18:36:33.571631 US/Pacific</createdOn>
+   <tags>
+   </tags>
+   <icalUID>711cc574-4cff-11db-af32-c2da3320d5d3</icalUID>
+   <participants>
+   </participants>
+   <toAddress>
+   </toAddress>
+   <ccAddress>
+   </ccAddress>
+   <bccAddress>
+   </bccAddress>
+   <subject>Here we go.....</subject>
+   <hasMimeParts>False</hasMimeParts>
+   <mimeParts>
+   </mimeParts>
+   <mimeType>message/rfc822</mimeType>
+   <triageStatus>later</triageStatus>
+   <triageStatusChanged>1158900317.0</triageStatusChanged>
+</MailedEventTask>
