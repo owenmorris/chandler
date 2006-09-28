@@ -694,7 +694,7 @@ class wxApplication (wx.App):
             # a Delete key instead.
             if '__WXMAC__' in wx.PlatformInfo and \
                    event.GetEventType() == wx.EVT_MENU.evtType[0] and \
-                   block.accel == "Back" and \
+                   getattr(block, 'accel', None) == "Back" and \
                    isinstance(wx.Window.FindFocus(), (wx.TextCtrl, wx.ComboBox)):
                 event.Skip()
                 return
