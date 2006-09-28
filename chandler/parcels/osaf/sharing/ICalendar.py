@@ -764,7 +764,7 @@ def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
                              'anyTime'      : False,
                              'summary'  : '' }
                     eventItem = CalendarEvent(None, newItemParent, **vals)
-                    busyCollection.add(eventItem)
+                    busyCollection.add(eventItem.itsItem)
                     countNew += 1
 
     logger.info("...iCalendar import of %d new freebusy blocks, %d updated" % \

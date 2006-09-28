@@ -993,9 +993,19 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
 
             return share.contents
 
+        except zanshin.http.HTTPError, err:
+            if not share.isStale():
+                share.delete(True)
+            if err.status == 401:
+                raise NotAllowed(_("You don't have permission"))            
+            else:
+                logger.exception("Failed to subscribe to %s", url)
+                raise 
+            
         except Exception, err:
             logger.exception("Failed to subscribe to %s", url)
-            share.delete(True)
+            if not share.isStale():
+                share.delete(True)
             raise
 
     if updateCallback:
