@@ -1070,9 +1070,9 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
 
         """
         contents = event.arguments['item']
-        # collectionList[0] is the currently selected collection in
+        # collectionList.first() is the currently selected collection in
         # the sidebar
-        contentsCollection = contents.collectionList[0]
+        contentsCollection = contents.collectionList.first()
         self.setContentsOnBlock(contents, contentsCollection)
 
         # bug 5613, when a new collection is selected, items in overlaid

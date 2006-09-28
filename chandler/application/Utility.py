@@ -33,7 +33,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "259" # stearns: added promptUser to reminder
+SCHEMA_VERSION = "260" # john: made collectionList a ref collection
 
 
 logger = None # initialized in initLogging()

@@ -52,11 +52,14 @@ class ContentCollection(ContentItem, Collection):
     """
 
     collectionList = schema.Sequence(
-        'ContentCollection',
+        'ContentCollection', otherName='inCollectionListFor',
         doc="Views, e.g. the Calendar, that display collections need to know "
             "which collection are combined to make up the calendar. collectionList"
             "is an optional parameter for this purpose."
     )
+
+    # other side of 'collectionList'
+    inCollectionListFor = schema.Sequence(otherName='collectionList')
 
     invitees = schema.Sequence(
         doc="The people who are being invited to share in this item; filled "

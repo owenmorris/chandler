@@ -747,11 +747,11 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         """
         The table's self.contents may contain a collectionList, in
         case this collection is composed of other collections. In this
-        case, collectionList[0] is the 'primary' collection that
+        case, collectionList.first() is the 'primary' collection that
         should handle adds/deletes and other status updates
         """
         if hasattr(self.contents, 'collectionList'):
-            collection = self.contents.collectionList[0]
+            collection = self.contents.collectionList.first()
         else:
             collection = self.contents
             

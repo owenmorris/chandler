@@ -1209,22 +1209,33 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             
             tupleKey = tuple(tupleList)
 
+            # Bug 5884: in order to overlay the allCollection remove
+            # all 'mine' collections already included in collectionList.
+            # Their inclusion in collectionList would be duplicated by
+            # the inclusion of the allCollection and would invalidate
+            # the resulting union.
+            if len(collectionList) > 1:
+                pim_ns = schema.ns('osaf.pim', self.itsView)
+                if pim_ns.allCollection in collectionList:
+                    mineCollections = pim_ns.mine.sources
+                    collectionList = [c for c in collectionList
+                                      if c not in mineCollections]
+
             key = self.itemTupleKeyToCacheKey.get(tupleKey, None)
-            if key is None:
+            if (key is not None and
+                len ([c for c in collectionList if c.itsUUID not in key.collectionList]) != 0):
+                # See bug #6793: If a subscribed collection has been deleted, then resubscribed
+                # our cached key will be stale because the subscribed collection will have
+                # been removed but not added when resubscribed. In this case, the removed
+                # collection will not be in the key's collectionList, so we need to
+                # delete our key
+                del self.itemTupleKeyToCacheKey [tupleKey]
+                del key
+                key = None
+            if (key is None):
                 # we don't have a cached version of this key, so we'll
                 # create a new one
 
-                # Bug 5884: in order to overlay the allCollection remove
-                # all 'mine' collections already included in collectionList.
-                # Their inclusion in collectionList would be duplicated by
-                # the inclusion of the allCollection and would invalidate
-                # the resulting union.
-                if len(collectionList) > 1:
-                    pim_ns = schema.ns('osaf.pim', self.itsView)
-                    if pim_ns.allCollection in collectionList:
-                        mineCollections = pim_ns.mine.sources
-                        collectionList = [c for c in collectionList
-                                          if c not in mineCollections]
 
                 if len(collectionList) == 1:
                     key = collectionList[0]
