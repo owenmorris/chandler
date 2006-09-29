@@ -15,7 +15,7 @@
 
 from datetime import timedelta
 from time import time
-import wx, os, sys, traceback, logging, re
+import wx, os, sys, traceback, logging, re, webbrowser
 
 from application import Globals, Printing, schema, Utility
 
@@ -260,6 +260,12 @@ class MainView(View):
                 printObject.OnPrint()
             elif isPreview == 2:
                 printObject.OnPageSetup()
+
+    def onHelpEvent(self, event):
+        # For now, open the Chandler FAQ page:
+        #
+        # <http://lists.osafoundation.org/pipermail/design/2006-August/005311.html>
+        webbrowser.open('http://wiki.osafoundation.org/bin/view/Projects/ChandlerProductFAQ')
 
     def onQuitEvent (self, event):
         """

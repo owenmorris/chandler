@@ -722,6 +722,13 @@ def makeMainMenus(parcel):
                     MenuItem.template('AboutChandlerItem',
                         event = globalBlocks.About,
                         title = _(u'About Chandler'),
-                        helpString = _(u'About Chandler...')),
+                        helpString = _(u'About Chandler...'),
+                        wxId = wx.ID_ABOUT),
+                     MenuItem.template('HelpMenuItem',
+                        event = globalBlocks.Help,
+                        title = _(u'Chandler FAQ'),
+                        helpString =
+                             _(u'Open Chandler FAQ in your web browser'),
+                        accel = _(u'Ctrl+?')),
                     ]) # Menu HelpMenu
             ]).install (parcel) # MenuBar MenuBar
