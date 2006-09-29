@@ -538,7 +538,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         else:
             pos = max(0, pos)
             pos = min(len(self.currentDaysItems) - 1, pos)
-            return self.currentDaysItems[pos]
+            return self.currentDaysItems[pos].itsItem
 
     def ExpandOrContract(self):
         self.maximized = not self.maximized

@@ -1986,7 +1986,7 @@ class CalendarControl(CalendarBlock):
             timedEventsCanvas = getattr(timeBlock, 'widget', None)
             # if the dashboard is selected, the calendar won't be displayed
             if timedEventsCanvas is not None:
-                timedEventsCanvas.ScrollToEvent(item)
+                timedEventsCanvas.ScrollToEvent(eventItem)
                 timedEventsCanvas.SetPanelFocus()
         else:
             self.calendarContainer.getAllDayBlock().widget.SetPanelFocus()
