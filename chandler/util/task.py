@@ -14,6 +14,7 @@
 
 
 import wx
+from twisted.internet import reactor, defer
 import logging
 from i18n import ChandlerMessageFactory as _
 
@@ -43,7 +44,6 @@ class Task(object):
         @type inOwnThread: bool
         """
 
-        from twisted.internet import reactor
         if inOwnThread:
             fn = reactor.callInThread
         else:
@@ -55,12 +55,27 @@ class Task(object):
         # Run from background thread
         self.running = True
 
+        self.shutdownDeferred = None
+        triggerID = reactor.addSystemEventTrigger('before', 'shutdown',
+            self.shutdownCallback)
+
         try:
             result = self.run()
             self._success(result)
         except Exception, e:
             logger.exception("Task failed")
             self._error(e)
+
+        if self.shutdownDeferred:
+            self.shutdownDeferred.callback(None)
+
+        reactor.removeSystemEventTrigger(triggerID)
+
+    def shutdownCallback(self):
+        self.shutdownDeferred = defer.Deferred()
+        self.cancelRequested = True
+        self.callInMainThread(self.shutdownInitiated, None, done=False)
+        return self.shutdownDeferred
 
     def callInMainThread(self, f, arg, done=False):
         if self.running:

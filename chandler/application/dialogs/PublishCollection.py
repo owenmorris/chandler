@@ -365,6 +365,11 @@ class PublishCollectionDialog(wx.Dialog):
         if percent is not None:
             self.gauge.SetValue(percent)
 
+    def _shutdownInitiated(self):
+        if self.modal:
+            self.EndModal(False)
+        self.Destroy()
+
     def OnPublish(self, evt):
         self.PublishCollection()
 
@@ -408,6 +413,9 @@ class PublishCollectionDialog(wx.Dialog):
                 self._finishedShare(result)
                 self.done = True
                 self.success = True
+
+            def shutdownInitiated(task, arg):
+                self._shutdownInitiated()
 
             def _updateCallback(task, **kwds):
                 cancel = task.cancelRequested

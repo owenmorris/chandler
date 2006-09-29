@@ -221,6 +221,9 @@ class BackgroundSyncHandler:
         twisted.internet.reactor.addSystemEventTrigger('before', 'shutdown',
             shutdownCallback)
 
+        # @@@MOR - just learned that creating my own view is unnecessary --
+        # the item passed into the constructor is already in a view created
+        # just for me
         repo = item.itsView.repository
         for view in repo.views:
             if view.name == 'BackgroundSync':
@@ -637,7 +640,9 @@ def publish(collection, account, classesToInclude=None,
                     try:
                         share.put(updateCallback=callback)
                     except: # Publish failed
-                        share.destroy() # Clean up server
+                        # @@@MOR: at this point the share item is stale.
+                        # We need another way to clean up the server
+                        # share.destroy() # Clean up server
                         raise
 
                     # tickets after putting

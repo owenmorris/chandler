@@ -141,6 +141,9 @@ class SubscribeDialog(wx.Dialog):
         if self.color:
             usercollections.UserCollection(collection).color = self.color
 
+        # @@@MOR Should we add a commit( ) after the collection is added to
+        # the sidebar?
+
         if self.modal:
             self.EndModal(True)
         self.Destroy()
@@ -180,6 +183,10 @@ class SubscribeDialog(wx.Dialog):
 
         self.subscribing = False
 
+    def _shutdownInitiated(self):
+        if self.modal:
+            self.EndModal(False)
+        self.Destroy()
 
     def OnSubscribe(self, evt):
 
@@ -224,6 +231,9 @@ class SubscribeDialog(wx.Dialog):
 
             def success(task, result):
                 self._finishedShare(result)
+
+            def shutdownInitiated(task, arg):
+                self._shutdownInitiated()
 
             def _updateCallback(task, **kwds):
                 cancel = task.cancelRequested
