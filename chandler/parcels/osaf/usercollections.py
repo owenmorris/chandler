@@ -97,7 +97,7 @@ def installParcel(parcel, oldVersion=None):
 
     for shortName, title, hue in collectionHues:
         rgb = colorsys.hsv_to_rgb(hue/360.0, 0.5, 1.0)
-        ct = ColorType(rgb[0]*255, rgb[1]*255, rgb[2]*255, 255)
+        ct = ColorType(int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255), 255)
         collectionColors.colors.append(ct)
 
     # setup up defaults for well-known parcels
