@@ -75,6 +75,10 @@ class wxSidebar(wxTable):
         event.Skip()
 
     def OnSetFocus (self, event):
+        # If we already have the focus, let's keep the focus
+        if self.GetGridWindow() is wx.Window_FindFocus():
+            event.Skip()
+        # If we've got the hint to setFocus, let's keep the focus and delete the hint
         if hasattr (self, "setFocus"):
             del self.setFocus
             event.Skip()
