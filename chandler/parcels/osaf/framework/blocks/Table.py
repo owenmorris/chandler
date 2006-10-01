@@ -261,7 +261,8 @@ class wxTable(DragAndDrop.DraggableWidget,
             selectionChanged = False
 
             if event.Selecting():
-                if not contents.isSelected((indexStart, indexEnd)):
+                if -1 not in (indexStart, indexEnd) and \
+                   not contents.isSelected((indexStart, indexEnd)):
                     selectionChanged = True
                     contents.addSelectionRange((indexStart, indexEnd))
             elif (firstRow == 0 and lastRow != 0 
