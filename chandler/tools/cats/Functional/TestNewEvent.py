@@ -116,7 +116,8 @@ class TestNewEvent(ChandlerTestCase):
     
         # Select the second occurrence and delete it
         masterEvent = EventStamp(event.item)
-        secondEvent = QAUITestAppLib.UITestItem(masterEvent.getNextOccurrence(), self.logger)
+        secondEvent = QAUITestAppLib.UITestItem(
+            masterEvent.getFirstOccurrence().getNextOccurrence(), self.logger)
         secondEvent.SelectItem()
         secondEvent.CheckDisplayedValues("Checking 2nd occurrence",
             EditCalendarStartDate=(True, evtSecondDate),
@@ -135,7 +136,8 @@ class TestNewEvent(ChandlerTestCase):
             self.logger.endAction(True)
             
         # Make sure the new second occurrence starts on the right date
-        thirdEvent = QAUITestAppLib.UITestItem(masterEvent.getNextOccurrence(), self.logger)
+        thirdEvent = QAUITestAppLib.UITestItem(
+            masterEvent.getFirstOccurrence().getNextOccurrence(), self.logger)
         thirdEvent.SelectItem()
         thirdEvent.CheckDisplayedValues("After deleting second occurrence",
             HeadlineBlock=(True, uw("Birthday Party")),

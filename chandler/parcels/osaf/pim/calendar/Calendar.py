@@ -315,7 +315,7 @@ class EventStamp(Stamp):
 
     @group Main Public Methods: changeThis, changeThisAndFuture, setRuleFromDateUtil,
     getLastUntil, getRecurrenceEnd, getMaster, createDateUtilFromRule,
-    getNextOccurrence, getOccurrencesBetween, getExistingOccurrence,
+    getNextOccurrence, getOccurrencesBetween, getExistingOccurrence, getFirstOccurrence
     getRecurrenceID, deleteThis, deleteThisAndFuture, deleteAll,
     removeRecurrence, isCustomRule, getCustomDescription, isAttributeModifiable
 
@@ -969,8 +969,9 @@ class EventStamp(Stamp):
 
         If self is the only occurrence, or the last occurrence, return None.
         
-        If self is a master event, return the earliest occurrence.  That
-        occurrence's startTime may match self.startTime.
+        If self is a master event, raise ValueError, as it's proved error prone
+        to figure out what getNextOccurrence on a master means.  To get the
+        first occurrence, use the getFirstOccurrence method.
 
         @param after: Earliest end time allowed
         @type  after: C{datetime} or C{None}
@@ -1014,10 +1015,16 @@ class EventStamp(Stamp):
             return None
 
         first = self.getMaster()
-        # use exact matching if checking for a specific occurrence, or if self
-        # is a zero duration event and using after
-        exact = after is not None and (after == before or 
-                                       self.duration == timedelta(0))
+        if first == self:
+            raise ValueError, "getNextOccurrence cannot be called on a master."
+        
+        # exact means this is a search for a specific recurrenceID
+        exact = after is not None and after == before
+        
+        # inclusive means events starting at exactly after should be allowed.        
+        inclusive = after is not None and (after == before or 
+                                           self.duration == timedelta(0))
+            
 
         # take duration into account if after is set
         if not exact and after is not None:
@@ -1035,7 +1042,7 @@ class EventStamp(Stamp):
 
             preparedRID = prepDatetime(recurrenceID)
 
-            if (preparedRID < start or (not exact and preparedRID == start)):
+            if preparedRID < start or (not inclusive and preparedRID == start):
                 continue
 
             if before is not None and preparedRID > before:
@@ -1045,6 +1052,10 @@ class EventStamp(Stamp):
             if calculated is None:
                 return checkModifications(first, before,
                                           self._createOccurrence(recurrenceID))
+            # don't bother with modifications (isGenerated == False) unless
+            # we're looking for this exact recurrenceID, because
+            # checkModifications will find earlier modifications for us, and the
+            # modification may have been moved later than a future occurrence
             elif calculated.isGenerated or exact:
                 return checkModifications(first, before, calculated)
 
@@ -1096,7 +1107,10 @@ class EventStamp(Stamp):
 
     def _generateRule(self, after=None, before=None, inclusive=False):
         """Yield all occurrences in this rule."""
-        event = first = self.getFirstInRule()
+        first = self.getMaster()
+        event = self.getFirstOccurrence()
+        if event is None:
+            raise StopIteration
         # check for modifications taking place before first, but only if
         # if we're actually interested in dates before first (i.e., the
         # after argument is None or less than first.startTime)
@@ -1108,14 +1122,9 @@ class EventStamp(Stamp):
             for mod in itertools.imap(EventStamp, first.modifications):
                 if prepDatetime(mod.startTime) <= prepDatetime(event.startTime):
                     event = mod
-                    
-        if event is first and first.rruleset is not None:
-            startTime = self.effectiveStartTime
-            # get the occurrence that matches first
-            event = first.getNextOccurrence(startTime, startTime)
 
-        if event is None or not event.isBetween(after, before):
-            event = first.getNextOccurrence(after, before)
+        if not event.isBetween(after, before):
+            event = event.getNextOccurrence(after, before)
         else:
             # [Bug 5482], [Bug 5627], [Bug 6174]
             # We need to make sure event is actually
@@ -1251,7 +1260,47 @@ class EventStamp(Stamp):
 
         # no match
         return None
+    
+    def getFirstOccurrence(self):
+        """
+        Generally, return the occurrence with the same recurrenceID as the
+        master.
+        
+        In various edge cases, return the *first* occurrence (if the master's
+        recurrenceID has been excluded, or a modification moved earlier than the
+        first), or if there are no occurrences, return None.
+        
+        """
+        if self.rruleset is None:
+            return None
+        
+        master = self.getMaster()
+        recurrenceID = master.startTime
+        occurrence = self.getExistingOccurrence(recurrenceID)
 
+        def checkModifications(event):
+            """Return the earliest modification coming before event, or event"""
+            earliest = event
+            for mod in itertools.imap(EventStamp, master.modifications or []):
+                if (mod.effectiveStartTime < earliest.effectiveStartTime or
+                    (mod.effectiveStartTime == earliest.effectiveStartTime and
+                     mod.recurrenceID  < earliest.recurrenceID)):
+                    earliest = mod
+            return earliest       
+        
+        if occurrence is None:
+            rruleset = self.createDateUtilFromRule()
+            try:
+                earliestTime = iter(rruleset).next()
+                occurrence = self._createOccurrence(earliestTime)
+            except StopIteration:
+                pass
+        
+        if occurrence is None:
+            return None
+        else:
+            return checkModifications(occurrence)
+            
     def _makeGeneralChange(self):
         """Do everything that should happen for any change call."""
         self.isGenerated = False

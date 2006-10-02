@@ -159,7 +159,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
     def testImportRecurrence(self):
         format = self.Import(self.view, u'Recurrence.ics')
         event = Calendar.findUID(self.view, '5B30A574-02A3-11DA-AA66-000A95DA3228')
-        third = event.getNextOccurrence().getNextOccurrence()
+        third = event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
         self.assertEqual(third.summary, u'\u00FCChanged title')
         self.assertEqual(third.recurrenceID, datetime.datetime(2005, 8, 10, 
                                                     tzinfo=ICUtzinfo.floating))
@@ -191,13 +191,13 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         reminder = Remindable(future).getUserReminder()
         # this will start failing in 2015...
         self.assertEqual(reminder.delta, datetime.timedelta(minutes=-5))
-        second = pim.EventStamp(future).getNextOccurrence()
+        second = pim.EventStamp(future).getFirstOccurrence().getNextOccurrence()
         self.assert_(reminder in Remindable(second).reminders)
 
         past = Calendar.findUID(self.view, 'RecurringAlarmPast')
         reminder = Remindable(past).getUserReminder()
         self.assertEqual(reminder.delta, datetime.timedelta(hours=-1))
-        second = pim.EventStamp(past).getNextOccurrence()
+        second = pim.EventStamp(past).getFirstOccurrence().getNextOccurrence()
         self.assert_(reminder in Remindable(second).expiredReminders)
 
     def testExportRecurrence(self):
@@ -239,7 +239,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                          'RRULE:FREQ=WEEKLY;UNTIL=20050302T045900Z\r\n')
 
         # move the second occurrence one day later
-        nextEvent = event.getNextOccurrence()
+        nextEvent = event.getFirstOccurrence().getNextOccurrence()
         nextEvent.changeThis(pim.EventStamp.startTime.name,
                              datetime.datetime(2005,2,9,
                                                tzinfo=ICUtzinfo.floating))
