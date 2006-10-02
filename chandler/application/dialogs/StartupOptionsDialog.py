@@ -82,10 +82,10 @@ class StartupOptionsDialog(wx.Dialog):
             sizer.Add(self.refreshui, flag=wx.ALL, border=5)
             self.refreshui.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
-            self.undocheck = wx.RadioButton(self, -1, 
+            self.undoRepair = wx.RadioButton(self, -1, 
                 _(u"Discard recent changes until data integrity tests pass"))
-            sizer.Add(self.undocheck, flag=wx.ALL, border=5)
-            self.undocheck.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
+            sizer.Add(self.undoRepair, flag=wx.ALL, border=5)
+            self.undoRepair.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
             self.create = wx.RadioButton(self, -1, 
                 _(u"Discard all my data and start from scratch"))
@@ -129,8 +129,8 @@ class StartupOptionsDialog(wx.Dialog):
             Globals.options.repair = True
             Globals.options.recover = True
 
-        elif hasattr(self, 'undocheck') and self.undocheck.GetValue():
-            Globals.options.undo = 'check'
+        elif hasattr(self, 'undoRepair') and self.undoRepair.GetValue():
+            Globals.options.undo = 'repair'
 
         elif hasattr(self, 'snapshot') and self.snapshot.GetValue():
             self.makeSnapshot()
