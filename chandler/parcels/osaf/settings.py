@@ -247,10 +247,13 @@ def restore(rv, filename):
                 title = cfg.get(section, "title")
 
                 if cfg.has_option(section, "red"):
-                    red = cfg.getint(section, "red")
-                    blue = cfg.getint(section, "blue")
-                    green = cfg.getint(section, "green")
-                    alpha = cfg.getint(section, "alpha")
+                    # Backwards-compatibility fix for bug 6899...
+                    # Due to an earlier bug, some people's ini files
+                    # still have floats in them, so let's cast just in case:
+                    red = int(float(cfg.get(section, "red")))
+                    blue = int(float(cfg.get(section, "blue")))
+                    green = int(float(cfg.get(section, "green")))
+                    alpha = int(float(cfg.get(section, "alpha")))
                     color = ColorType(red, green, blue, alpha)
                 else:
                     color = None
