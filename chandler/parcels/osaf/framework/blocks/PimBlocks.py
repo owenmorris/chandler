@@ -463,9 +463,9 @@ class FocusEventHandlers(Item):
         for selectedItem in selection:
             removeItem(getProxy(u'ui', selectedItem))
             
-        clearSelectionMethod = getattr(type(self), "ClearSelection", None)
-        if clearSelectionMethod is not None:
-            clearSelectionMethod(self)
+        self.postEventByName("SelectItemsBroadcast",
+                             {'items': [],
+                              'collection': selectedCollection })
 
     def onDeleteEvent(self, event):
         # Destructive action, worth an extra assert
@@ -486,9 +486,9 @@ class FocusEventHandlers(Item):
         for selectedItem in selection:
             deleteItem(getProxy(u'ui', selectedItem))
 
-        clearSelectionMethod = getattr(type(self), "ClearSelection", None)
-        if clearSelectionMethod is not None:
-            clearSelectionMethod(self)
+        self.postEventByName("SelectItemsBroadcast",
+                             {'items': [],
+                              'collection': selectedCollection })
 
 def AllItemsInCollection(items, collection):
     """
