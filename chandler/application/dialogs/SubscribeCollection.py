@@ -141,8 +141,10 @@ class SubscribeDialog(wx.Dialog):
         if self.color:
             usercollections.UserCollection(collection).color = self.color
 
-        # @@@MOR Should we add a commit( ) after the collection is added to
-        # the sidebar?
+        # Commit now to prevent being in the state where the collection
+        # has been subscribed to, but we don't remember adding it to the
+        # sidebar.
+        self.view.commit()
 
         if self.modal:
             self.EndModal(True)
