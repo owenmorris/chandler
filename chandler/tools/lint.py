@@ -32,7 +32,14 @@ if __name__ == '__main__':
         sys.argv.append('Chandler')
         sys.argv.append('application')
         sys.argv.append('i18n')
-        sys.argv.append('osaf')
+        sys.argv.append('osaf')        # parcels/osaf
+        sys.argv.append('amazon')      # projects/
+        sys.argv.append('evdb')        # projects/
+        sys.argv.append('eventLogger') # projects/
+        sys.argv.append('feeds')       # projects/
+        sys.argv.append('flickr')      # projects/
+        sys.argv.append('hello_world') # projects/
+        sys.argv.append('photos')      # projects/
         sys.argv.append('repository')
         sys.argv.append('tools')
         sys.argv.append('util')
