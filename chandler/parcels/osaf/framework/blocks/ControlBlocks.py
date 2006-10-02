@@ -1131,10 +1131,6 @@ class ReminderTimer(Timer):
                                      reminder)
                         remindable.itsItem.triageStatus = TriageEnum.now
                         remindable.itsItem.setTriageStatusChanged(when=reminderTime)
-                        if reminder.isDeleted():
-                            logger.critical("Found deleted reminder on %r %s at %s",
-                                            remindable, remindable,
-                                            remindable.startTime)
                         assert not reminder.isDeleted()
                         if reminder.promptUser:
                             return True # this should appear in the list.
