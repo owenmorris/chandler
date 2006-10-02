@@ -199,7 +199,7 @@ def initOptions(**kwds):
         'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
         'indexer':    ('-i', '--indexer',    's', 'background', None, 'Run Lucene indexing in the background or foreground'),
         'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
-        'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions'),
+        'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions or until <check> or <repair> passes'),
         'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
         'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
     }
@@ -412,14 +412,18 @@ def initRepository(directory, options, allowSchemaView=False):
     if options.repair:
         view = repository.view
         schema.reset(view)
-        view.check(True)
+        if view.check(True):
+            view.commit()
 
     if options.undo:
-        if options.undo == 'check':
+        if options.undo in ('check', 'repair'):
+            repair = options.undo == 'repair'
             view = repository.view
             while view.itsVersion > 0L:
                 schema.reset(view)
-                if view.check():
+                if view.check(repair):
+                    if repair:
+                        view.commit()
                     break
 
                 repository.logger.info('Undoing version %d', view.itsVersion)
