@@ -127,6 +127,7 @@ class StartupOptionsDialog(wx.Dialog):
         if hasattr(self, 'refreshui') and self.refreshui.GetValue():
             Globals.options.refreshui = True
             Globals.options.repair = True
+            Globals.options.recover = True
 
         elif hasattr(self, 'undocheck') and self.undocheck.GetValue():
             Globals.options.undo = 'check'
