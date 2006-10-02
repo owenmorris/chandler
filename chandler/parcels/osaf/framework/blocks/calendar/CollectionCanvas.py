@@ -110,9 +110,9 @@ class CanvasItem(object):
         self._bounds = bounds
         
         if isinstance(itemOrEvent, EventStamp):
-            self.event = EventStamp(itemOrEvent)
+            self.event = itemOrEvent
         else:
-            self.event = itemOrEvent.itsItem
+            self.event = EventStamp(itemOrEvent)
 
     @property
     def item(self):
