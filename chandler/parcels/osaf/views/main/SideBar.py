@@ -27,6 +27,7 @@ from osaf.pim import (
     )
     
 from osaf.framework.prompts import promptYesNoCancel
+from application.dialogs import RecurrenceDialog
 
 from osaf import sharing, pim
 from osaf.usercollections import UserCollection
@@ -300,10 +301,14 @@ class wxSidebar(wxTable):
             del self.whereToDropItem
         for possibleCollection in possibleCollections:
             for item in itemList:
-                # Some items don't know how to add themselves
-                method = getattr (type (item), "addToCollection", None)
-                if method is not None:
-                    method (item, possibleCollection)
+                # create a recurrence proxy if adding a recurring item
+                if getattr(item, pim.EventStamp.rruleset.name) is not None:
+                    RecurrenceDialog.getProxy(u'ui', item).addToCollection(possibleCollection)                    
+                else:
+                    # Some items don't know how to add themselves
+                    method = getattr (type (item), "addToCollection", None)
+                    if method is not None:
+                        method (item, possibleCollection)
     
     def OnItemDrag (self, event):
         # @@@ You currently can't drag out of the sidebar
