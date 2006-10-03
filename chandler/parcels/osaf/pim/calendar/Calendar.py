@@ -778,7 +778,7 @@ class EventStamp(Stamp):
         last = self.getLastUntil()
         rdates = getattr(self.rruleset, 'rdates', [])
         for dt in rdates:
-            if last < dt:
+            if last is None or last < dt:
                 last = dt
         # @@@ we're not doing anything with anyTime or allDay
         if last is None:

@@ -771,6 +771,27 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(extraDay.rruleset.exdates,
                          [self.start + timedelta(days=7, hours=1)])
 
+    def testNoRRules(self):
+        # A test for bug 6921: Oracle calendar sometimes creates
+        # VEVENTs with just a bunch of RDATES, and no RRULE.
+        event = self.event
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
+        
+        tzinfo = ICUtzinfo.getInstance("US/Eastern")
+        dates = [
+            datetime(2006, 3, 11, 10, tzinfo=tzinfo),
+            datetime(2006, 3, 15, 21, tzinfo=tzinfo),
+            datetime(2006, 5, 4, 10, tzinfo=tzinfo),
+        ]
+        
+        ruleSetItem.rrules = []
+        ruleSetItem.rdates = dates
+        event.rruleset = ruleSetItem
+        
+        occurrenceDates = list(occurrence.startTime for occurrence in
+                               event.getOccurrencesBetween(None, None))
+        self.failUnlessEqual(occurrenceDates, dates)
+
     def testAllDay(self):
         event = self.event
         event.allDay = True
