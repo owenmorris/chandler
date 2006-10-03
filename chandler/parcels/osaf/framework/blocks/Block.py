@@ -1243,7 +1243,7 @@ class BlockEvent(schema.Item):
     methodName = schema.One(schema.Text)
     blockName = schema.One(schema.Text)
     schema.addClouds(
-        copying = schema.Cloud(byCloud=[destinationBlockReference])
+        copying = schema.Cloud(byRef=[destinationBlockReference])
     )
     def __repr__(self):
         # useful for debugging that i've done.  i dunno if event.arguments

@@ -18,6 +18,7 @@
 import ConfigParser, logging
 from application import schema
 from osaf import pim, sharing, usercollections
+from osaf.framework.blocks import Block
 from osaf.pim.structs import ColorType
 from application.dialogs import SubscribeCollection
 from chandlerdb.util.c import UUID
@@ -32,7 +33,7 @@ def save(rv, filename):
     cfg = ConfigParser.ConfigParser()
 
     # Sharing accounts
-    currentAccount = schema.ns('osaf.sharing', rv).currentWebDAVAccount.item
+    currentAccount = schema.ns("osaf.sharing", rv).currentWebDAVAccount.item
     section_prefix = "sharing_account"
     counter = 1
 
@@ -54,7 +55,7 @@ def save(rv, filename):
             counter += 1
 
     # Subscriptions
-    mine = schema.ns('osaf.pim', rv).mine
+    mine = schema.ns("osaf.pim", rv).mine
     section_prefix = "share"
     counter = 1
     for col in pim.ContentCollection.iterItems(rv):
@@ -82,7 +83,7 @@ def save(rv, filename):
                 cfg.set(section_name, "url", url)
                 if url != urls[0]:
                     cfg.set(section_name, "ticket", urls[0])
-                ticketFreeBusy = getattr(share.conduit, 'ticketFreeBusy', None)
+                ticketFreeBusy = getattr(share.conduit, "ticketFreeBusy", None)
                 if ticketFreeBusy:
                     cfg.set(section_name, "freebusy", "True")
             counter += 1
@@ -110,7 +111,7 @@ def save(rv, filename):
             counter += 1
 
     # IMAP accounts
-    currentAccount = schema.ns('osaf.pim', rv).currentMailAccount.item
+    currentAccount = schema.ns("osaf.pim", rv).currentMailAccount.item
     section_prefix = "imap_account"
     counter = 1
 
@@ -137,7 +138,7 @@ def save(rv, filename):
             counter += 1
 
     # POP accounts
-    currentAccount = schema.ns('osaf.pim', rv).currentMailAccount.item
+    currentAccount = schema.ns("osaf.pim", rv).currentMailAccount.item
     section_prefix = "pop_account"
     counter = 1
 
@@ -165,17 +166,24 @@ def save(rv, filename):
             counter += 1
 
     # Show timezones
-    cfg.add_section('timezones')
-    showTZ = schema.ns('osaf.app', rv).TimezonePrefs.showUI
-    cfg.set('timezones', 'type', 'show timezones')
-    cfg.set('timezones', 'show_timezones', showTZ)
+    cfg.add_section("timezones")
+    showTZ = schema.ns("osaf.app", rv).TimezonePrefs.showUI
+    cfg.set("timezones", "type", "show timezones")
+    cfg.set("timezones", "show_timezones", showTZ)
 
     # Visible hours
     cfg.add_section("visible_hours")
-    cfg.set('visible_hours', 'type', 'visible hours')
+    cfg.set("visible_hours", "type", "visible hours")
     calPrefs = schema.ns("osaf.framework.blocks.calendar", rv).calendarPrefs
     cfg.set("visible_hours", "height_mode", calPrefs.hourHeightMode)
     cfg.set("visible_hours", "num_hours", calPrefs.visibleHours)
+
+    # Event Logger
+    cfg.add_section("event_logger")
+    eventHook = schema.ns("eventLogger", rv).EventLoggingHook
+    cfg.set("event_logger", "type", "event logger")
+    active = eventHook.logging
+    cfg.set("event_logger", "active", active)
 
     output = file(filename, "w")
     cfg.write(output)
@@ -368,10 +376,10 @@ def restore(rv, filename):
 
 
     # timezones
-    if cfg.has_section('timezones'):
-        if cfg.has_option('timezones', 'show_timezones'):
-            show = cfg.getboolean('timezones', 'show_timezones')
-            schema.ns('osaf.app', rv).TimezonePrefs.showUI = show
+    if cfg.has_section("timezones"):
+        if cfg.has_option("timezones", "show_timezones"):
+            show = cfg.getboolean("timezones", "show_timezones")
+            schema.ns("osaf.app", rv).TimezonePrefs.showUI = show
 
     # Visible hours
     if cfg.has_section("visible_hours"):
@@ -380,3 +388,10 @@ def restore(rv, filename):
             calPrefs.hourHeightMode = cfg.get("visible_hours", "height_mode")
         if cfg.has_option("visible_hours", "num_hours"):
             calPrefs.visibleHours = cfg.getint("visible_hours", "num_hours")
+
+    # Event Logger
+    if cfg.has_section("event_logger"):
+        active = cfg.getboolean("event_logger", "active")
+        if active:
+            eventHook = schema.ns("eventLogger", rv).EventLoggingHook
+            eventHook.onToggleLoggingEvent(None)
