@@ -379,7 +379,25 @@ def restart():
             # locale option. See bug 6668 for more information.
             import i18n
             args.append('--locale=%s' % i18n.getLocaleSet()[0])
-        
+        elif sys.platform == 'darwin':
+            # If you start Chandler using the .app bundle, the restarted
+            # application fails to find display. Work around this by
+            # switching to the way Chandler is started from the command
+            # line. See bug 6681 for more information.
+            cmdLineStart = sys.executable.rfind('/Python.app/Contents/MacOS/python') > 0
+            if not cmdLineStart:
+                cwd = os.getcwd() # .. Chandler.app/Contents/Resources
+                p = '/Library/Frameworks/Python.framework/Versions/' + sys.version[:3] + '/Resources/Python.app/Contents/MacOS/Python'
+                # XXX There is no way to detect if the running python
+                # XXX interpreter was compiled optimized or not.
+                # XXX So we fudge. The assumption is that we would never
+                # XXX have both debug and release bits installed in the
+                # XXX exact same location.
+                if os.path.isdir(os.path.join(cwd, 'release')):
+                    sys.executable = cwd + '/release' + p
+                else:
+                    sys.executable = cwd + '/debug' + p
+
         # Ask the user for the (recovery) options
         if '--ask' not in args:
             args.append('--ask')
