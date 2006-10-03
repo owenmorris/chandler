@@ -170,6 +170,9 @@ class Stamp(schema.Annotation):
     def __eq__(self, other):
         return type(other) == type(self) and self.itsItem == other.itsItem
 
+    @schema.observer(stamp_types)
+    def onStampTypesChanged(self, op, attr):
+        self.itsItem.updateRelevantDate(op, attr)
 
 def has_stamp(item, stampClass):
     try:
