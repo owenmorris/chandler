@@ -70,7 +70,6 @@ def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
     # uncaught exceptions.
     runner = Globals.options.catch != 'never' and run_test_wrapped or run_test
     for paramSet in tests.split(','):
-        print "+++ %s +++" % (paramSet,)
         runner(logger, paramSet)
 
     if logger.debug < 2: checkRepo(logger)

@@ -319,7 +319,7 @@ else
             echo Running $TESTNAME | tee -a $DOTESTSLOG
 
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" -D1 -M2 &> $TESTLOG
 
               # scan the test output for the success messge "OK"
             RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
