@@ -1,5 +1,5 @@
---- openssl-0.9.8c/util/mk1mf.pl	2004-05-16 21:28:30.000000000 -0700
-+++ openssl-0.9.8c-patched/util/mk1mf.pl	2005-05-19 14:38:21.618664000 -0700
+--- openssl-0.9.8d/util/mk1mf.pl	2004-05-16 21:28:30.000000000 -0700
++++ openssl-0.9.8d-patched/util/mk1mf.pl	2005-05-19 14:38:21.618664000 -0700
 @@ -483,16 +483,21 @@
  # We parse in input file and 'store' info for later printing.
  open(IN,"<$infile") || die "unable to open $infile:$!\n";
