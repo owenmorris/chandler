@@ -52,8 +52,17 @@ share
 # create symlink of share dir
 dest=Contents/Resources/debug
 link=../
-glob=*
 share
+
+# create symlink of lib dir - this allows the app to be called from the command line
+dest=Contents/Resources/debug
+link=../
+lib
+
+# create symlink of Library dir - this allows the app to be called from the command line
+dest=Contents/Resources/debug
+link=../
+Library
 
 # Grab Chandler.py and others
 src=chandler
