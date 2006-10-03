@@ -449,7 +449,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     pass
                 else:
                     if type(reminderValue) is datetime.datetime:
-                        reminderAbsolute = reminderValue
+                        reminderAbsoluteTime = reminderValue
                     else:
                         assert type(reminderValue) is datetime.timedelta
                         reminderDelta = reminderValue
@@ -471,11 +471,16 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     duration -= oneDay
                 
                 # coerce timezones based on coerceTzinfo
-
-                if coerceTzinfo is not None:
-                    dtstart = TimeZone.coerceTimeZone(dtstart, coerceTzinfo)
+                def convertDatetime(dt):
+                    if coerceTzinfo is not None:
+                        dt = TimeZone.coerceTimeZone(dt, coerceTzinfo)
                     
-                dtstart = convertToICUtzinfo(dtstart, view)
+                    return convertToICUtzinfo(dt, view)
+                    
+                dtstart = convertDatetime(dtstart)
+                if reminderAbsoluteTime is not None:
+                    reminderAbsoluteTime = convertDatetime(reminderAbsoluteTime)
+
                 # Because of restrictions on dateutil.rrule, we're going
                 # to have to make sure all the datetimes we create have
                 # the same naivete as dtstart
@@ -603,7 +608,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     if reminderDelta is not None:
                         changeLast.append((Remindable.userReminderInterval.name, 
                                            reminderDelta))
-                    elif reminderAbsoluteTime is None:
+                    elif reminderAbsoluteTime is not None:
                         changeLast.append((Remindable.userReminderTime.name, 
                                            reminderAbsoluteTime))
                 

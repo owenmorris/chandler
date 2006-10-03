@@ -200,6 +200,16 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         second = pim.EventStamp(past).getFirstOccurrence().getNextOccurrence()
         self.assert_(reminder in Remindable(second).expiredReminders)
 
+    def testImportAbsoluteReminder(self):
+        format = self.Import(self.view, u'AbsoluteReminder.ics')
+        event = Calendar.findUID(self.view, 'I-have-an-absolute-reminder')
+        reminder = Remindable(event).getUserReminder()
+        self.failUnless(reminder is not None, "No reminder was set")
+        self.failUnlessEqual(reminder.absoluteTime,
+                             datetime.datetime(2006, 9, 25, 8,
+                                    tzinfo=ICUtzinfo.getInstance('US/Pacific')))
+
+
     def testExportRecurrence(self):
         eastern = ICUtzinfo.getInstance("US/Eastern")
         start = datetime.datetime(2005,2,1, tzinfo = eastern)
