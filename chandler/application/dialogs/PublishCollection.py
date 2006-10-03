@@ -304,12 +304,12 @@ class PublishCollectionDialog(wx.Dialog):
 
             # Conditionally set the individual class checkboxes:
 
-            if 'osaf.pim.mail.MailMessageMixin' in self.filterClasses:
+            if 'osaf.pim.mail.MailStamp' in self.filterClasses:
                 self.CheckboxMail.SetValue(True)
             else:
                 self.CheckboxMail.SetValue(False)
 
-            if 'osaf.pim.tasks.TaskMixin' in self.filterClasses:
+            if 'osaf.pim.tasks.TaskStamp' in self.filterClasses:
                 self.CheckboxTasks.SetValue(True)
             else:
                 self.CheckboxTasks.SetValue(False)

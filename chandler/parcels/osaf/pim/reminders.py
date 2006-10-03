@@ -139,7 +139,7 @@ class Remindable(schema.Annotation):
 
     @schema.Comparator
     def cmpReminderTime(self, remindable):
-        return cmpTimeAttribute(self, remindable, 'reminderFireTime')
+        return cmpTimeAttribute(self, remindable, 'nextReminderTime')
 
 
     def getUserReminder(self, collectionToo=False, expiredToo=True, skipThis=None):
@@ -209,7 +209,7 @@ class Remindable(schema.Annotation):
         # watching mechanism to alert us about it. We also check that
         # reminders for past events don't trigger this one.
         try:
-            getNextOccurrenceMethod = self.getNextOccurrence
+            getNextOccurrenceMethod = EventStamp(self).getNextOccurrence
         except AttributeError:
             pass
         else:
@@ -261,7 +261,6 @@ class Remindable(schema.Annotation):
         return userReminder.delta
 
     def setUserReminderInterval(self, delta):
-        EventStamp = schema.ns("osaf.pim", self.itsItem.itsView).EventStamp
         attrName = EventStamp.effectiveStartTime.name
         assert hasattr(self.itsItem, attrName)
         return self.makeReminder(delta=delta, relativeTo=attrName,
