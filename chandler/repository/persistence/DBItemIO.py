@@ -1258,45 +1258,46 @@ class DBItemUndo(object):
                                            self.hashes, True)
 
         for uValue in uValues:
-            uAttr, vFlags, data = values.c.loadValue(txn, uValue)
+            if uValue is not None:
+                uAttr, vFlags, data = values.c.loadValue(txn, uValue)
                         
-            if withSchema:
-                offset = self.skipSymbol(0, data)
-            else:
-                offset = 0
+                if withSchema:
+                    offset = self.skipSymbol(0, data)
+                else:
+                    offset = 0
 
-            flags = ord(data[offset])
-            offset += 1
+                flags = ord(data[offset])
+                offset += 1
 
-            if flags & DBItemWriter.VALUE:
-                if isNew:
-                    for uLob in self.iterLobs(flags, data):
-                        lobs.purgeLob(txn, uLob)
-                for uIndex in self.iterIndexes(flags, data):
-                    indexes.undoIndex(txn, uIndex, version)
-            
-            elif flags & DBItemWriter.REF:
-                if flags & DBItemWriter.LIST:
-                    uRefs = UUID(data[offset:offset+16])
-                    refs.undoRefs(txn, uRefs, version)
-                elif flags & DBItemWriter.DICT:
-                    if withSchema:
-                        offset = self.skipSymbol(offset, data)
-                    offset, count = self.readShort(offset, data)
-                    for i in xrange(count):
-                        t = data[offset]
-                        if t == '\0':
-                            offset += 17
-                        else:
-                            offset = self.skipSymbol(offset + 1, data)
-                        uRefs = UUID(data[offset:offset+16])
-                        offset += 16
-                        refs.undoRefs(txn, uRefs, version)
-                if flags & (DBItemWriter.LIST | DBItemWriter.SET):
+                if flags & DBItemWriter.VALUE:
+                    if isNew:
+                        for uLob in self.iterLobs(flags, data):
+                            lobs.purgeLob(txn, uLob)
                     for uIndex in self.iterIndexes(flags, data):
                         indexes.undoIndex(txn, uIndex, version)
+            
+                elif flags & DBItemWriter.REF:
+                    if flags & DBItemWriter.LIST:
+                        uRefs = UUID(data[offset:offset+16])
+                        refs.undoRefs(txn, uRefs, version)
+                    elif flags & DBItemWriter.DICT:
+                        if withSchema:
+                            offset = self.skipSymbol(offset, data)
+                        offset, count = self.readShort(offset, data)
+                        for i in xrange(count):
+                            t = data[offset]
+                            if t == '\0':
+                                offset += 17
+                            else:
+                                offset = self.skipSymbol(offset + 1, data)
+                            uRefs = UUID(data[offset:offset+16])
+                            offset += 16
+                            refs.undoRefs(txn, uRefs, version)
+                    if flags & (DBItemWriter.LIST | DBItemWriter.SET):
+                        for uIndex in self.iterIndexes(flags, data):
+                            indexes.undoIndex(txn, uIndex, version)
     
-            values.purgeValue(txn, uValue)
+                values.purgeValue(txn, uValue)
         
         refs.undoRefs(txn, uItem, version) # children
         store._index.undoDocuments(indexSearcher, indexReader, uItem, version)
