@@ -386,6 +386,8 @@ class References(Values):
                 value._references._removeRef(otherName, item)
 
         if other is not None:
+            if not isitem(other):
+                raise TypeError, (other, 'is not an item', type(other))
             otherView = other.itsView
             if not (otherView is view or
                     item._isImporting() or
