@@ -24,7 +24,7 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)D.tar.gz \
            $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.3-$(BP)3.tar.gz \
            $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)9.tar.gz \
            $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)2.tar.gz \
-           $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8c-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-458-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)6.tar.gz \
            $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.5-62-$(BP)5.tar.gz \
