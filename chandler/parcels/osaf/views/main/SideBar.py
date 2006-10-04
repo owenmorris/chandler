@@ -365,7 +365,7 @@ class wxSidebar(wxTable):
     def OnLeave (self):
         # check if we had a hover row
         hoverRow = getattr (self, 'hoverRow', None)
-        if hoverRow is not None:
+        if hoverRow not in (None, wx.NOT_FOUND):
             # Clear the selection colour if necessary
             self.SetRowHighlight(self.hoverRow, False)
             self.hoverRow = wx.NOT_FOUND
