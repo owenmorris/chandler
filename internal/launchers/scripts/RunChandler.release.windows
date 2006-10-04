@@ -6,5 +6,6 @@ if not defined OPTIMIZE set OPTIMIZE=-O
 cd "%CHANDLERHOME%"
 path %CHANDLERBIN%\release\bin
 set LC_PATH=%CHANDLERHOME%\release\share\locale
+set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels
 "%CHANDLERBIN%"\release\bin\python.exe %OPTIMIZE% "%CHANDLERHOME%"\Chandler.py %*
 endlocal
