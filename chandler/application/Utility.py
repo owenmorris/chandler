@@ -464,8 +464,7 @@ def initRepository(directory, options, allowSchemaView=False):
         raise ValueError, ("--indexer", options.indexer)
 
     if options.debugOn:
-        from repository.util.ClassLoader import ClassLoader
-        debugOn = ClassLoader.loadClass(options.debugOn)
+        debugOn = view.classLoader.loadClass(options.debugOn)
         view.debugOn(debugOn)
 
     return view
@@ -486,14 +485,16 @@ def stopRepository(view, commit=True):
 
 
 def verifySchema(view):
+
     # Fetch the top-level parcel item to check schema version info
-    parcelRoot = view.getRoot("parcels")
-    if parcelRoot is not None:
-        if (not hasattr(parcelRoot, 'version') or
-            parcelRoot.version != SCHEMA_VERSION):
-            logger.error("Schema version of repository (%s) doesn't match application's (%s)", parcelRoot.version, SCHEMA_VERSION)
-            return False
-    return True
+    parcelRoot = view.getRoot('parcels')
+    version = getattr(parcelRoot, 'version', None)
+
+    if parcelRoot is not None and version != SCHEMA_VERSION:
+        logger.error("Schema version of repository (%s) doesn't match application's (%s)", version, SCHEMA_VERSION)
+        return False, version, SCHEMA_VERSION
+
+    return True, version, SCHEMA_VERSION
 
 
 def initParcelEnv(chandlerDirectory, path):

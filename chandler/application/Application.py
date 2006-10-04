@@ -399,17 +399,18 @@ class wxApplication (wx.App):
             
         try:
             view = Utility.initRepository(repoDir, Globals.options)
-        except RepositoryVersionError:
+        except RepositoryVersionError, e:
             if self.ShowSchemaMismatchWindow():
                 Globals.options.create = True
                 view = Utility.initRepository(repoDir, Globals.options)
             else:
-                raise Utility.SchemaMismatchError
+                raise Utility.SchemaMismatchError, e
 
         self.repository = view.repository
 
         # Verify Schema Version
-        if not Utility.verifySchema(view):
+        verify, repoVersion, schemaVersion = Utility.verifySchema(view)
+        if not verify:
             if self.ShowSchemaMismatchWindow():
                 # Blow away the repository
                 self.repository.close()
@@ -417,7 +418,7 @@ class wxApplication (wx.App):
                 view = Utility.initRepository(repoDir, Globals.options)
                 self.repository = view.repository
             else:
-                raise Utility.SchemaMismatchError
+                raise Utility.SchemaMismatchError, (repoVersion, schemaVersion)
 
         self.UIRepositoryView = view
 

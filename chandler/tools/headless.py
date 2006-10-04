@@ -52,7 +52,8 @@ def startup(**kwds):
     view = Utility.initRepository(Utility.locateRepositoryDirectory(profileDir),
                                   Globals.options)
 
-    if not Utility.verifySchema(view):
+    verify, repoVersion, schemaVersion = Utility.verifySchema(view)
+    if not verify:
         print "Schema mismatch.  Try again with startup(create=True)"
         return None
 

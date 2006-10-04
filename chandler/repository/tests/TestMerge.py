@@ -1100,6 +1100,36 @@ class TestMerge(RepositoryTestCase):
         main.commit(None)
         self.assert_(main.check(), 'main view did not check out')
 
+    def testMergeDeleteValueChangeRefs(self):
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        k = main.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m1.itsName = 'm1'
+        k.movies.remove(m1)
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m1 = view.findPath('//CineGuide/m1')
+        k.movies.append(m1)
+        view.commit()
+
+        k.movies.remove(k.movies.first())
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        del k.movies
+
+        main.commit(None)
+        self.assert_(not hasattr(k, 'movies'), 'movies is back')
+        self.assert_(main.check(), 'main view did not check out')
 
 if __name__ == "__main__":
 #    import hotshot

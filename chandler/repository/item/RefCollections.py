@@ -253,14 +253,24 @@ class RefList(LinkedMap, Indexed):
         Remove all references from this ref collection.
         """
 
-        try:
-            sd = self._setFlag(RefList.SETDIRTY, False)
-            for item in self:
-                self.remove(item)
-        finally:
-            self._setFlag(RefList.SETDIRTY, sd)
+        for item in self:
+            self.remove(item)
 
-        self._setDirty()
+    def _clearRefs(self):
+
+        for other in self:
+            otherValue = getattr(other, self._otherName, None)
+            if otherValue is None:
+                self._removeRef(other)
+            elif otherValue._isRefs():
+                if self._item in otherValue:
+                    self.remove(other)
+                else:
+                    self._removeRef(other)
+            elif otherValue is self._item:
+                self.remove(other)
+            else:
+                self._removeRef(other)
 
     def dir(self):
         """
@@ -690,13 +700,9 @@ class RefList(LinkedMap, Indexed):
             try:
                 other = self[key]
                 result = result and refs._checkRef(logger, name, other, repair)
-            except DanglingRefError, e:
-                logger.error("Iterator on %s caused DanglingRefError: %s",
-                             self, str(e))
-                return False
-            except BadRefError, e:
-                logger.error("Iterator on %s caused BadRefError: %s",
-                             self, str(e))
+            except Exception, e:
+                logger.error("Iterator on %s caused %s: %s",
+                             self, e.__class__.__name__, str(e))
                 return False
             l -= 1
             prevKey = key

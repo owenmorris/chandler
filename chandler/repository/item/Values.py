@@ -1002,9 +1002,14 @@ class References(Values):
 
     def _collectChanges(self, view, flag, dirties,
                         newChanges, changes, indexChanges, version, newVersion):
+        
+        item = self._item
 
         if flag == CItem.RDIRTY:
             for name in self._getDirties():
+                if item.getAttributeAspect(name, 'cardinality') == 'single':
+                    continue
+
                 value = self.get(name, Nil)
 
                 if name in dirties:
@@ -1012,7 +1017,7 @@ class References(Values):
                         # if both side removed the value, let it pass
                         # this is enforced in _applyChanges
                         newChanges[name] = ('nil', Nil)
-                    elif value is not None and value._isRefs():
+                    elif value._isRefs():
                         if value._isSet():
                             newChanges[name] = ('set', value)
                             changes[name] = {}
@@ -1025,15 +1030,15 @@ class References(Values):
                             changes[name] = \
                                 dict((key, dict(refList._iterHistory(version, newVersion))) for key, refList in value.iteritems())
                         else:
-                            newChanges[name] = ('list',
-                                                dict(value._iterChanges()))
+                            newChanges[name] = \
+                                ('list', dict(value._iterChanges()))
                             changes[name] = dict(value._iterHistory(version,
                                                                     newVersion))
                             value._collectIndexChanges(name, indexChanges)
                 else:
                     if value is Nil:
                         newChanges[name] = ('nil', Nil)
-                    elif value is not None and value._isRefs():
+                    elif value._isRefs():
                         if value._isSet():
                             newChanges[name] = ('set', value)
                             value._collectIndexChanges(name, indexChanges)
@@ -1049,7 +1054,11 @@ class References(Values):
 
         elif flag == CItem.VDIRTY:
             for name in self._getDirties():
+                if item.getAttributeAspect(name, 'cardinality') != 'single':
+                    continue
+
                 value = self.get(name, Nil)
+
                 if isitem(value):
                     value = value.itsUUID
                 elif not (isuuid(value) or value in (None, Nil)):
@@ -1068,6 +1077,14 @@ class References(Values):
                             view._e_3_overlap(MergeError.REF, self._item, name)
                     self[name] = valueChanges
                     self._setDirty(name)
+
+                elif card == 'nil':
+                    # conflict: removed value wins over changes coming in
+                    if value is not Nil:
+                        value._clearRefs()
+                        del self[name]
+                        self._setDirty(name)
+
                 elif name in dirties:
                     if value is Nil and valueChanges:
                         view._e_3_overlap(MergeError.REF, self._item, name)
@@ -1089,9 +1106,7 @@ class References(Values):
                                 value._applyChanges(valueChanges,
                                                     changes[flag][name])
                         self._setDirty(name)
-                elif valueChanges is Nil:
-                    if value is not Nil:
-                        self._removeRef(name, value)
+
                 elif card == 'dict':
                     if value is Nil:
                         item = self._item

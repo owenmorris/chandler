@@ -826,13 +826,7 @@ class RepositoryView(CView):
 
     def _reuseItemInstance(self, uuid):
 
-        try:
-            instance = self._instanceRegistry[uuid]
-            del self._instanceRegistry[uuid]
-        except KeyError:
-            instance = None
-
-        return instance
+        return self._instanceRegistry.pop(uuid, None)
 
     def refresh(self, mergeFn=None, version=None, notify=True):
         """
