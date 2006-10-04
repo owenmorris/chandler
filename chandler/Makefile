@@ -65,16 +65,31 @@ endif
 # this is because of RunChandler.bat and RunPython.bat
 # so internally we need to convert them to unix style
 
-ifeq ($(CHANDLERHOME),)
-    ifeq ($(OS),Cygwin)
-        CHANDLERHOME = $(shell cygpath -aw $(shell pwd))
+ifeq ($(OS),Cygwin)
+    ifeq ($(CHANDLERHOME),)
+        C_HOME        = $(shell pwd)
+        CHANDLERHOME := $(shell cygpath -aw $(C_HOME))
     else
+        C_HOME        = $(shell cygpath -au '$(CHANDLERHOME)')
+        CHANDLERHOME := $(shell cygpath -aw $(C_HOME))
+    endif
+    ifeq ($(CHANDLERBIN),)
+        CHANDLERBIN := $(shell cygpath -aw '$(C_HOME)')
+    else
+        CHANDLERBIN := $(shell cygpath -aw '$(CHANDLERBIN)')
+    endif
+
+    C_BIN = $(shell cygpath -au '$(CHANDLERBIN)')
+else
+    ifeq ($(CHANDLERHOME),)
         CHANDLERHOME = $(shell pwd)
     endif
-endif
+    ifeq ($(CHANDLERBIN),)
+        CHANDLERBIN = $(CHANDLERHOME)
+    endif
 
-ifeq ($(CHANDLERBIN),)
-    CHANDLERBIN = $(CHANDLERHOME)
+    C_BIN  = $(CHANDLERBIN)
+    C_HOME = $(CHANDLERHOME)
 endif
 
 ifeq ($(CHANDLERARCHIVES),)
@@ -84,18 +99,13 @@ endif
 PLUGIN_ARCHIVES = $(CHANDLERARCHIVES)
 
 ifeq ($(OS),Cygwin)
-    C_BIN         = $(shell cygpath -au $(CHANDLERBIN))
-    C_HOME        = $(shell cygpath -au $(CHANDLERHOME))
     SITE          = $(SNAP)/bin/Lib/site-packages
     PLATFORM      = windows
     EASYINSTALL   = $(C_BIN)/$(SNAP)/easy_install.exe
-    PLUGIN_PYTHON = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
-    RUN_PYTHON    = $(C_BIN)/$(SNAP)/RunPython.bat
+    PLUGIN_PYTHON = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
+    RUN_PYTHON    = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/RunPython.bat
     SED_MODERN    = -r
 else
-    C_BIN  = $(CHANDLERBIN)
-    C_HOME = $(CHANDLERHOME)
-
     ifeq ($(OS),Darwin)
         FRAMEWORK     = Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
         SITE          = $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
@@ -139,12 +149,12 @@ endif
 HOST = builds.osafoundation.org
 URL  = http://$(HOST)/external/$(PLATFORM)
 
-SETUPTOOLS_EGG  = $(CHANDLERARCHIVES)/setuptools-0.6c2-py2.4.egg
+SETUPTOOLS_EGG  = $(CHANDLERARCHIVES)/setuptools-0.6c4dev_r52047-py2.4.egg
 SETUPTOOLS_ABS  = $(SETUPTOOLS_EGG)
 SETUPTOOLS_BIN  = $(C_BIN)/$(SNAP)
-SETUPTOOLS_SITE = $(C_BIN)/$(SITE)
 EASYINSTALL_BIN = $(EASYINSTALL)
 PLUGIN_ABS      = $(PLUGIN_ARCHIVES)
+PLUGIN_INST     = $(C_HOME)
 PYTHON_BIN      = $(C_BIN)/$(SNAP)/RunPython
 TOOLS           = $(C_HOME)/tools/
 
@@ -155,12 +165,12 @@ TOOLS           = $(C_HOME)/tools/
 #
 ifeq ($(OS),Cygwin)
     PYTHON_BIN      := $(SETUPTOOLS_BIN)/bin/python$(DEBUG_SUFFIX)
-    SETUPTOOLS_ABS  := `cygpath -wa $(SETUPTOOLS_EGG)`
-    SETUPTOOLS_BIN  := `cygpath -wa $(SETUPTOOLS_BIN)`
-    SETUPTOOLS_SITE := `cygpath -wa $(SETUPTOOLS_SITE)`
-    EASYINSTALL_BIN := `cygpath -wa $(EASYINSTALL)`
-    PLUGIN_ABS      := `cygpath -aw $(PLUGIN_ARCHIVES)`
-    TOOLS           := `cygpath -aw $(TOOLS)`\\
+    SETUPTOOLS_ABS  := $(shell cygpath -wa $(SETUPTOOLS_EGG))
+    SETUPTOOLS_BIN  := $(shell cygpath -wa $(SETUPTOOLS_BIN))
+    EASYINSTALL_BIN := $(shell cygpath -wa $(EASYINSTALL))
+    PLUGIN_ABS      := $(shell cygpath -aw $(PLUGIN_ARCHIVES))
+    PLUGIN_INST     := $(shell cygpath -aw $(C_HOME))
+    TOOLS           := $(shell cygpath -aw $(TOOLS))\\
 endif
 
 ARCHIVES_INST = \
@@ -172,9 +182,9 @@ downloads: $(ARCHIVES)
 
 $(addprefix binaries-, $(BUILD_PLUGINS)):
 	cd $(C_HOME)/projects/$(subst binaries-,,$@); \
-    $(PLUGIN_PYTHON) setup.py develop \
-      --script-dir=$(SETUPTOOLS_BIN) \
-      --install-dir=$(SETUPTOOLS_SITE)
+    PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py develop \
+      --script-dir='$(SETUPTOOLS_BIN)' \
+      --install-dir='$(PLUGIN_INST)'
 
 #
 # for distribution the egg develop mode has to be turned off
@@ -182,13 +192,13 @@ $(addprefix binaries-, $(BUILD_PLUGINS)):
 #
 $(addprefix distrib-, $(BUILD_PLUGINS)):
 	cd $(C_HOME)/projects/$(subst distrib-,,$@); \
-  $(PLUGIN_PYTHON) setup.py develop -u \
-    --script-dir=$(SETUPTOOLS_BIN) \
-    --install-dir=$(SETUPTOOLS_SITE)
+    PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py develop -u \
+      --script-dir='$(SETUPTOOLS_BIN)' \
+      --install-dir='$(PLUGIN_INST)'
 	cd $(C_HOME)/projects/$(subst distrib-,,$@); \
-    $(PLUGIN_PYTHON) setup.py install \
-      --install-scripts=$(SETUPTOOLS_BIN) \
-      --install-lib=$(SETUPTOOLS_SITE)
+    PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py install \
+      --install-scripts='$(SETUPTOOLS_BIN)' \
+      --install-lib='$(PLUGIN_INST)'
 
 #bdist_egg -d ../../$(CHANDLERARCHIVES)
 
@@ -197,22 +207,7 @@ build-plugins: $(addprefix binaries-, $(BUILD_PLUGINS))
 distrib-plugins: $(addprefix distrib-, $(BUILD_PLUGINS))
 
 chandler-locale-data:
-	$(PLUGIN_PYTHON) setup.py develop \
-      --script-dir=$(SETUPTOOLS_BIN) \
-      --install-dir=$(SETUPTOOLS_SITE)
-
-#
-# for distribution the egg develop mode has to be turned off
-# and the egg installed in the normal manner
-#
-distrib-chandler-locale-data:
-	$(PLUGIN_PYTHON) setup.py develop -u \
-    --script-dir=$(SETUPTOOLS_BIN) \
-    --install-dir=$(SETUPTOOLS_SITE)
-	$(PLUGIN_PYTHON) setup.py install \
-      --install-scripts=$(SETUPTOOLS_BIN) \
-      --install-lib=$(SETUPTOOLS_SITE)
-
+	PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py egg_info
 
 $(ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
@@ -222,24 +217,16 @@ $(ARCHIVES_INST):
 	tar -C $(C_BIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
 
-SETUPTOOLS_INST = \
-    $(addsuffix .inst, \
-                $(addprefix $(C_BIN)/$(SNAP)/, \
-                            $(notdir $(SETUPTOOLS_EGG))))
-
-setuptools: $(SETUPTOOLS_INST)
-
 $(SETUPTOOLS_EGG):
 	mkdir -p $(CHANDLERARCHIVES)
 	$(CURL) $@ http://$(HOST)/external/$(notdir $@)
 
-$(SETUPTOOLS_INST): $(SETUPTOOLS_EGG)
-	MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) \
+setuptools: $(SETUPTOOLS_EGG)
+	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' $(PYTHON_BIN) \
       -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
-      --script-dir=$(SETUPTOOLS_BIN) \
-      --install-dir=$(SETUPTOOLS_SITE) \
-      $(SETUPTOOLS_ABS)
-	touch $@
+      --script-dir='$(SETUPTOOLS_BIN)' \
+      --install-dir='$(PLUGIN_INST)' \
+      '$(SETUPTOOLS_ABS)'
 
 ifeq ($(OS),Cygwin)
 manifest_exe:
@@ -251,11 +238,11 @@ else
 manifest_exe:
 endif
 
-install-core: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe $(SETUPTOOLS_INST)
+install-core: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe setuptools chandler-locale-data
 
-install: install-core chandler-locale-data build-plugins
+install: install-core build-plugins
 
-distrib: install-core distrib-chandler-locale-data distrib-plugins
+distrib: install-core distrib-plugins
 
 download: $(ARCHIVES) $(SETUPTOOLS_EGG)
 
@@ -286,22 +273,22 @@ endif
 endif
 
 debug:
-	$(MAKE) DEBUG=1 install
+	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(MAKE) DEBUG=1 install
 
 purge:
-	$(RUN_PYTHON) $(TOOLS)purge.py .
+	$(RUN_PYTHON) '$(TOOLS)'purge.py .
 
 check:
-	$(RUN_PYTHON) $(TOOLS)checker.py
+	$(RUN_PYTHON) '$(TOOLS)'checker.py
 
 lint:
-	$(RUN_PYTHON) $(TOOLS)lint.py
+	$(RUN_PYTHON) '$(TOOLS)'lint.py
 
 print-%:
 	@echo $* = $($*)
 
 tests:
-	$(C_HOME)/tools/do_tests.sh -u
+	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_HOME)/tools/do_tests.sh -u
 
 clean:
 	rm -rf $(C_BIN)/$(SNAP)
@@ -313,6 +300,8 @@ clean:
 distclean: clean
 	rm -rf $(C_BIN)/debug
 	rm -rf $(C_BIN)/release
+	rm -f  $(C_HOME)/*.egg-link
+	rm -f  $(C_HOME)/*.pth
 
 realclean: distclean
 	rm -f $(ARCHIVES)
