@@ -1002,6 +1002,11 @@ class wxAutoCompleter(wx.ListBox):
             if selectionIndex != wx.NOT_FOUND:
                 self.completionCallback(self.GetStringSelection())
                 return True
+            
+        if keyCode == wx.WXK_TAB:
+            # Finish autocompleting, if we have a selection
+            if selectionIndex != wx.NOT_FOUND:
+                self.completionCallback(self.GetStringSelection())
 
         return False
             

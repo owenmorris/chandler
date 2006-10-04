@@ -1173,18 +1173,8 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
                 dateTimeValue = pim.shortDateFormat.parse(newValueString, 
                                                           referenceDate=oldValue)
             except (ICUError, ValueError):
-                # use parsedatetime to calculate the date
-                try:
-                    cal = parsedatetime.Calendar() 
-                    (dateVar, invalidFlag) = cal.parse(newValueString)
-                    if dateVar != None and invalidFlag is False:
-                        dateTimeValue = datetime(*dateVar[:3])
-                    else:
-                        self._changeTextQuietly(self.control, "%s ?" % newValueString)
-                        return
-                except (ValueError):
-                    self._changeTextQuietly(self.control, "%s ?" % newValueString)
-                    return
+                self._changeTextQuietly(self.control, "%s ?" % newValueString)
+                return
 
             # If this results in a new value, put it back.
             value = datetime.combine(dateTimeValue.date(), oldValue.timetz())
