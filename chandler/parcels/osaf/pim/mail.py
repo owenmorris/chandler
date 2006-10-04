@@ -1146,8 +1146,10 @@ Issues:
 
             lastUUID = collection.findInIndex(indexName, 'last', _compare)
             for uuid in collection.iterindexkeys(indexName, firstUUID, lastUUID):
-                yield view[uuid]
-
+                match = view[uuid]
+                if unicode(match).lower() != partialAddress:
+                    yield match
+                
     @classmethod
     def format(cls, emailAddress, encode=False):
         assert isinstance(emailAddress, EmailAddress), "You must pass an EmailAddress Object"

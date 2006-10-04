@@ -1775,7 +1775,9 @@ class DateAttributeEditor (StringAttributeEditor):
                 if dateVar is not None and invalidFlag is False:
                     # temporary fix: parsedatetime sometimes returns day == 0
                     if not filter(lambda x: not x, dateVar[:3]):
-                        yield pim.shortDateFormat.format(datetime(*dateVar[:3]))
+                        match = pim.shortDateFormat.format(datetime(*dateVar[:3]))
+                        if unicode(match).lower() != target:
+                            yield match
                         break
                 
 
@@ -1859,7 +1861,9 @@ class TimeAttributeEditor(StringAttributeEditor):
                 cal = parsedatetime.Calendar() 
                 (timeVar, invalidFlag) = cal.parse(target)
                 if timeVar != None and invalidFlag is False:
-                    yield pim.shortTimeFormat.format(datetime(*timeVar[:5]))
+                    match = pim.shortTimeFormat.format(datetime(*timeVar[:5]))
+                    if unicode(match).lower() !=target:
+                        yield match
                     break
 
     def GetAttributeValue(self, item, attributeName):
