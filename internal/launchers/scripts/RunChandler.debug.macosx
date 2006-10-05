@@ -2,12 +2,13 @@
 
 if [ "$CHANDLERHOME" = "" ]
 then
-    CHANDLERHOME=$(dirname "$(dirname "${0}")")
-fi
+    export CHANDLERHOME=$(dirname "$(dirname "${0}")")
 
-if [ "$CHANDLERBIN" = "" ]
-then
-    CHANDLERBIN="$CHANDLERHOME"
+    # if CHANDLERHOME was empty and the script is not relative
+    # to it, then try current directory
+    if [ ! -f "$CHANDLERHOME"/Chandler.py ]
+        export CHANDLERHOME=`pwd`
+    fi
 fi
 
 if [ -f "$CHANDLERHOME"/Chandler.py ]
@@ -17,6 +18,11 @@ else
     echo "Error:  Please unset the CHANDLERHOME environment variable or "
     echo "        set it to point to the directory that contains Chandler.py"
     exit 1
+fi
+
+if [ "$CHANDLERBIN" = "" ]
+then
+    export CHANDLERBIN="$CHANDLERHOME"
 fi
 
 "$CHANDLERBIN"/debug/RunPython "$CHANDLERHOME"/Chandler.py "$@"

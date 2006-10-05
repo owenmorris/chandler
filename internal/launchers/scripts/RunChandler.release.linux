@@ -2,12 +2,12 @@
 
 if [ "$CHANDLERHOME" = "" ]
 then
-    CHANDLERHOME=`pwd`
+    export CHANDLERHOME=`pwd`
 fi
 
 if [ "$CHANDLERBIN" = "" ]
 then
-    CHANDLERBIN="$CHANDLERHOME"
+    export CHANDLERBIN="$CHANDLERHOME"
 fi
 
 if [ -f "$CHANDLERHOME"/Chandler.py ]
