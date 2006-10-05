@@ -84,7 +84,7 @@ def parse(m, mes, counter, level=1):
     checkDefects(m)
 
     if len(m.keys()) == 0:
-        print "Not a RFC 2882 Compliant Message"
+        print "Not a RFC 2822 Compliant Message"
         return
 
     if level == 1:

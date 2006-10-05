@@ -25,6 +25,7 @@ import logging
 from time import mktime
 from datetime import datetime
 import sys
+import sgmllib
 
 #Chandler imports
 import application.Globals as Globals
@@ -32,12 +33,12 @@ from repository.util.Lob import Lob
 
 #Chandler Mail Service imports
 import constants as constants
+from i18n import ChandlerMessageFactory as _
 
 __all__ = ['log', 'trace', 'disableTwistedTLS', 'loadMailTests', 'getEmptyDate',
            'dateIsEmpty', 'alert', 'alertMailError', 'NotifyUIAsync', 'displaySSLCertDialog',
-           'displayIgnoreSSLErrorDialog', 'dateTimeToRFC2882Date', 'createMessageID',
-           'hasValue', 'isString', 'dataToBinary',
-           'binaryToData']
+           'displayIgnoreSSLErrorDialog', 'dateTimeToRFC2822Date', 'createMessageID',
+           'hasValue', 'isString', 'dataToBinary', 'binaryToData', 'stripHTML']
 
 
 log = logging.getLogger("MailService")
@@ -191,14 +192,14 @@ def NotifyUIAsync(message, logger=None, cl='setStatusMessage', *args, **keys):
         wxApplication.CallItemMethodAsync("MainView", cl, message, *args, **keys)
 
 
-def dateTimeToRFC2882Date(dt):
+def dateTimeToRFC2822Date(dt):
     """
-    Converts a C{datetime} object to a RFC2882 Date String.
+    Converts a C{datetime} object to a RFC2822 Date String.
 
     @param dt: a C{datetime} instance
     @type dt: C{datetime}
 
-    @return: RFC2882 Date String
+    @return: RFC2822 Date String
     """
     ticks = mktime(dt.timetuple())
     return Utils.formatdate(ticks, True)
@@ -264,3 +265,64 @@ def binaryToData(binary):
     inp.close()
 
     return data
+
+
+class HTMLCleaner(sgmllib.SGMLParser):
+    #XXX Issue with title should be on own line
+    entitydefs={"nbsp": " "}
+
+    def __init__(self):
+        sgmllib.SGMLParser.__init__(self)
+        self.result = []
+        self.title = []
+
+    def do_p(self, *junk):
+        self.result.append(u'\n')
+
+    def do_br(self, *junk):
+        self.result.append(u'\n')
+
+    def handle_data(self, data):
+        tag = self.get_starttag_text()
+
+        if tag != None:
+            tag = tag.lower().strip()
+        else:
+           tag = ""
+
+        if tag.startswith("<title"):
+            self.title.append(data)
+
+        elif tag.startswith("<script ") or \
+             tag.startswith("<style "):
+            pass
+
+        else:
+            self.result.append(data)
+
+    def cleaned_text(self):
+        txt = u''
+
+        if len(self.title):
+            txt += _(u"Title: ")
+
+            for uniText in self.title:
+                if isinstance(uniText, str):
+                    uniText = unicode(uniText, 'utf-8', 'ignore')
+
+                txt += uniText
+
+            txt += u"\n\n"
+
+        for uniText in self.result:
+            if isinstance(uniText, str):
+                uniText = unicode(uniText, 'utf-8', 'ignore')
+
+            txt += uniText
+
+        return txt
+
+def stripHTML(text):
+    cleaner = HTMLCleaner()
+    cleaner.feed(text)
+    return cleaner.cleaned_text()

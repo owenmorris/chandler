@@ -42,8 +42,8 @@ Date: Mon, 9 Aug 2004 13:55:15 -0700
 Content-Length: 75
 Content-Transfer-Encoding: 8bit
 Mime-Version: 1.0
-Received: from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700
-References: <9CF0AF12-ED6F-11D8-B611-000A95B076C2@osafoundation.org> <7542F892-EF9F-11D8-8048-000A95CA1ECC@osafoundation.org> <07A5D499-EFA1-11D8-9F44-000A95D9289E@osafoundation.org> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>
+Received: from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.test.com (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700
+References: <9CF0AF12-ED6F-11D8-B611-000A95B076C2@test.com> <7542F892-EF9F-11D8-8048-000A95CA1ECC@test.com> <07A5D499-EFA1-11D8-9F44-000A95D9289E@test.com> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@test.com>
 Subject: test mail
 Content-Type: text/plain; charset=utf-8; format=flowed
 
@@ -52,18 +52,18 @@ This is the body"""
     __mailWithEvent = """Return-Path: <sir.strawberry@gmail.com>
 X-Original-To: capt.crunch@yahoo.com
 Delivered-To: capt.crunch@yahoo.com
-Received: from laweleka.osafoundation.org (laweleka.osafoundation.org [204.152.186.98])
-	by leilani.osafoundation.org (Postfix) with ESMTP id 1D5607FAFA
+Received: from laweleka.test.com (laweleka.test.com [204.152.186.98])
+	by leilani.test.com (Postfix) with ESMTP id 1D5607FAFA
 	for <capt.crunch@yahoo.com>; Fri,  8 Sep 2006 09:16:44 -0700 (PDT)
 Received: from localhost (localhost [127.0.0.1])
-	by laweleka.osafoundation.org (Postfix) with ESMTP id 07A71142276
+	by laweleka.test.com (Postfix) with ESMTP id 07A71142276
 	for <capt.crunch@yahoo.com>; Fri,  8 Sep 2006 09:16:44 -0700 (PDT)
-Received: from laweleka.osafoundation.org ([127.0.0.1])
-	by localhost (laweleka.osafoundation.org [127.0.0.1]) (amavisd-new, port 10024)
+Received: from laweleka.test.com ([127.0.0.1])
+	by localhost (laweleka.test.com [127.0.0.1]) (amavisd-new, port 10024)
 	with ESMTP id 10491-10 for <capt.crunch@yahoo.com>;
 	Fri, 8 Sep 2006 09:16:42 -0700 (PDT)
 Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.226])
-	by laweleka.osafoundation.org (Postfix) with ESMTP id 9AC1614228B
+	by laweleka.test.com (Postfix) with ESMTP id 9AC1614228B
 	for <capt.crunch@yahoo.com>; Fri,  8 Sep 2006 09:16:42 -0700 (PDT)
 Received: by wx-out-0506.google.com with SMTP id i30so925749wxd
         for <capt.crunch@yahoo.com>; Fri, 08 Sep 2006 09:16:42 -0700 (PDT)
@@ -159,9 +159,9 @@ END:VCALENDAR
         m.headers['Content-Transfer-Encoding'] = "8bit"
         m.headers['Mime-Version'] = "1.0"
 
-        m.headers['Received'] = "from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700"
+        m.headers['Received'] = "from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.test.com (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700"
 
-        m.headers['References'] = "<9CF0AF12-ED6F-11D8-B611-000A95B076C2@osafoundation.org> <7542F892-EF9F-11D8-8048-000A95CA1ECC@osafoundation.org> <07A5D499-EFA1-11D8-9F44-000A95D9289E@osafoundation.org> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>"
+        m.headers['References'] = "<9CF0AF12-ED6F-11D8-B611-000A95B076C2@test.com> <7542F892-EF9F-11D8-8048-000A95CA1ECC@test.com> <07A5D499-EFA1-11D8-9F44-000A95D9289E@test.com> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@test.com>"
 
         dateString = "Mon, 9 Aug 2004 13:55:15 -0700"
         m.dateSent = datetime.fromtimestamp(emailUtils.mktime_tz(emailUtils.parsedate_tz(dateString)), ICUtzinfo.getInstance("Etc/GMT-7"))
@@ -232,7 +232,6 @@ END:VCALENDAR
         self.assertEquals(mOne['To'], mTwo['To'])
         self.assertEquals(mOne['Cc'], mTwo['Cc'])
         self.assertEquals(mOne['Content-Length'], mTwo['Content-Length'])
-        self.assertEquals(mOne['Content-Type'], mTwo['Content-Type'])
         self.assertEquals(mOne['Content-Transfer-Encoding'], mTwo['Content-Transfer-Encoding'])
         self.assertEquals(mOne['Mime-Version'], mTwo['Mime-Version'])
         self.assertEquals(mOne['Subject'], mTwo['Subject'])
@@ -283,7 +282,6 @@ END:VCALENDAR
         eventMessage = message.messageTextToKind(self.rep.view, self.__getMultipartMessageText())
         self.assertTrue(has_stamp(eventMessage, MailStamp))
         self.assertTrue(has_stamp(eventMessage, EventStamp))
-        
 
     def testMessageObjectToKind(self):
         mailKind = message.messageObjectToKind(self.rep.view, self.__getMessageObject(), self.__mail)

@@ -23,7 +23,8 @@ __all__ = [
     'MIMESecurity', 'MIMEText', 'MailDeliveryBase', 'MailDeliveryError',
     'MailMessage', 'MailStamp', 'POPAccount', 'POPDelivery', 'SMTPAccount',
     'SMTPDelivery', 'replyToMessage', 'replyAllToMessage', 'forwardMessage',
-    'getCurrentSMTPAccount', 'getCurrentMailAccount', 'ACCOUNT_TYPES']
+     'getCurrentSMTPAccount', 'getCurrentMailAccount',
+    'ACCOUNT_TYPES']
 
 
 import application
@@ -39,93 +40,206 @@ from repository.util.Path import Path
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from repository.persistence.RepositoryError import RepositoryError, VersionConflictError
+from osaf.pim.calendar import EventStamp
+from osaf.pim import Remindable
 
 """
 Design Issues:
       1. Is tries really needed
       2. Date sent string could probally be gotten rid of
+
+ISSUES:
+    1. Collection logic is still off. Not appearing in the Outbound collection
+    2. Sendability of mail in the out.
 """
 
-def __actionOnMessage(view, mailMessage, action="REPLY"):
-    assert(stamping.has_stamp(mailMessage, MailStamp))
+def __populateBody(mailStamp, bodyHeader=u"", includeMailHeaders=False, includeEventInfo=False):
+
+    buffer = [bodyHeader]
+
+    addr = mailStamp.fromAddress
+
+    if includeMailHeaders:
+        buffer.append(u"> From: %s" % EmailAddress.format(mailStamp.fromAddress))
+
+        if mailStamp.replyToAddress:
+            buffer.append(u"> Reply-To: %s" % EmailAddress.format(mailStamp.replyToAddress))
+
+        to = []
+
+        for addr in mailStamp.toAddress:
+            to.append(EmailAddress.format(addr))
+
+        buffer.append(u"> To: %s" % ", ".join(to))
+
+        if len(mailStamp.ccAddress):
+            cc = []
+            for addr in mailStamp.ccAddress:
+                cc.append(EmailAddress.format(addr))
+
+            buffer.append(u"> Cc: %s" % ", ".join(cc))
+
+        m = PyICU.DateFormat.createDateTimeInstance(PyICU.DateFormat.kMedium)
+        dateSent = _(u"Sent: %(dateSent)s") % {'dateSent': mailStamp.dateSent}
+        buffer.append(u"> %s" % dateSent)
+
+        # add an additional new line
+        buffer.append(u"> ")
+
+    if includeEventInfo:
+        event = EventStamp(mailStamp.itsItem)
+
+        tmpBuffer = []
+        tmpBuffer.append(_(u"Title: %(eventTitle)s") % {'eventTitle': mailStamp.itsItem.displayName})
+
+        try:
+            location = unicode(getattr(event, 'location', u''))
+
+            if len(location.strip()) > 0:
+                tmpBuffer.append(_(u"Location: %(eventLocation)s") % {'eventLocation': location})
+        except AttributeError:
+            pass
+
+        try:
+            date = event.getTimeDescription()
+            tmpBuffer.append(_(u"Date: %(eventDate)s") % {'eventDate': date})
+        except AttributeError:
+            pass
+
+        try:
+            choices = {
+                     u'confirmed': _(u'Confirmed'),
+                     u'tentative': _(u'Tentative'),
+                     u'fyi': _(u'FYI'),
+                      }
+
+            status = choices[event.transparency]
+
+
+            tmpBuffer.append(_(u"Status: %(eventStatus)s") % {'eventStatus': status})
+        except AttributeError:
+            pass
+
+        try:
+            r = Remindable(mailStamp.itsItem)
+            alarm = r.getNextReminderTime()
+
+            if alarm and len(r.reminders):
+                m = PyICU.DateFormat.createDateTimeInstance(PyICU.DateFormat.kMedium)
+                tmpBuffer.append(_(u"Alarm: %(eventAlarm)s") % {'eventAlarm': m.format(alarm)})
+        except AttributeError:
+            pass
+
+        for line in tmpBuffer:
+            # Add the '> ' reply to mail token
+            buffer.append(u"> %s" % line)
+
+        buffer.append(u"")
+
+    origBody = mailStamp.body.split(u"\n")
+
+    for line in origBody:
+        if line.startswith(u">"):
+            buffer.append(u">%s" % line)
+        else:
+            buffer.append(u"> %s" % line)
+
+    return u"\n".join(buffer)
+
+
+def __actionOnMessage(view, mailStamp, action="REPLY"):
+    assert(isinstance(mailStamp, MailStamp))
     assert(action == "REPLY" or action == "REPLYALL" or action == "FORWARD")
 
-    newMessage = MailMessage(itsView=view)
+    newMailStamp = MailMessage(itsView=view)
+    hasEvent = stamping.has_stamp(mailStamp.itsItem, EventStamp)
 
     #This could be None
-    newMessage.fromAddress = EmailAddress.getCurrentMeEmailAddress(view)
+    newMailStamp.fromAddress = EmailAddress.getCurrentMeEmailAddress(view)
 
     if action == "REPLY" or action == "REPLYALL":
-        if mailMessage.subject:
-            #XXX could use case insensitive compare
-            if mailMessage.subject.startswith(u"Re: "):
-                newMessage.subject = mailMessage.subject
+        if mailStamp.subject:
+            if mailStamp.subject.lower().startswith(u"re: "):
+                newMailStamp.subject = mailStamp.subject
             else:
-                newMessage.subject = u"Re: %s" % mailMessage.subject
+                newMailStamp.subject = u"Re: %s" % mailStamp.subject
 
-        newMessage.inReplyTo = mailMessage.messageId
-
-        newMessage.referencesMID.extend(mailMessage.referencesMID)
-        newMessage.referencesMID.append(mailMessage.messageId)
-        origBody = mailMessage.body.split(u"\n")
-        buffer = [u"\n"]
-
-        addr = mailMessage.fromAddress
-
-        if addr.fullName:
-            txt = addr.fullName
-        else:
-            txt = addr.emailAddress
+        newMailStamp.inReplyTo = mailStamp.messageId
+        newMailStamp.referencesMID.extend(mailStamp.referencesMID)
+        newMailStamp.referencesMID.append(mailStamp.messageId)
 
         m = PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kMedium)
 
-        buffer.append(_(u"on %(date)s, %(emailAddress)s wrote:\n") % \
-                        {'date': m.format(mailMessage.dateSent),
-                         'emailAddress': txt})
+        bodyHeader = u"\n\n"
 
-        for line in origBody:
-            if line.startswith(u">"):
-                buffer.append(u">%s" % line)
-            else:
-                buffer.append(u"> %s" % line)
+        addr = mailStamp.fromAddress
+        txt = addr.fullName and addr.fullName or addr.emailAddress
 
-        newMessage.body = u"\n".join(buffer)
+        bodyHeader += _(u"On %(date)s, %(emailAddress)s said:\n") % \
+                       {'date': m.format(mailStamp.dateSent),
+                        'emailAddress': txt}
 
-        to = mailMessage.replyToAddress and mailMessage.replyToAddress or \
-             mailMessage.fromAddress
+        newMailStamp.body = __populateBody(mailStamp, bodyHeader, includeEventInfo=hasEvent)
 
-        newMessage.toAddress.append(to)
+        to = mailStamp.replyToAddress and mailStamp.replyToAddress or \
+             mailStamp.fromAddress
+
+        newMailStamp.toAddress.append(to)
 
         if action == "REPLYALL":
             addresses = {}
 
             #The from address can be empty if no account info has been
             #configured
-            if newMessage.fromAddress:
-                addresses[newMessage.fromAddress.emailAddress] = True
+            if newMailStamp.fromAddress:
+                addresses[newMailStamp.fromAddress.emailAddress] = True
 
-            for addr in newMessage.toAddress:
+            for addr in newMailStamp.toAddress:
                 addresses[addr.emailAddress] = True
 
-            for addr in mailMessage.toAddress:
+            for addr in mailStamp.toAddress:
                 if not addresses.has_key(addr.emailAddress):
-                    newMessage.ccAddress.append(addr)
+                    newMailStamp.ccAddress.append(addr)
                     addresses[addr.emailAddress] = True
 
-            for addr in mailMessage.ccAddress:
+            for addr in mailStamp.ccAddress:
                 if not addresses.has_key(addr.emailAddress):
-                    newMessage.ccAddress.append(addr)
+                    newMailStamp.ccAddress.append(addr)
                     addresses[addr.emailAddress] = True
     else:
-        #action == FORWARD
-        if mailMessage.subject:
-            if mailMessage.subject.startswith(u"Fwd: ") or \
-               mailMessage.subject.startswith(u"[Fwd: "):
-                newMessage.subject = mailMessage.subject
+        #FORWARD CASE
+        if mailStamp.subject:
+            if mailStamp.subject.lower().startswith(u"fwd: ") or \
+               mailStamp.subject.lower().startswith(u"[fwd: "):
+                newMailStamp.subject = mailStamp.subject
             else:
-                newMessage.subject = u"Fwd: %s" % mailMessage.subject
+                newMailStamp.subject = u"Fwd: %s" % mailStamp.subject
 
-        newMessage.mimeParts.append(mailMessage.itsItem)
+        if hasEvent:
+            import osaf.sharing.ICalendar as ICalendar
+            event = EventStamp(mailStamp.itsItem)
+            calendar = ICalendar.itemsToVObject(view, [event],
+                           filters=(Remindable.reminders.name,))
+
+            calendar.add('method').value="REQUEST"
+            ics = calendar.serialize()
+            icsName = u"%s.ics" % mailStamp.itsItem.displayName
+
+            note = notes.Note(itsView=view)
+
+            attachment = MIMEText(note)
+            attachment.filename = icsName
+            attachment.filesize = long(len(ics))
+            attachment.mimeType = "text/calendar"
+            attachment.data = ics
+
+            newMailStamp.mimeParts.append(note)
+
+            bodyHeader = _(u"1 attachment: %(attachmentName)s\nType your forward message here:\n\n\nBegin forwarded message:") % {'attachmentName': icsName}
+        else:
+            bodyHeader = _(u"Type your forward message here:\n\nBegin forwarded message:")
+
+        newMailStamp.body = __populateBody(mailStamp, bodyHeader, True, hasEvent)
 
     try:
         view.commit()
@@ -134,16 +248,53 @@ def __actionOnMessage(view, mailMessage, action="REPLY"):
     except VersionConflictError, e:
         raise
 
-    return newMessage
+    return newMailStamp.itsItem
 
-def replyToMessage(view, mailMessage):
-    return __actionOnMessage(view, mailMessage, "REPLY")
+def replyToMessage(view, mailStamp):
+    """
+        @return: a C{Note} item which has been stamped as a c{MailStamp}
+    """
+    return __actionOnMessage(view, mailStamp, "REPLY")
 
-def replyAllToMessage(view, mailMessage):
-    return __actionOnMessage(view, mailMessage, "REPLYALL")
+def replyAllToMessage(view, mailStamp):
+    """
+        @return: a C{Note} item which has been stamped as a c{MailStamp}
+    """
+    return __actionOnMessage(view, mailStamp, "REPLYALL")
 
-def forwardMessage(view, mailMessage):
-    return __actionOnMessage(view, mailMessage, "FORWARD")
+def forwardMessage(view, mailStamp):
+    """
+        @return: a C{Note} item which has been stamped as a c{MailStamp}
+    """
+    return __actionOnMessage(view, mailStamp, "FORWARD")
+
+def __resetMailStamp(mailStamp):
+    mailStamp.toAddress = []
+    mailStamp.ccAddress = []
+    mailStamp.bccAddress = []
+    mailStamp.fromAddress = None
+    mailStamp.replyToAddress = None
+    mailStamp.chandlerHeaders.clear()
+    mailStamp.headers.clear()
+    mailStamp.dateSentString = u""
+    mailStamp.deliveryExtension = None
+    #XXX this value will soon be deprecated
+    mailStamp.isOutbound = True
+    mailStamp.referencesMID = []
+    mailStamp.spamScore = 0.0
+    mailStamp.mimeContainer = None
+    mailStamp.hasMimeParts = False
+    mailStamp.mimeParts = []
+    mailStamp.messageId = u""
+
+    try:
+        # Clear the lob value
+        stream = mailStamp.rfc2822Message.getOutputStream()
+        stream.close()
+    except AttributeError:
+        pass
+
+    mailStamp.itsItem.body = u""
 
 
 def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
@@ -592,7 +743,7 @@ class MIMEContainer(MIMEBase):
 
 class MailStamp(MIMEContainer, stamping.Stamp):
     """
-    
+
     MailStamp is the bag of Message-specific attributes.
 
     Used to stamp a content item with mail message attributes.
@@ -606,16 +757,18 @@ class MailStamp(MIMEContainer, stamping.Stamp):
         seems artificial. Note, however, that you can't inherit from both
         Item and Annotation, so this seemed like the way to go.
     """
-    
+
     schema.kindInfo(annotates = notes.Note)
     __use_collection__ = True
-    
+
     deliveryExtension = schema.One(
         MailDeliveryBase,
         initialValue = None,
         inverse = MailDeliveryBase.mailMessage,
     )
+
     isOutbound = schema.One(schema.Boolean, initialValue = True)
+
     parentAccount = schema.One(
         AccountBase, initialValue = None, inverse = AccountBase.mailMessages,
     )
@@ -624,9 +777,8 @@ class MailStamp(MIMEContainer, stamping.Stamp):
     dateSentString = schema.One(schema.Text, initialValue = '')
     dateSent = schema.One(schema.DateTimeTZ, indexed=True)
     messageId = schema.One(schema.Text, initialValue = '')
-    
-    about = schema.One(redirectTo = 'about')
 
+    about = schema.One(redirectTo = 'about')
 
     # inverse of EmailAddress.messagesTo
     toAddress = schema.Sequence(
@@ -639,13 +791,13 @@ class MailStamp(MIMEContainer, stamping.Stamp):
     )
     # inverse of EmailAddress.messagesReplyTo
     replyToAddress = schema.One(initialValue = None)
-    
+
     # inverse of EmailAddress.messagesBcc
     bccAddress = schema.Sequence(initialValue = [])
 
     # inverse of EmailAddress.messagesCc
     ccAddress = schema.Sequence(initialValue = [])
-    
+
     subject = schema.One(redirectTo='displayName')
     body = schema.One(redirectTo='body')
     inReplyTo = schema.One(schema.Text, indexed=False)
@@ -655,7 +807,7 @@ class MailStamp(MIMEContainer, stamping.Stamp):
         schema.Text, doc = 'Catch-all for headers', initialValue = {},
     )
     chandlerHeaders = schema.Mapping(schema.Text, initialValue = {})
-    
+
     #who = schema.One(
     #    doc = "Redirector to 'toAddress'", redirectTo = 'toAddress',
     #)
@@ -694,9 +846,9 @@ class MailStamp(MIMEContainer, stamping.Stamp):
         Init only the attributes specific to this mixin.
         Called when stamping adds these attributes, and from __init__ above.
         """
-        
+
         super(MailStamp, self).add()
-        
+
         # default the fromAddress to "me"
         if getattr(self, 'fromAddress', None) is None:
             self.fromAddress = EmailAddress.getCurrentMeEmailAddress(self.itsItem.itsView)
@@ -719,6 +871,7 @@ class MailStamp(MIMEContainer, stamping.Stamp):
         if self.deliveryExtension is None:
             self.deliveryExtension = SMTPDelivery(itsView=self.itsItem.itsView)
 
+        #XXX: Get rid of this
         self.isOutbound = True
         self.parentAccount = account
 
@@ -731,6 +884,7 @@ class MailStamp(MIMEContainer, stamping.Stamp):
             elif type == "POP":
                  self.deliveryExtension = POPDelivery(itsView=self.itsItem.itsView)
 
+        #XXX: Get rid of this
         self.isOutbound = False
         self.parentAccount = account
 
@@ -781,11 +935,10 @@ def MailMessage(*args, **keywds):
     """Return a newly created Note, stamped with MailStamp."""
     note = notes.Note(*args, **keywds)
     message = MailStamp(note)
-    
+
     message.add()
-    
     return message
-    
+
 
 class MIMEBinary(MIMENote):
     schema.kindInfo(annotates=items.ContentItem)
@@ -804,14 +957,16 @@ class MIMEText(MIMENote):
         initialValue = 'en',
     )
 
+    data = schema.One(schema.Text, indexed=False)
+
 
 class MIMESecurity(MIMEContainer):
     schema.kindInfo(annotates=items.ContentItem)
     pass
-    
+
 class CollectionInvitation(schema.Annotation):
     schema.kindInfo(annotates = collections.ContentCollection)
-    
+
     invitees = schema.Sequence(
         doc="The people who are being invited to share in this item; filled "
         "in when the user types in the DV's 'invite' box, then cleared on "
@@ -836,7 +991,7 @@ Issues:
    address is still in service, or whether mail to this has been
    bouncing lately. Another example might be a 'superseded by'
    attribute, which would point to another Email Address item.
-   
+
 """
     schema.kindInfo(
         displayAttribute = "emailAddress",

@@ -270,7 +270,7 @@ class FocusEventHandlers(Item):
             sidebar = Block.Block.findBlockByName ("Sidebar")
             sidebar.select(pim_ns.outCollection)
             # select the last message replied/forwarded
-            main.MainView.selectItems([replyMessage.itsItem])
+            main.MainView.selectItems([replyMessage])
             # by default the "from" field is selected, which looks funny;
             # so switch focus to the message body, except for "Forward",
             # which goes to the "To" field

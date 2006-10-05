@@ -232,7 +232,7 @@ class SMTPClient(object):
             self.mailMessage.outgoingMessage(self.account)
             now = datetime.now(ICUtzinfo.default)
             self.mailMessage.dateSent = now
-            self.mailMessage.dateSentString = dateTimeToRFC2882Date(now)
+            self.mailMessage.dateSentString = dateTimeToRFC2822Date(now)
     
             """Clear out any previous DeliveryErrors from a previous attempt"""
             for item in self.mailMessage.deliveryExtension.deliveryErrors:

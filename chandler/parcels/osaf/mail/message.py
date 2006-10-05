@@ -46,7 +46,6 @@ Performance:
    1. Reduce checks when downloading mail
    2. Remove verbose method calls
 
-
 Notes:
 1. ***Need to pay attention for when setting values in Message.Message object as they must 
    be of type str
@@ -56,48 +55,11 @@ XXX: test_email.py, test_email_codecs.py in email package has good unicode examp
 XXX: Look at Scrubber.py in Mailman package
 XXX: get_filename() unquotes the unicode value
 
-1. Encoding Email Address: Only encode name if present (I have example code)
-
 To Do:
 -------
 1. Work with Apple Mail and see how it handle display of various message types and copy
 2. Look at optimizations for Feedparser to prevent memory hogging (might tie in to twisted dataReceived)
-3. Add i18n support to outbound message
-4. Look at test_Big5-2 it is not working anymore
-5. Add the HTML Cleaner API from Amazon
-
-
-ARE THESES HANDLED BY THE EMAIL LIBRARY?
---------------------------------------
-
-NOTE: Some protocols defines a maximum line length.  E.g. SMTP [RFC-
-821] allows a maximum of 998 octets before the next CRLF sequence.
-To be transported by such protocols, data which includes too long
-segments without CRLF sequences must be encoded with a suitable
-content-transfer-encoding.
-
-Note that if the specified character set includes 8-bit characters
-and such characters are used in the body, a Content-Transfer-Encoding
-header field and a corresponding encoding on the data are required in
-order to transmit the body via some mail transfer protocols, such as
-SMTP [RFC-821].
-
-
-In general, composition software should always use the "lowest common
-denominator" character set possible.  For example, if a body contains
-only US-ASCII characters, it SHOULD be marked as being in the US-
-ASCII character set, not ISO-8859-1, which, like all the ISO-8859
-family of character sets, is a superset of US-ASCII.  More generally,
-if a widely-used character set is a subset of another character set,
-and a body contains only characters in the widely-used subset, it
-should be labelled as being in that subset.  This will increase the
-chances that the recipient will be able to view the resulting entity
-correctly.
-
-Unrecognized subtypes of "text" should be treated as subtype "plain"
-as long as the MIME implementation knows how to handle the charset.
-Unrecognized subtypes which also specify an unrecognized charset
-should be treated as "application/octet- stream".
+3. Look at test_Big5-2 it is not working anymore
 """
 
 __all__ = ['messageTextToKind', 'messageObjectToKind', 'kindToMessageObject', 'kindToMessageText']
@@ -178,7 +140,6 @@ def populateHeaders(mailMessage, messageObject):
     keys = mailMessage.headers.keys()
 
     for key in keys:
-        #XXX: Willl need to detect i18n charset and encoded if needed
         messageObject[key] = mailMessage.headers[key]
 
 
@@ -186,7 +147,6 @@ def populateChandlerHeaders(mailMessage, messageObject):
     keys = mailMessage.chandlerHeaders.keys()
 
     for key in keys:
-        #XXX: Willl need to detect i18n charset and encoded if needed
         messageObject[key] = mailMessage.chandlerHeaders[key]
 
 
@@ -220,6 +180,8 @@ def messageTextToKind(view, messageText, indexText=False, compression='bz2'):
 
     assert isinstance(messageText, str), "messageText must be a String"
 
+    #XXX Performance and memory use are issues with the Python email package
+    #    look for ways to improve
     return messageObjectToKind(view, email.message_from_string(messageText),
                                messageText, compression)
 
@@ -249,11 +211,14 @@ def messageObjectToKind(view, messageObject, messageText=None,
     # will return an item that we can stamp as mail. Otherwise, just create
     # a MailMessage.
 
-    def importIcalendarPayload(mailobj):
-        if mailobj.get_content_type() == "text/calendar":
+    #XXX The ics file should be removed from the email and not
+    # saved as a attachment on MailStamp
+
+    def importIcalendarPayload(messageObject):
+        if messageObject.get_content_type() == "text/calendar":
             import osaf.sharing.ICalendar as ICalendar
             try:
-                items = ICalendar.itemsFromVObject(view, mailobj.get_payload(),
+                items = ICalendar.itemsFromVObject(view, messageObject.get_payload(),
                                                    filters=(Remindable.reminders.name,))[0]
             except:
                 # ignore parts we can't parse [log something?]
@@ -262,18 +227,27 @@ def messageObjectToKind(view, messageObject, messageText=None,
                 if len(items) > 0:
                     # We got something - stamp the first thing as a MailMessage
                     # and use it. (If it was an existing event, we'll reuse it.)
-                    m = items[0]
-                    if not has_stamp(m, Mail.MailStamp):
-                        m = Mail.MailStamp(m)
-                        m.add()
-                    return m
+                    eventStamp = items[0]
+                    item = eventStamp.itsItem
+
+                    if not has_stamp(item, Mail.MailStamp):
+                        mailStamp = Mail.MailStamp(item)
+                        mailStamp.add()
+                    else:
+                        mailStamp = Mail.MailStamp(item)
+
+                    return mailStamp
         return None
 
     m = importIcalendarPayload(messageObject)
+
     if m is None and messageObject.is_multipart():
+
         for mimePart in messageObject.get_payload():
+
             if mimePart.get_content_type() == "text/calendar":
                 m = importIcalendarPayload(mimePart)
+
                 if m is not None:
                     # In case we found an existing event to update,
                     # force its triageStatus to 'now' (bug 6314)
@@ -294,7 +268,7 @@ def messageObjectToKind(view, messageObject, messageText=None,
                                     'message/rfc822', compression, False)
 
     counter = Counter()
-    bodyBuffer = []
+    bodyBuffer = {'plain': [], 'html': []}
     buf = None
 
     if verbose():
@@ -314,7 +288,20 @@ def messageObjectToKind(view, messageObject, messageText=None,
     if len(m.mimeParts) > 0:
         m.hasMimeParts = True
 
-    body = constants.LF.join(bodyBuffer).replace(constants.CR, constants.EMPTY)
+    if len(bodyBuffer.get('plain')):
+        body = constants.LF.join(bodyBuffer.get('plain')).replace(constants.CR, constants.EMPTY)
+
+    elif len(bodyBuffer.get('html')):
+        htmlBuffer = bodyBuffer.get('html')
+
+        for i in xrange(0, len(htmlBuffer)):
+            htmlBuffer[i] = stripHTML(htmlBuffer[i])
+
+        body = constants.LF.join(htmlBuffer).replace(constants.CR, constants.EMPTY)
+
+    else:
+        #No plain text or html mime types in the mail message
+        body = u""
 
     # If our private event-description header's there, and we made an event 
     # from this item, remove the header from the start of the body.
@@ -347,12 +334,12 @@ def kindToMessageObject(mailMessage):
            "mailMessage must have been stamped as a Mail.MailStamp"
 
     messageObject = Message.Message()
+    stampedMail = Mail.MailStamp(mailMessage)
 
     """
     Create a messageId if none exists
     """
-    
-    stampedMail = Mail.MailStamp(mailMessage)
+
     if not hasValue(stampedMail.messageId):
         stampedMail.messageId = createMessageID()
 
@@ -364,11 +351,11 @@ def kindToMessageObject(mailMessage):
     populateHeaders(stampedMail, messageObject)
     populateHeader(messageObject, 'Subject', stampedMail.about, encode=True)
 
-    if getattr(mailMessage, "inReplyTo", None):
-        populateHeader(messageObject, 'In-Reply-To', mailMessage.inReplyTo, encode=False)
+    if getattr(stampedMail, "inReplyTo", None):
+        populateHeader(messageObject, 'In-Reply-To', stampedMail.inReplyTo, encode=False)
 
-    if mailMessage.referencesMID and len(mailMessage.referencesMID):
-        messageObject["References"] = " ".join(mailMessage.referencesMID)
+    if stampedMail.referencesMID and len(stampedMail.referencesMID):
+        messageObject["References"] = " ".join(stampedMail.referencesMID)
 
     try:
         payload = mailMessage.body
@@ -376,24 +363,23 @@ def kindToMessageObject(mailMessage):
         payload = u""
 
     event = EventStamp(mailMessage)
-    hasAttachments =  mailMessage.getNumberOfAttachments() > 0
+    hasAttachments =  stampedMail.getNumberOfAttachments() > 0
 
     try:
         timeDescription = event.getTimeDescription()
-        hasICal = True
+        isEvent = True
     except AttributeError:
-        hasICal = False
+        isEvent = False
 
-    if not hasICal and not hasAttachments:
+    if not isEvent and not hasAttachments:
         #There are no attachments or Ical events so just add the
         #body text as the payload and return the messageObject
-        messageObject['Content-Type'] = "text/plain; charset=utf-8; format=flowed"
-        messageObject.set_payload(payload.encode("utf-8"))
+        messageObject.set_payload(payload.encode("utf-8"), charset="utf-8")
         return messageObject
 
     messageObject.set_type("multipart/mixed")
 
-    if hasICal:
+    if isEvent:
          # If this message is an event, prepend the event description to the body,
          # and add the event data as an attachment.
          # @@@ This probably isn't the right place to do this (since it couples the
@@ -423,7 +409,8 @@ def kindToMessageObject(mailMessage):
                       'bodyText': payload
                      }
 
-        messageObject.attach(MIMEText(payload.encode('utf-8'), _charset='utf-8'))
+        mt = MIMEText(payload.encode('utf-8'), _charset="utf-8")
+        messageObject.attach(mt)
         messageObject.add_header(createChandlerHeader("EventDescriptionLength"),
                                  str(len(evtDesc)))
 
@@ -436,22 +423,22 @@ def kindToMessageObject(mailMessage):
 
         # Attach the ICalendar object
         icsPayload = MIMENonMultipart('text', 'calendar',
-                                      method='REQUEST', charset='utf-8')
+                                      method='REQUEST', _charset="utf-8")
 
         fname = Header.Header(_(u"event.ics")).encode()
         icsPayload.add_header("Content-Disposition", "attachment", filename=fname)
         icsPayload.set_payload(ics)
         messageObject.attach(icsPayload)
     else:
-        messageObject.attach(MIMEText(payload.encode('utf-8'), _charset='utf-8'))
+        mt = MIMEText(payload.encode('utf-8'), _charset="utf-8")
+        messageObject.attach(mt)
 
     if hasAttachments:
-        #add the attachents to multipart container
-
-        attachments = mailMessage.getAttachments()
+        attachments = stampedMail.getAttachments()
 
         for attachment in attachments:
             if has_stamp(attachment, Mail.MailStamp):
+            # The attachment is another MailMessage
                 try:
                     rfc2822 = binaryToData(Mail.MailStamp(attachment).rfc2822Message)
                 except AttributeError:
@@ -460,6 +447,18 @@ def kindToMessageObject(mailMessage):
                 message = email.message_from_string(rfc2822)
                 rfc2822Payload = MIMEMessage(message)
                 messageObject.attach(rfc2822Payload)
+
+            else:
+                m = Mail.MIMEText(attachment)
+
+                if m.mimeType == u"text/calendar":
+                    icsPayload = MIMENonMultipart('text', 'calendar', \
+                                        method='REQUEST', _charset="utf-8")
+
+                    fname = Header.Header(m.filename).encode()
+                    icsPayload.add_header("Content-Disposition", "attachment", filename=fname)
+                    icsPayload.set_payload(m.data.encode('utf-8'))
+                    messageObject.attach(icsPayload)
 
     return messageObject
 
@@ -488,7 +487,8 @@ def kindToMessageText(mailMessage, saveMessage=True):
     messageText = messageObject.as_string()
 
     if saveMessage:
-        mailMessage.rfc2822Message = dataToBinary(mailMessage, "rfc2822Message",
+        mailStamp = Mail.MailStamp(mailMessage)
+        mailStamp.rfc2822Message = dataToBinary(mailMessage, "rfc2822Message",
                                            messageText, 'message/rfc822', 'bz2')
 
     return messageText
@@ -550,9 +550,6 @@ def __parseHeaders(view, messageObject, m):
 
     m.chandlerHeaders = {}
     m.headers = {}
-
-    #XXX: Will want to selectively decodeHeaders for i18n support see RFC: 2231 
-    #     for more info
 
     for (key, val) in messageObject.items():
         if isChandlerHeader(key):
@@ -629,7 +626,7 @@ def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf,
         #XXX: The mimePart value on bad messages will be individual characters of a message body.
         #     This is coming from the Python email package but I believe it is a bug.
         #     need to investigate further!
-        bodyBuffer.append(getUnicodeValue(mimePart))
+        bodyBuffer.get('plain').append(getUnicodeValue(mimePart))
         return
 
     maintype  = mimePart.get_content_maintype()
@@ -682,7 +679,7 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer,
 
             tmp.append(u'\n')
 
-            bodyBuffer.append(constants.LF.join(tmp))
+            bodyBuffer.get('plain').append(constants.LF.join(tmp))
 
         elif __debug__:
             trace("******WARNING****** message/rfc822 part not Multipart investigate")
@@ -691,14 +688,14 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer,
         """
         Add the delivery status info to the message body
         """
-        bodyBuffer.append(getUnicodeValue(mimePart.as_string()))
+        bodyBuffer.get('plain').append(getUnicodeValue(mimePart.as_string()))
         return
 
     elif subtype == "disposition-notification-to":
         """
         Add the disposition-notification-to info to the message body
         """
-        bodyBuffer.append(getUnicodeValue(mimePart.as_string()))
+        bodyBuffer.get('plain').append(getUnicodeValue(mimePart.as_string()))
         return
 
     elif subtype == "external-body":
@@ -862,9 +859,12 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
 
     if subtype == "plain" or subtype == "rfc822-headers":
         #XXX: Will want to leverage the language to aid the GUI layer
-        size > 0 and bodyBuffer.append(getUnicodeValue(body, charset))
+        size > 0 and bodyBuffer.get('plain').append(getUnicodeValue(body, charset))
 
     else:
+        if subtype == "html":
+            size > 0 and bodyBuffer.get('html').append(getUnicodeValue(body, charset))
+
         mimeText = Mail.MIMEText(itsView=view)
 
         mimeText.mimeType = mimePart.get_content_type()
