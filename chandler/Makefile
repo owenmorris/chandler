@@ -222,7 +222,7 @@ $(SETUPTOOLS_EGG):
 	$(CURL) $@ http://$(HOST)/external/$(notdir $@)
 
 setuptools: $(SETUPTOOLS_EGG)
-	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' $(PYTHON_BIN) \
+	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' CHANDLERHOME='$(CHANDLERHOME)' $(PYTHON_BIN) \
       -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
       --script-dir='$(SETUPTOOLS_BIN)' \
       --install-dir='$(PLUGIN_INST)' \
@@ -276,13 +276,13 @@ debug:
 	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(MAKE) DEBUG=1 install
 
 purge:
-	$(RUN_PYTHON) '$(TOOLS)'purge.py .
+	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(RUN_PYTHON) '$(TOOLS)'purge.py .
 
 check:
-	$(RUN_PYTHON) '$(TOOLS)'checker.py
+	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(RUN_PYTHON) '$(TOOLS)'checker.py
 
 lint:
-	$(RUN_PYTHON) '$(TOOLS)'lint.py
+	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(RUN_PYTHON) '$(TOOLS)'lint.py
 
 print-%:
 	@echo $* = $($*)
