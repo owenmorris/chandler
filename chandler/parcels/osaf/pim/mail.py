@@ -80,7 +80,7 @@ def __populateBody(mailStamp, bodyHeader=u"", includeMailHeaders=False, includeE
             buffer.append(u"> Cc: %s" % ", ".join(cc))
 
         m = PyICU.DateFormat.createDateTimeInstance(PyICU.DateFormat.kMedium)
-        dateSent = _(u"Sent: %(dateSent)s") % {'dateSent': mailStamp.dateSent}
+        dateSent = _(u"Sent: %(dateSent)s") % {'dateSent': m.format(mailStamp.dateSent)}
         buffer.append(u"> %s" % dateSent)
 
         # add an additional new line
