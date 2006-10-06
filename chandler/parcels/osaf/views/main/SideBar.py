@@ -417,22 +417,11 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         dc.SetBackgroundMode (wx.TRANSPARENT)
         item, attribute = grid.GetTable().GetValue (row, col)
 
-        sidebar = grid.blockItem
-        """
-          Gray text forground color if the collection is empty
-        """
-        sidebarBPB = Block.Block.findBlockByName ("SidebarBranchPointBlock")
-        if sidebarBPB is not None:
-            filteredCollection = sidebarBPB.delegate.\
-                               _mapItemToCacheKeyItem(item, {
-                                   "getOnlySelectedCollection": True,
-                                })
-            if filteredCollection.isEmpty():
-                dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
         name = getattr (item, attribute)
         """
           Draw the buttons
         """
+        sidebar = grid.blockItem
         for button in sidebar.buttons:
             mouseOver = row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND)
             image = button.getButtonImage (item, mouseOver)
