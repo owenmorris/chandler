@@ -190,7 +190,7 @@ def save(rv, filename):
     output.close()
 
 
-def restore(rv, filename):
+def restore(rv, filename, testmode=False):
     """Restore accounts and shares from an INI file"""
 
     cfg = ConfigParser.ConfigParser()
@@ -221,7 +221,7 @@ def restore(rv, filename):
             account.useSSL = cfg.getboolean(section, "usessl")
 
             if (cfg.has_option(section, "default") and
-                cfg.get(section, "default")):
+                cfg.getboolean(section, "default")):
                 accountRef = schema.ns("osaf.sharing", rv).currentWebDAVAccount
                 accountRef.item = account
 
@@ -266,10 +266,20 @@ def restore(rv, filename):
                 else:
                     color = None
 
-                SubscribeCollection.Show(None, view=rv, url=url, name=title,
-                                         modal=False, immediate=True,
-                                         mine=mine, publisher=publisher,
-                                         freebusy=freebusy, color=color)
+                if testmode:
+                    # Fake the subscribes so unit tests don't have to
+                    # access the network
+                    collection = pim.SmartCollection(itsView=rv)
+                    collection.displayName = title
+                    if mine:
+                        schema.ns('osaf.pim', rv).mine.addSource(collection)
+                    usercollections.UserCollection(collection).color = color
+                else:
+                    SubscribeCollection.Show(None, view=rv, url=url,
+                                             name=title, modal=False,
+                                             immediate=True, mine=mine,
+                                             publisher=publisher,
+                                             freebusy=freebusy, color=color)
 
     # smtp accounts
     for section in cfg.sections():
@@ -326,7 +336,7 @@ def restore(rv, filename):
             account.replyToAddress = emailAddress
 
             if (cfg.has_option(section, "default") and
-                cfg.get(section, "default")):
+                cfg.getboolean(section, "default")):
                 accountRef = schema.ns("osaf.pim", rv).currentMailAccount
                 accountRef.item = account
 
@@ -364,7 +374,7 @@ def restore(rv, filename):
             account.replyToAddress = emailAddress
 
             if (cfg.has_option(section, "default") and
-                cfg.get(section, "default")):
+                cfg.getboolean(section, "default")):
                 accountRef = schema.ns("osaf.pim", rv).currentMailAccount
                 accountRef.item = account
 
