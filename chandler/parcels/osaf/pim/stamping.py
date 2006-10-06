@@ -107,7 +107,7 @@ class Stamp(schema.Annotation):
         stamped = self.collection
         
         if stamped is not None:
-            stamped.add(self.itsItem)
+            stamped.add(self.itsItem.getMembershipItem())
 
         self.stamp_types = new_stamp_types
 
@@ -120,23 +120,24 @@ class Stamp(schema.Annotation):
                   "Item %r doesn't have stamp %r" % (self.itsItem, self)
         
         stamped = self.collection
+        item = self.itsItem.getMembershipItem()
         
         # This is gross, and was in the old stamping code.
         # Some items, like Mail messages, end up in the
         # all collection by virtue of their stamp. So, we
         # explicitly re-add the item to all after unstamping
         # if necessary.
-        all = schema.ns("osaf.pim", self.itsItem.itsView).allCollection
-        inAllBeforeStamp = self.itsItem in all
+        all = schema.ns("osaf.pim", item.itsView).allCollection
+        inAllBeforeStamp = item in all
 
 
         if stamped is not None:
-            stamped.remove(self.itsItem)
+            stamped.remove(item)
 
         self.stamp_types = new_stamp_types
         
-        if inAllBeforeStamp and not self.itsItem in all:
-            all.add(self.itsItem)
+        if inAllBeforeStamp and not item in all:
+            all.add(item)
 
 
     @classmethod
