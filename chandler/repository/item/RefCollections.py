@@ -737,6 +737,14 @@ class RefList(LinkedMap, Indexed):
         return "\n%s<RefList> %s<->%s" %('  ' * indent,
                                          self._name, self._otherName)
 
+    def __iter__(self, excludeIndexes=False):
+
+        for key in self.iterkeys():
+            yield self[key]
+
+    def __len__(self, excludeIndexes=False):
+        return self._count
+
     def iterItems(self):
         return self.itervalues()
 

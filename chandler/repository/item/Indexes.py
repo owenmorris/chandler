@@ -15,6 +15,7 @@
 
 from struct import pack, unpack
 from itertools import izip
+from traceback import format_exc
 
 from chandlerdb.item.c import DelegatingIndex
 from chandlerdb.util.c import Nil, SkipList, CLinkedMap
@@ -131,10 +132,15 @@ class Index(dict):
             result = False
 
         else:
-            size, result = _index._checkIterateIndex(logger, name, value,
-                                                     item, attribute, repair)
-            if size != 0:
-                logger.error("Iteration of index '%s' (%d) installed on value '%s' of type %s in attribute '%s' on %s doesn't match length (%d)", name, count - size, value, type(value), attribute, item._repr_(), count)
+            try:
+                size, result = _index._checkIterateIndex(logger, name, value,
+                                                         item, attribute,
+                                                         repair)
+                if size != 0:
+                    logger.error("Iteration of index '%s' (%d) installed on value '%s' of type %s in attribute '%s' on %s doesn't match length (%d)", name, count - size, value, type(value), attribute, item._repr_(), count)
+                    result = False
+            except Exception, e:
+                logger.error("Iteration of index '%s' installed on value '%s' of type %s in attribute '%s' on %s caused an error: %s", name, value, type(value), attribute, item._repr_(), format_exc(5))
                 result = False
 
         return result

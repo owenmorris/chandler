@@ -1610,6 +1610,9 @@ class NullViewRefList(RefList):
     def _setDirty(self, noMonitors=False):
         pass
 
+    def iterkeys(self, excludeIndexes=False, firstKey=None, lastKey=None):
+        return super(NullViewRefList, self).iterkeys(firstKey, lastKey)
+
     def _unloadRef(self, item):
 
         key = item.itsUUID

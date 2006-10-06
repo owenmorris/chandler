@@ -321,7 +321,7 @@ class DBRefList(RefList, PersistentRefs):
         RefList.__init__(self, item, name, otherName, dictKey, readOnly,
                          (new and CLinkedMap.NEW or 0) | CLinkedMap.LOAD)
 
-    def iterkeys(self, firstKey=None, lastKey=None):
+    def iterkeys(self, excludeIndexes=False, firstKey=None, lastKey=None):
 
         return self._iterrefs(firstKey, lastKey)
 

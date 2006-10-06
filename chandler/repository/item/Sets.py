@@ -78,53 +78,56 @@ class AbstractSet(ItemValue, Indexed):
 
         return not self
 
-    def __iter__(self):
+    def __iter__(self, excludeIndexes=False):
 
-        index = self._anIndex()
-        if index is not None:
-            view = self._view
-            return (view[key] for key in index)
+        if not excludeIndexes:
+            index = self._anIndex()
+            if index is not None:
+                view = self._view
+                return (view[key] for key in index)
 
-        return self._itervalues()
+        return self._itervalues(excludeIndexes)
 
-    def itervalues(self):
+    def itervalues(self, excludeIndexes=False):
 
-        return self.__iter__()
+        return self.__iter__(excludeIndexes)
 
-    def _itervalues(self):
+    def _itervalues(self, excludeIndexes=False):
 
         raise NotImplementedError, "%s._itervalues" %(type(self))
 
-    def iterkeys(self):
+    def iterkeys(self, excludeIndexes=False):
 
-        index = self._anIndex()
-        if index is not None:
-            return index.iterkeys()
+        if not excludeIndexes:
+            index = self._anIndex()
+            if index is not None:
+                return index.iterkeys()
 
-        return self._iterkeys()
+        return self._iterkeys(excludeIndexes)
 
     # the slow way, via items, to be overridden by some implementations
-    def _iterkeys(self):
+    def _iterkeys(self, excludeIndexes=False):
 
-        return (item.itsUUID for item in self)
+        return (item.itsUUID for item in self.__iter__(excludeIndexes))
 
     def iterItems(self):
 
         return self.itervalues()
 
-    def __len__(self):
+    def __len__(self, excludeIndexes=False):
 
-        index = self._anIndex()
-        if index is not None:
-            return len(index)
+        if not excludeIndexes:
+            index = self._anIndex()
+            if index is not None:
+                return len(index)
 
-        return self._len()
+        return self._len(excludeIndexes)
 
     # the slow way, via keys, to be overridden by some implementations
-    def _len(self):
+    def _len(self, excludeIndexes=False):
 
         count = 0
-        for key in self.iterkeys():
+        for key in self.iterkeys(excludeIndexes):
             count += 1
 
         return count
@@ -227,32 +230,30 @@ class AbstractSet(ItemValue, Indexed):
 
         return getattr(self._view[source[0]], source[1])._anIndex()
 
-    def _iterSource(self, source):
+    def _iterSource(self, source, excludeIndexes=False):
 
         if isinstance(source, AbstractSet):
-            for item in source:
+            for item in source.__iter__(excludeIndexes):
                 yield item
         else:
-            for item in getattr(self._view[source[0]], source[1]):
+            for item in getattr(self._view[source[0]],
+                                source[1]).__iter__(excludeIndexes):
                 yield item
 
-    def _iterSourceKeys(self, source):
+    def _iterSourceKeys(self, source, excludeIndexes=False):
 
         if isinstance(source, AbstractSet):
-            return source.iterkeys()
+            return source.iterkeys(excludeIndexes)
 
-        return getattr(self._view[source[0]], source[1]).iterkeys()
+        return getattr(self._view[source[0]],
+                       source[1]).iterkeys(excludeIndexes)
 
-    def _sourceLen(self, source):
+    def _sourceLen(self, source, excludeIndexes=False):
 
         if isinstance(source, AbstractSet):
-            return len(source)
+            return source.__len__(excludeIndexes)
 
-        try:
-            return len(getattr(self._view[source[0]], source[1]))
-        except AttributeError:
-            print source, type(source), self, type(self)
-            raise
+        return getattr(self._view[source[0]], source[1]).__len__(excludeIndexes)
 
     def _reprSource(self, source, replace):
 
@@ -559,15 +560,15 @@ class EmptySet(AbstractSet):
 
         return False
 
-    def _itervalues(self):
+    def _itervalues(self, excludeIndexes=False):
 
         return iter(())
 
-    def _iterkeys(self):
+    def _iterkeys(self, excludeIndexes=False):
 
         return iter(())
 
-    def _len(self):
+    def _len(self, excludeIndexes=False):
 
         return 0
 
@@ -629,17 +630,17 @@ class Set(AbstractSet):
         return self._sourceContains(item, self._source,
                                     excludeMutating, excludeIndexes)
 
-    def _itervalues(self):
+    def _itervalues(self, excludeIndexes=False):
 
-        return self._iterSource(self._source)
+        return self._iterSource(self._source, excludeIndexes)
 
-    def _iterkeys(self):
+    def _iterkeys(self, excludeIndexes=False):
 
-        return self._iterSourceKeys(self._source)
+        return self._iterSourceKeys(self._source, excludeIndexes)
 
-    def _len(self):
+    def _len(self, excludeIndexes=True):
 
-        return self._sourceLen(self._source)
+        return self._sourceLen(self._source, excludeIndexes)
 
     def _repr_(self, replace=None):
 
@@ -803,31 +804,33 @@ class Union(BiSet):
                 self._sourceContains(item, self._right,
                                      excludeMutating, excludeIndexes))
 
-    def _itervalues(self):
+    def _itervalues(self, excludeIndexes=False):
 
         left = self._left
-        for item in self._iterSource(left):
+        for item in self._iterSource(left, excludeIndexes):
             yield item
-        for item in self._iterSource(self._right):
-            if not self._sourceContains(item, left):
+        for item in self._iterSource(self._right, excludeIndexes):
+            if not self._sourceContains(item, left, False, excludeIndexes):
                 yield item
 
-    def _iterkeys(self):
+    def _iterkeys(self, excludeIndexes=False):
 
-        leftIndex = self._aSourceIndex(self._left)
-        if leftIndex is not None:
-            for key in leftIndex:
-                yield key
-            for key in self._iterSourceKeys(self._right):
-                if key not in leftIndex:
+        if not excludeIndexes:
+            leftIndex = self._aSourceIndex(self._left)
+            if leftIndex is not None:
+                for key in leftIndex:
                     yield key
-        else:
-            for key in self._iterSourceKeys(self._left):
+                for key in self._iterSourceKeys(self._right):
+                    if key not in leftIndex:
+                        yield key
+                return
+
+        for key in self._iterSourceKeys(self._left, excludeIndexes):
+            yield key
+        left = self._getSource(self._left)
+        for key in self._iterSourceKeys(self._right, excludeIndexes):
+            if not left.__contains__(key, False, excludeIndexes):
                 yield key
-            left = self._getSource(self._left)
-            for key in self._iterSourceKeys(self._right):
-                if key not in left:
-                    yield key
 
     def _op(self, leftOp, rightOp, other):
 
@@ -861,27 +864,29 @@ class Intersection(BiSet):
                 self._sourceContains(item, self._right,
                                      excludeMutating, excludeIndexes))
 
-    def _itervalues(self):
+    def _itervalues(self, excludeIndexes=False):
 
         left = self._left
         right = self._right
 
-        for item in self._iterSource(left):
-            if self._sourceContains(item, right):
+        for item in self._iterSource(left, excludeIndexes):
+            if self._sourceContains(item, right, False, excludeIndexes):
                 yield item
 
-    def _iterkeys(self):
+    def _iterkeys(self, excludeIndexes=False):
 
-        rightIndex = self._aSourceIndex(self._right)
-        if rightIndex is not None:
-            for key in self._iterSourceKeys(self._left):
-                if key in rightIndex:
-                    yield key
-        else:
-            right = self._getSource(self._right)
-            for key in self._iterSourceKeys(self._left):
-                if key in right:
-                    yield key
+        if not excludeIndexes:
+            rightIndex = self._aSourceIndex(self._right)
+            if rightIndex is not None:
+                for key in self._iterSourceKeys(self._left):
+                    if key in rightIndex:
+                        yield key
+                return
+
+        right = self._getSource(self._right)
+        for key in self._iterSourceKeys(self._left, excludeIndexes):
+            if right.__contains__(key, False, excludeIndexes):
+                yield key
 
     def _op(self, leftOp, rightOp, other):
 
@@ -915,27 +920,29 @@ class Difference(BiSet):
                 not self._sourceContains(item, self._right,
                                          excludeMutating, excludeIndexes))
 
-    def _itervalues(self):
+    def _itervalues(self, excludeIndexes=False):
 
         left = self._left
         right = self._right
 
-        for item in self._iterSource(left):
-            if not self._sourceContains(item, right):
+        for item in self._iterSource(left, excludeIndexes):
+            if not self._sourceContains(item, right, False, excludeIndexes):
                 yield item
 
-    def _iterkeys(self):
+    def _iterkeys(self, excludeIndexes=False):
 
-        rightIndex = self._aSourceIndex(self._right)
-        if rightIndex is not None:
-            for key in self._iterSourceKeys(self._left):
-                if key not in rightIndex:
-                    yield key
-        else:
-            right = self._getSource(self._right)
-            for key in self._iterSourceKeys(self._left):
-                if key not in right:
-                    yield key
+        if not excludeIndexes:
+            rightIndex = self._aSourceIndex(self._right)
+            if rightIndex is not None:
+                for key in self._iterSourceKeys(self._left):
+                    if key not in rightIndex:
+                        yield key
+                return
+
+        right = self._getSource(self._right)
+        for key in self._iterSourceKeys(self._left, excludeIndexes):
+            if not right.__contains__(key, False, excludeIndexes):
+                yield key
 
     def _op(self, leftOp, rightOp, other):
 
@@ -1058,31 +1065,31 @@ class MultiUnion(MultiSet):
 
         return False
 
-    def _iterkeys(self):
+    def _iterkeys(self, excludeIndexes=False):
 
         sources = self._sources
         for source in sources:
-            for key in self._iterSourceKeys(source):
+            for key in self._iterSourceKeys(source, excludeIndexes):
                 unique = True
                 for src in sources:
                     if src is source:
                         break
-                    if self._sourceContains(key, src):
+                    if self._sourceContains(key, src, False, excludeIndexes):
                         unique = False
                         break
                 if unique:
                     yield key
 
-    def _itervalues(self):
+    def _itervalues(self, excludeIndexes=False):
 
         sources = self._sources
         for source in sources:
-            for item in self._iterSource(source):
+            for item in self._iterSource(source, excludeIndexes):
                 unique = True
                 for src in sources:
                     if src is source:
                         break
-                    if self._sourceContains(item, src):
+                    if self._sourceContains(item, src, False, excludeIndexes):
                         unique = False
                         break
                 if unique:
@@ -1125,33 +1132,35 @@ class MultiIntersection(MultiSet):
 
         return True
 
-    def _iterkeys(self):
+    def _iterkeys(self, excludeIndexes=False):
 
         sources = self._sources
         if len(sources) > 1:
             source = sources[0]
-            for key in self._iterSourceKeys(source):
+            for key in self._iterSourceKeys(source, excludeIndexes):
                 everywhere = True
                 for src in sources:
                     if src is source:
                         continue
-                    if not self._sourceContains(key, src):
+                    if not self._sourceContains(key, src,
+                                                False, excludeIndexes):
                         everywhere = False
                         break
                 if everywhere:
                     yield key
 
-    def _itervalues(self):
+    def _itervalues(self, excludeIndexes=False):
 
         sources = self._sources
         if len(sources) > 1:
             source = sources[0]
-            for item in self._iterSource(source):
+            for item in self._iterSource(source, excludeIndexes):
                 everywhere = True
                 for src in sources:
                     if src is source:
                         continue
-                    if not self._sourceContains(item, src):
+                    if not self._sourceContains(item, src,
+                                                False, excludeIndexes):
                         everywhere = False
                         break
                 if everywhere:
@@ -1224,11 +1233,11 @@ class KindSet(Set):
 
         return self.__contains__(item, excludeMutating, excludeIndexes)
 
-    def _itervalues(self):
+    def _itervalues(self, excludeIndexes=False):
 
         return self._view[self._extent].iterItems(self._recursive)
 
-    def _iterkeys(self):
+    def _iterkeys(self, excludeIndexes=False):
 
         return self._view[self._extent].iterKeys(self._recursive)
 
@@ -1254,9 +1263,9 @@ class KindSet(Set):
 
         return op
 
-    def _len(self):
+    def _len(self, excludeIndexes=False):
 
-        return AbstractSet._len(self)
+        return AbstractSet._len(self, excludeIndexes)
 
     def iterSources(self):
 
@@ -1296,22 +1305,22 @@ class FilteredSet(Set):
 
         return False
 
-    def _iterkeys(self):
+    def _iterkeys(self, excludeIndexes=False):
 
-        for uuid in self._iterSourceKeys(self._source):
+        for uuid in self._iterSourceKeys(self._source, excludeIndexes):
             if self.filter(uuid):
                 yield uuid
 
-    def _itervalues(self):
+    def _itervalues(self, excludeIndexes=False):
 
-        for item in self._iterSource(self._source):
+        for item in self._iterSource(self._source, excludeIndexes):
             if self.filter(item.itsUUID):
                 yield item
 
-    def _len(self):
+    def _len(self, excludeIndexes=False):
 
         count = 0
-        for key in self._iterkeys():
+        for key in self._iterkeys(excludeIndexes):
             count += 1
 
         return count
