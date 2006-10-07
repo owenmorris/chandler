@@ -22,6 +22,7 @@ from photos import PhotoMixin
 import osaf.views.detail as Detail
 from osaf.pim.collections import KindCollection
 from repository.util.URL import URL
+from repository.item.Item import MissingClass
 from datetime import datetime
 import dateutil
 import wx
@@ -219,7 +220,7 @@ class AddFlickrCollectionEvent(AddToSidebarEvent):
 
         if photoCollection is not None:
             # Setting perferredKind to None will cause it to be displayed in the All View
-            UserCollection (photoCollection).preferredKind = None
+            UserCollection (photoCollection).preferredClass = MissingClass
             try:
                 photoCollection.fillCollectionFromFlickr(self.itsView)
             except flickr.FlickrError, flickrException:

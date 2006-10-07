@@ -25,6 +25,7 @@ import zanshin.webdav
 import osaf.sharing as sharing
 import osaf.pim
 from osaf.usercollections import UserCollection
+from repository.item.Item import MissingClass
 
 APP_KEY = 'CtssgKSFQDrFsBVC'
 logger = logging.getLogger(__name__)
@@ -69,8 +70,9 @@ def GetCollectionFromSearch(repoView, searchTerms):
 
     collection = osaf.pim.SmartCollection(itsView=repoView, displayName=displayName)
 
-    # Setting the preferredKind  to None is a hint to display it in the All View
-    UserCollection (collection).preferredKind = None
+    # Setting the preferredClass  to MissingClass is a hint to display it
+    # in the All View
+    UserCollection (collection).preferredClass = MissingClass
 
     share = sharing.Share(itsView=repoView, contents=collection)
 
