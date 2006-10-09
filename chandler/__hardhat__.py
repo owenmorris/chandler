@@ -234,27 +234,6 @@ def _getSVNRevisionInfo(buildenv):
     return revision, trunk
 
 
-def _getPlatform():
-    import platform
-
-    platformName = 'unknown'
-
-    if os.name == 'nt':
-        platformName = 'windows'
-    elif os.name == 'posix':
-        if sys.platform == 'darwin':
-            if platform.machine() == 'i386':
-                platformName = 'intel osx'
-            else:
-                platformName = 'ppc osx'
-        elif sys.platform == 'cygwin':
-            platformName = 'cygwin windows'
-        else:
-            platformName = 'linux'
-
-    return platformName
-
-
 def _getVersionInfo(buildenv):
     majorVersion    = '0'
     minorVersion    = '0'
@@ -332,15 +311,9 @@ def _getVersionInfo(buildenv):
             if key in data:
                 versionFile.write('%s = "%s"\n' % (key, data[key]))
 
-        versionFile.write('\nplatform = "%s"' % _getPlatform())
         versionFile.write('\nversion = "%s%s-r%s%s" % (release, build, revision, checkpoint)\n\n')
 
         versionFile.close()
-    else:
-        versionFile = open(versionFilename, 'a+')
-        versionFile.write('\nplatform = "%s"\n' % _getPlatform())
-        versionFile.close()
-
 
     if data['build'] == '':
         buildName = release
