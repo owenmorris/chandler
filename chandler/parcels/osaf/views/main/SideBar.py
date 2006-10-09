@@ -595,9 +595,7 @@ class SSSidebarIconButton2 (SSSidebarButton):
 
 class SSSidebarIconButton (SSSidebarButton):
     def getChecked (self, item):
-        blockItem = self.buttonOwner
-        return (blockItem.filterClass not in blockItem.disallowOverlaysForFilterClasses and
-                item in blockItem.checkedItems)
+        return (item in self.buttonOwner.checkedItems)
 
     def setChecked (self, item, checked):
         checkedItems = self.buttonOwner.checkedItems
