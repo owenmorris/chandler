@@ -7,6 +7,7 @@ then
     # if CHANDLERHOME was empty and the script is not relative
     # to it, then try current directory
     if [ ! -f "$CHANDLERHOME"/Chandler.py ]
+    then
         export CHANDLERHOME=`pwd`
     fi
 fi
