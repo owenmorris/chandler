@@ -12,23 +12,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
-from channels import (newChannelFromURL, FeedChannel, FeedItem,
-    FeedUpdateTaskClass, updateFeeds,
-    FETCH_UPDATED, FETCH_NOCHANGE, FETCH_FAILED)
-
-from application import schema
-from osaf import pim
-import datetime
-
 def installParcel(parcel, oldName=None):
+    """
+    This function installs the RSS feed parcel.
+    """
+    from application import schema
     from osaf import startup
-
+    from datetime import timedelta
+    # start a periodic task
     startup.PeriodicTask.update(parcel, "FeedUpdateTask",
-        invoke="feeds.FeedUpdateTaskClass",
+        invoke="feeds.channels.FeedUpdateTaskClass",
         run_at_startup=True,
-        interval=datetime.timedelta(minutes=30)
+        interval=timedelta(minutes=30)
     )
-
     # load our blocks parcel, too
     schema.synchronize(parcel.itsView, "feeds.blocks")
