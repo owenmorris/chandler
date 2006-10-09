@@ -39,7 +39,7 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)G.tar.gz \
            $(CHANDLERARCHIVES)/astng-$(SNAP)-0.16.0-$(BP)3.tar.gz \
            $(CHANDLERARCHIVES)/common-$(SNAP)-0.15.0-$(BP)4.tar.gz \
            $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.11.0-$(BP)3.tar.gz \
-           $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.7.2-$(BP)1.tar.gz
+           $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.7.4-$(BP)1.tar.gz
 
 OS         = $(shell uname)
 PYTHON_VER = 2.4
