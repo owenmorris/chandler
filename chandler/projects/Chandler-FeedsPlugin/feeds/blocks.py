@@ -65,7 +65,7 @@ class AddFeedCollectionEvent(Block.AddToSidebarEvent):
         def calledInMainThread(channelUUID, success):
             # This method is called once the feed has been processed.  If all
             # is okay, success will be True, otherwise False.
-            self.itsView.refresh()
+            self.itsView.refresh(notify=False)
             channel = self.itsView.findUUID(channelUUID)
             
             if not channel.isEstablished and not success:

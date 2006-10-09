@@ -61,7 +61,7 @@ class FeedUpdateTaskClass:
 
 def updateFeeds(repository):
     view = getFeedsView(repository)
-    view.refresh()
+    view.refresh(notify=False)
 
     for channel in FeedChannel.iterItems(view):
         channel.refresh()
@@ -201,7 +201,7 @@ class FeedChannel(pim.ListCollection):
 
         # Make sure we have the feedsView copy of the channel item
         feedsView = getFeedsView(self.itsView.repository)
-        feedsView.refresh()
+        feedsView.refresh(notify=False)
         item = feedsView.findUUID(self.itsUUID)
         
         return item.download().addCallback(item.feedFetchSuccess, callback).addErrback(
