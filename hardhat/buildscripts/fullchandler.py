@@ -431,9 +431,7 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
             # we get here only if the module is chandler or if changes have occurred
             # in external or internal
             if module == 'chandler':
-                if clean == 'realclean':
-                    clean = 'distclean'
-                makeTargets = dbgStr + " " + clean + " distrib"
+                makeTargets = dbgStr + " distclean distrib"
             else:
                 makeTargets = dbgStr + " " + clean + " world"
 
