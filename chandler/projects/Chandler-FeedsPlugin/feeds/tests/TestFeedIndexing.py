@@ -14,7 +14,7 @@
 
 
 import unittest, os, time
-from feeds.channels import FeedChannel, FeedItem
+import feeds
 from osaf import pim
 from repository.util.URL import URL
 from util import testcase, indexes
@@ -33,35 +33,35 @@ class TestFeedIndexing(testcase.SingleRepositoryTestCase):
         view = self.view
 
         dir = os.path.dirname(os.path.abspath(__file__))
-        path = os.path.join(dir, "osaf.blog.rss")
+        path = os.path.join(dir, 'osaf.blog.rss')
 
         data = file(path).read()
 
-        channel = FeedChannel(itsView=view)
+        channel = feeds.FeedChannel(itsView=view)
         count = channel.parse(data)
 
-        self.assertEqual(channel.displayName, "OSAF News")
+        self.assertEqual(channel.displayName, 'OSAF News')
         self.assertEqual(5, len(channel))
 
         # Test successful lookup
-        url = URL("http://www.osafoundation.org/archives/000966.html")
-        item = indexes.valueLookup(channel, "link", "link", url)
-        self.assertEqual(item.displayName, "OSAF Welcomes Priscilla Chung")
+        url = URL('http://www.osafoundation.org/archives/000966.html')
+        item = indexes.valueLookup(channel, 'link', 'link', url)
+        self.assertEqual(item.displayName, 'OSAF Welcomes Priscilla Chung')
 
         # Test unsuccessful lookup
-        nonExistent = URL("http://www.osafoundation.org/nonexistent/")
-        item = indexes.valueLookup(channel, "link", "link", nonExistent)
+        nonExistent = URL('http://www.osafoundation.org/nonexistent/')
+        item = indexes.valueLookup(channel, 'link', 'link', nonExistent)
         self.assertEqual(item, None)
 
-        # Although the channels module doesn"t allow duplicate links, let"s
-        # test the lookup mechanism"s ability to return dupes.  We"ll add a
-        # duplicate, then pass the "multiple=True" arg to indexLookup.
+        # Although the channels module doesn't allow duplicate links, let's
+        # test the lookup mechanism's ability to return dupes.  We'll add a
+        # duplicate, then pass the 'multiple=True' arg to indexLookup.
 
-        url = URL("http://www.osafoundation.org/archives/000964.html")
-        item = FeedItem(itsView=view, link=url)
+        url = URL('http://www.osafoundation.org/archives/000964.html')
+        item = feeds.FeedItem(itsView=view, link=url)
         channel.add(item)
 
-        items = indexes.valueLookup(channel, "link", "link", url, multiple=True)
+        items = indexes.valueLookup(channel, 'link', 'link', url, multiple=True)
         self.assertEqual(len(items), 2)
 
 if __name__ == "__main__":

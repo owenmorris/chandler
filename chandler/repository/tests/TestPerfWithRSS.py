@@ -22,7 +22,7 @@ from repository.util.Path import Path
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.util.URL import URL
 from osaf import pim
-from feeds.channels import FeedChannel
+from feeds import FeedChannel
 import logging
 
 logger = logging.getLogger(__name__)
