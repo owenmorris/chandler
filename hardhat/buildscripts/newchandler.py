@@ -516,16 +516,21 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
     else:
         dbgStr = ""
 
+    if cleanFirst:
+        clean = " clean "
+    else:
+        clean = " "
+
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
 
-    targets = ['distclean', 'distrib', 'strip', 'purge']
+    targets = ['distrib', 'strip', 'purge']
 
-    print "Doing make " + dbgStr + " ".join(targets) + "\n"
-    log.write("Doing make " + dbgStr + " ".join(targets) + "\n")
+    print "Doing make " + dbgStr + clean + " ".join(targets) + "\n"
+    log.write("Doing make " + dbgStr + clean + " ".join(targets) + "\n")
 
     try:
-        cmd = [buildenv['make'], dbgStr]
+        cmd = [buildenv['make'], dbgStr, clean]
         cmd += targets
 
         outputList = hardhatutil.executeCommandReturnOutput(cmd)
