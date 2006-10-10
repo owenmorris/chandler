@@ -745,6 +745,14 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         self._checkDeleted([event, second, third], [event])
         self.assertEqual(event.getLastUntil(), self.start + timedelta(days=7))
+        
+    def testDeleteItsItem(self):
+        # delete of underlying Note item
+        event = self._createEvent()
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        occurrences = event.getOccurrencesBetween(None, None)
+        event.itsItem.delete()
+        self._checkDeleted(chain([event], occurrences), [])
 
 
 

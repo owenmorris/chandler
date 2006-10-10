@@ -258,3 +258,29 @@ according to their position in the index:
 Since repository indexes deal with items (i.e. ``Annotation`` and ``Stamp``
 objects aren’t persistent), the return values here are ``Item`` instances.
 
+Deletion of stamped items
+-------------------------
+
+The hook ``onItemDelete()`` is present on ``Stamp`` to allow you to customize
+behaviour when the underlying Item is deleted from the repository. The arguments
+are the same as for the corresponding method on Item. For example:
+
+>>> class CustomDeleteStamp(Stamp):
+...     schema.kindInfo(annotates=ContentItem)
+...
+...     def onItemDelete(self, view, deferring):
+...          print "%s.onItemDelete() called" % (self,)
+...
+>>> deleteMe = ExampleItem(itsView=repoView, displayName=u"deleteMe")
+>>> stampedDeleteMe = CustomDeleteStamp(deleteMe)
+>>> stampedDeleteMe.add()
+>>> deleteMe.delete()
+CustomDeleteStamp(<ExampleItem: deleteMe>).onDelete() called
+
+However, if the stamp isn't present, the ``onDelete()`` hook isn't called:
+
+>>> deleteMeToo = ExampleItem(itsView=repoView, displayName=u"deleteMeToo")
+>>> stampedDeleteMeToo = CustomDeleteStamp(deleteMeToo)
+>>> deleteMeToo.delete()
+
+

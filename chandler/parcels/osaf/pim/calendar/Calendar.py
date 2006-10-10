@@ -907,13 +907,12 @@ class EventStamp(Stamp):
             else:
                 self.rruleset.setRuleFromDateUtil(rule)
 
-    def delete(self, *args, **kwargs):
-        """If self is the master of a recurring event, call deleteAll."""
-        if self.hasLocalAttributeValue('rruleset') and self.getMaster() == self:
-            self.deleteAll()
+    def onItemDelete(self, view, deferring):
+        """If self is the master of a recurring event, call removeRecurrence."""
+        if self.getFirstInRule() == self:
+            self.removeRecurrence()
         else:
             self.__disableRecurrenceChanges()
-            self.itsItem.delete(*args, **kwargs)
 
 
     def _restoreStamps(self, clonedEvent):
@@ -1611,7 +1610,7 @@ class EventStamp(Stamp):
                 # this won't work for complicated rrulesets
                 if until is not None and (mod.recurrenceID > until):
                     mod.__disableRecurrenceChanges()
-                    mod.delete()
+                    mod.itsItem.delete()
 
         # create a backup
         first._getFirstGeneratedOccurrence(True)
@@ -1649,7 +1648,7 @@ class EventStamp(Stamp):
         if getattr(self, 'occurrenceFor', None) is self.itsItem:
             self.occurrenceFor = None
         else:
-            self.delete()
+            self.itsItem.delete(recursive=True)
 
     def deleteAll(self):
         """Delete master, all its modifications, occurrences, and rules."""
@@ -1668,8 +1667,8 @@ class EventStamp(Stamp):
         rruleset._ignoreValueChanges = True
         rruleset.delete(recursive=True)
         self.__disableRecurrenceChanges()
-        master.delete(recursive=True)
-        self.delete(recursive=True)
+        master.itsItem.delete(recursive=True)
+        self.itsItem.delete(recursive=True)
 
     def removeFutureOccurrences(self):
         """Delete all future occurrences and modifications."""

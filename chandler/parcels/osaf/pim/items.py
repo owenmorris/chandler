@@ -252,12 +252,20 @@ class ContentItem(schema.Item):
         # Create data for this kind of item in the clipboard handler
         # The data is used for Drag and Drop or Cut and Paste
         try:
-            super(ContentItem, self).ExportItemData (clipboardHandler)
+            super(ContentItem, self).ExportItemData(clipboardHandler)
         except AttributeError:
             pass
 
         # Let the clipboard handler know we've got a ContentItem to export
         clipboardHandler.ExportItemFormat(self, 'ContentItem')
+        
+    def onItemDelete(self, view, deferring):
+        # Hook for stamp deletion ...
+        from stamping import Stamp
+        for stampObject in Stamp(self).stamps:
+            onItemDelete = getattr(stampObject, 'onItemDelete', None)
+            if onItemDelete is not None:
+                onItemDelete(view, deferring)
         
     def addToCollection(self, collection):
         """Add self to the given collection.
