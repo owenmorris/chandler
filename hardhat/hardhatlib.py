@@ -1225,6 +1225,9 @@ def handleManifest(buildenv, filename, fatalErrors=True):
             if name == "exclude":
                 params["exclude"] = value.split(",")
                 log(buildenv, HARDHAT_MESSAGE, "HardHat", "exclude=" + value)
+            if name == "egg":
+                log(buildenv, HARDHAT_MESSAGE, "HardHat", 'Copying egg related files from %s to %s' % (os.path.join(buildenv['root'], value), destdir))
+                _copyEggs(os.path.join(buildenv['root'], value), destdir, params["glob"], params["exclude"])
         else:
             if linkdir is not None:
                 if buildenv['os'] <> 'win':
@@ -1361,6 +1364,48 @@ def _copyTree(srcdir, destdir, recursive, patterns, excludes):
                     os.symlink(os.readlink(full_name), os.path.join(destdir, name))
                 else:
                     _copyTree(full_name, os.path.join(destdir, name), True, patterns, excludes)
+
+def _copyEggs(srcdir, destdir, patterns, excludes):
+    os.chdir(srcdir)
+    # iterate over the file patterns to be copied
+    for pattern in patterns:
+        # matches contains a list of files matching the current pattern
+        matches = glob.glob(pattern)
+        excludesMatch = []
+        # prepare a list of files to be excluded
+        for filePat in excludes:
+            # add to the excludes list all files in the match list which match the current exclude pattern
+            excludesMatch += fnmatch.filter(matches, filePat)
+            # (debug) display current excludes list
+            # print "%s matches %s " % (excludesMatch, filePat)
+
+        # (debug) display current excludes list
+        # print "excluding %s for %s " % (excludesMatch, srcdir)
+
+        # iterate over the match list for each file
+        for match in matches:
+            # if the current match is a file that is NOT in the excludes list, then try to copy
+            if not match in excludesMatch:
+                if os.path.isdir(match):
+                    if os.path.islink(match):
+                        if not os.path.exists(destdir):
+                            mkdirs(destdir)
+                        os.symlink(os.readlink(match), os.path.join(destdir, match))
+                    else:
+                        _copyTree(os.path.join(srcdir, match), os.path.join(destdir, match), True, '*', excludes)
+                        os.chdir(srcdir)
+
+                elif os.path.isfile(match):
+                    try:
+                        if not os.path.exists(destdir):
+                            mkdirs(destdir)
+                        if os.path.islink(match):
+                            linkto = os.readlink(match)
+                            os.symlink(linkto, os.path.join(destdir,match))
+                        else:
+                            shutil.copy(match, destdir)
+                    except (IOError, os.error), why:
+                        print "Can't copy %s to %s: %s" % (match, destdir, str(why))
 
 def mkdirs(newdir, mode=0777):
     try: 
