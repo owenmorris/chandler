@@ -1184,8 +1184,10 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             # consumers know what the 'primary' collection is.
             if item is not None:
                 collectionList.append (item)
-            if (sidebar.filterClass not in sidebar.disallowOverlaysForFilterClasses and
-                not (item is not None and UserCollection (item).outOfTheBoxCollection)):
+            # When item is none we have multiple selections
+            if (item is None or
+                (sidebar.filterClass not in sidebar.disallowOverlaysForFilterClasses and
+                (not UserCollection (item).outOfTheBoxCollection))):
                 for theItem in sidebar.contents:
                     if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
                          theItem not in collectionList):
