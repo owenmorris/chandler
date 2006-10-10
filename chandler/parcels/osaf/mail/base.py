@@ -172,6 +172,7 @@ class AbstractDownloadClient(object):
         self.account = None
         self.currentlyDownloading = False
         self.testing = False
+        self.shuttingDown = False
 
         """These values are reassigned per request"""
         self.factory = None
@@ -263,7 +264,6 @@ class AbstractDownloadClient(object):
         since this method is out of the scope of the original c{Exception}. The caller must log 
         its c{Exception} via the logging.exception method.
 
-        
         @param err: The error thrown
         @type err: C{failure.Failure} or c{Exception}
 
@@ -272,9 +272,13 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("catchErrors")
 
-        if self.factory is None:
-            if __debug__:
-                trace("Call to catchErrors when factory equals None: %s" % err)
+        try:
+            #On error cancel any changes done in the view
+            self.view.cancel()
+        except:
+            pass
+
+        if self.factory is None or self.shuttingDown:
             return
 
         if isinstance(err, failure.Failure):
@@ -368,6 +372,11 @@ class AbstractDownloadClient(object):
         """
         return self._loginClient()
 
+    def shutdown(self):
+        if __debug__:
+            trace("shutdown")
+
+        self.shuttingDown = True
 
     def _loginClient(self):
         """Overide this method to place any protocol specific
@@ -401,7 +410,7 @@ class AbstractDownloadClient(object):
         if not self.factory.connectionLost and self.proto is not None:
             self.proto.transport.loseConnection()
 
-    def _commitDownloadedMail(self):
+    def _commitDownloadedMail(self, callback=None):
         """Commits mail to the C{Repository}.
            If there are more messages to download
            calls C{_getNextMessageSet} otherwise
@@ -427,22 +436,27 @@ class AbstractDownloadClient(object):
 
                     if __debug__:
                         trace("Prunning %s messages" % self.pruneCounter)
- 
+
                     """reset the counter"""
                     self.pruneCounter = 0
             except RepositoryError, e:
-                #Place holder for commit rollback
                 raise
+
             except VersionConflictError, e1:
-                #Place holder for commit rollback
                 raise
 
         d = threads.deferToThread(_tryCommit)
-        #XXX: May want to handle the case where the Repository fails
-        #     to commit. For example, role back transaction or display
-        #     Repository error to the user
-        return d.addCallback(lambda _: self._postCommit()
-                            ).addErrback(self.catchErrors)
+
+        if callback:
+            d.addCallback(callback)
+            d.addCallback(lambda _: self._postCommit())
+            d.addErrback(self.catchErrors)
+
+            return d
+
+        else:
+            return d.addCallback(lambda _: self._postCommit()
+                                ).addErrback(self.catchErrors)
 
 
     def _postCommit(self):

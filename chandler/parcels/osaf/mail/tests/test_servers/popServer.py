@@ -15,7 +15,7 @@
 
 from twisted.internet.protocol import Factory
 from twisted.protocols import basic
-from twisted.test.ssl_helpers import ServerTLSContext
+#from twisted.test.ssl_helpers import ServerTLSContext
 from twisted.internet import reactor
 import sys
 
@@ -205,7 +205,8 @@ class POP3TestServer(basic.LineReceiver):
 
     def startTLS(self):
         if self.ctx is None:
-            self.ctx = ServerTLSContext(CERT_FILE)
+            return
+            #self.ctx = ServerTLSContext(CERT_FILE)
 
         if SSL_SUPPORT and self.ctx is not None:
             self.sendLine(BEGIN_TLS)
@@ -320,10 +321,10 @@ def main():
     f = Factory()
     f.protocol = POP3TestServer
 
-    if START_SSL:
-        reactor.listenSSL(SSL_PORT, f, ServerTLSContext(CERT_FILE))
-    else:
-        reactor.listenTCP(PORT, f)
+    #if START_SSL:
+    #    reactor.listenSSL(SSL_PORT, f, ServerTLSContext(CERT_FILE))
+    #else:
+    reactor.listenTCP(PORT, f)
 
     reactor.run()
 

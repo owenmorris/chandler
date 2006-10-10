@@ -12,6 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+#Twisted imports
+from twisted.internet import reactor
 
 #Chandler imports
 import osaf.pim.mail as Mail
@@ -58,7 +60,7 @@ class MailService(object):
     back to the requestor.
 
     If one exists in the cache it returns that instance.
-    
+
     Caching instances allows finite control of C{RepositoryView} creation
     and client pipelining.
     """
@@ -82,13 +84,17 @@ class MailService(object):
         self.__started = True
 
     def shutdown(self):
-        """Shutsdown the MailService and deletes any clients in the 
+        """Shutsdown the MailService and deletes any clients in the
            MailServices cache"""
 
-        del self.__clientInstances
+        if self.__started:
+            for clients in self.__clientInstances.values():
+                for client in clients.values():
+                    reactor.callFromThread(client.shutdown)
 
-        self.__started = False
+            del self.__clientInstances
 
+            self.__started = False
 
     def refreshMailServiceCache(self):
         """Refreshs the MailService Cache checking for

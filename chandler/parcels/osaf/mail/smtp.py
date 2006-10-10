@@ -113,6 +113,7 @@ class SMTPClient(object):
         self.testing = False
         self.displayed = False
         self.mailMessage = None
+        self.shuttingDown = False
 
     def sendMail(self, mailMessage):
         """
@@ -166,7 +167,8 @@ class SMTPClient(object):
         if __debug__:
             trace("_actionCompleted")
 
-        if not self.displayed:
+
+        if not self.displayed and not self.shuttingDown:
             if self.mailMessage.deliveryExtension.state == "FAILED":
                  key = "displaySMTPSendError"
             else:
@@ -201,49 +203,49 @@ class SMTPClient(object):
         try:
             if self.mailMessage is not None:
                 sending = (self.mailMessage.itsItem.itsUUID == mailMessageUUID)
-    
+
                 """Check that the mailMessage in not already Queued"""
                 if mailMessageUUID in self.pending:
                     if __debug__:
                         trace("SMTPClient Queue already contains message: %s" % mailMessageUUID)
-    
+
                 elif sending:
                     """Check that the mailMessage in not currently being sent"""
                     if __debug__:
                         trace("SMTPClient currently sending message: %s" % mailMessageUUID)
-    
+
                 else:
                     self.pending.insert(0, mailMessageUUID)
-    
+
                     if __debug__:
                         trace("SMTPClient adding to the Queue message: %s" % mailMessageUUID)
-    
+
                 return
-    
+
             """ Refresh our view before retrieving Account info"""
             self.view.refresh()
-    
+
             """Get the account, get the mail message and hand off to an instance to send
                if someone already sending them put in a queue"""
-    
+
             self._getAccount()
             self.mailMessage = self._getMailMessage(mailMessageUUID)
-    
+
             self.mailMessage.outgoingMessage(self.account)
             now = datetime.now(ICUtzinfo.default)
             self.mailMessage.dateSent = now
             self.mailMessage.dateSentString = dateTimeToRFC2822Date(now)
-    
+
             """Clear out any previous DeliveryErrors from a previous attempt"""
             for item in self.mailMessage.deliveryExtension.deliveryErrors:
                 item.delete()
-    
+
             """Get the sender's Email Address will either be the Reply-To or From field"""
             sender = self._getSender()
-    
+
             if self._mailMessageHasErrors(sender):
                 return
-    
+
             messageText = kindToMessageText(self.mailMessage)
         except Exception, e:
             if __debug__:
@@ -328,14 +330,19 @@ class SMTPClient(object):
         if __debug__:
             trace("_testSuccess")
 
-        alert(constants.TEST_SUCCESS, {'accountName': self.account.displayName})
+        if self.shuttingDown:
+            return
 
+        alert(constants.TEST_SUCCESS, {'accountName': self.account.displayName})
         self.testing = False
 
 
     def _testFailure(self, exc):
         if __debug__:
             trace("_testFailure")
+
+        if self.shuttingDown:
+            return
 
         exc = exc.value
 
@@ -390,6 +397,9 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailSomeFailed")
 
+        if self.shuttingDown:
+            return
+
         errorDate = datetime.now()
 
         for recipient in result[1]:
@@ -421,6 +431,9 @@ class SMTPClient(object):
 
         if __debug__:
             trace("_mailFailure")
+
+        if self.shuttingDown:
+            return
 
         """ Refresh our view before adding items to our mail Message
             and commiting. Will not cause merge conflicts since
@@ -475,6 +488,9 @@ class SMTPClient(object):
         if __debug__:
             trace("displayedRecoverableSSLErrorDialog")
 
+        if self.shuttingDown:
+            return
+
         if self.testing:
             reconnect = self.testAccountSettings
         else:
@@ -505,6 +521,13 @@ class SMTPClient(object):
 
             return True
         return False
+
+
+    def shutdown(self):
+        if __debug__:
+            trace("shutdown")
+
+        self.shuttingDown = True
 
 
     def _getError(self, err):

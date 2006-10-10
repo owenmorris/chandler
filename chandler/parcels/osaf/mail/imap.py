@@ -293,9 +293,6 @@ class IMAPClient(base.AbstractDownloadClient):
             if luid < nextUID:
                 continue
 
-            if luid > self.lastUID:
-                self.lastUID = luid
-
             if not "\\Deleted" in message['FLAGS']:
                 self.pending.append([luid, message['FLAGS']])
 
@@ -323,7 +320,7 @@ class IMAPClient(base.AbstractDownloadClient):
             return self._actionCompleted()
 
         if self.numToDownload > self.downloadMax:
-            self.numToDownload =self.downloadMax
+            self.numToDownload = self.downloadMax
 
         m = self.pending.pop(0)
 
@@ -337,6 +334,11 @@ class IMAPClient(base.AbstractDownloadClient):
             trace("_fetchMessage")
 
         msg = msgs.keys()[0]
+
+        #Check if the uid of the message is greater than
+        #last message fetched
+        if curMessage[0] > self.lastUID:
+            self.lastUID = curMessage[0]
 
         messageText = msgs[msg]['RFC822']
 
@@ -372,7 +374,6 @@ class IMAPClient(base.AbstractDownloadClient):
                          ).addCallback(self._fetchMessage, m
                          ).addErrback(self.catchErrors)
 
-
     def _expunge(self, result):
         if __debug__:
             trace("_expunge")
@@ -395,7 +396,8 @@ class IMAPClient(base.AbstractDownloadClient):
             trace("_beforeDisconnect")
 
         if self.factory is None or self.proto is None or \
-           self.factory.connectionLost or self.factory.timedOut:
+           self.factory.connectionLost or self.factory.timedOut or \
+           self.proto.queued is None:
             return defer.succeed(True)
 
         return self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',)))

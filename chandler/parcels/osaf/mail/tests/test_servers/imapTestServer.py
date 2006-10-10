@@ -16,7 +16,7 @@
 from twisted.internet.protocol import Factory
 from twisted.protocols import basic
 from twisted.internet import reactor
-from twisted.test.ssl_helpers import ServerTLSContext
+#from twisted.test.ssl_helpers import ServerTLSContext
 import sys
 import os
 
@@ -205,7 +205,8 @@ class IMAPTestServer(basic.LineReceiver):
 
     def startTLS(self, line):
         if self.ctx is None:
-            self.ctx = ServerTLSContext(CERT_FILE)
+            return
+            #self.ctx = ServerTLSContext(CERT_FILE)
 
         if SSL_SUPPORT and self.ctx is not None:
             self.sendResponse(BEGIN_TLS, line)
@@ -325,10 +326,10 @@ def main():
 
     f = Factory()
     f.protocol = IMAPTestServer
-    if START_SSL:
-        reactor.listenSSL(SSL_PORT, f, ServerTLSContext(CERT_FILE))
-    else:
-        reactor.listenTCP(PORT, f)
+    #if START_SSL:
+    #    reactor.listenSSL(SSL_PORT, f, ServerTLSContext(CERT_FILE))
+    #else:
+    reactor.listenTCP(PORT, f)
 
     reactor.run()
 
