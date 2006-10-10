@@ -302,7 +302,7 @@ static PyObject *t_item_repr(t_item *self)
 
         if (self->status & DELETED)
             status = " (deleted)";
-        if (self->status & DELETING)
+        else if (self->status & DELETING)
             status = " (deleting)";
         else if (self->status & DEFERRED)
             status = " (deferred)";
@@ -347,10 +347,10 @@ static PyObject *t_item_getattro(t_item *self, PyObject *name)
 
         if (c->flags & DESCRIPTORS_INSTALLED)
         {
-            PyObject *descriptor = PyDict_GetItem(c->descriptors, name);
+            PyObject *dsc = PyDict_GetItem(c->descriptors, name);
 
-            if (descriptor)
-                return descriptor->ob_type->tp_descr_get(descriptor, (PyObject *) self, NULL);
+            if (dsc)
+                return dsc->ob_type->tp_descr_get(dsc, (PyObject *) self, NULL);
         }
     }
 
@@ -382,10 +382,11 @@ static int t_item_setattro(t_item *self, PyObject *name, PyObject *value)
 
         if (c->flags & DESCRIPTORS_INSTALLED)
         {
-            PyObject *descriptor = PyDict_GetItem(c->descriptors, name);
+            PyObject *dsc = PyDict_GetItem(c->descriptors, name);
 
-            if (descriptor)
-                return descriptor->ob_type->tp_descr_set(descriptor, (PyObject *) self, value);
+            if (dsc)
+                return dsc->ob_type->tp_descr_set(dsc, (PyObject *) self,
+                                                  value);
         }
     }
 
@@ -815,9 +816,11 @@ static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
 }
 
 static PyObject *_t_item__fireChanges(t_item *self,
-                                      PyObject *op, PyObject *name)
+                                      PyObject *op, PyObject *name,
+                                      PyObject *fireAfterChange)
 {
-    if (self->kind != Py_None)
+    /* fireAfterChange is one of Py_True, Py_False or Default */
+    if (fireAfterChange != Py_False && self->kind != Py_None)
     {
         t_kind *c = (t_kind *) ((t_item *) self->kind)->c;
         t_attribute *attr = NULL;
@@ -854,6 +857,7 @@ static PyObject *_t_item__fireChanges(t_item *self,
             return NULL;
     }
 
+    /* during SYSMONONLY only sys monitors fire */
     {
         PyObject *args = PyTuple_Pack(3, op, self, name);
         t_view *view = (t_view *) ((t_item *) self->root)->parent;
@@ -866,7 +870,8 @@ static PyObject *_t_item__fireChanges(t_item *self,
         Py_DECREF(result);
     }
 
-    if (self->status & WATCHED)
+    /* during SYSMONONLY no watchers fire */
+    if (!(self->status & SYSMONONLY) && self->status & WATCHED)
     {
         PyObject *names = PyTuple_Pack(1, name);
         int result = _t_item__itemChanged(self, op, names);
@@ -882,11 +887,12 @@ static PyObject *_t_item__fireChanges(t_item *self,
 static PyObject *t_item__fireChanges(t_item *self, PyObject *args)
 {
     PyObject *op, *name;
+    PyObject *fireAfterChange = Default;
 
-    if (!PyArg_ParseTuple(args, "OO", &op, &name))
+    if (!PyArg_ParseTuple(args, "OO|O", &op, &name, &fireAfterChange))
         return NULL;
 
-    return _t_item__fireChanges(self, op, name);
+    return _t_item__fireChanges(self, op, name, fireAfterChange);
 }
 
 static PyObject *t_item__fillItem(t_item *self, PyObject *args)
@@ -1012,13 +1018,13 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
 {
     PyObject *attribute = Py_None, *result;
     t_values *attrDict = NULL;
-    int dirty, noMonitors = 0;
+    int dirty, noChanges = 0;
 
     if (self->status & NODIRTY)
         Py_RETURN_FALSE;
 
     if (!PyArg_ParseTuple(args, "i|OOi", &dirty,
-                          &attribute, &attrDict, &noMonitors))
+                          &attribute, &attrDict, &noChanges))
         return NULL;
 
     if (dirty)
@@ -1050,9 +1056,10 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
             result = t_values__setDirty(attrDict, attribute);
             Py_DECREF(result);
 
-            if (!noMonitors)
+            if (!noChanges)
             {
-                result = _t_item__fireChanges(self, set_NAME, attribute);
+                result = _t_item__fireChanges(self, set_NAME, attribute,
+                                              Default);
                 if (result == NULL)
                     return NULL;
                 Py_DECREF(result);
@@ -1502,6 +1509,8 @@ void _init_item(PyObject *m)
             PyDict_SetItemString_Int(dict, "T_WATCHED", T_WATCHED);
             PyDict_SetItemString_Int(dict, "TOINDEX", TOINDEX);
             PyDict_SetItemString_Int(dict, "WATCHED", WATCHED);
+            PyDict_SetItemString_Int(dict, "SYSMONONLY", SYSMONONLY);
+            PyDict_SetItemString_Int(dict, "SYSMONITOR", SYSMONITOR);
 
             PyDict_SetItemString_Int(dict, "VRDIRTY", VRDIRTY);
             PyDict_SetItemString_Int(dict, "DIRTY", DIRTY);

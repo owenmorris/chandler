@@ -67,7 +67,7 @@ enum {
     CONTAINER  = 0x00001000,          /* has children */
     ADIRTY     = 0x00002000,          /* acl(s) changed */
     PINNED     = 0x00004000,          /* auto-refresh, don't stale */
-    NODIRTY    = 0x00008000,          /* turn off dirtying */
+    NODIRTY    = 0x00008000,          /* turn off dirtying and change firing */
     VMERGED    = 0x00010000,
     RMERGED    = 0x00020000,
     NMERGED    = 0x00040000,
@@ -81,13 +81,15 @@ enum {
     DEFERRED   = 0x04000000,          /* delete deferred until commit */
     DEFERRING  = 0x08000000,          /* deferring delete */
     TOINDEX    = 0x10000000,          /* to be full-text indexed */
+    SYSMONONLY = 0x20000000,          /* fire only system monitors */
+    SYSMONITOR = 0x40000000,          /* a system monitor */
 };
 
 enum {
     VRDIRTY    = VDIRTY | RDIRTY,
     DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY | KDIRTY,
     MERGED     = VMERGED | RMERGED | NMERGED | CMERGED,
-    SAVEMASK   = (DIRTY | ADIRTY |
+    SAVEMASK   = (DIRTY | ADIRTY | SYSMONITOR |
                   NEW | DELETED | P_WATCHED | TOINDEX |
                   SCHEMA | CORESCHEMA | CONTAINER),
     WATCHED    = P_WATCHED | T_WATCHED,

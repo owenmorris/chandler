@@ -40,10 +40,10 @@ class StaleItemError(ValueError, ItemError):
 
 
 class DirtyItemError(ValueError, ItemError):
-    __doc__ = "Item is dirty, cannot be unloaded"
+    __doc__ = "%s has unsaved changes and cannot be unloaded"
 
     def __str__(self):
-        return self.getItem()._repr_()
+        return self.__doc__ %(self.getItem()._repr_())
 
     
 class InvalidChildError(ValueError, ItemError):

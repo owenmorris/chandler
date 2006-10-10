@@ -791,7 +791,7 @@ static PyObject *t_view_setSingleton(t_view *self, PyObject *args)
 
 static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
 {
-    PyObject *op, *attribute, *monitors;
+    PyObject *op, *attribute, *monitors, *changedItem;
     int argCount = PySequence_Size(args);
 
     if (argCount < 3)
@@ -823,13 +823,23 @@ static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
 
     args = PySequence_Tuple(args);
     op = PyTuple_GET_ITEM(args, 0);
+    changedItem = PyTuple_GET_ITEM(args, 1);
     attribute = PyTuple_GET_ITEM(args, 2);
 
     monitors = PyDict_GetItem(PyDict_GetItem(self->monitors, op), attribute);
     if (monitors != NULL)
     {
         int size = PyList_Size(monitors);
+        int sysOnly = 0;
         int i;
+
+        if (PyObject_TypeCheck(changedItem, CItem))
+            sysOnly = ((t_item *) changedItem)->status & SYSMONONLY;
+        else
+        {
+            PyErr_SetObject(PyExc_TypeError, changedItem);
+            return NULL;
+        }
 
         for (i = 0; i < size; i++) {
             t_item *monitor = (t_item *) PyList_GetItem(monitors, i);
@@ -838,6 +848,9 @@ static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
             int j, margCount = 0;
 
             if (monitor->status & DELETING)
+                continue;
+
+            if (sysOnly && !(monitor->status & SYSMONITOR))
                 continue;
 
             monitoringItem = PyDict_GetItem(monitor->references->dict,
