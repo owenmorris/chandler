@@ -245,7 +245,7 @@ def dumpTestLogs(log, chandlerLog, FuncTestLog, exitCode=0):
         #log.write(separator)
 
     if chandlerLog:
-        log.write("chandler.log:\n")
+        log.write("chandler.log: [%s]\n" % chandlerLog)
         try:
             CopyLog(chandlerLog, log)
         except:
