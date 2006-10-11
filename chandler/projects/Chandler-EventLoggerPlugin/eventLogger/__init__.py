@@ -193,7 +193,7 @@ def installParcel(parcel, old_version=None):
         eventsForNamedLookup = [ToggleLogging],
         location = "TestMenu",
         operation = 'InsertBefore',
-        itemLocation = "SearchWindowItem",
+        itemLocation = "WxTestHarnessItem",
         parentBlock = mainView.MainView)
 
     # The periodic task that uploads logfiles in the background  

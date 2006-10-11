@@ -13,8 +13,60 @@
 #   limitations under the License.
 
 
+import PyLucene, wx
+from osaf import pim, search
+from i18n import ChandlerMessageFactory as _
+from application import schema
+from application.dialogs import Util
 from osaf.usercollections import UserCollection
-from osaf.framework.blocks import *
+from osaf.framework.blocks import (
+    AddToSidebarEvent, BlockEvent, NewItemEvent, NewBlockWindowEvent,
+    ClassParameterizedEvent, ChoiceEvent)
+
+class SearchEvent(AddToSidebarEvent):
+    
+    def onNewItem (self):
+        """
+        Create a new collection with the results of the search to be added to the sidebar
+        """
+        query = self.arguments['sender'].widget.GetValue()
+        result = None
+        try:
+            view = self.itsView
+
+            # make sure all changes are searchable
+            view.commit()
+            view.repository.notifyIndexer(True)
+            searchResults = view.searchItems(query)
+
+            result = pim.SmartCollection (itsView=view,
+                                          displayName=_(u"Search: %(query)s") % {'query' : query})
+            schema.ns("osaf.pim", self.itsView).mine.addSource(result)
+            
+            for item in search.processResults(searchResults):
+                result.add(item)
+                
+            if len(result) == 0:
+                # For now we'll write a message to the status bar because it's easy
+                # When we get more time to work on search, we should write the message
+                # just below the search box in the toolbar.
+                wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Search found nothing"))
+                result.delete(recursive=True)
+                result = None
+        except PyLucene.JavaError, error:
+            result.delete(recursive=True)
+            result = None
+            message = unicode (error)
+            prefix = u"org.apache.lucene.queryParser.ParseException: "
+            if message.startswith (prefix):
+                message = message [len(prefix):]
+            
+            message = _(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message
+            
+            Util.ok (None, _(u"Search Error"), message)
+        
+        return result
+
 
 def makeMainEvents(parcel):
 
@@ -217,8 +269,6 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('SetLoggingLevelDebug').install(parcel)
 
-    BlockEvent.template('SearchWindow').install(parcel)
-
     BlockEvent.template('RestoreShares').install(parcel)
 
     BlockEvent.template('SyncPrefs').install(parcel)
@@ -311,7 +361,7 @@ def makeMainEvents(parcel):
     
     BlockEvent.template('SendMail').install(parcel)
                   
-    BlockEvent.template(
+    SearchEvent.template(
         'Search',
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 

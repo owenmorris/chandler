@@ -1012,8 +1012,7 @@ class ToolbarItem(Block.Block, DynamicChild):
 
     def instantiateWidget (self):
         def getBitmaps (self):
-            app = wx.GetApp()
-            bitmap = app.GetImage (self.bitmap)
+            bitmap = theApp.GetImage (self.bitmap)
             disabledBitmap = getattr (self, 'disabledBitmap', wx.NullBitmap)
             if disabledBitmap is not wx.NullBitmap:
                 disabledBitmap = app.GetImage (disabledBitmap)
@@ -1032,9 +1031,10 @@ class ToolbarItem(Block.Block, DynamicChild):
         # for this reason I'm putting the longhelp into shorthelp too.
         shortHelp = self.helpString
         longHelp = self.helpString
-        app = wx.GetApp()
+        theApp = wx.GetApp()
+        toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin'
+
         if (self.toolbarItemKind == 'Button' or
-            self.toolbarItemKind == 'Status' or # @@@ WORKAROUND for bug 4356 - see 45 lines below for the explanation
             self.toolbarItemKind == 'Radio'):
 
             bitmap, disabledBitmap = getBitmaps (self)
@@ -1052,7 +1052,6 @@ class ToolbarItem(Block.Block, DynamicChild):
                                         kind = theKind,
                                         shortHelp=shortHelp,
                                         longHelp=longHelp)
-            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin'
             mixinAClass (tool, toolWidgetMixin)
             theToolbar.SetToolLongHelp(id, longHelp)
             theToolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)            
@@ -1074,50 +1073,39 @@ class ToolbarItem(Block.Block, DynamicChild):
             # unlike other Toolbar items, a 'text' item actually creates a
             # real wx control
             tool = wx.TextCtrl (theToolbar, id, "", 
-                               wx.DefaultPosition, 
-                               wx.Size(300,-1), 
-                               wx.TE_PROCESS_ENTER)
+                                wx.DefaultPosition, 
+                                wx.Size(300,-1), 
+                                wx.TE_PROCESS_ENTER)
             tool.SetName(self.title)
             theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_TEXT_ENTER, app.OnCommand, id=id)
-        elif self.toolbarItemKind == 'Status':
-            # @@@ this case needs to be removed; it's shadowed out by the
-            # @@@ the workaround 45 lines above [self.toolbarItemKind == 'Status']
-            bitmap, disabledBitmap = getBitmaps (self)
-            tool = wx.StaticBitmap(theToolbar, id, bitmap)
-
-            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin'
-            mixinAClass (tool, toolWidgetMixin)
-            theToolbar.AddControl (tool)
-            theToolbar.SetToolLongHelp(id, self.helpString)
+            tool.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand, id=id)
         elif self.toolbarItemKind == 'Combo':
             proto = self.prototype
             choices = proto.choices
             tool = wx.ComboBox (theToolbar,
-                            -1,
-                            proto.selection, 
-                            wx.DefaultPosition,
-                            (proto.minimumSize.width, proto.minimumSize.height),
-                            proto.choices)            
+                                -1,
+                                proto.selection, 
+                                wx.DefaultPosition,
+                                (proto.minimumSize.width, proto.minimumSize.height),
+                                proto.choices)            
             theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_COMBOBOX, app.OnCommand, id=id)
-            tool.Bind(wx.EVT_TEXT, app.OnCommand, id=id)
+            tool.Bind(wx.EVT_COMBOBOX, theApp.OnCommand, id=id)
+            tool.Bind(wx.EVT_TEXT, theApp.OnCommand, id=id)
         elif self.toolbarItemKind == 'Choice':
             proto = self.prototype
             choices = proto.choices
             tool = wx.Choice (theToolbar,
-                            -1,
-                            wx.DefaultPosition,
-                            (proto.minimumSize.width, proto.minimumSize.height),
-                            proto.choices)            
+                              -1,
+                              wx.DefaultPosition,
+                              (proto.minimumSize.width, proto.minimumSize.height),
+                              proto.choices)            
             theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_CHOICE, app.OnCommand, id=id)
+            tool.Bind(wx.EVT_CHOICE, theApp.OnCommand, id=id)
         elif __debug__:
             assert False, "unknown toolbarItemKind"
         
         # downcast the item created by wx into a toolbarMixin, so
         # it has the extra methods needed by CPIA.
         if tool is not None and not isinstance(tool, wxToolbarItemMixin):
-            toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin'
             mixinAClass (tool, toolWidgetMixin)
         return tool

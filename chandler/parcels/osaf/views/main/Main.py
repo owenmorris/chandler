@@ -29,7 +29,7 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
 )
 
 from repository.item.Item import MissingClass
-from osaf import pim, sharing, messages, webserver, search, settings
+from osaf import pim, sharing, messages, webserver, settings
 
 from osaf.pim import Contact, ContentCollection, mail, IndexedSelectionCollection
 from osaf.usercollections import UserCollection
@@ -919,40 +919,6 @@ class MainView(View):
         level = Utility.getLoggingLevel()
         event.arguments['Check'] = (level == logging.DEBUG)
 
-
-    def searchFor(self, query):
-        if query:
-            view = self.itsView
-
-            # make sure all changes are searchable
-            view.commit()
-            view.repository.notifyIndexer(True)
-            
-            searchResults = view.searchItems(query)
-
-            # later we'll skip this step if there are no results
-            results = pim.SmartCollection(itsView=view,
-                displayName=_(u"Search: %(query)s") % {'query' : query})
-            schema.ns("osaf.pim", self.itsView).mine.addSource(results)
-            
-            for item in search.processResults(searchResults):
-                results.add(item)
-                
-            schema.ns("osaf.app", self).sidebarCollection.add(results)
-            # select the newly-created collection
-            sidebar = Block.findBlockByName ("Sidebar")
-            sidebar.select(results)
-
-    def onSearchWindowEvent(self, event):
-        query = application.dialogs.Util.promptUser(
-            _(u"Search"),
-            _(u"Enter your PyLucene query:"))
-        self.searchFor(query)
-
-    def onSearchEvent(self, event):
-        # query from the search bar; get the text
-        query = event.arguments['sender'].widget.GetValue()
-        self.searchFor(query)
 
     def onSyncPrefsEvent(self, event):
         autosyncprefs.Show(self.itsView)
