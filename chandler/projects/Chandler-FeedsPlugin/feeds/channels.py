@@ -18,7 +18,8 @@ __parcel__    = "feeds"
 import time, logging, urllib
 from datetime import datetime
 from PyICU import ICUtzinfo, TimeZone
-from dateutil.parser import parse as date_parse
+from osaf.pim.calendar.TimeZone import convertToICUtzinfo
+from dateutil.parser import parse as dateutil_parse
 from application import schema
 from util import feedparser, indexes
 from xml.sax import SAXParseException
@@ -38,6 +39,10 @@ logger = logging.getLogger(__name__)
 FETCH_FAILED = 0
 FETCH_NOCHANGE = 1
 FETCH_UPDATED = 2
+
+def date_parse(s):
+    """Parse using dateutil's parse, then convert to ICUtzinfo timezones."""
+    return convertToICUtzinfo(dateutil_parse(s))
 
 class FeedUpdateTaskClass:
     """
@@ -354,12 +359,11 @@ class FeedChannel(pim.ListCollection):
                 try:
                     # date_parsed is a tuple of 9 integers, like gmtime( )
                     # returns...
-                    d = newItem.date_parsed
                     # date_parsed seems to always be converted to GMT, so
                     # let's make a datetime object using values from
                     # date_parsed, coupled with a GMT tzinfo...
-                    itemDate = datetime(d[0], d[1], d[2], d[3], d[4],
-                        d[5], 0, ICUtzinfo(TimeZone.getGMT()))
+                    kwds = dict(tzinfo=ICUtzinfo.getInstance('UTC'))
+                    itemDate = datetime(*newItem.date_parsed[:5], **kwds)
                     # logger.debug("%s, %s, %s" % \
                     #     (newItem.date, newItem.date_parsed, itemDate))
                     newItem.date = itemDate

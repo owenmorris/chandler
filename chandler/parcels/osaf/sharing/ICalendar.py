@@ -37,7 +37,7 @@ from datetime import date, time
 from time import time as epoch_time
 from PyICU import ICUtzinfo
 import PyICU
-from osaf.pim.calendar.TimeZone import TimeZoneInfo
+from osaf.pim.calendar.TimeZone import TimeZoneInfo, convertToICUtzinfo
 from application import schema
 import itertools
 from i18n import ChandlerMessageFactory as _
@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
 
 localtime = dateutil.tz.tzlocal()
-utc = dateutil.tz.tzutc()
+utc = ICUtzinfo.getInstance('UTC')
 oneDay = datetime.timedelta(1)
 
 def translateToTimezone(dt, tzinfo):
@@ -272,31 +272,28 @@ def convertToICUtzinfo(dt, view=None):
     @type dt: C{datetime}
     """
     oldTzinfo = dt.tzinfo
-    
-    if oldTzinfo is None:
 
+    if isinstance(oldTzinfo, ICUtzinfo):
+        return dt
+    
+    elif oldTzinfo is None:
         icuTzinfo = None # Will patch to floating at the end
         
     else:
-
+        
         def getICUInstance(name):
             result = None
             
             if name is not None:
-                result = ICUtzinfo.getInstance(name)
-                
+                result = ICUtzinfo.getInstance(name)                
                 if result is not None and \
                     result.tzid == 'GMT' and \
-                    name != 'GMT':
-                        
-                    
+                    name != 'GMT':                    
                     result = None
                     
             return result
 
-    
-        
-        
+
         # First, for dateutil.tz._tzicalvtz, we check
         # _tzid, since that's the displayable timezone
         # we want to use. This is kind of cheesy, but
@@ -614,6 +611,11 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                 
                 rruleset = event.rruleset
                 if rruleset is not None:
+                    # fix for Bug 6994, exdate and rdate timezones need to be
+                    # converted to ICUtzinfo instances
+                    for typ in '_rdate', '_exdate':
+                        setattr(rruleset, typ, [convertDatetime(d) for d in
+                                                getattr(rruleset, typ, [])  ])
                     ruleSetItem = RecurrenceRuleSet(None, itsView=view)
                     ruleSetItem.setRuleFromDateUtil(rruleset)
                     changeLast.append((EventStamp.rruleset.name, ruleSetItem))

@@ -1200,7 +1200,12 @@ class Struct(Type):
 class DateStruct(Struct):
 
     def recognizes(self, value):
-        return type(value) is self.getImplementationType()
+
+        if type(value) is self.getImplementationType():
+            tzinfo = value.tzinfo
+            return tzinfo is None or type(tzinfo) in (ICUtzinfo, FloatingTZ)
+
+        return False
 
     def getParsedValue(self, itemHandler, data):
 
@@ -1377,7 +1382,11 @@ class DateTime(DateStruct):
 class DateTimeTZ(DateTime):
 
     def recognizes(self, value):
-        return type(value) is datetime and value.tzinfo is not None
+
+        if type(value) is datetime:
+            return type(value.tzinfo) in (ICUtzinfo, FloatingTZ)
+
+        return False
 
     def makeValue(self, data):
 
@@ -1409,6 +1418,10 @@ class DateTimeTZ(DateTime):
 class Date(DateStruct):
 
     format = "%d-%02d-%02d"
+
+    def recognizes(self, value):
+
+        return type(value) is date
 
     def getImplementationType(self):
 
@@ -1518,7 +1531,11 @@ class Time(DateStruct):
 class TimeTZ(Time):
 
     def recognizes(self, value):
-        return type(value) is time and value.tzinfo is not None
+
+        if type(value) is time:
+            return type(value.tzinfo) in (ICUtzinfo, FloatingTZ)
+
+        return False
 
     def makeValue(self, data):
 
@@ -1546,6 +1563,9 @@ class TimeDelta(DateStruct):
     defaults = { 'days': 0, 'seconds': 0, 'microseconds': 0 }
     format = "%d+%d.%06d"
     strFormat = "%d days, %d:%02d:%02d.%06d"
+
+    def recognizes(self, value):
+        return type(value) is timedelta
 
     def getDefaultValue(self, fieldName):
         return TimeDelta.defaults[fieldName]

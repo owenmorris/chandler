@@ -26,6 +26,7 @@ from osaf import pim, sharing
 import osaf.sharing.ICalendar as ICalendar
 from osaf.pim import ListCollection, Remindable
 import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim.calendar.TimeZone import convertToICUtzinfo
 import datetime
 import vobject
 import cStringIO
@@ -176,6 +177,12 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         # THISANDFUTURE change creates a new event, so there's nothing in
         # event.modifications
         self.assertEqual(event.modifications, None)
+        # Bug 6994, EXDATEs need to have ICU timezones, or they won't commit
+        # (unless we're suffering from Bug 7023, in which case tzinfos are
+        # changed silently, often to GMT, without raising an exception)
+        self.assertEqual(event.rruleset.exdates[0].tzinfo,
+                         ICUtzinfo.getInstance('US/Central'))
+        
 
     def testImportUnusualTzid(self):
         format = self.Import(self.view, u'UnusualTzid.ics')
@@ -284,12 +291,12 @@ class TimeZoneTestCase(unittest.TestCase):
 
     def runConversionTest(self, expectedZone, icalZone):
         dt = datetime.datetime(2004, 10, 11, 13, 22, 21, tzinfo=icalZone)
-        convertedZone = ICalendar.convertToICUtzinfo(dt).tzinfo
+        convertedZone = convertToICUtzinfo(dt).tzinfo
         self.failUnless(isinstance(convertedZone, ICUtzinfo))
         self.failUnlessEqual(expectedZone, convertedZone)
 
         dt = datetime.datetime(2004, 4, 11, 13, 9, 56, tzinfo=icalZone)
-        convertedZone = ICalendar.convertToICUtzinfo(dt).tzinfo
+        convertedZone = convertToICUtzinfo(dt).tzinfo
         self.failUnless(isinstance(convertedZone, ICUtzinfo))
         self.failUnlessEqual(expectedZone, convertedZone)
 
