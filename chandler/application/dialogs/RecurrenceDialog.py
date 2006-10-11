@@ -341,6 +341,15 @@ class OccurrenceProxy(object):
                           question=_(u'"%(displayName)s" is a recurring event. Do you want to delete:'))
             if cutting:
                 change['question'] = _(u'"%(displayName)s" is a recurring event. Do you want to cut:')
+                
+            # [Bug 7009] A future change doesn't make any sense for the
+            # master of a recurring series, since that will remove all
+            # occurrences.
+            # Allowing only 'all' (or Cancel) means that the event ends up
+            # in the trash in this case, which is the desired behaviour.
+            master = proxiedEvent.getMaster()
+            if (cutting or (proxiedEvent == master) or
+                (proxiedEvent == master.getFirstOccurrence())):
                 change['disabled_buttons']=('future', 'this')
             self.delayChange(change)
 
