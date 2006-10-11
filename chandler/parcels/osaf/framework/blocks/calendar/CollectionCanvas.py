@@ -1084,6 +1084,10 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
             if not (issingleref(item) or EventStamp(item).getMaster().itsItem in
                     self.contentsCollection):
                 selection.unselectItem(item)
+        
+        # Posting select items event will display the correct item in the detail view.
+        self.postSelectItemsBroadcast()
+            
         self.synchronizeWidget()
 
 
