@@ -1744,8 +1744,8 @@ class DateTimeAttributeEditor(StringAttributeEditor):
 class DateAttributeEditor (StringAttributeEditor):
     
     # natural language strings for date
-    dateStr = [(u'Today',_(u'today')), (u'Tomorrow',_(u'tomorrow')),
-                     ( u'Yesterday',_(u'yesterday')), (u'EOW',_(u'end of week'))]
+    dateStr = [(u'Today',_(u'Today')), (u'Tomorrow',_(u'Tomorrow')),
+                     ( u'Yesterday',_(u'Yesterday')), (u'EOW',_(u'End of week'))]
     
     # Add weekdays of the current locale
     us_weekDays = PyICU.DateFormatSymbols(PyICU.Locale.getUS()).getWeekdays()
@@ -1843,10 +1843,10 @@ class DateAttributeEditor (StringAttributeEditor):
 class TimeAttributeEditor(StringAttributeEditor):
 
     #natural language strings for time
-    textMatches = {'Lunch':_(u'lunch'),'Evening':_(u'evening'),'Noon':_(u'noon'),
-                   'Midnight':_(u'midnight'),'Breakfast':_(u'breakfast'),'Now':_(u'now'),
-                   'Morning':_(u'morning'),'Dinner':_(u'dinner'),'Tonight':_(u'tonight'),
-                   'Night':_(u'night'),u'EOD':_(u'end of day')}
+    textMatches = {'Lunch':_(u'Lunch'),'Evening':_(u'Evening'),'Noon':_(u'Noon'),
+                   'Midnight':_(u'Midnight'),'Breakfast':_(u'Breakfast'),'Now':_(u'Now'),
+                   'Morning':_(u'Morning'),'Dinner':_(u'Dinner'),'Tonight':_(u'Tonight'),
+                   'Night':_(u'Night'),u'EOD':_(u'End of day')}
     
     @classmethod
     def parseTime(cls, target):
