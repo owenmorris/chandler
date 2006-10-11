@@ -23,6 +23,20 @@ __version__=  '0.2'
 import osaf.pim as pim
 from datetime import date
 import osaf.framework.scripting as scripting
+import sys
+
+class stderr_replacement(object):
+    def __init__(self, stderr, logger):
+        self.stderr = stderr 
+        self.logger = logger 
+    
+    def write(self, string):
+        self.logger.hadStderrOutput = True
+        self.logger.stderrOutput += string 
+        self.stderr.write(string)
+    
+    def flush(self):
+        self.stderr.flush()
 
 class ChandlerTestCase:
     """ChandlerTestCase class for testing chandler"""
@@ -59,6 +73,8 @@ class ChandlerTestCase:
         self.name = name
         self.scripting = scripting
         self.app_ns = scripting.app_ns()
+        
+        sys.stderr = stderr_replacement(sys.stderr, self.logger)
         
     def runTest(self):
         """

@@ -67,6 +67,8 @@ class TestOutput:
         self.inAction = False
         self.inTest = False
         self.inSuite = False
+        self.hadStderrOutput = False
+        self.stderrOutput = ''
         #print 'logName = %s:: debug level = %d :: mask level = %d ::  stdout = %s' % (logName, debug, mask, stdout)
         
         if stdout is True:
@@ -91,6 +93,12 @@ class TestOutput:
             self.f = file(self.logName, 'w')
         else:
             self.f = None
+            
+    def checkForStderrOutput(self):
+        if self.hadStderrOutput is True:
+            self.report(False, 'stderr output detected\n' + self.stderrOutput)
+            self.hadStderrOutput = False
+            self.stderrOutput = '' 
 
     def startSuite(self, name, comment=None):
         """Method to begin test Suite.
@@ -139,6 +147,7 @@ class TestOutput:
         """Method to end individual test class run.
         
         Encapsulates action list."""
+        self.checkForStderrOutput()               
         self.currentTest['endtime'] = datetime.now()
         self.currentTest['totaltime'] = self.currentTest['endtime'] - self.currentTest['starttime']
         self.currentTest['comment'] = '%s\n%s' % (self.currentTest['comment'], comment)
@@ -171,6 +180,7 @@ class TestOutput:
         if self.inAction is False:
             self.printOut("ENDACTION HAS BEEN CALLED OUTSIDE OF ACTION", level=1, result=False)
             return False
+        self.checkForStderrOutput()
         self.currentAction['endtime'] = datetime.now()
         self.currentAction['totaltime'] = self.currentAction['endtime'] - self.currentAction['starttime']
         self.report(result, comment)
