@@ -122,6 +122,18 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                      # outside our range, etc,
                      
         if useHints and self.HavePendingNewEvents():
+            removals = []
+            for i in self.visibleItems:
+                # clean up visibleItems, removing stale items and events that
+                # have become masters 
+                if (i.itsItem.isStale() or
+                    (i.occurrences is not None and len(i.occurrences) > 0)):
+                    self.visibleItems.remove(i)
+                    removals.append(i.itsItem)
+            for canvasItem in self.canvasItemList:
+                if canvasItem.item in removals:
+                    self.canvasItemList.remove(canvasItem)
+             
             addedEvents = self.GetPendingNewEvents(currentRange)
             
             defaultTzinfo = ICUtzinfo.default
@@ -170,7 +182,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                                              event, self)
                 
                 insertInSortedList(self.canvasItemList, canvasItem, 'event')
-
                 numAdded += 1
 
         else:
