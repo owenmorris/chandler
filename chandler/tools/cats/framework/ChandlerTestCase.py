@@ -26,14 +26,13 @@ import osaf.framework.scripting as scripting
 import sys
 
 class stderr_replacement(object):
-    def __init__(self, stderr, logger):
-        self.stderr = stderr 
+    def __init__(self,  logger):
         self.logger = logger 
     
     def write(self, string):
         self.logger.hadStderrOutput = True
         self.logger.stderrOutput += string 
-        self.stderr.write(string)
+        sys.__stderr__.write(string)
     
     def flush(self):
         self.stderr.flush()
@@ -74,7 +73,7 @@ class ChandlerTestCase:
         self.scripting = scripting
         self.app_ns = scripting.app_ns()
         
-        sys.stderr = stderr_replacement(sys.stderr, self.logger)
+        sys.stderr = stderr_replacement(self.logger)
         
     def runTest(self):
         """
