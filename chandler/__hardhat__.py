@@ -248,7 +248,7 @@ def _getPlatform():
             else:
                 platformName = 'Mac OS X (ppc)'
         elif sys.platform == 'cygwin':
-            platformName = 'Windows (Cygwin)'
+            platformName = 'Windows'
         else:
             platformName = 'Linux'
 
