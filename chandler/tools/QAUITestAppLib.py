@@ -95,10 +95,12 @@ def publishSubscribe(logger):
         else:
             klass = sidebar.filterClass
             filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
+        publishName = "TestSharing_%s" % str(collection.itsUUID)
         win = ShowPublishDialog(wx.GetApp().mainFrame, view=App_ns.itsView,
                                 collection=collection,
                                 filterClassName=filterClassName,
-                                modal=False)
+                                modal=False,
+                                name=publishName)
         #Share button call
         
         app = wx.GetApp()
@@ -112,6 +114,8 @@ def publishSubscribe(logger):
 
         if not win.success:        
             logger.ReportFailure("(On publish collection)")
+            win.OnCancel(None) # Close the window which should be showing a failure
+            return
         
         # Get a read-write ticket to the published collection
         # XXX This is ripped from PublishCollection
@@ -140,9 +144,10 @@ def publishSubscribe(logger):
         App_ns.root.Remove()
         scripting.User.idle()
 
-        # Subscribe to the remote collection
+        # Subscribe to the remote collection, forcing the subscribed name to
+        # be "testSharing" because it was given a random name when published above.
         win = SubscribeCollection.Show(wx.GetApp().mainFrame,
-            view=App_ns.itsView, modal=False)
+            view=App_ns.itsView, modal=False, name="testSharing")
         url = win.toolPanel.GetChildren()[1]
         url.SetFocus()
         url.Clear()

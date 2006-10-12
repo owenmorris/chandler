@@ -90,6 +90,7 @@ def publishSubscribe(testClass):
     App_ns.sidebarCollection.add(collection)
     scripting.User.idle()
 
+
     # Collection selection
     sidebar = App_ns.sidebar
     scripting.User.emulate_sidebarClick(sidebar, "testSharing")
@@ -102,10 +103,12 @@ def publishSubscribe(testClass):
         else:
             klass = sidebar.filterClass
             filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
+        publishName = "TestSharing_%s" % str(collection.itsUUID)
         win = ShowPublishDialog(wx.GetApp().mainFrame, view=App_ns.itsView,
                                 collection=collection,
                                 filterClassName=filterClassName,
-                                modal=False)
+                                modal=False,
+                                name=publishName)
         #Share button call
         
         app = wx.GetApp()
@@ -115,11 +118,14 @@ def publishSubscribe(testClass):
         win.PublishCollection()
         while not win.done:
             app.Yield()
+
+        if not win.success:
+            testClass.logger.endAction(False, "(On publish collection)")
+            win.OnCancel(None) # Close the window which should be showing a failure
+            return
+
         testClass.logger.endAction(True)
 
-        if not win.success:        
-            testClass.logger.endAction(False, "(On publish collection)")
-        
         # Get a read-write ticket to the published collection
         # XXX This is ripped from PublishCollection
         if win.publishType == 'freebusy':
@@ -147,9 +153,10 @@ def publishSubscribe(testClass):
         App_ns.root.Remove()
         scripting.User.idle()
 
-        # Subscribe to the remote collection
+        # Subscribe to the remote collection, forcing the subscribed name to
+        # be "testSharing" because it was given a random name when published above.
         win = SubscribeCollection.Show(wx.GetApp().mainFrame,
-            view=App_ns.itsView, modal=False)
+            view=App_ns.itsView, modal=False, name="testSharing")
         url = win.toolPanel.GetChildren()[1]
         url.SetFocus()
         url.Clear()

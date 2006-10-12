@@ -36,7 +36,8 @@ class PublishCollectionDialog(wx.Dialog):
     def __init__(self, parent, title, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
                  resources=None, view=None, collection=None,
-                 filterClassName=None, publishType='collection', modal=True):
+                 filterClassName=None, publishType='collection', modal=True,
+                 name=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
         self.resources = resources
@@ -45,6 +46,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.collection = collection    # The collection to share
         self.modal = modal
         self.publishType = publishType
+        self.name = name
 
         # List of classes to share
         if filterClassName is None:
@@ -453,6 +455,9 @@ class PublishCollectionDialog(wx.Dialog):
                 else:
                     displayName = self.collection.displayName
 
+                if self.name:
+                    displayName = self.name
+
                 shares = sharing.publish(collection, account,
                                          classesToInclude=classesToInclude,
                                          attrsToExclude=attrsToExclude,
@@ -644,7 +649,7 @@ type_to_xrc_map = {'collection' :
                    ('PublishFreeBusy.xrc', _(u"Publish Free/Busy Information"))}
 
 def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None,
-                      publishType = 'collection', modal=False):
+                      publishType = 'collection', modal=False, name=None):
     filename, title = type_to_xrc_map[publishType]
     xrcFile = os.path.join(Globals.chandlerDirectory,
                            'application', 'dialogs', filename)
@@ -655,7 +660,8 @@ def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None,
     win = PublishCollectionDialog(parent, title, resources=resources, view=view,
                                   collection=collection,
                                   publishType=publishType,
-                                  filterClassName=filterClassName, modal=modal)
+                                  filterClassName=filterClassName, modal=modal,
+                                  name=name)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()
