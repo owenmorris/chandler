@@ -318,7 +318,12 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
                 # become a modification, which means we should
                 # call getMaster() here and not earlier when
                 # calculating modifiedRecurringEvents.
-                masterOccurrences = event.getMaster().occurrences or []
+                master = event.getMaster()
+
+                # Ensure that there is at least one occurrence:
+                master.getFirstOccurrence()
+
+                masterOccurrences = master.occurrences or []
 
                 for occurrence in masterOccurrences:
                     rruleset = pim.EventStamp(occurrence).rruleset
@@ -3099,7 +3104,7 @@ class CloudXMLFormat(ImportExportFormat):
 
         if len(kinds) == 0:
             # we don't have any of the kinds provided
-            logger.info("No kinds found locally for %s" % classNameList)
+            logger.error("No kinds found locally for %s" % classNameList)
             return None
         elif len(kinds) == 1:
             kind = kinds[0]
