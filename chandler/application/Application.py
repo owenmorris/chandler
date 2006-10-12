@@ -365,6 +365,9 @@ class wxApplication (wx.App):
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
         self.ignoreIdle = False
+        
+        # Check the platform, will stop the program if not compatible
+        CheckPlatform()
 
         # Initialize PARCELPATH and sys.path
         parcelPath = Utility.initParcelEnv(Globals.chandlerDirectory,
@@ -1173,3 +1176,26 @@ class StartupSplash(wx.Frame):
         wx.Yield()
         time.sleep(.25) #give the user a chance to see the gauge reach 100%
         wx.Frame.Destroy(self)
+
+def CheckPlatform():
+    """
+    Check that the platforms you're running and the one the code has been compiled for match.
+    If they don't, the program stops with sys.exit().
+    """
+    from Utility import getPlatformName # This is the executing platform name
+    try:
+        from version import platform # This is the compiled platform name
+    except ImportError:
+        # If the platform is not specified in version.py, you're running a dev version from
+        # code. In that case, we suppose you know what you're doing so 
+        # the test will pass and you're on your own...
+        platform = getPlatformName()
+    if getPlatformName() != platform:
+        from application.dialogs import Util
+        # Prompt the user that we're going to exit
+        Util.ok(None, _(u'Chandler will exit'), _(u'This application has been compiled for another platform. Please download the correct package from OSAF website.'))
+        # Stop the program. Somewhat unclean but since nothing can be done safely
+        # or even should be done (could crash anytime), the best is to just exit when
+        # we still can...
+        sys.exit(0)
+    

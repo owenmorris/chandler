@@ -233,6 +233,27 @@ def _getSVNRevisionInfo(buildenv):
 
     return revision, trunk
 
+# The following function *must* output the same strings as Utility.getPlatformName()
+def _getPlatform():
+    import platform
+
+    platformName = 'Unknown'
+
+    if os.name == 'nt':
+        platformName = 'Windows'
+    elif os.name == 'posix':
+        if sys.platform == 'darwin':
+            if platform.machine() == 'i386':
+                platformName = 'Mac OS X (intel)'
+            else:
+                platformName = 'Mac OS X (ppc)'
+        elif sys.platform == 'cygwin':
+            platformName = 'Windows (Cygwin)'
+        else:
+            platformName = 'Linux'
+
+    return platformName
+
 
 def _getVersionInfo(buildenv):
     majorVersion    = '0'
@@ -311,9 +332,15 @@ def _getVersionInfo(buildenv):
             if key in data:
                 versionFile.write('%s = "%s"\n' % (key, data[key]))
 
+        versionFile.write('\nplatform = "%s"' % _getPlatform())
         versionFile.write('\nversion = "%s%s-r%s%s" % (release, build, revision, checkpoint)\n\n')
 
         versionFile.close()
+    else:
+        versionFile = open(versionFilename, 'a+')
+        versionFile.write('\nplatform = "%s"\n' % _getPlatform())
+        versionFile.close()
+
 
     if data['build'] == '':
         buildName = release
