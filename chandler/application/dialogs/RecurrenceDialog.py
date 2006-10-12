@@ -188,6 +188,14 @@ def getProxy(context, obj, createNew=True, endCallback=None):
             # We've already got a proxy for this item - we'll reuse it.
             proxy = _proxies[context][1]
             
+            # [Bug 7034]
+            # It's possible for proxiedItem to have gone stale; this
+            # happens sometimes in Tinderbox testing, where a collection
+            # is deleted and re-subscribed to (since Cloud XML sharing
+            # preserves UUIDs).
+            if proxy.proxiedItem.isStale():
+                proxy.proxiedItem = obj
+            
             # Before we return it, update its __class__ in case it was stamped
             # since the last time it got used. (see bug 4660)
             # @@@ [grant] unnecessary in the stamping-as-annotation world
