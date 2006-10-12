@@ -40,9 +40,10 @@ class FeedItemDetail(Detail.HTMLDetailArea):
         if item == item.itsView:
             return
         if item is not None:
-            displayName = item.getAttributeValue(
-                             "displayName", default=u"<" + messages.UNTITLED + u">")
-            
+            displayName = getattr(item, 'displayName', None)
+            if displayName is None:
+                displayname =u"<" + messages.UNTITLED + u">"
+                
             # make the html
             HTMLText = u"<html><body>\n\n"
             

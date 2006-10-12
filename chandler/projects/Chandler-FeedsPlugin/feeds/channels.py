@@ -69,7 +69,7 @@ class FeedUpdateTaskClass:
         # return true to keep the timer running
         return True
 
-def SetAttribute(self, data, attr, newattr=None):
+def setAttribute(self, data, attr, newattr=None):
     """
     This function sets a given attribute overriding the name with newattr.
     """
@@ -82,16 +82,16 @@ def SetAttribute(self, data, attr, newattr=None):
             value = type.makeValue(value)
         self.setAttributeValue(newattr, value)
 
-def SetAttributes(self, data, attributes):
+def setAttributes(self, data, attributes):
     """
     This function sets a group, which can be a dictionary or a list, of attributes.
     """
     if isinstance(attributes, dict):
         for attr, newattr in attributes.iteritems():
-            SetAttribute(self, data, attr, newattr=newattr)
+            setAttribute(self, data, attr, newattr=newattr)
     elif isinstance(attributes, list):
         for attr in attributes:
-            SetAttribute(self, data, attr)
+            setAttribute(self, data, attr)
 
 class ConditionalHTTPClientFactory(client.HTTPClientFactory):
     """
@@ -141,51 +141,20 @@ class FeedChannel(pim.ListCollection):
     #
     # FeedChannel repository interface
     #
-    link = schema.One(
-        schema.URL,
-    )
-    category = schema.One(
-        schema.Text,
-    )
-    author = schema.One(
-        schema.Text,
-    )
-    date = schema.One(
-        schema.DateTime,
-    )
-    url = schema.One(
-        schema.URL,
-    )
-    etag = schema.One(
-        schema.Text,
-    )
-    lastModified = schema.One(
-        schema.DateTime,
-    )
-    copyright = schema.One(
-        schema.Text,
-    )
-    language = schema.One(
-        schema.Text,
-    )
-    ignoreContentChanges = schema.One(
-        schema.Boolean,
-        initialValue=False
-    )
-    isEstablished = schema.One(
-        schema.Boolean,
-        initialValue=False
-    )
-    isPreviousUpdateSuccessful = schema.One(
-        schema.Boolean,
-        initialValue=True
-    )
-    logItem = schema.One(
-        initialValue=None
-    )
-    schema.addClouds(
-        sharing = schema.Cloud(author, copyright, link, url)
-    )
+    link = schema.One(schema.URL)
+    category = schema.One(schema.Text)
+    author = schema.One(schema.Text)
+    date = schema.One(schema.DateTime)
+    url = schema.One(schema.URL)
+    etag = schema.One(schema.Text)
+    lastModified = schema.One(schema.DateTime)
+    copyright = schema.One(schema.Text)
+    language = schema.One(schema.Text)
+    ignoreContentChanges = schema.One(schema.Boolean, initialValue=False)
+    isEstablished = schema.One(schema.Boolean, initialValue=False)
+    isPreviousUpdateSuccessful = schema.One(schema.Boolean, initialValue=True)
+    logItem = schema.One(initialValue=None)
+    schema.addClouds(sharing = schema.Cloud(author, copyright, link, url))
     who = schema.Descriptor(redirectTo="author")
     
     def __init__(self, *args, **kw):
@@ -325,11 +294,11 @@ class FeedChannel(pim.ListCollection):
         """
         # Map some external attribute names to internal attribute names:
         attrs = {"title":"displayName", "description":"body"}
-        SetAttributes(self, data["channel"], attrs)
+        setAttributes(self, data["channel"], attrs)
         
         # These attribute names don"t need remapping:
         attrs = ["link", "copyright", "category", "language"]
-        SetAttributes(self, data["channel"], attrs)
+        setAttributes(self, data["channel"], attrs)
         
         date = data["channel"].get("date")
         if date:
@@ -432,39 +401,22 @@ class FeedChannel(pim.ListCollection):
 class FeedItem(pim.ContentItem):
     """
     This class implements a feed channel item that is visualized
-    in the detail view.
+    in the summary and detail views.
     """
     #
     # FeedItem repository interface
     #
-    link = schema.One(
-        schema.URL,
-        initialValue=None
-    )
-    category = schema.One(
-        schema.Text,
-    )
-    author = schema.One(
-        schema.Text,
-    )
-    date = schema.One(
-        schema.DateTime,
-    )
-    channel = schema.One(
-        FeedChannel,
-    )
-    content = schema.One(
-        schema.Lob,
-    )
-    updated = schema.One(
-        schema.Boolean,
-    )
+    link = schema.One(schema.URL, initialValue=None)
+    category = schema.One(schema.Text)
+    author = schema.One(schema.Text)
+    date = schema.One(schema.DateTime)
+    channel = schema.One(FeedChannel)
+    content = schema.One(schema.Lob)
+    updated = schema.One(schema.Boolean)
     about = schema.Descriptor(redirectTo="displayName")
     who = schema.Descriptor(redirectTo="author")
     body = schema.Descriptor(redirectTo="content")
-    schema.addClouds(
-        sharing = schema.Cloud(link, category, author, date)
-    )
+    schema.addClouds(sharing = schema.Cloud(link, category, author, date))
 
     def __init__(self, *args, **kw):
         """
@@ -485,11 +437,11 @@ class FeedItem(pim.ContentItem):
         """
         # fill in the item
         attrs = {"title":"displayName"}
-        SetAttributes(self, data, attrs)
+        setAttributes(self, data, attrs)
 
         attrs = ["link", "category", "author"]
         # @@@MOR attrs = ["creator", "link", "category"]
-        SetAttributes(self, data, attrs)
+        setAttributes(self, data, attrs)
 
         content = data.get("content")
 
