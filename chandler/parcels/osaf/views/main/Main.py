@@ -1149,17 +1149,6 @@ class MainView(View):
         event.arguments['Enable'] = enable
         event.arguments ['Text'] = menuTitle
 
-    def addInOutCollections (self):
-        sidebarCollection = schema.ns('osaf.app', self).sidebarCollection
-        sidebarSelectionCollection = Block.findBlockByName("Sidebar").contents
-        assert (isinstance (sidebarSelectionCollection, IndexedSelectionCollection))
-        pim = schema.ns('osaf.pim', self)
-        for collection in [pim.outCollection, pim.inCollection]:
-            if collection not in sidebarCollection:
-                # Add the item and locate it in the sidebar collection
-                sidebarCollection.add (collection)
-                sidebarSelectionCollection.moveItemToLocation (collection, 1)
-
     def onSyncAllEvent (self, event):
         """
         Synchronize Mail and all sharing.
@@ -1202,7 +1191,6 @@ class MainView(View):
         if inboundMailReady:
             self.setStatusMessage (_(u"Getting new Mail"))
             self.onGetNewMailEvent (event)
-            self.addInOutCollections()
 
     def onSyncWebDAVEvent (self, event):
         """

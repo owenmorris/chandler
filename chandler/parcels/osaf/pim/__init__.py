@@ -272,7 +272,7 @@ def installParcel(parcel, oldVersion=None):
         displayName=_(u"In"),
         source=inSource,
         trash=trashCollection,
-        visible=False)
+        visible=True)
 
     mine.addSource(inCollection)
 
@@ -285,7 +285,7 @@ def installParcel(parcel, oldVersion=None):
     # The "Out" collection
     outCollection = SmartCollection.update(parcel, 'outCollection',
         displayName=_(u"Out"),
-        visible=False,
+        visible=True,
         source=outSource,
         trash=trashCollection,
     )

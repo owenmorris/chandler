@@ -950,8 +950,6 @@ class AccountPreferencesDialog(wx.Dialog):
         if self.__Validate():
             self.__ApplyChanges()
             self.__ApplyDeletions()
-            if sharing.isInboundMailSetUp (self.rv):
-                Block.findBlockByName("MainView").addInOutCollections()
             if self.modal:
                 self.EndModal(True)
             self.rv.commit()
