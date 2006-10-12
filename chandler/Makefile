@@ -244,7 +244,7 @@ install-plugin-core: setuptools chandler-locale-data
 
 install: install-core install-plugin-core build-plugins
 
-distrib: install-core distrib-plugins
+distrib: install-core install-plugin-core distrib-plugins
 
 download: $(ARCHIVES) $(SETUPTOOLS_EGG)
 
