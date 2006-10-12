@@ -225,6 +225,8 @@ class Indexed(object):
                 newIndex = True
             else:
                 newIndex = False
+
+            removals = []
             moves = []
 
             for key, value in _indexChanges.iteritems():
@@ -239,8 +241,9 @@ class Indexed(object):
                     else:
                         moves.append(key)
                 elif key in index:
-                    index.removeKey(key)
-            
+                    removals.append(key)
+
+            index.removeKeys(removals)
             index.moveKeys(moves, None, True)
 
         self._setDirty(True)

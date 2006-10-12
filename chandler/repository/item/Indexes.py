@@ -313,6 +313,16 @@ class NumericIndex(Index):
 
         return False
 
+    def removeKeys(self, keys):
+
+        result = False
+
+        for key in keys:
+            if self.removeKey(key):
+                result = True
+
+        return result
+
     def clear(self):
 
         key = self.getFirstKey()
@@ -397,21 +407,6 @@ class SortedIndex(DelegatingIndex):
         index = self._index
         index.insertKey(key, index.skipList.after(key, self.compare))
 
-    def removeKey(self, key):
-
-        if self._index.removeKey(key):
-            if self._subIndexes:
-                view = self._valueMap._getView()
-                for uuid, attr, name in self._subIndexes:
-                    indexed = getattr(view[uuid], attr)
-                    index = indexed.getIndex(name)
-                    if index.removeKey(key):
-                        indexed._setDirty(True)
-
-            return True
-
-        return False
-
     def moveKey(self, key, ignore=None, insertMissing=False):
 
         index = self._index
@@ -449,6 +444,24 @@ class SortedIndex(DelegatingIndex):
                 if subKeys:
                     index.moveKeys(subKeys, ignore)
                     indexed._setDirty(True)
+
+    # Used during merging.
+    # Not notifications safe, removes the keys from sub indexes too.
+
+    def removeKeys(self, keys):
+
+        if self._index.removeKeys(keys):
+            if self._subIndexes:
+                view = self._valueMap._getView()
+                for uuid, attr, name in self._subIndexes:
+                    indexed = getattr(view[uuid], attr)
+                    index = indexed.getIndex(name)
+                    if index.removeKeys(keys):
+                        indexed._setDirty(True)
+
+            return True
+
+        return False
 
     def setDescending(self, descending=True):
 
