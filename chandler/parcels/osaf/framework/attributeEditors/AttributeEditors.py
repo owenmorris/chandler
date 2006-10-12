@@ -46,8 +46,10 @@ from i18n import ChandlerMessageFactory as _
 from osaf import messages
 
 import parsedatetime.parsedatetime as parsedatetime
+import parsedatetime.parsedatetime_consts as ptc
 from datetime import date
 import PyICU
+from i18n import getLocaleSet
 
 logger = logging.getLogger(__name__)
 
@@ -1775,7 +1777,7 @@ class DateAttributeEditor (StringAttributeEditor):
                     matchKey = cls.textMatches[matchKey]+ " : %s" % dateStr
                     yield matchKey
             else:
-                cal = parsedatetime.Calendar()
+                cal = parsedatetime.Calendar(ptc.Constants(str(getLocaleSet()[0])))
                 (dateVar, invalidFlag) = cal.parse(target)
                 if dateVar is not None and invalidFlag is False:
                     # temporary fix: parsedatetime sometimes returns day == 0
