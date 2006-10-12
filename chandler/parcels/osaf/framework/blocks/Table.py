@@ -172,15 +172,12 @@ class wxTable(DragAndDrop.DraggableWidget,
     def OnLabelLeftClicked (self, event):
         assert (event.GetRow() == -1) # Currently Table only supports column headers
         blockItem = self.blockItem
-        column = self.blockItem.columns[event.GetCol()]
-        
-        # @@@ Work around bug 6639, by preventing sorting on the stamping columns for now.
-        if column.valueType != 'kind':
-            indexName = column.attributeName
-            sameColumn = self.blockItem.contents.indexName == indexName
-            self.blockItem.contents.setCollectionIndex(indexName,
-                 toggleDescending=sameColumn, attributes=column.indexAttributes)
-            self.wxSynchronizeWidget()
+        column = blockItem.columns[event.GetCol()]
+        indexName = column.indexName
+        sameColumn = blockItem.contents.indexName == indexName
+        blockItem.contents.setCollectionIndex(indexName,
+             toggleDescending=sameColumn)
+        self.wxSynchronizeWidget()
 
     def OnKeyDown(self, event):
 
@@ -443,16 +440,16 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         # Update column widths and sortedness
         indexName = self.blockItem.contents.indexName
-        for index, column in enumerate(self.blockItem.columns):
-            self.SetColSize (index, column.width)
-            self.ScaleColumn (index, column.scaleColumn)
+        for i, column in enumerate(self.blockItem.columns):
+            self.SetColSize (i, column.width)
+            self.ScaleColumn (i, column.scaleColumn)
+            columnIndexName = getattr(column, 'indexName', '__adhoc__')
             if indexName == '__adhoc__' and column.defaultSort:
-                indexName = column.attributeName
-                self.blockItem.contents.setCollectionIndex(indexName,
-                    attributes=column.indexAttributes)
-            if column.attributeName == indexName:
+                indexName = columnIndexName
+                self.blockItem.contents.setCollectionIndex(indexName)
+            if columnIndexName == indexName:
                 self.SetUseColSortArrows(column.useSortArrows)
-                self.SetSelectedCol(index)
+                self.SetSelectedCol(i)
 
         self.ScaleWidthToFit (self.blockItem.scaleWidthsToFit)
 

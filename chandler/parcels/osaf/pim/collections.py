@@ -26,6 +26,54 @@ from repository.item.Collection import Collection
 from osaf.pim.items import ContentItem
 
 
+class AllIndexDefinitions(schema.Item):
+    """ 
+    Singleton item that hosts a reflist of all L{IndexDefinition}s
+    in existance: L{IndexDefinition}'s constructor adds each new instance
+    to us to assure this.
+    """
+    indexDefinitions = schema.Sequence(otherName="mappingCollection", initialValue=[])
+    
+class IndexDefinition(schema.Item):
+    """
+    A definition of an index.
+    @@@ For now, they're all attribute indexes, with a sequence of 
+        attribute names. This will be more complex in alpha5: I'll add the 
+        ability to declare a subindex based on a master index of another 
+        collection.
+    """
+    attributes = schema.Sequence(schema.Text)
+    
+    mappingCollection = schema.One(otherName="indexDefinitions")
+
+    def __init__(self, *args, **kwds):
+        """ 
+        When we construct an L{IndexDefinition}, we need to make sure
+        it gets added to the L{IndexDefinitionCollection} that tracks
+        them.
+        """
+        super(IndexDefinition, self).__init__(*args, **kwds)
+
+        allDefs = schema.ns("osaf.pim", self.itsView).allIndexDefinitions
+        allDefs.indexDefinitions.append(self, alias=self.itsName) 
+
+    @classmethod
+    def makeIndexByName(cls, collection, indexName):
+        """
+        Find the IndexDefintion with this name and use it to create an index
+        on this collection
+        """
+        allDefs = schema.ns("osaf.pim", collection.itsView).allIndexDefinitions
+        key = allDefs.indexDefinitions.resolveAlias(indexName)
+        indexDef = allDefs.indexDefinitions[key]
+        indexDef.makeIndex(collection)
+    
+    def makeIndex(self, collection):
+        """ Create this index on this collection. """
+        collection.addIndex(self.itsName, 'attribute', 
+                            attributes=self.attributes)
+
+
 class ContentCollection(ContentItem, Collection):
     """
     The base class for Chandler Collection types.
@@ -633,7 +681,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
     selection and visibility attribute to another source collection.
     """
 
-    indexName = schema.One(schema.Symbol, initialValue="__adhoc__")
+    indexName = schema.One(schema.Importable, initialValue="__adhoc__")
 
     def _sourcesChanged_(self):
         
@@ -654,15 +702,13 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
         setattr(self, self.__collection__, set)
         return set
 
-    def getCollectionIndex(self, indexName=None, attributes=None):
+    def getCollectionIndex(self, indexName=None):
         """
-        Get the index. If it doesn't exist, create. Also create a RangeSet
-        for storing the selection on the index
-
-        If the C{indexName} attribute of this collection is set to
-        "__adhoc__" then a numeric index will be created.  Otherwise
-        the C{indexName} attribute should contain the name of the
-        attribute (of an item) to be indexed.
+        Get the index. If it doesn't exist (and C{indexName} isn't "__adhoc__"), 
+        look up its IndexDefinition and create it. (If it is "__adhoc__",
+        create a numeric index under that name.)
+        
+        Also, create a RangeSet for storing the selection on the index.
         """
         if indexName is None:
             indexName = self.indexName
@@ -671,14 +717,11 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
             if indexName == "__adhoc__":
                 self.addIndex(indexName, 'numeric')
             else:
-                # for 0.7alpha2, hardcode 'date' as a secondary sort
-                # for any query
-                attributes = attributes or (indexName, 'date')
-                self.addIndex(indexName, 'attribute', attributes=attributes)
+                IndexDefinition.makeIndexByName(self, indexName)
             self.setRanges(indexName, [])
         return self.getIndex(indexName)
 
-    def setCollectionIndex(self, newIndexName, toggleDescending=False, attributes=None):
+    def setCollectionIndex(self, newIndexName, toggleDescending=False):
         """
         Switches to a different index, bringing over the selection to
         the new index.
@@ -690,10 +733,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
 
         # assuming that we'll have to redo selection when sort is reversed?
         currentIndexName = self.indexName
-
-        newIndex = self.getCollectionIndex(newIndexName, attributes)
-
-
+        newIndex = self.getCollectionIndex(newIndexName)
         if currentIndexName != newIndexName:
             # new index - bring over the items one by one
             self.setRanges(newIndexName, [])

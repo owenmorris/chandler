@@ -117,6 +117,10 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(self.nh is not None) 
         self.failUnless(self.nh1 is not None)
         self.failUnless(self.nh2 is not None)
+        
+        IndexDefinition(itsView=self.view, itsName='label',
+                        attributes=['label'])
+        
 
     def testUnion(self):
         """

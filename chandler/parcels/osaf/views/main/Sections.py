@@ -52,6 +52,9 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         # total rows in the table
         self.totalRows = 0
 
+        # The attribute we're sectioning on
+        self.attributeName = None
+
         self.previousIndex = self.blockItem.contents.indexName
         
     def SynchronizeDelegate(self):
@@ -76,6 +79,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         self.sectionIndexes = []
         self.sectionColors = []
         self.totalRows = len(self.blockItem.contents)
+        self.attributeName = None
         
         dashboardPrefs = schema.ns('osaf.views.main',
                                    self.blockItem.itsView).dashboardPrefs
@@ -84,13 +88,14 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         
         indexName = self.blockItem.contents.indexName        
         # @@@ For 0.7alpha4, we only section on triage status
-        #if indexName in (None, '__adhoc__'): 
-        if indexName != 'triageStatus': 
+        if indexName != 'osaf.views.main.summaryblocks.triageStatus': 
             return
-
+        currentCol = [ c for c in self.blockItem.columns if c.indexName == indexName ][0]
+        self.attributeName = currentCol.attributeName
+        
         # Get the divisions
         self.sectionIndexes = get_divisions(self.blockItem.contents,
-                                            key=lambda x: getattr(x, indexName))
+            key=lambda x: getattr(x, self.attributeName))
 
         # don't show section headers unless we have at least one section
         if len(self.sectionIndexes) == 0:
@@ -125,8 +130,9 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
             # Get the color name we'll use for this section
             # For now, it's just the attribute value.
-            sectionValue = getattr(self.blockItem.contents[self.sectionIndexes[section]], 
-                                   indexName, None)
+            sectionValue = getattr(
+                self.blockItem.contents[self.sectionIndexes[section]], 
+                self.attributeName, None)
             self.sectionColors.append(sectionValue)
             
             # Get the label we'll use for this section
@@ -180,7 +186,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             # SectionAttributeEditor.Draw, below.
             for (section, (sectionRow, visible, itemCount)) in enumerate(self.sectionRows):
                 if row == sectionRow:
-                    return (self.blockItem.contents.indexName,
+                    return (self.attributeName,
                             self.sectionLabels[section],
                             itemCount,
                             self.sectionColors[section],

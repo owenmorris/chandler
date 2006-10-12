@@ -33,6 +33,47 @@ def makeSummaryBlocks(parcel):
     blocks = schema.ns('osaf.framework.blocks', view)
     repositoryView = parcel.itsView
     
+    # Index definitions that the dashboard will use
+    taskStatusIndexDef = pim.IndexDefinition.update(parcel, 
+        '%s.taskStatus' % __name__, attributes=[
+            # pim.TaskStamp.taskStatus.name, 
+            pim.ContentItem.triageStatus.name, 
+            pim.ContentItem.triageStatusChanged.name,
+        ])
+    commStatusIndexDef = pim.IndexDefinition.update(parcel, 
+        '%s.communicationStatus' % __name__, attributes=[
+            # pim.mail.MailStamp.communicationStatus.name, 
+            pim.ContentItem.triageStatus.name, 
+            pim.ContentItem.triageStatusChanged.name,
+        ])
+    whoIndexDef = pim.IndexDefinition.update(parcel, 
+        'who', attributes=[
+            'who', 
+            pim.ContentItem.relevantDate.name,
+        ])
+    aboutIndexDef = pim.IndexDefinition.update(parcel, 
+        'about', attributes=[
+            'about', 
+            pim.ContentItem.relevantDate.name,
+        ])
+    calStatusIndexDef = pim.IndexDefinition.update(parcel, 
+        '%s.calendarStatus' % __name__, attributes=[
+            # pim.EventStamp.calendarStatus.name, 
+            pim.ContentItem.triageStatus.name, 
+            pim.ContentItem.triageStatusChanged.name,
+        ])
+    dateIndexDef = pim.IndexDefinition.update(parcel, 
+        '%s.relevantDate' % __name__, attributes=[
+            pim.ContentItem.relevantDate.name, 
+            pim.ContentItem.triageStatus.name, 
+            pim.ContentItem.triageStatusChanged.name,
+        ])
+    triageStatusIndexDef = pim.IndexDefinition.update(parcel, 
+        '%s.triageStatus' % __name__, attributes=[
+            pim.ContentItem.triageStatus.name, 
+            pim.ContentItem.triageStatusChanged.name,
+        ])
+        
     # Our detail views share the same delegate instance and contents collection
     detailBranchPointDelegate = detailblocks.DetailBranchPointDelegate.update(
         parcel, 'DetailBranchPointDelegateInstance',
@@ -55,6 +96,7 @@ def makeSummaryBlocks(parcel):
                                   valueType = 'stamp',
                                   stamp = pim.TaskStamp,
                                   attributeName = 'taskStatus',
+                                  indexName = taskStatusIndexDef.itsName,
                                   width = iconColumnWidth,
                                   useSortArrows = False,
                                   readOnly = True),
@@ -63,24 +105,28 @@ def makeSummaryBlocks(parcel):
                                   valueType = 'stamp',
                                   stamp = pim.mail.MailStamp,
                                   attributeName = 'communicationStatus',
+                                  indexName = commStatusIndexDef.itsName,
                                   width = iconColumnWidth,
                                   useSortArrows = False,
                                   readOnly = True),
                     Column.update(parcel, 'SumColWho',
                                   heading = _(u'Who'),
                                   attributeName = 'who',
+                                  indexName = whoIndexDef.itsName,
                                   width = 100,
                                   scaleColumn = True,
                                   readOnly = True),
                     Column.update(parcel, 'SumColAbout',
                                   heading = _(u'Title'),
                                   attributeName = 'about',
+                                  indexName = aboutIndexDef.itsName,
                                   width = 120,
                                   scaleColumn = True),
                     Column.update(parcel, 'SumColCalendarEvent',
                                   icon = 'ColHEvent',
                                   valueType = 'stamp',
                                   attributeName = 'calendarStatus',
+                                  indexName = calStatusIndexDef.itsName,
                                   stamp = pim.EventStamp,
                                   useSortArrows = False,
                                   width = iconColumnWidth,
@@ -89,18 +135,14 @@ def makeSummaryBlocks(parcel):
                                   heading = _(u'Date'),
                                   attributeName = 'relevantDate',
                                   attributeSourceName = 'relevantDateSource',
-                                  indexAttributes = ['relevantDate',
-                                                     'triageStatus',
-                                                     'triageStatusChanged'],
+                                  indexName = dateIndexDef.itsName,
                                   width = 100,
                                   scaleColumn = True,
                                   readOnly = True),
                     Column.update(parcel, 'SumColTriage',
                                   icon = 'ColHTriageStatus',
                                   attributeName = 'triageStatus',
-                                  indexAttributes = ['triageStatus',
-                                                     'triageStatusChanged'],
-                                  useSortArrows = False,
+                                  indexName = triageStatusIndexDef.itsName,                                  useSortArrows = False,
                                   defaultSort = True,
                                   width = 40),
                 ],

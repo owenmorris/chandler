@@ -24,7 +24,7 @@ from items import (
 from collections import KindCollection, ContentCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \
      FilteredCollection, ListCollection, SmartCollection, AppCollection, \
-     IndexedSelectionCollection
+     IndexedSelectionCollection, AllIndexDefinitions, IndexDefinition
 from stamping import Stamp, has_stamp
 from notes import Note
 from contacts import Contact, ContactName
@@ -93,6 +93,9 @@ class UTCEventFilter(Item):
 def installParcel(parcel, oldVersion=None):
     view = parcel.itsView
 
+    # Create our one collection of indexDefinition mappings; when each gets
+    # created, its __init__ will add it to this collection automagically.
+    AllIndexDefinitions.update(parcel, "allIndexDefinitions")
 
     Reference.update(parcel, 'currentContact')
     Reference.update(parcel, 'currentMailAccount')

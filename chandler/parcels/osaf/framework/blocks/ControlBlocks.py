@@ -303,9 +303,10 @@ class Column(schema.Item):
                                      doc="The origin of the value used for "
                                      "this attribute in this row.")
     
-    indexAttributes = schema.Sequence(schema.Importable, defaultValue=None,
-                                      doc="A list of attributes to index on")
-    
+    indexName = schema.One(schema.Importable, defaultValue="__adhoc__",
+                           doc="The name of the IndexDefinition we'll use to "
+                           "order this column")
+
     icon = schema.One(schema.Text, 
                       doc="An optional name of an image to "
                       "display instead of a label")
