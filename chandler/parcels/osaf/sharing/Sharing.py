@@ -1086,14 +1086,15 @@ class ShareConduit(pim.ContentItem):
                         # remove it locally if it matches the current share
                         # filter.
 
-                        if not filterClasses or isinstance(item, filterClasses):
+                        if (not filterClasses or
+                            self._matchesFilterClasses(item, filterClasses)):
 
                             SharingNotification(itsView=contentView,
                                 displayName="Removed item from collection")
                             logger.info("...removing %s from collection" % item)
                             if item in cvSelf.share.contents:
                                 cvSelf.share.contents.remove(item)
-                            if item in self.share.items:
+                            if item in cvSelf.share.items:
                                 cvSelf.share.items.remove(item)
                             stats['removed'].append(item.itsUUID)
                             if updateCallback and updateCallback(
