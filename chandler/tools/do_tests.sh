@@ -137,6 +137,12 @@ if [ "$MODE_VALUE" == "debug" ]; then
         exit 1
     fi
     MODES="debug"
+    # If we are running just debug (or just release), make sure we run Python
+    # without -O (optimize) option. We rely on the release/RunChandler script
+    # adding -O automatically if OPTIMIZE is unset. Notice that for this to 
+    # work correctly on all platforms the \<space> syntax for setting the 
+    # environment variable is required.
+    export OPTIMIZE=\ 
     echo Running debug mode only | tee -a $DOTESTSLOG
 fi
 if [ "$MODE_VALUE" == "release" ]; then
@@ -145,6 +151,7 @@ if [ "$MODE_VALUE" == "release" ]; then
         exit 1
     fi
     MODES="release"
+    export OPTIMIZE=\ 
     echo Running release mode only | tee -a $DOTESTSLOG
 fi
 
@@ -165,6 +172,9 @@ if [ "$MODES" == "" ]; then
     if [ "$MODES" == " " ]; then
         echo Both debug and release directories are missing, cannot run.
         exit 1
+    fi
+    if [ "$MODES" != "debug release" ]; then
+        export OPTIMIZE=\     
     fi
 fi
 
@@ -338,6 +348,7 @@ else
       # and create a list of all valid tests
 
     if [ "$RUN_PERFORMANCE" = "yes" ]; then
+        export OPTIMIZE=-O
         echo Running performance tests | tee -a $DOTESTSLOG
 
         TESTS=`find $C_DIR/tools/QATestScripts/Performance -name 'Perf*.py' -print`
