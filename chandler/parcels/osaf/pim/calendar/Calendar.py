@@ -1497,16 +1497,19 @@ class EventStamp(Stamp):
 
         if disabledSelf: self.__enableRecurrenceChanges()
 
-    def moveCollections(self, fromItem, toItem):
-        """Move all collection references from one item to another."""
+    def moveCollections(self, fromEvent, toEvent):
+        """Move all collection references from one event to another."""
+        fromItem = fromEvent.itsItem.getMembershipItem()
+        toItem = fromEvent.itsItem.getMembershipItem()
+
         for collection in getattr(fromItem, 'collections', []):
             collection.add(toItem)
             collection.remove(fromItem)
 
     def copyCollections(self, fromEvent, toEvent):
         """Copy all collection references from one item to another."""
-        fromItem = EventStamp(fromEvent).itsItem
-        toItem = EventStamp(toEvent).itsItem
+        fromItem = EventStamp(fromEvent).itsItem.getMembershipItem()
+        toItem = EventStamp(toEvent).itsItem.getMembershipItem()
         
         for collection in getattr(fromItem, 'collections', []):
             collection.add(toItem)
