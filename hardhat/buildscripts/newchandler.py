@@ -269,8 +269,10 @@ def doFunctionalTests(releaseMode, workingDir, log):
 
     if buildenv['os'] == 'win':
         runChandler = 'RunChandler.bat'
+        profileDir  = '`cygpath -aw %s`' % logDir
     else:
         runChandler = 'RunChandler'
+        profileDir  = logDir
 
     if releaseMode == 'debug':
         runChandler = os.path.join(chandlerDir, 'debug', runChandler)
@@ -291,7 +293,7 @@ def doFunctionalTests(releaseMode, workingDir, log):
 
         args = [runChandler,
                 '--create', '--nocatch',
-                '--profileDir=%s' % logDir,
+                '--profileDir=%s' % profileDir,
                 '--parcelPath=tools/QATestScripts/DataFiles',
                 '--scriptTimeout=600', 
                 '--scriptFile=tools/cats/Functional/FunctionalTestSuite.py',
@@ -352,6 +354,11 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
         python = buildenv['python']
         pythonOpts = '-O'
 
+    if buildenv['os'] == 'win':
+        profileDir  = '`cygpath -aw %s`' % logDir
+    else:
+        profileDir  = logDir
+
     os.chdir(chandlerDir)
 
     result = 'success'
@@ -360,7 +367,7 @@ def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion,
 
     for testFile in testFiles:
         args = [python, pythonOpts, os.path.join(chandlerDir, 'Chandler.py'),
-                '--create', '--profileDir=%s' % logDir, '--scriptFile=%s' % testFile]
+                '--create', '--profileDir=%s' % profileDir, '--scriptFile=%s' % testFile]
 
         try:
             try:
