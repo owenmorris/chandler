@@ -1,51 +1,51 @@
 EggTranslations Overview
 ===============================
-The EggTranslations is a flexible object oriented resource 
+The EggTranslations is a flexible object oriented resource
 loader that can be used for many purposes. It supports localization
- of resources and loading of gettext .mo files.
+of resources and loading of gettext .mo files.
 
-However, The EggTranslations can be used for other 
-purposes other than localization.  Its simple API can be leveraged 
+However, The EggTranslations can be used for other
+purposes other than localization.  Its simple API can be leveraged
 by egg developers for basic resource loading.
 
 Each EggTranslations instance can customize the locale set
- it supports, the name of the resource ini file to parse, and 
-whether to employ locale set fallback for localization and 
-resource look up. 
+it supports, the name of the resource ini file to parse, and
+whether to employ locale set fallback for localization and
+resource look up.
 
 
 
 Egg Translations package distribution
 =======================================
-Eggs wishing to leverage the EggTranslations must include it 
-as a dependency in their setup.py python installation scripts. 
+Eggs wishing to leverage the EggTranslations must include it
+as a dependency in their setup.py python installation scripts.
 
 An egg can contain any of the following resources,
-localization gettext .mo files, Python code. It is recommended 
-that localizations be distributed as stand alone eggs separate 
-from application implementation logic. 
+localization gettext .mo files, Python code. It is recommended
+that localizations be distributed as stand alone eggs separate
+from application implementation logic.
 
 
 The Resource Ini File:
 ==========================
-The resource ini file is created an egg's .egg-info directory. 
-All resources and gettext .mo files referenced in the 
+The resource ini file is created an egg's .egg-info directory.
+All resources and gettext .mo files referenced in the
 resource ini must be under the egg's .egg-info directory.
 
-The default name for a resource ini file is "resource.info".
+The default name for a resource ini file is "resources.ini".
 
-The structure of the resource ini file is quite simple. 
-First lets address the concept of 'all'. This is the default 
-fallback and contains non-localized information. 
+The structure of the resource ini file is quite simple.
+First lets address the concept of 'all'. This is the default
+fallback and contains non-localized information.
 
-An 'all' default is not require but is useful for placing 
+An 'all' default is not require but is useful for placing
 information which is localization agnostic.
 
-When fallback is set to True in an EggTranslations instance 
+When fallback is set to True in an EggTranslations instance
 the 'all' default will be the last place search for resources and
 values after the locale set has been searched.
 
-Also passing a locale='all' to any of the EggTranslations API's 
+Also passing a locale='all' to any of the EggTranslations API's
 that support locale setting will result in instant access to
 information in 'all'.
 
@@ -56,43 +56,44 @@ Example:
 
 A resource ini file can define one or more egg Projects and for
 each Project one or more locales that can contain any number of
- key value entries. 
+key value entries.
 
-The really cool feature of the resource format is one can 
-include values for another egg Project. 
+The really cool feature of the resource format is one can
+include values for another egg Project.
 
 This allows one egg to package translations for another!
 
-For example, I have a RSS Reader egg that contains an 
-RSS retriever API and a wxPython UI to display the RSS feeds. 
+For example, I have a RSS Reader egg that contains an
+RSS retriever API and a wxPython UI to display the RSS feeds.
 
-That RSS Reader includes a resource ini file that points to some 
-non-localized resources.  The RSS Reader uses EggTranslations 
-for its string and resource retrieval via the EggTranslations.getText and EggTranslations.getResourceAsStream methods. 
+That RSS Reader includes a resource ini file that points to some
+non-localized resources.  The RSS Reader uses EggTranslations
+for its string and resource retrieval via the EggTranslations.getText
+and EggTranslations.getResourceAsStream methods.
 
 A translator can then create an additional egg which defines
 resources and localizations for the RSS Reader project.
-This egg does not need to contain any Python program logic what 
+This egg does not need to contain any Python program logic what
 so ever. The French translation egg would specify the
-RSS Reader egg as a dependency. 
+RSS Reader egg as a dependency.
 
-Installing the French egg and setting the locale to French 
-will instantly result in the RSS Reader being localized 
-without any addition work done by the original RSS Reader developer. 
+Installing the French egg and setting the locale to French
+will instantly result in the RSS Reader being localized
+without any addition work done by the original RSS Reader developer.
 
 Pretty cool huh?
- 
+
 
 Comments
 -------------
-Comments can be inserted in an resource ini file at the start 
-of a line signaling  that the EggTranslations is not to parse the 
-line. Comments can also be added at the end of a line. 
-In this case, the line will be parsed by the EggTranslations till 
+Comments can be inserted in an resource ini file at the start
+of a line signaling  that the EggTranslations is not to parse the
+line. Comments can also be added at the end of a line.
+In this case, the line will be parsed by the EggTranslations till
 the comments are reached.
 
-The comments at the end of the line will be ignored. To insert a 
-comment use the # token. 
+The comments at the end of the line will be ignored. To insert a
+comment use the # token.
 
 Examples:
 ============
@@ -102,8 +103,8 @@ entry = value #this comment will not be parsed
 Projects
 -----------
 Projects are defined using a [EGG_PROJECT_NAME::LOCAL_SET] syntax.
-Each egg project definition must include at least one locale or 
-'all' bucket. 
+Each egg project definition must include at least one locale or
+'all' bucket.
 
 Example:
 ==============
@@ -117,7 +118,7 @@ Example:
 [myEggProject::fr_CA, fr, en_US]
 entry=value
 
-If more than one locale is specified the same key value pairs 
+If more than one locale is specified the same key value pairs
 will be used for each locale.
 
 
@@ -132,14 +133,14 @@ The value in a key value pair under a project and locale(s) can be:
 
     3. A directory path under the egg's .egg-info directory.
 
-    4. A file path under the egg's .egg-indo directory 
+    4. A file path under the egg's .egg-indo directory
        to a gettext .mo translation file
- 
+
 
 An Example resource ini file
 ------------------------------------
 
-# This is an example comment in a resource 
+# This is an example comment in a resource
 # ini file
 
 [myEggProject::all]
@@ -150,34 +151,34 @@ default.image = resource/default.png  #This is the default image my
                                       #users will see.
 default.directory = resource
 
-[myEggProject::fr_CA, fr_FR, fr] #All of these locales will 
+[myEggProject::fr_CA, fr_FR, fr] #All of these locales will
                                  #use the entries defined below
-welcome.message = Bonjour 
+welcome.message = Bonjour
 default.image = locale/fr/resources/default.png
 
 ###
-# This gettext catalog 
+# This gettext catalog
 # will automatically get
-# loaded if the EggTranslations 
-# locale set contains one or more or the 
+# loaded if the EggTranslations
+# locale set contains one or more or the
 # following 'fr_CA', 'fr_FR', 'fr'
 ###
 
-gettext.catalog = locale/fr/myproject.mo 
+gettext.catalog = locale/fr/myproject.mo
 default.directory locale/fr/resources
 
 [myEggProject::es_UY, es]
-welcome.message = Hola 
+welcome.message = Hola
 default.image = locale/es/resources/default.png
 
 ###
 # This gettext catalog will automatically get
-# loaded if the EggTranslations 
-# locale set contains one or more or the 
+# loaded if the EggTranslations
+# locale set contains one or more or the
 # following 'es_UY', 'es'
 ###
 
-gettext.catalog = locale/es/myproject.mo 
+gettext.catalog = locale/es/myproject.mo
 
 default.directory = locale/es/resources
 
