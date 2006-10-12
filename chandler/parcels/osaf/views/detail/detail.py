@@ -423,9 +423,12 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
         item = self.item
         if item is not None:
             stampClass = self.stampClass
-            stamped = pim.has_stamp(item, stampClass)
-            self.widget.SetState("%s.%s" % (self.icon,
-                                 stamped and "Stamped" or "Unstamped"))
+            if isinstance(item, stampClass.targetType()):
+                stamped = pim.has_stamp(item, stampClass)
+                self.widget.SetState("%s.%s" % (self.icon,
+                                     stamped and "Stamped" or "Unstamped"))
+            else:
+                self.widget.SetState("%s.%s" % (self.icon, "Unstamped"))
 
     def onButtonPressedEvent(self, event):
         # Add or remove the associated Stamp type

@@ -2581,11 +2581,12 @@ class StampAttributeEditor(IconAttributeEditor):
         isStamped = pim.has_stamp(item, self.stampClass)
         if isStamped != (value == self._getStateName(True)):
             # Stamp or unstamp the item
-            stampedObject = self.stampClass(item)
-            if isStamped:
-                stampedObject.remove()
-            else:
-                stampedObject.add()
+            if isinstance(item, self.stampClass.targetType()):
+                stampedObject = self.stampClass(item)
+                if isStamped:
+                    stampedObject.remove()
+                else:
+                    stampedObject.add()
 
     def advanceState(self, item, attributeName):
         isStamped = pim.has_stamp(item, self.stampClass)
