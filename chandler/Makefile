@@ -2,7 +2,7 @@
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/ or internal/
 
-.PHONY: default install-core install distrib clean downloads build-plugins
+.PHONY: default install-core install distrib clean downloads build-plugins install-plugin-core
 
 default: install
 
@@ -238,9 +238,11 @@ else
 manifest_exe:
 endif
 
-install-core: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe setuptools chandler-locale-data
+install-core: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe
 
-install: install-core build-plugins
+install-plugin-core: setuptools chandler-locale-data
+
+install: install-core install-plugin-core build-plugins
 
 distrib: install-core distrib-plugins
 
@@ -302,6 +304,7 @@ distclean: clean
 	rm -rf $(C_BIN)/release
 	rm -f  $(C_HOME)/*.egg-link
 	rm -f  $(C_HOME)/*.pth
+	rm -rf $(C_HOME)/*-py$(PYTHON_VER).egg
 
 realclean: distclean
 	rm -f $(ARCHIVES)
