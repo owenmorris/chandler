@@ -1313,7 +1313,7 @@ class EventStamp(Stamp):
 
     def _propagateChange(self, modEvent):
         """Move later modifications to self."""
-        if (modEvent.occurrenceFor is not self.itsItem and
+        if (self != modEvent and modEvent.occurrenceFor is not self.itsItem and
             modEvent.recurrenceID > self.startTime):
             # future 'this' modifications in master should move to self
             modEvent.modificationFor = self.itsItem
@@ -1371,6 +1371,7 @@ class EventStamp(Stamp):
 
             if startTimeDelta != zero_delta:
                 self.rruleset.moveDatesAfter(recurrenceID, startTimeDelta)
+                self.recurrenceID += startTimeDelta
 
         setattr(self.itsItem, attr, value)
 

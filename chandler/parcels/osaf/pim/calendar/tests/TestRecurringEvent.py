@@ -383,6 +383,59 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         occurrences = self.event.getOccurrencesBetween(self.start, oneWeek)
 
         self.failIf(self.event.itsItem in occurrences)
+        
+    def testChange_thisSummary_futureDate(self):
+        self.event.rruleset = self._createRuleSetItem('daily')
+        first = self.event.getFirstOccurrence()
+        second = first.getNextOccurrence()
+        
+        second.changeThis(EventStamp.summary.name, u'I changed this')
+        second.changeThisAndFuture(EventStamp.startTime.name,
+                                   second.startTime + timedelta(hours=1))
+                                   
+        # Current behaviour is to make second a modification here
+        self.failIfEqual(second, second.getMaster())
+        # Make sure our summary really changed
+        self.failIfEqual(second.summary, second.getMaster().summary)
+                                   
+        # Next occurrence after second should be in one day's time
+        # (this is the first failure in bug 7042)
+        self.failUnlessEqual(second.getNextOccurrence().startTime,
+                             second.startTime + timedelta(days=1))
+                             
+        # ... and make sure the next occurrence has the correct summary
+        self.failUnlessEqual(self.event.summary,
+                             second.getNextOccurrence().summary)
+
+    def testChange_thisDate_futureDate(self):
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        first = self.event.getFirstOccurrence()
+        second = first.getNextOccurrence()
+        
+        second.changeThis(EventStamp.startTime.name,
+                          second.startTime + timedelta(minutes=-45))
+        self.failUnlessEqual(second.getNextOccurrence().startTime,
+                             self.event.startTime + timedelta(days=14))
+                             
+        second.changeThisAndFuture(EventStamp.startTime.name,
+                                   second.startTime + timedelta(hours=1))
+        self.failUnlessEqual(second.getNextOccurrence().startTime,
+                             self.event.startTime + timedelta(days=14, hours=1))
+
+    def testChange_thisSummary_futureStartTime_futureStartTime(self):
+        self.event.rruleset = self._createRuleSetItem('daily')
+        first = self.event.getFirstOccurrence()
+        third = first.getNextOccurrence().getNextOccurrence()
+        
+        # Change the third occurrence's summary
+        third.changeThis(EventStamp.summary.name, u'I changed this')
+        # Now move it, and all future events, back 30 minutes
+        third.changeThisAndFuture(EventStamp.startTime.name,
+                                  third.startTime + timedelta(minutes=-30))
+        # And now, forward by an hour. This triggered bug 7042
+        third.changeThisAndFuture(EventStamp.startTime.name,
+                                  third.startTime + timedelta(hours=1))
+        
 
     def testRemoveRecurrence(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
