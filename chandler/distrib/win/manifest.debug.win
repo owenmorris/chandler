@@ -71,6 +71,7 @@ src=chandler
 dest=
 Chandler.py
 version.py
+site.py
 LICENSE.txt
 WingWindowsDebug.wpr
 
@@ -111,3 +112,11 @@ RunPython.bat
 # Grab the overall README
 src=chandler/distrib
 README.txt
+
+# Copy the parcel egg files
+recursive=no
+src=chandler
+dest=
+glob=*.pth,*.egg
+egg=chandler
+
