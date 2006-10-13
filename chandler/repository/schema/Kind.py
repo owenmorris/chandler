@@ -240,6 +240,7 @@ class Kind(Item):
             item.onItemLoad(self.itsView)
 
         if not _noMonitors:
+            item._setInitialValues(Nil, True)
             self.itsView._notifyChange(self.extent._collectionChanged,
                                        'add', 'collection', 'extent',
                                        item.itsUUID)

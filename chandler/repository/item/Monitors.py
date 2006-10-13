@@ -97,6 +97,8 @@ class Monitors(Item):
         else:
             dispatcher._cacheMonitor(monitor)
 
+        return monitor
+
     @classmethod
     def detach(cls, item, method, op, attribute, *args, **kwds):
 

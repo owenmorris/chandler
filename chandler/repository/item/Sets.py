@@ -16,6 +16,7 @@
 from itertools import izip
 
 from chandlerdb.util.c import UUID, isuuid, Nil
+from chandlerdb.item.c import CItem
 from chandlerdb.persistence.c import CView
 from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors
@@ -1341,8 +1342,9 @@ class FilteredSet(Set):
                 if item is not None:
                     if attrs:
                         for name, op in attrs:
-                            Monitors.attach(item, '_filteredItemChanged',
-                                            op, name, attribute)
+                            mon = Monitors.attach(item, '_filteredItemChanged',
+                                                  op, name, attribute)
+                            mon._status |= CItem.SYSMONITOR
 
         return oldItem, oldAttribute
 

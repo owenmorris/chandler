@@ -37,7 +37,7 @@ class Item(CItem):
     """
 
     def __init__(self, itsName=None, itsParent=None, itsKind=None,
-                 _uuid=None, _noMonitors=False, fireAfterChange=True,
+                 _uuid=None, _noMonitors=False, fireChanges=True,
                  **values):
         """
         Construct an Item.
@@ -94,8 +94,7 @@ class Item(CItem):
             else:
                 self.setDirty(Item.NDIRTY | Item.NODIRTY)
 
-            if values:
-                self._setInitialValues(values, fireAfterChange)
+            self._setInitialValues(values, fireChanges)
         finally:
             self._status &= ~Item.NODIRTY
 
@@ -104,18 +103,23 @@ class Item(CItem):
                                        'add', 'collection', 'extent',
                                        self.itsUUID)
 
-    def _setInitialValues(self, values, fireAfterChange):
+    # fire afterChange methods on initial keyword values
+    # fire system monitors on all values, initial or set during afterChange
+    def _setInitialValues(self, values, fireChanges):
 
         for name, value in values.iteritems():
             setattr(self, name, value)
 
-        if fireAfterChange:
-            kind = self.itsKind
-            if kind is not None:
-                for name in values.iterkeys():
-                    attr = kind.getAttribute(name, True, self)
-                    if attr is not None:
-                        attr.c.invokeAfterChange(self, 'set', name)
+        if fireChanges:
+            self._status &= ~Item.NODIRTY
+            try:
+                self._status |= Item.SYSMONONLY
+                for name in self._values.keys():
+                    self._fireChanges('set', name, name in values)
+                for name in self._references.keys():
+                    self._fireChanges('set', name, name in values)
+            finally:
+                self._status &= ~Item.SYSMONONLY
 
     def __iter__(self):
         """
@@ -1339,6 +1343,7 @@ class Item(CItem):
             item._status |= Item.NODIRTY
             item._values._copy(self._values, copyPolicy, copyFn)
             item._references._copy(self._references, copyPolicy, copyFn)
+            item._setInitialValues(Nil, True)
         finally:
             item._status &= ~Item.NODIRTY
             
@@ -1359,7 +1364,7 @@ class Item(CItem):
         return item
 
     def clone(self, name=None, parent=None,
-              exclude=(), fireAfterChange=True, **values):
+              exclude=(), fireChanges=True, **values):
 
         cls = type(self)
         item = cls.__new__(cls)
@@ -1378,9 +1383,7 @@ class Item(CItem):
             item._status |= Item.NODIRTY
             item._values._clone(self._values, exclude)
             item._references._clone(self._references, exclude)
-
-            if values:
-                item._setInitialValues(values, fireAfterChange)
+            item._setInitialValues(values, fireChanges)
         finally:
             item._status &= ~Item.NODIRTY
         

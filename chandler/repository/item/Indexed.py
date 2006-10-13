@@ -13,9 +13,10 @@
 #   limitations under the License.
 
 
+from chandlerdb.item.c import CItem
+from chandlerdb.item.ItemError import *
 from repository.item.Indexes import \
     AttributeIndex, ValueIndex, StringIndex, CompareIndex, SubIndex
-from chandlerdb.item.ItemError import *
 
 
 # A mixin class used by ref collections and abstract sets that provides
@@ -112,6 +113,7 @@ class Indexed(object):
         """
 
         item, name = self._getOwner()
+        view = self._getView()
 
         if self._indexes is not None:
             if indexName in self._indexes:
@@ -121,44 +123,38 @@ class Indexed(object):
 
         index = self._createIndex(indexType, **kwds)
 
-        if not (self._getView().isLoading() or kwds.get('loading', False)):
+        if not (view.isLoading() or kwds.get('loading', False)):
             self.fillIndex(index)
             self._setDirty(True) # noMonitors=True
             monitor = kwds.get('monitor')
 
-            if monitor is not None:
+            def _attach(attrName):
                 from repository.item.Monitors import Monitors
+                mon = Monitors.attach(item, '_reIndex', 'set', attrName,
+                                      name, indexName)
+                mon._status |= CItem.SYSMONITOR
+                mon = Monitors.attach(item, '_reIndex', 'remove', attrName,
+                                      name, indexName)
+                mon._status |= CItem.SYSMONITOR
+
+            if monitor is not None:
                 if isinstance(monitor, (str, unicode)):
-                    Monitors.attach(item, '_reIndex',
-                                    'set', monitor, name, indexName)
-                    Monitors.attach(item, '_reIndex',
-                                    'remove', monitor, name, indexName)
+                    _attach(monitor)
                 else:
                     for m in monitor:
-                        Monitors.attach(item, '_reIndex',
-                                        'set', m, name, indexName)
-                        Monitors.attach(item, '_reIndex',
-                                        'remove', m, name, indexName)
+                        _attach(m)
                     
             elif indexType in ('attribute', 'value', 'string'):
-                from repository.item.Monitors import Monitors
                 attributes = kwds.get('attributes', None)
                 if attributes is not None:
                     for attribute in attributes:
-                        Monitors.attach(item, '_reIndex',
-                                        'set', attribute, name, indexName)
-                        Monitors.attach(item, '_reIndex',
-                                        'remove', attribute, name, indexName)
+                        _attach(attribute)
                 else:
-                    attribute = kwds['attribute']
-                    Monitors.attach(item, '_reIndex',
-                                    'set', attribute, name, indexName)
-                    Monitors.attach(item, '_reIndex',
-                                    'remove', attribute, name, indexName)
+                    _attach(kwds['attribute'])
 
             if indexType == 'subindex':
                 uuid, superName, superIndexName = index._super
-                superIndex = getattr(self._getView()[uuid],
+                superIndex = getattr(view[uuid],
                                      superName).getIndex(superIndexName)
                 superIndex.addSubIndex(item.itsUUID, name, indexName)
 
