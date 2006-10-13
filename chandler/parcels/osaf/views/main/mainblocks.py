@@ -85,10 +85,15 @@ def makeMainView(parcel):
         ).install(parcel)
     Sidebar.contents.selectItem (pim_ns.allCollection)
 
+    if '__WXGTK__' in wx.PlatformInfo:
+        toolbarIconSize = SizeType(26, 26)
+    else:
+        toolbarIconSize = SizeType(32, 32)    
+
     ApplicationBar = Toolbar.template(
         'ApplicationBar',
         stretchFactor = 0.0,
-        toolSize = SizeType(26, 26),
+        toolSize = toolbarIconSize,
         buttonsLabeled = True,
         separatorWidth = 20,
         mainFrameToolbar = True,
