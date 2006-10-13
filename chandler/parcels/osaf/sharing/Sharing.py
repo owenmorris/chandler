@@ -194,10 +194,11 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
         contentView.refresh(lambda code, item, attr, val: val,
             version=syncVersion, notify=False)
 
-        contentView.deferDelete()
 
     else:
         contentView = metaView
+
+    contentView.deferDelete()
 
     try:
 
