@@ -388,6 +388,10 @@ class References(Values):
         if other is not None:
             if not isitem(other):
                 raise TypeError, (other, 'is not an item', type(other))
+            elif other.isDeleting():
+                raise ValueError, ('setting bi-ref with an item being deleted',
+                                   item, name, other)
+
             otherView = other.itsView
             if not (otherView is view or
                     item._isImporting() or
@@ -949,10 +953,6 @@ class References(Values):
 
         item = self._item
         kind = item.itsKind
-
-        if isitem(other) and other.isDeleting():
-            logger.error("setting bi-ref on attribute '%s' of %s with an item that is being deleted: %s", key, item._repr_(), other._repr_())
-            return False
 
         if kind is not None and kind.getAttribute(key, True, item) is None:
             logger.error("setting bi-ref on attribute '%s' of %s, but '%s' is not defined for Kind %s %s", key, item._repr_(), key, kind.itsPath, type(item))
