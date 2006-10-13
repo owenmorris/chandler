@@ -104,9 +104,9 @@ class Stamp(schema.Annotation):
                     
             new_stamp_types = new_stamp_types.union(self.stamp_types)
         
-        stamped = self.collection
-        
-        if stamped is not None:
+        if self.__use_collection__:
+            stamped = schema.itemFor(self.__class__,
+                                     self.itsItem.itsView).stampedItems
             stamped.add(self.itsItem.getMembershipItem())
 
         self.stamp_types = new_stamp_types
@@ -119,7 +119,6 @@ class Stamp(schema.Annotation):
             raise StampNotPresentError, \
                   "Item %r doesn't have stamp %r" % (self.itsItem, self)
         
-        stamped = self.collection
         item = self.itsItem.getMembershipItem()
         
         # This is gross, and was in the old stamping code.
@@ -130,8 +129,9 @@ class Stamp(schema.Annotation):
         all = schema.ns("osaf.pim", item.itsView).allCollection
         inAllBeforeStamp = item in all
 
-
-        if stamped is not None:
+        if self.__use_collection__:
+            stamped = schema.itemFor(self.__class__,
+                                     self.itsItem.itsView).stampedItems
             stamped.remove(item)
 
         self.stamp_types = new_stamp_types

@@ -29,6 +29,7 @@ from osaf.pim.items import ContentItem, cmpTimeAttribute
 from osaf.pim.stamping import Stamp, has_stamp
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
+from osaf.pim.collections import FilteredCollection
 
 from TimeZone import formatTime
 from osaf.pim.calendar.TimeZone import coerceTimeZone, TimeZoneInfo
@@ -334,6 +335,23 @@ class EventStamp(Stamp):
     
     __use_collection__ = True
     
+    @classmethod
+    def getCollection(cls, view):
+        coll = super(EventStamp, cls).getCollection(view)
+        
+        try:
+            # See if we created a child filter already ...
+            return coll['filtered']
+        except KeyError:
+            # OK, so go ahead and create one
+            filterExpression="not view.findValue(uuid, '%s', False)" % (
+                                EventStamp.isGenerated.name)
+            result = FilteredCollection('filtered', coll,
+                        source=coll,
+                        filterExpression=filterExpression,
+                        filterAttributes=[EventStamp.isGenerated.name])
+        return result
+
     startTime = schema.One(
         schema.DateTimeTZ,
         indexed=True,
