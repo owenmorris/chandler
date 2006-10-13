@@ -326,6 +326,7 @@ FunctionEnd
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   File "..\..\..\${DISTRIB_DIR}\*.py"
+  File "..\..\..\${DISTRIB_DIR}\*.pth"
   File "..\..\..\${DISTRIB_DIR}\${PRODUCT_BINARY}"
   File "..\..\..\${DISTRIB_DIR}\LICENSE.txt"
   File "..\..\..\${DISTRIB_DIR}\README.win.txt"
@@ -339,6 +340,7 @@ Section "MainSection" SEC01
   File /r "..\..\..\${DISTRIB_DIR}\application"
   File /r "..\..\..\${DISTRIB_DIR}\${SNAP}"
   File /r "..\..\..\${DISTRIB_DIR}\Chandler.egg-info"
+  File /r "..\..\..\${DISTRIB_DIR}\*.egg"
   File /r "..\..\..\${DISTRIB_DIR}\icons"
   File /r "..\..\..\${DISTRIB_DIR}\i18n"
   File /r "..\..\..\${DISTRIB_DIR}\parcels"
