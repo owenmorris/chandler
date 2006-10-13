@@ -1081,8 +1081,8 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
         # Bug 5817, the iterable returned by iterSelection will complain if an
         # item is removed, so create a (seemingly useless) list before iterating
         for item in list(selection.iterSelection()):
-            if not (issingleref(item) or EventStamp(item).getMaster().itsItem in
-                    self.contentsCollection):
+            if (EventStamp(item).getMaster().itsItem not in
+                self.contentsCollection):
                 selection.unselectItem(item)
         
         # Posting select items event will display the correct item in the detail view.

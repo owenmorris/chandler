@@ -21,6 +21,7 @@ __parcel__ = "osaf.framework.blocks.calendar"
 import wx
 import wx.colheader
 
+from chandlerdb.util.c import issingleref
 from repository.item.Monitors import Monitors
 from repository.item.Item import MissingClass
 from chandlerdb.item.ItemError import NoSuchItemInCollectionError
@@ -239,17 +240,13 @@ class CalendarSelection(schema.Annotation):
     def __getattr__(self, name):
         return getattr(self.itsItem, name)
 
+    # these mimic the behavior of the collection
+
+    # first, delegated methods
     @delegated
     def __contains__(self, item):
         return self.itsItem.__contains__(Calendar.EventStamp(item).getMaster().itsItem)
 
-    # these mimic the behavior of the collection
-
-    def _cleanSelection(self):
-        if None in self.selectedOccurrences:
-            self.selectedOccurrences.remove(None)
-
-    # first, delegated methods
     @delegated
     def isItemSelected(self, item):
         return item in self.selectedOccurrences
@@ -271,14 +268,27 @@ class CalendarSelection(schema.Annotation):
             self.itsItem.setSelectionToItem(item)
             
     def isSelectionEmpty(self):
-        self._cleanSelection()
-        return (self.itsItem.isSelectionEmpty() and 
-                len(self.selectedOccurrences) == 0)
+        if not self.itsItem.isSelectionEmpty():
+            return False
+
+        for item in self.selectedOccurrences:
+            if not (item is None or issingleref(item)):
+                return False
+
+        return True
     
     def iterSelection(self):
-        self._cleanSelection()
-        selectionFromCollection = self.itsItem.iterSelection()
-        return chain(iter(self.selectedOccurrences), selectionFromCollection)
+        for item in self.selectedOccurrences:
+            if not (item is None or issingleref(item)):
+                # we could remove Nones and singlerefs, but to do that we'd
+                # have to create a separate list (can't remove from a set while
+                # iterating it), and that wouldn't be compatible with being a
+                # generator, so for now (till recurrence selection changes)
+                # just ignore bogus refs, they'll get deleted the next time
+                # selection changes
+                yield item
+        for item in self.itsItem.iterSelection():
+            yield item
 
     def clearSelection(self):
         self.itsItem.clearSelection()
