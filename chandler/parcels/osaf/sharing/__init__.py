@@ -235,6 +235,9 @@ class BackgroundSyncHandler:
         running_status = IDLE
 
     def run(self, *args, **kwds):
+
+        # This method must return True -- no raising exceptions!
+
         global interrupt_flag, running_status
 
         # A callback to allow cancelling of a sync( )
@@ -251,69 +254,63 @@ class BackgroundSyncHandler:
             # busy
             return True
 
-        modeOverride = kwds.get('modeOverride', None)
-        forceUpdate = kwds.get('forceUpdate', None)
-
         stats = []
-        try:
-            running_status = RUNNING
+        running_status = RUNNING
 
+        try: # Sync collections
 
-            try:
-                self.rv.refresh(notify=False)
+            modeOverride = kwds.get('modeOverride', None)
+            forceUpdate = kwds.get('forceUpdate', None)
 
+            self.rv.refresh(notify=False)
 
-                collections = []
+            collections = []
 
-                if 'collection' in kwds:
-                    uuid = kwds['collection']
-                    collection = self.rv.findUUID(uuid)
-                    collections.append(collection)
+            if 'collection' in kwds:
+                uuid = kwds['collection']
+                collection = self.rv.findUUID(uuid)
+                collections.append(collection)
 
-                else:
-                    for share in Sharing.Share.iterItems(self.rv):
-                        try:
-                            if(share.active and
-                                share.established and
-                                share.contents is not None and
-                                share.contents not in collections):
-                                collections.append(share.contents)
-                        except Exception, e:
-                            logger.exception("Error with Share object")
-
-                for collection in collections:
-
-                    if interrupt_flag != PROCEED: # interruption
-                        return True
-
-                    callCallbacks(UPDATE, msg="Syncing collection '%s'" %
-                        collection.displayName)
+            else:
+                for share in Sharing.Share.iterItems(self.rv):
                     try:
-                        stats.extend(sync(collection,
-                            modeOverride=modeOverride,
-                            updateCallback=silentCallback,
-                            forceUpdate=forceUpdate))
-                        _clearError(collection)
-
+                        if(share.active and
+                            share.established and
+                            share.contents is not None and
+                            share.contents not in collections):
+                            collections.append(share.contents)
                     except Exception, e:
-                        # print "Exception", e
-                        logger.exception("Error syncing collection")
-                        if hasattr(e, 'message'): # Sharing error
-                            msg = e.message
-                        else:
-                            msg = str(e)
-                        _setError(collection, msg)
-                        stats.extend( { 'collection' : collection.itsUUID,
-                                        'error' : msg } )
+                        logger.exception("Error with Share object")
 
+            for collection in collections:
 
-            except Exception, e:
-                # print "Exception", e
-                logger.exception("Background sync error")
+                if interrupt_flag != PROCEED: # interruption
+                    return True
 
-        finally:
+                callCallbacks(UPDATE, msg="Syncing collection '%s'" %
+                    collection.displayName)
+                try:
+                    stats.extend(sync(collection,
+                        modeOverride=modeOverride,
+                        updateCallback=silentCallback,
+                        forceUpdate=forceUpdate))
+                    _clearError(collection)
 
-            # Create the sync report event
+                except Exception, e:
+                    # print "Exception", e
+                    logger.exception("Error syncing collection")
+                    if hasattr(e, 'message'): # Sharing error
+                        msg = e.message
+                    else:
+                        msg = str(e)
+                    _setError(collection, msg)
+                    stats.extend( { 'collection' : collection.itsUUID,
+                                    'error' : msg } )
+
+        except: # Failed to sync at least one collection; continue on
+            logger.exception("Background sync error")
+
+        try: # Create the sync report event
             log = schema.ns('osaf.sharing', self.rv).activityLog
             reportEvent = pim.CalendarEvent(itsView=self.rv,
                 displayName="Sync",
@@ -325,16 +322,28 @@ class BackgroundSyncHandler:
             )
             log.add(reportEvent.itsItem)
 
+        except: # Don't worry if this fails, just report it
+            logger.exception("Error trying to create sync report")
+
+        try: # Commit sync report and possible errors
             self.rv.commit()
+        except: # No matter what we have to continue on
+            logger.exception("Error trying to commit in bgsync")
 
-            running_status = IDLE
+
+        try: # One final update callback with an empty string
             callCallbacks(UPDATE, msg='')
-            if interrupt_flag != PROCEED:
-                # We have been asked to stop, so fire the deferred
-                if shutdown_deferred:
-                    shutdown_deferred.callback(None)
+        except: # No matter what we have to continue on
+            logger.exception("Error calling callbacks")
 
-            interrupt_flag = PROCEED
+
+        running_status = IDLE
+        if interrupt_flag != PROCEED:
+            # We have been asked to stop, so fire the deferred
+            if shutdown_deferred:
+                shutdown_deferred.callback(None)
+
+        interrupt_flag = PROCEED
 
         return True
 
@@ -1200,6 +1209,7 @@ def interrogate(conduit, location, ticket=None):
     isReadOnly = True
     shareMode = 'get'
     hasPrivileges = False
+    hasSubCollection = False
 
     logger.debug('Checking for write-access to %s...', location)
     try:
@@ -1230,23 +1240,27 @@ def interrogate(conduit, location, ticket=None):
     logger.debug('...Read Only?  %s', isReadOnly)
 
     isCalendar = handle.blockUntil(resource.isCalendar)
-    logger.debug('...Calendar?  %s', isCalendar)
 
-    if isCalendar:
-        subLocation = urlparse.urljoin(location, SUBCOLLECTION)
-        if not subLocation.endswith("/"):
-            subLocation += "/"
-        subResource = handle.getResource(subLocation)
-        if ticket:
-            subResource.ticketId = ticket
-        try:
-            hasSubCollection = handle.blockUntil(subResource.exists) and \
-                handle.blockUntil(subResource.isCollection)
-        except Exception, e:
-            logger.exception("Couldn't determine existence of subcollection %s",
-                subLocation)
-            hasSubCollection = False
-        logger.debug('...Has subcollection?  %s', hasSubCollection)
+    subLocation = urlparse.urljoin(location, SUBCOLLECTION)
+    if not subLocation.endswith("/"):
+        subLocation += "/"
+    subResource = handle.getResource(subLocation)
+    if ticket:
+        subResource.ticketId = ticket
+    try:
+        hasSubCollection = handle.blockUntil(subResource.exists) and \
+            handle.blockUntil(subResource.isCollection)
+    except Exception, e:
+        logger.exception("Couldn't determine existence of subcollection %s",
+            subLocation)
+        hasSubCollection = False
+    logger.debug('...Has subcollection?  %s', hasSubCollection)
+
+    if hasSubCollection:
+        isCalendar = True # if there is a subcollection, then the main
+                          # collection has to be a calendar
+
+    logger.debug('...Calendar?  %s', isCalendar)
 
     isCollection =  handle.blockUntil(resource.isCollection)
     logger.debug('...Collection?  %s', isCollection)
