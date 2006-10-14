@@ -510,7 +510,7 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.Button):
         checked = self.item is not None and \
                (self.item.getSharedState() == ContentItem.READONLY)
         self.widget.SetState("%s.%s" % (self.icon,
-                             checked and "Stamped" or "Unstamped"))
+                             checked and "Unstamped" or "Stamped"))
 
     def onButtonPressedEvent(self, event):
         # We don't actually allow the read only state to be toggled
