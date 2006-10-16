@@ -1074,7 +1074,7 @@ class ToolbarItem(Block.Block, DynamicChild):
             # real wx control
             tool = wx.TextCtrl (theToolbar, id, "", 
                                 wx.DefaultPosition, 
-                                wx.Size(300,-1), 
+                                wx.Size(250,-1), 
                                 wx.TE_PROCESS_ENTER)
             tool.SetName(self.title)
             theToolbar.AddControl (tool)
