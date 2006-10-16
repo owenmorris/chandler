@@ -664,7 +664,11 @@ class SmartCollection(AppCollection):
     def onItemDelete(self, view, isDeferring):
         super(SmartCollection, self).onItemDelete(view, isDeferring)
         if not isDeferring:
-            delattr(self, self.__collection__)
+            name = self.__collection__
+            delattr(self, name)
+            for watch in getattr(self, 'watches', ()):
+                if watch.attribute == name:
+                    watch.delete()
 
 
 class InclusionExclusionCollection(SmartCollection):

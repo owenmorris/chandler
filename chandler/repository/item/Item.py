@@ -2418,7 +2418,7 @@ class WatchSet(Watch):
         
     def __call__(self, op, change, owner, name, other):
         
-        set = getattr(self.watchingItem, self.attribute);
+        set = getattr(self.watchingItem, self.attribute)
         set.sourceChanged(op, change, owner, name, False, other)
 
     def compare(self, attribute):
