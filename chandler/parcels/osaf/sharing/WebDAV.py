@@ -37,7 +37,8 @@ from twisted.internet import reactor
 import application.Globals as Globals
 import application.Utility as Utility
 from osaf.framework.certstore import ssl
-from osaf import messages         
+from osaf import messages
+import version
 
 class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     def __init__(self, host=None, port=None, username=None, password=None,
@@ -56,6 +57,10 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
         self.factory.repositoryView = repositoryView
 
         #self.factory.extraHeaders = { 'Connection' : "close" }
+
+        userAgent = "Chandler/%s" % version.version
+        self.factory.extraHeaders = { 'User-Agent' : userAgent }
+
         self.factory.logging = True
 
     def addRequest(self, request):
