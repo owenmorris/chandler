@@ -1133,6 +1133,9 @@ class MainView(View):
             else:
                 sharing.takeOnline(collection)
 
+            # To make changes available to sharing thread
+            self.RepositoryCommitWithStatus ()
+
     def onTakeOnlineOfflineEventUpdateUI(self, event):
         enable = False
         menuTitle = _("Toggle online/offline")
