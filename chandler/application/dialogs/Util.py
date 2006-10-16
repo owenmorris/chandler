@@ -468,7 +468,8 @@ def yesNo(parent, caption, message):
     return ShowMessageDialog(parent, message, caption,
                              wx.YES_NO, 
                             { wx.ID_YES: True,
-                              wx.ID_NO: False })
+                              wx.ID_NO: False,
+                              wx.ID_CANCEL: False})
 
 # A simple yes/no/cancel dialog
 
