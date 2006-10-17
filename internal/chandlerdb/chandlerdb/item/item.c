@@ -88,7 +88,7 @@ static PyObject *_redirectTo_NAME;
 static PyObject *logger_NAME;
 static PyObject *_verifyAssignment_NAME;
 static PyObject *_setDirty_NAME;
-static PyObject *set_NAME, *remove_NAME;
+static PyObject *set_NAME;
 static PyObject *item_NAME;
 static PyObject *_logItem_NAME;
 static PyObject *_clearDirties_NAME;
@@ -1532,7 +1532,6 @@ void _init_item(PyObject *m)
             _verifyAssignment_NAME = PyString_FromString("_verifyAssignment");
             _setDirty_NAME = PyString_FromString("_setDirty");
             set_NAME = PyString_FromString("set");
-            remove_NAME = PyString_FromString("remove");
             item_NAME = PyString_FromString("item");
             _logItem_NAME = PyString_FromString("_logItem");
             _clearDirties_NAME = PyString_FromString("_clearDirties");

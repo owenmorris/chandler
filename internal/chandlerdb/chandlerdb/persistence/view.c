@@ -70,7 +70,7 @@ static int t_view_dict_length(t_view *self);
 static PyObject *t_view_dict_get(t_view *self, PyObject *key);
 
 static PyObject *refresh_NAME;
-static PyObject *delete_NAME;
+static PyObject *_effectDelete_NAME;
 static PyObject *logger_NAME;
 static PyObject *_loadItem_NAME;
 static PyObject *_readItem_NAME;
@@ -82,8 +82,6 @@ static PyObject *method_NAME;
 static PyObject *args_NAME, *kwds_NAME;
 static PyObject *item_NAME;
 static PyObject *MONITORS_PATH;
-static PyObject *sourceChanged_NAME;
-static PyObject *set_NAME, *kind_NAME, *collection_NAME;
 
 static PyMemberDef t_view_members[] = {
     { "_status", T_UINT, offsetof(t_view, status), 0, "view status flags" },
@@ -394,10 +392,11 @@ static PyObject *t_view_effectDelete(t_view *self)
         while (++i < len) {
             PyObject *tuple = PyList_GET_ITEM(items, i);
             PyObject *item = PyTuple_GET_ITEM(tuple, 0);
-            PyObject *deletePolicy = PyTuple_GET_ITEM(tuple, 1);
+            PyObject *op = PyTuple_GET_ITEM(tuple, 1);
+            PyObject *args = PyTuple_GET_ITEM(tuple, 2);
             PyObject *result =
-                PyObject_CallMethodObjArgs(item, delete_NAME, Py_False,
-                                           deletePolicy, NULL);
+                PyObject_CallMethodObjArgs(item, _effectDelete_NAME,
+                                           op, args, NULL);
             if (!result)
                 return NULL;
             Py_DECREF(result);
@@ -1031,7 +1030,7 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "COMMITREQ", COMMITREQ);
 
             refresh_NAME = PyString_FromString("refresh");
-            delete_NAME = PyString_FromString("delete");
+            _effectDelete_NAME = PyString_FromString("_effectDelete");
             logger_NAME = PyString_FromString("logger");
             _loadItem_NAME = PyString_FromString("_loadItem");
             _readItem_NAME = PyString_FromString("_readItem");
@@ -1043,10 +1042,6 @@ void _init_view(PyObject *m)
             args_NAME = PyString_FromString("args");
             kwds_NAME = PyString_FromString("kwds");
             item_NAME = PyString_FromString("item");
-            sourceChanged_NAME = PyString_FromString("sourceChanged");
-            set_NAME = PyString_FromString("set");
-            kind_NAME = PyString_FromString("kind");
-            collection_NAME = PyString_FromString("collection");
 
             MONITORS_PATH = PyString_FromString("//Schema/Core/items/Monitors");
             PyDict_SetItemString(dict, "MONITORS", MONITORS_PATH);
