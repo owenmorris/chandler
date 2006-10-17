@@ -772,17 +772,19 @@ def scaleTimeDelta(units, scale, isAfter):
     assert scale == 2
     return timedelta(days=units)
     
-def getReminderType(reminder):
+def getReminderType(item):
     """ 
     What kind of user reminder is this?
     Returns 'none', 'before', 'after', or 'custom'
     """
-    if reminder is None: 
-        return 'none'
-    if reminder.absoluteTime is not None:
+    if getattr(item, pim.Remindable.userReminderTime.name, None) is not None:
         return 'custom'
-    delta = timeDeltaMinutes(reminder.delta)
-    return (delta > 0) and 'after' or 'before'
+    delta = getattr(item, pim.Remindable.userReminderInterval.name, None)
+    if delta is None:
+        return 'none'
+    
+    deltaMinutes = timeDeltaMinutes(delta)
+    return deltaMinutes > 0 and 'after' or 'before'
     
 class ReminderConditionalBlock(Item):
     def shouldShow(self, item):
@@ -812,15 +814,13 @@ class ReminderRelativeAreaBlock(ReminderConditionalBlock,
                                 DetailSynchronizedContentItemDetail):
     def shouldShow(self, item):
         return (super(ReminderRelativeAreaBlock, self).shouldShow(item) and
-                (getReminderType(pim.Remindable(item).getUserReminder())
-                 in ('before', 'after')))
+                (getReminderType(item) in ('before', 'after')))
     
 class ReminderAbsoluteAreaBlock(ReminderConditionalBlock,
                                 DetailSynchronizedContentItemDetail):
     def shouldShow(self, item):
         return (super(ReminderAbsoluteAreaBlock, self).shouldShow(item) and
-                (getReminderType(pim.Remindable(item).getUserReminder())
-                 == 'custom'))
+                (getReminderType(item) == 'custom'))
 
 class ReminderAEBlock(DetailSynchronizedAttributeEditorBlock):
     def getWatchList(self):
@@ -881,7 +881,7 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         """
         Get the value from the specified attribute of the item.
         """
-        return getReminderType(pim.Remindable(item).getUserReminder())
+        return getReminderType(item)
 
     def SetAttributeValue(self, item, attributeName, value):
         """
@@ -890,28 +890,30 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         if self.ReadOnly((item, attributeName)):
             return
 
-        remindable = pim.Remindable(item)
-        reminder = remindable.getUserReminder()
-        reminderType = getReminderType(reminder)
+        reminderType = getReminderType(item)
         if value == reminderType:
             return
         
         self.control.blockItem.stopWatchingForChanges()
         if value == 'none':
-            remindable.userReminderTime = None
+            setattr(item, pim.Remindable.userReminderTime.name, None)
         elif value in ('before', 'after'):
             if reminderType in ('before', 'after'):
                 # Just change the sign of the old reminder
-                (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
-                remindable.userReminderInterval = scaleTimeDelta(units, scale, not isAfter)
+                delta = getattr(item, pim.Remindable.userReminderInterval.name)
+                (units, scale, isAfter) = timeDeltaDetails(delta)
+                setattr(item, pim.Remindable.userReminderInterval.name,
+                        scaleTimeDelta(units, scale, not isAfter))
             else:
                 # Make a new 15-minute reminder with the right sign.
-                remindable.userReminderInterval = scaleTimeDelta(15, 0, value == 'after')
+                setattr(item, pim.Remindable.userReminderInterval.name,
+                        scaleTimeDelta(15, 0, value == 'after'))
         else:
             assert value == 'custom'
             # Absolute: today's date at 5PM
-            remindable.userReminderTime = datetime.now(tz=ICUtzinfo.default)\
-                .replace(hour=17, minute=0, second=0, microsecond=0)
+            setattr(item, pim.Remindable.userReminderTime.name,
+                    datetime.now(tz=ICUtzinfo.default)\
+                    .replace(hour=17, minute=0, second=0, microsecond=0))
             
         self.control.blockItem.watchForChanges()
                         
@@ -930,22 +932,22 @@ class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
         return self.choices
     
     def GetAttributeValue(self, item, attributeName):
-        reminder = pim.Remindable(item).getUserReminder()
-        reminderType = getReminderType(reminder)
+        reminderType = getReminderType(item)
         if reminderType not in ('before', 'after'):
             return 0
-        (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
+        delta = getattr(item, pim.Remindable.userReminderInterval.name)
+        (units, scale, isAfter) = timeDeltaDetails(delta)
         return scale
             
     def SetAttributeValue(self, item, attributeName, value):
         if value is None:
             return
-        reminder = pim.Remindable(item).getUserReminder()
-        reminderType = getReminderType(reminder)
+        reminderType = getReminderType(item)
         if reminderType not in ('before', 'after'):
             return
         
-        (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
+        delta = getattr(item, pim.Remindable.userReminderInterval.name)
+        (units, scale, isAfter) = timeDeltaDetails(delta)
         if scale == value:
             return # unchanged
         
@@ -968,19 +970,17 @@ class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
 class ReminderUnitsAttributeEditor(StringAttributeEditor):    
     def GetAttributeValue(self, item, attributeName):
         # Get the existing reminder, and figure out what kind it is
-        reminder = pim.Remindable(item).getUserReminder()
-        reminderType = getReminderType(reminder)
-
+        reminderType = getReminderType(item)
         if reminderType not in ('before', 'after'):
             return u''
             
         # Pick an appropriate scale for this delta value
-        (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
+        delta = getattr(item, pim.Remindable.userReminderInterval.name)
+        (units, scale, isAfter) = timeDeltaDetails(delta)
         return unicode(units)
                             
     def SetAttributeValue(self, item, attributeName, valueString):
-        reminder = pim.Remindable(item).getUserReminder()
-        reminderType = getReminderType(reminder)
+        reminderType = getReminderType(item)
         if reminderType not in ('before', 'after'):
             assert False
             return
@@ -997,9 +997,11 @@ class ReminderUnitsAttributeEditor(StringAttributeEditor):
             self._changeTextQuietly(self.control, "%s ?" % valueString)
             return
 
-        (units, scale, isAfter) = timeDeltaDetails(reminder.delta)
+        delta = getattr(item, pim.Remindable.userReminderInterval.name)
+        (units, scale, isAfter) = timeDeltaDetails(delta)
         if units != value:
-            pim.Remindable(item).userReminderInterval = scaleTimeDelta(value, scale, isAfter)
+            setattr(item, pim.Remindable.userReminderInterval.name,
+                    scaleTimeDelta(value, scale, isAfter))
 
 class TransparencyConditionalBlock(Item):
     def shouldShow(self, item):
