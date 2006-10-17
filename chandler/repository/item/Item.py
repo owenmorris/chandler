@@ -1472,7 +1472,7 @@ class Item(CItem):
                             view._deferredDeletes.remove(tuple)
                             break
 
-                view._deferredDeletes.append((self, deletePolicy))
+                view._deferredDeletes.append((self, 'delete', (deletePolicy,)))
                 self._status &= ~Item.DEFERRING
             
             else:
@@ -1534,6 +1534,18 @@ class Item(CItem):
             self._status |= Item.DELETED | Item.STALE
 
         self._status &= ~(Item.DELETING | Item.DEFERRED)
+
+    def _effectDelete(self, op, args):
+
+        if op == 'remove':
+            if not self.isDeleted():
+                name, value = args
+                if getattr(self, name, Nil) is value:
+                    delattr(self, name)
+
+        elif op == 'delete':
+            deletePolicy, = args
+            self.delete(False, deletePolicy)
 
     def _copyExport(self, view, cloudAlias, matches):
 

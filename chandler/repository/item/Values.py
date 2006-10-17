@@ -552,9 +552,15 @@ class References(Values):
             if other is not None and other._isRefs():
                 other.clear()
                 dirty = CItem.RDIRTY
+                view = item.itsView
+                if view.isDeferringDelete():
+                    view._deferredDeletes.append((item, 'remove',
+                                                  (name, other)))
+                else:
+                    del self[name]
             else:
                 dirty = CItem.VDIRTY
-            del self[name]
+                del self[name]
             item.setDirty(dirty, name, self, True)
             item._fireChanges('remove', name)
         elif (isuuid(value) and (value == other or
