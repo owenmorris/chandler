@@ -42,6 +42,7 @@ allTests = [
                 ("TestDeleteCollection","TestDeleteCollection"),
                 ("TestMulti","TestMulti"), 
                 ("TestCalView","TestCalView"),
+                ("TestReminderProcessing","TestReminderProcessing"),  
                 ("TestRecurrenceImporting","TestRecurrenceImporting"), 
                 ("TestRecurringEvent","TestRecurringEvent"),  
                 ("TestSwitchingViews","TestSwitchingViews"),

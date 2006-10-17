@@ -16,6 +16,7 @@
 from application import schema
 from osaf.pim.items import ContentItem, cmpTimeAttribute
 from osaf.pim.calendar.Calendar import EventStamp
+from osaf.pim.stamping import Stamp, has_stamp
 
 from datetime import datetime, time, timedelta
 from PyICU import ICUtzinfo
@@ -48,27 +49,21 @@ class Reminder(schema.Item):
     )
     
     # These flags represent what kind of reminder this is:
-    # userCreated promptUser keepExpired
-    #   True        True       True    a relative or absolute user reminder;
-    #                                  only one of these can exist on an item,
-    #                                  in its 'reminders' or 'expiredReminders'.
-    #   False       True       False   A 'snooze' reminder.
-    #   False       False      False   An internal reminder relative to the
-    #                                  the effectiveStartTime of an event, used
-    #                                  to update its triageStatus when it fires.
+    # userCreated promptUser
+    #   True        True    a relative or absolute user reminder;
+    #                       only one of these can exist on an item,
+    #                       in its 'reminders' or 'expiredReminders'.
+    #   False       True    A 'snooze' reminder.
+    #   False       False   An internal reminder relative to the
+    #                       the effectiveStartTime of an event, used
+    #                       to update its triageStatus when it fires.
     
     userCreated = schema.One(
         schema.Boolean,
         defaultValue=True,
         doc="Is a user-created reminder?"
     )
-        
-    keepExpired = schema.One(
-        schema.Boolean,
-        defaultValue=True,
-        doc="Should we keep this around (in the Remindable's expiredReminders) "
-            "after it fires?")
-    
+
     promptUser = schema.One(
         schema.Boolean,
         defaultValue=True,
@@ -84,7 +79,7 @@ class Reminder(schema.Item):
 
     schema.addClouds(
         sharing = schema.Cloud(absoluteTime, delta, relativeTo, 
-                               userCreated, keepExpired, promptUser)
+                               userCreated, promptUser)
     )
 
     def getBaseTimeFor(self, remindable):
@@ -142,38 +137,60 @@ class Remindable(schema.Annotation):
         return cmpTimeAttribute(self, remindable, 'nextReminderTime')
 
 
-    def getUserReminder(self, collectionToo=False, expiredToo=True, skipThis=None):
+    def getUserReminder(self, refListToo=False, expiredToo=True, skipThis=None):
+        """
+        Get the user reminder on this item. There's supposed to be only one; 
+        it could be relative or absolute.
+        
+        We'll look in the 'reminders' reflist, and in the 'expiredReminders'
+        reflist if expiredToo is set.
+        
+        instead of just returning the reminder, we can return a
+        tuple containing (the reflist we found it in, and the reminder).
+        """
         attrsToSearch = (expiredToo and (Remindable.reminders,
                                          Remindable.expiredReminders)
                                     or (Remindable.reminders,))
         for attr in attrsToSearch:
             if (self.itsItem.hasLocalAttributeValue(attr.name)):
-                collection = getattr(self.itsItem, attr.name)
-                for reminder in collection:
+                refList = getattr(self.itsItem, attr.name)
+                for reminder in refList:
                     if reminder.userCreated and reminder is not skipThis:
-                        return collectionToo and (collection, reminder) or reminder
-        return collectionToo and (None, None) or None
+                        return refListToo and (refList, reminder) or reminder
+        return refListToo and (None, None) or None
 
     def makeReminder(self, checkExpired=False, replace=False, **kwds):
-        # @@@ I think the proxy code should override calls to this method
-        # add a separate reference to this reminder to each generated event,
-        # (or something like that). (Remindable.snoozeReminder will call this
-        # method; that operation should only affect the actual event, not the
-        # series)
-        
+        """
+        Create a new reminder on this item, and optionally:
+        - put it in the 'expired' list if this new reminder is already in the 
+          past, and/or
+        - consider this new reminder a replacement of the existing one.
+        (Other keyword options are passed to the Reminder constructor.)
+        """        
         # Make the new reminder before we remove the old one, to avoid flicker
         # in the UI.
-        if kwds.get('delta') or kwds.get('absoluteTime'):
+        if (kwds.get('delta') is not None) or \
+           (kwds.get('absoluteTime') is not None):
             # We're creating a new reminder.
             newReminder = Reminder(None, itsView=self.itsItem.itsView, **kwds)
             logger.debug("Adding %s to %s", newReminder, self)
 
             addThisTo = self.reminders
-            if checkExpired:
-                nextTime = newReminder.getNextReminderTimeFor(self)
-    
-                if (nextTime < datetime.now(ICUtzinfo.default)):
-                    assert kwds['keepExpired'], "Creating an expired reminder that isn't marked 'keepExpired'?"
+            event = EventStamp(self)
+            isMaster = event.isRecurrenceMaster()
+            if checkExpired or isMaster:
+                # If this is a recurrence master item, we want to stash the
+                # event in its 'expired' list, no matter when it's due (to
+                # avoid masters showing up in the itemsWithReminders collection,
+                # alongside their occurrences).
+                if isMaster:
+                    addToExpired = True
+                else:
+                    # It's not a master -- when's it due?
+                    nextTime = newReminder.getNextReminderTimeFor(self)
+                    addToExpired = (nextTime < datetime.now(ICUtzinfo.default))
+                    
+                if addToExpired:
                     addThisTo = self.expiredReminders
     
             addThisTo.add(newReminder)
@@ -185,12 +202,12 @@ class Remindable(schema.Annotation):
 
         # If we're supposed to, replace any old userReminder
         if replace:
-            (collection, userReminder) = self.getUserReminder(collectionToo=True, 
-                                                              skipThis=newReminder)
+            (refList, userReminder) = self.getUserReminder(refListToo=True, 
+                                                           skipThis=newReminder)
 
             if userReminder is not None:
                 logger.debug("Removing %s from %s", userReminder, self)
-                collection.remove(userReminder)
+                refList.remove(userReminder)
                 if not (len(userReminder.reminderItems) or \
                         len(userReminder.expiredReminderItems)):
                     userReminder.delete()
@@ -200,38 +217,37 @@ class Remindable(schema.Annotation):
     def dismissReminder(self, reminder, dontExpire=False):
         """ 
         Dismiss this reminder. Normally, we'll decide whether to keep it
-        in 'expired' based on its keepExpired attribute, but if dontExpire
+        in 'expired' based on its userCreated attribute, but if dontExpire
         is True, we'll expire it anyway (we use this when unstamping and
         deleting relative reminders).
         """
 
-        # Make sure the next one's around, so we'll prime the reminder-
-        # watching mechanism to alert us about it. We also check that
-        # reminders for past events don't trigger this one.
-        try:
-            getNextOccurrenceMethod = EventStamp(self).getNextOccurrence
-        except AttributeError:
-            pass
-        else:
+        # If this is an occurrence, make sure the next one's around, so 
+        # we'll prime the reminder-watching mechanism to alert us about it. 
+        if has_stamp(self, EventStamp):
+            event = EventStamp(self)
+            assert not event.isRecurrenceMaster(), \
+                   "Dismissing a reminder on a recurrence master"
+            
             # Get the next occurrence of this event. We
             # don't need to do anything with it; we just
             # want to make sure it's been instantiated
             # so that the next reminder will fire.
-            getNextOccurrenceMethod(after=datetime.now(ICUtzinfo.default))
+            event.getNextOccurrence(after=datetime.now(ICUtzinfo.default))
 
-        # In the case of generated occurrences, the reminder
-        # may already have fired (cf fixReminders() in
-        # CalendarEventMixin.getNextOccurrence
+        # Remove the reminder from the pending list
         if reminder in self.reminders:
             self.reminders.remove(reminder)
-        if dontExpire or not reminder.keepExpired:
-            # This is a system or "snooze" reminder, just toss it.
+            
+        # If this was a user-created reminder, add it to the expired list,
+        # unless we were told not to (because the user is deleting it)
+        if dontExpire or not reminder.userCreated:
+            # This is a triageStatus or "snooze" reminder, just toss it.
             assert dontExpire or len(reminder.reminderItems) == 0
             assert dontExpire or len(reminder.expiredReminderItems) == 0
             reminder.delete()
-        else:
-            if not reminder in self.expiredReminders:
-                self.expiredReminders.add(reminder)
+        elif not reminder in self.expiredReminders:
+            self.expiredReminders.add(reminder)
 
     def snoozeReminder(self, reminder, delay):
         """ Snooze this reminder for this long. """
@@ -239,7 +255,6 @@ class Remindable(schema.Annotation):
         newReminder = Reminder(None, itsView=self.itsItem.itsView,
                                absoluteTime=(datetime.now(ICUtzinfo.default) +
                                              delay),
-                               keepExpired=False,
                                userCreated=False)
         self.reminders.add(newReminder)
 
@@ -264,8 +279,7 @@ class Remindable(schema.Annotation):
         attrName = EventStamp.effectiveStartTime.name
         assert hasattr(self.itsItem, attrName)
         return self.makeReminder(delta=delta, relativeTo=attrName,
-                                 checkExpired=True, keepExpired=True, 
-                                 replace=True)
+                                 checkExpired=True, replace=True)
 
 
     userReminderInterval = schema.Calculated(
@@ -284,8 +298,7 @@ class Remindable(schema.Annotation):
 
     def setUserReminderTime(self, absoluteTime):
         return self.makeReminder(absoluteTime=absoluteTime, userCreated=True,
-                                 checkExpired=True, keepExpired=True, 
-                                 replace=True)
+                                 checkExpired=True, replace=True)
     
     userReminderTime = schema.Calculated(
         schema.DateTimeTZ,
@@ -321,6 +334,8 @@ class Remindable(schema.Annotation):
         """
         return self._getNextReminderAndTime()[0]
     
+    # @@@ (This Calculated attribute is used for indexing the itemsWithReminders
+    # collection - it probably oughta be rewritten to avoid loading the items)
     nextReminderTime = schema.Calculated(
         schema.DateTimeTZ,
         basedOn=(EventStamp.startTime, EventStamp.allDay, EventStamp.anyTime,

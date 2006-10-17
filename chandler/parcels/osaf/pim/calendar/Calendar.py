@@ -509,8 +509,10 @@ class EventStamp(Stamp):
         Called when stamping adds these attributes, and from __init__ above.
         """
         disabled = self.__disableRecurrenceChanges()
-        super(EventStamp, self).add()
-        if disabled: self.__enableRecurrenceChanges()
+        try:
+            super(EventStamp, self).add()
+        finally:
+            if disabled: self.__enableRecurrenceChanges()
         
         if not hasattr(self, 'startTime'):
             # start at the nearest half hour, duration of an hour
@@ -519,6 +521,10 @@ class EventStamp(Stamp):
             roundedTime = time(hour=now.hour, minute=(now.minute/30)*30,
                                tzinfo = defaultTz)
             self.startTime = datetime.combine(now, roundedTime)
+        else:
+            # Give the startTime-observer a chance to create a triageStatus
+            # reminder
+            self.onStartTimeChanged('set', EventStamp.startTime.name)
         if not hasattr(self, 'duration'):
             self.duration = timedelta(hours=1)
 
@@ -542,31 +548,31 @@ class EventStamp(Stamp):
 
         """
         didDisable = self.__disableRecurrenceChanges()
-
-        rruleset = self.rruleset
-        self.occurrenceFor = None
-        self.rruleset = None
-        
-        if rruleset is not None:
-            if getattr(rruleset, 'exdates', None) is None:
-                rruleset.exdates=[]
-            rruleset.exdates.append(self.recurrenceID)
+        try:
+            rruleset = self.rruleset
+            self.occurrenceFor = None
+            self.rruleset = None
             
-        if didDisable:
-            self.__enableRecurrenceChanges()
+            if rruleset is not None:
+                if getattr(rruleset, 'exdates', None) is None:
+                    rruleset.exdates=[]
+                rruleset.exdates.append(self.recurrenceID)
+        finally:
+            if didDisable:
+                self.__enableRecurrenceChanges()
 
-            # Delete any relative user reminders, as well as any startTime
-            # triageStatus transition reminders
-            from osaf.pim.reminders import Remindable
-            remindable = Remindable(self)
-            doomed = iter(r for r in remindable.reminders
-                          if ((r.userCreated and r.absoluteTime is None) or 
-                              (not r.userCreated and r.keepExpired)))
-            moreDoomed = iter(r for r in remindable.expiredReminders
-                              if r.absoluteTime is None)
-            for r in itertools.chain(doomed, moreDoomed):
-                logger.debug("Destroying obsolete %s on %s", r, self)
-                remindable.dismissReminder(r, dontExpire=True)
+        # Delete any relative user reminders, as well as any
+        # triageStatus reminders
+        from osaf.pim.reminders import Remindable
+        remindable = Remindable(self)
+        doomed = (r for r in remindable.reminders
+                  if (r.userCreated and r.absoluteTime is None) or
+                     not r.promptUser)
+        moreDoomed = (r for r in remindable.expiredReminders
+                      if r.absoluteTime is None)
+        for r in itertools.chain(doomed, moreDoomed):
+            logger.debug("Destroying obsolete %s on %s", r, self)
+            remindable.dismissReminder(r, dontExpire=True)
 
         super(EventStamp, self).remove()
 
@@ -718,7 +724,7 @@ class EventStamp(Stamp):
                 # the old because we want notifications to fire on this change)
                 Remindable(self).makeReminder(absoluteTime=newStartTime,
                                      userCreated=False, checkExpired=True,
-                                     keepExpired=False, promptUser=False)
+                                     promptUser=False)
                     
         # If we had an existing startTime reminder, dismiss it.
         if existing:
@@ -935,10 +941,12 @@ class EventStamp(Stamp):
 
     def _restoreStamps(self, clonedEvent):
         disabledChanges = clonedEvent.__disableRecurrenceChanges()
-        for stampClass in Stamp(self).stamp_types:
-            stampClass(clonedEvent).add()
-        if disabledChanges:
-            clonedEvent.__enableRecurrenceChanges()
+        try:
+            for stampClass in Stamp(self).stamp_types:
+                stampClass(clonedEvent).add()
+        finally:
+            if disabledChanges:
+                clonedEvent.__enableRecurrenceChanges()
 
     def _cloneEvent(self):
          # Exclude stamps, since add() does something good here
@@ -986,9 +994,9 @@ class EventStamp(Stamp):
 
         If self is the only occurrence, or the last occurrence, return None.
         
-        If self is a master event, raise ValueError, as it's proved error prone
-        to figure out what getNextOccurrence on a master means.  To get the
-        first occurrence, use the getFirstOccurrence method.
+        If self is a master event and after is None, raise ValueError, as it's
+        proved error prone to figure out what getNextOccurrence on a master
+        means.  To get the first occurrence, use the getFirstOccurrence method.
 
         @param after: Earliest end time allowed
         @type  after: C{datetime} or C{None}
@@ -1032,8 +1040,9 @@ class EventStamp(Stamp):
             return None
 
         first = self.getMaster()
-        if first == self:
-            raise ValueError, "getNextOccurrence cannot be called on a master."
+        if first == self and after is None:
+            raise ValueError, "getNextOccurrence cannot be called on a master "\
+                              "if after is None. Use getFirstOccurrence instead"
         
         # exact means this is a search for a specific recurrenceID
         exact = after is not None and after == before
@@ -1102,19 +1111,18 @@ class EventStamp(Stamp):
         # Figure out what (if anything) has changed ...
         remindable = Remindable(self)
         nowExpired = [r for r in remindable.reminders
-                         if expired(r)]
+                         if (not r.userCreated) or expired(r)]
 
         nowNotExpired = [r for r in remindable.expiredReminders
                            if not expired(r)]
 
         # ... and update the collections accordingly
         for reminder in nowExpired:
-            self.reminders.remove(reminder)
-            if reminder.keepExpired:
-                self.expiredReminders.add(reminder)
-            else:
-                assert len(reminder.reminderItems) == 0
-                assert len(reminder.expiredReminderItems) == 0
+            remindable.reminders.remove(reminder)
+            if reminder.userCreated:
+                remindable.expiredReminders.add(reminder)
+            elif len(reminder.reminderItems) == 0 and \
+                 len(reminder.expiredReminderItems) == 0:
                 reminder.delete()
 
         for reminder in nowNotExpired:
@@ -1325,9 +1333,11 @@ class EventStamp(Stamp):
     def changeNoModification(self, attr, value):
         """Set _ignoreValueChanges flag, set the attribute, then unset flag."""
         flagStart = self.__disableRecurrenceChanges()
-        setattr(self.itsItem, attr, value)
-        if flagStart:
-            self.__enableRecurrenceChanges()
+        try:
+            setattr(self.itsItem, attr, value)
+        finally:
+            if flagStart:
+                self.__enableRecurrenceChanges()
 
     def _propagateChange(self, modEvent):
         """Move later modifications to self."""
@@ -1360,161 +1370,169 @@ class EventStamp(Stamp):
             
         
         disabledSelf = self.__disableRecurrenceChanges()
-
-        # all day events' startTime is at midnight
-        startMidnight = datetime.combine(self.startTime.date(),
-                                         time(0, tzinfo=self.startTime.tzinfo))
-
-        if attr in (EventStamp.startTime.name, EventStamp.allDay.name,
-                    EventStamp.anyTime.name):
-            # if startTime changes (and an allDay/anyTime change changes
-            # effective startTime), all future occurrences need to be shifted
-            # appropriately
-            startTimeDelta = zero_delta
-            if attr == EventStamp.startTime.name:
-                startTimeDelta = (value - self.startTime)
-            # don't move future occurrences unless allDayness (anyTime or
-            # allDay) changes
-            else:
-                if attr == EventStamp.allDay.name:
-                    otherAllDayness = self.anyTime
+        try:
+            # all day events' startTime is at midnight
+            startMidnight = datetime.combine(self.startTime.date(),
+                                             time(0, tzinfo=self.startTime.tzinfo))
+    
+            if attr in (EventStamp.startTime.name, EventStamp.allDay.name,
+                        EventStamp.anyTime.name):
+                # if startTime changes (and an allDay/anyTime change changes
+                # effective startTime), all future occurrences need to be shifted
+                # appropriately
+                startTimeDelta = zero_delta
+                if attr == EventStamp.startTime.name:
+                    startTimeDelta = (value - self.startTime)
+                # don't move future occurrences unless allDayness (anyTime or
+                # allDay) changes
                 else:
-                    otherAllDayness = self.allDay
-                if (value or otherAllDayness) != (getattr(self.itsItem, attr) or
-                                                  otherAllDayness):
-                    if value == False:
-                        startTimeDelta = self.startTime - startMidnight
+                    if attr == EventStamp.allDay.name:
+                        otherAllDayness = self.anyTime
                     else:
-                        startTimeDelta = startMidnight - self.startTime
-
-            if startTimeDelta != zero_delta:
-                self.rruleset.moveDatesAfter(recurrenceID, startTimeDelta)
-                self.recurrenceID += startTimeDelta
-
-        setattr(self.itsItem, attr, value)
-
-        def makeThisAndFutureMod():
-            # Changing occurrenceFor before changing rruleset is important, it
-            # keeps the rruleset change from propagating inappropriately
-            del self.occurrenceFor
-            if attr != EventStamp.rruleset.name:
-                self.rruleset = self.rruleset.copy(cloudAlias='copying')
-                self.rruleset.removeDates(datetime.__lt__, self.startTime)
-            # We have to pass in master because occurrenceFor has been changed
-            self._makeGeneralChange()
-            # Make this event a separate event from the original rule
-            del self.modificationFor
-            if self.allDay:
-                self.recurrenceID = startMidnight
-            else:
-                self.recurrenceID = self.startTime
-            self.icalUID = unicode(self.itsItem.itsUUID)
-            self.copyCollections(master, self)
-
-        # determine what type of change to make
-        if attr == EventStamp.rruleset.name: # rule change, thus a destructive change
-            if self == master:
-                rruleset = master.createDateUtilFromRule()
-                for occurrence in itertools.imap(EventStamp,
-                                                 self.occurrences or []):
-                    disabled = occurrence.__disableRecurrenceChanges()
-                    if occurrence.recurrenceID in rruleset:
-                        # Make sure each occurrence has our rruleset
-                        setattr(occurrence.itsItem, attr, value)
-                        if disabled:
-                            occurrence.__enableRecurrenceChanges()
-                    else:
-                        del occurrence.rruleset
-                        del occurrence.occurrenceFor
-                        del occurrence.modificationFor
-                        occurrence.itsItem.delete()
-                if self.occurrences is None:
-                    # Make sure we have at least one occurrence
-                    self.getRecurrenceID(self.startTime)
-            else:
-                self.removeFutureOccurrences()
-                if self.recurrenceID == master.startTime and self.modificationFor == master:
-                    # A THIS modification to master, make it the new master
-                    self.moveCollections(master, self)
-                    del self.modificationFor
-                    del self.occurrenceFor
+                        otherAllDayness = self.allDay
+                    if (value or otherAllDayness) != (getattr(self.itsItem, attr) or
+                                                      otherAllDayness):
+                        if value == False:
+                            startTimeDelta = self.startTime - startMidnight
+                        else:
+                            startTimeDelta = startMidnight - self.startTime
+    
+                if startTimeDelta != zero_delta:
+                    self.rruleset.moveDatesAfter(recurrenceID, startTimeDelta)
+                    self.recurrenceID += startTimeDelta
+    
+            setattr(self.itsItem, attr, value)
+    
+            def makeThisAndFutureMod():
+                # Changing occurrenceFor before changing rruleset is important, it
+                # keeps the rruleset change from propagating inappropriately
+                del self.occurrenceFor
+                if attr != EventStamp.rruleset.name:
+                    self.rruleset = self.rruleset.copy(cloudAlias='copying')
+                    self.rruleset.removeDates(datetime.__lt__, self.startTime)
+                # We have to pass in master because occurrenceFor has been changed
+                self._makeGeneralChange()
+                # Make this event a separate event from the original rule
+                del self.modificationFor
+                if self.allDay:
+                    self.recurrenceID = startMidnight
+                else:
                     self.recurrenceID = self.startTime
-                    master.deleteAll()
-                elif self.isGenerated or self.modificationFor is not None:
-                    makeThisAndFutureMod()
+                self.icalUID = unicode(self.itsItem.itsUUID)
+                self.copyCollections(master, self)
+    
+            # determine what type of change to make
+            if attr == EventStamp.rruleset.name: # rule change, thus a destructive change
+                if self == master:
+                    rruleset = master.createDateUtilFromRule()
+                    for occurrence in itertools.imap(EventStamp,
+                                                     self.occurrences or []):
+                        disabled = occurrence.__disableRecurrenceChanges()
+                        try:
+                            if occurrence.recurrenceID in rruleset:
+                                # Make sure each occurrence has our rruleset
+                                setattr(occurrence.itsItem, attr, value)
+                            else:
+                                del occurrence.rruleset
+                                del occurrence.occurrenceFor
+                                del occurrence.modificationFor
+                                disabled = False
+                                occurrence.itsItem.delete()
+                        finally:
+                            if disabled:
+                                occurrence.__enableRecurrenceChanges()
+                            
+                    if self.occurrences is None:
+                        # Make sure we have at least one occurrence
+                        self.getRecurrenceID(self.startTime)
+                else:
+                    self.removeFutureOccurrences()
+                    if self.recurrenceID == master.startTime and self.modificationFor == master:
+                        # A THIS modification to master, make it the new master
+                        self.moveCollections(master, self)
+                        del self.modificationFor
+                        del self.occurrenceFor
+                        self.recurrenceID = self.startTime
+                        master.deleteAll()
+                    elif self.isGenerated or self.modificationFor is not None:
+                        makeThisAndFutureMod()
+                        master.moveRuleEndBefore(recurrenceID)
+            else: #propagate changes forward
+                if self.modificationFor is not None:
+                    #preserve self as a THIS modification
+                    if self.recurrenceID != first.startTime:
+                        # create a new event, cloned from first, make it a
+                        # thisandfuture modification with self overriding it
+                        newfirst = first._cloneEvent()
+                        disabled = newfirst.__disableRecurrenceChanges()
+                        try:
+                            newfirstItem = newfirst.itsItem
+                            newfirst.rruleset = self.rruleset.copy(cloudAlias='copying')
+                            # There are two events in play, self (which has been
+                            # changed), and newfirst, a non-displayed item used to
+                            # define generated events.  Make sure the current change
+                            # is applied to both items, and that both items have the
+                            # same rruleset.
+                            setattr(newfirst.itsItem, attr, value)
+                            self.rruleset = newfirst.rruleset
+                            newfirst.startTime = self.recurrenceID
+                            newfirst.occurrenceFor = None #self overrides newfirst
+                            newfirst.icalUID = self.icalUID = str(
+                                                           newfirst.itsItem.itsUUID)
+                            newfirst._makeGeneralChange()
+                            self.occurrenceFor = self.modificationFor = newfirstItem
+                            self.copyCollections(master, newfirst)
+                            # move THIS modifications after self to newfirst
+                            for mod in itertools.imap(EventStamp,
+                                                      first.modifications or []):
+                                if mod.recurrenceID > newfirst.startTime:
+                                    mod.occurrenceFor = newfirstItem
+                                    mod.modificationFor = newfirstItem
+                                    mod.icalUID = newfirst.icalUID
+                                    mod.rruleset = newfirst.rruleset
+                                    #rruleset needs to change, so does icalUID
+                        finally:
+                            if disabled:
+                                newfirst.__enableRecurrenceChanges()
+                    else:
+                        # self was a THIS modification to the master, setattr needs
+                        # to be called on master
+                        if attr == EventStamp.startTime.name:
+                            newStart = master.startTime + startTimeDelta
+                            master.changeNoModification(EventStamp.startTime.name, newStart)
+                            master.changeNoModification(EventStamp.recurrenceID.name, newStart)
+                            self.recurrenceID = newStart
+                        else:
+                            master.changeNoModification(attr, value)
+    
+                else: # change applies to an event which isn't a modification
+                    if self.isGenerated:
+                        makeThisAndFutureMod()
+                    else:
+                        # Change applied to a master, make sure it gets its
+                        # recurrenceID updated
+                        self.recurrenceID = self.startTime
+                master._deleteGeneratedOccurrences()
+    
+                for mod in itertools.imap(EventStamp, master.modifications or []):
+                    self._propagateChange(mod)
+                    # change recurrenceIDs for modifications if startTime change
+                    if attr == EventStamp.startTime.name and mod.modificationFor == self.itsItem:
+                        mod.changeNoModification(EventStamp.recurrenceID.name,
+                            mod.recurrenceID + startTimeDelta)
+                if not isFirst:
                     master.moveRuleEndBefore(recurrenceID)
-        else: #propagate changes forward
-            if self.modificationFor is not None:
-                #preserve self as a THIS modification
-                if self.recurrenceID != first.startTime:
-                    # create a new event, cloned from first, make it a
-                    # thisandfuture modification with self overriding it
-                    newfirst = first._cloneEvent()
-                    disabled = newfirst.__disableRecurrenceChanges()
-                    newfirstItem = newfirst.itsItem
-                    newfirst.rruleset = self.rruleset.copy(cloudAlias='copying')
-                    # There are two events in play, self (which has been
-                    # changed), and newfirst, a non-displayed item used to
-                    # define generated events.  Make sure the current change
-                    # is applied to both items, and that both items have the
-                    # same rruleset.
-                    setattr(newfirst.itsItem, attr, value)
-                    self.rruleset = newfirst.rruleset
-                    newfirst.startTime = self.recurrenceID
-                    newfirst.occurrenceFor = None #self overrides newfirst
-                    newfirst.icalUID = self.icalUID = str(
-                                                   newfirst.itsItem.itsUUID)
-                    newfirst._makeGeneralChange()
-                    self.occurrenceFor = self.modificationFor = newfirstItem
-                    self.copyCollections(master, newfirst)
-                    # move THIS modifications after self to newfirst
-                    for mod in itertools.imap(EventStamp,
-                                              first.modifications or []):
-                        if mod.recurrenceID > newfirst.startTime:
-                            mod.occurrenceFor = newfirstItem
-                            mod.modificationFor = newfirstItem
-                            mod.icalUID = newfirst.icalUID
-                            mod.rruleset = newfirst.rruleset
-                            #rruleset needs to change, so does icalUID
-                    if disabled:
-                        newfirst.__enableRecurrenceChanges()
-                else:
-                    # self was a THIS modification to the master, setattr needs
-                    # to be called on master
-                    if attr == EventStamp.startTime.name:
-                        newStart = master.startTime + startTimeDelta
-                        master.changeNoModification(EventStamp.startTime.name, newStart)
-                        master.changeNoModification(EventStamp.recurrenceID.name, newStart)
-                        self.recurrenceID = newStart
-                    else:
-                        master.changeNoModification(attr, value)
-
-            else: # change applies to an event which isn't a modification
-                if self.isGenerated:
-                    makeThisAndFutureMod()
-                else:
-                    # Change applied to a master, make sure it gets its
-                    # recurrenceID updated
-                    self.recurrenceID = self.startTime
-            master._deleteGeneratedOccurrences()
-
-            for mod in itertools.imap(EventStamp, master.modifications or []):
-                self._propagateChange(mod)
-                # change recurrenceIDs for modifications if startTime change
-                if attr == EventStamp.startTime.name and mod.modificationFor == self.itsItem:
-                    mod.changeNoModification(EventStamp.recurrenceID.name,
-                        mod.recurrenceID + startTimeDelta)
-            if not isFirst:
-                master.moveRuleEndBefore(recurrenceID)
-
-            # if modifications were moved from master to self, they may have the
-            # same recurrenceID as a (spurious) generated event, so delete
-            # generated occurrences.
-
-            self._deleteGeneratedOccurrences()
-            self._getFirstGeneratedOccurrence(True)
-
-        if disabledSelf: self.__enableRecurrenceChanges()
+    
+                # if modifications were moved from master to self, they may have the
+                # same recurrenceID as a (spurious) generated event, so delete
+                # generated occurrences.
+    
+                self._deleteGeneratedOccurrences()
+                self._getFirstGeneratedOccurrence(True)
+                
+            self._fixMasterReminders()
+        finally:
+            if disabledSelf: self.__enableRecurrenceChanges()
 
     def moveCollections(self, fromEvent, toEvent):
         """Move all collection references from one event to another."""
@@ -1567,6 +1585,60 @@ class EventStamp(Stamp):
         if attr is not None:
             setattr(self.itsItem, attr, value)
 
+    def _fixMasterReminders(self):
+        """
+        When we turn recurrence on or off, deal with existing reminders.
+        """
+        from osaf.pim.reminders import Remindable
+        remindable = Remindable(self)
+        
+        if self.rruleset is not None:
+            if not self.isRecurrenceMaster():
+                return
+
+            # We're adding recurrence, and this is a master.
+            # Tweak the reminders.
+            disabled = self.__disableRecurrenceChanges()
+            try:
+                # Convert any absolute user reminder to relative.
+                absTime = remindable.userReminderTime
+                if absTime is not None:
+                    remindable.userReminderInterval = \
+                        (absTime - self.effectiveStartTime)
+                else:
+                    # No absolute reminder. If we have a relative one, move it
+                    # to 'expired' (so the master won't show up in the 
+                    # itemsWithReminders list).                    
+                    reminder = remindable.getUserReminder(expiredToo=False)
+                    if reminder is not None:
+                        # We've got a relative reminder that isn't expired - move
+                        # it to 'expired' now that we're a master.
+                        remindable.reminders.remove(reminder)
+                        remindable.expiredReminders.add(reminder)
+                    
+                # Any remaining reminders in the pending list are triageStatus
+                # or snooze reminders; discard them -- it'd be messy to have 
+                # them on the master.
+                if remindable.reminders:
+                    for r in list(remindable.reminders):
+                        r.delete()
+                assert len(remindable.reminders) == 0
+                
+                # @@@ Make all recurring event masters be 'Later' for now.
+                from osaf.pim.items import TriageEnum
+                self.itsItem.triageStatus = TriageEnum.later
+            finally:
+                if disabled: self.__enableRecurrenceChanges()
+        else:
+            # When we remove recurrence, we might need to move the user
+            # reminder from 'expired' to 'reminders' if it's still in the future.
+            (refList, reminder) = remindable.getUserReminder(refListToo=True)
+            now = datetime.now(tz=ICUtzinfo.default)
+            if reminder is not None and refList is remindable.expiredReminders \
+               and reminder.getNextReminderTimeFor(remindable) >= now:
+                remindable.expiredReminders.remove(reminder)
+                remindable.reminders.add(reminder)
+            
     @schema.observer(
         ContentItem.displayName, ContentItem.body, ContentItem.lastModified,
         startTime, duration, location, allDay, rruleset, Stamp.stamp_types
@@ -1588,6 +1660,7 @@ class EventStamp(Stamp):
         # avoid infinite loops
         if rruleset:
             logger.debug("just set rruleset")
+            self._fixMasterReminders()
             gen = self._getFirstGeneratedOccurrence(True)
             if DEBUG and gen:
                 logger.debug("got first generated occurrence, %s", gen.serializeMods().getvalue())
@@ -1828,6 +1901,10 @@ class EventStamp(Stamp):
     def isRecurring(self):
         """ Is this Event a recurring event? """
         return self.rruleset is not None
+    
+    def isRecurrenceMaster(self):
+        """ Is this Event a master of a recurrence set? """
+        return self.rruleset is not None and self.getMaster() == self
     
 def isRecurring(item):
     """ Is this item a recurring event? """

@@ -1121,8 +1121,8 @@ def debugName(thing):
                           getattr(thing, 'displayName', None))
 
     if isinstance(thing, Reminder):
-        items = ["+%r" % r for r in thing.reminderItems]
-        items.extend("-%r" % debugName(r) for r in thing.expiredReminderItems)
+        items = ["+%s" % debugName(r) for r in thing.reminderItems]
+        items.extend("-%s" % debugName(r) for r in thing.expiredReminderItems)
         return "%r on [%s]" % (thing.__repr__(), ", ".join(items))
 
     try:

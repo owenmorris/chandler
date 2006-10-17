@@ -826,7 +826,8 @@ class ReminderAEBlock(DetailSynchronizedAttributeEditorBlock):
     def getWatchList(self):
         watchList = super(ReminderAEBlock, self).getWatchList()
         watchList.extend([(self.item, pim.Remindable.reminders.name),
-                          (self.item, pim.Remindable.expiredReminders.name)])
+                          (self.item, pim.Remindable.expiredReminders.name),
+                          (self.item, pim.EventStamp.rruleset.name)])
         return watchList
     
 class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
@@ -855,19 +856,25 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         existingValue = (existingSelectionIndex != wx.NOT_FOUND) \
                       and control.GetClientData(existingSelectionIndex) \
                       or None
-        hasStart = pim.has_stamp(self.item, pim.EventStamp)
+        isEvent = pim.has_stamp(self.item, pim.EventStamp)
 
-        if existingValue != value or control.GetCount() != (hasStart and 4 or 2):
+        # @@@ For now, always rebuild the list, so we can remove or add the 
+        # Custom choice when recurrence changes.
+        if True: # existingValue != value or control.GetCount() != (isEvent and 4 or 2):
             # rebuild the list of choices
             control.Clear()
             control.Append(_(u"None"), 'none')
-            if hasStart:
+            if isEvent:
                 control.Append(_(u"Before event"), 'before')
                 control.Append(_(u"After event"), 'after')
-            control.Append(_(u"Custom"), 'custom')
+            # @@@ For now, don't allow absolute reminders on recurring events
+            if not isEvent or not pim.EventStamp(self.item).isRecurring() \
+               or value == 'custom':
+                # assert value != 'custom' # (shouldn't happen; will tolerate in non-debug)
+                control.Append(_(u"Custom"), 'custom')
         
         # Which choice to select?
-        choiceIndex = self.reminderIndexes.get(value, hasStart and 3 or 1)
+        choiceIndex = self.reminderIndexes.get(value, isEvent and 3 or 1)
         control.Select(choiceIndex)
 
     def GetAttributeValue(self, item, attributeName):

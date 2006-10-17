@@ -41,18 +41,9 @@ class ReminderDialog(wx.Dialog):
     def __init__(self, parent, ID, size=wx.DefaultSize,
      pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP):
 
-        # Instead of calling wx.Dialog.__init__ we precreate the dialog
-        # so we can set an extra style that must be set before
-        # creation, and then we create the GUI dialog using the Create
-        # method.
-        pre = wx.PreDialog()
-        pre.Create(parent, ID, _(u"Reminders"), pos, size, style)
-
-        # This next step is the most important, it turns this Python
-        # object into the real wrapper of the dialog (instead of pre)
-        # as far as the wxPython extension is concerned.
-        self.this = pre.this
-
+        wx.Dialog.__init__(self, parent, ID, name=u'ReminderDialog', pos=pos, 
+                           size=size, style=style, title=_(u"Reminders"))
+        
         # Note that we're not in the process of closing; we'll set this
         # when the widget gets destroyed, letting UpdateList know it can NOP.
         self.reminderClosing = False

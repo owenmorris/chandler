@@ -2420,6 +2420,12 @@ class TriageAttributeEditor(BaseAttributeEditor):
         else:
             event.Skip()
 
+    def ReadOnly (self, (item, attribute)):
+        # @@@ For now, treat recurring events as readOnly.
+        return super(TriageAttributeEditor, self).ReadOnly((item, attribute)) \
+               or (pim.has_stamp(item, pim.EventStamp) and \
+                   pim.EventStamp(item).isRecurring())
+
 class IconAttributeEditor (BaseAttributeEditor):
     """
     Base class for an icon-based attribute editor; subclass and provide
@@ -2639,6 +2645,9 @@ class EventStampAttributeEditor(StampAttributeEditor):
             return
 
         # No existing one -- create one.
+        # @@@ unless this is a recurring event, for now.
+        if pim.has_stamp(item, pim.EventStamp) and pim.EventStamp(item).isRecurring():
+            return # ignore the click.
         now = datetime.now(tz=ICUtzinfo.default)
         if now.hour < 17:
             # Today at 5PM
