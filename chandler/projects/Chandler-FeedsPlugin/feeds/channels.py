@@ -190,7 +190,7 @@ class FeedChannel(pim.ListCollection):
         host = str(host)
         path = str(path)
         factory = ConditionalHTTPClientFactory(url=url,
-            lastModified=lastModified, etag=etag)
+            lastModified=lastModified, etag=etag, timeout=60)
         reactor.connectTCP(host, port, factory)
 
         return factory.deferred
