@@ -605,6 +605,10 @@ class OneTimeShare(Share):
     """
 
     def remove(self):
+        # With deferred deletes, we need to also remove the Share from the
+        # collection's shares ref collection
+        if self.contents:
+            self.contents.shares.remove(self)
         self.conduit.delete(True)
         self.format.delete(True)
         self.delete(True)

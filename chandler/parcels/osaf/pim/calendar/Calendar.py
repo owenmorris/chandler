@@ -1622,6 +1622,10 @@ class EventStamp(Stamp):
                 if remindable.reminders:
                     for r in list(remindable.reminders):
                         r.delete()
+                    # delete() is sometimes deferred until commit
+                    # therefore remindable.reminders won't clear until then
+                    # unless it's explicitely done here.
+                    remindable.reminders.clear()
                 assert len(remindable.reminders) == 0
                 
                 # @@@ Make all recurring event masters be 'Later' for now.

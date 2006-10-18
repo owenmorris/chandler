@@ -1454,7 +1454,7 @@ class Item(CItem):
 
             view = self.itsView
 
-            if not self.isNew() and view.isDeferringDelete():
+            if view.isDeferringDelete():
                 self._status |= Item.DEFERRING
 
                 if hasattr(type(self), 'onItemDelete'):
