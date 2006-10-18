@@ -25,7 +25,7 @@ from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 # Under normal circumstances, we'll create events to fire very
 # shortly, so the tests aren't slowed much by waiting. (at least 2!)
 # If I'm debugging, set up events farther in the future
-nearFutureSeconds=2
+nearFutureSeconds=6
 #nearFutureSeconds=120
 
 class TestReminderProcessing(ChandlerTestCase):
