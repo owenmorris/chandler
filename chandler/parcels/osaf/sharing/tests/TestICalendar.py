@@ -393,5 +393,140 @@ class TimeZoneTestCase(unittest.TestCase):
             ICUtzinfo.getInstance("US/Pacific"),
             zone)
 
+            
+class ICalendarMergeTestCase(SingleRepositoryTestCase):
+    ETAG = 0
+    before = None
+    after = None
+
+    def setUp(self):
+        super(ICalendarMergeTestCase, self).setUp()
+        
+        view = self.view
+
+        # create a sandbox root
+        self.sandbox = Item.Item("sandbox", view, None)
+        
+        collection = ListCollection("testCollection", self.sandbox,
+                                    displayName=uw("Test Collection"))
+
+        share = sharing.Share(itsView=view, contents=collection,
+            conduit=sharing.InMemoryConduit(itsView=view,
+                                            shareName=uw("viewmerging")),
+            format=sharing.CalDAVFormat(itsView=view)
+        )
+
+        view.commit()
+        
+        self.shareUUID = share.itsUUID
+        
+    @property
+    def collection(self):
+        return self.share.contents
+        
+    @property
+    def share(self):
+        return self.view.findUUID(self.shareUUID)
+
+    def _doSync(self, *icalendarLines):
+         # sic; should probably add a method to InMemoryConduit for this
+        from osaf.sharing.conduits import shareDict
+        
+        # set the data on the "server" ... i.e. the Conduit
+        type(self).ETAG += 1
+        etag = self.ETAG
+        data = "\r\n".join(icalendarLines)
+        
+        shareSettings = shareDict.setdefault(uw("viewmerging"), {})
+        shareSettings['import.ics'] = etag, data
+        
+        # Now sync; it's as if icalendarLines were what was on the server
+        self.share.sync()
+        
+        
+    def testUpdateMod(self):
+        # Test for one problem in bug 7019
+        # Create the original ... (We could also use self._doSync here)
+        startTime = datetime.datetime(2006, 4, 17, 13,
+                                      tzinfo=ICUtzinfo.floating)
+        
+        rrule = RecurrenceRule(
+            itsParent=self.sandbox,
+            freq="weekly"
+        )
+        rruleset = RecurrenceRuleSet(
+            itsParent=self.sandbox,
+            rrules=[rrule]
+        )
+        event = pim.CalendarEvent(
+            itsParent=self.sandbox,
+            startTime=startTime,
+            duration=datetime.timedelta(hours=1),
+            summary=u'Meeting Weakly',
+            allDay=False,
+            anyTime=False,
+            icalUID=u'9cf1f128-c416-11da-9051-000a95d7eed8',
+        )
+        
+        event.rruleset = rruleset
+        self.collection.add(event.itsItem)
+        
+        # Change the occurrence on September 4 to 4pm on the 6th
+        recurrenceID = startTime.replace(month=9, day=4)
+        newStartTime = recurrenceID.replace(day=6, hour=16)
+        occurrence = event.getRecurrenceID(recurrenceID)
+        occurrence.changeThis(pim.EventStamp.startTime.name, newStartTime)
+        
+        self.view.commit()
+        
+        # Now import the iCalendar
+        self._doSync(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//PYVOBJECT//NONSGML Version 1//EN",
+            "BEGIN:VEVENT",
+            "UID:9cf1f128-c416-11da-9051-000a95d7eed8",
+            "DTSTART:20060417T130000",
+            "DTEND:20060417T140000",
+            "DESCRIPTION:\n",
+            "RRULE:FREQ=WEEKLY",
+            "SUMMARY:PPD meeting",
+            "END:VEVENT",
+            "BEGIN:VEVENT",
+            "UID:9cf1f128-c416-11da-9051-000a95d7eed8",
+            "RECURRENCE-ID:20060904T130000",
+            "DTSTART:20060906T160000",
+            "DTEND:20060906T170000",
+            "DESCRIPTION:\\n",
+            "SUMMARY:Meeting Weakly",
+            "END:VEVENT",
+            "BEGIN:VEVENT",
+            "UID:9cf1f128-c416-11da-9051-000a95d7eed8",
+            "RECURRENCE-ID:20061016T130000",
+            "DTSTART:20061016T141500",
+            "DTEND:20061016T151500",
+            "DESCRIPTION:\n",
+            "SUMMARY:Meeting Weakly",
+            "END:VEVENT",
+            "END:VCALENDAR"
+        )
+
+        sharedItem = self.collection.first()
+        self.failUnless(pim.has_stamp(sharedItem, pim.EventStamp))
+        
+        sharedEvent = pim.EventStamp(sharedItem)
+        self.failUnlessEqual(sharedEvent.startTime.replace(tzinfo=None),
+                             datetime.datetime(2006, 4, 17, 13))
+                             
+        mods = list(sharedEvent.modifications)
+        self.failUnlessEqual(len(mods), 2, "A modification was lost on import")
+        
+        eventMod = pim.EventStamp(mods[1])
+        self.failUnlessEqual(eventMod.startTime.replace(tzinfo=None),
+                             datetime.datetime(2006, 10, 16, 14, 15))
+        self.failUnlessEqual(eventMod.recurrenceID.replace(tzinfo=None),
+                             datetime.datetime(2006, 10, 16, 13))
+        
+
 if __name__ == "__main__":
     unittest.main()

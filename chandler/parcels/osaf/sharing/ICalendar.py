@@ -549,9 +549,18 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                             # delete modifications the master has, to avoid
                             # changing the master to a modification with a
                             # different UUID
-                            if getattr(eventItem, 'modifications', None):
-                                for mod in eventItem.modifications:
-                                    mod.delete()
+                            for mod in itertools.imap(EventStamp,
+                                                eventItem.modifications or []):
+                                # [Bug 7019]
+                                # We need to del these because, in the deferred
+                                # delete case, we would have deferred items
+                                # living on, in the manner of the undead, in
+                                # master.modifications (and occurrences). This
+                                # would ultimately cause .getNextOccurrence()
+                                # to terminate prematurely.
+                                del mod.modificationFor
+                                del mod.occurrenceFor
+                                mod.itsItem.delete()
 
                             eventItem.removeRecurrence()
                             
