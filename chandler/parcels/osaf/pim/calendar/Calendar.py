@@ -759,36 +759,21 @@ class EventStamp(Stamp):
         return type(self)(first)
 
     def getLastUntil(self):
-        """Find the last modification's rruleset, return it's until value.
+        """Find the last modification's rruleset, return its until value.
 
         @rtype: C{datetime} or C{None}
-
-        """
-        lastRule = self.getLastUntilRule()
-        
-        if lastRule is None:
-            return None
-        else:
-            return lastRule.until
-
-    def getLastUntilRule(self):
-        """Find the rruleset containing the latest until value.
-
-        @rtype: C{RecurrenceRule} or C{None}
 
         """
         # for no-THISANDFUTURE, this is just return until
         if self.rruleset is None:
             return None
-        lastRule = None
         lastUntil = None
         for rule in getattr(self.rruleset, 'rrules', None) or []:
             until = getattr(rule, 'until', None)
             if until is not None:
                 if lastUntil is None or lastUntil < until:
                     lastUntil = until
-                    lastRule = rule
-        return lastRule
+        return lastUntil
         
 
     def getRecurrenceEnd(self):
@@ -1164,20 +1149,6 @@ class EventStamp(Stamp):
 
             if not recurrenceID in rruleset:
                 event = event.getNextOccurrence()
-
-        lastUntilRule = self.getLastUntilRule()
-        if lastUntilRule is not None:
-            lastUntil = lastUntilRule.until
-            
-            lastUntil += getattr(self, 'duration', timedelta(0))
-            
-            if lastUntilRule.untilIsDate:
-                lastUntil += timedelta(days=1)
-
-            if before is None:
-                before = lastUntil
-            else:
-                before = min(before, lastUntil)
 
         while event is not None:
             if event.isBetween(after, before, inclusive):

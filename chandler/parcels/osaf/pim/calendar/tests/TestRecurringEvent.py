@@ -881,6 +881,27 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         second.changeThisAndFuture(EventStamp.startTime.name,
                                    self.start + timedelta(minutes=30))
         self.failIf(second.rruleset.rrules.first().hasLocalAttributeValue('until'))
+        
+    def testRecurrenceEnd(self):
+        event = self.event
+        event.startTime = datetime(2006, 11, 11, 13, tzinfo=ICUtzinfo.default)
+        event.rruleset = self._createRuleSetItem('daily')
+        event.rruleset.rrules.first().until = event.startTime + timedelta(days=3)
+        
+        occurrences = event.getOccurrencesBetween(None, None)
+        self.failUnlessEqual(4, len(occurrences))
+        
+        # Move the second occurrence out past the rrule's until
+        secondOccurrence = occurrences[1]
+        newStart = datetime.combine(event.startTime.date() + timedelta(days=10),
+                                    time(10, tzinfo=ICUtzinfo.default))
+        secondOccurrence.changeThis(EventStamp.startTime.name, newStart)
+
+        occurrences = event.getOccurrencesBetween(None, None)
+        self.failUnless(secondOccurrence in occurrences)
+        self.failUnlessEqual(4, len(occurrences))
+        
+    
 
 class NaiveTimeZoneRecurrenceTest(TestDomainModel.DomainModelTestCase):
     """Test of recurring events that have startTimes that occur on different
