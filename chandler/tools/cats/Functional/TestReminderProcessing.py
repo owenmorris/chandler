@@ -21,7 +21,13 @@ import osaf.pim as pim
 from i18n.tests import uw
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
+import logging, traceback
 
+logger = logging.getLogger(__name__)
+def getstack():
+    stack = traceback.extract_stack(limit=5)[:-2]
+    return "".join(traceback.format_list(stack))
+    
 # Under normal circumstances, we'll create events to fire very
 # shortly, so the tests aren't slowed much by waiting. (at least 2!)
 # If I'm debugging, set up events farther in the future
@@ -32,24 +38,32 @@ class TestReminderProcessing(ChandlerTestCase):
 
     def failif(self, x, msg):
         if x:
-            raise AssertionError(msg)
+            # raise AssertionError(msg)
+            logger.critical("%s...\n%s", msg, getstack())
     def failunless(self, x, msg):
         if not x:
-            raise AssertionError(msg)
+            # raise AssertionError(msg)
+            logger.critical("%s...\n%s", msg, getstack())
     def failunlessequal(self, a, b, msg):
         if not a == b:
-            raise AssertionError("%s: %r != %r" % (msg, a, b))
+            # raise AssertionError("%s: %r != %r" % (msg, a, b))
+            logger.critical("%s: %r != %r...\n%s", msg, a, b, getstack())
     def failifequal(self, a, b, msg):
         if a == b:
-            raise AssertionError("%s: %r == %r" % (msg, a, b))
+            # raise AssertionError("%s: %r == %r" % (msg, a, b))
+            logger.critical("%s: %r == %r...\n%s", msg, a, b, getstack())
 
     def _checkRemindersOn(self, anItem, userTime=None, userExpired=False,
                           triageStatusTime=None, snoozeTime=None,
                           triageStatus=None):
         """ 
-        Verify that these are the only reminders on this remindable. pendingUserReminder and expiredReminder
-        can be datetime or timedelta, or None; startTimeReminder must be a datetime or None.
+        Verify that these are the only reminders on this remindable. userTime
+        can be datetime or timedelta, or None; triageStatusTime and snoozeTime
+        must be datetime or None.
         """
+        logger.critical("Checking reminders on %s at %s", anItem.displayName,
+                        pim.EventStamp(anItem).startTime)
+        
         remindable = pim.Remindable(anItem)
         
         # Make sure we have 0 or 1 user reminders, on the right reflist.
@@ -141,6 +155,8 @@ class TestReminderProcessing(ChandlerTestCase):
         nearFutureReminderDelta = timedelta(seconds=nearFutureSeconds/-2)
         nearFuture = testTime + nearFutureDelta
         nearFutureReminder = nearFuture + nearFutureReminderDelta
+        logger.critical("testTime=%s, nearFutureReminder=%s, nearFuture=%s", 
+                        testTime, nearFutureReminder, nearFuture)
 
         # An ordinary event with relative and triageStatus reminders
         simpleEvent = self._makeEvent("Simple Event", nearFuture)
@@ -184,6 +200,7 @@ class TestReminderProcessing(ChandlerTestCase):
 
         # Sleep until the events' start time, then fire all the collection 
         # notifications
+        logger.critical("Sleeping %d seconds", nearFutureSeconds)
         time.sleep(nearFutureSeconds)
         repoView.dispatchNotifications()
         scripting.User.idle()
@@ -194,6 +211,7 @@ class TestReminderProcessing(ChandlerTestCase):
             self.logger.endAction(False, "Didn't see the reminder dialog")
 
         # Dismiss reminders until the box goes away
+        logger.critical("Dismissing reminders")
         timeout = datetime.now(tz=ICUtzinfo.default) + timedelta(seconds=2)
         while datetime.now(tz=ICUtzinfo.default) < timeout:
             reminderDialog = wx.FindWindowByName(u'ReminderDialog')
@@ -208,6 +226,7 @@ class TestReminderProcessing(ChandlerTestCase):
             self.logger.endAction(False, "Didn't dismiss all reminders")
 
         # Check each reminder
+        logger.critical("Checking reminders, post-dismissal")
         self._checkRemindersOn(simpleEvent, userTime=nearFutureReminderDelta,
                                userExpired=True, triageStatusTime=None,
                                triageStatus=pim.TriageEnum.now)
