@@ -31,7 +31,7 @@ def getstack():
 # Under normal circumstances, we'll create events to fire very
 # shortly, so the tests aren't slowed much by waiting. (at least 2!)
 # If I'm debugging, set up events farther in the future
-nearFutureSeconds=6
+nearFutureSeconds=2
 #nearFutureSeconds=120
 
 class TestReminderProcessing(ChandlerTestCase):
@@ -198,14 +198,23 @@ class TestReminderProcessing(ChandlerTestCase):
         self._checkRemindersOn(secondOccurrence, userTime=timedelta(0), 
                                userExpired=False, triageStatusTime=None)
 
-        # Sleep until the events' start time, then fire all the collection 
+        # Sleep until after the events' start time, then fire all the collection 
         # notifications
-        logger.critical("Sleeping %d seconds", nearFutureSeconds)
-        time.sleep(nearFutureSeconds)
-        repoView.dispatchNotifications()
-        scripting.User.idle()
+        while True:
+            sleepDelta = (nearFuture + timedelta(1)) \
+                         - datetime.now(tz=ICUtzinfo.default)
+            sleepDeltaSeconds = (sleepDelta.days * 86400) + sleepDelta.seconds
+            if sleepDeltaSeconds < 0:
+                break
+            # If we're not there yet, sleep at least a second more.
+            sleepDeltaSeconds = sleepDeltaSeconds >= 1 and sleepDeltaSeconds or 1
+            logger.critical("Sleeping %d seconds", sleepDeltaSeconds)
+            time.sleep(sleepDeltaSeconds)
+            repoView.dispatchNotifications()
+            scripting.User.idle()
         
         # Make sure the reminder alert popped up
+        logger.critical("Done waiting - looking for reminder dialog")
         reminderDialog = wx.FindWindowByName(u'ReminderDialog')
         if reminderDialog is None:
             self.logger.endAction(False, "Didn't see the reminder dialog")
