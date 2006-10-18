@@ -807,6 +807,10 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         event.itsItem.delete()
         self._checkDeleted(chain([event], occurrences), [])
 
+    def testDeleteRuleSet(self):
+        event = self.event
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        rruleset.delete(recursive=True)
 
 
     def testRdatesAndExdates(self):

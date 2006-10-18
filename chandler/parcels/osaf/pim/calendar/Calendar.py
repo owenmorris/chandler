@@ -782,7 +782,7 @@ class EventStamp(Stamp):
             return None
         lastRule = None
         lastUntil = None
-        for rule in self.rruleset.rrules:
+        for rule in getattr(self.rruleset, 'rrules', None) or []:
             until = getattr(rule, 'until', None)
             if until is not None:
                 if lastUntil is None or lastUntil < until:
