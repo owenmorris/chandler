@@ -878,6 +878,12 @@ class Annotation:
     def __repr__(self):
         return "%s(%r)" % (type(self).__name__, self.itsItem)
 
+    def __eq__(self, other):
+        return type(other) == type(self) and self.itsItem == other.itsItem
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     @classmethod
     def addIndex(cls, collection, name, type, **keywds):
         # compare is tricky, since it takes a method name,

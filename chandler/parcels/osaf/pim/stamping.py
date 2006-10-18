@@ -168,12 +168,6 @@ class Stamp(schema.Annotation):
         fullName = getattr(type(self), attrName).name
         return self.itsItem.hasLocalAttributeValue(fullName)
         
-    def __eq__(self, other):
-        return type(other) == type(self) and self.itsItem == other.itsItem
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     @schema.observer(stamp_types)
     def onStampTypesChanged(self, op, attr):
         self.itsItem.updateRelevantDate(op, attr)

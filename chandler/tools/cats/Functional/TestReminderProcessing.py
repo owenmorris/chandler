@@ -36,22 +36,34 @@ nearFutureSeconds=2
 
 class TestReminderProcessing(ChandlerTestCase):
 
-    def failif(self, x, msg):
-        if x:
-            # raise AssertionError(msg)
-            logger.critical("%s...\n%s", msg, getstack())
-    def failunless(self, x, msg):
-        if not x:
-            # raise AssertionError(msg)
-            logger.critical("%s...\n%s", msg, getstack())
-    def failunlessequal(self, a, b, msg):
-        if not a == b:
-            # raise AssertionError("%s: %r != %r" % (msg, a, b))
-            logger.critical("%s: %r != %r...\n%s", msg, a, b, getstack())
-    def failifequal(self, a, b, msg):
-        if a == b:
-            # raise AssertionError("%s: %r == %r" % (msg, a, b))
-            logger.critical("%s: %r == %r...\n%s", msg, a, b, getstack())
+    if False:
+        # Really fail
+        def failif(self, x, msg):
+            if x:
+                raise AssertionError(msg)
+        def failunless(self, x, msg):
+            if not x:
+                raise AssertionError(msg)
+        def failunlessequal(self, a, b, msg):
+            if not a == b:
+                raise AssertionError("%s: %r != %r" % (msg, a, b))
+        def failifequal(self, a, b, msg):
+            if a == b:
+                raise AssertionError("%s: %r == %r" % (msg, a, b))
+    else:
+        # Just log CRITICAL warnings
+        def failif(self, x, msg):
+            if x:
+                logger.critical("%s...\n%s", msg, getstack())
+        def failunless(self, x, msg):
+            if not x:
+                logger.critical("%s...\n%s", msg, getstack())
+        def failunlessequal(self, a, b, msg):
+            if not a == b:
+                logger.critical("%s: %r != %r...\n%s", msg, a, b, getstack())
+        def failifequal(self, a, b, msg):
+            if a == b:
+                logger.critical("%s: %r == %r...\n%s", msg, a, b, getstack())
 
     def _checkRemindersOn(self, anItem, userTime=None, userExpired=False,
                           triageStatusTime=None, snoozeTime=None,
@@ -201,7 +213,7 @@ class TestReminderProcessing(ChandlerTestCase):
         # Sleep until after the events' start time, then fire all the collection 
         # notifications
         while True:
-            sleepDelta = (nearFuture + timedelta(1)) \
+            sleepDelta = (nearFuture + timedelta(seconds=1)) \
                          - datetime.now(tz=ICUtzinfo.default)
             sleepDeltaSeconds = (sleepDelta.days * 86400) + sleepDelta.seconds
             if sleepDeltaSeconds < 0:
