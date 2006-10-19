@@ -1413,7 +1413,7 @@ class EventStamp(Stamp):
                             if disabled:
                                 occurrence.__enableRecurrenceChanges()
                             
-                    if self.occurrences is None:
+                    if not self.occurrences: # i.e. None, or empty
                         # Make sure we have at least one occurrence
                         self.getRecurrenceID(self.startTime)
                 else:
@@ -1755,11 +1755,16 @@ class EventStamp(Stamp):
 
         self._getFirstGeneratedOccurrence(True)
 
-    def removeRecurrence(self):
+    def removeRecurrence(self, deleteOccurrences=True):
         """
         Remove modifications, rruleset, and all occurrences except master.
 
         The resulting event will occur exactly once.
+        
+        @type deleteOccurrences: C{bool}
+        @param deleteOccurrences: If C{True} (the default), the C{occurrences}
+            attribute will be deleted, while otherwise it will only be cleared.
+            The latter is needed while merging changes during sharing.
         """
         master = self.getMaster()
         if not master.recurrenceID in (None, master.startTime):
@@ -1802,7 +1807,11 @@ class EventStamp(Stamp):
             else:
                 del master.recurrenceID
                 del master.rruleset
-                del master.occurrences
+                if master.occurrences is not None:
+                    if deleteOccurrences:
+                        del master.occurrences
+                    else:
+                        master.occurrences.clear()
 
 
 

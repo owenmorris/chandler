@@ -526,7 +526,49 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
                              datetime.datetime(2006, 10, 16, 14, 15))
         self.failUnlessEqual(eventMod.recurrenceID.replace(tzinfo=None),
                              datetime.datetime(2006, 10, 16, 13))
+
+    def testExcludeOccurrence(self):
+        Calendar.ensureIndexed(self.collection)
+    
+        self._doSync(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//PYVOBJECT//NONSGML Version 1//EN",
+            "BEGIN:VEVENT",
+            "UID:f60de354-5ef1-11db-ea01-f67872a529d1",
+            "DTSTART:20061015T103000",
+            "DTEND:20061015T113000",
+            "DESCRIPTION:",
+            "RRULE:FREQ=DAILY;UNTIL=20061112T235900",
+            "SUMMARY:Daily",
+            "END:VEVENT",
+            "END:VCALENDAR"
+       )
+
+        self._doSync(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//PYVOBJECT//NONSGML Version 1//EN",
+            "BEGIN:VEVENT",
+            "UID:f60de354-5ef1-11db-ea01-f67872a529d1",
+            "DTSTART:20061015T103000",
+            "DTEND:20061015T113000",
+            "EXDATE:20061016T103000",
+            "DESCRIPTION:",
+            "RRULE:FREQ=DAILY;UNTIL=20061112T235900",
+            "SUMMARY:Daily",
+            "END:VEVENT",
+            "END:VCALENDAR"
+        )
         
+        start = datetime.datetime(2006, 10, 14, 
+                                  tzinfo=ICUtzinfo.floating)
+        end = start + datetime.timedelta(days=7)
+        events = list(Calendar.recurringEventsInRange(self.view, start, end,
+                                                 filterColl=self.collection))
+                                                  
+        self.failUnlessEqual(len(events), 5)
+
 
 if __name__ == "__main__":
     unittest.main()

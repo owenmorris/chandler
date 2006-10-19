@@ -562,7 +562,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                                 del mod.occurrenceFor
                                 mod.itsItem.delete()
 
-                            eventItem.removeRecurrence()
+                            eventItem.removeRecurrence(deleteOccurrences=False)
                             
                         itemChangeCallback = EventStamp.changeThis
                         countUpdated += 1
