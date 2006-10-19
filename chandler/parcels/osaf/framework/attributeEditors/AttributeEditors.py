@@ -727,18 +727,12 @@ class AENonTypeOverTextCtrl(DragAndDropTextCtrl):
 
 class AETypeOverTextCtrl(wxRectangularChild):
     def __init__(self, parent, id, title=u'', position=wx.DefaultPosition,
-                 size=wx.DefaultSize, maxLineCount=1, style=0, *args, **keys):
+                 size=wx.DefaultSize, style=0, *args, **keys):
         super(AETypeOverTextCtrl, self).__init__(parent, id)
         staticSize = keys['staticSize']
         del keys['staticSize']
         self.hideLoc = (-100,-100)
         self.showLoc = (0,0)
-
-        assert maxLineCount > 0
-        size.height *= maxLineCount
-        if maxLineCount > 1:
-            style |= wx.TE_MULTILINE|wx.TE_AUTO_SCROLL
-
         editControl = DragAndDropTextCtrl(self, -1, pos=position, size=size, 
                                           style=style, *args, **keys)
         self.editControl = editControl
@@ -809,9 +803,6 @@ class AETypeOverTextCtrl(wxRectangularChild):
 
     def OnEditLoseFocus(self, event):
         NotifyBlockToSaveValue(self)
-        # don't access the widget if it's not safe (quitting)
-        if self.IsBeingDeleted() or self.GetParent().IsBeingDeleted():
-            return
         self._swapControls(self.staticControl)
         event.Skip()
 
@@ -832,15 +823,6 @@ class AETypeOverTextCtrl(wxRectangularChild):
             shownValue = shownControl.GetValue()
             if shownValue != hiddenValue:
                 hiddenControl.SetValue(shownValue)
-            if hiddenControl is self.staticControl:
-                dc = wx.ClientDC(self.editControl)
-                assert (dc is not None)
-                tooltipText = self.editControl.GetValue()
-                (renderedStringWidth, ignoredHeight) = dc.GetTextExtent(tooltipText)
-                if self.editControl.GetClientSize().width > renderedStringWidth:
-                    tooltipText = u''
-                self.staticControl.SetToolTipString(tooltipText)
-
             shownControl.Move(self.hideLoc)
             hiddenControl.Move(self.showLoc)
             self.shownControl = hiddenControl
@@ -1158,12 +1140,8 @@ class StringAttributeEditor (BaseAttributeEditor):
         
         if useStaticText:
             style |= (parentWidget.GetWindowStyle() & wx.SIMPLE_BORDER)
-            try:
-                maxLineCount = self.presentationStyle.maxLineCount
-            except AttributeError:
-                maxLineCount = 1
             control = AETypeOverTextCtrl(parentWidget, id, '', wx.DefaultPosition, 
-                                         size, maxLineCount, style, 
+                                         size, style, 
                                          staticSize=wx.Size(width, staticHeight)
                                          )
             bindToControl = control.editControl

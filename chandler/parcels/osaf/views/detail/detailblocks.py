@@ -508,9 +508,7 @@ def makeMailArea(parcel, oldVersion):
                 makeLabel(parcel, _(u'from')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailInboundFrom',
-                    viewAttribute=MailStamp.fromAddress.name,
-                    presentationStyle={'editInPlace': True,
-                                        'maxLineCount': 3})],
+                viewAttribute=MailStamp.fromAddress.name)],
             position=0.1).install(parcel)
 
     toArea = \
@@ -519,9 +517,7 @@ def makeMailArea(parcel, oldVersion):
                 makeLabel(parcel, _(u'to')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailTo',
-                    viewAttribute=MailStamp.toAddress.name,
-                    presentationStyle={'editInPlace': True,
-                                        'maxLineCount': 3})],
+                viewAttribute=MailStamp.toAddress.name)],
             position=0.11).install(parcel)
     ccArea = \
         makeArea(parcel, 'CcArea',
@@ -529,9 +525,7 @@ def makeMailArea(parcel, oldVersion):
                 makeLabel(parcel, _(u'cc')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailCc',
-                    viewAttribute=MailStamp.ccAddress.name,
-                    presentationStyle={'editInPlace': True,
-                                        'maxLineCount': 3})],
+                viewAttribute=MailStamp.ccAddress.name)],
             position=0.111).install(parcel)
     bccArea = \
         makeArea(parcel, 'BccArea',
@@ -540,9 +534,7 @@ def makeMailArea(parcel, oldVersion):
                 makeLabel(parcel, _(u'bcc')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailBcc',
-                    viewAttribute=MailStamp.bccAddress.name,
-                    presentationStyle={'editInPlace': True,
-                                        'maxLineCount': 3})],
+                viewAttribute=MailStamp.bccAddress.name)],
             position=0.112,
             border=RectType(0, 0, 6, 6)).install(parcel)
 
