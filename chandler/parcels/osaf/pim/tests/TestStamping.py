@@ -302,6 +302,20 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
             
             allCollection = schema.ns("osaf.pim", view).allCollection
             self.failUnless(aMessage in allCollection)
+            
+    def testStampWelcomeNote(self):
+        
+        # Look up the welcome note ...
+        welcome = schema.ns("osaf.app", self.rep.view).WelcomeEvent
+        
+        # stamp it as a mail ...
+        stampedWelcome = Mail.MailStamp(welcome)
+        stampedWelcome.add()
+        
+        self.failUnlessEqual(list(stampedWelcome.mimeParts), [])
+        self.failUnlessEqual(stampedWelcome.hasMimeParts, False)
+        self.failUnlessEqual(stampedWelcome.mimeType, '')
+        self.failUnlessEqual(stampedWelcome.mimeContainer, None)
 
 def additional_tests():
     return unittest.TestSuite(

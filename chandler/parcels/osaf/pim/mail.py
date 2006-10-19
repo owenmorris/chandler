@@ -741,7 +741,7 @@ class MIMEContainer(MIMEBase):
     schema.addClouds(sharing = schema.Cloud(hasMimeParts, mimeParts))
 
 
-class MailStamp(MIMEContainer, stamping.Stamp):
+class MailStamp(stamping.Stamp, MIMEContainer):
     """
 
     MailStamp is the bag of Message-specific attributes.
@@ -841,6 +841,21 @@ class MailStamp(MIMEContainer, stamping.Stamp):
         """
         self.itsItem.InitOutgoingAttributes()
 
+    # [Bug 6815] Because of schema loading issues, not all
+    # MailStamp's inherited attributes' initialValues are available
+    # at the time the Welcome Note is set up. For 0.7alpha4, we
+    # just cache them here, and set them up in MailStamp.add().
+    # Post-alpha4, this will be revisited, probably by making
+    # MIMEBase derived from ContentItem again. 
+    EXTRA_INITIAL_VALUES = {}
+    for cls in MIMEContainer, MIMEBase:
+        for name, ob in cls.__dict__.iteritems():
+            try:
+                EXTRA_INITIAL_VALUES[name] = ob.cdesc.initialValue
+            except AttributeError:
+                pass
+
+
     def add(self):
         """
         Init only the attributes specific to this mixin.
@@ -852,6 +867,9 @@ class MailStamp(MIMEContainer, stamping.Stamp):
         # default the fromAddress to "me"
         if getattr(self, 'fromAddress', None) is None:
             self.fromAddress = EmailAddress.getCurrentMeEmailAddress(self.itsItem.itsView)
+        for name, value in self.EXTRA_INITIAL_VALUES.iteritems():
+            if not hasattr(self, name):
+                setattr(self, name, value)
 
     @schema.observer(dateSent)
     def onDateSentChanged(self, op, name):
@@ -930,7 +948,7 @@ class MailStamp(MIMEContainer, stamping.Stamp):
         sendable = ((ignoreAttr == 'toAddress' or len(self.toAddress) > 0) and
                     (ignoreAttr == 'fromAddress' or self.fromAddress is not None))
         return sendable and 'sendable' or 'not'
-
+        
 def MailMessage(*args, **keywds):
     """Return a newly created Note, stamped with MailStamp."""
     note = notes.Note(*args, **keywds)
