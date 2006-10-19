@@ -812,6 +812,14 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         rruleset = event.rruleset = self._createRuleSetItem('weekly')
         rruleset.delete(recursive=True)
 
+    def testDeleteRule(self):
+        event = self.event
+        rruleset = event.rruleset = self._createRuleSetItem('weekly')
+        occurrence = event.getFirstOccurrence().getNextOccurrence()
+        occurrence.changeThis(EventStamp.startTime.name,
+                              occurrence.startTime + timedelta(days=1))
+        rruleset.rrules.first().delete(recursive=True)
+        rruleset.delete(recursive=True)
 
     def testRdatesAndExdates(self):
         event = self.event

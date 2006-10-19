@@ -1675,12 +1675,17 @@ class EventStamp(Stamp):
         first = self.getFirstInRule()
         self._deleteGeneratedOccurrences()
         if first.itsItem.hasLocalAttributeValue(EventStamp.modifications.name):
-            until = first.rruleset.rrules.first().calculatedUntil()
-            for mod in itertools.imap(EventStamp, first.modifications):
-                # this won't work for complicated rrulesets
-                if until is not None and (mod.recurrenceID > until):
-                    mod.__disableRecurrenceChanges()
-                    mod.itsItem.delete()
+            try:
+                untilMethod = first.rruleset.rrules.first().calculatedUntil
+            except AttributeError:
+                pass
+            else:
+                until = untilMethod()
+                for mod in itertools.imap(EventStamp, first.modifications):
+                    # this won't work for complicated rrulesets
+                    if until is not None and (mod.recurrenceID > until):
+                        mod.__disableRecurrenceChanges()
+                        mod.itsItem.delete()
 
         # create a backup
         first._getFirstGeneratedOccurrence(True)
