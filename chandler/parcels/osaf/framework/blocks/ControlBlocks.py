@@ -1228,9 +1228,17 @@ class PresentationStyle(schema.Item):
         lineStyleEnumType,
         doc = 'SingleLine vs MultiLine for textbox-based editors',
     )
+    maxLineCount = schema.One(
+        schema.Integer,
+        defaultValue = 1,
+        doc = """
+        The maximum number of lines a text field should temporarily grow to,
+        to aid in editing a large amount of text in a small area.
+        """,
+    )
     schema.addClouds(
         copying = schema.Cloud(
-            byValue=[sampleText,format,choices,editInPlace,lineStyleEnum]
+            byValue=[sampleText,format,choices,editInPlace,lineStyleEnum, maxLineCount]
         )
     )
 
