@@ -1308,7 +1308,8 @@ proj.file-list = [loc('application/AboutBox.py'),
                   loc('util/viewpool.py'),
                   loc('util/__init__.py'),
                   loc('version.py'),
-                  loc('wingdbstub.py')]proj.file-type = 'shared'
+                  loc('wingdbstub.py')]
+proj.file-type = 'shared'
 proj.main-file = loc('Chandler.py')
 proj.pyexec = {None: ('custom',
                       'debug/bin/python_d.exe')}
