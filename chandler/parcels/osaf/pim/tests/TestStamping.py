@@ -309,4 +309,8 @@ def additional_tests():
     )
 
 if __name__ == "__main__":
-    unittest.main()
+    # Just using unittest.main() here isn't good enough, since
+    # that wouldn't pick up the tests in additional_tests().
+    # For that, the magic ScanningLoader() below is needed.
+    from util import test_finder
+    unittest.main(testLoader=test_finder.ScanningLoader())

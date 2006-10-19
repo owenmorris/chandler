@@ -275,9 +275,9 @@ are the same as for the corresponding method on Item. For example:
 >>> stampedDeleteMe = CustomDeleteStamp(deleteMe)
 >>> stampedDeleteMe.add()
 >>> deleteMe.delete()
-CustomDeleteStamp(<ExampleItem: deleteMe>).onDelete() called
+CustomDeleteStamp(<ExampleItem: deleteMe>).onItemDelete() called
 
-However, if the stamp isn't present, the ``onDelete()`` hook isn't called:
+However, if the stamp isn't present, the ``onItemDelete()`` hook isn't called:
 
 >>> deleteMeToo = ExampleItem(itsView=repoView, displayName=u"deleteMeToo")
 >>> stampedDeleteMeToo = CustomDeleteStamp(deleteMeToo)
