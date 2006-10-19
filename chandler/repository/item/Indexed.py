@@ -216,11 +216,14 @@ class Indexed(object):
         for name, (_indexChanges, type, kwds) in indexChanges.iteritems():
             index = indexes.get(name)
             if index is None:
-                kwds.pop('ranges', None)
+                if 'ranges' in kwds:
+                    kwds['ranges'] = ()  # bug 7123
                 indexes[name] = index = self._createIndex(type, **kwds)
                 newIndex = True
             else:
                 newIndex = False
+                if 'ranges' in kwds:
+                    index.setRanges(())  # bug 7123
 
             removals = []
             moves = []
@@ -654,7 +657,8 @@ class Indexed(object):
                     if repair:
                         logger.warning("Rebuilding index '%s' installed on value '%s' of type %s in attribute '%s' on %s", name, self, type(self), attribute, item._repr_())
                         kwds = index.getInitKeywords()
-                        kwds.pop('ranges', None)
+                        if 'ranges' in kwds:
+                            kwds['ranges'] = ()
                         indexes[name] = index = \
                             self._createIndex(index.getIndexType(), **kwds)
                         self.fillIndex(index, True)

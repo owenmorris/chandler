@@ -15,7 +15,7 @@
 
 import bisect
 
-class RangeSet (object):
+class RangeSet(object):
     """
     Implement a set of indexes as a array of contiguous non-oveerlapping
     ranges. RangeSet is useful for storing the selected items in a
@@ -29,7 +29,10 @@ class RangeSet (object):
     
     def __init__(self, ranges=None):
 
-        self.ranges = ranges or []
+        if ranges:
+            self.ranges = list(ranges)
+        else:
+            self.ranges = []
 
     def onInsert(self, key, position):
 

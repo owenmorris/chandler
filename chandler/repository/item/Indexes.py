@@ -183,7 +183,7 @@ class NumericIndex(Index):
         if ranges is None:
             self._ranges = None
         else:
-            self._ranges = RangeSet(list(ranges))
+            self._ranges = RangeSet(ranges)
             assert self._ranges.rangesAreValid()
 
     def getRanges(self):
@@ -256,7 +256,7 @@ class NumericIndex(Index):
     def getInitKeywords(self):
 
         if self._ranges is not None:
-            return { 'ranges': self._ranges }
+            return { 'ranges': self._ranges.ranges }
 
         return {}
 
@@ -392,11 +392,14 @@ class SortedIndex(DelegatingIndex):
 
     def getInitKeywords(self):
 
+        kwds = self._index.getInitKeywords()
+
+        if self._descending:
+            kwds['descending'] = self._descending
         if self._subIndexes:
-            return { 'descending': self._descending,
-                     'subindexes': self._subIndexes }
-        else:
-            return { 'descending': self._descending }
+            kwds['subindexes'] = self._subIndexes
+
+        return kwds
 
     def compare(self, k0, k1):
 

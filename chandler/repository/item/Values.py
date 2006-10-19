@@ -1083,8 +1083,6 @@ class References(Values):
                     if not (changes is None or value == valueChanges):
                         if name in dirties:
                             view._e_3_overlap(MergeError.REF, self._item, name)
-                    self[name] = valueChanges
-                    self._setDirty(name)
 
                 elif card == 'nil':
                     # conflict: removed value wins over changes coming in
