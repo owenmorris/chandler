@@ -149,7 +149,15 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelLeftClicked)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.GetGridWindow().Bind(wx.EVT_PAINT, self.OnPaint)
 
+
+    def OnPaint (self, event):
+        # Bug #7117: Don't draw gridWindows who's data has changed but hasn't
+        # been synchronized to the block's data.
+        wx.GetApp().fireAsynchronousNotifications()
+        if not self.blockItem.itsUUID in self.blockItem.dirtyBlocks:
+            event.Skip()
 
     def OnGainFocus (self, event):
         self.SetSelectionBackground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT))
