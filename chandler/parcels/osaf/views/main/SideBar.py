@@ -424,7 +424,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         sidebar = grid.blockItem
         for button in sidebar.buttons:
             mouseOver = row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND)
-            image = button.getButtonImage (item, mouseOver)
+            image = button.getButtonImage (item, mouseOver, isSelected)
             if image is not None:
                 imageRect = wxSidebar.GetRectFromOffsets (rect, button.buttonOffsets)
                 dc.DrawBitmap (image, imageRect.GetLeft(), imageRect.GetTop(), True)
@@ -503,7 +503,7 @@ class SSSidebarIconButton2 (SSSidebarButton):
         sidebarWidget = self.buttonOwner.widget
         sidebarWidget.RefreshRect (self.buttonState['imageRect'])
 
-    def getButtonImage (self, item, mouseOverFlag):
+    def getButtonImage (self, item, mouseOverFlag, isSelected):
         """
         The rules for naming icons are complicated, which is a
         reflection of complexity of our sidebar design. Here is a
@@ -580,14 +580,14 @@ class SSSidebarIconButton2 (SSSidebarButton):
         app = wx.GetApp()
         image = app.GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
         
-        if image is not None and userCollection.colorizeIcon:
-            userCollection.ensureColor()
-            color = userCollection.color
-            rgbValue = DrawingUtilities.color2rgb(color.red, color.green, color.blue)
-            hsvValue = rgb_to_hsv(*rgbValue)
-            image.RotateHue (hsvValue[0])
-
         if image is not None:
+            if userCollection.colorizeIcon:
+                userCollection.ensureColor()
+                color = userCollection.color
+                rgbValue = DrawingUtilities.color2rgb(color.red, color.green, color.blue)
+                hsvValue = rgb_to_hsv(*rgbValue)
+                image.RotateHue (hsvValue[0])
+
             image = wx.BitmapFromImage (image)
 
         return image
@@ -604,7 +604,7 @@ class SSSidebarIconButton (SSSidebarButton):
         else:
             checkedItems.remove (item)
 
-    def getButtonImage (self, item, mouseOverFlag):
+    def getButtonImage (self, item, mouseOverFlag, isSelected):
         """
         The rules for naming icons are complicated, which is a
         reflection of complexity of our sidebar design. Here is a
@@ -695,7 +695,7 @@ class SSSidebarIconButton (SSSidebarButton):
 
 
 class SSSidebarSharingButton (SSSidebarButton):
-    def getButtonImage (self, item, mouseOverFlag):
+    def getButtonImage (self, item, mouseOverFlag, isSelected):
         """
         The rules for naming icons are complicated, which is a
         reflection of complexity of our sidebar design, so here is a
@@ -812,15 +812,27 @@ class SSSidebarSharingButton (SSSidebarButton):
 
         # First lookup full image name
         app = wx.GetApp()
-        image = app.GetImage (imagePrefix + iconName + mouseDown + mouseOver + imageSuffix)
+        image = app.GetRawImage (imagePrefix + iconName + mouseDown + mouseOver + imageSuffix)
         
         # If that fails try the default image wihtout mouseOver
         if image is None:
-            image = app.GetImage (imagePrefix + iconName + mouseDown + imageSuffix)
+            image = app.GetRawImage (imagePrefix + iconName + mouseDown + imageSuffix)
                 
         # If that fails try the full icon name wihtout mouseDown and mouseOver
         if image is None:
-            image = app.GetImage (imagePrefix + iconName + imageSuffix)
+            image = app.GetRawImage (imagePrefix + iconName + imageSuffix)
+
+        if image is not None:
+            if isSelected:
+                # Set the brightness of the icon to match the brightness
+                # of the text color (i.e. selection foreground color)
+                # so it stands out against the selection background color
+                color = self.buttonOwner.widget.GetSelectionForeground()
+                rgbValue = DrawingUtilities.color2rgb(color.Red(), color.Green(), color.Blue())
+                hsvValue = rgb_to_hsv(*rgbValue)
+                image.SetBrightness (hsvValue[2])
+
+            image = wx.BitmapFromImage (image)
 
         return image
 
