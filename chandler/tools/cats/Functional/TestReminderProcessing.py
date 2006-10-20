@@ -37,7 +37,7 @@ nearFutureSeconds=3
 
 class TestReminderProcessing(ChandlerTestCase):
 
-    if False:
+    if True:
         # Really fail
         def failif(self, x, msg):
             if x:
