@@ -16,6 +16,7 @@ import time
 from datetime import datetime, timedelta
 import wx
 from PyICU import ICUtzinfo
+from application import schema
 import osaf.framework.scripting as scripting
 import osaf.pim as pim
 from i18n.tests import uw
@@ -31,7 +32,7 @@ def getstack():
 # Under normal circumstances, we'll create events to fire very
 # shortly, so the tests aren't slowed much by waiting. (at least 2!)
 # If I'm debugging, set up events farther in the future
-nearFutureSeconds=2
+nearFutureSeconds=3
 #nearFutureSeconds=120
 
 class TestReminderProcessing(ChandlerTestCase):
@@ -147,12 +148,15 @@ class TestReminderProcessing(ChandlerTestCase):
     def startTest(self):
         view = QAUITestAppLib.UITestView(self.logger)
         view.SwitchToAllView()
+        
+        self.logger.startAction("Testing reminder processing")
     
         repoView = self.app_ns.itsView
 
         reminderDialog = wx.FindWindowByName(u'ReminderDialog')
         if reminderDialog is not None:
             self.logger.endAction(False, "Reminder dialog presented too soon?!")
+            return
 
         self.collection = QAUITestAppLib.UITestItem("Collection", self.logger)
         colName = uw("TestReminderProcessing")
@@ -210,42 +214,48 @@ class TestReminderProcessing(ChandlerTestCase):
         self._checkRemindersOn(secondOccurrence, userTime=timedelta(0), 
                                userExpired=False, triageStatusTime=None)
 
-        # Sleep until after the events' start time, then fire all the collection 
-        # notifications
+        # Iterate until all the processing is complete, or we hit our timeout
+        timeOut = nearFuture + timedelta(seconds=nearFutureSeconds*2)
+        state = "Waiting for reminder dialog"
+        itemsWithReminders = schema.ns('osaf.pim', repoView).itemsWithReminders
+        testReminderItems = (simpleEvent, futureRecurrerNormal, nextOccurrence,
+                             pastRecurrerNormal, firstOccurrence, 
+                             secondOccurrence)
+        logger.critical(state)
         while True:
-            sleepDelta = (nearFuture + timedelta(seconds=1)) \
-                         - datetime.now(tz=ICUtzinfo.default)
-            sleepDeltaSeconds = (sleepDelta.days * 86400) + sleepDelta.seconds
-            if sleepDeltaSeconds < 0:
-                break
-            # If we're not there yet, sleep at least a second more.
-            sleepDeltaSeconds = sleepDeltaSeconds >= 1 and sleepDeltaSeconds or 1
-            logger.critical("Sleeping %d seconds", sleepDeltaSeconds)
-            time.sleep(sleepDeltaSeconds)
             repoView.dispatchNotifications()
             scripting.User.idle()
-        
-        # Make sure the reminder alert popped up
-        logger.critical("Done waiting - looking for reminder dialog")
-        reminderDialog = wx.FindWindowByName(u'ReminderDialog')
-        if reminderDialog is None:
-            self.logger.endAction(False, "Didn't see the reminder dialog")
 
-        # Dismiss reminders until the box goes away
-        logger.critical("Dismissing reminders")
-        timeout = datetime.now(tz=ICUtzinfo.default) + timedelta(seconds=2)
-        while datetime.now(tz=ICUtzinfo.default) < timeout:
+            now = datetime.now(tz=ICUtzinfo.default)
+            if now > timeOut:
+                self.logger.endAction(False, "Reminder processing didn't complete (%s)" % state)
+                return
+
             reminderDialog = wx.FindWindowByName(u'ReminderDialog')
-            if reminderDialog is None:
+            
+            if state == "Waiting for reminder dialog":
+                if reminderDialog is not None:
+                    state = "Dismissing reminders"
+                    logger.critical(state)
+                continue
+
+            if reminderDialog is not None:
+                # The reminder dialog is up. Hit its dismiss button.
+                dismissWidget = reminderDialog.reminderControls['dismiss']
+                self.failunless(dismissWidget.IsEnabled(), "Reminder dialog up, but dismiss button disabled? That's just wrong.")
+                scripting.User.emulate_click(dismissWidget)
+                continue
+            
+            # The reminder dialog isn't up. Skip out when none of our items have
+            # pending reminders
+            if len([i for i in testReminderItems 
+                    if i in itemsWithReminders]) == 0:
+                state = "Reminders done"
+                logger.critical(state)
                 break
-
-            scripting.User.emulate_click(reminderDialog.reminderControls['dismiss'])
-            repoView.dispatchNotifications()
-            scripting.User.idle()
-                    
-        if reminderDialog is not None:
-            self.logger.endAction(False, "Didn't dismiss all reminders")
-
+        
+        self.failunlessequal(state, "Reminders done", "Reminder-processing timeout")
+        
         # Check each reminder
         logger.critical("Checking reminders, post-dismissal")
         self._checkRemindersOn(simpleEvent, userTime=nearFutureReminderDelta,
@@ -258,3 +268,4 @@ class TestReminderProcessing(ChandlerTestCase):
         thirdOccurrence = pim.EventStamp(secondOccurrence).getNextOccurrence().itsItem
         self._checkRemindersOn(thirdOccurrence, userTime=timedelta(0),
                                userExpired=False, triageStatusTime=None)
+        self.logger.endAction(True)

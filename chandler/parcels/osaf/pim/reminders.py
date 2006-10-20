@@ -99,10 +99,8 @@ class Reminder(schema.Item):
         if result != Reminder.farFuture:
             result += self.delta
         assert result.tzinfo is not None
-        #if result.tzinfo is None:
-            #result = result.replace(tzinfo=ICUtzinfo.default)
-        logger.debug("next reminder time for %s on %s is %s",
-                     self, remindable, result)
+        #logger.debug("next reminder time for %s on %s is %s",
+                     #self, remindable, result)
         return result
 
     def __repr__(self):

@@ -1128,8 +1128,9 @@ class ReminderTimer(Timer):
                 pending = self.getPendingReminders()
                 if pending:
                     def processReminder((reminderTime, remindable, reminder)):
-                        logger.debug("*** now-ing %s due to %s", remindable, 
-                                     reminder)
+                        logger.warning("*** now-ing %s due to %s", 
+                                       debugName(remindable.itsItem), 
+                                       reminder)
                         remindable.itsItem.triageStatus = TriageEnum.now
                         remindable.itsItem.setTriageStatusChanged(when=reminderTime)
                         assert not reminder.isDeleted()

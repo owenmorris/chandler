@@ -879,6 +879,8 @@ class Annotation:
         return "%s(%r)" % (type(self).__name__, self.itsItem)
 
     def __eq__(self, other):
+        # Note: we use "==" here to compare items because either might be a
+        # recurrence proxy, and "is" can't be used to compare proxied items.
         return type(other) == type(self) and self.itsItem == other.itsItem
 
     def __ne__(self, other):

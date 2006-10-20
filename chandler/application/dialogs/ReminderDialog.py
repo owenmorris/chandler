@@ -163,7 +163,7 @@ class ReminderDialog(wx.Dialog):
 
         # If we have stuff, but nothing selected, select the first thing
         closeIt = listCtrl.GetItemCount() == 0
-        if not selectedReminders and not closeIt:
+        if not closeIt and listCtrl.GetSelectedItemCount() == 0:
             listCtrl.SetItemState(0, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
             
         self.UpdateControlEnabling()
