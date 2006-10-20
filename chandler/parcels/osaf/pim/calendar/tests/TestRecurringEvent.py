@@ -383,6 +383,36 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         occurrences = self.event.getOccurrencesBetween(self.start, oneWeek)
 
         self.failIf(self.event.itsItem in occurrences)
+
+    def testFirstOccurrence(self):
+        """
+        Test of getFirstOccurrence(), including the case where
+        the master's startTime has been excluded.
+        """
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        
+        firstOccurrence = self.event.getFirstOccurrence()
+        self.failUnlessEqual(firstOccurrence,
+                             self.event.getFirstOccurrence())
+        self.failUnlessEqual(firstOccurrence.startTime, self.event.startTime)
+        
+        # Now exclude the first occurrence
+        self.event.rruleset.exdates = [self.event.startTime]
+        
+        # Make sure that deleted the firstOccurrence object
+        self._checkDeleted([firstOccurrence], [])
+        
+        # Make sure we don't generate multiple objects for the
+        # first occurrence (bug 7072)
+        firstOccurrence = self.event.getFirstOccurrence()
+        self.failUnlessEqual(firstOccurrence,
+                             self.event.getFirstOccurrence())
+                             
+        # Make sure we have the correct startTime
+        self.failUnlessEqual(firstOccurrence.startTime,
+                             self.event.startTime + timedelta(days=7))
+        
+
         
     def testChange_thisSummary_futureDate(self):
         self.event.rruleset = self._createRuleSetItem('daily')
@@ -908,8 +938,6 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         occurrences = event.getOccurrencesBetween(None, None)
         self.failUnless(secondOccurrence in occurrences)
         self.failUnlessEqual(4, len(occurrences))
-        
-    
 
 class NaiveTimeZoneRecurrenceTest(TestDomainModel.DomainModelTestCase):
     """Test of recurring events that have startTimes that occur on different

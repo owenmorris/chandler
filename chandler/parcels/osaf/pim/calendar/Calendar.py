@@ -1288,9 +1288,14 @@ class EventStamp(Stamp):
             rruleset = self.createDateUtilFromRule()
             try:
                 earliestTime = iter(rruleset).next()
-                occurrence = self._createOccurrence(earliestTime)
             except StopIteration:
                 pass
+            else:
+                occurrence = self.getExistingOccurrence(earliestTime)
+                
+                if occurrence is None:
+                    occurrence = self._createOccurrence(earliestTime)
+
         
         if occurrence is None:
             return None
