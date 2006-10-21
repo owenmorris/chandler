@@ -198,7 +198,9 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
     else:
         contentView = metaView
 
-    contentView.deferDelete()
+    # Make sure we aren't deferring the main repository view:
+    if not isinstance(shares[0], OneTimeShare):
+        contentView.deferDelete()
 
     try:
 
