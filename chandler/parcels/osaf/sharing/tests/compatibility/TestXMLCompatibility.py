@@ -301,6 +301,16 @@ class EventTestCase(SharingTestCase):
         expected = dict((key, self.attributes.get(key)) for key in
                             ('icalUID', 'participants'))
         self.checkImportedAttributes(event, expected=expected)
+        
+        # Make sure importing an Event didn't delete attributes
+        # on MailStamp.
+        mailMsg = pim.mail.MailStamp(eventItem)
+        self.failUnlessEqual(mailMsg.hasMimeParts, False)
+        self.failUnlessEqual(mailMsg.mimeContainer, None)
+        self.failUnlessEqual(list(mailMsg.mimeParts), [])
+        self.failUnlessEqual(list(mailMsg.toAddress), [])
+        self.failUnlessEqual(mailMsg.fromAddress, None)
+        self.failUnlessEqual(mailMsg.replyToAddress, None)
 
 
 class TaskTestCase(SharingTestCase):

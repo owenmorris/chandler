@@ -3164,8 +3164,10 @@ class CloudXMLFormat(ImportExportFormat):
                 not pim.mail.MailStamp.subject.name in attributes):
                     attributes.append(pim.mail.MailStamp.subject.name)
 
-            for attrName in attributes:                
+            for attrName in attributes:
 
+                attrStampClass = None
+                
                 # Since 'displayName' is being renamed 'title', let's keep
                 # existing shares backwards-compatible and continue to read/
                 # write 'displayName':
@@ -3175,10 +3177,24 @@ class CloudXMLFormat(ImportExportFormat):
                     lastDot = attrName.rfind(".")
                     if lastDot != -1:
                         elementName = attrName[lastDot + 1:]
+                        
+                        for cls in self.STAMP_MAP:
+                            if (hasattr(cls, elementName) and
+                                getattr(cls, elementName).name == attrName):
+                                attrStampClass = cls
+                                break
+                        
                     else:
                         elementName = attrName
 
-                    attrElement = self._getElement(element, elementName)
+                # [Bug 7149]
+                # Here, we make sure we don't change any attributes that
+                # aren't in the item's (possibly changed) set of stamps.
+                if (attrStampClass is not None and
+                    not attrStampClass in stampClasses):
+                    continue
+
+                attrElement = self._getElement(element, elementName)
 
                 if attrElement is None:
                     if item.hasLocalAttributeValue(attrName):
