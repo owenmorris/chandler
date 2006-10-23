@@ -3349,6 +3349,12 @@ class CloudXMLFormat(ImportExportFormat):
                 if not pim.has_stamp(item, cls):
                     cls(item).add()
 
+            # Handle unstamping
+            stamps = pim.Stamp(item).stamp_types or []
+            for stamp in stamps:
+                if stamp not in stampClasses:
+                    stamp(item).remove()
+
         finally:
             del item._share_importing
 

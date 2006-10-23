@@ -2595,10 +2595,6 @@ class StampAttributeEditor(IconAttributeEditor):
         # Our "attributeName" is a Stamp; substitute a real attribute.
         readOnly = super(StampAttributeEditor, self).ReadOnly((item, 'body'))
 
-        # @@@BJS: added Morgan's temporary disabling of stamping of shared
-        # items, as in Detail.py's DetailStampButton._isStampable()
-        readOnly = readOnly or (item.getSharedState() != ContentItem.UNSHARED)
-        
         return readOnly
     
     def GetAttributeValue(self, item, attributeName):
