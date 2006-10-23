@@ -9,30 +9,4 @@
    <triageStatus>now</triageStatus>
    <triageStatusChanged>1159263393.0</triageStatusChanged>
    <icalUID>711cc574-4cff-11db-af32-c2da3320d5d3</icalUID>
-   <organizer>
-      <Contact class='osaf.pim.contacts.Contact' uuid='9b839032-49b1-11db-e5fa-f7316ff1be10'>
-         <emailAddress></emailAddress>
-         <contactName>
-            <ContactName class='osaf.pim.contacts.ContactName' uuid='9b65343e-49b1-11db-e5fa-f7316ff1be10'>
-               <firstName>Chandler</firstName>
-               <lastName>User</lastName>
-               <body mimetype='text/plain' encoding='utf-8'></body>
-               <createdOn>2006-09-21 13:41:50.272075 US/Pacific</createdOn>
-               <tags>
-               </tags>
-               <triageStatus>now</triageStatus>
-               <triageStatusChanged>1158900110.0</triageStatusChanged>
-            </ContactName>
-         </contactName>
-         <displayName>Me</displayName>
-         <body mimetype='text/plain' encoding='utf-8'></body>
-         <createdOn>2006-09-21 13:41:50.470953 US/Pacific</createdOn>
-         <tags>
-         </tags>
-         <triageStatus>now</triageStatus>
-         <triageStatusChanged>1158900110.0</triageStatusChanged>
-      </Contact>
-   </organizer>
-   <participants>
-   </participants>
 </EventTask>

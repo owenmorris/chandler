@@ -2,8 +2,6 @@
 
 <CalendarEvent version='2' class='osaf.pim.calendar.Calendar.CalendarEvent' uuid='5502c952-410a-11db-f9a1-0016cbca6aed'>
    <icalUID>9d7813fe-4100-11db-9645-0016cbca6aed</icalUID>
-   <participants>
-   </participants>
    <displayName>This is my •ed event</displayName>
    <body mimetype='text/plain' encoding='utf-8'>VGhpcyBpcyB0aGUgY29udGVudHMKb2YgdGhlIGV2ZW50</body>
    <createdOn>2006-08-24 10:4:23.000000 US/Pacific</createdOn>

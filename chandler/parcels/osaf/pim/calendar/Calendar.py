@@ -469,8 +469,7 @@ class EventStamp(Stamp):
         sharing = schema.Cloud(
             startTime, duration, allDay, location, anyTime, modifies,
             transparency, isGenerated, recurrenceID, icalUID,
-            byCloud = [organizer, participants, modifications, rruleset,
-                occurrenceFor]
+            byCloud = [modifications, rruleset, occurrenceFor]
         )
     )
     

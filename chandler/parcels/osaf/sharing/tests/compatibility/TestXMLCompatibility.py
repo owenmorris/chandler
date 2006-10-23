@@ -269,7 +269,6 @@ class EventTestCase(SharingTestCase):
         'duration': datetime.timedelta(minutes=30),
         'body': u'This is the contents\nof the event',
         'triageStatusChanged': 1157944145.0,
-        'participants': [],
     }
 
     def testExport(self):
@@ -299,7 +298,7 @@ class EventTestCase(SharingTestCase):
         # ones will be missing because we applied the CALDAVFILTER).
         event = pim.EventStamp(eventItem)
         expected = dict((key, self.attributes.get(key)) for key in
-                            ('icalUID', 'participants'))
+                            ('icalUID',))
         self.checkImportedAttributes(event, expected=expected)
         
         # Make sure importing an Event didn't delete attributes
@@ -548,7 +547,6 @@ class EventTaskTestCase(SharingTestCase):
         'duration': datetime.timedelta(minutes=60),
         'triageStatus': pim.TriageEnum.now,
         'triageStatusChanged': 1159263393.0,
-        'participants': [],
         'stamp_types': [pim.TaskStamp],
     }
     
@@ -575,7 +573,6 @@ class EventTaskTestCase(SharingTestCase):
             
         
         self.attributes = dict(self.attributes)
-        self.attributes.update(organizer=contact)
         
         
 
@@ -606,7 +603,7 @@ class EventTaskTestCase(SharingTestCase):
         # ones will be missing because we applied the CALDAVFILTER).
         event = pim.EventStamp(eventItem)
         expected = dict((key, self.attributes.get(key)) for key in
-                            ('icalUID', 'organizer'))
+                            ('icalUID',))
         self.checkImportedAttributes(event, expected=expected)
 
 
@@ -630,7 +627,6 @@ class MailedEventTaskTestCase(SharingTestCase):
         'mimeType': 'message/rfc822',
         'triageStatus': pim.TriageEnum.later,
         'triageStatusChanged': 1158900317.0,
-        'participants': [],
         'stamp_types': [pim.TaskStamp, pim.mail.MailStamp],
     }
 
@@ -663,7 +659,7 @@ class MailedEventTaskTestCase(SharingTestCase):
         # ones will be missing because we applied the CALDAVFILTER).
         event = pim.EventStamp(eventItem)
         expected = dict((key, self.attributes.get(key)) for key in
-                            ('icalUID', 'organizer'))
+                            ('icalUID',))
         self.checkImportedAttributes(event, expected=expected)
         
 class ShareTestCase(SharingTestCase):
