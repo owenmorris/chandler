@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import sys, logging, threading, PyLucene
+import sys, logging, threading, PyLucene, time
 
 from chandlerdb.util.c import UUID
 from chandlerdb.persistence.c import CRepository
@@ -219,6 +219,23 @@ class Repository(CRepository):
     def isNew(self):
 
         return self.store.getVersion() == 0
+
+    def printVersions(self, fromVersion=1, toVersion=0):
+
+        for version, (then, viewSize, commitCount, name) in self.store.iterCommits(None, fromVersion, toVersion):
+            then = time.strftime("%d-%b-%y,%H:%M:%S", time.localtime(then))
+            print "%6d: %s %4d %4d %s" %(version, then,
+                                         viewSize, commitCount, name)
+
+    def printItemVersions(self, item, fromVersion=1, toVersion=0):
+
+        store = self.store
+        for version, status in store.iterItemVersions(None, item.itsUUID, fromVersion, toVersion):
+            then, viewSize, commitCount, name = store.getCommit(version)
+            then = time.strftime("%d-%b-%y,%H:%M:%S", time.localtime(then))
+            print "%6d: %s %4d %4d 0x%08x %s" %(version, then,
+                                                viewSize, commitCount, status,
+                                                name)
 
     def setDebug(self, debug):
 

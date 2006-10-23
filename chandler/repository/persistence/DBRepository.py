@@ -35,7 +35,7 @@ from repository.persistence.RepositoryError import *
 from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.persistence.DBContainer import \
     DBContainer, RefContainer, NamesContainer, ACLContainer, IndexesContainer, \
-    ItemContainer, ValueContainer
+    ItemContainer, ValueContainer, CommitsContainer
 from repository.persistence.FileContainer import \
     FileContainer, BlockContainer, IndexContainer, LOBContainer
 from repository.persistence.DBItemIO import \
@@ -461,6 +461,8 @@ class DBRepository(OnDemandRepository):
                     indexVersion = store.getIndexVersion()
                     if indexVersion == version:
                         store.setIndexVersion(indexVersion - 1)
+
+                    store._commits.purgeCommit(version)
                     store._values.setVersion(version - 1)
 
                     store.commitTransaction(None, txnStatus)
@@ -725,8 +727,8 @@ class DBStore(Store):
 
         self._threaded = local()
 
-        self._items = ItemContainer(self)
         self._values = ValueContainer(self)
+        self._items = ItemContainer(self)
         self._refs = RefContainer(self)
         self._names = NamesContainer(self)
         self._lobs = LOBContainer(self)
@@ -734,6 +736,7 @@ class DBStore(Store):
         self._index = IndexContainer(self)
         self._acls = ACLContainer(self)
         self._indexes = IndexesContainer(self)
+        self._commits = CommitsContainer(self)
 
         super(DBStore, self).__init__(repository)
 
@@ -746,14 +749,8 @@ class DBStore(Store):
             txnStatus = self.startTransaction(None)
             txn = self.txn
 
-            if (not self._ramdb and
-                os.path.exists(os.path.join(self.repository.dbHome,
-                                            "__values__"))):
-                self._values.open("__values__", txn, **kwds)
-                raise AssertionError, "opening __values__ should have failed"
-
-            self._items.open("__items.db", txn, **kwds)
             self._values.open("__values.db", txn, **kwds)
+            self._items.open("__items.db", txn, **kwds)
             self._refs.open("__refs.db", txn, **kwds)
             self._names.open("__names.db", txn, **kwds)
             self._lobs.open("__lobs.db", txn, **kwds)
@@ -761,6 +758,7 @@ class DBStore(Store):
             self._index.open("__index.db", txn, **kwds)
             self._acls.open("__acls.db", txn, **kwds)
             self._indexes.open("__indexes.db", txn, **kwds)
+            self._commits.open("__commits.db", txn, **kwds)
         except DBNoSuchFileError:
             self.abortTransaction(None, txnStatus)
             raise
@@ -772,8 +770,8 @@ class DBStore(Store):
 
     def close(self):
 
-        self._items.close()
         self._values.close()
+        self._items.close()
         self._refs.close()
         self._names.close()
         self._lobs.close()
@@ -781,11 +779,12 @@ class DBStore(Store):
         self._index.close()
         self._acls.close()
         self._indexes.close()
+        self._commits.close()
 
     def attachView(self, view):
 
-        self._items.attachView(view)
         self._values.attachView(view)
+        self._items.attachView(view)
         self._refs.attachView(view)
         self._names.attachView(view)
         self._lobs.attachView(view)
@@ -793,11 +792,12 @@ class DBStore(Store):
         self._index.attachView(view)
         self._acls.attachView(view)
         self._indexes.attachView(view)
+        self._commits.attachView(view)
 
     def detachView(self, view):
 
-        self._items.detachView(view)
         self._values.detachView(view)
+        self._items.detachView(view)
         self._refs.detachView(view)
         self._names.detachView(view)
         self._lobs.detachView(view)
@@ -805,6 +805,7 @@ class DBStore(Store):
         self._index.detachView(view)
         self._acls.detachView(view)
         self._indexes.detachView(view)
+        self._commits.detachView(view)
 
     def compact(self):
 
@@ -974,6 +975,10 @@ class DBStore(Store):
 
         return self._items.iterItems(view)
 
+    def iterItemVersions(self, view, uuid, fromVersion=1, toVersion=0):
+
+        return self._items.iterVersions(view, uuid, fromVersion, toVersion)
+
     def getItemVersion(self, view, version, uuid):
 
         return self._items.getItemVersion(view, version, uuid)
@@ -997,6 +1002,18 @@ class DBStore(Store):
     def setIndexVersion(self, version):
 
         return self._index.setIndexVersion(version)
+
+    def logCommit(self, view, version, commitSize):
+
+        self._commits.logCommit(view, version, commitSize)
+
+    def iterCommits(self, view, fromVersion=1, toVersion=0):
+
+        return self._commits.iterCommits(view, fromVersion, toVersion)
+
+    def getCommit(self, version):
+
+        return self._commits.getCommit(version)
 
     def startTransaction(self, view, nested=False):
 

@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import logging, heapq, sys, gc, threading, os
+import logging, heapq, sys, gc, threading, os, time
 
 from Queue import Queue
 from itertools import izip
@@ -1268,6 +1268,24 @@ class RepositoryView(CView):
         self._unregisterWatch(watchingItem, collection,
                               TransientWatchCollection,
                               RepositoryView.SUBSCRIBERS, methodName)
+
+    def printVersions(self, fromVersion=1, toVersion=0):
+
+        for version, (then, viewSize, commitCount, name) in self.store.iterCommits(self, fromVersion, toVersion):
+            if name == self.name:
+                then = time.strftime("%d-%b-%y,%H:%M:%S", time.localtime(then))
+                print "%6d: %s %4d %4d" %(version, then,
+                                          viewSize, commitCount)
+
+    def printItemVersions(self, item, fromVersion=1, toVersion=0):
+
+        store = self.store
+        for version, status in store.iterItemVersions(self, item.itsUUID, fromVersion, toVersion):
+            then, viewSize, commitCount, name = store.getCommit(version)
+            if name == self.name:
+                then = time.strftime("%d-%b-%y,%H:%M:%S", time.localtime(then))
+                print "%6d: %s %4d %4d 0x%08x" %(version, then,
+                                                 viewSize, commitCount, status)
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     SUBSCRIBERS = UUID('4dc81eae-1689-11db-a0ac-0016cbc90838')

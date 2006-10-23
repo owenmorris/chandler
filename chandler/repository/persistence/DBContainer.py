@@ -1587,13 +1587,78 @@ class ItemContainer(DBContainer):
                             values.append(UUID(value[offset+4:offset+20]))
                             offset += 20
 
-                        yield (UUID(uuid), ~version, status, values)
+                        yield UUID(uuid), ~version, status, values
 
                     yield False
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
                         self._logDL(29)
+                        yield True
+                    else:
+                        raise
+
+        while True:
+            for result in _iterator().next():
+                if result is True:
+                    break
+                if result is False:
+                    return
+                yield result
+
+    def iterVersions(self, view, uItem, fromVersion=1, toVersion=0):
+
+        store = self.store
+        
+        class _iterator(object):
+
+            def __init__(_self):
+
+                _self.cursor = None
+                _self.txnStatus = 0
+
+            def __del__(_self):
+
+                try:
+                    self.closeCursor(_self.cursor)
+                    store.abortTransaction(view, _self.txnStatus)
+                except Exception, e:
+                    store.repository.logger.error("in __del__, %s: %s",
+                                                  e.__class__.__name__, e)
+                _self.cursor = None
+                _self.txnStatus = 0
+
+            def next(_self):
+
+                _self.txnStatus = store.startTransaction(view)
+                _self.cursor = self.openCursor()
+                
+                try:
+                    key = uItem._uuid
+                    value = _self.cursor.set_range(pack('>16sl', key,
+                                                        ~fromVersion),
+                                                   self._flags, None)
+                    if not (value is None or value[0].startswith(key)):
+                        value = _self.cursor.prev(self._flags, None)
+
+                    while value is not None and value[0].startswith(key):
+                        version = ~unpack('>l', value[0][16:20])[0]
+
+                        if toVersion and version > toVersion:
+                            break
+                        elif version >= fromVersion:
+                            value = value[1]
+                            status, = unpack('>l', value[16:20])
+
+                            yield version, status
+
+                        value = _self.cursor.prev(self._flags, None)
+
+                    yield False
+
+                except DBLockDeadlockError:
+                    if _self.txnStatus & store.TXN_STARTED:
+                        self._logDL(33)
                         yield True
                     else:
                         raise
@@ -1628,8 +1693,9 @@ class ValueContainer(DBContainer):
     # 0.6.5: added support for sub-indexes
     # 0.6.6: added support for dictionaries of ref collections
     # 0.6.7: version back to unsigned long
+    # 0.6.8: added commits log db
 
-    FORMAT_VERSION = 0x00060700
+    FORMAT_VERSION = 0x00060800
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)
@@ -1718,3 +1784,92 @@ class ValueContainer(DBContainer):
 
         self.delete(uuid._uuid, txn)
         return 1
+
+
+
+class CommitsContainer(DBContainer):
+
+    def logCommit(self, view, version, commitCount):
+
+        key = pack('>l', version)
+        data = pack('>Qii', long(time.time() * 1000), len(view),
+                    commitCount) + view.name
+
+        self.put(key, data)
+
+    def getCommit(self, version):
+
+        data = self.get(pack('>l', version))
+        if data is not None:
+            return self._readCommit(data)
+
+        return None
+
+    def purgeCommit(self, version):
+
+        self.delete(pack('>l', version))
+
+    def _readCommit(self, data):
+
+        then, size, commitCount = unpack('>Qii', data[0:16])
+        name = data[16:]
+                        
+        return then / 1000.0, size, commitCount, name
+
+    def iterCommits(self, view, fromVersion=1, toVersion=0):
+
+        store = self.store
+
+        class _iterator(object):
+
+            def __init__(_self):
+
+                _self.cursor = None
+                _self.txnStatus = 0
+
+            def __del__(_self):
+
+                try:
+                    self.closeCursor(_self.cursor)
+                    store.abortTransaction(view, _self.txnStatus)
+                except Exception, e:
+                    store.repository.logger.error("in __del__, %s: %s",
+                                                  e.__class__.__name__, e)
+                _self.cursor = None
+                _self.txnStatus = 0
+
+            def next(_self):
+
+                _self.txnStatus = store.startTransaction(view)
+                _self.cursor = self.openCursor()
+                
+                try:
+                    value = _self.cursor.set_range(pack('>l', fromVersion),
+                                                   self._flags, None)
+
+                    while value is not None:
+                        key, data = value
+                        version, = unpack('>l', key)
+                        if toVersion and version > toVersion:
+                            break
+
+                        yield version, self._readCommit(data)
+
+                        value = _self.cursor.next(self._flags, None)
+
+                    yield False
+
+                except DBLockDeadlockError:
+                    if _self.txnStatus & store.TXN_STARTED:
+                        self._logDL(32)
+                        yield True
+                    else:
+                        raise
+
+        while True:
+            for result in _iterator().next():
+                if result is True:
+                    break
+                if result is False:
+                    return
+                yield result

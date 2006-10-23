@@ -647,6 +647,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                             if self.isDirty():
                                 size += self._roots._saveValues(newVersion)
 
+                        store.logCommit(self, newVersion, count)
                         lock, txnStatus = finish(True)
                         break
 
