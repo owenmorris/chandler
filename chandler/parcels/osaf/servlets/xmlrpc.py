@@ -15,9 +15,10 @@
 
 from application import schema
 from osaf import webserver, pim
-import sys, traceback
+import sys, traceback, datetime
 from twisted.web import xmlrpc
 from util import commandline
+from PyICU import ICUtzinfo
 
 # For current( )
 from osaf.views import detail
@@ -81,9 +82,14 @@ class XmlRpcResource(xmlrpc.XMLRPC):
     def xmlrpc_note(self, title, body, viewName=None):
         view = getServletView(self.repositoryView.repository, viewName)
         view.refresh()
-        note = pim.Note(itsView=view)
-        note.body = note.getAttributeAspect('body', 'type').makeValue(body,
-            indexed=True)
+        note = pim.Note(itsView=view, displayName=title, body=body)
+        pim.EventStamp(note).add()
+        event = pim.EventStamp(note)
+        event.startTime = datetime.datetime.now(tz=ICUtzinfo.floating)
+        event.duration = datetime.timedelta(minutes=60)
+        event.anyTime = False
+        allCollection = schema.ns('osaf.pim', view).allCollection
+        allCollection.add(note)
         view.commit()
         return "OK" # ???
 
