@@ -204,8 +204,10 @@ class MainView(View):
             # Tell the sidebar we want to go to the All collection
             collection = allCollection
         
-        # The stampClass is used to specify the viewer
-        sidebar.setPreferredClass(stampClass)
+        if sidebar.filterClass is not MissingClass:
+            # If we're not in the viewing All, use the stampClass to
+            # specify the viewer
+            sidebar.setPreferredClass(stampClass)
 
         if not collection in sidebar.contents and event.collectionAddEvent is not None:
             Block.post(event.collectionAddEvent, {}, self)
