@@ -27,6 +27,10 @@ try:
 
     User.emulate_return()
     
+    # We create a dummy new event first so that we have detail view showing
+    testView = QAUITestAppLib.UITestView(logger)
+    testView.DoubleClickInCalView()    
+    
     #action
     event = QAUITestAppLib.UITestItem("Event", logger)
         

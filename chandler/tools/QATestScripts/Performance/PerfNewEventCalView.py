@@ -26,6 +26,9 @@ try:
     # collections can be displayed as a calendar
     col = QAUITestAppLib.UITestItem("Collection", logger)
 
+    # We create a dummy new event first so that we have detail view showing
+    QAUITestAppLib.UITestItem("Event", logger)
+
     # action
     # double click in the calendar view => event creation or selection
     ev = testView.DoubleClickInCalView()

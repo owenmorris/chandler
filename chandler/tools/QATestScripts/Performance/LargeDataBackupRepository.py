@@ -33,6 +33,8 @@ try:
     col = QAUITestAppLib.UITestItem("Collection")
     col.SetDisplayName(smallCollectionName)
     User.emulate_sidebarClick(App_ns.sidebar, smallCollectionName)
+    # Create a dummy new event so that we have detail view showing
+    QAUITestAppLib.UITestItem("Event", logger)
     User.idle()
     
     # verification of import
