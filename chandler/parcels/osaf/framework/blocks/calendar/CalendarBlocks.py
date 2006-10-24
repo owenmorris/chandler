@@ -382,19 +382,6 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                 offset += 1
             
     
-    def AdjustSplit(self, height):
-        headerHeight = self.GetHeaderSize().height
-        previewWidget = Block.Block.findBlockByName("PreviewArea").widget
-        previewHeight = previewWidget.GetSize()[1]
-        monthHeight = self.GetMonthSize().height
-        
-        newHeight = monthHeight + headerHeight + previewHeight
-        numMonths = 1
-        while ( ( (newHeight + 0.5 * monthHeight) < height) and numMonths < 3 ):
-            newHeight += monthHeight
-            numMonths += 1
-        return newHeight
-            
 def isMainCalendarVisible():
     # Heuristic: is the appbar calendar button selected (depressed)?
     calendarButton = Block.Block.findBlockByName("ApplicationBarEventButton")
@@ -408,6 +395,37 @@ def isMainCalendarVisible():
 class MiniCalendar(CalendarCanvas.CalendarBlock):
     dayMode = schema.One(schema.Boolean, initialValue = True)
 
+    previewArea = schema.One("PreviewArea",
+        otherName="miniCalendar",
+        defaultValue = None
+    )
+
+    schema.addClouds(
+        copying = schema.Cloud (byCloud = [previewArea])
+    )
+
+    def AdjustSplit(self, windowSize, position):
+        height = windowSize - position
+        widget = getattr (self, 'widget', None)
+        if widget is not None:
+            headerHeight = widget.GetHeaderSize().height
+            previewWidget = self.previewArea.widget
+            previewHeight = previewWidget.GetSize()[1]
+            monthHeight = widget.GetMonthSize().height
+            
+            newHeight = previewHeight
+            numMonths = 0
+            while (newHeight + 0.5 * monthHeight < height and
+                   numMonths < 3 and
+                   newHeight + monthHeight < windowSize):
+                if numMonths == 0:
+                    newHeight += headerHeight
+                newHeight += monthHeight
+                numMonths += 1
+            height = newHeight
+
+        return windowSize - height
+            
     def render(self, *args, **kwds):
         super(MiniCalendar, self).render(*args, **kwds)
 
@@ -454,9 +472,15 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
     eventCharacterStyle = schema.One(Styles.CharacterStyle)
     linkCharacterStyle = schema.One(Styles.CharacterStyle)
 
+    miniCalendar = schema.One("MiniCalendar",
+        otherName="previewArea",
+        defaultValue = None
+    )
+
     schema.addClouds(
-        copying = schema.Cloud(byRef=[timeCharacterStyle, eventCharacterStyle,
-                                      linkCharacterStyle])
+        copying = schema.Cloud (
+            byRef = [timeCharacterStyle, eventCharacterStyle, linkCharacterStyle],
+            byCloud = [miniCalendar])
     )
 
     def __init__(self, *arguments, **keywords):
@@ -698,28 +722,19 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         return y - self.vMargin
 
     def ChangeHeightAndAdjustContainers(self, newHeight):
-        # @@@ hack until block-to-block attributes are safer to define: climb the tree
         boxContainer = self.GetParent()
-        wxSplitter = boxContainer.GetParent()
+        wxSplitter = self.blockItem.miniCalendar.splitter.widget
         assert isinstance(wxSplitter, ContainerBlocks.wxSplitterWindow)
 
         currentHeight = self.GetSize()[1]
         heightDelta = currentHeight - newHeight
         
-        # need to do 2 resizings. Freeze/Thaw are in hopes of elminiating the
-        # flicker between them, but it doesn't seem to be doing much. The WX
-        # docs say they're only "hints", but maybe this is using them wrong.
-        
-        wxSplitter.Freeze()
-        boxContainer.Freeze()
         #adjust box container shared with minical.
         self.SetMinSize( (0, newHeight) )
-        self.GetParent().Layout()
+        boxContainer.Layout()
         
         #adjust splitter containing the box container
-        wxSplitter.MoveSash(wxSplitter.GetSashPosition() + heightDelta)
-        boxContainer.Thaw()
-        wxSplitter.Thaw()
+        wxSplitter.AdjustAndSetSashPosition (wxSplitter.GetSashPosition() + heightDelta)
 
     def Resize(self):
         dc = wx.ClientDC(self)

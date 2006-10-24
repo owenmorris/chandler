@@ -441,7 +441,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         """
         currentHeight = self.GetSize()[1]
         if currentHeight < self.expandedHeight:
-            self.GetParent().MoveSash(self.expandedHeight)
+            self.GetParent().AdjustAndSetSashPosition(self.expandedHeight)
             self.blockItem.calendarContainer.calendarControl.widget.ResetSashState()
 
     def GetExpandedHeight(self):

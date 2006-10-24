@@ -2350,13 +2350,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         if (currentHeight >= wxAllDay.collapsedHeight and
             currentHeight < effectiveExpandedHeight):
             logger.debug("Expand to %s" % wxAllDay.expandedHeight)
-            wxAllDay.GetParent().MoveSash(wxAllDay.expandedHeight)
+            wxAllDay.GetParent().AdjustAndSetSashPosition(wxAllDay.expandedHeight)
             wxAllDay.autoExpandMode = True
             self.ResetSashState()
         else:
             logger.debug("Collapse to %s" %wxAllDay.collapsedHeight)
             wxAllDay.autoExpandMode = False
-            wxAllDay.GetParent().MoveSash(wxAllDay.collapsedHeight)
+            wxAllDay.GetParent().AdjustAndSetSashPosition(wxAllDay.collapsedHeight)
             self.ResetSashState()
         event.Skip()
     

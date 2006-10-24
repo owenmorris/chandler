@@ -216,38 +216,30 @@ class wxSplitterWindow(wx.SplitterWindow):
         # Setting minimum pane size prevents unsplitting a window by double-clicking
         self.SetMinimumPaneSize(7) #weird number to help debug the weird sizing bug 3497
 
-    def MoveSash(self, position):
-        """
-        Sets the sash position, and fires off the appropriate event
-        saying it happened.
-        """
-        #self.SetSashPosition(position)
-        event = wx.SplitterEvent(wx.wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, self)
-        event.SetSashPosition(position)
-        self.SetSashPosition(position)
-
-        self.ProcessEvent(event)
-
-        #this should be the async way to do it, but listeners end up receiving
-        #a NotifyEvent instead, for some reason.
-
-        #self.AddPendingEvent(event)
-        #wx.GetApp().Yield()
-
-
     @WithoutSynchronizeWidget
     def OnSize(self, event):
         newSize = self.GetSize()
-        self.blockItem.size = SizeType (newSize.width, newSize.height)
+        blockItem = self.blockItem
+        blockItem.size = SizeType (newSize.width, newSize.height)
         
-        if self.blockItem.orientationEnum == "Horizontal":
-            distance = self.blockItem.size.height
+        if blockItem.orientationEnum == "Horizontal":
+            distance = blockItem.size.height
         else:
-            distance = self.blockItem.size.width
-        position = int (distance * self.blockItem.splitPercentage + 0.5)
-        self.SetSashPosition (position)
-        self.adjustSplit(position)
+            distance = blockItem.size.width
+        position = int (distance * blockItem.splitPercentage + 0.5)
+        self.AdjustAndSetSashPosition (position)
         event.Skip()
+
+    def AdjustAndSetSashPosition (self, position):
+        width, windowSize = self.GetSizeTuple()
+        if self.GetSplitMode() == wx.SPLIT_VERTICAL:
+            windowSize = width
+
+        splitController = self.blockItem.splitController
+        if splitController is not None:
+            position = splitController.AdjustSplit (windowSize, position)
+
+        self.SetSashPosition (position)
 
     def OnSplitChanging(self, event):
         """
@@ -268,45 +260,21 @@ class wxSplitterWindow(wx.SplitterWindow):
             self.blockItem.splitPercentage = float (event.GetSashPosition()) / windowSize
         event.Skip()
 
-    @WithoutSynchronizeWidget
     def OnSplitChanged(self, event):
-        self.adjustSplit (event.GetSashPosition())
-        event.Skip()
-
-    def adjustSplit(self, position):
-
-        def calculatePosition (position):
-            for splitWindow in self.blockItem.childrenBlocks:
-                for child in splitWindow.childrenBlocks:
-                    adjustSplitMethod = getattr (type (child.widget), "AdjustSplit", None)
-                    if adjustSplitMethod is not None:
-                        position = windowSize - adjustSplitMethod(child.widget, windowSize - position)
-                        if position < 0:
-                            position = 0
-                        # Python does't have a break statement that exits
-                        # nested loops, so we'll use return instead
-                        return position
-            return position
-
-        width, windowSize = self.GetSizeTuple()
-        if self.GetSplitMode() == wx.SPLIT_VERTICAL:
-            windowSize = width
-        if windowSize >= 0:
-            # On Mac the windowSize is sometimes negative
-            position = calculatePosition (position)
-            self.SetSashPosition (position)
+        self.AdjustAndSetSashPosition (event.GetSashPosition())
 
     def wxSynchronizeWidget(self, useHints=False):
-        self.SetSize ((self.blockItem.size.width, self.blockItem.size.height))
+        blockItem = self.blockItem
+        self.SetSize ((blockItem.size.width, blockItem.size.height))
 
-        assert (len (self.blockItem.childrenBlocks) >= 1 and
-                len (self.blockItem.childrenBlocks) <= 2), "We don't currently allow splitter windows with no contents"
+        assert (len (blockItem.childrenBlocks) >= 1 and
+                len (blockItem.childrenBlocks) <= 2), "We don't currently allow splitter windows with no contents"
 
         # Collect information about the splitter
         oldWindow1 = self.GetWindow1()
         oldWindow2 = self.GetWindow2()
 
-        children = iter (self.blockItem.childrenBlocks)
+        children = iter (blockItem.childrenBlocks)
 
         window1 = None
         child1 = children.next()
@@ -315,7 +283,7 @@ class wxSplitterWindow(wx.SplitterWindow):
         child1.widget.Show (child1.isShown)
 
         window2 = None
-        if len (self.blockItem.childrenBlocks) >= 2:
+        if len (blockItem.childrenBlocks) >= 2:
             child2 = children.next()
             if child2.isShown:
                 window2 = child2.widget
@@ -332,11 +300,11 @@ class wxSplitterWindow(wx.SplitterWindow):
             going between a split with one window to a split with
             two windows
             """
-            if self.blockItem.orientationEnum == "Horizontal":
-                position = self.blockItem.size.height * self.blockItem.splitPercentage
+            if blockItem.orientationEnum == "Horizontal":
+                position = blockItem.size.height * blockItem.splitPercentage
                 success = self.SplitHorizontally (window1, window2, position)
             else:
-                position = self.blockItem.size.width * self.blockItem.splitPercentage
+                position = blockItem.size.width * blockItem.splitPercentage
                 success = self.SplitVertically (window1, window2, position)
             assert success
         elif not oldWindow1 and not oldWindow2 and not shouldSplit:
@@ -390,6 +358,15 @@ class SplitterWindow(RectangularChild):
     orientationEnum = schema.One(
         orientationEnumType, initialValue = 'Horizontal',
     )
+    splitController = schema.One(Block,
+        otherName="splitter",
+        defaultValue = None
+    )
+  
+    schema.addClouds(
+        copying = schema.Cloud (byCloud = [splitController])
+    )
+
 
     def instantiateWidget (self):
         return wxSplitterWindow (self.parentBlock.widget,

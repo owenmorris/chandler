@@ -77,6 +77,12 @@ def makeCPIATestMainView (parcel):
         ).install(parcel)
     Sidebar.contents.selectItem (pim_ns.allCollection)
 
+    miniCal = MiniCalendar.template(
+        'MiniCalendar',
+        contents = pim_ns.allCollection,
+        calendarContainer = None,
+        stretchFactor = 0.0).install(parcel)
+
     ApplicationBar = Toolbar.template(
         'ApplicationBar',
         stretchFactor = 0.0,
@@ -174,6 +180,7 @@ def makeCPIATestMainView (parcel):
                                 stretchFactor = 0.0,
                                 border = RectType(0, 0, 0, 4.0),
                                 splitPercentage = 0.42,
+                                splitController = miniCal,
                                 childrenBlocks = [
                                     Sidebar,
                                     BoxContainer.template('PreviewAndMiniCalendar',
@@ -196,11 +203,9 @@ def makeCPIATestMainView (parcel):
                                                                           'PreviewLinkStyle', 
                                                                           fontSize = 11,
                                                                           fontStyle = 'underline'),                                                
-                                                stretchFactor = 0.0),
-                                            MiniCalendar.template('MiniCalendar',
-                                                contents = pim_ns.allCollection,
-                                                calendarContainer = None,
-                                                stretchFactor = 0.0),
+                                                stretchFactor = 0.0,
+                                                miniCalendar = miniCal),
+                                            miniCal
                                             ]) # BoxContainer PreviewAndMiniCalendar
                                     ]), # SplitterWindow SidebarContainer
                             BranchPointBlock.template('SidebarBranchPointBlock',

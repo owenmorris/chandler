@@ -101,7 +101,8 @@ class Block(schema.Item):
         initialValue = u''
     )
 
-    parentBlock = schema.One("Block",
+    parentBlock = schema.One(
+        "Block",
         inverse="childrenBlocks",
         initialValue = None
     )
@@ -112,6 +113,12 @@ class Block(schema.Item):
         initialValue = []
     )
 
+    splitter = schema.One(
+        "Block",
+        otherName = "splitController",     # SplitterWindow/splitter
+        defaultValue = None
+    )
+  
     isShown = schema.One(schema.Boolean, initialValue=True)
 
     eventBoundary = schema.One(schema.Boolean, initialValue=False)
@@ -144,8 +151,8 @@ class Block(schema.Item):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byRef=[contents],
-            byCloud=[childrenBlocks,eventsForNamedLookup]
+            byRef = [contents],
+            byCloud = [childrenBlocks, eventsForNamedLookup, splitter]
         )
     )
     

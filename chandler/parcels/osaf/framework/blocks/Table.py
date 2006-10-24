@@ -142,7 +142,6 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
-        self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
@@ -299,11 +298,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         finally:
             blockItem.startNotificationDirt()
 
-        event.Skip()
-
-    @WithoutSynchronizeWidget
-    def OnSize(self, event):
-        # Don't call SynchronizeWidget when we're resising the window
         event.Skip()
 
     @WithoutSynchronizeWidget
