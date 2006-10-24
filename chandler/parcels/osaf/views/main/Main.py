@@ -803,7 +803,8 @@ class MainView(View):
             _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-            _(u"Save Settings"), "", "chandler.ini", wildcard, wx.SAVE)
+                            _(u"Save Settings"), "", "chandler.ini", wildcard,
+                            wx.SAVE|wx.OVERWRITE_PROMPT)
 
         path = None
         if dlg.ShowModal() == wx.ID_OK:
