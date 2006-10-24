@@ -812,24 +812,9 @@ class AnnotationClass(type):
             cloud_def.make_cloud(kind,alias)
 
         for name, attrNames in cls.__dict__.get('__after_change__',{}).items():
-        
             if name.startswith('__'):
-                # support private name mangling
                 name = '_%s%s' % (cls.__name__, name)
-
-            def makeNewMethod(cls, fullname, name):
-                meth = getattr(cls,name)
-                def wrappedMethod(item, op, attrName):
-                    return meth(cls(item), op, attrName)
-                wrappedMethod.__name__ = name
-                wrappedMethod.__doc__ = meth.__doc__
-                return wrappedMethod
-               
-            shortName = name
-            name = "%s.%s.%s" % (parcel_name(cls.__module__), cls.__name__,
-                                     name)
-            setattr(targetClass, name, makeNewMethod(cls, name, shortName))
-
+            name = "%s.%s.%s" % (parcel_name(cls.__module__),cls.__name__,name)
             # @@@ [grant] copy-n-paste job from ItemClass._init_schema_item
             for attrName in attrNames:
                 if isinstance(attrName,Descriptor):
@@ -1195,6 +1180,28 @@ def observer(*attrs):
                         "%r does not belong to %r or its superclasses"
                         % (attr, cls)
                     )
+            if issubclass(cls, Annotation):
+                targetClass = cls.targetType()
+                afterChanges = cls.__dict__.get('__after_change__', {})
+                for name, attrNames in afterChanges.items():
+
+                    if name.startswith('__'):
+                        # support private name mangling
+                        name = '_%s%s' % (cls.__name__, name)
+        
+                    def makeNewMethod(cls, fullname, name):
+                        meth = getattr(cls,name)
+                        def wrappedMethod(item, op, attrName):
+                            return meth(cls(item), op, attrName)
+                        wrappedMethod.__name__ = name
+                        wrappedMethod.__doc__ = meth.__doc__
+                        return wrappedMethod
+                       
+                    shortName = name
+                    name = "%s.%s.%s" % (parcel_name(cls.__module__),
+                                         cls.__name__, name)
+                    setattr(targetClass, name,
+                            makeNewMethod(cls, name, shortName))
             return cls
         return func
 
