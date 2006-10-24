@@ -296,6 +296,30 @@ class MultiStateButton(GenBitmapButton):
                 # will the app need this call to Update?
                 self.Update()
 
+    def GetBackgroundBrush(self, dc):
+        # override the GenBitmapButton GetBackgroundBrush(), which assumes you
+        # want a white background when a transparent button is pressed
+        colBg = self.GetBackgroundColour()
+        brush = wx.Brush(colBg, wx.SOLID)
+        if self.style & wx.BORDER_NONE:
+            myAttr = self.GetDefaultAttributes()
+            parAttr = self.GetParent().GetDefaultAttributes()
+            myDef = colBg == myAttr.colBg
+            parDef = self.GetParent().GetBackgroundColour() == parAttr.colBg
+            if myDef and parDef:
+                if wx.Platform == "__WXMAC__":
+                    brush.MacSetTheme(1) # 1 == kThemeBrushDialogBackgroundActive
+                elif wx.Platform == "__WXMSW__":
+                    if self.DoEraseBackground(dc):
+                        brush = None
+            elif myDef and not parDef:
+                if self.up:
+                    colBg = self.GetParent().GetBackgroundColour()
+                    brush = wx.Brush(colBg, wx.SOLID)
+                else:
+                    brush = wx.Brush(self.faceDnClr, wx.SOLID)
+        return brush
+
 # execute with execfile("/Users/rae/work/osaf/rae-button/MultiStateButton.py", { "__name__" :"__main__" })
 # or similar
 if __name__ == "__main__":
