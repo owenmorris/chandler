@@ -24,6 +24,7 @@ import os
 import logging
 from time import mktime
 from datetime import datetime
+from PyICU import ICUtzinfo
 import sys
 import sgmllib
 
@@ -100,11 +101,12 @@ def loadMailTests(view, dr):
 
 def getEmptyDate():
     """
-    Returns a DateTime object set to 0 ticks.
+    Returns a DateTime object with today's date and the
+    current Operating System timezone set to 0 ticks.
     @return: C{datetime} object
     """
-
-    return datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    tz = ICUtzinfo.default
+    return datetime.now(tz).replace(hour=0, minute=0, second=0, microsecond=0)
 
 def dateIsEmpty(date):
     """
