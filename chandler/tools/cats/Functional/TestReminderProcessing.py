@@ -35,36 +35,32 @@ def getstack():
 nearFutureSeconds=3
 #nearFutureSeconds=120
 
+# While we're debugging this test, I set reallyFail to False so failures will
+# just get logged.
+reallyFail = True
+
 class TestReminderProcessing(ChandlerTestCase):
 
-    if False:
-        # Really fail
-        def failif(self, x, msg):
-            if x:
-                raise AssertionError(msg)
-        def failunless(self, x, msg):
-            if not x:
-                raise AssertionError(msg)
-        def failunlessequal(self, a, b, msg):
-            if not a == b:
+    def failif(self, x, msg):
+        if x:
+            logger.critical("%s...\n%s", msg, getstack())
+            if reallyFail:
+                raise AssertionError(msg)                    
+    def failunless(self, x, msg):
+        if not x:
+            logger.critical("%s...\n%s", msg, getstack())
+            if reallyFail:
+                raise AssertionError(msg)                    
+    def failunlessequal(self, a, b, msg):
+        if not a == b:
+            logger.critical("%s: %r != %r...\n%s", msg, a, b, getstack())
+            if reallyFail: 
                 raise AssertionError("%s: %r != %r" % (msg, a, b))
-        def failifequal(self, a, b, msg):
-            if a == b:
+    def failifequal(self, a, b, msg):
+        if a == b:
+            logger.critical("%s: %r == %r...\n%s", msg, a, b, getstack())
+            if reallyFail: 
                 raise AssertionError("%s: %r == %r" % (msg, a, b))
-    else:
-        # Just log CRITICAL warnings
-        def failif(self, x, msg):
-            if x:
-                logger.critical("%s...\n%s", msg, getstack())
-        def failunless(self, x, msg):
-            if not x:
-                logger.critical("%s...\n%s", msg, getstack())
-        def failunlessequal(self, a, b, msg):
-            if not a == b:
-                logger.critical("%s: %r != %r...\n%s", msg, a, b, getstack())
-        def failifequal(self, a, b, msg):
-            if a == b:
-                logger.critical("%s: %r == %r...\n%s", msg, a, b, getstack())
 
     def _checkRemindersOn(self, anItem, userTime=None, userExpired=False,
                           triageStatusTime=None, snoozeTime=None,

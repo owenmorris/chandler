@@ -1417,6 +1417,8 @@ class EventStamp(Stamp):
                             if disabled:
                                 occurrence.__enableRecurrenceChanges()
                             
+                    self._fixMasterReminders()
+                    
                     if not self.occurrences: # i.e. None, or empty
                         # Make sure we have at least one occurrence
                         self.getRecurrenceID(self.startTime)
@@ -1504,8 +1506,6 @@ class EventStamp(Stamp):
     
                 self._deleteGeneratedOccurrences()
                 self._getFirstGeneratedOccurrence(True)
-                
-            self._fixMasterReminders()
         finally:
             if disabledSelf: self.__enableRecurrenceChanges()
 
@@ -1602,10 +1602,6 @@ class EventStamp(Stamp):
                     # unless it's explicitely done here.
                     remindable.reminders.clear()
                 assert len(remindable.reminders) == 0
-                
-                # @@@ Make all recurring event masters be 'Later' for now.
-                from osaf.pim.items import TriageEnum
-                self.itsItem.triageStatus = TriageEnum.later
             finally:
                 if disabled: self.__enableRecurrenceChanges()
         else:
