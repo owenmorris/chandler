@@ -166,6 +166,8 @@ def mailError(frame, view, message, account):
     win.CenterOnScreen()
     val = win.ShowModal()
 
+    win.Destroy()
+
     if val == wx.ID_OK:
        AccountPreferences.ShowAccountPreferencesDialog(frame, account, view)
 
