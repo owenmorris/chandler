@@ -1711,6 +1711,10 @@ def fixTriageStatusCallback(share=None, uuids=None):
     Set triageStatus on new 'now' items received from sharing, importing,
     or restore.
     """
+    # Don't do this if we're sharing triageStatus (bug 7193)
+    if 'triageStatus' not in share.filterAttributes:
+        return
+
     now = datetime.datetime.now(tz=ICUtzinfo.default)
     for u in uuids:
         item = share.itsView.find(u)
@@ -1719,7 +1723,7 @@ def fixTriageStatusCallback(share=None, uuids=None):
             continue
         
         relevantDate = getattr(item, 'relevantDate', None)
-        if relevantDate and item.triageStatus == pim.TriageEnum.now:
+        if relevantDate:
             item.triageStatus = (relevantDate < now and pim.TriageEnum.done
                                  or pim.TriageEnum.later)
             item.setTriageStatusChanged(relevantDate)
