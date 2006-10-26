@@ -356,19 +356,64 @@ class Values(CValues):
             if isinstance(value, Indexed):
                 value._collectIndexChanges(name, indexChanges)
 
-    def _applyChanges(self, view, flag, dirties, ask, newChanges):
+    def _applyChanges(self, view, flag, dirties, ask, newChanges,
+                      conflicts, indexChanges):
 
+        item = self._item
         for name, (isRef, newValue) in newChanges[flag].iteritems():
             if not isRef:
                 value = self.get(name, Nil)
                 if newValue != value:
                     if name in dirties:
                         newValue = ask(MergeError.VALUE, name, newValue)
-                    if newValue is Nil:
-                        self._item.removeAttributeValue(name, self, None, True)
+                        conflicts.append((item.itsUUID, name, newValue))
                     else:
-                        self._item.setAttributeValue(name, newValue, self,
-                                                     None, True, True)
+                        if newValue is Nil:
+                            item.removeAttributeValue(name, self, None, True)
+                        else:
+                            item.setAttributeValue(name, newValue, self,
+                                                   None, True, True)
+                        if indexChanges is not None:
+                            self._updateIndexChanges(name, indexChanges)
+
+    def _updateIndexChanges(self, name, indexChanges):
+
+        item = self._item
+        view = item.itsView
+        for monitor in view._monitors['set'].get(name, ()):
+            uOwner, attribute, indexName = monitor.getItemIndex()
+            if uOwner is None:
+                continue
+
+            _changes = indexChanges.setdefault(uOwner, {})
+            _changes = _changes.setdefault(attribute, {})
+            
+            if indexName not in _changes:
+                owner = view.find(uOwner)
+                if owner is None:
+                    continue
+                    
+                collection = getattr(owner, attribute, None)
+                if collection is None:
+                    continue
+
+                index = collection.getIndex(indexName)
+                if index is None:
+                    continue
+
+                _indexChanges = (dict(index._iterChanges()),
+                                 index.getIndexType(),
+                                 index.getInitKeywords())
+                _changes[indexName] = _indexChanges
+                _changes = _indexChanges[0]
+
+            else:
+                _changes = _changes[indexName][0]
+
+            if item.itsUUID not in _changes:
+                view.logger.info('Adding %s to changes of index %s of %s on %s',
+                                 item.itsUUID, indexName, name, uOwner)
+                _changes[item.itsUUID] = Nil
 
 
 class References(Values):
@@ -1145,7 +1190,6 @@ class References(Values):
                         if name in dirties:
                             nextValue = ask(MergeError.REF, name, newValue)
                             if value not in (Nil, None):
-                                item = self._item
                                 kind = item.itsKind
                                 otherName = kind.getOtherName(name, item)
                                 dangling.append((value, otherName,

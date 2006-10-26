@@ -456,17 +456,18 @@ class DBRepositoryView(OnDemandRepositoryView):
                 # deleting item locally (with mergeFn approval)
                 for uItem in deletes:
                     if uItem in merges:
-                        item = self[uItem]
-                        if not item.isDeferred():
-                            if (mergeFn is None or
-                                not mergeFn(MergeError.DELETE, item,
-                                            None, None)):
-                                self._e_2_delete(item, newVersion)
-                        if not item.isDeleted():
-                            item.delete(True)
-                            if item.isDeferred():
-                                item._delete(self, True, None, False, True)
-                        scan = True
+                        item = self.find(uItem)
+                        if item is not None:
+                            if not item.isDeferred():
+                                if (mergeFn is None or
+                                    not mergeFn(MergeError.DELETE, item,
+                                                None, None)):
+                                    self._e_2_delete(item, newVersion)
+                            if not item.isDeleted():
+                                item.delete(True)
+                                if item.isDeferred():
+                                    item._delete(self, True, None, False, True)
+                            scan = True
 
         oldVersion = self._version
 
@@ -525,8 +526,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                                            dirty, HashTuple(dirties),
                                            oldVersion, newVersion,
                                            _newChanges, _changes, mergeFn,
-                                           conflicts, dangling)
+                                           conflicts, indexChanges, dangling)
                     self._applyIndexChanges(indexChanges, deletes)
+
                     for uItem, name, uRef in dangling:
                         item = self.find(uItem)
                         if item is not None:
@@ -550,7 +552,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                             self._applyChanges(item, newDirty, 0, (),
                                                oldVersion, newVersion,
                                                _newChanges, None, None, None,
-                                               None)
+                                               None, None)
                     self._applyIndexChanges(indexChanges, deletes)
                     raise
 
@@ -854,7 +856,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def _applyChanges(self, item, newDirty, dirty, dirties,
                       version, newVersion, newChanges, changes, mergeFn,
-                      conflicts, dangling):
+                      conflicts, indexChanges, dangling):
 
         CDIRTY = CItem.CDIRTY
         NDIRTY = CItem.NDIRTY
@@ -914,7 +916,8 @@ class DBRepositoryView(OnDemandRepositoryView):
             item._references._applyChanges(self, VDIRTY, dirties, ask,
                                            newChanges, None,
                                            conflicts, dangling)
-            item._values._applyChanges(self, VDIRTY, dirties, ask, newChanges)
+            item._values._applyChanges(self, VDIRTY, dirties, ask, newChanges,
+                                       conflicts, indexChanges)
             dirty &= ~VDIRTY
             newDirty &= ~VDIRTY
             item._status |= (CItem.VMERGED | VDIRTY)

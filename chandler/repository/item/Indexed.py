@@ -15,6 +15,7 @@
 
 from chandlerdb.item.c import CItem
 from chandlerdb.item.ItemError import *
+from chandlerdb.util.c import Nil
 from repository.item.Indexes import \
     AttributeIndex, ValueIndex, StringIndex, CompareIndex, SubIndex
 
@@ -130,12 +131,10 @@ class Indexed(object):
 
             def _attach(attrName):
                 from repository.item.Monitors import Monitors
-                mon = Monitors.attach(item, '_reIndex', 'set', attrName,
-                                      name, indexName)
-                mon._status |= CItem.SYSMONITOR
-                mon = Monitors.attach(item, '_reIndex', 'remove', attrName,
-                                      name, indexName)
-                mon._status |= CItem.SYSMONITOR
+                Monitors.attachIndexMonitor(item, '_reIndex', 'set',
+                                            attrName, name, indexName)
+                Monitors.attachIndexMonitor(item, '_reIndex', 'remove',
+                                            attrName, name, indexName)
 
             if monitor is not None:
                 if isinstance(monitor, (str, unicode)):
@@ -234,7 +233,7 @@ class Indexed(object):
                     if item is None:
                         if key not in deletes:
                             raise AssertionError, (key, "item not found", key)
-                    elif newIndex:
+                    elif newIndex or value is Nil:
                         if self.__contains__(key, False, True):
                             moves.append(key)
                     else:

@@ -76,13 +76,14 @@ class Monitors(Item):
             opDict[attribute] = [monitor]
 
     @classmethod
-    def attach(cls, item, method, op, attribute, *args, **kwds):
+    def _attach(cls, monitorClass, item, method, op, attribute, *args, **kwds):
 
         view = item.itsView
         dispatcher = view.getSingleton(view.MONITORS)
 
         kind = dispatcher._kind.itsParent['Monitor']
-        monitor = kind.newItem(None, dispatcher.itsParent['monitors'])
+        monitor = kind.newItem(None, dispatcher.itsParent['monitors'],
+                               monitorClass)
 
         monitor.item = item
         monitor.method = method
@@ -96,6 +97,20 @@ class Monitors(Item):
             dispatcher.cacheMonitors()
         else:
             dispatcher._cacheMonitor(monitor)
+
+        return monitor
+
+    @classmethod
+    def attach(cls, item, method, op, attribute, *args, **kwds):
+
+        return cls._attach(None, item, method, op, attribute, *args, **kwds)
+
+    @classmethod
+    def attachIndexMonitor(cls, item, method, op, attribute, *args, **kwds):
+
+        monitor = cls._attach(IndexMonitor, item, method, op, attribute,
+                              *args, **kwds)
+        monitor._status |= Item.SYSMONITOR
 
         return monitor
 
@@ -123,3 +138,14 @@ class Monitor(Item):
                _noMonitors=False):
         return super(Monitor, self).delete(recursive, deletePolicy, cloudAlias,
                                            True)
+
+    def getItemIndex(self):
+        return None, None, None
+
+
+class IndexMonitor(Item):
+
+    def getItemIndex(self):
+
+        attribute, indexName = self.args
+        return self.item.itsUUID, attribute, indexName

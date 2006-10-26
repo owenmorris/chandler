@@ -64,8 +64,9 @@ class RepositoryView(CView):
     # 0.6.10: added new enumeration type: ConstantEnumeration
     # 0.6.11: removed Kind inheritedSuperKinds transient cache
     # 0.6.12: removed 'persisted' aspect
+    # 0.6.13: added IndexMonitor class
     
-    CORE_SCHEMA_VERSION = 0x00060c00
+    CORE_SCHEMA_VERSION = 0x00060d00
 
     def __init__(self, repository, name, version):
         """

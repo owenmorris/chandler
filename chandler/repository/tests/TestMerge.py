@@ -1160,6 +1160,45 @@ class TestMerge(RepositoryTestCase):
         self.assert_(not hasattr(k, 'movies'), 'movies is back')
         self.assert_(main.check(), 'main view did not check out')
 
+    def testMergeConflictKeepChangeNewIndex(self):
+
+        def mergeFn(code, item, attribute, newValue):
+            if code == MergeError.DELETE:
+                return True
+            return newValue
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        movies = main.findPath('//CineGuide/KHepburn').movies
+        m1 = movies.first()
+        m2 = movies.next(m1)
+        m3 = movies.next(m2)
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        movies = view.findPath('//CineGuide/KHepburn').movies
+        m1 = movies.first()
+        m2 = movies.next(m1)
+        m3 = movies.next(m2)
+        m1.title = 'View Changed Title'
+        m3.set = Set((movies._item, 'movies'))
+        m3.set.addIndex('t', 'attribute', attribute='title')
+        view.commit()
+
+        view = self.rep.setCurrentView(main)
+        movies = main.findPath('//CineGuide/KHepburn').movies
+        m1 = movies.first()
+        m2 = movies.next(m1)
+        m3 = movies.next(m2)
+        m1.title = 'Main Changed Title'
+        main.commit(mergeFn)
+
+        self.assert_(main.check(), 'main view did not check out')
+
 if __name__ == "__main__":
 #    import hotshot
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
