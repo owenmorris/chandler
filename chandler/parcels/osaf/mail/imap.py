@@ -340,6 +340,11 @@ class IMAPClient(base.AbstractDownloadClient):
         if curMessage[0] > self.lastUID:
             self.lastUID = curMessage[0]
 
+        if  "\\Seen" in curMessage[1]:
+            callback = defer.succeed(True)
+        else:
+            callback = self.proto.removeFlags(curMessage[0], ["\Seen"], uid=True)
+
         messageText = msgs[msg]['RFC822']
 
         #XXX: Need a more perforrmant way to do this
@@ -365,15 +370,16 @@ class IMAPClient(base.AbstractDownloadClient):
         if self.numDownloaded == self.numToDownload:
             self._setNextUID(self.lastUID + 1)
             self.totalDownloaded += self.numDownloaded
-            self._commitDownloadedMail()
+
+            return callback.addBoth(lambda x: self._commitDownloadedMail())
 
         else:
             m = self.pending.pop(0)
 
-            return self.proto.fetchMessage(str(m[0]), uid=True
-                         ).addCallback(self._fetchMessage, m
-                         ).addErrback(self.catchErrors)
-
+            return callback.addBoth(lambda x: self.proto.fetchMessage(str(m[0]), uid=True
+                                        ).addCallback(self._fetchMessage, m
+                                        ).addErrback(self.catchErrors)
+                                    )
     def _expunge(self, result):
         if __debug__:
             trace("_expunge")
