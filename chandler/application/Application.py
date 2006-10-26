@@ -797,15 +797,22 @@ class wxApplication (wx.App):
 
     def propagateAsynchronousNotifications(self):
 
-        # Fire set notifications that require mapChanges
-        # and pickup changes from other views
-        self.repository.view.refresh(_mergeFunction)
+        view = self.UIRepositoryView
+
+        try:
+            # Fire set notifications that require mapChanges
+            # and pickup changes from other views
+            view.refresh(_mergeFunction)
+        except:
+            logger.exception("Changes cancelled because of refresh error")
+            view.itsVersion -= 1
+            view.refresh()
+            raise
 
         # synchronize dirtied blocks to reflect changes to the data
         from osaf.framework.blocks.Block import Block
         # make the list first in case it gets tweaked during synchronizeWidget
-        dirtyBlocks = [self.UIRepositoryView.findUUID(theUUID)
-                       for theUUID in Block.dirtyBlocks]
+        dirtyBlocks = [view[theUUID] for theUUID in Block.dirtyBlocks]
 
         # synchronize affected widgets
         for block in dirtyBlocks:
