@@ -444,6 +444,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             merges = {}
             unloads = {}
             dangling = []
+            conflicts = []
 
             self._scanHistory(self.itsVersion,
                               newVersion, history, schema_history,
@@ -524,7 +525,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                            dirty, HashTuple(dirties),
                                            oldVersion, newVersion,
                                            _newChanges, _changes, mergeFn,
-                                           dangling)
+                                           conflicts, dangling)
                     self._applyIndexChanges(indexChanges, deletes)
                     for uItem, name, uRef in dangling:
                         item = self.find(uItem)
@@ -540,6 +541,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     _unload(merges.iterkeys)
                     deletes.clear()
                     del dangling[:]
+                    del conflicts[:]
 
                     for uItem, (dirty, uParent, dirties) in merges.iteritems():
                         item = self.find(uItem)
@@ -547,7 +549,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                             newDirty, _newChanges = newChanges[uItem]
                             self._applyChanges(item, newDirty, 0, (),
                                                oldVersion, newVersion,
-                                               _newChanges, None, None, None)
+                                               _newChanges, None, None, None,
+                                               None)
                     self._applyIndexChanges(indexChanges, deletes)
                     raise
 
@@ -566,6 +569,22 @@ class DBRepositoryView(OnDemandRepositoryView):
                         self[uItem].flushCaches('superKinds')
                     elif 'attributes' in names:
                         self[uItem].flushCaches('attributes')
+
+            _changes = []
+            for uItem, name, newValue in conflicts:
+                item = self.find(uItem)
+                if item is not None:
+                    if newValue is Nil:
+                        if hasattr(item, name):
+                            item.removeAttributeValue(name, None, None, True)
+                            _changes.append((item, 'remove', name))
+                    else:
+                        item.setAttributeValue(name, newValue,
+                                               None, None, True, True)
+                        _changes.append((item, 'set', name))
+            for item, op, name in _changes:
+                if not item.isStale():
+                    item._fireChanges(op, name)
 
             if notify:
                 before = time()
@@ -835,7 +854,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def _applyChanges(self, item, newDirty, dirty, dirties,
                       version, newVersion, newChanges, changes, mergeFn,
-                      dangling):
+                      conflicts, dangling):
 
         CDIRTY = CItem.CDIRTY
         NDIRTY = CItem.NDIRTY
@@ -886,14 +905,15 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         if newDirty & RDIRTY:
             item._references._applyChanges(self, RDIRTY, dirties, ask,
-                                           newChanges, changes, dangling)
+                                           newChanges, changes, None, dangling)
             dirty &= ~RDIRTY
             newDirty &= ~RDIRTY
             item._status |= (CItem.RMERGED | RDIRTY)
 
         if newDirty & VDIRTY:
             item._references._applyChanges(self, VDIRTY, dirties, ask,
-                                           newChanges, None, dangling)
+                                           newChanges, None,
+                                           conflicts, dangling)
             item._values._applyChanges(self, VDIRTY, dirties, ask, newChanges)
             dirty &= ~VDIRTY
             newDirty &= ~VDIRTY

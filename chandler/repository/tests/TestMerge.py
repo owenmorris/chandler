@@ -918,6 +918,35 @@ class TestMerge(RepositoryTestCase):
         main.commit(mergeFn)
         self.assert_(main.check(), 'main view did not check out')
 
+    def testMergeOverlapVRefOther(self):
+
+        def mergeFn(code, item, attribute, newValue):
+            oldValue = getattr(item, attribute)
+            return oldValue
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        c = k.itsParent
+        m1 = k.movies.first()
+        c['m2'].next = m1
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        c = k.itsParent
+        c['m2'].next = c['m4']
+
+        main.commit(mergeFn)
+        self.assert_(main.check(), 'main view did not check out')
+
     def testMergeSetVRef(self):
 
         main = self.rep.view

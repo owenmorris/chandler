@@ -1074,15 +1074,16 @@ class References(Values):
                 newChanges[name] = (True, value)
 
     def _applyChanges(self, view, flag, dirties, ask, newChanges, changes,
-                      dangling):
+                      conflicts, dangling):
 
+        item = self._item
         if flag == CItem.RDIRTY:
             for name, (card, valueChanges) in newChanges[flag].iteritems():
                 value = self.get(name, Nil)
                 if card == 'set':
                     if not (changes is None or value == valueChanges):
                         if name in dirties:
-                            view._e_3_overlap(MergeError.REF, self._item, name)
+                            view._e_3_overlap(MergeError.REF, item, name)
 
                 elif card == 'nil':
                     # conflict: removed value wins over changes coming in
@@ -1093,7 +1094,7 @@ class References(Values):
 
                 elif name in dirties:
                     if value is Nil and valueChanges:
-                        view._e_3_overlap(MergeError.REF, self._item, name)
+                        view._e_3_overlap(MergeError.REF, item, name)
                     elif valueChanges:
                         if changes is None:
                             if card == 'dict':
@@ -1115,7 +1116,6 @@ class References(Values):
 
                 elif card == 'dict':
                     if value is Nil:
-                        item = self._item
                         kind = item.itsKind
                         otherName = kind.getOtherName(name, item)
                         self[name] = value = RefDict(item, name, otherName)
@@ -1125,7 +1125,7 @@ class References(Values):
                     self._setDirty(name)
                 else:
                     if value is Nil:
-                        self[name] = value = self._item._refList(name)
+                        self[name] = value = item._refList(name)
                     value._applyChanges(valueChanges, ())
                     self._setDirty(name)
 
@@ -1143,19 +1143,20 @@ class References(Values):
                             newValue = view[newValue]
 
                         if name in dirties:
-                            if ask(MergeError.REF, name, newValue) is newValue:
-                                if value not in (Nil, None):
-                                    item = self._item
-                                    kind = item.itsKind
-                                    otherName = kind.getOtherName(name, item)
-                                    dangling.append((value, otherName,
-                                                     item.itsUUID))
-                            else:
-                                view._e_2_overlap(MergeError.REF,
-                                                  newValue, name)
+                            nextValue = ask(MergeError.REF, name, newValue)
+                            if value not in (Nil, None):
+                                item = self._item
+                                kind = item.itsKind
+                                otherName = kind.getOtherName(name, item)
+                                dangling.append((value, otherName,
+                                                 item.itsUUID))
+                            if nextValue is not newValue:
+                                conflicts.append((item.itsUUID,
+                                                  name, nextValue))
 
                         if newValue is Nil:
                             self._removeRef(name, value)
+
                         else:
                             self._setRef(name, newValue)
                             self._setDirty(name)
