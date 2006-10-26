@@ -60,7 +60,17 @@ import parsedatetime.parsedatetime as parsedatetime
 
 
 logger = logging.getLogger(__name__)
-    
+
+# helper function
+def BroadcastSelect(item):
+    selection = []
+    if item is not None:
+        selection.append(item)
+    sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
+    sidebarBPB.childrenBlocks.first().postEventByName(
+       'SelectItemsBroadcast', {'items':selection}
+    )
+
 class DetailRootBlock(FocusEventHandlers, ControlBlocks.ContentItemDetail):
     """
     Root of the Detail View. The prototype instance of this block is copied
@@ -1386,6 +1396,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         """
         Map the frequency of this item to one of our menu choices.
         """
+        assert not getattr(item, 'itsItem', item).isStale()
         event = pim.EventStamp(item)
         if event.isCustomRule(): # It's custom if it says it is.
             return RecurrenceAttributeEditor.customIndex
@@ -1440,21 +1451,41 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         # this very 'item'; we'll try to select the "same" occurrence
         # afterwards ...
         assert pim.has_stamp(item, pim.EventStamp)
-        
+
+        # we may want to prompt the user about destructive rrule changes,
+        # but calling changeThisAndFuture on a proxy's rruleset has the
+        # worst of both worlds, it prompts, but the change is irrevocable.
+        # So don't use the proxy when changing the rule
+        item = getattr(item, 'proxiedItem', item)
         event = pim.EventStamp(item)
+        oldIndex = self.GetAttributeValue(event, attributeName)
+        
+        # If nothing has changed, return. This avoids building
+        # a whole new ruleset, and the teardown of occurrences,
+        # as in Bug 5526
+        if oldIndex == value:
+            return        
+        
         master = event.getMaster()
         recurrenceID = event.recurrenceID or event.startTime
         
         if value == RecurrenceAttributeEditor.onceIndex:
+            firstOccurrence = master.getExistingOccurrence(master.recurrenceID)
             event.removeRecurrence()
-        else:
-            oldIndex = self.GetAttributeValue(event, attributeName)
-            
-            # If nothing has changed, return. This avoids building
-            # a whole new ruleset, and the teardown of occurrences,
-            # as in Bug 5526
-            if oldIndex == value:
-                return
+            # either master, firstOccurrence, or None will be the only remaining
+            # event
+            itemToSelect = None
+            if not master.itsItem.isDeleted():
+                itemToSelect = master.itsItem
+            elif not firstOccurrence.itsItem.isDeleted():
+                itemToSelect = firstOccurrence.itsItem
+        else:           
+            if (recurrenceID == master.recurrenceID and 
+                event.modificationFor is None):
+                newMaster = master
+            else:
+                # if this event is a modification, it will become the new master
+                newMaster = event            
             
             interval = 1
             if value == RecurrenceAttributeEditor.biweeklyIndex:
@@ -1471,29 +1502,20 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             elif hasattr(rruleset.rrules.first(), 'until'):
                 del rruleset.rrules.first().until
             rruleset.rrules.first().untilIsDate = True
-            event.changeThisAndFuture(pim.EventStamp.rruleset.name, rruleset)
 
-        itemToSelect = item
-        
-        if master.itsItem.isDeleted() or not item.isDeleted():
-            # master can get deleted if it had a THIS modification
-            # (it gets replaced by its first occurrence).
-            # An occurrence can become a master by because we just did
-            # a THISANDFUTURE change.
-            master = itemToSelect = event.getMaster().itsItem
+            event.changeThisAndFuture(pim.EventStamp.rruleset.name, rruleset)
             
-        if item.isDeleted():
-            itemToSelect = master.getRecurrenceID(recurrenceID) or master
-            itemToSelect = itemToSelect.itsItem
+            assert not newMaster.itsItem.isDeleted()
+            
+            # select the new master's occurrence, not the master
+            occurrence = newMaster.getRecurrenceID(newMaster.recurrenceID)
+            itemToSelect = occurrence.itsItem
         
+        # "is" comparison only works after unwrapping proxies
         itemToSelect = getattr(itemToSelect, 'proxiedItem', itemToSelect)
-        item = getattr(item, 'proxiedItem', item)
         
         if itemToSelect is not item:
-            sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
-            sidebarBPB.childrenBlocks.first().postEventByName(
-               'SelectItemsBroadcast', {'items':[itemToSelect]}
-            )
+            BroadcastSelect(itemToSelect)
     
     def GetControlValue(self, control):
         """
@@ -1541,6 +1563,8 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
     def SetAttributeValue(self, item, attributeName, valueString):
         event = pim.EventStamp(item)
         eventTZ = event.startTime.tzinfo
+        master = event.getMaster()
+        recurrenceID = event.recurrenceID
         
         if attributeName != 'until':
             attributeName = 'until'        
@@ -1553,6 +1577,7 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
         newValueString = valueString.replace('?','').strip()
         if len(newValueString) == 0 and hasattr(item, attributeName):
             delattr(item, attributeName)
+            BroadcastSelect(master.getRecurrenceID(recurrenceID).itsItem)
         else:
             try:
                 oldValue = getattr(item, attributeName, None)
@@ -1583,8 +1608,27 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
                 # to be destroyed, which'd cause this widget to be deleted,
                 # and we still have references to it in our call stack)
                 def changeRecurrenceEnd(self, item, newEndValue):
-                    item.untilIsDate = True
-                    item.until = value
+                    if event.itsItem.isDeleted():
+                        return
+                    changed = False
+                    if not getattr(item, 'untilIsDate', False):
+                        item.untilIsDate = True
+                        changed = True
+                    if getattr(item, 'until', None) != newEndValue:
+                        item.until = newEndValue
+                        changed = True
+                    if changed:
+                        # until occurrences are part of the collection, changing
+                        # the recurrence end will likely delete the current
+                        # selection, but the detail view won't find out, so
+                        # select a new (more appropriate) item when changing
+                        # recurrence end.
+                        
+                        selection = master.getRecurrenceID(recurrenceID)
+                        if selection is not None:
+                            selection = selection.itsItem
+                        BroadcastSelect(selection)
+                        
                 wx.CallAfter(changeRecurrenceEnd, self, item, value)
 
 class OutboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
