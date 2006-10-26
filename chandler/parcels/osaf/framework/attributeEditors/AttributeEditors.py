@@ -2613,9 +2613,10 @@ class StampAttributeEditor(IconAttributeEditor):
                     stampedObject.add()
 
     def advanceState(self, item, attributeName):
-        isStamped = pim.has_stamp(item, self.stampClass)
-        newValue = self._getStateName(not isStamped)
-        self.SetAttributeValue(item, attributeName, newValue)        
+        if not self.ReadOnly((item, attributeName)):
+            isStamped = pim.has_stamp(item, self.stampClass)
+            newValue = self._getStateName(not isStamped)
+            self.SetAttributeValue(item, attributeName, newValue)        
 
 class EventStampAttributeEditor(StampAttributeEditor):
     stampClass = Calendar.EventStamp
@@ -2677,6 +2678,14 @@ class EventStampAttributeEditor(StampAttributeEditor):
                                        second=0, microsecond=0) + \
                            timedelta(days=1)
         remindable.userReminderTime = reminderTime
+        
+    def ReadOnly (self, (item, attribute)):
+        """
+        Until the Detail View supports read-only reminders, always allow
+        reminders to be removed.
+        
+        """
+        return False
         
 class TaskStampAttributeEditor(StampAttributeEditor):
     stampClass = TaskStamp

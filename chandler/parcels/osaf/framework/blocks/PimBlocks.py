@@ -225,7 +225,8 @@ class FocusEventHandlers(Item):
         for item in selectedItems:
             # we don't want to try to stamp non-Note content items
             # (e.g. Collections)
-            enable = isinstance(item, Note)
+            enable = (isinstance(item, Note) and 
+                      item.isAttributeModifiable('body'))
             if not enable:
                 break
                 
