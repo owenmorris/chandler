@@ -12,6 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from channels import *
+
 def installParcel(parcel, oldName=None):
     """
     This function installs the RSS feed parcel.

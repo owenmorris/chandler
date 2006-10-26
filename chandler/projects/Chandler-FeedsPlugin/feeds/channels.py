@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+__all__ = ["FeedChannel", "FeedItem"]
 
 __parcel__    = "feeds"
 
@@ -458,4 +459,4 @@ class FeedItem(pim.ContentItem):
             self.date = date_parse(str(data.date))
         else:
             # No date was available in the feed, so assign it "now"
-            self.date = datetime.datetime.now(ICUtzinfo.default)
+            self.date = datetime.now(ICUtzinfo.default)
