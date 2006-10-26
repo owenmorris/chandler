@@ -249,6 +249,9 @@ class MultiStateButton(GenBitmapButton):
         __init__ for a description of this list. More bitmap states can be
         added at any time to the button.
         """
+        enabled = self.IsEnabled()
+        self.UpdateWindowUI()
+        refresh = (self.IsEnabled() != enabled)
         if inStateName != self.currentState:
             variationMap = (('normal',      self.SetBitmapLabel),
                             ('disabled',    self.SetBitmapDisabled),
@@ -265,6 +268,8 @@ class MultiStateButton(GenBitmapButton):
                     method(bitmap)
  
             self.currentState = inStateName
+            refresh = True
+        if refresh:
             self.Refresh()
             self.Update()
 

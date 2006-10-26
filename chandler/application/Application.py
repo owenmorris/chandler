@@ -752,10 +752,11 @@ class wxApplication (wx.App):
                             # Some widgets, e.g. wxToolbarItems don't properly handle
                             # setting the text of buttons, so we'll handle it here by
                             # looking for the method OnSetTextEvent to handle it
-                            widget = block.widget
-                            method = getattr (widget, "OnSetTextEvent", None)
-                            if method is not None:
-                                method (event)
+                            widget = getattr(block, 'widget', None)
+                            if widget is not None:
+                                method = getattr (widget, "OnSetTextEvent", None)
+                                if method is not None:
+                                    method (event)
                     return
         event.Skip()
 
