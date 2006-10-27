@@ -1336,15 +1336,23 @@ class FilteredSet(Set):
                 attrs = self.attributes
                 if oldItem is not None:
                     if attrs:
-                        for name, op in attrs:
+                        def detach(op, name):
                             Monitors.detach(oldItem, '_filteredItemChanged',
                                             op, name, oldAttribute)
+                        for name in attrs:
+                            detach('init', name)
+                            detach('set', name)
+                            detach('remove', name)
                 if item is not None:
                     if attrs:
-                        for name, op in attrs:
+                        def attach(op, name):
                             mon = Monitors.attach(item, '_filteredItemChanged',
                                                   op, name, attribute)
                             mon._status |= CItem.SYSMONITOR
+                        for name in attrs:
+                            attach('init', name)
+                            attach('set', name)
+                            attach('remove', name)
 
         return oldItem, oldAttribute
 

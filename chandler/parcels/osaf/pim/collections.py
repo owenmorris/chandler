@@ -475,11 +475,7 @@ class FilteredCollection(SingleSourceWrapperCollection):
         if source is None:
             s = EmptySet()
         else:
-            attrTuples = set()
-            for name in self.filterAttributes:
-                attrTuples.add((name, "set"))
-                attrTuples.add((name, "remove"))
-            attrs = tuple(attrTuples)
+            attrs = tuple(self.filterAttributes)
 
             if hasattr(self, 'filterExpression'):
                 s = ExpressionFilteredSet(source, self.filterExpression, attrs)

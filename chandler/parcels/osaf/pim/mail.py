@@ -819,7 +819,7 @@ class MailStamp(stamping.Stamp, MIMEContainer):
     # on with schema.observer here.
     @schema.observer(toAddress, stamping.Stamp.stamp_types)
     def updateWho(self, op, name):
-        if op == 'set' and stamping.has_stamp(self, MailStamp):
+        if op in ('init', 'set') and stamping.has_stamp(self, MailStamp):
             self.itsItem.who = u", ".join(unicode(x) for x in self.toAddress)
         else:
             self.itsItem.who = u""

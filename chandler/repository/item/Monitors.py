@@ -57,7 +57,7 @@ class Monitors(Item):
     def cacheMonitors(self):
 
         view = self.itsView
-        view._monitors = { 'set': {}, 'remove': {} }
+        view._monitors = { 'init': {}, 'set': {}, 'remove': {} }
         self.itsView.MONITORING = True
 
         for monitor in getattr(self, 'monitors', []):

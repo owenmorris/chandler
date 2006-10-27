@@ -960,7 +960,7 @@ class ConstantEnumeration(Enumeration):
     def _fillItem(self, *args):
         super(ConstantEnumeration, self)._fillItem(*args)
         if 'values' in self._values:
-            self._afterValuesChange('set', 'values')
+            self._afterValuesChange('init', 'values')
 
     def getImplementationType(self):
         return EnumValue
@@ -1000,7 +1000,7 @@ class ConstantEnumeration(Enumeration):
 
     def _afterValuesChange(self, op, name):
 
-        if op == 'set':
+        if op in ('init', 'set'):
             constants = [SchemaEnumValue(self, name, value)
                          for name, value in self._values['values']]
             constants.sort(None, lambda x: x.name)

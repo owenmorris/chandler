@@ -115,9 +115,9 @@ class Item(CItem):
             try:
                 self._status |= Item.SYSMONONLY
                 for name in self._values.keys():
-                    self._fireChanges('set', name, name in values)
+                    self._fireChanges('init', name, name in values)
                 for name in self._references.keys():
-                    self._fireChanges('set', name, name in values)
+                    self._fireChanges('init', name, name in values)
             finally:
                 self._status &= ~Item.SYSMONONLY
 

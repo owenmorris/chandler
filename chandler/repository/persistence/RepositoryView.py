@@ -65,8 +65,9 @@ class RepositoryView(CView):
     # 0.6.11: removed Kind inheritedSuperKinds transient cache
     # 0.6.12: removed 'persisted' aspect
     # 0.6.13: added IndexMonitor class
+    # 0.6.14: added support for 'init' monitor op
     
-    CORE_SCHEMA_VERSION = 0x00060d00
+    CORE_SCHEMA_VERSION = 0x00060e00
 
     def __init__(self, repository, name, version):
         """
