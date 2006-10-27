@@ -21,6 +21,7 @@ SYSTEMS=db \
         openssl \
         $(READLINE_OSX) \
         python \
+        $(READLINE_WIN) \
         setuptools \
         epydoc \
         PyLucene \
@@ -35,6 +36,7 @@ SYSTEMS=db \
         elementtree \
         pylint \
         parsedatetime \
+#        configobj \
         wx
 
 SYS_TESTS=dateutil \

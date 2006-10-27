@@ -1,14 +1,19 @@
 
-VERSION=5.1
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 BUILD=build_$(SNAP)
 READLINE=$(BUILD_ROOT)/readline
-SRC=$(READLINE)/$(BUILD)
-SRC_BUILD=$(SRC)/readline-$(VERSION)
-TARBALL=readline-$(SNAP)-$(RELVER).tar.gz
 
 include ../Makefile.inc
 
+ifeq ($(OS),Cygwin)
+    VERSION=1.7
+else
+    VERSION=5.1
+endif
+
+SRC=$(READLINE)/$(BUILD)
+SRC_BUILD=$(SRC)/readline-$(VERSION)
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+TARBALL=readline-$(SNAP)-$(RELVER).tar.gz
 
 .PHONY: readline
 
@@ -58,6 +63,39 @@ apply: expand
         echo ok
 
 else
+ifeq ($(OS),Cygwin)
+
+readline: expand
+	cd $(READLINE)/$(BUILD)/Readline-$(VERSION); \
+      $(PYTHON) setup.py install
+
+ifneq (/,$(READLINE)/$(BUILD))
+clean:
+	rm -rf $(READLINE)/$(BUILD)
+	rm -f $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
+	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
+endif
+
+binaries:
+	cd $(BUILD_ROOT); \
+        tar -cvzf $(READLINE)/$(TARBALL) $(SNAP)/$(SITE)/readline.py $(SNAP)/$(SITE)/_rlsetup.pyd
+
+install: $(TARBALL)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
+
+Readline-$(VERSION).zip:
+	$(CURL) http://builds.osafoundation.org/external/Readline-$(VERSION).zip
+
+sources: Readline-$(VERSION).zip
+
+Readline-$(VERSION)-$(SNAP)-expanded: Readline-$(VERSION).zip
+	mkdir -p $(READLINE)/$(BUILD)
+	unzip $(READLINE)/Readline-$(VERSION).zip -d $(READLINE)/$(BUILD)
+	touch Readline-$(VERSION)-$(SNAP)-expanded
+
+expand: Readline-$(VERSION)-$(SNAP)-expanded
+
+else
 
   # Nothing to do
 readline:
@@ -77,6 +115,7 @@ expand:
   # Nothing to do
 install:
 
+endif
 endif
 
 build: readline

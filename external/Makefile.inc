@@ -64,6 +64,7 @@ SITE=bin/Lib/site-packages
 PLATFORM=windows
 SWIG=$(PREFIX)/bin/swig/swig.exe
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
+READLINE_WIN=readline
 else
 ifeq ($(OS),Darwin)
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
