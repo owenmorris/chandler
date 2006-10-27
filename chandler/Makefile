@@ -14,7 +14,6 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-FlickrPlugin \
                 Chandler-I18nTestsPlugin \
                 Chandler-PhotoPlugin \
-                Chandler-p2pPlugin \
                 EggTranslations-Plugin
 
 # When a version changes, the ARCHIVES lists below needs to be updated.
@@ -30,7 +29,7 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)G.tar.gz \
            $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)6.tar.gz \
            $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.5-62-$(BP)5.tar.gz \
            $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-2-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)5.tar.gz \
+           $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)4.tar.gz \
            $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.7.0.0-r113-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)4.tar.gz \
            $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)3.tar.gz \
@@ -243,9 +242,7 @@ install-core: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe
 
 install-plugin-core: setuptools chandler-locale-data
 
-plugins: install-plugin-core build-plugins
-
-install: install-core plugins
+install: install-core install-plugin-core build-plugins
 
 distrib: install-core install-plugin-core distrib-plugins
 
