@@ -484,6 +484,8 @@ else
                     echo gtime not found, skipping startup tests
                     RUN_STARTUP_TESTS=no
                 fi
+            else
+                TIME='/usr/bin/time --format=%e'
             fi
         fi
 
