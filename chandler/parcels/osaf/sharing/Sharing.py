@@ -1072,7 +1072,8 @@ class ShareConduit(pim.ContentItem):
                 raise SharingError(_(u"Cancelled by user"))
                 updateCallback(totalWork=count)
         else:
-            self.resourceList = resourceList
+            # make a copy, because we use it destructively
+            self.resourceList = dict(resourceList)
 
         msg = _(u"Processing...")
         if updateCallback and updateCallback(msg=msg):
