@@ -67,7 +67,7 @@ ifeq ($(OS),Cygwin)
 
 readline: expand
 	cd $(READLINE)/$(BUILD)/Readline-$(VERSION); \
-      $(PYTHON) setup.py install
+      $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) install
 
 ifneq (/,$(READLINE)/$(BUILD))
 clean:
