@@ -234,15 +234,14 @@ if [ -n "$TEST_TO_RUN" ]; then
                     echo Skipping $TESTNAME in $F_TEST_IGNORE
                 else
                     if echo "$TESTNAME" | grep -q "$F_TEST_DIR" ; then
-                        $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --chandlerTests="$TEST_WITHOUT_PATH" &> $TESTLOG
+                        $CHANDLERBIN/$mode/$RUN_CHANDLER -D2 -M0 --create --catch=tests --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --chandlerTests="$TEST_WITHOUT_PATH" 2>&1 | tee $TESTLOG
                         SUCCESS="#TINDERBOX# Status = PASSED"
                     else
-                        $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $TESTLOG
+                        $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME 2>&1 | tee $TESTLOG
                         SUCCESS="^OK"
                     fi
 
                     echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $DOTESTSLOG
-                    cat $TESTLOG | tee -a $DOTESTSLOG
 
                     RESULT=`grep "$SUCCESS" $TESTLOG`
                     if [ "$RESULT" = "" ]; then
@@ -296,14 +295,13 @@ else
                     echo Running $TESTNAME | tee -a $DOTESTSLOG
 
                     cd $C_DIR
-                    $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $TESTLOG
+                    $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME 2>&1 | tee $TESTLOG
 
                       # scan the test output for the success messge "OK"
                     RESULT=`grep '^OK' $TESTLOG`
 
                     echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $DOTESTSLOG
                     echo $TESTNAME [$RESULT] | tee -a $DOTESTSLOG
-                    cat $TESTLOG      | tee -a $DOTESTSLOG
 
                     if [ "$RESULT" = "" ]; then
                         FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
@@ -329,14 +327,13 @@ else
             echo Running $TESTNAME | tee -a $DOTESTSLOG
 
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" -D1 -M2 &> $TESTLOG
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" -D1 -M2 2>&1 | tee $TESTLOG
 
               # scan the test output for the success messge "OK"
             RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
 
             echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $DOTESTSLOG
             echo $TESTNAME [$RESULT] | tee -a $DOTESTSLOG
-            cat $TESTLOG      | tee -a $DOTESTSLOG
 
             if [ "$RESULT" = "" ]; then
                 FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
