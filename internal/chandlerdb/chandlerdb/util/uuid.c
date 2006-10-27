@@ -464,7 +464,7 @@ int generate_uuid(unsigned char *uuid)
     }
 #endif
 
-    if (current_time == last_time)
+    if (current_time <= last_time)
         clock_seq += 1;
     last_time = current_time;
 
