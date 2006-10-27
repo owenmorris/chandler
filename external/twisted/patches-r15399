@@ -1,0 +1,22 @@
+--- Twisted-r15399/twisted/words/protocols/jabber/xmlstream.py	2005-10-23 07:30:59.000000000 -0700
++++ Twisted-r15399-patched/twisted/words/protocols/jabber/xmlstream.py	2006-10-23 10:31:28.000000000 -0700
+@@ -3,9 +3,6 @@
+ # Copyright (c) 2001-2005 Twisted Matrix Laboratories.
+ # See LICENSE for details.
+ 
+-from OpenSSL import SSL
+-
+-from twisted.internet import ssl
+ from twisted.words.xish import xmlstream
+ from twisted.words.xish.xmlstream import STREAM_CONNECTED_EVENT
+ from twisted.words.xish.xmlstream import STREAM_START_EVENT
+@@ -153,6 +150,9 @@
+         self.transport.loseConnection()
+ 
+     def startTLS(self):
++        from OpenSSL import SSL
++        from twisted.internet import ssl
++
+         def proceed(obj):
+             print "proceed"
+             ctx = ssl.ClientContextFactory()
