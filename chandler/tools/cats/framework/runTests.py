@@ -24,12 +24,14 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.TestOutput import TestOutput
 import os, sys
 from application import Globals
+import osaf.framework.scripting as scripting
 
-functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/Functional")
+functional_dir = os.path.join(Globals.chandlerDirectory,"tools/cats/Functional")
 testDebug = Globals.options.chandlerTestDebug
 testMask = Globals.options.chandlerTestMask
 logFileName = Globals.options.chandlerTestLogfile
 filePath = Globals.options.profileDir
+haltOnFailure = not Globals.options.continueTestsOnFailure
 if filePath and logFileName:
     logFileName = os.path.join(filePath, logFileName)
 
@@ -71,6 +73,10 @@ def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
     runner = Globals.options.catch != 'never' and run_test_wrapped or run_test
     for paramSet in tests.split(','):
         runner(logger, paramSet)
+        if haltOnFailure and logger.testHasFailed:
+            logger.report(False, 'Suite halted on test failure')
+            logger.testsSkipped = len(tests.split(',')) - (tests.split(',').index(paramSet) + 1)
+            break
 
     if logger.debug < 2: checkRepo(logger)
     logger.endSuite()
@@ -80,7 +86,6 @@ def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
         logger.summary()
     logger.simpleSummary()
     logger.tinderOutput()
-    import osaf.framework.scripting as scripting
     scripting.app_ns().root.Quit()
  
 def run_perf_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):

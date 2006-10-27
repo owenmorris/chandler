@@ -14,7 +14,7 @@
 NO_ARGS=0
 E_OPTERROR=65
 
-USAGE="Usage: `basename $0` -fpuN [-m debug|release] [-t test_name] [chandler-base-path]"
+USAGE="Usage: `basename $0` -fpuF [-m debug|release] [-t test_name] [chandler-base-path]"
 
 # Signals to the Chandler code that it is being run from a unit test
 export UNIT_TESTING=True
@@ -36,11 +36,13 @@ else
 fi
 
 hadError=0
+FORCE_CONT=" "
 
-while getopts "fput:m:" Option
+while getopts "fput:Fm:" Option
 do
   case $Option in
     f ) RUN_FUNCTIONAL=yes;;
+    F ) FORCE_CONT="-F";;
     p ) RUN_PERFORMANCE=yes;;
     u ) RUN_UNIT=yes;;
     t ) TEST_TO_RUN=$OPTARG;;
@@ -53,6 +55,7 @@ done
 if [ $hadError = 1 ]; then
     echo $USAGE
     echo "   if CHANDLER_FUNCTIONAL_TEST=yes or -f then CATS Functional Tests are run"
+    echo "   if -F then forces all tests to run (does not stop after first failure)"
     echo "   if CHANDLER_PERFORMANCE_TEST=yes or -p then CATS Performance Tests are run"
     echo "   if CHANDLER_UNIT_TEST=yes or -u then Chandler Unit Tests are run"
     echo "if a specific test name or (pattern) is given using -t then only that test name will be run"
@@ -279,6 +282,7 @@ else
 
           # walk thru all of the test dirs and find the test files
 
+        CONTINUE="true"
         for mode in $MODES ; do
             echo Running $mode unit tests | tee -a $DOTESTSLOG
 
@@ -286,25 +290,33 @@ else
                 TESTS=`find $testdir -name 'Test*.py' -print`
 
                 for test in $TESTS ; do
-                    if [ "$OSTYPE" = "cygwin" ]; then
-                        TESTNAME=`cygpath -w $test`
-                    else
-                        TESTNAME=$test
-                    fi
+                	if [ "$CONTINUE" == "true" ]; then
+                        if [ "$OSTYPE" = "cygwin" ]; then
+                            TESTNAME=`cygpath -w $test`
+                        else
+                            TESTNAME=$test
+                        fi
 
-                    echo Running $TESTNAME | tee -a $DOTESTSLOG
+                        echo Running $TESTNAME | tee -a $DOTESTSLOG
 
-                    cd $C_DIR
-                    $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME 2>&1 | tee $TESTLOG
+                        cd $C_DIR
+                        $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME 2>&1 | tee $TESTLOG
 
-                      # scan the test output for the success messge "OK"
-                    RESULT=`grep '^OK' $TESTLOG`
+                          # scan the test output for the success messge "OK"
+                        RESULT=`grep '^OK' $TESTLOG`
 
-                    echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $DOTESTSLOG
-                    echo $TESTNAME [$RESULT] | tee -a $DOTESTSLOG
+                        echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $DOTESTSLOG
+                        echo $TESTNAME [$RESULT] | tee -a $DOTESTSLOG
 
-                    if [ "$RESULT" = "" ]; then
-                        FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
+                        if [ "$RESULT" = "" ]; then
+                            FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
+                            if [ "$FORCE_CONT" != "-F" ]; then
+                            	RUN_FUNCTIONAL="no"
+                                RUN_PERFORMANCE="no"
+                                CONTINUE="false"
+                                echo Skipping further tests due to failure | tee -a $DOTESTSLOG
+                            fi
+                        fi
                     fi
                 done
             done
@@ -327,7 +339,7 @@ else
             echo Running $TESTNAME | tee -a $DOTESTSLOG
 
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" -D1 -M2 2>&1 | tee $TESTLOG
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests $FORCE_CONT --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" -D1 -M2 2>&1 | tee $TESTLOG
 
               # scan the test output for the success messge "OK"
             RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
@@ -337,6 +349,9 @@ else
 
             if [ "$RESULT" = "" ]; then
                 FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
+                if [ "$FORCE_CONT" != "-F" ]; then
+                    RUN_PERFORMANCE="no"
+                fi
             fi
         done
     fi

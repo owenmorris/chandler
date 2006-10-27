@@ -170,6 +170,7 @@ def initOptions(**kwds):
         'chandlerTestMask': ('-M', '--chandlerTestMask', 's', 3, None, '0=print all, 1=hide reports, 2=also hide actions, 3=also hide test names'),
         'chandlerPerformanceTests': ('', '--chandlerPerformanceTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by performance new framework'),
         'chandlerTestLogfile': ('', '--chandlerTestLogfile', 's', None, None, 'file for chandlerTests output'),
+        'continueTestsOnFailure': ('-F','--continueTestsOnFailure', 'b', False, None, 'Do not stop functional test suite on first failure'),
         'scriptTimeout': ('-s', '--scriptTimeout', 's', 0,  None, 'script file timeout'),
         'catsProfile':('',   '--catsProfile','s', None,  None, 'file for hotshot profile of script execution'),
         'catsPerfLog':('',   '--catsPerfLog','s', None,  None, 'file to output a performance number'),

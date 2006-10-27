@@ -69,6 +69,8 @@ class TestOutput:
         self.inSuite = False
         self.hadStderrOutput = False
         self.stderrOutput = ''
+        self.testHasFailed = False
+        self.testsSkipped = None 
         #print 'logName = %s:: debug level = %d :: mask level = %d ::  stdout = %s' % (logName, debug, mask, stdout)
         
         if stdout is True:
@@ -253,6 +255,7 @@ class TestOutput:
             self.printOut(u'Success in action.%s.report:: %s' % (self.currentAction['name'], comment), level=0, result=True)
         else:
             self.printOut(u'Failure in action.%s.report :: %s' % (self.currentAction['name'], comment), level=0, result=False)
+            self.testHasFailed = True 
         
     def write(self, string):
         """Method to allow TestOutput to be used like a file object.
@@ -414,8 +417,8 @@ class TestOutput:
                     for report in action['reportlist']:
                         reports_ran = reports_ran + 1
         
-        self._write('$Suites run=%s, pass=%s, fail=%s :: Tests run=%s, pass=%s, fail=%s :: Actions run=%s, pass=%s, fail=%s :: Reports run=%s, pass=%s, fail=%s \n' % 
-                    (suites_ran, suites_ran - suites_failed, suites_failed, tests_ran, tests_ran - tests_failed, tests_failed, actions_ran, 
+        self._write('$Suites run=%s, pass=%s, fail=%s :: Tests run=%s, pass=%s, fail=%s :: Tests skipped=%s :: Actions run=%s, pass=%s, fail=%s :: Reports run=%s, pass=%s, fail=%s \n' % 
+                    (suites_ran, suites_ran - suites_failed, suites_failed, tests_ran, tests_ran - tests_failed, tests_failed, self.testsSkipped, actions_ran, 
                      actions_ran - actions_failed, actions_failed, reports_ran, reports_ran - reports_failed, reports_failed))                                
     
     def simpleSummary(self):
@@ -427,6 +430,8 @@ class TestOutput:
                         self._write('%s*FAILED*\n' % test_dict['name'].ljust(30,'_'))
                     else:
                         self._write('%s passed \n' % test_dict['name'].ljust(30,'_'))
+        if self.testsSkipped:
+            self._write('** %d tests skipped after failure **\n' % self.testsSkipped)
         self._write("*************************************\n")
 
     def tinderOutput(self):
