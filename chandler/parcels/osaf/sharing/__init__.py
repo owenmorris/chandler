@@ -1057,11 +1057,6 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                 ticket=ticket)
 
         try:
-            if progressMonitor:
-                if updateCallback and updateCallback(
-                    msg=_(u"Getting list of remote items...")):
-                    raise SharingError(_(u"Cancelled by user"))
-                progressMonitor.totalWork = share.getCount()
             share.sync(updateCallback=callback, modeOverride='get')
             share.conduit.getTickets()
 
@@ -1072,9 +1067,9 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                 share.contents.shares.append(share)
 
         except Exception, err:
-            location = share.getLocation()
-            logger.exception("Failed to subscribe to %s", location)
-            share.delete(True)
+            logger.exception("Failed to subscribe to %s", url)
+            if not share.isStale():
+                share.delete(True)
             raise
 
         return share.contents
@@ -1082,8 +1077,6 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
     else:
 
         # This is a CalDAV calendar, possibly containing an XML subcollection
-
-        totalWork = 0
 
         try:
             share = None
@@ -1111,12 +1104,6 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                 for attr in CALDAVFILTER:
                     subShare.filterAttributes.append(attr)
 
-                if updateCallback and updateCallback(
-                    msg=_(u"Getting list of remote items...")):
-                    raise SharingError(_(u"Cancelled by user"))
-                totalWork += subShare.getCount()
-
-
             share = Share(itsView=view)
             share.mode = shareMode
             share.format = CalDAVFormat(itsParent=share)
@@ -1130,16 +1117,9 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                     port=port, sharePath=parentPath, shareName=shareName,
                     useSSL=useSSL, ticket=ticket, inFreeBusy=inFreeBusy)
 
-            if updateCallback and updateCallback(
-                msg=_(u"Getting list of remote items...")):
-                raise SharingError(_(u"Cancelled by user"))
-            totalWork += share.getCount()
-
             if subShare is not None:
                 share.follows = subShare
 
-            if progressMonitor:
-                progressMonitor.totalWork = totalWork
             share.sync(updateCallback=callback, modeOverride='get')
             share.conduit.getTickets()
 

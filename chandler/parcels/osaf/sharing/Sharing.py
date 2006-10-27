@@ -142,7 +142,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
         #     )
 
         LOCAL_CHANGES_WIN = False
-        
+
         if LOCAL_CHANGES_WIN:
             return getattr(item, attribute, Nil) # Change from *other* views
         else:
@@ -169,6 +169,10 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
         itemsMarker = shares[0].conduit.itemsMarker
 
     stats = []
+
+    for share in shares:
+        share.resourceList = None # a non-persistent snapshot of what's
+                                  # on the server (or filesystem, etc.)
 
     # Don't commit if we're using a OneTimeShare
     commit = not isinstance(shares[0], OneTimeShare)
@@ -202,7 +206,71 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
     if not isinstance(shares[0], OneTimeShare):
         contentView.deferDelete()
 
+    if (len(shares) > 1 and
+        isinstance(shares[0].conduit, WebDAVConduit) and
+        isinstance(shares[1].conduit, CalDAVConduit)):
+        # This is a hybrid share, XML + ICS
+        hybrid = True
+    else:
+        hybrid = False
+
     try:
+
+        # Build the resource list(s) up front so that we don't examine
+        # XML files at one point in time, and ICS files at another
+        if hybrid:
+            upper = shares[1]
+            lower = shares[0]
+            upper.resourceList = {}
+            lower.resourceList = {}
+            conduit = upper.conduit
+            location = conduit.getLocation()
+            if not location.endswith("/"):
+                location += "/"
+            handle = conduit._getServerHandle()
+            resource = handle.getResource(location)
+            if getattr(conduit, 'ticket', False):
+                resource.ticketId = conduit.ticket
+
+            msg = _(u"Getting list of remote items...")
+            if updateCallback and updateCallback(msg=msg):
+                raise SharingError(_(u"Cancelled by user"))
+
+            try:
+                # @@@MOR Not all servers handle depty=infinity
+                children = handle.blockUntil(resource.propfind,
+                                             depth="infinity")
+
+            except zanshin.webdav.ConnectionError, err:
+                raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            except M2Crypto.BIO.BIOError, err:
+                raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            except zanshin.webdav.WebDAVError, e:
+                if e.status == twisted.web.http.NOT_FOUND:
+                    raise NotFound(_(u"%(location)s not found") % {'location': location})
+                if e.status == twisted.web.http.UNAUTHORIZED:
+                    raise NotAllowed(_(u"Not authorized to get %(location)s") % {'location': location})
+
+                raise SharingError(_(u"The following sharing error occurred: %(error)s") % {'error': e})
+
+            count = 0
+            for child in children:
+                pieces = child.path.split("/")
+                name = pieces[-1]
+                dirName = pieces[-2]
+                etag = child.etag
+                # if name is empty, it's a subcollection (skip it)
+                if name:
+                    count += 1
+                    if dirName == ".chandler":
+                        lower.resourceList[name] = { 'data' : etag }
+                    else:
+                        upper.resourceList[name] = { 'data' : etag }
+
+            if not established and modeOverride == 'get' and updateCallback:
+                # An initial subscribe
+                updateCallback(totalWork=count)
+
 
         if not modeOverride or modeOverride == 'get':
 
@@ -222,7 +290,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
                         # like 'contents' above, the filterClasses of a master
                         # share needs to be replicated to the slaves:
                         cvShare.filterClasses = filterClasses
-                    stat = share.conduit._get(contentView,
+                    stat = share.conduit._get(contentView, share.resourceList,
                         updateCallback=updateCallback)
                     stats.append(stat)
 
@@ -242,12 +310,10 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
             # so that during the PUT phase we don't remove the .xml resources
             # from the server.
 
-            if (len(shares) > 1 and
-                isinstance(shares[0].conduit, WebDAVConduit) and
-                isinstance(shares[1].conduit, CalDAVConduit)):
+            if hybrid:
+                # This is a hybrid share, XML + ICS
                 share0 = metaView.findUUID(shares[0].itsUUID)
                 share1 = metaView.findUUID(shares[1].itsUUID)
-                # This is a hybrid share, XML + ICS
 
                 for uuid in stats[0]['added']:
                     item = contentView.findUUID(uuid)
@@ -384,6 +450,7 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
             for share in shares:
                 if share.active and share.mode in ('put', 'both'):
                     stat = share.conduit._put(contentView,
+                                              share.resourceList,
                                               putStartingVersion,
                                               putEndingVersion,
                                               updateCallback=updateCallback,
@@ -562,9 +629,6 @@ class Share(pim.ContentItem):
 
     def getLocation(self, privilege=None):
         return self.conduit.getLocation(privilege=privilege)
-
-    def getCount(self):
-        return self.conduit.getCount()
 
     def getSharedAttributes(self, item, cloudAlias='sharing'):
         """
@@ -760,8 +824,8 @@ class ShareConduit(pim.ContentItem):
             else:
                 return False
 
-    def _put(self, contentView, startVersion, endVersion, updateCallback=None,
-        forceUpdate=None):
+    def _put(self, contentView, resourceList, startVersion, endVersion,
+             updateCallback=None, forceUpdate=None):
         """
         Transfer entire 'contents', transformed, to server.
         """
@@ -800,11 +864,13 @@ class ShareConduit(pim.ContentItem):
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
 
-            if updateCallback and updateCallback(msg=_(u"Getting list of remote items...")):
-                raise SharingError(_(u"Cancelled by user"))
-
-            self.resourceList = \
-                self._getResourceList(location)
+            if resourceList is None:
+                msg = _(u"Getting list of remote items...")
+                if updateCallback and updateCallback(msg=msg):
+                    raise SharingError(_(u"Cancelled by user"))
+                self.resourceList = self._getResourceList(location)
+            else:
+                self.resourceList = resourceList
 
             # logger.debug("Resources on server: %(resources)s" %
             #     {'resources':self.resourceList})
@@ -959,7 +1025,8 @@ class ShareConduit(pim.ContentItem):
 
 
 
-    def _get(self, contentView, updateCallback=None, getPhrase=None):
+    def _get(self, contentView, resourceList, updateCallback=None,
+             getPhrase=None):
         # cvSelf (contentViewSelf) is me as I was in the past
         cvSelf = contentView.findUUID(self.itsUUID)
 
@@ -995,10 +1062,21 @@ class ShareConduit(pim.ContentItem):
             raise NotFound(_(u"%(location)s does not exist") %
                 {'location': location})
 
-        if updateCallback and updateCallback(msg=_(u"Getting list of remote items...")):
-            raise SharingError(_(u"Cancelled by user"))
+        if resourceList is None:
+            msg = _(u"Getting list of remote items...")
+            if updateCallback and updateCallback(msg=msg):
+                raise SharingError(_(u"Cancelled by user"))
+            self.resourceList = self._getResourceList(location)
+            totalWork = len(self.resourceList)
+            if updateCallback and updateCallback(totalWork=totalWork):
+                raise SharingError(_(u"Cancelled by user"))
+                updateCallback(totalWork=count)
+        else:
+            self.resourceList = resourceList
 
-        self.resourceList = self._getResourceList(location)
+        msg = _(u"Processing...")
+        if updateCallback and updateCallback(msg=msg):
+            raise SharingError(_(u"Cancelled by user"))
 
         # logger.debug("Resources on server: %(resources)s" %
         #     {'resources':self.resourceList})
@@ -1261,9 +1339,6 @@ class ShareConduit(pim.ContentItem):
                 yield path
 
 
-    def getCount(self):
-        return len(self._getResourceList(self.getLocation()))
-
     # Methods that subclasses *must* implement:
 
     def getLocation(self, privilege=None):
@@ -1377,11 +1452,12 @@ class FileSystemConduit(ShareConduit):
             return os.path.join(self.sharePath, self.shareName)
         raise Misconfigured(_(u"A misconfiguration error was encountered"))
 
-    def _get(self, contentView, updateCallback=None, getPhrase=None):
+    def _get(self, contentView, resourceList, updateCallback=None,
+             getPhrase=None):
         if getPhrase is None:
             getPhrase = _(u"Importing from %(name)s...")
         return super(FileSystemConduit, self)._get(contentView,
-            updateCallback, getPhrase)
+            resourceList, updateCallback, getPhrase)
 
     def _putItem(self, item):
         path = self._getItemFullPath(self._getItemPath(item))
@@ -2158,7 +2234,7 @@ class CalDAVFreeBusyConduit(CalDAVConduit):
         # this should probably do something nicer
         return True
 
-    def _get(self, contentView, *args, **kwargs):
+    def _get(self, contentView, resourceList, *args, **kwargs):
 
         if self.share.contents is None:
             self.share.contents = pim.SmartCollection(itsView=self.itsView)
@@ -2231,7 +2307,7 @@ class SimpleHTTPConduit(WebDAVConduit):
 
     lastModified = schema.One(schema.Text, initialValue = '')
 
-    def _get(self, contentView, updateCallback=None):
+    def _get(self, contentView, resourceList, updateCallback=None):
 
         stats = {
             'share' : self.share.itsUUID,
