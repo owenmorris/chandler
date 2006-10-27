@@ -223,30 +223,37 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
     for mode in $MODES ; do
         echo Running $mode unit tests | tee -a $BUILDLOG
     
+        CONTINUE="true"
         for testdir in $TESTDIRS ; do
             TESTS=`find $testdir -name 'Test*.py' -print`
     
             for test in $TESTS ; do
-                if [ "$OSTYPE" = "cygwin" ]; then
-                    TESTNAME=`cygpath -w $test`
-                else
-                    TESTNAME=$test
-                fi
+                if [ "$CONTINUE" = "true" ]; then
+                    if [ "$OSTYPE" = "cygwin" ]; then
+                        TESTNAME=`cygpath -w $test`
+                    else
+                        TESTNAME=$test
+                    fi
     
-                echo Running $TESTNAME | tee -a $BUILDLOG
+                    echo Running $TESTNAME | tee -a $BUILDLOG
     
-                cd $C_DIR
-                $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
+                    cd $C_DIR
+                    $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
             
-                  # scan the test output for the success messge "OK"
-                RESULT=`grep '^OK' $T_DIR/test.log`
+                      # scan the test output for the success messge "OK"
+                    RESULT=`grep '^OK' $T_DIR/test.log`
     
-                echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
-                echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
-                cat $T_DIR/test.log      >> $T_DIR/tests.log
+                    echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+                    echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
+                    cat $T_DIR/test.log      >> $T_DIR/tests.log
     
-                if [ "$RESULT" != "OK" ]; then
-                    UNITTEST_RESULT="failed"
+                    if [ "$RESULT" != "OK" ]; then
+                        UNITTEST_RESULT="failed"
+                        CHANDLER_FUNCTIONAL_TEST="no"
+                        CHANDLER_PERFORMANCE_TEST="no"
+                        CONTINUE="false"
+                        echo Skipping further tests due to failure | tee -a $BUILDLOG
+                    fi
                 fi
             done
         done
@@ -281,6 +288,7 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
     
             if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
                 FUNCTEST_RESULT="failed"
+                CHANDLER_PERFORMANCE_TEST="no"
             fi
         fi
     done
