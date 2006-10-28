@@ -83,8 +83,8 @@ class XmlRpcResource(xmlrpc.XMLRPC):
         view = getServletView(self.repositoryView.repository, viewName)
         view.refresh()
         note = pim.Note(itsView=view, displayName=title, body=body)
-        pim.EventStamp(note).add()
         event = pim.EventStamp(note)
+        event.add()
         event.startTime = datetime.datetime.now(tz=ICUtzinfo.floating)
         event.duration = datetime.timedelta(minutes=60)
         event.anyTime = False
