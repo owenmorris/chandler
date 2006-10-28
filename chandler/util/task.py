@@ -17,6 +17,7 @@ import wx
 from twisted.internet import reactor, defer
 import logging
 from i18n import ChandlerMessageFactory as _
+from repository.persistence.RepositoryError import MergeError
 
 logger = logging.getLogger(__name__)
 
@@ -90,5 +91,13 @@ class Task(object):
         self.callInMainThread(self.error, failure, done=True)
 
     def _success(self, result):
-        self.view.commit()
+
+        def mergeFunction(code, item, attribute, value):
+            if code == MergeError.ALIAS:
+                key, currentKey, alias = value
+                logger.warning("While merging attribute '%s' on %s, an alias conflict for key %s was detected: %s is set to the same alias: '%s'", attribute, item._repr_(), key, currentKey, alias)
+                return alias + '_duplicate'
+            raise NotImplementedError, (code, attribute, value)
+        
+        self.view.commit(mergeFunction)
         self.callInMainThread(self.success, result, done=True)

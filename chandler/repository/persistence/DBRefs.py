@@ -243,7 +243,7 @@ class PersistentRefs(object):
 
         self._changedRefs = Nil
 
-    def _applyChanges(self, changes, history):
+    def _applyChanges(self, changes, history, ask):
 
         moves = {}
         done = set()
@@ -275,8 +275,18 @@ class PersistentRefs(object):
                 else:
                     if alias is not None:
                         resolvedKey = self.resolveAlias(alias)
-                        if resolvedKey not in (None, key):
-                            self.view._e_2_name(self, resolvedKey, key, alias)
+                        while resolvedKey not in (None, key):
+                            if ask is not None:
+                                newAlias = ask(MergeError.ALIAS, self._name,
+                                               (key, resolvedKey, alias))
+                            else:
+                                newAlias = alias
+                            if newAlias == alias:
+                                self.view._e_2_name(self, resolvedKey,
+                                                    key, alias)
+                            else:
+                                alias = newAlias
+                                resolvedKey = self.resolveAlias(alias)
 
                     if key in self:
                         link = self._get(key)

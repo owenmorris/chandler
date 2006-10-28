@@ -1145,18 +1145,18 @@ class References(Values):
                             if card == 'dict':
                                 for key, vc in valueChanges.iteritems():
                                     refList = value._refList(key)
-                                    refList._applyChanges(vc, ())
+                                    refList._applyChanges(vc, (), ask)
                             else:
-                                value._applyChanges(valueChanges, ())
+                                value._applyChanges(valueChanges, (), ask)
                         else:
                             if card == 'dict':
                                 for key, vc in valueChanges.iteritems():
                                     c = changes[flag][name].get(key, ())
                                     refList = value._refList(key)
-                                    refList._applyChanges(vc, c)
+                                    refList._applyChanges(vc, c, ask)
                             else:
                                 value._applyChanges(valueChanges,
-                                                    changes[flag][name])
+                                                    changes[flag][name], ask)
                         self._setDirty(name)
 
                 elif card == 'dict':
@@ -1166,12 +1166,12 @@ class References(Values):
                         self[name] = value = RefDict(item, name, otherName)
                     for key, vc in valueChanges.iteritems():
                         refList = value._refList(key)
-                        refList._applyChanges(vc, ())
+                        refList._applyChanges(vc, (), ask)
                     self._setDirty(name)
                 else:
                     if value is Nil:
                         self[name] = value = item._refList(name)
-                    value._applyChanges(valueChanges, ())
+                    value._applyChanges(valueChanges, (), ask)
                     self._setDirty(name)
 
         elif flag == CItem.VDIRTY:

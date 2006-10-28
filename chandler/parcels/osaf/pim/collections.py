@@ -124,10 +124,10 @@ class ContentCollection(ContentItem, Collection):
     # other side of 'sources'
     sourceFor = schema.Sequence(otherName='sources')
 
-    # other side of AppCollection.exclusions
+    # other side of AppCollection.collectionExclusions
     exclusionsFor = schema.Sequence()
 
-    # other side of AppCollection.trash
+    # other side of AppCollection.collectionTrash
     trashFor = schema.Sequence()
 
     schema.addClouds(
@@ -500,16 +500,43 @@ class AppCollection(ContentCollection):
     # must be named 'inclusions' to match ListCollection
     inclusions = schema.Sequence(otherName='collections', initialValue=[])
 
-    exclusions = schema.One(inverse=ContentCollection.exclusionsFor)
-    trash = schema.One(inverse=ContentCollection.trashFor, initialValue=None)
+    # the exclusions used when no exclusions collection is given
+    collectionExclusions = schema.Sequence(otherName='excludedBy')
+
+    exclusionsCollection = schema.One(inverse=ContentCollection.exclusionsFor,
+                                      initialValue=None)
+    trashCollection = schema.One(inverse=ContentCollection.trashFor,
+                                 initialValue=None)
+
+    # an AppCollection may have another collection for exclusions and that
+    # other collection may be the global trash collection. If no collection
+    # is specified for exclusions, a local ref collection is used instead.
+
+    def _getExclusions(self):
+        exclusions = self.exclusionsCollection
+        if exclusions is None:
+            exclusions = self.collectionExclusions
+        return exclusions
+    exclusions = property(_getExclusions)
+
+    # an AppCollection may have another collection for trash. If no
+    # collection is for trash, the collection's exclusions is used instead
+    # following the logic above.
+
+    def _getTrash(self):
+        trash = self.trashCollection
+        if trash is None:
+            trash = self.exclusions
+        return trash
+    trash = property(_getTrash)
 
     # __collection__ denotes a bi-ref set, 
     # therefore it must be added to the copying cloud def for it to be copied.
 
     schema.addClouds(
         copying = schema.Cloud(
-            byCloud=[inclusions, exclusions],
-            byRef=[trash, __collection__]
+            byCloud=[inclusions, collectionExclusions, exclusionsCollection],
+            byRef=[trashCollection, __collection__]
         ),
     )
 
@@ -519,15 +546,17 @@ class AppCollection(ContentCollection):
         """
         self.inclusions.add(item)
 
-        if item in self.exclusions:
-            self.exclusions.remove(item)
+        exclusions = self.exclusions
+        if item in exclusions:
+            exclusions.remove(item)
 
         # If a trash is associated with this collection, remove the item
         # from the trash.  This has the additional benefit of having the item
         # reappear in any collection which has the item in its inclusions
 
-        if self.trash is not None and item in self.trash:
-            self.trash.remove(item)
+        trash = self.trash
+        if trash is not None and item in trash:
+            trash.remove(item)
 
     def remove(self, item):
         """
@@ -548,15 +577,17 @@ class AppCollection(ContentCollection):
         if item in self.inclusions:
             self.inclusions.remove(item)
 
-        if not (isDeleting or self.trash is None):
-            for collection in self.trash.trashFor:
-                if collection is not self and item in collection:
-                    # it exists somewhere else, definitely don't add
-                    # to trash
-                    break
-            else:
-                # we couldn't find it anywhere else, so it goes in the trash
-                self.trash.add(item)
+        trash = self.trash
+        if not (isDeleting or trash is None):
+            if isinstance(trash, ContentCollection):
+                for collection in trash.trashFor:
+                    if collection is not self and item in collection:
+                        # it exists somewhere else, definitely don't add
+                        # to trash
+                        break
+                else:
+                    # we couldn't find it anywhere else, so it goes in the trash
+                    trash.add(item)
 
     def __init__(self, itsName=None, itsParent=None,
                  itsKind=None, itsView=None,
@@ -598,14 +629,16 @@ class AppCollection(ContentCollection):
         if source is not None:
             innerSource = Union(source, innerSource)
 
-        # Typically we will create an exclusions ListCollection; however,
-        # a collection like 'All' will instead want to use the Trash collection
-        # for exclusions
+        # Typically we will create a collectionExclusions ref collection;
+        # however, a collection like 'All' will instead want to use the
+        # Trash collection for exclusions
 
         if exclusions is None:
-            exclusions = ListCollection(itsParent=self,
-                                        displayName=u"(Exclusions)")
-        self.exclusions = exclusions
+            self.collectionExclusions = []
+            set = Difference(innerSource, (self, 'collectionExclusions'))
+        else:
+            self.exclusionsCollection = exclusions
+            set = Difference(innerSource, exclusions)
 
         # You can designate a certain ListCollection to be used for this
         # collection's trash; in this case, an additional DifferenceCollection
@@ -617,12 +650,9 @@ class AppCollection(ContentCollection):
         #   be moved to the trash if it doesn't appear in any collection which
         #   shares that trash
 
-        set = Difference(innerSource, exclusions)
         if trash is not None:
             set = Difference(set, trash)
-            self.trash = trash
-        else:
-            self.trash = exclusions
+            self.trashCollection = trash
 
         setattr(self, self.__collection__, set)
 
@@ -636,7 +666,7 @@ class AppCollection(ContentCollection):
         # their Difference set. This means that when they are hooked
         # into a larger collection tree, they need to only give out
         # the _left side, which has no trash.
-        
+
         if self.trash is schema.ns('osaf.pim', self.itsView).trashCollection:
             return self.set._left.copy(self.itsUUID)
 

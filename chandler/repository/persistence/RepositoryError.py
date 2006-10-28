@@ -104,6 +104,7 @@ class MergeError(VersionConflictError):
     KIND   = 6
     CHANGE = 7
     DELETE = 8
+    ALIAS  = 9
     
     codeNames = { BUG: 'BUG',
                   RENAME: 'RENAME',
@@ -113,7 +114,8 @@ class MergeError(VersionConflictError):
                   REF: 'REF',
                   KIND: 'KIND',
                   CHANGE: 'CHANGE',
-                  DELETE: 'DELETE' }
+                  DELETE: 'DELETE',
+                  ALIAS: 'ALIAS' }
 
 
 class LoadError(RepositoryError):

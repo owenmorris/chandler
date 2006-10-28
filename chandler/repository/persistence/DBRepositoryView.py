@@ -878,10 +878,10 @@ class DBRepositoryView(OnDemandRepositoryView):
             if changes is None:
                 if item._children is None:
                     item._children = self._createChildren(item, True)
-                item._children._applyChanges(newChanges[CDIRTY], ())
+                item._children._applyChanges(newChanges[CDIRTY], (), None)
             else:
                 item._children._applyChanges(newChanges[CDIRTY],
-                                             changes[CDIRTY])
+                                             changes[CDIRTY], None)
             dirty &= ~CDIRTY
             newDirty &= ~CDIRTY
             item._status |= (CItem.CMERGED | CDIRTY)

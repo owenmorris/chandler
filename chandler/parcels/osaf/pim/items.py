@@ -199,6 +199,9 @@ class ContentItem(schema.Item):
     # ContentItem instances can be put into ListCollections and AppCollections
     collections = schema.Sequence(otherName='inclusions', notify=True)
 
+    # ContentItem instances can be excluded by AppCollections
+    excludedBy = schema.Sequence(otherName='collectionExclusions')
+
     # ContentItem instances can be put into SmartCollections (which define
     # the other end of this biref)
     appearsIn = schema.Sequence()

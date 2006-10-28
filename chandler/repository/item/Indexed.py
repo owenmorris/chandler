@@ -232,7 +232,8 @@ class Indexed(object):
                     item = view.find(key)
                     if item is None:
                         if key not in deletes:
-                            raise AssertionError, (key, "item not found", key)
+                            view.logger.warn("_applyIndexChanges: item %s not found", key)
+                            removals.append(key)
                     elif newIndex or value is Nil:
                         if self.__contains__(key, False, True):
                             moves.append(key)
