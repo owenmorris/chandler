@@ -65,6 +65,12 @@ apply: expand
 else
 ifeq ($(OS),Cygwin)
 
+ifeq ($(DEBUG),1)
+_SUFFIX=_d
+else
+_SUFFIX=
+endif
+
 readline: expand
 	cd $(READLINE)/$(BUILD)/Readline-$(VERSION); \
       $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) install
@@ -78,7 +84,7 @@ endif
 
 binaries:
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(READLINE)/$(TARBALL) $(SNAP)/$(SITE)/readline.py $(SNAP)/$(SITE)/_rlsetup.pyd
+        tar -cvzf $(READLINE)/$(TARBALL) $(SNAP)/$(SITE)/readline.py $(SNAP)/$(SITE)/_rlsetup$(_SUFFIX).pyd
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
