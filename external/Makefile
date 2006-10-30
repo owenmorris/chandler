@@ -36,7 +36,7 @@ SYSTEMS=db \
         elementtree \
         pylint \
         parsedatetime \
-#        configobj \
+        configobj \
         wx
 
 SYS_TESTS=dateutil \
@@ -47,8 +47,7 @@ SYS_TESTS=dateutil \
           vobject \
           zanshin \
           PyLucene \
-          PyICU \
-#          twisted -- cannot include twisted until we upgrade to 2.4
+          PyICU
 
 
 .PHONY: systems env binaries sources expand install clean \
