@@ -68,12 +68,12 @@ class TestCreateAccounts(ChandlerTestCase):
         
         ap.CreateAccount("WebDAV")
         ap.TypeValue("displayName", pWEBDAV)
-        ap.TypeValue("host", "qacosmo.osafoundation.org")
-        ap.TypeValue("path", "home/demo1")
+        ap.TypeValue("host", "osaf.us")
+        ap.TypeValue("path", "cosmo/home/demo1")
         ap.TypeValue("username", "demo1")
         ap.TypeValue("password", "ad3leib5")
-        ap.TypeValue("port", "8080")
-        ap.ToggleValue("ssl", False)
+        ap.TypeValue("port", "443")
+        ap.ToggleValue("ssl", True)
         ap.ToggleValue("default", True)
         
         ap.Ok()
@@ -83,6 +83,6 @@ class TestCreateAccounts(ChandlerTestCase):
         ap.VerifyValues("SMTP", pSMTP, host= "smtp.osafoundation.org", connectionSecurity = "TLS", useAuth = True, port = 587, username = 'demo1', password = 'ad3leib5' )
         ap.VerifyValues("IMAP", pIMAP, host = "imap.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
         ap.VerifyValues("POP", pPOP, host = "pop.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
-        ap.VerifyValues("WebDAV", pWEBDAV, host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
+        ap.VerifyValues("WebDAV", pWEBDAV, host = "osaf.us", username = "demo1", password="ad3leib5", port=443)
         self.logger.endAction(True, "Verifying Account Values")
 
