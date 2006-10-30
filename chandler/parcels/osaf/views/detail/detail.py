@@ -56,7 +56,9 @@ from datetime import datetime, time, timedelta
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 
-import parsedatetime.parsedatetime as parsedatetime 
+import parsedatetime.parsedatetime as parsedatetime
+import parsedatetime.parsedatetime_consts as ptc
+from i18n import getLocaleSet
 
 
 logger = logging.getLogger(__name__)
@@ -1185,8 +1187,16 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
             # claims to parse bogus  values like "06/05/0506/05/05" 
             #successfully, which causes fromtimestamp() to throw.)
             try:
-                dateTimeValue = pim.shortDateFormat.parse(newValueString, 
-                                                          referenceDate=oldValue)
+                # use parsedatetime to calculate the date
+                cal = parsedatetime.Calendar(ptc.Constants(str(getLocaleSet()[0]))) 
+                (dateVar, invalidFlag) = cal.parse(newValueString)
+                #invalidFlag = 0 implies no date/time
+                #invalidFlag = 2 implies only time, no date
+                if invalidFlag != 0 and invalidFlag != 2:
+                    dateTimeValue = datetime(*dateVar[:3])
+                else:
+                    self._changeTextQuietly(self.control, "%s ?" % newValueString)
+                    return
             except (ICUError, ValueError):
                 self._changeTextQuietly(self.control, "%s ?" % newValueString)
                 return
@@ -1323,8 +1333,9 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                     # use parsedatetime to calculate time
                     cal = parsedatetime.Calendar() 
                     (timeVar, invalidFlag) = cal.parse(valueString)
-                    
-                    if timeVar != None and invalidFlag is False:
+                    #invalidFlag = 0 implies no date/time
+                    #invalidFlag = 1 implies only date, no time
+                    if invalidFlag != 0 and invalidFlag != 1:
                         newValueString = pim.shortTimeFormat.format(datetime(*timeVar[:5]))
                         gotTime = pim.shortTimeFormat.parse(newValueString, 
                                                          referenceDate=oldValue)

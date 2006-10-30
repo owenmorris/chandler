@@ -96,10 +96,18 @@ class DatetimeFormatter(object):
         self.dateFormat.setTimeZone(tzinfo.timezone)
         return unicode(self.dateFormat.format(datetime))
 
-shortDateFormat = DatetimeFormatter(
-    PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kShort))
-mediumDateFormat = DatetimeFormatter(
-    PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kMedium))
+def forceFourDigitDates(formatter):
+    #""" If this formatter isn't using a 4-digit year, force it to. """
+    pattern = formatter.dateFormat.toPattern()
+    if pattern.find('yyyy') == -1:
+        formatter.dateFormat.applyPattern(pattern.replace('yy','yyyy'))
+    return formatter
+
+
+shortDateFormat = forceFourDigitDates(DatetimeFormatter(
+    PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kShort)))
+mediumDateFormat = forceFourDigitDates(DatetimeFormatter(
+    PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kMedium)))                        
 shortTimeFormat = DatetimeFormatter(
     PyICU.DateFormat.createTimeInstance(PyICU.DateFormat.kShort))
 durationFormat = PyICU.SimpleDateFormat(_(u"H:mm"))

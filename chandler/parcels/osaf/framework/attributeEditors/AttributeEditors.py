@@ -1793,15 +1793,18 @@ class DateAttributeEditor (StringAttributeEditor):
             if ((cls.textMatches[matchKey]).lower()).startswith(target):
                 cal = parsedatetime.Calendar()
                 (dateVar, invalidFlag) = cal.parse(matchKey)
-                #invalidFlag is True if the string cannot be parsed successfully
-                if dateVar is not None and invalidFlag is False:
+                #invalidFlag = 0 implies no date/time
+                #invalidFlag = 2 implies only time, no date
+                if invalidFlag != 0 and invalidFlag != 2:
                     dateStr = pim.shortDateFormat.format(datetime(*dateVar[:3]))
                     matchKey = cls.textMatches[matchKey]+ " : %s" % dateStr
                     yield matchKey
             else:
                 cal = parsedatetime.Calendar(ptc.Constants(str(getLocaleSet()[0])))
                 (dateVar, invalidFlag) = cal.parse(target)
-                if dateVar is not None and invalidFlag is False:
+                #invalidFlag = 0 implies no date/time
+                #invalidFlag = 2 implies only time, no date
+                if invalidFlag != 0 and invalidFlag != 2:
                     # temporary fix: parsedatetime sometimes returns day == 0
                     if not filter(lambda x: not x, dateVar[:3]):
                         match = pim.shortDateFormat.format(datetime(*dateVar[:3]))
@@ -1881,15 +1884,18 @@ class TimeAttributeEditor(StringAttributeEditor):
             if ((cls.textMatches[matchKey]).lower()).startswith(target):
                 cal = parsedatetime.Calendar() 
                 (timeVar, invalidFlag) = cal.parse(matchKey)
-                #invalidFlag is True if the string cannot be parsed successfully
-                if timeVar is not None and invalidFlag is False:
+                #invalidFlag = 0 implies no date/time
+                #invalidFlag = 1 implies only date, no time
+                if invalidFlag != 0 and invalidFlag != 1:
                     timeVar = pim.shortTimeFormat.format(datetime(*timeVar[:5]))
                     matchKey = cls.textMatches[matchKey]+ " - %s" %timeVar
                     yield matchKey
             else:
                 cal = parsedatetime.Calendar() 
                 (timeVar, invalidFlag) = cal.parse(target)
-                if timeVar != None and invalidFlag is False:
+                #invalidFlag = 0 implies no date/time
+                #invalidFlag = 1 implies only date, no time
+                if invalidFlag != 0 and invalidFlag != 1:
                     match = pim.shortTimeFormat.format(datetime(*timeVar[:5]))
                     if unicode(match).lower() !=target:
                         yield match
