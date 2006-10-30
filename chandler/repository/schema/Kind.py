@@ -192,7 +192,7 @@ class Kind(Item):
 
     def instantiateItem(self, name, parent, uuid,
                         cls=None, version=0, withInitialValues=False,
-                        _noMonitors=False):
+                        _noMonitors=False, **values):
         """
         Instantiate an existing item of this kind.
 
@@ -236,11 +236,17 @@ class Kind(Item):
         if withInitialValues:
             self.getInitialValues(item, False)
 
+        if values:
+            try:
+                item._status |= CItem.NODIRTY
+                item._setInitialValues(values, _noMonitors)
+            finally:
+                item._status &= ~CItem.NODIRTY
+            
         if hasattr(cls, 'onItemLoad'):
             item.onItemLoad(self.itsView)
 
         if not _noMonitors:
-            item._setInitialValues(Nil, True)
             self.itsView._notifyChange(self.extent._collectionChanged,
                                        'add', 'collection', 'extent',
                                        item.itsUUID)

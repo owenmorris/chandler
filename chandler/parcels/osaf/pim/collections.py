@@ -520,8 +520,8 @@ class AppCollection(ContentCollection):
     exclusions = property(_getExclusions)
 
     # an AppCollection may have another collection for trash. If no
-    # collection is for trash, the collection's exclusions is used instead
-    # following the logic above.
+    # collection is given for trash, the collection's exclusions is used
+    # instead following the logic above.
 
     def _getTrash(self):
         trash = self.trashCollection
