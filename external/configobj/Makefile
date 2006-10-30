@@ -2,7 +2,7 @@
 VERSION=4.3.2
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 CONFIGOBJ=$(BUILD_ROOT)/configobj
-SRC=$(CONFIGOBJ)
+SRC=$(CONFIGOBJ)/$(TARBALL)
 TARBALL=configobj-$(VERSION)-py$(PYTHON_VER).egg
 
 include $(BUILD_ROOT)/Makefile.inc
@@ -30,8 +30,8 @@ binaries: sources
 install: sources
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
-ifneq (/,$(SRC)/$(BUILD))
+ifneq (/,$(SRC))
 clean:
-	rm -rf $(SRC)/$(BUILD)
+	rm -rf $(SRC)
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 endif
