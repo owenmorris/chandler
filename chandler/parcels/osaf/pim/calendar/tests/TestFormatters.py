@@ -52,7 +52,7 @@ class AbstractTestCase(unittest.TestCase):
 class ShortDateParse(AbstractTestCase):
 
     def testSimple(self):
-        parsed = DateTimeUtil.shortDateFormat.parse("12/11/04")
+        parsed = DateTimeUtil.shortDateFormat.parse("12/11/2004")
 
         self.failUnlessEqual(parsed, datetime(2004,12,11))
 
@@ -72,7 +72,7 @@ class ShortDateParse(AbstractTestCase):
     def testSimpleWithReference(self):
         tzinfo = ICUtzinfo.getInstance("US/Eastern")
         parsed = DateTimeUtil.shortDateFormat.parse(
-                    "12/11/04",
+                    "12/11/2004",
                     datetime(2006, 1, 1,tzinfo=tzinfo))
 
         self.failUnlessEqual(parsed, datetime(2004,12,11, tzinfo=tzinfo))

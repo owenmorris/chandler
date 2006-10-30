@@ -25,7 +25,7 @@ class TestEventStacking(ChandlerTestCase):
 
     def startTest(self):
         
-        today = strftime('%m/%d/%y',localtime())
+        today = strftime('%m/%d/%Y',localtime())
     
 
         view = QAUITestAppLib.UITestView(self.logger)

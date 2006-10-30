@@ -1021,14 +1021,10 @@ class UITestItem(object):
             self.logger.report(True, name="CheckMenuBlock", comment="(On %s Checking)" % description)
             
     def formatDate(self, dateStr):
-        """if year has 4 digits removes first 2
-             also removes leading zeros from month/ day
-             to resolve bug 5031"""
+        """Removes leading zeros from month/ day to resolve bug 5031"""
         month, day, year = dateStr.split('/')
         month = str(int(month)) # get rid of leading zeros
         day = str(int(day))
-        if len(year) == 4:
-            year = year[2:]
         return  '%s/%s/%s' % (month, day, year)
                     
 

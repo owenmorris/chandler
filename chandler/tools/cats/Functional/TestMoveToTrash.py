@@ -32,7 +32,7 @@ class TestMoveToTrash(ChandlerTestCase):
         note.Check_ItemInCollection("Trash")
         note.Check_ItemInCollection("Dashboard", expectedResult=False)
         
-        today = strftime('%m/%d/%y',localtime())
+        today = strftime('%m/%d/%Y',localtime())
     
         view = QAUITestAppLib.UITestView(self.logger)
         view.SwitchToCalView()

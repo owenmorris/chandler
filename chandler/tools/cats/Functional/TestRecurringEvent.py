@@ -39,8 +39,8 @@ class TestRecurringEvent(ChandlerTestCase):
         
         # verification
         dailyEvent.Check_DetailView({"displayName":uw("Daily Exercise"),
-                                     "startDate":"1/1/06",
-                                     "endDate":"1/1/06",
+                                     "startDate":"1/1/2006",
+                                     "endDate":"1/1/2006",
                                      "startTime":"6:00 AM",
                                      "endTime":"7:00 AM",
                                      "location":uw("Gym"),
@@ -48,7 +48,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                      "body":uw("Resolution: exercise daily for optimal health"),
                                      "timeZone":"US/Central",
                                      "recurrence":"Daily", 
-                                     "recurrenceEnd":"3/1/06"})
+                                     "recurrenceEnd":"3/1/2006"})
     
         dailyEvent.Check_Object({"displayName":uw("Daily Exercise"),
                                  "startDate":"1/1/2006",
@@ -79,8 +79,8 @@ class TestRecurringEvent(ChandlerTestCase):
         # verification
           
         weeklyEvent.Check_DetailView({"displayName":uw("Weekly call home"),
-                                      "startDate":"1/7/06",
-                                      "endDate":"1/7/06",
+                                      "startDate":"1/7/2006",
+                                      "endDate":"1/7/2006",
                                       "startTime":"5:00 PM",
                                       "endTime":"6:00 PM",
                                       "location":uw("Phone"),
@@ -88,7 +88,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                       "body":uw("Resolution: call home weekly for good family relations"),
                                       "timeZone":"US/Central",
                                       "recurrence":"Weekly",
-                                      "recurrenceEnd":"3/25/06"})
+                                      "recurrenceEnd":"3/25/2006"})
     
         weeklyEvent.Check_Object({"displayName":uw("Weekly call home"),
                                   "startDate":"1/7/2006",
@@ -120,8 +120,8 @@ class TestRecurringEvent(ChandlerTestCase):
         # verification
          
         monthlyEvent.Check_DetailView({"displayName":uw("Monthly book club"),
-                                     "startDate":"1/1/06",
-                                      "endDate":"1/1/06",
+                                     "startDate":"1/1/2006",
+                                      "endDate":"1/1/2006",
                                       "startTime":"7:00 PM",
                                       "endTime":"9:00 PM",
                                       "location":uw("My house"),
@@ -129,7 +129,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                       "body":uw("Resolution: host book club once a month"),
                                       "timeZone":"US/Central",
                                       "recurrence":"Monthly",
-                                      "recurrenceEnd":"12/31/06"})
+                                      "recurrenceEnd":"12/31/2006"})
     
         monthlyEvent.Check_Object({"displayName":uw("Monthly book club"),
                                   "startDate":"1/1/2006",
@@ -160,8 +160,8 @@ class TestRecurringEvent(ChandlerTestCase):
         # verification
           
         yearlyEvent.Check_DetailView({"displayName":uw("Yearly dentist appointment"),
-                                      "startDate":"2/6/06",
-                                      "endDate":"2/6/06",
+                                      "startDate":"2/6/2006",
+                                      "endDate":"2/6/2006",
                                       "startTime":"10:00 AM",
                                       "endTime":"11:00 AM",
                                       "location":uw("Downtown"),
@@ -169,7 +169,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                       "body":uw("Resolution: get teeth cleaned once a year"),
                                       "timeZone":"US/Pacific",
                                       "recurrence":"Yearly",
-                                      "recurrenceEnd":"2/7/10"})
+                                      "recurrenceEnd":"2/7/2010"})
     
         yearlyEvent.Check_Object({"displayName":uw("Yearly dentist appointment"),
                                   "startDate":"2/6/2006",

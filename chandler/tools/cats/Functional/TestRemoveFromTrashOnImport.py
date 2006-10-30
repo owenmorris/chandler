@@ -30,20 +30,14 @@ class TestRemoveFromTrashOnImport(ChandlerTestCase):
     def startTest(self):
     
         appView = self.app_ns.itsView
-        today = strftime('%m/%d/%y',localtime())
+        today = strftime('%m/%d/%Y',localtime())
         
         colName = "deleteThenImport"
         eventName = "eventToTest"
 
         #create a collection
         collection = QAUITestAppLib.UITestItem("Collection", self.logger)
-        # SetDisplayName fails after TestEventStacking occluded its collection
-        # by adding events that appeared in the PreviewArea (bug 6727).  To work
-        # around this, just set collection's displayName directly for now.
-        # This is a brittle hack, the failure is order-dependent.  We need a
-        # more robust solution to the sidebar SetDisplayName failures.
-        #collection.SetDisplayName(colName)
-        collection.item.displayName = colName 
+        collection.SetDisplayName(colName)
         sb=self.app_ns.sidebar
         scripting.User.emulate_sidebarClick(sb,colName) 
         
