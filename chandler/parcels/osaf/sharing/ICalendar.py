@@ -24,7 +24,7 @@ __all__ = [
 import Sharing
 import application.Parcel
 from osaf.pim import (ContentCollection, SmartCollection, Remindable,
-                      EventStamp, CalendarEvent, has_stamp)
+                      EventStamp, CalendarEvent, has_stamp, Note)
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet
 import osaf.pim.calendar.TimeZone as TimeZone
@@ -43,6 +43,7 @@ import itertools
 from i18n import ChandlerMessageFactory as _
 import os, logging
 import bisect
+from chandlerdb.util.c import UUID
 
 FREEBUSY_WEEKS_EXPORTED = 26
 
@@ -631,13 +632,24 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     
                 if itemChangeCallback is None:
                     # create a new item
-                    # setting icalUID in the constructor doesn't seem to work
-                    #change('icalUID', uid)
-                    eventItem = CalendarEvent(None, newItemParent, **changesDict)
-                    item = eventItem.itsItem
-                    # set icalUID seperately to make sure uid_map gets set
-                    # @@@MOR Needed anymore since we got rid of uid_map?
+
+                    try:
+                        # See if uid is a valid repository UUID, if so we'll
+                        # go ahead and use it for the new item's UUID.
+                        uuid = UUID(uid)
+                    except ValueError:
+                        # Not in valid UUID format, so just create a new UUID
+                        uuid = UUID()
+                        logger.info("iCalendar UID not in UUID form (%s)", uid)
+
+                    parent = schema.Item.getDefaultParent(view)
+                    kind = Note.getKind(view)
+                    item = kind.instantiateItem(None, parent, uuid,
+                        withInitialValues=True, **changesDict)
+                    eventItem = EventStamp(item)
+                    eventItem.add()
                     eventItem.icalUID = uid
+
                     for tup in changeLast:
                         eventItem.changeThis(*tup)
                     countNew += 1
