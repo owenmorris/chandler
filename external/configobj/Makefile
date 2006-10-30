@@ -12,7 +12,11 @@ BUILD=build_$(SNAP)
 ifeq ($(OS),Darwin)
     EASYINSTALL=$(PREFIX)/$(FRAMEWORK)/bin/easy_install
 else
-    EASYINSTALL=$(PREFIX)/bin/easy_install
+    ifeq ($(OS),Cygwin)
+        EASYINSTALL=$(PREFIX)/bin/Scripts/easy_install.exe
+    else
+        EASYINSTALL=$(PREFIX)/bin/easy_install
+    endif
 endif
 
 build: sources
