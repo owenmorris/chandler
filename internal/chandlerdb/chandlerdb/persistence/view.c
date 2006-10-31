@@ -392,14 +392,18 @@ static PyObject *t_view_effectDelete(t_view *self)
         while (++i < len) {
             PyObject *tuple = PyList_GET_ITEM(items, i);
             PyObject *item = PyTuple_GET_ITEM(tuple, 0);
-            PyObject *op = PyTuple_GET_ITEM(tuple, 1);
-            PyObject *args = PyTuple_GET_ITEM(tuple, 2);
-            PyObject *result =
-                PyObject_CallMethodObjArgs(item, _effectDelete_NAME,
-                                           op, args, NULL);
-            if (!result)
-                return NULL;
-            Py_DECREF(result);
+
+            if (!(((t_item *) item)->status & DELETED))
+            {
+                PyObject *op = PyTuple_GET_ITEM(tuple, 1);
+                PyObject *args = PyTuple_GET_ITEM(tuple, 2);
+                PyObject *result =
+                    PyObject_CallMethodObjArgs(item, _effectDelete_NAME,
+                                               op, args, NULL);
+                if (!result)
+                    return NULL;
+                Py_DECREF(result);
+            }
         }
 
         PyList_SetSlice(items, 0, len, NULL);

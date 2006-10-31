@@ -32,6 +32,7 @@ static PyObject *t_item_isDeleting(t_item *self);
 static PyObject *t_item_isDeleted(t_item *self);
 static PyObject *t_item_isDeferring(t_item *self);
 static PyObject *t_item_isDeferred(t_item *self);
+static PyObject *t_item_isLive(t_item *self);
 static PyObject *t_item_isStale(t_item *self);
 static PyObject *t_item_isPinned(t_item *self);
 static PyObject *t_item_isSchema(t_item *self);
@@ -71,6 +72,7 @@ static int t_item__setName(t_item *self, PyObject *name, void *data);
 static PyObject *t_item__getRoot(t_item *self, void *data);
 static PyObject *t_item__getUUID(t_item *self, void *data);
 static PyObject *t_item__getPath(t_item *self, void *data);
+static PyObject *t_item__getStatus(t_item *self, void *data);
 static PyObject *t_item__getVersion(t_item *self, void *data);
 static int t_item__setVersion(t_item *self, PyObject *value, void *data);
 
@@ -125,6 +127,7 @@ static PyMethodDef t_item_methods[] = {
     { "isDeleted", (PyCFunction) t_item_isDeleted, METH_NOARGS, NULL },
     { "isDeferring", (PyCFunction) t_item_isDeferring, METH_NOARGS, NULL },
     { "isDeferred", (PyCFunction) t_item_isDeferred, METH_NOARGS, NULL },
+    { "isLive", (PyCFunction) t_item_isLive, METH_NOARGS, NULL },
     { "isStale", (PyCFunction) t_item_isStale, METH_NOARGS, NULL },
     { "isPinned", (PyCFunction) t_item_isPinned, METH_NOARGS, NULL },
     { "isSchema", (PyCFunction) t_item_isSchema, METH_NOARGS, "" },
@@ -169,6 +172,8 @@ static PyGetSetDef t_item_properties[] = {
     { "itsUUID", (getter) t_item__getUUID, NULL,
       NULL, NULL },
     { "itsPath", (getter) t_item__getPath, NULL,
+      NULL, NULL },
+    { "itsStatus", (getter) t_item__getStatus, NULL,
       NULL, NULL },
     { "itsVersion", (getter) t_item__getVersion, NULL,
       "itsVersion property", NULL },
@@ -432,6 +437,14 @@ static PyObject *t_item_isDeferred(t_item *self)
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
+}
+    
+static PyObject *t_item_isLive(t_item *self)
+{
+    if (self->status & (STALE | DELETED | DEFERRED))
+        Py_RETURN_FALSE;
+    else
+        Py_RETURN_TRUE;
 }
     
 static PyObject *t_item_isStale(t_item *self)
@@ -1437,6 +1450,14 @@ static PyObject *t_item__getUUID(t_item *self, void *data)
 static PyObject *t_item__getPath(t_item *self, void *data)
 {
     return PyObject_CallMethodObjArgs((PyObject *) self, _getPath_NAME, NULL);
+}
+
+
+/* itsStatus */
+
+static PyObject *t_item__getStatus(t_item *self, void *data)
+{
+    return PyInt_FromLong(self->status);
 }
 
 

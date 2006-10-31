@@ -33,6 +33,7 @@ static int t_values_dict_set(t_values *self, PyObject *key, PyObject *value);
 
 static PyObject *t_values_get(t_values *self, PyObject *args);
 static PyObject *t_values_keys(t_values *self, PyObject *arg);
+static PyObject *t_values_items(t_values *self, PyObject *arg);
 static PyObject *t_values_copy(t_values *self, PyObject *arg);
 static PyObject *t_values_has_key(t_values *self, PyObject *key);
 static PyObject *t_values__isReadOnly(t_values *self, PyObject *key);
@@ -56,6 +57,7 @@ static PyMemberDef t_values_members[] = {
 static PyMethodDef t_values_methods[] = {
     { "get", (PyCFunction) t_values_get, METH_VARARGS, "" },
     { "keys", (PyCFunction) t_values_keys, METH_NOARGS, "" },
+    { "items", (PyCFunction) t_values_items, METH_NOARGS, "" },
     { "copy", (PyCFunction) t_values_copy, METH_NOARGS, "" },
     { "__contains__", (PyCFunction) t_values_has_key, METH_O|METH_COEXIST, "" },
     { "has_key", (PyCFunction) t_values_has_key, METH_O, "" },
@@ -259,6 +261,11 @@ static PyObject *t_values_get(t_values *self, PyObject *args)
 static PyObject *t_values_keys(t_values *self, PyObject *arg)
 {
     return PyDict_Keys(self->dict);
+}
+
+static PyObject *t_values_items(t_values *self, PyObject *arg)
+{
+    return PyDict_Items(self->dict);
 }
 
 static PyObject *t_values_has_key(t_values *self, PyObject *key)
