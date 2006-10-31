@@ -1,0 +1,353 @@
+----------------------
+The Sharing Record API
+----------------------
+
+
+>>> import eim as sharing   # API kludge during initial dev & testing
+
+
+Record Types and Fields
+=======================
+
+TODO: Record type URIs, primary keys, foreign key refs
+
+TODO: record diffing, NoChange
+
+TODO: importers, exporters, and Schemas
+
+
+
+
+Defining and Using Field Types
+==============================
+
+Custom Types
+------------
+
+The most basic kinds of field types can be created using the ``BytesType``,
+``TextType``, ``IntType``, ``DateType``, and ``LobType`` constructors::
+
+    >>> my_date = sharing.DateType()
+    >>> my_date
+    sharing.DateType(None)
+
+Types can be given a unique URI, and they can be looked up by it::
+
+    >>> my_text = sharing.TextType("cid:some_text_type@osaf.us", size=99)
+    >>> my_text
+    sharing.TextType('cid:some_text_type@osaf.us', 99)
+
+    >>> sharing.typeinfo_for("cid:some_text_type@osaf.us")
+    sharing.TextType('cid:some_text_type@osaf.us', 99)
+
+    >>> my_text.uri
+    'cid:some_text_type@osaf.us'
+
+    >>> my_text.size
+    99
+
+But only one type can exist for a given URI at a given point in time::
+
+    >>> another_text = sharing.TextType("cid:some_text_type@osaf.us", 99)
+    Traceback (most recent call last):
+      ...
+    TypeError: A type already exists for 'cid:some_text_type@osaf.us'
+
+    >>> del my_text     # no conflicting definition now
+    >>> another_text = sharing.TextType("cid:some_text_type@osaf.us", 99)
+
+
+Type Aliasing
+-------------
+
+The ``sharing.typedef()`` API lets you register type information for arbitrary
+Python objects, so that you can use existing types, kinds, etc. as field types.
+For example::
+
+    >>> class my_int(int):
+    ...     """This is just a demonstration type"""
+
+    >>> my_int_type = sharing.IntType('cid:my_int_ex@osaf.us')
+    >>> sharing.typedef(my_int, my_int_type)
+
+Now, ``my_int`` can be used directly as a field type in a ``sharing.Record``
+class, instead of using the ``IntType`` object::
+
+    >>> class DemoRecord(sharing.Record):
+    ...     an_int = sharing.field(my_int)
+
+    >>> DemoRecord.an_int.type
+    <class 'my_int'>
+
+    >>> DemoRecord.an_int.typeinfo
+    sharing.IntType('cid:my_int_ex@osaf.us')
+
+You can alias more than one object to the same type, or alias an object to
+an already-registered alias::
+
+    >>> class my_int2(int):
+    ...     """Another demonstration type"""
+
+    >>> sharing.typedef(my_int2, my_int)
+    >>> sharing.typeinfo_for(my_int2) is sharing.typeinfo_for(my_int)
+    True
+
+There are also built-in aliases for anonymous versions of the sizeless
+primitive types (``IntType``, ``LobType``, and ``DateType``), so you can
+use them directly in fields::
+
+    >>> sharing.typeinfo_for(sharing.IntType)
+    sharing.IntType(None)
+
+    >>> sharing.typeinfo_for(sharing.LobType)
+    sharing.LobType(None)
+
+    >>> sharing.typeinfo_for(sharing.DateType)
+    sharing.DateType(None)
+
+
+Type Conversion
+---------------
+
+Because there are only five primitive EIM types (bytes, text, integer,
+date/time, and "lob"), it is usually necessary to convert some application-
+level data types to the corresponding primitive type.
+
+For example, let's say that an application has a value that is normally
+represented as a hexidecimal string, but which for some reason it wants to
+transmit as an integer in its sharing records.  The application would need
+to define a string converter to turn the hex string into an integer.
+
+So let's define a ``hexint`` type that we can use in field definitions where
+we want to be able to supply either integers or hex strings as input when
+creating a record.
+
+    >>> hexint = sharing.IntType('cid:hexint_example@osaf.us')
+
+    >>> class HexRecord(sharing.Record):
+    ...     aField = sharing.field(hexint)
+
+By default, there is no converter registered to convert strings to integers,
+although there is one for converting integers to integers::
+
+    >>> HexRecord(23)
+    HexRecord(23)
+
+    >>> HexRecord("23")
+    Traceback (most recent call last):
+      ...
+    TypeError: No converter registered for values of type <type 'str'>
+
+The ``sharing.add_converter()`` API allows you to register a conversion
+function to be used for a particular field or field type::
+
+    >>> sharing.add_converter(hexint, str, lambda v: int(v,16))
+    >>> HexRecord("23")
+    HexRecord(35)
+
+You can also override the conversion function(s) on a field-by-field basis::
+
+    >>> sharing.add_converter(HexRecord.aField, str, lambda v: int(v,8))
+    >>> HexRecord("23")
+    HexRecord(19)
+
+XXX Need more default encoders for primitive types; only int->IntType currently
+    works
+
+
+Creating Subtypes
+-----------------
+
+Sometimes, it's useful to create a field type by copying an existing type.  The
+``sharing.subtype()`` function creates a new type from an existing one.  The
+new type will be of the same primitive type, and it will "inherit" any
+conversion functions defined for the base type::
+
+    >>> hexint2 = sharing.subtype(hexint)
+    >>> hexint2
+    sharing.IntType(None)
+
+    >>> sharing.get_converter(hexint2)("23")
+    35
+
+New subtypes default to having the same size as their base type, if
+applicable, and any extra arguments to ``subtype()`` are passed through to
+the appropriate constructor::
+
+    >>> bytes1 = sharing.BytesType(size=55)
+    >>> bytes2 = sharing.subtype(bytes1, 'bytes2 uri')
+    >>> bytes2
+    sharing.BytesType('bytes2 uri', 55)
+
+Note that you can also subtype type aliases::
+
+    >>> sharing.subtype(my_int, 'dummy uri')
+    sharing.IntType('dummy uri')
+
+
+XXX test generation-skipping in converter registration
+
+
+---------
+Internals
+---------
+
+TypeInfo instances are immutable once created::
+
+    >>> t = sharing.IntType()
+    >>> t.uri = "fhdsfblah"
+    Traceback (most recent call last):
+      ...
+    TypeError: sharing.IntType instances are immutable
+
+Misc. constructor data validation tests::
+
+    >>> sharing.TypeInfo()
+    Traceback (most recent call last):
+      ...
+    TypeError: sharing.TypeInfo is an abstract type; use a subtype
+
+    >>> sharing.SizedType()
+    Traceback (most recent call last):
+      ...
+    TypeError: size must be specified when creating a sharing.SizedType
+
+    >>> sharing.SizedType(size=53)
+    Traceback (most recent call last):
+      ...
+    TypeError: sharing.SizedType is an abstract type; use a subtype
+
+    >>> sharing.BytesType()
+    Traceback (most recent call last):
+      ...
+    TypeError: size must be specified when creating a sharing.BytesType
+
+    >>> sharing.TextType()
+    Traceback (most recent call last):
+      ...
+    TypeError: size must be specified when creating a sharing.TextType
+
+No such type::
+
+    >>> sharing.typeinfo_for('xyz:abc')
+    Traceback (most recent call last):
+      ...
+    UnknownType: 'xyz:abc'
+
+Recordtype/field creation and sequence numbers::
+
+    >>> class MyRecord(sharing.Record):
+    ...     f1, f2 = sharing.field(hexint), sharing.field(hexint)
+
+    >>> f1, f2 = MyRecord.f1, MyRecord.f2
+
+    >>> f1.name
+    'f1'
+    >>> f1.offset
+    1
+    >>> f2.offset
+    2
+    >>> f1.owner is MyRecord
+    True
+
+    >>> MyRecord.__fields__ == (f1, f2)
+    True
+
+    >>> f1.type is hexint
+    True
+    >>> f1 < f2
+    True
+    >>> f2 > f1
+    True
+    >>> f1 != f2
+    True
+    >>> f1 >= f2
+    False
+
+    >>> f2 == f2.seq    # must not be directly comparable to integer
+    False
+
+    >>> class MR2(sharing.Record):
+    ...     f3 = sharing.field(my_int)
+
+    >>> r = MyRecord("23", f2=3)
+    >>> r
+    MyRecord(35, 3)
+
+    >>> r.f1, r.f2
+    (35, 3)
+
+    >>> MR2(27)
+    MR2(27)
+
+    >>> sharing.field(27)   # must be a registered type or alias
+    Traceback (most recent call last):
+      ...
+    UnknownType: 27
+
+Verify that the generated constructor code shows up in tracebacks::
+
+    >>> try:
+    ...     MR2(42.0)
+    ... except:
+    ...     import traceback
+    ...     tb = traceback.format_exc()
+
+    >>> print tb
+    Traceback (most recent call last):
+      File ...
+        MR2(42.0)
+      File "EIM-Generated Constructor for __builtin__.MR2", line 2, in __new__
+        f3 = get_converter(cls.f3)(f3)
+      ...
+    TypeError: No converter registered for values of type <type 'float'>
+    <BLANKLINE>
+
+Immutable field attrs::
+
+    >>> sharing.field(my_int).foo = "bar"
+    Traceback (most recent call last):
+      ...
+    AttributeError: 'field' object has no attribute 'foo'
+
+    >>> MyRecord.f1.offset = 16
+    Traceback (most recent call last):
+      ...
+    TypeError: field objects are immutable
+
+Record is dict-less, immutable::
+
+    >>> r.__dict__
+    Traceback (most recent call last):
+      ...
+    AttributeError: 'MyRecord' object has no attribute '__dict__'
+
+    >>> r.f1 = 42
+    Traceback (most recent call last):
+      ...
+    AttributeError: 'MyRecord' object attribute 'f1' is read-only
+
+    >>> r.xxx = 99
+    Traceback (most recent call last):
+      ...
+    AttributeError: 'MyRecord' object has no attribute 'xxx'
+
+
+Can't subclass an existing record type, or reuse fields in other record types::
+
+    >>> class CantDoThis(MyRecord):
+    ...     pass
+    Traceback (most recent call last):
+      ...
+    TypeError: Record classes cannot be subclassed
+
+    >>> class CantDoThis(sharing.Record):
+    ...     f3 = MyRecord.f1
+    Traceback (most recent call last):
+      ...
+    TypeError: Can't reuse field 'MyRecord.f1' as 'CantDoThis.f3'
+
+
+XXX typeinfo_for(obj) -> TypeInfo
+   descr -> typeinfo_for(descr.type)
+
