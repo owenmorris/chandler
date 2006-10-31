@@ -63,3 +63,4 @@ TESTING_TIMEOUT = 10
    i.e. __debug__ == True
 """
 VERBOSE = False
+IGNORE_ATTACHMENTS = True

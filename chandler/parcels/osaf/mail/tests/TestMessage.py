@@ -27,6 +27,7 @@ from repository.item.RefCollections import RefList
 from osaf.pim.stamping import has_stamp
 from osaf.pim.mail import MailStamp
 from osaf.pim.calendar import EventStamp
+from osaf.mail.constants import IGNORE_ATTACHMENTS
 
 from PyICU import ICUtzinfo
 from datetime import datetime
@@ -168,7 +169,9 @@ END:VCALENDAR
         m.dateSentString = dateString
 
         m.itsItem.body = u"This is the body"
-        m.rfc2822Message = utils.dataToBinary(m, "rfc2822Message", self.__mail)
+
+        if not IGNORE_ATTACHMENTS:
+            m.rfc2822Message = utils.dataToBinary(m, "rfc2822Message", self.__mail)
 
         self.__mailMessage = m
 
@@ -221,7 +224,10 @@ END:VCALENDAR
         self.assertEquals(mOne.headers['Content-Transfer-Encoding'], mTwo.headers['Content-Transfer-Encoding'])
         self.assertEquals(mOne.headers['Mime-Version'], mTwo.headers['Mime-Version'])
         self.assertEquals(mOne.itsItem.body, mTwo.itsItem.body)
-        self.assertEquals(utils.binaryToData(mOne.rfc2822Message), utils.binaryToData(mTwo.rfc2822Message))
+
+        if not IGNORE_ATTACHMENTS:
+            self.assertEquals(utils.binaryToData(mOne.rfc2822Message), \
+                          utils.binaryToData(mTwo.rfc2822Message))
 
 
     def __compareMessageObjects(self, mOne, mTwo):

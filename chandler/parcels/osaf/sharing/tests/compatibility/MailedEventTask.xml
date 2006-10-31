@@ -13,7 +13,6 @@
    <bccAddress>
    </bccAddress>
    <subject>Here we go.....</subject>
-   <hasMimeParts>False</hasMimeParts>
    <mimeParts>
    </mimeParts>
    <mimeType>message/rfc822</mimeType>

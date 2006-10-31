@@ -313,7 +313,6 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         stampedWelcome.add()
         
         self.failUnlessEqual(list(stampedWelcome.mimeParts), [])
-        self.failUnlessEqual(stampedWelcome.hasMimeParts, False)
         self.failUnlessEqual(stampedWelcome.mimeType, '')
         self.failUnlessEqual(stampedWelcome.mimeContainer, None)
 

@@ -283,7 +283,6 @@ def __resetMailStamp(mailStamp):
     mailStamp.referencesMID = []
     mailStamp.spamScore = 0.0
     mailStamp.mimeContainer = None
-    mailStamp.hasMimeParts = False
     mailStamp.mimeParts = []
     mailStamp.messageId = u""
 
@@ -732,13 +731,12 @@ class MIMENote(MIMEBase):
 class MIMEContainer(MIMEBase):
     schema.kindInfo(annotates=items.ContentItem)
 
-    hasMimeParts = schema.One(schema.Boolean, initialValue = False)
     mimeParts = schema.Sequence(
         MIMEBase,
         initialValue = [],
         inverse = MIMEBase.mimeContainer,
     )
-    schema.addClouds(sharing = schema.Cloud(hasMimeParts, mimeParts))
+    schema.addClouds(sharing = schema.Cloud(mimeParts))
 
 
 class MailStamp(stamping.Stamp, MIMEContainer):
@@ -917,12 +915,6 @@ class MailStamp(stamping.Stamp, MIMEContainer):
         First pass at API will be expanded upon later.
         """
         return len(self.mimeParts)
-
-    def hasAttachments(self):
-        """
-        First pass at API will be expanded upon later.
-        """
-        return self.hasMimeParts
 
     def getSendability(self, ignoreAttr=None):
         """

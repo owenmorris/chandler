@@ -30,11 +30,11 @@ from PyICU import ICUtzinfo
 #Chandler imports
 import osaf.pim.mail as Mail
 from osaf.pim import has_stamp, EventStamp, Remindable
-from PyICU import UnicodeString
 from i18n import ChandlerMessageFactory as _
 
 #Chandler Mail Service imports
 import constants
+from constants import IGNORE_ATTACHMENTS
 from utils import *
 from utils import Counter
 from osaf.pim import TriageEnum
@@ -73,15 +73,15 @@ def decodeHeader(header, charset=constants.DEFAULT_CHARSET):
     except(UnicodeError, UnicodeDecodeError, LookupError):
         return unicode("".join(header.splitlines()), charset, 'ignore')
 
-def getUnicodeValue(val, charset=constants.DEFAULT_CHARSET):
+def getUnicodeValue(val, charset=constants.DEFAULT_CHARSET, ignore=False):
     assert isinstance(val, str), "The value to convert must be a string"
     assert charset is not None, "A charset must be specified"
 
     try:
-        # The PyICU UnicodeString is used because
-        # ICU has support for more character set
-        # encodings than Python.
-        return unicode(UnicodeString(val, charset))
+        if ignore:
+            return unicode(val, charset, 'ignore')
+
+        return unicode(val, charset)
 
     except Exception:
         if  charset != constants.DEFAULT_CHARSET:
@@ -258,14 +258,15 @@ def messageObjectToKind(view, messageObject, messageText=None,
         # Didn't find a parsable ICS attachment: just treat it as a mail msg.
         m = Mail.MailMessage(itsView=view)
 
-    """
-    Save the original message text in a text blob
-    """
-    if messageText is None:
-        messageText = messageObject.as_string()
+    if not IGNORE_ATTACHMENTS:
+        """
+        Save the original message text in a text blob
+        """
+        if messageText is None:
+            messageText = messageObject.as_string()
 
-    m.rfc2822Message = dataToBinary(m, "rfc2822Message", messageText,
-                                    'message/rfc822', compression, False)
+        m.rfc2822Message = dataToBinary(m, "rfc2822Message", messageText,
+                                        'message/rfc822', compression, False)
 
     counter = Counter()
     bodyBuffer = {'plain': [], 'html': []}
@@ -281,12 +282,6 @@ def messageObjectToKind(view, messageObject, messageText=None,
 
     __parsePart(view, messageObject, m, bodyBuffer, counter, buf,
                 compression=compression)
-
-    """
-    If the message has attachments set hasMimeParts to True
-    """
-    if len(m.mimeParts) > 0:
-        m.hasMimeParts = True
 
     if len(bodyBuffer.get('plain')):
         body = constants.LF.join(bodyBuffer.get('plain')).replace(constants.CR, constants.EMPTY)
@@ -438,7 +433,7 @@ def kindToMessageObject(mailMessage):
 
         for attachment in attachments:
             if has_stamp(attachment, Mail.MailStamp):
-            # The attachment is another MailMessage
+                # The attachment is another MailMessage
                 try:
                     rfc2822 = binaryToData(Mail.MailStamp(attachment).rfc2822Message)
                 except AttributeError:
@@ -463,7 +458,7 @@ def kindToMessageObject(mailMessage):
     return messageObject
 
 
-def kindToMessageText(mailMessage, saveMessage=True):
+def kindToMessageText(mailMessage, saveMessage=False):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
@@ -620,6 +615,7 @@ def __getEmailAddress(view, name, addr):
 
 def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf,
                 level=0, compression='bz2'):
+
     __checkForDefects(mimePart)
 
     if isinstance(mimePart, str):
@@ -802,6 +798,10 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer,
 
 def __handleBinary(view, mimePart, parentMIMEContainer,
                    counter, buf, level, compression):
+
+    if IGNORE_ATTACHMENTS:
+        return
+
     contype = mimePart.get_content_type()
 
     if verbose():
@@ -855,22 +855,24 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
     size = len(body)
 
     charset = mimePart.get_content_charset(constants.DEFAULT_CHARSET)
-    lang    = mimePart.get("Content-language")
 
-    if subtype == "plain" or subtype == "rfc822-headers":
-        #XXX: Will want to leverage the language to aid the GUI layer
-        size > 0 and bodyBuffer.get('plain').append(getUnicodeValue(body, charset))
+    if size and (subtype == "plain" or subtype == "rfc822-headers"):
+        bodyBuffer.get('plain').append(getUnicodeValue(body, charset,ignore=True))
 
     else:
-        if subtype == "html":
-            size > 0 and bodyBuffer.get('html').append(getUnicodeValue(body, charset))
+        if size and subtype == "html" and len(bodyBuffer.get('plain')) == 0:
+            bodyBuffer.get('html').append(getUnicodeValue(body, charset, ignore=True))
+
+        if IGNORE_ATTACHMENTS:
+            return
 
         mimeText = Mail.MIMEText(itsView=view)
-
         mimeText.mimeType = mimePart.get_content_type()
         mimeText.charset  = charset
         mimeText.filesize = len(body)
         mimeText.filename = __getFileName(mimePart, counter)
+
+        lang = mimePart.get("Content-language")
 
         if lang:
             mimeText.lang = lang
@@ -878,7 +880,6 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
         mimeText.itsItem.body = getUnicodeValue(body, charset)
 
         parentMIMEContainer.mimeParts.append(mimeText.itsItem)
-        parentMIMEContainer.hasMimeParts = True
 
 def __getFileName(mimePart, counter):
     #This can return none, a str, or unicode :(

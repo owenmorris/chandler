@@ -35,7 +35,6 @@ uuid='a54d7ff0-23e2-11db-9020-ae744e613304'>
     <bccAddress>
     </bccAddress>
     <subject>Somebody working from New York</subject>
-    <hasMimeParts>True</hasMimeParts>
     <mimeParts>
        <MIMEText class='osaf.pim.mail.MIMEText' uuid='a5992270-23e2-11db-9020-ae744e613304'>
           <filename>event.ics</filename>

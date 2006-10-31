@@ -304,7 +304,6 @@ class EventTestCase(SharingTestCase):
         # Make sure importing an Event didn't delete attributes
         # on MailStamp.
         mailMsg = pim.mail.MailStamp(eventItem)
-        self.failUnlessEqual(mailMsg.hasMimeParts, False)
         self.failUnlessEqual(mailMsg.mimeContainer, None)
         self.failUnlessEqual(list(mailMsg.mimeParts), [])
         self.failUnlessEqual(list(mailMsg.toAddress), [])
@@ -486,7 +485,6 @@ class ComplexMailTestCase(SharingTestCase):
         self.attributes.update(toAddress=[address], 
                                fromAddress=address,
                                replyToAddress=address,
-                               hasMimeParts=True,
                                mimeParts=[mimeBinary, mimeText])
     
     def testExport(self):

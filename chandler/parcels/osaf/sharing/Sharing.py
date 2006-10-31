@@ -2902,11 +2902,11 @@ class CloudXMLFormat(ImportExportFormat):
                             'list'):
                             itemValue = list(itemValue)
                         
-                        # ... with the exception of hasMimeParts and
+                        # ... with the exception of
                         # mimeParts, which always seem to have been written
                         # in the "old" world.
                         if ( (not (hasMailStamp and splitComponents[-1] in
-                                ('hasMimeParts', 'mimeParts'))) and
+                                ('mimeParts'))) and
                                 itemValue == initial ):
                             continue
                             
