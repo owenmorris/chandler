@@ -228,7 +228,7 @@ def makeMainEvents(parcel):
         dispatchToBlockName = 'MainView').install(parcel)
 
     BlockEvent.template(
-        'Purge',
+        'Triage',
         commitAfterDispatch = True,
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'TableSummaryView').install(parcel)

@@ -196,7 +196,7 @@ class DashboardBlock(Table):
         if 'showSections' in names:
             self.synchronizeWidget()
 
-    def onPurgeEvent(self, event):
+    def onTriageEvent(self, event):
         for key in self.contents.iterkeys():
             triageStatus = self.itsView.findValue(key,
                                                  '_unpurgedTriageStatus',
