@@ -54,8 +54,7 @@ expand: M2Crypto-$(VERSION)-expanded
 
 binaries: strip
 	cd $(BUILD_ROOT); \
-      find $(SNAP)/$(SITE)/M2Crypto -name "*.pyc" | xargs rm -f; \
-      find $(SNAP)/$(SITE)/M2Crypto -name "*.pyo" | xargs rm -f; \
+      find $(SNAP)/$(SITE)/M2Crypto -name "*.py[co]" -delete; \
       tar -cvzf $(BUILD_ROOT)/m2crypto/$(TARBALL) \
           $(SNAP)/$(SITE)/M2Crypto
 

@@ -115,8 +115,7 @@ clean:
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 binaries: strip
-	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.pyc" | xargs rm -f
-	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.pyo" | xargs rm -f
+	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.py[co]" -delete
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
             --exclude site-packages \
@@ -150,8 +149,7 @@ build: expand apply $(SRC)/$(BUILD)/Makefile
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 binaries: strip
-	find $(BUILD_ROOT)/$(SNAP)/Library/Frameworks/Python.framework -name "*.pyc" | xargs rm -f
-	find $(BUILD_ROOT)/$(SNAP)/Library/Frameworks/Python.framework -name "*.pyo" | xargs rm -f
+	find $(BUILD_ROOT)/$(SNAP)/Library/Frameworks/Python.framework -name "*.py[co]" -delete
 	tar -C $(BUILD_ROOT) \
             -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
             --exclude site-packages \
@@ -177,8 +175,7 @@ build: expand bzip2-$(BZIP2VERSION)/libbz2.a apply $(SRC)/$(BUILD)/Makefile
 
 binaries: strip
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/lib/python*/ -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/lib/python*/ -name "*.pyo" | xargs rm -f; \
+	find $(SNAP)/lib/python*/ -name "*.py[co]" -delete; \
         tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
             --exclude site-packages \
             --exclude test \

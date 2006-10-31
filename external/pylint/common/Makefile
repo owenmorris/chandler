@@ -29,8 +29,7 @@ expand: common-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/logilab -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/logilab -name "*.pyo" | xargs rm -f; \
+	find $(SNAP)/$(SITE)/logilab -name "*.py[co]" -delete; \
         tar -cvzf $(COMMON)/$(TARBALL) \
                   --exclude test $(SNAP)/$(SITE)/logilab/common \
                   $(SNAP)/$(SITE)/logilab/__init__.py

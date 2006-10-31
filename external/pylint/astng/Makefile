@@ -30,8 +30,7 @@ expand: astng-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
-	find $(SNAP)/$(SITE)/logilab/astng -name "*.pyc" | xargs rm -f; \
-	find $(SNAP)/$(SITE)/logilab/astng -name "*.pyo" | xargs rm -f; \
+	find $(SNAP)/$(SITE)/logilab/astng -name "*.py[co]" -delete; \
         tar -cvzf $(ASTNG)/$(TARBALL) \
                   $(SNAP)/$(SITE)/logilab/astng
 
