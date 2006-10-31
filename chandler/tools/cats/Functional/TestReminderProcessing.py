@@ -29,10 +29,14 @@ def getstack():
     stack = traceback.extract_stack(limit=5)[:-2]
     return "".join(traceback.format_list(stack))
     
-# Under normal circumstances, we'll create events to fire very
-# shortly, so the tests aren't slowed much by waiting. (at least 2!)
+# Under normal circumstances, we'll create events to fire
+# shortly, so the tests aren't slowed much by waiting.
+# (Note: this used to be 3 seconds, which failed on slow machines or when
+# indexing or other background processing happened to fire after we started
+# but before we got to the 'waiting' phase of the test)
+nearFutureSeconds=15
+
 # If I'm debugging, set up events farther in the future
-nearFutureSeconds=3
 #nearFutureSeconds=120
 
 # While we're debugging this test, I set reallyFail to False so failures will
