@@ -423,6 +423,7 @@ class RefContainer(DBContainer):
 
             def __init__(_self):
 
+                _self.cursor = None
                 _self.txnStatus = store.startTransaction(view)
                 _self.cursor = self.openCursor()
 
@@ -956,6 +957,7 @@ class IndexesContainer(DBContainer):
 
             def __init__(_self):
 
+                _self.cursor = None
                 _self.txnStatus = store.startTransaction(view)
                 _self.cursor = self.openCursor()
 
