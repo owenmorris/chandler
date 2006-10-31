@@ -232,8 +232,6 @@ $(PYEGGS):
 $(PYEGGS_INST):
 	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' CHANDLERHOME='$(CHANDLERHOME)' $(PYTHON_BIN) \
       -c "from setuptools.command.easy_install import main; main()" \
-      --script-dir='$(SETUPTOOLS_BIN)' \
-      --install-dir='$(PLUGIN_INST)' \
       $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
 
