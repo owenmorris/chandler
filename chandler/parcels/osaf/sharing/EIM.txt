@@ -3,7 +3,7 @@ The Sharing Record API
 ----------------------
 
 
->>> import eim as sharing   # API kludge during initial dev & testing
+>>> import osaf.sharing.eim as sharing   # API kludge during initial dev & testing
 
 
 Record Types and Fields
