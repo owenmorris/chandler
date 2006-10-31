@@ -15,10 +15,10 @@
 
 """Save and Restore Application Settings"""
 
-import ConfigParser, logging
+import logging
+from configobj import ConfigObj
 from application import schema
 from osaf import pim, sharing, usercollections
-from osaf.framework.blocks import Block
 from osaf.pim.structs import ColorType
 from application.dialogs import SubscribeCollection
 from chandlerdb.util.c import UUID
@@ -29,179 +29,167 @@ logger = logging.getLogger(__name__)
 def save(rv, filename):
     """Save selected settings information, including all sharing accounts
     and shares (whether published or subscribed), to an INI file"""
-
-    cfg = ConfigParser.ConfigParser()
-
+    
+    cfg = ConfigObj()
+    cfg.encoding = "UTF8"
+    cfg.filename = filename
+    
     # Sharing accounts
     currentAccount = schema.ns("osaf.sharing", rv).currentWebDAVAccount.item
-    section_prefix = "sharing_account"
     counter = 1
-
     for account in sharing.WebDAVAccount.iterItems(rv):
         if account.username: # skip account if not configured
-            section_name = "%s_%d" % (section_prefix, counter)
-            cfg.add_section(section_name)
-            cfg.set(section_name, "type", "webdav account")
-            cfg.set(section_name, "uuid", account.itsUUID)
-            cfg.set(section_name, "title", account.displayName)
-            cfg.set(section_name, "host", account.host)
-            cfg.set(section_name, "path", account.path)
-            cfg.set(section_name, "username", account.username)
-            cfg.set(section_name, "password", account.password)
-            cfg.set(section_name, "port", account.port)
-            cfg.set(section_name, "usessl", account.useSSL)
+            section_name = u"sharing_account_%d" % counter
+            cfg[section_name] = {}
+            cfg[section_name][u"type"] = u"webdav account"
+            cfg[section_name][u"uuid"] = account.itsUUID
+            cfg[section_name][u"title"] = account.displayName
+            cfg[section_name][u"host"] = account.host
+            cfg[section_name][u"path"] = account.path
+            cfg[section_name][u"username"] = account.username
+            cfg[section_name][u"password"] = account.password
+            cfg[section_name][u"port"] = account.port
+            cfg[section_name][u"usessl"] = account.useSSL
             if account is currentAccount:
-                cfg.set(section_name, "default", "True")
+                cfg[section_name][u"default"] = u"True"
             counter += 1
-
+            
     # Subscriptions
     mine = schema.ns("osaf.pim", rv).mine
-    section_prefix = "share"
     counter = 1
     for col in pim.ContentCollection.iterItems(rv):
         share = sharing.getShare(col)
         if share:
-            section_name = "%s_%d" % (section_prefix, counter)
-            cfg.add_section(section_name)
-            cfg.set(section_name, "type", "share")
-            cfg.set(section_name, "title", share.contents.displayName)
-            cfg.set(section_name, "mine", col in mine.sources)
+            section_name = u"share_%d" % counter
+            cfg[section_name] = {}
+            cfg[section_name][u"type"] = u"share"
+            cfg[section_name][u"title"] = share.contents.displayName
+            cfg[section_name][u"mine"] = col in mine.sources
             uc = usercollections.UserCollection(col)
             if getattr(uc, "color", False):
                 color = uc.color
-                cfg.set(section_name, "red", color.red)
-                cfg.set(section_name, "green", color.green)
-                cfg.set(section_name, "blue", color.blue)
-                cfg.set(section_name, "alpha", color.alpha)
+                cfg[section_name][u"red"] = color.red
+                cfg[section_name][u"green"] = color.green
+                cfg[section_name][u"blue"] = color.blue
+                cfg[section_name][u"alpha"] = color.alpha
             urls = sharing.getUrls(share)
             if sharing.isSharedByMe(share):
-                cfg.set(section_name, "publisher", "True")
-                cfg.set(section_name, "url", share.getLocation())
+                cfg[section_name][u"publisher"] = u"True"
+                cfg[section_name][u"url"] = share.getLocation()
             else:
-                cfg.set(section_name, "publisher", "False")
+                cfg[section_name][u"publisher"] = u"False"
                 url = share.getLocation()
-                cfg.set(section_name, "url", url)
+                cfg[section_name][u"url"] = url
                 if url != urls[0]:
-                    cfg.set(section_name, "ticket", urls[0])
+                    cfg[section_name][u"ticket"] = urls[0]
                 ticketFreeBusy = getattr(share.conduit, "ticketFreeBusy", None)
                 if ticketFreeBusy:
-                    cfg.set(section_name, "freebusy", "True")
+                    cfg[section_name][u"freebusy"] = u"True"
             counter += 1
-
+            
     # SMTP accounts
-    section_prefix = "smtp_account"
     counter = 1
-
     for account in pim.mail.SMTPAccount.iterItems(rv):
         if account.isActive and account.host:
-            section_name = "%s_%d" % (section_prefix, counter)
-            cfg.add_section(section_name)
-            cfg.set(section_name, "type", "smtp account")
-            cfg.set(section_name, "uuid", account.itsUUID)
-            cfg.set(section_name, "title", account.displayName)
-            cfg.set(section_name, "host", account.host)
-            cfg.set(section_name, "auth", account.useAuth)
-            cfg.set(section_name, "username", account.username)
-            cfg.set(section_name, "password", account.password)
-            cfg.set(section_name, "name", account.fromAddress.fullName)
-            cfg.set(section_name, "address",
-                account.fromAddress.emailAddress)
-            cfg.set(section_name, "port", account.port)
-            cfg.set(section_name, "security", account.connectionSecurity)
+            section_name = u"smtp_account_%d" % counter
+            cfg[section_name] = {}
+            cfg[section_name][u"type"] = u"smtp account"
+            cfg[section_name][u"uuid"] = account.itsUUID
+            cfg[section_name][u"title"] = account.displayName
+            cfg[section_name][u"host"] = account.host
+            cfg[section_name][u"auth"] = account.useAuth
+            cfg[section_name][u"username"] = account.username
+            cfg[section_name][u"password"] = account.password
+            cfg[section_name][u"name"] = account.fromAddress.fullName
+            cfg[section_name][u"address"] = account.fromAddress.emailAddress
+            cfg[section_name][u"port"] = account.port
+            cfg[section_name][u"security"] = account.connectionSecurity
             counter += 1
-
+            
     # IMAP accounts
     currentAccount = schema.ns("osaf.pim", rv).currentMailAccount.item
-    section_prefix = "imap_account"
     counter = 1
-
     for account in pim.mail.IMAPAccount.iterItems(rv):
         if account.isActive and account.host:
-            section_name = "%s_%d" % (section_prefix, counter)
-            cfg.add_section(section_name)
-            cfg.set(section_name, "type", "imap account")
-            cfg.set(section_name, "uuid", account.itsUUID)
-            cfg.set(section_name, "title", account.displayName)
-            cfg.set(section_name, "host", account.host)
-            cfg.set(section_name, "username", account.username)
-            cfg.set(section_name, "password", account.password)
-            cfg.set(section_name, "name", account.replyToAddress.fullName)
-            cfg.set(section_name, "address",
-                account.replyToAddress.emailAddress)
-            cfg.set(section_name, "port", account.port)
-            cfg.set(section_name, "security", account.connectionSecurity)
+            section_name = u"imap_account_%d" % counter
+            cfg[section_name] = {}
+            cfg[section_name][u"type"] = u"imap account"
+            cfg[section_name][u"uuid"] = account.itsUUID
+            cfg[section_name][u"title"] = account.displayName
+            cfg[section_name][u"host"] = account.host
+            cfg[section_name][u"username"] = account.username
+            cfg[section_name][u"password"] = account.password
+            cfg[section_name][u"name"] = account.replyToAddress.fullName
+            cfg[section_name][u"address"] = account.replyToAddress.emailAddress
+            cfg[section_name][u"port"] = account.port
+            cfg[section_name][u"security"] = account.connectionSecurity
             if account.defaultSMTPAccount:
-                cfg.set(section_name, "smtp",
-                    account.defaultSMTPAccount.itsUUID)
+                cfg[section_name][u"smtp"] = account.defaultSMTPAccount.itsUUID
             if account is currentAccount:
-                cfg.set(section_name, "default", "True")
+                cfg[section_name][u"default"] = u"True"
             counter += 1
-
+            
     # POP accounts
     currentAccount = schema.ns("osaf.pim", rv).currentMailAccount.item
-    section_prefix = "pop_account"
     counter = 1
-
     for account in pim.mail.POPAccount.iterItems(rv):
         if account.isActive and account.host:
-            section_name = "%s_%d" % (section_prefix, counter)
-            cfg.add_section(section_name)
-            cfg.set(section_name, "type", "pop account")
-            cfg.set(section_name, "uuid", account.itsUUID)
-            cfg.set(section_name, "title", account.displayName)
-            cfg.set(section_name, "host", account.host)
-            cfg.set(section_name, "username", account.username)
-            cfg.set(section_name, "password", account.password)
-            cfg.set(section_name, "name", account.replyToAddress.fullName)
-            cfg.set(section_name, "address",
-                account.replyToAddress.emailAddress)
-            cfg.set(section_name, "port", account.port)
-            cfg.set(section_name, "security", account.connectionSecurity)
-            cfg.set(section_name, "leave", account.leaveOnServer)
+            section_name = u"pop_account_%d" % counter
+            cfg[section_name] = {}
+            cfg[section_name][u"type"] = u"pop account"
+            cfg[section_name][u"uuid"] = account.itsUUID
+            cfg[section_name][u"title"] = account.displayName
+            cfg[section_name][u"host"] = account.host
+            cfg[section_name][u"username"] = account.username
+            cfg[section_name][u"password"] = account.password
+            cfg[section_name][u"name"] = account.replyToAddress.fullName
+            cfg[section_name][u"address"] = account.replyToAddress.emailAddress
+            cfg[section_name][u"port"] = account.port
+            cfg[section_name][u"security"] = account.connectionSecurity
+            cfg[section_name][u"leave"] = account.leaveOnServer
             if account.defaultSMTPAccount:
-                cfg.set(section_name, "smtp",
-                    account.defaultSMTPAccount.itsUUID)
+                cfg[section_name][u"smtp"] = account.defaultSMTPAccount.itsUUID
             if account is currentAccount:
-                cfg.set(section_name, "default", "True")
+                cfg[section_name][u"default"] = u"True"
             counter += 1
-
+            
     # Show timezones
-    cfg.add_section("timezones")
+    cfg[u"timezones"] = {}
     showTZ = schema.ns("osaf.app", rv).TimezonePrefs.showUI
-    cfg.set("timezones", "type", "show timezones")
-    cfg.set("timezones", "show_timezones", showTZ)
-
+    cfg[u"timezones"][u"type"] = u"show timezones"
+    cfg[u"timezones"][u"show_timezones"] = showTZ
+    
     # Visible hours
-    cfg.add_section("visible_hours")
-    cfg.set("visible_hours", "type", "visible hours")
+    cfg[u"visible_hours"] = {}
+    cfg[u"visible_hours"][u"type"] = u"visible hours"
     calPrefs = schema.ns("osaf.framework.blocks.calendar", rv).calendarPrefs
-    cfg.set("visible_hours", "height_mode", calPrefs.hourHeightMode)
-    cfg.set("visible_hours", "num_hours", calPrefs.visibleHours)
-
+    cfg[u"visible_hours"][u"height_mode"] = calPrefs.hourHeightMode
+    cfg[u"visible_hours"][u"num_hours"] = calPrefs.visibleHours
+    
     # Event Logger
-    cfg.add_section("event_logger")
+    cfg[u"event_logger"] = {}
     eventHook = schema.ns("eventLogger", rv).EventLoggingHook
-    cfg.set("event_logger", "type", "event logger")
+    cfg[u"event_logger"][u"type"] = u"event logger"
     active = eventHook.logging
-    cfg.set("event_logger", "active", active)
-
-    output = file(filename, "w")
-    cfg.write(output)
-    output.close()
+    cfg[u"event_logger"][u"active"] = active
+    
+    cfg.write()
 
 
 def restore(rv, filename, testmode=False):
     """Restore accounts and shares from an INI file"""
-
-    cfg = ConfigParser.ConfigParser()
-    cfg.read(filename)
-
-    # sharing accounts
-    for section in cfg.sections():
-        section_type = cfg.get(section, "type")
-        if section_type == "webdav account":
-            if cfg.has_option(section, "uuid"):
-                uuid = cfg.get(section, "uuid")
+    
+    cfg = ConfigObj(filename, encoding="UTF8")
+    
+    for sectionname, section in cfg.iteritems():
+        if section.has_key(u"type"):
+            sectiontype = section[u"type"]
+        else:
+            sectiontype = ""
+        # sharing accounts
+        if sectiontype == u"webdav account":
+            if section.has_key(u"uuid"):
+                uuid = section[u"uuid"]
                 uuid = UUID(uuid)
                 account = rv.findUUID(uuid)
                 if account is None:
@@ -212,34 +200,36 @@ def restore(rv, filename, testmode=False):
             else:
                 account = sharing.WebDAVAccount(itsView=rv)
 
-            account.displayName = cfg.get(section, "title")
-            account.host = cfg.get(section, "host")
-            account.path = cfg.get(section, "path")
-            account.username = cfg.get(section, "username")
-            account.password = cfg.get(section, "password")
-            account.port = cfg.getint(section, "port")
-            account.useSSL = cfg.getboolean(section, "usessl")
+            account.displayName = section[u"title"]
+            account.host = section[u"host"]
+            account.path = section[u"path"]
+            account.username = section[u"username"]
+            account.password = section[u"password"]
+            account.port = section.as_int(u"port")
+            account.useSSL = section.as_bool(u"usessl")
 
-            if (cfg.has_option(section, "default") and
-                cfg.getboolean(section, "default")):
+            if section.has_key(u"default") and section.as_bool(u"default"):
                 accountRef = schema.ns("osaf.sharing", rv).currentWebDAVAccount
                 accountRef.item = account
-
-    # shares
-    for section in cfg.sections():
-        section_type = cfg.get(section, "type")
-        if section_type == "share":
-            url = cfg.get(section, "url")
+                
+    for sectionname, section in cfg.iteritems():
+        if section.has_key(u"type"):
+            sectiontype = section[u"type"]
+        else:
+            sectiontype = ""
+        # shares
+        if sectiontype == u"share":
+            url = section[u"url"]
 
             mine = False
-            if cfg.has_option(section, "mine"):
+            if section.has_key(u"mine"):
                 # Add to my items
-                mine = cfg.getboolean(section, "mine")
+                mine = section.as_bool(u"mine")
 
             publisher = False
-            if cfg.has_option(section, "publisher"):
+            if section.has_key(u"publisher"):
                 # make me the publisher
-                publisher = cfg.getboolean(section, "publisher")
+                publisher = section.as_bool(u"publisher")
 
             subscribed = False
             for share in sharing.Share.iterItems(rv):
@@ -247,21 +237,22 @@ def restore(rv, filename, testmode=False):
                     subscribed = True
 
             if not subscribed:
-                if cfg.has_option(section, "ticket"):
-                    url = cfg.get(section, "ticket")
+                url = ""
+                if section.has_key(u"ticket"):
+                    url = section[u"ticket"]
                 freebusy = False
-                if cfg.has_option(section, "freebusy"):
-                    freebusy = cfg.getboolean(section, "freebusy")
-                title = cfg.get(section, "title")
+                if section.has_key(u"freebusy"):
+                    freebusy = section.as_bool(u"freebusy")
+                title = section[u"title"]
 
-                if cfg.has_option(section, "red"):
+                if section.has_key(u"red"):
                     # Backwards-compatibility fix for bug 6899...
                     # Due to an earlier bug, some people's ini files
                     # still have floats in them, so let's cast just in case:
-                    red = int(float(cfg.get(section, "red")))
-                    blue = int(float(cfg.get(section, "blue")))
-                    green = int(float(cfg.get(section, "green")))
-                    alpha = int(float(cfg.get(section, "alpha")))
+                    red = int(float(section.as_float(u"red")))
+                    blue = int(float(section.as_float(u"blue")))
+                    green = int(float(section.as_float(u"green")))
+                    alpha = int(float(section.as_float(u"alpha")))
                     color = ColorType(red, green, blue, alpha)
                 else:
                     color = None
@@ -280,13 +271,16 @@ def restore(rv, filename, testmode=False):
                                              immediate=True, mine=mine,
                                              publisher=publisher,
                                              freebusy=freebusy, color=color)
-
-    # smtp accounts
-    for section in cfg.sections():
-        section_type = cfg.get(section, "type")
-        if section_type == "smtp account":
-            if cfg.has_option(section, "uuid"):
-                uuid = cfg.get(section, "uuid")
+        
+    for sectionname, section in cfg.iteritems():
+        if section.has_key(u"type"):
+            sectiontype = section[u"type"]
+        else:
+            sectiontype = ""
+        # smtp accounts
+        if sectiontype == u"smtp account":
+            if section.has_key(u"uuid"):
+                uuid = section[u"uuid"]
                 uuid = UUID(uuid)
                 account = rv.findUUID(uuid)
                 if account is None:
@@ -297,24 +291,26 @@ def restore(rv, filename, testmode=False):
             else:
                 account = pim.mail.SMTPAccount(itsView=rv)
 
-            account.displayName = cfg.get(section, "title")
-            account.host = cfg.get(section, "host")
-            account.useAuth = cfg.getboolean(section, "auth")
-            account.username = cfg.get(section, "username")
-            account.password = cfg.get(section, "password")
-            account.port = cfg.getint(section, "port")
-            account.connectionSecurity = cfg.get(section, "security")
+            account.displayName = section[u"title"]
+            account.host = section[u"host"]
+            account.useAuth = section.as_bool(u"auth")
+            account.username = section[u"username"]
+            account.password = section[u"password"]
+            account.port = section.as_int(u"port")
+            account.connectionSecurity = section[u"security"]
             emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
-                cfg.get(section, "address"), cfg.get(section, "name"))
+                section[u"address"], section[u"name"])
             account.fromAddress = emailAddress
-
-
-    # imap accounts
-    for section in cfg.sections():
-        section_type = cfg.get(section, "type")
-        if section_type == "imap account":
-            if cfg.has_option(section, "uuid"):
-                uuid = cfg.get(section, "uuid")
+        
+    for sectionname, section in cfg.iteritems():
+        if section.has_key(u"type"):
+            sectiontype = section[u"type"]
+        else:
+            sectiontype = ""
+        # imap accounts
+        if sectiontype == u"imap account":
+            if section.has_key(u"uuid"):
+                uuid = section[u"uuid"]
                 uuid = UUID(uuid)
                 account = rv.findUUID(uuid)
                 if account is None:
@@ -325,33 +321,35 @@ def restore(rv, filename, testmode=False):
             else:
                 account = pim.mail.IMAPAccount(itsView=rv)
 
-            account.displayName = cfg.get(section, "title")
-            account.host = cfg.get(section, "host")
-            account.username = cfg.get(section, "username")
-            account.password = cfg.get(section, "password")
-            account.port = cfg.getint(section, "port")
-            account.connectionSecurity = cfg.get(section, "security")
+            account.displayName = section[u"title"]
+            account.host = section[u"host"]
+            account.username = section[u"username"]
+            account.password = section[u"password"]
+            account.port = section.as_int(u"port")
+            account.connectionSecurity = section[u"security"]
             emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
-                cfg.get(section, "address"), cfg.get(section, "name"))
+                section[u"address"], section[u"name"])
             account.replyToAddress = emailAddress
 
-            if (cfg.has_option(section, "default") and
-                cfg.getboolean(section, "default")):
+            if section.has_key(u"default") and section[u"default"]:
                 accountRef = schema.ns("osaf.pim", rv).currentMailAccount
                 accountRef.item = account
 
-            if cfg.has_option(section, "smtp"):
-                uuid = cfg.get(section, "smtp")
+            if section.has_key(u"smtp"):
+                uuid = section[u"smtp"]
                 uuid = UUID(uuid)
                 smtp = rv.findUUID(uuid)
                 account.defaultSMTPAccount = smtp
-
-    # pop accounts
-    for section in cfg.sections():
-        section_type = cfg.get(section, "type")
-        if section_type == "pop account":
-            if cfg.has_option(section, "uuid"):
-                uuid = cfg.get(section, "uuid")
+        
+    for sectionname, section in cfg.iteritems():
+        if section.has_key(u"type"):
+            sectiontype = section[u"type"]
+        else:
+            sectiontype = ""
+        # pop accounts
+        if sectiontype == u"pop account":
+            if section.has_key(u"uuid"):
+                uuid = section[u"uuid"]
                 uuid = UUID(uuid)
                 account = rv.findUUID(uuid)
                 if account is None:
@@ -362,46 +360,51 @@ def restore(rv, filename, testmode=False):
             else:
                 account = pim.mail.POPAccount(itsView=rv)
 
-            account.displayName = cfg.get(section, "title")
-            account.host = cfg.get(section, "host")
-            account.username = cfg.get(section, "username")
-            account.password = cfg.get(section, "password")
-            account.port = cfg.getint(section, "port")
-            account.connectionSecurity = cfg.get(section, "security")
-            account.leaveOnServer = cfg.getboolean(section, "leave")
+            account.displayName = section[u"title"]
+            account.host = section[u"host"]
+            account.username = section[u"username"]
+            account.password = section[u"password"]
+            account.port = section.as_int(u"port")
+            account.connectionSecurity = section[u"security"]
+            account.leaveOnServer = section.as_bool(u"leave")
             emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
-                cfg.get(section, "address"), cfg.get(section, "name"))
+                section[u"address"], section[u"name"])
             account.replyToAddress = emailAddress
 
-            if (cfg.has_option(section, "default") and
-                cfg.getboolean(section, "default")):
+            if section.has_key(u"default") and section[u"default"]:
                 accountRef = schema.ns("osaf.pim", rv).currentMailAccount
                 accountRef.item = account
 
-            if cfg.has_option(section, "smtp"):
-                uuid = cfg.get(section, "smtp")
+            if section.has_key(u"smtp"):
+                uuid = section[u"smtp"]
                 uuid = UUID(uuid)
                 smtp = rv.findUUID(uuid)
                 account.defaultSMTPAccount = smtp
+        
+    for sectionname, section in cfg.iteritems():
+        if section.has_key(u"type"):
+            sectiontype = section[u"type"]
+        else:
+            sectiontype = ""
+        # timezones
+        if sectionname == u"timezones":
+            if section.has_key(u"show_timezones"):
+                show = section.as_bool(u"show_timezones")
+                schema.ns("osaf.app", rv).TimezonePrefs.showUI = show
+        
+        # Visible hours
+        elif sectionname == u"visible_hours":
+            calPrefs = schema.ns("osaf.framework.blocks.calendar", rv).calendarPrefs
+            if section.has_key(u"height_mode"):
+                calPrefs.hourHeightMode = section[u"height_mode"]
+            if section.has_key(u"num_hours"):
+                calPrefs.visibleHours = section.as_int(u"num_hours")
+        
+        # Event Logger        
+        elif sectionname == u"event_logger":
+            if section.has_key(u"active"):
+                active = section.as_bool(u"active")
+                if active:
+                    eventHook = schema.ns("eventLogger", rv).EventLoggingHook
+                    eventHook.onToggleLoggingEvent(None)
 
-
-    # timezones
-    if cfg.has_section("timezones"):
-        if cfg.has_option("timezones", "show_timezones"):
-            show = cfg.getboolean("timezones", "show_timezones")
-            schema.ns("osaf.app", rv).TimezonePrefs.showUI = show
-
-    # Visible hours
-    if cfg.has_section("visible_hours"):
-        calPrefs = schema.ns("osaf.framework.blocks.calendar", rv).calendarPrefs
-        if cfg.has_option("visible_hours", "height_mode"):
-            calPrefs.hourHeightMode = cfg.get("visible_hours", "height_mode")
-        if cfg.has_option("visible_hours", "num_hours"):
-            calPrefs.visibleHours = cfg.getint("visible_hours", "num_hours")
-
-    # Event Logger
-    if cfg.has_section("event_logger"):
-        active = cfg.getboolean("event_logger", "active")
-        if active:
-            eventHook = schema.ns("eventLogger", rv).EventLoggingHook
-            eventHook.onToggleLoggingEvent(None)
