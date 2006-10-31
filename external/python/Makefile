@@ -115,7 +115,7 @@ clean:
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
 binaries: strip
-	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.py[co]" -delete
+	find $(BUILD_ROOT)/$(SNAP)/bin/Lib -name "*.py[co]" -delete
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
             --exclude site-packages \
