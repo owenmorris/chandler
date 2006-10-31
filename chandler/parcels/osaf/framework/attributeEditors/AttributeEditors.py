@@ -2408,14 +2408,16 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             TimeZoneList.buildTZChoiceList(self.item.itsView, control, value)
 
 class TriageAttributeEditor(BaseAttributeEditor):
+    editingAttribute = 'editedTriageStatus'
+
     def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
         # Get the value we'll draw, and its label
         item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
-        value = getattr(item, attributeName, '')
+        value = getattr(item, self.editingAttribute or attributeName, '')
         label = value and pim.getTriageStatusName(value) or u''
 
         # Paint our box in the right color
-        backgroundColor = styles.cfg.get('summary', 'SectionSample_%s_%s' 
+        backgroundColor = styles.cfg.get('summary', 'SectionSample_%s_%s'
                                          % (attributeName, value)) or '#000000'
         dc.SetPen(wx.WHITE_PEN)
         brush = wx.Brush(backgroundColor, wx.SOLID)
@@ -2434,6 +2436,7 @@ class TriageAttributeEditor(BaseAttributeEditor):
         """
         Handle live changes of mouse state related to our cell.
         """
+        attributeName = self.editingAttribute or attributeName
         # Note down-ness changes; eat the event if the downness changed, and
         # trigger an advance if appropriate.
         if isDown != getattr(self, 'wasDown', False):

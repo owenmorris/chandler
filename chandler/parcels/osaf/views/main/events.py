@@ -227,6 +227,12 @@ def makeMainEvents(parcel):
         dispatchEnum = 'SendToBlockByName',
         dispatchToBlockName = 'MainView').install(parcel)
 
+    BlockEvent.template(
+        'Purge',
+        commitAfterDispatch = True,
+        dispatchEnum = 'SendToBlockByName',
+        dispatchToBlockName = 'TableSummaryView').install(parcel)
+
     ClassParameterizedEvent.template(
         'ApplicationBarAll',
         methodName = 'onClassParameterizedEvent',

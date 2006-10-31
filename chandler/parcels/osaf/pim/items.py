@@ -178,7 +178,24 @@ class ContentItem(schema.Item):
 
     triageStatus = schema.One(TriageEnum, indexed=True,
                               defaultValue=TriageEnum.now)
-    
+
+    _editedTriageStatus = schema.One(TriageEnum)
+
+    def getEditedTriageStatus(self):
+        result = self.getAttributeValue('_editedTriageStatus', default=None)
+        if result is None:
+            result = self.triageStatus
+        return result
+
+    def setEditedTriageStatus(self, value):
+        self._editedTriageStatus = value
+        
+    editedTriageStatus = schema.Calculated(
+                            TriageEnum,
+                            fset=setEditedTriageStatus,
+                            fget=getEditedTriageStatus,
+                            basedOn=(_editedTriageStatus, triageStatus))
+
     # For sorting by how recently triageStatus changed, we keep this attribute,
     # which is the time (in seconds) of the last change, negated for proper 
     # order. It's updated automatically when triageStatus is changed by 
@@ -461,6 +478,9 @@ class ContentItem(schema.Item):
         when = when or datetime.now(tz=ICUtzinfo.default)
         self.triageStatusChanged = time.mktime(when.utctimetuple())
         logger.debug("%s.triageStatus = %s @ %s", self, getattr(self, 'triageStatus', None), when)
+        
+        if getattr(self, '_editedTriageStatus', None) == self.triageStatus:
+            del self._editedTriageStatus
 
     def getBasedAttributes(self, attribute):
         """ Determine the schema attributes that affect this attribute

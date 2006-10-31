@@ -195,3 +195,28 @@ class DashboardBlock(Table):
     def onEnableSectionsPref(self, op, item, names):
         if 'showSections' in names:
             self.synchronizeWidget()
+
+    '''
+    def onPurgeEventUpdateUI(self, event):
+        for key in self.contents.iterkeys():
+            triageStatus = self.itsView.findValue(key,
+                                                 '_editedTriageStatus',
+                                                  default=None)
+            if triageStatus is not None:
+                enabled = True
+                break
+        else:
+            enabled = False
+        print '%s.onPurgeEventUpdateUI(): enabled=%s' % (self, enabled)
+        event.arguments['Enable'] = enabled
+    '''
+
+    def onPurgeEvent(self, event):
+        for key in self.contents.iterkeys():
+            triageStatus = self.itsView.findValue(key,
+                                                 '_editedTriageStatus',
+                                                  default=None)
+            if triageStatus is not None:
+                item = self.itsView[key]
+                item.triageStatus = triageStatus
+
