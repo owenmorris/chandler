@@ -22,20 +22,97 @@ This approach is intended to be complementary to persisting layout details that
 can be changed by users in the course of using chandler.
 """
 
-import ConfigParser, os
+import os
+from configobj import ConfigObj
+from ConfigParser import DuplicateSectionError, NoSectionError
 
 cfg = None
 
-class AcceptEmptyConfig(ConfigParser.SafeConfigParser):
-    def get(self, *args, **kwargs):
+class AcceptEmptyConfig(ConfigObj):
+    # legacy interface to mimic ConfigParser
+    # (not a 100% complete)
+    def sections(self):
+        return self.keys()
+    
+    def add_section(self, section):
+        if self.hasKey(unicode(section)):
+            raise DuplicateSectionError
+        self[unicode(section)] = {}
+    
+    def has_section(self, section):
+        return self.hasKey(unicode(section))
+        
+    def options(self, section):
+        if self.hasKey(unicode(section)):
+            return self[unicode(section)].items()
+        return []
+    
+    def has_option(self, section, option):
+        return self.hasKey(unicode(section)) and self[unicode(section)].hasKey(unicode(option))
+
+    def get(self, section, option):
         try:
-            return ConfigParser.SafeConfigParser.get(self, *args, **kwargs)
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+             entry = self[unicode(section)][unicode(option)]
+             if isinstance(entry, list):
+                 entry = u", ".join(entry)
+             elif not (isinstance(entry, str) or isinstance(entry, unicode)):
+                 entry = unicode(entry)
+             # hack for color entries
+             if entry.startswith(u"rgb"):
+                 entry = u"#%s" % entry[3:9]
+             return entry
+        except:
             return None
+
+    def getint(self, section, option):
+        try:
+            return self[unicode(section)].as_int(unicode(option))
+        except:
+            return None
+
+    def getfloat(self, section, option):
+        try:
+            return self[unicode(section)].as_float(unicode(option))
+        except:
+            return None
+
+    def getboolean(self, section, option):
+        try:
+            return self[unicode(section)].as_bool(unicode(option))
+        except:
+            return None
+
+    def items(self, section):
+        try:
+            return self[unicode(section)].items()
+        except:
+            return []
+        
+    def set(self, section, option, value):
+        if self.hasKey(unicode(section)):
+            self[unicode(section)][unicode(option)] = value
+        else:
+            raise NoSectionError
+        
+    def remove_option(self, section, option):
+        if self.hasKey(unicode(section)):
+            if self[unicode(section)].hasKey(unicode(option)):
+                del self[unicode(section)][unicode(option)]
+                return True
+            else:
+                return False
+        else:
+            raise NoSectionError
+        
+    def remove_section(self, section):
+        if self.hasKey(unicode(section)):
+            del self[unicode(section)]
+            return True
+        else:
+            return False
 
 def loadConfig():
     global cfg
-    cfg = AcceptEmptyConfig()
-    cfg.read(os.path.join(os.path.dirname(__file__), 'styles.conf'))
+    cfg = AcceptEmptyConfig(os.path.join(os.path.dirname(__file__), 'styles.conf'), encoding="UTF8")
 
 loadConfig()
