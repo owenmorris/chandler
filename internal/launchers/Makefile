@@ -46,7 +46,7 @@ clean:
 build: 
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
 	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
-	make -C $(LAUNCHERS)/win
+	$(MAKE) -C $(LAUNCHERS)/win
 
 endif
 
