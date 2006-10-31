@@ -16,6 +16,8 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-PhotoPlugin \
                 EggTranslations-Plugin
 
+PYEGGS = $(CHANDLERARCHIVES)/configobj-4.3.2-py$(PYTHON_VER).egg
+
 # When a version changes, the ARCHIVES lists below needs to be updated.
 # these get installed into release or debug
 ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)G.tar.gz \
@@ -130,7 +132,7 @@ else
     endif
 endif
 
-# readline is only needed for OSX
+# readline is only needed for OS X
 ifeq ($(OS),Darwin)
     ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.1-$(BP)2.tar.gz
 endif
@@ -146,8 +148,9 @@ ifeq ($(CURL),)
     CURL=curl $(CHANDLER_CURL_OPTIONS) -f -o
 endif
 
-HOST = builds.osafoundation.org
-URL  = http://$(HOST)/external/$(PLATFORM)
+HOST  = builds.osafoundation.org
+URL   = http://$(HOST)/external
+P_URL = $(URL)/$(PLATFORM)
 
 SETUPTOOLS_EGG  = $(CHANDLERARCHIVES)/setuptools-0.6c4dev_r52047-py2.4.egg
 SETUPTOOLS_ABS  = $(SETUPTOOLS_EGG)
@@ -177,6 +180,11 @@ ARCHIVES_INST = \
     $(addsuffix .inst, \
                 $(addprefix $(C_BIN)/$(SNAP)/, \
                             $(notdir $(ARCHIVES))))
+
+PYEGGS_INST = \
+    $(addsuffix .inst, \
+                $(addprefix $(C_BIN)/$(SNAP)/, \
+                            $(notdir $(PYEGGS))))
 
 downloads: $(ARCHIVES)
 
@@ -211,15 +219,27 @@ chandler-locale-data:
 
 $(ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
-	$(CURL) $@ $(URL)/$(notdir $@)
+	$(CURL) $@ $(P_URL)/$(notdir $@)
 
 $(ARCHIVES_INST):
 	tar -C $(C_BIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
 
+$(PYEGGS):
+	mkdir -p $(CHANDLERARCHIVES)
+	$(CURL) $@ $(P_URL)/$(notdir $@)
+
+$(PYEGGS_INST):
+	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' CHANDLERHOME='$(CHANDLERHOME)' $(PYTHON_BIN) \
+      -c "from setuptools.command.easy_install import main; main()" \
+      --script-dir='$(SETUPTOOLS_BIN)' \
+      --install-dir='$(PLUGIN_INST)' \
+      $(CHANDLERARCHIVES)/$(notdir $(basename $@))
+	touch $@
+
 $(SETUPTOOLS_EGG):
 	mkdir -p $(CHANDLERARCHIVES)
-	$(CURL) $@ http://$(HOST)/external/$(notdir $@)
+	$(CURL) $@ $(URL)/$(notdir $@)
 
 setuptools: $(SETUPTOOLS_EGG)
 	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' CHANDLERHOME='$(CHANDLERHOME)' $(PYTHON_BIN) \
@@ -240,7 +260,7 @@ endif
 
 install-core: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe
 
-install-plugin-core: setuptools chandler-locale-data
+install-plugin-core: setuptools chandler-locale-data $(PYEGGS_INST)
 
 plugins: install-plugin-core build-plugins
 
@@ -248,7 +268,7 @@ install: install-core plugins
 
 distrib: install-core install-plugin-core distrib-plugins
 
-download: $(ARCHIVES) $(SETUPTOOLS_EGG)
+download: $(ARCHIVES) $(SETUPTOOLS_EGG) $(PYEGGS)
 
 # to install individual binaries, for example: make chandlerdb
 
