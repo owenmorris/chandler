@@ -167,7 +167,7 @@ $(SRC)/$(BUILD)/Makefile:
       ../configure --prefix=$(PREFIX) $(CONF_DBG)
 
 bzip2-$(BZIP2VERSION)/libbz2.a:
-	make -C bzip2-$(BZIP2VERSION) libbz2.a
+	$(MAKE) -C bzip2-$(BZIP2VERSION) libbz2.a
 
 build: expand bzip2-$(BZIP2VERSION)/libbz2.a apply $(SRC)/$(BUILD)/Makefile
 	install -D bzip2-$(BZIP2VERSION)/libbz2.a $(PREFIX)/lib/libbz2.a

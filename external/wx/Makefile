@@ -32,5 +32,7 @@ binaries: strip
 install: $(TARBALL)
 	$(MAKE) -C $(SRC) DEBUG=$(DEBUG) RELVER_FLAGS=$(RELVER_FLAGS) RELVER=$(RELVER) install
 
+ifeq (/,$(SRC))
 clean:
 	$(MAKE) -C $(SRC) DEBUG=$(DEBUG) RELVER_FLAGS=$(RELVER_FLAGS) RELVER=$(RELVER) clean
+endif

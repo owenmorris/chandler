@@ -135,9 +135,11 @@ build: expand apply
 test:
 	$(MAKE) -C $(SRC) PYTHON=$(PYTHON) test
 
-clean:
+ifeq (/,$(SRC))
+clean: $(SRC)
 	$(MAKE) -C $(SRC) clean
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
+endif
 
 binaries:
 	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) $(MANIFEST)

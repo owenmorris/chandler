@@ -68,8 +68,10 @@ endif
 endif
 endif
 
-clean: PyICU-$(VERSION)-expanded
+ifeq (/,$(SRC))
+clean:
 	$(MAKE) -C $(SRC) clean
+endif
 
 binaries: strip
 	cd $(BUILD_ROOT); \
