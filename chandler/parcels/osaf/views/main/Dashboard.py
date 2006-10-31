@@ -199,7 +199,7 @@ class DashboardBlock(Table):
     def onPurgeEvent(self, event):
         for key in self.contents.iterkeys():
             triageStatus = self.itsView.findValue(key,
-                                                 '_editedTriageStatus',
+                                                 '_unpurgedTriageStatus',
                                                   default=None)
             if triageStatus is not None:
                 item = self.itsView[key]

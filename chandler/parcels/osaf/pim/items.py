@@ -179,22 +179,24 @@ class ContentItem(schema.Item):
     triageStatus = schema.One(TriageEnum, indexed=True,
                               defaultValue=TriageEnum.now)
 
-    _editedTriageStatus = schema.One(TriageEnum)
+    _unpurgedTriageStatus = schema.One(TriageEnum)
 
-    def getEditedTriageStatus(self):
-        result = self.getAttributeValue('_editedTriageStatus', default=None)
+    def getUnpurgedTriageStatus(self):
+        result = self.getAttributeValue('_unpurgedTriageStatus', default=None)
         if result is None:
             result = self.triageStatus
         return result
 
-    def setEditedTriageStatus(self, value):
-        self._editedTriageStatus = value
+    def setUnpurgedTriageStatus(self, value):
+        self._unpurgedTriageStatus = value
         
-    editedTriageStatus = schema.Calculated(
+    unpurgedTriageStatus = schema.Calculated(
                             TriageEnum,
-                            fset=setEditedTriageStatus,
-                            fget=getEditedTriageStatus,
-                            basedOn=(_editedTriageStatus, triageStatus))
+                            fset=setUnpurgedTriageStatus,
+                            fget=getUnpurgedTriageStatus,
+                            basedOn=(_unpurgedTriageStatus, triageStatus),
+                            doc="Calculated for edited triageStatus, before"
+                                "user has committed changes")
 
     # For sorting by how recently triageStatus changed, we keep this attribute,
     # which is the time (in seconds) of the last change, negated for proper 
@@ -479,8 +481,8 @@ class ContentItem(schema.Item):
         self.triageStatusChanged = time.mktime(when.utctimetuple())
         logger.debug("%s.triageStatus = %s @ %s", self, getattr(self, 'triageStatus', None), when)
         
-        if getattr(self, '_editedTriageStatus', None) == self.triageStatus:
-            del self._editedTriageStatus
+        if getattr(self, '_unpurgedTriageStatus', None) == self.triageStatus:
+            del self._unpurgedTriageStatus
 
     def getBasedAttributes(self, attribute):
         """ Determine the schema attributes that affect this attribute

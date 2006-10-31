@@ -2408,7 +2408,8 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             TimeZoneList.buildTZChoiceList(self.item.itsView, control, value)
 
 class TriageAttributeEditor(BaseAttributeEditor):
-    editingAttribute = 'editedTriageStatus'
+    # Set this to '' to show/edit the "real" triageStatus everywhere.
+    editingAttribute = 'unpurgedTriageStatus'
 
     def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
         # Get the value we'll draw, and its label
