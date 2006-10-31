@@ -58,7 +58,8 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
 
         #self.factory.extraHeaders = { 'Connection' : "close" }
 
-        userAgent = "Chandler/%s" % version.version
+        platformName = Utility.getPlatformName()
+        userAgent = "Chandler/%s (%s)" % (version.version, platformName)
         self.factory.extraHeaders = { 'User-Agent' : userAgent }
 
         self.factory.logging = True
