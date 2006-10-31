@@ -260,7 +260,7 @@ endif
 
 install-core: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe
 
-install-plugin-core: setuptools chandler-locale-data $(PYEGGS_INST)
+install-plugin-core: $(SETUPTOOLS_EGG) $(PYEGGS) setuptools chandler-locale-data $(PYEGGS_INST)
 
 plugins: install-plugin-core build-plugins
 
