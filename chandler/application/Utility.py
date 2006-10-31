@@ -635,38 +635,30 @@ class SchemaMismatchError(Exception):
 
 def fileConfig(fname, defaults=None):
     """
-    Read the logging configuration from a ConfigParser-format file.
+    Read the logging configuration from a ConfigObj-format file.
 
     This can be called several times from an application, allowing an end user
     the ability to select from various pre-canned configurations (if the
     developer provides a mechanism to present the choices and load the chosen
     configuration).
-    In versions of ConfigParser which have the readfp method [typically
-    shipped in 2.x versions of Python], you can pass in a file-like object
-    rather than a filename, in which case the file-like object will be read
-    using readfp.
     """
-    import ConfigParser
+    from configobj import ConfigObj
 
-    cp = ConfigParser.ConfigParser(defaults)
-    if hasattr(cp, 'readfp') and hasattr(fname, 'readline'):
-        cp.readfp(fname)
-    else:
-        cp.read(fname)
+    cp = ConfigObj(fname, encoding="UTF8")
     #first, do the formatters...
-    flist = cp.get("formatters", "keys")
+    flist = cp[u"formatters"][u"keys"]
     if len(flist):
-        flist = string.split(flist, ",")
+        flist = flist.split(",")
         formatters = {}
         for form in flist:
-            sectname = "formatter_%s" % form
-            opts = cp.options(sectname)
-            if "format" in opts:
-                fs = cp.get(sectname, "format", 1)
+            sectname = u"formatter_%s" % form
+            section = cp[sectname]
+            if section.hasKey(u"format"):
+                fs = section[u"format"]
             else:
                 fs = None
-            if "datefmt" in opts:
-                dfs = cp.get(sectname, "datefmt", 1)
+            if section.hasKey("datefmt"):
+                dfs = section[u"datefmt"]
             else:
                 dfs = None
             f = logging.Formatter(fs, dfs)
@@ -679,33 +671,33 @@ def fileConfig(fname, defaults=None):
             #first, lose the existing handlers...
             logging._handlers.clear()
             #now set up the new ones...
-            hlist = cp.get("handlers", "keys")
+            hlist = cp[u"handlers"][u"keys"]
             if len(hlist):
-                hlist = string.split(hlist, ",")
+                hlist = hlist.split(",")
                 handlers = {}
                 fixups = [] #for inter-handler references
                 for hand in hlist:
                     try:
-                        sectname = "handler_%s" % hand
-                        klass = cp.get(sectname, "class")
-                        opts = cp.options(sectname)
-                        if "formatter" in opts:
-                            fmt = cp.get(sectname, "formatter")
+                        sectname = u"handler_%s" % hand
+                        section = cp[sectname]
+                        klass = section[u"class"]
+                        if section.hasKey(u"formatter"):
+                            fmt = section[u"formatter"]
                         else:
                             fmt = ""
                         klass = eval(klass, vars(logging))
-                        args = cp.get(sectname, "args")
+                        args = section[u"args"]
                         args = eval(args, vars(logging))
                         h = apply(klass, args)
-                        if "level" in opts:
-                            level = cp.get(sectname, "level")
+                        if section.hasKey(u"level"):
+                            level = section[u"level"]
                             h.setLevel(logging._levelNames[level])
                         if len(fmt):
                             h.setFormatter(formatters[fmt])
                         #temporary hack for FileHandler and MemoryHandler.
                         if klass == logging.handlers.MemoryHandler:
-                            if "target" in opts:
-                                target = cp.get(sectname,"target")
+                            if section.hasKey(u"target"):
+                                target = section[u"target"]
                             else:
                                 target = ""
                             if len(target): #the target handler may not be loaded yet, so keep for later...
@@ -719,19 +711,18 @@ def fileConfig(fname, defaults=None):
                     t = fixup[1]
                     h.setTarget(handlers[t])
             #at last, the loggers...first the root...
-            llist = cp.get("loggers", "keys")
+            llist = cp[u"loggers"][u"keys"]
             llist = string.split(llist, ",")
             llist.remove("root")
-            sectname = "logger_root"
+            section = cp[u"logger_root"]
             root = logging.root
             log = root
-            opts = cp.options(sectname)
-            if "level" in opts:
-                level = cp.get(sectname, "level")
+            if section.hasKey(u"level"):
+                level = section[u"level"]
                 log.setLevel(logging._levelNames[level])
             for h in root.handlers[:]:
                 root.removeHandler(h)
-            hlist = cp.get(sectname, "handlers")
+            hlist = section[u"handlers"]
             if len(hlist):
                 hlist = string.split(hlist, ",")
                 for hand in hlist:
@@ -748,24 +739,24 @@ def fileConfig(fname, defaults=None):
             existing = root.manager.loggerDict.keys()
             #now set up the new ones...
             for log in llist:
-                sectname = "logger_%s" % log
-                qn = cp.get(sectname, "qualname")
-                opts = cp.options(sectname)
-                if "propagate" in opts:
-                    propagate = cp.getint(sectname, "propagate")
+                sectname = u"logger_%s" % log
+                section = cp[sectname]
+                qn = section[u"qualname"]
+                if section.hasKey(u"propagate"):
+                    propagate = section.as_int(u"propagate")
                 else:
                     propagate = 1
                 logger = logging.getLogger(qn)
                 if qn in existing:
                     existing.remove(qn)
-                if "level" in opts:
-                    level = cp.get(sectname, "level")
+                if section.hasKey(u"level"):
+                    level = section[u"level"]
                     logger.setLevel(logging._levelNames[level])
                 for h in logger.handlers[:]:
                     logger.removeHandler(h)
                 logger.propagate = propagate
                 logger.disabled = 0
-                hlist = cp.get(sectname, "handlers")
+                hlist = section[u"handlers"]
                 if len(hlist):
                     hlist = string.split(hlist, ",")
                     for hand in hlist:
