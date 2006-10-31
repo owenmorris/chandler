@@ -653,11 +653,11 @@ def fileConfig(fname, defaults=None):
         for form in flist:
             sectname = u"formatter_%s" % form
             section = cp[sectname]
-            if section.hasKey(u"format"):
+            if section.has_key(u"format"):
                 fs = section[u"format"]
             else:
                 fs = None
-            if section.hasKey("datefmt"):
+            if section.has_key("datefmt"):
                 dfs = section[u"datefmt"]
             else:
                 dfs = None
@@ -681,7 +681,7 @@ def fileConfig(fname, defaults=None):
                         sectname = u"handler_%s" % hand
                         section = cp[sectname]
                         klass = section[u"class"]
-                        if section.hasKey(u"formatter"):
+                        if section.has_key(u"formatter"):
                             fmt = section[u"formatter"]
                         else:
                             fmt = ""
@@ -689,14 +689,14 @@ def fileConfig(fname, defaults=None):
                         args = section[u"args"]
                         args = eval(args, vars(logging))
                         h = apply(klass, args)
-                        if section.hasKey(u"level"):
+                        if section.has_key(u"level"):
                             level = section[u"level"]
                             h.setLevel(logging._levelNames[level])
                         if len(fmt):
                             h.setFormatter(formatters[fmt])
                         #temporary hack for FileHandler and MemoryHandler.
                         if klass == logging.handlers.MemoryHandler:
-                            if section.hasKey(u"target"):
+                            if section.has_key(u"target"):
                                 target = section[u"target"]
                             else:
                                 target = ""
@@ -717,7 +717,7 @@ def fileConfig(fname, defaults=None):
             section = cp[u"logger_root"]
             root = logging.root
             log = root
-            if section.hasKey(u"level"):
+            if section.has_key(u"level"):
                 level = section[u"level"]
                 log.setLevel(logging._levelNames[level])
             for h in root.handlers[:]:
@@ -742,14 +742,14 @@ def fileConfig(fname, defaults=None):
                 sectname = u"logger_%s" % log
                 section = cp[sectname]
                 qn = section[u"qualname"]
-                if section.hasKey(u"propagate"):
+                if section.has_key(u"propagate"):
                     propagate = section.as_int(u"propagate")
                 else:
                     propagate = 1
                 logger = logging.getLogger(qn)
                 if qn in existing:
                     existing.remove(qn)
-                if section.hasKey(u"level"):
+                if section.has_key(u"level"):
                     level = section[u"level"]
                     logger.setLevel(logging._levelNames[level])
                 for h in logger.handlers[:]:
