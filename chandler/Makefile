@@ -318,7 +318,7 @@ clean:
 	rm -rf $(C_BIN)/$(SNAP)
 	rm -rf __repository__
 	rm -f chandler.log randpool.dat
-	find . -name '*.py[co]' | xargs rm -f
+	find . -name '*.py[co]' -delete
 
 distclean: clean
 	rm -rf $(C_BIN)/debug
