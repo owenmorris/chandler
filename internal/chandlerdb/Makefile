@@ -38,8 +38,7 @@ realclean: clean
 
 $(TARBALL): strip
 	cd $(BUILD_ROOT); \
-	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
-	find $(MANIFEST) -name "*.pyo" | xargs rm -f; \
+	find $(MANIFEST) -name "*.py[co]" -delete; \
         tar -cvzf $(CHANDLERDB)/$(TARBALL) $(MANIFEST)
 
 binaries: $(TARBALL)
