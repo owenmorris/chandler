@@ -500,7 +500,12 @@ class Kind(Item):
                     if name not in allAttributes:
                         allAttributes[name] = (attribute.itsUUID, kind.itsUUID,
                                                False, False)
-                        allNames[_hash(name)] = name
+                        h = _hash(name)
+
+                        if h in allNames:
+                            if allNames[h] != name:
+                                raise AssertionError, ('clash', allNames[h], name)
+                        allNames[h] = name
                         if attribute.getAspect('notify', False):
                             notifyAttributes.add(name)
 
