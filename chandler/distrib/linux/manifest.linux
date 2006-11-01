@@ -117,10 +117,6 @@ dest=release
 RunChandler
 RunPython
 
-# Grab the overall README
-src=chandler/distrib
-README.txt
-
 # Copy the parcel egg files
 recursive=no
 src=chandler
