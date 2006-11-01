@@ -73,6 +73,7 @@ Chandler.py
 version.py
 site.py
 LICENSE.txt
+NOTICE.txt
 WingWindowsDebug.wpr
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
