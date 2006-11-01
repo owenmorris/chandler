@@ -700,7 +700,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         sidebarCollections = app_ns.sidebarCollection
         allCollection = schema.ns('osaf.pim', self.event.itsItem.itsView).allCollection
         if self.isActive:
-            fillColorLozengeType = 'UnselectedGradientRight'
+            fillColorLozengeType = 'UnSelectedGradientRight'
             outlinePre1 = 'Selected'
         else:
             fillColorLozengeType = 'OverlayGradientRight'
