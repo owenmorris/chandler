@@ -31,7 +31,7 @@ class datetime(dtime):
     """Class for overriding datetime's normal string method"""
     def __str__(self):
         """Method to return more parsable datetime string"""
-        return '%s:%s:%s:%s' % (self.hour, self.minute, self.second, self.microsecond)
+        return '%s:%s:%0.2f' % (self.hour, self.minute, self.second +( 0.000001 * self.microsecond))
 
 class TestOutput:
     """
@@ -125,7 +125,7 @@ class TestOutput:
             
         self.currentSuite['endtime'] = datetime.now()
         self.currentSuite['totaltime'] = self.currentSuite['endtime'] - self.currentSuite['starttime']
-        self.printOut(u'Ending Suite ""%s"" :: EndTime %s :: Total Time %s' % (self.currentSuite['name'], self.currentSuite['endtime'], self.currentSuite['totaltime']), level=3)
+        self.printOut(u'Ending Suite ""%s"" :: EndTime %s :: Total Time %0.2f seconds' % (self.currentSuite['name'], self.currentSuite['endtime'], self._inSeconds(self.currentSuite['totaltime'])), level=3)
         self.currentSuite['testlist'] = copy.copy(self.testList)
         self.suiteList.append(copy.copy(self.currentSuite))
         self.inSuite = False
@@ -153,7 +153,7 @@ class TestOutput:
         self.currentTest['endtime'] = datetime.now()
         self.currentTest['totaltime'] = self.currentTest['endtime'] - self.currentTest['starttime']
         self.currentTest['comment'] = '%s\n%s' % (self.currentTest['comment'], comment)
-        self.printOut(u'Ending Test ""%s"" :: EndTime %s :: Total Time %s' % (self.currentTest['name'], self.currentTest['endtime'], self.currentTest['totaltime']), level=2)
+        self.printOut(u'Ending Test ""%s"" :: EndTime %s :: Total Time %0.2f seconds' % (self.currentTest['name'], self.currentTest['endtime'], self._inSeconds(self.currentTest['totaltime'])), level=2)
         self.currentTest['actionlist'] = copy.copy(self.actionList)
         self.testList.append(copy.copy(self.currentTest))
         self.inTest = False
@@ -434,11 +434,15 @@ class TestOutput:
             self._write('** %d tests skipped after failure **\n' % self.testsSkipped)
         self._write("*************************************\n")
 
+    def _inSeconds(self, tDelta):
+        """return a timedelta object as a float of seconds"""
+        return (tDelta.days * 86400) + tDelta.seconds + (tDelta.microseconds * .000001)
+
     def tinderOutput(self):
         #write out stuff for tinderbox
         for suite_dict in self.suiteList:
             self._write('#TINDERBOX# Testname = %s\n' % suite_dict['name'])
-            self._write('#TINDERBOX# Time elapsed = %s (seconds)\n' % suite_dict['totaltime'])
+            self._write('#TINDERBOX# Time elapsed = %0.2f (seconds)\n' % self._inSeconds(suite_dict['totaltime']))
             if suite_dict['result'] is None:
                 self._write('#TINDERBOX# Status = PASSED\n')
             else:
