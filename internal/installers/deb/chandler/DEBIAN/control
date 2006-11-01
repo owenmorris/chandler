@@ -1,0 +1,10 @@
+Package: chandler
+Version: 0.7alpha5.dev+r0000+00000000000000-1
+Section: Email
+Priority: optional
+Architecture: i386
+Essential: no
+Depends: libsdl1.2debian (>= 1.2.9), openssl (>= 0.9.8), libicu34 (>= 3.4)
+Installed-Size: 0000
+Maintainer: Heikki Toivonen <heikki@osafoundation.org>
+Description: Chandler is a next-generation Personal Information Manager (PIM), integrating calendar, email, contact management, task management, notes, and instant messaging functions.
