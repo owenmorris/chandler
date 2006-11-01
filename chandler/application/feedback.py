@@ -22,7 +22,6 @@ from feedback_xrc import *
 
 LOGLINES = 500
 
-activeWindow = None
 destroyAppOnClose = False
 
 def initRuntimeLog(profileDir):
@@ -57,6 +56,11 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
     An error dialog that would be shown in case there is an uncaught
     exception. The user can send the error report back to us as well.
     """
+    def __call__(self, *args, **kw):
+        # Make this a Singleton to avoid the problem of multiple feedback
+        # windows popping up at the same time
+        return self
+    
     def _fillOptionalSection(self):
         try:    
             # columns
@@ -182,9 +186,6 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         self.frame.text.AppendText(st)
 
     def CreateOutputWindow(self, st):
-        global activeWindow
-        activeWindow = self
-        
         self.frame = xrcFRAME(None)
         self.text = self.frame.text # superclass expects self.text
         try:
@@ -304,7 +305,8 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         else:
             self.frame.sendButton.SetLabel(_(u'Sent'))
             self.logReport(body, response.read())
-        
+                
+FeedbackWindow = FeedbackWindow()
 
 def buildXML(comments, email, optional, required):
     """

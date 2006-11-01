@@ -120,10 +120,8 @@ def main():
                 # See if we already have a window up, and if so, reuse it
                 from application import feedback
                 feedback.destroyAppOnClose = True
-                win = feedback.activeWindow
-                if win is None:
-                    win = feedback.FeedbackWindow()
-                    win.CreateOutputWindow('')
+                win = feedback.FeedbackWindow()
+                win.CreateOutputWindow('')
                 for line in backtrace:
                     win.write(line)
                 if not app.IsMainLoopRunning():
