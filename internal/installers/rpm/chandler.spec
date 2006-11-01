@@ -16,7 +16,7 @@ Version: %{_dv}
 Release: %{_dr}
 Summary: Chandler - an Open Source Personal Information Manager
 Name: Chandler
-License: GPLv2
+License: Apache2
 Group: Office
 Vendor: Open Source Applications Foundation
 URL: http://www.osafoundation.org
