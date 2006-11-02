@@ -453,9 +453,29 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
         if pim.has_stamp(item, self.stampClass):
             stampClass(item).remove()
         else:
+            startTimeExists = hasattr(item, pim.EventStamp.startTime.name)
             stampClass(item).add()
-            
-        
+  
+            if stampClass == Calendar.EventStamp and not startTimeExists:
+                # If the item is being stamped as CalendarEvent, parse the body
+                # of the item for date/time information, if the item does not
+                # already have a startTime. 
+                startTime, endTime, countFlag, typeFlag = \
+                         pim.calendar.Calendar.parseText(item.body)
+                
+                statusMsg = { 0:_(u"No date/time found"),
+                              1:_(u"Event set to the date/time found"),
+                              2:_(u"Multiple date/times found")}
+                             
+                # Set the appropriate status message in the status bar
+                wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage',
+                                                statusMsg[countFlag])
+                                        
+                # Set the event's start and end date/time
+                pim.calendar.Calendar.setEventDateTime(item, startTime, endTime,
+                                                       typeFlag)
+                  
+                
         #logger.debug("%s: stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
         #logger.debug("%s: done stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
 
