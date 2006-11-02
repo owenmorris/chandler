@@ -5,20 +5,29 @@
     <object class="wxPanel" name="panel">
       <object class="wxBoxSizer">
         <orient>wxVERTICAL</orient>
+        <object class="spacer">
+          <size>0,10</size>
+        </object>
         <object class="sizeritem">
           <object class="wxStaticText">
             <label>Chandler has experienced an internal error.  It is recommended that you restart
 Chandler to avoid data corruption.</label>
           </object>
-          <flag>wxALL</flag>
-          <border>10</border>
+          <flag>wxLEFT|wxRIGHT</flag>
+          <border>20</border>
+        </object>
+        <object class="spacer">
+          <size>0,10</size>
         </object>
         <object class="sizeritem">
           <object class="wxCheckBox" name="disableFeedback">
             <label>Do not show further errors in this session.</label>
           </object>
-          <flag>wxLEFT|wxRIGHT|wxBOTTOM</flag>
-          <border>10</border>
+          <flag>wxLEFT|wxRIGHT</flag>
+          <border>20</border>
+        </object>
+        <object class="spacer">
+          <size>0,10</size>
         </object>
         <object class="sizeritem">
           <object class="wxNotebook">
@@ -117,8 +126,11 @@ Chandler to avoid data corruption.</label>
             </object>
           </object>
           <option>1</option>
-          <flag>wxALL|wxEXPAND</flag>
-          <border>10</border>
+          <flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
+          <border>20</border>
+        </object>
+        <object class="spacer">
+          <size>0,10</size>
         </object>
         <object class="sizeritem">
           <object class="wxBoxSizer">
@@ -149,9 +161,12 @@ the product.  You may optionally add additional information about how to reprodu
               </object>
             </object>
           </object>
-          <flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
-          <border>10</border>
+          <flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
+          <border>20</border>
         </object>
+        <object class="spacer">
+          <size>0,10</size>
+        </object>        
       </object>
     </object>
   </object>
