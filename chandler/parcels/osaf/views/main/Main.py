@@ -880,11 +880,6 @@ class MainView(View):
         ]
         application.dialogs.Util.displayLogWindow(wx.GetApp().mainFrame, logs)
 
-    def onLoadLoggingConfigEvent(self, event):
-        # Test menu item
-        wx.GetApp().ChooseLogConfig()
-
-
     def onSetLoggingLevelCriticalEvent(self, event):
         Utility.setLoggingLevel(logging.CRITICAL)
 

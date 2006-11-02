@@ -263,8 +263,6 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('StartProfiler').install(parcel)
 
-    BlockEvent.template('LoadLoggingConfig').install(parcel)
-
     BlockEvent.template('SetLoggingLevelCritical').install(parcel)
 
     BlockEvent.template('SetLoggingLevelError').install(parcel)

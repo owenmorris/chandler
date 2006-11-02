@@ -1001,21 +1001,6 @@ class wxApplication (wx.App):
         self.pyFrame.SetSize((700,700))
         self.pyFrame.Show(True)
 
-    def ChooseLogConfig(self):
-        wildcard = _(u"Config files|*.conf|All files (*.*)|*.*")
-        dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                            _(u"Choose logging configuration file"),
-                            u"", u"", wildcard, wx.OPEN)
-
-        path = None
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-        dlg.Destroy()
-        if path:
-            logger.warning("Loading logging configuration: %s" % path)
-            Utility.fileConfig(path)
-
-
     def ShowSchemaMismatchWindow(self):
         logger.info("Schema version of repository doesn't match app")
 
