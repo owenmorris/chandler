@@ -821,8 +821,7 @@ class ShareConduit(pim.ContentItem):
                 matches = isinstance(item, cls)
             if matches:
                 return True
-            else:
-                return False
+        return False
 
     def _put(self, contentView, resourceList, startVersion, endVersion,
              updateCallback=None, forceUpdate=None):
