@@ -644,17 +644,27 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
 
                     parent = schema.Item.getDefaultParent(view)
                     kind = Note.getKind(view)
-                    item = kind.instantiateItem(None, parent, uuid,
-                        withInitialValues=True, **changesDict)
+
+                    # If there is already an item with this UUID, use it,
+                    # otherwise create one.
+                    item = view.findUUID(uuid)
+                    if item is None:
+                        
+                        item = kind.instantiateItem(None, parent, uuid,
+                            withInitialValues=True, **changesDict)
+                        countNew += 1
+                        if stats and item.itsUUID not in stats['added']:
+                            stats['added'].append(item.itsUUID)
+                    else:
+                        countUpdated += 1
+                        if stats and item.itsUUID not in stats['modified']:
+                            stats['modified'].append(item.itsUUID)
                     eventItem = EventStamp(item)
                     eventItem.add()
                     eventItem.icalUID = uid
 
                     for tup in changeLast:
                         eventItem.changeThis(*tup)
-                    countNew += 1
-                    if stats and item.itsUUID not in stats['added']:
-                        stats['added'].append(item.itsUUID)
                 else:
                     # update an existing item
                     if rruleset is None and recurrenceID is None \
