@@ -257,7 +257,7 @@ class DetailSynchronizer(Item):
     Mixin class that handles synchronization and notification common to most
     of the blocks in the detail view.
     """
-     def onSetContentsEvent(self, event):
+    def onSetContentsEvent(self, event):
          #logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
                      #event.arguments['item'], event.arguments['collection'])
         self.setContentsOnBlock(event.arguments['item'],
