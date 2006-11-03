@@ -955,3 +955,38 @@ class SubIndex(SortedIndex):
         self._super = (uuid, attr, name)
 
         return offset
+
+    def _checkIndex(self, _index, logger, name, value, item, attribute, count,
+                    repair):
+
+        result = super(SubIndex, self)._checkIndex(_index, logger, name, value,
+                                                   item, attribute, count,
+                                                   repair)
+
+        uuid, attr, superName = self._super
+
+        superItem = item.itsView.find(uuid)
+        if superItem is None:
+            logger.error("Item %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, was not found", uuid, superName, name, value, attribute, item._repr_())
+            return False
+
+        superValue = getattr(superItem, attr, Nil)
+        if superValue is Nil:
+            logger.error("Attribute '%s' of %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, was not found", attr, superItem._repr_(), superName, name, value, attribute, item._repr_())
+            return False
+
+        indexes = getattr(superValue, '_indexes', Nil)
+        if indexes is Nil:
+            logger.error("Value %s of attribute '%s' of %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, is not of a type that can have indexes: %s", superValue, attr, superItem._repr_(), superName, name, value, attribute, item._repr_(), type(superValue))
+            return False
+
+        if indexes is None:
+            index = None
+        else:
+            index = indexes.get(superName)
+
+        if index is None:
+            logger.error("Value %s of attribute '%s' of %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, has no index named '%s'", superValue, attr, superItem._repr_(), superName, name, value, attribute, item._repr_(), superName)
+            return False
+        
+        return result
