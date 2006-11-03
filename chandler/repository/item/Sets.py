@@ -468,9 +468,10 @@ class AbstractSet(ItemValue, Indexed):
     def makeString(cls, value):
         return value._repr_()
 
-    # refs part
-
     def _setOwner(self, item, attribute):
+
+        if item is None:
+            self._removeIndexes()
 
         result = super(AbstractSet, self)._setOwner(item, attribute)
 
@@ -480,6 +481,8 @@ class AbstractSet(ItemValue, Indexed):
             self._otherName = item.itsKind.getOtherName(attribute, item, None)
 
         return result
+
+    # refs part
 
     def _isRefs(self):
         return True

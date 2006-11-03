@@ -43,6 +43,12 @@ class Indexed(object):
 
         return index
 
+    def _removeIndexes(self):
+
+        if self._indexes:
+            for name in self._indexes.keys():
+                self.removeIndex(name)
+
     def _anIndex(self):
 
         if self._indexes:

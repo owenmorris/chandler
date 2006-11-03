@@ -577,8 +577,38 @@ class SortedIndex(DelegatingIndex):
     def _checkIndex(self, _index, logger, name, value, item, attribute, count,
                     repair):
 
-        return self._index._checkIndex(self, logger, name, value,
-                                       item, attribute, count, repair)
+        result = self._index._checkIndex(self, logger, name, value,
+                                         item, attribute, count, repair)
+
+        if self._subIndexes:
+            for uuid, attr, subName in self._subIndexes:
+                subItem = item.itsView.find(uuid)
+                if subItem is None:
+                    logger.error("Item %s, owner of subindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, was not found", uuid, subName, name, value, attribute, item._repr_())
+                    result = False
+                    continue
+
+                subValue = getattr(subItem, attr, Nil)
+                if subValue is Nil:
+                    logger.error("Attribute '%s' of %s, owner of subindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, was not found", attr, subItem._repr_(), subName, name, value, attribute, item._repr_())
+                    result = False
+                    continue
+
+                indexes = getattr(subValue, '_indexes', Nil)
+                if indexes is Nil:
+                    logger.error("Value %s of attribute '%s' of %s, owner of subindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, is not of a type that can have indexes: %s", subValue, attr, subItem._repr_(), subName, name, value, attribute, item._repr_(), type(subValue))
+                    result = False
+                    continue
+
+                if indexes is None:
+                    index = None
+                else:
+                    index = indexes.get(subName)
+                if index is None:
+                    logger.error("Value %s of attribute '%s' of %s, owner of subindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, has no index named '%s'", subValue, attr, subItem._repr_(), subName, name, value, attribute, item._repr_(), subName)
+                    result = False
+
+        return result
 
     def _checkIterateIndex(self, logger, name, value, item, attribute, repair):
 
