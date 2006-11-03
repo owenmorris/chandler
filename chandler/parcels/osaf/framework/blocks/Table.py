@@ -164,17 +164,7 @@ class wxTable(DragAndDrop.DraggableWidget,
 
     def OnLoseFocus (self, event):
         self.SetLightSelectionBackground()
-        # Calling InvalidateSelection when the Table block is
-        # out of sync with the data, i.e. the data has changed
-        # but the block hasn't yet synchronized to the data
-        # triggers an assert. So let's fire the notifications
-        # and, if the block is dirtied, skip invalidating the
-        # selection. We'll eventually draw the the selection
-        # anyway since the block is dirtied.
-        wx.GetApp().fireAsynchronousNotifications()
-        block = self.blockItem
-        if not block.itsUUID in block.dirtyBlocks:
-            self.InvalidateSelection ()
+        self.InvalidateSelection ()
 
     def OnLabelLeftClicked (self, event):
         assert (event.GetRow() == -1) # Currently Table only supports column headers
@@ -211,15 +201,25 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.SetSelectionBackground (background)
 
     def InvalidateSelection (self):
-        lastRow = self.GetNumberCols() - 1
-        
-        for rowStart, rowEnd in self.SelectedRowRanges():
-            dirtyRect = wx.Rect()
-            dirtyRect.SetTopLeft(self.CellToRect(rowStart, 0).GetTopLeft())
-            dirtyRect.SetBottomRight(self.CellToRect(rowEnd,
-                                                     lastRow).GetBottomRight())
-            dirtyRect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
-            self.RefreshRect (dirtyRect)
+        # Calling InvalidateSelection when the Table block is
+        # out of sync with the data, i.e. the data has changed
+        # but the block hasn't yet synchronized to the data
+        # triggers an assert. So let's fire the notifications
+        # and, if the block is dirtied, skip invalidating the
+        # selection. We'll eventually draw the the selection
+        # anyway since the block is dirtied.
+        wx.GetApp().fireAsynchronousNotifications()
+        block = self.blockItem
+        if not block.itsUUID in block.dirtyBlocks:
+            lastRow = self.GetNumberCols() - 1
+            
+            for rowStart, rowEnd in self.SelectedRowRanges():
+                dirtyRect = wx.Rect()
+                dirtyRect.SetTopLeft(self.CellToRect(rowStart, 0).GetTopLeft())
+                dirtyRect.SetBottomRight(self.CellToRect(rowEnd,
+                                                         lastRow).GetBottomRight())
+                dirtyRect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
+                self.RefreshRect (dirtyRect)
 
     def OnInit (self):
         """
