@@ -652,9 +652,9 @@ class DBRepository(OnDemandRepository):
 
             self._status |= Repository.CLOSED
 
-    def createView(self, name=None, version=None):
+    def createView(self, name=None, version=None, deferDelete=Default):
 
-        return DBRepositoryView(self, name, version)
+        return DBRepositoryView(self, name, version, deferDelete)
 
     def startIndexer(self):
 

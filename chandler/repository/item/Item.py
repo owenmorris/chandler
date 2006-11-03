@@ -1440,7 +1440,7 @@ class Item(CItem):
 
         if cloudAlias is not None:
             if not self.isDeleted():
-                clouds = self._kind.getClouds(cloudAlias)
+                clouds = self.itsKind.getClouds(cloudAlias)
                 for cloud in clouds:
                     cloud.deleteItems(self, recursive, cloudAlias)
 
@@ -1455,28 +1455,67 @@ class Item(CItem):
             view = self.itsView
 
             if view.isDeferringDelete():
-                self._status |= Item.DEFERRING
-
-                if hasattr(type(self), 'onItemDelete'):
-                    self.onItemDelete(view, True)
-
-                for child in self.iterChildren():
-                    child.delete(True, deletePolicy)
-
-                if not self.isDeferred():
-                    self._status |= Item.DEFERRED
-                    self.setDirty(Item.NDIRTY)
-                else:
-                    for tuple in view._deferredDeletes:
-                        if tuple[0] is self:
-                            view._deferredDeletes.remove(tuple)
-                            break
-
-                view._deferredDeletes.append((self, 'delete', (deletePolicy,)))
-                self._status &= ~Item.DEFERRING
-            
+                self._deferDelete(view, deletePolicy)
             else:
                 self._delete(view, recursive, deletePolicy, _noMonitors, False)
+
+    def _deferDelete(self, view, deletePolicy):
+
+        refs = self._references
+        others = set()
+
+        self._status |= Item.DEFERRING
+
+        if hasattr(type(self), 'onItemDelete'):
+            self.onItemDelete(view, True)
+
+        if not self.isDeferred():
+            self._status |= Item.DEFERRED
+            self.setDirty(Item.NDIRTY)
+        else:
+            for tuple in view._deferredDeletes:
+                if tuple[0] is self:
+                    view._deferredDeletes.remove(tuple)
+                    break
+
+        view._deferredDeletes.append((self, 'delete', (deletePolicy,)))
+
+        for child in self.iterChildren():
+            child.delete(True, deletePolicy)
+
+        if self.isWatched():
+            view._notifyChange(self._itemChanged, 'set', ('itsStatus',))
+
+        if self.itsKind is not None:
+            view._notifyChange(self.itsKind.extent._collectionChanged,
+                               'remove', 'collection', 'extent',
+                               self.itsUUID, None)
+
+        for name in refs.keys():
+            policy = (deletePolicy or
+                      self.getAttributeAspect(name, 'deletePolicy',
+                                              False, None, 'remove'))
+            if policy == 'cascade':
+                value = refs._getRef(name)
+                if value is not None:
+                    if value._isRefs():
+                        others.update(value.iterItems())
+                    else:
+                        others.add(value)
+
+        for other in others:
+            if other.refCount(True) == 0:
+                other.delete(True, deletePolicy)
+            
+        for name, value in refs.items():
+            if value is not None:
+                if value._isRefs():
+                    if name not in ('watches', 'monitors'):
+                        value.clear()
+                else:
+                    setattr(self, name, None)
+
+        self._status &= ~Item.DEFERRING
 
     def _delete(self, view, recursive, deletePolicy, _noMonitors, _keepRoot):
 
@@ -1538,14 +1577,13 @@ class Item(CItem):
     def _effectDelete(self, op, args):
 
         if op == 'remove':
-            if not self.isDeleted():
-                name, value = args
-                if getattr(self, name, Nil) is value:
-                    delattr(self, name)
+            name, value = args
+            if hasattr(self, name):
+                delattr(self, name)
 
         elif op == 'delete':
             deletePolicy, = args
-            self.delete(False, deletePolicy)
+            self.delete(True, deletePolicy)
 
     def _copyExport(self, view, cloudAlias, matches):
 

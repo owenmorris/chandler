@@ -148,7 +148,7 @@ Two items with the same parent may not have the same name::
     >>> another_child = Sample("child_item", myItem)
     Traceback (most recent call last):
       ...
-    ChildNameError: //myItem already has a child named 'child_item'
+    ChildNameError: <Sample (new): myItem ...> already has a child named 'child_item'
 
 But there's no need for you to come up with names for every item if you don't
 want to.  As long as the item's parent isn't a repository view, you can use

@@ -1770,46 +1770,48 @@ class EventStamp(Stamp):
         rruleset = master.rruleset
         if rruleset is not None:
             rruleset._ignoreValueChanges = True
-            masterHadModification = False
-            
-            for event in itertools.imap(EventStamp, master.occurrences or []):
+        masterHadModification = False
+        
+        for event in itertools.imap(EventStamp, master.occurrences or []):
 
-                if (event.recurrenceID == master.startTime and
-                    event.itsItem in (master.modifications or [])):
-                    
-                    # A THIS modification to master, make it the new master
-                    self.moveCollections(master, event)
-                    del event.rruleset
-                    del event.recurrenceID
-                    del event.modificationFor
-                    # events with the same icalUID but different UUID drive
-                    # sharing crazy, so change icalUID of master
-                    event.icalUID = unicode(event.itsItem.itsUUID)
-                    masterHadModification = True
-                else:
-                    # Since we're possibly doing delayed deleting (if we're
-                    # in the background sharing mode) let's remove the events
-                    # from occurrences:
-                    master.occurrences.remove(event.itsItem)
-                    # now that we've disconnected this event from the master,
-                    # event.delete() will erroneously dispatch to deleteAll() if
-                    # event.rruleset exists, so disconnect from the rruleset
-                    del event.rruleset
-                    event.itsItem.delete()
+            # Since we're possibly doing delayed deleting (if we're
+            # in the background sharing mode) let's remove the events
+            # from occurrences
+            del event.occurrenceFor
 
+            if (event.recurrenceID == master.startTime and
+                event.modificationFor is master.itsItem):
+                
+                # A THIS modification to master, make it the new master
+                self.moveCollections(master, event)
+                del event.rruleset
+                del event.recurrenceID
+                del event.modificationFor
+                # events with the same icalUID but different UUID drive
+                # sharing crazy, so change icalUID of master
+                event.icalUID = unicode(event.itsItem.itsUUID)
+                masterHadModification = True
+            else:
+                # now that we've disconnected this event from the master,
+                # event.delete() will erroneously dispatch to deleteAll() if
+                # event.rruleset exists, so disconnect from the rruleset
+                del event.rruleset
+                event.itsItem.delete()
+
+        if rruleset is not None:
             rruleset._ignoreValueChanges = True
             rruleset.delete()
 
-            if masterHadModification:
-                master.itsItem.delete()
-            else:
+        if masterHadModification:
+            master.itsItem.delete()
+        else:
+            if hasattr(master, 'recurrenceID'):
                 del master.recurrenceID
+            if hasattr(master, 'rruleset'):
                 del master.rruleset
-                if master.occurrences is not None:
-                    if deleteOccurrences:
-                        del master.occurrences
-                    else:
-                        master.occurrences.clear()
+
+            if master.occurrences is not None and deleteOccurrences:
+                del master.occurrences
 
 
 

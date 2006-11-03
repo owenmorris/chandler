@@ -15,7 +15,7 @@
 
 import sys, logging, threading, PyLucene, time
 
-from chandlerdb.util.c import UUID
+from chandlerdb.util.c import UUID, Nil, Default
 from chandlerdb.persistence.c import CRepository
 from repository.item.Item import Item
 from repository.persistence.RepositoryView import RepositoryView
@@ -123,6 +123,8 @@ class Repository(CRepository):
         if kwds.get('verify', False):
             self._status |= Repository.VERIFY
 
+        self._deferDelete = not kwds.get('nodeferdelete', False)
+
     def close(self):
         """
         Close the repository.
@@ -132,7 +134,7 @@ class Repository(CRepository):
         
         pass
 
-    def createView(self, name=None, version=None):
+    def createView(self, name=None, version=None, deferDelete=Default):
         """
         Create a repository view.
 
@@ -146,7 +148,7 @@ class Repository(CRepository):
         @type name: a string
         """
 
-        return RepositoryView(self, name, version)
+        return RepositoryView(self, name, version, deferDelete)
 
     def getCurrentView(self, create=True):
         """
@@ -256,9 +258,9 @@ class OnDemandRepository(Repository):
     An abstract repository for on-demand loaded items.
     """
 
-    def createView(self, name=None, version=None):
+    def createView(self, name=None, version=None, deferDelete=Default):
 
-        return OnDemandRepositoryView(self, name, version)
+        return OnDemandRepositoryView(self, name, version, deferDelete)
 
 
 class Store(object):

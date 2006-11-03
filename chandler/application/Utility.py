@@ -198,6 +198,7 @@ def initOptions(**kwds):
         'debugOn':    ('-d', '--debugOn',    's', None,  None, 'Enter PDB upon this exception being raised'),
         'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, 'Parcel that defines the core application'),
         'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
+        'nodeferdelete':   ('', '--nodeferdelete','b', False, None, 'do not defer item deletions in all views by default'),
         'indexer':    ('-i', '--indexer',    's', 'background', None, 'Run Lucene indexing in the background or foreground'),
         'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
         'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions or until <check> or <repair> passes'),
@@ -374,6 +375,7 @@ def initRepository(directory, options, allowSchemaView=False):
              'create': True,
              'recover': options.recover,
              'exclusive': not options.nonexclusive,
+             'nodeferdelete': options.nodeferdelete,
              'refcounted': True,
              'logged': not not options.logging,
              'verify': options.verify or __debug__ }

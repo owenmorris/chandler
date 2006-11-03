@@ -178,7 +178,6 @@ class TestAbstractSets(RepositoryTestCase):
         l = self.m5.itsKind.newItem(None, self.m5.itsParent)
         self.assert_(len(m.calls) == 1)
         self.assert_(m.calls[0] == ('add', m, 'set', l.itsUUID))
-
         self.assert_(len(list(m.set)) == count)
 
     def testMultiUnion(self):

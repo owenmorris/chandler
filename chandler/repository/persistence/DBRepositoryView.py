@@ -340,8 +340,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                         sleep(1)
                         continue
                     except Exception, e:
-                        self.logger.warning('%s refresh aborted by error: %s',
-                                            self, e)
+                        self.logger.exception('%s refresh aborted by error: %s',
+                                              self, e)
                         self._abortTransaction(txnStatus)
                         raise
                     else:
@@ -611,7 +611,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             self.logger.warning('%s: skipping recursive commit', self)
         elif self._status & RepositoryView.REFRESHING:
             self._status |= RepositoryView.COMMITREQ
-        elif len(self._log) + len(self._deletedRegistry) > 0:
+        elif self._log or self._deletedRegistry:
             try:
                 release = False
                 release = self._acquireExclusive()
@@ -646,6 +646,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                         if self.isDeferringDelete():
                             self.effectDelete()
 
+                        if self._deferDelete:
+                            self.logger.info("Deferring delete in %s", self)
+                            self._status |= self.DEFERDEL
+
                         count = len(self._log) + len(self._deletedRegistry)
                         if count > 500:
                             self.logger.info('%s committing %d items...',
@@ -679,8 +683,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                         continue
 
                     except Exception, e:
-                        self.logger.warning('%s commit aborted by error: %s',
-                                            self, e)
+                        self.logger.exception('%s commit aborted by error: %s',
+                                              self, e)
                         lock, txnStatus = finish(False)
                         raise
 

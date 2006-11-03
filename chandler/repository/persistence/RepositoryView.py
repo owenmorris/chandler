@@ -69,7 +69,7 @@ class RepositoryView(CView):
     
     CORE_SCHEMA_VERSION = 0x00060e00
 
-    def __init__(self, repository, name, version):
+    def __init__(self, repository, name, version, deferDelete=Default):
         """
         Initializes a repository view.
 
@@ -80,6 +80,10 @@ class RepositoryView(CView):
         """
 
         self._notifications = Queue()
+
+        if deferDelete is Default:
+            deferDelete = repository._deferDelete
+        self._deferDelete = deferDelete
 
         if not name:
             name = threading.currentThread().getName()
@@ -149,6 +153,9 @@ class RepositoryView(CView):
         self._loadingRegistry = set()
         self._status = ((self._status & RepositoryView.VERIFY) |
                         RepositoryView.OPEN)
+
+        if self._deferDelete:
+            self.deferDelete()
 
         self.classLoader = ClassLoader(Item, MissingClass)
 
@@ -1298,7 +1305,7 @@ class RepositoryView(CView):
 
 class OnDemandRepositoryView(RepositoryView):
 
-    def __init__(self, repository, name, version):
+    def __init__(self, repository, name, version, deferDelete=Default):
 
         if version is None:
             version = repository.store.getVersion()
@@ -1306,7 +1313,8 @@ class OnDemandRepositoryView(RepositoryView):
         self._exclusive = threading.RLock()
         self._hooks = []
         
-        super(OnDemandRepositoryView, self).__init__(repository, name, version)
+        super(OnDemandRepositoryView, self).__init__(repository, name, version,
+                                                     deferDelete)
 
     def isNew(self):
 
@@ -1445,7 +1453,7 @@ class NullRepositoryView(RepositoryView):
     def __init__(self, verify=False):
 
         self._logger = logging.getLogger(__name__)
-        super(NullRepositoryView, self).__init__(None, "null view", 0)
+        super(NullRepositoryView, self).__init__(None, "null view", 0, False)
 
         if verify:
             self._status |= RepositoryView.VERIFY

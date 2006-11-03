@@ -1228,7 +1228,7 @@ class KindSet(Set):
                 (item._futureKind is None or
                  not item._futureKind.isKindOf(kind))):
                 return False
-            return True
+            return not item.isDeferred()
         
         return False
 

@@ -168,9 +168,10 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         path = item.itsPath
         item.delete()
         del item
+        view.commit()
+
         itemShouldBeGone = view.find(path)
         self.assertEqual(itemShouldBeGone, None)
-        view.commit()
 
     def testGeneratedEvents(self):
 

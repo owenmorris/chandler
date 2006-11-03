@@ -470,12 +470,12 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
     def testRemoveRecurrence(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
         self.event.removeRecurrence()
-        self.failUnless(self.event.occurrences is None)
+        self.failUnless(not self.event.occurrences)
 
         self.event.rruleset = self._createRuleSetItem('weekly')
         second = self.event.getFirstOccurrence().getNextOccurrence()
         second.removeRecurrence()
-        self.assertEqual(self.event.occurrences, None)
+        self.failUnless(not self.event.occurrences)
 
         self.event.rruleset = self._createRuleSetItem('weekly')
         third = self.event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
@@ -485,7 +485,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         rule = third.rruleset.rrules.first()
 
         third.removeRecurrence()
-        self.failUnless(third.occurrences is None)
+        self.failUnless(not third.occurrences)
         
         self._checkDeleted([rule], [second])
 
@@ -725,7 +725,7 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
     def _checkDeleted(self, items, notdeleted):
         for item in chain(items, notdeleted):
              # Ignore any stamps when getting the isDeleted method
-            isDeleted = getattr(item, 'itsItem', item).isDeleted()
+            isDeleted = not getattr(item, 'itsItem', item).isLive()
             if item in notdeleted:
                 self.failIf(isDeleted,
                             "Item was deleted, but shouldn't have been: %s"
@@ -741,14 +741,14 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         # check a simple recurring rule
         event.removeRecurrence()
-        self.failUnless(event.occurrences is None)
+        self.failUnless(not event.occurrences)
         self._checkDeleted([rruleset], [event])
 
         # THIS modification
         rruleset = event.rruleset = self._createRuleSetItem('weekly')
         event.getFirstOccurrence().getNextOccurrence().summary = 'changed'
         event.removeRecurrence()
-        self.failUnless(event.occurrences is None)
+        self.failUnless(not event.occurrences)
         self._checkDeleted([rruleset], [event])
 
         # THIS modification to master 

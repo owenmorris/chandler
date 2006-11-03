@@ -972,15 +972,16 @@ class Extent(Item):
     def iterItems(self, recursive=True):
 
         view = self.itsView
-        kindChanged = CItem.KDIRTY | CItem.NEW
+        changed = CItem.KDIRTY | CItem.NEW | CItem.DEFERRED
         changedItems = set(item for item in view.dirtyItems()
-                           if item._status & kindChanged)
+                           if item._status & changed)
 
         def _query(kinds):
             for kind in kinds:
                 for item in changedItems:
                     if item.itsKind is kind:
-                        yield item
+                        if not item.isDeferred():
+                            yield item
                 for item in view.queryItems(kind):
                     if item not in changedItems: 
                         yield item
@@ -999,17 +1000,18 @@ class Extent(Item):
     def iterKeys(self, recursive=True):
 
         view = self.itsView
-        kindChanged = CItem.KDIRTY | CItem.NEW
+        changed = CItem.KDIRTY | CItem.NEW | CItem.DEFERRED
         changedItems = {}
         for item in view.dirtyItems():
-            if item._status & kindChanged:
-                changedItems[item.itsUUID] = item.itsKind
+            if item._status & changed:
+                changedItems[item.itsUUID] = item
 
         def _query(kinds):
             for kind in kinds:
-                for key, itemKind in changedItems.iteritems():
-                    if itemKind is kind:
-                        yield key
+                for key, item in changedItems.iteritems():
+                    if item.itsKind is kind:
+                        if not item.isDeferred():
+                            yield key
                 for key in view.queryItemKeys(kind):
                     if key not in changedItems: 
                         yield key
