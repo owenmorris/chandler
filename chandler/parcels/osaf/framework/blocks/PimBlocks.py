@@ -254,7 +254,7 @@ class FocusEventHandlers(Item):
                 # Can't reply to something that's not in the inbox
                 return False
 
-    def onReplyOrForWardEvent(self, replyMethod):
+    def onReplyOrForwardEvent(self, replyMethod):
         pim_ns = schema.ns('osaf.pim', self.itsView)
         main = schema.ns("osaf.views.main", self.itsView)
         selection = self.__getSelectedItems()
@@ -297,21 +297,21 @@ class FocusEventHandlers(Item):
 
 
     def onReplyEvent(self, event):
-        self.onReplyOrForWardEvent(Mail.replyToMessage)
+        self.onReplyOrForwardEvent(Mail.replyToMessage)
 
     def onReplyEventUpdateUI(self, event):
         self.onReplyOrForwardEventUpdateUI(event)
 
 
     def onReplyAllEvent(self, event):
-        self.onReplyOrForWardEvent(Mail.replyAllToMessage)
+        self.onReplyOrForwardEvent(Mail.replyAllToMessage)
 
     def onReplyAllEventUpdateUI(self, event):
         self.onReplyOrForwardEventUpdateUI(event)
 
 
     def onForwardEvent(self, event):
-        self.onReplyOrForWardEvent(Mail.forwardMessage)
+        self.onReplyOrForwardEvent(Mail.forwardMessage)
 
     def onForwardEventUpdateUI(self, event):
         self.onReplyOrForwardEventUpdateUI(event)
