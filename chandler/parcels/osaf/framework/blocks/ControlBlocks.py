@@ -148,6 +148,9 @@ class wxChandlerMultiStateButton(MultiStateButton.MultiStateButton):
                                                         multibitmaps = multibitmaps,
                                                         bitmapProvider = wx.GetApp().GetImage,
                                                         *args, **kwds)
+    def AcceptsFocus(self):
+        return False
+
     def OnLeftUp(self, event):
         if not self.IsEnabled() or not self.HasCapture():
             return
