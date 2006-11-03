@@ -1,9 +1,10 @@
 __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'LobType', 'get_converter', 'add_converter', 'subtype',
-    'typedef',
+    'typedef', 'field', 'key', 'NoChange'
 ]
 
+from symbols import Symbol  # XXX change this to peak.util.symbols
 from simplegeneric import generic
 from weakref import WeakValueDictionary
 import linecache, os
@@ -36,7 +37,6 @@ def add_converter(context, from_type, converter):
         gf = generic(gf)    # extend base function
         get_converter.when_object(context)(lambda context: gf)
     gf.when_type(from_type)(converter)
-
 
 
 class UnknownType(KeyError):
@@ -315,19 +315,61 @@ class field(object):
 def return_typeinfo(context):
     return context.typeinfo
 
+class key(field):
+    """Primary key field"""
+
+
+
+
+
+
+
+
+
+NoChange = Symbol('NoChange', __name__)
+
 class Record(tuple):
     __slots__ = ()
     __metaclass__ = RecordClass
+
     def __repr__(self):
         r = "%s%r" % (self.__class__.__name__, self[1:])
         if r.endswith(',)'):
             return r[:-2]+')'
         return r
 
+    def __sub__(self, other):
+        t = type(self)
+        if type(other) is not t:
+            raise TypeError(
+                '%r is not a %s record' % (other, self.__class__.__name__)
+            )
+        if other == self:
+            return NoChange
+
+        res = []
+        for f, new, old in zip(self.__fields__, self[1:], other[1:]):
+            if isinstance(f,key):
+                if old!=new:
+                    raise ValueError(
+                        "Can't subtract %s %r from %s %r" %
+                        (f.name, old, f.name, new)
+                    )
+            elif old==new:
+                res.append(NoChange)
+                continue
+            res.append(new)
+
+        return t(*res)
+
+
+
+
 
 
 def create_default_converter(t):
     converter = generic(default_converter)
+    converter.when_object(NoChange)(lambda val: val)
     get_converter.when_object(t)(lambda ctx: converter)
 
 map(create_default_converter,
@@ -335,7 +377,9 @@ map(create_default_converter,
 )
 
 add_converter(IntType, int, int)
-
+typedef(int, IntType)
+add_converter(TextType, str, unicode)
+add_converter(TextType, unicode, unicode)
 
 def subtype(typeinfo, *args, **kw):
     """XXX"""
@@ -350,9 +394,6 @@ def test_suite():
         'EIM.txt',
         optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
     )
-
-
-
 
 
 

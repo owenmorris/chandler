@@ -9,9 +9,38 @@ The Sharing Record API
 Record Types and Fields
 =======================
 
-TODO: Record type URIs, primary keys, foreign key refs
+    >>> class Demo(sharing.Record):
+    ...     itemNumber  = sharing.key(int)
+    ...     itemName    = sharing.field(sharing.TextType(size=50))
+    ...     description = sharing.field(sharing.TextType(size=500))
 
-TODO: record diffing, NoChange
+    >>> r1 = Demo(1,"Foo", "This is a foo")
+
+    >>> r1
+    Demo(1, u'Foo', u'This is a foo')
+
+    >>> r1 - r1     # no change between these records
+    NoChange
+
+    >>> r1 - 123
+    Traceback (most recent call last):
+      ...
+    TypeError: 123 is not a Demo record
+
+    >>> r1 - Demo(2, "baz", "spam")
+    Traceback (most recent call last):
+      ...
+    ValueError: Can't subtract itemNumber 2 from itemNumber 1
+
+    >>> r1 - Demo(1, "Bar", "This is a foo")
+    Demo(1, u'Foo', NoChange)
+
+    >>> r1 - Demo(1, "Foo", "This is NOT a foo")
+    Demo(1, NoChange, u'This is a foo')
+
+
+
+TODO: Record type URIs, primary keys, foreign key refs
 
 TODO: importers, exporters, and Schemas
 
