@@ -237,7 +237,6 @@ def restore(rv, filename, testmode=False):
                     subscribed = True
 
             if not subscribed:
-                url = ""
                 if section.has_key(u"ticket"):
                     url = section[u"ticket"]
                 freebusy = False
