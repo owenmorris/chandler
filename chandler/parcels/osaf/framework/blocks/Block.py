@@ -104,7 +104,7 @@ class Block(schema.Item):
     parentBlock = schema.One(
         "Block",
         inverse="childrenBlocks",
-        initialValue = None
+        defaultValue = None
     )
   
     childrenBlocks = schema.Sequence(

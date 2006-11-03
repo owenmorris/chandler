@@ -550,10 +550,9 @@ class wxApplication (wx.App):
         return True    # indicates we succeeded with initialization
 
     def LoadMainViewRoot (self, delete=False):
-        frame = None
-        mainViewRoot = self.UIRepositoryView.findPath('//userdata/MainViewRoot')
+        mainViewRoot = self.UIRepositoryView.findPath('//parcels/osaf/views/main/MainViewRoot')
 
-        if mainViewRoot and delete:
+        if delete:
             # We need to delete the mainViewRoot. Ideally we'd have automatic
             # garbage colleciton so that all the garbage resulting from the
             # deletion of the mainViewRoot would be cleaned up automatically.
@@ -572,11 +571,9 @@ class wxApplication (wx.App):
                     deleteAllBranchCaches (child)
                 import osaf.framework.blocks.BranchPoint as BranchPoint
                 if isinstance (block, BranchPoint.BranchPointBlock):
-                    block.delegate.deleteCache()
+                    block.delegate.deleteCopiesFromCache()
 
             self.UIRepositoryView.refresh()
-            frame = getattr (mainViewRoot, 'frame', None)
-            
             deleteAllBranchCaches(mainViewRoot)
 
             from osaf.framework.blocks import Block
@@ -586,15 +583,7 @@ class wxApplication (wx.App):
                     item.delete()
 
             self.UIRepositoryView.commit()
-            assert self.UIRepositoryView.findPath('//userdata/MainViewRoot') == None
-            mainViewRoot = None
-        if mainViewRoot is None:
-            template = self.UIRepositoryView.findPath ("//parcels/osaf/views/main/MainViewRoot")
-            mainViewRoot = template.copy (parent = schema.Item.getDefaultParent (self.UIRepositoryView),
-                                          name = "MainViewRoot",
-                                          cloudAlias="copying")
-            if frame is not None:
-                mainViewRoot.frame = frame
+
         return mainViewRoot
 
     def RenderMainView (self):

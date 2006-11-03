@@ -219,8 +219,7 @@ class BranchPointDelegate(schema.Item):
     to get the view for that item.
 
     The default implementation is suitable when the item the view to be used;
-    it'll be returned as-is (except that a copy will be made if the original's
-    in the read-only part of the repository).
+    it'll be returned as-is.
 
     Issues:
      - We'd like to use itemrefs as keys, so reference tracking & cleanup
@@ -235,11 +234,13 @@ class BranchPointDelegate(schema.Item):
 
     keyUUIDToBranch = schema.Mapping(Block, initialValue = {})
     
-    def deleteCache(self):
-        for item in self.keyUUIDToBranch.itervalues():
-            if isitem(item):
+    def deleteCopiesFromCache(self):
+        defaultParent = self.getDefaultParent (self.itsView)
+        # create the list before iterating because we're modifing the dictionary in the loop
+        for key, item in [tuple for tuple in self.keyUUIDToBranch.iteritems()]:
+            if isitem(item) and item.itsParent == defaultParent:
+                del self.keyUUIDToBranch [key]
                 item.delete (cloudAlias="copying")
-        self.keyUUIDToBranch = {}
 
     def getBranchForKeyItem(self, keyItem):
         """ 
@@ -275,7 +276,7 @@ class BranchPointDelegate(schema.Item):
         part of the repository. (This behavior fits with the simple case where
         the items are views.)
         """
-        return self._copyItem(keyItem, onlyIfReadOnly=True)
+        return keyItem
 
     def _copyItem(self, item, onlyIfReadOnly=False):
         """

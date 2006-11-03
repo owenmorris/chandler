@@ -185,6 +185,15 @@ class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
         copying = schema.Cloud(byRef=[branchStub])
     )
 
+    def _makeBranchForCacheKey(self, keyItem):
+        """ 
+        Handle a cache miss; build and return a tree-of-blocks for this keyItem. 
+        Defaults to using the keyItem itself, copying it if it's in the read-only
+        part of the repository. (This behavior fits with the simple case where
+        the items are views.)
+        """
+        return self._copyItem(keyItem, onlyIfReadOnly=True)
+
     def _mapItemToCacheKeyItem(self, item, hints):
         """ 
         Overrides to use the item's kind as our cache key.
@@ -250,8 +259,7 @@ class DetailSynchronizer(Item):
     """
     def onSetContentsEvent(self, event):
         #logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
-                     #event.arguments['item'], event.arguments['collection'])
-        self.setContentsOnBlock(event.arguments['item'],
+                     #event.arguments['item'], event.arguments['collection']        self.setContentsOnBlock(event.arguments['item'],
                                 event.arguments['collection'])
 
     item = property(fget=Block.Block.getProxiedContents, 

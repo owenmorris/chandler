@@ -143,11 +143,11 @@ class BlockDelegate (ControlBlocks.ListDelegate):
     """
 
     def GetElementParent(self, element):
-        return element.parentBlock
+        return getattr (element, "parentBlock", None)
 
     def GetElementChildren(self, element):
         if element is None:
-            return [self.blockItem.findPath('//userdata/MainViewRoot')]
+            return [self.blockItem.findPath('//parcels/osaf/views/main/MainViewRoot')]
         else:
             return element.childrenBlocks
 
