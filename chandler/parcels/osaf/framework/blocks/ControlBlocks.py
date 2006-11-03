@@ -475,14 +475,14 @@ class AttributeDelegate (ListDelegate):
                 pass
             else:
                 # We got an attribute. Does the column specify an attribute
-                # source for this attribute? (eg, the relevantDate attribute has
-                # a corresponding relevantDateSource attribute containing the
-                # name of the attribute whose value is stored in the relevantDate
+                # source for this attribute? (eg, the displayDate attribute has
+                # a corresponding displayDateSource attribute containing the
+                # name of the attribute whose value is stored in the displayDate
                 # attribute.) 
                 #
                 # @@@ i18n This mechanism needs localization, but since the 
                 # existing redirectTo usage hasn't been localized since 
-                # displayName went away, I'm not worrying about it now...
+                # displayName went away, I'm not worrying about it for now...
                 #
                 attributeSourceName = getattr(col, 'attributeSourceName', None)
                 if attributeSourceName is not None:

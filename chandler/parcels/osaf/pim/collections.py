@@ -118,9 +118,6 @@ class ContentCollection(ContentItem, Collection):
         initialValue=()
     ) # inverse of osaf.pim.mail.EmailAddress.inviteeOf
 
-    # redirections 
-    about = schema.Descriptor(redirectTo="displayName")
-
     # other side of 'sources'
     sourceFor = schema.Sequence(otherName='sources')
 

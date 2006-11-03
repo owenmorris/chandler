@@ -35,7 +35,6 @@ class NotesTest(TestDomainModel.DomainModelTestCase):
 
         def _verifyNote(note):
             self.assertEqual(note.displayName, uw("sample note"))
-            self.assertEqual(note.getBasedAttributes('about'), ('displayName',))
 
             self.assertEqual(note.body,
                              uw("more elaborate sample note body"))

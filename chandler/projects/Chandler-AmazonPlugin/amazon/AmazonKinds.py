@@ -281,7 +281,7 @@ class AmazonItem(ContentItem):
 
     # When you add/remove/modify attributes here remember to update the
     # corresponding names displayed in the user interface in __init__.py
-    ProductName = schema.One(schema.Text)
+    ProductName = schema.One(redirectTo = 'displayName')
     ProductDescription = schema.One(schema.Text)
     Author = schema.One(schema.Text)
     Media = schema.One(schema.Text)
@@ -295,9 +295,6 @@ class AmazonItem(ContentItem):
     AverageCustomerRating = schema.One(schema.Text)
     NumberOfReviews = schema.One(schema.Text)
     
-    about = schema.One(redirectTo = 'ProductName')
-    who = schema.One(redirectTo = 'Author')
-
     myKindID = None
     myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonItem"
  

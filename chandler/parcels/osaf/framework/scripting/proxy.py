@@ -166,15 +166,11 @@ class AppProxy(object):
     @staticmethod
     def _name_of(item):
         try:
-            return item.about
+            return item.displayName
         except AttributeError:
             pass
         try:
             return item.blockName
-        except AttributeError:
-            pass
-        try:
-            return item.displayName
         except AttributeError:
             pass
         try:

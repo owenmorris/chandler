@@ -46,12 +46,6 @@ class Script(pim.ContentItem):
     filePath = schema.One(schema.Text, initialValue = u'')
     lastSync = schema.One(schema.DateTime)
 
-    # redirections
-
-    about = schema.One(redirectTo = 'displayName')
-    who = schema.One(redirectTo = 'creator')
-
-
     def __init__(self, itsName=None, itsParent=None, itsKind=None, itsView=None,
                  body=None, *args, **keys):
         defaultName = messages.UNTITLED

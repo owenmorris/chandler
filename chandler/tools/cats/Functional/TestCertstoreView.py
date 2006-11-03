@@ -59,7 +59,7 @@ class TestCertstoreView(ChandlerTestCase):
             
         # 3. confirm that the first certificate in the summary view is selected
         self.logger.startAction("Check first certificate selected")
-        if self.app_ns.summary.contents.getFirstSelectedItem().who != 'Verisign/RSA Secure Server CA':
+        if self.app_ns.summary.contents.getFirstSelectedItem().displayName != 'Verisign/RSA Secure Server CA':
             self.logger.endAction(False, "RSA certificate not first selected certificate in summary list")
         else:
             self.logger.endAction(True)

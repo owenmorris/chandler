@@ -344,7 +344,7 @@ def kindToMessageObject(mailMessage):
     populateStaticHeaders(messageObject)
     populateChandlerHeaders(stampedMail, messageObject)
     populateHeaders(stampedMail, messageObject)
-    populateHeader(messageObject, 'Subject', stampedMail.about, encode=True)
+    populateHeader(messageObject, 'Subject', stampedMail.subject, encode=True)
 
     if getattr(stampedMail, "inReplyTo", None):
         populateHeader(messageObject, 'In-Reply-To', stampedMail.inReplyTo, encode=False)

@@ -307,7 +307,20 @@ Test error messages:
     Traceback (most recent call last):
       ...
     TypeError: 'foo' is not a schema.Descriptor (One, Many, Sequence, etc.)
-    
+
+Observing an attribute that redirects somewhere else is dangerous, because
+someone else can change the target attribute underneath you - you should 
+observe the target attribute directly instead:
+
+    >>> class BadExample2(Example):
+    ...     bar = schema.One(redirectTo="foo")
+    ...     @schema.observer(bar)
+    ...     def __bar_changed(self, op, name):
+    ...         print name, "changed"
+    Traceback (most recent call last):
+      ...
+    TypeError: Can't observe a redirected attribute
+
 Test observers on Annotations:
 
    >>> class ExampleAnnotation(schema.Annotation):

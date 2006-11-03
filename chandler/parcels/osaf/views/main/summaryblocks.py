@@ -46,15 +46,15 @@ def makeSummaryBlocks(parcel):
             pim.ContentItem.triageStatus.name, 
             pim.ContentItem.triageStatusChanged.name,
         ])
-    whoIndexDef = pim.IndexDefinition.update(parcel, 
-        'who', attributes=[
-            'who', 
-            pim.ContentItem.relevantDate.name,
+    displayWhoIndexDef = pim.IndexDefinition.update(parcel, 
+        '%s.displayWho' % __name__, attributes=[
+            pim.ContentItem.displayWho.name,
+            pim.ContentItem.displayDate.name,
         ])
-    aboutIndexDef = pim.IndexDefinition.update(parcel, 
-        'about', attributes=[
-            'about', 
-            pim.ContentItem.relevantDate.name,
+    displayNameIndexDef = pim.IndexDefinition.update(parcel, 
+        '%s.displayName' % __name__, attributes=[
+            pim.ContentItem.displayName.name, 
+            pim.ContentItem.displayDate.name,
         ])
     calStatusIndexDef = pim.IndexDefinition.update(parcel, 
         '%s.calendarStatus' % __name__, attributes=[
@@ -63,8 +63,8 @@ def makeSummaryBlocks(parcel):
             pim.ContentItem.triageStatusChanged.name,
         ])
     dateIndexDef = pim.IndexDefinition.update(parcel, 
-        '%s.relevantDate' % __name__, attributes=[
-            pim.ContentItem.relevantDate.name, 
+        '%s.displayDate' % __name__, attributes=[
+            pim.ContentItem.displayDate.name, 
             pim.ContentItem.triageStatus.name, 
             pim.ContentItem.triageStatusChanged.name,
         ])
@@ -111,15 +111,16 @@ def makeSummaryBlocks(parcel):
                                   readOnly = True),
                     Column.update(parcel, 'SumColWho',
                                   heading = _(u'Who'),
-                                  attributeName = 'who',
-                                  indexName = whoIndexDef.itsName,
+                                  attributeName = 'displayWho',
+                                  attributeSourceName = 'displayWhoSource',
+                                  indexName = displayWhoIndexDef.itsName,
                                   width = 100,
                                   scaleColumn = True,
                                   readOnly = True),
-                    Column.update(parcel, 'SumColAbout',
+                    Column.update(parcel, 'SumColName',
                                   heading = _(u'Title'),
-                                  attributeName = 'about',
-                                  indexName = aboutIndexDef.itsName,
+                                  attributeName = 'displayName',
+                                  indexName = displayNameIndexDef.itsName,
                                   width = 120,
                                   scaleColumn = True),
                     Column.update(parcel, 'SumColCalendarEvent',
@@ -133,8 +134,8 @@ def makeSummaryBlocks(parcel):
                                   readOnly = True),
                     Column.update(parcel, 'SumColDate',
                                   heading = _(u'Date'),
-                                  attributeName = 'relevantDate',
-                                  attributeSourceName = 'relevantDateSource',
+                                  attributeName = 'displayDate',
+                                  attributeSourceName = 'displayDateSource',
                                   indexName = dateIndexDef.itsName,
                                   width = 100,
                                   scaleColumn = True,
@@ -149,7 +150,7 @@ def makeSummaryBlocks(parcel):
                 characterStyle = blocks.SummaryRowStyle,
                 headerCharacterStyle = blocks.SummaryHeaderStyle,
                 elementDelegate = 'osaf.views.main.SectionedGridDelegate',
-                       defaultEditableAttribute = u'about',
+                       defaultEditableAttribute = u'displayName',
                 selection = [[0,0]]),
             BranchPointBlock.template('TableSummaryDetailBranchPointBlock',
                 delegate = detailBranchPointDelegate,

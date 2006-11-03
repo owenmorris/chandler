@@ -776,8 +776,6 @@ class MailStamp(stamping.Stamp, MIMEContainer):
     dateSent = schema.One(schema.DateTimeTZ, indexed=True)
     messageId = schema.One(schema.Text, initialValue = '')
 
-    about = schema.One(redirectTo = 'about')
-
     # inverse of EmailAddress.messagesTo
     toAddress = schema.Sequence(
         initialValue = [],
@@ -806,21 +804,25 @@ class MailStamp(stamping.Stamp, MIMEContainer):
     )
     chandlerHeaders = schema.Mapping(schema.Text, initialValue = {})
 
-    #who = schema.One(
-    #    doc = "Redirector to 'toAddress'", redirectTo = 'toAddress',
-    #)
-    #whoFrom = schema.One(
-    #    doc = "Redirector to 'fromAddress'", redirectTo = 'fromAddress',
-    #)
+    @schema.observer(toAddress, isOutbound, stamping.Stamp.stamp_types)
+    def onAddressChange(self, op, name):
+        self.itsItem.updateDisplayWho(op, name)
 
-    # @@@ [grant] This doesn't seem to work; need to check what's going
-    # on with schema.observer here.
-    @schema.observer(toAddress, stamping.Stamp.stamp_types)
-    def updateWho(self, op, name):
-        if op in ('init', 'set') and stamping.has_stamp(self, MailStamp):
-            self.itsItem.who = u", ".join(unicode(x) for x in self.toAddress)
-        else:
-            self.itsItem.who = u""
+    def addDisplayWhos(self, whos):
+        # @@@ This code doesn't choose the right 'who' yet, but has enough
+        # context to make the decision here. (If the decision depends
+        # on more attributes, be sure to add them to the schema.observer list
+        # on onAddressChange)
+        if getattr(self, 'toAddress', None) is not None:
+            toText = u", ".join(unicode(x) for x in self.toAddress)
+            if len(toText) > 0:
+                toPriority = self.isOutbound and 1 or 2
+                whos.append((toPriority, toText, 'to'))
+        if getattr(self, 'fromAddress', None) is not None:
+            fromText = unicode(self.fromAddress)
+            if len(fromText) > 0:
+                fromPriority = self.isOutbound and 2 or 1
+                whos.append((fromPriority, fromText, 'to'))
 
     schema.addClouds(
         sharing = schema.Cloud(
@@ -871,10 +873,9 @@ class MailStamp(stamping.Stamp, MIMEContainer):
 
     @schema.observer(dateSent)
     def onDateSentChanged(self, op, name):
-        # Update our relevant-date attribute
-        self.itsItem.updateRelevantDate(op, name)
+        self.itsItem.updateDisplayDate(op, name)
 
-    def addRelevantDates(self, dates):
+    def addDisplayDates(self, dates):
         dateSent = getattr(self, 'dateSent', None)
         if dateSent is not None:
             dates.append((dateSent, 'dateSent'))

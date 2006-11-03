@@ -55,8 +55,6 @@ class TaskStamp(Stamp):
     )
 
     dueDate = schema.One(schema.DateTimeTZ)
-    #whoFrom = schema.One(redirectTo = 'requestor')
-    summary = schema.One(redirectTo = 'displayName')
 
     schema.addClouds(
         copying = schema.Cloud(
@@ -79,9 +77,6 @@ class TaskStamp(Stamp):
         # (?) Grant
         if not hasattr(self, 'dueDate'):
             self.dueDate = datetime.now(ICUtzinfo.default) + timedelta(hours=1)
-
-        # TBD - default the requestee to any super class "who" definition
-        # requestee attribute is currently not implemented.
 
 def Task(*args, **keywds):
     note = notes.Note(*args, **keywds)

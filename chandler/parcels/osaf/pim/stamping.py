@@ -170,7 +170,7 @@ class Stamp(schema.Annotation):
         
     @schema.observer(stamp_types)
     def onStampTypesChanged(self, op, attr):
-        self.itsItem.updateRelevantDate(op, attr)
+        self.itsItem.updateDisplayDate(op, attr)
 
 def has_stamp(item, stampClass):
     try:

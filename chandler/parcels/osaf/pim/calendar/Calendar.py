@@ -476,8 +476,6 @@ class EventStamp(Stamp):
     IGNORE_CHANGE_ATTR = "%s.EventStamp.__ignoreValueChange" % (__module__,)
 
     # Redirections
-
-    #whoFrom = schema.One(redirectTo="organizer")
     summary = schema.One(redirectTo="displayName")
 
     def __disableRecurrenceChanges(self):
@@ -729,10 +727,10 @@ class EventStamp(Stamp):
         if existing:
             Remindable(self).dismissReminder(existing)
             
-        # Update our relevant-date attribute, too
-        self.itsItem.updateRelevantDate(op, name)
+        # Update our display-date attribute, too
+        self.itsItem.updateDisplayDate(op, name)
 
-    def addRelevantDates(self, dates):
+    def addDisplayDates(self, dates):
         effectiveStartTime = getattr(self, 'effectiveStartTime', None)
         if effectiveStartTime is not None:
             dates.append((effectiveStartTime, 'startTime'))

@@ -345,9 +345,9 @@ class Remindable(schema.Annotation):
     @schema.observer(reminders)
     def onRemindersChanged(self, op, attr):
         logger.debug("Hey, onRemindersChanged called!")
-        self.itsItem.updateRelevantDate(op, attr)
+        self.itsItem.updateDisplayDate(op, attr)
     
-    def addRelevantDates(self, dates):
+    def addDisplayDates(self, dates):
         """
         Subclasses will override this to add relevant dates to this list;
         each should be a tuple, (dateTimeValue, 'attributeName').
@@ -355,4 +355,6 @@ class Remindable(schema.Annotation):
         # Add our reminder, if we have one
         reminder = self.getUserReminder(expiredToo=False)
         if reminder is not None:
-            dates.append((reminder.getNextReminderTimeFor(self), 'reminder'))
+            reminderTime = reminder.getNextReminderTimeFor(self)
+            if reminderTime is not None:
+                dates.append((reminderTime, 'reminder'))

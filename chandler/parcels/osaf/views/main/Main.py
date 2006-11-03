@@ -113,7 +113,7 @@ class MainView(View):
         Called when the SMTP Send was successful.
         """
         if mailMessage is not None and mailMessage.isOutbound:
-            self.setStatusMessage (_(u'Mail "%(subject)s" sent.') % {'subject': mailMessage.about})
+            self.setStatusMessage (_(u'Mail "%(subject)s" sent.') % {'subject': mailMessage.subject})
 
         # If this was a sharing invitation, find its collection and remove the
         # successfully-notified addressees from the invites list.
@@ -707,12 +707,10 @@ class MainView(View):
                 kindLabel = commonName(item.itsKind, False)+':'
             else:
                 kindLabel = ''
-            if hasattr(item, 'about'): 
-                return kindLabel + item.about
-            if hasattr(item, 'blockName'): 
-                return kindLabel + item.blockName
             if hasattr(item, 'displayName'): 
                 return kindLabel + item.displayName
+            if hasattr(item, 'blockName'): 
+                return kindLabel + item.blockName
             if hasattr(item, 'itsName') and item.itsName is not None: 
                 return kindLabel + item.itsName
             return str(item)

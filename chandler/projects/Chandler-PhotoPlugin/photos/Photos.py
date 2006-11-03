@@ -43,9 +43,6 @@ class PhotoMixin(pim.ContentItem):
     def onPhotoBodyChanged(self, op, attribute):
         self.processEXIF()
 
-    about = schema.One(redirectTo = 'displayName')
-    who = schema.One(redirectTo = 'creator')
-
     schema.addClouds(sharing = schema.Cloud(dateTaken, photoBody))
 
     def importFromFile(self, path):
@@ -111,10 +108,10 @@ class PhotoMixin(pim.ContentItem):
 
     @schema.observer(dateTaken)
     def onDateTakenChanged(self, op, attr):
-        self.updateRelevantDate(op, attr)
+        self.updateDisplayDate(op, attr)
 
-    def addRelevantDates(self, dates):
-        super(PhotoMixin, self).addRelevantDates(dates)
+    def addDisplayDates(self, dates):
+        super(PhotoMixin, self).addDisplayDates(dates)
         dateTaken = getattr(self, 'dateTaken', None)
         if dateTaken is not None:
             dates.append((dateTaken, 'dateTaken'))

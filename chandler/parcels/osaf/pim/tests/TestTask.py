@@ -35,12 +35,8 @@ class TaskTest(TestDomainModel.DomainModelTestCase):
 
         def _verifyTask(taskItem):
             self.failUnless(has_stamp(taskItem, TaskStamp))
-            self.failIfEqual(taskItem, None)
             self.failUnlessEqual(taskItem.displayName, uw("test headline"))
-
             self.failUnlessEqual(taskItem.importance, 'important')
-            self.failUnlessEqual(taskItem.getAttributeValue('importance'), 'important')
-            self.failUnlessEqual(taskItem.about, uw("test headline"))
 
         self.loadParcel("osaf.pim.tasks")
 
@@ -55,7 +51,7 @@ class TaskTest(TestDomainModel.DomainModelTestCase):
 
         # Construct A Sample Item
         task = Task("TestTask", itsView=view)
-        task.summary = uw("test headline")
+        task.itsItem.displayName = uw("test headline")
         task.itsItem.importance = "important"
 
         self._reopenRepository()

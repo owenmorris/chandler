@@ -77,7 +77,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
             mail = Mail.MailStamp(item)
 
         """
-        item.about = anAbout
+        item.displayName = anAbout
         aDate = datetime.now()
         item.date = aDate
         aWhoList = []
@@ -89,7 +89,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
             item.who = aWhoList
 
 
-        savedAttrs.about = anAbout
+        savedAttrs.displayName = anAbout
         savedAttrs.date = aDate
         savedAttrs.who = aWhoList
         """

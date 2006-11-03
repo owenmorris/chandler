@@ -52,9 +52,6 @@ class Certificate(pim.ContentItem):
     @see: U{model<../model/parcels/osaf/framework/certstore/Certificate/index.html>}
     """
 
-    who = schema.One(redirectTo = 'displayName')
-    about = schema.One(redirectTo = 'trust')
-
     type = schema.One(
         typeEnum,
         doc = 'Certificate type.',

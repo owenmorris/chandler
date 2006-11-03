@@ -1702,10 +1702,10 @@ def fixTriageStatusCallback(share=None, uuids=None):
         if Calendar.isRecurring(item):
             continue
         
-        relevantDate = getattr(item, 'relevantDate', None)
-        if relevantDate:
-            item.triageStatus = (relevantDate < now and pim.TriageEnum.done
+        displayDate = getattr(item, 'displayDate', None)
+        if displayDate:
+            item.triageStatus = (displayDate < now and pim.TriageEnum.done
                                  or pim.TriageEnum.later)
-            item.setTriageStatusChanged(relevantDate)
+            item.setTriageStatusChanged(displayDate)
         
 register(NEWITEMSUNESTABLISHED, fixTriageStatusCallback)

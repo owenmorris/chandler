@@ -156,7 +156,6 @@ class FeedChannel(pim.ListCollection):
     isPreviousUpdateSuccessful = schema.One(schema.Boolean, initialValue=True)
     logItem = schema.One(initialValue=None)
     schema.addClouds(sharing = schema.Cloud(author, copyright, link, url))
-    who = schema.Descriptor(redirectTo="author")
     
     def __init__(self, *args, **kw):
         """
@@ -399,6 +398,16 @@ class FeedChannel(pim.ListCollection):
         for item in self:
             item.read = True
 
+    @schema.observer(author)
+    def onAuthorChange(self, op, attr):
+        self.updateDisplayWho(op, attr)
+    
+    def addDisplayWhos(self, whos):
+        super(FeedChannel, self).addDisplayWhos(whos)
+        author = getattr(self, 'author', None)
+        if author is not None:
+            whos.append((10, author, 'author'))
+
 class FeedItem(pim.ContentItem):
     """
     This class implements a feed channel item that is visualized
@@ -414,8 +423,6 @@ class FeedItem(pim.ContentItem):
     channel = schema.One(FeedChannel)
     content = schema.One(schema.Lob)
     updated = schema.One(schema.Boolean)
-    about = schema.Descriptor(redirectTo="displayName")
-    who = schema.Descriptor(redirectTo="author")
     body = schema.Descriptor(redirectTo="content")
     schema.addClouds(sharing = schema.Cloud(link, category, author, date))
 
@@ -460,3 +467,13 @@ class FeedItem(pim.ContentItem):
         else:
             # No date was available in the feed, so assign it "now"
             self.date = datetime.now(ICUtzinfo.default)
+
+    @schema.observer(author)
+    def onAuthorChange(self, op, attr):
+        self.updateDisplayWho(op, attr)
+    
+    def addDisplayWhos(self, whos):
+        super(FeedItem, self).addDisplayWhos(whos)
+        author = getattr(self, 'author', None)
+        if author is not None:
+            whos.append((10, author, 'author'))

@@ -90,11 +90,6 @@ class Contact(items.ContentItem):
         otherName="sharees"
     )
 
-    # <!-- redirections -->
-
-    who   = schema.Descriptor(redirectTo="contactName")
-    about = schema.Descriptor(redirectTo="displayName")
-
     schema.addClouds(
         sharing = schema.Cloud(emailAddress, byCloud=[contactName])
     )

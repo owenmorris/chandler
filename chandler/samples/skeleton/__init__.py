@@ -20,10 +20,6 @@ class MyKind1(pim.ContentItem):
     """An example content kind"""
     
     attr1 = schema.One(schema.Text)
-   
-    # redirection attributes
-    who = schema.Descriptor(redirectTo="attr1")
-
     attr2 = schema.One(schema.Text)
   
     # Typical clouds include a "copying" cloud, and a "sharing" cloud

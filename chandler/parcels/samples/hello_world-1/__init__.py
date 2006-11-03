@@ -32,7 +32,7 @@ def installParcel(parcel, oldVersion=None):
         parcel, 'attributeEditorBlock',
         blockName = 'HeadlineBlock',
         alignmentEnum = 'alignTopCenter',
-        viewAttribute = 'about',
+        viewAttribute = 'displayName',
         presentationStyle = aePresentationStyle)
     
     button = blocks.ControlBlocks.Button.update(

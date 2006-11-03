@@ -26,22 +26,6 @@ from application import schema
 from i18n import ChandlerMessageFactory as _
 
 class Note(items.ContentItem):
-
-    ##
-    ## Attribute declarations
-    ##
-
-    # temporarily make this a real attribute instead of a redirection,
-    # because we don't want to redirect this anywhere
-    who = schema.One(
-        schema.Text,
-        initialValue = u"",
-        indexed = True,
-    )
-
-    # redirections
-    about = schema.One(redirectTo = "displayName")
-
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
@@ -61,10 +45,16 @@ class Note(items.ContentItem):
         # Let the clipboard handler know we've got a Note to export
         clipboardHandler.ExportItemFormat(self, 'Note')
         
-    def addRelevantDates(self, dates):
-        super(Note, self).addRelevantDates(dates)
+    def addDisplayDates(self, dates):
+        super(Note, self).addDisplayDates(dates)
         
         for stampObject in Stamp(self).stamps:
-            method = getattr(stampObject, 'addRelevantDates', lambda _: None)
+            method = getattr(stampObject, 'addDisplayDates', lambda _: None)
             method(dates)
 
+    def addDisplayWhos(self, whos):
+        super(Note, self).addDisplayWhos(whos)
+        
+        for stampObject in Stamp(self).stamps:
+            method = getattr(stampObject, 'addDisplayWhos', lambda _: None)
+            method(whos)

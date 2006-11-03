@@ -175,6 +175,8 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         # Literal properties
         mailMessageObject.dateSent = datetime.now(ICUtzinfo.default)
         mailMessageObject.subject = uw("Hello")
+        self.assertEqual(mailMessageObject.subject, 
+                         mailMessageObject.itsItem.displayName)
         mailMessageObject.spamScore = 5
 
         # Item Properties
@@ -223,15 +225,15 @@ class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
         msg = Mail.MailMessage(itsView=self.rep.view, subject=u"Hi!")
         msg.toAddress=[self.address]
         
-        # Make sure the 'who' field was set correctly
-        self.failUnlessEqual(msg.itsItem.who,
+        # Make sure the 'displayWho' field was set correctly
+        self.failUnlessEqual(msg.itsItem.displayWho,
                              u"Grant Baillie <grant@example.com>")
        
          # Now, remove the stamp...
         msg.remove()
         
         # ... and check the who field is blank
-        self.failUnlessEqual(msg.itsItem.who, u"")
+        self.failUnlessEqual(msg.itsItem.displayWho, u"")
                              
     def testNoStamp(self):
         # Make sure that, even if we create a Note with a toAddress,
@@ -239,7 +241,7 @@ class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
         note = Note(itsView=self.rep.view)
         notStampedMsg = Mail.MailStamp(note)
         notStampedMsg.toAddress=[self.address]
-        self.failUnlessEqual(notStampedMsg.itsItem.who, u"")
+        self.failUnlessEqual(notStampedMsg.itsItem.displayWho, u"")
                              
     
 if __name__ == "__main__":

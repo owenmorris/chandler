@@ -688,9 +688,8 @@ def makeNoteSubtree(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
 
     # First, the headline AEBlock and the area it sits in
-    # First, the headline AEBlock and the area it sits in
     headlineAEBlock = makeEditor(parcel, 'HeadlineBlock',
-                                 viewAttribute=u'about',
+                                 viewAttribute=u'displayName',
                                  characterStyle=blocks.BigTextStyle,
                                  presentationStyle={
                                      # empty sample means "use displayname"

@@ -25,6 +25,7 @@ from application import schema
 from repository.schema.Kind import Kind
 import repository.item.Item as Item
 from chandlerdb.item.ItemError import NoLocalValueForAttributeError
+from chandlerdb.util.c import Nil
 import logging
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
@@ -226,8 +227,12 @@ class ContentItem(schema.Item):
     appearsIn = schema.Sequence()
 
     # The date used for sorting the Date column
-    relevantDate = schema.One(schema.DateTimeTZ)
-    relevantDateSource = schema.One(schema.Importable)
+    displayDate = schema.One(schema.DateTimeTZ)
+    displayDateSource = schema.One(schema.Importable)
+
+    # The value displayed (and sorted) for the Who column.
+    displayWho = schema.One(schema.Text)
+    displayWhoSource = schema.One(schema.Importable)
     
     schema.addClouds(
         sharing = schema.Cloud("displayName", body, createdOn, 'tags',
@@ -330,56 +335,6 @@ class ContentItem(schema.Item):
 
     Accessors for Content Item attributes
     """
-    def ItemWhoString (self):
-        from osaf.pim.contacts import ContactName
-        """
-        return unicode(item.who)
-        @@@DLD - XMLRefDicts that have EmailAddress items should
-                 know how to convert themselves to string
-        """
-        try:
-            whoContacts = self.who # get redirected who list
-        except AttributeError:
-            return u''
-        try:
-            numContacts = len(whoContacts)
-        except TypeError:
-            numContacts = -1
-        if numContacts == 0:
-            return ''
-        if numContacts > 0:
-            whoNames = []
-            for whom in whoContacts.values():
-                whoNames.append (unicode (whom))
-            whoString = u', '.join(whoNames)
-        else:
-            whoString = unicode (whoContacts)
-            if isinstance(whoContacts, ContactName):
-                names = []
-                if len (whoContacts.firstName):
-                    names.append (whoContacts.firstName)
-                if len (whoContacts.lastName):
-                    names.append (whoContacts.lastName)
-                whoString = u' '.join(names)
-        return whoString
-
-    def ItemWhoFromString (self):
-        try:
-            whoFrom = self.whoFrom # get redirected whoFrom list
-        except AttributeError:
-            return u''
-        return unicode (whoFrom)
-
-    def ItemAboutString (self):
-        """
-        return unicode(item.about)
-        """
-        try:
-            about = self.about
-        except AttributeError:
-            about = u''
-        return about
-
     def getEmailAddress (self, nameOrAddressString):
         """
           Lookup or create an EmailAddress based
@@ -423,50 +378,98 @@ class ContentItem(schema.Item):
 
     sharedState = property(getSharedState)
     
-    def addRelevantDates(self, dates):
-        from osaf.pim.reminders import Remindable
-        Remindable(self).addRelevantDates(dates)
-
-    def updateRelevantDate(self, op, attr):
-        # Update the relevant date. This could be a lot smarter.
+    def _updateCommonAttribute(self, attributeName, sourceAttributeName, 
+                               collectorMethod, default=Nil, picker=None):
+        """
+        Mechanism for coordinating updates to a common-display field
+        (like displayWho and displayDate, but not displayName for now).
+        """
         if self.isDeleted():
             return
-        logger.debug("Collecting relevant dates for %r %s", self, self)
-        dates = []
-        self.addRelevantDates(dates)
-        dates = filter(lambda x: x[0], dates)
-        dateCount = len(dates)
-        if dateCount == 0:
-            # No relevant dates? Eventually, we'll use lastModified; for now
-            # just delete the value.
-            if hasattr(self, 'relevantDate'): 
-                del self.relevantDate
-                self.relevantDateSource = 'None'
-            logger.debug("No relevant date for %r %s", self, self)
-            return
-        elif dateCount == 1:
-            # We have exactly one date; it doesn't matter whether it's in
-            # the future or the past -- just use it.
-            result = dates[0]
-        else:
-            # More than one: Use the first one after now if we have one, else
-            # the last one before now.
-            nowTuple = (datetime.now(tz=ICUtzinfo.default), 'now')
-            dates.append(nowTuple)
-            dates.sort()
-            nowIndex = dates.index(nowTuple)
-            try:
-                result = dates[nowIndex+1]
-            except IndexError:
-                result = dates[nowIndex-1]
-                
-        logger.debug("Relevant date for %r %s is %s", self, self, result)
-        assert result[0] is not None
-        self.relevantDate, self.relevantDateSource = result
+        logger.debug("Collecting relevant %ss for %r %s", 
+                     attributeName, self, self)
         
+        # Collect possible values. The collector method adds tuples to the 
+        # contenders list; each tuple starts with a value to sort by, and
+        # ends with the attribute value to assign and the name of the attribute
+        # it came from (which will be used later to pick a displayable string
+        # to describe the source of the value). 
+        # 
+        # Examples: if we sort by the attribute value, only two values are 
+        # needed in the tuple: eg, (aDate, 'dateField). If the picking happens
+        # based on an additional value (or values), the sort value(s) come 
+        # before the attribute value: eg (1, 'me@ex.com', 'to'), 
+        # (2, 'you@ex.com', 'from'). This works because sort sorts by the
+        # values in order, and we access the attribute value and name using 
+        # negative indexes (so contender[-2] is the value, contender[-1] is 
+        # the name).
+        contenders = []
+        collectorMethod(contenders)
+        
+        # Now that we have the contenders, pick one.
+        contenderCount = len(contenders)
+        if contenderCount == 0:
+            # No contenders: set the default, or delete the value if we don't 
+            # have one.
+            if default is Nil:
+                if hasattr(self, attributeName): 
+                    delattr(self, attributeName)
+            else:
+                setattr(self, attributeName, default)
+            setattr(self, sourceAttributeName, '')
+            logger.debug("No relevant %s for %r %s", attributeName, self, self)
+            return
+        elif contenderCount == 1:
+            # We have exactly one possibility; just use it.
+            result = contenders[0]
+        else:
+            # More than one: pick and choose.
+            if picker:
+                # Let the picker sort and choose
+                result = picker(contenders)
+            else:
+                # No picker - use the first one.
+                contenders.sort()
+                result = contenders[0]
+                
+        logger.debug("Relevant %s for %r %s is %s", attributeName, self, self, result)
+        assert result[-2] is not None
+        setattr(self, attributeName, result[-2])
+        setattr(self, sourceAttributeName, result[-1])
+
+    def addDisplayWhos(self, whos):
+        # Eventually, when 'creator' is supported, we'll add it here with a
+        # very low priority. For now, an empty 'whos' list will result in no
+        # 'who' column display, which is what we want.
+        pass
+    
+    def updateDisplayWho(self, op, attr):
+        self._updateCommonAttribute('displayWho', 'displayWhoSource', 
+                                    self.addDisplayWhos, default=u'')
+            
+    def addDisplayDates(self, dates):
+        from osaf.pim.reminders import Remindable
+        Remindable(self).addDisplayDates(dates)
+
+    def updateDisplayDate(self, op, attr):
+        def picker(contenders):
+            # We want to pick the first date after 'now'
+            nowTuple = (datetime.now(tz=ICUtzinfo.default), 'now')
+            contenders.append(nowTuple)
+            contenders.sort()
+            nowIndex = contenders.index(nowTuple)
+            try:
+                result = contenders[nowIndex+1]
+            except IndexError:
+                result = contenders[nowIndex-1]
+            return result
+           
+        self._updateCommonAttribute('displayDate', 'displayDateSource',
+                                    self.addDisplayDates, picker=picker)
+                
     @schema.observer(lastModified)
     def onLastModifiedChanged(self, op, attr):
-        self.updateRelevantDate(op, attr)
+        self.updateDisplayDate(op, attr)
 
     @schema.observer(triageStatus)
     def setTriageStatusChanged(self, op='set', attribute=None, when=None):
@@ -618,11 +621,6 @@ class UserNotification(ContentItem):
         doc="DateTime this notification ocurred"
     )
 
-    who = schema.One(schema.Text, initialValue = u"", indexed=True)
-
-    # redirections
-    about = schema.One(redirectTo = "displayName")
-
     def __init__(self, *args, **kw):
         super(UserNotification, self).__init__(*args, **kw)
         if not hasattr(self, 'timestamp'):
@@ -630,10 +628,10 @@ class UserNotification(ContentItem):
 
     @schema.observer(timestamp)
     def onTimestampChanged(self, op, attr):
-        self.updateRelevantDate(op, attr)
+        self.updateDisplayDate(op, attr)
 
-    def addRelevantDates(self, dates):
-        super(UserNotification, self).addRelevantDates(dates)
+    def addDisplayDates(self, dates):
+        super(UserNotification, self).addDisplayDates(dates)
         timestamp = getattr(self, 'timestamp', None)
         if timestamp is not None:
             dates.append((timestamp, 'timestamp'))

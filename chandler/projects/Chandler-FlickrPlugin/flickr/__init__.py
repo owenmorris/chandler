@@ -50,7 +50,6 @@ class FlickrPhotoMixin(PhotoMixin):
     datePosted = schema.One (schema.DateTime)
     tags = schema.Sequence ()
     owner = schema.One (schema.Text)
-    who = schema.One (redirectTo="owner")
 
     schema.addClouds(sharing = schema.Cloud(owner, flickrID, imageURL, tags))
 
@@ -75,6 +74,16 @@ class FlickrPhotoMixin(PhotoMixin):
                 logging.exception(e)
 
         self.importFromURL(self.imageURL)
+        
+    @schema.observer(owner)
+    def onOwnerChange(self, op, attr):
+        self.updateDisplayWho(op, attr)
+    
+    def addDisplayWhos(self, whos):
+        super(FlickrPhotoMixin, self).addDisplayWhos(whos)
+        owner = getattr(self, 'owner', None)
+        if owner is not None:
+            whos.append((10, owner, 'owner'))
 
 class FlickrPhoto(FlickrPhotoMixin, pim.Note):
     pass
