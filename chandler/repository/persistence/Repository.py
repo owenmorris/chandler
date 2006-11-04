@@ -13,9 +13,9 @@
 #   limitations under the License.
 
 
-import sys, logging, threading, PyLucene, time
+import sys, logging, threading, PyLucene, time, Queue
 
-from chandlerdb.util.c import UUID, Nil, Default
+from chandlerdb.util.c import Nil, Default
 from chandlerdb.persistence.c import CRepository
 from repository.item.Item import Item
 from repository.persistence.RepositoryView import RepositoryView
@@ -248,6 +248,11 @@ class Repository(CRepository):
             self.logger.setLevel(logging.INFO)
             self._status &= ~Repository.DEBUG
 
+    def getSchemaInfo(self):
+
+        return self.store.getSchemaInfo()
+
+
     itsUUID = RepositoryView.itsUUID
     view = property(getCurrentView, setCurrentView)
     views = property(getOpenViews)
@@ -309,6 +314,9 @@ class Store(object):
     def getItemVersion(self, view, version, uuid):
         raise NotImplementedError, "%s.getItemVersion" %(type(self))
 
+    def getSchemaInfo(self):
+        raise NotImplementedError, "%s.getSchemaInfo" %(type(self))
+
     def attachView(self, view):
         pass
 
@@ -318,3 +326,105 @@ class Store(object):
 
 class RepositoryThread(PyLucene.PythonThread):
     pass
+
+
+class RepositoryWorker(RepositoryThread):
+    """
+    An abstract class to implement repository worker threads.
+
+    A repository worker thread is a background thread, typically assigned
+    its own view, that processes requests appended to its queue.
+
+    The C{processRequest} method is abstract and needs to be implemented by
+    concrete subclasses.
+    """
+
+    def __init__(self, name, repository):
+        super(RepositoryWorker, self).__init__(name)
+
+        self._repository = repository
+        self._condition = threading.Condition(threading.Lock())
+        self._alive = True
+        self._requests = Queue.Queue()
+
+        self.setDaemon(True)
+
+    def processRequest(self, view, request):
+        """
+        Process a request.
+
+        A request can be any type of object. Its structure is only
+        understood by this method. The worker thread instance takes a
+        request off its queue and calls this method for processing.
+
+        The C{view} argument is first C{None} which implies that this method
+        should create one. C{processRequest} should return this C{view} it
+        created so that when the worker terminates, the view is closed.
+
+        Implementations of this method should guard against exceptions that
+        may happen during processing. Uncaught errors will cause this worker
+        thread to terminate.
+
+        """
+        raise NotImplementedError, "%s.processRequest" %(type(self))
+        
+    def run(self):
+        condition = self._condition
+        requests = self._requests
+        view = None
+
+        while self._alive:
+
+            condition.acquire()
+            try:
+                if self._alive:
+                    if requests.empty():
+                        condition.wait()
+                    if self._alive:
+                        request = requests.get()
+                    else:
+                        break
+                else:
+                    break
+            finally:
+                condition.release()
+
+            view = self.processRequest(view, request)
+
+        if view is not None:
+            view.closeView()
+        
+    def queueRequest(self, request):
+        """
+        Add a request to this worker thread's queue.
+
+        The request object can be any type of object, it need only be
+        understood by the C{processRequest} method.
+        """
+        if self._alive and self.isAlive():
+            condition = self._condition
+
+            condition.acquire()
+            self._requests.put(request)
+            condition.notify()
+            condition.release()
+
+    def terminate(self):
+        """
+        Terminate this worker thread.
+
+        The processing of the current request, if any, is completed and
+        the thread terminated. The remaining queued requests are ignored.
+
+        This method waits for the worker thread's termination to complete
+        before returning.
+        """
+        if self._alive and self.isAlive():
+            condition = self._condition
+
+            condition.acquire()
+            self._alive = False
+            condition.notify()
+            condition.release()
+
+            self.join()
