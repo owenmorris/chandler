@@ -646,13 +646,7 @@ def publish(collection, account, classesToInclude=None,
                     else:
                         subShare = None
     
-                    try:
-                        share.put(updateCallback=callback)
-                    except: # Publish failed
-                        # @@@MOR: at this point the share item is stale.
-                        # We need another way to clean up the server
-                        # share.destroy() # Clean up server
-                        raise
+                    share.put(updateCallback=callback)
 
                     # tickets after putting
                     if supportsTickets and publishType == 'collection':
@@ -691,11 +685,7 @@ def publish(collection, account, classesToInclude=None,
                     raise SharingError(_(u"Share already exists"))
 
                 share.create()
-                try:
-                    share.put(updateCallback=callback)
-                except: # Publish failed
-                    share.destroy() # Clean up server
-                    raise
+                share.put(updateCallback=callback)
 
                 if supportsTickets:
                     share.conduit.createTickets()
@@ -732,9 +722,14 @@ def publish(collection, account, classesToInclude=None,
             for share in shares:
                 share.delete(True)
         except:
-            pass
+            pass # ignore stale shares
 
-        raise
+        # Note: the following "raise e" line used to just read "raise".
+        # However, if the try block immediately preceeding this comment
+        # raises an exception, the "raise" following this comment was
+        # raising that *new* exception instead of the original exception
+        # that got us here, "e".
+        raise e
 
     return shares
 
