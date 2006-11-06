@@ -1720,13 +1720,7 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         dateString = None
         timeString = None
         preferDate = True
-        if itemDate > todayDate or itemDate < (today + timedelta(days=-5)).date():
-            # Format as a date if it's after today, or in the distant past 
-            # (same day last week or earlier). (We'll do day names for days
-            # in the last week (below), but this excludes this day last week
-            # from that, to avoid confusion.)
-            pass
-        elif itemDate == todayDate:
+        if itemDate == todayDate:
             # Today? say so, and show the time if we only have room for one value
             preferDate = False
             dateString = _(u'Today')

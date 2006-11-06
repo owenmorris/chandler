@@ -125,7 +125,7 @@ def installParcel(parcel, oldVersion=None):
     )
 
     itemKindCollection = KindCollection.update(
-        parcel, 'items',
+        parcel, 'contentItems',
         kind = ContentItem.getKind(view),
        recursive=True)
 

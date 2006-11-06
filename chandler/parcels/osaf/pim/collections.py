@@ -36,13 +36,15 @@ class AllIndexDefinitions(schema.Item):
     
 class IndexDefinition(schema.Item):
     """
-    A definition of an index.
-    @@@ For now, they're all attribute indexes, with a sequence of 
-        attribute names. This will be more complex in alpha5: I'll add the 
-        ability to declare a subindex based on a master index of another 
-        collection.
+    A definition of an index, able to create an index on a collection (given the
+    collection).
+
+    Creates either of two kinds of indexes:
+    - If no 'attributes' are specified, a subindex of the master index with this
+      name is created.
+    - If attributes are specified, a standalone attribute index is created.
     """
-    attributes = schema.Sequence(schema.Text)
+    attributes = schema.Sequence(schema.Text, defaultValue='')
     
     mappingCollection = schema.One(otherName="indexDefinitions")
 
@@ -69,10 +71,19 @@ class IndexDefinition(schema.Item):
         indexDef.makeIndex(collection)
     
     def makeIndex(self, collection):
-        """ Create this index on this collection. """
-        collection.addIndex(self.itsName, 'attribute', 
-                            attributes=self.attributes)
-
+        """
+        Create this index on this collection.
+        """
+        if len(self.attributes) > 0:
+            # Create an index on specific attributes
+            collection.addIndex(self.itsName, 'attribute',
+                                attributes=self.attributes)
+        else:
+            # Create a subindex that inherits from the master with our name.
+            contentItems = schema.ns("osaf.pim", collection.itsView).contentItems
+            collection.addIndex(self.itsName, 'subindex',
+                                superindex=(contentItems, contentItems.__collection__,
+                                            self.itsName))
 
 class ContentCollection(ContentItem, Collection):
     """

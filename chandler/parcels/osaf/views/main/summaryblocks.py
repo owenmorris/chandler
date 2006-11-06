@@ -33,43 +33,116 @@ def makeSummaryBlocks(parcel):
     blocks = schema.ns('osaf.framework.blocks', view)
     repositoryView = parcel.itsView
     
-    # Index definitions that the dashboard will use
-    taskStatusIndexDef = pim.IndexDefinition.update(parcel, 
-        '%s.taskStatus' % __name__, attributes=[
+    iconColumnWidth = 23 # temporarily not 20, to work around header bug 6168
+
+    # Index definitions that the dashboard will use; each inherits
+    # from a master index on the ContentItem kind collection.
+    def makeColumnAndIndexes(colName, **kwargs):
+        # Make the master index
+        indexName = kwargs['indexName']
+        attributes = kwargs.pop('attributes')
+        pim_ns.contentItems.addIndex(indexName, 'attribute',
+                                     attributes=attributes)
+    
+        # Create an IndexDefinition that will later be used to
+        # build sub-indexes off this master, when the user clicks on the column.
+        pim.IndexDefinition.update(parcel, indexName)
+    
+        # Create the column
+        return Column.update(parcel, colName, **kwargs)
+
+    taskColumn = makeColumnAndIndexes('SumColTask',
+        icon='ColHTask',
+        valueType = 'stamp',
+        stamp=pim.TaskStamp,
+        width=iconColumnWidth,
+        useSortArrows=False,
+        readOnly=True,
+        indexName='%s.taskStatus' % __name__,
+        attributeName='taskStatus',
+        attributes=[
+            # @@@ need to order on task-ness somehow:
             # pim.TaskStamp.taskStatus.name, 
             pim.ContentItem.triageStatus.name, 
             pim.ContentItem.triageStatusChanged.name,
         ])
-    commStatusIndexDef = pim.IndexDefinition.update(parcel, 
-        '%s.communicationStatus' % __name__, attributes=[
+
+    commColumn = makeColumnAndIndexes('SumColMail',
+        icon='ColHMail',
+        valueType='stamp',
+        stamp=pim.mail.MailStamp,
+        width=iconColumnWidth,
+        useSortArrows=False,
+        readOnly=True,
+        indexName='%s.communicationStatus' % __name__,
+        attributeName='communicationStatus',
+        attributes=[
             # pim.mail.MailStamp.communicationStatus.name, 
             pim.ContentItem.triageStatus.name, 
             pim.ContentItem.triageStatusChanged.name,
         ])
-    displayWhoIndexDef = pim.IndexDefinition.update(parcel, 
-        '%s.displayWho' % __name__, attributes=[
+
+    whoColumn = makeColumnAndIndexes('SumColWho',
+        heading=_(u'Who'),
+        width=100,
+        scaleColumn=True,
+        readOnly=True,
+        indexName='%s.displayWho' % __name__,
+        attributeName='displayWho',
+        attributeSourceName = 'displayWhoSource',
+        attributes=[
             pim.ContentItem.displayWho.name,
             pim.ContentItem.displayDate.name,
         ])
-    displayNameIndexDef = pim.IndexDefinition.update(parcel, 
-        '%s.displayName' % __name__, attributes=[
+    
+    titleColumn = makeColumnAndIndexes('SumColAbout',
+        heading=_(u'Title'),
+        width=120,
+        scaleColumn=True,
+        indexName='%s.displayName' % __name__,
+        attributeName='displayName',
+        attributes=[
             pim.ContentItem.displayName.name, 
             pim.ContentItem.displayDate.name,
         ])
-    calStatusIndexDef = pim.IndexDefinition.update(parcel, 
-        '%s.calendarStatus' % __name__, attributes=[
+
+    reminderColumn = makeColumnAndIndexes('SumColCalendarEvent',
+        icon = 'ColHEvent',
+        valueType = 'stamp',
+        stamp = pim.EventStamp,
+        useSortArrows = False,
+        width = iconColumnWidth,
+        readOnly = True,
+        indexName = '%s.calendarStatus' % __name__,
+        attributeName = 'calendarStatus',
+        attributes=[
             # pim.EventStamp.calendarStatus.name, 
             pim.ContentItem.triageStatus.name, 
             pim.ContentItem.triageStatusChanged.name,
         ])
-    dateIndexDef = pim.IndexDefinition.update(parcel, 
-        '%s.displayDate' % __name__, attributes=[
+
+    dateColumn = makeColumnAndIndexes('SumColDate',
+        heading = _(u'Date'),
+        width = 100,
+        scaleColumn = True,
+        readOnly = True,
+        attributeName = 'displayDate',
+        attributeSourceName = 'displayDateSource',
+        indexName = '%s.displayDate' % __name__,
+        attributes=[
             pim.ContentItem.displayDate.name, 
             pim.ContentItem.triageStatus.name, 
             pim.ContentItem.triageStatusChanged.name,
         ])
-    triageStatusIndexDef = pim.IndexDefinition.update(parcel, 
-        '%s.triageStatus' % __name__, attributes=[
+    
+    triageColumn = makeColumnAndIndexes('SumColTriage',
+        icon = 'ColHTriageStatus',
+        useSortArrows = False,
+        defaultSort = True,
+        width = 40,
+        attributeName = 'triageStatus',
+        indexName = '%s.triageStatus' % __name__,
+        attributes=[
             pim.ContentItem.triageStatus.name, 
             pim.ContentItem.triageStatusChanged.name,
         ])
@@ -91,61 +164,13 @@ def makeSummaryBlocks(parcel):
                 contents = pim_ns.allCollection,
                 scaleWidthsToFit = True,
                 columns = [
-                    Column.update(parcel, 'SumColTask',
-                                  icon = 'ColHTask',
-                                  valueType = 'stamp',
-                                  stamp = pim.TaskStamp,
-                                  attributeName = 'taskStatus',
-                                  indexName = taskStatusIndexDef.itsName,
-                                  width = iconColumnWidth,
-                                  useSortArrows = False,
-                                  readOnly = True),
-                    Column.update(parcel, 'SumColMail',
-                                  icon = 'ColHMail',
-                                  valueType = 'stamp',
-                                  stamp = pim.mail.MailStamp,
-                                  attributeName = 'communicationStatus',
-                                  indexName = commStatusIndexDef.itsName,
-                                  width = iconColumnWidth,
-                                  useSortArrows = False,
-                                  readOnly = True),
-                    Column.update(parcel, 'SumColWho',
-                                  heading = _(u'Who'),
-                                  attributeName = 'displayWho',
-                                  attributeSourceName = 'displayWhoSource',
-                                  indexName = displayWhoIndexDef.itsName,
-                                  width = 100,
-                                  scaleColumn = True,
-                                  readOnly = True),
-                    Column.update(parcel, 'SumColName',
-                                  heading = _(u'Title'),
-                                  attributeName = 'displayName',
-                                  indexName = displayNameIndexDef.itsName,
-                                  width = 120,
-                                  scaleColumn = True),
-                    Column.update(parcel, 'SumColCalendarEvent',
-                                  icon = 'ColHEvent',
-                                  valueType = 'stamp',
-                                  attributeName = 'calendarStatus',
-                                  indexName = calStatusIndexDef.itsName,
-                                  stamp = pim.EventStamp,
-                                  useSortArrows = False,
-                                  width = iconColumnWidth,
-                                  readOnly = True),
-                    Column.update(parcel, 'SumColDate',
-                                  heading = _(u'Date'),
-                                  attributeName = 'displayDate',
-                                  attributeSourceName = 'displayDateSource',
-                                  indexName = dateIndexDef.itsName,
-                                  width = 100,
-                                  scaleColumn = True,
-                                  readOnly = True),
-                    Column.update(parcel, 'SumColTriage',
-                                  icon = 'ColHTriageStatus',
-                                  attributeName = 'triageStatus',
-                                  indexName = triageStatusIndexDef.itsName,                                  useSortArrows = False,
-                                  defaultSort = True,
-                                  width = 40),
+                    taskColumn,
+                    commColumn,
+                    whoColumn,
+                    titleColumn,
+                    reminderColumn,
+                    dateColumn,
+                    triageColumn                    
                 ],
                 characterStyle = blocks.SummaryRowStyle,
                 headerCharacterStyle = blocks.SummaryHeaderStyle,
