@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import os, shutil, atexit, cStringIO
+import sys, os, shutil, atexit, cStringIO, time
 
 from threading import Thread, Lock, Condition, local, currentThread
 from datetime import datetime, timedelta
@@ -1118,6 +1118,12 @@ class DBStore(Store):
             self.repository._env.lock_put(lock)
         return None
 
+    def _logDL(self):
+
+        frame = sys._getframe(1)
+        self.repository.logger.warning("Thread '%s' db deadlock detected at %s, line %d", threading.currentThread().getName(), frame.f_code.co_filename, frame.f_lineno)
+        time.sleep(1)
+
     TXN_STARTED = 0x0001
     TXN_NESTED  = 0x0002
     EXCLUSIVE   = 0x0004
@@ -1205,8 +1211,21 @@ class DBIndexerThread(RepositoryThread):
                 if not (self._alive and self.isAlive()):
                     break
 
-                latestVersion = store.getVersion()
-                indexVersion = store.getIndexVersion()
+                while True:
+                    try:
+                        txnStatus = store.startTransaction(None)
+                        latestVersion = store.getVersion()
+                        indexVersion = store.getIndexVersion()
+                    except DBLockDeadlockError:
+                        store.abortTransaction(None, txnStatus)
+                        store._logDL()
+                        continue
+                    except:
+                        store.abortTransaction(None, txnStatus)
+                        raise
+                    else:
+                        store.abortTransaction(None, txnStatus)
+                        break
 
                 if indexVersion < latestVersion:
                     if view is None:

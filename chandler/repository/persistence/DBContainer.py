@@ -125,7 +125,7 @@ class DBContainer(object):
             try:
                 return self._db.get(key, self.store.txn, self._flags, None)
             except DBLockDeadlockError:
-                self._logDL(24)
+                self.store._logDL()
                 if self.store.txn is not None:
                     raise
 
@@ -162,11 +162,6 @@ class DBContainer(object):
                 pass
                 
             cursor.close()
-
-    def _logDL(self, n):
-
-        self.store.repository.logger.info('detected deadlock: %d, thread: %s', n, threading.currentThread().getName())
-        time.sleep(1)
 
     def _readValue(self, value, offset):
 
@@ -350,7 +345,7 @@ class RefContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(17)
+                        store._logDL()
                         yield True
                     else:
                         raise
@@ -407,7 +402,7 @@ class RefContainer(DBContainer):
                                           version, self._flags)
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
-                        self._logDL(19)
+                        store._logDL(19)
                         continue
                     else:
                         raise
@@ -454,7 +449,7 @@ class RefContainer(DBContainer):
                                           version, self._flags)
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(26)
+                        store._logDL()
                         return True
                     else:
                         raise
@@ -631,7 +626,7 @@ class NamesContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
-                        self._logDL(30)
+                        store._logDL()
                         continue
                     else:
                         raise
@@ -651,7 +646,7 @@ class NamesContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
-                        self._logDL(31)
+                        store._logDL()
                         continue
                     else:
                         raise
@@ -683,7 +678,7 @@ class NamesContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
-                        self._logDL(12)
+                        store._logDL()
                         continue
                     else:
                         raise
@@ -704,7 +699,7 @@ class NamesContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
-                        self._logDL(13)
+                        store._logDL()
                         continue
                     else:
                         raise
@@ -761,7 +756,7 @@ class ACLContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
-                        self._logDL(10)
+                        store._logDL()
                         continue
                     else:
                         raise
@@ -788,7 +783,7 @@ class ACLContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
-                        self._logDL(11)
+                        store._logDL()
                         continue
                     else:
                         raise
@@ -847,7 +842,7 @@ class IndexesContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
-                        self._logDL(14)
+                        store._logDL()
                         continue
                     else:
                         raise
@@ -888,7 +883,7 @@ class IndexesContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
-                        self._logDL(15)
+                        store._logDL()
                         continue
                     else:
                         raise
@@ -981,7 +976,7 @@ class IndexesContainer(DBContainer):
                         return None
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(25)
+                        store._logDL()
                         return True
                     else:
                         raise
@@ -1022,7 +1017,7 @@ class IndexesContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(16)
+                        store._logDL()
                         return True
                     else:
                         raise
@@ -1175,7 +1170,7 @@ class ItemContainer(DBContainer):
                         return None, None
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(28)
+                        store._logDL()
                         return True, None
                     else:
                         raise
@@ -1191,7 +1186,7 @@ class ItemContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(27)
+                        store._logDL()
                         return True, None
                     else:
                         raise
@@ -1240,7 +1235,7 @@ class ItemContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
-                        self._logDL(20)
+                        store._logDL()
                         continue
                     else:
                         raise
@@ -1256,7 +1251,7 @@ class ItemContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if txnStatus & store.TXN_STARTED:
-                        self._logDL(21)
+                        store._logDL()
                         continue
                     else:
                         raise
@@ -1430,7 +1425,7 @@ class ItemContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(22)
+                        store._logDL()
                         yield True
                     else:
                         raise
@@ -1457,7 +1452,7 @@ class ItemContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(23)
+                        store._logDL()
                         yield True
                     else:
                         raise
@@ -1531,7 +1526,7 @@ class ItemContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(18)
+                        store._logDL()
                         yield True
                     else:
                         raise
@@ -1595,7 +1590,7 @@ class ItemContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(29)
+                        store._logDL()
                         yield True
                     else:
                         raise
@@ -1660,7 +1655,7 @@ class ItemContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(33)
+                        store._logDL()
                         yield True
                     else:
                         raise
@@ -1863,7 +1858,7 @@ class CommitsContainer(DBContainer):
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
-                        self._logDL(32)
+                        store._logDL()
                         yield True
                     else:
                         raise

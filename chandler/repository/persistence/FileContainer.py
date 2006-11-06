@@ -85,7 +85,7 @@ class FileContainer(DBContainer):
                             value = cursor.next(self._flags, None)
                             break
                         except DBLockDeadlockError:
-                            self._logDL(6)
+                            self.store._logDL()
                         
                 return results
 
