@@ -504,43 +504,18 @@ def publish(collection, account, classesToInclude=None,
             shareName = _uniqueName(shareName, existing)
 
             if ('calendar-access' in dav or 'MKCALENDAR' in allowed):
-                # We're speaking to a CalDAV server
-                
-                # should this collection live in the (alpha4 hack for freebusy)
-                # freebusy subcollection?
+                # We're speaking to a CalDAV server                
                 sharing_ns = schema.ns('osaf.sharing', view)
-                inFreeBusy = False
-                fbexists   = False
-                # create the freebusy collection if it doesn't already exist
-                if (publishType == 'freebusy' or
-                    collection in schema.ns('osaf.pim', view).mine.sources):
-
-                    fbresource = handle.getResource(location + 'freebusy/')
-                    fbexists = handle.blockUntil(fbresource.exists)
-                    if not fbexists:
-                        try:
-                            fbresource = handle.blockUntil(
-                                          resource.createCollection, 'freebusy')
-                            fbexists = True
-                        except:
-                            pass
-                    if fbexists:
-                        inFreeBusy = True
-                
                 if publishType == 'freebusy':
-                    if not fbexists:
-                        raise SharingError(_(u"Could not create freebusy collection"))
-                   
                     share = Share(itsView=view)
                     share.conduit = CalDAVConduit(itsView=view, account=account,
-                                                  shareName = 'freebusy')
+                                                  shareName='')
                     
                     share.conduit.createFreeBusyTicket()
                     
                     sharing_ns.prefs.freeBusyShare   = share
                     sharing_ns.prefs.freeBusyAccount = account
                     published = sharing_ns.publishedFreeBusy
-                    location += 'freebusy/'
                     
                     # put the appropriate collections into publishedFreeBusy to
                     # avoid syncing the same event multiple times
@@ -594,6 +569,7 @@ def publish(collection, account, classesToInclude=None,
                     if share.exists():
                         raise SharingError(_(u"Share already exists"))
                     
+                    inFreeBusy = collection in schema.ns('osaf.pim', view).mine.sources
                     if inFreeBusy:
                         share.conduit.inFreeBusy = True
     
@@ -611,9 +587,7 @@ def publish(collection, account, classesToInclude=None,
                                                      shareName=subShareName,
                                                      displayName=displayName,
                                                      account=account)
-    
-                        subShare.conduit.inFreeBusy = inFreeBusy    
-    
+        
                         if attrsToExclude:
                             subShare.filterAttributes = attrsToExclude
                         else:
@@ -739,7 +713,6 @@ def updatePublishedFreeBusy(share, fbLocation=None):
     if fbLocation == None:
         if sharing_ns.prefs.freeBusyShare is not None:
             location = freeBusyShare.getLocation()
-            fbLocation = "/".join(location.split('/')[:-1])
         else:
             return
         
@@ -835,15 +808,8 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
     # '/dev1/foo/bar' becomes ['dev1', 'foo']
     pathList = path.strip(u'/').split(u'/')
 
-    # determine if the share is in a freebusy collection
-    if len(pathList) > 1 and pathList[-2] == 'freebusy':
-        inFreeBusy = True
-        parentPath = pathList[:-2]
-    else:
-        inFreeBusy = False
-        parentPath = pathList[:-1]
     # ['dev1', 'foo'] becomes "dev1/foo"
-    parentPath = u"/".join(parentPath)
+    parentPath = u"/".join(pathList[:-1])
 
     if ticket:
         account = None
@@ -868,16 +834,14 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
         # compute shareName relative to the account path:
         accountPathLen = len(account.path.strip(u"/"))
         shareName = path.strip(u"/")[accountPathLen:]
-        if inFreeBusy:
-            shareName = shareName[len('freebusy/'):]
 
     if account:
-        conduit = WebDAVConduit(itsView=view, account=account,
-            shareName=shareName, inFreeBusy=inFreeBusy)
+        conduit = WebDAVConduit(itsView=view, account=account, 
+                                shareName=shareName)
     else:
-        conduit = WebDAVConduit(itsView=view, host=host, port=port,
-            sharePath=parentPath, shareName=shareName, useSSL=useSSL,
-            ticket=ticket, inFreeBusy=inFreeBusy)
+        conduit = WebDAVConduit(itsView=view, host=host, port=port, 
+                    sharePath=parentPath, shareName=shareName, useSSL=useSSL,
+                    ticket=ticket)
 
     location = conduit.getLocation()
     for share in Share.iterItems(view):
@@ -1086,12 +1050,11 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                 if account:
                     subShare.conduit = WebDAVConduit(itsParent=subShare,
                                                      shareName=subShareName,
-                                                     account=account,
-                                                     inFreeBusy=inFreeBusy)
+                                                     account=account)
                 else:
                     subShare.conduit = WebDAVConduit(itsParent=subShare, host=host,
                         port=port, sharePath=parentPath, shareName=subShareName,
-                        useSSL=useSSL, ticket=ticket, inFreeBusy=inFreeBusy)
+                        useSSL=useSSL, ticket=ticket)
 
                 subShare.format = CloudXMLFormat(itsParent=subShare)
 
@@ -1105,12 +1068,11 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             if account:
                 share.conduit = CalDAVConduit(itsParent=share,
                                               shareName=shareName,
-                                              account=account,
-                                              inFreeBusy=inFreeBusy)
+                                              account=account)
             else:
                 share.conduit = CalDAVConduit(itsParent=share, host=host,
                     port=port, sharePath=parentPath, shareName=shareName,
-                    useSSL=useSSL, ticket=ticket, inFreeBusy=inFreeBusy)
+                    useSSL=useSSL, ticket=ticket)
 
             if subShare is not None:
                 share.follows = subShare
@@ -1171,7 +1133,7 @@ def interrogate(conduit, location, ticket=None):
     resource = handle.getResource(location)
     if ticket:
         resource.ticketId = ticket
-
+    
     logger.debug('Examining %s ...', location)
     try:
         exists = handle.blockUntil(resource.exists)
@@ -1450,7 +1412,7 @@ def getExistingResources(account):
     resources = handle.blockUntil(parent.getAllChildren)
     if fbexists:
         resources = chain(resources, handle.blockUntil(fbparent.getAllChildren))
-    ignore = ('', 'freebusy', 'freebusy/hiddenEvents')
+    ignore = ('', 'freebusy', 'freebusy/hiddenEvents', 'hiddenEvents')
     
     for resource in resources:
         path = resource.path[skipLen:]

@@ -30,7 +30,7 @@ from repository.util.Lob import Lob
 from chandlerdb.item.ItemError import NoSuchAttributeError
 from repository.persistence.RepositoryError import MergeError
 from PyICU import ICUtzinfo
-import M2Crypto.BIO, WebDAV, twisted.web.http, zanshin.webdav, wx
+import M2Crypto.BIO, WebDAV, twisted.web.http, zanshin.webdav, zanshin.util, wx
 from cStringIO import StringIO
 import bisect
 
@@ -1617,16 +1617,12 @@ class WebDAVConduit(ShareConduit):
         self.serverHandle = None
 
     def _getSettings(self):
-        freebusy = ''
-        if self.inFreeBusy:
-            freebusy = '/freebusy'
         if self.account is None:
-            return (self.host, self.port, self.sharePath.strip("/") + freebusy,
+            return (self.host, self.port, self.sharePath.strip("/"),
                     self.username, self.password, self.useSSL)
         else:
             return (self.account.host, self.account.port,
-                    self.account.path.strip("/") + freebusy,
-                    self.account.username,
+                    self.account.path.strip("/"), self.account.username,
                     self.account.password, self.account.useSSL)
 
     def _getServerHandle(self):
@@ -1669,8 +1665,11 @@ class WebDAVConduit(ShareConduit):
             url = u"%s://%s" % (scheme, host)
         else:
             url = u"%s://%s:%d" % (scheme, host, port)
-        url = urlparse.urljoin(url, sharePath + "/")
-        url = urlparse.urljoin(url, self.shareName)
+        if self.shareName == '':
+            url = urlparse.urljoin(url, sharePath)
+        else:
+            url = urlparse.urljoin(url, sharePath + "/")
+            url = urlparse.urljoin(url, self.shareName)
 
         if privilege == 'readonly':
             if self.ticketReadOnly:
@@ -2107,7 +2106,7 @@ class CalDAVConduit(WebDAVConduit):
         resource = serverHandle.getResource(resourcePath)
 
         return result
-    
+
     def createFreeBusyTicket(self):
         handle = self._getServerHandle()
         location = self.getLocation()
@@ -2161,7 +2160,7 @@ class FreeBusyAnnotation(schema.Annotation):
                 if force_update or \
                    update.last_update + MINIMUM_FREEBUSY_UPDATE_FREQUENCY < \
                    datetime.datetime.now(utc):
-                    update.needed_for = self
+                    update.needed_for = self.itsItem
                     return True
                 else:
                     # nothing to do
