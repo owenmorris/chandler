@@ -56,6 +56,9 @@ class TaskStamp(Stamp):
 
     dueDate = schema.One(schema.DateTimeTZ)
 
+    # Redirections
+    summary = schema.One(redirectTo="displayName")
+
     schema.addClouds(
         copying = schema.Cloud(
             requestor, requestee

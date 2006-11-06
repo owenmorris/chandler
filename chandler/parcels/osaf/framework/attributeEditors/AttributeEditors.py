@@ -1733,9 +1733,13 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         elif itemDate == (today + timedelta(days=-1)).date(): 
             # Yesterday? say so.
             dateString = _(u'Yesterday')
-        else:
+        elif itemDate == (today + timedelta(days=1)).date(): 
+            # To-morrow? say so.
+            dateString = _(u'Tomorrow')
+        #else:
             # Do day names for days in the last week.
-            dateString = pim.weekdayName(itemDateTime)
+            # (not anymore, see bug 6707)
+            #dateString = pim.weekdayName(itemDateTime)
 
         if dateString is None:
             dateString = pim.mediumDateFormat.format(itemDateTime)
