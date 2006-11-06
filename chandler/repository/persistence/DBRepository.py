@@ -1276,11 +1276,11 @@ class DBIndexerThread(RepositoryThread):
 
                 except DBLockDeadlockError:
                     view._abortTransaction(txnStatus)
-                    items._logDL(33)
+                    store._logDL()
                     continue
                 except DBInvalidArgError:
                     view._abortTransaction(txnStatus)
-                    items._logDL(34)
+                    store._logDL()
                     continue
                 except Exception:
                     if txnStatus is not None:
