@@ -356,9 +356,10 @@ class OccurrenceProxy(object):
             # Allowing only 'all' (or Cancel) means that the event ends up
             # in the trash in this case, which is the desired behaviour.
             master = proxiedEvent.getMaster()
-            if (cutting or (proxiedEvent == master) or
-                (proxiedEvent == master.getFirstOccurrence())):
+            if cutting or (proxiedEvent == master):
                 change['disabled_buttons']=('future', 'this')
+            elif proxiedEvent == master.getFirstOccurrence():
+                change['disabled_buttons']=('future',)
             self.delayChange(change)
 
     def delayChange(self, change):
