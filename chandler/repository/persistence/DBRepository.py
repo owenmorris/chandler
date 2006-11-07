@@ -626,6 +626,7 @@ class DBRepository(OnDemandRepository):
         status = self._status
         
         if (status & Repository.CLOSED) == 0:
+            before = datetime.now()
 
             self.stopIndexer()
 
@@ -651,6 +652,9 @@ class DBRepository(OnDemandRepository):
                 self._openFile = None
 
             self._status |= Repository.CLOSED
+            after = datetime.now()
+
+            self.logger.info('closed db in %s', after - before)
 
     def createView(self, name=None, version=None, deferDelete=Default):
 
