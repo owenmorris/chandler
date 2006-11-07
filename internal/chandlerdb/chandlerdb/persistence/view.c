@@ -850,7 +850,7 @@ static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
             PyObject *monitorArgs, *monitorKwds;
             int j, margCount = 0;
 
-            if (monitor->status & DELETING)
+            if (monitor->status & (DEFERRING | DELETING))
                 continue;
 
             if (sysOnly && !(monitor->status & SYSMONITOR))

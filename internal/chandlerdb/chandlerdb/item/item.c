@@ -45,6 +45,7 @@ static PyObject *t_item__isCopyExport(t_item *self);
 static PyObject *t_item__isImporting(t_item *self);
 static PyObject *t_item_isMutating(t_item *self);
 static PyObject *t_item_isMutatingOrDeleting(t_item *self);
+static PyObject *t_item_isDeferringOrDeleting(t_item *self);
 static PyObject *t_item__isRepository(t_item *self);
 static PyObject *t_item__isView(t_item *self);
 static PyObject *t_item__isItem(t_item *self);
@@ -140,6 +141,7 @@ static PyMethodDef t_item_methods[] = {
     { "_isImporting", (PyCFunction) t_item__isImporting, METH_NOARGS, "" },
     { "isMutating", (PyCFunction) t_item_isMutating, METH_NOARGS, NULL },
     { "isMutatingOrDeleting", (PyCFunction) t_item_isMutatingOrDeleting, METH_NOARGS, NULL },
+    { "isDeferringOrDeleting", (PyCFunction) t_item_isDeferringOrDeleting, METH_NOARGS, NULL },
     { "_isRepository", (PyCFunction) t_item__isRepository, METH_NOARGS, "" },
     { "_isView", (PyCFunction) t_item__isView, METH_NOARGS, "" },
     { "_isItem", (PyCFunction) t_item__isItem, METH_NOARGS, "" },
@@ -535,6 +537,14 @@ static PyObject *t_item_isMutating(t_item *self)
 static PyObject *t_item_isMutatingOrDeleting(t_item *self)
 {
     if (self->status & (MUTATING | DELETING))
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject *t_item_isDeferringOrDeleting(t_item *self)
+{
+    if (self->status & (DEFERRING | DELETING))
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
