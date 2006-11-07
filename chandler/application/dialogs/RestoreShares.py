@@ -167,7 +167,12 @@ class RestoreSharesDialog(wx.Dialog):
                     schema.ns("osaf.app",
                         view).sidebarCollection.add(collection)
 
+                    # Commit so we ensure the sidebar remembers the collection
+                    # has been added.
+                    view.commit()
+
                     self.listShares.Deselect(index)
+
 
 
                 except Exception, e:
