@@ -14,7 +14,7 @@
 
 
 import time, urlparse, os, base64, logging, datetime
-from elementtree.ElementTree import ElementTree
+from elementtree.ElementTree import ElementTree, XML
 from xml.parsers import expat
 from application import schema
 from osaf import pim, messages, ChandlerException
@@ -458,8 +458,22 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
 
                     stats.append(stat)
 
+        sources = schema.ns('osaf.pim', metaView).mine.sources
+        sharing_ns = schema.ns('osaf.sharing', metaView)
+        freeBusyShare = sharing_ns.prefs.freeBusyShare
+        me = schema.ns("osaf.pim", metaView).currentContact.item
+        
         for share in shares:
             share.established = True
+
+            # update exclude-from-free-busy for shares if using a CalDAV
+            # conduit and this share was shared by me
+            if isinstance(share.conduit, CalDAVConduit) and share.sharer is me:
+                reallyMine = share.contents in sources
+                if (reallyMine != share.conduit.inFreeBusy):
+                    if share.conduit.setCosmoExcludeFreeBusy(not reallyMine):
+                        share.conduit.inFreeBusy = reallyMine
+                
 
         # Record the post-PUT manifest
         if commit:
@@ -2078,6 +2092,9 @@ class WebDAVConduit(ShareConduit):
             # Ignore HTTP errors (like PROPPATCH not being supported)
             pass
 
+# constants for cosmoExcludeFreeBusy functions
+COSMO_NS = 'http://osafoundation.org/cosmo/DAV'
+EXCLUDE_ID = zanshin.util.PackElement('exclude-free-busy-rollup', COSMO_NS)
 
 class CalDAVConduit(WebDAVConduit):
     ticketFreeBusy = schema.One(schema.Text, initialValue="")
@@ -2107,12 +2124,92 @@ class CalDAVConduit(WebDAVConduit):
 
         return result
 
-    def createFreeBusyTicket(self):
+
+    def create(self):
+        """Create the collection as usual, then set cosmoExcludeFreeBusy."""
+        super(CalDAVConduit, self).create()
+        self.setCosmoExcludeFreeBusy(not self.inFreeBusy)
+        
+
+    def getCosmoExcludeFreeBusy(self):
+        """
+        Issue a PROPFIND for cosmo:exclude-free-busy-rollup.
+                
+        @return: Boolean
+        """
+        handle, resource = self._getHandleAndResource()
+        
+        def handlePropfind(response):
+            if response.status != twisted.web.http.MULTI_STATUS:
+                raise zanshin.http.HTTPError(
+                    status=response.status, message=response.message)
+                
+            propfindElement = XML(response.body)
+    
+            for rsrc, props in resource._iterPropfindElement(propfindElement):
+                for prop in props:
+                    if (EXCLUDE_ID == prop.tag):
+                        return prop.text == 'true'
+    
+        request = zanshin.webdav.PropfindRequest(
+            zanshin.webdav.quote(resource.path), 0, [EXCLUDE_ID], None)
+        
+        def deferredPropFindCallback():
+            return resource._addRequest(request).addCallback(handlePropfind)
+    
+        return handle.blockUntil(deferredPropFindCallback)
+
+    def setCosmoExcludeFreeBusy(self, exclude):
+        """Issue a PROPPATCH to set cosmo:exclude-free-busy-rollup to exclude.
+    
+        @param exclude: a Boolean, should the collection be excluded from 
+                        freebusy
+        @return: Boolean, success or failure
+        """
+
+        def handleProppatch(results):
+            """
+            Return whether the server really did change 
+            cosmo:exclude-free-busy-rollup.
+            
+            """
+            result = results.get(EXCLUDE_ID, None)
+            
+            status = None
+            
+            # result should be of the form 'HTTP/1.1 200 OK'
+            # We want to extract the int value of the 2nd
+            # field, if possible,
+            if result is not None:
+                try:
+                    status = int(result.split()[1])
+                except (TypeError, IndexError):
+                    # IndexError: no spaces in result
+                    # TypeError: field wasn't an int
+                    pass
+                
+            if status in (twisted.web.http.CREATED, twisted.web.http.OK):
+                return True
+            else:
+                return False
+
+        handle, resource = self._getHandleAndResource()
+        propstopatch = {EXCLUDE_ID: exclude and 'true' or 'false'}
+        def deferredPropPatchCallback():
+            return resource.proppatch(propstopatch).addCallback(handleProppatch)
+        
+        return handle.blockUntil(deferredPropPatchCallback)
+
+    def _getHandleAndResource(self):
         handle = self._getServerHandle()
         location = self.getLocation()
         if not location.endswith("/"):
             location += "/"
         resource = handle.getResource(location)
+        return (handle, resource)
+
+    def createFreeBusyTicket(self):
+        handle, resource = self._getHandleAndResource()
 
         ticket = handle.blockUntil(resource.createTicket, read=False,
                                    freebusy=True)

@@ -157,12 +157,20 @@ class RestoreSharesDialog(wx.Dialog):
                     collection = sharing.subscribe(view, url,
                         updateCallback=self.updateCallback)
 
+                    conduit = None
+
                     # Make me the sharer
                     for share in collection.shares:
                         share.sharer = me
-                            
-                    if name.startswith('freebusy/'):
-                        schema.ns('osaf.pim', view).mine.addSource(collection)                            
+                        if isinstance(share.conduit, sharing.CalDAVConduit):
+                            caldav_conduit = share.conduit
+                    
+                    if caldav_conduit is not None:
+                        excluded = caldav_conduit.getCosmoExcludeFreeBusy()
+                        caldav_conduit.inFreeBusy = not excluded
+                        if not excluded:
+                            mine = schema.ns('osaf.pim', view).mine
+                            mine.addSource(collection)
 
                     schema.ns("osaf.app",
                         view).sidebarCollection.add(collection)
