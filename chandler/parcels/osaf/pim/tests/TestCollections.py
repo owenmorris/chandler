@@ -119,7 +119,7 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(self.nh2 is not None)
         
         IndexDefinition(itsView=self.view, itsName='label',
-                        attributes=['label'])
+                        attributes=['label'], useMaster=False)
         
 
     def testUnion(self):

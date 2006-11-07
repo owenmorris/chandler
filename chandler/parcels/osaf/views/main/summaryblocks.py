@@ -35,18 +35,14 @@ def makeSummaryBlocks(parcel):
     
     iconColumnWidth = 23 # temporarily not 20, to work around header bug 6168
 
-    # Index definitions that the dashboard will use; each inherits
-    # from a master index on the ContentItem kind collection.
     def makeColumnAndIndexes(colName, **kwargs):
-        # Make the master index
+        # Create an IndexDefinition that will be used later (when the user
+        # clicks on the column header) to build the actual index.
         indexName = kwargs['indexName']
         attributes = kwargs.pop('attributes')
-        pim_ns.contentItems.addIndex(indexName, 'attribute',
-                                     attributes=attributes)
-    
-        # Create an IndexDefinition that will later be used to
-        # build sub-indexes off this master, when the user clicks on the column.
-        pim.IndexDefinition.update(parcel, indexName)
+        pim.IndexDefinition.update(parcel, indexName,
+                                   useMaster=True,
+                                   attributes=attributes)
     
         # Create the column
         return Column.update(parcel, colName, **kwargs)

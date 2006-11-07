@@ -218,7 +218,11 @@ LASTNAMES = [u'Anderson', u'Baillie', u'Baker', u'Botz', u'Brown', u'Burgess',
              u'Sagen', u'Sciabica', u'Sherwood', u'Skinner', u'Stearns', u'Sun', u'Surovell',
              u'Tauber', u'Totic', u'Toivonen', u'Toy', u'Tsurutome', u'Vajda', u'Yin']
 
-COLLECTION_NAMES = [u'Scratchings', u'Home', u'Work', u'OSAF', u'Kids', u'School', u'Book club', u'Wine club', u'Karate', u'Knitting', u'Soccer', u'Chandler', u'Cosmo', u'Scooby', u'Choir', u'Movies', u'Snowball', u'Lassie', u'Humor', u'Odds n Ends', u'BayCHI', u'OSCON', u'IETF', u'Financial', u'Medical', u'Philanthropy']
+COLLECTION_NAMES = [u'Scratchings', u'Home', u'Work', u'OSAF', u'Kids', u'School', 
+                    u'Book club', u'Wine club', u'Karate', u'Knitting', u'Soccer', 
+                    u'Chandler', u'Cosmo', u'Scooby', u'Choir', u'Movies', u'Snowball', 
+                    u'Lassie', u'Humor', u'Odds n Ends', u'BayCHI', u'OSCON', u'IETF', 
+                    u'Financial', u'Medical', u'Philanthropy']
 
 PHONETYPES = [u'cell', u'voice', u'fax', u'pager']
 
@@ -260,7 +264,7 @@ def GenerateContact(view):
     contact.contactName = GenerateContactName(view)
     return contact
 
-def GenerateCollection(view, postToView=None, existingNames=None):
+def GenerateCollection(view, existingNames=None):
     collection = pim.SmartCollection(itsView=view)
     schema.ns('osaf.pim', view).mine.addSource(collection)
     
@@ -277,8 +281,7 @@ def GenerateCollection(view, postToView=None, existingNames=None):
                 existingNames.append(potentialName)
             break
         
-    if postToView is not None:
-        schema.ns("osaf.app", view).sidebarCollection.add (collection)
+    schema.ns("osaf.app", view).sidebarCollection.add (collection)
     return collection
 
 

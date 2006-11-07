@@ -40,11 +40,14 @@ class IndexDefinition(schema.Item):
     collection).
 
     Creates either of two kinds of indexes:
-    - If no 'attributes' are specified, a subindex of the master index with this
-      name is created.
-    - If attributes are specified, a standalone attribute index is created.
+    - if useMaster, an index on the ContentItem kind collection will be created
+      if one doesn't exist, and a subindex on the given collection will be
+      created to point at it.
+    - if not useMaster, a standalone index will be created.
     """
-    attributes = schema.Sequence(schema.Text, defaultValue='')
+    useMaster = schema.One(schema.Boolean, defaultValue=True)
+    
+    attributes = schema.Sequence(schema.Text)
     
     mappingCollection = schema.One(otherName="indexDefinitions")
 
@@ -74,16 +77,22 @@ class IndexDefinition(schema.Item):
         """
         Create this index on this collection.
         """
-        if len(self.attributes) > 0:
-            # Create an index on specific attributes
-            collection.addIndex(self.itsName, 'attribute',
-                                attributes=self.attributes)
-        else:
-            # Create a subindex that inherits from the master with our name.
+        if self.useMaster:
             contentItems = schema.ns("osaf.pim", collection.itsView).contentItems
+            if not contentItems.hasIndex(self.itsName):
+                # Create the master index on demand
+                contentItems.addIndex(self.itsName, 'attribute',
+                                      attributes=self.attributes)
+            
+            # Create a subindex that inherits from the master
             collection.addIndex(self.itsName, 'subindex',
                                 superindex=(contentItems, contentItems.__collection__,
                                             self.itsName))
+        else:
+            # Create a standalone index
+            collection.addIndex(self.itsName, 'attribute',
+                                attributes=self.attributes)
+
 
 class ContentCollection(ContentItem, Collection):
     """
