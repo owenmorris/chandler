@@ -566,9 +566,12 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                             eventItem.removeRecurrence(deleteOccurrences=False)
                             
                         itemChangeCallback = EventStamp.changeThis
-                        countUpdated += 1
-                        if stats and eventItem.itsItem.itsUUID not in stats['modified']:
-                            stats['modified'].append(eventItem.itsItem.itsUUID)
+
+                    # Mark this event as an update (modified)
+                    countUpdated += 1
+                    uuid = eventItem.itsItem.itsUUID
+                    if stats and uuid not in stats['modified']:
+                        stats['modified'].append(uuid)
 
                     if DEBUG: logger.debug("Changing eventItem: %s" % str(eventItem))
                     
