@@ -47,7 +47,7 @@ class Monitors(Item):
 
         if change == 'collection' and name == 'monitors':
             if op == 'remove':
-                self.cacheMonitors()
+                self._uncacheMonitor(other)
             elif op == 'add':
                 if other is self:
                     raise TypeError, "Monitors dispatcher cannot have monitors"
@@ -61,7 +61,7 @@ class Monitors(Item):
         self.itsView.MONITORING = True
 
         for monitor in getattr(self, 'monitors', []):
-            if not monitor.isDeleting():
+            if not monitor.isDeferringOrDeleting():
                 self._cacheMonitor(monitor)
 
     def _cacheMonitor(self, monitor):
@@ -74,6 +74,39 @@ class Monitors(Item):
             opDict[attribute].append(monitor)
         else:
             opDict[attribute] = [monitor]
+
+    def _uncacheMonitor(self, monitorId):
+
+        view = self.itsView
+        monitor = view.findUUID(monitorId, False)
+
+        def _uncacheMonitor(monitors):
+            count = 0
+            for monitor in monitors:
+                if monitor.itsUUID == monitorId:
+                    break
+                count += 1
+            else:
+                return False
+            del monitors[count]
+            return True
+
+        op = getattr(monitor, 'op', None)
+        if op is not None:
+            opDict = view._monitors[op]
+            attribute = getattr(monitor, 'attribute', None)
+            if attribute is not None:
+                _uncacheMonitor(opDict.get(attribute, ()))
+                return
+            else:
+                for attrList in opDict.itervalues():
+                    if _uncacheMonitor(attrList):
+                        return
+        else:
+            for opDict in self.itsView._monitors.itervalues():
+                for attrList in opDict.itervalues():
+                    if _uncacheMonitor(attrList):
+                        return
 
     @classmethod
     def _attach(cls, monitorClass, item, method, op, attribute, *args, **kwds):

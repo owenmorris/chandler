@@ -282,17 +282,23 @@ class Indexed(object):
 
     def removeIndex(self, indexName):
 
+        item, name = self._getOwner()
+
         if self._indexes is None or indexName not in self._indexes:
-            item, name = self._getOwner()
             raise NoSuchIndexError, (item, name, indexName)
 
         index = self._indexes[indexName]
         if index.getIndexType() == 'subindex':
             uuid, superName, superIndexName = index._super
-            item, name = self._getOwner()
-            superIndex = getattr(self._getView()[uuid],
+            superIndex = getattr(item.itsView[uuid],
                                  superName).getIndex(superIndexName)
             superIndex.removeSubIndex(item.itsUUID, name, indexName)
+
+        indexRef = (item.itsUUID, name, indexName)
+        monitors = [monitor for monitor in getattr(item, 'monitors', Nil)
+                    if monitor.getItemIndex() == indexRef]
+        for monitor in monitors:
+            monitor.delete()
 
         del self._indexes[indexName]
         self._setDirty(True) # noMonitors=True
