@@ -346,6 +346,7 @@ def makeMainEvents(parcel):
     BlockEvent.template('CopyCollectionURL').install(parcel)
 
     BlockEvent.template('TakeOnlineOffline').install(parcel)
+    BlockEvent.template('TakeMailOnlineOffline').install(parcel)
 
     ChoiceEvent.template(
         'ChooseCPIATestMainView',

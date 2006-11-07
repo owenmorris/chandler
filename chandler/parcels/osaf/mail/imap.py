@@ -36,23 +36,15 @@ __all__ = ['IMAPClient']
 
 """
     TODO:
-    2. Keep \\Deleted flags in sync with IMAP Server (Look at best syntax for this)
-
-    TODO:
     1. Look in to pluging the Python email 3.0 Feedparser in to the
        rawDataReceived method of IMAP4Client for better performance.
-       Or Twisted Feedparser
-
-    4. Look at Spambayes for its message parsing python alogrithm,
-       Quotient mail parser 
-
-    NOTES:
-    1. Will need to just get the basic headers of subject, message id,
+       Or Twisted Feedparser (For 1.0)
+    2. Will need to just get the basic headers of subject, message id,
        message size to, from, cc. Then have a callback to sync the rest
        when downloading an individual mail use the feedparser for performance
-
-    3. Fix the getEmailAddress method to be much more performant in domain model
-    4. Start thinking about offline mode. Does the domain model need any changes.
+    3. Start thinking about offline mode. Does the domain model need any changes.
+       Offline mode for email is simply adding MailMessages to a queue and executing
+       the queue when online. The queue need to be persisted in the repository
 """
 
 class _TwistedIMAP4Client(imap4.IMAP4Client):
@@ -362,7 +354,8 @@ class IMAPClient(base.AbstractDownloadClient):
         """
         repMessage.deliveryExtension.folder = u"INBOX"
         repMessage.deliveryExtension.uid = curMessage[0]
-        repMessage.deliveryExtension.flags = curMessage[1]
+        #Commented out for Preview
+        #repMessage.deliveryExtension.flags = curMessage[1]
 
         self.numDownloaded += 1
         self.pruneCounter  += 1

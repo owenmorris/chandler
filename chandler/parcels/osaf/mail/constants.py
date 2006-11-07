@@ -39,16 +39,21 @@ DOWNLOAD_NO_MESSAGES = _(u"No new messages found")
 DOWNLOAD_MESSAGES = _(u"%(numberOfMessages)s messages downloaded to Chandler")
 DOWNLOAD_CHECK_MESSAGES = _(u"Checking for new mail messages")
 DOWNLOAD_REQUIRES_TLS = _(u"The Server only allows secure login. Please enable TLS or SSL.")
+DOWNLOAD_OFFLINE = _(u"Offline Mode: no mail downloaded")
+DOWNLOAD_START = _(u"Getting new Mail")
 
 """Translatable message strings for uploads(SMTP)"""
 UPLOAD_BAD_REPLY_ADDRESS = _(u"The Reply-To Address %(emailAddress)s is not valid")
 UPLOAD_FROM_REQUIRED = _(u"A From Address is required to send a Mail Message")
 UPLOAD_TO_REQUIRED = _(u"A To Address is required to send an SMTP Mail Message")
+UPLOAD_OFFLINE = _(u'Offline Mode: Mail "%(subject)s" queued for sending.')
+UPLOAD_START = _(u'Sending mail ...')
 
 
 """Translatable message strings for account testing"""
 TEST_ERROR = _(u"%(accountName)s Results\n\nPlease correct the following configuration error:\n\n%(error)s")
 TEST_SUCCESS = _(u"%(accountName)s Results\n\nTest was successful.")
+TEST_OFFLINE = _(u"Chandler is currently offline.\nTo enable account testing Chandler must be in online mode.")
 
 SHARING_HEADER  = "Sharing-URL"
 SHARING_DIVIDER = ";"
@@ -64,3 +69,7 @@ TESTING_TIMEOUT = 10
 """
 VERBOSE = False
 IGNORE_ATTACHMENTS = True
+
+#TMP VARIABLE TILL CHANDLER LEVEL OFFLINE FUNCTIONALITY IN PLACE
+OFFLINE = False
+

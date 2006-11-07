@@ -28,6 +28,7 @@ from imap import IMAPClient
 from pop import  POPClient
 from errors import MailException
 from utils import trace
+import constants
 
 """
 XXX: Not thread safe code
@@ -49,7 +50,7 @@ class MailService(object):
     no clients are created until one is requested.
 
     Example:
-    
+
     A user wants to send an SMTP message via an C{SMTPAccount}.
     When the user hits send the MailService receives a request:
     mailService.getSMTPInstance(smtpAccount)
@@ -68,33 +69,48 @@ class MailService(object):
     def __init__(self, view):
         assert isinstance(view, RepositoryView)
 
-        self.__view = view
-        self.__started = False
-        self.__clientInstances = None
+        self._view = view
+        self._started = False
+        self._clientInstances = None
 
     def startup(self):
         """Initializes the MailService and creates the cache for
            suppported protocols POP, SMTP, IMAP"""
 
-        self.__clientInstances = {"SMTP": {}, "IMAP": {}, "POP": {}}
+        self._clientInstances = {"SMTP": {}, "IMAP": {}, "POP": {}}
 
-        if self.__started:
+        if self._started:
             raise MailException("MailService is currently started")
 
-        self.__started = True
+        self._started = True
 
     def shutdown(self):
         """Shutsdown the MailService and deletes any clients in the
            MailServices cache"""
 
-        if self.__started:
-            for clients in self.__clientInstances.values():
+        if self._started:
+            for clients in self._clientInstances.values():
                 for client in clients.values():
                     reactor.callFromThread(client.shutdown)
 
-            del self.__clientInstances
+            del self._clientInstances
 
-            self.__started = False
+            self._started = False
+
+    def takeOnline(self):
+        constants.OFFLINE = False
+        self._view.refresh()
+
+        for account in Mail.SMTPAccount.getActiveAccounts(self._view):
+            if len(account.messageQueue):
+                self.getSMTPInstance(account).takeOnline()
+
+    def takeOffline(self):
+        #set the online flag to false
+        constants.OFFLINE = True
+
+    def isOnline(self):
+        return not constants.OFFLINE
 
     def refreshMailServiceCache(self):
         """Refreshs the MailService Cache checking for
@@ -113,21 +129,21 @@ class MailService(object):
            removing any instances associated with
            inactive or deleted accounts"""
 
-        self.__refreshClientCache("IMAP")
+        self._refreshCache("IMAP")
 
     def refreshSMTPClientCache(self):
         """Refreshes the C{SMTPClient} cache
            removing any instances associated with
            inactive or deleted accounts"""
 
-        self.__refreshClientCache("SMTP")
+        self._refreshCache("SMTP")
 
     def refreshPOPClientCache(self):
         """Refreshes the C{POPClient} cache
            removing any instances associated with
            inactive or deleted accounts"""
 
-        self.__refreshClientCache("POP")
+        self._refreshCache("POP")
 
     def getSMTPInstance(self, account):
         """
@@ -142,12 +158,13 @@ class MailService(object):
 
         assert isinstance(account, Mail.SMTPAccount)
 
-        smtpInstances = self.__clientInstances.get("SMTP")
+        smtpInstances = self._clientInstances.get("SMTP")
 
         if account.itsUUID in smtpInstances:
             return smtpInstances.get(account.itsUUID)
 
-        s = SMTPClient(self.__createView("SMTPClient", account), account)
+        #XXX Just pass self._view
+        s = SMTPClient(self._createView("SMTPClient", account), account)
         smtpInstances[account.itsUUID] = s
 
         return s
@@ -164,12 +181,13 @@ class MailService(object):
 
         assert isinstance(account, Mail.IMAPAccount)
 
-        imapInstances = self.__clientInstances.get("IMAP")
+        imapInstances = self._clientInstances.get("IMAP")
 
         if account.itsUUID in imapInstances:
             return imapInstances.get(account.itsUUID)
 
-        i = IMAPClient(self.__createView("IMAPClient", account), account)
+        #XXX Just pass self._view
+        i = IMAPClient(self._createView("IMAPClient", account), account)
         imapInstances[account.itsUUID] = i
 
         return i
@@ -186,37 +204,31 @@ class MailService(object):
 
         assert isinstance(account, Mail.POPAccount)
 
-        popInstances = self.__clientInstances.get("POP")
+        popInstances = self._clientInstances.get("POP")
 
         if account.itsUUID in popInstances:
             return popInstances.get(account.itsUUID)
 
-        i = POPClient(self.__createView("POPClient", account), account)
+        #XXX Just pass self._view
+        i = POPClient(self._createView("POPClient", account), account)
         popInstances[account.itsUUID] = i
 
         return i
 
-    def __refreshClientCache(self, protocol):
+    def _refreshCache(self, protocol):
         instances = None
         method = None
 
         if protocol in Mail.ACCOUNT_TYPES:
-            instances = self.__clientInstances.get(protocol)
+            instances = self._clientInstances.get(protocol)
             method = Mail.ACCOUNT_TYPES[protocol].getActiveAccounts
 
-        try:
-            self.__view.refresh()
-        except RepositoryError, e:
-            trace(e)
-            raise
-        except VersionConflictError, e1:
-            trace(e1)
-            raise
+        self._view.refresh()
 
         uuidList = []
         delList  = []
 
-        for acc in method(self.__view):
+        for acc in method(self._view):
             uuidList.append(acc.itsUUID)
 
         for accUUID in instances.keys():
@@ -234,8 +246,8 @@ class MailService(object):
                 a = s > 1 and "accountUUID's" or "accountUUID"
                 trace("removed %s%s with %s %s" % (protocol, c, a, delList))
 
-    def __createView(self, clientName, account):
+    def _createView(self, clientName, account):
         #Assign a unique name to the view
         viewName = "%s for account: %s" % (clientName, str(account.itsUUID))
-        return self.__view.repository.createView(viewName)
+        return self._view.repository.createView(viewName)
 

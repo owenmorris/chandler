@@ -192,8 +192,16 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("getMail")
 
+        if constants.OFFLINE:
+            msg = constants.DOWNLOAD_OFFLINE
+            reactor.callFromThread(NotifyUIAsync, msg, cl="setStatusMessage")
+            return
+
+
         """Move code execution path from current thread
            to Reactor Asynch thread"""
+        msg = constants.DOWNLOAD_START
+        reactor.callFromThread(NotifyUIAsync, msg, cl="setStatusMessage")
         reactor.callFromThread(self._getMail)
 
 
@@ -205,6 +213,10 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("testAccountSettings")
 
+        if constants.OFFLINE:
+            reactor.callFromThread(alert, constants.TEST_OFFLINE)
+            return
+
         self.testing = True
 
         reactor.callFromThread(self._getMail)
@@ -215,7 +227,7 @@ class AbstractDownloadClient(object):
 
         if self.currentlyDownloading:
             if self.testing:
-                trace("%s currently testing account \ settings" % self.clientType)
+                trace("%s currently testing account settings" % self.clientType)
 
             else:
                 trace("%s currently downloading mail" % self.clientType)
@@ -239,6 +251,7 @@ class AbstractDownloadClient(object):
         self._getAccount()
 
         self.factory = self.factoryType(self)
+
         """Cache the maximum number of messages to download before forcing a commit"""
         self.downloadMax = self.account.downloadMax
 
@@ -278,7 +291,7 @@ class AbstractDownloadClient(object):
         except:
             pass
 
-        if self.factory is None or self.shuttingDown:
+        if self.factory is None or self.shuttingDown or constants.OFFLINE:
             return
 
         if isinstance(err, failure.Failure):

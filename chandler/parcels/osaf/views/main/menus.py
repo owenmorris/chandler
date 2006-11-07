@@ -701,7 +701,12 @@ def makeMainMenus(parcel):
                                 event = main.i18nMailTest,
                                 title = u'i18n Mail Tests',
                                 helpString = u'Loads mail messages containing a variety of Charsets and Languages'),
+                            MenuItem.template('TakMailOnlineOfflineItem',
+                                event = main.TakeMailOnlineOffline,
+                                title = u'Take Mail Offline',
+                                helpString = u'Toggle the mail online status'),
                             ]),
+
                     MenuItem.template('TestSeparator5', menuItemKind='Separator'),
                     MenuItem.template('WxTestHarnessItem',
                         event = main.WxTestHarness,

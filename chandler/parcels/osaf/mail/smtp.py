@@ -45,6 +45,12 @@ import message
 
 __all__ = ['SMTPClient']
 
+"""
+NOTES:
+1. Only set the dateSent info on success
+2. Can perform initial sending logic at end of send via repos
+"""
+
 
 class _TwistedESMTPSender(smtp.ESMTPSender):
 
@@ -109,7 +115,6 @@ class SMTPClient(object):
 
         self.accountUUID = account.itsUUID
         self.account = None
-        self.pending = []
         self.testing = False
         self.displayed = False
         self.mailMessage = None
@@ -157,9 +162,6 @@ class SMTPClient(object):
                 raise
 
         d = threads.deferToThread(_tryCommit)
-        #XXX: May want to handle the case where the Repository fails
-        #     to commit. For example, role back transaction or display
-        #     Repository error to the user
         d.addCallbacks(lambda _: self._actionCompleted())
         return d
 
@@ -168,7 +170,7 @@ class SMTPClient(object):
             trace("_actionCompleted")
 
 
-        if not self.displayed and not self.shuttingDown:
+        if not self.displayed and not self.shuttingDown and not constants.OFFLINE:
             if self.mailMessage.deliveryExtension.state == "FAILED":
                  key = "displaySMTPSendError"
             else:
@@ -176,17 +178,8 @@ class SMTPClient(object):
 
             NotifyUIAsync(self.mailMessage, cl=key)
 
-
-            """If there are messages send the next one in the Queue
-               and we have not displayed the Add Certificate Dialog"""
-            if len(self.pending) > 0:
-                mUUID = self.pending.pop()
-
-                if __debug__:
-                    trace("SMTPClient sending next message in Queue %s" % mUUID)
-
-                """Yield to Twisted Event Loop"""
-                reactor.callLater(0, self._prepareForSend, mUUID)
+            #see if there are any messages in the queue to send
+            self._processQueue()
 
         self.mailMessage = None
         self.displayed  = False
@@ -198,37 +191,53 @@ class SMTPClient(object):
         if __debug__:
             trace("_prepareForSend")
 
-        """If currently sending a message put the next request in the Queue."""
+        """ Refresh our view before retrieving Account info"""
+        self.view.refresh()
 
+        self._getAccount()
+
+        """If currently sending a message put the next request in the Queue."""
         try:
-            if self.mailMessage is not None:
-                sending = (self.mailMessage.itsItem.itsUUID == mailMessageUUID)
+            if self.mailMessage is not None or constants.OFFLINE:
+                newMessage = self._getMailMessage(mailMessageUUID)
+
+                try:
+                    sending = (self.mailMessage.itsItem.itsUUID == mailMessageUUID)
+                except:
+                    sending = False
 
                 """Check that the mailMessage in not already Queued"""
-                if mailMessageUUID in self.pending:
+                if newMessage.itsItem in self.account.messageQueue:
                     if __debug__:
                         trace("SMTPClient Queue already contains message: %s" % mailMessageUUID)
 
+                #Sending should always be False in offline mode
                 elif sending:
                     """Check that the mailMessage in not currently being sent"""
                     if __debug__:
                         trace("SMTPClient currently sending message: %s" % mailMessageUUID)
-
                 else:
-                    self.pending.insert(0, mailMessageUUID)
+                    try:
+                        self.account.messageQueue.insert(0, newMessage.itsItem)
+                        self.view.commit()
+                    except:
+                        pass
 
                     if __debug__:
                         trace("SMTPClient adding to the Queue message: %s" % mailMessageUUID)
 
+                if constants.OFFLINE:
+                    NotifyUIAsync(constants.UPLOAD_OFFLINE % \
+                                  {'subject': newMessage.subject}, cl='setStatusMessage')
+
                 return
 
-            """ Refresh our view before retrieving Account info"""
-            self.view.refresh()
+            NotifyUIAsync(constants.UPLOAD_START, cl='setStatusMessage')
+
 
             """Get the account, get the mail message and hand off to an instance to send
                if someone already sending them put in a queue"""
 
-            self._getAccount()
             self.mailMessage = self._getMailMessage(mailMessageUUID)
 
             self.mailMessage.outgoingMessage(self.account)
@@ -261,6 +270,10 @@ class SMTPClient(object):
     def _testAccountSettings(self):
         if __debug__:
             trace("_testAccountSettings")
+
+        if constants.OFFLINE:
+            alert(constants.TEST_OFFLINE)
+            return
 
         """ Refresh our view before retrieving Account info"""
         self.view.refresh()
@@ -330,7 +343,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_testSuccess")
 
-        if self.shuttingDown:
+        if self.shuttingDown or constants.OFFLINE:
             return
 
         alert(constants.TEST_SUCCESS, {'accountName': self.account.displayName})
@@ -341,7 +354,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_testFailure")
 
-        if self.shuttingDown:
+        if self.shuttingDown or constants.OFFLINE:
             return
 
         exc = exc.value
@@ -397,7 +410,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailSomeFailed")
 
-        if self.shuttingDown:
+        if self.shuttingDown or constants.OFFLINE:
             return
 
         errorDate = datetime.now()
@@ -432,7 +445,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailFailure")
 
-        if self.shuttingDown:
+        if self.shuttingDown or constants.OFFLINE:
             return
 
         """ Refresh our view before adding items to our mail Message
@@ -488,7 +501,7 @@ class SMTPClient(object):
         if __debug__:
             trace("displayedRecoverableSSLErrorDialog")
 
-        if self.shuttingDown:
+        if self.shuttingDown or constants.OFFLINE:
             return
 
         if self.testing:
@@ -522,13 +535,11 @@ class SMTPClient(object):
             return True
         return False
 
-
     def shutdown(self):
         if __debug__:
             trace("shutdown")
 
         self.shuttingDown = True
-
 
     def _getError(self, err):
         errorCode = errors.UNKNOWN_CODE
@@ -626,6 +637,27 @@ class SMTPClient(object):
 
         return self._commit()
 
+    def takeOnline(self):
+        #Move to twisted thread
+        reactor.callFromThread(self._takeOnline)
+
+    def _takeOnline(self):
+        self._getAccount()
+        self._processQueue()
+
+    def _processQueue(self):
+        """If there are messages send the next one in the Queue
+           and we have not displayed the Add Certificate Dialog"""
+        if len(self.account.messageQueue):
+            item = self.account.messageQueue.pop()
+            mUUID = item.itsUUID
+
+            if __debug__:
+                trace("SMTPClient sending next message in Queue %s" % mUUID)
+
+            """Yield to Twisted Event Loop"""
+            reactor.callLater(0, self._prepareForSend, mUUID)
+
     def _getSender(self):
         """Get the sender of the message"""
         if self.mailMessage.replyToAddress is not None:
@@ -695,11 +727,11 @@ class SMTPClient(object):
 
         if self.account is None:
             self.account = self.view.findUUID(self.accountUUID)
-            assert self.account is not None, "No Account for UUID: %s" % self.accountUUID
+            assert self.account is not None
 
 
     def _getMailMessage(self, mailMessageUUID):
         m = self.view.findUUID(mailMessageUUID)
 
-        assert m is not None, "No MailMessage for UUID: %s" % mailMessageUUID
+        assert m is not None
         return Mail.MailStamp(m)

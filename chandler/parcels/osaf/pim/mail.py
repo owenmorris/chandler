@@ -44,13 +44,16 @@ from osaf.pim.calendar import EventStamp
 from osaf.pim import Remindable
 
 """
+TO DO:
+1. Rethink MailDeliveryError logic
+2. Reread POP spec for UID logic
+3. Rename messageDownloadSequence
+4. Deprecate isOutbound when in / out collection logic complete
+5. Incoming message a good place to set in collection logic
+
 Design Issues:
       1. Is tries really needed
       2. Date sent string could probally be gotten rid of
-
-ISSUES:
-    1. Collection logic is still off. Not appearing in the Outbound collection
-    2. Sendability of mail in the out.
 """
 
 def __populateBody(mailStamp, bodyHeader=u"", includeMailHeaders=False, includeEventInfo=False):
@@ -382,7 +385,7 @@ class AccountBase(items.ContentItem):
     numRetries = schema.One(
         schema.Integer,
         doc = 'How many times to retry before giving up',
-        initialValue = 1,
+        initialValue = 0,
     )
     username = schema.One(
         schema.Text,
@@ -421,11 +424,13 @@ class AccountBase(items.ContentItem):
         doc = 'Mail Messages sent or retrieved with this account ',
         initialValue = [],
     ) # inverse of MailStamp.parentAccount
+
     timeout = schema.One(
         schema.Integer,
         doc = 'The number of seconds before timing out a stalled connection',
-        initialValue = 60,
+        initialValue = 20,
     )
+
     isActive = schema.One(
         schema.Boolean,
         doc = 'Whether or not an account should be used for sending or '
@@ -450,17 +455,21 @@ class DownloadAccountBase(AccountBase):
         doc = 'Which SMTP account to use for sending mail from this account',
         initialValue = None,
     ) # inverse of SMTPAccount.accounts
+
     downloadMax = schema.One(
         schema.Integer,
         doc = 'The maximum number of messages to download before forcing a repository commit',
         initialValue = 20,
     )
+
     replyToAddress = schema.One(
         initialValue = None
     ) # inverse of EmailAddress.accounts
+
     emailAddress = schema.One(
         redirectTo = 'replyToAddress.emailAddress',
     )
+
     fullName = schema.One(
         redirectTo = 'replyToAddress.fullName',
     )
@@ -478,9 +487,11 @@ class SMTPAccount(AccountBase):
         'EmailAddress',
         initialValue = None
     )
+
     emailAddress = schema.One(
         redirectTo = 'fromAddress.emailAddress',
     )
+
     port = schema.One(
         schema.Integer,
         doc = 'The non-SSL port number to use\n\n'
@@ -490,25 +501,40 @@ class SMTPAccount(AccountBase):
             "'port', which normally would have been inherited from AccountBase\n",
         initialValue = 25,
     )
+
     useAuth = schema.One(
         schema.Boolean,
         doc = 'Whether or not to use authentication when sending mail',
         initialValue = False,
     )
+
     accounts = schema.Sequence(
         DownloadAccountBase,
         doc = 'Which accounts use this SMTP account as their default',
         initialValue = [],
         inverse = DownloadAccountBase.defaultSMTPAccount,
     )
-    signature = schema.One(
-        schema.Text,
-        description =
-            "Issues:\n"
-            '   Basic signiture addition to an outgoing message will be refined '
-            'in future releases\n',
+
+    messageQueue = schema.Sequence(
+        doc = "The Queue of mail messages  to be sent from this account. "
+              "Used primarily for offline mode.",
+        initialValue = [],
     )
 
+    #Commented out for Preview
+    #signature = schema.One(
+    #    schema.Text,
+    #    description =
+    #        "Issues:\n"
+    #        '   Basic signiture addition to an outgoing message will be refined '
+    #        'in future releases\n',
+    #)
+
+    @classmethod
+    def getActiveAccounts(cls, view):
+        for item in cls.iterItems(view):
+            if item.isActive and item.host:
+                yield item
 
 class IMAPAccount(DownloadAccountBase):
 
@@ -527,6 +553,8 @@ class IMAPAccount(DownloadAccountBase):
             "'port', which normally would have been inherited from AccountBase\n",
         initialValue = 143,
     )
+
+    #This is contains the last downloaded IMAP Message UID
     messageDownloadSequence = schema.One(
         schema.Long,
         initialValue = 0L,
@@ -538,8 +566,9 @@ class POPAccount(DownloadAccountBase):
     accountType = "POP"
 
     schema.kindInfo(
-        description = "An POP Account",
+        description = "A POP Account",
     )
+
     port = schema.One(
         schema.Integer,
         doc = 'The non-SSL port number to use\n\n'
@@ -549,11 +578,13 @@ class POPAccount(DownloadAccountBase):
             "'port', which normally would have been inherited from AccountBase\n",
         initialValue = 110,
     )
+
     downloadedMessageUIDS = schema.Mapping(
         schema.Text,
         doc = 'Used for quick look up to discover if a message has already been downloaded',
         initialValue = {},
     )
+
     leaveOnServer = schema.One(
         schema.Boolean,
         doc = 'Whether or not to leave messages on the server after downloading',
@@ -573,8 +604,11 @@ class MailDeliveryError(items.ContentItem):
         doc = 'The Error Code returned by the Delivery Transport',
         initialValue = 0,
     )
+
     errorString = schema.One(schema.Text, initialValue = u'')
+
     errorDate = schema.One(schema.DateTime)
+
     mailDelivery = schema.One(
         doc = 'The Mail Delivery that cause this error',
         initialValue = None
@@ -582,7 +616,6 @@ class MailDeliveryError(items.ContentItem):
 
 
 class MailDeliveryBase(items.ContentItem):
-
     schema.kindInfo(
         description =
             "Parent kind for delivery-specific attributes of a MailMessage"
@@ -592,6 +625,7 @@ class MailDeliveryBase(items.ContentItem):
         doc = 'Message which this delivery item refers to',
         initialValue = None,
     ) # inverse MailStamp.deliveryExtension
+
     deliveryErrors = schema.Sequence(
         MailDeliveryError,
         doc = 'Mail Delivery Errors associated with this transport',
@@ -599,9 +633,9 @@ class MailDeliveryBase(items.ContentItem):
         inverse = MailDeliveryError.mailDelivery,
     )
 
-
-class historyEnum(schema.Enumeration):
-    values = "QUEUED", "FAILED", "SENT"
+#Commented out for preview
+#class historyEnum(schema.Enumeration):
+#    values = "QUEUED", "FAILED", "SENT"
 
 class stateEnum(schema.Enumeration):
     values = "DRAFT", "QUEUED", "SENT", "FAILED"
@@ -616,22 +650,20 @@ class SMTPDelivery(MailDeliveryBase):
             "state attribute\n",
     )
 
-    history = schema.Sequence(
-        historyEnum,
-        initialValue = [],
-    )
-    tries = schema.One(
-        schema.Integer,
-        doc = 'How many times we have tried to send it',
-        initialValue = 0,
-    )
+    #Commented out for preview
+    #history = schema.Sequence(
+    #    historyEnum,
+    #    initialValue = [],
+    #)
+    #tries = schema.One(
+    #    schema.Integer,
+    #    doc = 'How many times we have tried to send it',
+    #    initialValue = 0,
+    #)
+
     state = schema.One(
         stateEnum,
-        doc = 'The current state of the message\n\n'
-        "Issues:\n"
-        "   We don't appear to be able to set an initialValue for an "
-            "attribute whose enumeration is defined in the same file "
-            "(a deficiency in the parcel loader)\n",
+        doc = 'The current state of the message\n\n',
         initialValue = "DRAFT",
     )
 
@@ -639,18 +671,19 @@ class SMTPDelivery(MailDeliveryBase):
         """
         Called from the Twisted thread to log errors in Send.
         """
-        self.history.append("FAILED")
+        #Commented out for preview
+        #self.history.append("FAILED")
+        #self.tries += 1
         self.state = "FAILED"
 
-        self.tries += 1
 
     def sendSucceeded(self):
         """
         Called from the Twisted thread to log successes in Send.
         """
-        self.history.append("SENT")
+        #self.history.append("SENT")
+        #self.tries += 1
         self.state = "SENT"
-        self.tries += 1
 
 
 class IMAPDelivery(MailDeliveryBase):
@@ -659,22 +692,29 @@ class IMAPDelivery(MailDeliveryBase):
         description = "Tracks the state of an inbound message",
     )
 
+    #XXX Reference back to the folder object 
+    #the message came from on IMAP Server
     folder = schema.One(
         schema.Text, initialValue = u'',
     )
+
     uid = schema.One(
         schema.Long,
         doc = 'The unique IMAP ID for the message',
-        initialValue = 0,
+        initialValue = 0L,
     )
-    namespace = schema.One(
-        schema.Text,
-        doc = 'The namespace of the message',
-        initialValue = u'',
-    )
-    flags = schema.Sequence(
-        schema.Text, initialValue = [],
-    )
+
+    #Commented out for Preview
+    #namespace = schema.One(
+    #    schema.Text,
+    #    doc = 'The namespace of the message',
+    #    initialValue = u'',
+    #)
+
+    #Commented out for Preview
+    #flags = schema.Sequence(
+    #    schema.Text, initialValue = [],
+    #)
 
 
 class POPDelivery(MailDeliveryBase):
@@ -683,6 +723,7 @@ class POPDelivery(MailDeliveryBase):
         description = "Tracks the state of an inbound message",
     )
 
+    #XXX Do pop messages have a UID? Why is it text and not a long
     uid = schema.One(
         schema.Text,
         doc = 'The unique POP ID for the message',
@@ -770,8 +811,10 @@ class MailStamp(stamping.Stamp, MIMEContainer):
     parentAccount = schema.One(
         AccountBase, initialValue = None, inverse = AccountBase.mailMessages,
     )
-    spamScore = schema.One(schema.Float, initialValue = 0.0)
+    #Commented out for Preview
+    #spamScore = schema.One(schema.Float, initialValue = 0.0)
     rfc2822Message = schema.One(schema.Lob, indexed=False)
+
     dateSentString = schema.One(schema.Text, initialValue = '')
     dateSent = schema.One(schema.DateTimeTZ, indexed=True)
     messageId = schema.One(schema.Text, initialValue = '')
@@ -795,19 +838,22 @@ class MailStamp(stamping.Stamp, MIMEContainer):
     ccAddress = schema.Sequence(initialValue = [])
 
     subject = schema.One(redirectTo='displayName')
+
     body = schema.One(redirectTo='body')
+
     inReplyTo = schema.One(schema.Text, indexed=False)
+
     referencesMID = schema.Sequence(schema.Text, initialValue = [])
 
     headers = schema.Mapping(
         schema.Text, doc = 'Catch-all for headers', initialValue = {},
     )
+
     chandlerHeaders = schema.Mapping(schema.Text, initialValue = {})
 
     @schema.observer(toAddress, isOutbound, stamping.Stamp.stamp_types)
     def onAddressChange(self, op, name):
         self.itsItem.updateDisplayWho(op, name)
-
     def addDisplayWhos(self, whos):
         # @@@ This code doesn't choose the right 'who' yet, but has enough
         # context to make the decision here. (If the decision depends
@@ -941,7 +987,8 @@ class MailStamp(stamping.Stamp, MIMEContainer):
         sendable = ((ignoreAttr == 'toAddress' or len(self.toAddress) > 0) and
                     (ignoreAttr == 'fromAddress' or self.fromAddress is not None))
         return sendable and 'sendable' or 'not'
-        
+
+
 def MailMessage(*args, **keywds):
     """Return a newly created Note, stamped with MailStamp."""
     note = notes.Note(*args, **keywds)
@@ -969,7 +1016,6 @@ class MIMEText(MIMENote):
     )
 
     data = schema.One(schema.Text, indexed=False)
-
 
 class MIMESecurity(MIMEContainer):
     schema.kindInfo(annotates=items.ContentItem)
@@ -1022,13 +1068,15 @@ Issues:
         indexed = True,
         initialValue = u'',
     )
-    vcardType = schema.One(
-        schema.Text,
-        doc = "Typical vCard types are values like 'internet', 'x400', and "
-              "'pref'. Chandler will use this attribute when doing "
-              "import/export of Contact records in vCard format.",
-        initialValue = u'',
-    )
+
+    #vcardType = schema.One(
+    #    schema.Text,
+    #    doc = "Typical vCard types are values like 'internet', 'x400', and "
+    #          "'pref'. Chandler will use this attribute when doing "
+    #          "import/export of Contact records in vCard format.",
+    #    initialValue = u'',
+    #)
+
     accounts = schema.Sequence(
         DownloadAccountBase,
         doc = 'A list of Email Accounts that use this Email Address as the '
@@ -1036,36 +1084,42 @@ Issues:
         initialValue = [],
         inverse = DownloadAccountBase.replyToAddress,
     )
+
     messagesBcc = schema.Sequence(
         MailStamp,
         doc = 'A list of messages with their Bcc: header referring to this address',
         initialValue = [],
         inverse = MailStamp.bccAddress,
     )
+
     messagesCc = schema.Sequence(
         MailStamp,
         doc = 'A list of messages with their cc: header referring to this address',
         initialValue = [],
         inverse = MailStamp.ccAddress,
     )
+
     messagesFrom = schema.Sequence(
         MailStamp,
         doc = 'A list of messages with their From: header referring to this address',
         initialValue = [],
         inverse = MailStamp.fromAddress,
     )
+
     messagesReplyTo = schema.Sequence(
         MailStamp,
         doc = 'A list of messages with their Reply-To: header referring to this address',
         initialValue = [],
         inverse = MailStamp.replyToAddress,
     )
+
     messagesTo = schema.Sequence(
         MailStamp,
         doc = 'A list of messages with their To: header referring to this address',
         initialValue = [],
         inverse = MailStamp.toAddress,
     )
+
     inviteeOf = schema.Sequence(
         collections.ContentCollection,
         doc = 'List of collections that the user is about to be invited to share with.',
@@ -1130,11 +1184,12 @@ Issues:
         The "me" entity is used for Items created by the user, and it
         gets a reasonable emailaddress filled in when a send is done.
 
-        This code needs to be reworked!
+        For performant operations use theEmailAddress.findEmailAddress method 
+        which leverages an index.
         """
 
     @classmethod
-    def getEmailAddress(cls, view, nameOrAddressString, fullName='', inbound=False):
+    def getEmailAddress(cls, view, nameOrAddressString, fullName=''):
         """
         Lookup or create an EmailAddress based on the supplied string.
 
@@ -1163,15 +1218,6 @@ Issues:
         @param fullName: optional explict fullName when not using the
         "name <address>" form of the nameOrAddressString parameter
         @type fullName: C{unicode}
-        @param inbound: Indicates that even if the email address is not valid still
-                        save it as an C{EmailAddress} Object. When mail enters Chandler
-                        via IMAP, POP, Sharing, etc the email address may not be valid
-                        or in a valid format ie. "name <emailaddress>". We still want to
-                        capture as much information as possible for display to the user.
-                        When sending, Chandler does not allow a user to send a message
-                        with an invalid email address.
-        @type inbound: C{bool}
-
 
         @return: C{EmailAddress} or None if not found, and nameOrAddressString is\
         not a valid email address.
@@ -1254,7 +1300,7 @@ Issues:
                 return addressMatch
             if nameMatch is not None and address is None:
                 return nameMatch
-            if isValidAddress or inbound:
+            if isValidAddress:
                 # make a new EmailAddress
                 if address is None:
                     address = u""
@@ -1315,15 +1361,17 @@ Issues:
                 match = view[uuid]
                 if unicode(match).lower() != partialAddress:
                     yield match
-                
+
     @classmethod
     def format(cls, emailAddress, encode=False):
-        assert isinstance(emailAddress, EmailAddress), "You must pass an EmailAddress Object"
+        assert isinstance(emailAddress, EmailAddress)
 
-        if emailAddress.fullName is not None and len(emailAddress.fullName.strip()) > 0:
+        if emailAddress.fullName is not None and \
+           len(emailAddress.fullName.strip()) > 0:
             if encode:
                 from email.Header import Header
-                return Header(emailAddress.fullName).encode() + u" <" + emailAddress.emailAddress + u">"
+                return Header(emailAddress.fullName).encode() + u" <" + \
+                              emailAddress.emailAddress + u">"
             else:
                 return emailAddress.fullName + u" <" + emailAddress.emailAddress + u">"
 
@@ -1341,9 +1389,8 @@ Issues:
         @return: C{Boolean}
         """
 
-        assert isinstance(emailAddress, (str, unicode)), "Email Address must be in string or unicode format"
+        assert isinstance(emailAddress, (str, unicode))
 
-        #XXX: Strip any name information. i.e. John test <john@test.com>`from the email address
         emailAddress = Utils.parseaddr(emailAddress)[1]
 
         return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", emailAddress) is not None
@@ -1419,10 +1466,12 @@ Issues:
 
         # See if an IMAP/POP account is configured:
         account = getCurrentMailAccount(view)
-        if account is None or not account.replyToAddress or not account.replyToAddress.emailAddress:
+        if account is None or not account.replyToAddress or not \
+           account.replyToAddress.emailAddress:
             # No IMAP/POP set up, so check SMTP:
             account, replyTo = getCurrentSMTPAccount(view)
-            if account is None or not account.fromAddress or not account.fromAddress.emailAddress:
+            if account is None or not account.fromAddress or not \
+               account.fromAddress.emailAddress:
                 return None
             else:
                 return account.fromAddress

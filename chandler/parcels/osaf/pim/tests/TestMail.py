@@ -175,9 +175,9 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         # Literal properties
         mailMessageObject.dateSent = datetime.now(ICUtzinfo.default)
         mailMessageObject.subject = uw("Hello")
-        self.assertEqual(mailMessageObject.subject, 
+        self.assertEqual(mailMessageObject.subject,
                          mailMessageObject.itsItem.displayName)
-        mailMessageObject.spamScore = 5
+        #mailMessageObject.spamScore = 5
 
         # Item Properties
         emailAddressItem.emailAddress = u"test@test.com"

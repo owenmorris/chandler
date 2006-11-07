@@ -144,18 +144,24 @@ def disableTwistedTLS(items, TLSKEY='STARTTLS'):
 
     return items
 
-def alert(message, args):
+def alert(message, args=None):
     """
     Displays a generic alert dialog.
     """
-    NotifyUIAsync(message % args, cl='alertUser')
+    if args:
+        message = message % args
 
-def alertMailError(message, account, args):
+    NotifyUIAsync(message, cl='alertUser')
+
+def alertMailError(message, account, args=None):
     """
     Displays a mail specific alert dialog with a Edit Account Settings
     button which takes the user to the Account Dialog.
     """
-    NotifyUIAsync(message % args, None, 'displayMailError', account)
+    if args:
+        message = message % args
+
+    NotifyUIAsync(message, None, 'displayMailError', account)
 
 def displaySSLCertDialog(cert, reconnectMethod):
     """

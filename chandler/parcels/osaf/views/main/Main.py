@@ -355,9 +355,6 @@ class MainView(View):
         account = (downloadAccount is not None and downloadAccount.defaultSMTPAccount
                    or mail.getCurrentSMTPAccount(self.itsView)[0])
 
-        # put a sending message into the status bar
-        self.setStatusMessage (_(u'Sending mail...'))
-
         # Now send the mail
         smtpInstance = Globals.mailService.getSMTPInstance(account)
         smtpInstance.sendMail(mailToSend)
@@ -1146,6 +1143,19 @@ class MainView(View):
         event.arguments['Enable'] = enable
         event.arguments ['Text'] = menuTitle
 
+    def onTakeMailOnlineOfflineEvent(self, event):
+        if Globals.mailService.isOnline():
+            Globals.mailService.takeOffline()
+        else:
+            Globals.mailService.takeOnline()
+
+
+    def onTakeMailOnlineOfflineEventUpdateUI(self, event):
+        if Globals.mailService.isOnline():
+            event.arguments ['Text'] = "Take Mail Offline"
+        else:
+            event.arguments ['Text'] = "Take Mail Online"
+
     def onSyncAllEvent (self, event):
         """
         Synchronize Mail and all sharing.
@@ -1186,7 +1196,6 @@ class MainView(View):
 
         # If mail is set up, fetch it:
         if inboundMailReady:
-            self.setStatusMessage (_(u"Getting new Mail"))
             self.onGetNewMailEvent (event)
 
     def onSyncWebDAVEvent (self, event):

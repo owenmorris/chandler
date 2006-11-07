@@ -602,14 +602,15 @@ def __getEmailAddress(view, name, addr):
     Use any existing EmailAddress, but don't update them
     because that will cause the item to go stale in the UI thread.
     """
+
+    address = None
+
     if Mail.EmailAddress.isValidEmailAddress(addr):
         address = Mail.EmailAddress.findEmailAddress(view, addr)
-        if address is None:
-            address = Mail.EmailAddress(itsView=view,
-                                        emailAddress=addr, fullName=name)
-    else:
-        address = None
 
+    if address is None:
+        address = Mail.EmailAddress(itsView=view,
+                                    emailAddress=addr, fullName=name)
     return address
 
 
