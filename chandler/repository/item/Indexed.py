@@ -661,7 +661,11 @@ class Indexed(object):
 
         if self._indexes:
             indexes = self._indexes
-            count = self.__len__(True)
+            try:
+                count = self.__len__(True)
+            except:
+                logger.exception("Length of indexed value %s installed on attribute '%s' of %s couldn't be determined because of an error", self, attribute, item._repr_())
+                return False
 
             for name, index in indexes.iteritems():
                 if not index._checkIndex(index, logger, name, self,
