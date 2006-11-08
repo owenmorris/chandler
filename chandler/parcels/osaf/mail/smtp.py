@@ -29,6 +29,7 @@ from datetime import datetime
 from PyICU import ICUtzinfo
 
 #Chandler imports
+from application import Globals
 import osaf.pim.mail as Mail
 from osaf.framework.certstore import ssl
 from repository.persistence.RepositoryView import RepositoryView
@@ -44,13 +45,6 @@ from message import *
 import message
 
 __all__ = ['SMTPClient']
-
-"""
-NOTES:
-1. Only set the dateSent info on success
-2. Can perform initial sending logic at end of send via repos
-"""
-
 
 class _TwistedESMTPSender(smtp.ESMTPSender):
 
@@ -170,7 +164,7 @@ class SMTPClient(object):
             trace("_actionCompleted")
 
 
-        if not self.displayed and not self.shuttingDown and not constants.OFFLINE:
+        if not self.displayed and not self.shuttingDown and not Globals.options.offline:
             if self.mailMessage.deliveryExtension.state == "FAILED":
                  key = "displaySMTPSendError"
             else:
@@ -198,7 +192,7 @@ class SMTPClient(object):
 
         """If currently sending a message put the next request in the Queue."""
         try:
-            if self.mailMessage is not None or constants.OFFLINE:
+            if self.mailMessage is not None or Globals.options.offline:
                 newMessage = self._getMailMessage(mailMessageUUID)
 
                 try:
@@ -226,7 +220,7 @@ class SMTPClient(object):
                     if __debug__:
                         trace("SMTPClient adding to the Queue message: %s" % mailMessageUUID)
 
-                if constants.OFFLINE:
+                if Globals.options.offline:
                     NotifyUIAsync(constants.UPLOAD_OFFLINE % \
                                   {'subject': newMessage.subject}, cl='setStatusMessage')
 
@@ -271,7 +265,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_testAccountSettings")
 
-        if constants.OFFLINE:
+        if Globals.options.offline:
             alert(constants.TEST_OFFLINE)
             return
 
@@ -343,7 +337,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_testSuccess")
 
-        if self.shuttingDown or constants.OFFLINE:
+        if self.shuttingDown or Globals.options.offline:
             return
 
         alert(constants.TEST_SUCCESS, {'accountName': self.account.displayName})
@@ -354,7 +348,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_testFailure")
 
-        if self.shuttingDown or constants.OFFLINE:
+        if self.shuttingDown or Globals.options.offline:
             return
 
         exc = exc.value
@@ -410,7 +404,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailSomeFailed")
 
-        if self.shuttingDown or constants.OFFLINE:
+        if self.shuttingDown or Globals.options.offline:
             return
 
         errorDate = datetime.now()
@@ -445,7 +439,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailFailure")
 
-        if self.shuttingDown or constants.OFFLINE:
+        if self.shuttingDown or Globals.options.offline:
             return
 
         """ Refresh our view before adding items to our mail Message
@@ -501,7 +495,7 @@ class SMTPClient(object):
         if __debug__:
             trace("displayedRecoverableSSLErrorDialog")
 
-        if self.shuttingDown or constants.OFFLINE:
+        if self.shuttingDown or Globals.options.offline:
             return
 
         if self.testing:
