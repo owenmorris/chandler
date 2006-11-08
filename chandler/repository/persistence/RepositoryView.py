@@ -79,12 +79,6 @@ class RepositoryView(CView):
         implementation for the repository be used.
         """
 
-        self._notifications = Queue()
-
-        if deferDelete is Default:
-            deferDelete = repository._deferDelete
-        self._deferDelete = deferDelete
-
         if not name:
             name = threading.currentThread().getName()
 
@@ -93,7 +87,7 @@ class RepositoryView(CView):
 
         super(RepositoryView, self).__init__(repository, name,
                                              RepositoryView.itsUUID)
-        self.openView(version)
+        self.openView(version, deferDelete)
         
     def setCurrentView(self):
         """
@@ -129,7 +123,7 @@ class RepositoryView(CView):
 
         return self['Schema']['Core']['Lob'].makeValue(data, *args, **kwds)
 
-    def openView(self, version=None):
+    def openView(self, version=None, deferDelete=Default):
         """
         Open this repository view.
 
@@ -145,6 +139,14 @@ class RepositoryView(CView):
             else:
                 version = 0
 
+        self._notifications = Queue()
+
+        if deferDelete is Default:
+            deferDelete = repository._deferDelete
+        self._deferDelete = deferDelete
+        if self._deferDelete:
+            self.deferDelete()
+
         self._version = long(version)
         self._roots = self._createChildren(self, version == 0)
         self._registry = {}
@@ -153,9 +155,6 @@ class RepositoryView(CView):
         self._loadingRegistry = set()
         self._status = ((self._status & RepositoryView.VERIFY) |
                         RepositoryView.OPEN)
-
-        if self._deferDelete:
-            self.deferDelete()
 
         self.classLoader = ClassLoader(Item, MissingClass)
 
@@ -194,7 +193,7 @@ class RepositoryView(CView):
             if not self._status & RepositoryView.LOADING:
                 self._status |= CItem.CDIRTY
         else:
-            self._status &= ~CItem.CDIRTY
+            self._status &= ~(CItem.CDIRTY | CItem.FDIRTY)
 
     def isDirty(self):
 
@@ -205,7 +204,7 @@ class RepositoryView(CView):
         Tell if changes were made since last time L{mapChanges} was called.
         """
 
-        return self._status & RepositoryView.FDIRTY != 0
+        return self._status & CItem.FDIRTY != 0
 
     def closeView(self):
         """
@@ -214,6 +213,9 @@ class RepositoryView(CView):
         All items in the view are marked stale. The item cache is flushed.
         A closed view cannot be used until is re-opened with L{openView}.
         """
+
+        if not hasattr(self, '_notifications'):
+            return
 
         if not self._status & RepositoryView.OPEN:
             raise RepositoryError, "RepositoryView is not open"
@@ -225,22 +227,36 @@ class RepositoryView(CView):
             repository._openViews.remove(self)
 
         self.flushNotifications()
-        self.clear()
+        self._clear()
 
         if repository is not None:
             repository.store.detachView(self)
 
-    def clear(self):
+        self._status &= ~RepositoryView.OPEN
 
-        for item in self._registry.itervalues():
-            if hasattr(type(item), 'onViewClear'):
-                item.onViewClear(self)
-            item._setStale()
+    def _clear(self):
+
+        if self._registry:
+            for item in self._registry.values():
+                if hasattr(type(item), 'onViewClear'):
+                    item.onViewClear(self)
+                item._unloadItem(False, self, False)
+            del item
 
         self._registry.clear()
         self._roots.clear()
         self._deletedRegistry.clear()
         self._instanceRegistry.clear()
+        self._loadingRegistry.clear()
+
+        if self._monitors:
+            self._monitors.clear()
+        if self._watchers:
+            self._watchers.clear()
+
+        # clean other caches that may have been added upstream
+        self.__dict__.clear()
+        gc.collect()
 
     def prune(self, size):
         """
@@ -1452,11 +1468,15 @@ class NullRepositoryView(RepositoryView):
 
     def __init__(self, verify=False):
 
-        self._logger = logging.getLogger(__name__)
         super(NullRepositoryView, self).__init__(None, "null view", 0, False)
 
         if verify:
             self._status |= RepositoryView.VERIFY
+
+    def openView(self, version=None, deferDelete=Default):
+
+        self._logger = logging.getLogger(__name__)
+        super(NullRepositoryView, self).openView(version, False)
 
     def setCurrentView(self):
 

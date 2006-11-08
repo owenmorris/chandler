@@ -21,7 +21,7 @@ PYEGGS = $(CHANDLERARCHIVES)/configobj-4.3.2-py$(PYTHON_VER).egg
 # When a version changes, the ARCHIVES lists below needs to be updated.
 # these get installed into release or debug
 ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.8-$(BP)G.tar.gz \
-           $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)56.tar.gz \
+           $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)57.tar.gz \
            $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)5.tar.gz \
            $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.3-$(BP)4.tar.gz \
            $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)9.tar.gz \

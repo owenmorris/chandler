@@ -2299,7 +2299,7 @@ class Item(CItem):
 
     def _unloadItem(self, reloadable, view, clean=True):
 
-        if self.isDirty():
+        if clean and self.isDirty():
             raise DirtyItemError, self
 
         if hasattr(type(self), 'onItemUnload'):

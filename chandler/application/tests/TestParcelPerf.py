@@ -73,7 +73,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
         self._reopenRepository()
         util.timing.reset()
         util.timing.begin("repository.tests.TestLoadAll")
-        count = load(view)
+        count = load(self.rep.view)
         util.timing.end("repository.tests.TestLoadAll")
         util.timing.results(verbose=False)
 

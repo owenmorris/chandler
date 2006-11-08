@@ -36,6 +36,16 @@ class TestImport(RepositoryTestCase):
         nv.closeView()
         nv.openView()
 
+    def clear(self):
+
+        for item in nv._registry.itervalues():
+            item._setStale()
+
+        nv._registry.clear()
+        nv._roots.clear()
+        nv._deletedRegistry.clear()
+        nv._instanceRegistry.clear()
+
     def _loadCG(self):
 
         view = self.rep.view
@@ -64,7 +74,7 @@ class TestImport(RepositoryTestCase):
         #self._unsetCopyExport(view.findPath('//Schema/Core/Manager'))
 
         self._loadCG()
-        nv.clear()
+        self.clear()
         view = self.rep.view
         nv.importItem(self.kh)
         nv.importItem(view['Packs'])
@@ -83,7 +93,7 @@ class TestImport(RepositoryTestCase):
         #self._unsetCopyExport(view.findPath('//Schema/Core/Manager'))
 
         self._loadCG()
-        nv.clear()
+        self.clear()
         view = self.rep.view
         nv.importItem(self.kh)
         nv.importItem(view['Packs'])

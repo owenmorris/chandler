@@ -132,7 +132,8 @@ class Type(Item):
         self._registerTypeHandler(self.getImplementationType(), view)
 
     def onItemUnload(self, view, clean):
-        self._unregisterTypeHandler(self.getImplementationType(), view)
+        if self.itsView is not None:
+            self._unregisterTypeHandler(self.getImplementationType(), view)
 
     def onItemDelete(self, view, deferred):
         self._unregisterTypeHandler(self.getImplementationType(), view)

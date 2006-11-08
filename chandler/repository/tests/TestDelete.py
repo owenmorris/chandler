@@ -53,7 +53,7 @@ class TestDelete(RepositoryTestCase):
         self.assert_(view.check())
 
         self._reopenRepository()
-        self.assert_(view.check())
+        self.assert_(self.rep.view.check())
 
         util.timing.results(verbose=False)
 

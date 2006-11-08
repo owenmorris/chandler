@@ -64,6 +64,12 @@ class Kind(Item):
             if self._references.get('extent') is None:
                 hooks.append(self._createExtent)
 
+    def onViewClear(self, view):
+
+        c = self.c
+        c.descriptors.clear()
+        c.descriptorsInstalled = False
+
     def _createExtent(self, view):
 
         core = view.find(CORE)

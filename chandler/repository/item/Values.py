@@ -117,6 +117,8 @@ class Values(CValues):
 
         self._dict.clear()
         self._flags = Nil
+        if not clean:
+            self._item = None
 
     def _setFlags(self, key, flags):
 

@@ -50,7 +50,7 @@ class Children(LinkedMap):
 
     def _unloadChild(self, child):
 
-        raise NotImplementedError, "%s._unloadChild" %(type(self))
+        pass
 
     def _append(self, child):
 
