@@ -31,6 +31,7 @@ PyTypeObject *ItemValue = NULL;
 PyTypeObject *StaleItemAttributeError = NULL;
 PyObject *Nil = NULL;
 PyObject *Default = NULL;
+long itemCount = 0;
 
 CView_invokeMonitors_fn CView_invokeMonitors;
 PyUUID_Check_fn PyUUID_Check;
@@ -44,6 +45,11 @@ static PyObject *isitem(PyObject *self, PyObject *obj)
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
+}
+
+static PyObject *getItemCount(PyObject *self)
+{
+    return PyInt_FromLong(itemCount);
 }
 
 static PyObject *_install__doc__(PyObject *self, PyObject *args)
@@ -102,6 +108,8 @@ static PyObject *_install__doc__(PyObject *self, PyObject *args)
 static PyMethodDef c_funcs[] = {
     { "isitem", (PyCFunction) isitem, METH_O,
       "isinstance(), but not as easily fooled" },
+    { "getItemCount", (PyCFunction) getItemCount, METH_NOARGS,
+      "the number of item instances currently allocated by this process" },
     { "_install__doc__", (PyCFunction) _install__doc__, METH_VARARGS,
       "install immutable doc strings from python" },
     { NULL, NULL, 0, NULL }

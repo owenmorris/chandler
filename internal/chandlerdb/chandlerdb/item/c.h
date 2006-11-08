@@ -57,6 +57,7 @@ extern PyObject *Default;
 extern CView_invokeMonitors_fn CView_invokeMonitors;
 extern PyUUID_Check_fn PyUUID_Check;
 extern C_countAccess_fn C_countAccess;
+extern long itemCount;
 
 extern CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange;
 

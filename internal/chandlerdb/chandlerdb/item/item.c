@@ -233,6 +233,8 @@ static void t_item_dealloc(t_item *self)
 {
     t_item_clear(self);
     self->ob_type->tp_free((PyObject *) self);
+
+    itemCount -= 1;
 }
 
 static int t_item_traverse(t_item *self, visitproc visit, void *arg)
@@ -273,6 +275,8 @@ static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     if (self)
     {
+        itemCount += 1;
+
         self->lastAccess = 0;
         self->status = RAW;
         self->version = 0;

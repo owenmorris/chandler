@@ -1512,6 +1512,9 @@ static int _t_sl__place(t_sl *self, int op, PyObject *key, PyObject *afterKey)
     int dist = 0;
     t_node *curr;
 
+    if (afterKey == Default || afterKey == Nil)
+        afterKey = Py_None;
+
     if (!PyObject_Compare(key, afterKey))
     {
         PyErr_Format(PyExc_AssertionError, "key != afterKey");
