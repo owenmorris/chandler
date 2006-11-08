@@ -18,7 +18,7 @@ from itertools import izip
 from traceback import format_exc
 
 from chandlerdb.item.c import DelegatingIndex
-from chandlerdb.util.c import Nil, SkipList, CLinkedMap
+from chandlerdb.util.c import Nil, Default, SkipList, CLinkedMap
 from PyICU import Collator, Locale
   
 from repository.util.RangeSet import RangeSet
@@ -271,7 +271,9 @@ class NumericIndex(Index):
             ranges.onInsert(key, skipList.position(key))
 
         super(NumericIndex, self).insertKey(key, afterKey)
-            
+
+    # if afterKey is None, move to the beginning of the index
+    # if afterKey is Default, don't move the key (insert only)
     def moveKey(self, key, afterKey=None, insertMissing=False):
 
         if key not in self:
@@ -280,7 +282,7 @@ class NumericIndex(Index):
             else:
                 raise KeyError, key
 
-        else:
+        elif afterKey is not Default:
             skipList = self.skipList
             ranges = self._ranges
             if ranges is not None:

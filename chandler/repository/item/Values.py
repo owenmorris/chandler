@@ -399,8 +399,9 @@ class Values(CValues):
                 if collection is None:
                     continue
 
-                index = collection.getIndex(indexName)
-                if index is None:
+                if collection.hasIndex(indexName):
+                    index = collection.getIndex(indexName)
+                else:
                     continue
 
                 _indexChanges = (dict(index._iterChanges()),

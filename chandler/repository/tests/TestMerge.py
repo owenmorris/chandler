@@ -1199,6 +1199,47 @@ class TestMerge(RepositoryTestCase):
 
         self.assert_(main.check(), 'main view did not check out')
 
+    def testMergeMergeIndexShuffle(self):
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        k = main.findPath('//CineGuide/KHepburn')
+        k.movies.addIndex('n', 'numeric')
+        k.movies.addIndex('t', 'value', attribute='title')
+        lb = list(k.movies.iterindexkeys('n'))
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        ml = k.movies.last()
+        ml.title = 'Modified Title'
+        mdv = k.movies.previous(k.movies.previous(ml))
+        mdv.delete()
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        ml = k.movies.last()
+        mp = k.movies.previous(ml)
+        mp.title = 'Previous Modified Title'
+        mdm = k.movies.previous(k.movies.previous(mp))
+        mdm.delete()
+        view.commit()
+
+        main.commit(None)
+        la = list(k.movies.iterindexkeys('n'))
+
+        lb.remove(mdv.itsUUID)
+        lb.remove(mdm.itsUUID)
+
+        self.assert_(lb == la, 'numeric index shuffled')
+        self.assert_(main.check(), 'main view did not check out')
+
+
 if __name__ == "__main__":
 #    import hotshot
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')

@@ -15,7 +15,7 @@
 
 from chandlerdb.item.c import CItem
 from chandlerdb.item.ItemError import *
-from chandlerdb.util.c import Nil
+from chandlerdb.util.c import Nil, Default
 from repository.item.Indexes import \
     AttributeIndex, ValueIndex, StringIndex, CompareIndex, SubIndex
 
@@ -249,7 +249,7 @@ class Indexed(object):
                     removals.append(key)
 
             index.removeKeys(removals)
-            index.moveKeys(moves, None, True)
+            index.moveKeys(moves, Default, True)
 
         self._setDirty(True)
 
