@@ -214,9 +214,6 @@ class RepositoryView(CView):
         A closed view cannot be used until is re-opened with L{openView}.
         """
 
-        if not hasattr(self, '_notifications'):
-            return
-
         if not self._status & RepositoryView.OPEN:
             raise RepositoryError, "RepositoryView is not open"
 
@@ -254,7 +251,7 @@ class RepositoryView(CView):
         if self._watchers:
             self._watchers.clear()
 
-        # clean other caches that may have been added upstream
+        # clear other caches that may have been added upstream
         self.__dict__.clear()
         gc.collect()
 
