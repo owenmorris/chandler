@@ -1548,7 +1548,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             assert not newMaster.itsItem.isDeleted()
             
             # select the new master's occurrence, not the master
-            occurrence = newMaster.getRecurrenceID(newMaster.recurrenceID)
+            occurrence = newMaster.getRecurrenceID(newMaster.effectiveStartTime)
             itemToSelect = occurrence.itsItem
         
         # "is" comparison only works after unwrapping proxies
