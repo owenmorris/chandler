@@ -428,7 +428,7 @@ class MailTestCase(SharingTestCase):
         expected = dict((key, self.attributes.get(key)) for key in
                             ('subject', 'fromAddress', 'toAddress'))
         self.checkImportedAttributes(mailObject, expected=expected)
-        
+
 class ComplexMailTestCase(SharingTestCase):
     filename = "ComplexMail.xml"
         
@@ -525,6 +525,58 @@ class ComplexMailTestCase(SharingTestCase):
         expected = dict((key, self.attributes.get(key)) for key in
                             ('subject', 'fromAddress', 'toAddress'))
         self.checkImportedAttributes(mailObject, expected=expected)
+
+class EmptyMailTestCase(SharingTestCase):
+
+    filename = "EmptyMail.xml"
+        
+    attributes = {
+        'itsUUID': UUID('7b3b015e-6f57-11db-ed86-0016cbca6aed'),
+        'subject': u'Untitled',
+        'createdOn':
+            datetime.datetime(2006, 10, 31, 12, 19, 0,
+                              tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+        'body': u'',
+        'mimeType': 'message/rfc822',
+        'toAddress': [],
+        'triageStatus': pim.TriageEnum.now,
+        'triageStatusChanged': 1156502242.0
+    }
+
+
+    def testExport(self):
+        message = self.createObject('MailMessage')
+        
+        # @@@ [grant] Hack for working against both 2006/09/10 trunk
+        # and stamping-as-annotation branch
+        message = getattr(message, 'itsItem', message)
+        self.runExportTest(message)
+        
+    def testImport(self):
+        
+        mailItem = self.importObject()
+        
+        # Check the base item (i.e. the notes)
+        self.failUnless(isinstance(mailItem, pim.Note))
+        expected = dict((key, self.attributes.get(key)) for key in
+                            ('itsUUID', 'createdOn', 'body',
+                             'triageStatus', 'triageStatusChanged'))
+        self.checkImportedAttributes(mailItem, expected=expected)
+        
+        # Make sure we ended up with the right stamps
+        self.failUnlessEqual(list(pim.Stamp(mailItem).stamp_types),
+                             [pim.mail.MailStamp])
+
+        # Check that pim.MailStamp() works on the imported Item.
+        mailObject = pim.mail.MailStamp(mailItem)
+        # ... and check the mail-specific attributes
+        expected = dict((key, self.attributes.get(key)) for key in
+                            ('subject', 'fromAddress', 'toAddress'))
+        self.checkImportedAttributes(mailObject, expected=expected)
+        
+    def testSync(self):
+        self.importObject() # create the object
+        self.testImport()
 
 class EventTaskTestCase(SharingTestCase):
 

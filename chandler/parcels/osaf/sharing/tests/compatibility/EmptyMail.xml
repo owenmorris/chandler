@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MailMessage version='2' class='osaf.pim.mail.MailMessage' uuid='7b3b015e-6f57-11db-ed86-0016cbca6aed'>
+   <toAddress>
+   </toAddress>
+   <ccAddress>
+   </ccAddress>
+   <bccAddress>
+   </bccAddress>
+   <mimeType>message/rfc822</mimeType>
+   <subject>Untitled</subject>
+   <body mimetype='text/plain' encoding='utf-8'></body>
+   <createdOn>2006-10-31 12:19:0.000000 US/Pacific</createdOn>
+   <tags>
+   </tags>
+   <triageStatus>now</triageStatus>
+   <triageStatusChanged>1156502242.0</triageStatusChanged>
+   <mimeParts>
+   </mimeParts>
+</MailMessage>

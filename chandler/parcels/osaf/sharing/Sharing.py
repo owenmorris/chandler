@@ -3369,7 +3369,13 @@ class CloudXMLFormat(ImportExportFormat):
                 attrElement = self._getElement(element, elementName)
 
                 if attrElement is None:
-                    if item.hasLocalAttributeValue(attrName):
+                    # [Bug 7314]
+                    # When we export, we don't output any XML for
+                    # attributes whose value is None. So, don't
+                    # remove missing attributes that are missing
+                    # the item's value for that attribute is None.
+                    if (item.getAttributeValue(attrName, default=None)
+                        is not None):
                         item.removeAttributeValue(attrName)
                     continue
 
