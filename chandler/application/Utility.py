@@ -193,6 +193,7 @@ def initOptions(**kwds):
         'createData': ('-C', '--createData', 's', None,  None, 'csv file with items definition to load after startup'),
         'verbose':    ('-v', '--verbose',    'b', False, None, 'Verbosity option (currently just for run_tests.py)'),
         'quiet':      ('-q', '--quiet',      'b', False, None, 'Quiet option (currently just for run_tests.py)'),
+        'offline':    ('', '--offline',    'b', False, 'CHANDLEROFFLINE', 'Takes the Chandler Mail Service Offline'),
         'verify':     ('-V', '--verify-assignments', 
                                              'b', False, None, 'Verify attribute assignments against schema'),
         'debugOn':    ('-d', '--debugOn',    's', None,  None, 'Enter PDB upon this exception being raised'),

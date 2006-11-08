@@ -16,6 +16,7 @@
 from twisted.internet import reactor
 
 #Chandler imports
+from application import Globals
 import osaf.pim.mail as Mail
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
@@ -98,7 +99,7 @@ class MailService(object):
             self._started = False
 
     def takeOnline(self):
-        constants.OFFLINE = False
+        Globals.options.offline = False
         self._view.refresh()
 
         for account in Mail.SMTPAccount.getActiveAccounts(self._view):
@@ -106,11 +107,10 @@ class MailService(object):
                 self.getSMTPInstance(account).takeOnline()
 
     def takeOffline(self):
-        #set the online flag to false
-        constants.OFFLINE = True
+        Globals.options.offline = True
 
     def isOnline(self):
-        return not constants.OFFLINE
+        return not Globals.options.offline
 
     def refreshMailServiceCache(self):
         """Refreshs the MailService Cache checking for

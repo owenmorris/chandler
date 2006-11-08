@@ -28,6 +28,7 @@ from twisted.internet import threads
 import logging
 
 #Chandler imports
+from application import Globals
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
 from repository.persistence.RepositoryView import RepositoryView
@@ -192,7 +193,7 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("getMail")
 
-        if constants.OFFLINE:
+        if Globals.options.offline:
             msg = constants.DOWNLOAD_OFFLINE
             reactor.callFromThread(NotifyUIAsync, msg, cl="setStatusMessage")
             return
@@ -213,7 +214,7 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("testAccountSettings")
 
-        if constants.OFFLINE:
+        if Globals.options.offline:
             reactor.callFromThread(alert, constants.TEST_OFFLINE)
             return
 
@@ -291,7 +292,7 @@ class AbstractDownloadClient(object):
         except:
             pass
 
-        if self.factory is None or self.shuttingDown or constants.OFFLINE:
+        if self.factory is None or self.shuttingDown or Globals.options.offline:
             return
 
         if isinstance(err, failure.Failure):
