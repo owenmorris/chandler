@@ -408,7 +408,7 @@ Full instructions are at http://wiki.osafoundation.org/twiki/bin/view/Projects/?
                 body += 'You are being notified because you are listed as a revision author.\n\n'
                 body += 'On Hook:      %s\n\n' % ", ".join(hook_list)
                 body += 'You can view the Tinderbox log here: '
-                body += self.TBoxLogURL % (treename, lgb_id)
+                body += self.TBoxLogURL % (treename, branch_id)
                 body += '\n\n'
                 body += 'To add a Notice to the Tinderbox, visit this link: '
                 body += self.TBoxNoteURL % treename
