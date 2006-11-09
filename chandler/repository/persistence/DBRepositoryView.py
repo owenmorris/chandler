@@ -344,9 +344,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                         self._abortTransaction(txnStatus)
                         sleep(1)
                         continue
-                    except Exception, e:
-                        self.logger.exception('%s refresh aborted by error: %s',
-                                              self, e)
+                    except:
+                        self.logger.exception('%s refresh aborted by error',
+                                              self)
                         self._abortTransaction(txnStatus)
                         raise
                     else:
@@ -542,23 +542,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                 except:
                     if verify:
                         self._status |= CView.VERIFY
+                    self.logger.exception('%s merge aborted by error', self)
                     self.discardChangeNotifications()
-                    self._refreshItems(oldVersion, unloads.itervalues)
-
-                    _unload(merges.iterkeys)
-                    deletes.clear()
-                    del dangling[:]
-                    del conflicts[:]
-
-                    for uItem, (dirty, uParent, dirties) in merges.iteritems():
-                        item = self.find(uItem)
-                        if item is not None:
-                            newDirty, _newChanges = newChanges[uItem]
-                            self._applyChanges(item, newDirty, 0, (),
-                                               oldVersion, newVersion,
-                                               _newChanges, None, None, None,
-                                               None, None)
-                    self._applyIndexChanges(indexChanges, deletes)
+                    self.cancel()
                     raise
 
                 else:
@@ -687,9 +673,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                         sleep(1)
                         continue
 
-                    except Exception, e:
-                        self.logger.exception('%s commit aborted by error: %s',
-                                              self, e)
+                    except:
+                        self.logger.exception('%s commit aborted by error',
+                                              self)
                         lock, txnStatus = finish(False)
                         raise
 

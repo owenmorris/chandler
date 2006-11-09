@@ -705,7 +705,7 @@ class TestMerge(RepositoryTestCase):
         except MergeError:
             self.assert_(main.check())
             self.assert_(main.itsVersion == version)
-            self.assertEquals(m.title, 'changed title again')
+            self.assertEquals(m.title, 'changed title')
 
     def testMergeOverlapVDifferentWithCallback(self):
 
@@ -792,7 +792,7 @@ class TestMerge(RepositoryTestCase):
         except MergeError, e:
             self.assert_(e.getReasonCode() == MergeError.REF)
 
-        self.assertEquals(m1.director, m4.director)
+        self.assertEquals(m1.director, m2.director)
         self.assert_(main.check(), 'main view did not check out')
 
     def testMergeOverlapRDifferentWithCallbackNew(self):
