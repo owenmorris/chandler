@@ -33,6 +33,7 @@ from osaf import sharing, pim
 from osaf.usercollections import UserCollection
 from osaf.sharing import ChooseFormat
 from repository.item.Item import MissingClass
+from chandlerdb.util.c import issingleref
 from application import schema
 from i18n import ChandlerMessageFactory as _
 
@@ -1241,6 +1242,10 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                                       if c not in mineCollections]
 
             key = self.itemTupleKeyToCacheKey.get(tupleKey, None)
+            if issingleref(key): # item was deleted (bug 7338)
+                del self.itemTupleKeyToCacheKey[tupleKey]
+                key = None
+
             if (key is not None and
                 len ([c for c in collectionList if c.itsUUID not in key.collectionList]) != 0):
                 # See bug #6793: If a subscribed collection has been deleted, then resubscribed

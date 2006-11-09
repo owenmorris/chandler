@@ -259,7 +259,7 @@ class WrapperCollection(ContentCollection):
 
         super(WrapperCollection, self).__init__(*args, **kwds)
 
-        self._sourcesChanged_()
+        self._sourcesChanged_('add')
         self.watchCollection(self, 'sources', '_sourcesChanged')
 
     def _sourcesChanged(self, op, item, attribute, sourceId):
@@ -270,7 +270,7 @@ class WrapperCollection(ContentCollection):
             name = source.__collection__
 
             if op == 'add':
-                set = self._sourcesChanged_()
+                set = self._sourcesChanged_(op)
                 sourceChanged = set.sourceChanged
                 actualSource = set.findSource(sourceId)
                 assert actualSource is not None
@@ -286,7 +286,7 @@ class WrapperCollection(ContentCollection):
                 for uuid in source.iterkeys():
                     view._notifyChange(sourceChanged, 'remove', 'collection',
                                        source, name, False, uuid, actualSource)
-                set = self._sourcesChanged_()
+                set = self._sourcesChanged_(op)
 
     def addSource(self, source):
 
@@ -329,7 +329,7 @@ class SingleSourceWrapperCollection(WrapperCollection):
 
         super(SingleSourceWrapperCollection, self).__init__(*args, **kwds)
 
-    def _sourcesChanged_(self):
+    def _sourcesChanged_(self, op):
         
         source = self.source
 
@@ -351,7 +351,7 @@ class DifferenceCollection(WrapperCollection):
     instances to be differenced.
     """
 
-    def _sourcesChanged_(self):
+    def _sourcesChanged_(self, op):
 
         sources = self.sources
         sourceCount = len(sources)
@@ -384,7 +384,7 @@ class UnionCollection(WrapperCollection):
     ContentCollections.
     """
 
-    def _sourcesChanged_(self):
+    def _sourcesChanged_(self, op):
 
         sources = self.sources
         sourceCount = len(sources)
@@ -430,7 +430,7 @@ class IntersectionCollection(WrapperCollection):
                             view._notifyChange(_collectionChanged,
                                                'remove', 'collection',
                                                name, uuid)
-                set = self._sourcesChanged_()
+                set = self._sourcesChanged_(op)
                 if wasEmpty and not isinstance(set, EmptySet):
                     for uuid in set.iterkeys():
                         view._notifyChange(_collectionChanged,
@@ -438,7 +438,7 @@ class IntersectionCollection(WrapperCollection):
 
             elif (op == 'remove' and
                   not isinstance(getattr(self, name), EmptySet)):
-                set = self._sourcesChanged_()
+                set = self._sourcesChanged_(op)
                 sourceSet = getattr(source, source.__collection__)
                 if isinstance(set, EmptySet):
                     for uuid in sourceSet.iterkeys():
@@ -450,7 +450,7 @@ class IntersectionCollection(WrapperCollection):
                             view._notifyChange(_collectionChanged,
                                                'add', 'collection', name, uuid)
 
-    def _sourcesChanged_(self):
+    def _sourcesChanged_(self, op):
 
         sources = self.sources
         sourceCount = len(sources)
@@ -491,7 +491,7 @@ class FilteredCollection(SingleSourceWrapperCollection):
     filterMethod = schema.One(schema.Tuple)
     filterAttributes = schema.Sequence(schema.Importable, initialValue=[])
 
-    def _sourcesChanged_(self):
+    def _sourcesChanged_(self, op):
 
         source = self.source
         if source is None:
@@ -734,13 +734,16 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
 
     indexName = schema.One(schema.Importable, initialValue="__adhoc__")
 
-    def _sourcesChanged_(self):
+    def _sourcesChanged_(self, op):
         
         source = self.source
         trash = schema.ns('osaf.pim', self.itsView).trashCollection
 
         if source is None:
             set = EmptySet()
+            if op == 'remove':
+                self.delete()
+                return set
         elif (isinstance(source, WrapperCollection) and
               trash not in source.sources):
             # bug 5899 - alpha2 workaround: When SmartCollections are

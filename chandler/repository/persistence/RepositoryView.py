@@ -1323,11 +1323,15 @@ class OnDemandRepositoryView(RepositoryView):
         if version is None:
             version = repository.store.getVersion()
 
+        super(OnDemandRepositoryView, self).__init__(repository, name, version,
+                                                     deferDelete)
+
+    def openView(self, version=None, deferDelete=Default):
+
         self._exclusive = threading.RLock()
         self._hooks = []
         
-        super(OnDemandRepositoryView, self).__init__(repository, name, version,
-                                                     deferDelete)
+        super(OnDemandRepositoryView, self).openView(version, deferDelete)
 
     def isNew(self):
 
