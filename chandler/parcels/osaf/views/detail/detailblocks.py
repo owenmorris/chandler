@@ -305,7 +305,7 @@ def makeCalendarArea(parcel, oldVersion):
                 makeSpacer(parcel, SizeType(0, 22)),
                 makeEditor(parcel, 'CalendarLocation',
                            viewAttribute=pim.EventStamp.location.name,
-                           presentationStyle={'sampleText': u'location',
+                           presentationStyle={'sampleText': _(u'location'),
                                               'editInPlace': True})],
             stretchFactor=0.0,
             minimumSize=SizeType(300,10),
@@ -521,6 +521,7 @@ def makeMailArea(parcel, oldVersion):
                 makeEditor(parcel, 'EditMailTo',
                     viewAttribute=MailStamp.toAddress.name,
                     presentationStyle={'editInPlace': True,
+                                        'sampleText': _(u'Add addressees'),
                                         'maxLineCount': 3})],
             position=0.11).install(parcel)
     ccArea = \
@@ -692,8 +693,7 @@ def makeNoteSubtree(parcel, oldVersion):
                                  viewAttribute=u'displayName',
                                  characterStyle=blocks.BigTextStyle,
                                  presentationStyle={
-                                     # empty sample means "use displayname"
-                                     'sampleText': u'',
+                                     'sampleText': _(u'enter title'),
                                      'editInPlace': True })
     headlineArea = \
         makeArea(parcel, 'HeadlineArea',
