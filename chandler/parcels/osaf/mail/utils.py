@@ -75,29 +75,45 @@ class Counter:
 
 
 def loadMailTests(view, dr):
-    import osaf.mail.message as message
+    try:
+        import osaf.mail.message as message
+        from application import schema
+        from osaf.pim import SmartCollection
 
-    mimeDir = os.path.join(Globals.chandlerDirectory, 'parcels', 'osaf', 'mail',
-                           'tests', dr)
+        sidebar = schema.ns('osaf.app', view).sidebarCollection
 
-    files = os.listdir(mimeDir)
+        for col in sidebar:
+            if unicode(dr, "utf-8") == unicode(col):
+                #We already imported these mail messages
+                return
 
-    for f in files:
-        if not f.startswith('test_'):
-            continue
+        mimeDir = os.path.join(Globals.chandlerDirectory, 'parcels', 'osaf', 'mail',
+                               'tests', dr)
 
-        if message.verbose():
-            logging.warn("Opening File: %s" % f)
+        files = os.listdir(mimeDir)
+        mCollection = SmartCollection(itsView=view)
+        mCollection.displayName = unicode(dr, "utf-8")
 
-        filename = os.path.join(mimeDir, f)
 
-        fp = open(filename)
-        messageText = fp.read()
-        fp.close()
+        for f in files:
+            if not f.startswith('test_'):
+                continue
 
-        message.messageTextToKind(view, messageText)
+            filename = os.path.join(mimeDir, f)
 
-    view.commit()
+            fp = open(filename)
+            messageText = fp.read()
+            fp.close()
+
+            m = message.messageTextToKind(view, messageText).itsItem
+            mCollection.add(m)
+
+        sidebar.add(mCollection)
+        view.commit()
+
+    except:
+        view.cancel()
+        raise
 
 def getEmptyDate():
     """
