@@ -81,7 +81,10 @@ class DBRepositoryView(OnDemandRepositoryView):
         self._instanceRegistry.update(self._deletedRegistry)
         self._log.update(self._deletedRegistry.itervalues())
         self._deletedRegistry.clear()
+
         self.cancelDelete()
+        if self._deferDelete:
+            self._status |= self.DEFERDEL
 
         for item in self._log:
             if not item.isNew():
