@@ -14,6 +14,78 @@
 
 
 from osaf.framework.blocks import *
+from osaf import pim
+
+# IndexDefinition subclasses for the dashboard indexes
+# These all create 'compare' indexes for now, and add the comparison function
+# to ContentItem - the functions take two items. Eventually, they'll probably
+# be rewritten as 'method' indexes; the functions will take two UUIDs and won't 
+# need to be added to ContentItem.
+def compareForDashboardTaskColumn(item1, item2):
+    return (cmp(not pim.has_stamp(item1, pim.TaskStamp), 
+                not pim.has_stamp(item2, pim.TaskStamp)) or
+            cmp(getattr(item1, 'triageStatus', pim.TriageEnum.done), 
+                getattr(item2, 'triageStatus', pim.TriageEnum.done)) or
+            cmp(getattr(item1, 'triageStatusChanged', 0), 
+                getattr(item2, 'triageStatusChanged', 0)))
+pim.ContentItem.compareForDashboardTaskColumn = compareForDashboardTaskColumn
+
+class TaskColumnIndexDefinition(pim.IndexDefinition):
+    def makeIndexOn(self, collection):
+        collection.addIndex(self.itsName, 'compare',
+                            compare='compareForDashboardTaskColumn',
+                            monitor=(pim.ContentItem.displayName.name,
+                                     pim.ContentItem.triageStatus.name,
+                                     pim.ContentItem.triageStatusChanged.name,))
+
+def compareForDashboardCommunicationColumn(item1, item2):
+    def readUnreadNeedsReplyState(item):
+        if not getattr(item, 'read', False):
+            return 0
+        if getattr(item, 'needsReply', False):
+            return 1
+        return 2
+    return (cmp(readUnreadNeedsReplyState(item1), readUnreadNeedsReplyState(item2)) or
+            cmp(getattr(item1, 'triageStatus', pim.TriageEnum.done), 
+                getattr(item2, 'triageStatus', pim.TriageEnum.done)) or
+            cmp(getattr(item1, 'triageStatusChanged', 0), 
+                getattr(item2, 'triageStatusChanged', 0)))
+pim.ContentItem.compareForDashboardCommunicationColumn = compareForDashboardCommunicationColumn
+
+class CommunicationColumnIndexDefinition(pim.IndexDefinition):
+    def makeIndexOn(self, collection):
+        collection.addIndex(self.itsName, 'compare',
+                            compare='compareForDashboardCommunicationColumn',
+                            monitor=(pim.ContentItem.read.name,
+                                     pim.ContentItem.needsReply.name,
+                                     pim.ContentItem.triageStatus.name,
+                                     pim.ContentItem.triageStatusChanged.name,))
+
+def compareForDashboardCalendarColumn(item1, item2):
+    def remState(item):
+        if pim.Remindable(item).getUserReminder(expiredToo=False) is not None:
+            return 0
+        if pim.has_stamp(item, pim.EventStamp):
+            return 1
+        return 2
+    return (cmp(remState(item1), remState(item2)) or
+            cmp(getattr(item1, 'displayDate', pim.Reminder.farFuture), 
+                getattr(item2, 'displayDate', pim.Reminder.farFuture)) or
+            cmp(getattr(item1, 'triageStatus', pim.TriageEnum.done), 
+                getattr(item2, 'triageStatus', pim.TriageEnum.done)) or
+            cmp(getattr(item1, 'triageStatusChanged', 0), 
+                getattr(item2, 'triageStatusChanged', 0)))
+pim.ContentItem.compareForDashboardCalendarColumn = compareForDashboardCalendarColumn
+        
+class CalendarColumnIndexDefinition(pim.IndexDefinition):
+    def makeIndexOn(self, collection):
+        collection.addIndex(self.itsName, 'compare',
+                            compare='compareForDashboardCalendarColumn',
+                            monitor=(pim.Remindable.reminders.name,
+                                     pim.Stamp.stamp_types.name,
+                                     pim.ContentItem.displayDate.name,
+                                     pim.ContentItem.triageStatus.name,
+                                     pim.ContentItem.triageStatusChanged.name,))
 
 def makeSummaryBlocks(parcel):
     from application import schema
@@ -23,8 +95,6 @@ def makeSummaryBlocks(parcel):
         AllDayEventsCanvas, TimedEventsCanvas
         )
 
-    from osaf import pim
-
     from Dashboard import DashboardBlock
     
     view = parcel.itsView
@@ -33,17 +103,22 @@ def makeSummaryBlocks(parcel):
     blocks = schema.ns('osaf.framework.blocks', view)
     repositoryView = parcel.itsView
     
-    iconColumnWidth = 23 # temporarily not 20, to work around header bug 6168
-
+    iconColumnWidth = 23 # temporarily not 20, to work around header bug 6168    
+    
     def makeColumnAndIndexes(colName, **kwargs):
         # Create an IndexDefinition that will be used later (when the user
         # clicks on the column header) to build the actual index.
+        # By default, we always create index defs that will lazily create a
+        # master index when the subindex is needed.
         indexName = kwargs['indexName']
-        attributes = kwargs.pop('attributes')
-        pim.IndexDefinition.update(parcel, indexName,
-                                   useMaster=True,
-                                   attributes=attributes)
-    
+        attributes = kwargs.pop('attributes', [])
+        useCompare = kwargs.pop('useCompare', False)
+        useMaster = kwargs.pop('useMaster', True)
+        baseClass = kwargs.pop('baseClass', pim.IndexDefinition)
+        baseClass.update(parcel, indexName,
+                         useMaster=useMaster,
+                         attributes=attributes)
+
         # Create the column
         return Column.update(parcel, colName, **kwargs)
 
@@ -55,13 +130,7 @@ def makeSummaryBlocks(parcel):
         useSortArrows=False,
         readOnly=True,
         indexName='%s.taskStatus' % __name__,
-        attributeName='taskStatus',
-        attributes=[
-            # @@@ need to order on task-ness somehow:
-            # pim.TaskStamp.taskStatus.name, 
-            pim.ContentItem.triageStatus.name, 
-            pim.ContentItem.triageStatusChanged.name,
-        ])
+        baseClass=TaskColumnIndexDefinition)
 
     commColumn = makeColumnAndIndexes('SumColMail',
         icon='ColHMail',
@@ -110,12 +179,7 @@ def makeSummaryBlocks(parcel):
         width = iconColumnWidth,
         readOnly = True,
         indexName = '%s.calendarStatus' % __name__,
-        attributeName = 'calendarStatus',
-        attributes=[
-            # pim.EventStamp.calendarStatus.name, 
-            pim.ContentItem.triageStatus.name, 
-            pim.ContentItem.triageStatusChanged.name,
-        ])
+        baseClass=CalendarColumnIndexDefinition)
 
     dateColumn = makeColumnAndIndexes('SumColDate',
         heading = _(u'Date'),
