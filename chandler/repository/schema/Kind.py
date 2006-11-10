@@ -73,7 +73,8 @@ class Kind(Item):
     def _createExtent(self, view):
 
         core = view.find(CORE)
-        extent = Extent(None, core['extents'], core['Extent'], _noMonitors=True)
+        extent = Extent(None, core['extents'], core['Extent'],
+                        fireChanges=False)
         self._references._setValue('extent', extent, 'kind')
 
         return extent
@@ -198,7 +199,7 @@ class Kind(Item):
 
     def instantiateItem(self, name, parent, uuid,
                         cls=None, version=0, withInitialValues=False,
-                        _noMonitors=False, **values):
+                        fireChanges=True, **values):
         """
         Instantiate an existing item of this kind.
 
@@ -245,14 +246,14 @@ class Kind(Item):
         if values:
             try:
                 item._status |= CItem.NODIRTY
-                item._setInitialValues(values, _noMonitors)
+                item._setInitialValues(values, fireChanges)
             finally:
                 item._status &= ~CItem.NODIRTY
             
         if hasattr(cls, 'onItemLoad'):
             item.onItemLoad(self.itsView)
 
-        if not _noMonitors:
+        if fireChanges:
             self.itsView._notifyChange(self.extent._collectionChanged,
                                        'add', 'collection', 'extent',
                                        item.itsUUID)

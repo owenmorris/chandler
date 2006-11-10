@@ -117,6 +117,12 @@ def makeMainMenus(parcel):
     fileMenu =  Menu.template('FileMenu',
                 title = _(u'&File'),
                 childrenBlocks = [
+                    MenuItem.template('CommitView',
+                        event = globalBlocks.CommitView,
+                        title = _(u'Save Changes'),
+                        accel = _(u'Ctrl+S')),
+                    MenuItem.template('FileSeparator0',
+                        menuItemKind = 'Separator'),
                     MenuItem.template('PrintPreviewItem',
                         event = globalBlocks.PrintPreview,
                         title = _(u'Print Preview')),
@@ -554,10 +560,6 @@ def makeMainMenus(parcel):
                         title=u'&Repository',
                         helpString=u'Repository stuff',
                         childrenBlocks = [
-                            MenuItem.template('CommitRepositoryItem',
-                                event = main.CommitRepository,
-                                title = u'&Commit Repository',
-                                helpString = u'Performs a repository commit()'),
                             MenuItem.template('CheckRepositoryItem',
                                 event = main.CheckRepository,
                                 title = u'C&heck Repository',

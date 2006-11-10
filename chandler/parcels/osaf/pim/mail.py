@@ -742,7 +742,7 @@ class MIMEBase(schema.Annotation):
     ) # inverse of MIMEContainer.mimeParts
 
     schema.addClouds(
-        sharing = schema.Cloud(mimeType),
+        sharing = schema.Cloud(literal = [mimeType]),
     )
 
     def __init__(self, item=None, itsView=None):
@@ -765,7 +765,7 @@ class MIMENote(MIMEBase):
     filesize = schema.One(schema.Long)
 
     schema.addClouds(
-        sharing = schema.Cloud(filename, filesize),
+        sharing = schema.Cloud(literal = [filename, filesize]),
     )
 
 
@@ -777,7 +777,12 @@ class MIMEContainer(MIMEBase):
         initialValue = [],
         inverse = MIMEBase.mimeContainer,
     )
-    schema.addClouds(sharing = schema.Cloud(mimeParts))
+
+    schema.addClouds(
+        sharing = schema.Cloud(
+            byValue = [mimeParts]
+        )
+    )
 
 
 class MailStamp(stamping.Stamp, MIMEContainer):
@@ -872,7 +877,8 @@ class MailStamp(stamping.Stamp, MIMEContainer):
 
     schema.addClouds(
         sharing = schema.Cloud(
-            fromAddress, toAddress, ccAddress, bccAddress, replyToAddress,
+            byValue = [fromAddress, toAddress,
+                       ccAddress, bccAddress, replyToAddress],
         ),
         copying = schema.Cloud(
             fromAddress, toAddress, ccAddress, bccAddress, replyToAddress,
@@ -1127,7 +1133,7 @@ Issues:
     )
 
     schema.addClouds(
-        sharing = schema.Cloud(emailAddress, fullName)
+        sharing = schema.Cloud(literal = [emailAddress, fullName])
     )
 
     def __init__(self, itsName=None, itsParent=None, itsKind=None,

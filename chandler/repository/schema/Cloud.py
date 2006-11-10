@@ -13,7 +13,9 @@
 #   limitations under the License.
 
 
-from chandlerdb.util.c import issingleref, Nil
+from itertools import izip
+
+from chandlerdb.util.c import isuuid, issingleref, Nil, Default
 from chandlerdb.item.c import isitem
 from chandlerdb.item.ItemError import RecursiveDeleteError
 from repository.item.Item import Item
@@ -82,20 +84,53 @@ class Cloud(Item):
         if references is None:
             references = {}
 
-        if not item._uuid in items:
-            items[item._uuid] = item
+        if not item.itsUUID in items:
+            items[item.itsUUID] = item
             results = [item]
         else:
             results = []
 
         for alias, endpoint, inCloud in self.iterEndpoints(cloudAlias):
-            for other in endpoint.iterValues(item):
-                if other is not None and other.itsUUID not in items:
-                    _items = endpoint.getItems(other, cloudAlias,
-                                               items, references, trace)
+            if endpoint.includePolicy not in ('none', 'literal'):
+                for other in endpoint.iterValues(item):
+                    if other is not None and other.itsUUID not in items:
+                        _items = endpoint.getItems(other, cloudAlias,
+                                                   items, references, trace)
+                        if trace is not None:
+                            trace[(item, endpoint)] = _items
+                        results.extend(_items)
+
+        return results
+
+    def getKeys(self, key, cloudAlias, keys=None, references=None, trace=None):
+
+        if not self.kind.isKeyForInstance(key):
+            raise TypeError, '%s (Kind: %s) is not of a kind this cloud (%s) understands' %(item.itsPath, item._kind.itsPath, self.itsPath)
+
+        if keys is None:
+            keys = set()
+        if references is None:
+            references = set()
+
+        if not key in keys:
+            keys.add(key)
+            results = [key]
+        else:
+            results = []
+
+        endpoints = [ep for x, ep, x in self.iterEndpoints(cloudAlias)
+                     if ep.includePolicy not in ('none', 'literal')]
+        pairs = [(ep.attribute[0], None) for ep in endpoints]
+
+        for endpoint, firstValue in izip(endpoints,
+                                         self.itsView.findValues(key, *pairs)):
+            for other in endpoint.iterKeys(key, firstValue):
+                if other is not None and other not in keys:
+                    _keys = endpoint.getKeys(other, cloudAlias,
+                                             keys, references, trace)
                     if trace is not None:
-                        trace[(item, endpoint)] = _items
-                    results.extend(_items)
+                        trace[(key, endpoint)] = _keys
+                    results.extend(_keys)
 
         return results
 
@@ -424,6 +459,48 @@ class Endpoint(Item):
 
         return results
 
+    def getKeys(self, key, cloudAlias, keys, references, trace):
+
+        policy = self.includePolicy
+        results = []
+
+        if policy == 'byValue':
+            if not key in keys:
+                keys.add(key)
+                results.append(key)
+
+        elif policy == 'byRef':
+            references.add(key)
+
+        elif policy == 'byCloud':
+            def getKeys(cloud):
+                results.extend(cloud.getKeys(key, cloudAlias,
+                                             keys, references, trace))
+
+            cloud = self.getAttributeValue('cloud', self._references,
+                                           None, None)
+            if cloud is not None:
+                getKeys(cloud)
+            else:
+                kind = self.itsView.kindForKey(key)
+                if cloudAlias is None:
+                    cloudAlias = getattr(self, 'cloudAlias', None)
+                clouds = kind.getClouds(cloudAlias)
+                for cloud in clouds:
+                    getKeys(cloud)
+
+        elif policy == 'byMethod':
+            results.extend(getattr(view[key], self.method)(keys, references,
+                                                           cloudAlias))
+
+        elif policy == 'none':
+            pass
+
+        else:
+            raise NotImplementedError, policy
+
+        return results
+
     def iterValues(self, item):
 
         def append(values, value):
@@ -433,7 +510,7 @@ class Endpoint(Item):
                 elif isinstance(value, PersistentCollection):
                     values.append(value._iterItems())
                 elif isinstance(value, AbstractSet):
-                    values.append(value._iterSourceItems())
+                    values.append(value)
                 else:
                     raise TypeError, type(value)
 
@@ -451,7 +528,7 @@ class Endpoint(Item):
                 value = values
             elif isinstance(value, AbstractSet):
                 values = []
-                for v in value._iterSourceItems():
+                for v in value:
                     append(values, v.getAttributeValue(name, None, None, None))
                 value = values
             elif isinstance(value, list):
@@ -481,5 +558,83 @@ class Endpoint(Item):
 
         if isinstance(value, PersistentCollection):
             return value._iterItems()
+
+        return value
+
+    def iterKeys(self, key, firstValue=Default):
+
+        view = self.itsView
+
+        def append(values, value):
+            if value is not None:
+                if isuuid(value) or isinstance(value, RefList):
+                    values.append(value)
+                elif isitem(value) or issingleref(value):
+                    values.append(value.itsUUID)
+                elif isinstance(value, PersistentCollection):
+                    values.extend(value._iterKeys())
+                elif isinstance(value, AbstractSet):
+                    values.append(value)
+                else:
+                    raise TypeError, type(value)
+
+        if firstValue is not Default:
+            names = self.attribute[1:]
+            value = firstValue
+        else:
+            names = self.attribute
+            value = key
+
+        for name in names:
+            if isinstance(value, PersistentCollection):
+                values = []
+                for v in value._iterKeys():
+                    append(values, view.findValue(v, name, None))
+                value = values
+            elif isinstance(value, RefList):
+                values = []
+                for v in value.iterkeys():
+                    append(values, view.findValue(v, name, None))
+                value = values
+            elif isinstance(value, AbstractSet):
+                values = []
+                for v in value.iterkeys():
+                    append(values, view.findValue(v, name, None))
+                value = values
+            elif isinstance(value, list):
+                values = []
+                for v in value:
+                    if isuuid(v):
+                        append(values, view.findValue(v, name, None))
+                    else:
+                        for k in v.iterkeys():
+                            append(values, view.findValue(k, name, None))
+                value = values
+            else:
+                value = view.findValue(value, name, None)
+                if value is None:
+                    break
+                if issingleref(value) or isitem(value):
+                    value = value.itsUUID
+                elif not (isuuid(value) or
+                          isinstance(value, (PersistentCollection,
+                                             RefList, AbstractSet))):
+                    value = None
+                    break
+
+        if value is None:
+            return []
+
+        if isuuid(value):
+            return [value]
+
+        if issingleref(value) or isitem(value):
+            return [value.itsUUID]
+
+        if isinstance(value, PersistentCollection):
+            return value._iterKeys()
+
+        if isinstance(value, RefList):
+            return value.iterkeys()
 
         return value

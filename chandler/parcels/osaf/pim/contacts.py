@@ -30,7 +30,9 @@ class ContactName(items.ContentItem):
     contact = schema.One("Contact", inverse="contactName")
 
     schema.addClouds(
-        sharing = schema.Cloud(firstName, lastName)
+        sharing = schema.Cloud(
+            literal = [firstName, lastName]
+        )
     )
 
 
@@ -91,7 +93,10 @@ class Contact(items.ContentItem):
     )
 
     schema.addClouds(
-        sharing = schema.Cloud(emailAddress, byCloud=[contactName])
+        sharing = schema.Cloud(
+            literal = [emailAddress],
+            byCloud = [contactName]
+        )
     )
 
     def InitOutgoingAttributes (self):

@@ -187,7 +187,7 @@ class RefList(LinkedMap, Indexed):
 
         return super(RefList, self).__contains__(key.itsUUID)
 
-    def extend(self, valueList, _noMonitors=False):
+    def extend(self, valueList, _noFireChanges=False):
         """
         As with regular python lists, this method appends all items in the
         list to this ref collection.
@@ -196,7 +196,7 @@ class RefList(LinkedMap, Indexed):
         try:
             sd = self._setFlag(RefList.SETDIRTY, False)
             for value in valueList:
-                self.append(value, None, None, _noMonitors)
+                self.append(value, None, None, _noFireChanges)
         finally:
             self._setFlag(RefList.SETDIRTY, sd)
 
@@ -218,7 +218,7 @@ class RefList(LinkedMap, Indexed):
         
         self.append(item, alias, otherKey)
 
-    def append(self, item, alias=None, otherKey=None, _noMonitors=False):
+    def append(self, item, alias=None, otherKey=None, _noFireChanges=False):
         """
         Append an item to this ref collection.
 
@@ -245,7 +245,7 @@ class RefList(LinkedMap, Indexed):
             if aliasedKey is not None:
                 raise ValueError, "alias '%s' already set for key %s" %(alias, aliasedKey)
         self._item._references._setValue(self._name, item, self._otherName,
-                                         _noMonitors, 'list',
+                                         _noFireChanges, 'list',
                                          alias, self._dictKey, otherKey)
 
     def clear(self):
@@ -742,7 +742,7 @@ class RefList(LinkedMap, Indexed):
         for key in self.iterkeys():
             yield self[key]
 
-    def __len__(self, excludeIndexes=False):
+    def countKeys(self):
         return self._count
 
     def iterItems(self):

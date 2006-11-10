@@ -25,7 +25,11 @@ class MyKind1(pim.ContentItem):
     # Typical clouds include a "copying" cloud, and a "sharing" cloud
 
     schema.addClouds(
-        sharing = schema.Cloud(attr1, attr2)
+        sharing = schema.Cloud(
+            literal = [attr1, attr2],
+            byValue = [attr3],
+            byCloud = [attr4]
+        )
     )
 
 def installParcel(parcel, oldVersion=None):

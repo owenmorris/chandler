@@ -64,10 +64,11 @@ class RepositoryView(CView):
     # 0.6.10: added new enumeration type: ConstantEnumeration
     # 0.6.11: removed Kind inheritedSuperKinds transient cache
     # 0.6.12: removed 'persisted' aspect
-    # 0.6.13: added IndexMonitor class
+    # 0.6.13: added 'literal' endpoint include policy
     # 0.6.14: added support for 'init' monitor op
+    # 0.6.15: added IndexMonitor class
     
-    CORE_SCHEMA_VERSION = 0x00060e00
+    CORE_SCHEMA_VERSION = 0x00060f00
 
     def __init__(self, repository, name, version, deferDelete=Default):
         """
@@ -141,12 +142,6 @@ class RepositoryView(CView):
 
         self._notifications = Queue()
 
-        if deferDelete is Default:
-            deferDelete = repository._deferDelete
-        self._deferDelete = deferDelete
-        if self._deferDelete:
-            self.deferDelete()
-
         self._version = long(version)
         self._roots = self._createChildren(self, version == 0)
         self._registry = {}
@@ -155,6 +150,12 @@ class RepositoryView(CView):
         self._loadingRegistry = set()
         self._status = ((self._status & RepositoryView.VERIFY) |
                         RepositoryView.OPEN)
+
+        if deferDelete is Default:
+            deferDelete = repository._deferDelete
+        self._deferDelete = deferDelete
+        if self._deferDelete:
+            self.deferDelete()
 
         self.classLoader = ClassLoader(Item, MissingClass)
 
@@ -193,7 +194,7 @@ class RepositoryView(CView):
             if not self._status & RepositoryView.LOADING:
                 self._status |= CItem.CDIRTY
         else:
-            self._status &= ~(CItem.CDIRTY | CItem.FDIRTY)
+            self._status &= ~CItem.CDIRTY
 
     def isDirty(self):
 
@@ -427,11 +428,13 @@ class RepositoryView(CView):
         if version is None:
             version = self.itsVersion
 
-        item = self.find(uItem, False)
+        if isuuid(uItem):
+            item = self.find(uItem, False)
+        else:
+            item = uItem
+
         if item is not None and item.itsVersion <= version:
-            if default is not Default:
-                return getattr(item, name, default)
-            return getattr(item, name)
+            return item.getAttributeValue(name, None, None, default, True)
 
         reader, uValue = self.repository.store.loadValue(self, version,
                                                          uItem, name)
@@ -473,9 +476,14 @@ class RepositoryView(CView):
         of the given C{(name, default)} pairs.
         """
 
-        item = self.find(uItem, False)
+        if isuuid(uItem):
+            item = self.find(uItem, False)
+        else:
+            item = uItem
+
         if item is not None:
-            return tuple([getattr(item, name, default)
+            return tuple([item.getAttributeValue(name, None, None,
+                                                 default, True)
                           for name, default in pairs])
 
         names = (name for name, default in pairs)

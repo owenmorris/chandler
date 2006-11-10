@@ -241,9 +241,11 @@ class ContentItem(schema.Item):
     displayWhoSource = schema.One(schema.Importable)
     
     schema.addClouds(
-        sharing = schema.Cloud("displayName", body, createdOn, 'tags',
-                               "description", lastModifiedBy, triageStatus,
-                               triageStatusChanged),
+        sharing = schema.Cloud(
+            literal = ["displayName", body, createdOn,
+                       "description", triageStatus, triageStatusChanged],
+            byValue = ['tags', lastModifiedBy]
+        ),
         copying = schema.Cloud()
     )
 
@@ -545,7 +547,7 @@ class ContentItem(schema.Item):
                     if basedAttributeNames is None:
                         basedAttributeNames = self.getBasedAttributes(attribute)
                     for attr in basedAttributeNames:
-                        if attr in share.getSharedAttributes(self):
+                        if attr in share.getSharedAttributes(self.itsKind):
                             isSharedInAnyReadOnlyShares = True
 
         return not isSharedInAnyReadOnlyShares

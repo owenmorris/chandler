@@ -157,33 +157,48 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
         # attributes changes.
         tree = ElementTree.XML(xml) # If this raises, the test fails
         
+        items = []
         remaining = [tree]
-        while remaining:
-            thisElt = remaining.pop(0)
+        for thisElt in remaining:
             children = thisElt.getchildren()
             if children:
                 # Remove surrounding whitespace if this element
                 # has sub-elements
                 thisElt.text = thisElt.tail = None
-                
+
+                # Sorting as is done below is not good enough, as the order
+                # in which attributes are shared also determines when a
+                # given item reference is shared by value. Such shared by
+                # value item references need to be pulled out of the tree,
+                # appended and sorted as well so as to compare these trees
+                # predictably.
+                canonicalChildren = []
+                for child in children:
+                    child.tail = '\n'
+                    if child.get('uuid') and child.getchildren():
+                        items.append(child)
+                        remaining.append(child)
+                        child = ElementTree.Element(child.tag,
+                                                    uuid=child.get('uuid'))
+                        child.tail = '\n'
+                    canonicalChildren.append(child)
+
                 # Strictly speaking, we should only reorder attributes
                 # of items, not, say, the children of a 'list' cardinality
                 # attribute. However, for our purposes, it's probably OK to
                 # assume that switching to stamping-as-annotation won't have
                 # re-ordered 'list' attributes.
-                sortedChildren = sorted(children,
-                                        key = lambda x:x.tag)
-                for child in sortedChildren:
-                    # This makes for somewhat ugly, un-indented xml
-                    # output, but works around some issues with
-                    # extra whitespace in the output.
-                    child.tail = '\n'
+                sortedChildren = sorted(canonicalChildren,
+                                        key = lambda x: x.tag)
 
                 # Now replace all children with the sorted version.
                 # Yay for elementtree's slice replacement!
                 thisElt[:] = sortedChildren
                 remaining.extend(sortedChildren)
-                
+
+        for item in sorted(items, key = lambda x: x.get('uuid')):
+            tree.append(item)
+
         return ElementTree.tostring(tree, 'UTF-8')
                     
         
@@ -242,13 +257,14 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
                     pass
                 else:
                     objectValue = list(i)
-            
-            self.failUnlessEqual(
-                objectValue,
-                value,
-               "Value for attribute %s of imported object %r didn't match" %
-                   (attr, object,)
-            )
+
+            if attr == 'triageStatusChanged':
+                self.assertTrue(objectValue >= value,
+                                "Value for attribute %s of imported object %r didn't match" %(attr, object))
+            else:
+                self.failUnlessEqual(objectValue, value,
+                                     "Value for attribute %s of imported object %r didn't match" %(attr, object))
+
 
 class EventTestCase(SharingTestCase):
 

@@ -60,7 +60,7 @@ class Attribute(Item):
             return default
 
         if self._kind is not None:
-            aspectAttr = self._kind.getAttribute(name, False, self)
+            aspectAttr = self.itsKind.getAttribute(name, False, self)
             return aspectAttr.getAttributeValue('defaultValue',
                                                 aspectAttr._values, None, None)
         

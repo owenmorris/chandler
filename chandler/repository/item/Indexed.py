@@ -16,8 +16,7 @@
 from chandlerdb.item.c import CItem
 from chandlerdb.item.ItemError import *
 from chandlerdb.util.c import Nil, Default
-from repository.item.Indexes import \
-    AttributeIndex, ValueIndex, StringIndex, CompareIndex, SubIndex
+from repository.item.Indexes import __index_classes__
 
 
 # A mixin class used by ref collections and abstract sets that provides
@@ -258,25 +257,9 @@ class Indexed(object):
         if indexType == 'numeric':
             return self._getView()._createNumericIndex(**kwds)
 
-        if indexType == 'attribute':
-            return AttributeIndex(self, self._createIndex('numeric', **kwds),
-                                  **kwds)
-
-        if indexType == 'value':
-            return ValueIndex(self, self._createIndex('numeric', **kwds),
-                              **kwds)
-
-        if indexType == 'string':
-            return StringIndex(self, self._createIndex('numeric', **kwds),
-                               **kwds)
-
-        if indexType == 'compare':
-            return CompareIndex(self, self._createIndex('numeric', **kwds),
-                                **kwds)
-
-        if indexType == 'subindex':
-            return SubIndex(self, self._createIndex('numeric', **kwds),
-                            **kwds)
+        cls = __index_classes__.get(indexType)
+        if cls is not None:
+            return cls(self, self._createIndex('numeric', **kwds), **kwds)
 
         raise NotImplementedError, "indexType: %s" %(indexType)
 
@@ -662,7 +645,7 @@ class Indexed(object):
         if self._indexes:
             indexes = self._indexes
             try:
-                count = self.__len__(True)
+                count = self.countKeys()
             except:
                 logger.exception("Length of indexed value %s installed on attribute '%s' of %s couldn't be determined because of an error", self, attribute, item._repr_())
                 return False

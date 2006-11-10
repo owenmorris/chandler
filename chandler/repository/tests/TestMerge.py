@@ -1160,6 +1160,35 @@ class TestMerge(RepositoryTestCase):
         self.assert_(not hasattr(k, 'movies'), 'movies is back')
         self.assert_(main.check(), 'main view did not check out')
 
+    def testMergeConflictKeepsIncoming(self):
+
+        def mergeFn(code, item, attribute, newValue):
+            if code == MergeError.DELETE:
+                return True
+            return getattr(item, attribute, newValue)
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        k = main.findPath('//CineGuide/KHepburn')
+        k.movies.addIndex('t', 'value', attribute='title')
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        k.movies.first().title = 'View Changed Title'
+        view.commit()
+
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        k.movies.first().title = 'Main Changed Title'
+        main.commit(mergeFn)
+
+        self.assert_(main.check(), 'main view did not check out')
+
     def testMergeConflictKeepChangeNewIndex(self):
 
         def mergeFn(code, item, attribute, newValue):

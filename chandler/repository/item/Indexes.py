@@ -274,6 +274,8 @@ class NumericIndex(Index):
 
     # if afterKey is None, move to the beginning of the index
     # if afterKey is Default, don't move the key (insert only)
+    # if afterKey is None, move to the beginning of the index
+    # if afterKey is Default, don't move the key (insert only)
     def moveKey(self, key, afterKey=None, insertMissing=False):
 
         if key not in self:
@@ -725,14 +727,19 @@ class AttributeIndex(SortedIndex):
 
 class ValueIndex(AttributeIndex):
 
+    def __init__(self, valueMap, index, **kwds):
+
+        super(ValueIndex, self).__init__(valueMap, index, **kwds)
+
+        if not kwds.get('loading', False):
+            self._pairs = [(name, None) for name in self._attributes]
+
     def compare(self, k0, k1):
 
         view = self._valueMap._getView()
 
-        for attribute in self._attributes:
-            v0 = view.findValue(k0, attribute, None)
-            v1 = view.findValue(k1, attribute, None)
-
+        for v0, v1 in izip(view.findValues(k0, *self._pairs),
+                           view.findValues(k1, *self._pairs)):
             if v0 is v1:
                 continue
 
@@ -755,6 +762,13 @@ class ValueIndex(AttributeIndex):
     def getIndexType(self):
 
         return 'value'
+
+    def _readValue(self, itemReader, offset, data):
+
+        offset = super(ValueIndex, self)._readValue(itemReader, offset, data)
+        self._pairs = [(name, None) for name in self._attributes]
+
+        return offset
     
 
 class StringIndex(AttributeIndex):
@@ -895,6 +909,59 @@ class CompareIndex(SortedIndex):
         return offset
 
 
+class MethodIndex(SortedIndex):
+
+    def __init__(self, valueMap, index, **kwds):
+
+        super(MethodIndex, self).__init__(valueMap, index, **kwds)
+
+        if not kwds.get('loading', False):
+            item, methodName = kwds.pop('method')
+            self._method = (item.itsUUID, methodName)
+
+    def getIndexType(self):
+
+        return 'method'
+    
+    def getInitKeywords(self):
+
+        kwds = super(MethodIndex, self).getInitKeywords()
+        kwds['method'] = self._method
+
+        return kwds
+
+    def compare(self, k0, k1):
+
+        uItem, methodName = self._method
+        return getattr(self._valueMap._getView()[uItem], methodName)(k0, k1)
+
+    def _xmlValues(self, generator, version, attrs, mode):
+
+        uItem, methodName = self._method
+        attrs['method'] = methodName
+        attrs['uItem'] = uItem.str64()
+
+        super(MethodIndex, self)._xmlValues(generator, version, attrs, mode)
+
+    def _writeValue(self, itemWriter, buffer, version):
+
+        super(MethodIndex, self)._writeValue(itemWriter, buffer, version)
+
+        uItem, methodName = self._method
+        itemWriter.writeUUID(buffer, uItem)
+        itemWriter.writeSymbol(buffer, methodName)
+
+    def _readValue(self, itemReader, offset, data):
+
+        offset = super(MethodIndex, self)._readValue(itemReader, offset, data)
+
+        offset, uItem = itemReader.readUUID(offset, data)
+        offset, methodName = itemReader.readSymbol(offset, data)
+        self._method = (uItem, methodName)
+
+        return offset
+
+
 class SubIndex(SortedIndex):
 
     def __init__(self, valueMap, index, **kwds):
@@ -992,3 +1059,11 @@ class SubIndex(SortedIndex):
             return False
         
         return result
+
+
+__index_classes__ = { 'attribute': AttributeIndex,
+                      'value': ValueIndex,
+                      'string': StringIndex,
+                      'compare': CompareIndex,
+                      'method': MethodIndex,
+                      'subindex': SubIndex }

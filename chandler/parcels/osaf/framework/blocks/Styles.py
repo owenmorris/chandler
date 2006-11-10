@@ -67,7 +67,7 @@ class ColorStyle(Style):
     )
 
     schema.addClouds(
-        sharing = schema.Cloud(foregroundColor, backgroundColor)
+        sharing = schema.Cloud(literal=[foregroundColor, backgroundColor])
     )
 
         

@@ -54,7 +54,7 @@ def startup(**kwds):
 
     verify, repoVersion, schemaVersion = Utility.verifySchema(view)
     if not verify:
-        print "Schema mismatch.  Try again with startup(create=True)"
+        print "Schema mismatch (%s vs %s).  Try again with startup(create=True)" %(repoVersion, schemaVersion)
         return None
 
     Utility.initCrypto(Globals.options.profileDir)

@@ -37,8 +37,7 @@ class Item(CItem):
     """
 
     def __init__(self, itsName=None, itsParent=None, itsKind=None,
-                 _uuid=None, _noMonitors=False, fireChanges=True,
-                 **values):
+                 _uuid=None, fireChanges=True, **values):
         """
         Construct an Item.
 
@@ -98,7 +97,7 @@ class Item(CItem):
         finally:
             self._status &= ~Item.NODIRTY
 
-        if not (_noMonitors or (itsKind is None)):
+        if fireChanges and itsKind is not None:
             self.itsView._notifyChange(itsKind.extent._collectionChanged,
                                        'add', 'collection', 'extent',
                                        self.itsUUID)
@@ -164,7 +163,7 @@ class Item(CItem):
         return getattr(item, methodName)(names[-1], *args)
         
     def setAttributeValue(self, name, value=None, _attrDict=None,
-                          otherName=None, setDirty=True, _noMonitors=False):
+                          otherName=None, setDirty=True, _noFireChanges=False):
         """
         Set a value on a Chandler attribute.
 
@@ -192,7 +191,7 @@ class Item(CItem):
                 if redirect is not None:
                     return self._redirectTo(redirect, 'setAttributeValue',
                                             value, None, None,
-                                            setDirty, _noMonitors)
+                                            setDirty, _noFireChanges)
 
                 if otherName is None:
                     otherName = self.itsKind.getOtherName(name, self, Nil)
@@ -228,7 +227,7 @@ class Item(CItem):
             else:
                 if otherName is None:
                     otherName = self.itsKind.getOtherName(name, self)
-                _references._setValue(name, value, otherName, _noMonitors)
+                _references._setValue(name, value, otherName, _noFireChanges)
                 setDirty = False
 
         elif not isinstance(value, (RefList, RefDict, list, dict, tuple, set)):
@@ -258,7 +257,7 @@ class Item(CItem):
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
-                refList.extend(value, _noMonitors)
+                refList.extend(value, _noFireChanges)
                 value = refList
                 setDirty = False
             else:
@@ -277,7 +276,7 @@ class Item(CItem):
                         raise CardinalityError, (self, name, 'multi-valued')
                     refDict = old
 
-                refDict.update(value, _noMonitors)
+                refDict.update(value, _noFireChanges)
                 value = refDict
                 setDirty = False
             else:
@@ -294,7 +293,7 @@ class Item(CItem):
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
-                refList.extend(value, _noMonitors)
+                refList.extend(value, _noFireChanges)
                 value = refList
                 setDirty = False
             else:
@@ -311,7 +310,7 @@ class Item(CItem):
                         raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
-                refList.extend(value, _noMonitors)
+                refList.extend(value, _noFireChanges)
                 value = refList
                 setDirty = False
             else:
@@ -320,7 +319,7 @@ class Item(CItem):
                 dirty = Item.VDIRTY
 
         if setDirty:
-            self.setDirty(dirty, name, _attrDict, _noMonitors)
+            self.setDirty(dirty, name, _attrDict, _noFireChanges)
         
         return value
 
@@ -407,7 +406,7 @@ class Item(CItem):
         item._unregisterWatch(self, WatchItem, item.itsUUID, methodName)
 
     def getAttributeValue(self, name, _attrDict=None, _attrID=None,
-                          default=Default):
+                          default=Default, noInherit=False):
         """
         Return a Chandler attribute value.
 
@@ -459,7 +458,7 @@ class Item(CItem):
             if value is not Nil:
                 return value
 
-        if self.itsKind is not None:
+        if not (noInherit or self.itsKind is None):
             if _attrID is not None:
                 attribute = self.itsView[_attrID]
             else:
@@ -503,7 +502,7 @@ class Item(CItem):
         raise NoValueForAttributeError, (self, name)
 
     def removeAttributeValue(self, name, _attrDict=None, _attrID=None,
-                             _noMonitors=False):
+                             _noFireChanges=False):
         """
         Remove a value for a Chandler attribute.
 
@@ -530,7 +529,7 @@ class Item(CItem):
                                                    False, _attrID, None)
                 if redirect is not None:
                     return self._redirectTo(redirect, 'removeAttributeValue',
-                                            None, None, _noMonitors)
+                                            None, None, _noFireChanges)
 
                 if hasattr(self, name): # inherited value
                     return
@@ -555,7 +554,7 @@ class Item(CItem):
             else:
                 raise NoLocalValueForAttributeError, (self, name)
 
-        if not _noMonitors:
+        if not _noFireChanges:
             self._fireChanges('remove', name)
 
     def hasChild(self, name, load=True):
@@ -1251,7 +1250,7 @@ class Item(CItem):
 
         if items is None:
             items = {}
-        for cloud in self._kind.getClouds(cloudAlias):
+        for cloud in self.itsKind.getClouds(cloudAlias):
             cloud.getItems(self, cloudAlias, items, None, trace)
 
         return items.values()
@@ -1404,7 +1403,7 @@ class Item(CItem):
         return item
 
     def delete(self, recursive=False, deletePolicy=None, cloudAlias=None,
-               _noMonitors=False):
+               _noFireChanges=False):
         """
         Delete this item.
 
@@ -1457,7 +1456,8 @@ class Item(CItem):
             if view.isDeferringDelete():
                 self._deferDelete(view, deletePolicy)
             else:
-                self._delete(view, recursive, deletePolicy, _noMonitors, False)
+                self._delete(view, recursive, deletePolicy,
+                             _noFireChanges, False)
 
     def _deferDelete(self, view, deletePolicy):
 
@@ -1517,7 +1517,7 @@ class Item(CItem):
 
         self._status &= ~Item.DEFERRING
 
-    def _delete(self, view, recursive, deletePolicy, _noMonitors, _keepRoot):
+    def _delete(self, view, recursive, deletePolicy, _noFireChanges, _keepRoot):
 
         refs = self._references
         values = self._values
@@ -1562,7 +1562,7 @@ class Item(CItem):
             if other.refCount(True) == 0:
                 other.delete(recursive, deletePolicy)
 
-        self._setKind(None, _noMonitors)
+        self._setKind(None, _noFireChanges)
         self.itsParent._removeItem(self)
 
         if _keepRoot:  # during merge (to delete deferred children)
@@ -1722,7 +1722,7 @@ class Item(CItem):
         elif root is not None:
             root.itsView._registerItem(self)
 
-    def _setKind(self, kind, _noMonitors=False):
+    def _setKind(self, kind, _noFireChanges=False):
 
         if kind is not self._kind:
             if self._status & Item.MUTATING:
@@ -2296,6 +2296,10 @@ class Item(CItem):
                     matches[uuid] = match
 
         return match
+
+    def unloadItem(self):
+        
+        return self._unloadItem(True, self.itsView, True)
 
     def _unloadItem(self, reloadable, view, clean=True):
 

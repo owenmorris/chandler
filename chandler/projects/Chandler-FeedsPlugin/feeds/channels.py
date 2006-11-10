@@ -155,7 +155,13 @@ class FeedChannel(pim.ListCollection):
     isEstablished = schema.One(schema.Boolean, initialValue=False)
     isPreviousUpdateSuccessful = schema.One(schema.Boolean, initialValue=True)
     logItem = schema.One(initialValue=None)
-    schema.addClouds(sharing = schema.Cloud(author, copyright, link, url))
+
+    schema.addClouds(
+        sharing = schema.Cloud(
+            literal = [author, copyright, link, url]
+        )
+    )
+
     
     def __init__(self, *args, **kw):
         """
@@ -172,8 +178,7 @@ class FeedChannel(pim.ListCollection):
         feedsView = self.itsView
         feedsView.refresh(notify=False)
         item = feedsView.findUUID(self.itsUUID)
-        return item.download().addCallback(item.feedFetchSuccess, callback).addErrback(
-            item.feedFetchFailed, callback)
+        return item.download().addCallback(item.feedFetchSuccess, callback).addErrback(item.feedFetchFailed, callback)
 
     def download(self):
         """
@@ -424,7 +429,12 @@ class FeedItem(pim.ContentItem):
     content = schema.One(schema.Lob)
     updated = schema.One(schema.Boolean)
     body = schema.Descriptor(redirectTo="content")
-    schema.addClouds(sharing = schema.Cloud(link, category, author, date))
+
+    schema.addClouds(
+        sharing = schema.Cloud(
+            literal = [link, category, author, date]
+        )
+    )
 
     def __init__(self, *args, **kw):
         """

@@ -467,8 +467,9 @@ class EventStamp(Stamp):
     schema.addClouds(
         copying = schema.Cloud(organizer,location,rruleset,participants),
         sharing = schema.Cloud(
-            startTime, duration, allDay, location, anyTime, modifies,
-            transparency, isGenerated, recurrenceID, icalUID,
+            literal = [startTime, duration, allDay, anyTime, modifies,
+                       transparency, isGenerated, recurrenceID, icalUID],
+            byValue = [location], 
             byCloud = [modifications, rruleset, occurrenceFor]
         )
     )

@@ -687,7 +687,7 @@ as annotating; thus you can't make a ``Teacher`` of anything but a ``Person``
     >>> Teacher(gym)
     Traceback (most recent call last):
       ...
-    TypeError: <class '...Teacher'> requires a <class '...Person'> instance
+    TypeError: <class '...Teacher'> requires a <class '...Person'> instance but got a <class '...TeachingCertificate'> instance
 
 But you *can* wrap another annotation that wraps an item of the appropriate
 type, because any annotation of the passed-in item is stripped off first.

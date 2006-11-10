@@ -13,9 +13,8 @@
 #   limitations under the License.
 
 
-import sys, os, shutil, atexit, cStringIO, time
+import sys, os, shutil, atexit, cStringIO, time, threading
 
-from threading import Thread, Lock, Condition, local, currentThread
 from datetime import datetime, timedelta
 
 from chandlerdb.util import lock
@@ -729,7 +728,7 @@ class DBStore(Store):
 
     def __init__(self, repository):
 
-        self._threaded = local()
+        self._threaded = threading.local()
 
         self._values = ValueContainer(self)
         self._items = ItemContainer(self)
@@ -837,7 +836,7 @@ class DBStore(Store):
                             db.compact(None)
                             logger.info('background compact completed')
 
-                    thread = Thread(target=runnable())
+                    thread = threading.Thread(target=runnable())
                     thread.setDaemon(True)
                     thread.start()
 
@@ -997,7 +996,7 @@ class DBStore(Store):
 
     def getSchemaInfo(self):
 
-        return self._values.getVersionInfo()
+        return self._values.getSchemaInfo()
 
     def getIndexVersion(self):
 
@@ -1136,14 +1135,14 @@ class DBStore(Store):
     txn = property(_getTxn)
 
 
-class DBCheckpointThread(Thread):
+class DBCheckpointThread(threading.Thread):
 
     def __init__(self, repository):
 
         super(DBCheckpointThread, self).__init__()
 
         self._repository = repository
-        self._condition = Condition(Lock())
+        self._condition = threading.Condition(threading.Lock())
         self._alive = True
 
         self.setDaemon(True)
@@ -1193,7 +1192,7 @@ class DBIndexerThread(RepositoryThread):
         super(DBIndexerThread, self).__init__(name='__indexer__')
 
         self._repository = repository
-        self._condition = Condition(Lock())
+        self._condition = threading.Condition(threading.Lock())
         self._alive = True
 
         self.setDaemon(True)

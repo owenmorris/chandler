@@ -193,9 +193,11 @@ class RecurrenceRule(items.ContentItem):
     exruleFor = schema.One()  # inverse of RecurrenceRuleSet.exrules
 
     schema.addClouds(
-        sharing = schema.Cloud(freq, isCount, until, untilIsDate, interval,
-            wkst, bysetpos, bymonth, bymonthday, byyearday, byweekno,
-            byweekday, byhour, byminute, bysecond)
+        sharing = schema.Cloud(
+            literal = [freq, isCount, until, untilIsDate, interval,
+                       wkst, bysetpos, bymonth, bymonthday, byyearday, byweekno,
+                       byweekday, byhour, byminute, bysecond]
+        )
     )
 
     normalNames = "interval", "until"
@@ -419,7 +421,10 @@ class RecurrenceRuleSet(items.ContentItem):
 
     schema.addClouds(
         copying = schema.Cloud(rrules, exrules, rdates, exdates),
-        sharing = schema.Cloud(exdates, rdates, byCloud = [exrules, rrules])
+        sharing = schema.Cloud(
+            literal = [exdates, rdates],
+            byCloud = [exrules, rrules]
+        )
     )
 
     @schema.observer(rrules, exrules, rdates, exdates)

@@ -284,6 +284,9 @@ class MainView(View):
             curWindow = curWindow.GetParent()
         curWindow.Close()
 
+    def onCommitViewEvent(self, event):
+        self.RepositoryCommitWithStatus()
+
     def RepositoryCommitWithStatus (self):
         """
         Do a repository commit with notice posted in the Status bar.
@@ -607,10 +610,6 @@ class MainView(View):
                 self.setStatusMessage(_(u"Export failed"))
 
 
-    def onCommitRepositoryEvent(self, event):
-        # Test menu item
-        self.RepositoryCommitWithStatus ()
-
     def onWxTestHarnessEvent(self, event):
         """
          This method is for testing and does not require translation strings.
@@ -909,7 +908,6 @@ class MainView(View):
     def onSetLoggingLevelDebugEventUpdateUI(self, event):
         level = Utility.getLoggingLevel()
         event.arguments['Check'] = (level == logging.DEBUG)
-
 
     def onSyncPrefsEvent(self, event):
         autosyncprefs.Show(self.itsView)

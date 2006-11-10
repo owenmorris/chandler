@@ -856,7 +856,7 @@ class Annotation:
             itsItem = itsItem.itsItem   # unwrap if annotation
         required = type(self).targetType()
         if not isinstance(itsItem, required):
-            raise TypeError("%s requires a %s instance" % (type(self),required))
+            raise TypeError("%s requires a %s instance but got a %s instance" % (type(self),required,type(itsItem)))
         itemFor(type(self), itsItem.itsView)
         self.itsItem = itsItem
 

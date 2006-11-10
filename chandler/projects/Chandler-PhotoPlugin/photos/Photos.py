@@ -43,7 +43,7 @@ class PhotoMixin(pim.ContentItem):
     def onPhotoBodyChanged(self, op, attribute):
         self.processEXIF()
 
-    schema.addClouds(sharing = schema.Cloud(dateTaken, photoBody))
+    schema.addClouds(sharing = schema.Cloud(literal=[dateTaken, photoBody]))
 
     def importFromFile(self, path):
         if isinstance(path, unicode):

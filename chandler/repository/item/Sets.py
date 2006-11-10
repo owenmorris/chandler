@@ -115,20 +115,18 @@ class AbstractSet(ItemValue, Indexed):
 
         return self.itervalues()
 
-    def __len__(self, excludeIndexes=False):
+    def __len__(self):
 
-        if not excludeIndexes:
-            index = self._anIndex()
-            if index is not None:
-                return len(index)
+        index = self._anIndex()
+        if index is not None:
+            return len(index)
 
-        return self._len(excludeIndexes)
+        return self.countKeys()
 
-    # the slow way, via keys, to be overridden by some implementations
-    def _len(self, excludeIndexes=False):
+    def countKeys(self):
 
         count = 0
-        for key in self.iterkeys(excludeIndexes):
+        for key in self.iterkeys(True):
             count += 1
 
         return count
@@ -249,12 +247,12 @@ class AbstractSet(ItemValue, Indexed):
         return getattr(self._view[source[0]],
                        source[1]).iterkeys(excludeIndexes)
 
-    def _sourceLen(self, source, excludeIndexes=False):
+    def _sourceLen(self, source):
 
         if isinstance(source, AbstractSet):
-            return source.__len__(excludeIndexes)
+            return len(source)
 
-        return getattr(self._view[source[0]], source[1]).__len__(excludeIndexes)
+        return len(getattr(self._view[source[0]], source[1]))
 
     def _reprSource(self, source, replace):
 
@@ -572,7 +570,7 @@ class EmptySet(AbstractSet):
 
         return iter(())
 
-    def _len(self, excludeIndexes=False):
+    def countKeys(self):
 
         return 0
 
@@ -642,9 +640,9 @@ class Set(AbstractSet):
 
         return self._iterSourceKeys(self._source, excludeIndexes)
 
-    def _len(self, excludeIndexes=True):
+    def countKeys(self):
 
-        return self._sourceLen(self._source, excludeIndexes)
+        return self._sourceLen(self._source)
 
     def _repr_(self, replace=None):
 
@@ -1267,9 +1265,9 @@ class KindSet(Set):
 
         return op
 
-    def _len(self, excludeIndexes=False):
+    def countKeys(self):
 
-        return AbstractSet._len(self, excludeIndexes)
+        return AbstractSet.countKeys(self)
 
     def iterSources(self):
 
@@ -1321,10 +1319,10 @@ class FilteredSet(Set):
             if self.filter(item.itsUUID):
                 yield item
 
-    def _len(self, excludeIndexes=False):
+    def countKeys(self):
 
         count = 0
-        for key in self._iterkeys(excludeIndexes):
+        for key in self._iterkeys(True):
             count += 1
 
         return count

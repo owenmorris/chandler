@@ -27,6 +27,7 @@ from repository.item.PersistentCollections \
      import PersistentCollection, PersistentList, PersistentDict, PersistentSet
 from repository.item.RefCollections import RefDict
 from repository.schema.TypeHandler import TypeHandler
+from repository.persistence.DBRefs import DBStandAloneRefList
 from repository.persistence.RepositoryError import \
         LoadError, LoadValueError, MergeError, SaveValueError
     
@@ -549,7 +550,7 @@ class DBValueReader(ValueReader):
 
             elif flags & DBItemWriter.LIST:
                 offset, uuid = self.readUUID(offset + 1, data)
-                return uAttr, uuid
+                return uAttr, DBStandAloneRefList(view, uuid, self.version)
 
             elif flags & DBItemWriter.SET:
                 offset, value = self.readString(offset + 1, data)
@@ -569,7 +570,7 @@ class DBValueReader(ValueReader):
                     else:
                         offset, key = self.readSymbol(offset + 1, data)
                     offset, uuid = self.readUUID(offset, data)
-                    value[key] = uuid
+                    value[key] = DBStandAloneRefList(view, uuid, self.version)
                 return uAttr, value
 
             else:

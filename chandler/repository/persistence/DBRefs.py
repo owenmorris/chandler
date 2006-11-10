@@ -32,7 +32,7 @@ class PersistentRefs(object):
         
     def _iterrefs(self, firstKey, lastKey):
 
-        version = self._item._version
+        version = self._item.itsVersion
         nextKey = firstKey or self._firstKey
         view = self.view
         refIterator = None
@@ -72,7 +72,7 @@ class PersistentRefs(object):
 
     def _iteraliases(self, firstKey, lastKey):
 
-        version = self._item._version
+        version = self._item.itsVersion
         nextKey = firstKey or self._firstKey
         view = self.view
         refIterator = None
@@ -210,7 +210,7 @@ class PersistentRefs(object):
             return None
         
         return self.store._refs.loadRef(self.view, self.uuid,
-                                        self._item._version, key)
+                                        self._item.itsVersion, key)
 
     def _writeRef(self, key, version, previous, next, alias, otherKey):
 
@@ -423,6 +423,39 @@ class DBRefList(RefList, PersistentRefs):
     def _isDirty(self):
 
         return len(self._changedRefs) > 0
+
+
+class DBStandAloneRefList(DBRefList):
+
+    def __init__(self, view, uuid, version):
+
+        super(DBStandAloneRefList, self).__init__(view, None, None, None, None,
+                                                  True, False, uuid)
+        self.itsVersion = version
+        self._setOwner(self, None)
+
+    def __repr__(self):
+
+        return '<%s: %s(%d)>' %(type(self).__name__, self.uuid, self.itsVersion)
+
+    def __iter__(self):
+
+        view = self.view
+        for key in self.iterkeys():
+            yield view.find(key)
+
+    def itervalues(self):
+
+        return iter(self)
+
+    def _setOwner(self, item, name):
+
+        self._item = item
+        PersistentRefs._setItem(self, item)
+
+    def _isDirty(self):
+
+        return False
 
 
 class DBNumericIndex(NumericIndex):

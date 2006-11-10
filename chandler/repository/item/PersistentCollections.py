@@ -137,6 +137,20 @@ class PersistentCollection(ItemValue):
                 for v in value._iterItems(items):
                     yield v
 
+    def _iterKeys(self, keys=None):
+
+        if keys is None:
+            keys = set()
+        for value in self._itervalues():
+            if issingleref(value):
+                key = value.itsUUID
+                if key not in keys:
+                    keys.add(key)
+                    yield key
+            elif isinstance(value, PersistentCollection):
+                for v in value._iterKeys(keys):
+                    yield v
+
     def filterItem(self, item, level=0, key=0, _remove=True):
         """
         Remove occurrences of an item in a persistent collection.
@@ -174,6 +188,8 @@ class PersistentCollection(ItemValue):
 
 class PersistentList(list, PersistentCollection):
     'A persistence aware list, tracking changes into a dirty bit.'
+
+    __slots__ = ['_dirty', '_attribute', '_readOnly', '_item']
 
     def __init__(self, item=None, attribute=None, values=None, setDirty=True):
 
@@ -515,6 +531,14 @@ class PersistentDict(dict, PersistentCollection):
     def _values(self):
 
         return super(PersistentDict, self).values()
+
+    def items(self):
+
+        return list(self.iteritems())
+
+    def _items(self):
+
+        return super(PersistentDict, self).items()
 
     def filterItem(self, item, level=0, key=0, _remove=True):
 

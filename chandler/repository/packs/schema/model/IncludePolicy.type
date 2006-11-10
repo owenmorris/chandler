@@ -10,5 +10,6 @@
     <value>byRef</value>
     <value>none</value>
     <value>byMethod</value>
+    <value>literal</value>
   </attribute>
 </item>

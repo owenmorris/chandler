@@ -88,9 +88,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         for item in self._log:
             if not item.isNew():
-                self.logger.debug('reloading version %d of %s',
-                                  self._version, item)
-                self.find(item._uuid)
+                self.find(item.itsUUID)
 
         self._log.clear()
 
@@ -247,25 +245,16 @@ class DBRepositoryView(OnDemandRepositoryView):
                             if names is None:
                                 names = dirtyNames()
                             if isuuid(attribute):  # item watchers
-                                if isuuid(watchers):
-                                    watchers = (self.find(w) for w in
-                                                refs.iterKeys(self, watchers,
-                                                              version))
                                 for watcher in watchers:
                                     if watcher is not None:
                                         watcher('refresh', uItem, names)
                             elif isNew or attribute in names:
                                 value = self.findValue(uItem, attribute, None,
                                                        version)
-                                if not isuuid(value):
-                                    if isinstance(value, RefList):
-                                        value = value.uuid
-                                    else:
-                                        continue
-                                if isuuid(watchers):
-                                    watchers = [self.find(w) for w in
-                                                refs.iterKeys(self, watchers,
-                                                              version)]
+                                if isinstance(value, RefList):
+                                    value = value.uuid
+                                else:
+                                    continue
                                 for uRef in refs.iterHistory(self, value, version - 1, version, True):
                                     if uRef in refreshes:
                                         for watcher in watchers:
@@ -274,11 +263,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                 for name in kind._iterNotifyAttributes():
                     value = self.findValue(uItem, name, None, version)
-                    if isuuid(value):
-                        if kind.getAttribute(name).c.cardinality != 'list':
-                            continue
-                        refsIterator = refs.iterKeys(self, value, version)
-                    elif isinstance(value, RefList):
+                    if isinstance(value, RefList):
                         refsIterator = value.iterkeys()
                     else:
                         continue
@@ -288,10 +273,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                         if watchers:
                             watchers = watchers.get(otherName, None)
                             if watchers:
-                                if isuuid(watchers):
-                                    watchers = (self.find(w) for w in
-                                                refs.iterKeys(self, watchers,
-                                                              version))
                                 for watcher in watchers:
                                     if watcher is not None:
                                         watcher('changed', 'notification', uRef, otherName, uItem)
@@ -325,9 +306,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                             if watchers:
                                 watchers = watchers.get(otherName, None)
                                 if watchers:
-                                    if isuuid(watchers):
-                                        watchers = (self.find(w) for w in
-                                                    refs.iterKeys(self, watchers, version))
                                     for watcher in watchers:
                                         if watcher is not None:
                                             watcher('changed', 'notification', uRef, otherName, uItem)

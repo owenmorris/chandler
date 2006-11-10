@@ -13,8 +13,6 @@
 #   limitations under the License.
 
 
-import threading
-
 #
 # __doc__ strings need to be explicitely set in order not to be removed by -OO
 #

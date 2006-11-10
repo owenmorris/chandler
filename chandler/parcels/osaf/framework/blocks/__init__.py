@@ -76,6 +76,8 @@ def installParcel(parcel, oldName=None):
             BlockEvent.template('SelectAll',
                                 dispatchEnum = 'FocusBubbleUp').install(parcel),
     
+            BlockEvent.template('CommitView').install(parcel),
+
             BlockEvent.template('PrintPreview').install(parcel),
 
             BlockEvent.template('PageSetup').install(parcel),

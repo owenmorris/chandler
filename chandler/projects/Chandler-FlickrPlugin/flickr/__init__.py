@@ -51,7 +51,11 @@ class FlickrPhotoMixin(PhotoMixin):
     tags = schema.Sequence ()
     owner = schema.One (schema.Text)
 
-    schema.addClouds(sharing = schema.Cloud(owner, flickrID, imageURL, tags))
+    schema.addClouds(
+        sharing = schema.Cloud(
+            literal = [owner, flickrID, imageURL, tags]
+        )
+    )
 
     def __init__(self, photo=None,*args,**kwargs):
         super(FlickrPhotoMixin,self).__init__(*args,**kwargs)

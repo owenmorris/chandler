@@ -17,6 +17,10 @@
     <ref alias="epoch" type="path">/CineGuide/Attributes/epoch</ref>
   </ref>
 
+  <attribute name="classes">
+    <value name="python">repository.tests.classes.Actor.Actor</value>
+  </attribute>
+
   <ref name="superKinds">
     <ref type="path">/Core/Item</ref>
   </ref>

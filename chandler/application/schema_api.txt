@@ -621,7 +621,7 @@ as annotating::
     >>> Teacher(gym)
     Traceback (most recent call last):
       ...
-    TypeError: <class '...Teacher'> requires a <class '...Person'> instance
+    TypeError: <class '...Teacher'> requires a <class '...Person'> instance but got a <class '...TeachingCertificate'> instance
 
 or an instance of another annotation wrapping an instance of the appropriate
 type.  Thus, we can convert a ``Friend`` to a ``Teacher`` or vice versa::

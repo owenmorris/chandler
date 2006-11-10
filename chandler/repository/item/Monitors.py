@@ -164,11 +164,11 @@ class Monitors(Item):
 class Monitor(Item):
 
     def __init__(self, name=None, parent=None, kind=None,
-                 _uuid=None, _noMonitors=False):
+                 _uuid=None, _noFireChanges=False):
         super(Monitor, self).__init__(name, parent, kind, _uuid, True)
 
     def delete(self, recursive=False, deletePolicy=None, cloudAlias=None,
-               _noMonitors=False):
+               _noFireChanges=False):
         return super(Monitor, self).delete(recursive, deletePolicy, cloudAlias,
                                            True)
 

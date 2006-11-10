@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 shareDict = { }
 
-class InMemoryConduit(Sharing.ShareConduit):
+class InMemoryConduit(Sharing.ServerConduit):
     """ A test conduit, storing data in a dictionary """
 
     def __init__(self, *args, **kw):

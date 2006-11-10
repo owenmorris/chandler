@@ -154,19 +154,31 @@ def sync(collectionOrShares, modeOverride=None, updateCallback=None,
         # a list of Shares
         shares = collectionOrShares
         metaView = shares[0].itsView
-        itemsMarker = shares[0].conduit.itemsMarker
 
     elif isinstance(collectionOrShares, Share):
         # just one Share
         shares = [collectionOrShares]
         metaView = collectionOrShares.itsView
-        itemsMarker = collectionOrShares.conduit.itemsMarker
 
     else:
         # just a collection
         shares = getLinkedShares(collectionOrShares.shares.first())
         metaView = collectionOrShares.itsView
-        itemsMarker = shares[0].conduit.itemsMarker
+
+    syncedByAccountShares = set()
+    for share in shares:
+        conduit = getattr(share, 'conduit', None)
+        if conduit is not None:
+            if hasattr(type(getattr(conduit, 'account', None)), 'sync'):
+                syncedByAccountShares.add(share)
+    for share in syncedByAccountShares:
+        share.conduit.account.sync(share)
+
+    shares = [share for share in shares if share not in syncedByAccountShares]
+    if not shares:
+        return []
+
+    itemsMarker = shares[0].conduit.itemsMarker
 
     stats = []
 
@@ -604,8 +616,10 @@ class Share(pim.ContentItem):
     follows = schema.One('Share', otherName='leads')
 
     schema.addClouds(
-        sharing = schema.Cloud(byCloud=[contents,sharer,sharees,filterClasses,
-                                        filterAttributes]),
+        sharing = schema.Cloud(
+            literal = [filterClasses, filterAttributes],
+            byCloud = [contents, sharer, sharees]
+        ),
         copying = schema.Cloud(byCloud=[format, conduit])
     )
 
@@ -644,39 +658,27 @@ class Share(pim.ContentItem):
     def getLocation(self, privilege=None):
         return self.conduit.getLocation(privilege=privilege)
 
-    def getSharedAttributes(self, item, cloudAlias='sharing'):
+    def getSharedAttributes(self, kind, cloudAlias='sharing'):
         """
         Examine sharing clouds and filterAttributes to determine which
-        attributes to share for a given item
+        attributes to share for a given kind
         """
 
-        attributes = []
-        skip = {}
-        if hasattr(self, 'filterAttributes'):
-            for attrName in self.filterAttributes:
-                skip[attrName] = 1
+        attributes = set()
+        skip = getattr(self, 'filterAttributes', [])
 
-        for cloud in item.itsKind.getClouds(cloudAlias):
-            for (alias, endpoint, inCloud) in cloud.iterEndpoints(cloudAlias):
+        for cloud in kind.getClouds(cloudAlias):
+            for alias, endpoint, inCloud in cloud.iterEndpoints(cloudAlias):
                 # @@@MOR for now, don't support endpoint attribute 'chains'
                 attrName = endpoint.attribute[0]
 
                 # An includePolicy of 'none' is how we override an inherited
                 # endpoint
-                if endpoint.includePolicy == 'none':
-                    skip[attrName] = 1
-
-                if attrName not in attributes:
-                    attributes.append(attrName)
-
-        for attrName in skip.iterkeys():
-            try:
-                attributes.remove(attrName)
-            except:
-                pass
+                if not (endpoint.includePolicy == 'none' or
+                        attrName in skip):
+                    attributes.add(attrName)
 
         return attributes
-
 
 
 class OneTimeShare(Share):
@@ -706,17 +708,19 @@ class OneTimeShare(Share):
         return collection
 
 
-
 class ShareConduit(pim.ContentItem):
+
+    share = schema.One(Share, inverse = Share.conduit)
+
+
+class ServerConduit(ShareConduit):
     """
     Transfers items in and out.
     """
 
     def __init__(self, *args, **kw):
-        super(ShareConduit, self).__init__(*args, **kw)
+        super(ServerConduit, self).__init__(*args, **kw)
         self.itemsMarker = Item('itemsMarker', self, None)
-
-    share = schema.One(Share, inverse = Share.conduit)
 
     sharePath = schema.One(
         schema.Text,
@@ -776,7 +780,7 @@ class ShareConduit(pim.ContentItem):
                     if relatedItem.itsUUID in changes:
                         modifiedAttributes = changes[relatedItem.itsUUID]
                         sharedAttributes = \
-                            self.share.getSharedAttributes(relatedItem)
+                            self.share.getSharedAttributes(relatedItem.itsKind)
                         logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('utf8', 'replace'), modifiedAttributes)
                         for change in modifiedAttributes:
                             if change in sharedAttributes:
@@ -1447,7 +1451,7 @@ class SharingConflictNotification(SharingChangeNotification):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class FileSystemConduit(ShareConduit):
+class FileSystemConduit(ServerConduit):
 
     def __init__(self, *args, **kw):
         if 'shareName' not in kw:
@@ -1601,7 +1605,7 @@ class FileSystemConduit(ShareConduit):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class WebDAVConduit(ShareConduit):
+class WebDAVConduit(ServerConduit):
 
     account = schema.One('WebDAVAccount', inverse='conduits',initialValue=None)
     host = schema.One(schema.Text, initialValue=u"")
@@ -2800,6 +2804,45 @@ class ImportExportFormat(pim.ContentItem):
         return True
 
 
+# These DOM API classes make it possible for subclasses CloudXMLFormat to
+# share code that works with different XML DOM implementations.
+
+class AbstractDOM(object):
+
+    def addElement(self, parent, tag, content=None, **attrs):
+        raise NotImplementedError, "%s.addElement" %(type(self))
+
+    def addContent(self, element, content):
+        raise NotImplementedError, "%s.addContent" %(type(self))
+        
+    def setAttribute(self, element, name, value):
+        raise NotImplementedError, "%s.setAttribute" %(type(self))
+
+    def setAttributes(self, element, *pairs, **kwds):
+        raise NotImplementedError, "%s.setAttributes" %(type(self))
+        
+    def getTag(self, element):
+        raise NotImplementedError, "%s.getTag" %(type(self))
+
+    def getAttribute(self, element, name):
+        raise NotImplementedError, "%s.getAttribute" %(type(self))
+
+    def getAttributes(self, element):
+        raise NotImplementedError, "%s.getAttributes" %(type(self))
+        
+    def iterElements(self, element):
+        raise NotImplementedError, "%s.iterElements" %(type(self))
+        
+
+class ElementTreeDOM(AbstractDOM):
+
+    def getTag(self, element):
+        return element.tag
+
+    def getAttribute(self, element, name):
+        return element.get(name)
+
+
 class CloudXMLFormat(ImportExportFormat):
 
     cloudAlias = schema.One(schema.Text, initialValue='sharing')
@@ -2863,6 +2906,7 @@ class CloudXMLFormat(ImportExportFormat):
         pim.mail.MIMEText,
     )
 
+
     def fileStyle(self):
         return self.STYLE_DIRECTORY
 
@@ -2885,13 +2929,44 @@ class CloudXMLFormat(ImportExportFormat):
             raise
 
         try:
-            item = self._importElement(contentView, root, item=item,
-                updateCallback=updateCallback, stats=stats)
+            item = self._importElement(ElementTreeDOM(), contentView, root,
+                                       item, updateCallback, stats)
         except:
             logger.exception("Error during import")
             raise
 
         return item
+
+    def _getElementName(self, kind, stampClasses):
+
+        if stampClasses:
+            # Figure out the element name
+            for eltName, eltStampClasses, eltClassName in self.ELEMENT_ENTRIES:
+                if set(eltStampClasses) == stampClasses:
+                    elementName = eltName
+                    if eltClassName is not None:
+                        classes = eltClassName
+                    else:
+                        classes = ','.join(self.STAMP_MAP[cls]
+                                           for cls in eltStampClasses)
+                    break
+            else:
+                raise VersionMismatch, ("Can't match stamp classes",
+                                        stampClasses)
+        else:
+            elementName = kind.itsName
+            if kind.isMixin():
+                classNames = []
+                for kind in kind.superKinds:
+                    cls = kind.classes['python']
+                    className = "%s.%s" % (cls.__module__, cls.__name__)
+                    classNames.append(className)
+                classes = ",".join(classNames)
+            else:
+                cls = kind.classes['python']
+                classes = "%s.%s" % (cls.__module__, cls.__name__)
+
+        return elementName, classes
 
     def exportProcess(self, item, depth=0, items=None):
 
@@ -2924,43 +2999,18 @@ class CloudXMLFormat(ImportExportFormat):
         except TypeError:
             pass
 
-        if stampClasses:
-            # Figure out the element name
-            
-            for eltName, eltStampClasses, eltClassName in self.ELEMENT_ENTRIES:
-                if set(eltStampClasses) == stampClasses:
-                    elementName = eltName
-                    if eltClassName is not None:
-                        classes = eltClassName
-                    else:
-                        classes = ",".join(self.STAMP_MAP[cls]
-                                           for cls in eltStampClasses)
-                    break
-            else:
-                raise VersionMismatch, "Can't match stamp classes '%s'" % (stampClasses,)
-
-        else:
-            elementName = item.itsKind.itsName
-            if item.itsKind.isMixin():
-                classNames = []
-                for kind in item.itsKind.superKinds:
-                    klass = kind.classes['python']
-                    className = "%s.%s" % (klass.__module__, klass.__name__)
-                    classNames.append(className)
-                classes = ",".join(classNames)
-            else:
-                klass = item.itsKind.classes['python']
-                classes = "%s.%s" % (klass.__module__, klass.__name__)
+        # Figure out the element name
+        elementName, classes = self._getElementName(item.itsKind, stampClasses)
 
         # Collect the set of attributes that are used in this format
         def getNameAndAttributes():
-            attributes = self.share.getSharedAttributes(item)
+            attributes = self.share.getSharedAttributes(item.itsKind)
             hasMailStamp = pim.has_stamp(item, pim.mail.MailStamp)
             attrs = []
             mailClass = None
-            
+
             if hasMailStamp and not pim.mail.MailStamp.subject.name in attributes:
-                attributes.append(pim.mail.MailStamp.subject.name)
+                attributes.add(pim.mail.MailStamp.subject.name)
             
             for attrName in attributes:
             
@@ -3034,7 +3084,6 @@ class CloudXMLFormat(ImportExportFormat):
                 return elementName, classes, attrs
                 
         elementName, classes, attributes = getNameAndAttributes()
-
         result += "<%s %sclass='%s' uuid='%s'>\n" % (elementName,
                                                     versionString,
                                                     classes,
@@ -3215,16 +3264,13 @@ class CloudXMLFormat(ImportExportFormat):
 
         return None
 
+    def _importItem(self, dom, view, element, item, updateCallback, stats):
 
-    def _importElement(self, contentView, element, item=None,
-        updateCallback=None, stats=None):
-
-        view = contentView
         kind = None
         kinds = []
         
         for eltName, eltStampClasses, eltClassName in self.ELEMENT_ENTRIES:
-            if element.tag == eltName:
+            if dom.getTag(element) == eltName:
                 stampClasses = eltStampClasses
                 for cls in stampClasses:
                     kind = cls.targetType().getKind(view)
@@ -3234,26 +3280,19 @@ class CloudXMLFormat(ImportExportFormat):
         else:
             stampClasses = []
             
-
-        versionString = element.get('version')
-        if versionString and versionString != CLOUD_XML_VERSION:
-            raise VersionMismatch(_(u"Incompatible share"))
-
         if item is None:
-
-            uuidString = element.get('uuid')
+            uuidString = dom.getAttribute(element, 'uuid')
             if uuidString:
                 try:
                     uuid = UUID(uuidString)
                     item = view.findUUID(uuid)
                 except Exception, e:
-                    logger.exception("Problem processing uuid %s" % uuidString)
-                    return item
+                    logger.exception("Problem processing uuid %s", uuidString)
+                    return item, None, True
             else:
                 uuid = None
 
-
-        classNameList = element.get('class')
+        classNameList = dom.getAttribute(element, 'class')
         if classNameList:
             classNameList = classNameList.split(",")
             for classPath in classNameList:
@@ -3279,12 +3318,12 @@ class CloudXMLFormat(ImportExportFormat):
         else:
             # No kind means we're simply looking up an item by uuid and
             # returning it
-            return item
+            return item, None, True
 
         if len(kinds) == 0:
             # we don't have any of the kinds provided
-            logger.error("No kinds found locally for %s" % classNameList)
-            return None
+            logger.error("No kinds found locally for %s", classNameList)
+            return None, None, True
         elif len(kinds) == 1:
             kind = kinds[0]
         else: # time to mixin
@@ -3310,7 +3349,6 @@ class CloudXMLFormat(ImportExportFormat):
                     displayName="New item", items=[item])
 
         else:
-
             # there is a chance that the incoming kind is different than the
             # item's kind
 
@@ -3323,217 +3361,246 @@ class CloudXMLFormat(ImportExportFormat):
             if stats and uuid not in stats['modified']:
                 stats['modified'].append(uuid)
 
-        # we have an item, now set attributes
+        return item, stampClasses, False
 
-        # Set a temporary attribute that items can check to see if they're in
-        # the middle of being imported:
-        item._share_importing = True
+    def _importValues(self, dom, view, element, item, stampClasses,
+                      updateCallback, stats):
 
-        try:
-            attributes = self.share.getSharedAttributes(item)
+        attributes = self.share.getSharedAttributes(item.itsKind)
             
-            if (pim.mail.MailStamp in stampClasses and 
-                not pim.mail.MailStamp.subject.name in attributes):
-                    attributes.append(pim.mail.MailStamp.subject.name)
+        if (pim.mail.MailStamp in stampClasses and 
+            not pim.mail.MailStamp.subject.name in attributes):
+                attributes.add(pim.mail.MailStamp.subject.name)
+                # 'subject' is redirected to 'displayName'
+                # Lack of 'displayName' in XML can cause 'subject' to get
+                # lost during import
+                if 'displayName' in attributes:
+                    attributes.remove('displayName')
 
-            for attrName in attributes:
-
-                attrStampClass = None
+        for attrName in attributes:
+            attrStampClass = None
                 
-                # Since 'displayName' is being renamed 'title', let's keep
-                # existing shares backwards-compatible and continue to read/
-                # write 'displayName':
-                if attrName == 'title':
-                    elementName = 'displayName'
+            # Since 'displayName' is being renamed 'title', let's keep
+            # existing shares backwards-compatible and continue to read/
+            # write 'displayName':
+            if attrName == 'title':
+                elementName = 'displayName'
+            else:
+                lastDot = attrName.rfind(".")
+                if lastDot != -1:
+                    elementName = attrName[lastDot + 1:]
+                        
+                    for cls in self.STAMP_MAP:
+                        if (hasattr(cls, elementName) and
+                            getattr(cls, elementName).name == attrName):
+                            attrStampClass = cls
+                            break
+                        
                 else:
-                    lastDot = attrName.rfind(".")
-                    if lastDot != -1:
-                        elementName = attrName[lastDot + 1:]
-                        
-                        for cls in self.STAMP_MAP:
-                            if (hasattr(cls, elementName) and
-                                getattr(cls, elementName).name == attrName):
-                                attrStampClass = cls
-                                break
-                        
+                    elementName = attrName
+
+            # [Bug 7149]
+            # Here, we make sure we don't change any attributes that
+            # aren't in the item's (possibly changed) set of stamps.
+            if (attrStampClass is not None and
+                not attrStampClass in stampClasses):
+                continue
+
+            attrElement = self._getElement(element, elementName)
+
+            if attrElement is None:
+                # [Bug 7314]
+                # When we export, we don't output any XML for
+                # attributes whose value is None. So, don't
+                # remove missing attributes that are missing
+                # the item's value for that attribute is None.
+                if item.getAttributeValue(attrName, default=None) is not None:
+                    item.removeAttributeValue(attrName)
+                continue
+
+            otherName = item.itsKind.getOtherName(attrName, item, None)
+            cardinality = item.getAttributeAspect(attrName, 'cardinality')
+            attrType = item.getAttributeAspect(attrName, 'type')
+
+            # This code depends on attributes having their type set, which
+            # might not always be the case. What should be done is to encode
+            # the value type into the shared xml itself:
+
+            if otherName or (isinstance(attrType, Item) and \
+                not isinstance(attrType, Type)): # it's a ref
+
+                if cardinality == 'single':
+                    children = attrElement.getchildren()
+                    if children:
+                        valueItem = self._importElement(dom, view,
+                            children[0], updateCallback=updateCallback)
+                        if valueItem is not None:
+                            setattr(item, attrName, valueItem)
+
+                elif cardinality == 'list':
+                    count = 0
+                    for child in attrElement.getchildren():
+                        valueItem = self._importElement(dom, view,
+                            child, updateCallback=updateCallback)
+                        if valueItem is not None:
+                            count += 1
+                            item.addValue(attrName, valueItem)
+                    if not count:
+                        # Only set to an empty ref collection is attrName
+                        # is not already an empty ref collection
+                        needToSet = True
+                        if hasattr(item, attrName):
+                            try:
+                                if len(getattr(item, attrName)) == 0:
+                                    needToSet = False
+                            except:
+                                pass
+                        if needToSet:
+                            setattr(item, attrName, [])
+
+                elif cardinality == 'dict':
+                    pass
+
+            else: # it's a literal
+
+                if cardinality == 'single':
+
+                    mimeType = attrElement.get('mimetype')
+                    encoding = attrElement.get('encoding')
+                    content = unicode(attrElement.text or u"")
+
+                    if mimeType: # Lob
+                        indexed = mimeType == "text/plain"
+                        value = base64.b64decode(content)
+
+                        # @@@MOR Temporary hack for backwards compatbility:
+                        # Because body changed from Lob to Text:
+                        if attrName == "body": # Store as unicode
+                            if type(value) is not unicode:
+                                if encoding:
+                                    value = unicode(value, encoding)
+                                else:
+                                    value = unicode(value)
+                        else: # Store it as a Lob
+                            value = utils.dataToBinary(item, attrName,
+                                value, mimeType=mimeType, indexed=indexed)
+                            if encoding:
+                                value.encoding = encoding
+
                     else:
-                        elementName = attrName
+                        value = attrType.makeValue(content)
 
-                # [Bug 7149]
-                # Here, we make sure we don't change any attributes that
-                # aren't in the item's (possibly changed) set of stamps.
-                if (attrStampClass is not None and
-                    not attrStampClass in stampClasses):
-                    continue
 
-                attrElement = self._getElement(element, elementName)
+                    # For datetime attributes, even if we set them to
+                    # the same value they have now it's considered a
+                    # change to the repository, so we do an additional
+                    # check ourselves before actually setting a datetime:
+                    if type(value) is datetime.datetime and hasattr(item,
+                        attrName):
+                        oldValue = getattr(item, attrName)
+                        if (oldValue != value or
+                            oldValue.tzinfo != value.tzinfo):
+                            setattr(item, attrName, value)
+                    else:
+                        setattr(item, attrName, value)
 
-                if attrElement is None:
-                    # [Bug 7314]
-                    # When we export, we don't output any XML for
-                    # attributes whose value is None. So, don't
-                    # remove missing attributes that are missing
-                    # the item's value for that attribute is None.
-                    if (item.getAttributeValue(attrName, default=None)
-                        is not None):
-                        item.removeAttributeValue(attrName)
-                    continue
+                elif cardinality == 'list':
+                    isFilterAttributes = (attrName == 'filterAttributes' and
+                                          isinstance(item, Share))
+                    isFilterClasses = (attrName == 'filterClasses' and
+                                          isinstance(item, Share))
 
-                otherName = item.itsKind.getOtherName(attrName, item, None)
-                cardinality = item.getAttributeAspect(attrName, 'cardinality')
-                attrType = item.getAttributeAspect(attrName, 'type')
+                    values = []
+                    for child in attrElement.getchildren():
 
-                # This code depends on attributes having their type set, which
-                # might not always be the case. What should be done is to encode
-                # the value type into the shared xml itself:
-
-                if otherName or (isinstance(attrType, Item) and \
-                    not isinstance(attrType, Type)): # it's a ref
-
-                    if cardinality == 'single':
-                        children = attrElement.getchildren()
-                        if children:
-                            valueItem = self._importElement(contentView,
-                                children[0], updateCallback=updateCallback)
-                            if valueItem is not None:
-                                setattr(item, attrName, valueItem)
-
-                    elif cardinality == 'list':
-                        count = 0
-                        for child in attrElement.getchildren():
-                            valueItem = self._importElement(contentView,
-                                child, updateCallback=updateCallback)
-                            if valueItem is not None:
-                                count += 1
-                                item.addValue(attrName, valueItem)
-                        if not count:
-                            # Only set to an empty ref collection is attrName
-                            # is not already an empty ref collection
-                            needToSet = True
-                            if hasattr(item, attrName):
-                                try:
-                                    if len(getattr(item, attrName)) == 0:
-                                        needToSet = False
-                                except:
-                                    pass
-                            if needToSet:
-                                setattr(item, attrName, [])
-
-                    elif cardinality == 'dict':
-                        pass
-
-                else: # it's a literal
-
-                    if cardinality == 'single':
-
-                        mimeType = attrElement.get('mimetype')
-                        encoding = attrElement.get('encoding')
-                        content = unicode(attrElement.text or u"")
+                        mimeType = child.get('mimetype')
 
                         if mimeType: # Lob
                             indexed = mimeType == "text/plain"
-                            value = base64.b64decode(content)
+                            value = base64.b64decode(unicode(child.text
+                                or u""))
+                            value = utils.dataToBinary(item, attrName,
+                                value, mimeType=mimeType,
+                                indexed=indexed)
 
-                            # @@@MOR Temporary hack for backwards compatbility:
-                            # Because body changed from Lob to Text:
-                            if attrName == "body": # Store as unicode
-                                if type(value) is not unicode:
-                                    if encoding:
-                                        value = unicode(value, encoding)
-                                    else:
-                                        value = unicode(value)
-                            else: # Store it as a Lob
-                                value = utils.dataToBinary(item, attrName,
-                                    value, mimeType=mimeType, indexed=indexed)
-                                if encoding:
-                                    value.encoding = encoding
+                            encoding = child.get('encoding')
+                            if encoding:
+                                value.encoding = encoding
 
                         else:
+                            content = unicode(child.text or u"")
                             value = attrType.makeValue(content)
 
-
-                        # For datetime attributes, even if we set them to
-                        # the same value they have now it's considered a
-                        # change to the repository, so we do an additional
-                        # check ourselves before actually setting a datetime:
-                        if type(value) is datetime.datetime and hasattr(item,
-                            attrName):
-                            oldValue = getattr(item, attrName)
-                            if (oldValue != value or
-                                oldValue.tzinfo != value.tzinfo):
-                                setattr(item, attrName, value)
-                        else:
-                            setattr(item, attrName, value)
-
-                    elif cardinality == 'list':
-                        isFilterAttributes = (attrName == 'filterAttributes' and
-                                              isinstance(item, Share))
-                        isFilterClasses = (attrName == 'filterClasses' and
-                                              isinstance(item, Share))
-
-                        values = []
-                        for child in attrElement.getchildren():
-
-                            mimeType = child.get('mimetype')
-
-                            if mimeType: # Lob
-                                indexed = mimeType == "text/plain"
-                                value = base64.b64decode(unicode(child.text
-                                    or u""))
-                                value = utils.dataToBinary(item, attrName,
-                                    value, mimeType=mimeType,
-                                    indexed=indexed)
-
-                                encoding = child.get('encoding')
-                                if encoding:
-                                    value.encoding = encoding
-
-                            else:
-                                content = unicode(child.text or u"")
-                                value = attrType.makeValue(content)
-
-                            # For Share.filterAttributes, we need to map
-                            # 'unqualified' attribute names to annotation-
-                            # style ones. To do this, we look through all
-                            # the Stamp classes we know, as well as
-                            # pim.Remindable, to find a matching attribute.
-                            # There is an inverse hack to this in exportProcess.
-                            if isFilterAttributes:
-                                for cls in self.STAMP_MAP.iterkeys():
-                                    schemaAttr = getattr(cls, value, None)
-                                    if schemaAttr is not None:
-                                        break
-                                else:
-                                    schemaAttr = getattr(pim.Remindable, value, None)
-
+                        # For Share.filterAttributes, we need to map
+                        # 'unqualified' attribute names to annotation-
+                        # style ones. To do this, we look through all
+                        # the Stamp classes we know, as well as
+                        # pim.Remindable, to find a matching attribute.
+                        # There is an inverse hack to this in exportProcess.
+                        if isFilterAttributes:
+                            for cls in self.STAMP_MAP.iterkeys():
+                                schemaAttr = getattr(cls, value, None)
                                 if schemaAttr is not None:
-                                    value = schemaAttr.name
+                                    break
+                            else:
+                                schemaAttr = getattr(pim.Remindable, value, None)
+
+                            if schemaAttr is not None:
+                                value = schemaAttr.name
                                     
-                            if isFilterClasses:
-                                value = self.CLASS_NAME_TO_STAMP.get(value, value)
+                        if isFilterClasses:
+                            value = self.CLASS_NAME_TO_STAMP.get(value, value)
 
-                            values.append(value)
+                        values.append(value)
 
-                        logger.debug("for %s setting %s to %s" % \
-                            (item.getItemDisplayName().encode('utf8',
-                            'replace'), attrName, values))
-                        setattr(item, attrName, values)
+                    logger.debug("for %s setting %s to %s" % \
+                        (item.getItemDisplayName().encode('utf8',
+                        'replace'), attrName, values))
+                    setattr(item, attrName, values)
 
-                    elif cardinality == 'dict':
-                        pass
+                elif cardinality == 'dict':
+                    pass
 
-            # Lastly, install stamps as needed
-            for cls in stampClasses:
-                if not pim.has_stamp(item, cls):
-                    cls(item).add()
+    def _importStamps(self, item, stampClasses):
 
-            # Handle unstamping
-            stamps = pim.Stamp(item).stamp_types or []
-            for stamp in stamps:
-                if stamp not in stampClasses:
-                    stamp(item).remove()
+        # Install stamps as needed
+        for cls in stampClasses:
+            if not pim.has_stamp(item, cls):
+                cls(item).add()
 
+        # Handle unstamping
+        stamps = pim.Stamp(item).stamp_types or []
+        for stamp in stamps:
+            if stamp not in stampClasses:
+                stamp(item).remove()
+
+    def _importElement(self, dom, contentView, element, item=None,
+                       updateCallback=None, stats=None):
+
+        versionString = element.get('version')
+        if versionString and versionString != CLOUD_XML_VERSION:
+            raise VersionMismatch(_(u"Incompatible share"))
+
+        # Find or create the item being imported
+        item, stamps, done = self._importItem(dom, contentView, element,
+                                              item, updateCallback, stats)
+        if done:
+            return item
+
+        # Set a temporary attribute that items can check to see if they're in
+        # the middle of being imported:
+
+        item._share_importing = True
+
+        try:
+            # We have an item, now set attributes
+            self._importValues(dom, contentView, element, item,
+                               stamps, updateCallback, stats)
         finally:
             del item._share_importing
+
+        # Lastly, import stamps
+        if isinstance(item, pim.ContentItem):
+            self._importStamps(item, stamps)
 
         return item
