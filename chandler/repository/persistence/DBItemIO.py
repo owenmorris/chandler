@@ -898,7 +898,7 @@ class DBItemReader(ItemReader, DBValueReader):
             if cls is not type(instance):
                 instance.__class__ = cls
             item = self.item = instance
-            status |= item._status & item.PINNED
+            status |= item._status & (item.PINNED | item.DEFERRED)
         else:
             item = self.item = cls.__new__(cls)
 

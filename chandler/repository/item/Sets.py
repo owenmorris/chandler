@@ -115,6 +115,10 @@ class AbstractSet(ItemValue, Indexed):
 
         return self.itervalues()
 
+    def iterKeys(self):
+
+        return self.iterkeys()
+
     def __len__(self):
 
         index = self._anIndex()

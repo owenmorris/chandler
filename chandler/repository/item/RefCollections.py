@@ -253,8 +253,13 @@ class RefList(LinkedMap, Indexed):
         Remove all references from this ref collection.
         """
 
-        for item in self:
-            self.remove(item)
+        view = self._item.itsView
+        for uOther in self.iterkeys():
+            other = view.find(uOther)
+            if other is not None:
+                self.remove(other)
+            else:  # dangling ref, clean it up
+                self._removeRef(uOther, None, True)
 
     def _clearRefs(self):
 
@@ -748,6 +753,9 @@ class RefList(LinkedMap, Indexed):
     def iterItems(self):
         return self.itervalues()
 
+    def iterKeys(self):
+        return self.iterkeys()
+
     #    NEW  = 0x0001 (defined on CLinkedMap)
     #    LOAD = 0x0002 (defined on CLinkedMap)
     # MERGING = 0x0004 (defined on CLinkedMap)
@@ -942,6 +950,12 @@ class RefDict(object):
         for refList in self._dict.itervalues():
             for item in refList:
                 yield item
+
+    def iterKeys(self):
+
+        for refList in self._dict.itervalues():
+            for key in refList.iterKeys():
+                yield key
 
     def refCount(self, loaded):
 

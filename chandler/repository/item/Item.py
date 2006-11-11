@@ -1539,12 +1539,12 @@ class Item(CItem):
 
         if 'watches' in refs:
             for watch in self.watches:
-                watch.delete(True, None, None, True)
+                watch._delete(view, True, None, _noMonitors, _keepRoot)
         view._unregisterWatches(self)
 
         if 'monitors' in refs:
             for monitor in self.monitors:
-                monitor.delete(True, None, None, True)
+                monitor._delete(view, True, None, _noMonitors, _keepRoot)
 
         for name in refs.keys():
             policy = (deletePolicy or
@@ -1554,13 +1554,17 @@ class Item(CItem):
                 value = refs._getRef(name)
                 if value is not None:
                     if value._isRefs():
-                        others.update(value.iterItems())
+                        others.update(value.iterKeys())
                     else:
                         others.add(value)
 
         for other in others:
+            if isuuid(other):
+                other = view.find(other)
+                if other is None:
+                    continue
             if other.refCount(True) == 0:
-                other.delete(recursive, deletePolicy)
+                other._delete(view, True, deletePolicy, _noMonitors, _keepRoot)
 
         self._setKind(None, _noFireChanges)
         self.itsParent._removeItem(self)

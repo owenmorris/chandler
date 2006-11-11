@@ -421,6 +421,8 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def _refreshForwards(self, mergeFn, newVersion, notify):
 
+        mergeDeletes = []
+
         scan = True
         while scan:
             history = []
@@ -453,6 +455,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                 item.delete(True)
                                 if item.isDeferred():
                                     item._delete(self, True, None, False, True)
+                                mergeDeletes.append(uItem)
                             scan = True
 
         oldVersion = self._version
@@ -518,7 +521,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     for uItem, name, uRef in dangling:
                         item = self.find(uItem)
                         if item is not None:
-                            item._references._removeRef(name, uRef)
+                            item._references._removeRef(name, uRef, None, True)
 
                 except:
                     if verify:
@@ -572,6 +575,20 @@ class DBRepositoryView(OnDemandRepositoryView):
                                         timedelta(seconds=duration))
             else:
                 self.flushNotifications()
+
+            if self._deferredDeletes:
+                count = 0
+                indices = []
+                for defer in self._deferredDeletes:
+                    if defer[0].isDeleted():  # during merge delete
+                        indices.append(count)
+                    else:
+                        count += 1
+                for i in indices:
+                    del self._deferredDeletes[i]
+
+            for uItem in mergeDeletes:
+                del self._deletedRegistry[uItem]
 
         except:
             self._version = oldVersion
