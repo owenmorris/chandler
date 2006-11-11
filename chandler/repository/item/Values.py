@@ -421,7 +421,7 @@ class Values(CValues):
 
 class References(Values):
 
-    def _setValue(self, name, other, otherName, noMonitors=False,
+    def _setValue(self, name, other, otherName, noFireChanges=False,
                   cardinality=None, alias=None, dictKey=None, otherKey=None,
                   otherCard=None, otherAlias=None):
 
@@ -468,7 +468,7 @@ class References(Values):
         else:
             otherValue = None
 
-        if not noMonitors:
+        if not noFireChanges:
             if not item._isNoDirty():
                 item._fireChanges('set', name)
             if not (other is None or other._isNoDirty()):

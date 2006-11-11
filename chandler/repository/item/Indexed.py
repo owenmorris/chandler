@@ -131,7 +131,7 @@ class Indexed(object):
 
         if not (view.isLoading() or kwds.get('loading', False)):
             self.fillIndex(index)
-            self._setDirty(True) # noMonitors=True
+            self._setDirty(True) # noFireChanges=True
             monitor = kwds.get('monitor')
 
             def _attach(attrName):
@@ -191,7 +191,7 @@ class Indexed(object):
     def setDescending(self, indexName, descending=True):
 
         if self.getIndex(indexName).setDescending(descending) != descending:
-            self._setDirty(True) # noMonitors=True 
+            self._setDirty(True) # noFireChanges=True 
 
     def isDescending(self, indexName):
 
@@ -284,7 +284,7 @@ class Indexed(object):
             monitor.delete()
 
         del self._indexes[indexName]
-        self._setDirty(True) # noMonitors=True
+        self._setDirty(True) # noFireChanges=True
 
     def fillIndex(self, index, excludeIndexes=False):
 

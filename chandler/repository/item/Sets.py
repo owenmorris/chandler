@@ -441,7 +441,7 @@ class AbstractSet(ItemValue, Indexed):
                                                 repair) and
                 self._checkIndexes(logger, item, attribute, repair))
 
-    def _setDirty(self, noMonitors=False):
+    def _setDirty(self, noFireChanges=False):
 
         self._dirty = True
         item = self._item
@@ -454,10 +454,10 @@ class AbstractSet(ItemValue, Indexed):
                     
                 if self._otherName is None:
                     item.setDirty(item.VDIRTY, self._attribute,
-                                  item._values, noMonitors)
+                                  item._values, noFireChanges)
                 else:
                     item.setDirty(item.RDIRTY, self._attribute,
-                                  item._references, noMonitors)
+                                  item._references, noFireChanges)
             finally:
                 if verify:
                     view._status |= CView.VERIFY

@@ -1664,7 +1664,7 @@ class NullViewRefList(RefList):
     def _load(self, key):
         return False
     
-    def _setDirty(self, noMonitors=False):
+    def _setDirty(self, noFireChanges=False):
         pass
 
     def iterkeys(self, excludeIndexes=False, firstKey=None, lastKey=None):

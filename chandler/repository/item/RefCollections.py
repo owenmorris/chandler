@@ -70,11 +70,11 @@ class RefList(LinkedMap, Indexed):
     def _isDirty(self):
         return False
 
-    def _setDirty(self, noMonitors=False):
+    def _setDirty(self, noFireChanges=False):
 
         if self._flags & RefList.SETDIRTY:
             item = self._item
-            item.setDirty(item.RDIRTY, self._name, item._references, noMonitors)
+            item.setDirty(item.RDIRTY, self._name, item._references, noFireChanges)
 
     def _setFlag(self, flag, on):
 
