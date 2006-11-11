@@ -1126,7 +1126,7 @@ class AccountPreferencesDialog(wx.Dialog):
             application.dialogs.Util.ok(self, _(u"%(accountType)s Test Results") % {'accountType': 'WebDAV'}, msg)
 
     def OnSignUpWebDAV(self, evt):
-        webbrowser.open('http://cosmo-demo.osafoundation.org/chandler06_signup.html')
+        webbrowser.open('https://osaf.us/account/new')
 
     def OnAccountSel(self, evt):
         # Huh? This is always False!

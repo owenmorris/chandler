@@ -115,3 +115,12 @@ class InMemoryConduit(Sharing.ServerConduit):
     def _deleteItem(self, itemPath):
         if shareDict[self.shareName].has_key(itemPath):
             del shareDict[self.shareName][itemPath]
+
+    def inject(self, path, text):
+        if shareDict[self.shareName].has_key(path):
+            etag = shareDict[self.shareName][path][0]
+            etag += 1
+        else:
+            etag = 0
+
+        shareDict[self.shareName][path] = (etag, text)

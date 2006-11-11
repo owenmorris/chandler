@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<Share version='2' class='osaf.sharing.Sharing.Share' uuid='d1514632-47ea-11db-a812-0016cbca6aed'>
+<Share version='3' class='osaf.sharing.Sharing.Share' uuid='d1514632-47ea-11db-a812-0016cbca6aed'>
    <contents>
       <ListCollection class='osaf.pim.collections.ListCollection' uuid='d1511b12-47ea-11db-a812-0016cbca6aed'>
          <body mimetype='text/plain' encoding='utf-8'></body>
@@ -8,7 +8,7 @@
          <tags>
          </tags>
          <triageStatus>now</triageStatus>
-         <triageStatusChanged>1158191886.0</triageStatusChanged>
+         <triageStatusChanged>-1158191886.0</triageStatusChanged>
       </ListCollection>
    </contents>
    <sharees>
@@ -40,5 +40,5 @@
    <tags>
    </tags>
    <triageStatus>now</triageStatus>
-   <triageStatusChanged>1158704779.0</triageStatusChanged>
+   <triageStatusChanged>-1158704779.0</triageStatusChanged>
 </Share>

@@ -33,7 +33,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "275" # stearns: redo indexes for dashboard stamping columns
+SCHEMA_VERSION = "276" # morgen: fresh start for all data (bug 7354)
 
 
 logger = None # initialized in initLogging()

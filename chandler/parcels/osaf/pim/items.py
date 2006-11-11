@@ -489,7 +489,7 @@ class ContentItem(schema.Item):
            item.setTriageStatusChanged(when=someDateTime)
         """
         when = when or datetime.now(tz=ICUtzinfo.default)
-        self.triageStatusChanged = time.mktime(when.utctimetuple())
+        self.triageStatusChanged = -time.mktime(when.utctimetuple())
         logger.debug("%s.triageStatus = %s @ %s", self, getattr(self, 'triageStatus', None), when)
         
         if getattr(self, '_unpurgedTriageStatus', None) == self.triageStatus:

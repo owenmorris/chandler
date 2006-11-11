@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<MailMessage version='2' class='osaf.pim.mail.MailMessage' uuid='5b44e42a-420a-11db-b64e-0016cbca6aed'>
+<MailMessage version='3' class='osaf.pim.mail.MailMessage' uuid='5b44e42a-420a-11db-b64e-0016cbca6aed'>
    <fromAddress>
       <EmailAddress class='osaf.pim.mail.EmailAddress' uuid='5b446b8a-420a-11db-b64e-0016cbca6aed'>
          <emailAddress>someone@somewhere.example.com</emailAddress>
@@ -10,7 +10,7 @@
          <tags>
          </tags>
          <triageStatus>done</triageStatus>
-         <triageStatusChanged>1158958218.0</triageStatusChanged>
+         <triageStatusChanged>-1158958218.0</triageStatusChanged>
       </EmailAddress>
    </fromAddress>
    <toAddress>
@@ -22,7 +22,7 @@
          <tags>
          </tags>
          <triageStatus>done</triageStatus>
-         <triageStatusChanged>1158958391.0</triageStatusChanged>
+         <triageStatusChanged>-1158958391.0</triageStatusChanged>
       </EmailAddress>
    </toAddress>
    <ccAddress>
@@ -36,7 +36,7 @@
    <tags>
    </tags>
    <triageStatus>later</triageStatus>
-   <triageStatusChanged>1159945337.0</triageStatusChanged>
+   <triageStatusChanged>-1159945337.0</triageStatusChanged>
    <mimeParts>
    </mimeParts>
 </MailMessage>

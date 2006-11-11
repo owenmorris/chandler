@@ -75,7 +75,7 @@ __all__ = [
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-CLOUD_XML_VERSION = '2'
+CLOUD_XML_VERSION = '3'
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -3329,9 +3329,27 @@ class CloudXMLFormat(ImportExportFormat):
         else: # time to mixin
             kind = kinds[0].mixin(kinds[1:])
 
+
         if item is None:
             # item search turned up empty, so create an item...
             if uuid:
+
+                # Bug 7354: Before we proceed to create this item, let's see
+                # if an icalUID is specified in the XML -- if there is, then
+                # see if there is a master event already with this icalUID.
+                # If so, skip this item.
+                icalElement = self._getElement(element, 'icalUID')
+                if icalElement is not None:
+                    icalUID = icalElement.text
+                    existingEvent = pim.calendar.Calendar.findUID(view, icalUID)
+                    if existingEvent is not None:
+                        eventItem = existingEvent.itsItem
+                        logger.error("A master event with this icalUID (%s) "
+                                     "already exists (%s)",
+                                     icalUID, eventItem.itsUUID)
+                        raise SharingError("Item with duplicate icalUID (%s)" %
+                                           icalUID)
+
                 parent = schema.Item.getDefaultParent(view)
                 item = kind.instantiateItem(None, parent, uuid,
                                             withInitialValues=True)
@@ -3349,14 +3367,6 @@ class CloudXMLFormat(ImportExportFormat):
                     displayName="New item", items=[item])
 
         else:
-            # there is a chance that the incoming kind is different than the
-            # item's kind
-
-            # @@@MOR Since view merging doesn't support kind changes, don't
-            # change the kind of an existing item (for now):
-
-            # item.itsKind = kind
-
             uuid = item.itsUUID
             if stats and uuid not in stats['modified']:
                 stats['modified'].append(uuid)

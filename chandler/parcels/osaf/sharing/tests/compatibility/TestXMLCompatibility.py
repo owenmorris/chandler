@@ -259,7 +259,7 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
                     objectValue = list(i)
 
             if attr == 'triageStatusChanged':
-                self.assertTrue(objectValue >= value,
+                self.assertTrue(objectValue <= value,
                                 "Value for attribute %s of imported object %r didn't match" %(attr, object))
             else:
                 self.failUnlessEqual(objectValue, value,
@@ -284,7 +284,7 @@ class EventTestCase(SharingTestCase):
                               tzinfo=ICUtzinfo.getInstance("US/Pacific")),
         'duration': datetime.timedelta(minutes=30),
         'body': u'This is the contents\nof the event',
-        'triageStatusChanged': 1157944145.0,
+        'triageStatusChanged': -1157944145.0,
     }
 
     def testExport(self):
@@ -342,7 +342,7 @@ class TaskTestCase(SharingTestCase):
                               tzinfo=ICUtzinfo.getInstance("US/Pacific")),
         'body': u'Here are some fascinating task notes',
         'triageStatus': pim.TriageEnum.later,
-        'triageStatusChanged': 1159945337.0
+        'triageStatusChanged': -1159945337.0
     }
 
     def testExport(self):
@@ -387,7 +387,7 @@ class MailTestCase(SharingTestCase):
         'body': u'This is a highly\npoignant email message\n',
         'mimeType': 'message/rfc822',
         'triageStatus': pim.TriageEnum.later,
-        'triageStatusChanged': 1159945337.0
+        'triageStatusChanged': -1159945337.0
     }
     
     def setUp(self):
@@ -400,7 +400,7 @@ class MailTestCase(SharingTestCase):
                 createdOn = datetime.datetime(2006, 9, 10, 17, 3, 11,
                                     tzinfo=ICUtzinfo.getInstance("US/Pacific")),
                 triageStatus = pim.TriageEnum.done,
-                triageStatusChanged = 1158958218.0))
+                triageStatusChanged = -1158958218.0))
         
         self.toAddress = self._createObject(pim.mail.EmailAddress, dict(
                itsUUID=UUID('5b44b9aa-420a-11db-b64e-0016cbca6aed'),
@@ -409,7 +409,7 @@ class MailTestCase(SharingTestCase):
                createdOn=datetime.datetime(2006, 9, 10, 17, 3, 9,
                     tzinfo=ICUtzinfo.getInstance("US/Pacific")),
                triageStatus=pim.TriageEnum.done,
-               triageStatusChanged=1158958391.0))
+               triageStatusChanged=-1158958391.0))
 
         self.attributes = dict(self.attributes)
         self.attributes.update(toAddress=[self.toAddress], 
@@ -459,7 +459,7 @@ class ComplexMailTestCase(SharingTestCase):
                 "--", "Anthony Baxter     &lt;anthony@interlink.com.au&gt;",
                 "It's never too late to have a happy childhood.", "")),
         'triageStatus': pim.TriageEnum.now,
-        'triageStatusChanged': 1158292128.0
+        'triageStatusChanged': -1158292128.0
     }
     
     def setUp(self):
@@ -472,7 +472,7 @@ class ComplexMailTestCase(SharingTestCase):
                 createdOn = datetime.datetime(2006, 9, 14, 12, 48, 48,
                                     tzinfo=ICUtzinfo.getInstance("US/Pacific")),
                 triageStatus = pim.TriageEnum.now,
-                triageStatusChanged = 1158288128.0))
+                triageStatusChanged = -1158288128.0))
                 
         mimeBinary = self._createObject(pim.mail.MIMEBinary, dict(
             itsUUID=UUID('09dbbb82-442a-11db-bd6e-0016cbca6aed'),
@@ -483,7 +483,7 @@ class ComplexMailTestCase(SharingTestCase):
             createdOn=datetime.datetime(2006, 9, 14, 12, 48, 48, 228990,
                                     tzinfo=ICUtzinfo.getInstance("US/Pacific")),
             triageStatus=pim.TriageEnum.now,
-            triageStatusChanged=1158288128.0))
+            triageStatusChanged=-1158288128.0))
             
         mimeText = self._createObject(pim.mail.MIMEText, dict(
               itsUUID=UUID('09dc66d6-442a-11db-bd6e-0016cbca6aed'),
@@ -494,7 +494,7 @@ class ComplexMailTestCase(SharingTestCase):
               createdOn=datetime.datetime(2006, 9, 14, 12, 48, 48, 232830,
                                     tzinfo=ICUtzinfo.getInstance("US/Pacific")),
               triageStatus=pim.TriageEnum.now,
-              triageStatusChanged=1158292128.0))
+              triageStatusChanged=-1158292128.0))
 
         
         self.attributes = dict(self.attributes)
@@ -556,7 +556,7 @@ class EmptyMailTestCase(SharingTestCase):
         'mimeType': 'message/rfc822',
         'toAddress': [],
         'triageStatus': pim.TriageEnum.now,
-        'triageStatusChanged': 1156502242.0
+        'triageStatusChanged': -1156502242.0
     }
 
 
@@ -612,7 +612,7 @@ class EventTaskTestCase(SharingTestCase):
                               tzinfo=ICUtzinfo.getInstance("US/Pacific")),
         'duration': datetime.timedelta(minutes=60),
         'triageStatus': pim.TriageEnum.now,
-        'triageStatusChanged': 1159263393.0,
+        'triageStatusChanged': -1159263393.0,
         'stamp_types': [pim.TaskStamp],
     }
     
@@ -626,7 +626,7 @@ class EventTaskTestCase(SharingTestCase):
             createdOn=datetime.datetime(2006, 9, 21, 13, 41, 50, 272075,
                                     tzinfo=ICUtzinfo.getInstance("US/Pacific")),
             triageStatus=pim.TriageEnum.now,
-            triageStatusChanged=1158900110.0))
+            triageStatusChanged=-1158900110.0))
           
         contact = self._createObject(pim.Contact, dict(
             itsUUID=UUID('9b839032-49b1-11db-e5fa-f7316ff1be10'),
@@ -635,7 +635,7 @@ class EventTaskTestCase(SharingTestCase):
             createdOn=datetime.datetime(2006, 9, 21, 13, 41, 50, 470953,
                                     tzinfo=ICUtzinfo.getInstance("US/Pacific")),
             triageStatus=pim.TriageEnum.now,
-            triageStatusChanged=1158900110.0))
+            triageStatusChanged=-1158900110.0))
             
         
         self.attributes = dict(self.attributes)
@@ -692,7 +692,7 @@ class MailedEventTaskTestCase(SharingTestCase):
         'duration': datetime.timedelta(minutes=60),
         'mimeType': 'message/rfc822',
         'triageStatus': pim.TriageEnum.later,
-        'triageStatusChanged': 1158900317.0,
+        'triageStatusChanged': -1158900317.0,
         'stamp_types': [pim.TaskStamp, pim.mail.MailStamp],
     }
 
@@ -739,7 +739,7 @@ class ShareTestCase(SharingTestCase):
         'createdOn':
             datetime.datetime(2006, 8, 27, 12, 1, 0,
                               tzinfo=ICUtzinfo.getInstance("US/Pacific")),
-        'triageStatusChanged': 1158704779.0,
+        'triageStatusChanged': -1158704779.0,
     }
     
     def setUp(self):
@@ -751,7 +751,7 @@ class ShareTestCase(SharingTestCase):
                createdOn = datetime.datetime(2005, 4, 11, 8, 12, 33,
                                     tzinfo=ICUtzinfo.getInstance("US/Pacific")),
                triageStatus = pim.TriageEnum.now,
-               triageStatusChanged = 1158191886.0))
+               triageStatusChanged = -1158191886.0))
                
         try:
             pim.EventStamp

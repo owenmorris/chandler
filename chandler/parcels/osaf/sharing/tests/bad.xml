@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<MailedEvent version='2' class='osaf.pim.MailedEvent'
+<MailedEvent version='3' class='osaf.pim.MailedEvent'
 uuid='a54d7ff0-23e2-11db-9020-ae744e613304'>
     <icalUID>cfde22ca-1207-11db-a447-a500afdcc0cc</icalUID>
     <participants>

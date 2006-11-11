@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<CalendarEvent version='2' class='osaf.pim.calendar.Calendar.CalendarEvent' uuid='5502c952-410a-11db-f9a1-0016cbca6aed'>
+<CalendarEvent version='3' class='osaf.pim.calendar.Calendar.CalendarEvent' uuid='5502c952-410a-11db-f9a1-0016cbca6aed'>
    <icalUID>9d7813fe-4100-11db-9645-0016cbca6aed</icalUID>
    <displayName>This is my •ed event</displayName>
    <body mimetype='text/plain' encoding='utf-8'>VGhpcyBpcyB0aGUgY29udGVudHMKb2YgdGhlIGV2ZW50</body>
@@ -8,5 +8,5 @@
    <tags>
    </tags>
    <triageStatus>now</triageStatus>
-   <triageStatusChanged>1157944145.0</triageStatusChanged>
+   <triageStatusChanged>-1157944145.0</triageStatusChanged>
 </CalendarEvent>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<MailMessage version='2' class='osaf.pim.mail.MailMessage' uuid='09da180e-442a-11db-bd6e-0016cbca6aed'>
+<MailMessage version='3' class='osaf.pim.mail.MailMessage' uuid='09da180e-442a-11db-bd6e-0016cbca6aed'>
    <fromAddress>
       <EmailAddress class='osaf.pim.mail.EmailAddress' uuid='09dd5f96-442a-11db-bd6e-0016cbca6aed'>
          <emailAddress>anthony@interlink.com.au</emailAddress>
@@ -10,7 +10,7 @@
          <tags>
          </tags>
          <triageStatus>now</triageStatus>
-         <triageStatusChanged>1158288128.0</triageStatusChanged>
+         <triageStatusChanged>-1158288128.0</triageStatusChanged>
       </EmailAddress>
    </fromAddress>
    <toAddress>
@@ -34,7 +34,7 @@
          <tags>
          </tags>
          <triageStatus>now</triageStatus>
-         <triageStatusChanged>1158288128.0</triageStatusChanged>
+         <triageStatusChanged>-1158288128.0</triageStatusChanged>
       </MIMEBinary>
       <MIMEText class='osaf.pim.mail.MIMEText' uuid='09dc66d6-442a-11db-bd6e-0016cbca6aed'>
          <filename>Attachment-2.html</filename>
@@ -45,7 +45,7 @@
          <tags>
          </tags>
          <triageStatus>now</triageStatus>
-         <triageStatusChanged>1158292128.0</triageStatusChanged>
+         <triageStatusChanged>-1158292128.0</triageStatusChanged>
       </MIMEText>
    </mimeParts>
    <mimeType>message/rfc822</mimeType>
@@ -54,5 +54,5 @@
    <tags>
    </tags>
    <triageStatus>now</triageStatus>
-   <triageStatusChanged>1158292128.0</triageStatusChanged>
+   <triageStatusChanged>-1158292128.0</triageStatusChanged>
 </MailMessage>

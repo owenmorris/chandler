@@ -44,6 +44,7 @@ from i18n import ChandlerMessageFactory as _
 import os, logging
 import bisect
 from chandlerdb.util.c import UUID
+import md5
 
 FREEBUSY_WEEKS_EXPORTED = 26
 
@@ -641,9 +642,11 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                         # go ahead and use it for the new item's UUID.
                         uuid = UUID(uid)
                     except ValueError:
-                        # Not in valid UUID format, so just create a new UUID
-                        uuid = UUID()
-                        logger.info("iCalendar UID not in UUID form (%s)", uid)
+                        # Not in valid UUID format, so hash the icaluid to
+                        # generate a 16-byte string we can use for uuid
+                        uuid = UUID(md5.new(uid).digest())
+                        logger.info("Converted icalUID '%s' to UUID '%s'", uid,
+                            str(uuid))
 
                     parent = schema.Item.getDefaultParent(view)
                     kind = Note.getKind(view)

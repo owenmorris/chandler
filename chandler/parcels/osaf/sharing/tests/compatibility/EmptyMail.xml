@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<MailMessage version='2' class='osaf.pim.mail.MailMessage' uuid='7b3b015e-6f57-11db-ed86-0016cbca6aed'>
+<MailMessage version='3' class='osaf.pim.mail.MailMessage' uuid='7b3b015e-6f57-11db-ed86-0016cbca6aed'>
    <toAddress>
    </toAddress>
    <ccAddress>
@@ -14,7 +14,7 @@
    <tags>
    </tags>
    <triageStatus>now</triageStatus>
-   <triageStatusChanged>1156502242.0</triageStatusChanged>
+   <triageStatusChanged>-1156502242.0</triageStatusChanged>
    <mimeParts>
    </mimeParts>
 </MailMessage>
