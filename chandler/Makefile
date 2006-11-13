@@ -158,8 +158,10 @@ SETUPTOOLS_BIN  = $(C_BIN)/$(SNAP)
 EASYINSTALL_BIN = $(EASYINSTALL)
 PLUGIN_ABS      = $(PLUGIN_ARCHIVES)
 PLUGIN_INST     = $(C_HOME)
+PYEGG_INST      = $(C_BIN)/$(SITE)
 PYTHON_BIN      = $(C_BIN)/$(SNAP)/RunPython
 TOOLS           = $(C_HOME)/tools/
+PYEGG_ARCHIVES  = $(CHANDLERARCHIVES)/
 
 #
 # The following cygpaths are all done using
@@ -173,7 +175,9 @@ ifeq ($(OS),Cygwin)
     EASYINSTALL_BIN := $(shell cygpath -wa $(EASYINSTALL))
     PLUGIN_ABS      := $(shell cygpath -aw $(PLUGIN_ARCHIVES))
     PLUGIN_INST     := $(shell cygpath -aw $(C_HOME))
+    PYEGG_INST      := $(shell cygpath -aw $(C_BIN)/$(SITE))
     TOOLS           := $(shell cygpath -aw $(TOOLS))\\
+    PYEGG_ARCHIVES  := $(shell cygpath -aw $(CHANDLERARCHIVES))\\
 endif
 
 ARCHIVES_INST = \
@@ -230,9 +234,11 @@ $(PYEGGS):
 	$(CURL) $@ $(P_URL)/$(notdir $@)
 
 $(PYEGGS_INST):
-	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' CHANDLERHOME='$(CHANDLERHOME)' $(PYTHON_BIN) \
-      -c "from setuptools.command.easy_install import main; main()" \
-      $(CHANDLERARCHIVES)/$(notdir $(basename $@))
+	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' \
+      $(PYTHON_BIN) -c "from setuptools.command.easy_install import main; main()" \
+      --script-dir='$(SETUPTOOLS_BIN)' \
+      --install-dir='$(PYEGG_INST)' \
+      '$(PYEGG_ARCHIVES)'$(notdir $(basename $@))
 	touch $@
 
 $(SETUPTOOLS_EGG):
