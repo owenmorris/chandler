@@ -718,14 +718,6 @@ class SmartCollection(AppCollection):
                     watch.delete()
 
 
-class InclusionExclusionCollection(SmartCollection):
-    """
-    For backwards compatibility with 0.6 clients.
-    """
-    # @@@MOR 0.6 sharing compatibility
-    pass
-
-
 class IndexedSelectionCollection(SingleSourceWrapperCollection):
     """
     A collection that adds an index, e.g. for sorting items, a
