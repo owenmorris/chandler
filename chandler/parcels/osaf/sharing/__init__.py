@@ -175,9 +175,6 @@ def interrupt(graceful=True):
     """
     global interrupt_flag
 
-    if running_status == IDLE:
-        return
-
     if graceful:
         interrupt_flag = GRACEFUL_STOP # allow the current sync( ) to complete
     else:
@@ -286,6 +283,9 @@ class BackgroundSyncHandler:
             for collection in collections:
 
                 if interrupt_flag != PROCEED: # interruption
+                    # We have been asked to stop, so fire the deferred
+                    if shutdown_deferred:
+                        shutdown_deferred.callback(None)
                     return True
 
                 callCallbacks(UPDATE, msg="Syncing collection '%s'" %
