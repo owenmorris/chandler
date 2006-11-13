@@ -45,6 +45,7 @@ from conduits import *
 from WebDAV import *
 from ICalendar import *
 from callbacks import *
+from eim import *
 
 from osaf.pim.collections import UnionCollection, DifferenceCollection
 

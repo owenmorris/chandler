@@ -1,13 +1,15 @@
 __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'LobType', 'get_converter', 'add_converter', 'subtype',
-    'typedef', 'field', 'key', 'NoChange', 'Record'
+    'typedef', 'field', 'key', 'NoChange', 'Record', 'UUIDType'
 ]
 
 from symbols import Symbol  # XXX change this to peak.util.symbols
 from simplegeneric import generic
 from weakref import WeakValueDictionary
 import linecache, os
+from application import schema
+from chandlerdb.util.c import UUID
 
 @generic
 def get_converter(context):
@@ -380,6 +382,29 @@ add_converter(IntType, int, int)
 typedef(int, IntType)
 add_converter(TextType, str, unicode)
 add_converter(TextType, unicode, unicode)
+
+
+
+
+
+
+UUIDType = BytesType("cid:uuid_type@osaf.us", size=36)
+typedef(schema.UUID, UUIDType)
+
+def uuid_converter(uuid):
+    return str(uuid)
+
+def item_uuid_converter(item):
+    return str(item.itsUUID)
+
+add_converter(UUIDType, UUID, uuid_converter)
+add_converter(UUIDType, schema.Item, item_uuid_converter)
+
+
+
+
+
+
 
 def subtype(typeinfo, *args, **kw):
     """XXX"""
