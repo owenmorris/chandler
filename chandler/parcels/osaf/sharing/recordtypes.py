@@ -8,7 +8,8 @@ class ItemRecord(sharing.Record):
     uuid = sharing.key(schema.UUID)
     title = sharing.field(sharing.TextType(size=256))
     triage_status = sharing.field(sharing.TextType(size=256))
-    # triage_status_changed = sharing.field(sharing.FloatType) # needs to be addedto eim.py
+    triage_status_changed = sharing.field(sharing.DecimalType(digits=11,
+        decimal_places=2))
     last_modified_by = sharing.field(sharing.TextType(size=256)) # storing an email address
     created_on = sharing.field(sharing.DateType)
 

@@ -1,12 +1,13 @@
 __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'LobType', 'get_converter', 'add_converter', 'subtype',
-    'typedef', 'field', 'key', 'NoChange', 'Record'
+    'typedef', 'field', 'key', 'NoChange', 'Record', 'DecimalType'
 ]
 
 from symbols import Symbol  # XXX change this to peak.util.symbols
 from simplegeneric import generic
 from weakref import WeakValueDictionary
+from decimal import *
 import linecache, os
 from application import schema
 from chandlerdb.util.c import UUID
@@ -145,6 +146,38 @@ class SizedType(TypeInfo):
         if size is None:
             size = self.size
         return self.__class__(uri, size, *args, **kw)
+
+
+
+
+class DecimalType(TypeInfo):
+    abstract = False
+    __slots__ = ('digits', 'decimal_places')
+
+    def __init__(self, uri=None, digits=None, decimal_places=None):
+        if digits is None or decimal_places is None:
+            raise TypeError(
+                "digits and decimal_places must be specified when creating a sharing."
+                + self.__class__.__name__
+            )
+        self.digits = digits
+        self.decimal_places = decimal_places
+        TypeInfo.__init__(self, uri)
+
+    def __repr__(self):
+        return 'sharing.%s(%r, %d, %d)' % (
+            self.__class__.__name__, self.uri, self.digits, self.decimal_places
+        )
+
+    def clone(self, uri=None, digits=None, decimal_places=None, *args, **kw):
+        if digits is None:
+            digits = self.digits
+        if decimal_places is None:
+            decimal_places = self.decimal_places
+        return self.__class__(uri, digits, decimal_places, *args, **kw)
+
+
+
 
 class BytesType(SizedType): __slots__ = ()
 class TextType(SizedType):  __slots__ = ()
