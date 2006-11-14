@@ -45,7 +45,7 @@ static int t_link_setAlias(t_link *self, PyObject *arg, void *data);
 
 static PyObject *t_lm_has_key(t_lm *self, PyObject *key);
 static PyObject *t_lm_get(t_lm *self, PyObject *args);
-static t_link *_t_lm__get(t_lm *self, PyObject *key, int load);
+static t_link *_t_lm__get(t_lm *self, PyObject *key, int load, int noError);
 static PyObject *t_lm__get(t_lm *self, PyObject *args);
 static PyObject *t_lm_dict_clear(t_lm *self, PyObject *args);
 
@@ -585,7 +585,7 @@ static int t_lm_init(t_lm *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
-static t_link *_t_lm__get(t_lm *self, PyObject *key, int load)
+static t_link *_t_lm__get(t_lm *self, PyObject *key, int load, int noError)
 {
     PyObject *link = PyDict_GetItem(self->dict, key);
 
@@ -608,7 +608,8 @@ static t_link *_t_lm__get(t_lm *self, PyObject *key, int load)
 
         if (link == NULL)
         {
-            PyErr_SetObject(PyExc_KeyError, key);
+            if (!noError)
+                PyErr_SetObject(PyExc_KeyError, key);
             return NULL;
         }
     }
@@ -624,17 +625,23 @@ static t_link *_t_lm__get(t_lm *self, PyObject *key, int load)
 
 static PyObject *t_lm__get(t_lm *self, PyObject *args)
 {
-    PyObject *key, *load = Py_True;
+    PyObject *key;
+    int load = 1;
+    int noError = 0;
 
-    if (!PyArg_ParseTuple(args, "O|O", &key, &load))
+    if (!PyArg_ParseTuple(args, "O|ii", &key, &load, &noError))
         return NULL;
     else
     {
-        PyObject *link = (PyObject *)
-            _t_lm__get(self, key, PyObject_IsTrue(load));
+        PyObject *link = (PyObject *) _t_lm__get(self, key, load, noError);
 
         if (!link)
+        {
+            if (noError)
+                Py_RETURN_NONE;
+
             return NULL;
+        }
 
         Py_INCREF(link);
         return link;
@@ -650,7 +657,7 @@ static int t_lm_dict_length(t_lm *self)
 
 static PyObject *t_lm_dict_get(t_lm *self, PyObject *key)
 {
-    t_link *link = _t_lm__get(self, key, 1);
+    t_link *link = _t_lm__get(self, key, 1, 0);
 
     if (!link)
         return NULL;
@@ -677,7 +684,7 @@ static int t_lm_dict_set(t_lm *self, PyObject *key, PyObject *value)
 
             if (previousKey != Py_None && PyObject_Compare(previousKey, key))
             {
-                t_link *previous = _t_lm__get(self, previousKey, 1);
+                t_link *previous = _t_lm__get(self, previousKey, 1, 0);
 
                 if (!previous)
                     return -1;
@@ -758,7 +765,7 @@ static PyObject *t_lm_dict_clear(t_lm *self, PyObject *args)
 
 static PyObject *t_lm_previousKey(t_lm *self, PyObject *key)
 {
-    t_link *link = _t_lm__get(self, key, 1);
+    t_link *link = _t_lm__get(self, key, 1, 0);
 
     if (!link)
         return NULL;
@@ -773,7 +780,7 @@ static PyObject *t_lm_previousKey(t_lm *self, PyObject *key)
 
 static PyObject *t_lm_nextKey(t_lm *self, PyObject *key)
 {
-    t_link *link = _t_lm__get(self, key, 1);
+    t_link *link = _t_lm__get(self, key, 1, 0);
 
     if (!link)
         return NULL;

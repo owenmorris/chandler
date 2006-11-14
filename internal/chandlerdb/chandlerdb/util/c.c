@@ -132,11 +132,11 @@ static PyObject *packDigits(PyObject *self, PyObject *arg)
         bytes = (unsigned char *) PyString_AS_STRING(digits);
         memset(bytes, 0, blen);
         if (len & 1)
-            bytes[blen - 1] |= 0xf;
+            bytes[blen - 1] |= 0x0f;
 
         for (i = 0; i < len; i++) {
             PyObject *digit = PyTuple_GET_ITEM(arg, i);
-            int n = PyInt_AS_LONG(digit);
+            int n = PyInt_AS_LONG(digit) & 0x0f;
 
             if (i & 1)
                 bytes[i >> 1] |= n;
@@ -163,7 +163,7 @@ static PyObject *unpackDigits(PyObject *self, PyObject *arg)
         PyObject *digits;
         int i;
 
-        if ((bytes[blen - 1] & 0xf) == 0xf)
+        if ((bytes[blen - 1] & 0x0f) == 0x0f)
             len -= 1;
 
         digits = PyTuple_New(len);
@@ -174,7 +174,7 @@ static PyObject *unpackDigits(PyObject *self, PyObject *arg)
             int n;
 
             if (i & 1)
-                n = bytes[i >> 1] & 0xf;
+                n = bytes[i >> 1] & 0x0f;
             else
                 n = bytes[i >> 1] >> 4;
 
