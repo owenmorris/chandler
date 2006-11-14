@@ -521,7 +521,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     for uItem, name, uRef in dangling:
                         item = self.find(uItem)
                         if item is not None:
-                            item._references._removeRef(name, uRef, None, True)
+                            item._references._removeRef(name, uRef)
 
                 except:
                     if verify:

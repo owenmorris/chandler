@@ -348,7 +348,7 @@ class AbstractSet(ItemValue, Indexed):
                             if op == 'add':
                                 refs._addRef(self._otherName, item, attribute, True)
                             else:
-                                refs._removeRef(self._otherName, item, None, True)
+                                refs._removeRef(self._otherName, item)
                         elif op == 'add':
                             raise AssertionError, ("op == 'add' but item not found", other)
 
@@ -512,9 +512,9 @@ class AbstractSet(ItemValue, Indexed):
                                  'add', 'collection', other.itsUUID,
                                  True)
 
-    def _removeRef(self, other, dictKey=None, noError=False):
+    def _removeRef(self, other, dictKey=None):
 
-        if not noError or other in self:
+        if other in self:
             self._item.remove(other)
             self._view._notifyChange(self._collectionChanged,
                                      'remove', 'collection', other.itsUUID,

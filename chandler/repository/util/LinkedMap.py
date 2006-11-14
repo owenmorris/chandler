@@ -70,7 +70,9 @@ class LinkedMap(CLinkedMap):
             
     def __delitem__(self, key):
 
-        link = self._get(key)
+        link = self._get(key, True, True)
+        if link is None:
+            return None
 
         if link._previousKey is not None:
             self._get(link._previousKey)._nextKey = (link._nextKey,

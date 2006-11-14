@@ -259,7 +259,7 @@ class RefList(LinkedMap, Indexed):
             if other is not None:
                 self.remove(other)
             else:  # dangling ref, clean it up
-                self._removeRef(uOther, None, True)
+                self._removeRef(uOther, None)
 
     def _clearRefs(self):
 
@@ -412,17 +412,15 @@ class RefList(LinkedMap, Indexed):
 
         return link
 
-    def _removeRef(self, other, dictKey=None, noError=False):
+    def _removeRef(self, other, dictKey=None):
 
-        if not noError or other in self:
-            link = self._removeRef_(other)
-
+        link = self._removeRef_(other)
+        if link is not None:
             item = self._item
             view = item.itsView
             view._notifyChange(item._collectionChanged,
                                'remove', 'collection', self._name,
                                other.itsUUID)
-
             return link._otherKey
 
     def _removeRefs(self):
@@ -814,10 +812,10 @@ class RefDict(object):
         self._refList(dictKey)._setRef(other, alias, dictKey, otherKey,
                                        fireChanges)
 
-    def _removeRef(self, other, dictKey=None, noError=False):
+    def _removeRef(self, other, dictKey=None):
 
-        if not noError or dictKey in self:
-            return self[dictKey]._removeRef(other, dictKey, noError)
+        if dictKey in self:
+            return self[dictKey]._removeRef(other, dictKey)
 
     def _removeRefs(self):
 

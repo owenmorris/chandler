@@ -1916,7 +1916,7 @@ class Item(CItem):
             acl = Nil
 
         if acl is Nil:
-            acl = self.itsView.getACL(self._uuid, name, default)
+            acl = self.itsView.getACL(self.itsUUID, name, default)
 
         if acl is Default:
             raise ItemError, ('no acl found and no default provided', name)

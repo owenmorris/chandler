@@ -587,13 +587,11 @@ class References(Values):
             #if initialValue is not item:
             #    other._references._setValue(otherName, initialValue, name)
 
-    def _removeRef(self, name, other, dictKey=None, noError=False):
+    def _removeRef(self, name, other, dictKey=None):
 
         value = self.get(name, self)
         if value is self:
-            if noError:
-                return
-            raise AssertionError, '_removeRef: no value for %s' %(name)
+            return
 
         item = self._item
         if value is other:
@@ -618,7 +616,7 @@ class References(Values):
             item.setDirty(CItem.VDIRTY, name, self, True)
             item._fireChanges('remove', name)
         elif value._isRefs():
-            return value._removeRef(other, dictKey, noError)
+            return value._removeRef(other, dictKey)
         else:
             raise BadRefError, (self._item, name, other, value)
         
