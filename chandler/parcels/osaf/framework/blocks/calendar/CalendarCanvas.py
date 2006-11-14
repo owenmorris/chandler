@@ -1717,7 +1717,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
             self.SaveAndHide()
 
     def OnChar(self, event):
-        keycode = event.KeyCode()
+        keycode = event.GetKeyCode()
         if keycode == wx.WXK_ESCAPE:
             self.OnEscapePressed(event)
         else:
