@@ -488,6 +488,11 @@ class ContentItem(schema.Item):
         can also be called directly to set a specific time:
            item.setTriageStatusChanged(when=someDateTime)
         """
+
+        # Don't set triageStatusChanged if triageStatus is set during sharing
+        if getattr(self, '_share_importing', False):
+            return
+
         when = when or datetime.now(tz=ICUtzinfo.default)
         self.triageStatusChanged = -time.mktime(when.utctimetuple())
         logger.debug("%s.triageStatus = %s @ %s", self, getattr(self, 'triageStatus', None), when)
