@@ -5,8 +5,8 @@
   <item file="Schema.root">
     <item file="Core.domain" cwd="model" afterLoadHooks="True">
 
-      <item files="*.type" />
-      <item files="*.alias" />
+      <item files="Core.types" />
+      <item files="Anything.alias" />
 
       <item files="*.attr" />
 

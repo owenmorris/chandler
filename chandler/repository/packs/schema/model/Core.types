@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<items>
+
+  <item withSchema="True">
+    <name>AbstractSet</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">AbstractSet</class>
+  </item>
+
+  <item withSchema="True">
+    <name>Boolean</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Boolean</class>
+  </item>
+
+  <item withSchema="True">
+    <name>Cardinality</name>
+    <kind type="path">//Schema/Core/Enumeration</kind>
+    <class module="repository.schema.Types">Enumeration</class>
+
+    <attribute name="values" cardinality="list">
+      <value>single</value>
+      <value>list</value>
+      <value>dict</value>
+      <value>set</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>Class</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Class</class>
+  </item>
+
+  <item withSchema="True">
+    <name>Complex</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Complex</class>
+  </item>
+
+  <item withSchema="True">
+    <name>CopyPolicy</name>
+    <kind type="path">//Schema/Core/Enumeration</kind>
+    <class module="repository.schema.Types">Enumeration</class>
+  
+    <attribute name="values" cardinality="list">
+      <value>remove</value>
+      <value>copy</value>
+      <value>cascade</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>CountPolicy</name>
+    <kind type="path">//Schema/Core/Enumeration</kind>
+    <class module="repository.schema.Types">Enumeration</class>
+  
+    <attribute name="values" cardinality="list">
+      <value>none</value>
+      <value>count</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>Date</name>
+    <kind type="path">//Schema/Core/Struct</kind>
+    <class module="repository.schema.Types">Date</class>
+  
+    <attribute name="fields" type="dict" cardinality="dict">
+      <value name="year"><values></values></value>
+      <value name="month"><values></values></value>
+      <value name="day"><values></values></value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>DateTime</name>
+    <kind type="path">//Schema/Core/Struct</kind>
+    <class module="repository.schema.Types">DateTime</class>
+
+    <attribute name="fields" type="dict" cardinality="dict">
+      <value name="year"><values></values></value>
+      <value name="month"><values></values></value>
+      <value name="day"><values></values></value>
+      <value name="hour"><values></values></value>
+      <value name="minute"><values></values></value>
+      <value name="second"><values></values></value>
+      <value name="microsecond"><values></values></value>
+      <value name="timezone"><values></values></value>
+    </attribute>
+  </item>
+
+   <item withSchema="True">
+    <name>DateTimeTZ</name>
+    <kind type="path">//Schema/Core/Struct</kind>
+    <class module="repository.schema.Types">DateTimeTZ</class>
+
+    <attribute name="fields" type="dict" cardinality="dict">
+      <value name="year"><values></values></value>
+      <value name="month"><values></values></value>
+      <value name="day"><values></values></value>
+      <value name="hour"><values></values></value>
+      <value name="minute"><values></values></value>
+      <value name="second"><values></values></value>
+      <value name="microsecond"><values></values></value>
+      <value name="timezone"><values></values></value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>Decimal</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Decimal</class>
+  </item>
+
+  <item withSchema="True">
+    <name>DeletePolicy</name>
+    <kind type="path">//Schema/Core/Enumeration</kind>
+    <class module="repository.schema.Types">Enumeration</class>
+  
+    <attribute name="values" cardinality="list">
+      <value>remove</value>
+      <value>cascade</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>Dictionary</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Dictionary</class>
+  
+    <attribute name="implementationTypes" cardinality="dict" type="class">
+      <value name="python">repository.item.PersistentCollections.PersistentDict</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>Float</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Float</class>
+  </item>
+  
+  <item withSchema="True">
+    <name>IncludePolicy</name>
+    <kind type="path">//Schema/Core/Enumeration</kind>
+    <class module="repository.schema.Types">Enumeration</class>
+  
+    <attribute name="values" cardinality="list">
+      <value>byValue</value>
+      <value>byCloud</value>
+      <value>byRef</value>
+      <value>none</value>
+      <value>byMethod</value>
+      <value>literal</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>Integer</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Integer</class>
+  </item>
+
+  <item withSchema="True">
+    <name>List</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">List</class>
+  
+    <attribute name="implementationTypes" cardinality="dict" type="class">
+      <value name="python">repository.item.PersistentCollections.PersistentList</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>Lob</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Lob</class>
+  </item>
+
+  <item withSchema="True">
+    <name>Long</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Long</class>
+  </item>
+
+  <item withSchema="True">
+    <name>None</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">NoneType</class>
+  </item>
+
+  <item withSchema="True">
+    <name>Path</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Path</class>
+  
+    <attribute name="implementationTypes" cardinality="dict" type="class">
+      <value name="python">repository.util.Path.Path</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>Set</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Set</class>
+  
+    <attribute name="implementationTypes" cardinality="dict" type="class">
+      <value name="python">repository.item.PersistentCollections.PersistentSet</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>SingleRef</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">SingleRef</class>
+  
+    <attribute name="implementationTypes" cardinality="dict" type="class">
+      <value name="python">chandlerdb.util.c.SingleRef</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>String</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">String</class>
+  </item>
+
+  <item withSchema="True">
+    <name>Bytes</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">BString</class>
+  </item>
+
+  <item withSchema="True">
+    <name>Text</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">UString</class>
+  </item>
+
+  <item withSchema="True">
+    <name>Symbol</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Symbol</class>
+  </item>
+
+  <item withSchema="True">
+    <name>Importable</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Importable</class>
+  </item>
+
+  <item withSchema="True">
+    <name>Time</name>
+    <kind type="path">//Schema/Core/Struct</kind>
+    <class module="repository.schema.Types">Time</class>
+
+    <attribute name="fields" type="dict" cardinality="dict">
+      <value name="hour"><values></values></value>
+      <value name="minute"><values></values></value>
+      <value name="second"><values></values></value>
+      <value name="microsecond"><values></values></value>
+      <value name="timezone"><values></values></value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>TimeTZ</name>
+    <kind type="path">//Schema/Core/Struct</kind>
+    <class module="repository.schema.Types">TimeTZ</class>
+
+    <attribute name="fields" type="dict" cardinality="dict">
+      <value name="hour"><values></values></value>
+      <value name="minute"><values></values></value>
+      <value name="second"><values></values></value>
+      <value name="microsecond"><values></values></value>
+      <value name="timezone"><values></values></value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>TimeDelta</name>
+    <kind type="path">//Schema/Core/Struct</kind>
+    <class module="repository.schema.Types">TimeDelta</class>
+  
+    <attribute name="fields" type="dict" cardinality="dict">
+      <value name="days"><values></values></value>
+      <value name="seconds"><values></values></value>
+      <value name="microseconds"><values></values></value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>TimeZone</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">TimeZone</class>
+  </item>
+
+  <item withSchema="True">
+    <name>Tuple</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">Tuple</class>
+  
+    <attribute name="implementationTypes" cardinality="dict" type="class">
+      <value name="python">repository.item.PersistentCollections.PersistentTuple</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>URL</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">URL</class>
+  
+    <attribute name="implementationTypes" cardinality="dict" type="class">
+      <value name="python">repository.util.URL.URL</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>UUID</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">UUID</class>
+  
+    <attribute name="implementationTypes" cardinality="dict" type="class">
+      <value name="python">chandlerdb.util.c.UUID</value>
+    </attribute>
+  </item>
+
+</items>

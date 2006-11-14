@@ -19,9 +19,10 @@ from new import classobj
 from struct import pack
 from datetime import datetime, date, time, timedelta
 from PyICU import ICUtzinfo, FloatingTZ
+from decimal import Decimal as decimal
 
 from chandlerdb.schema.c import CAttribute
-from chandlerdb.util.c import _hash, _combine, Nil
+from chandlerdb.util.c import _hash, _combine, Nil, packDigits, unpackDigits
 from chandlerdb.item.c import isitem
 from repository.item.Item import Item
 from repository.item.PersistentCollections import \
@@ -475,6 +476,58 @@ class Complex(Type):
 
         return _combine(_hash(pack('>d', value.real)),
                         _hash(pack('>d', value.imag)))
+        
+class Decimal(Type):
+
+    def getImplementationType(self):
+        return decimal
+    
+    def handlerName(self):
+        return 'decimal'
+
+    def makeValue(self, data):
+        return decimal(data)
+
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+        
+        sign, digits, exponent = value.as_tuple()
+
+        size = itemWriter.writeByte(buffer, sign)
+        size += itemWriter.writeString(buffer, packDigits(digits))
+        if isinstance(exponent, int):
+            size += itemWriter.writeByte(buffer, 0)
+            size += itemWriter.writeInteger(buffer, exponent)
+        elif isinstance(exponent, long):
+            size += itemWriter.writeByte(buffer, 1)
+            size += itemWriter.writeLong(buffer, exponent)
+        elif isinstance(exponent, str):
+            size += itemWriter.writeByte(buffer, 2)
+            size += itemWriter.writeString(buffer, exponent)
+        else:
+            raise TypeError, type(exponent)
+
+        return size
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
+
+        offset, sign = itemReader.readByte(offset, data)
+        offset, digits = itemReader.readString(offset, data)
+        offset, n = itemReader.readByte(offset, data)
+        if n == 0:
+            offset, exponent = itemReader.readInteger(offset, data)
+        elif n == 1:
+            offset, exponent = itemReader.readLong(offset, data)
+        elif n == 2:
+            offset, exponent = itemReader.readString(offset, data)
+        else:
+            raise ValueError, n
+
+        return offset, decimal((sign, unpackDigits(digits), exponent))
+
+    def hashValue(self, value):
+
+        return _hash(str(value))
         
 
 class Boolean(Type):

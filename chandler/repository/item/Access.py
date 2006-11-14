@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-class Permission(object):
+class Permissions(object):
 
     DENY    = 0x0001
     READ    = 0x0002
@@ -50,7 +50,7 @@ class ACE(object):
         self.perms = perms
 
         if deny:
-            self.perms |= Permission.DENY
+            self.perms |= Permissions.DENY
 
     def __repr__(self):
 
@@ -61,7 +61,7 @@ class ACE(object):
         if not principal.isMemberOf(self.pid):
             return (0, 0)
 
-        if self.perms & Permission.DENY:
+        if self.perms & Permissions.DENY:
             return (0, perms & self.perms)
         else:
             return (perms & self.perms, 0)

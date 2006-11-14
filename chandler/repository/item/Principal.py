@@ -20,11 +20,10 @@ class Principal(Item):
 
     def isMemberOf(self, pid):
     
-        if pid == self._uuid:
+        if pid == self.itsUUID:
             return True
 
-        principals = self.getAttributeValue('principals', self._references,
-                                            None, None)
+        principals = self._references.get('principals', None)
         if principals:
 
             if pid in principals:

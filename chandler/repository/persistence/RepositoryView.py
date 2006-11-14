@@ -67,8 +67,9 @@ class RepositoryView(CView):
     # 0.6.13: added 'literal' endpoint include policy
     # 0.6.14: added support for 'init' monitor op
     # 0.6.15: added IndexMonitor class
+    # 0.6.16: added support for python's decimal.Decimal type
     
-    CORE_SCHEMA_VERSION = 0x00060f00
+    CORE_SCHEMA_VERSION = 0x00061000
 
     def __init__(self, repository, name, version, deferDelete=Default):
         """

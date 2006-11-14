@@ -212,7 +212,7 @@ class AuthenticatedResource(resource.Resource):
         user = self.resourceItem.itsView.findUUID(session.user)
 
         acl = self.resourceItem.getACL(default=None)
-        if (not acl) or acl.verify(user, Access.Permission.READ):
+        if (not acl) or acl.verify(user, Access.Permissions.READ):
             method = getattr(self, 'render_' + request.method, None)
             if not method:
                 raise server.Unsupported(getattr(self, 'allowedMethods', ()))

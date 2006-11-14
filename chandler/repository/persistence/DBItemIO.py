@@ -110,6 +110,11 @@ class DBItemWriter(ItemWriter):
 
         return 1
 
+    def writeByte(self, buffer, value):
+
+        buffer.append(pack('>b', value))
+        return 1
+
     def writeShort(self, buffer, value):
 
         buffer.append(pack('>h', value))
@@ -815,6 +820,9 @@ class DBValueReader(ValueReader):
             value = None
 
         return offset+1, value
+
+    def readByte(self, offset, data):
+        return offset+1, unpack('>b', data[offset:offset+1])[0]
 
     def readShort(self, offset, data):
         return offset+2, unpack('>h', data[offset:offset+2])[0]
