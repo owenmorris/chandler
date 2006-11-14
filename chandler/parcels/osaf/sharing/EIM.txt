@@ -272,8 +272,6 @@ Misc. constructor data validation tests::
     >>> sharing.DecimalType(None, 3)    # default places of 0
     sharing.DecimalType(None, 3, 0)
 
-    >>>
-
 
 No such type::
 
