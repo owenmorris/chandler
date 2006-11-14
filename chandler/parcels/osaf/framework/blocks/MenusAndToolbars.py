@@ -478,7 +478,7 @@ class wxMenuItem (wx.MenuItem):
         Note: @@@DLD - remove when wx.MenuItem subclasses are returned by wx.
         """
         try:
-            if self.this.this == other.this:
+            if self.this == other.this:
                 return 0
             else:
                 return -1
@@ -489,7 +489,7 @@ class wxMenuItem (wx.MenuItem):
         Block.Block.wxOnDestroyWidget (self)
         # Remove the menu item from it's menu if it's still in the menu
         menu = self.GetMenu()
-        if menu.FindItemById (self.GetId()):
+        if menu and menu.FindItemById (self.GetId()):
             menu.RemoveItem (self)
         del self
 

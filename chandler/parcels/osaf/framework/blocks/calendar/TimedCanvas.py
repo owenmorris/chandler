@@ -97,7 +97,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self._bgSelectionDragEnd = True
         
         self.orderLast = []
-
+        self.drawOrderedCanvasItems = []
+        self.xOffset = 0
+        
     def setScroll(self):
         scrollY = self.blockItem.scrollY
         if scrollY < 0:
