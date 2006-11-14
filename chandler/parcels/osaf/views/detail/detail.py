@@ -324,10 +324,6 @@ class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
     def onSetContentsEvent(self, event):
         super(UnreadTimer, self).onSetContentsEvent(event)
         
-        # Don't do any of the below for now - this doesn't work right in
-        # functional tests.
-        return
-    
         # If this item isn't 'read' yet,
         # @@@ and isn't a recurrence (see bug 6702),
         # note that we'll need to set the timer to maybe mark it read.
@@ -944,10 +940,9 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
                         scaleTimeDelta(15, 0, value == 'after'))
         else:
             assert value == 'custom'
-            # Absolute: today's date at 5PM
+            # Make a reminder at the default new reminder time
             setattr(item, pim.Remindable.userReminderTime.name,
-                    datetime.now(tz=ICUtzinfo.default)\
-                    .replace(hour=17, minute=0, second=0, microsecond=0))
+                    pim.Reminder.defaultTime())
             
         self.control.blockItem.watchForChanges()
                         

@@ -183,11 +183,22 @@ class ContentItem(schema.Item):
         initialValue=[]
     )
 
-    triageStatus = schema.One(TriageEnum, indexed=True,
-                              defaultValue=TriageEnum.now)
-
+    # "Section" triage status is used for sorting
+    triageStatus = schema.One(TriageEnum, defaultValue=TriageEnum.now)
+    
+    # "unpurged" (aka "color") triage status is used to set (and changed 
+    # by) the column cell, and is pushed to sectionTriageStatus by the 
+    # 'Triage' button.
     _unpurgedTriageStatus = schema.One(TriageEnum)
 
+    # For sorting by how recently the triageStatus values changed, 
+    # we keep these attributes, which are the time (in seconds) of the last 
+    # change to each, negated for proper order. They're updated automatically 
+    # when the corresponding triage status value is changed by 
+    # setTriageStatus and setUnpurgedTriageStatus, below.
+    triageStatusChanged = schema.One(schema.Float)
+    _unpurgedTriageStatusChanged = schema.One(schema.Float)
+    
     def getUnpurgedTriageStatus(self):
         result = self.getAttributeValue('_unpurgedTriageStatus', default=None)
         if result is None:
@@ -204,12 +215,6 @@ class ContentItem(schema.Item):
                             basedOn=(_unpurgedTriageStatus, triageStatus),
                             doc="Calculated for edited triageStatus, before"
                                 "user has committed changes")
-
-    # For sorting by how recently triageStatus changed, we keep this attribute,
-    # which is the time (in seconds) of the last change, negated for proper 
-    # order. It's updated automatically when triageStatus is changed by 
-    # setTriageStatusChanged, below.
-    triageStatusChanged = schema.One(schema.Float)
     
     # We haven't ported the "other end" of these links, so we have to use
     # 'otherName' settings to ensure that they get hooked up correctly.
@@ -488,17 +493,33 @@ class ContentItem(schema.Item):
         can also be called directly to set a specific time:
            item.setTriageStatusChanged(when=someDateTime)
         """
+        self._setChangedTime('triageStatusChanged', when=when)
 
-        # Don't set triageStatusChanged if triageStatus is set during sharing
+    @schema.observer(_unpurgedTriageStatus)
+    def setUnpurgedTriageStatusChanged(self, op='set', attribute=None, when=None):
+        """ Just like setTriageStatusChanged, but for the unpurged status """
+        self._setChangedTime('_unpurgedTriageStatusChanged', when=when)
+
+    def _setChangedTime(self, attributeName, when=None):
+        """
+        Common code for setTriageStatusChanged and 
+        setUnpurgedTriageStatusChanged
+        """
+        # Don't if we're in the middle of sharing...
         if getattr(self, '_share_importing', False):
             return
 
         when = when or datetime.now(tz=ICUtzinfo.default)
-        self.triageStatusChanged = -time.mktime(when.utctimetuple())
-        logger.debug("%s.triageStatus = %s @ %s", self, getattr(self, 'triageStatus', None), when)
-        
-        if getattr(self, '_unpurgedTriageStatus', None) == self.triageStatus:
-            del self._unpurgedTriageStatus
+        setattr(self, attributeName, -time.mktime(when.utctimetuple()))
+
+    def applyUnpurgedTriageStatus(self):
+       """ If this item has unpurged status, purge it. """
+       _unpurged = getattr(self, '_unpurgedTriageStatus', None)
+       if _unpurged is not None:
+           self.triageStatus = _unpurged
+           self.triageStatusChanged = self._unpurgedTriageStatusChanged
+           del self._unpurgedTriageStatus
+           del self._unpurgedTriageStatusChanged
 
     def getBasedAttributes(self, attribute):
         """ Determine the schema attributes that affect this attribute

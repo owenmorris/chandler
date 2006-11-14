@@ -63,7 +63,7 @@ class CommunicationColumnIndexDefinition(pim.IndexDefinition):
 
 def compareForDashboardCalendarColumn(item1, item2):
     def remState(item):
-        if pim.Remindable(item).getUserReminder(expiredToo=False) is not None:
+        if pim.Remindable(item).getUserReminder(expiredToo=True) is not None:
             return 0
         if pim.has_stamp(item, pim.EventStamp):
             return 1

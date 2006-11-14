@@ -1401,10 +1401,16 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         if (notificationType == 'collectionChange'):
             op, coll, name, uuid = data
             if op == 'changed' and self.editor.event is not None and \
-               self.editor.event.itsItem.itsUUID == uuid:
+               self.editor.event.itsItem.itsUUID == uuid and \
+               not self.belongsOnCanvas(self.editor.event.itsItem):
                 self.GrabFocusHack()
         super(wxCalendarCanvas, self).onItemNotification(notificationType, data)
 
+    def belongsOnCanvas(self, item):
+        # Return False if this item no longer belongs on this canvas
+        # (overridden by our specialized canvases)
+        return True
+    
     def RefreshCanvasItems(self, resort=True):
         self.RebuildCanvasItems(resort)
         self.Refresh()

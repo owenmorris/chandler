@@ -2654,7 +2654,7 @@ class EventStampAttributeEditor(StampAttributeEditor):
         return states
     
     def GetAttributeValue(self, item, attributeName):
-        return pim.Remindable(item).getUserReminder(expiredToo=False) \
+        return pim.Remindable(item).getUserReminder(expiredToo=True) \
             and ("%s.Tickled" % self.iconPrefix) \
             or super(EventStampAttributeEditor, self).\
                      GetAttributeValue(item, attributeName)
@@ -2675,17 +2675,7 @@ class EventStampAttributeEditor(StampAttributeEditor):
         # @@@ unless this is a recurring event, for now.
         if pim.has_stamp(item, pim.EventStamp) and pim.EventStamp(item).isRecurring():
             return # ignore the click.
-        now = datetime.now(tz=ICUtzinfo.default)
-        if now.hour < 17:
-            # Today at 5PM
-            reminderTime = now.replace(hour=17, minute=0, 
-                                       second=0, microsecond=0)
-        else:
-            # Tomorrow at 8AM
-            reminderTime = now.replace(hour=8, minute=0,
-                                       second=0, microsecond=0) + \
-                           timedelta(days=1)
-        remindable.userReminderTime = reminderTime
+        remindable.userReminderTime = pim.Reminder.defaultTime()
         
     def ReadOnly (self, (item, attribute)):
         """

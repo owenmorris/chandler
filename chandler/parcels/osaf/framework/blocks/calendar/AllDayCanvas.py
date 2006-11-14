@@ -575,6 +575,11 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         view.commit()
         return event
 
+    def belongsOnCanvas(self, item):
+        # Return False if this item no longer belongs on this canvas
+        event = Calendar.EventStamp(item)
+        return event.allDay or event.anyTime
+
 class AllDayCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
     textMargin = 2

@@ -109,6 +109,21 @@ class Reminder(schema.Item):
         return "<%sReminder @ %s>" % (self.userCreated and "User" or 
                                       self.promptUser and "Snooze" or "Internal", 
                                       self.absoluteTime or self.delta)
+    
+    @classmethod
+    def defaultTime(cls):
+        """ 
+        Something's creating a reminder and needs a default time.
+        We'll return 5PM today if that's in the future; otherwise, 8AM tomorrow.
+        """    
+        # start with today at 5PM
+        t = datetime.now(tz=ICUtzinfo.default)\
+            .replace(hour=17, minute=0, second=0, microsecond=0)
+        now = datetime.now(tz=ICUtzinfo.default)
+        if t < now:
+            # Make it tomorrow morning at 8AM (eg, 15 hours later)
+            t += timedelta(hours=15)
+        return t
 
 class Remindable(schema.Annotation):
     schema.kindInfo(annotates=ContentItem)
@@ -355,7 +370,7 @@ class Remindable(schema.Annotation):
         each should be a tuple, (dateTimeValue, 'attributeName').
         """
         # Add our reminder, if we have one
-        reminder = self.getUserReminder(expiredToo=False)
+        reminder = self.getUserReminder(expiredToo=True)
         if reminder is not None:
             reminderTime = reminder.getNextReminderTimeFor(self)
             if reminderTime is not None:

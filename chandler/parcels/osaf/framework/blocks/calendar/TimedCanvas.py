@@ -1071,6 +1071,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 pass
                 
             currentDayStart = currentDayEnd
+
+    def belongsOnCanvas(self, item):
+        # Return False if this item no longer belongs on this canvas
+        event = Calendar.EventStamp(item)
+        return not (event.allDay or event.anyTime)
         
 class TimedCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
