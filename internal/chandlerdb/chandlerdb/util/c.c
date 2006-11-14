@@ -111,6 +111,80 @@ static PyObject *saveUUIDs(PyObject *self, PyObject *arg)
     Py_RETURN_NONE;
 }
 
+static PyObject *packDigits(PyObject *self, PyObject *arg)
+{
+    if (!PyTuple_Check(arg))
+    {
+        PyErr_SetObject(PyExc_TypeError, arg);
+        return NULL;
+    }
+    else
+    {
+        int len = PyTuple_GET_SIZE(arg);
+        int blen = len & 1 ? (len >> 1) + 1 : len >> 1;
+        PyObject *digits = PyString_FromStringAndSize(NULL, blen);
+        unsigned char *bytes;
+        int i;
+
+        if (!digits)
+            return NULL;
+
+        bytes = (unsigned char *) PyString_AS_STRING(digits);
+        memset(bytes, 0, blen);
+        if (len & 1)
+            bytes[blen - 1] |= 0xf;
+
+        for (i = 0; i < len; i++) {
+            PyObject *digit = PyTuple_GET_ITEM(arg, i);
+            int n = PyInt_AS_LONG(digit);
+
+            if (i & 1)
+                bytes[i >> 1] |= n;
+            else
+                bytes[i >> 1] |= (n << 4);
+        }
+
+        return digits;
+    }
+}
+
+static PyObject *unpackDigits(PyObject *self, PyObject *arg)
+{
+    if (!PyString_CheckExact(arg))
+    {
+        PyErr_SetObject(PyExc_TypeError, arg);
+        return NULL;
+    }
+    else
+    {
+        unsigned char *bytes = (unsigned char *) PyString_AS_STRING(arg);
+        int blen = PyString_GET_SIZE(arg);
+        int len = blen * 2;
+        PyObject *digits;
+        int i;
+
+        if ((bytes[blen - 1] & 0xf) == 0xf)
+            len -= 1;
+
+        digits = PyTuple_New(len);
+        if (!digits)
+            return NULL;
+
+        for (i = 0; i < len; i++) {
+            int n;
+
+            if (i & 1)
+                n = bytes[i >> 1] & 0xf;
+            else
+                n = bytes[i >> 1] >> 4;
+
+            PyTuple_SET_ITEM(digits, i, PyInt_FromLong(n));
+        }
+
+        return digits;
+    }
+}
+
 
 static PyMethodDef c_funcs[] = {
     { "isuuid", (PyCFunction) isuuid, METH_O, "isinstance(UUID)" },
@@ -121,6 +195,10 @@ static PyMethodDef c_funcs[] = {
       "use a list of pre-generated UUIDs, for debugging" },
     { "saveUUIDs", (PyCFunction) saveUUIDs, METH_O,
       "use a list to save UUIDs as they are generated, for debugging" },
+    { "packDigits", (PyCFunction) packDigits, METH_O,
+      "pack decimal digits from a tuple into a string, 4 bits each" },
+    { "unpackDigits", (PyCFunction) unpackDigits, METH_O,
+      "unpack decimal digits from a string into a tuple, 4 bits each" },
 #ifdef WINDOWS
     { "openHFILE", (PyCFunction) openHFILE, METH_VARARGS, "open HFILE" },
     { "closeHFILE", (PyCFunction) closeHFILE, METH_VARARGS, "close HFILE" },

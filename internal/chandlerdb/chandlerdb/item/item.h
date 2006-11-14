@@ -66,7 +66,7 @@ enum {
     CORESCHEMA = 0x00000800,          /* core schema item */
     CONTAINER  = 0x00001000,          /* has children */
     ADIRTY     = 0x00002000,          /* acl(s) changed */
-    PINNED     = 0x00004000,          /* auto-refresh, don't stale */
+    PINNED     = 0x00004000,          /* auto-refresh, do not stale */
     NODIRTY    = 0x00008000,          /* turn off dirtying and change firing */
     VMERGED    = 0x00010000,
     RMERGED    = 0x00020000,
