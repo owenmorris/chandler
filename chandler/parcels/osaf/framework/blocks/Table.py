@@ -153,7 +153,7 @@ class wxTable(DragAndDrop.DraggableWidget,
 
     def OnPaint (self, event):
         # Bug #7117: Don't draw gridWindows who's data has changed but hasn't
-        # been synchronized to the block's data.
+        # been synchronized to the widget.
         wx.GetApp().fireAsynchronousNotifications()
         if not self.blockItem.itsUUID in self.blockItem.dirtyBlocks:
             event.Skip()

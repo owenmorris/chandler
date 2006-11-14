@@ -82,81 +82,85 @@ class wxDashboard(wxTable):
         Handle the variety of raw mouse events cells get, passing them to 
         the rendering delegate if it wants them.
         """
-        skipIt = True # should we event.Skip() at the end of this?
-        try:
-            gridWindow = self.GetGridWindow()
-
-            def getHandler(cell):
-                if cell is None or -1 in cell:
-                    return None
-                renderer = self.GetCellRenderer(cell[1], cell[0])
-                try:
-                    # See if it's renderer with an attribute editor that wants
-                    # mouse events
-                    handler = renderer.delegate.OnMouseChange
-                except AttributeError:
-                    # See if it's a section renderer that wants mouse events
-                    handler = getattr(renderer, 'OnMouseChange', None)
-                return handler
-                
-            # Figure out what cell we're in, and see whether it 
-            # wants raw events
-            cell = self.__eventToCell(event)
-            handler = getHandler(cell)
-
-            # We keep track of what cell the mouse was over last time
-            overCell = getattr(self, "overCell", None)
-
-            # Summarize the state on each call
-            if False: # __debug__:
-                evtType = event.GetEventType()
-                evtType = evtNames.get(evtType, evtType)
-                logger.debug("wxDashboard.OnMouseEvents: %s, %s "
-                             "(raw=%s, o=%s)",
-                             evtType, cell, handler is not None,
-                             overCell)
-
-            # Did the cell we're over change?
-            if cell != overCell: # yep
-                # If the old cell had a handler, dirty it and tell it
-                oldHandler = getHandler(overCell)
-                if oldHandler is not None:
-                    self.RefreshRect(self.CalculateCellRect(overCell))
-                    itemAttrPair = self.GetTable().GetValue(overCell[1], overCell[0])
-                    #logger.debug("in=False, down=%s to old overCell: %s %s", 
-                                 #event.LeftIsDown(), *itemAttrPair)
-                    oldHandler(event, overCell, False, event.LeftIsDown(), 
-                               itemAttrPair)
-                    skipIt = False
-                
-                # We'll need to notify the new cell too.
-                mustTellNewCell = True
-
-                # Update the saved cell
-                if handler is not None and not -1 in cell:
-                    self.overCell = cell
-                elif overCell is not None:
-                    del self.overCell
-            else:
-                # No cell change - did the mouse state change?
-                mustTellNewCell = event.LeftUp() or event.LeftDown() or event.LeftDClick()
-            
-            if mustTellNewCell and handler is not None:
-                # Either in-ness or down-ness changed - dirty the new cell and
-                # tell it.
-                self.RefreshRect(self.CalculateCellRect(cell))
-                itemAttrPair = self.GetTable().GetValue(cell[1], cell[0])
-                #logger.debug("in=True, down=%s to new cell: %s %s", 
-                             #event.LeftIsDown(), *itemAttrPair)
-                handler(event, cell, True, event.LeftIsDown(), itemAttrPair)
-                skipIt = False
+        # Bug #7320: Don't process mouse events when the gridWindows data has
+        # changed but hasn'tbeen synchronized to the widget.
+        wx.GetApp().fireAsynchronousNotifications()
+        if not self.blockItem.itsUUID in self.blockItem.dirtyBlocks:
+            skipIt = True # should we event.Skip() at the end of this?
+            try:
+                gridWindow = self.GetGridWindow()
     
-        finally:
-            if skipIt:
-                #logger.debug("Dashboard Calling event.Skip")
-                event.Skip()
-            #else:
-                #logger.debug("Dashboard NOT calling event.Skip")
+                def getHandler(cell):
+                    if cell is None or -1 in cell:
+                        return None
+                    renderer = self.GetCellRenderer(cell[1], cell[0])
+                    try:
+                        # See if it's renderer with an attribute editor that wants
+                        # mouse events
+                        handler = renderer.delegate.OnMouseChange
+                    except AttributeError:
+                        # See if it's a section renderer that wants mouse events
+                        handler = getattr(renderer, 'OnMouseChange', None)
+                    return handler
+                    
+                # Figure out what cell we're in, and see whether it 
+                # wants raw events
+                cell = self.__eventToCell(event)
+                handler = getHandler(cell)
+    
+                # We keep track of what cell the mouse was over last time
+                overCell = getattr(self, "overCell", None)
+    
+                # Summarize the state on each call
+                if False: # __debug__:
+                    evtType = event.GetEventType()
+                    evtType = evtNames.get(evtType, evtType)
+                    logger.debug("wxDashboard.OnMouseEvents: %s, %s "
+                                 "(raw=%s, o=%s)",
+                                 evtType, cell, handler is not None,
+                                 overCell)
+    
+                # Did the cell we're over change?
+                if cell != overCell: # yep
+                    # If the old cell had a handler, dirty it and tell it
+                    oldHandler = getHandler(overCell)
+                    if oldHandler is not None:
+                        self.RefreshRect(self.CalculateCellRect(overCell))
+                        itemAttrPair = self.GetTable().GetValue(overCell[1], overCell[0])
+                        #logger.debug("in=False, down=%s to old overCell: %s %s", 
+                                     #event.LeftIsDown(), *itemAttrPair)
+                        oldHandler(event, overCell, False, event.LeftIsDown(), 
+                                   itemAttrPair)
+                        skipIt = False
+                    
+                    # We'll need to notify the new cell too.
+                    mustTellNewCell = True
+    
+                    # Update the saved cell
+                    if handler is not None and not -1 in cell:
+                        self.overCell = cell
+                    elif overCell is not None:
+                        del self.overCell
+                else:
+                    # No cell change - did the mouse state change?
+                    mustTellNewCell = event.LeftUp() or event.LeftDown() or event.LeftDClick()
+                
+                if mustTellNewCell and handler is not None:
+                    # Either in-ness or down-ness changed - dirty the new cell and
+                    # tell it.
+                    self.RefreshRect(self.CalculateCellRect(cell))
+                    itemAttrPair = self.GetTable().GetValue(cell[1], cell[0])
+                    #logger.debug("in=True, down=%s to new cell: %s %s", 
+                                 #event.LeftIsDown(), *itemAttrPair)
+                    handler(event, cell, True, event.LeftIsDown(), itemAttrPair)
+                    skipIt = False
+        
+            finally:
+                if skipIt:
+                    #logger.debug("Dashboard Calling event.Skip")
+                    event.Skip()
+                #else:
+                    #logger.debug("Dashboard NOT calling event.Skip")
                 
 
 class DashboardBlock(Table):
