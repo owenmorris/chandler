@@ -4,7 +4,7 @@ The Sharing Record API
 
 
 >>> import osaf.sharing.eim as sharing   # API kludge during initial dev & testing
-
+>>> from decimal import Decimal
 
 Record Types and Fields
 =======================
@@ -13,11 +13,12 @@ Record Types and Fields
     ...     itemNumber  = sharing.key(int)
     ...     itemName    = sharing.field(sharing.TextType(size=50))
     ...     description = sharing.field(sharing.TextType(size=500))
+    ...     price       = sharing.field(sharing.DecimalType(None, 6, 2))
 
-    >>> r1 = Demo(1,"Foo", "This is a foo")
+    >>> r1 = Demo(1,"Foo", "This is a foo", Decimal('2.50'))
 
     >>> r1
-    Demo(1, u'Foo', u'This is a foo')
+    Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
 
     >>> r1 - r1     # no change between these records
     NoChange
@@ -27,16 +28,16 @@ Record Types and Fields
       ...
     TypeError: 123 is not a Demo record
 
-    >>> r1 - Demo(2, "baz", "spam")
+    >>> r1 - Demo(2, "baz", "spam", Decimal('1.29'))
     Traceback (most recent call last):
       ...
     ValueError: Can't subtract itemNumber 2 from itemNumber 1
 
-    >>> r1 - Demo(1, "Bar", "This is a foo")
-    Demo(1, u'Foo', NoChange)
+    >>> r1 - Demo(1, "Bar", "This is a foo", Decimal('1.29'))
+    Demo(1, u'Foo', NoChange, Decimal("2.50"))
 
-    >>> r1 - Demo(1, "Foo", "This is NOT a foo")
-    Demo(1, NoChange, u'This is a foo')
+    >>> r1 - Demo(1, "Foo", "This is NOT a foo", Decimal('2.50'))
+    Demo(1, NoChange, u'This is a foo', NoChange)
 
 
 
@@ -54,7 +55,8 @@ Custom Types
 ------------
 
 The most basic kinds of field types can be created using the ``BytesType``,
-``TextType``, ``IntType``, ``DateType``, and ``LobType`` constructors::
+``TextType``, ``IntType``, ``DateType``, ``DecimalType``, and ``LobType``
+constructors::
 
     >>> my_date = sharing.DateType()
     >>> my_date
@@ -208,6 +210,12 @@ the appropriate constructor::
     >>> bytes2
     sharing.BytesType('bytes2 uri', 55)
 
+    >>> dec1 = sharing.DecimalType(None, 9, 3)
+    >>> sharing.subtype(dec1, decimal_places = 2)
+    sharing.DecimalType(None, 9, 2)
+    >>> sharing.subtype(dec1, digits = 7)
+    sharing.DecimalType(None, 7, 3)
+
 Note that you can also subtype type aliases::
 
     >>> sharing.subtype(my_int, 'dummy uri')
@@ -255,6 +263,17 @@ Misc. constructor data validation tests::
     Traceback (most recent call last):
       ...
     TypeError: size must be specified when creating a sharing.TextType
+
+    >>> sharing.DecimalType()
+    Traceback (most recent call last):
+      ...
+    TypeError: digits and decimal_places must be ... sharing.DecimalType
+
+    >>> sharing.DecimalType(None, 3)    # default places of 0
+    sharing.DecimalType(None, 3, 0)
+
+    >>>
+
 
 No such type::
 

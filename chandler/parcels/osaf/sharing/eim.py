@@ -3,12 +3,10 @@ __all__ = [
     'IntType', 'LobType', 'get_converter', 'add_converter', 'subtype',
     'typedef', 'field', 'key', 'NoChange', 'Record', 'DecimalType'
 ]
-
 from symbols import Symbol  # XXX change this to peak.util.symbols
 from simplegeneric import generic
 from weakref import WeakValueDictionary
-from decimal import *
-import linecache, os
+import linecache, os, decimal
 from application import schema
 from chandlerdb.util.c import UUID
 
@@ -40,7 +38,6 @@ def add_converter(context, from_type, converter):
         gf = generic(gf)    # extend base function
         get_converter.when_object(context)(lambda context: gf)
     gf.when_type(from_type)(converter)
-
 
 class UnknownType(KeyError):
     """An object was not recognized as a type, alias, context, or URI"""
@@ -150,15 +147,30 @@ class SizedType(TypeInfo):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class DecimalType(TypeInfo):
     abstract = False
     __slots__ = ('digits', 'decimal_places')
 
-    def __init__(self, uri=None, digits=None, decimal_places=None):
+    def __init__(self, uri=None, digits=None, decimal_places=0):
         if digits is None or decimal_places is None:
             raise TypeError(
-                "digits and decimal_places must be specified when creating a sharing."
-                + self.__class__.__name__
+                "digits and decimal_places must be specified when creating"
+                " a sharing." + self.__class__.__name__
             )
         self.digits = digits
         self.decimal_places = decimal_places
@@ -177,8 +189,6 @@ class DecimalType(TypeInfo):
         return self.__class__(uri, digits, decimal_places, *args, **kw)
 
 
-
-
 class BytesType(SizedType): __slots__ = ()
 class TextType(SizedType):  __slots__ = ()
 class IntType(TypeInfo):    __slots__ = ()
@@ -189,10 +199,6 @@ class LobType(TypeInfo):    __slots__ = ()
 typedef(IntType,  IntType())
 typedef(LobType,  LobType())
 typedef(DateType, DateType())
-
-
-
-
 
 
 
@@ -408,14 +414,14 @@ def create_default_converter(t):
     get_converter.when_object(t)(lambda ctx: converter)
 
 map(create_default_converter,
-    [BytesType, TextType, IntType, DateType, LobType]
+    [BytesType, TextType, IntType, DateType, LobType, DecimalType]
 )
 
 add_converter(IntType, int, int)
 typedef(int, IntType)
 add_converter(TextType, str, unicode)
 add_converter(TextType, unicode, unicode)
-
+add_converter(DecimalType, decimal.Decimal, decimal.Decimal)
 
 
 
@@ -439,6 +445,10 @@ add_converter(UUIDType, schema.Item, item_uuid_converter)
 
 
 
+
+
+
+
 def subtype(typeinfo, *args, **kw):
     """XXX"""
     newti = typeinfo_for(typeinfo).clone(*args, **kw)
@@ -452,6 +462,20 @@ def test_suite():
         'EIM.txt',
         optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
     )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
