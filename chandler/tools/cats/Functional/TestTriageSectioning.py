@@ -62,7 +62,8 @@ class TestTriageSectioning(ChandlerTestCase):
             self.logger.endAction(True)
         self.logger.startAction('Check section expansion')
         if sectionRows != goodExpandedSectioning:
-            self.logger.endAction(False, "Dashboard not sectioned properly")
+            self.logger.endAction(False, "Dashboard not sectioned properly: %r != %r" 
+                                  % (sectionRows, goodExpandedSectioning))
         else:
             self.logger.endAction(True)
         
@@ -74,7 +75,7 @@ class TestTriageSectioning(ChandlerTestCase):
         self.scripting.User.idle()
         self.logger.startAction('Check contraction')
         if dashboard.sectionRows != [(0, 0, 1), (1, 0, 1), (2, 0, 1)]:
-            self.logger.endAction(False, "Dashboard didn't contract properly")
+            self.logger.endAction(False, "Dashboard didn't contract properly: %r" % dashboard.sectionRows)
         else:
             self.logger.endAction(True)
         for row in (2, 1, 0):
@@ -82,7 +83,8 @@ class TestTriageSectioning(ChandlerTestCase):
         self.scripting.User.idle()
         self.logger.startAction('Check expansion')
         if dashboard.sectionRows != goodExpandedSectioning:
-            self.logger.endAction(False, "Dashboard didn't expand properly")
+            self.logger.endAction(False, "Dashboard didn't expand properly: %r != %r" 
+                                  % (dashboard.sectionRows, goodExpandedSectioning))
         else:
             self.logger.endAction(True)
        
