@@ -2196,9 +2196,8 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
             size = wx.Size(parentWidth,
                            measurements.checkboxCtrlHeight)
 
-        style = wx.TAB_TRAVERSAL
         control = AECheckBox(parentWidget, id, u"", 
-                             wx.DefaultPosition, size, style)
+                             wx.DefaultPosition, size)
         control.Bind(wx.EVT_CHECKBOX, self.onChecked)
         if readOnly:
             control.Enable(False)
@@ -2281,8 +2280,7 @@ class ChoiceAttributeEditor(BasePermanentAttributeEditor):
             size = wx.Size(parentWidth,
                            measurements.choiceCtrlHeight)
 
-        style = wx.TAB_TRAVERSAL
-        control = AEChoice(parentWidget, id, wx.DefaultPosition, size, [], style)
+        control = AEChoice(parentWidget, id, wx.DefaultPosition, size, [])
         control.Bind(wx.EVT_CHOICE, self.onChoice)
         return control
         
