@@ -33,7 +33,6 @@ from formats import *
 from errors import *
 from utility import *
 from accounts import *
-from synchronize import *
 from filesystem_conduit import *
 from webdav_conduit import *
 from inmemory_conduit import *
@@ -177,14 +176,14 @@ def interrupt(graceful=True):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-def _setError(collection, message):
-    for share in collection.shares.first().getLinkedShares():
-        share.error = message
+def _setError(share, message):
+    for linked in share.getLinkedShares():
+        linked.error = message
 
-def _clearError(collection):
-    for share in collection.shares.first().getLinkedShares():
-        if hasattr(share, 'error'):
-            del share.error
+def _clearError(share):
+    for linked in share.getLinkedShares():
+        if hasattr(linked, 'error'):
+            del linked.error
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -248,25 +247,17 @@ class BackgroundSyncHandler:
 
             self.rv.refresh(notify=False)
 
-            collections = []
+            shares = []
 
             if 'collection' in kwds:
                 uuid = kwds['collection']
                 collection = self.rv.findUUID(uuid)
-                collections.append(collection)
-
             else:
-                for share in Share.iterItems(self.rv):
-                    try:
-                        if(share.active and
-                            share.established and
-                            share.contents is not None and
-                            share.contents not in collections):
-                            collections.append(share.contents)
-                    except Exception, e:
-                        logger.exception("Error with Share object")
+                collection = None
 
-            for collection in collections:
+            shares = getSyncableShares(self.rv, collection)
+
+            for share in shares:
 
                 if interrupt_flag != PROCEED: # interruption
                     # We have been asked to stop, so fire the deferred
@@ -275,13 +266,12 @@ class BackgroundSyncHandler:
                     return True
 
                 callCallbacks(UPDATE, msg="Syncing collection '%s'" %
-                    collection.displayName)
+                    share.contents.displayName)
                 try:
-                    stats.extend(sync(collection,
-                        modeOverride=modeOverride,
-                        updateCallback=silentCallback,
-                        forceUpdate=forceUpdate))
-                    _clearError(collection)
+                    stats.extend(share.sync(modeOverride=modeOverride,
+                                            updateCallback=silentCallback,
+                                            forceUpdate=forceUpdate))
+                    _clearError(share)
 
                 except Exception, e:
                     # print "Exception", e
@@ -290,8 +280,8 @@ class BackgroundSyncHandler:
                         msg = e.message
                     else:
                         msg = str(e)
-                    _setError(collection, msg)
-                    stats.extend( { 'collection' : collection.itsUUID,
+                    _setError(share, msg)
+                    stats.extend( { 'collection' : share.contents.itsUUID,
                                     'error' : msg } )
 
         except: # Failed to sync at least one collection; continue on

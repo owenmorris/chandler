@@ -13,6 +13,8 @@
 #   limitations under the License.
 
 __all__ = [
+    'sync',
+    'getSyncableShares',
     'splitUrl',
     'isShared',
     'localChanges',
@@ -42,6 +44,45 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+
+
+def sync(collection, modeOverride=None, updateCallback=None,
+         forceUpdate=None):
+
+    stats = []
+    for share in getSyncableShares(collection.itsView, collection):
+        stats.extend(share.sync(modeOverride=modeOverride,
+                                updateCallback=updateCallback))
+    return stats
+
+
+
+
+
+
+def getSyncableShares(rv, collection=None):
+    import shares
+
+    syncable = []
+
+    if collection is None:
+        potential = shares.Share.iterItems(rv)
+    else:
+        potential = collection.shares
+
+    for share in potential:
+
+        if (share.active and
+            share.established and
+            share.contents is not None):
+
+            linkedShares = share.getLinkedShares()
+            leader = linkedShares[0]
+            if leader not in syncable:
+                syncable.append(leader)
+
+    return syncable
 
 
 
