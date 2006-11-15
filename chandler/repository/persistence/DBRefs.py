@@ -358,7 +358,8 @@ class DBRefList(RefList, PersistentRefs):
     def _removeRef_(self, other):
 
         link = RefList._removeRef_(self, other)
-        link = PersistentRefs._removeRef_(self, other.itsUUID, link)
+        if link is not None:
+            link = PersistentRefs._removeRef_(self, other.itsUUID, link)
 
         return link
 
