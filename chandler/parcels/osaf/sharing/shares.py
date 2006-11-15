@@ -86,7 +86,7 @@ class Share(pim.ContentItem):
         otherName = 'sharedIn')
 
     conduit = schema.One(initialValue=None)
-    # inverse of ShareConduit.share
+    # inverse of Conduit.share
 
     format = schema.One(initialValue=None)
     # inverse of ImportExportFormat.share
