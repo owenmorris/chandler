@@ -24,6 +24,7 @@ from i18n import ChandlerMessageFactory as _
 import osaf.pim.calendar
 from application import schema
 from repository.item.Item import MissingClass
+import wx.grid
 
 def makeMainView(parcel):
     repositoryView = parcel.itsView
@@ -66,7 +67,7 @@ def makeMainView(parcel):
         characterStyle = globalBlocks.SidebarRowStyle,
         columns = [Column.update(parcel, 'SidebarColName',
                                  heading = u'',
-                                 scaleColumn = True,
+                                 scaleColumn = wx.grid.Grid.GRID_COLUMN_SCALABLE,
                                  attributeName = u'displayName')],
                           
         scaleWidthsToFit = True,

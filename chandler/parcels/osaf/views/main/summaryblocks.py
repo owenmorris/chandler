@@ -15,6 +15,7 @@
 
 from osaf.framework.blocks import *
 from osaf import pim
+import wx.grid
 
 # IndexDefinition subclasses for the dashboard indexes
 # These all create 'compare' indexes for now, and add the comparison function
@@ -128,6 +129,7 @@ def makeSummaryBlocks(parcel):
         stamp=pim.TaskStamp,
         width=iconColumnWidth,
         useSortArrows=False,
+        scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
         readOnly=True,
         indexName='%s.taskStatus' % __name__,
         baseClass=TaskColumnIndexDefinition)
@@ -138,6 +140,7 @@ def makeSummaryBlocks(parcel):
         stamp=pim.mail.MailStamp,
         width=iconColumnWidth,
         useSortArrows=False,
+        scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
         readOnly=True,
         indexName='%s.communicationStatus' % __name__,
         attributeName='communicationStatus',
@@ -150,7 +153,7 @@ def makeSummaryBlocks(parcel):
     whoColumn = makeColumnAndIndexes('SumColWho',
         heading=_(u'Who'),
         width=100,
-        scaleColumn=True,
+        scaleColumn = wx.grid.Grid.GRID_COLUMN_SCALABLE,
         readOnly=True,
         indexName='%s.displayWho' % __name__,
         attributeName='displayWho',
@@ -163,7 +166,7 @@ def makeSummaryBlocks(parcel):
     titleColumn = makeColumnAndIndexes('SumColAbout',
         heading=_(u'Title'),
         width=120,
-        scaleColumn=True,
+        scaleColumn = wx.grid.Grid.GRID_COLUMN_SCALABLE,
         indexName='%s.displayName' % __name__,
         attributeName='displayName',
         attributes=[
@@ -177,6 +180,7 @@ def makeSummaryBlocks(parcel):
         stamp = pim.EventStamp,
         useSortArrows = False,
         width = iconColumnWidth,
+        scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
         readOnly = True,
         indexName = '%s.calendarStatus' % __name__,
         baseClass=CalendarColumnIndexDefinition)
@@ -184,7 +188,7 @@ def makeSummaryBlocks(parcel):
     dateColumn = makeColumnAndIndexes('SumColDate',
         heading = _(u'Date'),
         width = 100,
-        scaleColumn = True,
+        scaleColumn = wx.grid.Grid.GRID_COLUMN_SCALABLE,
         readOnly = True,
         attributeName = 'displayDate',
         attributeSourceName = 'displayDateSource',
@@ -200,6 +204,7 @@ def makeSummaryBlocks(parcel):
         useSortArrows = False,
         defaultSort = True,
         width = 40,
+        scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
         attributeName = 'triageStatus',
         indexName = '%s.triageStatus' % __name__,
         attributes=[

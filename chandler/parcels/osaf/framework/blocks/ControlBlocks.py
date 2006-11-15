@@ -28,6 +28,7 @@ from chandlerdb.item.ItemError import NoSuchAttributeError
 import wx
 import wx.html
 import wx.gizmos
+import wx.grid
 import webbrowser # for opening external links
 import PyICU
 from util import MultiStateButton
@@ -326,7 +327,7 @@ class Column(schema.Item):
 
     format = schema.One(schema.Text)
 
-    scaleColumn = schema.One(schema.Boolean, defaultValue = False)
+    scaleColumn = schema.One(schema.Integer, defaultValue = wx.grid.Grid.GRID_COLUMN_NON_SCALABLE)
     readOnly = schema.One(schema.Boolean, initialValue=False)
     defaultSort = schema.One(schema.Boolean, initialValue=False)
       
