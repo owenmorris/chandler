@@ -930,11 +930,13 @@ class MainView(View):
         The "Collection | Share collection " menu item.
         """
 
-        if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
-            return
-
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
+
+            if (not sharing.isShared(collection) and
+                not sharing.ensureAccountSetUp(self.itsView, sharing=True)):
+                return
+
             mainFrame = wx.GetApp().mainFrame
             PublishCollection.ShowPublishDialog(mainFrame,
                 view=self.itsView,
