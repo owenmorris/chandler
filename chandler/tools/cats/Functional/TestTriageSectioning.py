@@ -38,7 +38,8 @@ class TestTriageSectioning(ChandlerTestCase):
                 item.item.triageStatus = status
             items.append(item)
             
-        # action
+        # Let the display catch up to the items
+        self.scripting.User.idle()
         
         # Get ready to bang on the dashboard
         dashboardBlock = self.app_ns.TableSummaryView
