@@ -83,9 +83,9 @@ class wxDashboard(wxTable):
         the rendering delegate if it wants them.
         """
         # Bug #7320: Don't process mouse events when the gridWindows data has
-        # changed but hasn'tbeen synchronized to the widget.
+        # changed but hasn't been synchronized to the widget.
         wx.GetApp().fireAsynchronousNotifications()
-        if not self.blockItem.itsUUID in self.blockItem.dirtyBlocks:
+        if not self.blockItem.isDirty():
             skipIt = True # should we event.Skip() at the end of this?
             try:
                 gridWindow = self.GetGridWindow()

@@ -155,7 +155,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         # Bug #7117: Don't draw gridWindows who's data has changed but hasn't
         # been synchronized to the widget.
         wx.GetApp().fireAsynchronousNotifications()
-        if not self.blockItem.itsUUID in self.blockItem.dirtyBlocks:
+        if not self.blockItem.isDirty():
             event.Skip()
 
     def OnGainFocus (self, event):
@@ -210,7 +210,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         # anyway since the block is dirtied.
         wx.GetApp().fireAsynchronousNotifications()
         block = self.blockItem
-        if not block.itsUUID in block.dirtyBlocks:
+        if not block.isDirty():
             lastRow = self.GetNumberCols() - 1
             
             for rowStart, rowEnd in self.SelectedRowRanges():
