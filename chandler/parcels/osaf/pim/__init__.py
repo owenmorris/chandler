@@ -24,7 +24,9 @@ from items import (
 from collections import KindCollection, ContentCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \
      FilteredCollection, ListCollection, SmartCollection, AppCollection, \
-     IndexedSelectionCollection, AllIndexDefinitions, IndexDefinition
+     IndexedSelectionCollection, AllIndexDefinitions, IndexDefinition, \
+     SetCollection
+from repository.item.Sets import MultiUnion
 from stamping import Stamp, has_stamp
 from notes import Note
 from contacts import Contact, ContactName
@@ -274,8 +276,6 @@ def installParcel(parcel, oldVersion=None):
         trash=trashCollection,
         visible=True)
 
-    mine.addSource(inCollection)
-
     outSource = FilteredCollection.update(parcel, 'outSource',
         source=mailCollection,
         filterExpression=u"view.findValue(uuid, '%s', False)" %
@@ -290,7 +290,19 @@ def installParcel(parcel, oldVersion=None):
         trash=trashCollection,
     )
 
-    mine.addSource(outCollection)
+    # inCollection and outCollection both refer to the mailCollection via
+    # inSource and outSource respectively, hence they cannot be used
+    # together in the mine collection since that would duplicate
+    # mailCollection in the query tree and break notifications.
+    # inSource + outSource == mailCollection, so instead add
+    # mailCollection + inCollection.inclusions + outCollection.inclusions
+    # to the mine collection.
+    inOutSet = MultiUnion(mailCollection,
+                          (inCollection, 'inclusions'),
+                          (outCollection, 'inclusions'))
+    inOutCollection = SetCollection.update(parcel, 'inOutCollection',
+                                           set=inOutSet)
+    mine.addSource(inOutCollection)
 
     allEventsCollection = IntersectionCollection.update(parcel,
         'allEventsCollection',

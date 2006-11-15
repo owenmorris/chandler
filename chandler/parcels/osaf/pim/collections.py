@@ -361,7 +361,7 @@ class DifferenceCollection(WrapperCollection):
         elif sourceCount == 1:
             set = getattr(self, self.__collection__)
             source = sources.first()
-            if instance(set, Difference):
+            if isinstance(set, Difference):
                 if set._left[0] == source.itsUUID:
                     set = Set(source)
                 else:
@@ -506,6 +506,20 @@ class FilteredCollection(SingleSourceWrapperCollection):
         setattr(self, self.__collection__, s)
         return s
 
+
+class SetCollection(ContentCollection):
+    """
+    A collection class to wrap an arbitrary set that doesn't include trash
+    """
+
+    __metaclass__ = schema.CollectionClass
+    __collection__ = 'set'
+
+    set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
+
+    def withoutTrash(self):
+        return self
+    
 
 class AppCollection(ContentCollection):
     """

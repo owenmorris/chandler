@@ -150,7 +150,7 @@ class AbstractSet(ItemValue, Indexed):
 
         return None
 
-    def iterSources(self):
+    def iterSources(self, recursive=False):
 
         raise NotImplementedError, "%s.iterSources" %(type(self))
 
@@ -163,13 +163,20 @@ class AbstractSet(ItemValue, Indexed):
         for item, attribute in self.iterSources():
             yield item
 
-    def _iterSources(self, source):
+    def _iterSources(self, source, recursive=False):
 
         if isinstance(source, AbstractSet):
-            for source in source.iterSources():
+            for source in source.iterSources(recursive):
                 yield source
         else:
-            yield (self._view[source[0]], source[1])
+            uItem, srcAttr = source
+            srcItem = self._view[uItem]
+            yield srcItem, srcAttr
+            if recursive and isinstance(srcItem, Collection):
+                set = getattr(srcItem, srcAttr)
+                if isinstance(set, AbstractSet):
+                    for source in set.iterSources(True):
+                        yield source
 
     def _inspect__(self, indent):
 
@@ -437,9 +444,23 @@ class AbstractSet(ItemValue, Indexed):
 
     def _check(self, logger, item, attribute, repair):
 
-        return (super(AbstractSet, self)._check(logger, item, attribute,
-                                                repair) and
-                self._checkIndexes(logger, item, attribute, repair))
+        result = True
+
+        sources = set()
+        for source in self.iterSources(True):
+            srcItem, srcAttr = source
+            if source in sources:
+                logger.error("Set '%s', value of attribute '%s' on %s has duplicated source (%s, %s)", self, attribute, item._repr_(), srcItem._repr_(), srcAttr)
+                result = False
+            else:
+                sources.add(source)
+
+        if result:
+            result = (super(AbstractSet, self)._check(logger, item, attribute,
+                                                      repair) and
+                      self._checkIndexes(logger, item, attribute, repair))
+
+        return result
 
     def _setDirty(self, noFireChanges=False):
 
@@ -603,7 +624,7 @@ class EmptySet(AbstractSet):
 
         return None
 
-    def iterSources(self):
+    def iterSources(self, recursive=False):
 
         return iter(())
 
@@ -687,9 +708,9 @@ class Set(AbstractSet):
 
         return self._findSource(self._source, id)
 
-    def iterSources(self):
+    def iterSources(self, recursive=False):
 
-        return self._iterSources(self._source)
+        return self._iterSources(self._source, recursive)
 
     def iterInnerSets(self):
 
@@ -772,11 +793,11 @@ class BiSet(AbstractSet):
 
         return None
 
-    def iterSources(self):
+    def iterSources(self, recursive=False):
 
-        for source in self._iterSources(self._left):
+        for source in self._iterSources(self._left, recursive):
             yield source
-        for source in self._iterSources(self._right):
+        for source in self._iterSources(self._right, recursive):
             yield source
 
     def iterInnerSets(self):
@@ -1033,10 +1054,10 @@ class MultiSet(AbstractSet):
 
         return None
 
-    def iterSources(self):
+    def iterSources(self, recursive=False):
 
         for source in self._sources:
-            for src in self._iterSources(source):
+            for src in self._iterSources(source, recursive):
                 yield src
 
     def iterInnerSets(self):
@@ -1273,7 +1294,7 @@ class KindSet(Set):
 
         return AbstractSet.countKeys(self)
 
-    def iterSources(self):
+    def iterSources(self, recursive=False):
 
         return iter(())
 
