@@ -297,24 +297,6 @@ class Share(pim.ContentItem):
         shares = self.getLinkedShares()
         metaView = shares[0].itsView
 
-        # @@@MOR -- Note for Andi...
-        # Rather than doing this hack, the p2p stuff can simply override
-        # Share.sync():
-
-        # syncedByAccountShares = set()
-        # for share in shares:
-        #     conduit = getattr(share, 'conduit', None)
-        #     if conduit is not None:
-        #         if hasattr(type(getattr(conduit, 'account', None)), 'sync'):
-        #             syncedByAccountShares.add(share)
-        # for share in syncedByAccountShares:
-        #     share.conduit.account.sync(share)
-        #
-        # shares = [share for share in shares if share not in syncedByAccountShares]
-        # if not shares:
-        #     return []
-
-
         itemsMarker = shares[0].conduit.itemsMarker
 
         stats = []
