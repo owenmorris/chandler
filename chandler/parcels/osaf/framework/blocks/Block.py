@@ -633,6 +633,12 @@ class Block(schema.Item):
         """
         self.dirtyBlocks.discard(self.itsUUID)
 
+    def isDirty(self):
+        """
+        Return True if we're in the dirty list
+        """
+        return self.itsUUID in self.dirtyBlocks
+    
     @classmethod
     def wxOnDestroyWidget (theClass, widget):
         if hasattr (widget, 'blockItem'):
@@ -671,6 +677,8 @@ class Block(schema.Item):
 
         delattr (self, 'widget')
         assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
+
+        self.markClean() # Discard any pending notifications
 
         wx.GetApp().needsUpdateUI = True
 
