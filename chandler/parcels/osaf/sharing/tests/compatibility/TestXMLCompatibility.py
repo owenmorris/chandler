@@ -8,9 +8,8 @@ from PyICU import ICUtzinfo
 import datetime
 
 from application import schema
-import util.testcase as testcase
-import osaf.sharing as sharing
-import osaf.pim as pim
+from osaf import sharing, pim
+from util import testcase
 from osaf.mail.message import messageTextToKind
 from chandlerdb.util.c import UUID
 
@@ -768,7 +767,7 @@ class ShareTestCase(SharingTestCase):
             
                 
         self.attributes = dict(self.attributes)
-        self.attributes.update(contents=collection, filterClasses=classNames)
+        self.attributes.update(contents=collection)
     
     def testExport(self):
         share = self.createObject(sharing.Share)

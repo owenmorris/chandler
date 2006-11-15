@@ -21,7 +21,7 @@ __all__ = [
     'FreeBusyFileFormat'
 ]
 
-import Sharing
+import formats, errors, shares, utility
 import application.Parcel
 from osaf.pim import (ContentCollection, SmartCollection, Remindable,
                       EventStamp, CalendarEvent, has_stamp, Note)
@@ -708,13 +708,13 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     # more than one event.
                     cancelled = updateCallback(msg=msg, work=monolithic)
                     if cancelled:
-                        raise Sharing.SharingError(_(u"Cancelled by user"))
+                        raise errors.SharingError(_(u"Cancelled by user"))
                 
                 # finished creating the item
                 itemlist.append(eventItem)
 
 
-            except Sharing.SharingError:
+            except errors.SharingError:
                 raise
 
             except Exception, e:
@@ -816,10 +816,10 @@ def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
     
     return freebusystart, freebusyend, calname
 
-class ICalendarFormat(Sharing.ImportExportFormat):
+class ICalendarFormat(formats.ImportExportFormat):
 
     def fileStyle(self):
-        return self.STYLE_SINGLE
+        return formats.STYLE_SINGLE
 
     def extension(self, item):
         return "ics"
@@ -828,7 +828,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         return "text/calendar"
 
     def acceptsItem(self, item):
-        has_stamp(item, EventStamp) or isinstance(item, Sharing.Share)
+        has_stamp(item, EventStamp) or isinstance(item, shares.Share)
 
     def importProcess(self, contentView, text, extension=None, item=None,
                       updateCallback=None, stats=None):
@@ -841,7 +841,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         view = contentView # Use the passed-in view for creating items
         filters = self.share.filterAttributes
-        monolithic = self.fileStyle() == self.STYLE_SINGLE
+        monolithic = self.fileStyle() == formats.STYLE_SINGLE
         coerceTzinfo = getattr(self, 'coerceTzinfo', None)
 
         events, calname = itemsFromVObject(view, text, coerceTzinfo, filters,
@@ -853,7 +853,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
             if item is None:
                 item = SmartCollection(itsView=view)
-            elif isinstance(item, Sharing.Share):                        
+            elif isinstance(item, shares.Share):                        
                 if item.contents is None:
                     item.contents = \
                         SmartCollection(itsView=view)
@@ -897,7 +897,7 @@ class CalDAVFormat(ICalendarFormat):
     """
 
     def fileStyle(self):
-        return self.STYLE_DIRECTORY
+        return formats.STYLE_DIRECTORY
     
     def acceptsItem(self, item):
         return has_stamp(item, EventStamp)
@@ -942,7 +942,7 @@ class FreeBusyFileFormat(ICalendarFormat):
 
         if item is None:
             item = SmartCollection(itsView=view)
-        elif isinstance(item, Sharing.Share):
+        elif isinstance(item, shares.Share):
             if item.contents is None:
                 item.contents = \
                     SmartCollection(itsView=view)
@@ -988,7 +988,7 @@ def importICalendarFile(fullpath, view, targetCollection = None,
         raise ICalendarImportError(_(u"File does not exist, import cancelled."))
     (dir, filename) = os.path.split(fullpath)
     
-    share = Sharing.OneTimeFileSystemShare(
+    share = shares.OneTimeFileSystemShare(
         dir, filename, ICalendarFormat, itsView=view, contents = targetCollection
     )
     if tzinfo is not None:

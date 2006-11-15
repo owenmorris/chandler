@@ -48,7 +48,6 @@ class ViewMergingTestCase(testcase.DualRepositoryTestCase):
 
     def runTest(self):
         self.setUp()
-        sharing.Sharing.USE_VIEW_MERGING = True
         self.PrepareTestData()
         self.PrepareShares()
         self.RoundTrip()

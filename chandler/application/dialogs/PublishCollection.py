@@ -23,7 +23,6 @@ from application import schema, Globals
 from osaf import sharing
 from util import task, viewpool
 from i18n import ChandlerMessageFactory as _
-import SyncProgress
 from osaf.pim import Remindable, EventStamp
 import zanshin
 
@@ -36,7 +35,7 @@ class PublishCollectionDialog(wx.Dialog):
     def __init__(self, parent, title, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
                  resources=None, view=None, collection=None,
-                 filterClassName=None, publishType='collection', modal=True,
+                 publishType='collection', modal=True,
                  name=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
@@ -47,12 +46,6 @@ class PublishCollectionDialog(wx.Dialog):
         self.modal = modal
         self.publishType = publishType
         self.name = name
-
-        # List of classes to share
-        if filterClassName is None:
-            self.filterClasses = []
-        else:
-            self.filterClasses = [filterClassName]
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -102,8 +95,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnPublish, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
-        collName = sharing.getFilteredCollectionDisplayName(self.collection,
-                                                            self.filterClasses)
+        collName = self.collection.displayName
 
         self.currentAccount = schema.ns('osaf.sharing',
             self.view).currentWebDAVAccount.item
@@ -163,29 +155,6 @@ class PublishCollectionDialog(wx.Dialog):
         else:
             self.UnPubSub.SetLabel("Unsubscribe")
 
-        # Controls for managing filtered shares:
-
-        self.RadioItems = wx.xrc.XRCCTRL(self, "RADIO_ITEMS")
-        self.RadioItemsHidden = wx.xrc.XRCCTRL(self, "RADIO_ITEMS_HIDDEN")
-        self.RadioItemsHidden.Hide()
-        wx.EVT_RADIOBUTTON(self.RadioItems,
-                           self.RadioItems.GetId(),
-                           self.OnAllItemsClicked)
-
-        self.CheckboxMail = wx.xrc.XRCCTRL(self, "CHECK_MAIL")
-        wx.EVT_CHECKBOX(self.CheckboxMail,
-                        self.CheckboxMail.GetId(),
-                        self.OnFilterClicked)
-
-        self.CheckboxTasks = wx.xrc.XRCCTRL(self, "CHECK_TASKS")
-        wx.EVT_CHECKBOX(self.CheckboxTasks,
-                        self.CheckboxTasks.GetId(),
-                        self.OnFilterClicked)
-
-        self.CheckboxEvents = wx.xrc.XRCCTRL(self, "CHECK_EVENTS")
-        wx.EVT_CHECKBOX(self.CheckboxEvents,
-                        self.CheckboxEvents.GetId(),
-                        self.OnFilterClicked)
 
         self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
         self.CheckboxShareAlarms.Enable(True)
@@ -194,10 +163,8 @@ class PublishCollectionDialog(wx.Dialog):
         self.CheckboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
         self.CheckboxShareTriage.Enable(True)
 
-        self.originalFilterClasses = self.filterClasses = list(share.filterClasses)
         self.originalFilterAttributes = list(share.filterAttributes)
 
-        self._loadClassFilterState()
         self._loadAttributeFilterState(share)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
@@ -212,7 +179,6 @@ class PublishCollectionDialog(wx.Dialog):
 
 
     def OnManageDone(self, evt):
-        self._saveClassFilterState()
 
         for share in self.collection.shares:
             self._saveAttributeFilterState(share)
@@ -222,8 +188,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.Destroy()
 
         share = sharing.getShare(self.collection)
-        if (share.filterClasses != self.originalFilterClasses or
-            share.filterAttributes != self.originalFilterAttributes):
+        if share.filterAttributes != self.originalFilterAttributes:
             self.view.commit()
             sharing.scheduleNow(self.view, collection=share.contents,
                                 forceUpdate=True)
@@ -289,73 +254,8 @@ class PublishCollectionDialog(wx.Dialog):
                     share.filterAttributes.append(attr)
 
 
-    def _loadClassFilterState(self):
-        # Based on which classes are listed in filterClasses, update the UI
-
-        if len(self.filterClasses) == 0:      # No filtering
-
-            self.RadioItems.SetValue(True)
-            self.CheckboxMail.SetValue(False)
-            self.CheckboxTasks.SetValue(False)
-            self.CheckboxEvents.SetValue(False)
-
-        else:                               # Filtering
-
-            # Unset the "My items" radio button
-            self.RadioItemsHidden.SetValue(True)
-
-            # Conditionally set the individual class checkboxes:
-
-            if 'osaf.pim.mail.MailStamp' in self.filterClasses:
-                self.CheckboxMail.SetValue(True)
-            else:
-                self.CheckboxMail.SetValue(False)
-
-            if 'osaf.pim.tasks.TaskStamp' in self.filterClasses:
-                self.CheckboxTasks.SetValue(True)
-            else:
-                self.CheckboxTasks.SetValue(False)
-
-            if 'osaf.pim.calendar.Calendar.EventStamp' in self.filterClasses:
-                self.CheckboxEvents.SetValue(True)
-            else:
-                self.CheckboxEvents.SetValue(False)
 
 
-    def _saveClassFilterState(self):
-        # Examine the values in the UI and make the appropriate changes to the
-        # Share's filter
-
-        self.filterClasses = []
-
-        if not self.RadioItems.GetValue():  # Filtering
-
-            if self.CheckboxMail.GetValue():
-                self.filterClasses.append('osaf.pim.mail.MailStamp')
-
-            if self.CheckboxTasks.GetValue():
-                self.filterClasses.append('osaf.pim.tasks.TaskStamp')
-
-            if self.CheckboxEvents.GetValue():
-                self.filterClasses.append('osaf.pim.calendar.Calendar.EventStamp')
-
-        for share in self.collection.shares:
-            share.filterClasses = self.filterClasses
-
-
-
-
-    def OnAllItemsClicked(self, evt):
-        # Clear the filter classes list
-
-        self.filterClasses = []
-        self._loadClassFilterState()
-
-
-    def OnFilterClicked(self, evt):
-        # If any individual class checkbox is clicked, unset "My items"
-
-        self.RadioItems.SetValue(False)
 
     def updateCallback(self, msg=None, percent=None):
         if msg is not None:
@@ -395,7 +295,6 @@ class PublishCollectionDialog(wx.Dialog):
         wx.Yield()
 
         attrsToExclude = self._getAttributeFilterState()
-        classesToInclude = self.filterClasses
         accountIndex = self.accountsControl.GetSelection()
         account = self.accountsControl.GetClientData(accountIndex)
 
@@ -435,23 +334,6 @@ class PublishCollectionDialog(wx.Dialog):
 
                 if self.publishType == 'freebusy':
                     displayName = u"%s FreeBusy" % account.username
-                elif self.collection is schema.ns('osaf.pim',
-                    self.view).allCollection:
-
-                    ext = _(u'items')
-                    if classesToInclude:
-                        classString = classesToInclude[0]
-                        if classString == "osaf.pim.tasks.TaskStamp":
-                            ext = _(u'tasks')
-                        elif classString == "osaf.pim.mail.MailStamp":
-                            ext = _(u'mail')
-                        elif classString == \
-                            "osaf.pim.calendar.Calendar.EventStamp":
-                            ext = _(u'calendar')
-
-                    args = { 'username' : account.username, 'ext' : ext }
-
-                    displayName = u"%(username)s's %(ext)s" % args
                 else:
                     displayName = self.collection.displayName
 
@@ -459,7 +341,6 @@ class PublishCollectionDialog(wx.Dialog):
                     displayName = self.name
 
                 shares = sharing.publish(collection, account,
-                                         classesToInclude=classesToInclude,
                                          attrsToExclude=attrsToExclude,
                                          displayName=displayName,
                                          publishType=self.publishType,
@@ -648,7 +529,7 @@ type_to_xrc_map = {'collection' :
                    'freebusy'   :
                    ('PublishFreeBusy.xrc', _(u"Publish Free/Busy Information"))}
 
-def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None,
+def ShowPublishDialog(parent, view=None, collection=None,
                       publishType = 'collection', modal=False, name=None):
     filename, title = type_to_xrc_map[publishType]
     xrcFile = os.path.join(Globals.chandlerDirectory,
@@ -657,10 +538,13 @@ def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None,
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
-    win = PublishCollectionDialog(parent, title, resources=resources, view=view,
+    win = PublishCollectionDialog(parent,
+                                  title,
+                                  resources=resources,
+                                  view=view,
                                   collection=collection,
                                   publishType=publishType,
-                                  filterClassName=filterClassName, modal=modal,
+                                  modal=modal,
                                   name=name)
     win.CenterOnScreen()
     if modal:

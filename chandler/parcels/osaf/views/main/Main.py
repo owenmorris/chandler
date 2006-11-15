@@ -37,7 +37,6 @@ import osaf.pim.generate as generate
 
 from osaf.mail import constants
 import osaf.mail.sharing as MailSharing
-from osaf.sharing import ICalendar, Sharing
 import twisted.internet.error
 
 from util import GenerateItemsFromFile
@@ -596,7 +595,7 @@ class MainView(View):
                 self.setStatusMessage (_(u"Exporting to %(filename)s") % {'filename': filename})
 
                 share = sharing.OneTimeFileSystemShare(dir, filename,
-                                ICalendar.ICalendarFormat, itsView=self.itsView)
+                    sharing.ICalendarFormat, itsView=self.itsView)
                 if not optionResults[pim.Remindable.reminders.name]:
                     share.filterAttributes.append(pim.Remindable.reminders.name)
                 if not optionResults[pim.EventStamp.transparency.name]:
@@ -936,18 +935,10 @@ class MainView(View):
 
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
-            sidebar = Block.findBlockByName("Sidebar")
-            if sidebar.filterClass in (None, MissingClass):
-                filterClassName = None
-            else:
-                klass = sidebar.filterClass
-                filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
-
             mainFrame = wx.GetApp().mainFrame
             PublishCollection.ShowPublishDialog(mainFrame,
                 view=self.itsView,
-                collection=collection,
-                filterClassName=filterClassName)
+                collection=collection)
 
     def onShareSidebarCollectionEventUpdateUI (self, event):
         """
@@ -956,18 +947,7 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
 
         if collection is not None:
-
-            sidebar = Block.findBlockByName("Sidebar")
-            filterClasses = []
-            if sidebar.filterClass is not None:
-                klass = sidebar.filterClass
-                className = "%s.%s" % (klass.__module__, klass.__name__)
-                filterClasses.append(className)
-
-            collName = sharing.getFilteredCollectionDisplayName(collection,
-                                                                filterClasses)
-
-            menuTitle = _(u'Share "%(collectionName)s"...') % {'collectionName': collName}
+            menuTitle = _(u'Share "%(collectionName)s"...') % {'collectionName': collection.displayName}
         else:
             menuTitle = _(u'Share a collection...')
 
@@ -1025,10 +1005,10 @@ class MainView(View):
     def onSharingUnpublishFreeBusyEvent(self, event):
         try:
             sharing.unpublishFreeBusy(schema.ns('osaf.pim', self).allCollection)
-        except Sharing.NotFound:
+        except sharing.NotFound:
             msg = _(u"Freebusy ticket not found, couldn't revoke freebusy access")
             self.setStatusMessage(msg)
-        except (Sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
+        except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
             msg = _(u"Unpublish failed, could not connect to server")
             self.setStatusMessage(msg)
         except:
@@ -1044,7 +1024,7 @@ class MainView(View):
             collection = self.getSidebarSelectedCollection ()
             if collection is not None:
                 sharing.unpublish(collection)
-        except (Sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
+        except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
             msg = _(u"Unpublish failed, could not connect to server")
             self.setStatusMessage(msg)
         except:

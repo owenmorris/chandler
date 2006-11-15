@@ -20,6 +20,7 @@ import osaf.mail.message
 import osaf.sharing.ICalendar
 import application.Globals as Globals
 from osaf.framework.blocks.Block import Block
+from i18n import ChandlerMessageFactory as _
 
 EMAIL_FORMAT, EMAILX_FORMAT, ICALENDAR_FORMAT = range(3)
 

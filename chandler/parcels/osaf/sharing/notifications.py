@@ -12,20 +12,31 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
-import os, sys
-from application.dialogs.PublishCollection import ShowPublishDialog
-import wx
+__all__ = [
+    'SharingNotification',
+    'SharingNewItemNotification',
+    'SharingChangeNotification',
+    'SharingConflictNotification'
+]
+
+from application import schema
+from osaf import pim
+import logging
 from i18n import ChandlerMessageFactory as _
-import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
-from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
-import osaf.pim as pim
-from i18n.tests import uw
-from osaf.framework.blocks.Block import Block
-from repository.item.Item import MissingClass
 
 
-class TestSharing(ChandlerTestCase):
+logger = logging.getLogger(__name__)
 
-    def startTest(self):
-        QAUITestAppLib.publishSubscribe(self)
+class SharingNotification(pim.UserNotification):
+    pass
+
+class SharingNewItemNotification(SharingNotification):
+    pass
+
+class SharingChangeNotification(SharingNotification):
+    attribute = schema.One(schema.Text)
+    value = schema.One(schema.Text)
+
+class SharingConflictNotification(SharingChangeNotification):
+    remote = schema.One(schema.Text)
+    local = schema.One(schema.Text)

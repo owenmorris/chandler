@@ -429,17 +429,14 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
         return self.view.findUUID(self.shareUUID)
 
     def _doSync(self, *icalendarLines):
-         # sic; should probably add a method to InMemoryConduit for this
-        from osaf.sharing.conduits import shareDict
-        
-        # set the data on the "server" ... i.e. the Conduit
-        type(self).ETAG += 1
-        etag = self.ETAG
+
+        if not self.share.exists():
+            self.share.create()
+
+        # directly inject the data on the "server" ... i.e. the Conduit
         data = "\r\n".join(icalendarLines)
-        
-        shareSettings = shareDict.setdefault(uw("viewmerging"), {})
-        shareSettings['import.ics'] = etag, data
-        
+        self.share.conduit.inject('import.ics', data)
+
         # Now sync; it's as if icalendarLines were what was on the server
         self.share.sync()
         

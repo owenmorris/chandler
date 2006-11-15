@@ -12,12 +12,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import osaf.sharing.Sharing as Sharing
-import osaf.sharing.ICalendar as ICalendar
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import os, sys
-import osaf.pim as pim
+from osaf import sharing, pim
 
 
 class TestImporting(ChandlerTestCase):
@@ -36,7 +34,8 @@ class TestImporting(ChandlerTestCase):
         path = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/DataFiles")
         # Upcast path to unicode since Sharing requires a unicode path
         path = unicode(path, sys.getfilesystemencoding())
-        share = Sharing.OneTimeFileSystemShare(path, u'importTest.ics', ICalendar.ICalendarFormat, itsView=self.app_ns.itsView)
+        share = sharing.OneTimeFileSystemShare(path, u'importTest.ics',
+            sharing.ICalendarFormat, itsView=self.app_ns.itsView)
         
         self.logger.startAction("Import Large Calendar")
         collection = share.get()

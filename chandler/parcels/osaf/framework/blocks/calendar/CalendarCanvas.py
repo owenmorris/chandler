@@ -35,7 +35,7 @@ from osaf.pim import ContentCollection, has_stamp
 from osaf.usercollections import UserCollection
 from application.dialogs import RecurrenceDialog, Util, TimeZoneList
 
-from osaf.sharing import ChooseFormat, Sharing
+from osaf.sharing import ChooseFormat, CalDAVFreeBusyConduit, FreeBusyAnnotation
 
 from osaf.framework.blocks import (
     DragAndDrop, Block, SplitterWindow, Styles, BoxContainer, BlockEvent
@@ -1144,7 +1144,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         for collection in collections:
             shares = getattr(collection, 'shares', [])
             for share in shares:
-                if isinstance(share.conduit, Sharing.CalDAVFreeBusyConduit):
+                if isinstance(share.conduit, CalDAVFreeBusyConduit):
                     hits.append(collection)
                     break
         
@@ -1187,7 +1187,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         dates = [fb_date + n * timedelta(1) for n in range(number + 2)]
  
         for col in self.getFreeBusyCollections():
-            annotation = Sharing.FreeBusyAnnotation(col)
+            annotation = FreeBusyAnnotation(col)
             for date in dates:
                 annotation.addDateNeeded(self.itsView, date)    
 

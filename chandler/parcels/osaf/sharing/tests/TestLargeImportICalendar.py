@@ -15,8 +15,7 @@
 
 import unittest, os
 from repository.tests.RepositoryTestCase import RepositoryTestCase
-import osaf.sharing.Sharing as Sharing
-import osaf.sharing.ICalendar as ICalendar
+from osaf import sharing
 
 class TestLargeImport(RepositoryTestCase):
 
@@ -26,12 +25,12 @@ class TestLargeImport(RepositoryTestCase):
             path = os.path.join(os.getenv('CHANDLERHOME') or '.',
                                 'parcels', 'osaf', 'sharing', 'tests')
 
-            conduit = Sharing.FileSystemConduit("conduit",
+            conduit = sharing.FileSystemConduit("conduit",
                                                 sharePath=path,
                                                 shareName=u"3kevents.ics",
                                                 itsView=self.rep.view)
-            format = ICalendar.ICalendarFormat("format", itsView=self.rep.view)
-            share = Sharing.Share("share", conduit=conduit, format=format,
+            format = sharing.ICalendarFormat("format", itsView=self.rep.view)
+            share = sharing.Share("share", conduit=conduit, format=format,
                                   itsView=self.rep.view)
             share.get()
 

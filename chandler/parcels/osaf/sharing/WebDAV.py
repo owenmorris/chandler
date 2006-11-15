@@ -39,6 +39,8 @@ import application.Utility as Utility
 from osaf.framework.certstore import ssl
 from osaf import messages
 import version
+from i18n import ChandlerMessageFactory as _
+
 
 class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     def __init__(self, host=None, port=None, username=None, password=None,

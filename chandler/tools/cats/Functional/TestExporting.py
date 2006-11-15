@@ -12,13 +12,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import osaf.sharing.Sharing as Sharing
-import osaf.sharing.ICalendar as ICalendar
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import os, wx, sys
-from osaf.pim import ListCollection
 import osaf.pim.calendar.Calendar as Calendar
+from osaf import sharing, pim
 
 class TestExporting(ChandlerTestCase):
 
@@ -33,10 +31,11 @@ class TestExporting(ChandlerTestCase):
         
         #Upcast path to unicode since Sharing requires a unicode path
         path = unicode(path, sys.getfilesystemencoding())
-        share = Sharing.OneTimeFileSystemShare(path, 'exportTest.ics', ICalendar.ICalendarFormat, itsView=appView)
+        share = sharing.OneTimeFileSystemShare(path, 'exportTest.ics',
+            sharing.ICalendarFormat, itsView=appView)
      
         self.logger.startAction("Export Test Calendar")
-        collection = ListCollection(itsView=appView)
+        collection = pim.ListCollection(itsView=appView)
         for event in Calendar.EventStamp.getCollection(appView):
             collection.add(event)
         share.contents = collection

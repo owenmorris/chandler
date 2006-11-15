@@ -17,23 +17,19 @@ from QALogger import *
 from datetime import datetime, timedelta, time
 from time import mktime, strptime
 from PyICU import ICUtzinfo
-from osaf import pim
+from osaf import pim, sharing
 import osaf.pim.mail as Mail
 import osaf.pim.collections as Collection
-import osaf.sharing as Sharing
 import application.Globals as Globals
 import wx
 import string
 import osaf.framework.scripting as scripting
-import osaf.sharing.ICalendar as ICalendar
 import os, sys
 from itertools import chain
 from i18n.tests import uw
-from osaf.sharing import unpublish 
 from osaf.framework.blocks.Block import Block
 from application.dialogs.PublishCollection import ShowPublishDialog
 import application.dialogs.SubscribeCollection as SubscribeCollection
-from osaf import sharing
 from repository.item.Item import MissingClass
 
 #Global AppProxy instance
@@ -77,7 +73,8 @@ def publishSubscribe(logger):
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
     path = unicode(path, 'utf8')
-    share = Sharing.Sharing.OneTimeFileSystemShare(path, u'testSharing.ics', ICalendar.ICalendarFormat, itsView=App_ns.itsView)
+    share = sharing.OneTimeFileSystemShare(path, u'testSharing.ics',
+        sharing.ICalendarFormat, itsView=App_ns.itsView)
 
     collection = share.get()
     App_ns.sidebarCollection.add(collection)
@@ -90,15 +87,9 @@ def publishSubscribe(logger):
     # Sharing dialog
     collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
     if collection is not None:
-        if sidebar.filterClass is MissingClass:
-            filterClassName = None 
-        else:
-            klass = sidebar.filterClass
-            filterClassName = "%s.%s" % (klass.__module__, klass.__name__)
         publishName = "TestSharing_%s" % str(collection.itsUUID)
         win = ShowPublishDialog(wx.GetApp().mainFrame, view=App_ns.itsView,
                                 collection=collection,
-                                filterClassName=filterClassName,
                                 modal=False,
                                 name=publishName)
         #Share button call
@@ -182,7 +173,7 @@ def publishSubscribe(logger):
             # cosmo can only handle so many shared calendars
             # so remove this one when done
             collection = sidebarCollectionNamed('testSharing')
-            unpublish(collection)
+            sharing.unpublish(collection)
             App_ns.root.Remove()
 
             logger.ReportPass("(On Subscribe collection)")
@@ -1513,7 +1504,7 @@ class UITestAccounts:
         elif type == "IMAP":
             iter = Mail.IMAPAccount.iterItems(App_ns.itsView)
         elif type == "WebDAV":
-            iter = Sharing.WebDAVAccount.iterItems(App_ns.itsView)
+            iter = sharing.WebDAVAccount.iterItems(App_ns.itsView)
         elif type == "POP":
             iter = Mail.POPAccount.iterItems(App_ns.itsView)
         else:
@@ -1554,9 +1545,9 @@ class UITestView(object):
             path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
             #Upcast path to unicode since Sharing requires a unicode path
             path = unicode(path, sys.getfilesystemencoding())
-            share = Sharing.Sharing.OneTimeFileSystemShare(path, 
-                            environmentFile, 
-                            ICalendar.ICalendarFormat, 
+            share = sharing.OneTimeFileSystemShare(path,
+                            environmentFile,
+                            sharing.ICalendarFormat,
                             itsView=App_ns.itsView)
             try:
                 self.collection = share.get()

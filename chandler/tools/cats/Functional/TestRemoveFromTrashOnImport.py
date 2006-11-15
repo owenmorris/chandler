@@ -20,8 +20,7 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import os, sys
 from time import localtime, strftime
-import osaf.sharing.Sharing as Sharing
-import osaf.sharing.ICalendar as ICalendar
+from osaf import sharing
 import osaf.framework.scripting as scripting
 from application import Globals
 
@@ -53,7 +52,7 @@ class TestRemoveFromTrashOnImport(ChandlerTestCase):
         reportDir = unicode(reportDir, sys.getfilesystemencoding())
         
         #export
-        share = Sharing.OneTimeFileSystemShare(reportDir, u'deleteThenImport.ics', ICalendar.ICalendarFormat, itsView=appView)
+        share = sharing.OneTimeFileSystemShare(reportDir, u'deleteThenImport.ics', sharing.ICalendarFormat, itsView=appView)
         share.contents = collection.item
         share.put()
         
@@ -62,7 +61,7 @@ class TestRemoveFromTrashOnImport(ChandlerTestCase):
         collection.DeleteCollection()
         
         #import event back in
-        share = Sharing.OneTimeFileSystemShare(reportDir, u'deleteThenImport.ics', ICalendar.ICalendarFormat, itsView=appView)
+        share = sharing.OneTimeFileSystemShare(reportDir, u'deleteThenImport.ics', sharing.ICalendarFormat, itsView=appView)
         collection = share.get()
         self.app_ns.sidebarCollection.add(collection)
         scripting.User.idle()    

@@ -12,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import osaf.sharing.Sharing as Sharing
 import tools.QAUITestAppLib as QAUITestAppLib
 import os, wx, sys
 import osaf.pim as pim

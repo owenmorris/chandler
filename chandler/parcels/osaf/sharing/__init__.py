@@ -13,43 +13,36 @@
 #   limitations under the License.
 
 
-"""
-The sharing package provides a framework for importing, exporting,
-and synchronizing collections of ContentItems.
-
-Use the publish( ) and subscribe( ) methods to set up the sharing
-of a collection and do the initial export/import; use sync( ) to
-update.
-"""
-
-
 import logging, urlparse, datetime
 from PyICU import ICUtzinfo
 
-from application import schema, Utility, dialogs
+from application import schema, dialogs
 from application.Parcel import Reference
-from application.Utility import getDesktopDir
+from application.Utility import getDesktopDir, CertificateVerificationError
 from osaf import pim
 from osaf.pim.calendar import Calendar
+from osaf.pim.collections import UnionCollection, DifferenceCollection
 from i18n import ChandlerMessageFactory as _
-import vobject
-
-from repository.item.Monitors import Monitors
-from repository.item.Item import Item
-import chandlerdb
+from chandlerdb.util.c import UUID
 
 import zanshin, M2Crypto, twisted, re
 
-from Sharing import *
+from shares import *
 from conduits import *
+from formats import *
+from errors import *
+from utility import *
+from accounts import *
+from synchronize import *
+from filesystem_conduit import *
+from webdav_conduit import *
+from inmemory_conduit import *
+from caldav_conduit import *
 from WebDAV import *
 from ICalendar import *
 from callbacks import *
 from eim import *
 
-from osaf.pim.collections import UnionCollection, DifferenceCollection
-
-from itertools import chain
 
 logger = logging.getLogger(__name__)
 
@@ -108,13 +101,14 @@ def installParcel(parcel, oldVersion=None):
     pim.ListCollection.update(parcel, "activityLog",
         displayName="Sharing Activity"
     )
-    
+
     publishedFreeBusy = UnionCollection.update(parcel, 'publishedFreeBusy')
     hiddenEvents = DifferenceCollection.update(parcel, "hiddenEvents",
-        sources=[schema.ns('osaf.pim', parcel.itsView).allEventsCollection, publishedFreeBusy],
+        sources=[schema.ns('osaf.pim', parcel.itsView).allEventsCollection,
+            publishedFreeBusy],
         displayName = 'Unpublished Freebusy Events'
     )
-    
+
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 PROCEED        = 1
@@ -184,11 +178,11 @@ def interrupt(graceful=True):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 def _setError(collection, message):
-    for share in getLinkedShares(collection.shares.first()):
+    for share in collection.shares.first().getLinkedShares():
         share.error = message
 
 def _clearError(collection):
-    for share in getLinkedShares(collection.shares.first()):
+    for share in collection.shares.first().getLinkedShares():
         if hasattr(share, 'error'):
             del share.error
 
@@ -219,17 +213,9 @@ class BackgroundSyncHandler:
         twisted.internet.reactor.addSystemEventTrigger('before', 'shutdown',
             shutdownCallback)
 
-        # @@@MOR - just learned that creating my own view is unnecessary --
-        # the item passed into the constructor is already in a view created
-        # just for me
-        repo = item.itsView.repository
-        for view in repo.views:
-            if view.name == 'BackgroundSync':
-                break
-        else:
-            view = repo.createView('BackgroundSync')
+        # Store the repository view provided to us
+        self.rv = item.itsView
 
-        self.rv = view
         running_status = IDLE
 
     def run(self, *args, **kwds):
@@ -270,7 +256,7 @@ class BackgroundSyncHandler:
                 collections.append(collection)
 
             else:
-                for share in Sharing.Share.iterItems(self.rv):
+                for share in Share.iterItems(self.rv):
                     try:
                         if(share.active and
                             share.established and
@@ -347,6 +333,13 @@ class BackgroundSyncHandler:
         interrupt_flag = PROCEED
 
         return True
+
+
+
+
+
+
+
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -689,7 +682,7 @@ def publish(collection, account, classesToInclude=None,
     except (SharingError,
             zanshin.error.Error,
             M2Crypto.SSL.Checker.WrongHost,
-            Utility.CertificateVerificationError,
+            CertificateVerificationError,
             twisted.internet.error.TimeoutError), e:
 
         # Clean up share objects
@@ -1165,7 +1158,7 @@ def interrogate(conduit, location, ticket=None):
         # Cosmo doesn't support the current-user-privilege-set property yet,
         # so fall back to trying to create a child collection
         # Create a random collection name to create
-        testCollName = u'.%s.tmp' % (chandlerdb.util.c.UUID())
+        testCollName = u'.%s.tmp' % (UUID())
         try:
             child = handle.blockUntil(resource.createCollection,
                                       testCollName)
@@ -1212,219 +1205,6 @@ def interrogate(conduit, location, ticket=None):
     return (shareMode, hasSubCollection, isCalendar)
 
 
-
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-# Public helper methods
-
-
-def findMatchingShare(view, url):
-    """ Find a Share which corresponds to a URL.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    @param url: A url pointing at a WebDAV Collection
-    @type url: String
-    @return: A Share item, or None
-    """
-
-    account = WebDAVAccount.findMatchingAccount(view, url)
-    if account is None:
-        return None
-
-    # If we found a matching account, that means *potentially* there is a
-    # matching share; go through all conduits this account points to and look
-    # for shareNames that match
-
-    (useSSL, host, port, path, query, fragment) = splitUrl(url)
-
-    # '/dev1/foo/bar' becomes 'bar'
-    shareName = path.strip("/").split("/")[-1]
-
-    if hasattr(account, 'conduits'):
-        for conduit in account.conduits:
-            if conduit.shareName == shareName:
-                if(getattr(conduit, 'share', None) and
-                   conduit.share.hidden == False):
-                    return conduit.share
-
-    return None
-
-
-
-def isSharedByMe(share):
-    if share is None:
-        return False
-    me = schema.ns("osaf.pim", share.itsView).currentContact.item
-    sharer = getattr(share, 'sharer', None)
-    return sharer is me
-
-
-def getUrls(share):
-    if share == schema.ns('osaf.sharing', share.itsView).prefs.freeBusyShare:
-        return [share.getLocation(privilege='freebusy')]
-    elif isSharedByMe(share):
-        url = share.getLocation()
-        readWriteUrl = share.getLocation(privilege='readwrite')
-        readOnlyUrl = share.getLocation(privilege='readonly')
-        if url == readWriteUrl:
-            # Not using tickets
-            return [url]
-        else:
-            return [readWriteUrl, readOnlyUrl]
-    else:
-        url = share.getLocation(privilege='subscribed')
-        return [url]
-
-
-def getShare(collection):
-    """ Return the Share item (if any) associated with an ContentCollection.
-
-    @param collection: an ContentCollection
-    @type collection: ContentCollection
-    @return: A Share item, or None
-    """
-
-    # First, see if there is a 'main' share for this collection.  If not,
-    # return the first "non-hidden" share for this collection -- see isShared()
-    # method for further details.
-
-    if hasattr(collection, 'shares') and collection.shares:
-
-        share = collection.shares.getByAlias('main')
-        if share is not None:
-            return share
-
-        for share in collection.shares:
-            if share.hidden == False:
-                return share
-
-    return None
-
-def getFreeBusyShare(collection):
-    """Return the free/busy Share item (if any) associated with a 
-    ContentCollection.
-
-    @param collection: an ContentCollection
-    @type collection: ContentCollection
-    @return: A Share item, or None
-    
-    """
-    caldavShare = schema.ns('osaf.sharing', collection.itsView).prefs.freeBusyShare
-    if caldavShare is not None:
-        return caldavShare
-    if hasattr(collection, 'shares') and collection.shares:
-        return collection.shares.getByAlias('freebusy')
-    return None
-
-def isOnline(collection):
-    """ Return the active state of the first share, if any """
-    for share in collection.shares:
-        return share.active
-    return False
-
-
-def takeOnline(collection):
-    for share in collection.shares:
-        share.active = True
-
-
-def takeOffline(collection):
-    for share in collection.shares:
-        share.active = False
-
-
-def isWebDAVSetUp(view):
-    """
-    See if WebDAV is set up.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    @return: True if accounts are set up; False otherwise.
-    """
-
-    account = schema.ns('osaf.sharing', view).currentWebDAVAccount.item
-    if account and account.host and account.username and account.password:
-        return True
-    else:
-        return False
-
-def getActiveShares(view):
-    for share in Share.iterItems(view):
-        if (share.active and
-            share.contents is not None):
-            yield share
-
-def syncAll(view, updateCallback=None):
-    """
-    Synchronize all active shares.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    """
-
-    sharedCollections = []
-    stats = []
-    for share in getActiveShares(view):
-        if share.contents not in sharedCollections:
-            sharedCollections.append(share.contents)
-            stats.extend(sync(share.contents, updateCallback=updateCallback))
-            
-    return stats
-
-
-def checkForActiveShares(view):
-    """
-    See if there are any non-hidden, active shares.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    @return: True if there are non-hidden, active shares; False otherwise
-    """
-
-    for share in Share.iterItems(view):
-        if share.active and share.active:
-            return True
-    return False
-
-
-def getExistingResources(account):
-
-    path = account.path.strip("/")
-    handle = ChandlerServerHandle(account.host,
-                                  port=account.port,
-                                  username=account.username,
-                                  password=account.password,
-                                  useSSL=account.useSSL,
-                                  repositoryView=account.itsView)
-
-    if len(path) > 0:
-        path = "/%s/" % path
-    else:
-        path = "/"
-
-    existing = []
-    parent   = handle.getResource(path)
-    
-    fbparent = handle.getResource(path + 'freebusy/')
-    fbexists = handle.blockUntil(fbparent.exists)
-
-    skipLen = len(path)
-        
-    resources = handle.blockUntil(parent.getAllChildren)
-    if fbexists:
-        resources = chain(resources, handle.blockUntil(fbparent.getAllChildren))
-    ignore = ('', 'freebusy', 'freebusy/hiddenEvents', 'hiddenEvents')
-    
-    for resource in resources:
-        path = resource.path[skipLen:]
-        path = path.strip(u"/")
-        if path not in ignore:
-            # path = urllib.unquote_plus(path).decode('utf-8')
-            existing.append(path)
-
-    # @@@ [grant] Localized sort?
-    existing.sort( )
-    return existing
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

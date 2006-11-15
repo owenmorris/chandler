@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <Share version='3' class='osaf.sharing.Sharing.Share' uuid='d1514632-47ea-11db-a812-0016cbca6aed'>
+   <filterClasses>
+   </filterClasses>
    <contents>
       <ListCollection class='osaf.pim.collections.ListCollection' uuid='d1511b12-47ea-11db-a812-0016cbca6aed'>
          <body mimetype='text/plain' encoding='utf-8'></body>
@@ -13,11 +15,6 @@
    </contents>
    <sharees>
    </sharees>
-   <filterClasses>
-       <value>osaf.pim.calendar.Calendar.CalendarEventMixin</value>
-       <value>osaf.pim.tasks.TaskMixin</value>
-       <value>osaf.pim.mail.MailMessageMixin</value>
-   </filterClasses>
    <filterAttributes>
       <value>allDay</value>
       <value>anyTime</value>
