@@ -1153,7 +1153,7 @@ class StringAttributeEditor (BaseAttributeEditor):
                     width = 200
             size = wx.Size(width, height)
 
-        style = wx.TAB_TRAVERSAL
+        style = 0
         if readOnly: style |= wx.TE_READONLY
         
         if useStaticText:
