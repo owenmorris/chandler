@@ -472,7 +472,7 @@ class Indexed(object):
         """
 
         for indexName in indexNames:
-            self.getIndex(indexName).moveKeys(keys)
+            self.getIndex(indexName).moveKeys(keys, Default)
 
         self._setDirty(True)
 

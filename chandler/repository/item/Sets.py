@@ -347,6 +347,15 @@ class AbstractSet(ItemValue, Indexed):
 
         if item is not None:
             if change == 'collection':
+
+                if op == 'refresh' and self._indexes:
+                    indexed = other in self._anIndex()
+                    contains = self.__contains__(other, False, True)
+                    if indexed and not contains:
+                        op = 'remove'
+                    elif contains and not indexed:
+                        op = 'add'
+
                 if op in ('add', 'remove'):
                     if not (local or self._otherName is None):
                         otherItem = self._view.find(other)
@@ -446,14 +455,18 @@ class AbstractSet(ItemValue, Indexed):
 
         result = True
 
-        sources = set()
-        for source in self.iterSources(True):
-            srcItem, srcAttr = source
-            if source in sources:
-                logger.error("Set '%s', value of attribute '%s' on %s has duplicated source (%s, %s)", self, attribute, item._repr_(), srcItem._repr_(), srcAttr)
-                result = False
-            else:
-                sources.add(source)
+        try:
+            sources = set()
+            for source in self.iterSources(True):
+                srcItem, srcAttr = source
+                if source in sources:
+                    logger.error("Set '%s', value of attribute '%s' on %s has duplicated source (%s, %s)", self, attribute, item._repr_(), srcItem._repr_(), srcAttr)
+                    result = False
+                else:
+                    sources.add(source)
+        except:
+            logger.exception("Set '%s', value of attribute '%s' on %s could not be checked for duplicates because of error", self, attribute, item._repr_())
+            result = False
 
         if result:
             result = (super(AbstractSet, self)._check(logger, item, attribute,

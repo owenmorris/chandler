@@ -534,7 +534,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                 else:
                     if verify:
                         self._status |= CView.VERIFY
-                    self.playChangeNotifications()
 
             # flush schema caches of changed kinds
             for (uItem, version, uKind, status, uParent,
@@ -547,23 +546,33 @@ class DBRepositoryView(OnDemandRepositoryView):
                     elif 'attributes' in names:
                         self[uItem].flushCaches('attributes')
 
-            _changes = []
-            for uItem, name, newValue in conflicts:
-                item = self.find(uItem)
-                if item is not None:
-                    if newValue is Nil:
-                        if hasattr(item, name):
-                            item.removeAttributeValue(name, None, None, True)
-                            _changes.append((item, 'remove', name))
-                    else:
-                        item.setAttributeValue(name, newValue,
-                                               None, None, True, True)
-                        _changes.append((item, 'set', name))
-            for item, op, name in _changes:
-                if not item.isStale():
-                    item._fireChanges(op, name)
+            if merges:
+                try:
+                    _changes = []
+                    for uItem, name, newValue in conflicts:
+                        item = self.find(uItem)
+                        if item is not None:
+                            if newValue is Nil:
+                                if hasattr(item, name):
+                                    item.removeAttributeValue(name, None, None,
+                                                              True)
+                                    _changes.append((item, 'remove', name))
+                            else:
+                                item.setAttributeValue(name, newValue,
+                                                       None, None, True, True)
+                                _changes.append((item, 'set', name))
+                    for item, op, name in _changes:
+                        if not item.isStale():
+                            item._fireChanges(op, name)
+                except:
+                    self.logger.exception('%s merge aborted by error', self)
+                    self.discardChangeNotifications()
+                    self.cancel()
+                    raise
+                else:
+                    self.playChangeNotifications()
 
-            if notify:
+            if notify or merges:
                 before = time()
                 self._dispatchHistory(history, refreshes,
                                       oldVersion, newVersion)
