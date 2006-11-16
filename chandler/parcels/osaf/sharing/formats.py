@@ -97,6 +97,9 @@ class AbstractDOM(object):
         
     def iterElements(self, element):
         raise NotImplementedError, "%s.iterElements" %(type(self))
+
+    def getFirstChildElement(self, element):
+        raise NotImplementedError, "%s.getFirstChildElement" %(type(self))
         
 
 class ElementTreeDOM(AbstractDOM):
@@ -106,6 +109,12 @@ class ElementTreeDOM(AbstractDOM):
 
     def getAttribute(self, element, name):
         return element.get(name)
+
+    def iterElements(self, element):
+        return element.getchildren()
+
+    def getFirstChildElement(self, element):
+        return element.getchildren()[0]
 
 
 class CloudXMLFormat(ImportExportFormat):
@@ -518,7 +527,7 @@ class CloudXMLFormat(ImportExportFormat):
         return result
 
 
-    def _getElement(self, element, attribute):
+    def _getElement(self, dom, element, attribute):
 
         # @@@MOR This method only supports traversal of single-cardinality
         # attributes
@@ -528,16 +537,15 @@ class CloudXMLFormat(ImportExportFormat):
         attribute = chain[0]
         remaining = chain[1:]
 
-        for child in element.getchildren():
-            if child.tag == attribute:
+        for child in dom.iterElements(element):
+            if dom.getTag(child) == attribute:
                 if not remaining:
                     # we're at the end of the chain
                     return child
                 else:
                     # we need to recurse. @@@MOR for now, not supporting
                     # list
-                    return self._getElement(child.getchildren()[0],
-                     ".".join(remaining))
+                    return self._getElement(dom, dom.getFirstChildElement(child), ".".join(remaining))
 
         return None
 
@@ -618,7 +626,7 @@ class CloudXMLFormat(ImportExportFormat):
                 # if an icalUID is specified in the XML -- if there is, then
                 # see if there is a master event already with this icalUID.
                 # If so, skip this item.
-                icalElement = self._getElement(element, 'icalUID')
+                icalElement = self._getElement(dom, element, 'icalUID')
                 if icalElement is not None:
                     icalUID = icalElement.text
                     existingEvent = pim.calendar.Calendar.findUID(view, icalUID)
@@ -696,7 +704,7 @@ class CloudXMLFormat(ImportExportFormat):
                 not attrStampClass in stampClasses):
                 continue
 
-            attrElement = self._getElement(element, elementName)
+            attrElement = self._getElement(dom, element, elementName)
 
             if attrElement is None:
                 # [Bug 7314]
