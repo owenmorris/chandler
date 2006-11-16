@@ -743,19 +743,23 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
     def _sourcesChanged_(self, op):
         
         source = self.source
-        trash = schema.ns('osaf.pim', self.itsView).trashCollection
 
         if source is None:
             set = EmptySet()
             if op == 'remove':
                 self.delete()
                 return set
-        elif (isinstance(source, WrapperCollection) and
-              trash not in source.sources):
+        elif isinstance(source, WrapperCollection):
             # bug 5899 - alpha2 workaround: When SmartCollections are
             # wrapped with IntersectionCollection/UnionCollection,
             # they drop the trash. So we artificially insert it back
-            set = Difference(source, trash)
+            trash = schema.ns('osaf.pim', self.itsView).trashCollection
+            for item, attribute in source.iterSources(True):
+                if item is trash and attribute == trash.__collection__:
+                    set = Set(source)
+                    break
+            else:
+                set = Difference(source, trash)
         else:
             set = Set(source)
 
