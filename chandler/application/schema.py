@@ -1509,58 +1509,51 @@ def itemFor(obj, view):
         if item is not None:
             return item
 
-    global_lock.acquire()
+    if obj in view._schema_cache:
+        item = view._schema_cache[obj]
+        if item is None:
+            # If we get here, it's because itemFor() has re-entered itself
+            # looking for the same item, which can only happen if an
+            # object's _find_schema_item() or _create_schema_item() is
+            # cyclically recursive.  Don't do that.
+            raise RuntimeError("Recursive schema item initialization", obj)
+        return item
+
+    view._schema_cache[obj] = None   # guard against re-entry
     try:
-        # Double-checked locking; somebody might've updated the cache while
-        # we were waiting to acquire the lock
-        if obj in view._schema_cache:
-            item = view._schema_cache[obj]
-            if item is None:
-                # If we get here, it's because itemFor() has re-entered itself
-                # looking for the same item, which can only happen if an
-                # object's _find_schema_item() or _create_schema_item() is
-                # cyclically recursive.  Don't do that.
-                raise RuntimeError("Recursive schema item initialization", obj)
-            return item
+        item = view._schema_cache[obj] = obj._find_schema_item(view)
+    except:
+        del view._schema_cache[obj]  # remove the guard
+        raise
+    else:
+        if item is None:
+            # couldn't find it, try creating it
+            try:
+                item = view._schema_cache[obj] = obj._create_schema_item(view)
+            except:
+                del view._schema_cache[obj]  # remove the guard
+                raise
+            else:
+                declareTemplate(item)
+                if isinstance(obj,type) and getattr(obj,'__doc__',None):
+                    item.description = obj.__doc__
+                for k,v in getattr(obj,'__kind_info__',{}).items():
+                    setattr(item,k,v)
 
-        view._schema_cache[obj] = None   # guard against re-entry
-        try:
-            item = view._schema_cache[obj] = obj._find_schema_item(view)
-        except:
-            del view._schema_cache[obj]  # remove the guard
-            raise
-        else:
-            if item is None:
-                # couldn't find it, try creating it
+                # set up possibly-recursive data
+                level = view._schema_init_level
+                queue = view._schema_init_queue
                 try:
-                    item = view._schema_cache[obj] = obj._create_schema_item(view)
-                except:
-                    del view._schema_cache[obj]  # remove the guard
-                    raise
-                else:
-                    declareTemplate(item)
-                    if isinstance(obj,type) and getattr(obj,'__doc__',None):
-                        item.description = obj.__doc__
-                    for k,v in getattr(obj,'__kind_info__',{}).items():
-                        setattr(item,k,v)
+                    view._schema_init_level += 1  # prevent recursion
+                    cb = obj._init_schema_item(item,view)
+                    if cb is not None:
+                        queue.append(cb)
+                    while queue and not level:
+                        queue.pop(0)()  # invoke callbacks
+                finally:
+                    view._schema_init_level = level
 
-                    # set up possibly-recursive data
-                    level = view._schema_init_level
-                    queue = view._schema_init_queue
-                    try:
-                        view._schema_init_level += 1  # prevent recursion
-                        cb = obj._init_schema_item(item,view)
-                        if cb is not None:
-                            queue.append(cb)
-                        while queue and not level:
-                            queue.pop(0)()  # invoke callbacks
-                    finally:
-                        view._schema_init_level = level
-
-            return item
-
-    finally:
-        global_lock.release()
+        return item
 
 # -------------------------------
 # Initialization/Utility Routines
