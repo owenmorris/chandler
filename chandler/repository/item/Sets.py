@@ -327,17 +327,6 @@ class AbstractSet(ItemValue, Indexed):
         else:
             op = None
 
-        if op == 'refresh':
-            index = self._anIndex()
-            if index is not None:
-                sourceContains = self._sourceContains(other, source)
-                indexContains = other.itsUUID in index
-
-                if sourceContains and not indexContains:
-                    op = 'add'
-                elif not sourceContains and indexContains:
-                    op = 'remove'
-
         return op
 
     def _collectionChanged(self, op, change, other, local=False):
