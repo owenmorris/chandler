@@ -54,7 +54,6 @@ class CalDAVConduit(webdav_conduit.WebDAVConduit):
     def _putItem(self, item):
         result = super(CalDAVConduit, self)._putItem(item)
 
-        displayName = item.getItemDisplayName()
         itemName = self._getItemPath(item)
         serverHandle = self._getServerHandle()
         container = self._getContainerResource()

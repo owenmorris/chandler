@@ -1058,7 +1058,7 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
 
-            collName = collection.getItemDisplayName()
+            collName = collection.displayName
             menuTitle = _(u'Sync "%(collectionName)s"') % \
                 {'collectionName': collName}
             if sharing.isShared(collection):

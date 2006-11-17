@@ -140,7 +140,7 @@ class LinkableConduit(BaseConduit):
             #         "attribute: %(attribute)s '%(local)s' vs '%(remote)s'") %
             #         (
             #             {
-            #                'name' : item.getItemDisplayName(),
+            #                'name' : item.displayName,
             #                'attribute' : attribute,
             #                'local' : unicode(getattr(item, attribute, Nil))
             #                'remote' : unicode(value),
@@ -327,7 +327,7 @@ class LinkableConduit(BaseConduit):
                             item = contentView.findUUID(uuid)
                             if pim.has_stamp(item, pim.EventStamp):
                                 if updateCallback:
-                                    updateCallback(msg=_(u"Incomplete Event Detected: '%(name)s'") % { 'name': item.getItemDisplayName() } )
+                                    updateCallback(msg=_(u"Incomplete Event Detected: '%(name)s'") % { 'name': item.displayName } )
 
                                 # This indicates the resource is to be ignored
                                 # during PUT (otherwise we would remove the .xml
@@ -526,7 +526,7 @@ class ManifestEngineMixin(pim.ContentItem):
         externalItemExists = self._externalItemExists(item)
 
         # logger.debug("Examining for put: %s, version=%d",
-        #     item.getItemDisplayName().encode('utf8', 'replace'),
+        #     item.displayName.encode('utf8', 'replace'),
         #     item.getVersion())
 
         if not externalItemExists:
@@ -549,10 +549,10 @@ class ManifestEngineMixin(pim.ContentItem):
                         modifiedAttributes = changes[relatedItem.itsUUID]
                         sharedAttributes = \
                             self.share.getSharedAttributes(relatedItem.itsKind)
-                        logger.debug("Changes for %s: %s", relatedItem.getItemDisplayName().encode('utf8', 'replace'), modifiedAttributes)
+                        logger.debug("Changes for %s: %s", relatedItem.displayName.encode('utf8', 'replace'), modifiedAttributes)
                         for change in modifiedAttributes:
                             if change in sharedAttributes:
-                                logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.getItemDisplayName())
+                                logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.displayName)
                                 needsUpdate = True
                                 result = 'modified'
                                 reason = change
@@ -561,13 +561,13 @@ class ManifestEngineMixin(pim.ContentItem):
         if needsUpdate:
             logger.info("...putting '%s' %s (%d vs %d) (%s)" %
                 (
-                    item.getItemDisplayName(), item.itsUUID, item.getVersion(),
+                    item.displayName, item.itsUUID, item.getVersion(),
                     self.itemsMarker.getVersion(), reason
                 )
             )
 
             if updateCallback and updateCallback(msg="'%s'" %
-                item.getItemDisplayName()):
+                item.displayName):
                 raise errors.SharingError(_(u"Cancelled by user"))
 
             # @@@MOR Disabling this for now
@@ -791,12 +791,12 @@ class ManifestEngineMixin(pim.ContentItem):
                 self._addToManifest(itemPath, item, data)
                 self._setFetched(itemPath)
                 logger.info("...imported '%s' '%s' %s, data: %s" % \
-                 (itemPath, item.getItemDisplayName().encode('ascii',
+                 (itemPath, item.displayName.encode('ascii',
                     'replace'), item, data))
 
                 cvSelf.share.items.append(item)
                 if updateCallback and updateCallback(msg="'%s'" %
-                    item.getItemDisplayName()):
+                    item.displayName):
                     raise errors.SharingError(_(u"Cancelled by user"))
 
                 return item
@@ -975,7 +975,7 @@ class ManifestEngineMixin(pim.ContentItem):
                             stats['removed'].append(item.itsUUID)
                             if updateCallback and updateCallback(
                                 msg=_(u"Removing from collection: '%(name)s'")
-                                % { 'name' : item.getItemDisplayName() }
+                                % { 'name' : item.displayName }
                                 ):
                                 raise errors.SharingError(_(u"Cancelled by user"))
 

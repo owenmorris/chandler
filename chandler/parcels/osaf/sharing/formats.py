@@ -852,7 +852,7 @@ class CloudXMLFormat(ImportExportFormat):
                         values.append(value)
 
                     logger.debug("for %s setting %s to %s" % \
-                        (item.getItemDisplayName().encode('utf8',
+                        (item.displayName.encode('utf8',
                         'replace'), attrName, values))
                     setattr(item, attrName, values)
 

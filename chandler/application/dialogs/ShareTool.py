@@ -89,7 +89,7 @@ class ShareToolDialog(wx.Dialog):
         self.shares = []
         for item in sharing.Share.iterItems(self.view):
             self.shares.append(item)
-            display = u"'%s' -- %s" % (item.getItemDisplayName(),
+            display = u"'%s' -- %s" % (item.displayName,
              item.conduit.getLocation())
             self.sharesList.Append(display)
 
@@ -221,7 +221,7 @@ class ShareEditorDialog(wx.Dialog):
 
         if share is not None: # share provided
 
-            self.textTitle.SetValue(share.getItemDisplayName())
+            self.textTitle.SetValue(share.displayName)
             self.textShareName.SetValue(share.conduit.shareName)
             account = share.conduit.account
 
@@ -236,7 +236,7 @@ class ShareEditorDialog(wx.Dialog):
         i = 0
         for item in sharing.WebDAVAccount.iterItems(self.view):
             self.accounts.append(item)
-            self.choiceAccount.Append(item.getItemDisplayName())
+            self.choiceAccount.Append(item.displayName)
             if account is item:
                 defaultChoice = i
             i += 1
@@ -248,11 +248,11 @@ class ShareEditorDialog(wx.Dialog):
             i = 1
             for item in ContentCollection.iterItems(self.view):
                 self.collections.append(item)
-                self.choiceColl.Append(item.getItemDisplayName())
+                self.choiceColl.Append(item.displayName)
 
                 #XXX i18n the displayName is locale dependent and
                 # should not be used as a lookup key 
-                if item.getItemDisplayName() == "Calendar Demo":
+                if item.displayName == "Calendar Demo":
                     defaultChoice = i
                 if share is not None and share.contents is not None:
                     if item is share.contents:
@@ -355,7 +355,7 @@ class CollectionEditorDialog(wx.Dialog):
         self.textName = wx.xrc.XRCCTRL(self, "TEXT_COLLNAME")
         self.listItems = wx.xrc.XRCCTRL(self, "LIST_ITEMS")
 
-        self.textName.SetValue(self.collection.getItemDisplayName())
+        self.textName.SetValue(self.collection.displayName)
         self._populateList()
 
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
@@ -371,7 +371,7 @@ class CollectionEditorDialog(wx.Dialog):
         i = 0
         for item in self.collection:
             self.items.append(item)
-            self.listItems.Append(item.getItemDisplayName())
+            self.listItems.Append(item.displayName)
             i += 1
 
     def OnOk(self, evt):

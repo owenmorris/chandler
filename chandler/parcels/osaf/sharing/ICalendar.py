@@ -702,7 +702,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                  eventItem.startTime))
 
                 if updateCallback:
-                    msg="'%s'" % eventItem.itsItem.getItemDisplayName()
+                    msg="'%s'" % eventItem.itsItem.displayName
                     # the work parameter tells the callback whether progress
                     # should be tracked, this only makes sense if we might have
                     # more than one event.

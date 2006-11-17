@@ -183,6 +183,10 @@ def pwd():
 
     print currentItem.itsPath
 
+
+def _getName(item):
+    return (getattr(item, 'displayName', None) or item.itsName)
+    
 @exportMethod
 def ls(arg=None):
     global currentList
@@ -197,7 +201,7 @@ def ls(arg=None):
         for child in item.iterChildren():
             currentList.append(child)
 
-    currentList.sort(lambda x, y: cmp(x.getItemDisplayName().lower(), y.getItemDisplayName().lower()))
+    currentList.sort(lambda x, y: cmp(_getName(x).lower(), _getName(y).lower()))
 
     count = 1
     for item in currentList:
@@ -205,9 +209,9 @@ def ls(arg=None):
         if kind is None:
             kindName = "<Kindless>"
         else:
-            kindName = kind.getItemDisplayName()
+            kindName = kind.itsName
         print "%3d. %s (%s)" % (count,
-                                item.getItemDisplayName(),
+                                _getName(item),
                                 kindName)
         count += 1
 

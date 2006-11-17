@@ -215,7 +215,7 @@ def RenderSearchForm(repoView):
     return result
 
 def RenderSearchResults(repoView, text):
-    result = ""
+    result = u""
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
     result += "<tr class='toprow'>\n"
     result += "<td><b>PyLucene Search Results for <i>%s</i> :</b></td>\n" % text
@@ -223,8 +223,7 @@ def RenderSearchResults(repoView, text):
     count = 0
     for (item, attribute) in repoView.searchItems(text):
         result += oddEvenRow(count)
-        #This will upcast to unicode since getItemDisplayName will return unicode
-        result += '<td><a href="%s">%s</a></td>' % (toLink(item.itsPath), item.getItemDisplayName())
+        result += '<td><a href="%s">%s</a></td>' % (toLink(item.itsPath), getItemName(item))
         result += "</tr>"
         count += 1
     result += "</table></form>\n"
@@ -266,7 +265,7 @@ def RenderViews(repoView):
     return result
 
 def RenderInheritance(repoView):
-    result = ""
+    result = u""
     kinds = []
     for item in repoView.findPath("//Schema/Core/Kind").iterItems():
         kinds.append(item)
@@ -283,8 +282,7 @@ def RenderInheritance(repoView):
     count = 0
     for item in kinds:
         result += oddEvenRow(count)
-        #This will upcast to unicode since getItemDisplayName will return unicode
-        result += '<td><a href="%s">%s</a></td>' % (toLink(item.itsPath), item.getItemDisplayName())
+        result += '<td><a href="%s">%s</a></td>' % (toLink(item.itsPath), getItemName(item))
         result += "<td>"
         klass = None
         if hasattr(item, 'classes'):
@@ -309,7 +307,7 @@ def RenderInheritance(repoView):
 
         result += "<td>"
         for superKind in item.superKinds:
-            result += superKind.getItemDisplayName() + ", "
+            result += getItemName(superKind) + ", "
         result += "</td>"
         result += "</tr>"
         count += 1
@@ -556,10 +554,10 @@ def RenderKindQuery(repoView, item):
         items = []
         for i in item.iterItems(recursive=True):
             items.append(i)
-        items.sort(key=lambda x: x.getItemDisplayName().lower())
+        items.sort(key=lambda x: getItemName(x).lower())
         for i in items:
             output.append("<a href=%s>'%s'</a>  (%s) %s %s" % \
-                          (toLink(i.itsPath), i.getItemDisplayName(),
+                          (toLink(i.itsPath), getItemName(i),
                            i.itsKind.itsName, i.itsPath,
                            hasattr(i, 'widget') and " (rendered)" or ""))
         result += ("<br>".join(output))
@@ -649,7 +647,7 @@ class ValueRenderer(object):
             else:
                 alias = ""
             output.append('<li><span class="editable">%s</span> <a href=%s>%s</a> %s</li>' % \
-             ( getattr(j, "blockName", j.getItemDisplayName()), toLink(j.itsPath), j.itsPath, alias))
+             ( getattr(j, "blockName", getItemName(j)), toLink(j.itsPath), j.itsPath, alias))
         itemString += ("".join(output))
 
         itemString += "</ul>"
@@ -707,7 +705,7 @@ class ValueRenderer(object):
         return itemString
 
     def Render_Item(self, name, value):
-        return '%s <a href="%s">%s</a><br>' % (value.getItemDisplayName(),
+        return '%s <a href="%s">%s</a><br>' % (getItemName(value),
                                                toLink(value.itsPath),
                                                value.itsPath)
     def Render_URL(self, name, value):
@@ -727,7 +725,7 @@ class ValueRenderer(object):
         itemString += "<ul>"
         for j in value:
             itemString += ('<li>%s <a href="%s">%s</a><br>\n' %
-                           (j.getItemDisplayName(),
+                           (getItemName(j),
                             toLink(j.itsPath), j.itsPath))
         itemString += "</ul>"
 
@@ -752,7 +750,7 @@ class ValueRenderer(object):
         try:
             itemString += "<a href=%s>%s</a><br>" % (
                 toLink(value.itsPath),
-                value.getItemDisplayName())
+                getItemName(value))
         except:
             if name == "password":
                 itemString += "<i>(hidden)</i><br>"
@@ -820,7 +818,7 @@ def RenderItem(repoView, item):
         displayName = ""
         if name is None:
             name = unicode(child.itsUUID)
-            displayName = child.getItemDisplayName()
+            displayName = getItemName(child)
         children[name] = child
         output.append(" &nbsp; <a href=%s>%s </a> %s" % (toLink(child.itsPath), key, displayName))
     if not output:
@@ -988,7 +986,7 @@ class HTMLCollectionRenderer(object):
         self.view = view
 
     def formatCollection(self, collection, childstring, attrName = None):
-        linkText = collection.getItemDisplayName()
+        linkText = getItemName(collection)
         if attrName is not None:
             linkText = linkText + "." + attrName
         result = ('<div class="set-item">\n'
@@ -1206,11 +1204,7 @@ def RenderObject(repoView, theObject, objectPath, label="Object"):
     return result
 
 def getItemName(item):
-    try:
-        name = item.getItemDisplayName()
-    except:
-        name = item.itsName
-    return name
+    return clean(getattr(item, 'displayName', None) or item._repr_())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
