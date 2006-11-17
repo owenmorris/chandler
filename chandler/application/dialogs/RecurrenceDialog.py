@@ -381,15 +381,23 @@ class OccurrenceProxy(object):
             RecurrenceDialog(wx.GetApp().mainFrame, self, self.endCallbacks)
     
     def propagateBufferChanges(self):
+        # Don't make the same change twice. This
+        # can happen if the detail view tries to make a change,
+        # and then immediately loses focus. (cf Bug 7437).
+        lastChange = None
         while len(self.changeBuffer) > 0:
             change = self.changeBuffer.pop(0)
 
-            # unpack the call
-            method = change['method']
-            args = change.get('args', [])
-            kwds = change.get('kwds', {})
+            if change != lastChange:
+                # unpack the call
+                method = change['method']
+                args = change.get('args', [])
+                kwds = change.get('kwds', {})
 
-            method(*args, **kwds)
+                method(*args, **kwds)
+
+            lastChange = change
+
             
         if self.currentlyModifying in ('thisandfuture', 'all'):
             self.currentlyModifying = None
