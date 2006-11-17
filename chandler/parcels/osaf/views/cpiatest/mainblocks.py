@@ -71,8 +71,7 @@ def makeCPIATestMainView (parcel):
         elementDelegate = 'osaf.views.main.SideBar.SidebarElementDelegate',
         hideColumnHeadings = True,
         defaultEditableAttribute = u'displayName',
-        # Commented this out come up as "All" instead of "Calendar".
-        # filterClass = osaf.pim.calendar.Calendar.EventStamp,
+        filterClass = pim_ns.EventStamp,
         disallowOverlaysForFilterClasses = [MissingClass,
                                           osaf.pim.mail.MailStamp,
                                           osaf.pim.tasks.TaskStamp]
@@ -115,6 +114,7 @@ def makeCPIATestMainView (parcel):
                 event = main.ApplicationBarEvent,
                 bitmap = 'ApplicationBarEvent.png',
                 title = _(u'Calendar'),
+                selected = True,
                 toolbarItemKind = 'Radio',
                 helpString = _(u'View only events')),
             ToolbarItem.template('ApplicationSeparator1',
