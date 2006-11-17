@@ -21,7 +21,7 @@ import conduits, formats, errors
 from i18n import ChandlerMessageFactory as _
 
 
-class FileSystemConduit(conduits.ServerConduit, conduits.ManifestEngineMixin):
+class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
 
     def getLocation(self, privilege=None):
         if self.hasLocalAttributeValue("sharePath") and \

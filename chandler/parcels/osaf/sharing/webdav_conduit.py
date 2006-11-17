@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class WebDAVConduit(conduits.ServerConduit, conduits.ManifestEngineMixin,
+class WebDAVConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin,
     conduits.HTTPMixin):
 
     def _getSharePath(self):
