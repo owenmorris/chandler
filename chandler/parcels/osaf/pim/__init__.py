@@ -24,9 +24,8 @@ from items import (
 from collections import KindCollection, ContentCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \
      FilteredCollection, ListCollection, SmartCollection, AppCollection, \
-     IndexedSelectionCollection, AllIndexDefinitions, IndexDefinition, \
-     SetCollection
-from repository.item.Sets import MultiUnion
+     IndexedSelectionCollection, AllIndexDefinitions, IndexDefinition
+
 from stamping import Stamp, has_stamp
 from notes import Note
 from contacts import Contact, ContactName
@@ -268,6 +267,9 @@ def installParcel(parcel, oldVersion=None):
         filterExpression="not view.findValue(uuid, '%s', True)" % 
                             (mail.MailStamp.isOutbound.name,),
         filterAttributes=[mail.MailStamp.isOutbound.name])
+    # this index must be added to shield from the duplicate 
+    # source (mailCollection) that is going to be in mine
+    inSource.addIndex('__adhoc__', 'numeric')
 
     # The "In" collection
     inCollection = SmartCollection.update(parcel, 'inCollection',
@@ -275,12 +277,16 @@ def installParcel(parcel, oldVersion=None):
         source=inSource,
         trash=trashCollection,
         visible=True)
+    mine.addSource(inCollection)
 
     outSource = FilteredCollection.update(parcel, 'outSource',
         source=mailCollection,
         filterExpression=u"view.findValue(uuid, '%s', False)" %
                            (mail.MailStamp.isOutbound.name,),
         filterAttributes=[mail.MailStamp.isOutbound.name])
+    # this index must be added to shield from the duplicate 
+    # source (mailCollection) that is going to be in mine
+    outSource.addIndex('__adhoc__', 'numeric')
 
     # The "Out" collection
     outCollection = SmartCollection.update(parcel, 'outCollection',
@@ -289,20 +295,7 @@ def installParcel(parcel, oldVersion=None):
         source=outSource,
         trash=trashCollection,
     )
-
-    # inCollection and outCollection both refer to the mailCollection via
-    # inSource and outSource respectively, hence they cannot be used
-    # together in the mine collection since that would duplicate
-    # mailCollection in the query tree and break notifications.
-    # inSource + outSource == mailCollection, so instead add
-    # mailCollection + inCollection.inclusions + outCollection.inclusions
-    # to the mine collection.
-    inOutSet = MultiUnion(mailCollection,
-                          (inCollection, 'inclusions'),
-                          (outCollection, 'inclusions'))
-    inOutCollection = SetCollection.update(parcel, 'inOutCollection',
-                                           set=inOutSet)
-    mine.addSource(inOutCollection)
+    mine.addSource(outCollection)
 
     allEventsCollection = IntersectionCollection.update(parcel,
         'allEventsCollection',

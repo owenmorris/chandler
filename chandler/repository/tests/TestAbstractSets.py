@@ -282,6 +282,39 @@ class TestAbstractSets(RepositoryTestCase):
         self.assert_(w.itsUUID not in m.set)
         self.assert_(len(m.set) == size - 1)
 
+    def testDuplicate(self):
+
+        w = self.m4.writers.last()
+        self.m1.writers.add(w)
+        self.m3.writers.add(w)
+
+        self.m1.set = Difference((self.m1, 'writers'),
+                                 (self.m4, 'writers'))
+        self.m3.set = Difference((self.m3, 'writers'),
+                                 (self.m4, 'writers'))
+        self.m2.set = Union((self.m1, 'set'), (self.m3, 'set'))
+
+        self.assert_(not self.m2.check(), 'check passed')
+
+        # adding the index on m3 to shield the duplicate m4.writers source
+        self.m3.set.addIndex('n', 'numeric')
+
+        # adding this index to check it later
+        self.m2.set.addIndex('n', 'numeric')
+
+        # this must cause w to appear in m1.set, m3.set and m2.set
+        # and the indexes must reflect that
+        self.m4.writers.remove(w)
+
+        self.assert_(w in self.m1.set)
+        self.assert_(w in self.m3.set)
+        self.assert_(w in self.m2.set)
+        self.assert_(self.m1.set.__contains__(w, False, True))
+        self.assert_(self.m3.set.__contains__(w, False, True))
+        self.assert_(self.m2.set.__contains__(w, False, True))
+
+        self.assert_(self.rep.view.check(), 'check failed')
+
 
 if __name__ == "__main__":
 #    import hotshot

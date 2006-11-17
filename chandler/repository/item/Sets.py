@@ -172,7 +172,7 @@ class AbstractSet(ItemValue, Indexed):
             uItem, srcAttr = source
             srcItem = self._view[uItem]
             yield srcItem, srcAttr
-            if recursive and isinstance(srcItem, Collection):
+            if recursive:
                 set = getattr(srcItem, srcAttr)
                 if isinstance(set, AbstractSet):
                     for source in set.iterSources(True):
@@ -446,13 +446,21 @@ class AbstractSet(ItemValue, Indexed):
 
         try:
             sources = set()
-            for source in self.iterSources(True):
-                srcItem, srcAttr = source
-                if source in sources:
-                    logger.error("Set '%s', value of attribute '%s' on %s has duplicated source (%s, %s)", self, attribute, item._repr_(), srcItem._repr_(), srcAttr)
-                    result = False
-                else:
-                    sources.add(source)
+            def checkSources(_self):
+                for source in _self.iterSources():
+                    srcItem, srcAttr = source
+                    value = getattr(srcItem, srcAttr)
+                    if not value._indexes:
+                        if source in sources:
+                            logger.error("Set '%s', value of attribute '%s' on %s has duplicated source (%s, %s)", self, attribute, item._repr_(), srcItem._repr_(), srcAttr)
+                            return False
+                        else:
+                            sources.add(source)
+                            if isinstance(value, AbstractSet):
+                                if not checkSources(value):
+                                    return False
+                return True
+            result = checkSources(self)
         except:
             logger.exception("Set '%s', value of attribute '%s' on %s could not be checked for duplicates because of error", self, attribute, item._repr_())
             result = False
