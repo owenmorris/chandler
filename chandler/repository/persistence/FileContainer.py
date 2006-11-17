@@ -500,7 +500,8 @@ class IndexContainer(FileContainer):
         doc.add(Field("attribute", uAttr.str64(), STORED, UN_INDEXED))
         doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
         doc.add(Field("version", str(version), STORED, UN_INDEXED))
-        doc.add(Field("contents", value, UN_STORED, TOKENIZED))
+        doc.add(Field("contents", value, UN_STORED, TOKENIZED,
+                      Field.TermVector.YES))
 
         indexWriter.addDocument(doc)
 
@@ -515,7 +516,7 @@ class IndexContainer(FileContainer):
         doc.add(Field("attribute", uAttr.str64(), STORED, UN_INDEXED))
         doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
         doc.add(Field("version", str(version), STORED, UN_INDEXED))
-        doc.add(Field("contents", reader))
+        doc.add(Field("contents", reader, Field.TermVector.YES))
 
         indexWriter.addDocument(doc)
 

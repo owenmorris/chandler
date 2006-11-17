@@ -1691,8 +1691,9 @@ class ValueContainer(DBContainer):
     # 0.6.6: added support for dictionaries of ref collections
     # 0.6.7: version back to unsigned long
     # 0.6.8: added commits log db
+    # 0.6.9: Term vectors now stored in Lucene indexes
 
-    FORMAT_VERSION = 0x00060800
+    FORMAT_VERSION = 0x00060900
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)
