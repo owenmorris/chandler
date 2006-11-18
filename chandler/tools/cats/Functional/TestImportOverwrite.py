@@ -18,6 +18,7 @@ import os, wx, sys
 import osaf.pim.calendar.Calendar as Calendar
 from osaf import sharing, pim
 from i18n.tests import uw
+import application.Globals as Globals
 
 class TestImportOverwrite(ChandlerTestCase):
 
@@ -38,7 +39,7 @@ class TestImportOverwrite(ChandlerTestCase):
         self.logger.addComment("Created Event to Export")
     
         #export the event
-        path = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/DataFiles")
+        path = os.path.join(Globals.chandlerDirectory,"tools/cats/DataFiles")
         filename = 'tempOverwriteTest.ics'
         fullpath = os.path.join(path, filename)
         if os.path.exists(fullpath):

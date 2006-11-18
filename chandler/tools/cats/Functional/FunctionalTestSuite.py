@@ -19,9 +19,10 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.TestOutput import TestOutput
 from tools.cats.framework.runTests import run_tests
+import application.Globals as Globals
 import os, sys
 
-functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/Functional")
+functional_dir = os.path.join(Globals.chandlerDirectory,"tools/cats/Functional")
 
 #initialization
 

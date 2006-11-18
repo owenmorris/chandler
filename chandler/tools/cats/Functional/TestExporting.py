@@ -17,13 +17,14 @@ from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import os, wx, sys
 import osaf.pim.calendar.Calendar as Calendar
 from osaf import sharing, pim
+import application.Globals as Globals
 
 class TestExporting(ChandlerTestCase):
 
     def startTest(self):
         
         appView = self.app_ns.itsView
-        path = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/DataFiles")
+        path = os.path.join(Globals.chandlerDirectory,"tools/cats/DataFiles")
         filename = 'exportTest.ics'
         fullpath = os.path.join(path, filename)
         if os.path.exists(fullpath):

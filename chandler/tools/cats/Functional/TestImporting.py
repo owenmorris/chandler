@@ -16,6 +16,7 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import os, sys
 from osaf import sharing, pim
+import application.Globals as Globals
 
 
 class TestImporting(ChandlerTestCase):
@@ -31,7 +32,7 @@ class TestImporting(ChandlerTestCase):
                 self.logger.endAction(False, "Testing event creation: '%s' not created" % title)
         
             
-        path = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/DataFiles")
+        path = os.path.join(Globals.chandlerDirectory,"tools/cats/DataFiles")
         # Upcast path to unicode since Sharing requires a unicode path
         path = unicode(path, sys.getfilesystemencoding())
         share = sharing.OneTimeFileSystemShare(path, u'importTest.ics',

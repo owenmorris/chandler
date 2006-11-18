@@ -78,7 +78,7 @@ def publishSubscribe(testClass):
     ap.VerifyValues("WebDAV", uw("Publish Test WebDAV"), host = "osaf.us", username = "demo1", password="ad3leib5", port=443)
 
     # import events so test will have something to share even when run by itself
-    path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
+    path = os.path.join(Globals.chandlerDirectory,"tools/QATestScripts/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
     path = unicode(path, 'utf8')
     share = sharing.OneTimeFileSystemShare(path, u'testSharing.ics',
@@ -1555,7 +1555,7 @@ class UITestView(object):
 
         # setup the test environment if an environment file was specified
         if environmentFile is not None:
-            path = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/DataFiles")
+            path = os.path.join(Globals.chandlerDirectory,"tools/cats/DataFiles")
             #Upcast path to unicode since Sharing requires a unicode path
             path = unicode(path, sys.getfilesystemencoding())
             share = sharing.OneTimeFileSystemShare(path,
