@@ -783,8 +783,7 @@ static PyObject *t_sl_position(t_sl *self, PyObject *key)
         return NULL;
 
     while (1) {
-        PyObject *levels = node->levels;
-        int level = PyList_GET_SIZE(levels);
+        int level = PyList_GET_SIZE(node->levels);
         t_point *point = _t_node_list_get(node, level);
 
         if (!point)
@@ -966,14 +965,10 @@ static int _t_sl__p0(t_sl *self, int op, PyObject *key,
         currentLevel = PyList_GET_SIZE(((t_node *) self->head)->levels);
 
 #ifdef _MSC_VER            
-        srand((unsigned long) clock());
-
         /* RAND_MAX >> 2 is 1 / P of the range of random(), P == 4 */
         while (rand() < (RAND_MAX >> 2) && *level < SL_MAXLEVEL)
             *level += 1;
 #else
-        srandom((unsigned long) clock());
-
         /* 1 << 29 is 1 / P of the range of random(), P == 4 */
         while (random() < (1 << 29) && *level < SL_MAXLEVEL)
             *level += 1;
@@ -1896,6 +1891,12 @@ void _init_skiplist(PyObject *m)
         if (m)
         {
             PyObject *dict;
+
+#ifdef _MSC_VER
+            srand((unsigned long) clock());
+#else
+            srandom((unsigned long) clock());
+#endif
 
             Py_INCREF(&PointType);
             PyModule_AddObject(m, "CPoint", (PyObject *) &PointType);
