@@ -199,7 +199,13 @@ def main():
     
     stats = hotshot.stats.load(options['filename'])
     while prompt_user():
-        show_profile(stats)
+        try:
+            show_profile(stats)
+        except KeyboardInterrupt:
+            print "quitting..."
+            break
+        except:
+            pass
 
 
 main()
