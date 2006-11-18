@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import heapq
 
 from struct import pack, unpack
 from cStringIO import StringIO
@@ -20,7 +21,7 @@ from time import time
 from PyLucene import \
     Document, Field, RAMDirectory, DbDirectory, StandardAnalyzer, \
     QueryParser, IndexReader, IndexWriter, IndexSearcher, Term, TermQuery, \
-    JavaError, MatchAllDocsQuery
+    JavaError, MatchAllDocsQuery, BooleanQuery, BooleanClause
 
 from chandlerdb.util.c import UUID
 from chandlerdb.persistence.c import DBLockDeadlockError, DBInvalidArgError
@@ -497,7 +498,7 @@ class IndexContainer(FileContainer):
 
         doc = Document()
         doc.add(Field("item", uItem.str64(), STORED, UN_TOKENIZED))
-        doc.add(Field("attribute", uAttr.str64(), STORED, UN_INDEXED))
+        doc.add(Field("attribute", uAttr.str64(), STORED, UN_TOKENIZED))
         doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
         doc.add(Field("version", str(version), STORED, UN_INDEXED))
         doc.add(Field("contents", value, UN_STORED, TOKENIZED,
@@ -513,7 +514,7 @@ class IndexContainer(FileContainer):
 
         doc = Document()
         doc.add(Field("item", uItem.str64(), STORED, UN_TOKENIZED))
-        doc.add(Field("attribute", uAttr.str64(), STORED, UN_INDEXED))
+        doc.add(Field("attribute", uAttr.str64(), STORED, UN_TOKENIZED))
         doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
         doc.add(Field("version", str(version), STORED, UN_INDEXED))
         doc.add(Field("contents", reader, Field.TermVector.YES))
@@ -524,29 +525,75 @@ class IndexContainer(FileContainer):
 
         indexWriter.optimize()
 
-    def searchDocuments(self, version, query=None, attribute=None):
+    def searchDocuments(self, view, version, query=None, attribute=None):
 
-        searcher = self.getIndexSearcher()
+        store = self.store
 
         if query is None:
             query = MatchAllDocsQuery()
         else:
             query = QueryParser("contents", StandardAnalyzer()).parse(query)
+        
+        if attribute:
+            combinedQuery = BooleanQuery()
+            combinedQuery.add(query, BooleanClause.Occur.MUST)
+            combinedQuery.add(TermQuery(Term("attribute", attribute.str64())),
+                              BooleanClause.Occur.MUST)
+            query = combinedQuery
 
-        docs = {}
-        for i, doc in searcher.search(query):
-            ver = long(doc['version'])
-            if ver <= version:
-                uItem = UUID(doc['item'])
-                dv = docs.get(uItem, None)
-                if dv is None or dv[0] < ver:
-                    uAttr = UUID(doc['attribute'])
-                    if attribute is None or attribute == uAttr:
-                        docs[uItem] = (ver, uAttr, UUID(doc['value']))
+        class _collector(object):
 
-        searcher.close()
+            def __init__(_self):
+                _self.hits=[]
 
-        return docs
+            def collect(_self, id, score):
+                _self.hits.append((-score, id))
+        
+        class _iterator(object):
+
+            def __init__(_self):
+
+                _self.searcher = None
+                _self.collector = None
+                _self.txnStatus = 0
+
+            def __del__(_self):
+
+                try:
+                    if _self.searcher is not None:
+                        _self.searcher.close()
+                    store.abortTransaction(view, _self.txnStatus)
+                except Exception, e:
+                    store.repository.logger.error("in __del__, %s: %s",
+                                                  e.__class__.__name__, e)
+
+                _self.searcher = None
+                _self.collector = None
+                _self.txnStatus = 0
+
+            def __iter__(_self):
+
+                _self.txnStatus = store.startTransaction(view)
+                _self.searcher = self.getIndexSearcher()
+                _self.collector = _collector()
+
+                searcher = _self.searcher
+                searcher.search(query, _self.collector)
+                hits = _self.collector.hits
+
+                if hits:
+                    heapq.heapify(hits)
+                    while hits:
+                        score, id = heapq.heappop(hits)
+                        doc = searcher.doc(id)
+                        uItem = UUID(doc['item'])
+                        ver = long(doc['version'])
+
+                        itemVersion = store.getItemVersion(view, version, uItem)
+                        if itemVersion == ver:
+                            yield uItem, UUID(doc['attribute']), UUID(doc['value'])
+
+        return _iterator()
 
     def purgeDocuments(self, indexSearcher, indexReader, uItem, keeps):
 

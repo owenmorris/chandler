@@ -967,12 +967,12 @@ class DBStore(Store):
 
         return uuid
 
-    def searchItems(self, view, version, query, uAttr=None):
-
-        matches = self._index.searchDocuments(version, query, uAttr)
-        for uItem, (ver, uAttr, uValue) in matches.iteritems():
-            if self._items.isValue(view, version, uItem, uValue):
-                yield uItem, uAttr
+    def searchItems(self, view, query, uAttr=None):
+        
+        iterator = self._index.searchDocuments(view, view.itsVersion,
+                                               query, uAttr)
+        for uItem, uAttr, uValue in iterator:
+            yield uItem, uAttr
 
     def iterItems(self, view):
 

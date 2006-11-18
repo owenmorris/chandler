@@ -950,6 +950,9 @@ class RepositoryView(CView):
         """
         Search this view for items using an Lucene full text query.
 
+        All matches are returned. This method is a generator, iteration may
+        be stopped before all matches are instantiated.
+
         @param query: a lucene query
         @type query: a string
         @param attribute: an attribute name to match against, C{None} by
@@ -959,7 +962,15 @@ class RepositoryView(CView):
         @type load: boolean
         """
 
-        raise NotImplementedError, "%s.searchItems" %(type(self))
+        if attribute is not None:
+            uAttr = attribute.itsUUID
+        else:
+            uAttr = None
+
+        for uItem, uAttr in self.store.searchItems(self, query, uAttr):
+            item = self.find(uItem, load)
+            if item is not None:
+                yield item, self[uAttr].itsName
 
     def _loadItem(self, uuid):
         raise NotImplementedError, "%s._loadItem" %(type(self))

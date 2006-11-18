@@ -308,7 +308,7 @@ class Store(object):
     def kindForKey(self, view, version, uuid):
         raise NotImplementedError, "%s.kindForKey" %(type(self))
     
-    def searchItems(self, view, version, query, attribute=None):
+    def searchItems(self, view, query, attribute=None):
         raise NotImplementedError, "%s.searchItems" %(type(self))
     
     def getItemVersion(self, view, version, uuid):

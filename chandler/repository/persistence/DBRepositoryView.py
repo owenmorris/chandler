@@ -133,19 +133,6 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         return None
 
-    def searchItems(self, query, attribute=None, load=True):
-
-        if attribute is not None:
-            uAttr = attribute.itsUUID
-        else:
-            uAttr = None
-
-        for uItem, uAttr in self.store.searchItems(self, self.itsVersion,
-                                                   query, uAttr):
-            item = self.find(uItem, load)
-            if item is not None:
-                yield item, self[uAttr]
-
     def _createRefList(self, item, name, otherName, dictKey,
                        readOnly, new, uuid):
 
