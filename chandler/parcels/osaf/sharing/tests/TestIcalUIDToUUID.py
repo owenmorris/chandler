@@ -13,18 +13,21 @@
 #   limitations under the License.
 
 
-import unittest, os
+import unittest, os, sys
 from osaf import pim, sharing
 from util import testcase
 
 class IcalUIDToUUIDTestCase(testcase.SingleRepositoryTestCase):
 
     def testImport(self):
-        path = os.path.join(os.getenv('CHANDLERHOME') or '.',
+        sharePath = os.path.join(os.getenv('CHANDLERHOME') or '.',
                             'parcels', 'osaf', 'sharing', 'tests')
 
+        #sharePath is stored as schema.Text so convert to unicode
+        sharePath = unicode(sharePath, sys.getfilesystemencoding())
+
         conduit = sharing.FileSystemConduit("conduit",
-                                            sharePath=path,
+                                            sharePath=sharePath,
                                             shareName=u"icaluid.ics",
                                             itsView=self.view)
         format = sharing.ICalendarFormat("format", itsView=self.view)
