@@ -312,9 +312,8 @@ class RefContainer(DBContainer):
                 try:
                     self.closeCursor(_self.cursor, self._history)
                     store.commitTransaction(view, _self.txnStatus)
-                except Exception, e:
-                    store.repository.logger.error("in __del__, %s: %s",
-                                                  e.__class__.__name__, e)
+                except:
+                    store.repository.logger.exception("in __del__")
                 _self.cursor = None
                 _self.txnStatus = 0
 
@@ -428,9 +427,8 @@ class RefContainer(DBContainer):
                     try:
                         self.closeCursor(_self.cursor)
                         store.commitTransaction(view, _self.txnStatus)
-                    except Exception, e:
-                        store.repository.logger.error("in 0 __del__, %s: %s",
-                                                      e.__class__.__name__, e)
+                    except:
+                        store.repository.logger.exception("in __del__")
                     _self.cursor = None
                     _self.txnStatus = 0
 
@@ -961,9 +959,8 @@ class IndexesContainer(DBContainer):
                 try:
                     self.closeCursor(_self.cursor)
                     store.commitTransaction(view, _self.txnStatus)
-                except Exception, e:
-                    store.repository.logger.error("in 1 __del__, %s: %s",
-                                                  e.__class__.__name__, e)
+                except:
+                    store.repository.logger.exception("in __del__")
                 _self.cursor = None
                 _self.txnStatus = 0
 
@@ -1154,9 +1151,8 @@ class ItemContainer(DBContainer):
                 try:
                     self.closeCursor(_self.cursor)
                     store.commitTransaction(view, _self.txnStatus)
-                except Exception, e:
-                    store.repository.logger.error("in 2 __del__, %s: %s",
-                                                  e.__class__.__name__, e)
+                except:
+                    store.repository.logger.exception("in __del__")
                 _self.cursor = None
                 _self.txnStatus = 0
 
@@ -1406,9 +1402,8 @@ class ItemContainer(DBContainer):
                 try:
                     self.closeCursor(_self.cursor, self._kinds)
                     store.commitTransaction(view, _self.txnStatus)
-                except Exception, e:
-                    store.repository.logger.error("in __del__, %s: %s",
-                                                  e.__class__.__name__, e)
+                except:
+                    store.repository.logger.exception("in __del__")
                 _self.cursor = None
                 _self.txnStatus = 0
 
@@ -1481,9 +1476,8 @@ class ItemContainer(DBContainer):
                 try:
                     self.closeCursor(_self.cursor, self._versions)
                     store.commitTransaction(view, _self.txnStatus)
-                except Exception, e:
-                    store.repository.logger.error("in __del__, %s: %s",
-                                                  e.__class__.__name__, e)
+                except:
+                    store.repository.logger.exception("in __del__")
                 _self.cursor = None
                 _self.txnStatus = 0
 
@@ -1555,9 +1549,8 @@ class ItemContainer(DBContainer):
                 try:
                     self.closeCursor(_self.cursor)
                     store.commitTransaction(view, _self.txnStatus)
-                except Exception, e:
-                    store.repository.logger.error("in __del__, %s: %s",
-                                                  e.__class__.__name__, e)
+                except:
+                    store.repository.logger.exception("in __del__")
                 _self.cursor = None
                 _self.txnStatus = 0
 
@@ -1619,9 +1612,8 @@ class ItemContainer(DBContainer):
                 try:
                     self.closeCursor(_self.cursor)
                     store.abortTransaction(view, _self.txnStatus)
-                except Exception, e:
-                    store.repository.logger.error("in __del__, %s: %s",
-                                                  e.__class__.__name__, e)
+                except:
+                    store.repository.logger.exception("in __del__")
                 _self.cursor = None
                 _self.txnStatus = 0
 
@@ -1830,9 +1822,8 @@ class CommitsContainer(DBContainer):
                 try:
                     self.closeCursor(_self.cursor)
                     store.abortTransaction(view, _self.txnStatus)
-                except Exception, e:
-                    store.repository.logger.error("in __del__, %s: %s",
-                                                  e.__class__.__name__, e)
+                except:
+                    store.repository.logger.exception("in __del__")
                 _self.cursor = None
                 _self.txnStatus = 0
 

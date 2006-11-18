@@ -563,9 +563,8 @@ class IndexContainer(FileContainer):
                     if _self.searcher is not None:
                         _self.searcher.close()
                     store.abortTransaction(view, _self.txnStatus)
-                except Exception, e:
-                    store.repository.logger.error("in __del__, %s: %s",
-                                                  e.__class__.__name__, e)
+                except:
+                    store.repository.logger.exception("in __del__")
 
                 _self.searcher = None
                 _self.collector = None
@@ -574,10 +573,9 @@ class IndexContainer(FileContainer):
             def __iter__(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.searcher = self.getIndexSearcher()
+                _self.searcher = searcher = self.getIndexSearcher()
                 _self.collector = _collector()
 
-                searcher = _self.searcher
                 searcher.search(query, _self.collector)
                 hits = _self.collector.hits
 
@@ -587,11 +585,11 @@ class IndexContainer(FileContainer):
                         score, id = heapq.heappop(hits)
                         doc = searcher.doc(id)
                         uItem = UUID(doc['item'])
-                        ver = long(doc['version'])
-
-                        itemVersion = store.getItemVersion(view, version, uItem)
-                        if itemVersion == ver:
-                            yield uItem, UUID(doc['attribute']), UUID(doc['value'])
+                        
+                        if long(doc['version']) <= version:
+                            if store._items.isValue(view, version, uItem,
+                                                    UUID(doc['value'])):
+                                yield uItem, UUID(doc['attribute'])
 
         return _iterator()
 

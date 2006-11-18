@@ -971,7 +971,7 @@ class DBStore(Store):
         
         iterator = self._index.searchDocuments(view, view.itsVersion,
                                                query, uAttr)
-        for uItem, uAttr, uValue in iterator:
+        for uItem, uAttr in iterator:
             yield uItem, uAttr
 
     def iterItems(self, view):
