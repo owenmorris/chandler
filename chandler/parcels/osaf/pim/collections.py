@@ -25,15 +25,10 @@ from repository.item.Collection import Collection
 
 from osaf.pim.items import ContentItem
 
+# Common attribute for collection inclusions
+inclusions = schema.Sequence(inverse=ContentItem.collections, initialValue=[])
 
-class AllIndexDefinitions(schema.Item):
-    """ 
-    Singleton item that hosts a reflist of all L{IndexDefinition}s
-    in existance: L{IndexDefinition}'s constructor adds each new instance
-    to us to assure this.
-    """
-    indexDefinitions = schema.Sequence(otherName="mappingCollection", initialValue=[])
-    
+
 class IndexDefinition(schema.Item):
     """
     A definition of an index, able to create an index on a collection (given the
@@ -46,13 +41,11 @@ class IndexDefinition(schema.Item):
     - if not useMaster, a standalone index will be created.
     """
     useMaster = schema.One(schema.Boolean, defaultValue=True)
-    
+
     attributes = schema.Sequence(schema.Text)
-    
-    mappingCollection = schema.One(otherName="indexDefinitions")
 
     def __init__(self, *args, **kwds):
-        """ 
+        """
         When we construct an L{IndexDefinition}, we need to make sure
         it gets added to the L{IndexDefinitionCollection} that tracks
         them.
@@ -60,7 +53,7 @@ class IndexDefinition(schema.Item):
         super(IndexDefinition, self).__init__(*args, **kwds)
 
         allDefs = schema.ns("osaf.pim", self.itsView).allIndexDefinitions
-        allDefs.indexDefinitions.append(self, alias=self.itsName) 
+        allDefs.indexDefinitions.append(self, alias=self.itsName)
 
     @classmethod
     def makeIndexByName(cls, collection, indexName):
@@ -72,7 +65,7 @@ class IndexDefinition(schema.Item):
         key = allDefs.indexDefinitions.resolveAlias(indexName)
         indexDef = allDefs.indexDefinitions[key]
         indexDef.makeIndex(collection)
-    
+
     def makeIndex(self, collection):
         """
         Create this index on this collection.
@@ -85,7 +78,7 @@ class IndexDefinition(schema.Item):
             contentItems = schema.ns("osaf.pim", collection.itsView).contentItems
             if not contentItems.hasIndex(self.itsName):
                 self.makeIndexOn(contentItems)
-            
+
             # Create a subindex that inherits from the master
             collection.addIndex(self.itsName, 'subindex',
                                 superindex=(contentItems, contentItems.__collection__,
@@ -93,11 +86,23 @@ class IndexDefinition(schema.Item):
         else:
             # Create a standalone index
             self.makeIndexOn(collection)
-    
+
     def makeIndexOn(self, collection):
         """ Create the index we describe on this collection """
         collection.addIndex(self.itsName, 'attribute',
-                            attributes=self.attributes)        
+                            attributes=self.attributes)
+
+class AllIndexDefinitions(schema.Item):
+    """
+    Singleton item that hosts a reflist of all L{IndexDefinition}s
+    in existance: L{IndexDefinition}'s constructor adds each new instance
+    to us to assure this.
+    """
+    indexDefinitions = schema.Sequence(
+        IndexDefinition, initialValue=[], inverse=schema.One()
+    )
+
+
 
 class ContentCollection(ContentItem, Collection):
     """
@@ -117,7 +122,8 @@ class ContentCollection(ContentItem, Collection):
         __metaclass__ = schema.CollectionClass
         __collection__ = 'ex2'
 
-        ex2 = schema.Sequence(otherName='ex2_collections', initialValue=[])
+        ex2_collections = schema.Sequence()
+        ex2 = schema.Sequence(inverse=ex2_collections, initialValue=[])
 
     The type of collection value chosen (as declared above) determines which
     methods are delegated from this item to the collection value, typically
@@ -125,14 +131,13 @@ class ContentCollection(ContentItem, Collection):
     """
 
     collectionList = schema.Sequence(
-        'ContentCollection', otherName='inCollectionListFor',
         doc="Views, e.g. the Calendar, that display collections need to know "
             "which collection are combined to make up the calendar. collectionList"
             "is an optional parameter for this purpose."
     )
 
     # other side of 'collectionList'
-    inCollectionListFor = schema.Sequence(otherName='collectionList')
+    inCollectionListFor = schema.Sequence(inverse=collectionList)
 
     invitees = schema.Sequence(
         doc="The people who are being invited to share in this item; filled "
@@ -144,19 +149,16 @@ class ContentCollection(ContentItem, Collection):
     ) # inverse of osaf.pim.mail.EmailAddress.inviteeOf
 
     # other side of 'sources'
-    sourceFor = schema.Sequence(otherName='sources')
+    sourceFor = schema.Sequence()
 
-    # other side of AppCollection.collectionExclusions
+    # other side of AppCollection.exclusionsCollection
     exclusionsFor = schema.Sequence()
 
     # other side of AppCollection.collectionTrash
     trashFor = schema.Sequence()
 
     schema.addClouds(
-        copying = schema.Cloud(
-            invitees,
-            byRef=['contentsOwner']
-        ),
+        copying = schema.Cloud(invitees),
         sharing = schema.Cloud(none=["displayName"]),
     )
 
@@ -233,7 +235,7 @@ class ListCollection(ContentCollection):
     __collection__ = 'inclusions'
 
     # must be named 'inclusions' to match AppCollection
-    inclusions = schema.Sequence(otherName='collections', initialValue=[])
+    inclusions = inclusions
 
     def empty(self):
         for item in self:
@@ -250,7 +252,7 @@ class WrapperCollection(ContentCollection):
 
     set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
-    sources = schema.Sequence(ContentCollection, otherName='sourceFor',
+    sources = schema.Sequence(inverse=ContentCollection.sourceFor,
                               doc="the collections being wrapped",
                               initialValue=[])
     schema.addClouds(copying=schema.Cloud(byCloud=[sources]))
@@ -330,7 +332,7 @@ class SingleSourceWrapperCollection(WrapperCollection):
         super(SingleSourceWrapperCollection, self).__init__(*args, **kwds)
 
     def _sourcesChanged_(self, op):
-        
+
         source = self.source
 
         if source is None:
@@ -474,7 +476,7 @@ class FilteredCollection(SingleSourceWrapperCollection):
     """
     A ContentCollection which is the result of applying a boolean predicate
     to every item of another ContentCollection.
-    
+
     The C{source} attribute contains the ContentCollection instance to be
     filtered.
 
@@ -533,10 +535,10 @@ class AppCollection(ContentCollection):
     set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
     # must be named 'inclusions' to match ListCollection
-    inclusions = schema.Sequence(otherName='collections', initialValue=[])
+    inclusions = inclusions
 
     # the exclusions used when no exclusions collection is given
-    collectionExclusions = schema.Sequence(otherName='excludedBy')
+    collectionExclusions = schema.Sequence(inverse=ContentItem.excludedBy)
 
     exclusionsCollection = schema.One(inverse=ContentCollection.exclusionsFor,
                                       initialValue=None)
@@ -565,7 +567,7 @@ class AppCollection(ContentCollection):
         return trash
     trash = property(_getTrash)
 
-    # __collection__ denotes a bi-ref set, 
+    # __collection__ denotes a bi-ref set,
     # therefore it must be added to the copying cloud def for it to be copied.
 
     schema.addClouds(
@@ -695,7 +697,7 @@ class AppCollection(ContentCollection):
         """
         Pull out the non-trash part of AppCollection.
         """
-        
+
         # Smart collections are 'special' - they almost always include
         # the trash as a part of their structure on the _right side of
         # their Difference set. This means that when they are hooked
@@ -715,7 +717,6 @@ class SmartCollection(AppCollection):
     __metaclass__ = schema.CollectionClass
     __collection__ = 'set'
 
-    # it involves bi-refs because of 'otherName'
     # it's an AbstractSet because cardinality is 'set' (schema.Many)
     # it's an AbstractSet of bi-directional references
     set = schema.Many(inverse=ContentItem.appearsIn)
@@ -741,7 +742,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
     indexName = schema.One(schema.Importable, initialValue="__adhoc__")
 
     def _sourcesChanged_(self, op):
-        
+
         source = self.source
 
         if source is None:
@@ -768,15 +769,15 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
 
     def getCollectionIndex(self, indexName=None):
         """
-        Get the index. If it doesn't exist (and C{indexName} isn't "__adhoc__"), 
+        Get the index. If it doesn't exist (and C{indexName} isn't "__adhoc__"),
         look up its IndexDefinition and create it. (If it is "__adhoc__",
         create a numeric index under that name.)
-        
+
         Also, create a RangeSet for storing the selection on the index.
         """
         if indexName is None:
             indexName = self.indexName
-        
+
         if not self.hasIndex(indexName):
             if indexName == "__adhoc__":
                 self.addIndex(indexName, 'numeric')
@@ -805,7 +806,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
             for item in self.iterSelection():
                 newItemIndex = self.positionInIndex(newIndexName, item)
                 self.addRange(newIndexName, (newItemIndex, newItemIndex))
-                
+
             self.indexName = newIndexName
         elif toggleDescending:
             itemMax = len(self) - 1
@@ -834,11 +835,11 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
             before = None
         else:
             before = self [location - 1]
-        self.placeInIndex(item, before, self.indexName)             
+        self.placeInIndex(item, before, self.indexName)
 
     #
     # General selection methods
-    # 
+    #
 
     def isSelectionEmpty(self):
         return len(self.getSelectionRanges()) == 0
@@ -848,7 +849,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
 
     #
     # Range-based selection methods
-    # 
+    #
 
     def getSelectionRanges(self):
         """
@@ -857,7 +858,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
         end of the range.
         """
         return self.getCollectionIndex().getRanges()
-        
+
     def setSelectionRanges(self, ranges):
         """
         Sets the ranges associated with the current index with
@@ -894,7 +895,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
     #
     # Item-based selection methods
     #
-    
+
     def setSelectionToItem(self, item):
         """
         Sets the entire selection to include only the C{item}.

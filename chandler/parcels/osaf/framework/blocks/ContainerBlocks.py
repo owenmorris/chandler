@@ -358,10 +358,8 @@ class SplitterWindow(RectangularChild):
     orientationEnum = schema.One(
         orientationEnumType, initialValue = 'Horizontal',
     )
-    splitController = schema.One(Block,
-        otherName="splitter",
-        defaultValue = None
-    )
+
+    splitController = schema.One(inverse=Block.splitter, defaultValue=None)
   
     schema.addClouds(
         copying = schema.Cloud (byCloud = [splitController])
@@ -437,7 +435,7 @@ class ViewContainer(BoxContainer):
     )
     hasTabs = schema.One (schema.Boolean, initialValue = False)
     selectionIndex = schema.One (schema.Integer, initialValue = 0)
-    views = schema.Mapping (Block, initialValue = {})
+    views = schema.Mapping(Block, initialValue = {})
     activeView = schema.One (Block)
 
     schema.addClouds(

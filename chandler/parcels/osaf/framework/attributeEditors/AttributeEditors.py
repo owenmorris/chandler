@@ -64,14 +64,6 @@ bigAutocompletionSwitch = True
 # makes sure that all the instances are referenced from the 
 # AttributeEditorMappingCollection, which we use to find them at runtime.
 
-class AttributeEditorMappingCollection(schema.Item):
-    """ 
-    Singleton item that hosts a collection of all L{AttributeEditorMapping}s
-    in existance: L{AttributeEditorMapping}'s constructor adds each new instance
-    to us to assure this.
-    """
-    editors = schema.Sequence(otherName="mappingCollection", initialValue=[])
-    
 class AttributeEditorMapping(schema.Item):
     """ 
     A mapping from a 'type name' (the name of this L{Item}) to a specific
@@ -87,7 +79,6 @@ class AttributeEditorMapping(schema.Item):
     @type className: String
     """
     className = schema.One(schema.Text)
-    mappingCollection = schema.One(otherName="editors")
 
     def __init__(self, *args, **kwds):
         """ 
@@ -106,6 +97,18 @@ class AttributeEditorMapping(schema.Item):
             if className.find('.') == -1:
                 className = moduleName + '.' + className
             cls.update(parcel, typeName, className=className)
+
+
+class AttributeEditorMappingCollection(schema.Item):
+    """ 
+    Singleton item that hosts a collection of all L{AttributeEditorMapping}s
+    in existance: L{AttributeEditorMapping}'s constructor adds each new instance
+    to us to assure this.
+    """
+    editors = schema.Sequence(
+        AttributeEditorMapping, initialValue=[], inverse=schema.One()
+    )
+    
 
 def installParcel(parcel, oldVersion=None):
     """ 

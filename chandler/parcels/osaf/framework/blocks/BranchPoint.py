@@ -31,63 +31,63 @@ substituted within itself, based on some key (like a content item to be
 displayed). The block inherits from this BranchPointBlock class; whenever
 synchronizeWidget happens, the appropriate set of child blocks will be swapped
 in. This mechanism is managed by a BranchPointDelegate object, which can be
-subclassed and/or configured from parcel XML to customize its behavior. 
+subclassed and/or configured from parcel XML to customize its behavior.
 """
 
 logger = logging.getLogger(__name__)
 
 class BranchSubtree(schema.Annotation):
     """
-    A mapping between an Item and the list of top-level blocks ('rootBlocks') 
-    that should appear when an Item inheriting from that Kind is displayed. 
-    Each rootBlock entry should have its 'position' attribute specified, to 
+    A mapping between an Item and the list of top-level blocks ('rootBlocks')
+    that should appear when an Item inheriting from that Kind is displayed.
+    Each rootBlock entry should have its 'position' attribute specified, to
     enable it to be sorted with other root blocks.)
     """
     schema.kindInfo(annotates=schema.Kind)
-    rootBlocks = schema.Sequence(Block, 
-                                 inverse=Block.parentBranchSubtrees)
+    rootBlocks = schema.Sequence(Block, inverse=schema.Sequence())
 
 class StampBranchSubtree(BranchSubtree):
     """
-    A mapping between an Item and the list of top-level blocks ('rootBlocks') 
-    that should appear when an Item inheriting from that Kind is displayed. 
-    Each rootBlock entry should have its 'position' attribute specified, to 
+    A mapping between an Item and the list of top-level blocks ('rootBlocks')
+    that should appear when an Item inheriting from that Kind is displayed.
+    Each rootBlock entry should have its 'position' attribute specified, to
     enable it to be sorted with other root blocks.)
     """
     schema.kindInfo(annotates=schema.Item)
 
 class wxBranchPointBlock(wxBoxContainer):
-    """ 
-    A widget block that gives its BranchPointBlock a chance to change 
-    the tree of blocks within it. 
+    """
+    A widget block that gives its BranchPointBlock a chance to change
+    the tree of blocks within it.
     """
     def wxSynchronizeWidget(self, useHints=False):
         if self.blockItem.isShown:
             self.blockItem.installTreeOfBlocks()
         super(wxBranchPointBlock, self).wxSynchronizeWidget()
-    
+
+from Styles import ColorStyle
+
 class BranchPointBlock(BoxContainer):
     """
-    A block that can swap in different sets of child blocks (branch point 
-    "subtrees") based on its detailContents. It uses a BranchPointDelegate to 
+    A block that can swap in different sets of child blocks (branch point
+    "subtrees") based on its detailContents. It uses a BranchPointDelegate to
     do the heavy lifting.
-    """    
-    colorStyle = schema.One('osaf.framework.blocks.Styles.ColorStyle')
+    """
+    colorStyle = schema.One(ColorStyle)
 
     delegate = schema.One(
-        'BranchPointDelegate', inverse = 'blocks', required = True
+        required = True
     )
     detailItem = schema.One(
-        schema.Item, defaultValue = None, 
-        otherName = 'branchPointDetailItemOwner'
+        schema.Item, defaultValue = None, inverse=schema.Sequence()
     )
+
     detailItemCollection = schema.One(
         schema.Item, defaultValue = None
     )
-    
+
     selectedItem = schema.One(
-        schema.Item, defaultValue = None, 
-        otherName = 'branchPointSelectedItemOwner'
+        schema.Item, defaultValue = None, inverse=schema.Sequence()
     )
 
     setFocus = schema.One (schema.Boolean, defaultValue = False)
@@ -113,7 +113,7 @@ class BranchPointBlock(BoxContainer):
             self.selectedItem = items[0]
         else:
             self.selectedItem = None
-            
+
         self.detailItemCollection = \
             self.delegate.getContentsCollection(self.selectedItem,
                                                 event.arguments.get('collection'))
@@ -124,7 +124,7 @@ class BranchPointBlock(BoxContainer):
 
     def installTreeOfBlocks(self):
         """
-        If necessary, replace our children with a tree of blocks appropriate 
+        If necessary, replace our children with a tree of blocks appropriate
         for our content.
 
         Four steps:
@@ -140,7 +140,7 @@ class BranchPointBlock(BoxContainer):
             self.selectedItem, hints)
 
         # Ask the delegate for the right tree of blocks
-        
+
         # (actually there is only implmentation of this function,
         # should probably be rolled into BranchParentBlock eventually)
         newView = self.delegate.getBranchForKeyItem(keyItem)
@@ -151,8 +151,8 @@ class BranchPointBlock(BoxContainer):
               Seems like we should always mark new views with an event boundary
             """
             assert newView is None or newView.eventBoundary
-            detailItem = self.delegate._getContentsForBranch(newView, 
-                                                             self.selectedItem, 
+            detailItem = self.delegate._getContentsForBranch(newView,
+                                                             self.selectedItem,
                                                              keyItem)
 
         detailItemChanged = self.detailItem is not detailItem
@@ -160,7 +160,7 @@ class BranchPointBlock(BoxContainer):
         self.detailItem = detailItem
 
         # Set contents on the root of the tree of blocks
-        
+
         # For bug 4269 in 0.6: If we've been given a contents collection,
         # it's so that we can put our detailItem in it, to get a notification
         # when that item is deleted. Update the collection if necessary.
@@ -172,10 +172,10 @@ class BranchPointBlock(BoxContainer):
 
         oldView = self.childrenBlocks.first()
         treeChanged = newView is not oldView
-        
+
         logger.debug("installTreeOfBlocks %s: treeChanged=%s, detailItemChanged=%s, detailItem=%s",
                      debugName(self), treeChanged, detailItemChanged, debugName(detailItem))
-        
+
         # Render or rerender as necessary
         if treeChanged:
             # get rid of the old view
@@ -233,7 +233,7 @@ class BranchPointDelegate(schema.Item):
     )
 
     keyUUIDToBranch = schema.Mapping(Block, initialValue = {})
-    
+
     def deleteCopiesFromCache(self):
         defaultParent = self.getDefaultParent (self.itsView)
         # create the list before iterating because we're modifing the dictionary in the loop
@@ -243,11 +243,11 @@ class BranchPointDelegate(schema.Item):
                 item.delete (cloudAlias="copying")
 
     def getBranchForKeyItem(self, keyItem):
-        """ 
+        """
         Given an item, return the view to be used to display it.
 
-        Can be overridden if you don't want the default behavior, which is to 
-        cache the views, keyed by a value returned by _mapItemToCacheKeyItem. Misses 
+        Can be overridden if you don't want the default behavior, which is to
+        cache the views, keyed by a value returned by _mapItemToCacheKeyItem. Misses
         are handled by _makeBranchForItem.
         """
         branch = None
@@ -260,7 +260,7 @@ class BranchPointDelegate(schema.Item):
         return branch
 
     def _mapItemToCacheKeyItem(self, item, hints):
-        """ 
+        """
         Given an item, determine the item to be used as the cache key.
         Can be overridden; defaults to using the item itself. hints is
         a dictionary that includes domain specific information. See
@@ -270,8 +270,8 @@ class BranchPointDelegate(schema.Item):
         return item
 
     def _makeBranchForCacheKey(self, keyItem):
-        """ 
-        Handle a cache miss; build and return a tree-of-blocks for this keyItem. 
+        """
+        Handle a cache miss; build and return a tree-of-blocks for this keyItem.
         Defaults to using the keyItem itself, copying it if it's in the read-only
         part of the repository. (This behavior fits with the simple case where
         the items are views.)
@@ -289,12 +289,12 @@ class BranchPointDelegate(schema.Item):
             result = item
         else:
             result = item.copy(parent = defaultParent, cloudAlias="copying")
-            
+
         return result
 
     def _getContentsForBranch(self, branch, item, keyItem):
-        """ 
-        Given a branch, item and keyItem, 
+        """
+        Given a branch, item and keyItem,
         return the contents for the branch.
         """
         return item

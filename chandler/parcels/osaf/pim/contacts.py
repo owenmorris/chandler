@@ -27,7 +27,7 @@ class ContactName(items.ContentItem):
 
     firstName = schema.One(schema.Text, initialValue=u"", indexed=True)
     lastName  = schema.One(schema.Text, initialValue=u"", indexed=True)
-    contact = schema.One("Contact", inverse="contactName")
+    contact = schema.One()
 
     schema.addClouds(
         sharing = schema.Cloud(
@@ -52,7 +52,7 @@ class Contact(items.ContentItem):
     )
 
     contactName = schema.One(
-        ContactName, inverse=ContactName.contact, initialValue=None
+        inverse=ContactName.contact, initialValue=None
     )
 
     emailAddress = schema.One(schema.Text,
@@ -81,16 +81,6 @@ class Contact(items.ContentItem):
     participatingEvents= schema.Sequence(
         doc="List of events this user is a participant.",
     ) # inverse of EventStamp.participants
-
-    sharerOf= schema.Sequence(  # Share
-        doc="List of shares shared by this user.",
-        otherName="sharer"
-    )
-
-    shareeOf= schema.Sequence(  # Share
-        doc="List of shares for which this user is a sharee.",
-        otherName="sharees"
-    )
 
     schema.addClouds(
         sharing = schema.Cloud(

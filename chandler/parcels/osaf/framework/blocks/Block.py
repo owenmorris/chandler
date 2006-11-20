@@ -33,9 +33,9 @@ def getProxiedItem(item):
     """
     Given an item, wrap it with a proxy if appropriate.
     """
-    # @@@ BJS It's probably worthwhile to combine this with 
-    # RecurrenceDialog.getProxy, but currently that function doesn't do the 
-    # isDeleted -> return None mapping we need here. To avoid risk in 0.6, 
+    # @@@ BJS It's probably worthwhile to combine this with
+    # RecurrenceDialog.getProxy, but currently that function doesn't do the
+    # isDeleted -> return None mapping we need here. To avoid risk in 0.6,
     # I'm checking things in this way and we can revisit this later.
     if item is not None:
         if item.isDeleted():
@@ -84,15 +84,21 @@ def IgnoreSynchronizeWidget(syncValue, method, *args, **kwds):
     return result
 
 
+class Viewable(schema.Annotation):
+    """Make ContentItems viewable"""
+    schema.kindInfo(annotates=ContentItem)
+    contentsOwner = schema.Sequence()
+    schema.addClouds(copying = schema.Cloud(byRef=[contentsOwner]))
+    
 class Block(schema.Item):
     # @@@BJS: Should we show borders for debugging?
     showBorders = False
 
-    contents = schema.One(ContentItem, otherName="contentsOwner")
+    contents = schema.One(inverse=Viewable.contentsOwner)
     contentsCollection = schema.One(ContentItem, defaultValue=None)
 
     # Blocks instances can be put into ListCollections or AppCollections
-    collections = schema.Sequence(otherName='inclusions')
+    collections = ContentItem.collections
 
     viewAttribute = schema.One(
         schema.Text,
@@ -102,50 +108,24 @@ class Block(schema.Item):
     )
 
     parentBlock = schema.One(
-        "Block",
-        inverse="childrenBlocks",
         defaultValue = None
     )
-  
+
     childrenBlocks = schema.Sequence(
-        "Block",
         inverse = parentBlock,
         initialValue = []
     )
 
-    splitter = schema.One(
-        "Block",
-        otherName = "splitController",     # SplitterWindow/splitter
-        defaultValue = None
-    )
-  
+    splitter = schema.One(defaultValue=None) # SplitterWindow.splitter
+
     isShown = schema.One(schema.Boolean, initialValue=True)
 
     eventBoundary = schema.One(schema.Boolean, initialValue=False)
 
-    contextMenu = schema.One("ControlBlocks.ContextMenu") 
-
-    branchPointDetailItemOwner = schema.Sequence(
-        "Block", 
-        otherName = "detailItem"  # BranchPointBlock/detailItem
-    )
-
-    branchPointSelectedItemOwner = schema.Sequence(
-        "Block",
-        otherName = "selectedItem"     # BranchPointBlock/selectedItem
-    )
-
-    viewContainer = schema.Sequence(
-        "Block",
-        otherName = "views"     # ViewContainer/views
-    )
+    contextMenu = schema.One() # XXX ControlBlocks.ContextMenu
 
     blockName = schema.One(schema.Text)
-    eventsForNamedLookup = schema.Sequence("BlockEvent", defaultValue=None)
-
-    parentBranchSubtrees = schema.Sequence(
-        # The inverse of osaf.framework.blocks.BranchSubtree.rootBlocks
-    )  
+    eventsForNamedLookup = schema.Sequence(defaultValue=None) # XXX BlockEvent
 
     position = schema.One(schema.Float)  #<!-- for tree-of-blocks sorting -->
 
@@ -155,7 +135,7 @@ class Block(schema.Item):
             byCloud = [childrenBlocks, eventsForNamedLookup, splitter]
         )
     )
-    
+
     #If the widget for your block requires a specific id, e.g. it's a standard
     #command handled by some standard part of wxWidgets, like a dialog that handles
     #cut/copy/paste you can specify it here, Also, when a dialog is topmost and
@@ -163,7 +143,7 @@ class Block(schema.Item):
     #propagated like the usual CPIA events.
     #See Bug #5219
     wxId = schema.One (schema.Integer, defaultValue=0)
-    
+
     # event profiler (class attributes)
     profileEvents = False          # Make "True" to profile events
     __profilerActive = False       # to prevent reentrancy, if the profiler is currently active
@@ -176,7 +156,7 @@ class Block(schema.Item):
         """
         Events that are posted by the block pass along the block
         that sent it.
-        
+
         @param event: the event to post
         @type event: a C{BlockEvent}
         @param arguments: arguments to pass to the event
@@ -191,7 +171,7 @@ class Block(schema.Item):
             arguments ['sender'] = sender
             arguments ['results'] = None
             event.arguments = arguments
-            
+
             hookListItem = schema.ns (__name__, wx.GetApp().UIRepositoryView).BlockDispatchHookList
             for hookItem in hookListItem.hooks:
                 hookItem.dispatchEvent (event, Block.depth)
@@ -271,7 +251,7 @@ class Block(schema.Item):
         2) the repository name and blockname are unified by default
         3) eventsForNamedLookup is automatically populated
         """
-        
+
         # There might already be an eventsForNamedLookup, so just
         # append to the existing one if its already there
         event = attrs.get('event')
@@ -281,16 +261,16 @@ class Block(schema.Item):
             eventsForNamedLookup.append(event)
             # just in case it wasn't there originally
             attrs['eventsForNamedLookup'] = eventsForNamedLookup
-            
+
         return BlockTemplate(theClass, itemName,
-                             blockName=blockName or itemName, 
+                             blockName=blockName or itemName,
                              **attrs)
 
     # Controls whether or not notifications will dirty the block.
     ignoreNotifications = property(
         lambda self: self.__dict__.get('__ignoreNotifications', 0),
-        lambda self, v: self.__dict__.update(__ignoreNotifications=v)) 
-    
+        lambda self, v: self.__dict__.update(__ignoreNotifications=v))
+
     def stopNotificationDirt (self):
         assert (self.ignoreNotifications >= 0)
         if self.ignoreNotifications == 0:
@@ -340,12 +320,12 @@ class Block(schema.Item):
                 method = getattr (type (widget), "OnInit", None)
                 if method:
                     method (widget)
-                    
+
                 """
                 Subscribe to changes on our contents if appropriate.
                 """
                 self.watchForChanges()
-                
+
                 """
                 Add events to name lookup dictionary.
                 """
@@ -417,7 +397,7 @@ class Block(schema.Item):
                         else:
                             count = list.count (item.itsUUID)
                         assert count == oldCount - 1
-                
+
                 # Also, verify that the widget is deleted from it's parent
                 if numberChildren is not None:
                     assert numberChildren == len (parent.GetChildren()) + 1
@@ -470,7 +450,7 @@ class Block(schema.Item):
             self.itsView.watchCollectionQueue(self, contents,
                                               'onCollectionNotification')
 
-        # Do item subscription, if this block wants us to watch 
+        # Do item subscription, if this block wants us to watch
         # something and has an onItemNotification method
         if not (hasattr(type(self), 'onItemNotification') or
                 hasattr(self.widget, 'onItemNotification')):
@@ -478,7 +458,7 @@ class Block(schema.Item):
         watchList = self.getWatchList()
         if not watchList:
             return # nothing to watch
-        
+
         assert not hasattr(self, 'watchedItemAttributes')
         watchedItemAttributes = set()
         for (item, attr) in watchList:
@@ -495,24 +475,24 @@ class Block(schema.Item):
         if len(itemDict) == 0:
             # We're not watching this item yet - start.
             self.itsView.watchItem(self, item, 'onWatchNotification')
-        
+
         getBasedMethod = getattr(type(item), 'getBasedAttributes', None)
         if getBasedMethod is not None:
             realAttributeNames = []
             for attribute in attributeNames:
                 realAttributeNames.extend(getBasedMethod(item, attribute))
             attributeNames = realAttributeNames
-            
+
         for attributeName in attributeNames:
             itemDict.setdefault(attributeName, set()).add(self)
-            
+
     def stopWatchingForChanges(self):
         # unsubscribe from collection notifications
         contents = getattr (self, 'contents', None)
         if contents is not None and isinstance(contents, ContentCollection):
             self.itsView.unwatchCollectionQueue(self, contents,
                                                 'onCollectionNotification')
-            
+
         # do item notifications, too, if we had any
         try:
             watchedItemAttributes = self.watchedItemAttributes
@@ -522,7 +502,7 @@ class Block(schema.Item):
             for (item, attr) in watchedItemAttributes:
                 self.removeWatch(item, attr)
             del self.watchedItemAttributes
-            
+
     def removeWatch(self, item, *attributeNames):
         """
         Stop watching these attributes on this item.
@@ -537,7 +517,7 @@ class Block(schema.Item):
                 for attribute in attributeNames:
                     realAttributeNames.extend(getBasedMethod(item, attribute))
                 attributeNames = realAttributeNames
-    
+
             for attributeName in attributeNames:
                 blockSet = itemDict.get(attributeName, None)
                 if blockSet is not None:
@@ -550,23 +530,23 @@ class Block(schema.Item):
                 # We're no longer watching any attributes on this item.
                 del Block.watchingItems[uuid]
                 self.itsView.unwatchItem(Block, item, 'onWatchNotification')
-        
+
     @classmethod
     def onWatchNotification(cls, op, uuid, names):
         """
         When an item someone's watching has changed, we need to synchronize.
         """
-        # Ignore notifications for items being stamped. (We get a lot then, 
-        # but the items really aren't consistent. Anyone who cares about an 
-        # item kind change should have another way to hear about it: the 
-        # detail view explicitly monitors itsKind; that notification, as 
-        # well as collection-change notifications that the rest of the app 
+        # Ignore notifications for items being stamped. (We get a lot then,
+        # but the items really aren't consistent. Anyone who cares about an
+        # item kind change should have another way to hear about it: the
+        # detail view explicitly monitors itsKind; that notification, as
+        # well as collection-change notifications that the rest of the app
         # uses, happen outside isMutating.
-        repoView = wx.GetApp().UIRepositoryView            
+        repoView = wx.GetApp().UIRepositoryView
         item = repoView.find(uuid, False)
         if item is not None and item.isMutatingOrDeleting():
             return
-                
+
         itemDict = Block.watchingItems.get(uuid, None)
         if itemDict is not None:
             notifications = {}
@@ -585,7 +565,7 @@ class Block(schema.Item):
                              #debugName(block), "', '".join(attrs))
                 block._sendItemNotificationAndSynchronize('itemChange',
                                                           (op, uuid, attrs))
-        
+
     def onCollectionNotification(self, op, collection, name, other):
         """
         When our item collection has changed, we need to synchronize.
@@ -593,16 +573,16 @@ class Block(schema.Item):
         if (not self.ignoreNotifications and
             self.itsView is wx.GetApp().UIRepositoryView):
             self._sendItemNotificationAndSynchronize('collectionChange',
-                                                     (op, collection, 
+                                                     (op, collection,
                                                       name, other))
 
     def _sendItemNotificationAndSynchronize(self, notificationType, data):
         # Note that we need to be sync'd at the next idle.
         # (this is the normal case on receiving a notification like this, though
         # an onItemNotificationMethod can call markClean if the next-idle
-        # sync isn't necessary) 
+        # sync isn't necessary)
         self.markDirty()
-        
+
         # See if the block and/or the widget want to be notified.
         # (We do both because some of the calendar blocks and widgets both
         # have handlers)
@@ -615,7 +595,7 @@ class Block(schema.Item):
             onItemNotification = getattr(self.widget, 'onItemNotification', None)
             if onItemNotification is not None:
                 onItemNotification(notificationType, data)
-        
+
     idToBlock = {}              # A dictionary mapping wxWidgets Ids to Blocks
     freeWXIds = []              # A list of unused wxWidgets Ids
     dirtyBlocks = set()         # A set of blocks that need to be redrawn in OnIdle
@@ -722,7 +702,7 @@ class Block(schema.Item):
 
     @classmethod
     def finishEdits(theClass, onBlock=None):
-        """ 
+        """
         If the given block, or the focus block if no block given, has a
         saveValue method, call it to write pending edits back.
         """
@@ -732,7 +712,7 @@ class Block(schema.Item):
             saveValueMethod = getattr(type(onBlock), 'saveValue', None)
             if saveValueMethod is not None:
                 saveValueMethod(onBlock)
-        
+
     def onShowHideEvent(self, event):
         self.isShown = not self.isShown
         self.synchronizeWidget()
@@ -751,7 +731,7 @@ class Block(schema.Item):
         assert (event.item is not None) ^ (onNewItemMethod is not None)
 
         collection = getattr (schema.ns ("osaf.app", self.itsView), event.collectionName)
-        
+
         #Scripting expects the event to return the item that were added
         if onNewItemMethod:
             item = onNewItemMethod (event)
@@ -778,7 +758,7 @@ class Block(schema.Item):
                     else:
                         item.displayName = newDisplayName
                         break
-            
+
             collection.add (item)
 
             # Add to to the approprate sphere, if any
@@ -796,9 +776,9 @@ class Block(schema.Item):
                 editAttributeNamed = getattr (event, "editAttributeNamed", None)
                 if editAttributeNamed is not None:
                     arguments ['editAttributeNamed'] = editAttributeNamed
-                
+
                 blockItem.postEventByName ("SelectItemsBroadcast", arguments)
-                
+
                 # Let the block know about the preferred kind
                 method = getattr(blockItem, 'setPreferredClass', None)
                 if method is not None:
@@ -901,29 +881,29 @@ class DispatchHook (Block):
     Override dispatchEvent and assign hookList to get called each
     time an event is disspatched
     """
-    hookList = schema.One("DispatcHookList", otherName='hooks')
-
     def dispatchEvent (self, event, depth):
         pass
 
 
 class DispatcHookList (schema.Item):
-    hooks = schema.Sequence("DispatchHook", otherName='hookList', defaultValue = [])
+    hooks = schema.Sequence(
+        DispatchHook, inverse=schema.One(), defaultValue = []
+    )
 
 
 class BlockDispatchHook (DispatchHook):
     def dispatchEvent (self, event, depth):
-        
+
         def callProfiledMethod(blockOrWidget, methodName, event):
             """
             Wrap callNamedMethod with a profiler runcall().
             """
-            if not Block.__profilerActive:                        
+            if not Block.__profilerActive:
                 # create profiler lazily
                 if not Block.__profiler:
                     import hotshot
                     Block.__profiler = hotshot.Profile('Events.prof')
-                    
+
                 Block.__profilerActive = True
                 try:
                     #
@@ -935,7 +915,7 @@ class BlockDispatchHook (DispatchHook):
                     Block.__profilerActive = False
             else:
                 return callNamedMethod(blockOrWidget, methodName, event)
-                            
+
         def callNamedMethod (blockOrWidget, methodName, event):
             """
             Call method named methodName on block or widget.
@@ -948,7 +928,7 @@ class BlockDispatchHook (DispatchHook):
                     ## show dispatched events
                     #logger.debug("Calling %s on %s (%s): %s" % \
                                  #(methodName, getattr(block, "blockName", "?"),
-                                  #block, getattr(event, "arguments", 
+                                  #block, getattr(event, "arguments",
                                                  #"(no arguments)")))
 
                 event.arguments ['results'] = member (blockOrWidget, event)
@@ -969,7 +949,7 @@ class BlockDispatchHook (DispatchHook):
             event.arguments ['continueBubbleUp'] = False # default to stop bubbling
             while (blockOrWidget):
                 if callMethod (blockOrWidget, methodName, event): # method called?
-                    if event.arguments ['continueBubbleUp']: # overwrote the default?  
+                    if event.arguments ['continueBubbleUp']: # overwrote the default?
                         event.arguments ['continueBubbleUp'] = False # reset the default
                     else:
                         break
@@ -986,7 +966,7 @@ class BlockDispatchHook (DispatchHook):
                     else:
                         blockOrWidget = block
 
-        
+
         def broadcast (block, methodName, event, childTest):
             callMethod (block, methodName, event)
             for child in block.childrenBlocks:
@@ -1043,11 +1023,11 @@ class BlockDispatchHook (DispatchHook):
             assert block is not None
             while (not block.eventBoundary and block.parentBlock):
                 block = block.parentBlock
-                
+
             broadcast (block,
                        methodName,
                        event,
-                       lambda child: (child is not None and 
+                       lambda child: (child is not None and
                                       not child.eventBoundary))
 
         elif dispatchEnum == 'BroadcastEverywhere':
@@ -1097,13 +1077,13 @@ def debugName(thing):
     """
     if thing is None:
         return '(None)'
-    
+
     if isinstance(thing, Block):
         return getattr(thing, 'blockName', '(unnamed %s)' % thing.__class__.__name__)
-    
+
     if isinstance(thing, BlockEvent):
         return getattr(thing, 'itsName', '(unnamed %s)' % thing.__class__.__name__)
-    
+
     blockItem = getattr(thing, 'blockItem', None)
     if blockItem is not None:
         return '%s on %s' % (thing.__class__.__name__, debugName(blockItem))
@@ -1128,7 +1108,7 @@ def debugName(thing):
                    or (", R%s" % eventThing.recurrenceID)
         else:
             recMsg = ""
-        return "%r %s @ %s%s" % (thing.__repr__(), 
+        return "%r %s @ %s%s" % (thing.__repr__(),
             getattr(thing, 'displayName', None), timeMsg, recMsg)
 
     if isinstance(thing, Note):
@@ -1144,7 +1124,7 @@ def debugName(thing):
         return thing.__repr__()
     except:
         return '(unknown)'
-        
+
 class ShownSynchronizer(object):
     """
     A mixin that handles isShown-ness: Make sure my visibility
@@ -1157,12 +1137,12 @@ class ShownSynchronizer(object):
 # These are the mappings looked up by wxRectangularChild.CalculateWXFlag, below
 _wxFlagMappings = {
     'grow': wx.GROW,
-    'growConstrainAspectRatio': wx.SHAPED, 
+    'growConstrainAspectRatio': wx.SHAPED,
     'alignCenter': wx.ALIGN_CENTER,
     'alignTopCenter': wx.ALIGN_TOP,
     'alignMiddleLeft': wx.ALIGN_LEFT,
     'alignBottomCenter': wx.ALIGN_BOTTOM,
-    'alignMiddleRight': wx.ALIGN_RIGHT, 
+    'alignMiddleRight': wx.ALIGN_RIGHT,
     'alignTopLeft': wx.ALIGN_TOP | wx.ALIGN_LEFT,
     'alignTopRight': wx.ALIGN_TOP | wx.ALIGN_RIGHT,
     'alignBottomLeft': wx.ALIGN_BOTTOM | wx.ALIGN_LEFT,
@@ -1189,7 +1169,7 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
         and until then an assert will catch this case. DJA
         """
         assert not spacerRequired
-        
+
         return int (border)
 
     @classmethod
@@ -1209,7 +1189,7 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
             flag |= wx.RIGHT
 
         return flag
-    
+
 class alignmentEnumType(schema.Enumeration):
     values = (
         "grow", "growConstrainAspectRatio", "alignCenter", "alignTopCenter",
@@ -1238,7 +1218,7 @@ class RectangularChild (Block):
     def instantiateWidget(self):
         return wxRectangularChild(self.parentBlock.widget, self.getWidgetID(),
                                   wx.DefaultPosition, wx.DefaultSize)
- 
+
 class dispatchEnumType(schema.Enumeration):
     values = (
         "ActiveViewBubbleUp",
@@ -1299,7 +1279,7 @@ class ClassParameterizedEvent(BlockEvent):
     schema.addClouds(
         copying = schema.Cloud(byRef=[classParameter])
     )
-    
+
 class NewItemEvent(ClassParameterizedEvent):
     """
     Creates a new Item, adds it to a C{collection} and displays it properly.
@@ -1314,13 +1294,13 @@ class NewItemEvent(ClassParameterizedEvent):
     value of C{MissingClass}; in this case in Item matching the ApplicationBar
     is created; e.g. if you're in Calendar View you'll get an Item that has
     been stamped as an Event; if you're in All you'll get a Note.
-    
+
     To create a specific item, you can either:
-    
+
        1. Specify a Kind's class as the C{classParameter} e.g. C{osaf.pim.Note}
        will force creation of a Note, no matter what's selected in the
        ApplicationBar.
-       
+
         2. Specify a subclass of C{osaf.pim.Stamp} to create a Note with the
         appropriate stamp. E.g. C{osaf.pim.Task} will get you a Task Item
         (i.e. a Note stamped as a Task).
@@ -1331,13 +1311,13 @@ class NewItemEvent(ClassParameterizedEvent):
 
     If the C{collection} is None or it's not a UserCollection, the Item will be
     added to the all collection.
-    
+
     If you specify a C{collectionAddEvent} that references an AddToSidebarEvent
     and your C{collection} is not in the Sidebar, it will be used to add your
     C{collection} if it's not in the sidebar.
     """
     collection = schema.One(ContentCollection, defaultValue = None)
-    collectionAddEvent = schema.One("BlockEvent", defaultValue = None)
+    collectionAddEvent = schema.One(BlockEvent, defaultValue = None)
     methodName = schema.One(schema.Text, initialValue = 'onNewItemEvent')
     commitAfterDispatch = schema.One(schema.Boolean, initialValue = True)
     dispatchEnum = schema.One(dispatchEnumType, initialValue = 'ActiveViewBubbleUp')
@@ -1353,7 +1333,7 @@ class AddToViewableCollectionEvent(BlockEvent):
     editAttributeNamed = schema.One(schema.Text)
     disambiguateDisplayName = schema.One(schema.Boolean, defaultValue=True)
     sphereCollection = schema.One(ContentCollection)
-    
+
     schema.addClouds(
         copying = schema.Cloud(byRef=[item,sphereCollection])
     )
@@ -1434,11 +1414,11 @@ class BlockTemplate(object):
             if isinstance(templateOrBlock, Block):
                 return templateOrBlock
             return templateOrBlock.install(parent)
-        
+
         # now hook up the children, and replace the templates
         # with the real things
         if 'childrenBlocks' in attrs:
             children = [install(t) for t in attrs['childrenBlocks']]
             attrs['childrenBlocks'] = children
-            
+
         return self.target_class.update(parent, name, **attrs)

@@ -54,21 +54,21 @@ class ImportanceEnum(schema.Enumeration):
 class TriageEnum(schema.Enumeration):
     values = { "now": 0 , "later": 5000, "done": 10000 }
 
-triageStatusNames = { TriageEnum.now: _(u"Now"), 
-                      TriageEnum.later: _(u"Later"), 
-                      TriageEnum.done: _(u"Done") 
+triageStatusNames = { TriageEnum.now: _(u"Now"),
+                      TriageEnum.later: _(u"Later"),
+                      TriageEnum.done: _(u"Done")
                     }
 def getTriageStatusName(value):
     return triageStatusNames[value]
 
 # Bug 6525: the clicking sequence isn't the sort order
-triageStatusClickSequence = { TriageEnum.now: TriageEnum.done, 
-                              TriageEnum.done: TriageEnum.later, 
+triageStatusClickSequence = { TriageEnum.now: TriageEnum.done,
+                              TriageEnum.done: TriageEnum.later,
                               TriageEnum.later: TriageEnum.now }
 def getNextTriageStatus(value):
     return triageStatusClickSequence[value]
-    
-# For use in indexing time-related attributes. We only use this for 
+
+# For use in indexing time-related attributes. We only use this for
 # reminderFireTime here, but CalendarEventMixin uses this a lot more...
 def cmpTimeAttribute(item, other, attr, useTZ=True):
     """Compare item and self.attr, ignore timezones if useTZ is False."""
@@ -92,7 +92,7 @@ def cmpTimeAttribute(item, other, attr, useTZ=True):
     return cmp(itemTime, otherTime)
 
 
-    
+
 class ContentItem(schema.Item):
     """
     Content Item
@@ -157,7 +157,7 @@ class ContentItem(schema.Item):
     )
 
     needsReply = schema.One(
-        schema.Boolean, 
+        schema.Boolean,
         initialValue=False,
         doc="A flag indicating that the user wants to reply to this item"
     )
@@ -167,18 +167,15 @@ class ContentItem(schema.Item):
         doc="DateTime this item was created"
     )
 
-    contentsOwner = schema.Sequence(
-        "osaf.framework.blocks.Block.Block", inverse="contents"
-    )
-
     tags = schema.Sequence(
-        'Tag',
+        #'Tag',
         description='All the Tags associated with this ContentItem',
-        inverse='items',
+        #inverse='items',
         initialValue=[]
     )
 
-    notifications = schema.Sequence('UserNotification',
+    notifications = schema.Sequence(
+        #'UserNotification',
         description='All notifications for this ContentItem',
         initialValue=[]
     )
@@ -207,7 +204,7 @@ class ContentItem(schema.Item):
 
     def setUnpurgedTriageStatus(self, value):
         self._unpurgedTriageStatus = value
-        
+
     unpurgedTriageStatus = schema.Calculated(
                             TriageEnum,
                             fset=setUnpurgedTriageStatus,
@@ -215,23 +212,17 @@ class ContentItem(schema.Item):
                             basedOn=(_unpurgedTriageStatus, triageStatus),
                             doc="Calculated for edited triageStatus, before"
                                 "user has committed changes")
-    
-    # We haven't ported the "other end" of these links, so we have to use
-    # 'otherName' settings to ensure that they get hooked up correctly.
-    # The 'otherName' settings should be removed once the other side of these
-    # links exist in the Python schema.
 
-    shares = schema.Sequence(initialValue=[], otherName="contents") # share
-    sharedIn = schema.Sequence(initialValue=[], otherName="items") # share
-    viewContainer = schema.Sequence(otherName="views")  # ViewContainer
-    branchPointDetailItemOwner = schema.Sequence(otherName="detailItem") # Block
-    branchPointSelectedItemOwner = schema.Sequence(otherName="selectedItem") # Block
+    # XXX These attributes should be moved to an Annotation defined in sharing
+    #     to preserve the "modular APIs" tenet
+    shares = schema.Sequence(initialValue=[], otherName='contents') # Share.contents
+    sharedIn = schema.Sequence(initialValue=[], otherName='items')  # Share.items
 
     # ContentItem instances can be put into ListCollections and AppCollections
-    collections = schema.Sequence(otherName='inclusions', notify=True)
+    collections = schema.Sequence(notify=True) # inverse=collections.inclusions
 
     # ContentItem instances can be excluded by AppCollections
-    excludedBy = schema.Sequence(otherName='collectionExclusions')
+    excludedBy = schema.Sequence()
 
     # ContentItem instances can be put into SmartCollections (which define
     # the other end of this biref)
@@ -244,7 +235,7 @@ class ContentItem(schema.Item):
     # The value displayed (and sorted) for the Who column.
     displayWho = schema.One(schema.Text)
     displayWhoSource = schema.One(schema.Importable)
-    
+
     schema.addClouds(
         sharing = schema.Cloud(
             literal = ["displayName", body, createdOn,
@@ -262,7 +253,7 @@ class ContentItem(schema.Item):
             self.createdOn = now
         if not hasattr(self, 'triageStatusChanged'):
             self.setTriageStatusChanged(when=now)
-            
+
     def __str__ (self):
         if self.isStale():
             return super(ContentItem, self).__str__()
@@ -298,7 +289,7 @@ class ContentItem(schema.Item):
 
         # Let the clipboard handler know we've got a ContentItem to export
         clipboardHandler.ExportItemFormat(self, 'ContentItem')
-        
+
     def onItemDelete(self, view, deferring):
         # Hook for stamp deletion ...
         from stamping import Stamp
@@ -306,7 +297,7 @@ class ContentItem(schema.Item):
             onItemDelete = getattr(stampObject, 'onItemDelete', None)
             if onItemDelete is not None:
                 onItemDelete(view, deferring)
-        
+
     def addToCollection(self, collection):
         """Add self to the given collection.
 
@@ -390,8 +381,8 @@ class ContentItem(schema.Item):
         return state
 
     sharedState = property(getSharedState)
-    
-    def _updateCommonAttribute(self, attributeName, sourceAttributeName, 
+
+    def _updateCommonAttribute(self, attributeName, sourceAttributeName,
                                collectorMethod, default=Nil, picker=None):
         """
         Mechanism for coordinating updates to a common-display field
@@ -399,33 +390,33 @@ class ContentItem(schema.Item):
         """
         if self.isDeleted():
             return
-        logger.debug("Collecting relevant %ss for %r %s", 
+        logger.debug("Collecting relevant %ss for %r %s",
                      attributeName, self, self)
-        
-        # Collect possible values. The collector method adds tuples to the 
+
+        # Collect possible values. The collector method adds tuples to the
         # contenders list; each tuple starts with a value to sort by, and
         # ends with the attribute value to assign and the name of the attribute
         # it came from (which will be used later to pick a displayable string
-        # to describe the source of the value). 
-        # 
-        # Examples: if we sort by the attribute value, only two values are 
+        # to describe the source of the value).
+        #
+        # Examples: if we sort by the attribute value, only two values are
         # needed in the tuple: eg, (aDate, 'dateField). If the picking happens
-        # based on an additional value (or values), the sort value(s) come 
-        # before the attribute value: eg (1, 'me@ex.com', 'to'), 
+        # based on an additional value (or values), the sort value(s) come
+        # before the attribute value: eg (1, 'me@ex.com', 'to'),
         # (2, 'you@ex.com', 'from'). This works because sort sorts by the
-        # values in order, and we access the attribute value and name using 
-        # negative indexes (so contender[-2] is the value, contender[-1] is 
+        # values in order, and we access the attribute value and name using
+        # negative indexes (so contender[-2] is the value, contender[-1] is
         # the name).
         contenders = []
         collectorMethod(contenders)
-        
+
         # Now that we have the contenders, pick one.
         contenderCount = len(contenders)
         if contenderCount == 0:
-            # No contenders: set the default, or delete the value if we don't 
+            # No contenders: set the default, or delete the value if we don't
             # have one.
             if default is Nil:
-                if hasattr(self, attributeName): 
+                if hasattr(self, attributeName):
                     delattr(self, attributeName)
             else:
                 setattr(self, attributeName, default)
@@ -444,7 +435,7 @@ class ContentItem(schema.Item):
                 # No picker - use the first one.
                 contenders.sort()
                 result = contenders[0]
-                
+
         logger.debug("Relevant %s for %r %s is %s", attributeName, self, self, result)
         assert result[-2] is not None
         setattr(self, attributeName, result[-2])
@@ -455,11 +446,11 @@ class ContentItem(schema.Item):
         # very low priority. For now, an empty 'whos' list will result in no
         # 'who' column display, which is what we want.
         pass
-    
+
     def updateDisplayWho(self, op, attr):
-        self._updateCommonAttribute('displayWho', 'displayWhoSource', 
+        self._updateCommonAttribute('displayWho', 'displayWhoSource',
                                     self.addDisplayWhos, default=u'')
-            
+
     def addDisplayDates(self, dates):
         from osaf.pim.reminders import Remindable
         Remindable(self).addDisplayDates(dates)
@@ -476,10 +467,10 @@ class ContentItem(schema.Item):
             except IndexError:
                 result = contenders[nowIndex-1]
             return result
-           
+
         self._updateCommonAttribute('displayDate', 'displayDateSource',
                                     self.addDisplayDates, picker=picker)
-                
+
     @schema.observer(lastModified)
     def onLastModifiedChanged(self, op, attr):
         self.updateDisplayDate(op, attr)
@@ -544,7 +535,7 @@ class ContentItem(schema.Item):
             return (attribute,)
         else:
             return tuple(desc.name for desc in basedOn)
-            
+
 
 
     def isAttributeModifiable(self, attribute):
@@ -586,23 +577,19 @@ class Tag(ContentItem):
     )
 
     items = schema.Sequence(
-        'ContentItem',
         description='All the ContentItems associated with this Tag',
-        inverse='tags',
+        inverse=ContentItem.tags,
         initialValue=[]
     )
 
     supertags = schema.Sequence(
-        'Tag',
         description='Allows a tag hierarchy',
-        inverse='subtags',
         initialValue=[]
     )
 
     subtags = schema.Sequence(
-        'Tag',
         description='Allows a tag hierarchy',
-        inverse='supertags',
+        inverse=supertags,
         initialValue=[]
     )
 
@@ -621,14 +608,11 @@ class Project(ContentItem):
     )
 
     parentProject = schema.One(
-        'Project',
         doc = 'Projects can be organized into hierarchies. Each project can have one parent.',
-        inverse = 'subProjects',
     )
     subProjects = schema.Sequence(
-        'Project',
         doc = 'Projects can be organized into hierarchies. Each project can have many sub-projects.',
-        inverse = 'parentProject',
+        inverse = parentProject,
     )
 
 
@@ -649,7 +633,7 @@ class UserNotification(ContentItem):
         description = "Notifications meant for the user to see"
     )
 
-    items = schema.Sequence(ContentItem, inverse='notifications')
+    items = schema.Sequence(inverse=ContentItem.notifications)
 
     timestamp = schema.One(schema.DateTimeTZ,
         doc="DateTime this notification ocurred"
@@ -678,8 +662,8 @@ class Principal(ContentItem):
     password = schema.One(schema.Text)
 
 
-    members = schema.Sequence('Principal', initialValue=[], inverse='memberOf')
-    memberOf = schema.Sequence('Principal', initialValue=[])
+    members = schema.Sequence(initialValue=[])
+    memberOf = schema.Sequence(initialValue=[], inverse=members)
 
     def isMemberOf(self, pid):
 

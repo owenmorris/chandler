@@ -173,14 +173,12 @@ All role objects have at least the following attributes and methods:
         >>> print role3.inverse         # no change took place
         None
 
-    Inverse roles can also use forward reference strings; these can be either
-    a fully-qualified name to import, or a simple undotted string that is
-    the name of an attribute on the role's type::
+    Forward-referencing roles must leave their type information undefined::
 
         >>> class File(schema.Item):
-        ...     folder = schema.One("Folder", inverse="contents")
+        ...     folder = schema.One()
         >>> class Folder(File):
-        ...     contents = schema.Many(File, inverse=File.folder)
+        ...     contents = schema.Many(inverse=File.folder)
 
     Notice that the second attribute uses normal references instead of forward
     references.  This ensures that the forward references are resolved::
@@ -222,20 +220,6 @@ All role objects have at least the following attributes and methods:
         Traceback (most recent call last):
         ...
         NameError: Type '//no/such/type' not found in the core schema
-
-    Types expressed as a string are automatically converted to
-    ``ForwardReference`` objects::
-
-        >>> testDescriptor = schema.Descriptor("application.schema.Item")
-        >>> testDescriptor.type
-        ForwardReference('application.schema.Item',<...Descriptor object...>)
-
-    Forward references compare equal to the type they reference::
-
-        >>> testDescriptor.type == schema.Item
-        True
-        >>> testDescriptor.type != schema.Item
-        False
 
 Aspect Attributes
     Descriptor objects support setting all of the aspects of a repository
@@ -309,7 +293,7 @@ Test error messages:
     TypeError: 'foo' is not a schema.Descriptor (One, Many, Sequence, etc.)
 
 Observing an attribute that redirects somewhere else is dangerous, because
-someone else can change the target attribute underneath you - you should 
+someone else can change the target attribute underneath you - you should
 observe the target attribute directly instead:
 
     >>> class BadExample2(Example):

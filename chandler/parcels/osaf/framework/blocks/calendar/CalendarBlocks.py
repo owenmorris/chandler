@@ -51,19 +51,19 @@ one_day = timedelta(1)
 class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                      DragAndDrop.ItemClipboardHandler,
                      CalendarCanvas.CalendarNotificationHandler,
-                     minical.PyMiniCalendar, 
+                     minical.PyMiniCalendar,
                      ):
 
     # Used to limit the frequency with which we repaint the minicalendar.
     # This used to be a real issue, but with the 0.6 notification system,
     # we could probably just rely on the usual wxSynchronize mechanism.
     _recalcCount = 1
-    
+
     # In the case of adding new events, we may be able to get away
     # with just updating a few days on the minicalendar. In those
     # cases, _eventsToAdd will be non-None.
     _eventsToAdd = None
-    
+
      # Note that _recalcCount wins over _eventsToAdd. That's
      # because more general changes (i.e. ones we don't know
      # how to optimize) require a full recalculation.
@@ -72,7 +72,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         """
         Override this to perform an action when a drag cursor is
         hovering over the widget.
-        
+
         @return: A wxDragResult other than dragResult if you want to change
                  the drag operation
         """
@@ -84,7 +84,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                 self.Refresh()
         else:
             self.hoverDate = None
-        
+
         # only allow drag and drop of items
         if self.GetDraggedFromWidget() is None:
             return wx.DragNone
@@ -95,7 +95,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         """
         Override this to add the dropped items to your widget.
         """
-        if self.hoverDate is not None:        
+        if self.hoverDate is not None:
             for item in itemList:
                 proxy = RecurrenceDialog.getProxy(u'ui', item,
                                         endCallback=self.wxSynchronizeWidget)
@@ -105,7 +105,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                     event.anyTime = True
                 oldTime = getattr(event, 'startTime', self.hoverDate).timetz()
                 event.startTime = datetime.combine(self.hoverDate, oldTime)
-        
+
         self.hoverDate = None
         self.Refresh()
 
@@ -117,16 +117,16 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
 
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
-        
+
         # on Linux, because there are no borders around windows, we
         # want a line separating the minicalendar and preview area,
         # bug 4273.  On Mac, the preview area and the minicalendar
         # don't have their own borders, so also draw the line.
-        self.lineAboveToday = not '__WXMSW__' in wx.PlatformInfo 
-        
+        self.lineAboveToday = not '__WXMSW__' in wx.PlatformInfo
+
         self.Bind(minical.EVT_MINI_CALENDAR_SEL_CHANGED,
                   self.OnWXSelectItem)
-        self.Bind(minical.EVT_MINI_CALENDAR_DOUBLECLICKED, 
+        self.Bind(minical.EVT_MINI_CALENDAR_DOUBLECLICKED,
                   self.OnWXDoubleClick)
         self.Bind(minical.EVT_MINI_CALENDAR_UPDATE_BUSY,
                   self.setFreeBusy)
@@ -157,7 +157,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         return date
 
     def setFreeBusy(self, event, useHints=False):
-        
+
         if self._recalcCount == 0:
             zerotime = time(tzinfo=ICUtzinfo.default)
             start = self.GetStartDate()
@@ -166,15 +166,15 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             # ugh, why can't timedelta just support months?
             end = minical.MonthDelta(start, 3)
             end = datetime.combine(end, zerotime)
-            
+
             if useHints and self.HavePendingNewEvents():
                 addedEvents = self.GetPendingNewEvents((start, end))
-                
+
                 # self._eventsToAdd is a set to deal with cases where
                 # multiple notifications are received for a given
                 # event.
                 if self._eventsToAdd is None: self._eventsToAdd = set()
-                
+
                 # Include confirmed events only
                 self._eventsToAdd.update(event for event in addedEvents if
                                          event.transparency == 'confirmed')
@@ -183,7 +183,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
 
         if self._eventsToAdd is None:
             self._recalcCount += 1
-        
+
         if self._recalcCount or self._eventsToAdd:
             self.Refresh()
 
@@ -196,7 +196,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             self._recalcCount = 0
             self._doDrawing()
             self._eventsToAdd = None
-            
+
     def _doDrawing(self):
 
         startDate = self.GetStartDate()
@@ -206,10 +206,10 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         numDays = (endDate - startDate).days
         busyFractions = {}
         defaultTzinfo = ICUtzinfo.default
-        
+
         tzEnabled = schema.ns('osaf.app',
                               self.blockItem.itsView).TimezonePrefs.showUI
-        
+
         # The exact algorithm for the busy state is yet to be determined.
         # For now, just  get the confirmed items on a given day and calculate
         # their total duration.  As long as there is at least one event the
@@ -224,19 +224,19 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             # a modification; we're trying to avoid creating all the
             # items for individual computed occurrences.
             if (event.transparency == "confirmed" and
-                (event.allDay or 
+                (event.allDay or
                 (not event.anyTime and event.duration != zero_delta))):
-                
+
                 assert(start.tzinfo is not None)
-                
+
                 # If timezones are enabled, we need to convert to the
                 # default tzinfo here, so that date() below refers to
                 # the correct timezone.
                 if tzEnabled:
                     start = start.astimezone(defaultTzinfo)
-            
+
                 offset = (start.date() - startDate).days
-                
+
                 midnightStart = datetime.combine(event.startTime.date(),
                                                  time(0, tzinfo=defaultTzinfo))
                 if event.allDay:
@@ -257,15 +257,15 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                         duration = dayEnd - dayStart
                         # @@@ Wrong for multiday events -- Grant
                         hours = duration.seconds / (60 * 60) + 24*duration.days
-                    
+
                     # We set a minimum "Busy" value of 0.25 for any
                     # day with a confirmed event.
                     fraction = busyFractions.get(offset + day, 0.0)
                     fraction = max(fraction, 0.25)
                     fraction += (hours / 12.0)
-                    
+
                     busyFractions[offset + day] = min(fraction, 1.0)
-                
+
         if self._eventsToAdd is not None:
             # First, set up busyFractions to contain the
             # existing values for all the dates of events
@@ -278,18 +278,18 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             # Now, update them all
             for newEvent in self._eventsToAdd:
                 updateBusy(newEvent, newEvent.startTime)
-                
+
             # Finally, update the UI
             for offset, busy in busyFractions.iteritems():
                 eventDate = startDate + timedelta(days=offset)
                 self.SetBusy(eventDate, busy)
-        
+
         else:
 
             # Largely, this code is stolen from CalendarCanvas.py; it
             # would be good to refactor it at some point.
             self.blockItem.EnsureIndexes()
-            
+
             # First, look at all non-generated events
             startOfDay = time(0, tzinfo=ICUtzinfo.default)
             startDatetime = datetime.combine(startDate, startOfDay)
@@ -297,14 +297,14 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
 
             events = self.blockItem.contents
             view = self.blockItem.itsView
-            
+
             for event in Calendar.eventsInRange(view, startDatetime, endDatetime,
-                                               events):                                                
+                                               events):
                     updateBusy(event, event.effectiveStartTime)
-    
+
             # Next, try to find all generated events in the given
             # datetime range
-            
+
 
            # The following iteration over keys comes from Calendar.py
 
@@ -318,19 +318,19 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             else:
                 startIndex = 'effectiveStartNoTZ'
                 endIndex   = 'recurrenceEndNoTZ'
-    
-    
+
+
             keys = Calendar.getKeysInRange(view,
                     startDatetime, 'effectiveStartTime', startIndex, masterEvents,
                     endDatetime, 'recurrenceEnd', endIndex, masterEvents,
                     events, '__adhoc__',
                     tzprefs.showUI)
 
-    
+
             for key in keys:
                 masterEvent = pim.EventStamp(view[key])
                 rruleset = masterEvent.createDateUtilFromRule()
-                
+
                 # If timezones have been disabled in the UI, we want to
                 # use the event's timezone for comparisons, since that
                 # timezone determines what date each occurrence occurs on.
@@ -338,20 +338,20 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                 if not tzEnabled:
                     startDatetime = startDatetime.replace(tzinfo=tzinfo)
                     endDatetime = endDatetime.replace(tzinfo=tzinfo)
-                
+
                 modifications = map(pim.EventStamp, masterEvent.modifications or [])
-                
+
                 for recurDatetime in rruleset.between(startDatetime, endDatetime,
                                                       True):
                     # Now see if recurDatetime matches any of our modifications
                     matchingMod = None
-                    
+
                     for mod in modifications:
                         if recurDatetime == mod.recurrenceID:
                             matchingMod = mod
                             break
-                            
-                    
+
+
                     if matchingMod is None:
                         # OK, an unmodified occurrence. Just
                         # go ahead and update
@@ -361,7 +361,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                         # need to make sure it still falls inside the
                         # range of datetimes we're interested in.
                         modStart = matchingMod.startTime
-                        
+
                         # To do the comparison, we need to make sure
                         # the naivetes of modStart, startDatetime and
                         # endDatetime all match.
@@ -369,19 +369,19 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                             modStart = modStart.replace(tzinfo=tzinfo)
                         else:
                             modStart = modStart.astimezone(tzinfo)
-                            
+
                         if (modStart >= startDatetime and
                             modStart <= endDatetime):
-                            
+
                             updateBusy(matchingMod, modStart)
-    
+
             offset = 0
             while (startDate < endDate):
                 self.SetBusy(startDate, busyFractions.get(offset, 0.0))
                 startDate += one_day
                 offset += 1
-            
-    
+
+
 def isMainCalendarVisible():
     # Heuristic: is the appbar calendar button selected (depressed)?
     calendarButton = Block.Block.findBlockByName("ApplicationBarEventButton")
@@ -395,8 +395,7 @@ def isMainCalendarVisible():
 class MiniCalendar(CalendarCanvas.CalendarBlock):
     dayMode = schema.One(schema.Boolean, initialValue = True)
 
-    previewArea = schema.One("PreviewArea",
-        otherName="miniCalendar",
+    previewArea = schema.One(
         defaultValue = None
     )
 
@@ -412,7 +411,7 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
             previewWidget = self.previewArea.widget
             previewHeight = previewWidget.GetSize()[1]
             monthHeight = widget.GetMonthSize().height
-            
+
             newHeight = previewHeight
             numMonths = 0
             while (newHeight + 0.5 * monthHeight < height and
@@ -425,7 +424,7 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
             height = newHeight
 
         return windowSize - height
-            
+
     def render(self, *args, **kwds):
         super(MiniCalendar, self).render(*args, **kwds)
 
@@ -449,7 +448,7 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
     def onSelectedDateChangedEvent(self, event):
         self.widget.SetDate(event.arguments['start'].date())
         self.widget.Refresh()
-        
+
     def onDayModeEvent(self, event):
         self.dayMode = event.arguments['dayMode']
         self.synchronizeWidget()
@@ -457,7 +456,7 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
 
     def onSelectItemsEvent(self, event):
         self.synchronizeWidget()
-        self.widget.Refresh()        
+        self.widget.Refresh()
 
     def onSetContentsEvent(self, event):
         #We want to ignore, because view changes could come in here, and we
@@ -472,8 +471,8 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
     eventCharacterStyle = schema.One(Styles.CharacterStyle)
     linkCharacterStyle = schema.One(Styles.CharacterStyle)
 
-    miniCalendar = schema.One("MiniCalendar",
-        otherName="previewArea",
+    miniCalendar = schema.One(
+        inverse = MiniCalendar.previewArea,
         defaultValue = None
     )
 
@@ -489,7 +488,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
 
     def onSelectItemsEvent(self, event):
         self.synchronizeWidget()
-        #self.widget.Refresh() 
+        #self.widget.Refresh()
 
     def onSetContentsEvent(self, event):
         #We want to ignore, because view changes could come in here, and we
@@ -498,7 +497,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
 
     def onSelectAllEventUpdateUI(self, event):
         event.arguments['Enable'] = False
-    
+
     def instantiateWidget(self):
         if not self.getHasBeenRendered():
             self.setRange( datetime.now().date() )
@@ -508,7 +507,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
             # but we want one around our parent.  Modifying our parent is quite
             # a hack, but it works rather nicely.
             self.parentBlock.widget.SetWindowStyle(wx.BORDER_SIMPLE)
-        return wxPreviewArea(self.parentBlock.widget, 
+        return wxPreviewArea(self.parentBlock.widget,
                              self.getWidgetID(),
                              timeCharStyle = self.timeCharacterStyle,
                              eventCharStyle = self.eventCharacterStyle,
@@ -519,7 +518,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
     vMargin = 4 # space above & below text
     hMargin = 6 # space on sides
     midMargin = 6 # space between time & date
-    
+
     def __init__(self, parent, id, timeCharStyle, eventCharStyle, linkCharStyle,
                  *arguments, **keywords):
         super(wxPreviewArea, self).__init__(parent, id, *arguments, **keywords)
@@ -528,34 +527,34 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
-        
+
         self.SetWindowStyle(PLATFORM_BORDER)
-        
+
         self.useToday = True
         self.maximized = False
         self.titleFont = Styles.getFont(timeCharStyle)
-        
+
         self.timeFont = Styles.getFont(timeCharStyle)
         self.eventFont = Styles.getFont(eventCharStyle)
         self.linkFont = Styles.getFont(linkCharStyle)
         self.labelPosition = -1 # Note that we haven't measured things yet.
-                
+
     def OnPaint(self, event):
         if not self._avoidDrawing:
             dc = wx.PaintDC(self)
             self.Draw(dc)
 
     def _getItem(self, event):
-        """Return the appropriate item, or None for the expand/contract line."""                   
+        """Return the appropriate item, or None for the expand/contract line."""
         maxEvents = schema.ns("osaf.framework.blocks.calendar",
-                     self.blockItem.itsView).previewPrefs.maximumEventsDisplayed                 
-        
+                     self.blockItem.itsView).previewPrefs.maximumEventsDisplayed
+
         dayLength = len(self.currentDaysItems)
-        
-        pos = (event.GetPosition().y - self.vMargin) / self.lineHeight        
+
+        pos = (event.GetPosition().y - self.vMargin) / self.lineHeight
         if self.useToday:
             pos -= 1
-        if (dayLength > maxEvents and ((not self.maximized and 
+        if (dayLength > maxEvents and ((not self.maximized and
                                         pos == maxEvents - 1) or
                                        (self.maximized and pos == dayLength))):
             return None
@@ -589,7 +588,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         item = self._getItem(event)
         if item is None:
             self.ExpandOrContract()
-            return        
+            return
         sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
         sidebarBPB.childrenBlocks.first().postEventByName (
            'SelectItemsBroadcast', {'items':[item]}
@@ -599,15 +598,15 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
     def Draw(self, dc):
         """
         Draw all the items, based on what's in self.currentDaysItems
-        
+
         @return the height of all the text drawn
-        """        
+        """
         # Set up drawing & clipping
-        
+
         unselectedColor = styles.cfg.get('preview', 'UnSelectedText')
         selectedColor =   styles.cfg.get('preview', 'SelectedText')
 
-        unselectedBackground = styles.cfg.get('preview', 
+        unselectedBackground = styles.cfg.get('preview',
                                               'UnSelectedTextBackground')
         selectedBackground =   styles.cfg.get('preview',
                                               'SelectedTextBackground')
@@ -623,7 +622,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         dc.SetTextBackground( unselectedBackground )
         dc.SetTextForeground( unselectedColor )
         r = self.GetRect()
-        
+
         def setClipping():
             dc.SetClippingRegion(self.hMargin, self.vMargin,
                                  r.width - (2 * self.hMargin),
@@ -650,13 +649,13 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             self.colonPosition = dc.GetTextExtent(preSep)[0] + self.hMargin
             self.labelPosition = dc.GetTextExtent(genericTime)[0] \
                                  + self.hMargin + self.midMargin
-            
-            self.timeFontHeight = Styles.getMeasurements(self.timeFont).height 
-            self.eventFontHeight = Styles.getMeasurements(self.eventFont).height 
+
+            self.timeFontHeight = Styles.getMeasurements(self.timeFont).height
+            self.eventFontHeight = Styles.getMeasurements(self.eventFont).height
             self.lineHeight = max(self.timeFontHeight, self.eventFontHeight)
             self.timeFontOffset = (self.lineHeight - self.timeFontHeight)
             self.eventFontOffset = (self.lineHeight - self.eventFontHeight)
-            
+
         y = self.vMargin
         # Draw title if appropriate
         if self.useToday:
@@ -666,8 +665,8 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             xStart = (r.width - titleWidth)/2
             dc.DrawText(todayText, xStart, y)
             y += self.lineHeight
-        
-        # Draw each event            
+
+        # Draw each event
         previewPrefs = schema.ns("osaf.framework.blocks.calendar",
                                  self.blockItem.itsView).previewPrefs
         for i, event in enumerate(self.currentDaysItems):
@@ -676,8 +675,8 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
                 # OnPaint gets called before wxSynchronizeWidget, so
                 # self.currentDaysItems has deleted items in it.
                 continue
-            
-            if (not self.maximized and 
+
+            if (not self.maximized and
                 i == previewPrefs.maximumEventsDisplayed - 1 and
                 len(self.currentDaysItems) - i > 1):
                 break
@@ -690,11 +689,11 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
                 prePos = self.colonPosition - dc.GetTextExtent(preSep)[0]
                 dc.DrawText(formattedTime, prePos, y + self.timeFontOffset)
                 # Draw the event text to the right of the time.
-                x = self.labelPosition 
+                x = self.labelPosition
             else:
                 # Draw allDay/anyTime events at the left margin
                 x = self.hMargin
-            
+
             # Draw the event text. It'll be clipped automatically because we
             # set a clipregion above.
             dc.SetFont(self.eventFont)
@@ -708,16 +707,16 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             else:
                 # this is the number of events that are not displayed
                 # in the preview pane because there wasn't enough room
-                numEventsLeft = (len(self.currentDaysItems) - 
+                numEventsLeft = (len(self.currentDaysItems) -
                                  (previewPrefs.maximumEventsDisplayed - 1))
                 expandText = _(u"+ %(numberOfEvents)d more...") %  \
                                   {'numberOfEvents': numEventsLeft}
-                
+
             dc.SetFont(self.linkFont)
             dc.DrawText(expandText, self.hMargin, y + self.eventFontOffset)
-            y += self.lineHeight  
-                
-            
+            y += self.lineHeight
+
+
         dc.DestroyClippingRegion()
         return y - self.vMargin
 
@@ -728,11 +727,11 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
         currentHeight = self.GetSize()[1]
         heightDelta = currentHeight - newHeight
-        
+
         #adjust box container shared with minical.
         self.SetMinSize( (0, newHeight) )
         boxContainer.Layout()
-        
+
         #adjust splitter containing the box container
         wxSplitter.AdjustAndSetSashPosition (wxSplitter.GetSashPosition() + heightDelta)
 
@@ -744,7 +743,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             newHeight = 0
         else:
             newHeight = drawnHeight + 2*self.vMargin
-        self.ChangeHeightAndAdjustContainers(newHeight)        
+        self.ChangeHeightAndAdjustContainers(newHeight)
 
     def wxSynchronizeWidget(self, useHints=False):
         # We now want the preview area to always appear.  If the
@@ -764,7 +763,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
         if useHints and self.HavePendingNewEvents():
             addedEvents = self.GetPendingNewEvents((startDay, endDay))
-            
+
             addedEvents = set(item for item in addedEvents
                                 if item.transparency == 'confirmed')
 
@@ -778,7 +777,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
                                               dayItems=True, timedItems=True)
             self.currentDaysItems = [event for event in inRange
                                        if event.transparency == "confirmed"]
-        
+
         self.currentDaysItems.sort(cmp = self.SortForPreview)
         self.Resize()
 

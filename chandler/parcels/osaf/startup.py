@@ -56,7 +56,7 @@ class Startup(schema.Item):
         initialValue=True,
     )
 
-    requires = schema.Sequence("Startup",
+    requires = schema.Sequence(
         doc="Startups that must run before this one",
         initialValue=[]
     )

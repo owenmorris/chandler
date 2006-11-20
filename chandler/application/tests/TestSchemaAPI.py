@@ -24,10 +24,10 @@ from repository.persistence.RepositoryView import NullRepositoryView
 class Dummy(schema.Item):
     """Just a test fixture"""
     attr = schema.One(schema.Text)
-    other = schema.Many("Other", inverse="thing")
+    other = schema.Many()
 
 class Other(schema.Item):
-    thing = schema.One(Dummy, inverse="other")
+    thing = schema.One(Dummy, inverse=Dummy.other)
 
 
 TEST_PATH = "//this/is/a/test"
@@ -45,12 +45,12 @@ class CoreAnnotation(schema.Annotation):
 
 class ForwardAnnotation(schema.Annotation):
     schema.kindInfo(annotates=Dummy)
-    fwd_attr1 = schema.One("ForwardAnnotation")
-    fwd_attr2 = schema.One(inverse="TestSchemaAPI.OtherForward.foo")
+    fwd_attr1 = schema.One() # XXX ForwardAnnotation
+    fwd_attr2 = schema.One()
 
 class OtherForward(schema.Annotation):
     schema.kindInfo(annotates=Dummy)
-    foo = schema.One()
+    foo = schema.One(inverse=ForwardAnnotation.fwd_attr2)
 
 class SchemaTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""

@@ -1203,7 +1203,7 @@ class TokenEngineMixin(pim.ContentItem):
 
 class HTTPMixin(pim.ContentItem):
 
-    account = schema.One('WebDAVAccount', inverse='conduits',initialValue=None)
+    account = schema.One(initialValue=None)
     host = schema.One(schema.Text, initialValue=u"")
     port = schema.One(schema.Integer, initialValue=80)
     username = schema.One(schema.Text, initialValue=u"")

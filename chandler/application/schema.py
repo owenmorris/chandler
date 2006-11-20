@@ -93,75 +93,6 @@ for name in core_types:
 
 __all__.extend(core_types)
 
-
-class ForwardReference:
-    """Forward reference to a not-yet defined object"""
-
-    def __init__(self,name,role):
-        self.name = name
-        self.role = role
-        self.__name__ = name.split('.')[-1]
-
-    def __repr__(self):
-        return "ForwardReference(%r,%r)" % (self.name,self.role)
-
-    def _find_schema_item(self,view):
-        return itemFor(self.referent(),view)
-
-    def __hash__(self):
-        return id(self)
-
-    def referent(self):
-        if self.role.owner is None:
-            if '.' in self.name:
-                return importString(self.name)
-        else:
-            module = sys.modules[self.role.owner.__module__]
-            if '.' in self.name:
-                return importString(self.name, module.__dict__)
-            elif self.role.type is self:
-                # Reference is to type, look in module
-                return getattr(module,self.name)
-
-        if self.role.inverse is self:
-            # Reference is to role, look in type
-            type = self.role.type
-            if isinstance(type,ForwardReference):
-                type = type.referent()
-            return getattr(type, self.name)
-        else:
-            raise TypeError(
-                "Can't resolve local forward reference %r from %r"
-                % (self.name,self.role)
-            )
-
-    def targetType(self):
-        return self
-
-    def __eq__(self,other):
-        if self is other:
-            return True
-        elif isinstance(other,ForwardReference) and self.name==other.name:
-            return True
-        elif isinstance(other,ItemClass):
-            fullname = other.__module__+'.'+other.__name__
-            return self.name==fullname or fullname.endswith('.'+self.name)
-        elif isinstance(other,Descriptor) and other.owner is not None:
-            fullname = '%s.%s.%s' % (
-                other.owner.__module__, other.owner.__name__, other.name
-            )
-            return self.name==fullname or fullname.endswith('.'+self.name)
-        try:
-            me = self.referent()
-        except ImportError:
-            return False
-        else:
-            return other is me
-
-    def __ne__(self,other):
-        return not self.__eq__(other)
-
-
 class ActiveDescriptor(object):
     """Abstract base for descriptors needing activation by their classes"""
 
@@ -201,7 +132,7 @@ class Descriptor(ActiveDescriptor,CDescriptor):
                 self.__setDoc(kw.pop(docattr))
         if type is not None:
             if isinstance(type,str):
-                type = ForwardReference(type, self)
+                raise TypeError("Can't use a string for a type name")
             self.type = type
         for k,v in kw.items():
             if k!='name':   # XXX workaround CDescriptor not allowing name set
@@ -214,10 +145,6 @@ class Descriptor(ActiveDescriptor,CDescriptor):
             self.owner = cls
             CDescriptor.__init__(self,name)
             if _target_type(cls) and self.inverse is not None:
-                if isinstance(self.inverse,ForwardReference):
-                    return
-                elif isinstance(self.inverse.inverse,ForwardReference):
-                    self.inverse.inverse = self
                 if set_type:
                     self.inverse.type = _target_type(cls)
 
@@ -258,23 +185,18 @@ class Descriptor(ActiveDescriptor,CDescriptor):
 
         # Handle initial forward reference setting
         if isinstance(inverse,str):
-            inverse = ForwardReference(inverse,self)
-            if self._inverse is None:
-                self._inverse = inverse     # initial setup, allow anything
-                return
+            raise TypeError("Can't use a string for an inverse name")
 
         if self._inverse is not inverse:    # No-op if no change
             self._inverse = inverse
-            if not isinstance(inverse.inverse,ForwardReference):
-                # Only backpatch if the other end isn't a forward ref
-                try:
-                    inverse.inverse = self
-                except:
-                    self._setattr('_inverse',None)  # roll back the change
-                    raise
+            try:
+                inverse.inverse = self
+            except:
+                self._setattr('_inverse',None)  # roll back the change
+                raise
 
-                if self.owner and _target_type(self.owner):
-                    inverse.type = _target_type(self.owner)
+            if self.owner and _target_type(self.owner):
+                inverse.type = _target_type(self.owner)
 
     inverse = property(
         lambda s: s._inverse, __setInverse, doc="""The inverse of this role"""
@@ -315,9 +237,6 @@ class Descriptor(ActiveDescriptor,CDescriptor):
                 "role object used outside of schema class"
             )
 
-        if isinstance(self.inverse,ForwardReference):
-            self.inverse = self.inverse.referent()  # force resolution now
-
         attr = Attribute(None, view['Schema'], itemFor(Attribute, view))
         return attr
 
@@ -340,8 +259,6 @@ class Descriptor(ActiveDescriptor,CDescriptor):
         if not hasattr(self,'otherName') and self.inverse is not None:
             if self.inverse.name is None:
                 typ = self.type or Base
-                if isinstance(typ,ForwardReference):
-                    typ = typ.referent()
                 self.inverse.annotates = (typ,)
                 cls = self.owner
                 self.inverse.activateInClass(
@@ -393,7 +310,7 @@ class Calculated(property, ActiveDescriptor):
         property.__init__(self, fget, fset, fdel, doc)
         self.type = schema_type
         self.basedOn = basedOn
-        
+
     def activateInClass(self,cls,name):
         if issubclass(cls, Annotation):
             def wrapForAnnotation(f):
@@ -410,12 +327,12 @@ class Calculated(property, ActiveDescriptor):
             fset = wrapForAnnotation(self.fset)
             fget = wrapForAnnotation(self.fget)
             fdel = wrapForAnnotation(self.fdel)
-            
+
             newProp = Calculated(self.type, self.basedOn, fget, fset=fset,
                                  fdel=fdel, doc=self.__doc__)
             self.name = fullname
             newProp.name = fullname
-        
+
             setattr(_target_type(cls),fullname,newProp)
 
         setattr(cls,name,self)
@@ -880,9 +797,9 @@ class Annotation:
             compare = getattr(cls, compare)
             if not isinstance(compare, Comparator):
                 raise ValueError, "'compare' value must be a schema.Comparator"
-        
+
             keywds['compare'] = compare.name
-            
+
         for key in ('attributes', 'monitor'):
             unconverted = keywds.get(key, None)
             if unconverted is not None:
@@ -890,13 +807,13 @@ class Annotation:
                     keywds[key] = tuple(x.name for x in unconverted)
                 except TypeError:
                     keywds[key] = unconverted.name
-                
+
         attribute = keywds.get('attribute')
         if attribute is not None:
             keywds['attribute'] = attribute.name
-        
+
         return collection.addIndex(name, type, **keywds)
-    
+
 
 
 class StructClass(Activator):
@@ -1192,7 +1109,7 @@ def observer(*attrs):
                     if name.startswith('__'):
                         # support private name mangling
                         name = '_%s%s' % (cls.__name__, name)
-        
+
                     def makeNewMethod(cls, fullname, name):
                         meth = getattr(cls,name)
                         def wrappedMethod(item, op, attrName):
@@ -1200,7 +1117,7 @@ def observer(*attrs):
                         wrappedMethod.__name__ = name
                         wrappedMethod.__doc__ = meth.__doc__
                         return wrappedMethod
-                       
+
                     shortName = name
                     name = "%s.%s.%s" % (parcel_name(cls.__module__),
                                          cls.__name__, name)

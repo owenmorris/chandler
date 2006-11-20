@@ -484,7 +484,6 @@ class SMTPAccount(AccountBase):
     )
 
     fromAddress = schema.One(
-        'EmailAddress',
         initialValue = None
     )
 
@@ -692,7 +691,7 @@ class IMAPDelivery(MailDeliveryBase):
         description = "Tracks the state of an inbound message",
     )
 
-    #XXX Reference back to the folder object 
+    #XXX Reference back to the folder object
     #the message came from on IMAP Server
     folder = schema.One(
         schema.Text, initialValue = u'',
@@ -898,7 +897,7 @@ class MailStamp(stamping.Stamp, MIMEContainer):
     # at the time the Welcome Note is set up. For 0.7alpha4, we
     # just cache them here, and set them up in MailStamp.add().
     # Post-alpha4, this will be revisited, probably by making
-    # MIMEBase derived from ContentItem again. 
+    # MIMEBase derived from ContentItem again.
     EXTRA_INITIAL_VALUES = {}
     for cls in MIMEContainer, MIMEBase:
         for name, ob in cls.__dict__.iteritems():
@@ -1190,7 +1189,7 @@ Issues:
         The "me" entity is used for Items created by the user, and it
         gets a reasonable emailaddress filled in when a send is done.
 
-        For performant operations use theEmailAddress.findEmailAddress method 
+        For performant operations use theEmailAddress.findEmailAddress method
         which leverages an index.
         """
 

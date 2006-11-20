@@ -49,7 +49,7 @@ class RefCollectionDictionary(schema.Item):
         @return: A C{immutable} for the key into the collection
         """
         return item.itsName or item.itsUUID.str64()
-    
+
     def getCollectionSpecifier(self):
         """
         Determines which attribute to use for the collectionSpecifier.
@@ -87,7 +87,7 @@ class RefCollectionDictionary(schema.Item):
         else:
             i = coll.getByAlias(key)
         return (i, coll)
-        
+
     def index(self, key):
         """
         Returns the item refered to by the key.
@@ -101,13 +101,13 @@ class RefCollectionDictionary(schema.Item):
             return i
         except KeyError:
             return None
-        
+
     def __iter__(self):
         """
         Returns an iterator to the collection attribute.
         """
         return iter(self.getAttributeValue(self.getCollectionSpecifier()))
- 
+
     def __len__(self):
         """
         @return: C{int} length of the collection attribute.
@@ -117,7 +117,7 @@ class RefCollectionDictionary(schema.Item):
             return len(self.getAttributeValue(self.getCollectionSpecifier()))
         except AttributeError:
             return 0
-    
+
     def has_key(self, key):
         """
         @param key: The key used for lookup into the ref collection.
@@ -125,7 +125,7 @@ class RefCollectionDictionary(schema.Item):
         @return: C{True} if found, or {False} if not found.
         """
         return self.index(key) != None
-                                      
+
     def __contains__(self, item):
         """
         @param item: An item to find in the ref collection.
@@ -134,7 +134,7 @@ class RefCollectionDictionary(schema.Item):
         """
         coll = self.getAttributeValue(self.getCollectionSpecifier())
         return coll.get(item.itsUUID) != None
-    
+
     def __getitem__(self, key):
         """
         Return the item associated with the key from the ref collection attribute.
@@ -144,7 +144,7 @@ class RefCollectionDictionary(schema.Item):
         @return: C{item} if found, or raises an exception.
         """
         return self._index(key)[0]
-    
+
     def __setitem__(self, key, value):
         """
         Replace the item associated with the key from the ref collection
@@ -163,7 +163,7 @@ class RefCollectionDictionary(schema.Item):
         self.insert(itemIndex, value) # insert before
         if itemIndex is not None:
             coll.remove(itemIndex) # remove keyed original
-            
+
     def insert(self, index, item):
         """
         Insert item before index in our ref collection.
@@ -179,7 +179,7 @@ class RefCollectionDictionary(schema.Item):
             afterItem = coll.last()
         else:
             afterItem = coll.previous(index)
-        
+
         coll.insertItem (item, afterItem)
         coll.setAlias(item, self.itemNameAccessor(item))
 
@@ -232,7 +232,7 @@ class DynamicBlock(schema.Item):
             if isContainer:
                 for child in self.childrenBlocks:
                     child.appendDynamicBlocks (blockList)
-    
+
     def buildDynamicList (self):
         """
         Build a list of dynamic blocks found starting at self,
@@ -270,7 +270,7 @@ class DynamicBlock(schema.Item):
                 block.populateFromStaticChildren ()
                 containers [block.blockName] = block
         return blockList
-                                       
+
     def rebuildChildren(self, containers, blockList):
         """
         Scan for dynamic children, find their parent, and attach them
@@ -298,7 +298,7 @@ class DynamicBlock(schema.Item):
                 if locationName is None:
                     locationName = child.parentBlock.blockName
                 bar = containers [locationName]
-                
+
                 operation = child.operation
                 if operation == 'InsertBefore':
                     # Shouldn't have items with the same name, unless they are the same
@@ -338,7 +338,7 @@ class DynamicBlock(schema.Item):
         scan down through all of its children recursively
         as long as dynamic blocks are found.
 
-        DynamicContainers and their dynamicChildren are 
+        DynamicContainers and their dynamicChildren are
         identified by their itemName rather than their UUIDs,
         to make it easy for third party parcels to add menus.
 
@@ -388,9 +388,7 @@ class DynamicChild(DynamicBlock):
     Used as a mixin class for other blocks.
     """
 
-    dynamicParent = schema.One(
-        Block.Block, initialValue = None, otherName = 'dynamicChildren',
-    )
+    dynamicParent = schema.One(initialValue = None)
     title = schema.One(schema.Text, initialValue = u'')
     operation = schema.One(operationEnumType, defaultValue = 'None')
     location = schema.One(schema.Text)
@@ -410,7 +408,7 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
     """
 
     dynamicChildren = schema.Sequence(
-        Block.Block, otherName = 'dynamicParent', initialValue = [],
+        inverse = DynamicChild.dynamicParent, initialValue = [],
     )
 
     collectionSpecifier = schema.One(redirectTo = 'dynamicChildren')
@@ -424,7 +422,7 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
         Use blockName for the accessor.
         """
         return item.blockName
-    
+
     def isDynamicContainer (self):
         return True
 
@@ -513,11 +511,11 @@ class wxMenuItem (wx.MenuItem):
             elif block.menuItemKind == "Radio":
                 kind = wx.ITEM_RADIO
             else:
-                assert (False)        
+                assert (False)
             title = block.title
             if len (block.accel) > 0:
                 title = title + '\t' + block.accel
-            
+
             """
             When inserting ourself into a MenuItem, we must actually
             insert ourself into the submenu of that MenuItem.
@@ -530,12 +528,12 @@ class wxMenuItem (wx.MenuItem):
                 assert submenu
                 style = (None, id, title, block.helpString, kind, submenu)
         return style
-    
+
     def setMenuItem (self, newItem, oldItem, index):
         subMenu = self.GetSubMenu()
         assert isinstance (subMenu, wxMenu)
         subMenu.setMenuItem(newItem, oldItem, index)
-        
+
     def getMenuItems(self):
         wxMenuObject = self.GetSubMenu()
         assert isinstance (wxMenuObject, wxMenu)
@@ -599,11 +597,11 @@ class wxMenu(wx.Menu):
     """
     def getMenuItems (self):
         return self.GetMenuItems()
-    
+
     def removeItem (self, index, oldItem):
         oldMenuItem = self.RemoveItem (oldItem)
         oldMenuItem.thisown = False
-            
+
     def setMenuItem (self, newItem, oldItem, index):
         # set the menu item, replacing an old one if specified
         # the widget stays attached to the block until the block is destroyed
@@ -622,7 +620,7 @@ class wxMenu(wx.Menu):
             self.Enable (newItem.widget.GetId(), False)
         else:
             self.InsertMenu (index, 0, newItem.title, newItem.widget, newItem.helpString)
-        
+
 class wxMenuBar (wx.MenuBar):
     def Destroy(self):
         """
@@ -654,10 +652,10 @@ class wxMenuBar (wx.MenuBar):
         for index in xrange (self.GetMenuCount()):
             menuList.append (self.GetMenu (index))
         return menuList
-        
+
     def removeItem (self, index, oldItem):
         oldMenu = self.Remove (index)
-        
+
     def setMenuItem (self, newItem, oldItem, index):
         itemsInMenu = self.GetMenuCount()
         assert (index <= itemsInMenu)
@@ -759,8 +757,8 @@ class Menu (MenuBar, DynamicChild):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
         return wxMenu()
-    
-"""  
+
+"""
 Toolbar classes.
 """
 
@@ -770,7 +768,7 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         # keep track of ToolbarItems so we can tell when/how they change in synchronize
         self.toolItemList = [] # non-persistent list
         self.toolItems = 0
-           
+
     def wxSynchronizeWidget(self, useHints=False):
         super (wxToolbar, self).wxSynchronizeWidget()
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
@@ -798,7 +796,7 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
                         rebuild = True
                         break
                     i += 1
-            
+
             if rebuild:
                 # For now, we just blow away the old toolbar, and build a new one
                 for i in xrange(self.toolItems):
@@ -815,7 +813,7 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
 
         # draw the bar, and we're done.
         self.Realize()
-    
+
     def _item_named (self, toolbarItemName):
         for toolbarItem in self.blockItem.dynamicChildren:
             if getattr(toolbarItem, 'blockName', None) == toolbarItemName:
@@ -833,7 +831,7 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         if toolbarItem is None:
             toolbarItem = self._item_named (name)
         return Block.Block.post(toolbarItem.event, {}, toolbarItem)
-        
+
 class wxToolbarItemMixin (object):
     """
     Toolbar Tool Widget mixin, for various items that can appear in a Toolbar.
@@ -848,9 +846,9 @@ class wxToolbarItemMixin (object):
     the widgets associated with each ToolbarItem since they are not
     children of the Toolbar from the wx perspective.  Luckily, about the
     only time we destroy the Toolbar is when we call wxSynchronizeWidget
-    on it, so we can handle it specially.  At that time we explicitly 
+    on it, so we can handle it specially.  At that time we explicitly
     call the onDestroy method on each ToolbarItem to unhook that
-    block from its widget. 
+    block from its widget.
     """
     def Destroy(self):
         # toolbar items that are now wx.Windows need to have their blocks destroyed
@@ -876,7 +874,7 @@ class wxToolbarItemMixin (object):
         # Since wx.ToolbarTools are not real widgets, they don't support IsShown,
         #  so we'll provide a stub for CPIA.
         return True
-    
+
     def OnSetTextEvent (self, event):
         """
         wxToolbarItems don't properly handle setting the text of buttons, on
@@ -910,7 +908,7 @@ class wxToolbarItemMixin (object):
             """
             children [blockIndex].selected = True
             children [blockIndex].synchronizeWidget()
-            
+
             """
             Unselect all the items in the radio group after this toolbar item.
             """
@@ -924,10 +922,13 @@ class wxToolbarItemMixin (object):
         self.selectTool()
         event.Skip()
 
+from osaf.framework.blocks.Styles import ColorStyle
+from osaf.pim.structs import SizeType
+
 class Toolbar(Block.RectangularChild, DynamicContainer):
 
-    colorStyle = schema.One('osaf.framework.blocks.Styles.ColorStyle')
-    toolSize = schema.One('osaf.pim.structs.SizeType')
+    colorStyle = schema.One(ColorStyle)
+    toolSize = schema.One(SizeType)
     separatorWidth = schema.One(schema.Integer, initialValue = 5)
     buttons3D = schema.One(schema.Boolean, initialValue = False)
     buttonsLabeled = schema.One(schema.Boolean, initialValue = False)
@@ -940,7 +941,7 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
         self.ensureDynamicChildren ()
         heightGutter = self.buttonsLabeled and 23 or 6
         parentWidget = self.parentBlock.widget
-        toolbar = wxToolbar(parentWidget, 
+        toolbar = wxToolbar(parentWidget,
                             self.getWidgetID(),
                             wx.DefaultPosition,
                             (-1, self.toolSize.height+heightGutter),
@@ -948,7 +949,7 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
         # set the tool bitmap size right away
         toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
         return toolbar
-    
+
     def calculate_wxStyle (self):
         style = wx.TB_HORIZONTAL
         if self.buttons3D:
@@ -958,7 +959,7 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
         if self.buttonsLabeled:
             style |= wx.TB_TEXT
         return style
-    
+
     def pressed (self, toolbarItem=None, name=''):
         # return the state of the toolbarItem, or toolbarItem located by name
         return self.widget.pressed (toolbarItem, name)
@@ -997,7 +998,7 @@ class ToolbarItem(Block.Block, DynamicChild):
     disabledBitmap = schema.One(schema.Text)
     event = schema.One(Block.BlockEvent)
     toolbarItemKind = schema.One(toolbarItemKindEnumType)
-    
+
     schema.addClouds(
         copying = schema.Cloud(byRef=[prototype], byCloud=[event])
     )
@@ -1023,7 +1024,7 @@ class ToolbarItem(Block.Block, DynamicChild):
             theToolbar = self.dynamicParent.widget
         except AttributeError:
             return None
-        
+
         tool = None
         id = self.getWidgetID()
         self.toolID = id
@@ -1044,7 +1045,7 @@ class ToolbarItem(Block.Block, DynamicChild):
                 theKind = wx.ITEM_RADIO
             else:
                 theKind = wx.ITEM_NORMAL
-            
+
             tool = theToolbar.DoAddTool (id,
                                         self.title,
                                         bitmap,
@@ -1054,7 +1055,7 @@ class ToolbarItem(Block.Block, DynamicChild):
                                         longHelp=longHelp)
             mixinAClass (tool, toolWidgetMixin)
             theToolbar.SetToolLongHelp(id, longHelp)
-            theToolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)            
+            theToolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)
         elif self.toolbarItemKind == 'Separator':
             theToolbar.AddSeparator()
         elif self.toolbarItemKind == 'Check':
@@ -1072,9 +1073,9 @@ class ToolbarItem(Block.Block, DynamicChild):
         elif self.toolbarItemKind == 'Text':
             # unlike other Toolbar items, a 'text' item actually creates a
             # real wx control
-            tool = wx.TextCtrl (theToolbar, id, "", 
-                                wx.DefaultPosition, 
-                                wx.Size(250,-1), 
+            tool = wx.TextCtrl (theToolbar, id, "",
+                                wx.DefaultPosition,
+                                wx.Size(250,-1),
                                 wx.TE_PROCESS_ENTER)
             tool.SetName(self.title)
             theToolbar.AddControl (tool)
@@ -1084,10 +1085,10 @@ class ToolbarItem(Block.Block, DynamicChild):
             choices = proto.choices
             tool = wx.ComboBox (theToolbar,
                                 -1,
-                                proto.selection, 
+                                proto.selection,
                                 wx.DefaultPosition,
                                 (proto.minimumSize.width, proto.minimumSize.height),
-                                proto.choices)            
+                                proto.choices)
             theToolbar.AddControl (tool)
             tool.Bind(wx.EVT_COMBOBOX, theApp.OnCommand, id=id)
             tool.Bind(wx.EVT_TEXT, theApp.OnCommand, id=id)
@@ -1098,12 +1099,12 @@ class ToolbarItem(Block.Block, DynamicChild):
                               -1,
                               wx.DefaultPosition,
                               (proto.minimumSize.width, proto.minimumSize.height),
-                              proto.choices)            
+                              proto.choices)
             theToolbar.AddControl (tool)
             tool.Bind(wx.EVT_CHOICE, theApp.OnCommand, id=id)
         elif __debug__:
             assert False, "unknown toolbarItemKind"
-        
+
         # downcast the item created by wx into a toolbarMixin, so
         # it has the extra methods needed by CPIA.
         if tool is not None and not isinstance(tool, wxToolbarItemMixin):

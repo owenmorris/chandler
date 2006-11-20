@@ -81,10 +81,10 @@ class Share(pim.ContentItem):
         initialValue = u''
     )
 
-    contents = schema.One(pim.ContentItem,otherName='shares',initialValue=None)
-
-    items = schema.Sequence(pim.ContentItem, initialValue=[],
-        otherName = 'sharedIn')
+    # XXX the inverse of these attributes should be on an Annotation in order
+    #     to preserve the "modular APIs" tenet
+    contents = schema.One(otherName='shares', initialValue=None)
+    items = schema.Sequence(otherName='sharedIn', initialValue=[])
 
     conduit = schema.One(initialValue=None)
     # inverse of Conduit.share
@@ -96,14 +96,14 @@ class Share(pim.ContentItem):
         pim.Contact,
         doc = 'The contact who initially published this share',
         initialValue = None,
-        otherName = 'sharerOf',
+        inverse = schema.Sequence(),
     )
 
     sharees = schema.Sequence(
         pim.Contact,
         doc = 'The people who were invited to this share',
         initialValue = [],
-        otherName = 'shareeOf',
+        inverse = schema.Sequence(),
     )
 
     filterClasses = schema.Sequence(
@@ -114,9 +114,8 @@ class Share(pim.ContentItem):
 
     filterAttributes = schema.Sequence(schema.Text, initialValue=[])
 
-    # @@@ [grant] Try inverse, and explicit attributes
-    leads = schema.Sequence('Share', initialValue=[], otherName='follows')
-    follows = schema.One('Share', otherName='leads')
+    leads = schema.Sequence(initialValue=[])
+    follows = schema.One(inverse=leads)
 
     schema.addClouds(
         sharing = schema.Cloud(

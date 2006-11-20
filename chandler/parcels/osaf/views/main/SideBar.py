@@ -25,7 +25,7 @@ from osaf.pim import (
     ContentCollection, IntersectionCollection,
     UnionCollection, IndexedSelectionCollection, AppCollection
     )
-    
+
 from osaf.framework.prompts import promptYesNoCancel
 from application.dialogs import RecurrenceDialog
 
@@ -57,7 +57,7 @@ class SidebarElementDelegate (ControlBlocks.ListDelegate):
                     self.blockItem.columns[column].attributeName)
         else:
             return (None, None)
-    
+
 class wxSidebar(wxTable):
     def __init__(self, *arguments, **keywords):
         super (wxSidebar, self).__init__ (*arguments, **keywords)
@@ -99,7 +99,7 @@ class wxSidebar(wxTable):
     def wxSynchronizeWidget(self, useHints=False):
         # clear out old 'checked' items
         sidebar = self.blockItem
-        
+
         # sidebar.checkedItems is a python set,
         # it cannot be modified while iterating
         for checkedItem in list(sidebar.checkedItems):
@@ -115,7 +115,7 @@ class wxSidebar(wxTable):
             else:
                 edge = rect.GetRight()
             return edge + offset
-        
+
         top = rect.GetTop()
         height = offsets [2]
         if height == 0:
@@ -173,24 +173,24 @@ class wxSidebar(wxTable):
         blockItem.stopNotificationDirt()
         try:
             selectedItem = blockItem.contents.getFirstSelectedItem()
-            
+
             allowOverlay = (item is not None and
                             UserCollection (item).allowOverlay and
                             blockItem.filterClass not in blockItem.disallowOverlaysForFilterClasses and
-                            
+
                             (selectedItem is None or
                              not UserCollection (selectedItem).outOfTheBoxCollection))
-                            
+
             if (cellRect.InsideXY (x, y) and
                 not self.IsCellEditControlEnabled() and
                 allowOverlay):
                     if not hasattr (self, 'hoverImageRow'):
                         gridWindow.CaptureMouse()
-        
+
                         self.hoverImageRow = row
                         self.cellRect = cellRect
                         self.pressedButton = None
-        
+
                         # Initialize the buttons state and store in temporary attributes that don't persist
                         for button in blockItem.buttons:
                             method = getattr (type (button), "getChecked", False)
@@ -214,32 +214,32 @@ class wxSidebar(wxTable):
                             method = getattr (type (button), "onOverButton", None)
                             if method is not None:
                                 method (button, item)
-    
-    
+
+
             if hasattr (self, 'hoverImageRow'):
                 if event.LeftDown():
                     for button in blockItem.buttons:
                         buttonState = button.buttonState
                         if (buttonState['imageRect'].InsideXY (x, y) and allowOverlay):
-                            
+
                             event.Skip (False) #Gobble the event
                             self.SetFocus()
-    
+
                             method = getattr (type (button), "getChecked", False)
                             checked = method and method (button, item)
-    
+
                             buttonState['blockChecked'] = checked
                             buttonState['screenMouseDown'] = not checked
                             self.pressedButton = button
                             self.RefreshRect (buttonState['imageRect'])
                             break
-    
+
                 elif event.LeftUp():
                     if self.pressedButton is not None:
                         imageRect = self.pressedButton.buttonState['imageRect']
                         if (imageRect.InsideXY (x, y)):
                             pressedButton = self.pressedButton
-    
+
                             method = getattr (type (pressedButton), "getChecked", False)
                             if method:
                                 checked = not method (pressedButton, item)
@@ -256,17 +256,17 @@ class wxSidebar(wxTable):
                             self.RefreshRect (imageRect)
                             stopHovering()
                         self.pressedButton = None
-    
+
                 elif event.LeftDClick():
                     # Stop hover if we're going to edit
                     stopHovering()
-    
+
                 elif not (event.LeftIsDown() or self.cellRect.InsideXY (x, y)):
                     for button in blockItem.buttons:
                         self.RefreshRect (button.buttonState['imageRect'])
                     self.pressedButton = None
                     stopHovering()
-    
+
                 elif (self.pressedButton is not None):
                     buttonState = self.pressedButton.buttonState
                     imageRect = buttonState['imageRect']
@@ -274,7 +274,7 @@ class wxSidebar(wxTable):
                     if imageRect.InsideXY (x, y) == (screenMouseDown == buttonState['blockChecked']):
                         buttonState['screenMouseDown'] = not screenMouseDown
                         self.RefreshRect (imageRect)
-            
+
             if event.LeftDown():
                 if blockItem.contents.isItemSelected (item):
                     self.setFocus = True
@@ -290,7 +290,7 @@ class wxSidebar(wxTable):
             del self.whereToDropItem
             return False
         return True
-        
+
     def AddItems (self, itemList):
         # Adding due to Drag and Drop?
         whereToDropItem = getattr (self, 'whereToDropItem', None)
@@ -304,13 +304,13 @@ class wxSidebar(wxTable):
             for item in itemList:
                 # create a recurrence proxy if adding a recurring item
                 if getattr(item, pim.EventStamp.rruleset.name) is not None:
-                    RecurrenceDialog.getProxy(u'ui', item).addToCollection(possibleCollection)                    
+                    RecurrenceDialog.getProxy(u'ui', item).addToCollection(possibleCollection)
                 else:
                     # Some items don't know how to add themselves
                     method = getattr (type (item), "addToCollection", None)
                     if method is not None:
                         method (item, possibleCollection)
-    
+
     def OnItemDrag (self, event):
         # @@@ You currently can't drag out of the sidebar
         pass
@@ -318,7 +318,7 @@ class wxSidebar(wxTable):
     def onCopyEventUpdateUI(self, event):
         # You can't Cut or Copy items from the sidebar
         event.arguments['Enable'] = False
-        
+
     def OnHover (self, x, y, dragResult):
         x, y = self.CalcUnscrolledPosition(x, y)
         hoverRow = self.YToRow(y)
@@ -329,17 +329,17 @@ class wxSidebar(wxTable):
         # Clear the selection colour if necessary
         if self.hoverRow != wx.NOT_FOUND and self.hoverRow != hoverRow:
             self.SetRowHighlight(self.hoverRow, False)
-            
+
         # Colour the item if it exists and isn't already coloured
         if hoverRow != wx.NOT_FOUND and hoverRow != self.hoverRow:
             self.SetRowHighlight(hoverRow, True)
-        
+
         # Store current state
         self.hoverRow = hoverRow
-        
+
         if hoverRow == wx.NOT_FOUND:
             # Allow file drops anywhere.  Unfortunately a wx.DropTarget
-            # doesn't provide information about what data is actually in the 
+            # doesn't provide information about what data is actually in the
             # DataObject hovering over it, so we can't use wx to determine if
             # the object is a file.  We resort to the Chandler specific
             # global, DraggedFromWidget, which gets set and unset by Chandler
@@ -358,7 +358,7 @@ class wxSidebar(wxTable):
                     dragResult = wx.DragMove
             elif possibleCollection.isReadOnly():
                 dragResult = wx.DragNone
-    
+
         return dragResult
 
     OnEnter = OnHover # Enter callback same as Hover callback (Drag & Drop)
@@ -370,7 +370,7 @@ class wxSidebar(wxTable):
             # Clear the selection colour if necessary
             self.SetRowHighlight(self.hoverRow, False)
             self.hoverRow = wx.NOT_FOUND
-            
+
     def SetRowHighlight (self, row, highlightOn):
         if highlightOn:
             color = wx.LIGHT_GREY
@@ -479,9 +479,7 @@ class SSSidebarButton (schema.Item):
     # cell. A height of zero uses the height of the cell
     buttonOffsets = schema.Sequence (schema.Integer, required = True)
 
-    buttonOwner = schema.One("SidebarBlock",
-                             inverse="buttons",
-                             initialValue = None)
+    buttonOwner = schema.One(initialValue = None)
 
     schema.addClouds(
         copying = schema.Cloud (byCloud = [buttonOwner])
@@ -538,7 +536,7 @@ class SSSidebarIconButton2 (SSSidebarButton):
         MouseState for checkable icons. It is the string "MouseDown" if the
         mouse is down over the icon, "MouseOver" if the mouse is up, but over
         the icon, and empty otherwise.
-        
+
         Finally, comes Deactive, which equals "Deactive" when an collection
         is deactive, i.e. it can't be checked.
 
@@ -547,10 +545,10 @@ class SSSidebarIconButton2 (SSSidebarButton):
         """
         sidebarBlock = self.buttonOwner
         userCollection = UserCollection(item)
-    
+
         imagePrefix = "Sidebar" + self.buttonName
         checked = self.getChecked (item)
-        
+
         if mouseOverFlag and self.buttonState['overButton']:
             if self.buttonState['screenMouseDown'] == (item in sidebarBlock.checkedItems):
                 mouseState = "MouseOver"
@@ -580,7 +578,7 @@ class SSSidebarIconButton2 (SSSidebarButton):
 
         app = wx.GetApp()
         image = app.GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
-        
+
         if image is not None:
             if userCollection.colorizeIcon:
                 userCollection.ensureColor()
@@ -632,7 +630,7 @@ class SSSidebarIconButton (SSSidebarButton):
         property, so the IconNames for the Dashboard are 'Dashboard',
         'DashboardEventStamp', 'DashboardMailStamp' and
         'DashboardTaskStamp'.
-        
+
 
         Another property of the collection, controlled by the allowOverlay
         attribute, determines whether or not it can be checked. If the
@@ -640,7 +638,7 @@ class SSSidebarIconButton (SSSidebarButton):
         MouseState for checkable icons. It is the string "MouseDown" if the
         mouse is down over the icon, "MouseOver" if the mouse is up, but over
         the icon, and empty otherwise.
-        
+
         Finally, comes Deactive, which equals "Deactive" when an collection
         is deactive, i.e. it can't be checked.
 
@@ -649,11 +647,11 @@ class SSSidebarIconButton (SSSidebarButton):
         """
         sidebarBlock = self.buttonOwner
         userCollection = UserCollection(item)
-    
+
         imagePrefix = "Sidebar" + self.buttonName
         if self.getChecked (item):
             imagePrefix = imagePrefix + "Checked"
-        
+
         if mouseOverFlag:
             if self.buttonState['screenMouseDown'] != self.buttonState['blockChecked']:
                 mouseState = "MouseDown"
@@ -681,7 +679,7 @@ class SSSidebarIconButton (SSSidebarButton):
 
         app = wx.GetApp()
         image = app.GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
-        
+
         if image is not None and userCollection.colorizeIcon:
             userCollection.ensureColor()
             color = userCollection.color
@@ -716,10 +714,10 @@ class SSSidebarSharingButton (SSSidebarButton):
 
         "Offline"
         "OfflineNotMine"
-        
+
         "Error"
         "ErrorNotMine"
-        
+
         "Upload"
         "UploadNotMine"
         "Download"
@@ -731,7 +729,7 @@ class SSSidebarSharingButton (SSSidebarButton):
 
         ""
         "NotMine"
-        
+
         Offline icons take precedence over the Error icon. The Error icon
         takes precedence over the remaining icons. Partial indicates that
         only some of the items in the collection are shared, e.g. when
@@ -739,7 +737,7 @@ class SSSidebarSharingButton (SSSidebarButton):
         isn't shared then the IconName is empty, i.e. "". NotMine is appended
         to the IconName if the collection is in the NotMine set of items.
 
-        SharingIcon are momentary switches, i.e. you can click them and 
+        SharingIcon are momentary switches, i.e. you can click them and
         while the mouse is down they show a down state icon. When the mouse
         is and the button is pressed "MouseDown" is appended.
 
@@ -801,11 +799,11 @@ class SSSidebarSharingButton (SSSidebarButton):
             # Don't have an error indicator yet
             elif getattr (share, "error", False):
                 iconName = "Error"
-            
+
             # Otherwise we're either Upload or Download
             else:
                 iconName = shared + partial
-        
+
         # We need an indication of NotMine
         mine = schema.ns('osaf.pim', self.itsView).mine
         if item not in mine.sources and not UserCollection(item).outOfTheBoxCollection:
@@ -814,11 +812,11 @@ class SSSidebarSharingButton (SSSidebarButton):
         # First lookup full image name
         app = wx.GetApp()
         image = app.GetRawImage (imagePrefix + iconName + mouseDown + mouseOver + imageSuffix)
-        
+
         # If that fails try the default image wihtout mouseOver
         if image is None:
             image = app.GetRawImage (imagePrefix + iconName + mouseDown + imageSuffix)
-                
+
         # If that fails try the full icon name wihtout mouseDown and mouseOver
         if image is None:
             image = app.GetRawImage (imagePrefix + iconName + imageSuffix)
@@ -849,7 +847,7 @@ class SSSidebarSharingButton (SSSidebarButton):
             if toolTip:
                 gridWindow.GetToolTip().Enable (False)
                 gridWindow.SetToolTip (None)
-    
+
 
 class SidebarBlock(Table):
     filterClass = schema.One(schema.Class, initialValue = MissingClass)
@@ -861,10 +859,9 @@ class SidebarBlock(Table):
     # A set of the items in the sidebar that are checked
     checkedItems = schema.Many(initialValue=set())
 
-    buttons = schema.Sequence (SSSidebarButton,
-                               inverse = "buttonOwner",
+    buttons = schema.Sequence (inverse = SSSidebarButton.buttonOwner,
                                initialValue = [])
-    
+
     # For the edit rect, a list of left offset, right offset and height.
     # Left offset is the offset in pixels of the left edge of the button
     # where positive values are from the left edge of the cell rect and
@@ -881,8 +878,8 @@ class SidebarBlock(Table):
     )
 
     def instantiateWidget (self):
-        widget = wxSidebar (self.parentBlock.widget, 
-                            Block.Block.getWidgetID(self), 
+        widget = wxSidebar (self.parentBlock.widget,
+                            Block.Block.getWidgetID(self),
                             characterStyle=getattr(self, "characterStyle", None),
                             headerCharacterStyle=getattr(self, "headerCharacterStyle", None))
         widget.RegisterDataType ("Item", SSSidebarRenderer(), SSSidebarEditor("Item"))
@@ -897,7 +894,7 @@ class SidebarBlock(Table):
             # We need to update the click state of the toolbar as well
             toolbar = Block.Block.findBlockByName("ApplicationBar")
             for button in toolbar.childrenBlocks:
-            
+
                 try:
                     buttonClass = button.event.classParameter
                 except AttributeError:
@@ -953,7 +950,7 @@ class SidebarBlock(Table):
         """
 
         viewsmain = schema.ns('osaf.views.main', self.itsView)
-        
+
         # If there are any "mine" collections selected, ask the user
         # if we should be deleting the entire collection including the
         # items, or just some things
@@ -967,13 +964,13 @@ class SidebarBlock(Table):
                 shouldClearCollection = \
                     promptYesNoCancel(_(u'Do you also want to delete the items in this collection?'),
                                       viewsmain.clearCollectionPref)
-                
+
                 if shouldClearCollection is None: # user pressed cancel
                     return
-                
+
                 break
-            
-        
+
+
         def deleteItem(collection):
 
             # clear out the collection contents, if appropriate
@@ -1013,7 +1010,7 @@ class SidebarBlock(Table):
 
     def onRemoveEventUpdateUI(self, event):
         event.arguments['Enable'] = False
-            
+
     def onDeleteEventUpdateUI(self, event):
         """
         this is enabled if any user item is selected in the sidebar
@@ -1037,13 +1034,13 @@ class SidebarBlock(Table):
         here, because we're dealing with the actual items that are in
         the collection.
         """
-        
+
         app_ns = schema.ns('osaf.app', self.itsView)
         pim_ns = schema.ns('osaf.pim', self.itsView)
         sidebarCollections = app_ns.sidebarCollection
         mine = pim_ns.mine
         trash = pim_ns.trashCollection
-        
+
         # filter out the usable collections
         def IsValidCollection(col):
             return (col is not collection and
@@ -1055,11 +1052,11 @@ class SidebarBlock(Table):
         #  if not UserCollection(col).outOfTheBoxCollection)]
         sidebarCollections = [col for col in sidebarCollections
                               if IsValidCollection(col)]
-        
+
 
         def DoDeleteAction(item):
             # useful as a separate function so we can return at any point
-        
+
             # first test: if its in any user collection, then of
             # course we just want to remove it because we don't want
             # to affect other collections
@@ -1067,7 +1064,7 @@ class SidebarBlock(Table):
                 if item in sbCollection:
                     collection.remove(item)
                     return
-                
+
             # if a not-mine item doesn't exist anywhere else, then we
             # just want to delete it. But not-mine events shouldn't
             # all end up the trash, we just want to get rid of them
@@ -1075,15 +1072,15 @@ class SidebarBlock(Table):
             if item not in mine:
                 item.delete()
                 return
-            
+
             # finally, 'mine' items that don't exist anywhere else
             # just get added to the trash
             trash.add(item)
-        
+
         # here's the meat of it
         for item in collection:
             DoDeleteAction(item)
-        
+
     def onCollectionColorEvent(self, event):
         assert (self.contents.getSelectionRanges() is not None and
                 len(self.contents.getSelectionRanges()) == 1)
@@ -1091,7 +1088,7 @@ class SidebarBlock(Table):
         selectedItem = self.contents.getFirstSelectedItem()
         if (selectedItem is not None):
             UserCollection(selectedItem).color = event.color
-        
+
     def onCollectionColorEventUpdateUI(self, event):
         # color of the selected collection
         selectedRanges = self.contents.getSelectionRanges()
@@ -1099,7 +1096,7 @@ class SidebarBlock(Table):
             event.arguments['Enable'] = False
         else:
             selectedItem = self.contents.getFirstSelectedItem()
-            
+
             color = getattr(UserCollection(selectedItem), 'color', None)
 
             # the event contains the color, so we need to look at that
@@ -1115,7 +1112,7 @@ class SidebarBlock(Table):
         if selectionRanges is not None and len(self.contents.getSelectionRanges()) == 1:
             item = self.contents.getFirstSelectedItem()
             result = UserCollection (item).renameable
-        
+
         return result
 
     def onRenameEventUpdateUI (self, event):
@@ -1142,7 +1139,7 @@ class SidebarBlock(Table):
             second = iterator.next()
         except StopIteration:
             pass
-        
+
         if selectedItem is None or second is not None:
             event.arguments['Enable'] = False
         else:
@@ -1151,7 +1148,7 @@ class SidebarBlock(Table):
             allCollection = schema.ns("osaf.pim", self).allCollection
             arguments = {'collection': collectionName,
                          'dashboard': allCollection.displayName}
-    
+
             if selectedItem is None:
                 menuTitle = _(u'Keep out of %(dashboard)s') % arguments
             elif UserCollection(selectedItem).outOfTheBoxCollection:
@@ -1164,7 +1161,7 @@ class SidebarBlock(Table):
                     menuTitle = _(u'Add "%(collection)s" to %(dashboard)s') % arguments
                 else:
                     menuTitle = _(u'Keep "%(collection)s" out of %(dashboard)s') % arguments
-    
+
             event.arguments ['Text'] = menuTitle
             event.arguments['Enable'] = enabled
 
@@ -1180,8 +1177,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
     )
 
     def _makeBranchForCacheKey(self, keyItem):
-        """ 
-        Handle a cache miss; build and return a tree-of-blocks for this keyItem. 
+        """
+        Handle a cache miss; build and return a tree-of-blocks for this keyItem.
         Defaults to using the keyItem itself, copying it if it's in the read-only
         part of the repository. (This behavior fits with the simple case where
         the items are views.)
@@ -1226,7 +1223,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             filterClass = sidebar.filterClass
             if filterClass is not MissingClass:
                 tupleList.append(filterClass)
-            
+
             tupleKey = tuple(tupleList)
 
             # Bug 5884: in order to overlay the allCollection remove
@@ -1269,7 +1266,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                     # withoutTrash gets called
                     combined = UnionCollection(itsView=self.itsView,
                                                sources=collectionList)
-                    
+
                     # unioning Smart/AppCollections makes them
                     # lose their trash (which is good) so add it
                     # back by wrapping with an AppCollection
@@ -1296,7 +1293,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                                                     sources=[key, stampCollection])
                     UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
                     displayName += u" filtered by " + filterClass.__name__
-                    
+
                     key = newKey
 
                 # Finally, create a UI wrapper collection to manage

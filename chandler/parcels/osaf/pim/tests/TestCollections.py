@@ -52,8 +52,8 @@ class SimpleItem(schema.Item):
     """
 
     label = schema.One(schema.Text)
-    collections = schema.Sequence(otherName='inclusions')
-    appearsIn = schema.Sequence(otherName='set')
+    collections = pim.ContentItem.collections
+    appearsIn = pim.ContentItem.appearsIn
 
 class ChildSimpleItem(SimpleItem):
     childData = schema.One(schema.Text)
@@ -64,8 +64,8 @@ class OtherSimpleItem(schema.Item):
     """
 
     label = schema.One(schema.Text)
-    collections = schema.Sequence(otherName='inclusions')
-    appearsIn = schema.Sequence(otherName='set')
+    collections = pim.ContentItem.collections
+    appearsIn = pim.ContentItem.appearsIn
 
 
 class CollectionTestCase(unittest.TestCase):
