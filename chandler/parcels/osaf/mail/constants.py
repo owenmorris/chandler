@@ -15,8 +15,6 @@
 
 """ Contains constants shared across the Mail Domain (SMTP, IMAP4, POP3) """
 
-#XXX: Look at moving much of the data to items
-
 #python imports
 import version
 
@@ -51,8 +49,6 @@ UPLOAD_START = _(u'Sending mail ...')
 
 
 """Translatable message strings for account testing"""
-TEST_ERROR = _(u"%(accountName)s Results\n\nPlease correct the following configuration error:\n\n%(error)s")
-TEST_SUCCESS = _(u"%(accountName)s Results\n\nTest was successful.")
 TEST_OFFLINE = _(u"Chandler is currently offline.\nTo enable account testing Chandler must be in online mode.")
 
 SHARING_HEADER  = "Sharing-URL"

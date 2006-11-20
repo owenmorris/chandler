@@ -30,6 +30,7 @@ from osaf import sharing
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from osaf.framework.blocks.Block import Block
+import AccountTestDialog
 
 """
 Notes: still more i18n work to do on this file. This is just a first pass.
@@ -1043,6 +1044,7 @@ class AccountPreferencesDialog(wx.Dialog):
         data = self.data[self.currentIndex]['values']
 
         account = schema.ns('osaf.app', self.rv).TestIMAPAccount
+        account.displayName = data['IMAP_DESCRIPTION']
         account.host = data['IMAP_SERVER']
         account.port = data['IMAP_PORT']
         account.connectionSecurity = data['IMAP_SECURE']
@@ -1050,7 +1052,7 @@ class AccountPreferencesDialog(wx.Dialog):
         account.password = data['IMAP_PASSWORD']
 
         self.rv.commit()
-        application.Globals.mailService.getIMAPInstance(account).testAccountSettings()
+        AccountTestDialog.TestAccountSettingsDialog("IMAP", account)
 
     def OnTestSMTP(self, evt):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1060,6 +1062,7 @@ class AccountPreferencesDialog(wx.Dialog):
         data = self.data[self.currentIndex]['values']
 
         account = schema.ns('osaf.app', self.rv).TestSMTPAccount
+        account.displayName = data['SMTP_DESCRIPTION']
         account.host = data['SMTP_SERVER']
         account.port = data['SMTP_PORT']
         account.connectionSecurity = data['SMTP_SECURE']
@@ -1068,7 +1071,7 @@ class AccountPreferencesDialog(wx.Dialog):
         account.password = data['SMTP_PASSWORD']
 
         self.rv.commit()
-        application.Globals.mailService.getSMTPInstance(account).testAccountSettings()
+        AccountTestDialog.TestAccountSettingsDialog("SMTP", account)
 
     def OnTestPOP(self, evt):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1077,6 +1080,7 @@ class AccountPreferencesDialog(wx.Dialog):
         data = self.data[self.currentIndex]['values']
 
         account = schema.ns('osaf.app', self.rv).TestPOPAccount
+        account.displayName = data['POP_DESCRIPTION']
         account.host = data['POP_SERVER']
         account.port = data['POP_PORT']
         account.connectionSecurity = data['POP_SECURE']
@@ -1085,8 +1089,7 @@ class AccountPreferencesDialog(wx.Dialog):
         account.password = data['POP_PASSWORD']
 
         self.rv.commit()
-        application.Globals.mailService.getPOPInstance(account).testAccountSettings()
-
+        AccountTestDialog.TestAccountSettingsDialog("POP", account)
 
     def OnTestWebDAV(self, evt):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,

@@ -42,9 +42,20 @@ import errors
 import constants
 from utils import *
 
-"""Call RepositoryView.prune(1000) after commit when the number of
-   downloaded messages exceeds PRUNE_MIN"""
+#Call RepositoryView.prune(1000) after commit when the number of
+# downloaded messages exceeds PRUNE_MIN
 PRUNE_MIN = 25
+
+
+"""
+ISSUES:
+1. If an account is testing while a background sync of that account is happening then
+   this will be an issue. Especially on a cancel. Need to think about this during
+   folder refactoring for preview. Solutions are don't persist testing values or
+   don't cache mail clients or always create a new mail client per testing try this
+   avoids affecting the cached client used for download.
+"""
+
 
 
 class AbstractDownloadClientFactory(protocol.ClientFactory):
@@ -52,8 +63,8 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         Encapsulates boiler plate logic for working with Twisted Client Factory
         disconnects and Twisted protocol creation"""
 
-    """Base exception that will be raised on error.
-       can be overiden for use by subclasses"""
+    # Base exception that will be raised on error.
+    # can be overiden for use by subclasses.
     exception = errors.MailException
 
     def __init__(self, delegate):
@@ -90,13 +101,13 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         """
         p = protocol.ClientFactory.buildProtocol(self, addr)
 
-        """Set up a reference so delegate can call the proto and proto
-          can call the delegate.
-        """
+        #Set up a reference so delegate can call the proto and proto
+        #can call the delegate.
+
         p.delegate = self.delegate
         self.delegate.proto = p
 
-        """Set the protocol timeout value to that specified in the account"""
+        #Set the protocol timeout value to that specified in the account
         p.timeout = self.timeout
         p.factory  = self
 
@@ -128,7 +139,10 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
     def _processConnectionError(self, connector, err):
         self.connectionLost = True
 
-        if self.retries < self.sendFinished <= 0:
+        if self.delegate.complete:
+            self.delegate._resetClient()
+
+        elif self.retries < self.sendFinished <= 0:
             trace("**Connection Lost** Retrying server. Retry: %s" % -self.retries)
 
             connector.connect()
@@ -149,7 +163,7 @@ class AbstractDownloadClient(object):
         and Chandler protocol clients"""
 
 
-    """Subclasses overide these constants"""
+    #Subclasses overide these constants
     accountType = Mail.AccountBase
     clientType  = "AbstractDownloadClient"
     factoryType = AbstractDownloadClientFactory
@@ -168,14 +182,16 @@ class AbstractDownloadClient(object):
 
         self.view = view
 
-        """These values exist for life of client"""
+        #These values exist for life of client
         self.accountUUID = account.itsUUID
         self.account = None
         self.currentlyDownloading = False
         self.testing = False
+        self.callback = None
+        self.cancel = False
         self.shuttingDown = False
 
-        """These values are reassigned per request"""
+        #These values are reassigned per request
         self.factory = None
         self.proto = None
         self.lastUID = 0
@@ -183,8 +199,9 @@ class AbstractDownloadClient(object):
         self.pruneCounter = 0
         self.pending = []
         self.downloadMax = 0
+        self.complete = False
 
-        """These values are reassigned per fetch"""
+        #These values are reassigned per fetch
         self.numDownloaded = 0
         self.numToDownload = 0
 
@@ -195,18 +212,17 @@ class AbstractDownloadClient(object):
 
         if Globals.options.offline:
             msg = constants.DOWNLOAD_OFFLINE
-            reactor.callFromThread(NotifyUIAsync, msg, cl="setStatusMessage")
+            reactor.callFromThread(setStatusMessage, msg)
             return
 
-
-        """Move code execution path from current thread
-           to Reactor Asynch thread"""
+        # Move code execution path from current thread
+        # to Reactor Asynch thread
         msg = constants.DOWNLOAD_START
-        reactor.callFromThread(NotifyUIAsync, msg, cl="setStatusMessage")
+        reactor.callFromThread(setStatusMessage, msg)
         reactor.callFromThread(self._getMail)
 
 
-    def testAccountSettings(self):
+    def testAccountSettings(self, callback):
         """Tests the account settings for a download protocol (POP, IMAP).
            Raises an error if unable to establish or communicate properly
            with the a server.
@@ -214,10 +230,13 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("testAccountSettings")
 
+
         if Globals.options.offline:
             reactor.callFromThread(alert, constants.TEST_OFFLINE)
             return
 
+        assert(callback is not None)
+        self.callback = callback
         self.testing = True
 
         reactor.callFromThread(self._getMail)
@@ -225,6 +244,9 @@ class AbstractDownloadClient(object):
     def _getMail(self):
         if __debug__:
             trace("_getMail")
+
+        if self.cancel:
+            return self._resetClient()
 
         if self.currentlyDownloading:
             if self.testing:
@@ -248,17 +270,17 @@ class AbstractDownloadClient(object):
             log.exception("Repository raised a RepositoryError")
             return self.catchErrors(e1)
 
-        """Overidden method"""
+        #Overidden method
         self._getAccount()
 
         self.factory = self.factoryType(self)
 
-        """Cache the maximum number of messages to download before forcing a commit"""
+        #Cache the maximum number of messages to download before forcing a commit
         self.downloadMax = self.account.downloadMax
 
         if self.testing:
-            """If in testing mode then do not want to retry connection or
-               wait a long period for a timeout"""
+            # If in testing mode then do not want to retry connection or
+            # wait a long period for a timeout
             self.factory.retries = 0
             self.factory.timeout = constants.TESTING_TIMEOUT
 
@@ -286,14 +308,26 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("catchErrors")
 
+        self.complete = True
+
         try:
             #On error cancel any changes done in the view
             self.view.cancel()
         except:
             pass
 
-        if self.factory is None or self.shuttingDown or Globals.options.offline:
+        # In this case don't try to clean up the transport connection
+        # but do reset the client variables
+        if self.shuttingDown or Globals.options.offline or \
+           self.factory is None:
+            self._resetClient()
             return
+
+        # If we cancelled the request then gracefully disconnect from
+        # the server and reset the client variables but do not display
+        # the error.
+        if self.cancel:
+            return self._actionCompleted()
 
         if isinstance(err, failure.Failure):
             if err.check(error.ConnectionDone):
@@ -324,7 +358,7 @@ class AbstractDownloadClient(object):
             #Clear the previous message in the status bar.
             #But only if we are not in testing mode since it
             #does not leverage the status bar.
-            NotifyUIAsync(u"")
+            setStatusMessage(u"")
 
         if isinstance(err, Utility.CertificateVerificationError):
             assert err.args[1] == 'certificate verify failed'
@@ -367,8 +401,7 @@ class AbstractDownloadClient(object):
             errorText = u""
 
         if self.testing:
-            alert(constants.TEST_ERROR, {'accountName': self.account.displayName, \
-                  'error': errorText})
+            callMethodInUIThread(self.callback, (0, errorText))
         else:
             alertMailError(constants.DOWNLOAD_ERROR, self.account, \
                           {'error': errorText})
@@ -384,7 +417,18 @@ class AbstractDownloadClient(object):
 
         @return: C{None}
         """
+
+        if self.cancel:
+            return self._actionCompleted()
+
         return self._loginClient()
+
+    def cancelLastRequest(self):
+        if __debug__:
+            trace("cancelLastRequest")
+
+        if self.currentlyDownloading or self.testing:
+            self.cancel = True
 
     def shutdown(self):
         if __debug__:
@@ -419,9 +463,12 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("_disconnect")
 
+        if not self.factory:
+            return
+
         self.factory.sendFinished = 1
 
-        if not self.factory.connectionLost and self.proto is not None:
+        if not self.factory.connectionLost and self.proto:
             self.proto.transport.loseConnection()
 
     def _commitDownloadedMail(self, callback=None):
@@ -438,11 +485,11 @@ class AbstractDownloadClient(object):
             try:
                 self.view.commit()
 
-                """Prune the view to free up memory if the number downloaded is equal
-                   to or exceeds the PRUNE_MIN. If the numDownloaded is less than the
-                   download maximum before a commit it means that all messages have been downloaded
-                   from the server in which case we prune to free every ounce of memory we can
-                   get :)"""
+                # Prune the view to free up memory if the number downloaded is equal
+                # to or exceeds the PRUNE_MIN. If the numDownloaded is less than the
+                # download maximum before a commit it means that all messages have been downloaded
+                # from the server in which case we prune to free every ounce of memory we can
+                # get :)
 
                 if self.pruneCounter >= PRUNE_MIN or \
                    self.numDownloaded < self.downloadMax:
@@ -451,7 +498,7 @@ class AbstractDownloadClient(object):
                     if __debug__:
                         trace("Prunning %s messages" % self.pruneCounter)
 
-                    """reset the counter"""
+                    #reset the counter
                     self.pruneCounter = 0
             except RepositoryError, e:
                 raise
@@ -479,14 +526,13 @@ class AbstractDownloadClient(object):
 
         msg = constants.DOWNLOAD_MESSAGES % {'numberOfMessages': self.totalDownloaded}
 
-        NotifyUIAsync(msg)
+        setStatusMessage(msg)
 
-        """We have downloaded the last batch of messages if the
-           number downloaded is less than the max.
+        # We have downloaded the last batch of messages if the
+        # number downloaded is less than the max.
+        # Add a check to make sure the account was not
+        # deactivated during the last fetch.
 
-           Add a check to make sure the account was not
-           deactivated during the last fetch sequesnce.
-        """
         if self.numDownloaded < self.downloadMax or not self.account.isActive:
             self._actionCompleted()
 
@@ -515,24 +561,29 @@ class AbstractDownloadClient(object):
 
         d = self._beforeDisconnect()
         d.addBoth(self._disconnect)
-        d.addCallback(lambda _: self._resetClient())
+        d.addBoth(lambda _: self._resetClient())
         return d
 
     def _resetClient(self):
         """Resets Client object state variables to
            default state.
         """
-
         if __debug__:
             trace("_resetClient")
 
-        """Release the currentlyDownloading lock"""
+        #Release the currentlyDownloading lock
         self.currentlyDownloading = False
 
-        """Reset testing to False"""
+        #Reset testing to False
         self.testing = False
 
-        """Clear out per request values"""
+        #Reset callback to None
+        self.callback = None
+
+        #reset the cancel flag
+        self.cancel = False
+
+        #Clear out per request values
         self.factory         = None
         self.proto           = None
         self.lastUID         = 0
@@ -540,6 +591,7 @@ class AbstractDownloadClient(object):
         self.pruneCounter    = 0
         self.pending         = []
         self.downloadMax     = 0
+        self.complete        = False
 
         self.numToDownload  = 0
         self.numDownloaded  = 0

@@ -39,7 +39,8 @@ from i18n import ChandlerMessageFactory as _
 __all__ = ['log', 'trace', 'disableTwistedTLS', 'loadMailTests', 'getEmptyDate',
            'dateIsEmpty', 'alert', 'alertMailError', 'NotifyUIAsync', 'displaySSLCertDialog',
            'displayIgnoreSSLErrorDialog', 'dateTimeToRFC2822Date', 'createMessageID',
-           'hasValue', 'isString', 'dataToBinary', 'binaryToData', 'stripHTML']
+           'hasValue', 'isString', 'dataToBinary', 'binaryToData', 'stripHTML',
+           'setStatusMessage', 'callMethodInUIThread']
 
 
 log = logging.getLogger("MailService")
@@ -202,11 +203,6 @@ def displayIgnoreSSLErrorDialog(cert, err, reconnectMethod):
                                           err, reconnectMethod)
 
 def NotifyUIAsync(message, logger=None, cl='setStatusMessage', *args, **keys):
-    """
-    Temp method for posting a event to the CPIA layer.
-    This method will be refactored when notifcations come in to play.
-    """
-
     if logger is not None:
         logger(message)
 
@@ -214,6 +210,18 @@ def NotifyUIAsync(message, logger=None, cl='setStatusMessage', *args, **keys):
 
     if wxApplication is not None: # test framework has no wxApplication
         wxApplication.CallItemMethodAsync("MainView", cl, message, *args, **keys)
+
+def setStatusMessage(message, progressPercentage=-1):
+    wxApplication = Globals.wxApplication
+
+    if wxApplication is not None: # test framework has no wxApplication
+        wxApplication.CallItemMethodAsync("MainView", "setStatusMessage", message, progressPercentage)
+
+def callMethodInUIThread(method, *args):
+    wxApplication = Globals.wxApplication
+
+    if wxApplication is not None: # test framework has no wxApplication
+        wxApplication.PostAsyncEvent(method, *args)
 
 
 def dateTimeToRFC2822Date(dt):

@@ -48,7 +48,7 @@ __all__ = ['SMTPClient']
 
 class _TwistedESMTPSender(smtp.ESMTPSender):
 
-    """Turn off Twisted SMTPClient logging """
+    # Turn off Twisted SMTPClient logging
     debug = False
 
     def tryTLS(self, code, resp, items):
@@ -65,7 +65,7 @@ class _TwistedESMTPSender(smtp.ESMTPSender):
         if not self.requireTransportSecurity:
             items = disableTwistedTLS(items)
         else:
-            """We want to use the M2Crypto SSL context so assign it here"""
+            # We want to use the M2Crypto SSL context so assign it here
             self.context = self.transport.contextFactory.getContext()
 
         return smtp.ESMTPSender.tryTLS(self, code, resp, items)
@@ -77,14 +77,12 @@ class _TwistedESMTPSender(smtp.ESMTPSender):
         """
 
         if self.factory.testing:
-            """
-               If in testing mode, Overload the Twisted SMTPClient
-               to instead of sending an 'MAIL FROM:' request,
-               send a 'QUIT' request and disconnect from the Server.
-               This is followed by a call to sentMail which is a Twisted
-               method indicating the mail was sent successfully
-               method
-            """
+            # If in testing mode, Overload the Twisted SMTPClient
+            #   to instead of sending an 'MAIL FROM:' request,
+            #   send a 'QUIT' request and disconnect from the Server.
+            #   This is followed by a call to sentMail which is a Twisted
+            #   method indicating the mail was sent successfully
+            #   method
 
             self._disconnectFromServer()
             return self.sentMail(200, None, None, None, None)
@@ -109,8 +107,13 @@ class SMTPClient(object):
 
         self.accountUUID = account.itsUUID
         self.account = None
+
+        #These values are reset per request
         self.testing = False
+        self.callback = None
+        self.cancel = False
         self.displayed = False
+
         self.mailMessage = None
         self.shuttingDown = False
 
@@ -131,11 +134,14 @@ class SMTPClient(object):
 
         reactor.callFromThread(self._prepareForSend, mailMessage.itsItem.itsUUID)
 
-    def testAccountSettings(self):
+    def testAccountSettings(self, callback):
         """Tests the user entered settings for C{SMTPAccount}"""
 
         if __debug__:
             trace("testAccountSettings")
+
+        assert(callback is not None)
+        self.callback = callback
 
         reactor.callFromThread(self._testAccountSettings)
 
@@ -163,8 +169,8 @@ class SMTPClient(object):
         if __debug__:
             trace("_actionCompleted")
 
-
-        if not self.displayed and not self.shuttingDown and not Globals.options.offline:
+        if not self.displayed and not self.shuttingDown and \
+           not Globals.options.offline and not self.cancel:
             if self.mailMessage.deliveryExtension.state == "FAILED":
                  key = "displaySMTPSendError"
             else:
@@ -175,8 +181,15 @@ class SMTPClient(object):
             #see if there are any messages in the queue to send
             self._processQueue()
 
+        self._resetClient()
+
+
+    def _resetClient(self):
         self.mailMessage = None
         self.displayed  = False
+        self.cancel = False
+        self.callback = None
+        self.testing = False
 
     def _prepareForSend(self, mailMessageUUID):
         """Sends a mail message via SMTP using the account and mailMessage
@@ -185,13 +198,21 @@ class SMTPClient(object):
         if __debug__:
             trace("_prepareForSend")
 
-        """ Refresh our view before retrieving Account info"""
+        if self.cancel:
+            return self._resetClient()
+
+        # Refresh our view before retrieving Account info
         self.view.refresh()
 
         self._getAccount()
 
-        """If currently sending a message put the next request in the Queue."""
+        # If currently sending a message put the next request in the Queue.
         try:
+            # Just in case a cancel was requested after the above cancel check
+            # return here instead of seeing if the message should go in the queue
+            if self.cancel:
+                return self._resetClient()
+
             if self.mailMessage is not None or Globals.options.offline:
                 newMessage = self._getMailMessage(mailMessageUUID)
 
@@ -200,14 +221,14 @@ class SMTPClient(object):
                 except:
                     sending = False
 
-                """Check that the mailMessage in not already Queued"""
+                # Check that the mailMessage in not already Queued
                 if newMessage.itsItem in self.account.messageQueue:
                     if __debug__:
                         trace("SMTPClient Queue already contains message: %s" % mailMessageUUID)
 
                 #Sending should always be False in offline mode
                 elif sending:
-                    """Check that the mailMessage in not currently being sent"""
+                    # Check that the mailMessage in not currently being sent
                     if __debug__:
                         trace("SMTPClient currently sending message: %s" % mailMessageUUID)
                 else:
@@ -221,16 +242,15 @@ class SMTPClient(object):
                         trace("SMTPClient adding to the Queue message: %s" % mailMessageUUID)
 
                 if Globals.options.offline:
-                    NotifyUIAsync(constants.UPLOAD_OFFLINE % \
-                                  {'subject': newMessage.subject}, cl='setStatusMessage')
+                    setStatusMessage(constants.UPLOAD_OFFLINE % {'subject': newMessage.subject})
 
                 return
 
-            NotifyUIAsync(constants.UPLOAD_START, cl='setStatusMessage')
+            setStatusMessage(constants.UPLOAD_START)
 
 
-            """Get the account, get the mail message and hand off to an instance to send
-               if someone already sending them put in a queue"""
+            # Get the account, get the mail message and hand off to an instance to send
+            # if someone already sending them put in a queue
 
             self.mailMessage = self._getMailMessage(mailMessageUUID)
 
@@ -239,11 +259,11 @@ class SMTPClient(object):
             self.mailMessage.dateSent = now
             self.mailMessage.dateSentString = dateTimeToRFC2822Date(now)
 
-            """Clear out any previous DeliveryErrors from a previous attempt"""
+            # Clear out any previous DeliveryErrors from a previous attempt
             for item in self.mailMessage.deliveryExtension.deliveryErrors:
                 item.delete()
 
-            """Get the sender's Email Address will either be the Reply-To or From field"""
+            # Get the sender's Email Address will either be the Reply-To or From field
             sender = self._getSender()
 
             if self._mailMessageHasErrors(sender):
@@ -267,13 +287,16 @@ class SMTPClient(object):
 
         if Globals.options.offline:
             alert(constants.TEST_OFFLINE)
-            return
+            return self._resetClient()
 
-        """ Refresh our view before retrieving Account info"""
+        if self.cancel or self.shuttingDown:
+            return self._resetClient()
+
+        # Refresh our view before retrieving Account info
         self.view.refresh()
 
-        """Get the account, get the mail message and hand off to an instance to send
-           if someone already sending them put in a queue"""
+        # Get the account, get the mail message and hand off to an instance to send
+        # if someone already sending them put in a queue
         self._getAccount()
 
         self.testing = True
@@ -288,6 +311,10 @@ class SMTPClient(object):
     def _sendingMail(self, from_addr, to_addrs, messageText, deferred, testing=False):
         if __debug__:
             trace("_sendingMail")
+
+        if self.shuttingDown or Globals.options.offline or \
+           self.cancel:
+            return self._resetClient()
 
         username         = None
         password         = None
@@ -337,28 +364,30 @@ class SMTPClient(object):
         if __debug__:
             trace("_testSuccess")
 
-        if self.shuttingDown or Globals.options.offline:
-            return
+        if self.shuttingDown or Globals.options.offline or \
+           self.cancel:
+            return self._resetClient()
 
-        alert(constants.TEST_SUCCESS, {'accountName': self.account.displayName})
-        self.testing = False
+        callMethodInUIThread(self.callback, (1, None))
+        self._resetClient()
 
 
     def _testFailure(self, exc):
         if __debug__:
             trace("_testFailure")
 
-        if self.shuttingDown or Globals.options.offline:
-            return
+        if self.shuttingDown or Globals.options.offline or \
+           self.cancel:
+            return self._resetClient()
 
         exc = exc.value
 
         if not self.displayedRecoverableSSLErrorDialog(exc):
-            """Just get the error string do not need the error code"""
+            # Just get the error string do not need the error code
             err = self._getError(exc)[1]
-            alert(constants.TEST_ERROR, {'accountName': self.account.displayName, 'error': err})
+            callMethodInUIThread(self.callback, (0, err))
 
-        self.testing = False
+        self._resetClient()
 
     def _mailSuccessCheck(self, result):
         """Twisted smtp.py will call the deferred callback (this method) if
@@ -369,9 +398,13 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailSuccessCheck")
 
-        """ Refresh our view before adding items to our mail Message
-            and commiting. Will not cause merge conflicts since
-            no data changed in view in yet """
+        # Refresh our view before adding items to our mail Message
+        # and commiting. Will not cause merge conflicts since
+        # no data changed in view in yet
+
+        if self.shuttingDown or Globals.options.offline or \
+           self.cancel:
+            return self._resetClient()
 
         self.view.refresh()
 
@@ -404,8 +437,9 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailSomeFailed")
 
-        if self.shuttingDown or Globals.options.offline:
-            return
+        if self.shuttingDown or Globals.options.offline or \
+           self.cancel:
+            return self._resetClient()
 
         errorDate = datetime.now()
 
@@ -439,12 +473,13 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailFailure")
 
-        if self.shuttingDown or Globals.options.offline:
-            return
+        if self.shuttingDown or Globals.options.offline or \
+           self.cancel:
+            return self._resetClient()
 
-        """ Refresh our view before adding items to our mail Message
-            and commiting. Will not cause merge conflicts since
-            no data changed in view in yet """
+        # Refresh our view before adding items to our mail Message
+        # and commiting. Will not cause merge conflicts since
+        # no data changed in view in yet
         self.view.refresh()
 
         # Unset the date-sent info in the message
@@ -456,25 +491,25 @@ class SMTPClient(object):
         displayed = self.displayedRecoverableSSLErrorDialog(exc, self.mailMessage)
 
         if not displayed:
-            """Only record errors if the add cert is not displayed.
-               The state of a add cert will remain draft until a
-               user actually adds a cert at which point the mail code
-               will be called again and the state will be updated"""
+            # Only record errors if the add cert is not displayed.
+            # The state of a add cert will remain draft until a
+            # user actually adds a cert at which point the mail code
+            # will be called again and the state will be updated
 
             self._recordError(exc)
 
             if __debug__:
                 for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
-                    trace("Unable to send %s" % deliveryError)
+                    trace("Unable to send %s" % deliveryError.errorString)
 
             return self._commit()
 
         else:
-            """Clear the status bar message"""
+            # Clear the status bar message
             self.displayed = True
-            NotifyUIAsync("", cl='setStatusMessage')
+            setStatusMessage(u"")
 
-            """Reset the SMTPClient"""
+            # Reset the SMTPClient
             self._actionCompleted()
 
     def _recordError(self, err):
@@ -495,8 +530,9 @@ class SMTPClient(object):
         if __debug__:
             trace("displayedRecoverableSSLErrorDialog")
 
-        if self.shuttingDown or Globals.options.offline:
-            return
+        if self.shuttingDown or Globals.options.offline or \
+           self.cancel:
+            return self._resetClient()
 
         if self.testing:
             reconnect = self.testAccountSettings
@@ -529,6 +565,13 @@ class SMTPClient(object):
             return True
         return False
 
+    def cancelLastRequest(self):
+        if __debug__:
+            trace("cancelLastRequest")
+
+        if self.mailMessage or self.testing:
+            self.cancel = True
+
     def shutdown(self):
         if __debug__:
             trace("shutdown")
@@ -544,16 +587,12 @@ class SMTPClient(object):
             #which contains translated unicode error messages
             errorString = err.__unicode__()
             errorCode = errors.SMTP_EXCEPTION_CODE
-        else:
-            errorString = unicode(err.__str__())
 
-        if isinstance(err, smtp.SMTPClientError):
-            """Base type for all SMTP Related Errors.
-               Capture all the errors that may return -1 as the
-               error code and record the actual error code. Those
-               SMTPClientError's that slip through will have the
-               correct error code from the smtp server.
-            """
+        elif isinstance(err, smtp.SMTPClientError):
+            # Base type for all SMTP Related Errors.
+            # Capture all the errors that may return -1 as the
+            # error code and record the actual error code. Those
+            # SMTPClientError's that slip through will have the
 
             errorCode = err.code
             errorString = err.resp
@@ -571,15 +610,16 @@ class SMTPClient(object):
                 elif errorType == errors.SMTP_PROTOCOL_ERROR:
                     errorCode = errors.PROTOCOL_CODE
 
-        elif errorType == errors.SMTP_EXCEPTION:
+        else:
+            errorString = unicode(err.__str__())
             errorCode = errors.MISSING_VALUE_CODE
 
-        elif isinstance(err, error.ConnectError):
-            """ Record the error code of a ConnectionError.
-                If a ConnectionError occurs then there was
-                a problem communicating with an SMTP server
-                and no error code will be returned by the
-                server."""
+        if isinstance(err, error.ConnectError):
+            # Record the error code of a ConnectionError.
+            # If a ConnectionError occurs then there was
+            # a problem communicating with an SMTP server
+            # and no error code will be returned by the
+            # server.
 
             if errorType == errors.CONNECT_BIND_ERROR:
                 errorCode = errors.BIND_CODE
@@ -607,7 +647,7 @@ class SMTPClient(object):
                 pass
 
             if errorType == errors.M2CRYPTO_CHECKER_ERROR:
-                """Host does not match cert"""
+                # Host does not match cert
                 #XXX: pleace holder for future code enhancement
                 pass
 
@@ -627,7 +667,7 @@ class SMTPClient(object):
 
         if __debug__:
             for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
-                trace("Unable to send: %s" % deliveryError)
+                trace("Unable to send: %s" % deliveryError.errorString)
 
         return self._commit()
 
@@ -649,7 +689,7 @@ class SMTPClient(object):
             if __debug__:
                 trace("SMTPClient sending next message in Queue %s" % mUUID)
 
-            """Yield to Twisted Event Loop"""
+            # Yield to Twisted Event Loop
             reactor.callLater(0, self._prepareForSend, mUUID)
 
     def _getSender(self):
@@ -683,13 +723,13 @@ class SMTPClient(object):
             self._fatalError(constants.UPLOAD_FROM_REQUIRED)
             return True
 
-        """Make sure the sender's Email Address is valid"""
+        # Make sure the sender's Email Address is valid
         if not Mail.EmailAddress.isValidEmailAddress(sender.emailAddress):
             self._fatalError(constants.INVALID_EMAIL_ADDRESS % \
                               {'emailAddress': Mail.EmailAddress.format(sender)})
             return True
 
-        """Make sure there is at least one Email Address to send the message to"""
+        # Make sure there is at least one Email Address to send the message to
         if len(self.mailMessage.toAddress) == 0:
             self._fatalError(constants.UPLOAD_TO_REQUIRED)
             return True
@@ -697,7 +737,7 @@ class SMTPClient(object):
         errs = []
         errStr = constants.INVALID_EMAIL_ADDRESS
 
-        """Make sure that each Recipients Email Address is valid"""
+        # Make sure that each Recipients Email Address is valid
         for toAddress in self.mailMessage.toAddress:
             if not Mail.EmailAddress.isValidEmailAddress(toAddress.emailAddress):
                 errs.append(errStr % {'emailAddress': Mail.EmailAddress.format(toAddress)})

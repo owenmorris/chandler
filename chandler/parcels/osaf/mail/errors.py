@@ -22,7 +22,6 @@ STR_CONNECTION_ERROR = _(u"Unable to connect to server please try again later")
 STR_TIMEOUT_ERROR = _(u"Communication with the Server timed out. Please try again later.")
 
 
-
 class MailException(ChandlerException):
     """Base class for all Chandler mail related exceptions"""
 

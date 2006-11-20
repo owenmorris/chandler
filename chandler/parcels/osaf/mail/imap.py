@@ -72,10 +72,8 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
             trace("serverGreeting")
 
         if caps is None:
-            """
-            If no capabilities returned in server greeting then get
-            the server capabilities
-            """
+            # If no capabilities returned in server greeting then get
+            # the server capabilities
             d = self.getCapabilities()
 
             return d.addCallback(self._getCapabilities
@@ -88,10 +86,8 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
             trace("_getCapabilities")
 
         if self.factory.useTLS:
-            """
-            The Twisted IMAP4Client will check to make sure the server can STARTTLS
-            and raise an error if it can not
-            """
+            # The Twisted IMAP4Client will check to make sure the server can STARTTLS
+            # and raise an error if it can not
             d = self.startTLS(self.transport.contextFactory.getContext())
 
             return d.addCallback(lambda _: self.delegate.loginClient()
@@ -101,9 +97,7 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
             self._raiseException(errors.IMAPException(constants.DOWNLOAD_REQUIRES_TLS))
 
         else:
-            """
-            Remove the STARTTLS from capabilities
-            """
+            # Remove the STARTTLS from capabilities
             self._capCache = disableTwistedTLS(caps)
             self.delegate.loginClient()
 
@@ -116,8 +110,8 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
         if __debug__:
             trace("timeoutConnection")
 
-        #"""We have timed out so do not send any more commands to
-        #   the server just disconnect """
+        # We have timed out so do not send any more commands to
+        # the server just disconnect
         exc = errors.IMAPException(errors.STR_TIMEOUT_ERROR)
         self.factory.timedOut = True
         self._raiseException(exc)
@@ -152,9 +146,8 @@ class IMAPClientFactory(base.AbstractDownloadClientFactory):
     """
 
     protocol  = _TwistedIMAP4Client
-    """
-    The exception to raise when an error occurs
-    """
+
+    # The exception to raise when an error occurs
     exception = errors.IMAPException
 
 
@@ -167,10 +160,8 @@ class IMAPClient(base.AbstractDownloadClient):
     robust IMAP client in the near future
     """
 
-    """
-    Overides default values in base class to provide
-    IMAP specific functionality
-    """
+    # Overides default values in base class to provide
+    # IMAP specific functionality
     accounType  = Mail.IMAPAccount
     clientType  = "IMAPClient"
     factoryType = IMAPClientFactory
@@ -185,11 +176,12 @@ class IMAPClient(base.AbstractDownloadClient):
         if __debug__:
             trace("_loginClient")
 
+        if self.cancel:
+            return self._actionCompleted()
+
         assert self.account is not None
 
-        """
-        Twisted expects ascii values so encode the utf-8 username and password
-        """
+        #Twisted expects ascii values so encode the utf-8 username and password
         username = self.account.username.encode(constants.DEFAULT_CHARSET)
         password = self.account.password.encode(constants.DEFAULT_CHARSET)
 
@@ -227,6 +219,9 @@ class IMAPClient(base.AbstractDownloadClient):
         if __debug__:
             trace("loginClientInsecure")
 
+        if self.cancel:
+            return self._actionCompleted()
+
         error.trap(imap4.NoSupportedAuthentication)
 
         return self.proto.login(username, password
@@ -238,12 +233,14 @@ class IMAPClient(base.AbstractDownloadClient):
         if __debug__:
             trace("_selectInbox")
 
-        if self.testing:
-            alert(constants.TEST_SUCCESS, {u'accountName': self.account.displayName})
-            self._actionCompleted()
-            return
+        if self.cancel:
+            return self._actionCompleted()
 
-        NotifyUIAsync(constants.DOWNLOAD_CHECK_MESSAGES)
+        if self.testing:
+            callMethodInUIThread(self.callback, (1, None))
+            return self._actionCompleted()
+
+        setStatusMessage(constants.DOWNLOAD_CHECK_MESSAGES)
 
         d = self.proto.select("INBOX"
                    ).addCallback(self._checkForNewMessages
@@ -260,8 +257,11 @@ class IMAPClient(base.AbstractDownloadClient):
         #if not msgs['UIDVALIDITY']:
         #    print "server: %s has no UUID Validity:\n%s" % (self.account.host, msgs)
 
+        if self.cancel:
+            return self._actionCompleted()
+
         if msgs['EXISTS'] == 0:
-            NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
+            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES)
             return self._actionCompleted()
 
         if self._getNextUID() == 0:
@@ -277,6 +277,9 @@ class IMAPClient(base.AbstractDownloadClient):
         if __debug__:
             trace("_getMessagesFlagsUIDS")
 
+        if self.cancel:
+            return self._actionCompleted()
+
         nextUID = self._getNextUID()
 
         for message in msgs.itervalues():
@@ -289,7 +292,7 @@ class IMAPClient(base.AbstractDownloadClient):
                 self.pending.append([luid, message['FLAGS']])
 
         if len(self.pending) == 0:
-            NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
+            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES)
             return self._actionCompleted()
 
         self._getNextMessageSet()
@@ -305,6 +308,9 @@ class IMAPClient(base.AbstractDownloadClient):
         """
         if __debug__:
             trace("_getNextMessageSet")
+
+        if self.cancel:
+            return self._actionCompleted()
 
         self.numToDownload = len(self.pending)
 
@@ -325,6 +331,17 @@ class IMAPClient(base.AbstractDownloadClient):
         if __debug__:
             trace("_fetchMessage")
 
+        if self.cancel:
+            try:
+                #We call cancel() here since there may be
+                #in memory mail message items which we want to
+                #deallocate from the current view.
+                self.view.cancel()
+            except:
+                pass
+
+            return self._actionCompleted()
+
         msg = msgs.keys()[0]
 
         #Check if the uid of the message is greater than
@@ -339,19 +356,15 @@ class IMAPClient(base.AbstractDownloadClient):
 
         messageText = msgs[msg]['RFC822']
 
-        #XXX: Need a more perforrmant way to do this
+        #XXX: Need a more performant way to do this
         messageObject = email.message_from_string(messageText)
 
         repMessage = messageObjectToKind(self.view, messageObject, messageText)
 
-        """
-        Set the message as incoming
-        """
+        # Set the message as incoming
         repMessage.incomingMessage(self.account)
 
-        """
-        Save IMAP Delivery info in Repository
-        """
+        # Save IMAP Delivery info in Repository
         repMessage.deliveryExtension.folder = u"INBOX"
         repMessage.deliveryExtension.uid = curMessage[0]
         #Commented out for Preview
