@@ -20,13 +20,9 @@ __parcel__ = "osaf.framework.attributeEditors"
 
 import os, cStringIO, re
 import wx
-from wx.lib.scrolledpanel import ScrolledPanel
-from osaf.pim.tasks import TaskStamp
 import osaf.pim as pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
-from osaf.pim.calendar import TimeZoneInfo
-
 import repository.item.ItemHandler as ItemHandler
 from repository.util.Lob import Lob
 from chandlerdb.util.c import Nil
@@ -137,7 +133,6 @@ def installParcel(parcel, oldVersion=None):
     aeDict = {
         '_default': 'RepositoryAttributeEditor',
         'Boolean': 'CheckboxAttributeEditor',
-        'EventStamp': 'EventStampAttributeEditor',
         'Contact': 'ContactAttributeEditor',
         'ContactName': 'ContactNameAttributeEditor', 
         'ContentItem': 'StringAttributeEditor', 
@@ -154,13 +149,10 @@ def installParcel(parcel, oldVersion=None):
         'Item': 'ItemNameAttributeEditor',
         'image/jpeg': 'LobImageAttributeEditor',
         'Location': 'LocationAttributeEditor',
-        'MailStamp': 'MailStampAttributeEditor',
-        'TaskStamp': 'TaskStampAttributeEditor',
         'Text': 'StringAttributeEditor',
         'Text+static': 'StaticStringAttributeEditor',
         'Timedelta': 'TimeDeltaAttributeEditor',
         'TimeTransparencyEnum': 'ChoiceAttributeEditor',
-        'TriageEnum': 'TriageAttributeEditor',
         'URL': 'StaticStringAttributeEditor',
     }
     AttributeEditorMapping.register(parcel, aeDict, __name__)
@@ -2406,63 +2398,13 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             # logger.debug("Rebuilding DV timezone popup again") # see how often this happens.
             TimeZoneList.buildTZChoiceList(self.item.itsView, control, value)
 
-class TriageAttributeEditor(BaseAttributeEditor):
-    # Set this to '' to show/edit the "real" triageStatus everywhere.
-    editingAttribute = 'unpurgedTriageStatus'
-
-    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
-        # Get the value we'll draw, and its label
-        item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
-        value = getattr(item, self.editingAttribute or attributeName, '')
-        label = value and pim.getTriageStatusName(value) or u''
-
-        # Paint our box in the right color
-        backgroundColor = styles.cfg.get('summary', 'SectionSample_%s_%s'
-                                         % (attributeName, value)) or '#000000'
-        dc.SetPen(wx.WHITE_PEN)
-        brush = wx.Brush(backgroundColor, wx.SOLID)
-        dc.SetBrush(brush)
-        dc.DrawRectangleRect(rect)
-
-        # Draw the text
-        dc.SetBackgroundMode (wx.TRANSPARENT)
-        dc.SetTextForeground(wx.WHITE)
-        (labelWidth, labelHeight, labelDescent, ignored) = dc.GetFullTextExtent(label)
-        labelTop = rect.y + ((rect.height - labelHeight) / 2)
-        labelLeft = rect.x + ((rect.width - labelWidth) / 2)
-        dc.DrawText(label, labelLeft, labelTop)
-
-    def OnMouseChange(self, event, cell, isIn, isDown, (item, attributeName)):
-        """
-        Handle live changes of mouse state related to our cell.
-        """
-        attributeName = self.editingAttribute or attributeName
-        # Note down-ness changes; eat the event if the downness changed, and
-        # trigger an advance if appropriate.
-        if isDown != getattr(self, 'wasDown', False):
-            if isIn and not isDown:
-                oldValue = self.GetAttributeValue(item, attributeName)
-                newValue = pim.getNextTriageStatus(oldValue)
-                self.SetAttributeValue(item, attributeName, newValue)                
-            if isDown:
-                self.wasDown = True
-            else:
-                del self.wasDown
-        else:
-            event.Skip()
-
-    def ReadOnly (self, (item, attribute)):
-        # @@@ For now, treat recurring events as readOnly.
-        return super(TriageAttributeEditor, self).ReadOnly((item, attribute)) \
-               or (pim.has_stamp(item, pim.EventStamp) and \
-                   pim.EventStamp(item).isRecurring())
-
 class IconAttributeEditor (BaseAttributeEditor):
     """
     Base class for an icon-based attribute editor; subclass and provide
     management of state & variations on the icons.
     """
     bitmapCache = MultiStateBitmapCache()
+    noImage = "pixel" # filename of a one-pixel transparent png
 
     # A mapping from the various variation inputs (is the mouse down? is
     # the mouse over us? are we in a selected row? is this item readonly?)
@@ -2478,8 +2420,8 @@ class IconAttributeEditor (BaseAttributeEditor):
         selectedBit | rolledOverBit: 'rolloverselected',
         mouseDownBit: 'normal', # note, this is the not-rollover case: mouse out
         mouseDownBit | rolledOverBit: 'mousedown', # mouse in
-        mouseDownBit | selectedBit: 'selected',
-        mouseDownBit | selectedBit | rolledOverBit: 'rolloverselected',
+        mouseDownBit | selectedBit: 'mousedownselected',
+        mouseDownBit | selectedBit | rolledOverBit: 'mousedownselected',
         # @@@ Change these if we need special read/only icons
         readOnlyBit: "normal",
         readOnlyBit | rolledOverBit: "normal",
@@ -2505,15 +2447,18 @@ class IconAttributeEditor (BaseAttributeEditor):
         """
         return getattr(item, attributeName, '')
     
-    def getImageVariation(self, item, attributeName, isDown, isSelected, isOver):
+    def getImageVariation(self, item, attributeName, isReadOnly, isDown, isSelected, isOver):
         """ Pick the right variation """
-        readOnly = self.ReadOnly((item, attributeName)) \
-                 and IconAttributeEditor.readOnlyBit or 0
+        readOnly = isReadOnly and IconAttributeEditor.readOnlyBit or 0
         selected = isSelected and IconAttributeEditor.selectedBit or 0
         mouseDown = isDown and IconAttributeEditor.mouseDownBit or 0
         rolledOver = isOver and IconAttributeEditor.rolledOverBit or 0
         return IconAttributeEditor.variationMap[readOnly | selected |
                                                 mouseDown | rolledOver]
+
+    def mapValueToIconState(self, state):
+        # By default, we use the value as the icon state as-is.
+        return state
 
     def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
         """
@@ -2522,15 +2467,26 @@ class IconAttributeEditor (BaseAttributeEditor):
         proxyItem = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
         dc.SetPen (wx.TRANSPARENT_PEN)
         dc.DrawRectangleRect(rect) # always draw the background
-        state = self.GetAttributeValue(proxyItem, attributeName)
-        imageSet = self.bitmapCache.get(state)
-        if imageSet is None:
-            return # no images for this state (or we didn't get a state value)
         
         isDown = getattr(self, 'wasDown', False)
         isOver = getattr(self, 'rolledOverItem', None) is item
+        isReadOnly = self.ReadOnly((item, attributeName))
 
-        imageVariation = self.getImageVariation(item, attributeName, 
+        state = self.GetAttributeValue(proxyItem, attributeName)
+        #logger.debug("%s is '%s'", debugName(item), state)
+        if isOver:
+            # We want to use the "next" state to determine what to draw.
+            nextValueMethod = getattr(self, 'getNextValue', None)
+            if nextValueMethod is not None:
+                state = nextValueMethod(item, attributeName, state)
+                #logger.debug("(but using next state '%s'", state)
+        
+        iconState = self.mapValueToIconState(state)
+        imageSet = self.bitmapCache.get(iconState)
+        if imageSet is None:
+            return # no images for this state (or we didn't get a state value)
+
+        imageVariation = self.getImageVariation(item, attributeName, isReadOnly,
                                                 isDown, isInSelection, isOver)
         
         image = getattr(imageSet, imageVariation, None)
@@ -2568,129 +2524,3 @@ class IconAttributeEditor (BaseAttributeEditor):
         else:
             #logger.debug("AE Calling event.Skip")
             event.Skip()
-    
-class StampAttributeEditor(IconAttributeEditor):
-    """
-    Base class for attribute editors used for the stamping 
-    columns in the summary. Subclasses need to define a 
-    "stampClass" attribute that points at the stamp class to be used.
-    """
-    
-    noImage = "pixel" # filename of a one-pixel transparent png
-
-    def _getStateName(self, isStamped):
-        return "%s.%s" % (self.iconPrefix,
-                         isStamped and "Stamped" or "Unstamped")
-        
-    def makeStates(self):
-        prefix = self.iconPrefix
-        states = []
-        for (state, normal, selected) in ((False, StampAttributeEditor.noImage,
-                                                  StampAttributeEditor.noImage),
-                                          (True, "%sStamped" % prefix,
-                                                 "%sStamped-Reversed" % prefix)):
-            bmInfo = BitmapInfo()
-            bmInfo.stateName = self._getStateName(state)
-            bmInfo.normal = normal
-            bmInfo.selected = selected
-            bmInfo.rollover = "%sRollover" % prefix
-            bmInfo.rolloverselected = "%sRollover-Reversed" % prefix
-            bmInfo.mousedown = "%sPressed" % prefix
-            states.append(bmInfo)
-
-        return states
-
-    def ReadOnly(self, (item, attributeName)):
-        # Our "attributeName" is a Stamp; substitute a real attribute.
-        readOnly = super(StampAttributeEditor, self).ReadOnly((item, 'body'))
-
-        return readOnly
-    
-    def GetAttributeValue(self, item, attributeName):
-        isStamped = pim.has_stamp(item, self.stampClass)
-        return self._getStateName(isStamped)
-    
-    def SetAttributeValue(self, item, attributeName, value):
-        isStamped = pim.has_stamp(item, self.stampClass)
-        if isStamped != (value == self._getStateName(True)):
-            # Stamp or unstamp the item
-            if isinstance(item, self.stampClass.targetType()):
-                stampedObject = self.stampClass(item)
-                if isStamped:
-                    stampedObject.remove()
-                else:
-                    stampedObject.add()
-
-    def advanceState(self, item, attributeName):
-        if not self.ReadOnly((item, attributeName)):
-            isStamped = pim.has_stamp(item, self.stampClass)
-            newValue = self._getStateName(not isStamped)
-            self.SetAttributeValue(item, attributeName, newValue)        
-
-class EventStampAttributeEditor(StampAttributeEditor):
-    stampClass = Calendar.EventStamp
-    iconPrefix = "SumEvent"
-    
-    def makeStates(self):
-        states = [
-            BitmapInfo(stateName="%s.Unstamped" % self.iconPrefix,
-                       normal=StampAttributeEditor.noImage,
-                       selected=StampAttributeEditor.noImage,
-                       rollover="EventTicklerRollover",
-                       rolloverselected="EventTicklerRolloverSelected",
-                       mousedown="EventTicklerMousedown"),
-            BitmapInfo(stateName="%s.Stamped" % self.iconPrefix,
-                       normal="SumEventStamped",
-                       selected="SumEventStamped-Reversed",
-                       rollover="EventTicklerRollover",
-                       rolloverselected="EventTicklerRolloverSelected",
-                       mousedown="EventTicklerMousedown"),
-            BitmapInfo(stateName="%s.Tickled" % self.iconPrefix,
-                       normal="EventTickled",
-                       selected="EventTickledSelected",
-                       rollover="EventTicklerRollover",
-                       rolloverselected="EventTicklerRolloverSelected",
-                       mousedown="EventTicklerMousedown"),
-        ]
-        return states
-    
-    def GetAttributeValue(self, item, attributeName):
-        return pim.Remindable(item).getUserReminder(expiredToo=True) \
-            and ("%s.Tickled" % self.iconPrefix) \
-            or super(EventStampAttributeEditor, self).\
-                     GetAttributeValue(item, attributeName)
-
-    def SetAttributeValue(self, item, attributeName, value):
-        # Don't bother implementing this - the only changes made in
-        # this editor are done via advanceState
-        pass
-        
-    def advanceState(self, item, attributeName):
-        # If there is one, remove the existing reminder
-        remindable = pim.Remindable(item)
-        if remindable.getUserReminder(expiredToo=False) is not None:
-            remindable.userReminderTime = None
-            return
-
-        # No existing one -- create one.
-        # @@@ unless this is a recurring event, for now.
-        if pim.has_stamp(item, pim.EventStamp) and pim.EventStamp(item).isRecurring():
-            return # ignore the click.
-        remindable.userReminderTime = pim.Reminder.defaultTime()
-        
-    def ReadOnly (self, (item, attribute)):
-        """
-        Until the Detail View supports read-only reminders, always allow
-        reminders to be removed.
-        
-        """
-        return False
-        
-class TaskStampAttributeEditor(StampAttributeEditor):
-    stampClass = TaskStamp
-    iconPrefix = "SumTask"
-
-class MailStampAttributeEditor(StampAttributeEditor):
-    stampClass = Mail.MailStamp
-    iconPrefix = "SumMail"
-    

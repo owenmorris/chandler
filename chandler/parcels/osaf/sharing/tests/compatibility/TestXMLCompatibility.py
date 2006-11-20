@@ -225,7 +225,7 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
         result = self._canonicalizeXml(result)
         expected = self._canonicalizeXml(expected)
         try:
-            self.failUnless(result == expected)
+            self.failUnlessEqual(result, expected)
         except:
             sys.stderr.write("\n----------------\nFailed ... Expected:\n")
             sys.stderr.write("\n%s\n ... Actual:%s\n----------------\n" % (expected, result))

@@ -181,7 +181,8 @@ class ContentItem(schema.Item):
     )
 
     # "Section" triage status is used for sorting
-    triageStatus = schema.One(TriageEnum, defaultValue=TriageEnum.now)
+    triageStatus = schema.One(TriageEnum, defaultValue=TriageEnum.now,
+                              indexed=True)
     
     # "unpurged" (aka "color") triage status is used to set (and changed 
     # by) the column cell, and is pushed to sectionTriageStatus by the 
@@ -229,11 +230,11 @@ class ContentItem(schema.Item):
     appearsIn = schema.Sequence()
 
     # The date used for sorting the Date column
-    displayDate = schema.One(schema.DateTimeTZ)
+    displayDate = schema.One(schema.DateTimeTZ, indexed=True)
     displayDateSource = schema.One(schema.Importable)
 
     # The value displayed (and sorted) for the Who column.
-    displayWho = schema.One(schema.Text)
+    displayWho = schema.One(schema.Text, indexed=True)
     displayWhoSource = schema.One(schema.Importable)
 
     schema.addClouds(

@@ -297,6 +297,10 @@ def GenerateItems(view, count, function, collections=[], *args, **dict):
     results = []
     for index in range(count):
         newItem = function(view, *args, **dict)
+        
+        # Mark the new item "read" most of the time.
+        if random.randint(0,3):
+            newItem.read = True
 
         if maxCollCount > 0:
             for index in range(random.randint(0, maxCollCount)):

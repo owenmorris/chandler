@@ -27,7 +27,7 @@ from AttributeEditors import (
     DateAttributeEditor, 
     DateTimeAttributeEditor, 
     EmailAddressAttributeEditor,
-    StampAttributeEditor,
+    IconAttributeEditor,
     LobImageAttributeEditor,
     LocationAttributeEditor,
     RepositoryAttributeEditor,

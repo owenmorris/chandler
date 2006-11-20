@@ -23,7 +23,7 @@ import wx
 from wx.lib.buttons import GenBitmapButton
 
 # Variations we support
-allVariations = ["normal", "rollover", "selected", "rolloverselected", "mousedown", "disabled", "focus"]
+allVariations = ["normal", "rollover", "selected", "rolloverselected", "mousedown", "mousedownselected", "disabled", "focus"]
 
 class BitmapInfo(object):
     __slots__ = (['stateName'] + allVariations +
