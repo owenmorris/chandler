@@ -21,6 +21,7 @@ from osaf import sharing
 import application.Globals as Globals
 from i18n import ChandlerMessageFactory as _
 from application import schema
+import SubscribeCollection
 
 logger = logging.getLogger(__name__)
 
@@ -105,18 +106,6 @@ class RestoreSharesDialog(wx.Dialog):
             self.showStatus(_(u"Sharing Error:\n%(error)s") % {'error': e})
 
 
-    def updateCallback(self, msg=None, percent=None):
-        if msg is not None:
-            msg = msg.replace('\n', ' ')
-            # @@@MOR: This is unicode unsafe:
-            if len(msg) > MAX_UPDATE_MESSAGE_LENGTH:
-                msg = "%s..." % msg[:MAX_UPDATE_MESSAGE_LENGTH]
-            self.showStatus(msg)
-        if percent is not None:
-            self.gauge.SetValue(percent)
-        wx.Yield()
-        return self.cancelPressed
-
 
     def OnRestore(self, evt):
         view = self.view
@@ -127,16 +116,11 @@ class RestoreSharesDialog(wx.Dialog):
         if not accountUrl.endswith('/'):
             accountUrl += '/'
 
-        collections = []
-        failures = []
+        self.subscribing = True
 
         indexes = self.listShares.GetSelections()
 
-        error = False
         for index in indexes:
-
-            if error:
-                break
 
             name =  self.listShares.GetString(index)
             url = accountUrl + name
@@ -145,63 +129,17 @@ class RestoreSharesDialog(wx.Dialog):
                 # Skip it, but deselect first
                 self.listShares.Deselect(index)
             else:
-                try:
-
-                    self.restoreButton.Enable(False)
-                    self.gauge.SetValue(0)
-                    self.subscribing = True
-                    self.cancelPressed = False
-                    self.showStatus(_(u"In progress..."))
-                    wx.Yield()
-
-                    collection = sharing.subscribe(view, url,
-                        updateCallback=self.updateCallback)
-
-                    conduit = None
-
-                    # Make me the sharer
-                    for share in collection.shares:
-                        share.sharer = me
-                        if isinstance(share.conduit, sharing.CalDAVConduit):
-                            caldav_conduit = share.conduit
-                    
-                    if caldav_conduit is not None:
-                        excluded = caldav_conduit.getCosmoExcludeFreeBusy()
-                        caldav_conduit.inFreeBusy = not excluded
-                        if not excluded:
-                            mine = schema.ns('osaf.pim', view).mine
-                            mine.addSource(collection)
-
-                    schema.ns("osaf.app",
-                        view).sidebarCollection.add(collection)
-
-                    # Commit so we ensure the sidebar remembers the collection
-                    # has been added.
-                    view.commit()
-
-                    self.listShares.Deselect(index)
 
 
+                SubscribeCollection.Show(None, view=view, url=url,
+                    immediate=True, mine=True, publisher=True,
+                    freebusy=False)
 
-                except Exception, e:
-                    self.restoreButton.Enable(True)
-                    self.gauge.SetValue(0)
-
-                    if isinstance(e, sharing.NotFound):
-                        self.showStatus(_(u"That collection was not found"))
-                    elif isinstance(e, sharing.AlreadySubscribed):
-                        self.showStatus(_(u"You are already subscribed"))
-                    else:
-                        logger.exception("Error during subscribe for %s" % url)
-                        self.showStatus(_(u"Sharing Error:\n%(error)s") %
-                            {'error': e})
-
-                    error = True
+                self.listShares.Deselect(index)
 
         self.subscribing = False
 
-        if not error:
-            self.EndModal(True)
+        self.EndModal(True)
 
 
     def showStatus(self, text):

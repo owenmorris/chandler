@@ -191,8 +191,9 @@ def findMatchingShare(view, url):
     @type url: String
     @return: A Share item, or None
     """
+    import accounts
 
-    account = WebDAVAccount.findMatchingAccount(view, url)
+    account = accounts.WebDAVAccount.findMatchingAccount(view, url)
     if account is None:
         return None
 
