@@ -442,9 +442,7 @@ def initRepository(directory, options, allowSchemaView=False):
 
     # tell the schema API about this view so that it doesn't setup its own
     # (also load Chandler pack)
-    if isinstance(schema.reset(view), NullRepositoryView):
-        if not allowSchemaView:
-            raise AssertionError, "schema.py was used before it was initialized here causing it to setup a NullRepositoryView"
+    schema.reset(view)
 
     if options.indexer == 'background':   # the default
         # don't run PyLucene indexing in the main view
