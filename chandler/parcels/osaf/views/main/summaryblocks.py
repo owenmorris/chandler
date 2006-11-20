@@ -152,19 +152,22 @@ class ReminderColumnAttributeEditor(attributeEditors.IconAttributeEditor):
                        selected=attributeEditors.IconAttributeEditor.noImage,
                        rollover="EventTicklerRollover",
                        rolloverselected="EventTicklerRolloverSelected",
-                       mousedown="EventTicklerMousedown"),
+                       mousedown="EventTicklerMousedown",
+                       mousedownselected="EventTicklerMousedownSelected"),
             BitmapInfo(stateName="SumEvent.Stamped",
-                       normal="SumEventStamped",
-                       selected="SumEventStamped-Reversed",
+                       normal="EventStamped",
+                       selected="EventStampedSelected",
                        rollover="EventTicklerRollover",
                        rolloverselected="EventTicklerRolloverSelected",
-                       mousedown="EventTicklerMousedown"),
+                       mousedown="EventTicklerMousedown",
+                       mousedownselected="EventTicklerMousedownSelected"),
             BitmapInfo(stateName="SumEvent.Tickled",
                        normal="EventTickled",
                        selected="EventTickledSelected",
                        rollover="EventTicklerRollover",
                        rolloverselected="EventTicklerRolloverSelected",
-                       mousedown="EventTicklerMousedown"),
+                       mousedown="EventTicklerMousedown",
+                       mousedownselected="EventTicklerMousedownSelected"),
         ]
         return states
     
@@ -302,7 +305,8 @@ class CommunicationsColumnAttributeEditor(attributeEditors.IconAttributeEditor):
         states = []
         def addState(name, **kwds):
             args = {}
-            for state in "Normal", "Selected", "Rollover", "RolloverSelected", "Mousedown":
+            for state in ("Normal", "Selected", "Rollover", "RolloverSelected", 
+                         "Mousedown", "MousedownSelected"):
                 lcState = state.lower()
                 if not kwds.has_key(lcState):
                     # If a given state isn't specified, build the name automatically
@@ -324,7 +328,8 @@ class CommunicationsColumnAttributeEditor(attributeEditors.IconAttributeEditor):
             args = { 
                 'rollover': '%sRollover' % namePrefix,
                 'rolloverselected': '%sRolloverSelected' % namePrefix,
-                'mousedown': '%sMousedown' % namePrefix
+                'mousedown': '%sMousedown' % namePrefix,
+                'mousedownselected': '%sMousedownSelected' % namePrefix
             }
             
             # Do Unread
