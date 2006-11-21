@@ -549,10 +549,14 @@ class ManifestEngineMixin(pim.ContentItem):
                         modifiedAttributes = changes[relatedItem.itsUUID]
                         sharedAttributes = \
                             self.share.getSharedAttributes(relatedItem.itsKind)
-                        logger.debug("Changes for %s: %s", relatedItem.displayName.encode('utf8', 'replace'), modifiedAttributes)
+                        displayName = (getattr(relatedItem, 'displayName',
+                            None) or relatedItem._repr_()).encode('utf8',
+                            'replace')
+                        logger.debug("Changes for %s: %s",
+                            displayName, modifiedAttributes)
                         for change in modifiedAttributes:
                             if change in sharedAttributes:
-                                logger.debug("A shared attribute (%s) changed for %s", change, relatedItem.displayName)
+                                logger.debug("A shared attribute (%s) changed for %s", change, displayName)
                                 needsUpdate = True
                                 result = 'modified'
                                 reason = change
