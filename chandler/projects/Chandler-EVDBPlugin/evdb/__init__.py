@@ -57,11 +57,11 @@ def installParcel(parcel, version=None):
         parcel, 'NewEVDBCollectionEvent',
         blockName = 'newEVDBCollectionEvent')
 
-    # Add a separator to the "Collection" menu ...
+    # Add a separator to the "Experimental" menu ...
     blocks.MenuItem.update(parcel, 'EVDBParcelSeparator',
                            blockName = 'EVDBParcelSeparator',
                            menuItemKind = 'Separator',
-                           parentBlock = main.CollectionMenu)
+                           parentBlock = main.ExperimentalMenu)
 
     # ... and, below it, a menu item to subscribe to an EVDB
     # calendar.
@@ -70,5 +70,5 @@ def installParcel(parcel, version=None):
         title = _(u"Subscribe to EVDB Calendar"),
         event = NewEVDBCollectionEvent,
         eventsForNamedLookup = [NewEVDBCollectionEvent],
-        parentBlock = main.CollectionMenu,
+        parentBlock = main.ExperimentalMenu,
     )

@@ -35,7 +35,7 @@ def installParcel(parcel, version=None):
     blocks.MenuItem.update(parcel, 'AmazonParcelSeparator',
                            blockName = 'AmazonParcelSeparator',
                            menuItemKind = 'Separator',
-                           parentBlock = main.CollectionMenu)
+                           parentBlock = main.ExperimentalMenu)
 
     blocks.MenuItem.update(parcel, "NewAmazonCollection",
         blockName = "NewAmazonCollectionMenu",
@@ -47,7 +47,7 @@ def installParcel(parcel, version=None):
             commitAfterDispatch = True,
         ),
         eventsForNamedLookup = [parcel["NewAmazonCollectionEvent"]],
-        parentBlock = main.CollectionMenu,
+        parentBlock = main.ExperimentalMenu,
     )
 
     blocks.MenuItem.update(parcel, "NewAmazonWishList",
@@ -60,7 +60,7 @@ def installParcel(parcel, version=None):
             commitAfterDispatch = True,
         ),
         eventsForNamedLookup = [parcel["NewAmazonWishListEvent"]],
-        parentBlock = main.CollectionMenu,
+        parentBlock = main.ExperimentalMenu,
     )
 
     makeSubtree(parcel, AmazonItem, [

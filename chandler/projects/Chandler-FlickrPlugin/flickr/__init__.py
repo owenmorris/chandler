@@ -271,7 +271,7 @@ def installParcel(parcel, oldVersion=None):
         collectionType = 'Tag')
 
     # Add menu items to Chandler
-    collectionMenu = schema.ns('osaf.views.main', parcel).CollectionMenu
+    collectionMenu = schema.ns('osaf.views.main', parcel).ExperimentalMenu
 
     MenuItem.update(
         parcel, 'FlickrParcelSeparator',
