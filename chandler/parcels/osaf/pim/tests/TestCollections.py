@@ -85,9 +85,10 @@ class CollectionTestCase(unittest.TestCase):
             view.loadPack(os.path.join(self.chandlerDir, 'repository', 'packs', 'schema.pack'))
             view.loadPack(os.path.join(self.chandlerDir, 'repository', 'packs', 'chandler.pack'))
         self.view = view
+        self.trash = schema.ns('osaf.pim', view).trashCollection
 
     def tearDown(self):
-        self.failUnless(schema.reset().check(), "check() failed")
+        self.failUnless(self.view.check(), "check() failed")
 
 class CollectionTests(CollectionTestCase):
 
@@ -544,7 +545,7 @@ class CollectionTests(CollectionTestCase):
             self.failUnless(i != None)
 
     def testSmartCollection(self):
-        trash = ListCollection(itsView=self.view)
+        trash = self.trash
         coll1 = SmartCollection(itsView=self.view, trash=trash)
         coll2 = SmartCollection(itsView=self.view, trash=trash)
         coll3 = SmartCollection(itsView=self.view, trash=trash)
@@ -581,7 +582,7 @@ class CollectionTests(CollectionTestCase):
         # doesn't go into the All collection, but rather moves to the Trash
         # if it's not in any other collections
 
-        trash = ListCollection(itsView=self.view)
+        trash = self.trash
         notes = KindCollection(itsView=self.view,
                                kind=pim.Note.getKind(self.view),
                                recursive=True)
