@@ -36,7 +36,14 @@ __all__ = [
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + ('description',)
 
-global_lock = threading.RLock()
+policy_values = (
+    'byRef', 'byValue', 'byCloud', 'byRef', 'none', 'byMethod', 'literal'
+)
+
+default_schema = {
+    Kind: ('description', 'displayAttribute'),
+    Base: ('description',)
+}
 
 
 # The next two functions are abominable hacks to work around the
@@ -62,10 +69,6 @@ class TypeReference:
 
     def __init__(self,path):
         called_from_here = sys._getframe(1).f_globals is globals()
-        if not called_from_here and _get_nrv().findPath(path) is None:
-            # We don't do a check if the TypeReference was created in this
-            # module, thereby avoiding all sorts of bootstrapping issues
-            raise NameError("Type %r not found in the core schema" % (path,))
         self.path = path
         self.__name__ = path.split('/')[-1]
 
@@ -344,8 +347,7 @@ class Endpoint(object):
     def __init__(self, name, attribute, includePolicy="byValue",
         cloudAlias=None, method = None
     ):
-        values = _get_nrv().findPath('//Schema/Core/IncludePolicy').values
-        if includePolicy not in values:
+        if includePolicy not in policy_values:
             raise ValueError(
                 "Unrecognized includePolicy: %r" % (includePolicy,)
             )
@@ -1046,14 +1048,15 @@ def kindInfo(**attrs):
 
     @addClassAdvisor
     def callback(cls):
-        _get_nrv()
         for k,v in attrs.items():
-            if not hasattr(cls._kind_class, k):
-                if k not in getattr(cls._kind_class, '__core_schema__', ()):
-                    raise TypeError(
-                        "%r is not an attribute of %s" %
-                        (k, cls._kind_class.__name__)
-                        )
+            kc = cls._kind_class
+            kcs = getattr(kc, '__core_schema__', ())
+            kcs = kcs or default_schema.get(kc) or ()
+            if not hasattr(kc, k) and k not in kcs:
+                raise TypeError(
+                    "%r is not an attribute of %s" %
+                    (k, cls._kind_class.__name__)
+                )
         return cls
 
 
@@ -1523,37 +1526,3 @@ def declareTemplate(item):
     #    item._status |= Base.COPYEXPORT
     return item
 
-
-
-def reset(rv=None):
-    """
-    Reset or initialize the schema API to use a given repository view.
-
-    This routine allows you to pass in a repository view that will then
-    be used by the schema API; it also returns the previously-used view.
-    It exists so that unit tests can roll back the API's state to a known
-    condition before proceeding.
-    """
-    global nrv
-
-    global_lock.acquire()
-    try:
-        old_rv = nrv
-        if rv is None:
-            rv = NullRepositoryView(verify=True)
-
-        nrv = rv
-        initRepository(nrv)
-        return old_rv
-
-    finally:
-        global_lock.release()
-
-
-nrv = None
-
-def _get_nrv():
-
-    if nrv is None:
-        reset()
-    return nrv

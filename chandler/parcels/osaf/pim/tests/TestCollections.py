@@ -72,7 +72,6 @@ class CollectionTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""
 
     def setUp(self):
-        schema.reset()  # clear schema state before starting
         self.chandlerDir = os.environ['CHANDLERHOME']
         self.repoDir = os.path.join(self.chandlerDir, '__repository__')
 

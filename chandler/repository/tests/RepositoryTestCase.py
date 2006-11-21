@@ -62,7 +62,6 @@ class RepositoryTestCase(TestCase):
             self.rep.view.commit()
 
         view = self.rep.view
-        schema.reset(view)
 
         self.manager = \
             ParcelManager.get(view, [os.path.join(self.rootdir, 'parcels')])

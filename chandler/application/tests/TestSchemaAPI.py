@@ -69,34 +69,6 @@ class SchemaTests(SchemaTestCase):
             [schema.itemFor(Dummy, self.rv), schema.itemFor(Types.Type, self.rv)]
         )
 
-    def testResetCache(self):
-        # Parcel/kind/attr caches should be cleared between resets
-        schema.reset()
-        rv = schema._get_nrv()
-        parcel1 = schema.parcel_for_module(this_module, rv)
-        kind1 = schema.itemFor(Dummy, rv)
-        attr1 = schema.itemFor(Dummy.attr, rv)
-
-        old = schema.reset()
-        rv = schema._get_nrv()
-        parcel2 = schema.parcel_for_module(this_module, rv)
-        kind2 = schema.itemFor(Dummy, rv)
-        attr2 = schema.itemFor(Dummy.attr, rv)
-
-        self.failIf(parcel2 is parcel1)
-        self.failIf(kind2 is kind1)
-        self.failIf(attr2 is attr1)
-
-        # But switching back to an old state should restore the cache
-        schema.reset(old)
-        rv = schema._get_nrv()
-        parcel3 = schema.parcel_for_module(this_module, rv)
-        kind3 = schema.itemFor(Dummy, rv)
-        attr3 = schema.itemFor(Dummy.attr, rv)
-        self.failUnless(parcel3 is parcel1)
-        self.failUnless(attr3 is attr1)
-        self.failUnless(attr3 is attr1)
-
     def testAttrKindType(self):
         self.assertEqual(schema.itemFor(Dummy.attr, self.rv).getAspect('type'),
             self.rv.findPath('//Schema/Core/Text'))

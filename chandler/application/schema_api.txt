@@ -213,13 +213,6 @@ All role objects have at least the following attributes and methods:
         ...
         TypeError: ('...must be Item/Enumeration class or TypeReference',...)
 
-    And type references must be to types defined by the repository's core
-    schema::
-
-        >>> schema.TypeReference('//no/such/type')
-        Traceback (most recent call last):
-        ...
-        NameError: Type '//no/such/type' not found in the core schema
 
 Aspect Attributes
     Descriptor objects support setting all of the aspects of a repository
@@ -910,17 +903,6 @@ loaded::
     <Kind ...>
 
 
-``global_lock``
-    Many schema API operations are protected by a global lock object,
-    ``schema.global_lock``, which is a ``threading.RLock``.  ``RLock`` objects
-    support re-entrant locking for the same thread, which is important because
-    many schema API operations are recursive.  The lock's normal state is to
-    be unlocked::
-
-        >>> schema.global_lock
-        <_RLock(None, 0)>
-
-
 ``importString(moduleName)``
     Imports the named module (or named item within a module)::
 
@@ -936,21 +918,18 @@ loaded::
         True
 
 
-``parcel_for_module(moduleNam, rv)``
+``parcel_for_module(moduleName, rv)``
     The ``parcel_for_module()`` API returns a parcel instance for the named
     module.  If the module has a ``__parcel__`` attribute, the parcel for
     the named module is returned instead::
 
-        >>> schema.reset()
-        <NullRepositoryView: null view (0)>
+        >>> nrv = NullRepositoryView()
 
         >>> application.tests.__parcel__ = "__builtin__"
-        >>> schema.parcel_for_module("application.tests", schema._get_nrv())
+        >>> schema.parcel_for_module("application.tests", nrv)
         <Parcel ... __builtin__ ...>
 
         >>> del application.tests.__parcel__    # clean up after the above test
-        >>> schema.reset()
-        <NullRepositoryView: null view (0)>
 
     If the module has no ``__parcel__``, but it has an ``installParcel()``
     function, it will be called::
@@ -959,7 +938,8 @@ loaded::
         ...     print "installParcel(",parcel,")"
         >>> application.tests.installParcel = installParcel
 
-        >>> schema.parcel_for_module("application.tests", schema._get_nrv())
+        >>> nrv = NullRepositoryView()
+        >>> schema.parcel_for_module("application.tests", nrv)
         installParcel( <Parcel (new): tests ...> )
         <Parcel (new): tests ...>
 
@@ -969,12 +949,10 @@ loaded::
     The created parcel object is cached by the schema API so that subsequent
     invocations just return the same object, without recreating it::
 
-        >>> schema.parcel_for_module("application.tests", schema._get_nrv())
+        >>> schema.parcel_for_module("application.tests", nrv)
         <Parcel (new): tests ...>
 
         >>> # clean up dummy parcel setup
-        >>> schema.reset()
-        <NullRepositoryView: null view (0)>
         >>> del application.tests.installParcel
 
     Finally, in order to support defining core schema kinds using the schema
@@ -984,13 +962,12 @@ loaded::
     is something of a kludge, and should be replaced with a more robust
     mechanism if we start moving more of the core schema into the schema API::
 
+        >>> nrv = NullRepositoryView()
         >>> application.tests.__parcel__ = "//Schema/Core"
-        >>> schema.parcel_for_module("application.tests", schema._get_nrv())
+        >>> schema.parcel_for_module("application.tests", nrv)
         <Item ...: Core ...>
 
         >>> del application.tests.__parcel__    # clean up after the above test
-        >>> schema.reset()
-        <NullRepositoryView: null view (0)>
 
 
 ``itemFor(obj, rv)``
@@ -1223,7 +1200,8 @@ A role object's ``annotates`` attribute lists items whose ``attributes`` the
 role's ``Attribute`` instance should be added to when the ``Attribute`` is
 created::
 
-    >>> sorted(a.itsName for a in Person.getKind(schema._get_nrv()).attributes)  # doctest: +NORMALIZE_WHITESPACE
+    >>> nrv = NullRepositoryView()
+    >>> sorted(a.itsName for a in Person.getKind(nrv).attributes)  # doctest: +NORMALIZE_WHITESPACE
     ['age', 'children', 'fullname', 'parents']
 
     >>> class HealthInfo(schema.Item): pass
@@ -1232,10 +1210,10 @@ created::
     ...     annotates=(Person,)
     ... )
 
-    >>> schema.itemFor(weight, schema._get_nrv())
+    >>> schema.itemFor(weight, nrv)
     <Attribute... HealthInfo.weight ...>
 
-    >>> sorted(a.itsName for a in Person.getKind(schema._get_nrv()).attributes)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(a.itsName for a in Person.getKind(nrv).attributes)  # doctest: +NORMALIZE_WHITESPACE
     ['HealthInfo.weight', 'age', 'children', 'fullname', 'parents']
 
 

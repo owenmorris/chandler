@@ -412,7 +412,7 @@ def initRepository(directory, options, allowSchemaView=False):
 
     if options.repair:
         view = repository.view
-        schema.reset(view)
+        schema.initRepository(view)
         if view.check(True):
             view.commit()
 
@@ -421,7 +421,7 @@ def initRepository(directory, options, allowSchemaView=False):
             repair = options.undo == 'repair'
             view = repository.view
             while view.itsVersion > 0L:
-                schema.reset(view)
+                schema.initRepository(view)
                 if view.check(repair):
                     if repair:
                         view.commit()
@@ -439,10 +439,7 @@ def initRepository(directory, options, allowSchemaView=False):
                 repository.undo(toVersion)
 
     view = repository.view
-
-    # tell the schema API about this view so that it doesn't setup its own
-    # (also load Chandler pack)
-    schema.reset(view)
+    schema.initRepository(view)
 
     if options.indexer == 'background':   # the default
         # don't run PyLucene indexing in the main view
