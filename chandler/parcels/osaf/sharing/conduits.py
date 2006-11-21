@@ -794,13 +794,14 @@ class ManifestEngineMixin(pim.ContentItem):
             if item is not None:
                 self._addToManifest(itemPath, item, data)
                 self._setFetched(itemPath)
+                displayName = (getattr(item, 'displayName',
+                    None) or item._repr_()).encode('utf8', 'replace')
                 logger.info("...imported '%s' '%s' %s, data: %s" % \
-                 (itemPath, item.displayName.encode('ascii',
-                    'replace'), item, data))
+                 (itemPath, displayName, item, data))
 
                 cvSelf.share.items.append(item)
                 if updateCallback and updateCallback(msg="'%s'" %
-                    item.displayName):
+                    displayName):
                     raise errors.SharingError(_(u"Cancelled by user"))
 
                 return item
