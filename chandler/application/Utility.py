@@ -139,7 +139,12 @@ def getPlatformName():
         platformName = 'Windows'
     elif os.name == 'posix':
         if sys.platform == 'darwin':
-            if platform.machine() == 'i386':
+            # platform.processor() returns 'i386' or 'powerpc'
+            # but we need to also check platform.machine()
+            # which returns 'Power Macintosh' or 'i386'
+            # to determine if we are running under Rosetta
+
+            if platform.processor() == 'i386' and platform.machine() == 'i386':
                 platformName = 'Mac OS X (intel)'
             else:
                 platformName = 'Mac OS X (ppc)'
