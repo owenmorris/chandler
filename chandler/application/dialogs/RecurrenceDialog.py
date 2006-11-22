@@ -385,6 +385,8 @@ class OccurrenceProxy(object):
         # can happen if the detail view tries to make a change,
         # and then immediately loses focus. (cf Bug 7437).
         lastChange = None
+        view = getattr(self.proxiedItem, 'itsView', None)
+
         while len(self.changeBuffer) > 0:
             change = self.changeBuffer.pop(0)
 
@@ -397,10 +399,13 @@ class OccurrenceProxy(object):
                 method(*args, **kwds)
 
             lastChange = change
-
             
         if self.currentlyModifying in ('thisandfuture', 'all'):
             self.currentlyModifying = None
+            
+        if view is not None:
+            view.commit()
+
     
     def propagateChange(self, name, value):
         proxiedEvent = EventStamp(self.proxiedItem)

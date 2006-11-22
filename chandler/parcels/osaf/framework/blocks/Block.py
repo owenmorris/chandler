@@ -536,16 +536,6 @@ class Block(schema.Item):
         """
         When an item someone's watching has changed, we need to synchronize.
         """
-        # Ignore notifications for items being stamped. (We get a lot then,
-        # but the items really aren't consistent. Anyone who cares about an
-        # item kind change should have another way to hear about it: the
-        # detail view explicitly monitors itsKind; that notification, as
-        # well as collection-change notifications that the rest of the app
-        # uses, happen outside isMutating.
-        repoView = wx.GetApp().UIRepositoryView
-        item = repoView.find(uuid, False)
-        if item is not None and item.isMutatingOrDeleting():
-            return
 
         itemDict = Block.watchingItems.get(uuid, None)
         if itemDict is not None:

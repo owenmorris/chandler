@@ -98,8 +98,10 @@ class FocusEventHandlers(Item):
         self.contents
         """
         collection = self.contentsCollection
-        if collection is None and isinstance(self.contents, ContentCollection):
-            collection = self.contents
+        if collection is None:
+            contents = getattr(self, 'contents', None)
+            if isinstance(contents, ContentCollection):
+               collection = contents
 
         return collection
 
