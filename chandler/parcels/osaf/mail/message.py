@@ -509,8 +509,11 @@ def __parseHeaders(view, messageObject, m):
             m.dateSent = datetime.now(ICUtzinfo.default)
 
         else:
-            m.dateSent = datetime.fromtimestamp(emailUtils.mktime_tz(parsed),
-                                                ICUtzinfo.default)
+            try:
+                m.dateSent = datetime.fromtimestamp(emailUtils.mktime_tz(parsed),
+                                                    ICUtzinfo.default)
+            except:
+                m.dateSent = datetime.now(ICUtzinfo.default)
 
         ##XXX:  Do we need this the tz could be preserved
         m.dateSentString = date
