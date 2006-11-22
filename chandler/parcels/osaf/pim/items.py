@@ -25,7 +25,7 @@ from application import schema
 from repository.schema.Kind import Kind
 import repository.item.Item as Item
 from chandlerdb.item.ItemError import NoLocalValueForAttributeError
-from chandlerdb.util.c import Nil
+from chandlerdb.util.c import Nil, issingleref
 import logging
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
@@ -68,7 +68,15 @@ triageStatusClickSequence = { TriageEnum.now: TriageEnum.done,
 def getNextTriageStatus(value):
     return triageStatusClickSequence[value]
 
-# For use in indexing time-related attributes. We only use this for
+def isDead(item):
+    """
+    Return True if the item is None, a singleref, stale, or deferred.
+    
+    """
+    return (item is None or issingleref(item) or item.isStale() or
+            item.isDeferred())
+
+# For use in indexing time-related attributes. We only use this for 
 # reminderFireTime here, but CalendarEventMixin uses this a lot more...
 def cmpTimeAttribute(item, other, attr, useTZ=True):
     """Compare item and self.attr, ignore timezones if useTZ is False."""

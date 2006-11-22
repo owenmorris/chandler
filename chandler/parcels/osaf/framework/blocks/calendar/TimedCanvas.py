@@ -25,6 +25,7 @@ from CalendarCanvas import (
 from CollectionCanvas import DragState
 from PyICU import FieldPosition, DateFormat, ICUtzinfo
 import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim import isDead
 from osaf.pim.calendar.TimeZone import TimeZoneInfo, coerceTimeZone
 
 from time import time as epochtime
@@ -128,7 +129,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             for i in self.visibleItems:
                 # clean up visibleItems, removing stale items and events that
                 # have become masters 
-                if (i.itsItem.isStale() or
+                if (isDead(i.itsItem) or
                     (i.occurrences is not None and len(i.occurrences) > 0)):
                     self.visibleItems.remove(i)
                     removals.append(i.itsItem)
@@ -463,10 +464,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         Comparison function for sorting, mostly by start time
         """
-        if event1.itsItem.isStale() or event2.itsItem.isStale():
+        if isDead(event1.itsItem) or isDead(event2.itsItem):
             # sort stale or deleted items first, False < True
-            return cmp(not event1.itsItem.isStale(),
-                       not event2.itsItem.isStale())
+            return cmp(not isDead(event1.itsItem),
+                       not isDead(event2.itsItem))
                        
         dateResult = cmp(event1.startTime, event2.startTime)
         
@@ -500,7 +501,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 
         # First generate a sorted list of TimedCanvasItems
         for event in self.visibleItems:
-            if event.itsItem.isStale():
+            if isDead(event.itsItem):
                 continue
             collection = self.blockItem.getContainingCollection(event.itsItem, primaryCollection)
             canvasItem = TimedCanvasItem(collection, primaryCollection,
@@ -539,7 +540,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         # next, generate bounds rectangles for each canvasitem
         for canvasItem in self.canvasItemList:
-            if not canvasItem.item.isStale():
+            if not isDead(canvasItem.item):
                 # drawing rects should be updated to reflect conflicts
                 if (currentDragBox is canvasItem and
                     currentDragBox.CanDrag()):
@@ -567,9 +568,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         for canvasItem in self.drawOrderedCanvasItems:
             # drawOrderedCanvasItems can be out of date if another view deletes
-            # an item (isStale() will be True), or if a RefreshCanvasItems
+            # an item (isDead() will be True), or if a RefreshCanvasItems
             # hasn't yet occurred after a deletion.
-            if canvasItem.item.isStale() or canvasItem.item not in contents:
+            if isDead(canvasItem.item) or canvasItem.item not in contents:
                 continue
             selected = contents.isItemSelected(canvasItem.item)
             canvasItem.Draw(dc, styles, selected)
@@ -591,7 +592,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         for canvasItem in self.canvasItemList:
             item = canvasItem.item
             
-            if item is draggedOutItem or item.isStale():
+            if item is draggedOutItem or isDead(item):
                 # don't render deleted items or items we're dragging out of the
                 # canvas
                 continue
@@ -614,12 +615,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.drawOrderedCanvasItems = ordered
 
     def CheckConflicts(self):
-        assert (sorted([i for i in self.visibleItems if not i.itsItem.isStale()],
+        assert (sorted([i for i in self.visibleItems if not isDead(i.itsItem)],
                        self.sortByStartTime) == 
-                [i for i in self.visibleItems if not i.itsItem.isStale()])
+                [i for i in self.visibleItems if not isDead(i.itsItem)])
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
             if self.coercedCanvasItem is not canvasItem \
-               and not canvasItem.item.isStale():
+               and not isDead(canvasItem.item):
                    # since these are sorted, we only have to check the items 
                    # that come after the current one
                    canvasItem.FindConflicts(islice(self.canvasItemList,
@@ -835,7 +836,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         of conflicting events is the currently selected one.
         """
         for canvasItem in reversed(self.drawOrderedCanvasItems):
-            if not canvasItem.item.isStale() and \
+            if not isDead(canvasItem.item) and \
                canvasItem.isHit(unscrolledPosition):
                 return canvasItem
 
@@ -1244,7 +1245,7 @@ class TimedCanvasItem(CalendarCanvasItem):
         the list
         """
         for conflict in possibleConflicts:
-            if conflict.item.isStale():
+            if isDead(conflict.item):
                 continue
             # we know we're done when we stop hitting conflicts
             # 

@@ -26,6 +26,7 @@ from CalendarCanvas import (
 from CollectionCanvas import DragState
 from PyICU import GregorianCalendar, ICUtzinfo
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
+from osaf.pim import isDead
 
 from application.dialogs import RecurrenceDialog
 from osaf.pim.calendar import Calendar
@@ -222,7 +223,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
             # save the selected box to be drawn last
             item = canvasItem.item
-            if item == draggedOutItem or item.isStale():
+            if item == draggedOutItem or isDead(item):
                 # don't render items we're dragging out of the canvas
                 continue      
             
@@ -375,7 +376,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if self.blockItem.dayMode:
             # daymode, just stack all the events
             for row, event in enumerate(self.visibleItems):
-                if not event.itsItem.isStale():
+                if not isDead(event.itsItem):
                     self.RebuildCanvasItem(event, 0,0, row)
             self.numEventRows = len(self.visibleItems)
             
@@ -410,7 +411,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                     addCanvasItem(event, newTime, newTime + event.duration)
 
             for event in self.visibleItems:
-                if not event.itsItem.isStale():
+                if not isDead(event.itsItem):
                     if newTime is not None and \
                        event.itsItem is self.dragState.originalDragBox.item:
     
@@ -498,10 +499,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         """
         Comparison callback function for sorting
         """
-        if event1.itsItem.isStale() or event2.itsItem.isStale():
+        if isDead(event1.itsItem) or isDead(event2.itsItem):
             # sort stale or deleted items first, False < True
-            return cmp(not event1.itsItem.isStale(),
-                       not event2.itsItem.isStale())
+            return cmp(not isDead(event1.itsItem),
+                       not isDead(event2.itsItem))
         
         # ORDER BY duration, date
         spanResult = cmp(event2.duration, event1.duration)

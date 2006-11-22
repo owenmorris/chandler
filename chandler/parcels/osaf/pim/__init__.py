@@ -19,7 +19,7 @@
 from items import (
     ContentKind, ContentItem, ImportanceEnum, Group, Principal, 
     Project, Tag, TriageEnum, getTriageStatusName,
-    getNextTriageStatus, UserNotification
+    getNextTriageStatus, UserNotification, isDead
 )
 from collections import KindCollection, ContentCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \

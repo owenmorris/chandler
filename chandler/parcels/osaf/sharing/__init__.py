@@ -20,6 +20,7 @@ from application import schema, dialogs
 from application.Parcel import Reference
 from application.Utility import getDesktopDir, CertificateVerificationError
 from osaf import pim
+from osaf.pim import isDead
 from osaf.pim.calendar import Calendar
 from osaf.pim.collections import UnionCollection, DifferenceCollection
 from i18n import ChandlerMessageFactory as _
@@ -951,7 +952,7 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             return share.contents
 
         except zanshin.http.HTTPError, err:
-            if not share.isStale():
+            if not isDead(share):
                 share.delete(True)
             if err.status == 401:
                 raise NotAllowed(_("You don't have permission"))            
@@ -961,7 +962,7 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             
         except Exception, err:
             logger.exception("Failed to subscribe to %s", url)
-            if not share.isStale():
+            if not isDead(share):
                 share.delete(True)
             raise
 
@@ -1011,7 +1012,7 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
 
         except Exception, err:
             logger.exception("Failed to subscribe to %s", url)
-            if not share.isStale():
+            if not isDead(share):
                 share.delete(True)
             raise
 

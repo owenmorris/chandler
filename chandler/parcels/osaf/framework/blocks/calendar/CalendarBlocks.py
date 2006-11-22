@@ -32,7 +32,7 @@ from osaf.framework import Preferences
 import osaf.pim as pim
 import CalendarCanvas
 import osaf.pim.calendar.Calendar as Calendar
-from osaf.pim import EventStamp, has_stamp
+from osaf.pim import EventStamp, has_stamp, isDead
 from datetime import datetime, date, time, timedelta
 from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
@@ -794,10 +794,10 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
     @staticmethod
     def SortForPreview(event1, event2):
-        if event1.itsItem.isStale() or event2.itsItem.isStale():
+        if isDead(event1.itsItem) or isDead(event2.itsItem):
             # sort stale or deleted items first, False < True
-            return cmp(not event1.itsItem.isStale(),
-                       not event2.itsItem.isStale())
+            return cmp(not isDead(event1.itsItem),
+                       not isDead(event2.itsItem))
         if (event1.anyTime or event1.allDay) and (event2.anyTime or event2.allDay):
             return cmp(event1.summary, event2.summary)
         if event1.anyTime or event1.allDay:

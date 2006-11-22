@@ -21,7 +21,7 @@ __parcel__ = "osaf.framework.blocks.calendar"
 import wx
 import wx.colheader
 
-from chandlerdb.util.c import issingleref
+from osaf.pim import isDead
 from repository.item.Monitors import Monitors
 from repository.item.Item import MissingClass
 from chandlerdb.item.ItemError import NoSuchItemInCollectionError
@@ -274,14 +274,14 @@ class CalendarSelection(schema.Annotation):
             return False
 
         for item in self.selectedOccurrences:
-            if not (item is None or issingleref(item)):
+            if not isDead(item):
                 return False
 
         return True
     
     def iterSelection(self):
         for item in self.selectedOccurrences:
-            if not (item is None or issingleref(item)):
+            if not isDead(item):
                 # we could remove Nones and singlerefs, but to do that we'd
                 # have to create a separate list (can't remove from a set while
                 # iterating it), and that wouldn't be compatible with being a
