@@ -23,7 +23,7 @@ import wx
 from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
-from osaf.pim import EventStamp, Stamp, has_stamp
+from osaf.pim import EventStamp, Stamp, has_stamp, isDead
 
 logger = logging.getLogger(__name__)
 
@@ -409,9 +409,27 @@ class OccurrenceProxy(object):
     
     def propagateChange(self, name, value):
         proxiedEvent = EventStamp(self.proxiedItem)
+        
+        master = proxiedEvent.getMaster()
+        isFirst = (proxiedEvent != master and
+                   proxiedEvent.recurrenceID == master.effectiveStartTime)
+            
+        
         table = {'this'          : proxiedEvent.changeThis,
                  'thisandfuture' : proxiedEvent.changeThisAndFuture}
         table[self.currentlyModifying](name, value)
+        
+        # If the recurrence change caused our item to get deleted, and
+        # we were the first occurrence, try to make our item point to
+        # the new occurrence instead. This takes care of the case where
+        # the recurrence proxy has been asked to make two THISANDFUTURE
+        # changes on an event, like Bug 7448.
+        #
+        if isDead(self.proxiedItem) and isFirst and not isDead(master):
+            newEvent = master.getRecurrenceID(master.effectiveStartTime)
+            
+            if newEvent is not None:
+                self.proxiedItem = newEvent.itsItem
 
     def propagateDelete(self, collection):
         proxiedEvent = EventStamp(self.proxiedItem)
