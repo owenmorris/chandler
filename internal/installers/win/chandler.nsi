@@ -69,8 +69,8 @@ Page custom PageOldVersion
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "Setup.exe"
-Icon "..\..\..\${DISTRIB_DIR}\icons\Chandler.ico"
-UninstallIcon "..\..\..\${DISTRIB_DIR}\icons\Chandler.ico"
+Icon "..\..\..\${DISTRIB_DIR}\Chandler.egg-info\resources\icons\Chandler.ico"
+UninstallIcon "..\..\..\${DISTRIB_DIR}\Chandler.egg-info\resources\icons\Chandler.ico"
 InstallDir "$PROGRAMFILES\${PRODUCT_NAME}${PRODUCT_VERSION}"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails nevershow
@@ -341,7 +341,6 @@ Section "MainSection" SEC01
   File /r "..\..\..\${DISTRIB_DIR}\${SNAP}"
   File /r "..\..\..\${DISTRIB_DIR}\Chandler.egg-info"
   File /r "..\..\..\${DISTRIB_DIR}\*.egg"
-  File /r "..\..\..\${DISTRIB_DIR}\icons"
   File /r "..\..\..\${DISTRIB_DIR}\i18n"
   File /r "..\..\..\${DISTRIB_DIR}\parcels"
   File /r "..\..\..\${DISTRIB_DIR}\repository"
@@ -349,8 +348,8 @@ Section "MainSection" SEC01
   File /r "..\..\..\${DISTRIB_DIR}\tools"
 
   CreateDirectory "$SMPROGRAMS\Chandler"
-  CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\icons\Chandler.ico" 
-  CreateShortCut "$DESKTOP\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\icons\Chandler.ico"
+  CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\Chandler.egg-info\resources\icons\Chandler.ico" 
+  CreateShortCut "$DESKTOP\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\Chandler.egg-info\resources\icons\Chandler.ico"
 SectionEnd
 
   ; create the uninstall shortcut - done here so that it will only
@@ -422,7 +421,6 @@ Section Uninstall
   RMDir /r "$INSTDIR\crypto"
   RMDir /r "$INSTDIR\${SNAP}"
   RMDir /r "$INSTDIR\Chandler.egg-info"
-  RMDir /r "$INSTDIR\icons"
   RMDir /r "$INSTDIR\i18n"
   RMDir /r "$INSTDIR\parcels"
   RMDir /r "$INSTDIR\repository"
