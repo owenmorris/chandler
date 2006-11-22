@@ -144,7 +144,7 @@
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 			<File
-				RelativePath="..\..\..\..\chandler\icons\Chandler.ico">
+				RelativePath="..\..\..\..\chandler\Chandler.egg-info\resources\icons\Chandler.ico">
 			</File>
 			<File
 				RelativePath=".\winlaunch_bin.rc">

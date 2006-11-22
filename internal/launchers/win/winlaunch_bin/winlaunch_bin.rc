@@ -54,7 +54,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON                    "..\\..\\..\\..\\chandler\\icons\\Chandler.ico"
+IDI_ICON1               ICON                    "..\\..\\..\\..\\chandler\\Chandler.egg-info\\resources\\icons\\Chandler.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -80,13 +80,13 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Open Source Applications Foundation"
             VALUE "FileDescription", "Chandler launcher"
-            VALUE "FileVersion", "0, 5, 7, 0"
+            VALUE "FileVersion", "0, 7, 0, 0"
             VALUE "InternalName", "winlaunch"
-            VALUE "LegalCopyright", "Copyright (c) 2003-2005 Open Source Applications Foundation"
+            VALUE "LegalCopyright", "Copyright (c) 2003-2006 Open Source Applications Foundation"
             VALUE "LegalTrademarks", "Open Source Applications Foundation"
             VALUE "OriginalFilename", "winlaunch.exe"
             VALUE "ProductName", "Chandler"
-            VALUE "ProductVersion", "0, 5, 7, 0"
+            VALUE "ProductVersion", "0, 7, 0, 0"
         END
     END
     BLOCK "VarFileInfo"
