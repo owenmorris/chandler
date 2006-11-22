@@ -38,7 +38,7 @@ class ErrorDialog(wx.Dialog):
         self.this = pre.this
 
         try:
-            icon = wx.Icon("icons/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
+            icon = wx.Icon("Chandler.egg-info/resources/icons/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
             self.SetIcon(icon)
         except:
             pass
