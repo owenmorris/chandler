@@ -107,9 +107,12 @@ class DBContainer(object):
 
         pass
 
-    def put(self, key, value):
+    def put(self, key, value, db=None):
 
-        self._db.put(key, value, self.store.txn)
+        if db is None:
+            db = self._db
+
+        db.put(key, value, self.store.txn)
         return len(key) + len(value)
 
     def delete(self, key, txn=None):
@@ -119,11 +122,14 @@ class DBContainer(object):
         except DBNotFoundError:
             pass
 
-    def get(self, key):
+    def get(self, key, db=None):
+
+        if db is None:
+            db = self._db
 
         while True:
             try:
-                return self._db.get(key, self.store.txn, self._flags, None)
+                return db.get(key, self.store.txn, self._flags, None)
             except DBLockDeadlockError:
                 self.store._logDL()
                 if self.store.txn is not None:
@@ -1683,9 +1689,10 @@ class ValueContainer(DBContainer):
     # 0.6.6: added support for dictionaries of ref collections
     # 0.6.7: version back to unsigned long
     # 0.6.8: added commits log db
-    # 0.6.9: Term vectors now stored in Lucene indexes
+    # 0.6.9: Term vectors stored in Lucene indexes
+    # 0.6.10: FileContainer changed to contain both file info and data blocks
 
-    FORMAT_VERSION = 0x00060900
+    FORMAT_VERSION = 0x00060a00
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)

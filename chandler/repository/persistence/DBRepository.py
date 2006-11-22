@@ -35,8 +35,7 @@ from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.persistence.DBContainer import \
     DBContainer, RefContainer, NamesContainer, ACLContainer, IndexesContainer, \
     ItemContainer, ValueContainer, CommitsContainer
-from repository.persistence.FileContainer import \
-    FileContainer, BlockContainer, IndexContainer, LOBContainer
+from repository.persistence.FileContainer import IndexContainer, LOBContainer
 from repository.persistence.DBItemIO import \
     DBItemReader, DBItemPurger, DBValueReader, DBItemWriter, DBItemUndo
 
@@ -735,7 +734,6 @@ class DBStore(Store):
         self._refs = RefContainer(self)
         self._names = NamesContainer(self)
         self._lobs = LOBContainer(self)
-        self._blocks = BlockContainer(self)
         self._index = IndexContainer(self)
         self._acls = ACLContainer(self)
         self._indexes = IndexesContainer(self)
@@ -757,7 +755,6 @@ class DBStore(Store):
             self._refs.open("__refs.db", txn, **kwds)
             self._names.open("__names.db", txn, **kwds)
             self._lobs.open("__lobs.db", txn, **kwds)
-            self._blocks.open("__blocks.db", txn, **kwds)
             self._index.open("__index.db", txn, **kwds)
             self._acls.open("__acls.db", txn, **kwds)
             self._indexes.open("__indexes.db", txn, **kwds)
@@ -778,7 +775,6 @@ class DBStore(Store):
         self._refs.close()
         self._names.close()
         self._lobs.close()
-        self._blocks.close()
         self._index.close()
         self._acls.close()
         self._indexes.close()
@@ -791,7 +787,6 @@ class DBStore(Store):
         self._refs.attachView(view)
         self._names.attachView(view)
         self._lobs.attachView(view)
-        self._blocks.attachView(view)
         self._index.attachView(view)
         self._acls.attachView(view)
         self._indexes.attachView(view)
@@ -804,7 +799,6 @@ class DBStore(Store):
         self._refs.detachView(view)
         self._names.detachView(view)
         self._lobs.detachView(view)
-        self._blocks.detachView(view)
         self._index.detachView(view)
         self._acls.detachView(view)
         self._indexes.detachView(view)
@@ -852,7 +846,6 @@ class DBStore(Store):
         compact(self._refs)
         compact(self._names)
         compact(self._lobs)
-        compact(self._blocks)
         compact(self._index)
         compact(self._acls)
         compact(self._indexes)

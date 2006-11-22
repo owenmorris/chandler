@@ -32,6 +32,22 @@ from repository.persistence.RepositoryError import RepositoryError
 
 class FileContainer(DBContainer):
 
+    def open(self, name, txn, **kwds):
+
+        super(FileContainer, self).open(name, txn, dbname = 'files', **kwds)
+
+        self._blocks = self.openDB(txn, name, 'blocks',
+                                   kwds.get('ramdb', False),
+                                   kwds.get('create', False))
+
+    def close(self):
+
+        if self._blocks is not None:
+            self._blocks.close()
+            self._blocks = None
+
+        super(FileContainer, self).close()
+
     def createFile(self, name):
 
         return OutputStream(self, name, True)
@@ -110,10 +126,6 @@ class FileContainer(DBContainer):
             length = file.getLength()
 
         file.modify(length, long(time() * 1000))
-
-
-class BlockContainer(DBContainer):
-    pass
 
 
 class LOBContainer(FileContainer):
@@ -195,22 +207,23 @@ class File(object):
 
         count = 0
         cursor = None
-        blocks = self._container.store._blocks
+        container = self._container
+        blocks = container._blocks
         
         try:
-            cursor = blocks.openCursor()
+            cursor = container.openCursor(blocks)
             key = self.getKey()._uuid
             
-            value = cursor.set_range(key, blocks._flags, None)
+            value = cursor.set_range(key, container._flags, None)
             while value is not None and value[0].startswith(key):
                 cursor.delete()
                 count += 1
-                value = cursor.next(blocks._flags, None)
+                value = cursor.next(container._flags, None)
 
-            self._container.delete(self._key)
+            container.delete(self._key)
 
         finally:
-            blocks.closeCursor(cursor)
+            container.closeCursor(cursor, blocks)
 
         return count
 
@@ -255,7 +268,8 @@ class Block(object):
 
         if self._data is None or key != self._key:
             self._key = key
-            data = self._container.get(self._key)
+            container = self._container
+            data = container.get(self._key, container._blocks)
 
             if data is not None:
                 if write:
@@ -271,9 +285,10 @@ class Block(object):
     def put(self):
 
         if self._data is not None:
+            container = self._container
             data = self._data.getvalue()
             self._data.close()
-            self._container.put(self._key, data)
+            container.put(self._key, data, container._blocks)
 
 
 class OutputStream(object):
@@ -288,7 +303,7 @@ class OutputStream(object):
 
         self._container = container
         self._file = File(container, name, create)
-        self._block = Block(container.store._blocks, self._file)
+        self._block = Block(container, self._file)
         self.length = self._file.getLength()
         self.position = 0
 
@@ -363,7 +378,7 @@ class InputStream(object):
             raise RepositoryError, "File does not exist: %s" %(name)
 
         self.length = self._file.getLength()
-        self._block = Block(container.store._blocks, self._file)
+        self._block = Block(container, self._file)
 
         self.seek(0L)
         
@@ -426,14 +441,15 @@ class IndexContainer(FileContainer):
         super(IndexContainer, self).open(name, txn, **kwds)
 
         if kwds.get('create', False):
-            directory = DbDirectory(txn, self._db, self.store._blocks._db,
-                                    self._flags)
+            directory = DbDirectory(txn, self._db, self._blocks, self._flags)
             indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
             indexWriter.close()
+            directory.close()
 
     def getIndexVersion(self):
 
-        value = self.get(ValueContainer.VERSION_KEY)
+        value = self.get(ValueContainer.VERSION_KEY, self._blocks)
+
         if value is None:
             return 0
         else:
@@ -441,12 +457,11 @@ class IndexContainer(FileContainer):
 
     def setIndexVersion(self, version):
 
-        self.put(ValueContainer.VERSION_KEY, pack('>l', version))
+        self.put(ValueContainer.VERSION_KEY, pack('>l', version), self._blocks)
         
     def getDirectory(self):
 
-        return DbDirectory(self.store.txn, self._db, self.store._blocks._db,
-                           self._flags)
+        return DbDirectory(self.store.txn, self._db, self._blocks, self._flags)
 
     def getIndexReader(self):
 
@@ -467,13 +482,13 @@ class IndexContainer(FileContainer):
 
         try:
             writer.close()
-            dbWriter = IndexWriter(self.getDirectory(),
-                                   StandardAnalyzer(), False)
+            directory = self.getDirectory()
+            dbWriter = IndexWriter(directory, StandardAnalyzer(), False)
             dbWriter.setUseCompoundFile(False)
             dbWriter.addIndexes([writer.getDirectory()])
             dbWriter.close()
             dbWriter.getDirectory().close()
-            writer.getDirectory().close()
+            directory.close()
         except JavaError, e:
             je = e.getJavaException()
             msg = je.getMessage()
