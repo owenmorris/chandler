@@ -545,7 +545,13 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             self.Draw(dc)
 
     def _getItem(self, event):
-        """Return the appropriate item, or None for the expand/contract line."""
+        """
+        Return the appropriate item, None if there are no items, or -1 for the
+        expand/contract line.
+        
+        """
+        if len(self.currentDaysItems) == 0:
+            return None
         maxEvents = schema.ns("osaf.framework.blocks.calendar",
                      self.blockItem.itsView).previewPrefs.maximumEventsDisplayed
 
@@ -557,7 +563,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         if (dayLength > maxEvents and ((not self.maximized and
                                         pos == maxEvents - 1) or
                                        (self.maximized and pos == dayLength))):
-            return None
+            return -1
         else:
             pos = max(0, pos)
             pos = min(len(self.currentDaysItems) - 1, pos)
@@ -569,9 +575,11 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
     def OnDClick(self, event):
         item = self._getItem(event)
-        if item is None:
+        if item == -1:
             self.ExpandOrContract()
             return
+        elif item is None:
+            return        
         self._avoidDrawing = True
         # Select the calendar filter
         self.blockItem.postEventByName ('ApplicationBarEvent', {})
@@ -586,8 +594,10 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
     def OnClick(self, event):
         item = self._getItem(event)
-        if item is None:
+        if item == -1:
             self.ExpandOrContract()
+            return
+        elif item is None:
             return
         sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
         sidebarBPB.childrenBlocks.first().postEventByName (
