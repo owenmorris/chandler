@@ -41,7 +41,7 @@ class TestMulti(ChandlerTestCase):
         
         ap.CreateAccount("IMAP")
         ap.TypeValue("displayName", uw("Personal IMAP"))
-        ap.TypeValue("email", "demo1@osaofundation.org")
+        ap.TypeValue("email", "demo1@osafoundation.org")
         ap.TypeValue("name", uw("Demo One"))
         ap.TypeValue("host", "imap.osafoundation.org")
         ap.TypeValue("username", "demo1")
