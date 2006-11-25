@@ -70,7 +70,7 @@ def run(options):
     treeName     = options.tree
     buildName    = options.build
     fromAddr     = "builds@osafoundation.org"
-    toAddr       = options.toAddr
+    toAddr       = options.toAddr + options.toDomain
     toDomain     = options.toDomain
     smtpOutbound = "smtp.osafoundation.org"
     logFile      = options.logfile
