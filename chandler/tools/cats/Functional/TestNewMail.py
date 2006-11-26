@@ -24,8 +24,8 @@ class TestNewMail(ChandlerTestCase):
         mail = QAUITestAppLib.UITestItem("MailMessage", self.logger)
         
         # action
-        mail.SetAttr(displayName=uw("Invitation Mail"), toAddress="demo2@osafoundation.org", body=uw("This is an email to invite you"))
+        mail.SetAttr(displayName=uw("Invitation Mail"), toAddress="chandler_testuser@yahoo.com", body=uw("This is an email to invite you"))
         mail.SendMail()
         
         # verification
-        mail.Check_DetailView({"displayName":uw("Invitation Mail"),"toAddress":"demo2@osafoundation.org","body":uw("This is an email to invite you")})
+        mail.Check_DetailView({"displayName":uw("Invitation Mail"),"toAddress":"chandler_testuser@yahoo.com","body":uw("This is an email to invite you")})
