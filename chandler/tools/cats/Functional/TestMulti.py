@@ -75,7 +75,7 @@ class TestMulti(ChandlerTestCase):
         # action -- Stamp as Mail message
         note.StampAsMailMessage(True)
         # action -- Set attributes for mail sending
-        note.SetAttr(toAddress="chandler_testuser@yahoo.com")
+        note.SetAttr(toAddress="demo2@osafoundation.org")
         # action -- Send the Mail message
         note.SendMail()
         # action -- Stamp as Calendar message
@@ -92,6 +92,6 @@ class TestMulti(ChandlerTestCase):
         # verification -- Test Stamps
         note.Check_DetailView({"stampMail":True,"stampEvent":True})
         # verification -- Test Mail Attributes
-        note.Check_DetailView({"toAddress":"chandler_testuser@yahoo.com"})
+        note.Check_DetailView({"toAddress":"demo2@osafoundation.org"})
         # verification -- Test Calendar Event Attributes ## Notice that Chandler takes recurrenceEnd="9/14/2005" but the viewer fixes this to display as "9/14/05"
         note.Check_DetailView({"displayName":uw("Test Note in TestCollection"), "body":uw("This is the body, can i give it \n for new line.")})
