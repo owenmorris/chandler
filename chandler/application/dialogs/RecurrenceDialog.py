@@ -425,7 +425,7 @@ class OccurrenceProxy(object):
         # the recurrence proxy has been asked to make two THISANDFUTURE
         # changes on an event, like Bug 7448.
         #
-        if isDead(self.proxiedItem) and isFirst and not isDead(master):
+        if isDead(self.proxiedItem) and isFirst and not isDead(master.itsItem):
             newEvent = master.getRecurrenceID(master.effectiveStartTime)
             
             if newEvent is not None:
