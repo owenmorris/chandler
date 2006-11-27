@@ -27,7 +27,7 @@ allVariations = ["normal", "rollover", "selected", "rolloverselected", "mousedow
 
 class BitmapInfo(object):
     __slots__ = (['stateName'] + allVariations +
-                 map(lambda x: x + "Bitmap", allVariations))
+                 [ x+"Bitmap" for x in allVariations ])
     def __init__(self, **kwds):
         for (k, v) in kwds.items():
             setattr(self, k, v)
