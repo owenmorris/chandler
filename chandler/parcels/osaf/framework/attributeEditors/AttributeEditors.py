@@ -722,12 +722,14 @@ class AENonTypeOverTextCtrl(DragAndDropTextCtrl):
 
 class AETypeOverTextCtrl(wxRectangularChild):
     def __init__(self, parent, id, title=u'', position=wx.DefaultPosition,
-                 size=wx.DefaultSize, maxLineCount=1, style=0, *args, **keys):
+                 size=wx.DefaultSize, maxLineCount=1, style=0, delegate=None, *args, **keys):
         super(AETypeOverTextCtrl, self).__init__(parent, id)
         staticSize = keys['staticSize']
         del keys['staticSize']
         self.hideLoc = (-100,-100)
         self.showLoc = (0,0)
+        self.modelData = title
+        self.delegate = delegate
 
         assert maxLineCount > 0
         size.height *= maxLineCount
@@ -742,11 +744,12 @@ class AETypeOverTextCtrl(wxRectangularChild):
         editControl.Bind(wx.EVT_LEFT_DOWN, self.OnEditClick)
         editControl.Bind(wx.EVT_LEFT_DCLICK, self.OnEditClick)
         editControl.Bind(wx.EVT_KEY_UP, self.OnEditKeyUp)
-        staticControl = AEStaticText(self, -1, pos=position, 
-                                                      size=staticSize, style=style, 
-                                                      *args, **keys)
+
+        staticControl = AEStaticText(self, -1, pos=position, size=staticSize,
+                                     style=style, *args, **keys)
         self.staticControl = staticControl
         staticControl.Bind(wx.EVT_LEFT_DOWN, self.OnStaticClick)
+
         self.shownControl = staticControl
         self.otherControl = editControl
         self.shownControl.Move(self.showLoc)
@@ -823,14 +826,22 @@ class AETypeOverTextCtrl(wxRectangularChild):
             hiddenControl = controlToShow
             shownControl = self.shownControl
             self.Freeze()
-            hiddenValue = hiddenControl.GetValue()
-            shownValue = shownControl.GetValue()
-            if shownValue != hiddenValue:
-                hiddenControl.SetValue(shownValue)
+            swappingToStatic = False
+            if shownControl is self.editControl:
+                self.modelData = shownControl.GetValue()
+                swappingToStatic = True
+            if self.delegate is not None and swappingToStatic:
+                self.delegate.delegate(self.staticControl, self.modelData)
+            else:
+                hiddenValue = hiddenControl.GetValue()
+                shownValue = shownControl.GetValue()
+                if shownValue != hiddenValue:
+                    # self.swapDelegate(shownValue)
+                    hiddenControl.SetValue(self.modelData)
             if hiddenControl is self.staticControl:
                 dc = wx.ClientDC(self.editControl)
                 assert (dc is not None)
-                tooltipText = self.editControl.GetValue()
+                tooltipText = self.modelData
                 (renderedStringWidth, ignoredHeight) = dc.GetTextExtent(tooltipText)
                 if self.editControl.GetClientSize().width > renderedStringWidth:
                     tooltipText = u''
@@ -871,9 +882,21 @@ class AETypeOverTextCtrl(wxRectangularChild):
             else:
                 sizeChangedMethod()
 
+    def GetValue(self):
+        if self.shownControl is self.editControl:
+            return self.shownControl.GetValue()
+        else:
+            return self.modelData
+
+    def SetValue(self, *args):
+        assert isinstance(args[0], basestring)
+        self.modelData = args[0]
+        if self.delegate is not None and self.shownControl is self.staticControl:
+            self.delegate.delegate(self.staticControl, self.modelData)
+        else:
+            self.shownControl.SetValue(self.modelData)
+
     def GetInsertionPoint(self): return self.shownControl.GetInsertionPoint()
-    def GetValue(self): return self.shownControl.GetValue()
-    def SetValue(self, *args): return self.shownControl.SetValue(*args)
     def SetForegroundColour(self, *args): self.shownControl.SetForegroundColour(*args)
     def onCopyEventUpdateUI(self, *args): self.shownControl.onCopyEventUpdateUI(*args)
     def onCopyEvent(self, *args): self.shownControl.onCopyEvent(*args)
@@ -909,6 +932,12 @@ class AETypeOverTextCtrl(wxRectangularChild):
     
     def SetEditable(self, editable):
         self.editControl.SetEditable(editable)
+
+    def SetDelegate(self, delegate):
+        self.delegate = delegate
+
+    def GetDelegate(self):
+        return self.delegate
 
 class wxAutoCompleter(wx.ListBox):
     """
@@ -1039,6 +1068,9 @@ class StringAttributeEditor (BaseAttributeEditor):
     Supports sample text.
     """
 
+    def __init__(self, delegate=None, *args, **kwargs):
+        self.delegate = delegate
+
     def EditInPlace(self):
         try:
             editInPlace = self.presentationStyle.editInPlace
@@ -1158,9 +1190,8 @@ class StringAttributeEditor (BaseAttributeEditor):
             except AttributeError:
                 maxLineCount = 1
             control = AETypeOverTextCtrl(parentWidget, id, '', wx.DefaultPosition, 
-                                         size, maxLineCount, style, 
-                                         staticSize=wx.Size(width, staticHeight)
-                                         )
+                                         size, maxLineCount, style, delegate = self.delegate,
+                                         staticSize=wx.Size(width, staticHeight))
             bindToControl = control.editControl
         else:
             style |= wx.TE_AUTO_SCROLL
@@ -1172,7 +1203,7 @@ class StringAttributeEditor (BaseAttributeEditor):
                 style |= wx.TE_MULTILINE
             else:
                 style |= wx.TE_PROCESS_ENTER
-                
+
             control = AENonTypeOverTextCtrl(parentWidget, id, '', wx.DefaultPosition, 
                                             size, style)
             bindToControl = control
@@ -2117,6 +2148,45 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
         else:
             value = u''
         return value
+
+    def shortenAddressList(self, list, control):
+        """
+        Parse a string with a list of email addresses (no validity check, just
+        commas) and return both a new string with a list that will fit in the
+        given control's bounds, and the number of omitted addresses, in a tuple.
+        """
+        (ign, addressList, ign2) = Mail.EmailAddress.parseEmailAddresses(self.item, list)
+        unrenderedCount = len(addressList)
+        addrString = u''
+        if unrenderedCount > 0:
+            (controlWidth, controlHeight) = control.GetClientSize()
+
+            # conservatively allow for the scrollbar; there seemt o be no way to
+            # determine the width of the scrollbar emplyed by a multi-line text field.
+            # Smaller numbers are more conservative.
+            controlWidth -= 22;
+
+            # maintain two strings: addrOnlyString, which contains
+            # a list of addresses separated by ',', and addrString,
+            # which has a similar list, with a "+N" at the end.
+            # addrOnlyString is kept so that the next address can
+            # simply be concatenated to the end of it.
+
+            # get the first address from the list and add the "+N"
+            # to the end, if applicable
+            addrString = unicode(addressList.pop(0))
+            unrenderedCount -= 1
+
+            # go through the rest of the addresses, recreating the string and
+            # measuring it until the string is too long to fit in the control
+            for addr in addressList:
+                newAddrString = u'%s, %s [+%d]' % (addrString, unicode(addr), unrenderedCount)
+                if control.GetTextExtent(newAddrString)[0] > controlWidth:
+                    break
+                else:
+                    unrenderedCount -= 1
+                    addrString = newAddrString
+        return (addrString, unrenderedCount)
 
     def SetAttributeValue(self, item, attributeName, valueString):            
         processedAddresses, validAddresses, invalidCount = \
