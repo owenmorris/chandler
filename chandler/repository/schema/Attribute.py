@@ -188,27 +188,6 @@ class Attribute(Item):
 
         self.c.afterChange = self._values
 
-    def findMatch(self, view, matches=None):
-
-        uuid = self._uuid
-
-        if matches is not None:
-            match = matches.get(uuid)
-        else:
-            match = None
-            
-        if match is None:
-            match = view.find(uuid)
-            if match is None:
-                match = view.find(self.itsPath)
-                if not (match is None or matches is None):
-                    if not (self is match or
-                            self.hashItem() == match.hashItem()):
-                        raise SchemaError, ("Attribute matches are incompatible: %s %s", self.itsPath, match.itsPath)
-                    matches[uuid] = match
-
-        return match
-
     valueAspects = ('required', 'indexed', 'notify',
                     'cardinality', 'defaultValue', 'initialValue',
                     'inheritFrom', 'redirectTo', 'otherName', 'afterChange',

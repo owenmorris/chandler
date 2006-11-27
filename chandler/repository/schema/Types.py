@@ -59,19 +59,6 @@ class TypeKind(Kind):
         except KeyError:
             TypeHandler.typeHandlers[view] = { None: self }
 
-    def onItemImport(self, view):
-
-        if view is not self.itsView:
-            try:
-                del TypeHandler.typeHandlers[self.itsView][None]
-            except KeyError:
-                pass
-
-            try:
-                TypeHandler.typeHandlers[view][None] = self
-            except KeyError:
-                TypeHandler.typeHandlers[view] = { None: self }
-
     def onViewClear(self, view):
 
         TypeHandler.clear(view)
@@ -141,12 +128,6 @@ class Type(Item):
 
     def onItemCopy(self, view, orig):
         self._registerTypeHandler(self.getImplementationType(), view)
-
-    def onItemImport(self, view):
-        if view is not self.itsView:
-            implementationType = self.getImplementationType()
-            self._unregisterTypeHandler(implementationType, self.itsView)
-            self._registerTypeHandler(implementationType, view)
 
     def getImplementationType(self):
         return self.getAttributeValue('implementationTypes',
@@ -258,13 +239,6 @@ class String(StringType):
 
         super(String, self).onItemCopy(view, orig)
         self._registerTypeHandler(str, view)
-
-    def onItemImport(self, view):
-
-        super(String, self).onItemImport(view)
-        if view is not self.itsView:
-            self._unregisterTypeHandler(str, self.itsView)
-            self._registerTypeHandler(str, view)
 
     def getImplementationType(self):
 

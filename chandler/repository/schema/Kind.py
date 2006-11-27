@@ -931,27 +931,6 @@ class Kind(Item):
         if 'schemaHash' in self._values:
             del self.schemaHash
 
-    def findMatch(self, view, matches=None):
-
-        uuid = self.itsUUID
-
-        if matches is not None:
-            match = matches.get(uuid)
-        else:
-            match = None
-            
-        if match is None:
-            match = view.find(uuid)
-            if match is None:
-                match = view.find(self.itsPath)
-                if not (match is None or matches is None):
-                    if not (self is match or
-                            self.hashItem() == match.hashItem()):
-                        raise SchemaError, ("kind matches are incompatible: %s %s", self.itsPath, match.itsPath)
-                    matches[uuid] = match
-
-        return match
-
     def _printItemBody(self, _level):
 
         print ' ' * (_level + 2), "attributes for this kind:"

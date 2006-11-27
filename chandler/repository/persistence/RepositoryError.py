@@ -149,23 +149,3 @@ class SaveValueError(RepositoryError):
 
     def __str__(self):
         return self.__doc__ %(self.args[1], self.args[0]._repr_(), self.args[2])
-
-
-class ItemImportError(RepositoryError):
-    __doc__ = "While importing %s into %s, %s"
-
-    def __str__(self):
-        return self.__doc__ %(self.args[0], self.args[1], self.args[2])
-
-
-class ImportParentError(ItemImportError):
-    __doc__ = "No matching import parent %s for %s found"
-
-    def __str__(self):
-        return self.__doc__ %(self.args[0].itsPath, self.args[1]._repr_())
-
-class ImportKindError(ItemImportError):
-    __doc__ = "No matching import kind %s for %s found"
-
-    def __str__(self):
-        return self.__doc__ %(self.args[0].itsPath, self.args[1]._repr_())

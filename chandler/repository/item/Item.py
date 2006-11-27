@@ -1195,46 +1195,6 @@ class Item(CItem):
         else:
             self._status &= ~Item.PINNED
 
-    def _collectItems(self, items, filter=None):
-
-        def collectItems(item):
-            parent = item.itsParent
-            if isitem(parent) and not parent in items:
-                if filter is None or filter(parent) is True:
-                    return collectItems(parent)
-
-            def collectChildren(_item):
-                if not _item in items:
-                    if filter is None or filter(_item) is True:
-                        items.add(_item)
-                    for child in _item.iterChildren():
-                        collectItems(child)
-
-            def collectReferences(_item):
-                def collectOther(__item):
-                    if __item not in items:
-                        if filter is None or filter(__item) is True:
-                            collectItems(__item)
-                    
-                for key, value in _item._references._dict.items():
-                    if value is not None:
-                        if value._isRefs():
-                            for other in value:
-                                collectOther(other)
-                        else:
-                            if isuuid(value):
-                                value = self.find(value)
-                            collectOther(value)
-
-            collectChildren(item)
-            collectReferences(item)
-            kind = item._kind
-            if not (kind is None or kind in items):
-                if filter is None or filter(kind) is True:
-                    collectItems(kind)
-
-        collectItems(self)
-
     def getItemCloud(self, cloudAlias, items=None, trace=None):
         """
         Get the items in a cloud by using this item as entrypoint.
@@ -1588,26 +1548,6 @@ class Item(CItem):
         elif op == 'delete':
             deletePolicy, = args
             self.delete(True, deletePolicy)
-
-    def _copyExport(self, view, cloudAlias, matches):
-
-        uuid = self._uuid
-
-        if not uuid in matches:
-            kind = self._kind
-            if kind is None:
-                itemParent = self.itsParent
-                parent = itemParent.findMatch(view, matches)
-                if parent is None:
-                    parent = itemParent._copyExport(view, cloudAlias, matches)
-                    if parent is None:
-                        raise ValueError, 'match for parent (%s) not found' %(self.itsParent.itsPath)
-                matches[self._uuid] = self.copy(self._name, parent)
-            else:
-                for cloud in kind.getClouds(cloudAlias):
-                    cloud.exportItems(self, view, cloudAlias, matches)
-
-        return matches[uuid]
 
     def getItemDisplayName(self):
         """
@@ -2282,24 +2222,6 @@ class Item(CItem):
             raise TypeError, '%s is not UUID or string' %(type(uuid))
 
         return self.itsView.find(uuid, load)
-
-    def findMatch(self, view, matches=None):
-
-        uuid = self._uuid
-
-        if matches is not None:
-            match = matches.get(uuid)
-        else:
-            match = None
-            
-        if match is None:
-            match = view.find(uuid)
-            if match is None and self._name is not None:
-                match = view.find(self.itsPath)
-                if not (match is None or matches is None):
-                    matches[uuid] = match
-
-        return match
 
     def unloadItem(self):
         

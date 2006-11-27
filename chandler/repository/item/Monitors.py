@@ -28,17 +28,6 @@ class Monitors(Item):
         view.MONITORING = False
         view.setSingleton(view.MONITORS, self)
 
-    def onItemImport(self, view):
-
-        if view is not self.itsView:
-            view.setSingleton(view.MONITORS, None)
-            view.MONITORING = False
-
-            self.setPinned()
-            view = self.itsView
-            view.MONITORING = False
-            view.setSingleton(view.MONITORS, self)
-
     def onViewClear(self, view):
 
         view.setSingleton(view.MONITORS, None)

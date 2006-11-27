@@ -441,13 +441,8 @@ class References(Values):
                                    item, name, other)
 
             otherView = other.itsView
-            if not (otherView is view or
-                    item._isImporting() or
-                    other._isImporting()):
-                if otherView._isNullView() or view._isNullView():
-                    view.importItem(other)
-                else:
-                    raise ViewMismatchError, (item, other)
+            if otherView is not view:
+                raise ViewMismatchError, (item, other)
                     
             if otherName in other._references:
                 value = other._references._getRef(otherName, None, name)
@@ -1011,48 +1006,6 @@ class References(Values):
             return False
 
         return True
-
-    def _import(self, view, items, replace):
-
-        item = self._item
-        itemView = item.itsView
-        sameType = type(view) is type(itemView)
-
-        for key, value in self._dict.items():
-            if value is not None:
-                if value._isRefs():
-                    if sameType:
-                        previous = None
-                        for other in value:
-                            if other not in items:
-                                alias = value.getAlias(other)
-                                value.remove(other)
-                                localOther = other.findMatch(view, replace)
-                                if localOther is not None:
-                                    value.insertItem(localOther, previous)
-                                    if alias is not None:
-                                        value.setAlias(other, alias)
-                    else:
-                        localValue = view._createRefList(item, value._name, value._otherName, None, False, True, UUID())
-                        value._copyIndexes(localValue)
-                        for other in value:
-                            if other in items:
-                                localValue._setRef(other, value.getAlias(other))
-                            else:
-                                localOther = other.findMatch(view, replace)
-                                if localOther is not None:
-                                    localValue.append(localOther,
-                                                      value.getAlias(other))
-                                value.remove(other)
-                        item._references[key] = localValue
-                else:
-                    if isuuid(value):
-                        value = itemView.find(value)
-                    if value not in items:
-                        localOther = value.findMatch(view, replace)
-                        item.removeAttributeValue(key)
-                        if localOther is not None:
-                            item.setAttributeValue(key, localOther)
 
     def _collectChanges(self, view, flag, dirties,
                         newChanges, changes, indexChanges, version, newVersion):

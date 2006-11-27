@@ -256,52 +256,6 @@ class Cloud(Item):
         for item in deleting:
             deleteItem(item)
 
-    def exportItems(self, item, view, cloudAlias, matches):
-
-        items = {}
-        references = {}
-
-        exporting = self.getItems(item, cloudAlias, items, references)
-
-        def exportOther(copy, other, policy, force=False):
-            if other is None:
-                return None
-
-            uuid = other._uuid
-            if (force and other._isCopyExport() or
-                uuid in items or uuid in references):
-                
-                match = other.findMatch(view, matches)
-                if match is not None:
-                    return match
-
-                elif other._isCopyExport():
-                    otherParent = other.itsParent
-                    parent = otherParent.findMatch(view, matches)
-                    if parent is None:
-                        parent = exportOther(None, otherParent, None, True)
-                        if parent is None or parent is Nil:
-                            raise ValueError, 'export parent (%s) not found while exporting %s: %s' %(otherParent.itsPath, other.itsPath, parent)
-                    otherKind = other.itsKind
-                    if otherKind is not None:
-                        kind = otherKind.findMatch(view, matches)
-                        if kind is None:
-                            kind = exportOther(None, otherKind, None, True)
-                            if kind is None or kind is Nil:
-                                raise ValueError, 'export kind (%s) not found while exporting %s: %s' %(otherKind.itsPath, other.itsPath, otherKind)
-                    else:
-                        kind = None
-
-                    return other.copy(other._name, parent, matches, 'remove',
-                                      None, exportOther, kind)
-                else:
-                    return other
-
-            return Nil
-
-        for item in exporting:
-            exportOther(None, item, None)
-
     def getAttributeEndpoints(self, attrName, index=0, cloudAlias=None):
 
         endpoints = []

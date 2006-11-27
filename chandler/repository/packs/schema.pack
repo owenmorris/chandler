@@ -31,15 +31,6 @@
 
     <item path="//Schema/Core" cwd="model" afterLoadHooks="True">
       <item file="Pack.kind" />
-      <item file="Clouds.namespace" cwd="clouds">
-        <item file="Kind.cloud" />
-        <item file="Attribute.cloud" />
-        <item file="Item.cloud" />
-        <item file="Struct.cloud" />
-        <item file="Cloud.cloud" />
-        <item file="Endpoint.cloud" />
-      </item>
-
       <item file="Mixins.namespace" />
 
       <item file="items.namespace" cwd="items">

@@ -68,8 +68,9 @@ class RepositoryView(CView):
     # 0.6.14: added support for 'init' monitor op
     # 0.6.15: added IndexMonitor class
     # 0.6.16: added support for python's decimal.Decimal type
+    # 0.6.17: removed item import/export code and clouds
     
-    CORE_SCHEMA_VERSION = 0x00061000
+    CORE_SCHEMA_VERSION = 0x00061100
 
     def __init__(self, repository, name, version, deferDelete=Default):
         """
@@ -600,10 +601,6 @@ class RepositoryView(CView):
 
         return True
 
-    def findMatch(self, view, matches=None):
-
-        return view
-
     def _findKind(self, spec, withSchema):
 
         return self.find(spec)
@@ -1072,91 +1069,6 @@ class RepositoryView(CView):
     def getItemVersion(self, version, item):
 
         return self.repository.store.getItemVersion(self, version, item.itsUUID)
-
-    def importItem(self, item):
-
-        items = set()
-        view = item.itsView
-        if view is self or item.findMatch(self) is not None:
-            return items
-
-        replace = {}
-
-        def filterItem(_item):
-            if _item.findMatch(self, replace):
-                return False
-
-            if _item._isCopyExport():
-                _item._copyExport(self, 'export', replace)
-                return False
-
-            return True
-
-        item._collectItems(items, filterItem)
-        if not (item in items or item._uuid in replace):
-            if filterItem(item) is True:
-                items.add(item)
-
-        self._importValues(items, replace, view)
-        self._importItems(items, replace, view)
-
-        return items
-
-    def _importValues(self, items, replace, view):
-
-        sameType = type(self) is type(view)
-
-        for item in items:
-            kind = item._kind
-            if not (kind is None or kind in items):
-                uuid = kind._uuid
-                localKind = replace.get(uuid)
-                if localKind is None:
-                    localKind = self.find(uuid)
-                    if localKind is None:
-                        raise ImportKindError, (kind, item)
-                item._kind = localKind
-                localKind._setupClass(type(item))
-
-            try:
-                item._status |= CItem.IMPORTING
-                item._values._import(self)
-                item._references._import(self, items, replace)
-            finally:
-                item._status &= ~CItem.IMPORTING
-    
-    def _importItems(self, items, replace, view):
-
-        sameType = type(self) is type(view)
-
-        def setRoot(root, _item):
-            view._unregisterItem(_item, False)
-            self._registerItem(_item)
-            _item._root = root
-            for child in _item.iterChildren():
-                setRoot(root, child)
-
-        for item in items:
-            if hasattr(type(item), 'onItemImport'):
-                item.onItemImport(self)
-            if not sameType and item.hasChildren():
-                children = self._createChildren(item, True)
-                for child in item.iterChildren():
-                    children._append(child)
-                item._children = children
-            parent = item.itsParent
-            if not parent in items:
-                localParent = parent.findMatch(self, replace)
-                if localParent is None:
-                    raise ImportParentError, (parent, item)
-                if localParent is not parent:
-                    if item.isNew():
-                        parent._removeItem(item)
-                    else:
-                        parent._unloadChild(item)
-                    root = localParent._addItem(item)
-                    item._parent = localParent
-                    setRoot(root, item)
 
     def queueNotification(self, item, op, change, name, other):
 
