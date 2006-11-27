@@ -469,6 +469,11 @@ class OccurrenceProxy(object):
     def getMembershipItem(self):
         """
         When testing an item for membership, what we generally care
-        about is the master event.
+        about is the master event, unless the item is a modification.
         """
-        return EventStamp(self.proxiedItem).getMaster().itsItem.getMembershipItem()
+        event = EventStamp(self.proxiedItem)
+        if event.modificationFor is not None:
+            # modifications should be their own membership item
+            return event.itsItem
+        else:
+            return event.getMaster().itsItem.getMembershipItem()
