@@ -568,9 +568,9 @@ class IndexContainer(FileContainer):
 
             def __init__(_self):
 
+                _self.txnStatus = 0
                 _self.searcher = None
                 _self.collector = None
-                _self.txnStatus = 0
 
             def __del__(_self):
 
@@ -581,9 +581,9 @@ class IndexContainer(FileContainer):
                 except:
                     store.repository.logger.exception("in __del__")
 
+                _self.txnStatus = 0
                 _self.searcher = None
                 _self.collector = None
-                _self.txnStatus = 0
 
             def __iter__(_self):
 

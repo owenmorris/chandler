@@ -17,19 +17,14 @@ from struct import pack, unpack
 from itertools import izip
 from traceback import format_exc
 
-from chandlerdb.item.c import DelegatingIndex
+from chandlerdb.item.c import CIndex, DelegatingIndex
 from chandlerdb.util.c import Nil, Default, SkipList, CLinkedMap
 from PyICU import Collator, Locale
   
 from repository.util.RangeSet import RangeSet
 
 
-class Index(dict):
-
-    def __init__(self, **kwds):
-
-        super(Index, self).__init__()
-        self._count = 0
+class Index(CIndex):
 
     def iterkeys(self, firstKey=None, lastKey=None, backwards=False):
 
@@ -49,27 +44,6 @@ class Index(dict):
 
         if lastKey is not None:
             yield lastKey
-
-    def __iter__(self):
-        return self.iterkeys()
-
-    def clear(self):
-
-        self._count = 0
-        super(Index, self).clear()
-
-    def insertKey(self, key, afterKey):
-        self._count += 1
-
-    def moveKey(self, key, afterKey=None, insertMissing=False):
-        pass
-
-    def moveKeys(self, keys, afterKey=None, insertMissing=False):
-        pass
-
-    def removeKey(self, key):
-        self._count -= 1
-        return True
 
     def getKey(self, n):
         raise NotImplementedError, "%s.getKey" %(type(self))
@@ -95,14 +69,8 @@ class Index(dict):
     def getInitKeywords(self):
         raise NotImplementedError, "%s.getInitKeywords" %(type(self))
 
-    def __len__(self):
-        return self._count
-
     def getUUID(self):
         raise NotImplementedError, "%s.getUUID" %(type(self))
-
-    def __repr__(self):
-        return '<%s: %d>' %(type(self).__name__, self._count)
 
     def isPersistent(self):
         return False

@@ -632,7 +632,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                             self.effectDelete()
 
                         if self._deferDelete:
-                            self.logger.info("Deferring delete in %s", self)
                             self._status |= self.DEFERDEL
 
                         count = len(self._log) + len(self._deletedRegistry)

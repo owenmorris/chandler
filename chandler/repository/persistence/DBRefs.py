@@ -508,44 +508,6 @@ class DBNumericIndex(NumericIndex):
 
         return False
 
-    def __getitem__(self, key):
-
-        node = super(DBNumericIndex, self).get(key, Nil)
-        if node is Nil:
-            node = self._loadKey(key)
-            if node is None:
-                raise KeyError, key
-
-        return node
-
-    def get(self, key, default=None):
-
-        node = super(DBNumericIndex, self).get(key, Nil)
-        if node is Nil:
-            node = self._loadKey(key)
-            if node is None:
-                node = default
-
-        return node
-
-    def __contains__(self, key):
-
-        contains = super(DBNumericIndex, self).__contains__(key)
-        if not contains:
-            node = self._loadKey(key)
-            contains = node is not None
-
-        return contains
-
-    def has_key(self, key):
-
-        has = super(DBNumericIndex, self).has_key(key)
-        if not has:
-            node = self._loadKey(key)
-            has = node is not None
-
-        return has
-
     def isPersistent(self):
 
         return True
