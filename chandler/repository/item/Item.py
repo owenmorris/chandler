@@ -1549,41 +1549,6 @@ class Item(CItem):
             deletePolicy, = args
             self.delete(True, deletePolicy)
 
-    def getItemDisplayName(self):
-        """
-        Return this item's display name.
-
-        By definition, the display name is, in order of precedence:
-            - the value of the C{displayName} attribute
-            - the value of the attribute named by the item's kind
-              C{displayAttribute} attribute
-            - the item's intrinsic name
-            - the item's base64 encoded UUID surrounded by {}
-
-        @return: a unicode
-        """
-
-        if 'displayName' in self._values:
-            return self.displayName
-
-        if self._kind is not None:
-            if 'displayAttribute' in self._kind._values:
-                displayAttribute = self._kind.displayAttribute
-                if self.hasLocalAttributeValue(displayAttribute):
-                    return unicode(self.getAttributeValue(displayAttribute))
-
-        return unicode(self._name or '{%s}' % (self._uuid.str64()))
-
-    def getItemDisplayString(self):
-        """
-        Return a user-readable string representation of this item.
-
-        This method is intended to be overriden.
-        It calls L{getItemDisplayName} by default.
-        """
-
-        return self.getItemDisplayName();
-
     def refCount(self, counted=False, loaded=False):
         """
         Return the number of bi-directional references to this item.

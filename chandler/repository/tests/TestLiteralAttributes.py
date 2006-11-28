@@ -31,6 +31,14 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         kind = self._find('//Schema/Core/Kind')
         itemKind = self._find('//Schema/Core/Item')
         self.assert_(itemKind is not None)
+        attrKind = self._find('//Schema/Core/Attribute')
+        self.assert_(attrKind is not None)
+        stringType = self._find('//Schema/Core/String')
+        self.assert_(stringType is not None)
+
+        attr = attrKind.newItem('testAttr', itemKind, type=stringType)
+        itemKind.attributes.add(attr, 'testAttr')
+        self.assert_(itemKind.getAttribute('testAttr', True) is not None)
 
         kind1 = Kind('kind1', view, kind)
         self.assert_(kind1 is not None)
@@ -48,16 +56,16 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         self.assert_(kind1.hasAttributeAspect('classes','cardinality') and
                      kind1.getAttributeAspect('classes','cardinality') == 'dict')
 
-        # up to here displayName is an unset Chandler attribute
-        self.failUnlessRaises(AttributeError, lambda: item1.displayName)
+        # up to here testAttr is an unset Chandler attribute
+        self.failUnlessRaises(AttributeError, lambda: item1.testAttr)
         # now set the attribute
-        item1.setAttributeValue('displayName', u'myName')
-        self.assertEquals(item1.displayName, u'myName')
+        item1.setAttributeValue('testAttr', u'myName')
+        self.assertEquals(item1.testAttr, u'myName')
         #test __getattr__ and getAttributeValue() access
-        self.assertEquals(item1.displayName, item1.getAttributeValue('displayName'))
+        self.assertEquals(item1.testAttr, item1.getAttributeValue('testAttr'))
         # now remove attribute value
-        item1.removeAttributeValue('displayName')
-        self.failUnlessRaises(AttributeError, lambda: item1.displayName)
+        item1.removeAttributeValue('testAttr')
+        self.failUnlessRaises(AttributeError, lambda: item1.testAttr)
         #TODO need a test for list valued literal attribute
 
         # test dict valued literal attribute

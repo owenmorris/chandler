@@ -15,8 +15,7 @@
       <!-- 
          - plus local attributes below:
          -     superKinds, subKinds, attributes, classes,
-         -     displayAttribute, clouds, otherNames, mixins
-         -     extent
+         -     clouds, otherNames, mixins, extent
         -->
     </ref>
 
@@ -100,24 +99,6 @@
     <attribute name="defaultValue" type="dict">
       <value name="python" type="class">repository.item.Item.Item</value>
     </attribute>
-  </item>
-
-  <item withSchema="True">
-    <name>displayAttribute</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Core/Kind</parent>
-
-    <ref name="kinds" otherName="attributes"
-         cardinality="list" otherCard="list">
-      <ref type="path" otherAlias="displayAttribute">..</ref>
-    </ref>
-
-    <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/Importable</ref>
-
-    <attribute name="cardinality">single</attribute>
-    <attribute name="defaultValue">displayName</attribute>
   </item>
 
   <item withSchema="True">

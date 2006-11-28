@@ -1450,17 +1450,7 @@ inherited by subclasses::
     False
 
 Also note that you can make multiple calls to ``kindInfo()`` in the same
-class::
-
-    >>> class MultipleMetadata(schema.Item):
-    ...     schema.kindInfo(displayAttribute="Foo")
-    ...     schema.kindInfo(description="Bar")
-    >>> schema.itemFor(MultipleMetadata, rv).displayAttribute
-    'Foo'
-    >>> schema.itemFor(MultipleMetadata, rv).description
-    'Bar'
-
-as long as you don't change anything you set in a previous call::
+class as long as you don't change anything you set in a previous call::
 
     >>> class ConflictingMetadata(schema.Item):
     ...     schema.kindInfo(description="Foo")

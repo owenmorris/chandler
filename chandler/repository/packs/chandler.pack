@@ -6,7 +6,6 @@
     <item file="description.attr" />
     <item file="annotations.attr" />
     <item file="references.attr" />
-    <item file="displayName.attr" />
     <item file="Item.kind" />
   </item>
 

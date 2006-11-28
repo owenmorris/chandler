@@ -1055,10 +1055,6 @@ Issues:
    attribute, which would point to another Email Address item.
 
 """
-    schema.kindInfo(
-        displayAttribute = "emailAddress",
-    )
-
     emailAddress = schema.One(
         schema.Text,
         doc = 'The email address.\n\n'
@@ -1176,7 +1172,8 @@ Issues:
         elif self is self.getCurrentMeEmailAddress(self.itsView):
             return messages.ME
         else:
-            return self.getItemDisplayName()
+            return unicode(getattr(self, 'emailAddress', self.itsName) or
+                           self.itsUUID.str64())
 
         """
         Factory Methods

@@ -497,10 +497,10 @@ class AttributeDelegate (ListDelegate):
                         names = redirect.split('.')
                         for name in names [:-1]:
                             item = item.getAttributeValue (name)
-                        actual = item.itsKind.getAttribute (names[-1]).getItemDisplayName()
+                        actual = item.itsKind.getAttribute(names[-1]).itsName
                     else:
                         # non-redirecting attribute, use that title
-                        pass # heading = attribute.getItemDisplayName()
+                        pass # heading = attribute.itsName
         
         if actual and actual != col.heading:
             heading = _(u"%(heading)s (%(actual)s)") % {

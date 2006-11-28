@@ -274,7 +274,8 @@ class ContentItem(schema.Item):
         if self.isStale():
             return super(ContentItem, self).__unicode__()
 
-        return self.getItemDisplayName()
+        return unicode(getattr(self, 'displayName', self.itsName) or
+                       self.itsUUID.str64())
 
     def InitOutgoingAttributes(self):
         """ Init any attributes on ourself that are appropriate for

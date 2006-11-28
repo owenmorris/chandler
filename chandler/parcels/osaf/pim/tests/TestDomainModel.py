@@ -86,7 +86,6 @@ class ContentItemTest(DomainModelTestCase):
         self.assertEqual(genericContentItem.displayName, uw("Test Content Item"))
         self.assertEqual(genericContentItem.context, uw("work"))
         self.assertEqual(genericContentItem.body, uw("Notes appear in the body"))
-        self.assertEqual(genericContentItem.getItemDisplayName(), uw("Test Content Item"))
 
         # Test Calculated basedOn
         self.assertEqual(genericContentItem.getBasedAttributes('body'), ('body',))

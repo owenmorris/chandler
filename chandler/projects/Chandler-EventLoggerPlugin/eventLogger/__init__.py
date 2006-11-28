@@ -88,13 +88,13 @@ class EventLoggingDispatchHook (DispatchHook):
     def logEvent(self, event):
         items = event.arguments.get('items', None)
         if items is not None and len(items) > 0:
-            item_name = items[0].getItemDisplayName()
+            item_name = items[0].displayName
         else:
             item_name = ""
 
         collection = event.arguments.get('collection', None)
         if collection is not None and len(collection) > 0:
-            collection_name = collection.getItemDisplayName()
+            collection_name = collection.displayName
         else:
             collection_name = ""
 

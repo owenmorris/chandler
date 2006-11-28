@@ -405,7 +405,7 @@ class wxTabbedViewContainer(DragAndDrop.DropReceiveWidget,
                 window = view.widget
             else:
                 window = wx.Panel (self, -1)
-            self.AddPage (window, view.getItemDisplayName(), False)
+            self.AddPage (window, repr(view), False)
             selectionIndex = selectionIndex + 1
         self.SetSelection (blockItem.selectionIndex)
         self.Thaw()

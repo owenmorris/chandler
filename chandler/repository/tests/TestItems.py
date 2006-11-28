@@ -35,8 +35,8 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         kind = self._find('//Schema/Core/Item')
         self.assert_(kind is not None)
 
-        # Test getItemDisplayName
-        self.assertEquals(kind.getItemDisplayName(), 'Item')
+        # Test itsName
+        self.assertEquals(kind.itsName, 'Item')
 
         # Test itsPath
         self.assertEquals(str(kind.itsPath), '//Schema/Core/Item')
@@ -47,7 +47,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(item.isItemOf(kind))
         self.failIf(item.isRemote())
         self.failIf(item.hasChildren())
-        self.assertEquals(item.getItemDisplayName(), 'test')
+        self.assertEquals(item.itsName, 'test')
         self.assertItemPathEqual(item, '//test')
         self.assertEquals(item.refCount(), 0)
         self.assert_(item.isNew())
@@ -76,7 +76,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # Test placing children
         child1 = Item('child1', item, kind)
-        self.assertEquals(child1.getItemDisplayName(), 'child1')
+        self.assertEquals(child1.itsName, 'child1')
         self.assertItemPathEqual(child1, '//test/child1')
         self.assert_(item.hasChildren())
         self.assert_(item.hasChild('child1'))
@@ -86,7 +86,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(item.isDirty())
 
         child2 = Item('child2', item, kind)
-        self.assertEquals(child2.getItemDisplayName(), 'child2')
+        self.assertEquals(child2.itsName, 'child2')
         self.assertItemPathEqual(child2, '//test/child2')
         self.assert_(item.hasChildren())
         self.assert_(item.hasChild('child1'))

@@ -90,7 +90,7 @@ class TestI18nFlickr(TestDomainModel.DomainModelTestCase):
             return False
 
         for item in col:
-            if item.getItemDisplayName() == key:
+            if item.displayName == key:
                 return True
         return False
 

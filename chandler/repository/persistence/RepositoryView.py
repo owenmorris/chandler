@@ -69,8 +69,9 @@ class RepositoryView(CView):
     # 0.6.15: added IndexMonitor class
     # 0.6.16: added support for python's decimal.Decimal type
     # 0.6.17: removed item import/export code and clouds
+    # 0.6.18: removed 'displayName' and 'displayAttribute' from core schema
     
-    CORE_SCHEMA_VERSION = 0x00061100
+    CORE_SCHEMA_VERSION = 0x00061200
 
     def __init__(self, repository, name, version, deferDelete=Default):
         """
@@ -738,10 +739,6 @@ class RepositoryView(CView):
         """
 
         return self._roots.getByAlias(name, None, load)
-
-    def getItemDisplayName(self):
-
-        return self.name
 
     def getItemChild(self, name, load=True):
 

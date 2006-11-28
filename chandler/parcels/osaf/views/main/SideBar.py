@@ -1143,7 +1143,7 @@ class SidebarBlock(Table):
         if selectedItem is None or second is not None:
             event.arguments['Enable'] = False
         else:
-            collectionName = selectedItem.getItemDisplayName()
+            collectionName = selectedItem.displayName
 
             allCollection = schema.ns("osaf.pim", self).allCollection
             arguments = {'collection': collectionName,

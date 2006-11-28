@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
-<item update="displayName" type="path">
- <attribute name="displayName">title</attribute>
-  <ref name="type" otherName="typeFor" 
-       type="path" otherCard="list">/Core/Text</ref>
-</item>

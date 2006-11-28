@@ -23,11 +23,12 @@ from repository.schema.TypeHandler import TypeHandler
 
 class Attribute(Item):
     
-    def __init__(self, name, parent, kind):
+    def __init__(self, name, parent, kind, **values):
 
         super(Attribute, self).__init__(name, parent, kind)
         self._status |= Item.SCHEMA | Item.PINNED
         self.c = CAttribute(self)
+        self._setInitialValues(values, True)
 
     def _fillItem(self, *args):
 

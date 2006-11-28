@@ -13,8 +13,6 @@
 
     <ref name="attributes" otherName="kinds" cardinality="list" 
          otherCard="list">
-      <ref alias="displayName" type="path">/Core/displayName</ref>
-
       <!-- 
          - plus local attributes below:
          -     monitors, watchers, watches,

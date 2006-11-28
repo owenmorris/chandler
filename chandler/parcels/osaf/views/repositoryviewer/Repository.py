@@ -37,13 +37,7 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
     def GetElementValues(self, element):
         cellValues = [element.itsName or '(anonymous)']
 
-        name = getattr (element, 'blockName', None)
-        if name is None:
-            method = getattr (type (element), 'getItemDisplayName', None)
-            if method is None:
-                name = u''
-            else:
-                name = method (element)
+        name = getattr (element, 'blockName', u'')
         cellValues.append (name)
 
         name = u''
@@ -82,7 +76,7 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
             else:
                 kind = "(kindless)"
 
-            dn = reference.getItemDisplayName()
+            dn = getattr(reference, 'displayName', reference.itsName) or reference.itsUUID.str64()
 
             # Escape < and > for HTML display
             kind = kind.replace(u"<", u"&lt;").replace(u">", u"&gt;")
@@ -91,10 +85,11 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
             return u"<a href=\"%(url)s\">%(kind)s: %(dn)s</a>" % locals()
 
         try:
-            displayName = item.getItemDisplayName()
-            kind = getattr (item.itsKind, 'itsName', None)
-            if kind is None:
+            displayName = getattr(item, 'displayName', item.itsName) or item.itsUUID.str64()
+            if item.itsKind is None:
                 kind = "(kindless)"
+            else:
+                kind = item.itsKind.itsName
 
             HTMLText = u"<html><body><h5>%s: %s</h5><ul>" % (kind, displayName)
             HTMLText = HTMLText + u"<li><b>Path:</b> %s" % item.itsPath

@@ -41,7 +41,7 @@ policy_values = (
 )
 
 default_schema = {
-    Kind: ('description', 'displayAttribute'),
+    Kind: ('description',),
     Base: ('description',)
 }
 

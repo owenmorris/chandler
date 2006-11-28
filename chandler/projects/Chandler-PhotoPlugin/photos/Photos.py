@@ -33,7 +33,6 @@ _ = MessageFactory("Chandler-PhotoPlugin")
 logger = logging.getLogger(__name__)
 
 class PhotoMixin(pim.ContentItem):
-    schema.kindInfo(displayAttribute="displayName")
     dateTaken = schema.One(schema.DateTimeTZ)
     file = schema.One(schema.Text)
     exif = schema.Mapping(schema.Text, initialValue={})
