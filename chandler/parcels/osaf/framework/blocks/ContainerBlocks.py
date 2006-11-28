@@ -374,52 +374,6 @@ class SplitterWindow(RectangularChild):
                                  style=wxSplitterWindow.CalculateWXStyle(self))
                 
 
-class wxTabbedViewContainer(DragAndDrop.DropReceiveWidget, 
-                            DragAndDrop.ItemClipboardHandler, 
-                            wx.Notebook):
-    def __init__(self, *arguments, **keywords):
-        super (wxTabbedViewContainer, self).__init__ (*arguments, **keywords)
-        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnPageChanging, id=self.GetId())
-
-    def OnPageChanging(self, event):
-        newIndex = event.GetSelection()
-        oldIndex = self.blockItem.selectionIndex
-        if newIndex != oldIndex:
-            blockItem = self.blockItem
-            blockItem.selectionIndex = newIndex
-            blockItem.synchronizeWidget()
-
-    def wxSynchronizeWidget(self, useHints=False):
-        self.Freeze()
-        blockItem = self.blockItem
-        self.DeleteAllPages()
-        oldView = blockItem.childrenBlocks.first()
-        if not oldView is None:
-            oldView.unRender()
-
-        selectionIndex = 0
-        for view in blockItem.views:
-            if selectionIndex == blockItem.selectionIndex:
-                blockItem.childrenBlocks = [view]
-                view.render()
-                window = view.widget
-            else:
-                window = wx.Panel (self, -1)
-            self.AddPage (window, repr(view), False)
-            selectionIndex = selectionIndex + 1
-        self.SetSelection (blockItem.selectionIndex)
-        self.Thaw()
-
-    def CalculateWXStyle(theClass, block):
-        return {
-            'Top': 0,
-            'Bottom': wx.NB_BOTTOM, 
-            'Left': wx.NB_LEFT,
-            'Right': wx.NB_RIGHT,
-        } [block.tabPositionEnum]
-    CalculateWXStyle = classmethod(CalculateWXStyle)
-
-
 class wxViewContainer (wxBoxContainer):
     pass
 
@@ -433,7 +387,6 @@ class ViewContainer(BoxContainer):
     tabPositionEnum = schema.One(
         tabPositionEnumType, initialValue = 'Top',
     )
-    hasTabs = schema.One (schema.Boolean, initialValue = False)
     selectionIndex = schema.One (schema.Integer, initialValue = 0)
     views = schema.Mapping(Block, initialValue = {})
     activeView = schema.One (Block)
@@ -453,14 +406,7 @@ class ViewContainer(BoxContainer):
         else:
             parentWidget = self.frame
 
-        if self.hasTabs:
-            return wxTabbedViewContainer (parentWidget, 
-                                          self.getWidgetID(),
-                                          wx.DefaultPosition,
-                                          (self.size.width, self.size.height),
-                                          style=wxTabbedViewContainer.CalculateWXStyle(self))
-        else:
-            return wxViewContainer (parentWidget)
+        return wxViewContainer (parentWidget)
     
     def onChoiceEventUpdateUI (self, event):
         assert len (self.childrenBlocks) == 1
