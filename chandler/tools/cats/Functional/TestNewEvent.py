@@ -44,7 +44,6 @@ class TestNewEvent(ChandlerTestCase):
         evtSecondDate = mondayPlus(1)
         evtThirdDate = mondayPlus(2)
         evtRecurrenceEnd = mondayPlus(365)
-        evtNextWeek = mondayPlus(7)
         
         # Make sure we're not showing timezones now (we'll put it back below)
         tzPrefs = schema.ns('osaf.app', QAUITestAppLib.App_ns.itsView).TimezonePrefs
@@ -144,25 +143,7 @@ class TestNewEvent(ChandlerTestCase):
             HeadlineBlock=(True, uw("Birthday Party")),
             EditCalendarStartDate=(True, evtThirdDate),
             )
-
-        # Create an event in a future week
-        futureEvent = QAUITestAppLib.UITestItem("Event", self.logger)
-        futureEvent.SetAttr(displayName=uw("Future Weekly"), 
-                            startDate=evtNextWeek, 
-                            startTime="6:00 PM", 
-                            recurrence="Weekly",
-                            body=uw("This is an event in the future"))
-        futureEvent.CheckDisplayedValues("Checking future recurring event",
-            HeadlineBlock=(True, uw("Future Weekly")),
-            EditAllDay=(True, False),
-            EditCalendarStartDate=(True, evtNextWeek),
-            CalendarStartAtLabel=(True,),
-            EditCalendarStartTime=(True, "6:00 PM"),
-            EditCalendarEndDate=(True, evtNextWeek),
-            CalendarEndAtLabel=(True,),
-            EditCalendarEndTime=(True, "7:00 PM"),
-            NotesBlock=(True, uw("This is an event in the future")))
-
+        
         #leave Chandler with timezones turned off
         tzPrefs.showUI = False
 

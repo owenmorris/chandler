@@ -50,12 +50,8 @@ class TestImportOverwrite(ChandlerTestCase):
             sharing.ICalendarFormat, itsView=appView)
 
         collection = pim.ListCollection(itsView=appView)
-        # exporting all Events is VERY expensive, it doesn't seem like a good
-        # way to test if events can be exported successfully.  Instead, just
-        # export one event.
-        #for tmpEvent in Calendar.EventStamp.getCollection(appView):
-            #collection.add(tmpEvent)
-        collection.add(event.item)
+        for tmpEvent in Calendar.EventStamp.getCollection(appView):
+            collection.add(tmpEvent)
         share.contents = collection
         share.put()
         wx.GetApp().Yield()

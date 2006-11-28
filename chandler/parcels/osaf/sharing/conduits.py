@@ -733,10 +733,6 @@ class ManifestEngineMixin(pim.ContentItem):
                     # Skip any items not matching the filtered classes
                     if not self._matchesFilterClasses(item, filterClasses):
                         continue
-                    
-                    if (pim.has_stamp(item, pim.EventStamp) and getattr(item,
-                        pim.EventStamp.modificationFor.name, None) is not None):
-                        continue
 
                     # Put the item
                     result = self._conditionalPutItem(contentView, item,

@@ -50,20 +50,14 @@ from i18n import ChandlerMessageFactory as _
 
 from application import schema
 
-class NonOccurrenceFilter(Item):
+class NonRecurringFilter(Item):
 
-    def isNonOccurrence(self, view, uuid):
-        occurrences, modificationFor, occurrenceFor = view.findValues(uuid,
-                           (EventStamp.occurrences.name, None),
-                           (EventStamp.modificationFor.name, None),
-                           (EventStamp.occurrenceFor.name, None))
+    def isNonRecurring(self, view, uuid):
+        isGenerated, modificationFor = view.findValues(uuid,
+                           (EventStamp.isGenerated.name, False),
+                           (EventStamp.modificationFor.name, None))
 
-        if occurrences is not None and len(occurrences) > 0:
-            return True # a master
-        elif not modificationFor and occurrenceFor:
-            return False # a plain occurrence, not a modification
-        else:
-            return True # non-recurring, or a modification
+        return not (isGenerated or modificationFor)
 
 class LongEventFilter(Item):
 
@@ -126,10 +120,9 @@ def installParcel(parcel, oldVersion=None):
 
     nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
         source=mineNotes,
-        filterMethod=(NonOccurrenceFilter(None, parcel), 'isNonOccurrence'),
-        filterAttributes=[EventStamp.occurrenceFor.name,
-                          EventStamp.modificationFor.name,
-                          EventStamp.occurrences.name]
+        filterMethod=(NonRecurringFilter(None, parcel), 'isNonRecurring'),
+        filterAttributes=[EventStamp.isGenerated.name,
+                          EventStamp.modificationFor.name]
     )
 
     itemKindCollection = KindCollection.update(
@@ -227,18 +220,11 @@ def installParcel(parcel, oldVersion=None):
     
     filterAttributes = (EventStamp.rruleset.name, EventStamp.occurrences.name)
     masterFilter = "view.hasTrueValues(uuid, '%s', '%s')" % filterAttributes
-    nonMasterFilter = "not " + masterFilter
-    
+                            
     masterEvents = FilteredCollection.update(parcel, 'masterEvents',
         source = events,
         filterExpression = masterFilter,
         filterAttributes = list(filterAttributes))
-
-    nonMasterEvents = FilteredCollection.update(parcel, 'nonMasterEvents',
-        source = events,
-        filterExpression = nonMasterFilter,
-        filterAttributes = list(filterAttributes))
-
 
     EventStamp.addIndex(masterEvents, "recurrenceEnd", 'compare',
                         compare='cmpRecurEnd',

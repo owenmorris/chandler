@@ -432,11 +432,11 @@ class RecurrenceRuleSet(items.ContentItem):
         """If the RuleSet changes, update the associated event."""
         if not getattr(self, '_ignoreValueChanges', False):
             if self.hasLocalAttributeValue('events'):
-                for eventItem in self.events:
-                    pimNs = schema.ns("osaf.pim", self.itsView)
-                    pimNs.EventStamp(eventItem).getFirstInRule().cleanRule()
-                    # assume we have only one conceptual event per rrule
-                    break
+                    for eventItem in self.events:
+                        pimNs = schema.ns("osaf.pim", self.itsView)
+                        pimNs.EventStamp(eventItem).getFirstInRule().cleanRule()
+                        # assume we have only one conceptual event per rrule
+                        break
 
     def addRule(self, rule, rrulesorexrules='rrules'):
         """Add an rrule or exrule, defaults to rrule.
@@ -499,31 +499,24 @@ class RecurrenceRuleSet(items.ContentItem):
         @type  ruleSetOrRule: C{dateutil.rrule.rrule} or C{dateutil.rrule.rruleset}
 
         """
-        ignoreChanges = getattr(self, '_ignoreValueChanges', False)
-        self._ignoreValueChanges = True
-        try:
-            if isinstance(ruleSetOrRule, rrule):
-                set = rruleset()
-                set.rrule(ruleSetOrRule)
-                ruleSetOrRule = set
-            elif not isinstance(ruleSetOrRule, rruleset):
-                raise TypeError, "ruleSetOrRule must be an rrule or rruleset"
-            for rtype in 'rrule', 'exrule':
-                rules = getattr(ruleSetOrRule, '_' + rtype, [])
-                if rules is None: rules = []
-                itemlist = []
-                for rule in rules:
-                    ruleItem=RecurrenceRule(None, None, None, self.itsView)
-                    ruleItem.setRuleFromDateUtil(rule)
-                    itemlist.append(ruleItem)
-                setattr(self, rtype + 's', itemlist)
-            for typ in 'rdate', 'exdate':
-                datetimes = [forceToDateTime(d) for d in getattr(ruleSetOrRule, '_' + typ, [])]
-                setattr(self, typ + 's', datetimes)
-        finally:
-            self._ignoreValueChanges = ignoreChanges
-        # only one rule cleaning is useful when setting a new rule
-        self.onRuleSetChanged(None, None)
+        if isinstance(ruleSetOrRule, rrule):
+            set = rruleset()
+            set.rrule(ruleSetOrRule)
+            ruleSetOrRule = set
+        elif not isinstance(ruleSetOrRule, rruleset):
+            raise TypeError, "ruleSetOrRule must be an rrule or rruleset"
+        for rtype in 'rrule', 'exrule':
+            rules = getattr(ruleSetOrRule, '_' + rtype, [])
+            if rules is None: rules = []
+            itemlist = []
+            for rule in rules:
+                ruleItem=RecurrenceRule(None, None, None, self.itsView)
+                ruleItem.setRuleFromDateUtil(rule)
+                itemlist.append(ruleItem)
+            setattr(self, rtype + 's', itemlist)
+        for typ in 'rdate', 'exdate':
+            datetimes = [forceToDateTime(d) for d in getattr(ruleSetOrRule, '_' + typ, [])]
+            setattr(self, typ + 's', datetimes)
 
     def isComplex(self):
         """Determine if the rule is too complex to display a meaningful

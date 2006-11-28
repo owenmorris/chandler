@@ -244,12 +244,11 @@ class Remindable(schema.Annotation):
             assert not event.isRecurrenceMaster(), \
                    "Dismissing a reminder on a recurrence master"
             
-            if reminder.userCreated or reminder.absoluteTime is None:
-                # Get the next occurrence of this event. We
-                # don't need to do anything with it; we just
-                # want to make sure it's been instantiated
-                # so that the next reminder will fire.
-                event.getNextOccurrence(after=datetime.now(ICUtzinfo.default))
+            # Get the next occurrence of this event. We
+            # don't need to do anything with it; we just
+            # want to make sure it's been instantiated
+            # so that the next reminder will fire.
+            event.getNextOccurrence(after=datetime.now(ICUtzinfo.default))
 
         # Remove the reminder from the pending list
         if reminder in self.reminders:

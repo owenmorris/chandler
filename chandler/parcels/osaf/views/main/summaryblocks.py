@@ -138,6 +138,12 @@ class TriageAttributeEditor(attributeEditors.BaseAttributeEditor):
         else:
             event.Skip()
 
+    def ReadOnly (self, (item, attribute)):
+        # @@@ For now, treat recurring events as readOnly.
+        return super(TriageAttributeEditor, self).ReadOnly((item, attribute)) \
+               or (pim.has_stamp(item, pim.EventStamp) and \
+                   pim.EventStamp(item).isRecurring())
+
 class ReminderColumnAttributeEditor(attributeEditors.IconAttributeEditor):    
     def makeStates(self):
         states = [

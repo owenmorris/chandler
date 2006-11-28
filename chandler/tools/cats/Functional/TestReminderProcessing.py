@@ -188,7 +188,7 @@ class TestReminderProcessing(ChandlerTestCase):
         self._checkRemindersOn(futureRecurrerNormal, userTime=nearFutureReminder,
                                userExpired=False, triageStatusTime=nearFuture)
         # Making it recur should: convert the absolute reminder to a relative 
-        # one, leaving the relative reminder on the master's 'expired' list
+        # one, leaving the relative reminder on the master's 'exipred' list
         # but pending on the first occurrence. It should also get rid of the
         # triageStatus reminder.
         nextOccurrence = self._makeRecur(futureRecurrerNormal, testTime)
