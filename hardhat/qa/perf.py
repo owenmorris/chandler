@@ -329,7 +329,7 @@ class perf:
         ('switching_view_after_importing_large_data.switch_to_allview',         1, 'Switch Views with 3k'),
         ('stamping_after_large_data_import.change_the_event_stamp',             0.5, 'Stamp with 3k'),
         ('scroll_calendar_one_unit.scroll_calendar_one_unit',                   0.1, 'Scroll calendar with 3k'),
-        ('scrolling_a_table.scroll_table_25_scroll_units',                      0.1, 'Scroll table with 3k'),
+        ('scrolling_a_table.scroll_table_25_scroll_units',                      1.0, 'Scroll table with 3k'),
         ('jump_from_one_week_to_another.jump_calendar_by_one_week',             0.1, 'Jump calendar by one week with 3k'),
         ('overlay_calendar.overlay_calendar',                                   1, 'Overlay calendar with 3k'),
         ('switch_calendar.switch_calendar',                                     1, 'Switch calendar with 3k'),
