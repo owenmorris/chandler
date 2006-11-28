@@ -945,8 +945,10 @@ class wxItemDetail(HtmlWindowWithStatus):
                                            {'items':[item]})
 
     def wxSynchronizeWidget(self, useHints=False):
-        if self.blockItem.selection is not None:
-            self.SetPage (self.blockItem.getHTMLText (self.blockItem.contents))
+        blockItem = self.blockItem
+        item = getattr (blockItem, "contents",getattr (blockItem, "selection", None))
+        if item is not None:
+            self.SetPage (blockItem.getHTMLText (item))
         else:
             self.SetPage('<html><body></body></html>')
 

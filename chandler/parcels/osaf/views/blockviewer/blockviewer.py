@@ -22,7 +22,7 @@ import osaf.framework.blocks.ControlBlocks as ControlBlocks
 from repository.item.RefCollections import RefList
 
 def getItemName (item):
-    return getattr(item, 'blockName', u'')
+    return getattr(item, 'blockName', getattr (item, 'displayName', u""))
 
 class BlockItemDetail(ControlBlocks.ItemDetail):
 

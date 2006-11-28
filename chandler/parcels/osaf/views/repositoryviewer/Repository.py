@@ -37,7 +37,7 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
     def GetElementValues(self, element):
         cellValues = [element.itsName or '(anonymous)']
 
-        name = getattr (element, 'blockName', u'')
+        name = getattr (element, 'blockName', getattr (element, 'displayName', u""))
         cellValues.append (name)
 
         name = u''
