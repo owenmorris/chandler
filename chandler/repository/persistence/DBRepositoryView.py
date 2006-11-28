@@ -368,39 +368,27 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         refCounted = self.isRefCounted()
 
-        if version < self._version:
-            kinds = []
-            for item in items():
-                if item.isSchema():
-                    if isinstance(item, Kind):
-                        kinds.append(item.itsUUID)
-                item._unloadItem(refCounted or item.isPinned(), self, False)
+        kinds = []
+        for item in items():
+            if item.isSchema():
+                if isinstance(item, Kind):
+                    kinds.append(item.itsUUID)
+            item._unloadItem(refCounted or item.isPinned(), self, False)
 
-            self._version = version
+        self._version = version
 
-            if kinds:
-                try:
-                    loading = self._setLoading(True)
-                    kinds = [kind for kind in (self.find(uuid)
-                                               for uuid in kinds)
-                             if kind is not None]
-                finally:
-                    for kind in kinds:
-                        kind.flushCaches('unload')
-                    self._setLoading(loading, True)
-
+        if kinds:
+            try:
+                loading = self._setLoading(True)
+                kinds = [kind for kind in (self.find(uuid) for uuid in kinds)
+                         if kind is not None]
+            finally:
                 for kind in kinds:
-                    kind.flushCaches('reload')
+                    kind.flushCaches('unload')
+                self._setLoading(loading, True)
 
-        else:
-            for item in items():
-                item._unloadItem(refCounted or item.isPinned(), self, False)
-
-            self._version = version
-
-            for item in items():
-                if item.isSchema():
-                    self.find(item.itsUUID)
+            for kind in kinds:
+                kind.flushCaches('reload')
 
         for item in items():
             if refCounted or item.isPinned():
