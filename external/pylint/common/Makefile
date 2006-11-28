@@ -1,9 +1,9 @@
 
-VERSION=0.15.0
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)4
+VERSION=0.21.0
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 COMMON=$(BUILD_ROOT)/pylint/common
-SRC=$(COMMON)/common-$(VERSION)
-TARBALL=common-$(SNAP)-$(RELVER).tar.gz
+SRC=$(COMMON)/logilab-common-$(VERSION)
+TARBALL=logilab-common-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -15,17 +15,17 @@ build: expand
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
-common-$(VERSION).tar.gz:
-	$(CURL) http://builds.osafoundation.org/external/common-$(VERSION).tar.gz
+logilab-common-$(VERSION).tar.gz:
+	$(CURL) http://builds.osafoundation.org/external/logilab-common-$(VERSION).tar.gz
 
-sources: common-$(VERSION).tar.gz
+sources: logilab-common-$(VERSION).tar.gz
 
-common-$(VERSION)-expanded: common-$(VERSION).tar.gz
-	tar xvzf common-$(VERSION).tar.gz
-	chmod -R u+w common-$(VERSION)
-	touch common-$(VERSION)-expanded
+logilab-common-$(VERSION)-expanded: logilab-common-$(VERSION).tar.gz
+	tar xvzf logilab-common-$(VERSION).tar.gz
+	chmod -R u+w logilab-common-$(VERSION)
+	touch logilab-common-$(VERSION)-expanded
 
-expand: common-$(VERSION)-expanded
+expand: logilab-common-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \

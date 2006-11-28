@@ -1,9 +1,9 @@
 
-VERSION=0.16.0
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
+VERSION=0.16.3
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 ASTNG=$(BUILD_ROOT)/pylint/astng
-SRC=$(ASTNG)/astng-$(VERSION)
-TARBALL=astng-$(SNAP)-$(RELVER).tar.gz
+SRC=$(ASTNG)/logilab-astng-$(VERSION)
+TARBALL=logilab-astng-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -17,16 +17,16 @@ build: expand
         install --force
 	rm -fr $(BUILD_ROOT)/$(SNAP)/$(SITE)/logilab/astng/test
 
-astng-$(VERSION).tar.gz:
-	$(CURL) http://builds.osafoundation.org/external/astng-$(VERSION).tar.gz
+logilab-astng-$(VERSION).tar.gz:
+	$(CURL) http://builds.osafoundation.org/external/logilab-astng-$(VERSION).tar.gz
 
-sources: astng-$(VERSION).tar.gz
+sources: logilab-astng-$(VERSION).tar.gz
 
-astng-$(VERSION)-expanded: astng-$(VERSION).tar.gz
-	tar xvzf astng-$(VERSION).tar.gz
-	touch astng-$(VERSION)-expanded
+logilab-astng-$(VERSION)-expanded: logilab-astng-$(VERSION).tar.gz
+	tar xvzf logilab-astng-$(VERSION).tar.gz
+	touch logilab-astng-$(VERSION)-expanded
 
-expand: astng-$(VERSION)-expanded
+expand: logilab-astng-$(VERSION)-expanded
 
 binaries: 
 	cd $(BUILD_ROOT); \
