@@ -45,15 +45,16 @@ try:
     # Test Phase: Action (the action we are timing)
     
     logger.Start("Scroll table 25 scroll units")
-    tableWidget.Scroll(0, 25)
-    tableWidget.Update() # process only the paint events for this window
+    for units in xrange(1, 25):
+        tableWidget.Scroll(0, units)
+        wx.Yield() # Each Yield should result in a single paint to the table
     logger.Stop()
     
     # Test Phase: Verification
     
     logger.SetChecked(True)
     (x, y) = tableWidget.GetViewStart()
-    if (x == 0 and y == 25):
+    if (x == 0 and y == units):
         logger.ReportPass("Scrolled table")
     else:
         logger.ReportFailure("Scrolled table")
