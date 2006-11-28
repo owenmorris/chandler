@@ -54,6 +54,8 @@ class TestTriageSectioning(ChandlerTestCase):
         
         # Check the data structures: see that we're sectioned properly
         # for a table with three items of different status:
+        # (The sectioning values are the row index, the number of visible items
+        # in the section, and the total number of items in the section)
         goodExpandedSectioning = [(0, 1, 1), (2, 1, 1), (4, 1, 1)]
         sectionRows = getattr(dashboard, 'sectionRows', None)
         self.logger.startAction('Check Sectioning')
@@ -72,7 +74,7 @@ class TestTriageSectioning(ChandlerTestCase):
         # expands and contracts the section rows; eventually, it'll be clicking on
         # the triangle.
         for row in (4, 2, 0):
-            self.scripting.User.emulate_click(dashboard, 100, row*rowHeight + rowMiddle, double=True)
+            self.scripting.User.emulate_click(dashboard, 12, row*rowHeight + rowMiddle)
         self.scripting.User.idle()
         self.logger.startAction('Check contraction')
         if dashboard.sectionRows != [(0, 0, 1), (1, 0, 1), (2, 0, 1)]:
@@ -80,7 +82,7 @@ class TestTriageSectioning(ChandlerTestCase):
         else:
             self.logger.endAction(True)
         for row in (2, 1, 0):
-            self.scripting.User.emulate_click(dashboard, 100, row*rowHeight + rowMiddle, double=True)
+            self.scripting.User.emulate_click(dashboard, 12, row*rowHeight + rowMiddle)
         self.scripting.User.idle()
         self.logger.startAction('Check expansion')
         if dashboard.sectionRows != goodExpandedSectioning:

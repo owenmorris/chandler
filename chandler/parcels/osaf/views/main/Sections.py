@@ -335,6 +335,21 @@ class SectionAttributeEditor(BaseAttributeEditor):
         """
         return True
 
+    def _getTriangle(self, expanded=False):
+        """ Cache the triangle symbols and their measurements """
+        triSuffix = expanded and 'Open' or 'Closed'
+        cacheAttribute = '_tri%s' % triSuffix
+        triBitmapInfo = getattr(self, cacheAttribute, None)
+        if triBitmapInfo is not None:
+            return triBitmapInfo
+
+        triBitmap = wx.GetApp().GetImage("SectionCaret%s.png" % triSuffix)
+        triWidth = triBitmap.GetWidth()
+        triHeight = triBitmap.GetHeight()
+        triBitmapInfo = (triBitmap, triWidth, triHeight)
+        setattr(self, cacheAttribute, triBitmapInfo)
+        return triBitmapInfo
+                     
     def Draw(self, dc, rect, 
              (attributeName, label, count, colorName, expanded, last), 
              isInSelection=False):
@@ -365,17 +380,7 @@ class SectionAttributeEditor(BaseAttributeEditor):
         labelTop = rect.y + ((rect.height - labelHeight) / 2)
                 
         # Draw the expando triangle
-        # (we'll cache the bitmap and its size so we're not constantly loading)
-        triSuffix = expanded and 'Open' or 'Closed'
-        cacheAttribute = '_tri%s' % triSuffix
-        triBitmapInfo = getattr(self, cacheAttribute, None)
-        if triBitmapInfo is None:
-            triBitmap = wx.GetApp().GetImage("SectionCaret%s.png" % triSuffix)
-            triWidth = triBitmap.GetWidth()
-            triHeight = triBitmap.GetHeight()
-            setattr(self, cacheAttribute, (triBitmap, triWidth, triHeight))
-        else:
-            (triBitmap, triWidth, triHeight) = triBitmapInfo
+        (triBitmap, triWidth, triHeight) = self._getTriangle(expanded)
         triTop = rect.y + ((rect.height - triHeight) / 2)
         dc.DrawBitmap(triBitmap, margin, triTop, True)
             
@@ -408,6 +413,9 @@ class SectionAttributeEditor(BaseAttributeEditor):
             dc.DrawRectangleRect((swatchX, swatchY, swatchWidth, swatchHeight))
 
     def OnMouseChange(self, event, cell, isIn, isDown, itemAttrNameTuple):
-        if event.GetEventType() == wx.wxEVT_LEFT_DCLICK:
-            grid = event.GetEventObject().GetParent()
-            grid.ToggleRow(cell[1])
+        # Look for clicks on our triangle
+        if event.GetEventType() == wx.wxEVT_LEFT_DOWN:
+            (triBitmap, triWidth, triHeight) = self._getTriangle()
+            if (event.m_x - margin) < triWidth:
+                grid = event.GetEventObject().GetParent()
+                grid.ToggleRow(cell[1])
