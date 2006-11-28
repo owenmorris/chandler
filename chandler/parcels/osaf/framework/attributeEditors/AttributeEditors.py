@@ -722,14 +722,14 @@ class AENonTypeOverTextCtrl(DragAndDropTextCtrl):
 
 class AETypeOverTextCtrl(wxRectangularChild):
     def __init__(self, parent, id, title=u'', position=wx.DefaultPosition,
-                 size=wx.DefaultSize, maxLineCount=1, style=0, delegate=None, *args, **keys):
+                 size=wx.DefaultSize, maxLineCount=1, style=0, staticControlDelegate=None, *args, **keys):
         super(AETypeOverTextCtrl, self).__init__(parent, id)
         staticSize = keys['staticSize']
         del keys['staticSize']
         self.hideLoc = (-100,-100)
         self.showLoc = (0,0)
         self.modelData = title
-        self.delegate = delegate
+        self.staticControlDelegate = staticControlDelegate
 
         assert maxLineCount > 0
         size.height *= maxLineCount
@@ -830,8 +830,8 @@ class AETypeOverTextCtrl(wxRectangularChild):
             if shownControl is self.editControl:
                 self.modelData = shownControl.GetValue()
                 swappingToStatic = True
-            if self.delegate is not None and swappingToStatic:
-                self.delegate.delegate(self.staticControl, self.modelData)
+            if self.staticControlDelegate is not None and swappingToStatic:
+                self.staticControlDelegate.SetStaticControl(self.staticControl, self.modelData)
             else:
                 hiddenValue = hiddenControl.GetValue()
                 shownValue = shownControl.GetValue()
@@ -891,8 +891,8 @@ class AETypeOverTextCtrl(wxRectangularChild):
     def SetValue(self, *args):
         assert isinstance(args[0], basestring)
         self.modelData = args[0]
-        if self.delegate is not None and self.shownControl is self.staticControl:
-            self.delegate.delegate(self.staticControl, self.modelData)
+        if self.staticControlDelegate is not None and self.shownControl is self.staticControl:
+            self.staticControlDelegate.SetStaticControl(self.staticControl, self.modelData)
         else:
             self.shownControl.SetValue(self.modelData)
 
@@ -933,11 +933,11 @@ class AETypeOverTextCtrl(wxRectangularChild):
     def SetEditable(self, editable):
         self.editControl.SetEditable(editable)
 
-    def SetDelegate(self, delegate):
-        self.delegate = delegate
+    def SetStaticControlDelegate(self, staticDelegate):
+        self.staticControlDelegate = staticDelegate
 
-    def GetDelegate(self):
-        return self.delegate
+    def GetStaticControlDelegate(self):
+        return self.staticControlDelegate
 
 class wxAutoCompleter(wx.ListBox):
     """
@@ -1067,9 +1067,9 @@ class StringAttributeEditor (BaseAttributeEditor):
     Uses a Text Control to edit attributes in string form.
     Supports sample text.
     """
-
     def __init__(self, delegate=None, *args, **kwargs):
-        self.delegate = delegate
+        super(StringAttributeEditor, self).__init__(*args, **kwargs)
+        self.staticControlDelegate = delegate
 
     def EditInPlace(self):
         try:
@@ -1190,7 +1190,7 @@ class StringAttributeEditor (BaseAttributeEditor):
             except AttributeError:
                 maxLineCount = 1
             control = AETypeOverTextCtrl(parentWidget, id, '', wx.DefaultPosition, 
-                                         size, maxLineCount, style, delegate = self.delegate,
+                                         size, maxLineCount, style, staticControlDelegate = self.staticControlDelegate,
                                          staticSize=wx.Size(width, staticHeight))
             bindToControl = control.editControl
         else:
@@ -2135,6 +2135,15 @@ class ContactAttributeEditor (StringAttributeEditor):
         return value
 
 class EmailAddressAttributeEditor (StringAttributeEditor):
+    def __init__(self, *args, **kwargs):
+        # make ourselves the delegate for handling strings in the static control
+        super(EmailAddressAttributeEditor, self).__init__(staticControlDelegate=self, *args, **kwargs)
+
+    # staticControlDelegate method
+    def SetStaticControl(self, control, text):
+        # update the static text control with a representation of 'text'
+        control.SetValue(text)
+
     def GetAttributeValue(self, item, attributeName):
         attrValue = getattr(item, attributeName, None)
         if attrValue is not None:
