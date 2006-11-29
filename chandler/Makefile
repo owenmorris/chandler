@@ -38,9 +38,9 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.3.0-r149-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/zanshin-$(SNAP)-154-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/elementtree-$(SNAP)-1.2.6-20050316-$(BP)3.tar.gz \
-           $(CHANDLERARCHIVES)/astng-$(SNAP)-0.16.0-$(BP)3.tar.gz \
-           $(CHANDLERARCHIVES)/common-$(SNAP)-0.15.0-$(BP)4.tar.gz \
-           $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.11.0-$(BP)3.tar.gz \
+           $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.16.3-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.0-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.12.2-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.0-$(BP)1.tar.gz
 
 OS         = $(shell uname)
