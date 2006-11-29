@@ -458,8 +458,7 @@ class ContentItem(schema.Item):
         pass
 
     def updateDisplayWho(self, op, attr):
-        self._updateCommonAttribute('displayWho', 'displayWhoSource',
-                                    self.addDisplayWhos, default=u'')
+        self._updateCommonAttribute('displayWho', 'displayWhoSource', self.addDisplayWhos)
 
     def addDisplayDates(self, dates):
         from osaf.pim.reminders import Remindable

@@ -232,8 +232,8 @@ class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
          # Now, remove the stamp...
         msg.remove()
         
-        # ... and check the who field is blank
-        self.failUnlessEqual(msg.itsItem.displayWho, u"")
+        # ... and check the who field is gone
+        self.failUnless (not hasattr (msg.itsItem, 'displayWho'))
                              
     def testNoStamp(self):
         # Make sure that, even if we create a Note with a toAddress,
@@ -241,7 +241,8 @@ class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
         note = Note(itsView=self.rep.view)
         notStampedMsg = Mail.MailStamp(note)
         notStampedMsg.toAddress=[self.address]
-        self.failUnlessEqual(notStampedMsg.itsItem.displayWho, u"")
+        self.failUnless (not hasattr (notStampedMsg.itsItem, 'displayWho'))
+
                              
     
 if __name__ == "__main__":
