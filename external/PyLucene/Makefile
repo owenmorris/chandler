@@ -168,3 +168,7 @@ expand: PyLucene-src-$(VERSION)-expanded
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
+.PHONY: dummy
+
+dummy:
+	cp -p dummy/PyLucene.py $(CHANDLERBIN)/$(BUILD)/$(SITE)/PyLucene.py
