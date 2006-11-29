@@ -2,7 +2,7 @@
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/ or internal/
 
-.PHONY: default install-core install distrib clean downloads build-plugins install-plugin-core
+.PHONY: default install-core install distrib clean download downloads build-plugins install-plugin-core rst docs
 
 default: install
 
@@ -20,7 +20,7 @@ PYEGGS = $(CHANDLERARCHIVES)/configobj-4.3.2-py$(PYTHON_VER).egg
 
 # When a version changes, the ARCHIVES lists below needs to be updated.
 # these get installed into release or debug
-ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)1.tar.gz \
+ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)2.tar.gz \
            $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)62.tar.gz \
            $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)5.tar.gz \
            $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.3-$(BP)4.tar.gz \
@@ -299,6 +299,19 @@ strip:
 	find $(C_BIN)/release $(STRIP_OP) | xargs strip $(STRIP_OPTIONS)
 endif
 endif
+
+RST_DOCS = distrib/docs/parcel-schema-guide.html \
+           distrib/docs/running-code-at-startup.html
+
+distrib/docs/parcel-schema-guide.html: application/parcel-schema-guide.txt
+	rst2html.py --stylesheet=distrib/docs/rst-docs.css $< $@
+
+distrib/docs/running-code-at-startup.html: parcels/osaf/startups.txt
+	rst2html.py --stylesheet=distrib/docs/rst-docs.css $< $@
+
+rst: $(RST_DOCS)
+
+docs: rst
 
 debug:
 	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(MAKE) DEBUG=1 install
