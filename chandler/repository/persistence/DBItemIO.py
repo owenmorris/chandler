@@ -529,7 +529,7 @@ class DBValueReader(ValueReader):
         if toIndex and not (ord(vFlags) & CValues.TOINDEX):
             return uAttr, Nil
 
-        withSchema = (self.status & CItem.CORESCHEMA) != 0
+        withSchema = (self.status & CItem.WITHSCHEMA) != 0
 
         if withSchema:
             attribute = None
@@ -589,7 +589,7 @@ class DBValueReader(ValueReader):
         store = self.store
         uAttr, vFlags, data = store._values.c.loadValue(store.txn, uValue)
 
-        withSchema = (self.status & CItem.CORESCHEMA) != 0
+        withSchema = (self.status & CItem.WITHSCHEMA) != 0
 
         if withSchema:
             attribute = None
@@ -882,10 +882,10 @@ class DBItemReader(ItemReader, DBValueReader):
     def readItem(self, view, afterLoadHooks):
 
         status = self.status
-        withSchema = (status & CItem.CORESCHEMA) != 0
+        withSchema = (status & CItem.WITHSCHEMA) != 0
         isContainer = (status & CItem.CONTAINER) != 0
 
-        status &= (CItem.CORESCHEMA | CItem.P_WATCHED)
+        status &= (CItem.CORESCHEMA | CItem.WITHSCHEMA | CItem.P_WATCHED)
         watchers = view._watchers
         if watchers and self.uItem in watchers:
             status |= CItem.T_WATCHED
@@ -1045,7 +1045,7 @@ class DBItemPurger(ItemPurger):
         self.keep = set(keepValues)
         self.done = set()
 
-        withSchema = (status & CItem.CORESCHEMA) != 0
+        withSchema = (status & CItem.WITHSCHEMA) != 0
         keepOne = (status & CItem.DELETED) == 0
         keepDocuments = set()
 
@@ -1129,7 +1129,7 @@ class DBItemPurger(ItemPurger):
 
     def purgeItem(self, txn, values, version, status):
 
-        withSchema = (status & CItem.CORESCHEMA) != 0
+        withSchema = (status & CItem.WITHSCHEMA) != 0
         store = self.store
         keep = self.keep
         done = self.done
@@ -1258,7 +1258,7 @@ class DBItemUndo(object):
         lobs = store._lobs
         indexes = store._indexes
 
-        withSchema = (self.status & CItem.CORESCHEMA) != 0
+        withSchema = (self.status & CItem.WITHSCHEMA) != 0
         isNew = (self.status & CItem.NEW) != 0
         uItem = self.uItem
         version = self.version

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <items>
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Watch</name>
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="repository.schema.Kind">Kind</class>
@@ -24,7 +24,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>WatchSet</name>
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="repository.schema.Kind">Kind</class>
@@ -47,7 +47,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>WatchCollection</name>
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="repository.schema.Kind">Kind</class>
@@ -70,7 +70,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>WatchKind</name>
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="repository.schema.Kind">Kind</class>
@@ -93,7 +93,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>WatchItem</name>
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="repository.schema.Kind">Kind</class>
@@ -116,7 +116,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>watchingItem</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -133,7 +133,7 @@
     <attribute name="deletePolicy">remove</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>watchedItems</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -151,7 +151,7 @@
     <attribute name="countPolicy">count</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>attribute</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -168,7 +168,7 @@
     <attribute name="cardinality">single</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>methodName</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>

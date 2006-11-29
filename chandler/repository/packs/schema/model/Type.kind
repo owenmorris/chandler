@@ -2,7 +2,7 @@
 
 <items>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>TypeKind</name>
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="repository.schema.Kind">Kind</class>
@@ -26,7 +26,7 @@
     </ref>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>types</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -41,7 +41,7 @@
     <attribute name="cardinality">list</attribute>
   </item>
 
-  <item withSchema="True" afterLoadHook="_collectTypes">
+  <item withSchema="True" coreSchema="True" afterLoadHook="_collectTypes">
     <name>Type</name>
     <kind type="path">//Schema/Core/TypeKind</kind>
     <class module="repository.schema.Types">TypeKind</class>
@@ -67,7 +67,7 @@
     </ref>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>implementationTypes</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>

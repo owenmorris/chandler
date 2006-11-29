@@ -90,6 +90,8 @@ class Kind(Item):
 
         try:
             try:
+                withSchema = self._isWithSchema()
+
                 descriptors = c.descriptors
                 attributes = dict((a.itsUUID, (n, a))
                                   for n, a, k in self.iterAttributes())
@@ -101,10 +103,10 @@ class Kind(Item):
                             del descriptors[name]
 
                 for name, attribute in attributes.itervalues():
-                    descriptor = descriptors.get(name, None)
-                    if descriptor is None:
-                        descriptor = descriptors[name] = \
-                            CDescriptor(name, attribute.c)
+                    if descriptors.get(name, None) is None:
+                        descriptors[name] = CDescriptor(name, attribute.c)
+                        if withSchema and not attribute._isWithSchema():
+                            attribute._status |= CItem.WITHSCHEMA
 
                 c.descriptorsInstalled = True
                 return True
@@ -615,6 +617,10 @@ class Kind(Item):
 
         return self.find(CORE)['Kind']
 
+    def isKindKind(self):
+
+        return self.itsKind is self
+
     def mixin(self, superKinds):
         """
         Find or generate a mixin kind.
@@ -633,7 +639,7 @@ class Kind(Item):
 
         duplicates = {}
         for superKind in superKinds:
-            if superKind._uuid in duplicates:
+            if superKind.itsUUID in duplicates:
                 raise ValueError, 'Kind %s is duplicated' %(superKind.itsPath)
             else:
                 duplicates[superKind.itsUUID] = superKind

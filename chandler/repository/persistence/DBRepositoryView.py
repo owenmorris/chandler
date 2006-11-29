@@ -382,9 +382,12 @@ class DBRepositoryView(OnDemandRepositoryView):
                 loading = self._setLoading(True)
                 kinds = [kind for kind in (self.find(uuid) for uuid in kinds)
                          if kind is not None]
-            finally:
                 for kind in kinds:
                     kind.flushCaches('unload')
+            except:
+                self._setLoading(loading, False)
+                raise
+            else:
                 self._setLoading(loading, True)
 
             for kind in kinds:

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <items>
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Monitor</name>
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="repository.schema.Kind">Kind</class>
@@ -24,7 +24,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>item</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -41,7 +41,7 @@
     <attribute name="deletePolicy">remove</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>dispatcher</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -56,7 +56,7 @@
     <attribute name="otherName">monitors</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>method</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -73,7 +73,7 @@
     <attribute name="cardinality">single</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>op</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -90,7 +90,7 @@
     <attribute name="cardinality">single</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>attribute</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -107,7 +107,7 @@
     <attribute name="cardinality">single</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>args</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -124,7 +124,7 @@
     <attribute name="cardinality">single</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>kwds</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>

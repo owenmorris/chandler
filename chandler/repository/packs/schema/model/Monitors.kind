@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <items>
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Monitors</name>
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="repository.schema.Kind">Kind</class>
@@ -24,7 +24,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>monitors</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>

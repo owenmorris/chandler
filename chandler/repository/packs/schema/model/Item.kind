@@ -2,7 +2,7 @@
 
 <items>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Item</name>
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="repository.schema.Kind">Kind</class>
@@ -26,7 +26,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>monitors</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -43,7 +43,7 @@
     <attribute name="deletePolicy">cascade</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>watchers</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -60,7 +60,7 @@
     <attribute name="deletePolicy">cascade</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>watches</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -77,7 +77,7 @@
     <attribute name="deletePolicy">cascade</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>freeValues</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
@@ -94,7 +94,7 @@
     <attribute name="deletePolicy">remove</attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>freeValueOf</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>

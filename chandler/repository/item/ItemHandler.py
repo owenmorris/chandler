@@ -158,6 +158,7 @@ class ValueHandler(ContentHandler, TypeHandler):
 
         self.collections = []
         self.withSchema = attrs.get('withSchema', 'False') == 'True'
+        self.coreSchema = attrs.get('coreSchema', 'False') == 'True'
         self.kindRef = None
         self.kind = None
         self.attributes = []
@@ -532,10 +533,12 @@ class ItemHandler(ValueHandler):
 
     def itemEnd(self, itemHandler, attrs):
 
+        status = 0
+
         if self.withSchema:
-            status = CItem.CORESCHEMA
-        else:
-            status = 0
+            status |= CItem.WITHSCHEMA
+        if self.coreSchema:
+            status |= CItem.CORESCHEMA
 
         cls = self.cls
         if cls is None:

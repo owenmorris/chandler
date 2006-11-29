@@ -2,11 +2,11 @@
 
 <items>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>extents</name>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Extent</name>
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="repository.schema.Kind">Kind</class>
@@ -35,7 +35,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>kind</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>

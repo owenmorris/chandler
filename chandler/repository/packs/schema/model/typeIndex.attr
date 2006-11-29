@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<item withSchema="True">
+<item withSchema="True" coreSchema="True">
   <name>typeIndex</name>
   <kind type="path">//Schema/Core/Attribute</kind>
   <class module="repository.schema.Attribute">Attribute</class>

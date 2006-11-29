@@ -70,8 +70,9 @@ class RepositoryView(CView):
     # 0.6.16: added support for python's decimal.Decimal type
     # 0.6.17: removed item import/export code and clouds
     # 0.6.18: removed 'displayName' and 'displayAttribute' from core schema
+    # 0.6.19: added WITHSCHEMA flag
     
-    CORE_SCHEMA_VERSION = 0x00061200
+    CORE_SCHEMA_VERSION = 0x00061300
 
     def __init__(self, repository, name, version, deferDelete=Default):
         """

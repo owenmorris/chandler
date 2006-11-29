@@ -22,7 +22,7 @@ class ItemWriter(object):
     def writeItem(self, item, version):
 
         status = item._status
-        withSchema = (status & CItem.CORESCHEMA) != 0
+        withSchema = (status & CItem.WITHSCHEMA) != 0
         deleted = (status & CItem.DELETED) != 0
         kind = item.itsKind
         size = 0
@@ -135,10 +135,12 @@ class XMLItemWriter(ItemWriter):
     def writeItem(self, item, version):
 
         attrs = {}
-        attrs['uuid'] = item._uuid.str16()
+        attrs['uuid'] = item.itsUUID.str16()
         attrs['version'] = str(version)
-        if (item._status & CItem.CORESCHEMA) != 0:
+        if item._isWithSchema():
             attrs['withSchema'] = 'True'
+        if item._isCoreSchema():
+            attrs['coreSchema'] = 'True'
 
         self.generator.startElement('item', attrs)
         super(XMLItemWriter, self).writeItem(item, version)

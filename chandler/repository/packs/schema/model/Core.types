@@ -2,19 +2,19 @@
 
 <items>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>AbstractSet</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">AbstractSet</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Boolean</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Boolean</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Cardinality</name>
     <kind type="path">//Schema/Core/Enumeration</kind>
     <class module="repository.schema.Types">Enumeration</class>
@@ -27,19 +27,19 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Class</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Class</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Complex</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Complex</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>CopyPolicy</name>
     <kind type="path">//Schema/Core/Enumeration</kind>
     <class module="repository.schema.Types">Enumeration</class>
@@ -51,7 +51,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>CountPolicy</name>
     <kind type="path">//Schema/Core/Enumeration</kind>
     <class module="repository.schema.Types">Enumeration</class>
@@ -62,7 +62,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Date</name>
     <kind type="path">//Schema/Core/Struct</kind>
     <class module="repository.schema.Types">Date</class>
@@ -74,7 +74,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>DateTime</name>
     <kind type="path">//Schema/Core/Struct</kind>
     <class module="repository.schema.Types">DateTime</class>
@@ -91,7 +91,7 @@
     </attribute>
   </item>
 
-   <item withSchema="True">
+   <item withSchema="True" coreSchema="True">
     <name>DateTimeTZ</name>
     <kind type="path">//Schema/Core/Struct</kind>
     <class module="repository.schema.Types">DateTimeTZ</class>
@@ -108,13 +108,13 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Decimal</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Decimal</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>DeletePolicy</name>
     <kind type="path">//Schema/Core/Enumeration</kind>
     <class module="repository.schema.Types">Enumeration</class>
@@ -125,7 +125,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Dictionary</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Dictionary</class>
@@ -135,13 +135,13 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Float</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Float</class>
   </item>
   
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>IncludePolicy</name>
     <kind type="path">//Schema/Core/Enumeration</kind>
     <class module="repository.schema.Types">Enumeration</class>
@@ -156,13 +156,13 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Integer</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Integer</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>List</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">List</class>
@@ -172,25 +172,25 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Lob</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Lob</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Long</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Long</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>None</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">NoneType</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Path</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Path</class>
@@ -200,7 +200,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Set</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Set</class>
@@ -210,7 +210,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>SingleRef</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">SingleRef</class>
@@ -220,37 +220,37 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>String</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">String</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Bytes</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">BString</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Text</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">UString</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Symbol</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Symbol</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Importable</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Importable</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Time</name>
     <kind type="path">//Schema/Core/Struct</kind>
     <class module="repository.schema.Types">Time</class>
@@ -264,7 +264,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>TimeTZ</name>
     <kind type="path">//Schema/Core/Struct</kind>
     <class module="repository.schema.Types">TimeTZ</class>
@@ -278,7 +278,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>TimeDelta</name>
     <kind type="path">//Schema/Core/Struct</kind>
     <class module="repository.schema.Types">TimeDelta</class>
@@ -290,13 +290,13 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>TimeZone</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">TimeZone</class>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>Tuple</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Tuple</class>
@@ -306,7 +306,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>URL</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">URL</class>
@@ -316,7 +316,7 @@
     </attribute>
   </item>
 
-  <item withSchema="True">
+  <item withSchema="True" coreSchema="True">
     <name>UUID</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">UUID</class>
