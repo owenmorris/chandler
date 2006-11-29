@@ -1143,15 +1143,10 @@ class SidebarBlock(Table):
         if selectedItem is None or second is not None:
             event.arguments['Enable'] = False
         else:
-            collectionName = selectedItem.displayName
+            arguments = {'collection': selectedItem.displayName,
+                         'dashboard': schema.ns("osaf.pim", self).allCollection.displayName}
 
-            allCollection = schema.ns("osaf.pim", self).allCollection
-            arguments = {'collection': collectionName,
-                         'dashboard': allCollection.displayName}
-
-            if selectedItem is None:
-                menuTitle = _(u'Keep out of %(dashboard)s') % arguments
-            elif UserCollection(selectedItem).outOfTheBoxCollection:
+            if UserCollection(selectedItem).outOfTheBoxCollection:
                 enabled = False
                 menuTitle = _(u'Keep "%(collection)s" out of %(dashboard)s') % arguments
             else:
