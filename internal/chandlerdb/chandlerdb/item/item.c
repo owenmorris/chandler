@@ -36,13 +36,13 @@ static PyObject *t_item_isLive(t_item *self);
 static PyObject *t_item_isStale(t_item *self);
 static PyObject *t_item_isPinned(t_item *self);
 static PyObject *t_item_isSchema(t_item *self);
+static PyObject *t_item__isWithSchema(t_item *self);
+static PyObject *t_item__isCoreSchema(t_item *self);
 static PyObject *t_item_isDirty(t_item *self);
 static PyObject *t_item_getDirty(t_item *self, PyObject *args);
 static PyObject *t_item__isNDirty(t_item *self);
 static PyObject *t_item__isKDirty(t_item *self);
 static PyObject *t_item__isNoDirty(t_item *self);
-static PyObject *t_item__isCopyExport(t_item *self);
-static PyObject *t_item__isImporting(t_item *self);
 static PyObject *t_item_isMutating(t_item *self);
 static PyObject *t_item_isMutatingOrDeleting(t_item *self);
 static PyObject *t_item_isDeferringOrDeleting(t_item *self);
@@ -65,7 +65,6 @@ static PyObject *t_item__itemChanged(t_item *self, PyObject *args);
 static PyObject *t_item__getKind(t_item *self, void *data);
 static int t_item__setKind(t_item *self, PyObject *kind, void *data);
 static PyObject *t_item__getView(t_item *self, void *data);
-static int t_item__setView(t_item *self, PyObject *view, void *data);
 static PyObject *t_item__getParent(t_item *self, void *data);
 static int t_item__setParent(t_item *self, PyObject *parent, void *data);
 static PyObject *t_item__getName(t_item *self, void *data);
@@ -78,7 +77,6 @@ static PyObject *t_item__getVersion(t_item *self, void *data);
 static int t_item__setVersion(t_item *self, PyObject *value, void *data);
 
 static PyObject *_setKind_NAME;
-static PyObject *importItem_NAME;
 static PyObject *move_NAME;
 static PyObject *rename_NAME;
 static PyObject *_getPath_NAME;
@@ -132,13 +130,13 @@ static PyMethodDef t_item_methods[] = {
     { "isStale", (PyCFunction) t_item_isStale, METH_NOARGS, NULL },
     { "isPinned", (PyCFunction) t_item_isPinned, METH_NOARGS, NULL },
     { "isSchema", (PyCFunction) t_item_isSchema, METH_NOARGS, "" },
+    { "_isWithSchema", (PyCFunction) t_item__isWithSchema, METH_NOARGS, "" },
+    { "_isCoreSchema", (PyCFunction) t_item__isCoreSchema, METH_NOARGS, "" },
     { "isDirty", (PyCFunction) t_item_isDirty, METH_NOARGS, NULL },
     { "getDirty", (PyCFunction) t_item_getDirty, METH_NOARGS, NULL },
     { "_isNDirty", (PyCFunction) t_item__isNDirty, METH_NOARGS, "" },
     { "_isKDirty", (PyCFunction) t_item__isKDirty, METH_NOARGS, "" },
     { "_isNoDirty", (PyCFunction) t_item__isNoDirty, METH_NOARGS, "" },
-    { "_isCopyExport", (PyCFunction) t_item__isCopyExport, METH_NOARGS, "" },
-    { "_isImporting", (PyCFunction) t_item__isImporting, METH_NOARGS, "" },
     { "isMutating", (PyCFunction) t_item_isMutating, METH_NOARGS, NULL },
     { "isMutatingOrDeleting", (PyCFunction) t_item_isMutatingOrDeleting, METH_NOARGS, NULL },
     { "isDeferringOrDeleting", (PyCFunction) t_item_isDeferringOrDeleting, METH_NOARGS, NULL },
@@ -163,7 +161,7 @@ static PyMethodDef t_item_methods[] = {
 static PyGetSetDef t_item_properties[] = {
     { "itsKind", (getter) t_item__getKind, (setter) t_item__setKind,
       NULL, NULL },
-    { "itsView", (getter) t_item__getView, (setter) t_item__setView,
+    { "itsView", (getter) t_item__getView, NULL,
       NULL, NULL },
     { "itsParent", (getter) t_item__getParent, (setter) t_item__setParent,
       NULL, NULL },
@@ -477,6 +475,22 @@ static PyObject *t_item_isSchema(t_item *self)
         Py_RETURN_FALSE;
 }
 
+static PyObject *t_item__isWithSchema(t_item *self)
+{
+    if (self->status & WITHSCHEMA)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject *t_item__isCoreSchema(t_item *self)
+{
+    if (self->status & CORESCHEMA)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
 static PyObject *t_item_isDirty(t_item *self)
 {
     if (self->status & DIRTY)
@@ -509,22 +523,6 @@ static PyObject *t_item__isKDirty(t_item *self)
 static PyObject *t_item__isNoDirty(t_item *self)
 {
     if (self->status & NODIRTY)
-        Py_RETURN_TRUE;
-    else
-        Py_RETURN_FALSE;
-}
-
-static PyObject *t_item__isCopyExport(t_item *self)
-{
-    if (self->status & COPYEXPORT)
-        Py_RETURN_TRUE;
-    else
-        Py_RETURN_FALSE;
-}
-
-static PyObject *t_item__isImporting(t_item *self)
-{
-    if (self->status & IMPORTING)
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
@@ -1348,18 +1346,6 @@ static PyObject *t_item__getView(t_item *self, void *data)
     return view;
 }
 
-static int t_item__setView(t_item *self, PyObject *view, void *data)
-{
-    PyObject *result = PyObject_CallMethodObjArgs(view, importItem_NAME,
-                                                  (PyObject *) self, NULL);
-
-    if (!result)
-        return -1;
-
-    Py_DECREF(result);
-    return 0;
-}
-
 
 /* itsParent */
 
@@ -1529,6 +1515,7 @@ void _init_item(PyObject *m)
             PyDict_SetItemString_Int(dict, "CDIRTY", CDIRTY);
             PyDict_SetItemString_Int(dict, "RDIRTY", RDIRTY);
             PyDict_SetItemString_Int(dict, "CORESCHEMA", CORESCHEMA);
+            PyDict_SetItemString_Int(dict, "WITHSCHEMA", WITHSCHEMA);
             PyDict_SetItemString_Int(dict, "CONTAINER", CONTAINER);
             PyDict_SetItemString_Int(dict, "ADIRTY", ADIRTY);
             PyDict_SetItemString_Int(dict, "PINNED", PINNED);
@@ -1537,8 +1524,6 @@ void _init_item(PyObject *m)
             PyDict_SetItemString_Int(dict, "RMERGED", RMERGED);
             PyDict_SetItemString_Int(dict, "NMERGED", NMERGED);
             PyDict_SetItemString_Int(dict, "CMERGED", CMERGED);
-            PyDict_SetItemString_Int(dict, "COPYEXPORT", COPYEXPORT);
-            PyDict_SetItemString_Int(dict, "IMPORTING", IMPORTING);
             PyDict_SetItemString_Int(dict, "MUTATING", MUTATING);
             PyDict_SetItemString_Int(dict, "P_WATCHED", P_WATCHED);
             PyDict_SetItemString_Int(dict, "T_WATCHED", T_WATCHED);
@@ -1553,7 +1538,6 @@ void _init_item(PyObject *m)
             PyDict_SetItemString_Int(dict, "SAVEMASK", SAVEMASK);
 
             _setKind_NAME = PyString_FromString("_setKind");
-            importItem_NAME = PyString_FromString("importItem");
             move_NAME = PyString_FromString("move");
             rename_NAME = PyString_FromString("rename");
             _getPath_NAME = PyString_FromString("_getPath");

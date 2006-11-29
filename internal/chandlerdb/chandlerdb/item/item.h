@@ -72,8 +72,8 @@ enum {
     RMERGED    = 0x00020000,
     NMERGED    = 0x00040000,
     CMERGED    = 0x00080000,
-    COPYEXPORT = 0x00100000,          /* item instance is copied on export */
-    IMPORTING  = 0x00200000,          /* item is being imported */
+    WITHSCHEMA = 0x00100000,          /* save item with schema */
+
     MUTATING   = 0x00400000,          /* kind is being removed */
     KDIRTY     = 0x00800000,          /* kind changed */
     P_WATCHED  = 0x01000000,          /* watched, persistently */
@@ -91,7 +91,7 @@ enum {
     MERGED     = VMERGED | RMERGED | NMERGED | CMERGED,
     SAVEMASK   = (DIRTY | ADIRTY | SYSMONITOR |
                   NEW | DELETED | P_WATCHED | TOINDEX |
-                  SCHEMA | CORESCHEMA | CONTAINER),
+                  SCHEMA | CORESCHEMA | WITHSCHEMA | CONTAINER),
     WATCHED    = P_WATCHED | T_WATCHED,
 };
 
