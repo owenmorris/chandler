@@ -42,6 +42,12 @@ try:
     # Fetch the table widget
     tableWidget = App_ns.summary.widget
     
+    # For some reason we need another User.idle() for the PPC Mac mini to
+    # completely paint the summary table. Without this the table will show
+    # only a handful of entries and we scroll mostly grey, which makes us
+    # report that we scrolled very fast. See bug 7457.
+    User.idle()
+    
     # Test Phase: Action (the action we are timing)
     
     logger.Start("Scroll table 25 scroll units")
