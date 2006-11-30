@@ -164,20 +164,19 @@ class CloudXMLFormat(ImportExportFormat):
          'osaf.pim.MailedEventTask'),
     ]
     
-    # In the old world, pim.mail defined all these classes as subclasses
-    # of ContentItem, and then made MailMessageMixin a subclass of
-    # MIMEContainer. In the new world, MailStamp (the equivalent of
-    # MailMessageMixin) can't inherit from ContentItem (since it's an
-    # Annotation), and so these classes all inherit from Annotation.
-    # This makes it hard to figure out what to write out for a given
-    # MIME object.
-    MIME_CLASSES = (
-        pim.mail.MIMEBase,
-        pim.mail.MIMENote,
-        pim.mail.MIMEContainer,
-        pim.mail.MIMEBinary,
-        pim.mail.MIMESecurity,
-        pim.mail.MIMEText,
+    # In the old world, MailMessage was a subclass of MIMEContainer, and so it
+    # wrote out and read elements for these attributes directly. In the new,
+    # MailStamp contains a MIMEContainer, so for backward compatibility we
+    # have to redirect reading or writing these attributes to that
+    # MIMEContainer.
+    #
+    # If you're thinking we could do better with redirectTo, you might be
+    # right. However, redirectTo doesn't work with Annotation (or Stamp)
+    # subclasses.
+    # [grant]
+    MIME_ATTRIBUTES = (
+        pim.mail.MIMEContainer.mimeParts.name,
+        pim.mail.MIMEBase.mimeType.name,
     )
 
 
@@ -275,16 +274,21 @@ class CloudXMLFormat(ImportExportFormat):
 
         # Figure out the element name
         elementName, classes = self._getElementName(item.itsKind, stampClasses)
+        hasMailStamp = pim.has_stamp(item, pim.mail.MailStamp)
 
         # Collect the set of attributes that are used in this format
         def getNameAndAttributes():
             attributes = self.share.getSharedAttributes(item.itsKind)
-            hasMailStamp = pim.has_stamp(item, pim.mail.MailStamp)
             attrs = []
-            mailClass = None
 
-            if hasMailStamp and not pim.mail.MailStamp.subject.name in attributes:
-                attributes.add(pim.mail.MailStamp.subject.name)
+            if hasMailStamp:
+                # Make sure we export mimeType, etc, in the MailStamp
+                # case.
+                attributes.update(self.MIME_ATTRIBUTES)
+                
+                if not pim.mail.MailStamp.subject.name in attributes:
+                     attributes.add(pim.mail.MailStamp.subject.name)
+                
             
             for attrName in attributes:
             
@@ -304,58 +308,15 @@ class CloudXMLFormat(ImportExportFormat):
                         # raise? how did this happen, eh?
                         continue
 
-                    if annotationClass in self.MIME_CLASSES:
-                        # Here, we decide that we should use annotationClass
-                        # for writing out the element if it turns out
-                        # that item has a value for the attribute, and
-                        # that value isn't the same is the attribute's
-                        # initialValue....
-                        if not hasattr(item, attrName):
-                            continue
-                        
-                        initial = item.getAttributeAspect(attrName,
-                                                          'initialValue')
-                        itemValue = getattr(item, attrName)
-                        
-                        if (item.getAttributeAspect(attrName, 'cardinality') ==
-                            'list'):
-                            itemValue = list(itemValue)
-                        
-                        # ... with the exception of
-                        # mimeParts, which always seem to have been written
-                        # in the "old" world.
-                        if ( (not (hasMailStamp and splitComponents[-1] in
-                                ('mimeParts'))) and
-                                itemValue == initial ):
-                            continue
-                            
-                        if mailClass is None:
-                            mailClass = annotationClass
-                        elif issubclass(annotationClass, mailClass):
-                            mailClass = annotationClass
-
-                    elif not annotationClass in (stampClasses or []):
+                    if not annotationClass in (stampClasses or []):
                         continue
 
-                if not hasattr(item, attrName):
-                    continue
+                if (hasattr(item, attrName) or
+                    (hasMailStamp and attrName in self.MIME_ATTRIBUTES)):
                     
-                attrs.append((splitComponents[-1], attrName))
+                    attrs.append((splitComponents[-1], attrName))
                 
-            if mailClass is not None and not hasMailStamp:
-                # Here, we base the XML element name we write out
-                # (e.g. MIMEBinary vs MIMEText) on the Content-Type
-                # of the MIME part.
-                if mailClass == pim.mail.MIMENote:
-                    if getattr(item, mailClass.mimeType.name,
-                               "text/plain").startswith("text/"):
-                        mailClass = pim.mail.MIMEText
-                    else:
-                        mailClass = pim.mail.MIMEBinary
-                        
-                return mailClass.__name__, "%s.%s" % (mailClass.__module__, mailClass.__name__), attrs
-            else:
-                return elementName, classes, attrs
+            return elementName, classes, attrs
                 
         elementName, classes, attributes = getNameAndAttributes()
 
@@ -380,13 +341,28 @@ class CloudXMLFormat(ImportExportFormat):
 
         for attrXmlName, attrName in attributes:
 
-            attrValue = item.getAttributeValue(attrName)
+            if hasMailStamp and attrName in self.MIME_ATTRIBUTES:
+                # MIME_ATTRIBUTES involve a redirection from the MailStamp's
+                # mimeContent object, which stores the real attributes.
+                mimeContent = getattr(item,
+                                       pim.mail.MailStamp.mimeContent.name,
+                                       None)
+                if mimeContent is not None:
+                    targetItem = mimeContent
+                else:
+                    continue
+            else:
+                # In all other cases, targetItem, the item who's attributes
+                # we're exporting, is just item.
+                targetItem = item
+
+            attrValue = targetItem.getAttributeValue(attrName)
             if attrValue is None:
                 continue
 
-            otherName = item.itsKind.getOtherName(attrName, item, None)
-            cardinality = item.getAttributeAspect(attrName, 'cardinality')
-            attrType = item.getAttributeAspect(attrName, 'type')
+            otherName = targetItem.itsKind.getOtherName(attrName, targetItem, None)
+            cardinality = targetItem.getAttributeAspect(attrName, 'cardinality')
+            attrType = targetItem.getAttributeAspect(attrName, 'type')
 
             result += indent * depth
 
@@ -452,7 +428,7 @@ class CloudXMLFormat(ImportExportFormat):
                     depth += 1
                     result += "\n"
                     
-                    if isinstance(item, shares.Share):
+                    if isinstance(targetItem, shares.Share):
                     
                         if attrXmlName == "filterAttributes":
                             # In the stamping-as-annotation world, all the
@@ -596,10 +572,7 @@ class CloudXMLFormat(ImportExportFormat):
                     except ImportError:
                         pass
                     else:
-                        if klass in self.MIME_CLASSES:
-                            kind = schema.itemFor(klass.targetType(), view)
-                        else:
-                            kind = klass.getKind(view)
+                        kind = klass.getKind(view)
 
                         if kind is not None:
                             kinds.append(kind)
@@ -665,15 +638,19 @@ class CloudXMLFormat(ImportExportFormat):
                       updateCallback, stats):
 
         attributes = self.share.getSharedAttributes(item.itsKind)
+        hasMailStamp = (pim.mail.MailStamp in stampClasses)
             
-        if (pim.mail.MailStamp in stampClasses and 
-            not pim.mail.MailStamp.subject.name in attributes):
+        if hasMailStamp: 
+            if not pim.mail.MailStamp.subject.name in attributes:
                 attributes.add(pim.mail.MailStamp.subject.name)
                 # 'subject' is redirected to 'displayName'
                 # Lack of 'displayName' in XML can cause 'subject' to get
                 # lost during import
                 if 'displayName' in attributes:
                     attributes.remove('displayName')
+                    
+            attributes.update(self.MIME_ATTRIBUTES)
+
 
         for attrName in attributes:
             attrStampClass = None
@@ -705,6 +682,30 @@ class CloudXMLFormat(ImportExportFormat):
                 continue
 
             attrElement = self._getElement(dom, element, elementName)
+            
+            # Set targetItem, which is the item who's attribute we'll
+            # be changing here.
+            if not (hasMailStamp and attrName in self.MIME_ATTRIBUTES):
+                # Usually, this is just the item, but ...
+                targetItem = item
+            else:
+                # in the case of MIME_ATTRIBUTES, we want to "redirect" the
+                # attributes to the MailStamp's mimeContent.
+                contentsAttr = pim.mail.MailStamp.mimeContent.name
+                mimeContent = getattr(item, contentsAttr, None)
+                
+                if mimeContent is not None:
+                    pass
+                elif attrElement is not None:
+                    # we need to create a mimeContent
+                    mimeContent = pim.mail.MIMEContainer(itsView=item.itsView)
+                    setattr(item, contentsAttr, mimeContent)
+                else:
+                    # item has no mimeContent, and we're deleting the attribute
+                    # anyway, skip
+                    continue
+                targetItem = mimeContent
+                
 
             if attrElement is None:
                 # [Bug 7314]
@@ -712,13 +713,13 @@ class CloudXMLFormat(ImportExportFormat):
                 # attributes whose value is None. So, don't
                 # remove missing attributes that are missing
                 # the item's value for that attribute is None.
-                if item.getAttributeValue(attrName, default=None) is not None:
-                    item.removeAttributeValue(attrName)
+                if targetItem.getAttributeValue(attrName, default=None) is not None:
+                    targetItem.removeAttributeValue(attrName)
                 continue
 
-            otherName = item.itsKind.getOtherName(attrName, item, None)
-            cardinality = item.getAttributeAspect(attrName, 'cardinality')
-            attrType = item.getAttributeAspect(attrName, 'type')
+            otherName = targetItem.itsKind.getOtherName(attrName, targetItem, None)
+            cardinality = targetItem.getAttributeAspect(attrName, 'cardinality')
+            attrType = targetItem.getAttributeAspect(attrName, 'type')
 
             # This code depends on attributes having their type set, which
             # might not always be the case. What should be done is to encode
@@ -733,7 +734,7 @@ class CloudXMLFormat(ImportExportFormat):
                         valueItem = self._importElement(dom, view,
                             children[0], updateCallback=updateCallback)
                         if valueItem is not None:
-                            setattr(item, attrName, valueItem)
+                            setattr(targetItem, attrName, valueItem)
 
                 elif cardinality == 'list':
                     count = 0
@@ -742,19 +743,19 @@ class CloudXMLFormat(ImportExportFormat):
                             child, updateCallback=updateCallback)
                         if valueItem is not None:
                             count += 1
-                            item.addValue(attrName, valueItem)
+                            targetItem.addValue(attrName, valueItem)
                     if not count:
                         # Only set to an empty ref collection is attrName
                         # is not already an empty ref collection
                         needToSet = True
-                        if hasattr(item, attrName):
+                        if hasattr(targetItem, attrName):
                             try:
-                                if len(getattr(item, attrName)) == 0:
+                                if len(getattr(targetItem, attrName)) == 0:
                                     needToSet = False
                             except:
                                 pass
                         if needToSet:
-                            setattr(item, attrName, [])
+                            setattr(targetItem, attrName, [])
 
                 elif cardinality == 'dict':
                     pass
@@ -780,7 +781,7 @@ class CloudXMLFormat(ImportExportFormat):
                                 else:
                                     value = unicode(value)
                         else: # Store it as a Lob
-                            value = utils.dataToBinary(item, attrName,
+                            value = utils.dataToBinary(targetItem, attrName,
                                 value, mimeType=mimeType, indexed=indexed)
                             if encoding:
                                 value.encoding = encoding
@@ -793,20 +794,20 @@ class CloudXMLFormat(ImportExportFormat):
                     # the same value they have now it's considered a
                     # change to the repository, so we do an additional
                     # check ourselves before actually setting a datetime:
-                    if type(value) is datetime.datetime and hasattr(item,
+                    if type(value) is datetime.datetime and hasattr(targetItem,
                         attrName):
-                        oldValue = getattr(item, attrName)
+                        oldValue = getattr(targetItem, attrName)
                         if (oldValue != value or
                             oldValue.tzinfo != value.tzinfo):
-                            setattr(item, attrName, value)
+                            setattr(targetItem, attrName, value)
                     else:
-                        setattr(item, attrName, value)
+                        setattr(targetItem, attrName, value)
 
                 elif cardinality == 'list':
                     isFilterAttributes = (attrName == 'filterAttributes' and
-                                          isinstance(item, shares.Share))
+                                          isinstance(targetItem, shares.Share))
                     isFilterClasses = (attrName == 'filterClasses' and
-                                          isinstance(item, shares.Share))
+                                          isinstance(targetItem, shares.Share))
 
                     values = []
                     for child in attrElement.getchildren():
@@ -817,7 +818,7 @@ class CloudXMLFormat(ImportExportFormat):
                             indexed = mimeType == "text/plain"
                             value = base64.b64decode(unicode(child.text
                                 or u""))
-                            value = utils.dataToBinary(item, attrName,
+                            value = utils.dataToBinary(targetItem, attrName,
                                 value, mimeType=mimeType,
                                 indexed=indexed)
 
@@ -852,7 +853,7 @@ class CloudXMLFormat(ImportExportFormat):
                         values.append(value)
 
                     logger.debug("for %s setting %s to %s" % \
-                        (item.displayName.encode('utf8',
+                        (targetItem.displayName.encode('utf8',
                         'replace'), attrName, values))
                     setattr(item, attrName, values)
 

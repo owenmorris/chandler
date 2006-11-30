@@ -93,12 +93,11 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
         try:
             del objectAttrs['itsUUID']
         except KeyError:
-            pass
+            uuid = UUID()
         else:
             # if no KeyError, then we know it exists
             uuid = attributes['itsUUID']
             
-        # A cheesy hack for our only computed attribute
         try:
             del objectAttrs['stamp_types']
         except KeyError:
@@ -108,7 +107,7 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
                 if not cls in annotationClasses:
                     annotationClasses.append(cls)
             del attributes['stamp_types']
-
+            
         # A cheesy hack for our only computed attribute
         try:
             triageStatusChanged = attributes['triageStatusChanged']
@@ -319,8 +318,8 @@ class EventTestCase(SharingTestCase):
         # Make sure importing an Event didn't delete attributes
         # on MailStamp.
         mailMsg = pim.mail.MailStamp(eventItem)
-        self.failUnlessEqual(mailMsg.mimeContainer, None)
-        self.failUnlessEqual(list(mailMsg.mimeParts), [])
+        self.failUnlessEqual(mailMsg.mimeContent, None)
+        self.failUnlessEqual(mailMsg.getAttachments(), [])
         self.failUnlessEqual(list(mailMsg.toAddress), [])
         self.failUnlessEqual(mailMsg.fromAddress, None)
         self.failUnlessEqual(mailMsg.replyToAddress, None)
@@ -384,13 +383,16 @@ class MailTestCase(SharingTestCase):
             datetime.datetime(2006, 8, 27, 12, 1, 0,
                               tzinfo=ICUtzinfo.getInstance("US/Pacific")),
         'body': u'This is a highly\npoignant email message\n',
-        'mimeType': 'message/rfc822',
         'triageStatus': pim.TriageEnum.later,
         'triageStatusChanged': -1159945337.0
     }
     
     def setUp(self):
         super(MailTestCase, self).setUp()
+        
+        mimeContent = self._createObject(pim.mail.MIMEContainer, dict(
+            mimeType = 'message/rfc822'
+        ))
         
         self.fromAddress = self._createObject(pim.mail.EmailAddress, dict(
                itsUUID=UUID('5b446b8a-420a-11db-b64e-0016cbca6aed'),
@@ -412,7 +414,8 @@ class MailTestCase(SharingTestCase):
 
         self.attributes = dict(self.attributes)
         self.attributes.update(toAddress=[self.toAddress], 
-                               fromAddress=self.fromAddress)
+                               fromAddress=self.fromAddress,
+                               mimeContent=mimeContent)
 
     def testExport(self):
         message = self.createObject('MailMessage')
@@ -453,7 +456,6 @@ class ComplexMailTestCase(SharingTestCase):
         'createdOn':
             datetime.datetime(2006, 8, 27, 12, 1, 0,
                               tzinfo=ICUtzinfo.getInstance("US/Pacific")),
-        'mimeType': 'message/rfc822',
         'body': '\n'.join(("This should be in the body of the email", "",
                 "--", "Anthony Baxter     &lt;anthony@interlink.com.au&gt;",
                 "It's never too late to have a happy childhood.", "")),
@@ -495,13 +497,15 @@ class ComplexMailTestCase(SharingTestCase):
               triageStatus=pim.TriageEnum.now,
               triageStatusChanged=-1158292128.0))
 
+        mimeContent = self._createObject(pim.mail.MIMEContainer, dict(
+            mimeType='message/rfc822',
+            mimeParts=[mimeBinary, mimeText]))
         
         self.attributes = dict(self.attributes)
         self.attributes.update(toAddress=[address], 
                                fromAddress=address,
                                replyToAddress=address,
-                               mimeParts=[mimeBinary, mimeText])
-    
+                               mimeContent=mimeContent)    
     def testExport(self):
 
         if self.GENERATE_OUTPUT:
@@ -540,6 +544,9 @@ class ComplexMailTestCase(SharingTestCase):
         expected = dict((key, self.attributes.get(key)) for key in
                             ('subject', 'fromAddress', 'toAddress'))
         self.checkImportedAttributes(mailObject, expected=expected)
+        
+        mimeParts = list(mailObject.mimeContent.mimeParts)
+        self.failUnlessEqual(len(mimeParts), 2)
 
 class EmptyMailTestCase(SharingTestCase):
 
@@ -552,11 +559,18 @@ class EmptyMailTestCase(SharingTestCase):
             datetime.datetime(2006, 10, 31, 12, 19, 0,
                               tzinfo=ICUtzinfo.getInstance("US/Pacific")),
         'body': u'',
-        'mimeType': 'message/rfc822',
         'toAddress': [],
         'triageStatus': pim.TriageEnum.now,
         'triageStatusChanged': -1156502242.0
     }
+    
+    def setUp(self):
+        super(EmptyMailTestCase, self).setUp()
+        mimeContent = self._createObject(pim.mail.MIMEContainer, dict(
+            mimeType='message/rfc822'))
+        
+        self.attributes = dict(self.attributes)
+        self.attributes.update(mimeContent=mimeContent)    
 
 
     def testExport(self):
@@ -689,11 +703,18 @@ class MailedEventTaskTestCase(SharingTestCase):
             datetime.datetime(2006, 9, 10, 16, 0,
                               tzinfo=ICUtzinfo.getInstance("US/Pacific")),
         'duration': datetime.timedelta(minutes=60),
-        'mimeType': 'message/rfc822',
         'triageStatus': pim.TriageEnum.later,
         'triageStatusChanged': -1158900317.0,
         'stamp_types': [pim.TaskStamp, pim.mail.MailStamp],
     }
+
+    def setUp(self):
+        super(MailedEventTaskTestCase, self).setUp()
+        mimeContent = self._createObject(pim.mail.MIMEContainer, dict(
+            mimeType='message/rfc822'))
+        
+        self.attributes = dict(self.attributes)
+        self.attributes.update(mimeContent=mimeContent)    
 
     def testExport(self):
         event = self.createObject('CalendarEvent')

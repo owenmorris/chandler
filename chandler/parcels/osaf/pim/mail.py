@@ -228,15 +228,13 @@ def __actionOnMessage(view, mailStamp, action="REPLY"):
             ics = calendar.serialize()
             icsName = u"%s.ics" % mailStamp.itsItem.displayName
 
-            note = notes.Note(itsView=view)
-
-            attachment = MIMEText(note)
+            attachment = MIMEText(itsView=view)
             attachment.filename = icsName
             attachment.filesize = long(len(ics))
             attachment.mimeType = "text/calendar"
             attachment.data = ics
 
-            newMailStamp.mimeParts.append(note)
+            newMailStamp.mimeContent.mimeParts.append(attachment)
 
             bodyHeader = _(u"1 attachment: %(attachmentName)s\nType your forward message here:\n\n\nBegin forwarded message:") % {'attachmentName': icsName}
         else:
@@ -285,8 +283,7 @@ def __resetMailStamp(mailStamp):
     mailStamp.isOutbound = True
     mailStamp.referencesMID = []
     mailStamp.spamScore = 0.0
-    mailStamp.mimeContainer = None
-    mailStamp.mimeParts = []
+    mailStamp.mimeContent = None
     mailStamp.messageId = u""
 
     try:
@@ -730,10 +727,8 @@ class POPDelivery(MailDeliveryBase):
     )
 
 
-class MIMEBase(schema.Annotation):
-    """Superclass for MailMessage and the various MIME annotation classes"""
-    schema.kindInfo(annotates=items.ContentItem)
-
+class MIMEBase(items.ContentItem):
+    """Superclass for the various MIME classes"""
     mimeType = schema.One(schema.Text, initialValue = '')
 
     mimeContainer = schema.One(
@@ -744,19 +739,11 @@ class MIMEBase(schema.Annotation):
         sharing = schema.Cloud(literal = [mimeType]),
     )
 
-    def __init__(self, item=None, itsView=None):
-       if item is None:
-           item = notes.Note(itsView=itsView)
-       super(MIMEBase, self).__init__(item)
-
 
 class MIMENote(MIMEBase):
     # @@@MOR This used to subclass notes.Note also, but since that superKind
     # was removed from MIMENote's superKinds list
     """MIMEBase and Note, rolled into one"""
-
-    schema.kindInfo(annotates=items.ContentItem)
-
 
     filename = schema.One(
         schema.Text, initialValue = u'',
@@ -769,8 +756,6 @@ class MIMENote(MIMEBase):
 
 
 class MIMEContainer(MIMEBase):
-    schema.kindInfo(annotates=items.ContentItem)
-
     mimeParts = schema.Sequence(
         MIMEBase,
         initialValue = [],
@@ -784,7 +769,7 @@ class MIMEContainer(MIMEBase):
     )
 
 
-class MailStamp(stamping.Stamp, MIMEContainer):
+class MailStamp(stamping.Stamp):
     """
 
     MailStamp is the bag of Message-specific attributes.
@@ -803,7 +788,12 @@ class MailStamp(stamping.Stamp, MIMEContainer):
 
     schema.kindInfo(annotates = notes.Note)
     __use_collection__ = True
-
+    
+    mimeContent = schema.One(
+        MIMEContainer,
+        defaultValue=None,
+    )
+    
     deliveryExtension = schema.One(
         MailDeliveryBase,
         initialValue = None,
@@ -880,8 +870,8 @@ class MailStamp(stamping.Stamp, MIMEContainer):
                        ccAddress, bccAddress, replyToAddress],
         ),
         copying = schema.Cloud(
+            mimeContent,
             fromAddress, toAddress, ccAddress, bccAddress, replyToAddress,
-            byCloud = [MIMEContainer.mimeParts]
         ),
     )
 
@@ -914,7 +904,10 @@ class MailStamp(stamping.Stamp, MIMEContainer):
         """
 
         super(MailStamp, self).add()
-
+        
+        if getattr(self, 'mimeContent', None) is None:
+            self.mimeContent = MIMEContainer(itsView=self.itsItem.itsView,
+                                               mimeType='message/rfc822')
         # default the fromAddress to "me"
         if getattr(self, 'fromAddress', None) is None:
             self.fromAddress = EmailAddress.getCurrentMeEmailAddress(self.itsItem.itsView)
@@ -960,13 +953,17 @@ class MailStamp(stamping.Stamp, MIMEContainer):
         """
         First pass at API will be expanded upon later.
         """
-        return self.mimeParts
+        content = self.mimeContent # Never raises b/c defaultValue
+        if content is None:
+            return []
+        else:
+            return list(content.mimeParts or [])
 
     def getNumberOfAttachments(self):
         """
         First pass at API will be expanded upon later.
         """
-        return len(self.mimeParts)
+        return len(self.getAttachments())
 
     def getSendability(self, ignoreAttr=None):
         """
@@ -1004,12 +1001,10 @@ def MailMessage(*args, **keywds):
 
 
 class MIMEBinary(MIMENote):
-    schema.kindInfo(annotates=items.ContentItem)
     data = schema.One(schema.Lob, indexed=False)
 
 
 class MIMEText(MIMENote):
-    schema.kindInfo(annotates=items.ContentItem)
 
     charset = schema.One(
         schema.Text,
@@ -1023,7 +1018,6 @@ class MIMEText(MIMENote):
     data = schema.One(schema.Text, indexed=False)
 
 class MIMESecurity(MIMEContainer):
-    schema.kindInfo(annotates=items.ContentItem)
     pass
 
 class CollectionInvitation(schema.Annotation):

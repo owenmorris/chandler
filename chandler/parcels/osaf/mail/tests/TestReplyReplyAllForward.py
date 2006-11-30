@@ -308,11 +308,9 @@ END:VCALENDAR
         self.assertTrue(u"> Location: my house" in newMessage.body)
         self.assertTrue(u"> Status: Confirmed" in newMessage.body)
 
-        self.assertTrue(len(newMessage.getAttachments()), 1)
+        self.assertEqual(len(newMessage.getAttachments()), 1)
 
-        for attachment in newMessage.getAttachments():
-            icsMIMEText = MIMEText(attachment)
-            break
+        icsMIMEText = newMessage.getAttachments()[0]
 
         self.assertEquals(icsMIMEText.mimeType, u"text/calendar")
         self.assertTrue(u"LOCATION:my house" in icsMIMEText.data)

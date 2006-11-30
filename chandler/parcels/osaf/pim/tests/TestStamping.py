@@ -312,9 +312,9 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         stampedWelcome = Mail.MailStamp(welcome)
         stampedWelcome.add()
         
-        self.failUnlessEqual(list(stampedWelcome.mimeParts), [])
-        self.failUnlessEqual(stampedWelcome.mimeType, '')
-        self.failUnlessEqual(stampedWelcome.mimeContainer, None)
+        self.failUnlessEqual(list(stampedWelcome.mimeContent.mimeParts), [])
+        self.failUnlessEqual(stampedWelcome.mimeContent.mimeType,
+                             'message/rfc822')
 
 def additional_tests():
     return unittest.TestSuite(
