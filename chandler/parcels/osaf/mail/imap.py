@@ -412,7 +412,15 @@ class IMAPClient(base.AbstractDownloadClient):
            self.proto.queued is None:
             return defer.succeed(True)
 
-        return self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',)))
+        if self.testing:
+            # In testing mode no mailbox is open
+            return self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',)))
+
+        else:
+            d = self.proto.close()
+            d.addBoth(lambda x: self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',))))
+
+            return d
 
     def _getAccount(self):
         """
