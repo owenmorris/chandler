@@ -58,11 +58,12 @@ class Kind(Item):
         super(Kind, self)._fillItem(name, parent, kind, uuid,
                                     values, references, status, version,
                                     hooks, update)
-
         if not update:
             self.__init()
             if self._references.get('extent') is None:
                 hooks.append(self._createExtent)
+
+        self.flushCaches('unload', False)        
 
     def onViewClear(self, view):
 
@@ -738,11 +739,10 @@ class Kind(Item):
                     if not isNew:   # __setKind case
                         item.setDirty(Item.RDIRTY, name, references, True)
 
-    def flushCaches(self, reason):
+    def flushCaches(self, reason, recursive=True):
         """
         Flush the caches setup on this Kind and its subKinds.
         """
-
         c = self.c
 
         if c.attributesCached:
@@ -772,8 +772,9 @@ class Kind(Item):
         if reason != 'unload':
             self._setupDescriptors(reason)
 
-        for subKind in self._references.get('subKinds', Nil):
-            subKind.flushCaches(reason)
+        if recursive:
+            for subKind in self._references.get('subKinds', Nil):
+                subKind.flushCaches(reason)
 
 
     # begin typeness of Kind as SingleRef
