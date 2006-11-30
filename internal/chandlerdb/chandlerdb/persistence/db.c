@@ -401,7 +401,7 @@ static PyObject *t_db_compact(t_db *self, PyObject *args)
     }
 }
 
-int _t_db_get(DBT *dbt, void *data, int len, int offset)
+int _t_db_get(DBT *dbt, int offset, void *data, int len, int mode)
 {
     PyGILState_STATE state = PyGILState_Ensure();
 
@@ -409,8 +409,8 @@ int _t_db_get(DBT *dbt, void *data, int len, int offset)
     {
         if (len == dbt->size)
         {
-            dbt->data = PyString_FromStringAndSize((char *) data, len);
-            if (!dbt->data)
+            dbt->app_data = PyString_FromStringAndSize((char *) data, len);
+            if (!dbt->app_data)
             {
                 PyGILState_Release(state);
                 return DB_PYTHON_ERROR;
@@ -418,18 +418,18 @@ int _t_db_get(DBT *dbt, void *data, int len, int offset)
         }
         else
         {
-            dbt->data = PyString_FromStringAndSize(NULL, dbt->size);
-            if (!dbt->data)
+            dbt->app_data = PyString_FromStringAndSize(NULL, dbt->size);
+            if (!dbt->app_data)
             {
                 PyGILState_Release(state);
                 return DB_PYTHON_ERROR;
             }
 
-            memcpy(PyString_AS_STRING(dbt->data), data, len);
+            memcpy(PyString_AS_STRING(dbt->app_data), data, len);
         }
     }   
     else
-        memcpy(PyString_AS_STRING(dbt->data) + offset, data, len);
+        memcpy(PyString_AS_STRING(dbt->app_data) + offset, data, len);
 
     PyGILState_Release(state);
     return 0;
@@ -460,7 +460,7 @@ static PyObject *t_db_get(t_db *self, PyObject *args)
 
         memset(&data, 0, sizeof(data));
         data.flags = DB_DBT_USERCOPY;
-        data.data = _t_db_get;
+        data.usercopy = (usercopy_fn) _t_db_get;
 
         Py_BEGIN_ALLOW_THREADS;
         err = self->db->get(self->db, db_txn, &key, &data, flags);
@@ -468,7 +468,7 @@ static PyObject *t_db_get(t_db *self, PyObject *args)
 
         switch (err) {
           case 0:
-            return (PyObject *) data.data;
+            return (PyObject *) data.app_data;
           case DB_NOTFOUND:
             if (defaultValue)
             {

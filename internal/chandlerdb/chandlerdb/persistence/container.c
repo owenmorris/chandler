@@ -354,8 +354,8 @@ typedef struct {
     int *offsets;
 } t_tuple_dbt;
 
-static int _t_container_get_strings(t_tuple_dbt *dbt, void *data,
-                                    int len, int offset)
+static int _t_container_get_strings(t_tuple_dbt *dbt, int offset, void *data,
+                                    int len, int mode)
 {
     PyGILState_STATE state = PyGILState_Ensure();
     PyObject *tuple, *str;
@@ -396,10 +396,10 @@ static int _t_container_get_strings(t_tuple_dbt *dbt, void *data,
         }        
 
         PyTuple_SET_ITEM(tuple, count - 1, str);
-        dbt->dbt.data = tuple;
+        dbt->dbt.app_data = tuple;
     }
     else
-        tuple = (PyObject *) dbt->dbt.data;
+        tuple = (PyObject *) dbt->dbt.app_data;
 
     prev = 0;
     for (i = 1; i < count; i++) {
@@ -564,7 +564,7 @@ static PyObject *t_value_container_loadValue(t_value_container *self,
         
         memset(&data, 0, sizeof(data));
         data.dbt.flags = DB_DBT_USERCOPY;
-        data.dbt.data = _t_container_get_strings;
+        data.dbt.usercopy = (usercopy_fn) _t_container_get_strings;
         data.offsets = offsets;
 
         while (1) {
@@ -577,7 +577,7 @@ static PyObject *t_value_container_loadValue(t_value_container *self,
             switch (err) {
               case 0:
               {
-                  PyObject *tuple = (PyObject *) data.dbt.data;
+                  PyObject *tuple = (PyObject *) data.dbt.app_data;
                   PyObject *uuid = PyTuple_GET_ITEM(tuple, 0);
 
                   PyTuple_SET_ITEM(tuple, 0, PyUUID_Make16(uuid));
@@ -816,22 +816,22 @@ typedef struct {
     char buffer[128];
 } t_buffer_dbt;
 
-static int _t_ref_container_load_ref(t_buffer_dbt *dbt, void *data,
-                                     int len, int offset)
+static int _t_ref_container_load_ref(t_buffer_dbt *dbt, int offset, void *data,
+                                     int len, int mode)
 {
     if (offset == 0)
     {
         if (dbt->dbt.size > sizeof(dbt->buffer))
         {
-            dbt->dbt.data = malloc(dbt->dbt.size);
-            if (!dbt->dbt.data)
+            dbt->dbt.app_data = malloc(dbt->dbt.size);
+            if (!dbt->dbt.app_data)
                 return ENOMEM;
         }
         else
-            dbt->dbt.data = dbt->buffer;
+            dbt->dbt.app_data = dbt->buffer;
     }
 
-    memcpy((char *) dbt->dbt.data + offset, data, len);
+    memcpy((char *) dbt->dbt.app_data + offset, data, len);
     return 0;
 }
 
@@ -881,14 +881,14 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
 
         memset(&data, 0, sizeof(data));
         data.dbt.flags = DB_DBT_USERCOPY;
-        data.dbt.data = _t_ref_container_load_ref;
+        data.dbt.usercopy = (usercopy_fn) _t_ref_container_load_ref;
 
         Py_BEGIN_ALLOW_THREADS;
         err = dbc->c_get(dbc, &key, (DBT *) &data, flags | DB_SET_RANGE);
         Py_END_ALLOW_THREADS;
 
         do {
-            char *buffer = data.dbt.data;
+            char *buffer = data.dbt.app_data;
 
             switch (err) {
               case 0:
@@ -947,7 +947,7 @@ static PyObject *t_ref_container_loadRef(t_ref_container *self, PyObject *args)
 
             if (buffer != data.buffer)
                 free(buffer);
-            data.dbt.data = _t_ref_container_load_ref;
+            data.dbt.usercopy = (usercopy_fn) _t_ref_container_load_ref;
             data.dbt.size = 0;
 
             Py_BEGIN_ALLOW_THREADS;

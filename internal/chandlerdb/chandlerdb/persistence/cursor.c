@@ -258,7 +258,7 @@ static PyObject *t_cursor_set_range(t_cursor *self, PyObject *args)
 
         memset(&data, 0, sizeof(data));
         data.flags = DB_DBT_USERCOPY;
-        data.data = _t_db_get;
+        data.usercopy = (usercopy_fn) _t_db_get;
 
         Py_BEGIN_ALLOW_THREADS;
         err = self->dbc->c_get(self->dbc, &key, &data, flags | DB_SET_RANGE);
@@ -271,7 +271,7 @@ static PyObject *t_cursor_set_range(t_cursor *self, PyObject *args)
               
               PyTuple_SET_ITEM(tuple, 0, 
                                PyString_FromStringAndSize(key.data, key.size));
-              PyTuple_SET_ITEM(tuple, 1, data.data);
+              PyTuple_SET_ITEM(tuple, 1, data.app_data);
 
               if (key.flags == DB_DBT_MALLOC)
                   free(key.data);
@@ -304,11 +304,11 @@ static PyObject *_t_cursor_get_pair(t_cursor *self, PyObject *args, int flag)
 
         memset(&key, 0, sizeof(key));
         key.flags = DB_DBT_USERCOPY;
-        key.data = _t_db_get;
+        key.usercopy = (usercopy_fn) _t_db_get;
 
         memset(&data, 0, sizeof(data));
         data.flags = DB_DBT_USERCOPY;
-        data.data = _t_db_get;
+        data.usercopy = (usercopy_fn) _t_db_get;
 
         Py_BEGIN_ALLOW_THREADS;
         err = self->dbc->c_get(self->dbc, &key, &data, flags | flag);
@@ -319,8 +319,8 @@ static PyObject *_t_cursor_get_pair(t_cursor *self, PyObject *args, int flag)
           {
               PyObject *tuple = PyTuple_New(2);
 
-              PyTuple_SET_ITEM(tuple, 0, key.data);
-              PyTuple_SET_ITEM(tuple, 1, data.data);
+              PyTuple_SET_ITEM(tuple, 0, key.app_data);
+              PyTuple_SET_ITEM(tuple, 1, data.app_data);
 
               return tuple;
           }

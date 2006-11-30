@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os, shutil
+import os
 from distutils.core import setup, Extension
 
 def main():

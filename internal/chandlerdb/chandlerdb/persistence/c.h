@@ -105,7 +105,10 @@ extern PyObject *PyExc_DBPermissionsError;
 PyObject *raiseDBError(int err);
 void PyDict_SetItemString_Int(PyObject *dict, char *key, int value);
 
-int _t_db_get(DBT *dbt, void *data, int len, int offset);
+typedef int (*usercopy_fn)(DBT *, unsigned int, void *, unsigned int,
+                           unsigned int);
+
+int _t_db_get(DBT *dbt, int offset, void *data, int len, int mode);
 PyObject *t_cursor_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 int _t_cursor_init(t_cursor *self, DB *db, DB_TXN *txn, int flags);
 PyObject *t_txn_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
