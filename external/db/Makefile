@@ -1,6 +1,6 @@
 
-VERSION=4.4.20
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)5
+VERSION=4.5.20
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 DB=$(BUILD_ROOT)/db
 SRC=$(DB)/db-$(VERSION)
 TARBALL=db-$(SNAP)-$(RELVER).tar.gz
@@ -9,7 +9,7 @@ include $(BUILD_ROOT)/Makefile.inc
 
 ifeq ($(OS),Cygwin)
 
-BUILD=build_win32
+BUILD=build_windows
 BINDIR=$(SRC)/$(BUILD)/$(Snap)
 
 $(SRC)/$(BUILD)/Berkeley_DB.sln:
@@ -80,8 +80,8 @@ binaries: strip
 endif
 
 apply: expand patches-$(VERSION)
-	cd $(SRC); patch -Np0 < ../patch.$(VERSION).1; echo ok
-	cd $(SRC); patch -Np0 < ../patch.$(VERSION).2; echo ok
+#	cd $(SRC); patch -Np0 < ../patch.$(VERSION).1; echo ok
+#	cd $(SRC); patch -Np0 < ../patch.$(VERSION).2; echo ok
 	patch -Nup0 < patches-$(VERSION); echo ok
 
 db-$(VERSION).tar.gz:

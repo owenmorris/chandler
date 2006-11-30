@@ -11,7 +11,9 @@ Upgrading db build
        2. we want to *NOT* have them so when during a python upgrade, python
           attempts to link against the static libraries, we get an error
           instead of silent success and really hard to debug bugs later
-   - copy these project files into persistence/db/win32 
+   - change the Berkeley_DB.sln project to not build db_java and the ex_*
+     projects, they're not needed and slow down the build
+   - copy these project files into persistence/db/win32/$(DB_VER)
    - make
 
  On other OS:
@@ -20,6 +22,5 @@ Upgrading db build
 
 After upgrading Berkeley DB the systems that depend on it need to be
 rebuilt, and re-released with an incremented RELVER number:
-   - external/python
    - external/PyLucene (its Makefile needs DB_VER to be updated too)
    - internal/chandlerdb
