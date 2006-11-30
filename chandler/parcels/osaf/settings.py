@@ -86,7 +86,7 @@ def save(rv, filename):
                 if ticketFreeBusy:
                     cfg[section_name][u"freebusy"] = u"True"
             counter += 1
-            
+
     # SMTP accounts
     counter = 1
     for account in pim.mail.SMTPAccount.iterItems(rv):
@@ -100,12 +100,15 @@ def save(rv, filename):
             cfg[section_name][u"auth"] = account.useAuth
             cfg[section_name][u"username"] = account.username
             cfg[section_name][u"password"] = account.password
-            cfg[section_name][u"name"] = account.fromAddress.fullName
-            cfg[section_name][u"address"] = account.fromAddress.emailAddress
+
+            if account.fromAddress:
+                cfg[section_name][u"name"] = account.fromAddress.fullName
+                cfg[section_name][u"address"] = account.fromAddress.emailAddress
+
             cfg[section_name][u"port"] = account.port
             cfg[section_name][u"security"] = account.connectionSecurity
             counter += 1
-            
+
     # IMAP accounts
     currentAccount = schema.ns("osaf.pim", rv).currentMailAccount.item
     counter = 1
@@ -119,8 +122,11 @@ def save(rv, filename):
             cfg[section_name][u"host"] = account.host
             cfg[section_name][u"username"] = account.username
             cfg[section_name][u"password"] = account.password
-            cfg[section_name][u"name"] = account.replyToAddress.fullName
-            cfg[section_name][u"address"] = account.replyToAddress.emailAddress
+
+            if account.replyToAddress:
+                cfg[section_name][u"name"] = account.replyToAddress.fullName
+                cfg[section_name][u"address"] = account.replyToAddress.emailAddress
+
             cfg[section_name][u"port"] = account.port
             cfg[section_name][u"security"] = account.connectionSecurity
             if account.defaultSMTPAccount:
@@ -128,7 +134,7 @@ def save(rv, filename):
             if account is currentAccount:
                 cfg[section_name][u"default"] = u"True"
             counter += 1
-            
+
     # POP accounts
     currentAccount = schema.ns("osaf.pim", rv).currentMailAccount.item
     counter = 1
@@ -142,8 +148,11 @@ def save(rv, filename):
             cfg[section_name][u"host"] = account.host
             cfg[section_name][u"username"] = account.username
             cfg[section_name][u"password"] = account.password
-            cfg[section_name][u"name"] = account.replyToAddress.fullName
-            cfg[section_name][u"address"] = account.replyToAddress.emailAddress
+
+            if account.replyToAddress:
+                cfg[section_name][u"name"] = account.replyToAddress.fullName
+                cfg[section_name][u"address"] = account.replyToAddress.emailAddress
+
             cfg[section_name][u"port"] = account.port
             cfg[section_name][u"security"] = account.connectionSecurity
             cfg[section_name][u"leave"] = account.leaveOnServer
@@ -297,10 +306,12 @@ def restore(rv, filename, testmode=False):
             account.password = section[u"password"]
             account.port = section.as_int(u"port")
             account.connectionSecurity = section[u"security"]
-            emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
-                section[u"address"], section[u"name"])
-            account.fromAddress = emailAddress
-        
+
+            if section.has_key(u"address"):
+                emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
+                                     section[u"address"], section[u"name"])
+                account.fromAddress = emailAddress
+
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):
             sectiontype = section[u"type"]
@@ -326,9 +337,11 @@ def restore(rv, filename, testmode=False):
             account.password = section[u"password"]
             account.port = section.as_int(u"port")
             account.connectionSecurity = section[u"security"]
-            emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
-                section[u"address"], section[u"name"])
-            account.replyToAddress = emailAddress
+
+            if section.has_key(u"address"):
+                emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
+                                    section[u"address"], section[u"name"])
+                account.replyToAddress = emailAddress
 
             if section.has_key(u"default") and section[u"default"]:
                 accountRef = schema.ns("osaf.pim", rv).currentMailAccount
@@ -339,7 +352,7 @@ def restore(rv, filename, testmode=False):
                 uuid = UUID(uuid)
                 smtp = rv.findUUID(uuid)
                 account.defaultSMTPAccount = smtp
-        
+
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):
             sectiontype = section[u"type"]
@@ -366,9 +379,11 @@ def restore(rv, filename, testmode=False):
             account.port = section.as_int(u"port")
             account.connectionSecurity = section[u"security"]
             account.leaveOnServer = section.as_bool(u"leave")
-            emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
-                section[u"address"], section[u"name"])
-            account.replyToAddress = emailAddress
+
+            if section.has_key(u"address"):
+                emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
+                                    section[u"address"], section[u"name"])
+                account.replyToAddress = emailAddress
 
             if section.has_key(u"default") and section[u"default"]:
                 accountRef = schema.ns("osaf.pim", rv).currentMailAccount
