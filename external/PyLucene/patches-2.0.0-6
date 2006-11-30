@@ -33,7 +33,7 @@
  
 --- PyLucene-src-2.0rc1-10/Makefile	2006-05-24 01:57:54.000000000 -0400
 +++ PyLucene-src-2.0rc1-10-patched/Makefile	2006-05-24 20:38:54.000000000 -0400
-@@ -191,6 +191,7 @@
+@@ -213,6 +213,7 @@
  ifeq ($(DEBUG),1)
  CCFLAGS=-O0 -g
  LDFLAGS=
@@ -41,11 +41,11 @@
  else
  CCFLAGS=-O2
  LDFLAGS=
-@@ -802,7 +803,8 @@
+@@ -828,7 +829,8 @@
  install::
  	install $(GCJ_HOME)/bin/libiconv-2.dll $(PYTHON_SITE)
  ifdef DB
--	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/build_win32/$(BINDIR)
+-	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/$(BUILD_DB)/$(BINDIR)
 +	mkdir -p $(PREFIX)/bin
 +	install $(LIBDB_JAVA_LIB) $(PREFIX)/bin
  endif

@@ -1,12 +1,12 @@
 
-VERSION=2.0.0-4
+VERSION=2.0.0-6
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-src-$(VERSION)
 BUILD=$(SNAP)
 TARBALL=PyLucene-$(SNAP)-$(RELVER).tar.gz
 
-DB_VER=4.4.20
+DB_VER=4.5.20
 DB_LIB_VER=$(basename $(DB_VER))
 
 include $(BUILD_ROOT)/Makefile.inc
@@ -25,7 +25,7 @@ endif
 ifeq ($(OS),Cygwin)
 PREFIX_PYTHON=$(PREFIX)/bin
 PREFIX_DB=$(BUILD_ROOT)/db/db-$(DB_VER)
-BUILD_DB=build_win32
+BUILD_DB=build_windows
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
          $(SNAP)/$(SITE)/libiconv-2.dll \
@@ -116,6 +116,7 @@ build: expand apply
             GCJ_HOME=$(GCJ_HOME) \
             GCJ_LIBDIR=$(GCJ_HOME)/lib \
             GCJ_STATIC=$(GCJ_STATIC) \
+            LIBDIR_NAME="lib" \
             LIB_INSTALL="$(LIB_INSTALL)" \
             PYDBG=$(PYDBG) \
             _SUFFIX=$(_SUFFIX) \
