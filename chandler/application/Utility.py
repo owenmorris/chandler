@@ -133,6 +133,10 @@ def getDesktopDir():
     return homeDir
 
 def getPlatformID():
+    """
+    Return an identifier string that represents what platform
+    Chandler is being run on.
+    """
     import platform
 
     platformID = 'Unknown'
@@ -147,7 +151,7 @@ def getPlatformID():
             # to determine if we are running under Rosetta
 
             if platform.processor() == 'i386' and platform.machine() == 'i386':
-                platformName = 'Mac OS X (intel)'
+                platformID = 'Mac OS X (intel)'
             else:
                 platformID = 'osx-ppc'
         elif sys.platform == 'cygwin':
@@ -158,7 +162,10 @@ def getPlatformID():
     return platformID
 
 def getPlatformName():
-
+    """
+    Return a plain text string that represents what platform
+    Chandler is being run on.
+    """
     platformID   = getPlatformID()
     platformName = platformID
 
@@ -174,6 +181,9 @@ def getPlatformName():
     return platformName
 
 def getUserAgent():
+    """
+    Construct a rfc spec'd UserAgent string from the platform and version information
+    """
     platformID = getPlatformID()
     locale     = i18n.getLocaleSet()[0]
 
