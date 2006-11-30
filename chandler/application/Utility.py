@@ -59,6 +59,8 @@ def locateProfileDir():
         createProfileDir(profileDir)
         return profileDir
 
+    releaseMajorMinor = version.release.split('-', 1)[0]
+
     if os.name == 'nt':
         dataDir = None
 
@@ -80,7 +82,7 @@ def locateProfileDir():
 
         profileDir = os.path.join(dataDir,
                                   'Open Source Applications Foundation',
-                                  'Chandler', version.release)
+                                  'Chandler', releaseMajorMinor)
 
     elif sys.platform == 'darwin':
         dataDir = os.path.join(os.path.expanduser('~'),
@@ -88,11 +90,11 @@ def locateProfileDir():
                                'Application Support')
         profileDir = os.path.join(dataDir,
                                   'Open Source Applications Foundation',
-                                  'Chandler', version.release)
+                                  'Chandler', releaseMajorMinor)
 
     else:
         dataDir = os.path.expanduser('~')
-        profileDir = os.path.join(dataDir, '.chandler', version.release)
+        profileDir = os.path.join(dataDir, '.chandler', releaseMajorMinor)
 
     # Deal with the random part
     pattern = '%s%s*.default' % (profileDir, os.sep)
@@ -130,13 +132,13 @@ def getDesktopDir():
         return desktopDir
     return homeDir
 
-def getPlatformName():
+def getPlatformID():
     import platform
 
-    platformName = 'Unknown'
+    platformID = 'Unknown'
 
     if os.name == 'nt':
-        platformName = 'Windows'
+        platformID = 'win'
     elif os.name == 'posix':
         if sys.platform == 'darwin':
             # platform.processor() returns 'i386' or 'powerpc'
@@ -147,13 +149,48 @@ def getPlatformName():
             if platform.processor() == 'i386' and platform.machine() == 'i386':
                 platformName = 'Mac OS X (intel)'
             else:
-                platformName = 'Mac OS X (ppc)'
+                platformID = 'osx-ppc'
         elif sys.platform == 'cygwin':
-            platformName = 'Windows'
+            platformID = 'win-cygwin'
         else:
-            platformName = 'Linux'
+            platformID = 'linux'
+
+    return platformID
+
+def getPlatformName():
+
+    platformID   = getPlatformID()
+    platformName = platformID
+
+    if platformID == 'linux':
+        platformName = 'Linux'
+    elif platformID == 'win' or platformID == 'win-cygwin':
+        platformName = 'Windows'
+    elif platformID == 'osx-intel':
+        platformName = 'Mac OS X (intel)'
+    elif platformID == 'osx-ppc':
+        platformName = 'Mac OS X (ppc)'
 
     return platformName
+
+def getUserAgent():
+    platformID = getPlatformID()
+    locale     = i18n.getLocaleSet()[0]
+
+    if platformID == 'win' or platformID == 'win-cygwin':
+        platform = 'Windows'
+        cpu      = 'i386'
+    elif platformID == 'osx-intel':
+        platform = 'Macintosh'
+        cpu      = 'i386'
+    elif platformID == 'osx-ppc':
+        platform = 'Macintosh'
+        cpu      = 'PPC'
+    else:
+        platform = 'Linux'
+        cpu      = 'i386'
+
+    return 'Chandler/%s (%s; U; %s; %s)' % (version.version, platform, cpu, locale)
 
 def initOptions(**kwds):
     """

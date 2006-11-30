@@ -272,31 +272,23 @@ def _getVersionInfo(buildenv):
 #
 
 """
+    versionFilename = os.path.join(buildenv['root'], 'chandler', 'version.py')
 
-    versionFile = open(versionFilename, 'r')
-    lines       = versionFile.readlines()
+    versionFile = open(versionFilename, 'a+')
+    versionFile.write('\nplatform = "%s"\n' % _getPlatform())
     versionFile.close()
 
-    data = {}
+    vmodule = hardhatlib.module_from_file(None, versionFilename, "vmodule")
 
-    for line in lines:
-        line = line.lstrip()
+        # when building a milestone, checkpoint or release the version info
+        # is set in version.py and '' passed to hardhat " -D '' "
 
-        if not line.startswith('#'):
-            linedata = line.split('=')
+    if vmodule.build == '':
+        buildName = vmodule.release
+    else:
+        buildName = '%s-%s' % (vmodule.version, buildenv['buildVersion'])
 
-            if len(linedata) == 2:
-                id    = linedata[0].strip().lower()
-                value = linedata[1].lstrip()
-                value = value[:-1] #strip off newline
-
-                if value.startswith('"') and id != 'version':
-                    value = value[1:-1]  #remove ""'s hack
-
-                data[id] = value
-
-    release     = data['release']
-    versionData = release.split('.')
+    versionData = vmodule.release.split('.')
 
     if len(versionData) == 2:
         majorVersion = versionData[0]
@@ -313,39 +305,7 @@ def _getVersionInfo(buildenv):
             minorVersion   = versionData[1]
             releaseVersion = versionData[2]
         else:
-            majorVersion = release
-
-    revision, isTrunk = _getSVNRevisionInfo(buildenv)
-
-      # re-write the version.py file *only* if we are doing a trunk build
-      # as any tag or branch will already have versioned info stored
-    if isTrunk:
-        if len(buildenv['buildVersion']) > 0:
-            data['checkpoint'] = '-%s' % buildenv['buildVersion']
-
-        data['revision'] = revision
-
-        versionFile = open(versionFilename, 'w')
-
-        versionFile.write(headerData)
-        for key in ('release', 'build', 'checkpoint', 'revision'):
-            if key in data:
-                versionFile.write('%s = "%s"\n' % (key, data[key]))
-
-        versionFile.write('\nplatform = "%s"' % _getPlatform())
-        versionFile.write('\nversion = "%s%s-r%s%s" % (release, build, revision, checkpoint)\n\n')
-
-        versionFile.close()
-    else:
-        versionFile = open(versionFilename, 'a+')
-        versionFile.write('\nplatform = "%s"\n' % _getPlatform())
-        versionFile.close()
-
-
-    if data['build'] == '':
-        buildName = release
-    else:
-        buildName = '%s%s-r%s%s' % (release, data['build'], data['revision'], data['checkpoint'])
+            majorVersion = vmodule.release
 
     return (majorVersion, minorVersion, releaseVersion, buildName)
 
