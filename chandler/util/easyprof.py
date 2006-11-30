@@ -48,6 +48,7 @@ class Profile(object):
                 result = self.profiler.runcall(method, *args, **kwds)
                 self.profiler_active = False
             return result
+        profile_me.__name__ = method.__name__
         return profile_me
 
 def QuickProfile(profilefile):
