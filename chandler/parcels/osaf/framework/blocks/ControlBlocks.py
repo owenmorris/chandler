@@ -330,9 +330,11 @@ class Column(schema.Item):
     scaleColumn = schema.One(schema.Integer, defaultValue = wx.grid.Grid.GRID_COLUMN_NON_SCALABLE)
     readOnly = schema.One(schema.Boolean, initialValue=False)
     defaultSort = schema.One(schema.Boolean, initialValue=False)
+    collapsedSections = schema.Many(schema.Text, initialValue=set())
       
     schema.addClouds(
-        copying = schema.Cloud(byRef=[stamp])
+        copying = schema.Cloud(byRef=[stamp],
+                               byCloud=[collapsedSections])
     )
 
     def getAttributeEditorValue(self):
@@ -341,6 +343,18 @@ class Column(schema.Item):
         else:
             return self.attributeName
         
+    def isSectionCollapsed(self, sectionValue):
+        return str(sectionValue) in self.collapsedSections
+    
+    def setSectionState(self, sectionValue, collapsed):
+        valueStr = str(sectionValue)
+        if collapsed:
+            assert valueStr not in self.collapsedSections
+            self.collapsedSections.add(valueStr)
+        else:
+            assert valueStr in self.collapsedSections
+            self.collapsedSections.remove(valueStr)
+
 class ListDelegate (object):
     """
     Default delegate for Lists that use the block's contents.

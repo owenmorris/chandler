@@ -48,15 +48,15 @@ class TestTriageSectioning(ChandlerTestCase):
         rowMiddle = rowHeight/2
         header_widget = dashboard.GetGridColLabelWindow()
     
-        # sort by triage status
-        self.scripting.User.emulate_click(header_widget, header_widget.GetSize()[0] - 15, 3)
+        # sort by triage status (already sorted that way)
+        #self.scripting.User.emulate_click(header_widget, header_widget.GetSize()[0] - 15, 3)
         self.scripting.User.idle()
         
         # Check the data structures: see that we're sectioned properly
         # for a table with three items of different status:
         # (The sectioning values are the row index, the number of visible items
         # in the section, and the total number of items in the section)
-        goodExpandedSectioning = [(0, 1, 1), (2, 1, 1), (4, 1, 1)]
+        goodDefaultSectioning = [(0, 1, 1), (2, 0, 1), (3, 0, 1)]
         sectionRows = getattr(dashboard, 'sectionRows', None)
         self.logger.startAction('Check Sectioning')
         if not sectionRows:
@@ -64,30 +64,21 @@ class TestTriageSectioning(ChandlerTestCase):
         else:
             self.logger.endAction(True)
         self.logger.startAction('Check section expansion')
-        if sectionRows != goodExpandedSectioning:
+        if sectionRows != goodDefaultSectioning:
             self.logger.endAction(False, "Dashboard not sectioned properly: %r != %r" 
                                   % (sectionRows, goodExpandedSectioning))
         else:
             self.logger.endAction(True)
         
-        # Check that contraction and expansion work. For now, double-clicking 
-        # expands and contracts the section rows; eventually, it'll be clicking on
-        # the triangle.
-        for row in (4, 2, 0):
+        # Check that contraction and expansion work.
+        for row in (3, 2, 0):
             self.scripting.User.emulate_click(dashboard, 12, row*rowHeight + rowMiddle)
-        self.scripting.User.idle()
-        self.logger.startAction('Check contraction')
-        if dashboard.sectionRows != [(0, 0, 1), (1, 0, 1), (2, 0, 1)]:
-            self.logger.endAction(False, "Dashboard didn't contract properly: %r" % dashboard.sectionRows)
-        else:
-            self.logger.endAction(True)
-        for row in (2, 1, 0):
-            self.scripting.User.emulate_click(dashboard, 12, row*rowHeight + rowMiddle)
-        self.scripting.User.idle()
-        self.logger.startAction('Check expansion')
-        if dashboard.sectionRows != goodExpandedSectioning:
-            self.logger.endAction(False, "Dashboard didn't expand properly: %r != %r" 
-                                  % (dashboard.sectionRows, goodExpandedSectioning))
+            self.scripting.User.idle()
+        self.logger.startAction('Check toggling')
+        goodToggledSectioning = [(0, 0, 1), (1, 1, 1), (3, 1, 1)]
+        if dashboard.sectionRows != goodToggledSectioning:
+            self.logger.endAction(False, "Dashboard didn't toggle properly: %r != %r" 
+                                  % (sectionRows, goodToggledSectioning))
         else:
             self.logger.endAction(True)
        

@@ -566,6 +566,7 @@ def makeSummaryBlocks(parcel):
         defaultSort = True,
         width = 40,
         scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
+        collapsedSections=set([str(pim.TriageEnum.later), str(pim.TriageEnum.done)]), 
         attributeName = 'triageStatus',
         indexName = '%s.triageStatus' % __name__,
         attributes=[

@@ -717,7 +717,8 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byRef=[characterStyle,headerCharacterStyle,columns],
+            byRef=[characterStyle, headerCharacterStyle],
+            byCloud=[columns]
         )
     )
 

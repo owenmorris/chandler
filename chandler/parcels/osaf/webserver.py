@@ -92,7 +92,7 @@ class Server(schema.Item):
         # Hook up all associated resources to a location under the docroot
         for res in self.resources:
             logger.info(u"   Hooking up /%s to resource '%s'" % \
-             (res.location, res.displayName))
+             (res.location, res.itsName))
             resourceInstance = res.getResource()
 
             # Give the main thread repository view to the resource instance

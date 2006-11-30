@@ -46,9 +46,6 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
         self.sectionLabels = []
 
-        # a set indicating which sections are collapsed
-        self.collapsedSections = set()
-
         # total rows in the table
         self.totalRows = 0
 
@@ -56,6 +53,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         self.attributeName = None
 
         self.previousIndex = self.blockItem.contents.indexName
+        self.currentColumn = self.findCurrentColumn()
         
     def SynchronizeDelegate(self):
         """
@@ -63,7 +61,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         get_divisions is really optimized for this
         """
         if self.previousIndex != self.blockItem.contents.indexName:
-            self.collapsedSections = set()
+            self.currentColumn = self.findCurrentColumn()
             self.previousIndex = self.blockItem.contents.indexName
             
         self.RebuildSections()
@@ -90,8 +88,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         # @@@ For 0.7alpha4, we only section on triage status
         if indexName != 'osaf.views.main.summaryblocks.triageStatus': 
             return
-        currentCol = [ c for c in self.blockItem.columns if c.indexName == indexName ][0]
-        self.attributeName = currentCol.attributeName
+        self.attributeName = self.currentColumn.attributeName
         
         # Get the divisions
         self.sectionIndexes = get_divisions(self.blockItem.contents,
@@ -118,7 +115,8 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
                 sectionTotal = (self.sectionIndexes[section+1] -
                                 self.sectionIndexes[section])
 
-            sectionVisible = (section not in self.collapsedSections
+            sectionValue = self.findSectionValue(section)
+            sectionVisible = ((not self.currentColumn.isSectionCollapsed(sectionValue))
                               and sectionTotal or 0)
 
             # might as well recall this for the next iteration through
@@ -130,9 +128,6 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
             # Get the color name we'll use for this section
             # For now, it's just the attribute value.
-            sectionValue = getattr(
-                self.blockItem.contents[self.sectionIndexes[section]], 
-                self.attributeName, None)
             self.sectionColors.append(sectionValue)
             
             # Get the label we'll use for this section
@@ -147,6 +142,18 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         assert sum([visible+1 for (row, visible, total) in self.sectionRows]) \
                == self.totalRows
                    
+    def findCurrentColumn(self):
+        # Find the column we're currently sorting by
+        currentIndexName = self.blockItem.contents.indexName
+        for c in self.blockItem.columns:
+            if c.indexName == currentIndexName:
+                return c
+        return None
+
+    def findSectionValue(self, section):
+        # Get the value associated with this section index.
+        return getattr(self.blockItem.contents[self.sectionIndexes[section]], 
+                       self.attributeName, None)
 
     def GetElementCount(self):
 
@@ -190,7 +197,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
                             self.sectionLabels[section],
                             itemCount,
                             self.sectionColors[section],
-                            section not in self.collapsedSections,
+                            not self.currentColumn.isSectionCollapsed(self.findSectionValue(section)),
                             column == len(self.blockItem.columns) - 1)
             
             assert False
@@ -248,9 +255,10 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         sectionAdjust = len(self.sectionIndexes) - 1
         for reversedSection, sectionIndex in enumerate(reversed(self.sectionIndexes)):
             section = sectionAdjust - reversedSection
+            sectionValue = self.findSectionValue(section)
             
             if itemIndex >= sectionIndex:
-                if section in self.collapsedSections:
+                if self.currentColumn.isSectionCollapsed(sectionValue):
                     # section is collapsed! That's not good. Perhaps
                     # we should assert? Or maybe this is a valid case?
                     return -1
@@ -270,7 +278,8 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
     def ToggleRow(self, row):
         for (section, (sectionRow, visible, total)) in enumerate(self.sectionRows):
             if row == sectionRow:
-                if section in self.collapsedSections:
+                sectionValue = self.findSectionValue(section)
+                if self.currentColumn.isSectionCollapsed(sectionValue):
                     self.ExpandSection(section)
                 else:
                     self.CollapseSection(section)
@@ -281,20 +290,22 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         """
         Collapse a given section - i.e. make it zero-length
         """
-        assert section not in self.collapsedSections
+        sectionValue = self.findSectionValue(section) 
+        assert not self.currentColumn.isSectionCollapsed(sectionValue)
 
         # subtract the oldVisibleCount
         (oldPosition, oldVisibleCount, oldTotalCount) = self.sectionRows[section]
 
         self.AdjustSectionPosition(section, -oldVisibleCount)
         self.totalRows -= oldVisibleCount
-        self.collapsedSections.add(section)
+        self.currentColumn.setSectionState(sectionValue, True)
             
     def ExpandSection(self, section):
         """
         Expand the given section to be the same as the original data
         """
-        assert section in self.collapsedSections
+        sectionValue = self.findSectionValue(section) 
+        assert self.currentColumn.isSectionCollapsed(sectionValue)
 
         # we look back in the original data to find the section length
         if section == len(self.sectionIndexes) - 1:
@@ -307,7 +318,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 
         self.AdjustSectionPosition(section, newLength)
         self.totalRows += newLength
-        self.collapsedSections.remove(section)
+        self.currentColumn.setSectionState(sectionValue, False)
 
     def AdjustSectionPosition(self, startSection, delta):
         """
