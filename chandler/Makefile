@@ -21,8 +21,8 @@ PYEGGS = $(CHANDLERARCHIVES)/configobj-4.3.2-py$(PYTHON_VER).egg
 # When a version changes, the ARCHIVES lists below needs to be updated.
 # these get installed into release or debug
 ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)2.tar.gz \
-           $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)62.tar.gz \
-           $(CHANDLERARCHIVES)/db-$(SNAP)-4.4.20-$(BP)5.tar.gz \
+           $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)63.tar.gz \
+           $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.3-$(BP)4.tar.gz \
            $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)9.tar.gz \
            $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)2.tar.gz \
@@ -30,7 +30,7 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)2.tar.gz \
            $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-458-$(BP)2.tar.gz \
            $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)6.tar.gz \
            $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.5-62-$(BP)5.tar.gz \
-           $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-4-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-6-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)5.tar.gz \
            $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.7.2.0-r124-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)4.tar.gz \
