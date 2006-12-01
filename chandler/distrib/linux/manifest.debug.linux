@@ -74,8 +74,8 @@ site-packages
 # Grab the DB libraries
 dest=debug/db/lib
 src=chandler/debug/db/lib
-libdb-4.4.so
-libdb_java-4.4.so
+libdb-4.5.so
+libdb_java-4.5.so
 dest=debug/db
 src=chandler/debug/db
 bin

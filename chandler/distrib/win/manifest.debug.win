@@ -13,8 +13,8 @@ exclude=.svn,*.pyo,*.pyc
 # Grab certain dll's from debug/bin
 src=chandler/debug/bin
 dest=debug/bin
-libdb44d.dll
-libdb_java44d.dll
+libdb45d.dll
+libdb_java45d.dll
 msvcp71d.dll
 msvcr71d.dll
 msvcrtd.dll
