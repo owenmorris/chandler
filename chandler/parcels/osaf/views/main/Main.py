@@ -869,7 +869,6 @@ class MainView(View):
         # Test menu item
         logs = [
             os.path.join(Globals.options.profileDir, 'chandler.log'),
-            os.path.join(Globals.options.profileDir, 'twisted.log')
         ]
         application.dialogs.Util.displayLogWindow(wx.GetApp().mainFrame, logs)
 

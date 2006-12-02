@@ -362,34 +362,49 @@ def initLogging(options):
 
         logger.warn('=== logging initialized, Chandler version %s ===' % version.version)
 
-        # If there is a logging FileHandler writing to a chandler.log,
-        # then put twisted.log next to it.  Otherwise send twisted output
-        # to twisted.log in the profile directory
-
-        twistedLogDir = options.profileDir
-        try:
-            rootLogger = logging.getLogger()
-            for handler in rootLogger.handlers:
-                if isinstance(handler, logging.RotatingFileHandler):
-                    if handler.baseFilename.endswith('chandler.log'):
-                        # We found the chandler.log handler.  Let's put
-                        # twisted.log here next to it
-                        chandlerLogDir = os.path.dirname(handler.baseFilename)
-                        twistedLogDir  = chandlerLogDir
-                        break
-        except:
-            pass # Just stick with profileDir
-
         import twisted.python.log
-        import twisted.python.logfile
 
-        twistedlog = twisted.python.logfile.LogFile("twisted.log", twistedLogDir)
+        def translateLog(eventDict):
+            if eventDict['isError']:
+                level = logging.ERROR
+            elif eventDict.has_key('debug'):
+                level = logging.DEBUG
+            else:
+                level = logging.WARNING
+                
+            failure = eventDict.get('failure')
+            if failure is not None:
+                # For failures, log the type & value, as well as
+                # the traceback. Note that a try/except/logger.exception()
+                # here would log as application.Utility, not the value of
+                # 'system'
+                format = "Twisted failure: %s %s\n%s"
+                args = failure.type, failure.value, failure.getTraceback()
+            else:
+                msg = eventDict.get('message', None)
+                
+                if msg:
+                    format = msg[0]
+                    args = msg[1:]
+                elif eventDict.has_key('format'):
+                    format = eventDict['format']
+                    args = eventDict
+                else:
+                    format = "UNFORMATTABLE: %s"
+                    args = (eventDict,)
+                
 
-         # By default, twisted.log doesn't include seconds in its dates,
-         # so tweak the format.
-        twisted.python.log.FileLogObserver.timeFormat = '%Y-%m-%d %H:%M:%S'
-        twisted.python.log.startLogging(twistedlog, 0)
-        logger.warning("Twisted logging output to %s folder" % twistedLogDir)
+            system = eventDict.get('system', '-')
+            lineno = eventDict.get('lineno', None)
+            exc_info = None
+                
+            logRecord = logging.LogRecord("twisted", level, system, lineno, format, args, exc_info)
+            logRecord.created = eventDict['time']
+            logger.handle(logRecord)
+
+        # We want startLoggingWithObserver here to override the
+        # twisted logger, since that would write to stdio, I think.
+        twisted.python.log.startLoggingWithObserver(translateLog, setStdout=0)
 
 def getLoggingLevel():
     return logging.getLogger().getEffectiveLevel()
