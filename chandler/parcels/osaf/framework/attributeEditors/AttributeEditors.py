@@ -2499,7 +2499,7 @@ class IconAttributeEditor (BaseAttributeEditor):
         selectedBit | rolledOverBit: 'rolloverselected',
         mouseDownBit: 'normal', # note, this is the not-rollover case: mouse out
         mouseDownBit | rolledOverBit: 'mousedown', # mouse in
-        mouseDownBit | selectedBit: 'mousedownselected',
+        mouseDownBit | selectedBit: 'selected',
         mouseDownBit | selectedBit | rolledOverBit: 'mousedownselected',
         # @@@ Change these if we need special read/only icons
         readOnlyBit: "normal",
@@ -2549,16 +2549,15 @@ class IconAttributeEditor (BaseAttributeEditor):
         
         isDown = getattr(self, 'wasDown', False)
         isOver = getattr(self, 'rolledOverItem', None) is item
+        justClicked = getattr(self, 'justClicked', False)
         isReadOnly = self.ReadOnly((item, attributeName))
 
         state = self.GetAttributeValue(proxyItem, attributeName)
-        #logger.debug("%s is '%s'", debugName(item), state)
-        if isOver:
+        if isOver and not justClicked:
             # We want to use the "next" state to determine what to draw.
             nextValueMethod = getattr(self, 'getNextValue', None)
             if nextValueMethod is not None:
                 state = nextValueMethod(item, attributeName, state)
-                #logger.debug("(but using next state '%s'", state)
         
         iconState = self.mapValueToIconState(state)
         imageSet = self.bitmapCache.get(iconState)
@@ -2567,39 +2566,68 @@ class IconAttributeEditor (BaseAttributeEditor):
 
         imageVariation = self.getImageVariation(item, attributeName, isReadOnly,
                                                 isDown, isInSelection, isOver)
+        #logger.debug("Draw: %s isOver=%s, isDown=%s, isInSel=%s: using %s/%s, variation '%s'", 
+                     #attributeName, isOver, isDown, isInSelection, state, iconState, imageVariation)
         
         image = getattr(imageSet, imageVariation, None)
+        if image is None:
+            logger.debug("Hey, missing image!")
         if image is not None:
             x = rect.GetLeft() + (rect.GetWidth() - image.GetWidth()) / 2
             y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
             dc.DrawBitmap(image, x, y, True)
 
-    def OnMouseChange(self, event, cell, isIn, isDown, (item, attributeName)):
+    def OnMouseChange(self, event):
         """
-        Handle live changes of mouse state related to our cell.
+        Handle live changes of mouse state related to our cell; return True
+        if we want the mouse captured for future updates.
         """
-        # Note whether the in-ness changed
-        wasIn = getattr(self, 'rolledOverItem', None)
-        if (not isIn) or (wasIn is not item):
+        # Note whether the item we were over changed
+        item, attributeName = event.getCellValue()
+        isIn = event.isInCell
+        rolledOverItem = getattr(self, 'rolledOverItem', None)
+        inChanged = (not isIn) or (rolledOverItem is not item)
+        if inChanged:
             if isIn:
                 self.rolledOverItem = item
-            else:
+            elif hasattr(self, 'rolledOverItem'):
                 del self.rolledOverItem
-            #logger.debug("Rolled over: %s" % getattr(self, 'rolledOverItem', None))
 
         # Note down-ness changes; eat the event if the downness changed, and
         # trigger an advance if appropriate.
+        isDown = event.LeftIsDown()
         downChanged = isDown != getattr(self, 'wasDown', False)
         advanceStateMethod = getattr(self, 'advanceState', None)
+        justClicked = False
         if downChanged and advanceStateMethod is not None:
             if isIn and not isDown:
                 advanceStateMethod(item, attributeName)
+                justClicked = True;
             if isDown:
                 self.wasDown = True
             else:
                 del self.wasDown
-            #logger.debug("Downness now %s" % getattr(self, 'wasDown', False))
-            #logger.debug("AE NOT calling event.Skip")
-        else:
-            #logger.debug("AE Calling event.Skip")
-            event.Skip()
+            event.Skip(False) # Eat the event
+        elif isDown:
+            event.Skip(False) # Eat the event to prevent a drag from starting
+            
+        # Note (or clear) whether we were just clicked
+        if justClicked:
+            self.justClicked = True
+        elif inChanged and hasattr(self, 'justClicked'):
+            del self.justClicked
+            
+        # Redraw ourselves if necessary
+        if inChanged or downChanged:
+            grid = event.GetEventObject().GetParent()
+            grid.RefreshRect(event.getCellRect())
+            
+        #logger.debug("IconAttributeEditor (isDown=%s, isIn=%s, %s): %s%s%s",
+                     #isDown, isIn, getattr(self, 'rolledOverItem', None),
+                     #event.GetSkipped() and "skipping" or "eating",
+                     #(inChanged or downChanged) and ", refreshing" or "",
+                     #(isIn or isDown) and ", capturing" or "")
+        
+        # We'll want capture if the mouse is in this cell, or if the mouse is
+        # down.
+        return isIn or isDown

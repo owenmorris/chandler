@@ -119,24 +119,27 @@ class TriageAttributeEditor(attributeEditors.BaseAttributeEditor):
         labelLeft = rect.x + ((rect.width - labelWidth) / 2)
         dc.DrawText(label, labelLeft, labelTop)
 
-    def OnMouseChange(self, event, cell, isIn, isDown, (item, attributeName)):
+    def OnMouseChange(self, event):
         """
-        Handle live changes of mouse state related to our cell.
+        Handle live changes of mouse state related to our cell; return True
+        if we want the mouse captured for future updates.
         """
-        attributeName = self.editingAttribute or attributeName
         # Note down-ness changes; eat the event if the downness changed, and
         # trigger an advance if appropriate.
+        isDown = event.LeftDown()
         if isDown != getattr(self, 'wasDown', False):
-            if isIn and not isDown:
+            if not isDown and event.isInCell:
+                item, attributeName = event.getCellValue()
+                attributeName = self.editingAttribute or attributeName
                 oldValue = self.GetAttributeValue(item, attributeName)
                 newValue = pim.getNextTriageStatus(oldValue)
-                self.SetAttributeValue(item, attributeName, newValue)                
+                self.SetAttributeValue(item, attributeName, newValue)
+                event.Skip(False) # Eat the event
             if isDown:
                 self.wasDown = True
             else:
                 del self.wasDown
-        else:
-            event.Skip()
+        return False # we don't want capture
 
     def ReadOnly (self, (item, attribute)):
         # @@@ For now, treat recurring events as readOnly.
@@ -247,6 +250,7 @@ bitSourceAttributes = map(lambda x: x[1], bitSources)
 statePairNames = (
     # Base name, True if it shows an icon when 'read'
     ("Plain", False),
+    ("PlainDraft", True),
     ("InDraft", True),
     ("In", False),
     ("OutDraft", True),
@@ -323,22 +327,21 @@ class CommunicationsColumnAttributeEditor(attributeEditors.IconAttributeEditor):
 
         # Build pairs of states (Read and Unread)
         for name, hasRead in statePairNames:
-            namePrefix = (name != "Plain") and name or ''
             # Each pair has these variations in common
             args = { 
-                'rollover': '%sRollover' % namePrefix,
-                'rolloverselected': '%sRolloverSelected' % namePrefix,
-                'mousedown': '%sMousedown' % namePrefix,
-                'mousedownselected': '%sMousedownSelected' % namePrefix
+                'rollover': '%sRollover' % name,
+                'rolloverselected': '%sRolloverSelected' % name,
+                'mousedown': '%sMousedown' % name,
+                'mousedownselected': '%sMousedownSelected' % name
             }
             
             # Do Unread
-            addState("%sUnread" % name, selected='%sUnreadSelected' % namePrefix, 
+            addState("%sUnread" % name, selected='%sUnreadSelected' % name, 
                      **args)
 
             # Do Read, whether it has 'read' icon or not.
             if hasRead:
-                addState("%sRead" % name, selected='%sReadSelected' % namePrefix, 
+                addState("%sRead" % name, selected='%sReadSelected' % name, 
                          **args)
             else:
                 addState("%sRead" % name, normal=None, selected=None, **args)
@@ -364,13 +367,16 @@ class CommunicationsColumnAttributeEditor(attributeEditors.IconAttributeEditor):
         pass
 
     def getNextValue(self, item, attributeName, currentValue):
+        # Cycle through: Unread, Read, NeedsReply
         wasUnread = currentValue.find("Unread") != -1
         if currentValue.find("NeedsReply") != -1:
             if wasUnread:
-                return currentValue.replace("UnreadNeedsReply", "Read")
-            return currentValue.replace("NeedsReply", "")
+                # Shouldn't happen (if it's needsReply, it oughta be read),
+                # but map it to Unread anyway.
+                return currentValue.replace("NeedsReply", "")
+            return currentValue.replace("ReadNeedsReply", "Unread")
         # It wasn't needsReply. If it was "Unread", mark it "read"
-        if wasUnread: # yes, "NeedsReply" is next, and mark it read, too.
+        if wasUnread:
             return currentValue.replace("Unread", "Read")
         
         # Otherwise, it's Read -> ReadNeedsReply.
@@ -707,3 +713,101 @@ def makeSummaryBlocks(parcel):
         detailBranchPointDelegate.getBranchForKeyItem(
                             schema.itemFor(keyType, view))
     
+
+if __name__ == "__main__":
+    # Code to generate a web page for checking the communications column's
+    # icon mappings. To generate "icontest.html" in your $CHANDLERHOME, do:
+    #   cd $CHANDLERHOME; UNIT_TESTING=True $CHANDLERBIN/release/RunPython.bat parcels/osaf/views/main/summaryblocks.py
+    # (leave off the .bat if you're not on windows)
+    # Then, view file:///path/to/your/CHANDLERHOME/icontest.html
+    # in your browser.
+    import os, itertools
+    from util.MultiStateButton import allVariations
+
+    # URL to ChandlerHome in ViewCVS
+    viewCVS = "http://viewcvs.osafoundation.org/chandler/trunk/chandler"
+    
+    # Relative path to the images we'll use
+    imageDir = "Chandler.egg-info/resources/images"
+    if True:
+        # Refer to the images in ViewCVS (so I can paste the resulting HTML
+        # into a wiki page, for instance)
+        imagePrefix = "%s/Chandler.egg-info/resources/images" % viewCVS
+    else:
+        # Just reference the images relatively.
+        imagePrefix = imageDir
+        
+    # First, we add a "dump" method to BitMapInfo
+    def BitmapInfoDump(self, variation):
+        v = getattr(self, variation, None)
+        if v is None:
+            return "(None)"
+        else:
+            if v == "pixel":
+                v = "pixel.gif"
+            else:
+                v += ".png"
+            return '<img height=32 width=42 src="%s/%s"><br/><font size=-1>%s</font>' % (imagePrefix, v, v)
+    BitmapInfo.dump = BitmapInfoDump
+
+    # A utility routine to columnize a list:
+    # list(columnnize(list("abcdefghi"), 3)) returns
+    # [('a', 'd', 'g'),
+    #  ('b', 'e', 'h'),
+    #  ('c', 'f', None)]
+    # which we need for the icon table HTML.
+    def columnize(seq, colCount, default=None):
+        cols = []
+        overFlow = len(seq) % colCount 
+        if overFlow:
+            seq.extend([default] * (colCount - overFlow))
+            
+        colLength = len(seq) / colCount
+        cols = [ seq[(c * colLength):((c+1) * colLength)]
+                 for c in xrange(colCount) ]        
+        return itertools.izip(*cols)
+        
+    f = open("icontest.html", 'w')
+    f.write("""<p>
+This is a dump of the icon states in the dashboard task, communications, and 
+event columns. See the notes at the bottom of <a href="%s/parcels/osaf/views/main/summaryblocks.py?view=markup">
+parcels/osaf/views/main/summaryblocks.py</a> to see how it was created.
+</p>""" % viewCVS)
+    
+    # The variations we'll do are all except these two
+    variationList = list(allVariations)
+    variationList.remove("disabled")
+    variationList.remove("focus")
+    
+    for cls, iconPrefix in ((TaskColumnAttributeEditor, "Task"),
+                            (CommunicationsColumnAttributeEditor, "Mail"),
+                            (ReminderColumnAttributeEditor, "Event")):
+        f.write("\n<h3>%s</h3>\n" % iconPrefix)
+        f.write('<table width="100%" bgcolor="#339933">\n  <tr>\n    <td>&nbsp;</td>\n')
+        for v in variationList:
+            f.write("    <td align=middle><i>%s</i></td>\n" % v)
+        f.write('  </tr>\n')
+        setattr(cls, '__init__', lambda *args, **kwds: None)
+        states = cls().makeStates()
+        for s in states:
+            f.write("  <tr>\n")
+            f.write("    <td>%s</td>\n" % s.stateName)
+            for v in variationList:
+                f.write("    <td align=middle>%s</td>\n" % s.dump(v))
+            f.write("  </tr>\n")
+        f.write("</table>\n")
+    
+        f.write('&nbsp;<br>&nbsp;<br><table width="100%" bgcolor="#339933">\n')
+        images = [ im for im in os.listdir(imageDir) if im.startswith(iconPrefix)]
+        images.sort()    
+        for rowImages in columnize(images, 4):
+            f.write('  <tr>\n')
+            for img in rowImages:
+                if img is not None:
+                    f.write('    <td valign="middle"><img height=32 width=42 src="%s/%s"><font size=-1>%s</font></td>\n' % (imagePrefix, img, img))
+                else:
+                    f.write('    <td>&nbsp;</td>\n')
+            f.write('  </tr>\n')
+        f.write("</table>\n")
+    #f.write("</body>\n")
+    f.close()

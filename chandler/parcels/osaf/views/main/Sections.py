@@ -423,10 +423,12 @@ class SectionAttributeEditor(BaseAttributeEditor):
             swatchY = rect.y + ((rect.height - swatchHeight) / 2)
             dc.DrawRectangleRect((swatchX, swatchY, swatchWidth, swatchHeight))
 
-    def OnMouseChange(self, event, cell, isIn, isDown, itemAttrNameTuple):
-        # Look for clicks on our triangle
+    def OnMouseChange(self, event):
+        # Handle clicks on our triangle
         if event.GetEventType() == wx.wxEVT_LEFT_DOWN:
             (triBitmap, triWidth, triHeight) = self._getTriangle()
             if (event.m_x - margin) < triWidth:
                 grid = event.GetEventObject().GetParent()
-                grid.ToggleRow(cell[1])
+                grid.ToggleRow(event.cell[1])
+                event.Skip(False) # Eat the event
+        return False # don't capture the mouse for us
