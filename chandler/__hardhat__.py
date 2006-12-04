@@ -283,8 +283,8 @@ def _getVersionInfo(buildenv):
         # when building a milestone, checkpoint or release the version info
         # is set in version.py and '' passed to hardhat " -D '' "
 
-    if vmodule.build == '':
-        buildName = vmodule.release
+    if buildenv['buildVersion'] == '':
+        buildName = vmodule.version
     else:
         buildName = '%s-%s' % (vmodule.version, buildenv['buildVersion'])
 
