@@ -152,11 +152,13 @@ class wxDashboard(wxTable):
             if wantsCapture:
                 if not hasCapture:
                     #logger.debug("Capturing mouse...")
-                    gridWindow.CaptureMouse()
+                    ## @@@ Temporarily commented out to workaround bug 7526
+                    #gridWindow.CaptureMouse()
                     self.blockItem.mouseCaptured = True
             elif hasCapture:
                 #logger.debug("Releasing mouse...")
-                gridWindow.ReleaseMouse()
+                ## @@@ Temporarily commented out to workaround bug 7526
+                #gridWindow.ReleaseMouse()
                 del self.blockItem.mouseCaptured
 
     def OnMouseCaptureLost(self, event):
@@ -197,7 +199,8 @@ class DashboardBlock(Table):
         
         if getattr(self, 'mouseCaptured', False):
             delattr(self, 'mouseCaptured')
-            self.widget.GetGridWindow().ReleaseMouse()
+            # @@@ Temporarily commented out to workaround bug 7526
+            #self.widget.GetGridWindow().ReleaseMouse()
 
         super(DashboardBlock, self).onDestroyWidget(*args, **kwds)
 
