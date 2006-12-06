@@ -278,8 +278,6 @@ class wxApplication (wx.App):
 
     outputWindowClass = feedback.FeedbackWindow
 
-    __CHANDLER_STARTED_UP = False # workaround for bug 4362
-
     def OnInit(self):
         """
         Main application initialization.
@@ -432,7 +430,6 @@ class wxApplication (wx.App):
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
 
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
         self.Bind(wx.EVT_TOOL, self.OnCommand, id=-1)
         self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
@@ -509,7 +506,8 @@ class wxApplication (wx.App):
             import util.GenerateItemsFromFile as GenerateItemsFromFile
             GenerateItemsFromFile.RunScript(self.UIRepositoryView)
         
-        self.__CHANDLER_STARTED_UP = True # workaround for bug 4362
+        # delay calling OnIdle until now
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
 
         # resize to intended size. (bug 3411)
         self.mainFrame.SetSize(rememberSize)
@@ -817,7 +815,6 @@ class wxApplication (wx.App):
         # so we check for focus changes in OnIdle. Also call UpdateUI when
         # focus changes.
 
-        if not self.__CHANDLER_STARTED_UP: return # workaround for bug 4362
         if self.ignoreIdle: return                # workaround for bug 4732
 
         self.propagateAsynchronousNotifications()
