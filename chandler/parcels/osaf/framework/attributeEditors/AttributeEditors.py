@@ -745,10 +745,15 @@ class AETypeOverTextCtrl(wxRectangularChild):
         editControl.Bind(wx.EVT_LEFT_DCLICK, self.OnEditClick)
         editControl.Bind(wx.EVT_KEY_UP, self.OnEditKeyUp)
 
+        # don't automatically resize the static control to snugly fit the text,
+        # since any manipulation by the staticControlDelegate could cause it to
+        # shrink down to nothing
+        style |= wx.ST_NO_AUTORESIZE
         staticControl = AEStaticText(self, -1, pos=position, size=staticSize,
                                      style=style, *args, **keys)
         self.staticControl = staticControl
         staticControl.Bind(wx.EVT_LEFT_DOWN, self.OnStaticClick)
+        staticControl.Bind(wx.EVT_SIZE, self.OnSize)
 
         self.shownControl = staticControl
         self.otherControl = editControl
@@ -779,7 +784,7 @@ class AETypeOverTextCtrl(wxRectangularChild):
             ## editable. (Also, note: no Skip())
             #if readOnlyMethod((item, attributeName)):
                 #return 
-            
+
         editControl = self.editControl
         editControl.SetFocus()
         # if we're currently displaying the "sample text", select
@@ -819,6 +824,15 @@ class AETypeOverTextCtrl(wxRectangularChild):
             # not needed: Navigating will make us lose focus
             # NotifyBlockToSaveValue(self)
             self.Navigate()
+        event.Skip()
+
+    def OnSize(self, event):
+        """
+        if the control is resized, allow the staticControlDelegate to adjust
+        accordingly
+        """
+        if self.staticControlDelegate is not None:
+            self.staticControlDelegate.SetStaticControl(self.staticControl, self.modelData)
         event.Skip()
 
     def _swapControls(self, controlToShow):
@@ -891,9 +905,11 @@ class AETypeOverTextCtrl(wxRectangularChild):
     def SetValue(self, *args):
         assert isinstance(args[0], basestring)
         self.modelData = args[0]
+        # ensure that static control delegate gets a chance to modify the display of the new model data
         if self.staticControlDelegate is not None and self.shownControl is self.staticControl:
             self.staticControlDelegate.SetStaticControl(self.staticControl, self.modelData)
         else:
+            # We're editing the value, so no need to call the staticControlDelegate
             self.shownControl.SetValue(self.modelData)
 
     def GetInsertionPoint(self): return self.shownControl.GetInsertionPoint()
@@ -1067,9 +1083,9 @@ class StringAttributeEditor (BaseAttributeEditor):
     Uses a Text Control to edit attributes in string form.
     Supports sample text.
     """
-    def __init__(self, delegate=None, *args, **kwargs):
+    def __init__(self, staticControlDelegate=None, *args, **kwargs):
         super(StringAttributeEditor, self).__init__(*args, **kwargs)
-        self.staticControlDelegate = delegate
+        self.staticControlDelegate = staticControlDelegate
 
     def EditInPlace(self):
         try:
@@ -2141,9 +2157,18 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
 
     # staticControlDelegate method
     def SetStaticControl(self, control, text):
-        # update the static text control with a representation of 'text'
-        control.SetValue(text)
+        (addrString, indicatorString, count) = self.shortenAddressList(control, text)
 
+        # Unfortunately, static text controls:
+        #   (a) cannot append text, and
+        #   (b) do not used styled text
+        #control.SetValue(u'%s' % addrString)
+        #control.SetForegroundColour(u"#990000")
+        #control.AppendText(u' %s' % indicatorString)
+
+        # update the static text control with a representation of 'text'
+        control.SetValue(u'%s %s' % (addrString, indicatorString))
+ 
     def GetAttributeValue(self, item, attributeName):
         attrValue = getattr(item, attributeName, None)
         if attrValue is not None:
@@ -2158,44 +2183,97 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
             value = u''
         return value
 
-    def shortenAddressList(self, list, control):
+    def shortenAddressList(self, control, addressText):
         """
         Parse a string with a list of email addresses (no validity check, just
         commas) and return both a new string with a list that will fit in the
         given control's bounds, and the number of omitted addresses, in a tuple.
         """
-        (ign, addressList, ign2) = Mail.EmailAddress.parseEmailAddresses(self.item, list)
+        logger.debug("shortenAddressList(%s)", addressText)
+        (ignored, addressList, ignored2) = Mail.EmailAddress.parseEmailAddresses(self.item, addressText)
+
+        # unrenderedCount is the count of addresses that are not yet considered to
+        # be rendered in the text field.  It is used to generate the '[+ N]' string
+        # at the end of the field for any addresses that do not fit.
         unrenderedCount = len(addressList)
+        addrCount = unrenderedCount
+
+        # maintain two strings: addrOnlyString, which contains
+        # a list of addresses separated by ',', and addrString,
+        # which has a similar list, with a "[+N]" at the end.
+        # addrOnlyString is kept so that the next address can
+        # simply be concatenated to the end of it.
         addrString = u''
-        if unrenderedCount > 0:
-            (controlWidth, controlHeight) = control.GetClientSize()
+        addrOnlyString = u''
+        indicatorString = u''
 
-            # conservatively allow for the scrollbar; there seemt o be no way to
-            # determine the width of the scrollbar emplyed by a multi-line text field.
-            # Smaller numbers are more conservative.
-            controlWidth -= 22;
+        # keep in a variable in case we want to change it later
+        unrenderedFormat = u'[+%d]'
 
-            # maintain two strings: addrOnlyString, which contains
-            # a list of addresses separated by ',', and addrString,
-            # which has a similar list, with a "+N" at the end.
-            # addrOnlyString is kept so that the next address can
-            # simply be concatenated to the end of it.
+        (controlWidth, controlHeight) = control.GetClientSize()
+
+        # Debugging code for trying to figure out why the control shrinks
+        # its width by ~32 each time you alternate between two mail messages
+        # in the table view
+        #
+        ##  if controlWidth > 0 and controlWidth < 110:
+        ##      import pdb;pdb.set_trace()
+        ##  else:
+        ##      print "shortenAddressList: ControlWidth is %d" % controlWidth
+
+        # check for zero controlWidth - happens at startup
+        if unrenderedCount > 0 and controlWidth > 0:
+
+            # allow for the width of the scrollbar
+            controlWidth -= wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X);
+
+            def addressFitsInControl(addr):
+                # the first element of the GetTextExtent call is the width
+                # of the rendered text
+                return (control.GetTextExtent(addr)[0] < controlWidth)
 
             # get the first address from the list and add the "+N"
             # to the end, if applicable
-            addrString = unicode(addressList.pop(0))
+            addrOnlyString = unicode(addressList.pop(0))
             unrenderedCount -= 1
-
-            # go through the rest of the addresses, recreating the string and
-            # measuring it until the string is too long to fit in the control
+            if unrenderedCount > 0:
+                indicatorString = ' [+%d]' % unrenderedCount
+                # special case check the first address
+                addrString = u'%s %s' % (addrOnlyString, indicatorString)
+                # if it's too long to fit even just the first address in the field
+                # with an indicator, use a special indicator consisting of just
+                # the number of (non visible) addresses
+                if not addressFitsInControl(addrString):
+                    addrString = u''
+                    indicatorString = u'[%d addresses]' % unrenderedCount
+            # go through the rest of the addresses, building the string and
+            # measuring it until the string is too wide to fit in the control
             for addr in addressList:
-                newAddrString = u'%s, %s [+%d]' % (addrString, unicode(addr), unrenderedCount)
-                if control.GetTextExtent(newAddrString)[0] > controlWidth:
-                    break
+                # baseAddrString is the nominee to become the new addrOnlyString
+                # lengthCheckString is a temporary string to check the length of the
+                #     string against the control width
+                baseAddrString = u'%s, %s' % (addrOnlyString, unicode(addr))
+                unrenderedCount -= 1
+                if unrenderedCount > 0:
+                    indicatorString = unrenderedFormat % unrenderedCount
+                    lengthCheckString = u'%s %s' % (baseAddrString, indicatorString)
                 else:
-                    unrenderedCount -= 1
-                    addrString = newAddrString
-        return (addrString, unrenderedCount)
+                    indicatorString = u''
+                    lengthCheckString = baseAddrString
+                if addressFitsInControl(lengthCheckString):
+                    # it fits, so update the addrOnlyString and try again
+                    addrOnlyString = baseAddrString
+                else:
+                    # it's too big to fit, so use last good addrString
+                    # and re-adjust unrenderedCount and indicatorString
+                    unrenderedCount += 1
+                    indicatorString = unrenderedFormat % unrenderedCount
+                    break
+        else:
+            addrOnlyString = addressText
+            unrenderedCount = 0
+
+        return (addrOnlyString, indicatorString, unrenderedCount)
 
     def SetAttributeValue(self, item, attributeName, valueString):            
         processedAddresses, validAddresses, invalidCount = \
