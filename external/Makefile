@@ -20,8 +20,8 @@ SYSTEMS=db \
         icu \
         openssl \
         $(READLINE_OSX) \
-        python \
         $(READLINE_WIN) \
+        python \
         setuptools \
         epydoc \
         PyLucene \
@@ -33,14 +33,12 @@ SYSTEMS=db \
         dateutil \
         m2crypto \
         zanshin \
-        elementtree \
         pylint \
         parsedatetime \
         configobj \
         wx
 
 SYS_TESTS=dateutil \
-          elementtree \
           m2crypto \
           openssl \
           parsedatetime \

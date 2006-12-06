@@ -430,7 +430,7 @@ static int t_lm_clear(t_lm *self);
 static PyObject *t_lm_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_lm_init(t_lm *self, PyObject *args, PyObject *kwds);
 
-static int t_lm_dict_length(t_lm *self);
+static Py_ssize_t t_lm_dict_length(t_lm *self);
 static PyObject *t_lm_dict_get(t_lm *self, PyObject *key);
 static int t_lm_dict_set(t_lm *self, PyObject *key, PyObject *value);
 
@@ -478,7 +478,7 @@ static PyGetSetDef t_lm_properties[] = {
 };
 
 static PyMappingMethods t_lm_as_mapping = {
-    (inquiry) t_lm_dict_length,
+    (lenfunc) t_lm_dict_length,
     (binaryfunc) t_lm_dict_get,
     (objobjargproc) t_lm_dict_set
 };
@@ -650,7 +650,7 @@ static PyObject *t_lm__get(t_lm *self, PyObject *args)
 
 /* as_mapping */
 
-static int t_lm_dict_length(t_lm *self)
+static Py_ssize_t t_lm_dict_length(t_lm *self)
 {
     return self->count;
 }

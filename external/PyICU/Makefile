@@ -1,7 +1,7 @@
 
-VERSION=0.5-$(SVNVER)
-SVNVER=62
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)5
+VERSION=0.6-$(SVNVER)
+SVNVER=66
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYICU=$(BUILD_ROOT)/PyICU
 SRC=$(PYICU)/PyICU-$(VERSION)
 BUILD=$(SNAP)
@@ -68,7 +68,7 @@ endif
 endif
 endif
 
-ifeq (/,$(SRC))
+ifneq (/,$(SRC))
 clean:
 	$(MAKE) -C $(SRC) clean
 endif

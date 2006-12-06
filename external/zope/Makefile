@@ -1,16 +1,16 @@
 
-VERSION=3.1.0c1
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)4
+SVN_VER=r71371
+EGG_VER=3.3.0b2
+VERSION=$(EGG_VER)-$(SVN_VER)
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 ZOPE=$(BUILD_ROOT)/zope
-SRC=$(ZOPE)/ZopeInterface-$(VERSION)
+SRC=$(ZOPE)/zope.interface-$(VERSION)
 BUILD=build_$(SNAP)
-TARBALL=zopeinterface-$(SNAP)-$(RELVER).tar.gz
+TARBALL=zope.interface-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
-.PHONY: patches-$(VERSION)
-
-apply: patches-$(VERSION)
+apply:
 	if [ -f patches-$(VERSION) ]; then \
             patch -Nup0 < patches-$(VERSION);echo ok; \
         fi
@@ -21,21 +21,27 @@ build: expand apply
           build --build-base=$(BUILD) $(DIST_OPT) \
           install --force
 
-ZopeInterface-$(VERSION).tgz:
-	$(CURL) http://builds.osafoundation.org/external/ZopeInterface-$(VERSION).tgz
+zope.interface-$(VERSION).tar.bz2:
+	$(CURL) http://builds.osafoundation.org/external/zope.interface-$(VERSION).tar.bz2
 
-sources: ZopeInterface-$(VERSION).tgz
+sources: zope.interface-$(VERSION).tar.bz2
 
-ZopeInterface-$(VERSION)-expanded: ZopeInterface-$(VERSION).tgz
-	tar xzvf ZopeInterface-$(VERSION).tgz
-	touch ZopeInterface-$(VERSION)-expanded
+zope.interface-$(VERSION)-expanded: zope.interface-$(VERSION).tar.bz2
+	tar -xvjf zope.interface-$(VERSION).tar.bz2
+	touch $@
 
-expand: ZopeInterface-$(VERSION)-expanded
+expand: zope.interface-$(VERSION)-expanded
 
 binaries: strip
+	# this ln statement will fail if there is more than one match for the
+	# zope.interface egg name pattern
+	ln -sf $(BUILD_ROOT)/$(SNAP)/$(SITE)/$(notdir $(wildcard $(BUILD_ROOT)/$(SNAP)/$(SITE)/zope.interface-$(EGG_VER)-py$(PYTHON_VER)-*.egg))/zope $(BUILD_ROOT)/$(SNAP)/$(SITE)/zope
 	tar -C $(BUILD_ROOT) -cvzf $(ZOPE)/$(TARBALL) \
-        --exclude tests --exclude testing --exclude '*.py?' \
-        $(SNAP)/$(SITE)/zope
+                             --exclude tests \
+                             --exclude testing \
+                             --exclude '*.py[co]' \
+                                   $(SNAP)/$(SITE)/zope/__init__.py \
+                                   $(SNAP)/$(SITE)/zope/interface
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)

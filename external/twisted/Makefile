@@ -1,8 +1,8 @@
 
-VERSION=r15399
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)5
+VERSION=r18795
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 TWISTED=$(BUILD_ROOT)/twisted
-SRC=$(TWISTED)/Twisted-$(VERSION)
+SRC=$(TWISTED)/twisted-$(VERSION)
 BUILD=build_$(SNAP)
 TARBALL=twisted-$(SNAP)-$(RELVER).tar.gz
 
@@ -21,16 +21,16 @@ build: expand apply
           build --build-base=$(BUILD) $(DIST_OPT) \
           install --force
 
-Twisted-$(VERSION).tar.gz:
-	$(CURL) http://builds.osafoundation.org/external/Twisted-$(VERSION).tar.gz
+twisted-$(VERSION).tar.bz2:
+	$(CURL) http://builds.osafoundation.org/external/twisted-$(VERSION).tar.bz2
 
-sources: Twisted-$(VERSION).tar.gz
+sources: twisted-$(VERSION).tar.bz2
 
-Twisted-$(VERSION)-expanded: Twisted-$(VERSION).tar.gz
-	tar xvzf Twisted-$(VERSION).tar.gz
-	touch Twisted-$(VERSION)-expanded
+twisted-$(VERSION)-expanded: twisted-$(VERSION).tar.bz2
+	tar xvjf twisted-$(VERSION).tar.bz2
+	touch twisted-$(VERSION)-expanded
 
-expand: Twisted-$(VERSION)-expanded
+expand: twisted-$(VERSION)-expanded
 
 binaries: strip
 	tar -C $(BUILD_ROOT) -cvzf $(TWISTED)/$(TARBALL) \

@@ -1,53 +1,36 @@
-VERSION=0.6c2
+
+VERSION=0.6c4dev-r52887
 
 SETUPTOOLS=$(BUILD_ROOT)/setuptools
 BUILD=build_$(SNAP)
-TARBALL=setuptools-$(VERSION)-py2.4.egg
-SRC=$(SETUPTOOLS)/$(TARBALL)
+TARBALL=setuptools-$(subst -,_,$(VERSION))-py$(PYTHON_VER).egg
+SRC=$(SETUPTOOLS)/setuptools-$(VERSION)
 
 include $(BUILD_ROOT)/Makefile.inc
 
-ifeq ($(OS),Cygwin)
+build: expand
+	cd $(SRC); \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
+            $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                               install --force
+	cp -p $(BUILD_ROOT)/$(SNAP)/$(SITE)/$(TARBALL) .
 
-build: $(TARBALL)
-	cd $(SETUPTOOLS); \
-    PYTHONPATH=$(TARBALL) \
-    $(PYTHON) ez_setup.py $(TARBALL)
-else
+setuptools-$(VERSION).tar.gz:
+	$(CURL) http://builds.osafoundation.org/external/$@
 
-ifeq ($(OS),Darwin)
+sources: setuptools-$(VERSION).tar.gz
 
-build: $(TARBALL)
-	cd $(SETUPTOOLS); \
-    MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
-    PYTHONPATH=$(TARBALL) \
-    $(PYTHON) ez_setup.py $(TARBALL)
+setuptools-$(VERSION)-expanded: setuptools-$(VERSION).tar.gz
+	tar xvzf setuptools-$(VERSION).tar.gz
+	touch setuptools-$(VERSION)-expanded
 
-else
+expand: setuptools-$(VERSION)-expanded
 
-build: $(TARBALL)
-	cd $(SETUPTOOLS); \
-    PYTHONPATH=$(TARBALL) \
-    $(PYTHON) ez_setup.py $(TARBALL)
-
-endif
-endif
-
-$(TARBALL):
-	$(CURL) http://builds.osafoundation.org/external/$(TARBALL)
-
-sources: $(TARBALL)
-
-expand:
-
-binaries: 
+binaries:
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
-clean:
-	rm -f $(TARBALL)
-
-_realclean::
-	@rm -f $(TARBALL)
-
+drop:
+	# chandler/Makefile expects it there
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)

@@ -231,9 +231,9 @@ static int t_node_clear(t_node *self);
 static PyObject *t_node_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_node_init(t_node *self, PyObject *args, PyObject *kwds);
 
-static int t_node_list_length(t_node *self);
-static t_point *_t_node_list_get(t_node *self, int i);
-static PyObject *t_node_list_get(t_node *self, int i);
+static Py_ssize_t t_node_list_length(t_node *self);
+static t_point *_t_node_list_get(t_node *self, Py_ssize_t i);
+static PyObject *t_node_list_get(t_node *self, Py_ssize_t i);
 
 static PyObject *t_node_getLevel(t_node *self, PyObject *arg);
 static PyObject *t_node_getPoint(t_node *self, PyObject *arg);
@@ -266,10 +266,10 @@ static PyGetSetDef t_node_properties[] = {
 };
 
 static PySequenceMethods t_node_as_sequence = {
-    (inquiry)t_node_list_length,      /* sq_length */
+    (lenfunc)t_node_list_length,      /* sq_length */
     0,                                /* sq_concat */
     0,                                /* sq_repeat */
-    (intargfunc)t_node_list_get,      /* sq_item */
+    (ssizeargfunc)t_node_list_get,    /* sq_item */
     0,                                /* sq_slice */
     0,                                /* sq_ass_item */
     0,                                /* sq_ass_slice */
@@ -403,12 +403,12 @@ static PyObject *t_node_getPoint(t_node *self, PyObject *arg)
 
 /* node as 1-based sequence */
 
-static int t_node_list_length(t_node *self)
+static Py_ssize_t t_node_list_length(t_node *self)
 {
     return PyList_GET_SIZE(self->levels);
 }
 
-static t_point *_t_node_list_get(t_node *self, int i)
+static t_point *_t_node_list_get(t_node *self, Py_ssize_t i)
 {
     if (i > 0 && i <= PyList_GET_SIZE(self->levels))
     {
@@ -425,11 +425,11 @@ static t_point *_t_node_list_get(t_node *self, int i)
         return (t_point *) point;
     }
 
-    PyErr_Format(PyExc_IndexError, "index out of range: %d", i);
+    PyErr_Format(PyExc_IndexError, "index out of range: %d", (int) i);
     return NULL;
 }
 
-static PyObject *t_node_list_get(t_node *self, int i)
+static PyObject *t_node_list_get(t_node *self, Py_ssize_t i)
 {
     PyObject *point = (PyObject *) _t_node_list_get(self, i);
 
@@ -541,8 +541,8 @@ static int t_sl_init(t_sl *self, PyObject *args, PyObject *kwds);
 static PyObject *t_sl__clear_(t_sl *self, PyObject *arg);
 static PyObject *t_sl_getMap(t_sl *self, PyObject *arg);
 static PyObject *t_sl_getLevel(t_sl *self, PyObject *arg);
-static int t_sl_list_length(t_sl *self);
-static PyObject *t_sl_list_get(t_sl *self, int i);
+static Py_ssize_t t_sl_list_length(t_sl *self);
+static PyObject *t_sl_list_get(t_sl *self, Py_ssize_t i);
 static PyObject *t_sl_position(t_sl *self, PyObject *key);
 /*
 static PyObject *t_sl__p0(t_sl *self, PyObject *args);
@@ -604,10 +604,10 @@ static PyGetSetDef t_sl_properties[] = {
 };
 
 static PySequenceMethods t_sl_as_sequence = {
-    (inquiry)t_sl_list_length,        /* sq_length */
+    (lenfunc)t_sl_list_length,        /* sq_length */
     0,                                /* sq_concat */
     0,                                /* sq_repeat */
-    (intargfunc)t_sl_list_get,        /* sq_item */
+    (ssizeargfunc)t_sl_list_get,      /* sq_item */
     0,                                /* sq_slice */
     0,                                /* sq_ass_item */
     0,                                /* sq_ass_slice */
@@ -839,12 +839,12 @@ static PyObject *t_sl_getLevel(t_sl *self, PyObject *arg)
 
 /* sl as sequence */
 
-static int t_sl_list_length(t_sl *self)
+static Py_ssize_t t_sl_list_length(t_sl *self)
 {
     return PyObject_Size(self->map);
 }
 
-static PyObject *_t_sl_list_get(t_sl *self, int position)
+static PyObject *_t_sl_list_get(t_sl *self, Py_ssize_t position)
 {
     int count = PyObject_Size(self->map);
 
@@ -856,7 +856,8 @@ static PyObject *_t_sl_list_get(t_sl *self, int position)
 
     if (position < 0 || position >= count)
     {
-        PyErr_Format(PyExc_IndexError, "position out of range: %d", position);
+        PyErr_Format(PyExc_IndexError, "position out of range: %d",
+                     (int) position);
         return NULL;
     }
     else
@@ -896,7 +897,7 @@ static PyObject *_t_sl_list_get(t_sl *self, int position)
     }
 }
 
-static PyObject *t_sl_list_get(t_sl *self, int position)
+static PyObject *t_sl_list_get(t_sl *self, Py_ssize_t position)
 {
     PyObject *key = _t_sl_list_get(self, position);
 

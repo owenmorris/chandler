@@ -1,5 +1,5 @@
---- PyICU-0.5-62/_PyICU.cpp	2006-07-11 13:27:53.000000000 -0700
-+++ PyICU-0.5-62-patched/_PyICU.cpp	2006-07-11 13:27:06.000000000 -0700
+--- PyICU-0.6-66/_PyICU.cpp	2006-07-11 13:27:53.000000000 -0700
++++ PyICU-0.6-66-patched/_PyICU.cpp	2006-07-11 13:27:06.000000000 -0700
 @@ -35,8 +35,18 @@
  #include "calendar.h"
  #include "collator.h"
@@ -19,8 +19,8 @@
  
  class t_descriptor {
  public:
---- PyICU-0.5-62/Makefile	2006-07-11 13:31:16.000000000 -0700
-+++ PyICU-0.5-62-patched/Makefile	2006-07-11 13:31:14.000000000 -0700
+--- PyICU-0.6-66/Makefile	2006-07-11 13:31:16.000000000 -0700
++++ PyICU-0.6-66-patched/Makefile	2006-07-11 13:31:14.000000000 -0700
 @@ -87,7 +87,7 @@
  ICU_INC=$(PREFIX_ICU)/include
  ICU_LIB=$(PREFIX_ICU)/lib

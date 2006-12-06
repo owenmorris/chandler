@@ -26,7 +26,7 @@ typedef struct {
 
 static PyObject *t_nil_get(t_nil *self, PyObject *args);
 static PyObject *t_nil_iternext(t_nil *self);
-static int t_nil_length(t_nil *self);
+static Py_ssize_t t_nil_length(t_nil *self);
 static PyObject *t_nil_dict_get(t_nil *self, PyObject *key);
 
 
@@ -40,7 +40,7 @@ static PyMethodDef t_nil_methods[] = {
 
 
 static PySequenceMethods nil_as_sequence = {
-    (inquiry) t_nil_length,             /* sq_length */
+    (lenfunc) t_nil_length,             /* sq_length */
     0,                                  /* sq_concat */
     0,					/* sq_repeat */
     0,                                  /* sq_item */
@@ -51,7 +51,7 @@ static PySequenceMethods nil_as_sequence = {
 };
 
 static PyMappingMethods nil_as_mapping = {
-    (inquiry) t_nil_length,             /* mp_length */
+    (lenfunc) t_nil_length,             /* mp_length */
     (binaryfunc) t_nil_dict_get,        /* mp_subscript */
     (objobjargproc) 0,                  /* mp_ass_subscript */
 };
@@ -100,7 +100,7 @@ static PyTypeObject NilType = {
 };
 
 
-static int t_nil_length(t_nil *self)
+static Py_ssize_t t_nil_length(t_nil *self)
 {
     return 0;
 }

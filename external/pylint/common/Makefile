@@ -1,6 +1,6 @@
 
 VERSION=0.21.0
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 COMMON=$(BUILD_ROOT)/pylint/common
 SRC=$(COMMON)/logilab-common-$(VERSION)
 TARBALL=logilab-common-$(SNAP)-$(RELVER).tar.gz

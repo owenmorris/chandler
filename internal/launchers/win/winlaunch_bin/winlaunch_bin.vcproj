@@ -33,11 +33,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\..\external\debug\bin\libs\python24_d.lib"
+				AdditionalDependencies="..\..\..\..\external\debug\bin\libs\python25_d.lib"
 				OutputFile="$(OutDir)\chandler.exe"
 				LinkIncremental="2"
 				IgnoreDefaultLibraryNames=""
-				DelayLoadDLLs="python24_d.dll"
+				DelayLoadDLLs="python25_d.dll"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/winlaunch_bin.pdb"
 				SubSystem="2"
@@ -89,11 +89,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\..\external\release\bin\libs\python24.lib"
+				AdditionalDependencies="..\..\..\..\external\release\bin\libs\python25.lib"
 				OutputFile="$(OutDir)\chandler.exe"
 				LinkIncremental="1"
 				IgnoreDefaultLibraryNames=""
-				DelayLoadDLLs="python24.dll"
+				DelayLoadDLLs="python25.dll"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"

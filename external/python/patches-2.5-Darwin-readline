@@ -1,0 +1,34 @@
+--- Python-2.5/Modules/Setup.dist	2006-08-06 00:26:21.000000000 -0700
++++ Python-2.5-patched/Modules/Setup.dist	2006-12-01 12:32:00.000000000 -0800
+@@ -144,28 +144,29 @@
+ #PURE_INCLS=-I/usr/local/include
+ #PURE_STUBLIBS=-L/usr/local/lib -lpurify_stubs -lquantify_stubs
+ #pure puremodule.c $(WHICH_PURE_PRODUCTS) $(PURE_INCLS) $(PURE_STUBLIBS)
+ 
+ # Uncommenting the following line tells makesetup that all following
+ # modules are to be built as shared libraries (see above for more
+ # detail; also note that *static* reverses this effect):
+ 
+-#*shared*
++*shared*
+ 
+ # GNU readline.  Unlike previous Python incarnations, GNU readline is
+ # now incorporated in an optional module, configured in the Setup file
+ # instead of by a configure script switch.  You may have to insert a
+ # -L option pointing to the directory where libreadline.* lives,
+ # and you may have to change -ltermcap to -ltermlib or perhaps remove
+ # it, depending on your system -- see the GNU readline instructions.
+ # It's okay for this to be a shared library, too.
+ 
+-#readline readline.c -lreadline -ltermcap
++readline readline.c -I$(PREFIX)/include -L$(PREFIX)/lib -lreadline -ltermcap
+ 
++*static*
+ 
+ # Modules that should always be present (non UNIX dependent):
+ 
+ #array arraymodule.c	# array objects
+ #cmath cmathmodule.c # -lm # complex math library functions
+ #math mathmodule.c # -lm # math library functions, e.g. sin()
+ #_struct _struct.c	# binary structure packing/unpacking
+ #time timemodule.c # -lm # time operations and variables

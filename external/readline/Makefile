@@ -1,35 +1,27 @@
 
-BUILD=build_$(SNAP)
+VERSION=5.2
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 READLINE=$(BUILD_ROOT)/readline
-
-include ../Makefile.inc
-
-ifeq ($(OS),Cygwin)
-    VERSION=1.7
-else
-    VERSION=5.1
-endif
-
-SRC=$(READLINE)/$(BUILD)
-SRC_BUILD=$(SRC)/readline-$(VERSION)
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+SRC=$(READLINE)/readline-$(VERSION)
 TARBALL=readline-$(SNAP)-$(RELVER).tar.gz
 
-.PHONY: readline
+include $(BUILD_ROOT)/Makefile.inc
 
 ifeq ($(OS),Darwin)
 
-$(SRC_BUILD)/Makefile:
-	cd $(SRC_BUILD); ./configure --prefix=$(PREFIX)
+BUILD=build_$(SNAP)
 
-readline: apply $(SRC_BUILD)/Makefile
-	$(MAKE) -C $(SRC_BUILD)
-	$(MAKE) -C $(SRC_BUILD) install
+$(SRC)/$(BUILD)/Makefile: expand
+	mkdir -p $(SRC)/$(BUILD)
+	cd $(SRC)/$(BUILD); ../configure --prefix=$(PREFIX)
 
-ifneq (/,$(READLINE)/$(BUILD))
+build: $(SRC)/$(BUILD)/Makefile
+	$(MAKE) -C $(SRC)/$(BUILD)
+	$(MAKE) -C $(SRC)/$(BUILD) install
+
+ifneq (/,$(SRC)/$(BUILD))
 clean:
-	rm -rf $(READLINE)/$(BUILD)
-	rm -f $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
+	rm -rf $(SRC)/$(BUILD)
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 endif
 
@@ -43,68 +35,60 @@ install: $(TARBALL)
 
 readline-$(VERSION).tar.gz:
 	$(CURL) http://builds.osafoundation.org/external/readline-$(VERSION).tar.gz 
-	$(CURL) http://builds.osafoundation.org/external/readline51-001
-	$(CURL) http://builds.osafoundation.org/external/readline51-002
-	$(CURL) http://builds.osafoundation.org/external/readline51-003
-	$(CURL) http://builds.osafoundation.org/external/readline51-004
 
 sources: readline-$(VERSION).tar.gz
 
-readline-$(VERSION)-$(SNAP)-expanded: readline-$(VERSION).tar.gz
-	mkdir -p $(READLINE)/$(BUILD)
-	tar -C $(READLINE)/$(BUILD) -xzf $(READLINE)/readline-$(VERSION).tar.gz
-	touch $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
+readline-$(VERSION)-expanded: readline-$(VERSION).tar.gz
+	tar -xvzf $<
+	touch $@
 
-expand: readline-$(VERSION)-$(SNAP)-expanded
-
-apply: expand
-	cd $(READLINE)/$(BUILD)/readline-$(VERSION); \
-        cat $(READLINE)/readline51* | patch -N; \
-        echo ok
+expand: readline-$(VERSION)-expanded
 
 else
+
 ifeq ($(OS),Cygwin)
 
+BUILD=src/readline/$(VERSION)/readline-$(VERSION)
+
 ifeq ($(DEBUG),1)
-_SUFFIX=_d
+_SUFFIX=D
 else
 _SUFFIX=
 endif
 
-readline: expand
-	cd $(READLINE)/$(BUILD)/Readline-$(VERSION); \
-      $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) install
+readline-$(VERSION)-20061112-src.zip:
+	$(CURL) http://builds.osafoundation.org/external/$@
 
-ifneq (/,$(READLINE)/$(BUILD))
-clean:
-	rm -rf $(READLINE)/$(BUILD)
-	rm -f $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
-	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
-endif
+sources: readline-$(VERSION)-20061112-src.zip
+
+readline-$(VERSION)-expanded: readline-$(VERSION)-20061112-src.zip
+	mkdir -p $(SRC)
+	cd $(SRC); unzip $(READLINE)/$<
+	touch $@
+
+expand: readline-$(VERSION)-expanded
+
+build: expand
+	(cd win32/$(VERSION); tar -cf - *.sln *.vcproj) | tar -C $(SRC)/$(BUILD)/msvc -xvf -
+	cd $(SRC)/$(BUILD)/msvc; devenv.com readline.sln /project readline /build $(Snap)
+	mkdir -p $(SRC)/lib $(SRC)/include/readline
+	cp -p $(SRC)/$(BUILD)/lib/readline$(_SUFFIX).lib $(SRC)/lib
+	cp -p $(SRC)/$(BUILD)-src/*.h $(SRC)/include/readline
 
 binaries:
-	cd $(BUILD_ROOT); \
-        tar -cvzf $(READLINE)/$(TARBALL) $(SNAP)/$(SITE)/readline.py $(SNAP)/$(SITE)/_rlsetup$(_SUFFIX).pyd
 
-install: $(TARBALL)
-	cp -p $(TARBALL) $(CHANDLERARCHIVES)
+install:
 
-Readline-$(VERSION).zip:
-	$(CURL) http://builds.osafoundation.org/external/Readline-$(VERSION).zip
+$(TARBALL):
+	@echo nothing to do
 
-sources: Readline-$(VERSION).zip
-
-Readline-$(VERSION)-$(SNAP)-expanded: Readline-$(VERSION).zip
-	mkdir -p $(READLINE)/$(BUILD)
-	unzip $(READLINE)/Readline-$(VERSION).zip -d $(READLINE)/$(BUILD)
-	touch Readline-$(VERSION)-$(SNAP)-expanded
-
-expand: Readline-$(VERSION)-$(SNAP)-expanded
+upload:
+	@echo nothing to do
 
 else
 
   # Nothing to do
-readline:
+build:
 
   # Nothing to do
 clean:
@@ -123,5 +107,3 @@ install:
 
 endif
 endif
-
-build: readline

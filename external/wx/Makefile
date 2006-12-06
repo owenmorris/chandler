@@ -1,38 +1,42 @@
 
 VERSION=2.7.2.0
-SVN_REVISION=124
-RELVER_FLAGS=-r$(SVN_REVISION)-$(BRANCH_REV_PREFIX)1
+SVNVER=124
+RELVER_FLAGS=-r$(SVNVER)-$(BRANCH_REV_PREFIX)2
 RELVER=$(VERSION)$(RELVER_FLAGS)
 WX=$(BUILD_ROOT)/wx
 BUILD=build_$(SNAP)
-SRC=wxPython-$(RELVER)
+SRC=$(WX)/wxPython-r$(SVNVER)
 TARBALL=wxPython-$(SNAP)-$(RELVER).tar.gz
 SVNROOT=http://svn.osafoundation.org/wx/trunk
 
 include $(BUILD_ROOT)/Makefile.inc
 
-$(SRC).tar.gz: $(SRC)-expanded
-	tar czf $(SRC).tar.gz $(SRC)
+wxPython-r$(SVNVER).tar.gz:
+	if [ ! -d wxPython-r$(SVNVER) ]; then \
+            svn export $(SVNROOT) -r $(SVNVER) wxPython-r$(SVNVER); \
+        fi
+	tar -czf $@ wxPython-r$(SVNVER)
+	touch wxPython-r$(SVNVER)-expanded
 
-sources: $(SRC).tar.gz
+sources: wxPython-r$(SVNVER).tar.gz
 
-$(SRC)-expanded:
-	svn export $(SVNROOT) -r $(SVN_REVISION) $(SRC)
-	touch $@
+wxPython-r$(SVNVER)-expanded: wxPython-r$(SVNVER).tar.gz
+	if [ ! -f $@ ]; then \
+            tar -xvzf $<; \
+            touch $@; \
+        fi
 
-expand: $(SRC)-expanded
+expand: wxPython-r$(SVNVER)-expanded
 
 build: expand
 	$(MAKE) -C $(SRC) DEBUG=$(DEBUG) RELVER_FLAGS=$(RELVER_FLAGS) RELVER=$(RELVER) build
 
 binaries: strip
 	$(MAKE) -C $(SRC) DEBUG=$(DEBUG) RELVER_FLAGS=$(RELVER_FLAGS) RELVER=$(RELVER) snap
-	cp $(SRC)/$(TARBALL) $(WX)
+	cp -p $(SRC)/$(TARBALL) $(WX)
 
 install: $(TARBALL)
 	$(MAKE) -C $(SRC) DEBUG=$(DEBUG) RELVER_FLAGS=$(RELVER_FLAGS) RELVER=$(RELVER) install
 
-ifeq (/,$(SRC))
 clean:
 	$(MAKE) -C $(SRC) DEBUG=$(DEBUG) RELVER_FLAGS=$(RELVER_FLAGS) RELVER=$(RELVER) clean
-endif

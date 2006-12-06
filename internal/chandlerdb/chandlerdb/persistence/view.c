@@ -66,7 +66,7 @@ static PyObject *t_view_setSingleton(t_view *self, PyObject *args);
 static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args);
 static PyObject *t_view_debugOn(t_view *self, PyObject *arg);
 
-static int t_view_dict_length(t_view *self);
+static Py_ssize_t t_view_dict_length(t_view *self);
 static PyObject *t_view_dict_get(t_view *self, PyObject *key);
 
 static PyObject *refresh_NAME;
@@ -152,7 +152,7 @@ static PyGetSetDef t_view_properties[] = {
 };
 
 static PyMappingMethods t_view_as_mapping = {
-    (inquiry) t_view_dict_length,
+    (lenfunc) t_view_dict_length,
     (binaryfunc) t_view_dict_get,
     (objobjargproc) NULL
 };
@@ -646,7 +646,7 @@ static PyObject *t_view__getLogger(t_view *self, void *data)
 
 /* as_mapping (read-only) */
 
-static int t_view_dict_length(t_view *self)
+static Py_ssize_t t_view_dict_length(t_view *self)
 {
     return PyDict_Size(self->registry);
 }

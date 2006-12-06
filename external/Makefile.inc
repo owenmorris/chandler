@@ -56,7 +56,7 @@ ifeq ($(CURL),)
 CURL=curl -f -O $(CHANDLER_CURL_OPTIONS)
 endif
 
-PYTHON_VER=2.4
+PYTHON_VER=2.5
 
 ifeq ($(OS),Cygwin)
 PYTHON:=$(PREFIX)/bin/$(PYTHON).exe

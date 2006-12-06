@@ -27,7 +27,7 @@ static PyObject *t_values_new(PyTypeObject *type,
                               PyObject *args, PyObject *kwds);
 static int t_values_init(t_values *self, PyObject *args, PyObject *kwds);
 
-static int t_values_dict_length(t_values *self);
+static Py_ssize_t t_values_dict_length(t_values *self);
 static PyObject *t_values_dict_get(t_values *self, PyObject *key);
 static int t_values_dict_set(t_values *self, PyObject *key, PyObject *value);
 
@@ -82,7 +82,7 @@ static PyGetSetDef t_values_properties[] = {
 };
 
 static PyMappingMethods t_values_as_mapping = {
-    (inquiry) t_values_dict_length,
+    (lenfunc) t_values_dict_length,
     (binaryfunc) t_values_dict_get,
     (objobjargproc) t_values_dict_set
 };
@@ -191,7 +191,7 @@ static PyObject *t_values_copy(t_values *self, PyObject *args)
     return (PyObject *) copy;
 }
 
-static int t_values_dict_length(t_values *self)
+static Py_ssize_t t_values_dict_length(t_values *self)
 {
     return PyDict_Size(self->dict);
 }

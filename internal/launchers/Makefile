@@ -1,5 +1,5 @@
 
-RELVER=0.9-$(BRANCH_REV_PREFIX)2
+RELVER=0.9-$(BRANCH_REV_PREFIX)3
 LAUNCHERS=$(INTERNAL)/launchers
 SRC=$(LAUNCHERS)
 BUILD=build_$(SNAP)
@@ -91,3 +91,5 @@ realclean: clean
 
 upload: $(TARBALL)
 	scp $(TARBALL) $(UPLOAD)
+
+binaries: snap

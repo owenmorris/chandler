@@ -2,36 +2,35 @@
 VERSION=4.3.2
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 CONFIGOBJ=$(BUILD_ROOT)/configobj
-SRC=$(CONFIGOBJ)/$(TARBALL)
-TARBALL=configobj-$(VERSION)-py$(PYTHON_VER).egg
+SRC=$(CONFIGOBJ)/configobj-$(VERSION)
+TARBALL=configobj-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
-ifeq ($(OS),Darwin)
-    EASYINSTALL=$(PREFIX)/$(FRAMEWORK)/bin/easy_install
-else
-    ifeq ($(OS),Cygwin)
-        EASYINSTALL=$(PREFIX)/bin/Scripts/easy_install.exe
-    else
-        EASYINSTALL=$(PREFIX)/bin/easy_install
-    endif
-endif
+build: expand
+	cd $(SRC); MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
+            $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                               install --force	
 
-build: sources
-	$(EASYINSTALL) $(TARBALL)
+sources: configobj-$(VERSION).tar.bz2
 
-$(TARBALL):
-	$(CURL) http://builds.osafoundation.org/external/$(TARBALL)
+configobj-$(VERSION).tar.bz2:
+	$(CURL) http://builds.osafoundation.org/external/configobj-$(VERSION).tar.bz2
 
-sources: $(TARBALL)
+expand: configobj-$(VERSION)-expanded
 
-expand: sources
+configobj-$(VERSION)-expanded: sources
+	tar -xvjf configobj-$(VERSION).tar.bz2
+	touch $@
 
-binaries: sources
+binaries:
+	tar -C $(BUILD_ROOT) -cvzf $(CONFIGOBJ)/$(TARBALL) \
+                             $(SNAP)/$(SITE)/configobj.py \
+                             $(SNAP)/$(SITE)/validate.py 
 
-install: sources
+install:
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
 
 ifneq (/,$(SRC))

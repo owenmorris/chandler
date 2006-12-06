@@ -37,7 +37,7 @@ static PyObject *t_index_new(PyTypeObject *type,
 static int t_index_init(t_index *self, PyObject *args, PyObject *kwds);
 static PyObject *t_index_repr(t_index *self);
 
-static int t_index_dict_length(t_index *self);
+static Py_ssize_t t_index_dict_length(t_index *self);
 static PyObject *t_index_dict_get(t_index *self, PyObject *key);
 static int t_index_dict_set(t_index *self, PyObject *key, PyObject *value);
 static int t_index_contains(t_index *self, PyObject *key);
@@ -73,13 +73,13 @@ static PyMethodDef t_index_methods[] = {
 };
 
 static PyMappingMethods t_index_as_mapping = {
-    (inquiry) t_index_dict_length,
+    (lenfunc) t_index_dict_length,
     (binaryfunc) t_index_dict_get,
     (objobjargproc) t_index_dict_set
 };
 
 static PySequenceMethods t_index_as_sequence = {
-    (inquiry) t_index_dict_length,     /* sq_length */
+    (lenfunc) t_index_dict_length,     /* sq_length */
     0,                                 /* sq_concat */
     0,                                 /* sq_repeat */
     0,                                 /* sq_item */
@@ -188,7 +188,7 @@ static PyObject *t_index_iter(t_index *self)
     return PyObject_CallMethodObjArgs((PyObject *) self, iterkeys_NAME, NULL);
 }
 
-static int t_index_dict_length(t_index *self)
+static Py_ssize_t t_index_dict_length(t_index *self)
 {
     return self->count;
 }
@@ -331,7 +331,7 @@ static PyObject *t_delegating_index_repr(t_delegating_index *self);
 static PyObject *t_delegating_index_getattro(t_delegating_index *self,
                                              PyObject *name);
 
-static int t_delegating_index_dict_length(t_delegating_index *self);
+static Py_ssize_t t_delegating_index_dict_length(t_delegating_index *self);
 static PyObject *t_delegating_index_dict_get(t_delegating_index *self,
                                              PyObject *key);
 static int t_delegating_index_dict_set(t_delegating_index *self,
@@ -345,13 +345,13 @@ static PyMemberDef t_delegating_index_members[] = {
 };
 
 static PyMappingMethods t_delegating_index_as_mapping = {
-    (inquiry) t_delegating_index_dict_length,
+    (lenfunc) t_delegating_index_dict_length,
     (binaryfunc) t_delegating_index_dict_get,
     (objobjargproc) t_delegating_index_dict_set
 };
 
 static PySequenceMethods t_delegating_index_as_sequence = {
-    (inquiry) t_delegating_index_dict_length,     /* sq_length */
+    (lenfunc) t_delegating_index_dict_length,     /* sq_length */
     0,                                            /* sq_concat */
     0,                                            /* sq_repeat */
     0,                                            /* sq_item */
@@ -439,16 +439,17 @@ static PyObject *t_delegating_index_repr(t_delegating_index *self)
 {
     PyObject *type = PyObject_GetAttrString((PyObject *) self->ob_type,
                                             "__name__");
-    PyObject *repr = PyString_FromFormat("<%s: %d>",
-                                         PyString_AsString(type),
-                                         t_delegating_index_dict_length(self));
+    PyObject *repr =
+        PyString_FromFormat("<%s: %d>",
+                            PyString_AsString(type),
+                            (int) t_delegating_index_dict_length(self));
 
     Py_DECREF(type);
 
     return repr;
 }
 
-static int t_delegating_index_dict_length(t_delegating_index *self)
+static Py_ssize_t t_delegating_index_dict_length(t_delegating_index *self)
 {
     return PyObject_Size(self->index);
 }

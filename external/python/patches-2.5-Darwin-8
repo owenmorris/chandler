@@ -1,0 +1,27 @@
+--- Python-2.5/configure	2006-09-04 19:54:42.000000000 -0700
++++ Python-2.5-patched/configure	2006-12-03 17:58:03.000000000 -0800
+@@ -10834,16 +10834,24 @@
+ echo "$as_me:$LINENO: result: $enable_toolbox_glue" >&5
+ echo "${ECHO_T}$enable_toolbox_glue" >&6
+ 
+ 
+ case $ac_sys_system/$ac_sys_release in
+   Darwin/[01567]\..*)
+     OTHER_LIBTOOL_OPT="-prebind -seg1addr 0x10000000"
+     ;;
++  Darwin/8.*)
++    OTHER_LIBTOOL_OPT=""
++    if test "${with_pydebug+set}" = set; then
++      if test "$with_pydebug" != no; then
++        OTHER_LIBTOOL_OPT="-undefined dynamic_lookup"
++      fi
++    fi
++    ;;
+   Darwin/*)
+     OTHER_LIBTOOL_OPT=""
+     ;;
+ esac
+ 
+ 
+ case $ac_sys_system/$ac_sys_release in
+   Darwin/[01567]\..*)

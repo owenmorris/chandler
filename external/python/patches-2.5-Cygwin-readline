@@ -1,0 +1,76 @@
+--- Python-2.5/Modules/readline.c	2006-07-15 19:15:27.000000000 -0700
++++ Python-2.5-patched/Modules/readline.c	2006-12-04 13:07:13.011520000 -0800
+@@ -4,17 +4,26 @@
+  * recently, it was largely rewritten by Guido van Rossum.
+  */
+ 
+ /* Standard definitions */
+ #include "Python.h"
+ #include <setjmp.h>
+ #include <signal.h>
+ #include <errno.h>
++
++#ifdef _MSC_VER
++#include <time.h>
++#else
+ #include <sys/time.h>
++#endif
++
++#if defined(MS_WINDOWS) && defined(READLINE_STATIC)
++#define HAVE_RL_COMPLETION_MATCHES
++#endif
+ 
+ #if defined(HAVE_SETLOCALE)
+ /* GNU readline() mistakenly sets the LC_CTYPE locale.
+  * This is evil.  Only the user or the app's main() should do this!
+  * We must save and restore the locale around the rl_initialize() call.
+  */
+ #define SAVE_LOCALE
+ #include <locale.h>
+--- Python-2.5/PCbuild/pcbuild.sln	2006-12-04 12:45:20.021600000 -0800
++++ Python-2.5-patched/PCbuild/pcbuild.sln	2006-12-05 11:23:11.339443200 -0800
+@@ -26,16 +26,21 @@
+ 		{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26} = {CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}
+ 	EndProjectSection
+ EndProject
+ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bz2", "bz2.vcproj", "{AC557788-6354-43F7-BE05-C9C8C59A344A}"
+ 	ProjectSection(ProjectDependencies) = postProject
+ 		{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26} = {CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}
+ 	EndProjectSection
+ EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "readline", "readline.vcproj", "{D0222852-8495-11DB-AE0F-0017F2C66A51}"
++	ProjectSection(ProjectDependencies) = postProject
++		{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26} = {CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}
++	EndProjectSection
++EndProject
+ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "make_versioninfo", "make_versioninfo.vcproj", "{F0E0541E-F17D-430B-97C4-93ADF0DD284E}"
+ 	ProjectSection(ProjectDependencies) = postProject
+ 	EndProjectSection
+ EndProject
+ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyexpat", "pyexpat.vcproj", "{7E551393-3C43-47F8-9F3F-5BC368A6C487}"
+ 	ProjectSection(ProjectDependencies) = postProject
+ 		{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26} = {CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}
+ 	EndProjectSection
+@@ -147,16 +152,22 @@
+ 		{AC557788-6354-43F7-BE05-C9C8C59A344A}.Debug.ActiveCfg = Debug|Win32
+ 		{AC557788-6354-43F7-BE05-C9C8C59A344A}.Debug.Build.0 = Debug|Win32
+ 		{AC557788-6354-43F7-BE05-C9C8C59A344A}.Release.ActiveCfg = Release|Win32
+ 		{AC557788-6354-43F7-BE05-C9C8C59A344A}.Release.Build.0 = Release|Win32
+ 		{AC557788-6354-43F7-BE05-C9C8C59A344A}.ReleaseAMD64.ActiveCfg = ReleaseAMD64|Win32
+ 		{AC557788-6354-43F7-BE05-C9C8C59A344A}.ReleaseAMD64.Build.0 = ReleaseAMD64|Win32
+ 		{AC557788-6354-43F7-BE05-C9C8C59A344A}.ReleaseItanium.ActiveCfg = ReleaseItanium|Win32
+ 		{AC557788-6354-43F7-BE05-C9C8C59A344A}.ReleaseItanium.Build.0 = ReleaseItanium|Win32
++		{D0222852-8495-11DB-AE0F-0017F2C66A51}.Debug.ActiveCfg = Debug|Win32
++		{D0222852-8495-11DB-AE0F-0017F2C66A51}.Debug.Build.0 = Debug|Win32
++		{D0222852-8495-11DB-AE0F-0017F2C66A51}.Release.ActiveCfg = Release|Win32
++		{D0222852-8495-11DB-AE0F-0017F2C66A51}.Release.Build.0 = Release|Win32
++		{D0222852-8495-11DB-AE0F-0017F2C66A51}.ReleaseAMD64.ActiveCfg = ReleaseAMD64|Win32
++		{D0222852-8495-11DB-AE0F-0017F2C66A51}.ReleaseItanium.ActiveCfg = ReleaseItanium|Win32
+ 		{F0E0541E-F17D-430B-97C4-93ADF0DD284E}.Debug.ActiveCfg = Debug|Win32
+ 		{F0E0541E-F17D-430B-97C4-93ADF0DD284E}.Debug.Build.0 = Debug|Win32
+ 		{F0E0541E-F17D-430B-97C4-93ADF0DD284E}.Release.ActiveCfg = Release|Win32
+ 		{F0E0541E-F17D-430B-97C4-93ADF0DD284E}.Release.Build.0 = Release|Win32
+ 		{F0E0541E-F17D-430B-97C4-93ADF0DD284E}.ReleaseAMD64.ActiveCfg = Release|Win32
+ 		{F0E0541E-F17D-430B-97C4-93ADF0DD284E}.ReleaseAMD64.Build.0 = Release|Win32
+ 		{F0E0541E-F17D-430B-97C4-93ADF0DD284E}.ReleaseItanium.ActiveCfg = Release|Win32
+ 		{F0E0541E-F17D-430B-97C4-93ADF0DD284E}.ReleaseItanium.Build.0 = Release|Win32

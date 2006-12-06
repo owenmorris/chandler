@@ -12,19 +12,16 @@ To experiment with different python versions
 Upgrading python build
 ----------------------
 
- review patch file and update patch file target in Makefile
- create patches-$(VERSION) from the previous version and re-evaluate patches
+ review patch files and refresh patches as needed.
 
  On Windows:
    - upgrade the vc++ project files to 7.1
       Note: 2.4.1 may already be 7.1 - open them in 7.1 to verify
    - copy them into win32/$(VERSION)
-   - edit zlib.vcproj to remove the VCPreLinkEventTool checking for zlib
-      Note: ensure you get both instances (debug and release)
    - edit bz2.vcproj to remove the VCPreLinkEventTool checking for bzip2
       Note: ensure you get both instances (debug and release)
-   - disable the _bsddb, _ssl, _testcapi, _tkinter, winsound, win9xpopen
-     projects 
+   - disable the _bsddb, _ssl, _testcapi, _tkinter, winsound, win9xpopen,
+     _ctypes_test, _sqlite3, projects 
    - make
 
  On other OS:
@@ -35,3 +32,25 @@ Deprecated Notes:
    - edit zlib.vcproj to point at zlib 1.2.1 instead of zlib 1.1.4
       Note: 2.4.1 already has this change
    - edit bz2.vcproj to point at bz2 1.0.3 instead of bz2 1.0.2
+  For windows prior to 2.5 you also need to do the following:
+   - edit zlib.vcproj to remove the VCPreLinkEventTool checking for zlib
+      Note: ensure you get both instances (debug and release)
+
+Readline support
+----------------
+
+  On Windows:
+    - a windows port of GNU readline 5.2 obtained from 
+          http://gpsim.sourceforge.net/gpsimWin32/packages/readline-5.2-20061112-src.zip
+      is compiled first in external/readline and then statically linked into
+      a readline extension module if the python-2.5-Cygwin-readline patch is 
+      applied.
+      The readline.vcproj project file was cloned from bz2.vcproj.
+
+  On Mac OS X:
+    - GNU readline 5.2 is first built in external/readline and is included as 
+      a readline extension module if the patches-Darwin-readline patch is 
+      applied.
+
+  On Linux:
+    - readline is included by default.

@@ -12,7 +12,7 @@ fi
 
 if [ "$PYTHON_VER" = "" ]
 then
-    PYTHON_VER=2.4
+    PYTHON_VER=2.5
 fi
 
 export PYTHONHOME=$CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
