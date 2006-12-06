@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 # These may eventually live elsewhere, but checking them in here so we can
 # collaborate on them
 
+# We need to specify URIs for each of these record types:
+
 class ItemRecord(sharing.Record):
     uuid = sharing.key(schema.UUID)
     title = sharing.field(sharing.TextType(size=256))
@@ -38,14 +40,14 @@ class TaskRecord(sharing.Record):
 
 class EventRecord(sharing.Record):
     uuid = sharing.key(schema.UUID)
-    dtstart = sharing.field(sharing.DateType)
-    dtend = sharing.field(sharing.DateType)
+    dtstart = sharing.field(sharing.TextType(size=20))
+    dtend = sharing.field(sharing.TextType(size=20))
     location = sharing.field(sharing.TextType(size=256))
     rrule = sharing.field(sharing.TextType(size=1024))
     exrule = sharing.field(sharing.TextType(size=1024))
-    rdate = sharing.field(sharing.DateType)
-    exdate = sharing.field(sharing.DateType)
-    recurrenceid = sharing.field(sharing.DateType)
+    rdate = sharing.field(sharing.TextType(size=1024))
+    exdate = sharing.field(sharing.TextType(size=1024))
+    recurrenceid = sharing.field(sharing.TextType(size=20))
     status = sharing.field(sharing.TextType(size=256))
     # anyTime -- may need for Apple iCal?
     # allDay
