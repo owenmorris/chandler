@@ -362,7 +362,7 @@ class wxApplication (wx.App):
 
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
-        self.ignoreIdle = False
+        self.updateUIInOnIdle = True
         
         # Check the platform, will stop the program if not compatible
         CheckPlatform()
@@ -769,13 +769,6 @@ class wxApplication (wx.App):
 
         event.Skip()
 
-    def yieldNoIdle(self):
-        self.ignoreIdle = True
-        try:
-            wx.Yield()
-        finally:
-            self.ignoreIdle = False
-
     def fireAsynchronousNotifications(self):
 
         # Fire set notifications that require mapChanges
@@ -815,9 +808,8 @@ class wxApplication (wx.App):
         # so we check for focus changes in OnIdle. Also call UpdateUI when
         # focus changes.
 
-        if self.ignoreIdle: return                # workaround for bug 4732
-
-        self.propagateAsynchronousNotifications()
+        if self.updateUIInOnIdle:
+            self.propagateAsynchronousNotifications()
         
         if not hasattr(self, "_floatingEventsColl"):
             self._floatingEventsColl = schema.ns("osaf.pim", self.UIRepositoryView).floatingEvents
