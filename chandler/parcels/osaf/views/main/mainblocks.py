@@ -92,10 +92,7 @@ def makeMainView(parcel):
         calendarContainer = None,
         stretchFactor = 0.0).install(parcel)
 
-    if '__WXGTK__' in wx.PlatformInfo:
-        toolbarIconSize = SizeType(26, 26)
-    else:
-        toolbarIconSize = SizeType(32, 32)    
+    toolbarIconSize = SizeType(32, 32)    
 
     ApplicationBar = Toolbar.template(
         'ApplicationBar',
