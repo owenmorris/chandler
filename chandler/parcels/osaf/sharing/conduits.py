@@ -795,9 +795,12 @@ class ManifestEngineMixin(pim.ContentItem):
                 self._addToManifest(itemPath, item, data)
                 self._setFetched(itemPath)
                 displayName = (getattr(item, 'displayName',
-                    None) or item._repr_()).encode('utf8', 'replace')
-                logger.info("...imported '%s' '%s' %s, data: %s" % \
-                 (itemPath, displayName, item, data))
+                    None) or item._repr_())
+
+                debugString = u"...imported '%s' '%s' %s, data: %s" % \
+                              (itemPath, displayName, item, data)
+
+                logger.info(debugString.encode('utf8', 'replace'))
 
                 cvSelf.share.items.append(item)
                 if updateCallback and updateCallback(msg="'%s'" %
@@ -806,7 +809,7 @@ class ManifestEngineMixin(pim.ContentItem):
 
                 return item
 
-            logger.error("...NOT able to import '%s'" % itemPath)
+            logger.error("...NOT able to import '%s'" % itemPath.encode('utf8', 'replace'))
             # Record with no item, indicating an error
             self._addToManifest(itemPath)
 
