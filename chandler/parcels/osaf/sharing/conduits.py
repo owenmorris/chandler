@@ -20,7 +20,6 @@ __all__ = [
     'ManifestEngineMixin',
     'TokenEngineMixin',
     'HTTPMixin',
-    'CosmoConduit',
     'SimpleHTTPConduit',
     'isReadOnlyMode',
     'setReadOnlyMode',
@@ -1043,7 +1042,10 @@ class ManifestEngineMixin(pim.ContentItem):
         property).
         """
         return share.displayName
-        
+
+
+
+
     # Manifest mangement routines
     # The manifest keeps track of the state of shared items at the time of
     # last sync.  It is a dictionary keyed on "path" (not repo path, but
@@ -1203,11 +1205,9 @@ class ManifestEngineMixin(pim.ContentItem):
 
 
 
-class TokenEngineMixin(pim.ContentItem):
-    syncToken = schema.One(
-        schema.Text,
-        doc = "Sync token returned from Cosmo",
-    )
+
+
+
 
 class HTTPMixin(pim.ContentItem):
 
@@ -1302,9 +1302,16 @@ class HTTPMixin(pim.ContentItem):
         return url
 
 
-class CosmoConduit(BaseConduit, TokenEngineMixin, HTTPMixin):
-    pass
 
+
+class TokenEngineMixin(pim.ContentItem):
+    syncToken = schema.One(
+        schema.Text,
+        doc = "Sync token returned from server",
+    )
+
+
+    # def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
 
 
 

@@ -181,10 +181,8 @@ class RecordSetSerializer(object):
                         value = sharing.NoChange
                     values.append(value)
 
-                print values
                 record = recordClass(*values)
                 recordSet.append(record)
-                print record
 
             recordSets[uuid] = recordSet
 
@@ -274,9 +272,10 @@ sample2 = """<?xml version="1.0" encoding="UTF-8"?>
 </eim:records>
 """
 
-s = RecordSetSerializer()
-recordSets = s.deserialize(sample)
-text = s.serialize(recordSets)
-print text
-recordSets = s.deserialize(text)
-print recordSets
+if __name__ == "__main__":
+    s = RecordSetSerializer()
+    recordSets = s.deserialize(sample)
+    text = s.serialize(recordSets)
+    print text
+    recordSets = s.deserialize(text)
+    print recordSets
