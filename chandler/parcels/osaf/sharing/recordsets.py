@@ -2,7 +2,7 @@ from osaf import sharing
 from osaf.sharing import recordtypes
 from osaf.sharing.simplegeneric import generic
 from PyICU import ICUtzinfo
-import datetime, base64
+import datetime, base64, decimal
 from xml.etree.ElementTree import (
     Element, SubElement, ElementTree, parse, tostring, fromstring
 )
@@ -72,7 +72,7 @@ def deserialize_lob(typeinfo, text):
 
 @deserializeValue.when_type(sharing.DecimalType)
 def deserialize_decimal(typeinfo, text):
-    return decimal(text)
+    return decimal.Decimal(text)
 
 @deserializeValue.when_type(sharing.DateType)
 def deserialize_date(typeinfo, text):
@@ -208,7 +208,7 @@ sample = """<?xml version="1.0" encoding="UTF-8"?>
     xmlns:note="http://osafoundation.org/eimml/note">
 
     <eim:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
-        <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" created_on ="2006-11-29 12:25:31 US/Pacific" />
+        <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" created_on ="2006-11-29 12:25:31 US/Pacific" />
         <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="VGhpcyBpcyB0aGUgYm9keQ==" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
         <event:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" rrule="FREQ=WEEKLY" status="CONFIRMED" />
     </eim:recordset>
