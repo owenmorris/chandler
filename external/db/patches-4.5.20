@@ -205,3 +205,35 @@
  SWIGINTERN db_ret_t DbEnv_dbremove(struct DbEnv *self,DB_TXN *txnid,char const *file,char const *database,u_int32_t flags){
  		return self->dbremove(self, txnid, file, database, flags);
  	}
+--- db-4.5.20/os/os_fsync.c	2006-12-06 12:29:17.000000000 -0800
++++ db-4.5.20-patched/os/os_fsync.c	2006-12-06 12:25:25.000000000 -0800
+@@ -68,23 +68,28 @@
+ 	 * Do nothing if the file descriptor has been marked as not requiring
+ 	 * any sync to disk.
+ 	 */
+ 	if (F_ISSET(fhp, DB_FH_NOSYNC))
+ 		return (0);
+ 
+ 	if (DB_GLOBAL(j_fsync) != NULL)
+ 		ret = DB_GLOBAL(j_fsync)(fhp->fd);
+-	else
++	else {
+ #if defined(F_FULLFSYNC)
+ 		RETRY_CHK((fcntl(fhp->fd, F_FULLFSYNC, 0)), ret);
++                if (ret == ENOTSUP) {
++                    ret = 0;
++                    RETRY_CHK((fsync(fhp->fd)), ret);
++                }
+ #elif defined(HAVE_FDATASYNC)
+ 		RETRY_CHK((fdatasync(fhp->fd)), ret);
+ #else
+ 		RETRY_CHK((fsync(fhp->fd)), ret);
+ #endif
++        }
+ 
+ 	if (ret != 0) {
+ 		__db_syserr(dbenv, ret, "fsync");
+ 		ret = __os_posix_err(ret);
+ 	}
+ 	return (ret);
+ }
