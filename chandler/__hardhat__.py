@@ -326,11 +326,11 @@ def generateDocs(buildenv):
         chandlerdb = 'release/bin/Lib/site-packages/chandlerdb'
         queryparser = 'release/bin/Lib/site-packages/QueryParser.py'
     elif sys.platform == 'darwin':
-        chandlerdb = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/chandlerdb'
-        queryparser = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/QueryParser.py'
+        chandlerdb = 'release/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/site-packages/chandlerdb'
+        queryparser = 'release/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/site-packages/QueryParser.py'
     else:
-        chandlerdb = 'release/lib/python2.4/site-packages/chandlerdb'
-        queryparser = 'release/lib/python2.4/site-packages/QueryParser.py'
+        chandlerdb = 'release/lib/python2.5/site-packages/chandlerdb'
+        queryparser = 'release/lib/python2.5/site-packages/QueryParser.py'
 
     if buildenv['os'] != 'win' or sys.platform == 'cygwin':
         hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
