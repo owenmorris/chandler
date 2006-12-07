@@ -210,7 +210,7 @@ sample2 = """<?xml version="1.0" encoding="UTF-8"?>
 
     <eim:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
         <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" created_on ="2006-11-29 12:25:31 US/Pacific" />
-        <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="base64-encoded-string" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
+        <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="VGhpcyBpcyB0aGUgYm9keQ==" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
         <event:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" rrule="FREQ=WEEKLY" status="CONFIRMED" />
     </eim:recordset>
 

@@ -434,8 +434,9 @@ add_converter(IntType, int, int)
 typedef(int, IntType)
 add_converter(TextType, str, unicode)
 add_converter(TextType, unicode, unicode)
-add_converter(DateType, datetime.datetime, datetime.datetime)
+add_converter(DateType, datetime.datetime, lambda v:v)
 add_converter(DecimalType, decimal.Decimal, decimal.Decimal)
+add_converter(LobType, str, unicode)
 
 
 
