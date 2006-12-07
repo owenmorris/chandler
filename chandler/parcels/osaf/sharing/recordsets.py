@@ -3,7 +3,7 @@ from osaf.sharing import recordtypes
 from osaf.sharing.simplegeneric import generic
 from PyICU import ICUtzinfo
 import datetime, base64
-from elementtree.ElementTree import (
+from xml.etree.ElementTree import (
     Element, SubElement, ElementTree, parse, tostring, fromstring
 )
 
