@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import sys, os, shutil, atexit, cStringIO, time, threading
+import sys, os, shutil, atexit, cStringIO, time, threading, tarfile
 
 from datetime import datetime, timedelta
 
@@ -23,7 +23,7 @@ from chandlerdb.item.c import CItem, CValues
 from chandlerdb.item.ItemValue import Indexable
 from chandlerdb.persistence.c import DBEnv, DB, \
     DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \
-    DBLockDeadlockError, \
+    DBLockDeadlockError, DBVersionMismatchError, \
     DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH
 
 from repository.schema.TypeHandler import TypeHandler
@@ -124,7 +124,7 @@ class DBRepository(OnDemandRepository):
             elif not os.path.isdir(self.dbHome):
                 raise ValueError, "%s is not a directory" %(self.dbHome)
             else:
-                self.delete()
+                self.delete(kwds.get('datadir'), kwds.get('logdir'))
 
             self._lockOpen()
             self._env = self._createEnv(True, kwds)
@@ -185,7 +185,7 @@ class DBRepository(OnDemandRepository):
         ramdb = kwds.get('ramdb', False)
         locks = 32767
         cache = 0x4000000
-        
+
         if create and not ramdb:
             db_version = file(os.path.join(self.dbHome, 'DB_VERSION'), 'w+b')
             db_version.write("%d.%d.%d\n" %(DB_VERSION_MAJOR,
@@ -224,8 +224,26 @@ class DBRepository(OnDemandRepository):
             db_config.write("set_lk_max_objects %d\n" %(locks))
 
         if create and not ramdb:
-            env.set_flags(DBEnv.DB_LOG_AUTOREMOVE, 1)
-            db_config.write("set_flags DB_LOG_AUTOREMOVE\n")
+            memorylog = kwds.get('memorylog', None)
+            if memorylog:
+                memorylog = int(memorylog) * 1048576
+            if memorylog:
+                env.set_flags(DBEnv.DB_LOG_INMEMORY, 1)
+                env.lg_bsize = memorylog
+                db_config.write("set_flags DB_LOG_INMEMORY\n")
+                db_config.write("set_lg_bsize %d\n" %(env.lg_bsize))
+            else:
+                logdir = kwds.get('logdir', None)
+                if logdir:
+                    env.lg_dir = logdir
+                    db_config.write("set_lg_dir %s\n" %(logdir))
+                env.set_flags(DBEnv.DB_LOG_AUTOREMOVE, 1)
+                db_config.write("set_flags DB_LOG_AUTOREMOVE\n")
+
+            datadir = kwds.get('datadir', None)
+            if datadir:
+                env.set_data_dir(datadir)
+                db_config.write("set_data_dir %s\n" %(datadir))
 
         if os.name == 'nt':
             if create or ramdb:
@@ -256,18 +274,31 @@ class DBRepository(OnDemandRepository):
 
         return env
 
-    def delete(self):
+    def delete(self, datadir=None, logdir=None):
 
         self._lockOpenExclusive()
 
         try:
             for name in os.listdir(self.dbHome):
-                if (name.startswith('__') or
+                if (name.startswith('__db') or
                     name.startswith('log.') or
+                    name.endswith('.db') or
                     name in ('DB_CONFIG', 'DB_VERSION')):
                     path = os.path.join(self.dbHome, name)
                     if not os.path.isdir(path):
                         os.remove(path)
+            if datadir:
+                for name in os.listdir(os.path.join(self.dbHome, datadir)):
+                    if name.endswith('.db'):
+                        path = os.path.join(self.dbHome, datadir, name)
+                        if not os.path.isdir(path):
+                            os.remove(path)
+            if logdir:
+                for name in os.listdir(os.path.join(self.dbHome, logdir)):
+                    if name.startswith('log.'):
+                        path = os.path.join(self.dbHome, logdir, name)
+                        if not os.path.isdir(path):
+                            os.remove(path)
             self._clearOpenDir()
 
         finally:
@@ -307,27 +338,37 @@ class DBRepository(OnDemandRepository):
 
             self.checkpoint()
 
-            for db in self._env.log_archive(DBEnv.DB_ARCH_DATA):
-                srcPath = os.path.join(self.dbHome, db)
+            for srcPath in self._env.log_archive(DBEnv.DB_ARCH_DATA |
+                                                 DBEnv.DB_ARCH_ABS):
+                x, db = os.path.split(srcPath)
                 dstPath = os.path.join(dbHome, db)
                 self.logger.info(dstPath)
 
                 shutil.copy2(srcPath, dstPath)
 
-            for log in self._env.log_archive(DBEnv.DB_ARCH_LOG):
-                path = os.path.join(dbHome, log)
-                self.logger.info(path)
-                shutil.copy2(os.path.join(self.dbHome, log), path)
+            for srcPath in self._env.log_archive(DBEnv.DB_ARCH_LOG |
+                                                 DBEnv.DB_ARCH_ABS):
+                x, log = os.path.split(srcPath)
+                dstPath = os.path.join(dbHome, log)
+                self.logger.info(dstPath)
+
+                shutil.copy2(srcPath, dstPath)
 
             if os.path.exists(os.path.join(self.dbHome, 'DB_CONFIG')):
-                path = os.path.join(dbHome, 'DB_CONFIG')
-                self.logger.info(path)
-                shutil.copy2(os.path.join(self.dbHome, 'DB_CONFIG'), path)
+                dstPath = os.path.join(dbHome, 'DB_CONFIG')
+                self.logger.info(dstPath)
+                inFile = file(os.path.join(self.dbHome, 'DB_CONFIG'), 'r')
+                outFile = file(dstPath, 'w')
+                for line in inFile:
+                    if not (line.startswith('set_data_dir') or
+                            line.startswith('set_lg_dir')):
+                        outFile.write(line)
+                outFile.close()
             
             if os.path.exists(os.path.join(self.dbHome, 'DB_VERSION')):
-                path = os.path.join(dbHome, 'DB_VERSION')
-                self.logger.info(path)
-                shutil.copy2(os.path.join(self.dbHome, 'DB_VERSION'), path)
+                dstPath = os.path.join(dbHome, 'DB_VERSION')
+                self.logger.info(dstPath)
+                shutil.copy2(os.path.join(self.dbHome, 'DB_VERSION'), dstPath)
 
             if not withLog:
                 env = None
@@ -360,6 +401,75 @@ class DBRepository(OnDemandRepository):
                 view._releaseExclusive()
 
         return dbHome
+
+    def restore(self, srcHome, datadir=None, logdir=None):
+
+        if os.path.exists(srcHome):
+            dbHome = self.dbHome
+
+            if os.path.exists(dbHome):
+                self.delete(datadir, logdir)
+            if not os.path.exists(dbHome):
+                os.mkdir(dbHome)
+
+            if datadir:
+                datadir = os.path.join(dbHome, datadir)
+                if not os.path.exists(datadir):
+                    os.mkdir(datadir)
+            else:
+                datadir = dbHome
+
+            if logdir:
+                logdir = os.path.join(dbHome, logdir)
+                if not os.path.exists(logdir):
+                    os.mkdir(logdir)
+            else:
+                logdir = dbHome
+
+            if os.path.isdir(srcHome):
+                for f in os.listdir(srcHome):
+                    if f.endswith('.db'):
+                        dstPath = os.path.join(datadir, f)
+                    elif f.startswith('log.'):
+                        dstPath = os.path.join(logdir, f)
+                    elif f in ('DB_CONFIG', 'DB_VERSION'):
+                        dstPath = os.path.join(dbHome, f)
+                    else:
+                        continue
+                                      
+                    srcPath = os.path.join(srcHome, f)
+                    self.logger.info(srcPath)
+                    shutil.copy2(srcPath, dstPath)
+
+            else:
+                # We were given a filename; open it as a tarfile and 
+                # restore from the files contained in it.
+                restoreFile = tarfile.open(srcHome, 'r:gz')
+                for member in restoreFile:
+                    f = os.path.basename(member.name)
+                    if f.endswith('.db'):
+                        dstPath = datadir
+                    elif f.startswith('log.'):
+                        dstPath = logdir
+                    elif f in ('DB_CONFIG', 'DB_VERSION'):
+                        dstPath = dbHome
+                    else:
+                        continue
+
+                    self.logger.info(os.path.join(srcHome, f))
+                    restoreFile.extract(member, dstPath)
+                restoreFile.close()
+
+            if datadir != dbHome or logdir != dbHome:
+                outFile = file(os.path.join(dbHome, 'DB_CONFIG'), 'a')
+                if datadir != dbHome:
+                    outFile.write('set_data_dir %s\n' %(datadir))
+                if logdir != dbHome:
+                    outFile.write('set_lg_dir %s\n' %(logdir))
+                outFile.close()
+
+        else:
+            raise RepositoryRestoreError, (srcHome, 'does not exist')
 
     def compact(self):
 
@@ -489,42 +599,8 @@ class DBRepository(OnDemandRepository):
             restore = kwds.get('restore', None)
 
             if restore is not None:
-                if os.path.exists(restore):
-                    if os.path.exists(self.dbHome):
-                        self.delete()
-                    if not os.path.exists(self.dbHome):
-                        os.mkdir(self.dbHome)
-
-                    # is 'f' in the restore set
-                    def restoreTest(f):
-                        return (f.endswith('.db') or f.startswith('log.') or 
-                                f in ('DB_CONFIG', 'DB_VERSION'))
-
-                    if os.path.isdir(restore):
-                        # We were given a directory path: we'll restore from the
-                        # files in it.
-                        for f in os.listdir(restore):
-                            if restoreTest(f):
-                                path = os.path.join(restore, f)
-                                if not os.path.isdir(path):
-                                    self.logger.info(path)
-                                    shutil.copy2(path, os.path.join(self.dbHome, f))
-                    else:
-                        # We were given a filename; open it as a tarfile and 
-                        # restore from the files contained in it.
-                        import tarfile
-                        restoreFile = tarfile.open(restore, 'r:gz')
-                        for member in restoreFile:
-                            f = os.path.basename(member.name)
-                            if restoreTest(f):
-                                pseudopath = os.path.join(restore, f)
-                                if not member.isdir():
-                                    self.logger.info(pseudopath)
-                                    restoreFile.extract(member, self.dbHome)
-                        restoreFile.close()
-                    recover = True
-                else:
-                    raise RepositoryRestoreError, (restore, 'does not exist')
+                self.restore(restore, kwds.get('datadir'), kwds.get('logdir'))
+                recover = True
 
             elif kwds.get('create', False) and not os.path.exists(self.dbHome):
                 return self.create(**kwds)
@@ -607,6 +683,12 @@ class DBRepository(OnDemandRepository):
                 if "Invalid password" in e.args[1]:
                     raise RepositoryPasswordError, e.args[1]
                 raise
+
+            except DBVersionMismatchError, e:
+                expected = "%d.%d.%d" %(DB_VERSION_MAJOR,
+                                        DB_VERSION_MINOR,
+                                        DB_VERSION_PATCH)
+                raise RepositoryDatabaseVersionError, ('undetermined', expected)
 
             self._status |= Repository.OPEN
             self._afterOpen()

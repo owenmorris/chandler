@@ -250,6 +250,10 @@ def initOptions(**kwds):
         'debugOn':    ('-d', '--debugOn',    's', None,  None, 'Enter PDB upon this exception being raised'),
         'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, 'Parcel that defines the core application'),
         'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
+        'memorylog':  ('', '--memorylog', 's', None, None, 'Specify a buffer size (in MB) for in-memory transaction logs'),
+        'logdir':     ('', '--logdir', 's', None, None, 'Specify a directory for transaction logs'),
+        'datadir':    ('', '--datadir', 's', None, None, 'Specify a directory for database files'),
+        'repodir':    ('', '--repodir', 's', None, None, "Specify a home directory for the __repository__ directory (defaults to the profile directory)"),
         'nodeferdelete':   ('', '--nodeferdelete','b', False, None, 'do not defer item deletions in all views by default'),
         'indexer':    ('-i', '--indexer',    's', 'background', None, 'Run Lucene indexing in the background or foreground'),
         'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
@@ -420,7 +424,9 @@ def locateChandlerDirectory():
     return os.path.dirname(os.path.dirname(__file__))
 
 
-def locateRepositoryDirectory(profileDir):
+def locateRepositoryDirectory(profileDir, options):
+    if options.repodir:
+        return os.path.join(options.repodir, '__repository__')
     if profileDir:
         path = os.sep.join([profileDir, '__repository__'])
     else:
@@ -442,6 +448,9 @@ def initRepository(directory, options, allowSchemaView=False):
              'create': True,
              'recover': options.recover,
              'exclusive': not options.nonexclusive,
+             'memorylog': options.memorylog,
+             'logdir': options.logdir,
+             'datadir': options.datadir,
              'nodeferdelete': options.nodeferdelete,
              'refcounted': True,
              'logged': not not options.logging,

@@ -63,7 +63,7 @@ class StartupOptionsDialog(wx.Dialog):
         self.SetIcon(icon)
 
         # Do we have an existing repository?
-        repoDir = locateRepositoryDirectory(Globals.options.profileDir)
+        repoDir = locateRepositoryDirectory(Globals.options.profileDir, Globals.options)
         repoExists = os.path.exists(repoDir)
 
         # Construct the controls and lay them out; their member names match 
@@ -164,7 +164,7 @@ class StartupOptionsDialog(wx.Dialog):
         # version info.
         import tarfile
         snapshot = tarfile.open(snapshotPath, 'w:gz')
-        repoDir = locateRepositoryDirectory(Globals.options.profileDir)
+        repoDir = locateRepositoryDirectory(Globals.options.profileDir, Globals.options)
         snapshot.add(repoDir, ".")
         snapshot.add("version.py")
         for log in 'chandler.log', 'twisted.log':

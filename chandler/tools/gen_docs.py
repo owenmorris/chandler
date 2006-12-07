@@ -24,7 +24,7 @@ from chandlerdb.util.c import SingleRef
 def generateModelDocs(options, outputDir=None):
     urlRoot       = '/docs/current/model'
     chandlerDir   = Utility.locateChandlerDirectory()
-    repositoryDir = Utility.locateRepositoryDirectory(chandlerDir)
+    repositoryDir = Utility.locateRepositoryDirectory(chandlerDir, options)
 
     if not outputDir:
         modelDir = os.path.join(chandlerDir, 'docs', 'model')

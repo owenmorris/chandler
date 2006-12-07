@@ -21,8 +21,8 @@ PYEGGS =
 # When a version changes, the ARCHIVES lists below needs to be updated.
 # these get installed into release or debug
 ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)3.tar.gz \
-           $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)64.tar.gz \
-           $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)65.tar.gz \
+           $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)2.tar.gz \
            $(CHANDLERARCHIVES)/python-$(SNAP)-2.5-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)10.tar.gz \
            $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz \

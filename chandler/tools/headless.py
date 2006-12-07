@@ -49,7 +49,7 @@ def startup(**kwds):
     parcelPath = Utility.initParcelEnv(Globals.chandlerDirectory,
                                        Globals.options.parcelPath)
 
-    view = Utility.initRepository(Utility.locateRepositoryDirectory(profileDir),
+    view = Utility.initRepository(Utility.locateRepositoryDirectory(profileDir, Globals.options),
                                   Globals.options)
 
     verify, repoVersion, schemaVersion = Utility.verifySchema(view)

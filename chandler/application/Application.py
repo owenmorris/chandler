@@ -396,7 +396,7 @@ class wxApplication (wx.App):
         # to reopen the repository in create mode.
         if splash:
             splash.updateGauge('repository')
-        repoDir = Utility.locateRepositoryDirectory(Globals.options.profileDir)
+        repoDir = Utility.locateRepositoryDirectory(Globals.options.profileDir, Globals.options)
             
         try:
             view = Utility.initRepository(repoDir, Globals.options)
