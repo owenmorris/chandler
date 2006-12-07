@@ -43,6 +43,7 @@ PyObject *PyExc_DBNoSpaceError = NULL;
 PyObject *PyExc_DBNotFoundError = NULL;
 PyObject *PyExc_DBNoSuchFileError = NULL;
 PyObject *PyExc_DBPermissionsError = NULL;
+PyObject *PyExc_DBVersionMismatchError = NULL;
 
 
 PyObject *raiseDBError(int err)
@@ -55,6 +56,9 @@ PyObject *raiseDBError(int err)
         break;
       case DB_LOCK_NOTGRANTED:
         obj = PyExc_DBLockNotGrantedError;
+        break;
+      case DB_VERSION_MISMATCH:
+        obj = PyExc_DBVersionMismatchError;
         break;
       case EACCES:
         obj = PyExc_DBAccessError;
@@ -132,6 +136,7 @@ void initc(void)
     MAKE_EXC(m, DBNotFoundError, DBError);
     MAKE_EXC(m, DBNoSuchFileError, DBError);
     MAKE_EXC(m, DBPermissionsError, DBError);
+    MAKE_EXC(m, DBVersionMismatchError, DBError);
 
     PyModule_AddIntConstant(m, "DB_VERSION_MAJOR", DB_VERSION_MAJOR);
     PyModule_AddIntConstant(m, "DB_VERSION_MINOR", DB_VERSION_MINOR);

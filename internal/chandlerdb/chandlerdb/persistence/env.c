@@ -57,6 +57,13 @@ static PyObject *t_env_get_lg_bsize(t_env *self, void *data);
 static int t_env_set_lg_bsize(t_env *self, PyObject *value, void *data);
 static PyObject *t_env_get_errfile(t_env *self, void *data);
 static int t_env_set_errfile(t_env *self, PyObject *value, void *data);
+static PyObject *t_env_get_data_dirs(t_env *self, void *data);
+static PyObject *t_env_set_data_dir(t_env *self, PyObject *args);
+static PyObject *t_env_get_lg_dir(t_env *self, void *data);
+static int t_env_set_lg_dir(t_env *self, PyObject *value, void *data);
+
+static char *_t_env_encode_path(char *path, int len, PyObject **string);
+static PyObject *_t_env_decode_path(const char *path);
 
 
 static PyMemberDef t_env_members[] = {
@@ -82,6 +89,7 @@ static PyMethodDef t_env_methods[] = {
     { "lock_put", (PyCFunction) t_env_lock_put, METH_O, NULL },
     { "lsn_reset", (PyCFunction) t_env_lsn_reset, METH_VARARGS, NULL },
     { "fileid_reset", (PyCFunction) t_env_fileid_reset, METH_VARARGS, NULL },
+    { "set_data_dir", (PyCFunction) t_env_set_data_dir, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -110,6 +118,12 @@ static PyGetSetDef t_env_properties[] = {
     { "home",
       (getter) t_env_get_home, (setter) NULL,
       "environment home", NULL },
+    { "data_dirs",
+      (getter) t_env_get_data_dirs, (setter) NULL,
+      "environment data directory", NULL },
+    { "lg_dir",
+      (getter) t_env_get_lg_dir, (setter) t_env_set_lg_dir,
+      "environment log directory", NULL },
     { "cachesize",
       (getter) t_env_get_cachesize, (setter) t_env_set_cachesize,
       "size of shared memory buffer pool", NULL },
@@ -230,42 +244,24 @@ static int t_env_init(t_env *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
-/*
- * input string for db_home must be 'str' encoded in sys.getfilesystemencoding()
- * on Windows, it gets converted to utf-8 as per Berkeley DB API doc
- */
 static PyObject *t_env_open(t_env *self, PyObject *args)
 {
     char *db_home;
-    int flags = 0, mode = 0;
-#ifdef WINDOWS
-    PyObject *u, *s;
-    int len;
-#endif
+    int len, flags = 0, mode = 0;
+    PyObject *string = NULL;
 
     if (!self->db_env)
         return raiseDBError(EINVAL);
 
-#ifdef WINDOWS
     if (!PyArg_ParseTuple(args, "z#|ii", &db_home, &len, &flags, &mode))
         return NULL;
 
     if (db_home)
     {
-        u = PyUnicode_Decode(db_home, len,
-                             Py_FileSystemDefaultEncoding, "strict");
-        if (!u)
+        db_home = _t_env_encode_path(db_home, len, &string);
+        if (!db_home)
             return NULL;
-        s = PyUnicode_AsUTF8String(u);
-        Py_DECREF(u);
-        if (!s)
-            return NULL;
-        db_home = PyString_AS_STRING(s);
     }
-#else
-    if (!PyArg_ParseTuple(args, "z|ii", &db_home, &flags, &mode))
-        return NULL;
-#endif
 
     {
         int err;
@@ -274,10 +270,7 @@ static PyObject *t_env_open(t_env *self, PyObject *args)
         err = self->db_env->open(self->db_env, db_home, flags, mode);
         Py_END_ALLOW_THREADS;
 
-#ifdef WINDOWS
-        if (db_home)
-            Py_DECREF(s);
-#endif
+        Py_XDECREF(string);
 
         if (err)
             return raiseDBError(err);
@@ -482,9 +475,58 @@ static PyObject *t_env_get_encrypt_flags(t_env *self, PyObject *args)
     }
 }
 
-/* As per Berkeley DB API doc, API return value is utf-8 encoded on Windows
+
+/* As per Berkeley DB API doc, API path string is utf-8 encoded on Windows
  * and needs to be converted back into sys.getfilesystemencoding()
  */
+
+static char *_t_env_encode_path(char *path, int len, PyObject **s)
+{
+#ifdef WINDOWS
+    PyObject *u;
+
+    u = PyUnicode_Decode(path, len, Py_FileSystemDefaultEncoding, "strict");
+    if (!u)
+        return NULL;
+        
+    *s = PyUnicode_AsUTF8String(u);
+    Py_DECREF(u);
+
+    if (!*s)
+        return NULL;
+
+    return PyString_AS_STRING(*s);
+#else
+    *s = NULL;
+    return path;
+#endif
+}
+
+static PyObject *_t_env_decode_path(const char *path)
+{
+#ifdef WINDOWS
+    if (path)
+    {
+        PyObject *u = PyUnicode_DecodeUTF8(path, strlen(path), "strict");
+        PyObject *s;
+
+        if (!u)
+            return NULL;
+        s = PyUnicode_AsEncodedString(u, Py_FileSystemDefaultEncoding,
+                                      "strict");
+        Py_DECREF(u);
+
+        return s;
+    }
+#else
+    if (path)
+        return PyString_FromString(path);
+#endif
+
+    Py_RETURN_NONE;
+}
+
+
 static PyObject *t_env_get_home(t_env *self, PyObject *args)
 {
     if (!self->db_env)
@@ -501,28 +543,144 @@ static PyObject *t_env_get_home(t_env *self, PyObject *args)
         if (err)
             return raiseDBError(err);
 
-#ifdef WINDOWS
-        if (home)
-        {
-            PyObject *u = PyUnicode_DecodeUTF8(home, strlen(home), "strict");
-            PyObject *s;
+        return _t_env_decode_path(home);
+    }
+}
 
-            if (!u)
+static PyObject *t_env_get_data_dirs(t_env *self, void *data)
+{
+    if (!self->db_env)
+        return raiseDBError(EINVAL);
+
+    {
+        const char **paths;
+        int err, i, count;
+        PyObject *tuple;
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db_env->get_data_dirs(self->db_env, &paths);
+        Py_END_ALLOW_THREADS;
+
+        if (err)
+            return raiseDBError(err);
+
+        if (paths)
+            for (count = 0; paths[count]; count++);
+        else
+            count = 0;
+
+        tuple = PyTuple_New(count);
+        if (!tuple)
+            return NULL;
+
+        for (i = 0; i < count; i++) {
+            PyObject *path = _t_env_decode_path(paths[i]);
+
+            if (!path)
+            {
+                Py_DECREF(tuple);
                 return NULL;
-            s = PyUnicode_AsEncodedString(u, Py_FileSystemDefaultEncoding,
-                                          "strict");
-            Py_DECREF(u);
+            }
 
-            return s;
+            PyTuple_SET_ITEM(tuple, i, path);
         }
-#else
-        if (home)
-            return PyString_FromString(home);
-#endif
+        
+        return tuple;
+    }
+}
+
+static PyObject *t_env_set_data_dir(t_env *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    char *path;
+    int len;
+
+    if (!self->db_env)
+        return raiseDBError(EINVAL);
+
+    if (!PyArg_ParseTuple(args, "z#", &path, &len))
+        return NULL;
+
+    path = _t_env_encode_path(path, len, &string);
+    if (!path)
+        return NULL;
+
+    {
+        int err;
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db_env->set_data_dir(self->db_env, path);
+        Py_END_ALLOW_THREADS;
+
+        Py_XDECREF(string);
+
+        if (err)
+            return raiseDBError(err);
 
         Py_RETURN_NONE;
     }
 }
+
+static PyObject *t_env_get_lg_dir(t_env *self, void *data)
+{
+    if (!self->db_env)
+        return raiseDBError(EINVAL);
+
+    {
+        const char *path;
+        int err;
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db_env->get_lg_dir(self->db_env, &path);
+        Py_END_ALLOW_THREADS;
+
+        if (err)
+            return raiseDBError(err);
+
+        return _t_env_decode_path(path);
+    }
+}
+
+static int t_env_set_lg_dir(t_env *self, PyObject *value, void *data)
+{
+    PyObject *args = PyTuple_Pack(1, value);
+    PyObject *string = NULL;
+    char *path;
+    int len, err;
+
+    if (!self->db_env)
+    {
+        raiseDBError(EINVAL);
+        return -1;
+    }
+
+    err = !PyArg_ParseTuple(args, "z#", &path, &len);
+    Py_DECREF(args);
+
+    if (err)
+        return -1;
+
+    path = _t_env_encode_path(path, len, &string);
+    if (!path)
+        return -1;
+
+    {
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db_env->set_lg_dir(self->db_env, path);
+        Py_END_ALLOW_THREADS;
+
+        Py_XDECREF(string);
+
+        if (err)
+        {
+            raiseDBError(err);
+            return -1;
+        }
+
+        return 0;
+    }
+}
+
 
 static PyObject *t_env_set_encrypt(t_env *self, PyObject *args)
 {
