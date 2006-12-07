@@ -26,6 +26,8 @@ import copy
 import sys
 import os.path
 import time 
+import wx
+import osaf.framework.scripting.User as User
 
 class datetime(dtime):
     """Class for overriding datetime's normal string method"""
@@ -145,10 +147,20 @@ class TestOutput:
         self.printOut(u'Starting Test ""%s"" :: StartTime %s' % (name, self.currentTest['starttime']), level=2)
         self.inTest = True
         
+    def checkForOpenDialogs(self):
+        User.idle()
+        topwins = wx.GetTopLevelWindows()
+        if len(topwins) > 1:
+            for win in topwins:
+                title = win.GetTitle()
+                if title != u'Chandler':
+                    self.report(False, '%s window is still open at end of test' % title)
+        
     def endTest(self, comment=None):
         """Method to end individual test class run.
         
         Encapsulates action list."""
+        self.checkForOpenDialogs()
         self.checkForStderrOutput()               
         self.currentTest['endtime'] = datetime.now()
         self.currentTest['totaltime'] = self.currentTest['endtime'] - self.currentTest['starttime']
