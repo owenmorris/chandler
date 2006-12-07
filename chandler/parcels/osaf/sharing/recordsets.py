@@ -20,9 +20,6 @@ def _splitTag(tag):
     # to this: ['http://osafoundation.org/eimml/item', 'record']
     return tag[1:].split("}")
 
-def _getFieldByName(recordClass, name):
-    return getattr(recordClass, name, None)
-
 
 
 
@@ -176,7 +173,12 @@ class RecordSetSerializer(object):
 
                 values = []
                 for field in recordClass.__fields__:
-                    values.append(deserializers[type(field.typeinfo)](recordElement.get(field.name)))
+                    value = recordElement.get(field.name)
+                    if value is not None:
+                        value = deserializers[type(field.typeinfo)](value)
+                    else:
+                        value = sharing.NoChange
+                    values.append(value)
 
                 print values
                 record = recordClass(*values)

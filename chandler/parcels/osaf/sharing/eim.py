@@ -451,6 +451,7 @@ def item_uuid_converter(item):
 
 add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
+add_converter(UUIDType, str, unicode)
 
 
 
