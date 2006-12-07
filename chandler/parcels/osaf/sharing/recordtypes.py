@@ -19,45 +19,59 @@ logger = logging.getLogger(__name__)
 # These may eventually live elsewhere, but checking them in here so we can
 # collaborate on them
 
-# We need to specify URIs for each of these record types:
+
+text20 = sharing.TextType("http://osafoundation.org/xyzzy/text20", size=20)
+text256 = sharing.TextType("http://osafoundation.org/xyzzy/text256", size=256)
+text1024 = sharing.TextType("http://osafoundation.org/xyzzy/text1024",
+    size=1024)
 
 class ItemRecord(sharing.Record):
+    URI = "http://osafoundation.org/eimml/item/"
+
     uuid = sharing.key(schema.UUID)
-    title = sharing.field(sharing.TextType(size=256))
-    triage_status = sharing.field(sharing.TextType(size=256))
+    title = sharing.field(text256)
+    triage_status = sharing.field(text256)
     triage_status_changed = sharing.field(sharing.DecimalType(digits=11,
         decimal_places=2))
-    last_modified_by = sharing.field(sharing.TextType(size=256)) # storing an email address
+    last_modified_by = sharing.field(text256) # storing an email address
     created_on = sharing.field(sharing.DateType)
 
 class NoteRecord(sharing.Record):
-    uuid = sharing.key(schema.UUID)
+    URI = "http://osafoundation.org/eimml/note/"
+
+    uuid = sharing.key(ItemRecord.uuid)
     body = sharing.field(sharing.LobType())
-    icaluid = sharing.field(sharing.TextType(size=256))
+    icaluid = sharing.field(text256)
 
 class TaskRecord(sharing.Record):
-    uuid = sharing.key(schema.UUID)
+    URI = "http://osafoundation.org/eimml/task/"
+
+    uuid = sharing.key(ItemRecord.uuid)
 
 class EventRecord(sharing.Record):
-    uuid = sharing.key(schema.UUID)
-    dtstart = sharing.field(sharing.TextType(size=20))
-    dtend = sharing.field(sharing.TextType(size=20))
-    location = sharing.field(sharing.TextType(size=256))
-    rrule = sharing.field(sharing.TextType(size=1024))
-    exrule = sharing.field(sharing.TextType(size=1024))
-    rdate = sharing.field(sharing.TextType(size=1024))
-    exdate = sharing.field(sharing.TextType(size=1024))
-    recurrenceid = sharing.field(sharing.TextType(size=20))
-    status = sharing.field(sharing.TextType(size=256))
+    URI = "http://osafoundation.org/eimml/event/"
+
+    uuid = sharing.key(ItemRecord.uuid)
+    dtstart = sharing.field(text20)
+    dtend = sharing.field(text20)
+    location = sharing.field(text256)
+    rrule = sharing.field(text1024)
+    exrule = sharing.field(text1024)
+    rdate = sharing.field(text1024)
+    exdate = sharing.field(text1024)
+    recurrenceid = sharing.field(text20)
+    status = sharing.field(text256)
     # anyTime -- may need for Apple iCal?
     # allDay
 
 
 class MailMessageRecord(sharing.Record):
-    uuid = sharing.key(schema.UUID)
-    subject = sharing.field(sharing.TextType(size=256))
-    to = sharing.field(sharing.TextType(size=256))
-    cc = sharing.field(sharing.TextType(size=256))
-    bcc = sharing.field(sharing.TextType(size=256))
+    URI = "http://osafoundation.org/eimml/mail/"
+
+    uuid = sharing.key(ItemRecord.uuid)
+    subject = sharing.field(text256)
+    to = sharing.field(text256)
+    cc = sharing.field(text256)
+    bcc = sharing.field(text256)
     # other headers?
 
