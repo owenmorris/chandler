@@ -18,15 +18,15 @@ libdb_java45d.dll
 msvcp71d.dll
 msvcr71d.dll
 msvcrtd.dll
-python24_d.dll 
-icudt34.dll
-iculx34d.dll
-icuin34d.dll
+python25_d.dll 
+icudt36.dll
+iculx36d.dll
+icuin36d.dll
 icutestd.dll
-icuio34d.dll
-icutu34d.dll
-icule34d.dll
-icuuc34d.dll
+icuio36d.dll
+icutu36d.dll
+icule36d.dll
+icuuc36d.dll
 
 # grab DB binaries
 src=chandler/debug/bin
