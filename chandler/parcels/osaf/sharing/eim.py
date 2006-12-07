@@ -19,7 +19,7 @@ __all__ = [
 from symbols import Symbol  # XXX change this to peak.util.symbols
 from simplegeneric import generic
 from weakref import WeakValueDictionary
-import linecache, os, decimal
+import linecache, os, decimal, datetime
 from application import schema
 from chandlerdb.util.c import UUID
 
@@ -434,6 +434,7 @@ add_converter(IntType, int, int)
 typedef(int, IntType)
 add_converter(TextType, str, unicode)
 add_converter(TextType, unicode, unicode)
+add_converter(DateType, datetime.datetime, datetime.datetime)
 add_converter(DecimalType, decimal.Decimal, decimal.Decimal)
 
 
