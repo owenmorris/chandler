@@ -10,6 +10,11 @@ from xml.etree.ElementTree import (
 
 
 
+class RecordSet(list): # pje to flesh this out
+    pass
+
+
+
 
 
 @generic
@@ -38,29 +43,39 @@ def serialize_date(typeinfo, value):
     return value.strftime("%Y-%m-%d %H:%M:%S %Z")
 
 @serializeValue.when_type(sharing.DecimalType)
-def serialize_date(typeinfo, value):
-    return                                      # TODO
+def serialize_decimal(typeinfo, value):
+    return str(value)
 
 
 
 
+@generic
+def deserializeValue(typeinfo, text):
+    """Deserialize text based on typeinfo"""
+    raise NotImplementedError("Unrecognized type:", typeinfo)
 
-def deserialize_bytes(text):
+@deserializeValue.when_type(sharing.BytesType)
+def deserialize_bytes(typeinfo, text):
     return text
 
-def deserialize_int(text):
+@deserializeValue.when_type(sharing.IntType)
+def deserialize_int(typeinfo, text):
     return int(text)
 
-def deserialize_text(text):
+@deserializeValue.when_type(sharing.TextType)
+def deserialize_text(typeinfo, text):
     return text
 
-def deserialize_lob(text):
+@deserializeValue.when_type(sharing.LobType)
+def deserialize_lob(typeinfo, text):
     return base64.b64decode(text)
 
-def deserialize_decimal(text):
-    return                                      # TODO
+@deserializeValue.when_type(sharing.DecimalType)
+def deserialize_decimal(typeinfo, text):
+    return decimal(text)
 
-def deserialize_date(text):
+@deserializeValue.when_type(sharing.DateType)
+def deserialize_date(typeinfo, text):
     values = text.split(' ')
     count = len(values)
 
@@ -100,18 +115,6 @@ def deserialize_date(text):
 
 
 
-deserializers = {
-    sharing.BytesType : deserialize_bytes,
-    sharing.IntType : deserialize_int,
-    sharing.TextType : deserialize_text,
-    sharing.DateType : deserialize_date,
-    sharing.LobType : deserialize_lob,
-    sharing.DecimalType : deserialize_decimal,
-}
-
-
-class RecordSet(list):
-    pass
 
 
 class RecordSetSerializer(object):
@@ -173,7 +176,7 @@ class RecordSetSerializer(object):
                 for field in recordClass.__fields__:
                     value = recordElement.get(field.name)
                     if value is not None:
-                        value = deserializers[type(field.typeinfo)](value)
+                        value = deserializeValue(field.typeinfo, value)
                     else:
                         value = sharing.NoChange
                     values.append(value)
@@ -187,7 +190,13 @@ class RecordSetSerializer(object):
 
         return recordSets
 
-sample2 = """<?xml version="1.0" encoding="UTF-8"?>
+
+
+
+# This is a much more compact xml format, where fields map directly to
+# attributes.  The current code handles this format:
+
+sample = """<?xml version="1.0" encoding="UTF-8"?>
 
 <eim:records
     xmlns:eim="http://osafoundation.org/eimml/core"
@@ -208,7 +217,10 @@ sample2 = """<?xml version="1.0" encoding="UTF-8"?>
 """
 
 
-sample = """<?xml version="1.0" encoding="UTF-8"?>
+# This is an xml-element-per-field approach, which is a bit verbose.  The
+# current code does not handle this format:
+
+sample2 = """<?xml version="1.0" encoding="UTF-8"?>
 
 <eim:records
     xmlns:eim="http://osafoundation.org/eimml/core"
@@ -263,7 +275,7 @@ sample = """<?xml version="1.0" encoding="UTF-8"?>
 """
 
 s = RecordSetSerializer()
-recordSets = s.deserialize(sample2)
+recordSets = s.deserialize(sample)
 text = s.serialize(recordSets)
 print text
 recordSets = s.deserialize(text)
