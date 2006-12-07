@@ -11,7 +11,7 @@ DYLD_FRAMEWORK_PATH="$resdir/Library/Frameworks"
 export DYLD_FRAMEWORK_PATH
 PYTHONPATH="$resdir"
 export PYTHONPATH
-PYTHONHOME="$resdir/Library/Frameworks/Python.framework/Versions/2.4"
+PYTHONHOME="$resdir/Library/Frameworks/Python.framework/Versions/2.5"
 export PYTHONHOME
 cd ${resdir}
 exec "${executable}" "${main}" "$@"
