@@ -1615,20 +1615,31 @@ objects:
         Help on class Kind ...
         ...
         class Kind(application.schema.Item)
-         | ...
-         |  Data and other attributes defined here:
+         |  Method resolution order:
+         |      Kind
+         |      application.schema.Item
+         |      repository.item.Item.Item
+         |      chandlerdb.item.c.CItem
+         |      __builtin__.object
+         |  
+         |  Methods defined here:
+         |  
+         |  __repr__(self)
+         |  
+         |  ...
+         |  Data descriptors defined here:
          |
-         |  name = <Descriptor name of <class '...Kind'>>
+         |  name
          |      One(Text)
          |
          |      This kind's name
          |
-         |  subkinds = <Descriptor subkinds of <class '...Kind'>>
+         |  subkinds
          |      Sequence(Kind)
          |
          |      Sub-kinds of this kind
          |
-         |  superkinds = <Descriptor superkinds of <class '...Kind...
+         |  superkinds
          |      Sequence(Kind)
          |
          |      Super-kinds of this kind

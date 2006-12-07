@@ -166,7 +166,7 @@ class SubscribeDialog(wx.Dialog):
         elif isinstance(err, sharing.AlreadySubscribed):
             self._showStatus(_(u"You are already subscribed"))
         elif isinstance(err, zanshin.error.ConnectionError):
-            logger.exception("Connection error during subscribe")
+            logger.error("Connection error during subscribe")
 
             # Note: do not localize the 'startswith' strings -- these need to
             # match twisted error messages:
@@ -180,7 +180,7 @@ class SubscribeDialog(wx.Dialog):
             self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': msg})
 
         else:
-            logger.exception("Error during subscribe")
+            logger.error("Error during subscribe")
             self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})
 
         self.subscribing = False

@@ -389,7 +389,7 @@ class AbstractSet(ItemValue, Indexed):
 
         raise TypeError, "%s contents are computed" %(type(self))
 
-    def replaceByIndex(self, indexName, position, with):
+    def replaceByIndex(self, indexName, position, withItem):
 
         raise TypeError, "%s contents are computed" %(type(self))
 

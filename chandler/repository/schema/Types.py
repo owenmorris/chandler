@@ -209,7 +209,7 @@ class StringType(Type):
         return itemReader.readString(offset, data)
 
     def typeXML(self, value, generator, withSchema):
-        generator.cdataSection(value)
+        generator.characters(value)
 
     def makeString(self, value):
         return value

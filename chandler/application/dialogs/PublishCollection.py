@@ -362,10 +362,10 @@ class PublishCollectionDialog(wx.Dialog):
 
         # Display the error
         self._hideUpdate()
-        logger.exception("Failed to publish collection")
+        logger.error("Failed to publish collection")
         try:
             if isinstance(err, zanshin.error.ConnectionError):
-                logger.exception("Connection error during publish")
+                logger.error("Connection error during publish")
 
                 # Note: do not localize the 'startswith' strings -- these need
                 # to match twisted error messages:

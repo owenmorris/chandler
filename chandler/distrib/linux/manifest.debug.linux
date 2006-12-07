@@ -46,27 +46,26 @@ src=chandler/debug/lib
 dest=debug/lib
 recursive=yes
 glob=*.py,*.pyd,*.so,*.security
-python2.4/compiler
-python2.4/curses
-python2.4/distutils
-python2.4/email
-python2.4/encodings
-python2.4/hotshot
-python2.4/lib-dynload
-python2.4/lib-old
-python2.4/lib-tk
-python2.4/logging
-python2.4/plat-linux2
-python2.4/site-packages
-python2.4/xml
+python2.5/compiler
+python2.5/curses
+python2.5/distutils
+python2.5/email
+python2.5/encodings
+python2.5/hotshot
+python2.5/lib-dynload
+python2.5/lib-tk
+python2.5/logging
+python2.5/plat-linux2
+python2.5/site-packages
+python2.5/xml
 
-# Grab files from the lib/python2.4 directory
+# Grab files from the lib/python2.5 directory
 recursive=no
-python2.4
+python2.5
 
 # Recursively grab python libraries
-src=chandler/debug/lib/python2.4
-dest=debug/lib/python2.4
+src=chandler/debug/lib/python2.5
+dest=debug/lib/python2.5
 recursive=yes
 glob=*
 site-packages

@@ -15,7 +15,7 @@
 
 import sys, traceback
 
-from elementtree.SimpleXMLWriter import XMLWriter
+from xml.etree.ElementTree import ElementTree, TreeBuilder
 from xml.sax import InputSource, make_parser, handler
 from cStringIO import StringIO
 
@@ -117,55 +117,44 @@ class ContentHandler(SAXHandler):
             buffer.close()
 
 
-class XMLGenerator(object, XMLWriter):
+class XMLGenerator(object):
 
     def __init__(self, out, encoding='utf-8'):
 
-        XMLWriter.__init__(self, out, encoding)
         self.out = out
         self.encoding = encoding
+        self.builder = TreeBuilder()
 
     def getOutputStream(self):
-
         return self.out
 
-    def write(self, data):
+    def getEncoding(self):
+        return self.encoding
 
-        self._XMLWriter__flush()
-        self._XMLWriter__write(data)
+    def write(self, data):
+        self.builder.data(data)
 
     def startDocument(self):
-        
-        self.declaration()
+        self.out.write('<?xml version="1.0" encoding="%s"?>' %(self.encoding))
 
     def endDocument(self):
 
-        self.flush()
+        root = self.builder.close()
+        ElementTree(root).write(self.out, self.encoding)
+        self.out.flush()
 
     def startElement(self, tag, attrs):
 
-        self.start(tag, attrs)
+        self.builder.start(tag, attrs)
 
     def endElement(self, tag):
 
-        self.end(tag)
+        self.builder.end(tag)
     
     def characters(self, data):
 
         if data:
-            self.data(data)
-
-    def cdataSection(self, data, start=True, end=True):
-
-        if data and isinstance(data, unicode):
-            data = data.encode(self.encoding)
-
-        if start:
-            self.write('<![CDATA[')
-        if data:
-            self.write(data)
-        if end:
-            self.write(']]>')
+            self.builder.data(data)
 
 
 class XMLPrettyGenerator(XMLGenerator):
@@ -217,11 +206,6 @@ class XMLPrettyGenerator(XMLGenerator):
     def characters(self, data):
 
         self.generator.characters(data)
-        self._nl = False
-
-    def cdataSection(self, data, start=True, end=True):
-
-        self.generator.cdataSection(data, start, end)
         self._nl = False
 
 

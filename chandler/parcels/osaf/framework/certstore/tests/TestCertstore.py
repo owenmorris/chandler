@@ -166,7 +166,7 @@ rZehs7GgIFvKMquNzxPwHynD
         self.assert_(x509.as_pem()[:-1] == self.pemSite)
         self.assert_(x509.get_subject().CN == 'bugzilla.osafoundation.org')
         
-        self.assert_(cert.fingerprint == '0xFF8013055AAE612AD79C347F06D1B83F93DEB664L')
+        self.assert_(cert.fingerprint == '0xff8013055aae612ad79c347f06d1b83f93deb664L', cert.fingerprint)
         self.assert_(cert.trust == trust)
         self.assert_(cert.type == constants.TYPE_SITE)
         self.assert_(cert.displayName == u'bugzilla.osafoundation.org')
@@ -183,7 +183,7 @@ rZehs7GgIFvKMquNzxPwHynD
         self.assert_(x509.as_pem()[:-1] == self.pemRoot)
         self.assert_(x509.get_subject().CN == 'OSAF CA')
         
-        self.assert_(cert.fingerprint == '0xADACC622C85DF4C2AE471A81EDA1BD28379A6FA9L')
+        self.assert_(cert.fingerprint == '0xadacc622c85df4c2ae471a81eda1bd28379a6fa9L', cert.fingerprint)
         self.assert_(cert.trust == trust)
         self.assert_(cert.type == constants.TYPE_ROOT)
         self.assert_(cert.displayName == u'OSAF CA')

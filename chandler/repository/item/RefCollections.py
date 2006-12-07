@@ -354,7 +354,7 @@ class RefList(LinkedMap, Indexed):
             
         self.placeItem(item, after, *indexNames)
 
-    def replaceItem(self, item, with, *indexNames):
+    def replaceItem(self, item, withItem, *indexNames):
         """
         Replace an item in this collection with another one.
 
@@ -364,16 +364,16 @@ class RefList(LinkedMap, Indexed):
 
         @param item: the item to replace
         @type item: an C{Item} instance
-        @param with: the item to substitute in
-        @type with: an C{Item} instance
+        @param withItem: the item to substitute in
+        @type withItem: an C{Item} instance
         @param indexNames: zero or more names of indexes to place the item
         in instead of the collection's default intrinsic order
         """
 
-        if with not in self:
-            self.append(with)
+        if withItem not in self:
+            self.append(withItem)
 
-        self.placeItem(with, item, *indexNames)
+        self.placeItem(withItem, item, *indexNames)
         self.remove(item)
 
     def removeItem(self, item):
@@ -537,10 +537,10 @@ class RefList(LinkedMap, Indexed):
             after = self.getIndex(indexName).getKey(position - 1)
         self.insertItem(item, after, indexName)
 
-    def replaceByIndex(self, indexName, position, with):
+    def replaceByIndex(self, indexName, position, withItem):
 
         item = self[self.getIndex(indexName).getKey(position)]
-        self.replaceItem(self, item, with, indexName)
+        self.replaceItem(self, item, withItem, indexName)
 
     def refCount(self, loaded):
         """

@@ -23,7 +23,7 @@ from application import schema
 from osaf import pim, messages
 import webdav_conduit
 import zanshin, twisted.web.http
-from elementtree.ElementTree import XML
+from xml.etree.ElementTree import XML
 from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
 

@@ -23,7 +23,7 @@ import shares, errors
 from utility import *
 from notifications import *
 import datetime, base64
-from elementtree.ElementTree import ElementTree, XML
+from xml.etree.ElementTree import ElementTree, XML
 from xml.parsers import expat
 from application import schema
 from osaf import pim
@@ -143,7 +143,7 @@ class CloudXMLFormat(ImportExportFormat):
     
     # ELEMENT_ENTRIES is a list of three element tuples:
     #
-    #  - An XML element name (tag, in elementtree parlance)
+    #  - An XML element name (tag, in ElementTree parlance)
     #  - A tuple of stamp classes
     #  - Optionally, the "old-world" class name
     #

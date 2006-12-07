@@ -91,20 +91,31 @@ All role objects have at least the following attributes and methods:
         Help on class Kind ...
         ...
         class Kind(application.schema.Item)
-         | ...
-         |  Data and other attributes defined here:
+         |  Method resolution order:
+         |      Kind
+         |      application.schema.Item
+         |      repository.item.Item.Item
+         |      chandlerdb.item.c.CItem
+         |      __builtin__.object
+         |  
+         |  Methods defined here:
+         |  
+         |  __repr__(self)
+         |  
+         |  ...
+         |  Data descriptors defined here:
          |
-         |  name = <Descriptor name of <class '...Kind'>>
+         |  name
          |      One(Text)
          |
          |      This kind's name
          |
-         |  subkinds = <Descriptor subkinds of <class '...Kind'>>
+         |  subkinds
          |      Many(Kind)
          |
          |      Sub-kinds of this kind
          |
-         |  superkinds = <Descriptor superkinds of <class '...Kind...
+         |  superkinds
          |      Many(Kind)
          |
          |      Super-kinds of this kind
@@ -1162,8 +1173,8 @@ loaded::
     default, this will return the file and line for the code that called the
     routine that is calling this function (``level=2``)::
 
-        >>> schema.getCaller()  # we're being called from doctest.py line 1243
-        ('...doctest...', 1243)
+        >>> schema.getCaller()  # we're being called from doctest.py line 1212
+        ('...doctest...', 1212)
 
         >>> schema.getCaller(level=1)   # where are we calling from?
         ('<doctest schema_api.txt[...]>', 1)

@@ -16,36 +16,36 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-PhotoPlugin \
                 EggTranslations-Plugin
 
-PYEGGS = $(CHANDLERARCHIVES)/configobj-4.3.2-py$(PYTHON_VER).egg
+PYEGGS = 
 
 # When a version changes, the ARCHIVES lists below needs to be updated.
 # these get installed into release or debug
-ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)2.tar.gz \
-           $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)63.tar.gz \
+ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)3.tar.gz \
+           $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)64.tar.gz \
            $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.3-$(BP)4.tar.gz \
-           $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)9.tar.gz \
-           $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-$(BP)2.tar.gz \
+           $(CHANDLERARCHIVES)/python-$(SNAP)-2.5-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)10.tar.gz \
+           $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-458-$(BP)2.tar.gz \
-           $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-$(BP)6.tar.gz \
-           $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.5-62-$(BP)5.tar.gz \
-           $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-6-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/twisted-$(SNAP)-r15399-$(BP)5.tar.gz \
-           $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.7.2.0-r124-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.1.0c1-$(BP)4.tar.gz \
-           $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)3.tar.gz \
-           $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.3.0-r149-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/zanshin-$(SNAP)-154-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/elementtree-$(SNAP)-1.2.6-20050316-$(BP)3.tar.gz \
-           $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.16.3-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.0-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.12.2-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.0-$(BP)1.tar.gz
+           $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-458-$(BP)3.tar.gz \
+           $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-66-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-7-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.7.2.0-r124-$(BP)2.tar.gz \
+           $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)4.tar.gz \
+           $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.4.3-r164-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/zanshin-$(SNAP)-157-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.16.3-$(BP)2.tar.gz \
+           $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.0-$(BP)2.tar.gz \
+           $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.12.2-$(BP)2.tar.gz \
+           $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.0-$(BP)2.tar.gz \
+           $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)1.tar.gz
 
 OS         = $(shell uname)
-PYTHON_VER = 2.4
-BP         =
+PYTHON_VER = 2.5
+BP         = 
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
     OS = Cygwin
@@ -134,7 +134,7 @@ endif
 
 # readline is only needed for OS X
 ifeq ($(OS),Darwin)
-    ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.1-$(BP)2.tar.gz
+    ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
 endif
 
 # We download some pretty big files, which can clog your network. You can now
@@ -152,7 +152,7 @@ HOST  = builds.osafoundation.org
 URL   = http://$(HOST)/external
 P_URL = $(URL)/$(PLATFORM)
 
-SETUPTOOLS_EGG  = $(CHANDLERARCHIVES)/setuptools-0.6c4dev_r52047-py2.4.egg
+SETUPTOOLS_EGG  = $(CHANDLERARCHIVES)/setuptools-0.6c4dev_r52887-py$(PYTHON_VER).egg
 SETUPTOOLS_ABS  = $(SETUPTOOLS_EGG)
 SETUPTOOLS_BIN  = $(C_BIN)/$(SNAP)
 EASYINSTALL_BIN = $(EASYINSTALL)
@@ -243,7 +243,7 @@ $(PYEGGS_INST):
 
 $(SETUPTOOLS_EGG):
 	mkdir -p $(CHANDLERARCHIVES)
-	$(CURL) $@ $(URL)/$(notdir $@)
+	$(CURL) $@ $(P_URL)/$(notdir $@)
 
 setuptools: $(SETUPTOOLS_EGG)
 	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' CHANDLERHOME='$(CHANDLERHOME)' $(PYTHON_BIN) \

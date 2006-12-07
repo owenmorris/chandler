@@ -2,7 +2,7 @@ import os
 import sys
 import unittest
 import pkg_resources
-from elementtree import ElementTree
+from xml.etree import ElementTree
 
 from PyICU import ICUtzinfo
 import datetime
@@ -190,7 +190,7 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
                                         key = lambda x: x.tag)
 
                 # Now replace all children with the sorted version.
-                # Yay for elementtree's slice replacement!
+                # Yay for ElementTree's slice replacement!
                 thisElt[:] = sortedChildren
                 remaining.extend(sortedChildren)
 

@@ -11,19 +11,19 @@
 exclude=.svn,*.pyo,*.pyc
 
 # Grab the python modules 
-src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.4/lib
-dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.4/lib
+src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.5/lib
+dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5/lib
 glob=*
 recursive=yes
-python2.4
+python2.5
 
 # Grab python Framework file
-src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.4
-dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.4
+src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.5
+dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5
 Python
 
 # Grab python executable file
-src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.4/Resources/Python.app/Contents/MacOS
+src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.5/Resources/Python.app/Contents/MacOS
 dest=Contents/MacOS
 python
 

@@ -76,7 +76,7 @@ class TestCertstoreView(ChandlerTestCase):
         # Check_DetailView has hardcoded values so we can't use it :(
         cert.CheckEditableBlock('TypeAttribute', 'type', 'root')
         cert.CheckEditableBlock('TrustAttribute', 'trust', '3')
-        cert.CheckEditableBlock('FingerprintLabel', 'fingerprint', '0x4463C531D7CCC1006794612BB656D3BF8257846FL')
+        cert.CheckEditableBlock('FingerprintLabel', 'fingerprint', '0x4463c531d7ccc1006794612bb656d3bf8257846fL')
         cert.CheckEditableBlock('FingerprintAlgLabel', 'algorithm', 'sha1')
         cert.CheckEditableBlock('AsTextAttribute', 'certificate', """Certificate:
     Data:
@@ -131,7 +131,7 @@ class TestCertstoreView(ChandlerTestCase):
     
         # 7. Check that we still have the same first cert and the changed value
         # was persisted
-        cert.CheckEditableBlock('FingerprintLabel', 'fingerprint', '0x4463C531D7CCC1006794612BB656D3BF8257846FL')
+        cert.CheckEditableBlock('FingerprintLabel', 'fingerprint', '0x4463c531d7ccc1006794612bb656d3bf8257846fL')
         cert.CheckEditableBlock('TrustAttribute', 'trust', '0')
         
         # Switch to calendar view

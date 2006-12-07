@@ -486,13 +486,13 @@ class LinkableConduit(BaseConduit):
                 contentView.commit(mergeFunction)
                 metaView.commit(mergeFunction)
 
-        except Exception, e:
+        except Exception:
 
             # Discard any changes
             contentView.cancel()
             metaView.cancel()
 
-            logger.exception("Sharing Error: %s" % e)
+            logger.exception("Sharing Error")
             raise
 
         return stats

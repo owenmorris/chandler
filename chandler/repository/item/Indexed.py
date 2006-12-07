@@ -413,7 +413,7 @@ class Indexed(object):
 
         raise NotImplementedError, "%s.insertByIndex" %(type(self))
 
-    def replaceByIndex(self, indexName, position, with):
+    def replaceByIndex(self, indexName, position, withItem):
         """
         Replace an item with another item in its position in an index.
 
@@ -426,8 +426,8 @@ class Indexed(object):
         @type indexName: a string
         @param position: the position of the item in the index to replace
         @type position: integer
-        @param with: the item to substitute in
-        @type with: an C{Item} instance
+        @param withItem: the item to substitute in
+        @type withItem: an C{Item} instance
         """
 
         raise NotImplementedError, "%s.replaceByIndex" %(type(self))
