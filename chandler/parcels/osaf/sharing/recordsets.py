@@ -10,18 +10,6 @@ from xml.etree.ElementTree import (
 
 
 
-def _fixTag(tag):
-    # Convert this: '{http://osafoundation.org/eimml/item}record'
-    # to this: 'http://osafoundation.org/eimml/item/record'
-    return tag[1:].replace("}", "/")
-
-def _splitTag(tag):
-    # Convert this: '{http://osafoundation.org/eimml/item}record'
-    # to this: ['http://osafoundation.org/eimml/item', 'record']
-    return tag[1:].split("}")
-
-
-
 
 
 @generic
@@ -31,7 +19,7 @@ def serializeValue(typeinfo, value):
 
 @serializeValue.when_type(sharing.BytesType)
 def serialize_bytes(typeinfo, value):
-    return value # ???
+    return value
 
 @serializeValue.when_type(sharing.IntType)
 def serialize_int(typeinfo, value):
@@ -55,8 +43,10 @@ def serialize_date(typeinfo, value):
 
 
 
+
+
 def deserialize_bytes(text):
-    return text # ???
+    return text
 
 def deserialize_int(text):
     return int(text)
@@ -120,10 +110,14 @@ deserializers = {
 }
 
 
+class RecordSet(list):
+    pass
+
+
 class RecordSetSerializer(object):
 
-    recordsURI = "http://osafoundation.org/xyzzy/"
-    recordSetURI = "http://osafoundation.org/xyzzy/"
+    recordsURI = "http://osafoundation.org/eimml/core"
+    recordSetURI = "http://osafoundation.org/eimml/core"
 
     def serialize(self, recordSets):
         """ Convert a list of record sets to XML text """
@@ -137,8 +131,12 @@ class RecordSetSerializer(object):
             for record in recordSet:
                 fields = {}
                 for field in record.__fields__:
-                    fields[field.name] = serializeValue(record[field.offset])
-                recordURI = record.getURI()
+                    value = record[field.offset]
+                    if value != sharing.NoChange:
+                        serialized = serializeValue(field.typeinfo,
+                            record[field.offset])
+                        fields[field.name] = serialized
+                recordURI = record.URI
                 recordElement = SubElement(recordSetElement,
                     "{%s}record" % (recordURI), **fields)
 
@@ -154,10 +152,10 @@ class RecordSetSerializer(object):
 
         for recordSetElement in recordsElement:
             uuid = recordSetElement.get("uuid")
-            # recordSet = RecordSet()
+            recordSet = RecordSet()
 
             for recordElement in recordSetElement:
-                ns, name = _splitTag(recordElement.tag)
+                ns, name = recordElement.tag[1:].split("}")
 
                 # recordClass = eim.lookupRecordType(ns)
 
@@ -182,20 +180,12 @@ class RecordSetSerializer(object):
 
                 print values
                 record = recordClass(*values)
+                recordSet.append(record)
                 print record
 
-                ##### If we use subelements instead of attributes:
-                ### for fieldElement in recordElement:
-                ###     ns, fieldName = _splitTag(fieldElement.tag)
-                ###     rawValue = fieldElement.text
-                ###     field = _getFieldByName(recordClass, fieldName)
-                ###     typeinfo = field.typeinfo
-                ###     ### cookedValue = convert(rawValue) # hand waving
-                ###     attributes[fieldName] = rawValue
+            recordSets[uuid] = recordSet
 
-            # recordSets[uuid] = recordSet
-
-        # return recordSets
+        return recordSets
 
 sample2 = """<?xml version="1.0" encoding="UTF-8"?>
 
@@ -273,4 +263,8 @@ sample = """<?xml version="1.0" encoding="UTF-8"?>
 """
 
 s = RecordSetSerializer()
-s.deserialize(sample2)
+recordSets = s.deserialize(sample2)
+text = s.serialize(recordSets)
+print text
+recordSets = s.deserialize(text)
+print recordSets
