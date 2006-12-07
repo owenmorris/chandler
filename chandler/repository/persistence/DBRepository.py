@@ -119,12 +119,24 @@ class DBRepository(OnDemandRepository):
             self._env.open(self.dbHome, DBEnv.DB_CREATE | flags, 0)
             
         else:
+            datadir = kwds.get('datadir')
+            logdir = kwds.get('logdir')
+
             if not os.path.exists(self.dbHome):
                 os.makedirs(self.dbHome)
             elif not os.path.isdir(self.dbHome):
                 raise ValueError, "%s is not a directory" %(self.dbHome)
             else:
-                self.delete(kwds.get('datadir'), kwds.get('logdir'))
+                self.delete(datadir, logdir)
+
+            if datadir:
+                datadir = os.path.join(self.dbHome, datadir)
+                if not os.path.exists(datadir):
+                    os.makedirs(datadir)
+            if logdir:
+                logdir = os.path.join(self.dbHome, logdir)
+                if not os.path.exists(logdir):
+                    os.makedirs(logdir)
 
             self._lockOpen()
             self._env = self._createEnv(True, kwds)
