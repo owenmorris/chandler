@@ -1314,7 +1314,7 @@ proj.main-file = loc('Chandler.py')
 proj.pyexec = {None: ('custom',
                       'release/bin/python.exe')}
 proj.pypath = {None: ('custom',
-                      './')}
+                      '.')}
 proj.shared-attribute-names = ['proj.shared-attribute-names',
                                'proj.file-list',
                                'proj.file-type',
