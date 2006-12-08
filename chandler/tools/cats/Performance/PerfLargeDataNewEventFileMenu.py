@@ -24,15 +24,19 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 
 class PerfLargeDataNewEventFileMenu(ChandlerTestCase):
-    
+
     def startTest(self):
 
         # creation
         QAUITestAppLib.UITestView(self.logger)#, u'Generated3000.ics')
     
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+
         # action
         event = QAUITestAppLib.UITestItem("Event", self.logger)
         
         # verification
         event.Check_DetailView({"displayName":"New Event"})
-        
+    

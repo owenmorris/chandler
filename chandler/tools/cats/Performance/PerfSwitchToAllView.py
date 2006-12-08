@@ -24,13 +24,9 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 
 class PerfSwitchToAllView(ChandlerTestCase):
-    
+
     def startTest(self):
 
-        # Creating a collection switches us to calendar view where we
-        # do the actual test
-        QAUITestAppLib.UITestItem("Collection", self.logger, timeInfo=False)
-    
         # creation
         testView = QAUITestAppLib.UITestView(self.logger)
         

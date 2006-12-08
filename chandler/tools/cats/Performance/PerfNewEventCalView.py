@@ -24,16 +24,16 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 
 class PerfNewEventCalView(ChandlerTestCase):
-    
-    def startTest(self):
 
+    def startTest(self):
+ 
         # creation
         testView = QAUITestAppLib.UITestView(self.logger)
     
-        # make self.scripting.User collection, since only self.scripting.User
+        # make user collection, since only user
         # collections can be displayed as a calendar
-        col = QAUITestAppLib.UITestItem("Collection", self.logger, timeInfo=False)
-    
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+
         # action
         # double click in the calendar view => event creation or selection
         ev = testView.DoubleClickInCalView()
@@ -41,4 +41,4 @@ class PerfNewEventCalView(ChandlerTestCase):
         # verification
         # check the detail view of the created event
         ev.Check_DetailView({"displayName":"New Event"})
-    
+

@@ -20,18 +20,15 @@ print """
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
+# The fastest way to cleanly quit Chandler
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
-import os
-import tools.QAUITestAppLib as QAUITestAppLib
-from application import Globals
+import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 
 class quit(ChandlerTestCase):
-    
+
     def startTest(self):
-        
-        # The fastest way to cleanly quit Chandler
-        filePath = Globals.options.profileDir
-        logger.startPerformanceAction("quit")
-        self.scripting.app_ns().root.Quit()
-        logger.endPerformanceAction()
+        self.logger.Start("quit")
+        self.logger.SetChecked(True)
+        self.logger.Report("quit")
+        self.logger.Close()
+

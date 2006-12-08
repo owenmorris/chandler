@@ -22,22 +22,20 @@ print """
 
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
-import wx
 from datetime import datetime
 from PyICU import ICUtzinfo
 
-
 class PerfLargeDataScrollCalendar(ChandlerTestCase):
-    
+
     def startTest(self):
 
         # Look at the same date every time -- do this before we import
         # to save time and grief
         
-        # Do the test in the large calendar
-        self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, 'Generated3000', overlay=False)
-        self.scripting.User.idle()
-    
+        # make user collection, since only user
+        # collections can be displayed as a calendar
+        col = QAUITestAppLib.UITestItem("Collection", self.logger)
+
         testdate = datetime(2005, 12, 14, tzinfo=ICUtzinfo.default)
         self.app_ns.root.SelectedDateChanged(start=testdate)
         
@@ -56,16 +54,17 @@ class PerfLargeDataScrollCalendar(ChandlerTestCase):
     
         # Test Phase: Action (the action we are timing)
     
-        self.logger.startPerformanceAction("Scroll calendar one unit")
+        self.logger.startAction("Scroll calendar one unit")
         calendarWidget.Scroll(0, yStart + 1)
         calendarWidget.Update() # process only the paint events for this window
-        self.logger.endPerformanceAction()
+        self.logger.endAction()
     
         # Test Phase: Verification
     
-        self.logger.startAction('Verify calendar scrolled one unit')
+        self.logger.startAction(True, "Verify one unit scroll")
         (xEnd, yEnd) = calendarWidget.GetViewStart()
         if (yEnd == yStart + 1):
-            self.logger.endAction(True)
+            self.logger.endAction(True, "On scrolling calendar one unit")
         else:
-            self.logger.endAction(False)
+            self.logger.endAction(False, "On scrolling calendar one unit")
+    

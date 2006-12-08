@@ -107,14 +107,11 @@ def publishSubscribe(testClass):
         
         # We are interested in seeing how quickly we can upload the collection
         testClass.logger.startAction('Publish')
-        testClass.logger.startPerformanceAction('Publish collection')
         win.PublishCollection()
         while not win.done:
             app.Yield()
-        testClass.logger.endPerformanceAction()
-        
+
         if not win.success:
-            testClass.logger.endPerformanceAction()
             testClass.logger.endAction(False, "(On publish collection)")
             win.OnCancel(None) # Close the window which should be showing a failure
             return
@@ -174,7 +171,7 @@ def publishSubscribe(testClass):
             # XXX case this is safe, so just ignore. This seems to be needed
             # XXX on Linux only.
             pass
-        testClass.logger.addComment('Completed subscribe, beginning verification')
+        testClass.logger.endAction(True)
         
         scripting.User.idle()
     
@@ -188,7 +185,6 @@ def publishSubscribe(testClass):
             collection = sidebarCollectionNamed('testSharing')
             sharing.unpublish(collection)
             App_ns.root.Remove()
-            testClass.logger.endAction(True, "(On Subscribe collection)")
         else:
             testClass.logger.endAction(False, "(On Subscribe collection)")
 
@@ -268,7 +264,7 @@ DataTypes = { 'Event' : 'NewCalendar',
               }
              
 class UITestItem(object):       
-    def __init__(self, type, logger, timeInfo=True):
+    def __init__(self, type, logger):
         for key in DataTypes.iterkeys():
             # set isTask, etc
             setattr(self, 'is' + key, False)
@@ -288,7 +284,6 @@ class UITestItem(object):
             self.view = App_ns.itsView
             self.logger = logger
             self.logger.startAction("%s creation" % type)
-            if timeInfo is True: self.logger.startPerformanceAction("%s creation" % type)
             
             setattr(self, 'is' + type, True)
             constructorName = DataTypes[type]
@@ -299,7 +294,6 @@ class UITestItem(object):
             
             # Give the Yield
             scripting.User.idle()
-            if timeInfo is True: self.logger.endPerformanceAction()
             self.logger.endAction(True)
     
     def SetAttr(self, msg="Multiple Attribute Setting", **args):
@@ -697,8 +691,6 @@ class UITestItem(object):
         @param value : the new stamp value
         @type timeInfo: boolean
         """
-
-        self.logger.startAction("Change the %s stamp" % type)
         type_states = {"Mail": dict(isOfType=self.isMailMessage,
                                     button="MailMessageButton"),
                        "Task": dict(isOfType=self.isTask,
@@ -707,25 +699,24 @@ class UITestItem(object):
                                      button="CalendarStamp"),
                        }
         if not type in type_states:
-            self.logger.endAction(False,"%s is not a known type" % type)
             return
 
         if not self.isCollection:
             if type_states[type]['isOfType'] == value: #Nothing to do
-                self.logger.endAction(False, "Item already stamped at %s" % type)
                 return
             else:
                 # select the item
                 self.SelectItem()
-                self.logger.startPerformanceAction("Change the %s stamp" % type)
+                if timeInfo :
+                    self.logger.startAction("Change the %s stamp" % type)
                 # markup bar tests disabled for now -- Reid
                 buttonBlock = getattr(App_ns, type_states[type]['button'])
                 scripting.User.emulate_click(buttonBlock, 10, 10)
                 scripting.User.idle()
-                self.logger.endPerformanceAction()
-                self.logger.endAction(True)
+                if timeInfo:
+                    self.logger.endAction(True)
         else:
-            self.logger.endAction(False, "SetStamp is not available for this kind of item")
+            self.logger.addComment("SetStamp is not available for this kind of item")
             return
                 
 
@@ -1117,9 +1108,8 @@ class UITestItem(object):
                 self.CheckButton("CalendarStamp", "calendar stamp", value)
             else: # Wrong check => set the report state to unchecked
                 self.logger.report(False, name="Check_DetailView", comment="unable to check field %s, value %s" % (field, value))
-                return
-            
-        self.logger.endAction(True)
+                
+        self.logger.endAction()
         
     
     def Check_Object(self, dict):
@@ -1572,19 +1562,17 @@ class UITestView(object):
                             environmentFile,
                             sharing.ICalendarFormat,
                             itsView=App_ns.itsView)
-            self.logger.startPerformanceAction('importing ', environmentFile)
             try:
                 self.collection = share.get()
             except:
-                logger.endPerformanceAction()
-                logger.endAction(False, name="UITestView", comment="Importing calendar: exception raised")
+                if logger: 
+                    logger.endAction(False, name="UITestView", comment="Importing calendar: exception raised")
             else:
                 App_ns.sidebarCollection.add(self.collection)
                 scripting.User.idle()
                 # do another idle and yield to make sure the calendar is up.
                 scripting.User.idle()
-                logger.endPerformanceAction()
-                logger.report(True, name="UITestView", comment="Importing calendar")
+                if logger: logger.report(True, name="UITestView", comment="Importing calendar")
 
     def GetCurrentState(self):
         """
@@ -1621,11 +1609,9 @@ class UITestView(object):
             return False
         self.state = viewName
         self.logger.startAction("Switch to %s" % viewName)
-        self.logger.startPerformanceAction("Switch to %s" % viewName)
         #process the corresponding event
         App_ns.appbar.press(name=button)
         wx.GetApp().Yield()
-        self.logger.endPerformanceAction()
         self.logger.endAction(True)
         self.CheckView()
 
@@ -1724,19 +1710,15 @@ class UITestView(object):
                 wx.GetApp().Yield()
         
                 self.logger.startAction("Double click in the calendar view")
-                self.logger.startPerformanceAction("Double click in the calendar view")
                 self.timedCanvas.widget.ProcessEvent(click)
                 wx.GetApp().Yield()
-                self.logger.endPerformanceAction()
                 self.logger.endAction(True)
                 #work around : SelectAll() doesn't work
                 wx.Window.FindFocus().Clear()
             else:
                 self.logger.startAction("Double click in the calendar view")
-                self.logger.startPerformanceAction("Double click in the calendar view")
                 self.timedCanvas.widget.ProcessEvent(click)
                 scripting.User.idle()
-                self.logger.endPerformanceAction()
                 self.logger.endAction(True)
             
             #it's a new event

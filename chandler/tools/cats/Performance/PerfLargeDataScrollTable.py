@@ -25,9 +25,9 @@ from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import wx
 
 class PerfLargeDataScrollTable(ChandlerTestCase):
-    
-    def startTest(self):
 
+    def startTest(self):
+    
         # Load a large calendar so we have events to scroll 
         # NOTE: Don't do this when we restore from backed up repository
         testView = QAUITestAppLib.UITestView(self.logger)#, u'Generated3000.ics')
@@ -49,16 +49,18 @@ class PerfLargeDataScrollTable(ChandlerTestCase):
         
         # Test Phase: Action (the action we are timing)
         
-        self.logger.startPerformanceAction("Scroll table 25 scroll units")
+        self.logger.startAction("Scroll table 25 scroll units")
         tableWidget.Scroll(0, 25)
         tableWidget.Update() # process only the paint events for this window
-        self.logger.endPerformanceAction()
+        self.logger.endAction()
         
         # Test Phase: Verification
         
-        self.logger.startAction('Verify table scrolled 25 units')
+        self.logger.startAction("Verify table scroll")
         (x, y) = tableWidget.GetViewStart()
         if (x == 0 and y == 25):
-            self.logger.endAction(True)
+            self.logger.endAction(True, "Scrolled table")
         else:
-            self.logger.endAction(False)
+            self.logger.endAction(False, "Scrolled table")
+    
+        

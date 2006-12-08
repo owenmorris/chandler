@@ -28,7 +28,6 @@ import os.path
 import time 
 import wx
 import osaf.framework.scripting.User as User
-from application import Globals
 
 class datetime(dtime):
     """Class for overriding datetime's normal string method"""
@@ -40,7 +39,7 @@ class TestOutput:
     """
     Test output and timing class.
     """
-    def __init__(self, logName=None, debug=1, mask=2, stdout=None, isPerfTest=False):
+    def __init__(self, logName=None, debug=1, mask=2, stdout=None):
         """Instantiation method
         
         Keyword Arguments:
@@ -59,7 +58,6 @@ class TestOutput:
         self.debug = int(debug)
         self.mask = int(mask)
         self.logName = logName
-        self.isPerfTest = isPerfTest
         self.suiteList = []
         self.testList = []
         self.actionList = []
@@ -68,13 +66,11 @@ class TestOutput:
         self.currentTest = {}
         self.currentAction = {}
         self.currentPerformanceAction = {}
-        self.inPerformanceAction = False
         self.inAction = False
         self.inTest = False
         self.inSuite = False
         self.hadStderrOutput = False
         self.stderrOutput = ''
-        self.perfLogName = Globals.options.catsPerfLog
         self.testHasFailed = False
         self.testsSkipped = None 
         #print 'logName = %s:: debug level = %d :: mask level = %d ::  stdout = %s' % (logName, debug, mask, stdout)
@@ -124,14 +120,6 @@ class TestOutput:
         self.printOut(u'Starting Suite %s :: StartTime %s' % (name, self.currentSuite['starttime']), level=3) 
         self.inSuite = True
         
-    def _calcPerfTime(self):
-        totalPerfTime = 0.0 
-        for action in self.performanceActionList:
-            totalPerfTime += self._inSeconds(action['elapsedTime'])
-            self.printOut('Performance action %s in %0.4f' % (action['name'], self._inSeconds(action['elapsedTime'])), 3)
-        self.printOut('Total performance time = %0.4f' % totalPerfTime, 3)
-        return totalPerfTime
-        
     def endSuite(self):
         """Method to end current running suite.
         
@@ -179,13 +167,7 @@ class TestOutput:
         self.currentTest['comment'] = '%s\n%s' % (self.currentTest['comment'], comment)
         self.printOut(u'Ending Test ""%s"" :: EndTime %s :: Total Time %0.2f seconds' % (self.currentTest['name'], self.currentTest['endtime'], self._inSeconds(self.currentTest['totaltime'])), level=2)
         self.currentTest['actionlist'] = copy.copy(self.actionList)
-        self.currentTest['performanceActionList'] = copy.copy(self.performanceActionList)
         self.testList.append(copy.copy(self.currentTest))
-        if self.isPerfTest is True:
-            self.currentTest['testPerfTime'] = self._calcPerfTime()
-            self._writePerfLog('%0.2f' %  self.currentTest['testPerfTime'])
-        else:
-            self.printOut(u'Ending Test ""%s"" :: EndTime %s :: Total Time %0.2f' % (self.currentTest['name'], self.currentTest['endtime'], self._inSeconds(self.currentTest['totaltime'])), level=2)
         self.inTest = False
         
     def startAction(self, name, comment=None):
@@ -231,18 +213,14 @@ class TestOutput:
         Keyword Argument:
         comment: str -- Comment string.
         """
-        self.inPerformanceAction = True
         self.currentPerformanceAction = {}
         self.currentPerformanceAction = {'name':name, 'comment':comment, 'starttime':datetime.now()}
         self.printOut(u'Performance Starting Action ""%s"" :: StartTime %s' % (name, self.currentPerformanceAction['starttime']), level=1)
 
     def endPerformanceAction(self):
         """Method to end preformance action timer."""
-        if self.inPerformanceAction is not True:
-            self.printOut("ENDPERFORMANCEACTION HAS BEEN CALLED OUTSIDE OF PERFORMANCEACTION", level=1, result=False)
-            return False
         self.currentPerformanceAction['endtime'] = datetime.now()
-        self.currentPerformanceAction['elapsedTime'] = self.currentPerformanceAction['endtime'] - self.currentPerformanceAction['starttime']
+        self.currentPerformanceAction['totaltime'] = self.currentPerformanceAction['endtime'] - self.currentPerformanceAction['starttime']
         self.performanceActionList.append(copy.copy(self.currentPerformanceAction))
         
     def addComment(self, string):
@@ -255,9 +233,9 @@ class TestOutput:
         if self.inAction is True:
             self.currentAction['comment'] = '%s :: %s' % (self.currentAction['comment'], string)
             self.printOut(u'CommentAdd :: %s' % string, level=0, result=True)
-        #elif self.inAction is False:
-            #self.currentTest['comment'] = '%s :: %s' % (self.currentTest['comment'], string)
-            #self.printOut(u'CommentAdd :: %s' % string, level=1, result=True)
+        elif self.inAction is False:
+            self.currentTest['comment'] = '%s :: %s' % (self.currentTest['comment'], string)
+            self.printOut(u'CommentAdd :: %s' % string, level=1, result=True)
     
     def report(self, result, name=None, comment=None):
         """Method to report PASS/FAIL within test or action.
@@ -310,24 +288,6 @@ class TestOutput:
         if self.stdout is not None:
             self.stdout.write(string.encode('raw_unicode_escape'))
             self.stdout.flush()
-            
-    def _writePerfLog(self, string):
-        """Internal method for writing to the performance log"""
-        profileDir= Globals.options.profileDir
-        perfLogName = Globals.options.catsPerfLog
-        if perfLogName is not None:
-            if profileDir is not None and os.path.exists(profileDir):
-                perfLogFile = os.path.join(profileDir, os.path.basename(perfLogName))
-            elif os.path.exists(os.path.dirname(perfLogName)):
-                perfLogFile = perfLogName
-            else:
-                perfLogFile = os.path.join(os.path.abspath(os.curdir), perfLogName)
-            f = open(perfLogFile,'w')
-            f.write(string)
-            f.close()
-        else: 
-            print string 
-                            
  
     def printOut(self, string, level=0, result=True):
         """Method to print using self._write but observe debug and mask settings.

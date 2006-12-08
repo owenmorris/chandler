@@ -1,11 +1,3 @@
-print """
-####
-#### WARNING
-#### THIS FILE IS NOT BEING USED TO TEST PERFORMANCE 
-#### THIS FILE IS STILL IN DEVELOPMENT.  USE THE FILES IN      
-#### tools/QATestScripts/Performance                                  
-####
-"""
 #   Copyright (c) 2003-2006 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,67 +13,65 @@ print """
 #   limitations under the License.
 
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
-from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
-from application import schema
 import os, wx
+from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 
 class DeleteEventKey(ChandlerTestCase):
-    
+
     def startTest(self):
 
-
         # This script tests deletion of a single, newly created event,
-        # by simulating the self.scripting.User hitting the delete key.
+        # by simulating the user hitting the delete key.
         
         # Globals
+        App_ns = self.app_ns()
         wxApp = wx.GetApp()
         
         
         def removeEvent():
-            # Could try to simulate the self.scripting.User hitting delete by the following:
+            # Could try to simulate the user hitting delete by the following:
             self.scripting.User.emulate_typing("\x08")
-            self.scripting.User.idle()
+            User.idle()
         
-        ### do we need to do this???
+        # Test Phase: Initialization
+        
         # If running with --catsProfile, we don't want to include
         # all the setup code in the output profile.
+        
+        #assuming we won't need this in the new framework
         #self.logger.SuspendProfiling()
             
-        
-        # Creating a collection switches us to calendar view where we
-        # do the actual test
-        QAUITestAppLib.UITestItem("Collection",self.logger, timeInfo=False)
     
-       # Create the event we're going to delete ...
+        # Create the event we're going to delete ...
         newEvent = QAUITestAppLib.UITestItem("Event", self.logger).item
     
         # ... and select it, so that the event's lozenge has
         # focus when we try to delete.
         #
-        timedCanvas = self.app_ns.TimedEvents
+        timedCanvas = App_ns.TimedEvents
         timedCanvas.widget.SetFocus()
         
         # Attempt to wait for the UI activity from changing the selection
         # to die down.
-        self.scripting.User.idle()
+        User.idle()
     
         # Test Phase: Action
         # ResumeProfiling() will make the self.logger start profiling
         # in Start().
-        #self.logger.ResumeProfiling()
         
-        self.logger.startPerformanceActionPerformanceAction("Remove event")
+        self.logger.startAction("Remove event")
         removeEvent()
-        self.logger.endPerformanceActionPerformanceAction()
+        self.logger.endAction()
         
+        # Test Phase: Verification
+        self.logger.startAction("Verify event in Trash")
         
         # Make sure the new event appears in the trash, and
         # no other collections.
-        self.logger.startPerformanceActionAction('Verify event appears in trash and no other collections')
         collections = list(newEvent.collections)
-        if collections != [schema.ns("osaf.pim", newEvent.itsView).trashCollection]:
-            self.logger.endPerformanceActionAction(False, "Event was not removed: it's in %s" %
+        if collections != [App_ns.trashCollection]:
+            self.logger.endAction(False,"Event was not removed: it's in %s" %
                                  (collections,))
         else:
-            self.logger.endPerformanceActionAction(True, "On removing event via delete key")
-       
+            self.logger.endAction(True, "On removing event via delete key")
+        

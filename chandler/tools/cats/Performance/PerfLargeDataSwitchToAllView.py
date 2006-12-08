@@ -24,7 +24,7 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 
 class PerfLargeDataSwitchToAllView(ChandlerTestCase):
-    
+
     def startTest(self):
 
         # creation
@@ -33,4 +33,4 @@ class PerfLargeDataSwitchToAllView(ChandlerTestCase):
         # action
         # switch to all view
         testView.SwitchToAllView()
-
+  
