@@ -6,6 +6,7 @@ The Sharing Record API
 >>> import osaf.sharing.eim as sharing   # API kludge during initial dev & testing
 >>> from decimal import Decimal
 
+
 Record Types and Fields
 =======================
 
@@ -19,6 +20,9 @@ Record Types and Fields
 
     >>> r1
     Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
+
+
+Creating diffs from records::
 
     >>> r1 - r1     # no change between these records
     NoChange
@@ -40,12 +44,79 @@ Record Types and Fields
     Demo(1, NoChange, u'This is a foo', NoChange)
 
 
+Lost update checking/conflict detection between diff records::
 
-TODO: Record type URIs, primary keys, foreign key refs
+    >>> diff1 = Demo(1, "Bar", sharing.NoChange, Decimal('1.29'))
+    >>> diff2 = Demo(1, sharing.NoChange, "This is NOT a foo", Decimal('2.50'))
+    
+    >>> diff1 - diff2   # if diff1 is overwritten by diff2, the lost update is:
+    Demo(1, NoChange, NoChange, Decimal("1.29"))
 
-TODO: importers, exporters, and Schemas
+    >>> diff2 - diff1   # if diff2 is overwritten by diff1, the lost update is:
+    Demo(1, NoChange, NoChange, Decimal("2.50"))
+
+    >>> diff3 = Demo(1, "Bar", sharing.NoChange, sharing.NoChange)
+    >>> diff1 - diff3   # if diff1 is overwritten by diff3, the lost update is:
+    NoChange
 
 
+
+You can get a unique key for a record using its ``getKey()`` method.  The
+return value is a tuple containing the record type, followed by the values of
+the record's key fields, in the order they were defined::
+
+    >>> diff1.getKey()
+    (<class 'Demo'>, 1)
+
+    >>> class Demo2(sharing.Record):
+    ...     itemName    = sharing.field(sharing.TextType(size=50))
+    ...     itemNumber  = sharing.key(int)
+    ...     description = sharing.field(sharing.TextType(size=500))
+    ...     price       = sharing.key(sharing.DecimalType(None, 6, 2))
+
+    >>> Demo2(u'blah', 27, u'foobly', Decimal('16.2')).getKey()
+    (<class 'Demo2'>, 27, Decimal("16.2"))
+
+
+TODO: Record sets, w/add and subtract
+TODO: Record addition (overwrite)
+TODO: Record type URIs, foreign key refs
+TODO: importers, exporters, and Translators
+
+
+Notes on Filtering and Sync algorithms::
+
+    Reminders = sharing.Filter(_("Reminders"))
+    class SomeType:
+        foo = sharing.field(..., filter=Reminders, default=...)
+        bar = sharing.field(..., filter=Reminders, default=...)
+    
+    Reminders.sync_filter(record)
+    Reminders.publish_filter(record)
+    
+    *******
+    for item in changed_items:
+        rsNewBase[item.itsUUID] = Recordset(translator.exportItem(item))
+    
+    for itemUUID, rs in inbound_diff.items():
+        dInbound = rs - rsOldBase.setdefault(itemUUID, empty_rs)    # Cosmo 0.6
+        if itemUUID in rsNewBase:
+            dLocal = rsNewBase[itemUUID] - rsOldBase[itemUUID]
+            dLost[itemUUID] = dLocal - dInbound
+            rsNewBase[itemUUID] += dInbound
+        translator.importRecords(sync_filter(dInbound))
+        translator.deleteRecords(dInbound.deletions)
+        rsOldBase[itemUUID] += dInbound
+    
+    for itemUUID, rs in rsNewBase.items():
+        if itemUUID in rsOldBase:
+            dOutbound = sync_filter(rs - rsOldBase[itemUUID])
+        else:
+            dOutbound = publish_filter(rs)
+            rsOldBase[itemUUID] = empty_rs
+        #send(dOutbound)
+        rsOldBase[itemUUID] += dOutbound
+        send(rsOldBase[itemUUID])   # Cosmo 0.6
 
 
 Defining and Using Field Types

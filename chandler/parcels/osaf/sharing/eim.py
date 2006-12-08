@@ -11,6 +11,34 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'LobType', 'get_converter', 'add_converter', 'subtype',
@@ -398,28 +426,33 @@ class Record(tuple):
             raise TypeError(
                 '%r is not a %s record' % (other, self.__class__.__name__)
             )
-        if other == self:
-            return NoChange
+        if other != self:
+            res = []
+            changed = False
+            for f, new, old in zip(self.__fields__, self[1:], other[1:]):
+                if isinstance(f,key):
+                    if old!=new:
+                        raise ValueError(
+                            "Can't subtract %s %r from %s %r" %
+                            (f.name, old, f.name, new)
+                        )
+                elif old==new or old is NoChange:
+                    res.append(NoChange)
+                    continue
+                elif new is not NoChange:
+                    changed = True
+                res.append(new)          
+    
+            if changed:
+                return t(*res)
 
-        res = []
-        for f, new, old in zip(self.__fields__, self[1:], other[1:]):
-            if isinstance(f,key):
-                if old!=new:
-                    raise ValueError(
-                        "Can't subtract %s %r from %s %r" %
-                        (f.name, old, f.name, new)
-                    )
-            elif old==new:
-                res.append(NoChange)
-                continue
-            res.append(new)
-
-        return t(*res)
+        return NoChange
 
 
-
-
-
+    def getKey(self):
+        return (type(self),) + tuple(
+            [self[f.offset] for f in self.__fields__ if isinstance(f,key)]
+        )
 
 def create_default_converter(t):
     converter = generic(default_converter)
@@ -454,11 +487,6 @@ def item_uuid_converter(item):
 add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
 add_converter(UUIDType, str, unicode)
-
-
-
-
-
 
 
 
