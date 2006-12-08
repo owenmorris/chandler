@@ -58,7 +58,11 @@ class ACE(object):
 
     def verify(self, principal, perms):
 
-        if not principal.isMemberOf(self.pid):
+        pid = principal.itsView.find(self.pid)
+        if pid is None:
+            return (0, 0)
+
+        if not pid.isMemberOf(principal.itsUUID):
             return (0, 0)
 
         if self.perms & Permissions.DENY:

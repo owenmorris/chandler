@@ -14,6 +14,7 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-FlickrPlugin \
                 Chandler-I18nTestsPlugin \
                 Chandler-PhotoPlugin \
+                Chandler-p2pPlugin \
                 EggTranslations-Plugin
 
 PYEGGS = 
