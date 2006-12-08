@@ -24,12 +24,10 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 
 class PerfLargeDataNewCalendar(ChandlerTestCase):
-
+    
     def startTest(self):
 
-        # initialization
-    
-        # creation
+    # creation
         QAUITestAppLib.UITestView(self.logger)#, u'Generated3000.ics')
     
         # action
@@ -37,5 +35,5 @@ class PerfLargeDataNewCalendar(ChandlerTestCase):
         
         # verification
         col.Check_CollectionExistence("Untitled")
-        
+    
 

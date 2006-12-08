@@ -21,15 +21,17 @@ print """
 #   limitations under the License.
 
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
+from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 from datetime import datetime
 from PyICU import ICUtzinfo
-from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 
 class LargeDataResizeCalendar(ChandlerTestCase):
-
+    
     def startTest(self):
     
-        # Test Phase: Initialization
+        # Do the test in the large calendar
+        self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, 'Generated3000', overlay=False)
+        self.scripting.User.idle()
     
         # Start at the same date every time
         testdate = datetime(2005, 11, 27, tzinfo=ICUtzinfo.default)
@@ -40,24 +42,19 @@ class LargeDataResizeCalendar(ChandlerTestCase):
         x += 20
         y += 20
     
-        # Load a large calendar
-        # NOTE: Don't do this when we restore from backed up repository
-        testView = QAUITestAppLib.UITestView(self.logger)#, u'Generated3000.ics')
-        self.scripting.User.idle()
-    
         # Test Phase: Action
     
-        self.logger.startAction("Resize app in calendar mode")
+        self.logger.startPerformanceAction("Resize app in calendar mode")
         frame.SetSize((x, y))
-        self.scripting.User.idle()
-        self.logger.endAction()
+        scripting.User.idle()
+        self.logger.endPerformanceAction()
     
         # Test Phase: Verification
     
-        self.logger.startAction('Verify resize app in calendar mode')
+        self.logger.startAction('Verify calendar resized')
         (bigx, bigy) = frame.GetSize()
         if (bigx == x and bigy == y):
             self.logger.endAction(True, "Resize app in calendar mode")
         else:
             self.logger.endAction(False, "Resize app in calendar mode")
-        
+            

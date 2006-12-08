@@ -24,15 +24,19 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 
 class PerfStampEvent(ChandlerTestCase):
-
+    
     def startTest(self):
+
+        # Creating a collection switches us to calendar view where we
+        # do the actual test
+        QAUITestAppLib.UITestItem("Collection", self.logger,  timeInfo=False)
     
         # creation
-        note = QAUITestAppLib.UITestItem("Note", self.logger)
+        note = QAUITestAppLib.UITestItem("Note", self.logger, timeInfo=False)
     
         # action
         note.StampAsCalendarEvent(True)
         
         # verification
         note.Check_DetailView({"stampEvent":True})
-
+    

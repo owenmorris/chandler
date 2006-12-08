@@ -27,9 +27,11 @@ from application import Globals
 import osaf.framework.scripting as scripting
 
 functional_dir = os.path.join(Globals.chandlerDirectory,"tools/cats/Functional")
+performance_dir = os.path.join(Globals.chandlerDirectory, "tools/cats/Performance")
 testDebug = Globals.options.chandlerTestDebug
 testMask = Globals.options.chandlerTestMask
 logFileName = Globals.options.chandlerTestLogfile
+perfLogName = Globals.options.catsPerfLog
 filePath = Globals.options.profileDir
 haltOnFailure = not Globals.options.continueTestsOnFailure
 if filePath and logFileName:
@@ -47,11 +49,17 @@ def run_test(logger, paramSet):
     
     #assume file name and and test name are the same if only one given
     if len(filenameAndTest) < 2: filenameAndTest.append(filenameAndTest[0])
+    
+    if logger.isPerfTest is True:
+        importstring = 'from tools.cats.Performance.%s import %s' % (filenameAndTest[0], filenameAndTest[1])
+        test_dir = performance_dir
+    else:
+        importstring = 'from tools.cats.Functional.%s import %s' % (filenameAndTest[0], filenameAndTest[1])
+        test_dir = functional_dir
         
-    teststring = 'from tools.cats.Functional.%s import %s' % (filenameAndTest[0], filenameAndTest[1])
-    exec(compile(teststring, '%s/%s.py' % (functional_dir, filenameAndTest[0]), 'exec'))
+    exec(compile(importstring, '%s/%s.py' % (test_dir, filenameAndTest[0]), 'exec'))
     teststring = 'test = %s(name=\'%s\', logger=logger)' % (filenameAndTest[0], filenameAndTest[1])
-    exec(compile(teststring, '%s/%s.py' % (functional_dir, filenameAndTest[0]), 'exec'))
+    exec(compile(teststring, '%s/%s.py' % (test_dir, filenameAndTest[0]), 'exec'))
     test.runTest()
     if logger.debug == 2: checkRepo(logger)
 
@@ -61,10 +69,10 @@ def run_test_wrapped(logger, paramSet):
     except:
         logger.traceback()
     
-def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
+def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName, isPerfTest=False):
     """Method to execute cats tests, must be in Functional directory."""
     
-    logger = TestOutput(stdout=True, debug=debug, mask=mask, logName=logName) 
+    logger = TestOutput(stdout=True, debug=debug, mask=mask, logName=logName, isPerfTest=isPerfTest) 
     logger.startSuite(name='ChandlerFunctionalTestSuite')
     
     # We'll normally run individual tests with an exception wrapper; 
@@ -91,32 +99,4 @@ def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
 def run_perf_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
     """Method to execute cats tests, must be in Performance directory"""
 
-    logger = TestOutput(stdout=True, debug=0, logName=logName)
-    logger.startSuite(name='ChandlerTestSuite')
-    for paramSet in tests.split(','):
-        try:
-            filenameAndTest = paramSet.split(':')
-            
-            #assume file name and and test name are the same if only one given
-            if len(filenameAndTest) < 2: filenameAndTest.append(filenameAndTest[0])
-            
-            teststring = 'from tools.cats.Performance.%s import %s' % (filenameAndTest[0], filenameAndTest[1])
-            exec(compile(teststring, '', 'exec'))
-            teststring = 'test = %s(name=\'%s\', logger=logger)' % (filenameAndTest[1], filenameAndTest[1])
-            exec(compile(teststring, '', 'exec'))
-            test.runTest()
-            if logger.debug == 2: checkRepo(logger)
-        except:
-            logger.traceback()
-            
-    logger.endSuite()
-    if logger.debug == 0:
-        logger.easyReadSummary()
-    else:
-        logger.summary()
-    logger.simpleSummary()
-    logger.tinderOutput()
-    if logger.debug < 2: checkRepo(logger)
-    logger.endSuite()
-    import osaf.framework.scripting as scripting
-    scripting.app_ns().root.Quit()
+    run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName, isPerfTest=True)

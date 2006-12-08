@@ -24,12 +24,18 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 
 class PerfNewCalendar(ChandlerTestCase):
-
+    
     def startTest(self):
 
+        # Creating a collection switches us to calendar view where we
+        # do the actual test
+        QAUITestAppLib.UITestItem("Collection", self.logger, timeInfo=False)
+    
         # action
         col = QAUITestAppLib.UITestItem("Collection", self.logger)
         
-        # verfication
-        col.Check_CollectionExistence("Untitled")
- 
+        # verification
+        self.logger.startAction('Verify calendar created')#need to be inside action for check
+        col.Check_CollectionExistence("Untitled-1")
+        self.logger.endAction()
+    

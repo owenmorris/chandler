@@ -25,11 +25,11 @@ from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 from datetime import datetime
 
 class PerfLargeDataSwitchCalendar(ChandlerTestCase):
-
+    
     def startTest(self):
-    
-        # Test Phase: Initialization
-    
+
+    # Test Phase: Initialization
+
         # Start at the same date every time
         testdate = datetime(2005, 11, 27)
         self.app_ns.root.SelectedDateChanged(start=testdate)
@@ -41,15 +41,16 @@ class PerfLargeDataSwitchCalendar(ChandlerTestCase):
     
         # Test Phase: Action
     
-        self.logger.startAction("Switch calendar")
-        clickSucceeded = self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, "Generated3000",  overlay=False)
+        self.logger.startPerformanceAction("Switch calendar")
+        clickSucceeded = self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, "Generated3000", overlay=False)
         self.scripting.User.idle()
-        self.logger.endAction()
+        self.logger.endPerformanceAction()
     
         # Test Phase: Verification
-        self.logger.startAction("Verify calendar switch")
+    
+        self.logger.startAction('Verify calendar switch')
         if clickSucceeded:
-            self.logger.endAction(True, "Switch calendar")
+            self.logger.endAction(True)
         else:
-            self.logger.endAction(False, "Switch calendar")
-            
+            self.logger.endAction(False)
+    

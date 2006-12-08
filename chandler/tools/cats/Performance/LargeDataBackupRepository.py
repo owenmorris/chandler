@@ -21,26 +21,32 @@ print """
 #   limitations under the License.
 
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
+from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import os
 import osaf.pim as pim
-from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 
 class LargeDataBackupRepository(ChandlerTestCase):
-
+    
     def startTest(self):
 
+        # initialization
+        largeCollectionName = 'Generated3000'
+        smallCollectionName = 'SmallCollection'
+    
         # import
-        self.logger.startAction('importing Generated3000.ics')
-        QAUITestAppLib.UITestView(self.logger, u'Generated3000.ics')
-        self.logger.endAction()
+        QAUITestAppLib.UITestView(self.logger, u'%s.ics' % largeCollectionName)
+        
+        # Start in the small collection
+        col = QAUITestAppLib.UITestItem("Collection", self.logger, timeInfo=False)
+        col.SetDisplayName(smallCollectionName)
+        self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, smallCollectionName)
+        self.scripting.User.idle()
         
         # verification of import
         def VerifyEventCreation(title):
-            #global logger
-            #global App_ns
-            #global pim
-            self.logger.startAction('verifying imported event ' + title)
-            testEvent = self.app_ns.item_named(pim.CalendarEvent, title)
+            self.logger.startAction('Verify event creation')
+            global pim
+            testEvent = self.app_ns.item_named(pim.EventStamp, title)
             if testEvent is not None:
                 self.logger.endAction(True, "Testing event creation: '%s'" % title)
             else:
@@ -51,17 +57,33 @@ class LargeDataBackupRepository(ChandlerTestCase):
         VerifyEventCreation("Visit friend")
         VerifyEventCreation("Library")
         
+        # Current tests measure the first time you switch or overlay.
+        # If you want to measure the subsequent times, enable this section.
+        if 0:
+            self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, largeCollectionName, overlay=False)
+            self.scripting.User.idle()
+            self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, smallCollectionName, overlay=False)
+            self.scripting.User.idle()
+            self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, largeCollectionName, overlay=True)
+            self.scripting.User.idle()
+            self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, largeCollectionName, overlay=True)
+            self.scripting.User.idle()
+            
         # backup
         # - need to commit first so that the collection in the sidebar
         #   gets saved
         self.app_ns.itsView.commit()
-        self.logger.startAction("Backup repository")
+        self.logger.startPerformanceAction("Backup repository")
         dbHome = self.app_ns.itsView.repository.backup()
+        self.logger.endPerformanceAction()
         
         # verification of backup
+        self.logger.startAction('Verify repository backup')
         if os.path.isdir(dbHome):
             self.logger.endAction(True, "Backup exists")
         else:
             self.logger.endAction(False, "Backup does not exist")
         
-    
+        
+
+

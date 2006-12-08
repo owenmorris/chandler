@@ -25,9 +25,9 @@ from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 from datetime import datetime
 
 class PerfLargeDataOverlayCalendar(ChandlerTestCase):
-
-    def startTest(self):
     
+    def startTest(self):
+
         # Test Phase: Initialization
     
         # Start at the same date every time
@@ -36,20 +36,21 @@ class PerfLargeDataOverlayCalendar(ChandlerTestCase):
     
         # Load a large calendar
         # NOTE: Don't do this when we restore from backed up repository
-        testView = QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
+        testView = QAUITestAppLib.UITestView(self.logger)#, u'Generated3000.ics')
         self.scripting.User.idle()
     
         # Test Phase: Action
     
-        self.logger.startAction("Overlay calendar")
-        clickSucceeded = User.emulate_sidebarClick(App_ns.sidebar, "Generated3000", overlay=True)
+        self.logger.startPerformanceAction("Overlay calendar")
+        clickSucceeded = self.scripting.User.emulate_sidebarClick(self.app_ns.sidebar, "Generated3000", overlay=True)
         self.scripting.User.idle()
-        self.logger.endAction()
+        self.logger.endPerformanceAction()
     
         # Test Phase: Verification
-        self.logger.startAction("Verify calendar overlay")
+    
+        self.logger.startAction('Verify calendar overlayed')
         if clickSucceeded:
-            self.logger.endAction(True, "Overlay calendar")
+            self.logger.endAction(True)
         else:
-            self.logger.endAction(False, "Overlay calendar")
+            self.logger.endAction(False)
             
