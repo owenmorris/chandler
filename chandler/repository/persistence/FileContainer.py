@@ -32,6 +32,11 @@ from repository.persistence.RepositoryError import RepositoryError
 
 class FileContainer(DBContainer):
 
+    def __init__(self, store):
+
+        self._blocks = None
+        super(FileContainer, self).__init__(store)
+
     def open(self, name, txn, **kwds):
 
         super(FileContainer, self).open(name, txn, dbname = 'files', **kwds)

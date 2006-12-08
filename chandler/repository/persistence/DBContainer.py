@@ -1699,6 +1699,7 @@ class ValueContainer(DBContainer):
 
     def __init__(self, store):
 
+        self._version = None
         super(ValueContainer, self).__init__(store)
         
     def open(self, name, txn, **kwds):

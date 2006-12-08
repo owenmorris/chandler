@@ -38,6 +38,9 @@ class RepositoryPasswordError(RepositoryError):
 class RepositoryOpenError(RepositoryError):
     pass
 
+class RepositoryRunRecoveryError(RepositoryOpenError):
+    pass
+
 
 class RepositoryRestoreError(RepositoryError):
     pass

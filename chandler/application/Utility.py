@@ -25,7 +25,8 @@ from chandlerdb.util.c import UUID, loadUUIDs
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryView import NullRepositoryView
 from repository.persistence.RepositoryError import \
-    VersionConflictError, RepositoryPasswordError, RepositoryVersionError
+    VersionConflictError, RepositoryPasswordError, RepositoryVersionError, \
+    RepositoryRunRecoveryError
 
 import version
 
@@ -212,7 +213,7 @@ def initOptions(**kwds):
     _configItems = {
         'parcelPath': ('-p', '--parcelPath', 's', None,  'PARCELPATH', 'Parcel search path'),
         'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
-        'profileDir': ('-P', '--profileDir', 's', None,  'PROFILEDIR', 'location of the Chandler Repository'),
+        'profileDir': ('-P', '--profileDir', 's', None,  'PROFILEDIR', 'location of the Chandler user profile directory (relative to CHANDLERHOME)'),
         'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
         'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
         'chandlerTests': ('', '--chandlerTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by new framework'),
@@ -251,9 +252,9 @@ def initOptions(**kwds):
         'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, 'Parcel that defines the core application'),
         'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
         'memorylog':  ('', '--memorylog', 's', None, None, 'Specify a buffer size (in MB) for in-memory transaction logs'),
-        'logdir':     ('', '--logdir', 's', None, None, 'Specify a directory for transaction logs'),
-        'datadir':    ('', '--datadir', 's', None, None, 'Specify a directory for database files'),
-        'repodir':    ('', '--repodir', 's', None, None, "Specify a home directory for the __repository__ directory (defaults to the profile directory)"),
+        'logdir':     ('', '--logdir', 's', None, None, 'Specify a directory for transaction logs (relative to the __repository__ directory'),
+        'datadir':    ('', '--datadir', 's', None, None, 'Specify a directory for database files (relative to the __repository__ directory'),
+        'repodir':    ('', '--repodir', 's', None, None, "Specify a home directory for the __repository__ directory (relative to the profile directory)"),
         'nodeferdelete':   ('', '--nodeferdelete','b', False, None, 'do not defer item deletions in all views by default'),
         'indexer':    ('-i', '--indexer',    's', 'background', None, 'Run Lucene indexing in the background or foreground'),
         'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
@@ -477,6 +478,12 @@ def initRepository(directory, options, allowSchemaView=False):
             continue
         except RepositoryVersionError:
             repository.close()
+            raise
+        except RepositoryRunRecoveryError, e:
+            if not (options.recover or e.args[0]):
+                repository.logger.warning("reopening repository with recovery")
+                kwds['recover'] = True
+                continue
             raise
         else:
             del kwds

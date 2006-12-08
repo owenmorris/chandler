@@ -16,6 +16,7 @@
 import sys, os, shutil, atexit, cStringIO, time, threading, tarfile
 
 from datetime import datetime, timedelta
+from os.path import exists, normpath, join, dirname, basename
 
 from chandlerdb.util import lock
 from chandlerdb.util.c import Nil, Default, UUID, _hash
@@ -23,7 +24,7 @@ from chandlerdb.item.c import CItem, CValues
 from chandlerdb.item.ItemValue import Indexable
 from chandlerdb.persistence.c import DBEnv, DB, \
     DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \
-    DBLockDeadlockError, DBVersionMismatchError, \
+    DBLockDeadlockError, DBVersionMismatchError, DBRunRecoveryError, \
     DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH
 
 from repository.schema.TypeHandler import TypeHandler
@@ -58,7 +59,7 @@ class DBRepository(OnDemandRepository):
         self._openFile = None
 
         if dbHome is not None:
-            self._openDir = os.path.join(self.dbHome, '__open')
+            self._openDir = join(self.dbHome, '__open')
         else:
             self._openDir = None
 
@@ -72,18 +73,18 @@ class DBRepository(OnDemandRepository):
     def _touchOpenFile(self):
 
         if self._openFile is None:
-            self._openFile = os.path.join(self._openDir, UUID().str64())
+            self._openFile = join(self._openDir, UUID().str64())
 
-        if not os.path.exists(self._openDir):
+        if not exists(self._openDir):
             os.mkdir(self._openDir)
             
         file(self._openFile, "w+").close()
 
     def _clearOpenDir(self):
 
-        if os.path.exists(self._openDir):
+        if exists(self._openDir):
             for name in os.listdir(self._openDir):
-                path = os.path.join(self._openDir, name)
+                path = join(self._openDir, name)
                 if not os.path.isdir(path):
                     os.remove(path)
             
@@ -122,7 +123,7 @@ class DBRepository(OnDemandRepository):
             datadir = kwds.get('datadir')
             logdir = kwds.get('logdir')
 
-            if not os.path.exists(self.dbHome):
+            if not exists(self.dbHome):
                 os.makedirs(self.dbHome)
             elif not os.path.isdir(self.dbHome):
                 raise ValueError, "%s is not a directory" %(self.dbHome)
@@ -130,12 +131,12 @@ class DBRepository(OnDemandRepository):
                 self.delete(datadir, logdir)
 
             if datadir:
-                datadir = os.path.join(self.dbHome, datadir)
-                if not os.path.exists(datadir):
+                datadir = join(self.dbHome, datadir)
+                if not exists(datadir):
                     os.makedirs(datadir)
             if logdir:
-                logdir = os.path.join(self.dbHome, logdir)
-                if not os.path.exists(logdir):
+                logdir = join(self.dbHome, logdir)
+                if not exists(logdir):
                     os.makedirs(logdir)
 
             self._lockOpen()
@@ -152,8 +153,8 @@ class DBRepository(OnDemandRepository):
 
     def _lockOpen(self):
         
-        lockFile = os.path.join(os.path.dirname(self.dbHome),
-                                ".%s.lock" %(os.path.basename(self.dbHome)))
+        dbHome = self.dbHome
+        lockFile = join(dirname(dbHome), ".%s.lock" %(basename(dbHome)))
         fd = lock.open(lockFile)
         if not lock.lock(fd, lock.LOCK_SH | lock.LOCK_NB):
             lock.close(fd)
@@ -194,21 +195,22 @@ class DBRepository(OnDemandRepository):
 
         self._status &= ~Repository.CLOSED
 
+        dbHome = self.dbHome
         ramdb = kwds.get('ramdb', False)
         locks = 32767
         cache = 0x4000000
 
         if create and not ramdb:
-            db_version = file(os.path.join(self.dbHome, 'DB_VERSION'), 'w+b')
+            db_version = file(join(dbHome, 'DB_VERSION'), 'w+b')
             db_version.write("%d.%d.%d\n" %(DB_VERSION_MAJOR,
                                             DB_VERSION_MINOR,
                                             DB_VERSION_PATCH))
             db_version.close()
-            db_config = file(os.path.join(self.dbHome, 'DB_CONFIG'), 'w+b')
+            db_config = file(join(dbHome, 'DB_CONFIG'), 'w+b')
 
         elif not (create or ramdb):
             try:
-                db_version = file(os.path.join(self.dbHome, 'DB_VERSION'))
+                db_version = file(join(dbHome, 'DB_VERSION'))
                 version = db_version.readline().strip()
                 db_version.close()
             except Exception, e:
@@ -218,7 +220,7 @@ class DBRepository(OnDemandRepository):
                                         DB_VERSION_MINOR,
                                         DB_VERSION_PATCH)
                 if version != expected:
-                    raise RepositoryDatabaseVersionError, (version, expected)
+                    raise RepositoryDatabaseVersionError, (expected, version)
 
         env = DBEnv()
 
@@ -288,27 +290,28 @@ class DBRepository(OnDemandRepository):
 
     def delete(self, datadir=None, logdir=None):
 
+        dbHome = self.dbHome
         self._lockOpenExclusive()
 
         try:
-            for name in os.listdir(self.dbHome):
+            for name in os.listdir(dbHome):
                 if (name.startswith('__db') or
                     name.startswith('log.') or
                     name.endswith('.db') or
                     name in ('DB_CONFIG', 'DB_VERSION')):
-                    path = os.path.join(self.dbHome, name)
+                    path = join(dbHome, name)
                     if not os.path.isdir(path):
                         os.remove(path)
             if datadir:
-                for name in os.listdir(os.path.join(self.dbHome, datadir)):
+                for name in os.listdir(join(dbHome, datadir)):
                     if name.endswith('.db'):
-                        path = os.path.join(self.dbHome, datadir, name)
+                        path = join(dbHome, datadir, name)
                         if not os.path.isdir(path):
                             os.remove(path)
             if logdir:
-                for name in os.listdir(os.path.join(self.dbHome, logdir)):
+                for name in os.listdir(join(dbHome, logdir)):
                     if name.startswith('log.'):
-                        path = os.path.join(self.dbHome, logdir, name)
+                        path = join(dbHome, logdir, name)
                         if not os.path.isdir(path):
                             os.remove(path)
             self._clearOpenDir()
@@ -337,7 +340,7 @@ class DBRepository(OnDemandRepository):
         rev = 1
         while True:
             path = "%s.%03d" %(dbHome, rev)
-            if os.path.exists(path):
+            if exists(path):
                 rev += 1
             else:
                 dbHome = path
@@ -353,7 +356,7 @@ class DBRepository(OnDemandRepository):
             for srcPath in self._env.log_archive(DBEnv.DB_ARCH_DATA |
                                                  DBEnv.DB_ARCH_ABS):
                 x, db = os.path.split(srcPath)
-                dstPath = os.path.join(dbHome, db)
+                dstPath = join(dbHome, db)
                 self.logger.info(dstPath)
 
                 shutil.copy2(srcPath, dstPath)
@@ -361,15 +364,15 @@ class DBRepository(OnDemandRepository):
             for srcPath in self._env.log_archive(DBEnv.DB_ARCH_LOG |
                                                  DBEnv.DB_ARCH_ABS):
                 x, log = os.path.split(srcPath)
-                dstPath = os.path.join(dbHome, log)
+                dstPath = join(dbHome, log)
                 self.logger.info(dstPath)
 
                 shutil.copy2(srcPath, dstPath)
 
-            if os.path.exists(os.path.join(self.dbHome, 'DB_CONFIG')):
-                dstPath = os.path.join(dbHome, 'DB_CONFIG')
+            if exists(join(self.dbHome, 'DB_CONFIG')):
+                dstPath = join(dbHome, 'DB_CONFIG')
                 self.logger.info(dstPath)
-                inFile = file(os.path.join(self.dbHome, 'DB_CONFIG'), 'r')
+                inFile = file(join(self.dbHome, 'DB_CONFIG'), 'r')
                 outFile = file(dstPath, 'w')
                 for line in inFile:
                     if not (line.startswith('set_data_dir') or
@@ -377,10 +380,10 @@ class DBRepository(OnDemandRepository):
                         outFile.write(line)
                 outFile.close()
             
-            if os.path.exists(os.path.join(self.dbHome, 'DB_VERSION')):
-                dstPath = os.path.join(dbHome, 'DB_VERSION')
+            if exists(join(self.dbHome, 'DB_VERSION')):
+                dstPath = join(dbHome, 'DB_VERSION')
                 self.logger.info(dstPath)
-                shutil.copy2(os.path.join(self.dbHome, 'DB_VERSION'), dstPath)
+                shutil.copy2(join(self.dbHome, 'DB_VERSION'), dstPath)
 
             if not withLog:
                 env = None
@@ -402,7 +405,7 @@ class DBRepository(OnDemandRepository):
                     for name in os.listdir(dbHome):
                         if (name.startswith('__db.') or
                             name.startswith('log.')):
-                            os.remove(os.path.join(dbHome, name))
+                            os.remove(join(dbHome, name))
 
                 finally:
                     if env is not None:
@@ -416,24 +419,24 @@ class DBRepository(OnDemandRepository):
 
     def restore(self, srcHome, datadir=None, logdir=None):
 
-        if os.path.exists(srcHome):
+        if exists(srcHome):
             dbHome = self.dbHome
 
-            if os.path.exists(dbHome):
+            if exists(dbHome):
                 self.delete(datadir, logdir)
-            if not os.path.exists(dbHome):
+            if not exists(dbHome):
                 os.mkdir(dbHome)
 
             if datadir:
-                datadir = os.path.join(dbHome, datadir)
-                if not os.path.exists(datadir):
+                datadir = join(dbHome, datadir)
+                if not exists(datadir):
                     os.mkdir(datadir)
             else:
                 datadir = dbHome
 
             if logdir:
-                logdir = os.path.join(dbHome, logdir)
-                if not os.path.exists(logdir):
+                logdir = join(dbHome, logdir)
+                if not exists(logdir):
                     os.mkdir(logdir)
             else:
                 logdir = dbHome
@@ -441,15 +444,15 @@ class DBRepository(OnDemandRepository):
             if os.path.isdir(srcHome):
                 for f in os.listdir(srcHome):
                     if f.endswith('.db'):
-                        dstPath = os.path.join(datadir, f)
+                        dstPath = join(datadir, f)
                     elif f.startswith('log.'):
-                        dstPath = os.path.join(logdir, f)
+                        dstPath = join(logdir, f)
                     elif f in ('DB_CONFIG', 'DB_VERSION'):
-                        dstPath = os.path.join(dbHome, f)
+                        dstPath = join(dbHome, f)
                     else:
                         continue
                                       
-                    srcPath = os.path.join(srcHome, f)
+                    srcPath = join(srcHome, f)
                     self.logger.info(srcPath)
                     shutil.copy2(srcPath, dstPath)
 
@@ -468,12 +471,12 @@ class DBRepository(OnDemandRepository):
                     else:
                         continue
 
-                    self.logger.info(os.path.join(srcHome, f))
+                    self.logger.info(join(srcHome, f))
                     restoreFile.extract(member, dstPath)
                 restoreFile.close()
 
             if datadir != dbHome or logdir != dbHome:
-                outFile = file(os.path.join(dbHome, 'DB_CONFIG'), 'a')
+                outFile = file(join(dbHome, 'DB_CONFIG'), 'a')
                 if datadir != dbHome:
                     outFile.write('set_data_dir %s\n' %(datadir))
                 if logdir != dbHome:
@@ -610,18 +613,28 @@ class DBRepository(OnDemandRepository):
             exclusive = kwds.get('exclusive', False)
             restore = kwds.get('restore', None)
 
+            dbHome = self.dbHome
+            datadir = kwds.get('datadir')
+            logdir = kwds.get('logdir')
+            configure = False
+
             if restore is not None:
-                self.restore(restore, kwds.get('datadir'), kwds.get('logdir'))
+                self.restore(restore, datadir, logdir)
                 recover = True
 
-            elif kwds.get('create', False) and not os.path.exists(self.dbHome):
-                return self.create(**kwds)
+            elif kwds.get('create', False) and not exists(dbHome):
+                if datadir and exists(normpath(join(dbHome, datadir))):
+                    os.makedirs(dbHome)
+                    configure = True
+                    recover = True
+                else:
+                    return self.create(**kwds)
 
             self._lockOpen()
-            self._env = self._createEnv(False, kwds)
+            self._env = self._createEnv(configure, kwds)
 
             if not recover and exclusive:
-                if os.path.exists(self._openDir) and os.listdir(self._openDir):
+                if exists(self._openDir) and os.listdir(self._openDir):
                     recover = True
 
             try:
@@ -639,10 +652,10 @@ class DBRepository(OnDemandRepository):
                             self.logger.info('unable to obtain exclusive access to open with recovery, downgrading to regular open')
 
                         if recover:
-                            if os.path.exists(self.dbHome):
-                                for name in os.listdir(self.dbHome):
+                            if exists(dbHome):
+                                for name in os.listdir(dbHome):
                                     if name.startswith('__db.'):
-                                        path = os.path.join(self.dbHome, name)
+                                        path = join(dbHome, name)
                                         try:
                                             os.remove(path)
                                         except Exception, e:
@@ -650,14 +663,14 @@ class DBRepository(OnDemandRepository):
                             before = datetime.now()
                             flags = (DBEnv.DB_RECOVER_FATAL | DBEnv.DB_CREATE |
                                      self.OPEN_FLAGS)
-                            self._env.open(self.dbHome, flags, 0)
+                            self._env.open(dbHome, flags, 0)
                             after = datetime.now()
                             self.logger.info('opened db with recovery in %s',
                                              after - before)
                             self._clearOpenDir()
                         else:
                             before = datetime.now()
-                            self._env.open(self.dbHome, self.OPEN_FLAGS, 0)
+                            self._env.open(dbHome, self.OPEN_FLAGS, 0)
                             after = datetime.now()
                             self.logger.info('opened db in %s', after - before)
 
@@ -669,7 +682,7 @@ class DBRepository(OnDemandRepository):
                                 lock.lock(fd, lock.LOCK_UN | lock.LOCK_SH)
                 else:
                     before = datetime.now()
-                    self._env.open(self.dbHome, self.OPEN_FLAGS, 0)
+                    self._env.open(dbHome, self.OPEN_FLAGS, 0)
                     after = datetime.now()
                     self.logger.info('opened db in %s', after - before)
 
@@ -681,7 +694,7 @@ class DBRepository(OnDemandRepository):
                 kwds['create'] = recover
                 if kwds.get('create', False):
                     self._create(**kwds)
-                elif not os.path.exists(self.dbHome):
+                elif not exists(dbHome):
                     self._create(**kwds)
                 else:
                     raise
@@ -689,6 +702,9 @@ class DBRepository(OnDemandRepository):
             except DBInvalidArgError, e:
                 if "no encryption key" in e.args[1]:
                     raise RepositoryPasswordError, e.args[1]
+                if "Invalid argument" in e.args[1] and not recover:
+                    self._status |= Repository.CLOSED
+                    raise RepositoryRunRecoveryError, recover
                 raise
 
             except DBPermissionsError, e:
@@ -696,11 +712,15 @@ class DBRepository(OnDemandRepository):
                     raise RepositoryPasswordError, e.args[1]
                 raise
 
-            except DBVersionMismatchError, e:
+            except DBVersionMismatchError:
                 expected = "%d.%d.%d" %(DB_VERSION_MAJOR,
                                         DB_VERSION_MINOR,
                                         DB_VERSION_PATCH)
-                raise RepositoryDatabaseVersionError, ('undetermined', expected)
+                raise RepositoryDatabaseVersionError, (expected, 'undetermined')
+
+            except DBRunRecoveryError:
+                self._status |= Repository.CLOSED
+                raise RepositoryRunRecoveryError, recover
 
             self._status |= Repository.OPEN
             self._afterOpen()
@@ -739,7 +759,7 @@ class DBRepository(OnDemandRepository):
             if ramdb:
                 self._status &= ~Repository.RAMDB
             elif self._openFile is not None:
-                if os.path.exists(self._openFile):
+                if exists(self._openFile):
                     os.remove(self._openFile)
                 self._openFile = None
 
