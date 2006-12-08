@@ -68,7 +68,27 @@ Serialize and deserialize entire record sets:
 >>> recordSets = deserialize(text)
 >>> recordSets
 {'8501de14-1dc9-40d4-a7d4-f289feff8214': [ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]}
+
+
+RecordSets can be stored and retrieved by UUID:
+
+>>> uuidString = '8501de14-1dc9-40d4-a7d4-f289feff8214'
+>>> recordSet = recordSets[uuidString]
+>>> from repository.persistence.RepositoryView import NullRepositoryView
+>>> rv = NullRepositoryView()
+>>> share = sharing.Share(itsView=rv, itsName="testshare")
+>>> saveRecordSet(share, uuidString, recordSet)
+>>> recordSet = getRecordSet(share, uuidString)
+>>> recordSet
+[ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]
+
+
+(end of doctest)
 """
+
+
+
+
 
 from osaf import sharing
 from osaf.sharing import recordtypes
@@ -81,8 +101,39 @@ from xml.etree.ElementTree import (
 
 
 
+
+
+
 class RecordSet(list): # pje to flesh this out
     pass
+
+
+
+
+
+
+
+class Baseline(schema.Item):
+    records = schema.Sequence(schema.Tuple)
+
+
+def saveRecordSet(share, uuidString, recordSet):
+    # Baseline.update(share, uuidString, records=list(recordSet.inclusions))
+    # Until RecordSet gets fleshed out:
+    Baseline.update(share, uuidString, records=recordSet)
+
+
+def getRecordSet(share, uuidString):
+    recordSet = None
+    baseline = share.getItemChild(uuidString)
+    if baseline is not None:
+        # recordSet = RecordSet.from_tuples(baseline.records)
+        # Until RecordSet gets fleshed out:
+        recordSet = RecordSet()
+        tupleNew = tuple.__new__
+        for tup in baseline.records:
+            recordSet.append(tupleNew(tup[0], tup))
+    return recordSet
 
 
 
