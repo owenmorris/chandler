@@ -31,9 +31,6 @@ import sgmllib
 #Chandler imports
 import application.Globals as Globals
 from repository.util.Lob import Lob
-
-#Chandler Mail Service imports
-import constants as constants
 from i18n import ChandlerMessageFactory as _
 
 __all__ = ['log', 'trace', 'disableTwistedTLS', 'loadMailTests', 'getEmptyDate',
@@ -106,8 +103,9 @@ def loadMailTests(view, dr):
             messageText = fp.read()
             fp.close()
 
-            m = message.messageTextToKind(view, messageText).itsItem
-            mCollection.add(m)
+            mailStamp = message.messageTextToKind(view, messageText)
+
+            mCollection.add(mailStamp.itsItem)
 
         sidebar.add(mCollection)
         view.commit()

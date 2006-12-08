@@ -29,7 +29,6 @@ from imap import IMAPClient
 from pop import  POPClient
 from errors import MailException
 from utils import trace
-import constants
 
 """
 XXX: Not thread safe code

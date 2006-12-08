@@ -210,17 +210,9 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("getMail")
 
-        if Globals.options.offline:
-            msg = constants.DOWNLOAD_OFFLINE
-            reactor.callFromThread(setStatusMessage, msg)
-            return
-
         # Move code execution path from current thread
         # to Reactor Asynch thread
-        msg = constants.DOWNLOAD_START
-        reactor.callFromThread(setStatusMessage, msg)
         reactor.callFromThread(self._getMail)
-
 
     def testAccountSettings(self, callback):
         """Tests the account settings for a download protocol (POP, IMAP).
@@ -232,7 +224,6 @@ class AbstractDownloadClient(object):
 
 
         if Globals.options.offline:
-            reactor.callFromThread(alert, constants.TEST_OFFLINE)
             return
 
         assert(callback is not None)
@@ -248,17 +239,6 @@ class AbstractDownloadClient(object):
         if self.cancel:
             return self._resetClient()
 
-        if self.currentlyDownloading:
-            if self.testing:
-                trace("%s currently testing account settings" % self.clientType)
-
-            else:
-                trace("%s currently downloading mail" % self.clientType)
-
-            return
-
-        self.currentlyDownloading = True
-
         try:
             self.view.refresh()
 
@@ -272,6 +252,28 @@ class AbstractDownloadClient(object):
 
         #Overidden method
         self._getAccount()
+
+        if Globals.options.offline:
+            msg = constants.DOWNLOAD_OFFLINE % {"accountName": self.account.displayName}
+            setStatusMessage(msg)
+            return
+
+        if self.currentlyDownloading:
+            if self.testing:
+                trace("%s currently testing account settings" % self.clientType)
+
+            else:
+                trace("%s currently downloading mail" % self.clientType)
+
+            return
+
+        self.currentlyDownloading = True
+
+        msg = constants.DOWNLOAD_START \
+                      % {"accountName": self.account.displayName,
+                         "serverDNSName": self.account.host}
+
+        setStatusMessage(msg)
 
         self.factory = self.factoryType(self)
 
@@ -524,7 +526,8 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("_postCommit")
 
-        msg = constants.DOWNLOAD_MESSAGES % {'numberOfMessages': self.totalDownloaded}
+        msg = constants.DOWNLOAD_MESSAGES % {'accountName': self.account.displayName,
+                                             'numberOfMessages': self.totalDownloaded}
 
         setStatusMessage(msg)
 

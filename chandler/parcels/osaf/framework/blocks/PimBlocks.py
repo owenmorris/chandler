@@ -248,13 +248,10 @@ class FocusEventHandlers(Item):
         #selection = self.__getSelectedItems()
         #for selectedItem in selection:
         if has_stamp(selectedItem, Mail.MailStamp):
-            selectedItem = selectedItem.getMembershipItem()
-            for otherCollection in selectedItem.appearsIn:
-                if otherCollection is pim_ns.inCollection:
-                    return True
-            else:
-                # Can't reply to something that's not in the inbox
-                return False
+            # If it is not an outbound message then
+            # it can be replied to or forwarded
+            return not Mail.MailStamp(selectedItem).isOutbound
+        return False
 
     def onReplyOrForwardEvent(self, replyMethod):
         pim_ns = schema.ns('osaf.pim', self.itsView)

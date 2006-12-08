@@ -671,11 +671,11 @@ def makeMainMenus(parcel):
                             ]),
 
                     Menu.template('I18nMenu',
-                        title=u'&i18n',
+                        title=u'i18n',
                         childrenBlocks = [
                             MenuItem.template('ShowI18nManagerDebugItem',
                                 event = main.ShowI18nManagerDebugWindow,
-                                title = u'&Show I18nManager debug window',
+                                title = u'Show I18nManager debug window',
                                 helpString = u'Displays a tree of projects, locales, resources, and gettext localizations'),
                             ]),
 
@@ -730,15 +730,19 @@ def makeMainMenus(parcel):
                                 helpString = u'Switch to CPIA test 2'),
                             ]), # Menu SkinsMenu
                     Menu.template('MailTests',
-                        title = u'&Mail Tests',
+                        title = u'Mail Tests',
                         childrenBlocks = [
+                            MenuItem.template('MeAddressDebugItem',
+                                event = main.ShowMeAddressCollectionDebugWindow,
+                                title = u'Show Me Address Collection',
+                                helpString = u'Displays all active and old me addresses used to determine the fromMe and toMe attributes on Content Item'),
                             MenuItem.template('MimeTestItem',
                                 event = main.MimeTest,
-                                title = u'MIME Torture Tests',
+                                title = u'Load MIME Torture Tests',
                                 helpString = u'Loads real world complex / broken mime message examples provided by Anthony Baxter'),
                             MenuItem.template('i18nMailTestItem',
                                 event = main.i18nMailTest,
-                                title = u'i18n Mail Tests',
+                                title = u'Load i18n Mail Tests',
                                 helpString = u'Loads mail messages containing a variety of Charsets and Languages'),
                             MenuItem.template('TakMailOnlineOfflineItem',
                                 event = main.TakeMailOnlineOffline,

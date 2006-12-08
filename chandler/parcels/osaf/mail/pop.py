@@ -45,6 +45,11 @@ __all__ = ['POPClient']
     Think about caching the capabilities of server when set (This could change though).
     What happens if no CAPA returned by the server?
     Should I test for top and uidl since these are extensions?
+
+ISSUES:
+    There is an issue when multiple mail messages on the pop server have the same message UID.
+    Need to come up with a better way to detect this. Although this case is very very rare.
+
 """
 
 
@@ -188,7 +193,8 @@ class POPClient(base.AbstractDownloadClient):
             callMethodInUIThread(self.callback, (1, None))
             return self._actionCompleted()
 
-        setStatusMessage(constants.DOWNLOAD_CHECK_MESSAGES)
+        setStatusMessage(constants.DOWNLOAD_CHECK_MESSAGES % \
+                         {'accountName': self.account.displayName})
 
         d = self.proto.stat()
         d.addCallbacks(self._serverHasMessages, self.catchErrors)
@@ -202,7 +208,9 @@ class POPClient(base.AbstractDownloadClient):
             return self._actionCompleted()
 
         if stat[0] == 0:
-            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES)
+            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
+                         {'accountName': self.account.displayName})
+
             return self._actionCompleted()
 
         d = self.proto.listUID()
@@ -224,9 +232,17 @@ class POPClient(base.AbstractDownloadClient):
             if not uid in self.account.downloadedMessageUIDS:
                 self.pending.append((i, uid))
 
-        if len(self.pending) == 0:
-            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES)
+        numPending = len(self.pending)
+
+        if numPending == 0:
+            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
+                         {'accountName': self.account.displayName})
+
             return self._actionCompleted()
+
+        setStatusMessage(constants.DOWNLOAD_START_MESSAGES % \
+                         {"accountName": self.account.displayName,
+                          "numberOfMessages": numPending})
 
         self._getNextMessageSet()
 

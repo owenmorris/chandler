@@ -140,6 +140,9 @@ class SMTPClient(object):
         if __debug__:
             trace("testAccountSettings")
 
+        if Globals.options.offline:
+            return self._resetClient()
+
         assert(callback is not None)
         self.callback = callback
 
@@ -242,17 +245,22 @@ class SMTPClient(object):
                         trace("SMTPClient adding to the Queue message: %s" % mailMessageUUID)
 
                 if Globals.options.offline:
-                    setStatusMessage(constants.UPLOAD_OFFLINE % {'subject': newMessage.subject})
+                    setStatusMessage(constants.UPLOAD_OFFLINE % \
+                                    {'accountName': self.account.displayName,
+                                     'subject': newMessage.subject})
 
                 return
 
-            setStatusMessage(constants.UPLOAD_START)
 
 
             # Get the account, get the mail message and hand off to an instance to send
             # if someone already sending them put in a queue
 
             self.mailMessage = self._getMailMessage(mailMessageUUID)
+
+            setStatusMessage(constants.UPLOAD_START % \
+                             {'accountName': self.account.displayName,
+                              'subject': self.mailMessage.subject})
 
             self.mailMessage.outgoingMessage(self.account)
             now = datetime.now(ICUtzinfo.default)
@@ -284,10 +292,6 @@ class SMTPClient(object):
     def _testAccountSettings(self):
         if __debug__:
             trace("_testAccountSettings")
-
-        if Globals.options.offline:
-            alert(constants.TEST_OFFLINE)
-            return self._resetClient()
 
         if self.cancel or self.shuttingDown:
             return self._resetClient()

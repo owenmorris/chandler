@@ -350,24 +350,41 @@ class LogWindow(wx.Dialog):
 
 
 def displayI18nManagerDebugWindow(frame):
-    win = I18nManagerDebugWindow(frame, -1)
+    import i18n
+    win = DebugWindow(frame, -1, u"I18nManager Resource Debugger",
+                      i18n._I18nManager.getDebugString())
     win.CenterOnScreen()
     win.ShowModal()
     win.Destroy()
 
-class I18nManagerDebugWindow(wx.Dialog):
-    def __init__(self, parent, ID,size=wx.DefaultSize,
-           pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
+def displayMeAddressDebugWindow(frame, view):
+    from application import schema
 
-        import i18n
+    list = []
+
+    meAddressCollection = schema.ns("osaf.pim", view).meAddressCollection
+
+    for eAddr in meAddressCollection:
+        list.append(eAddr.emailAddress)
+
+    win = DebugWindow(frame, -1, u"Me Address Collection Debugger",
+                      u'\n'.join(list), tsize=[400,300])
+
+    win.CenterOnScreen()
+    win.ShowModal()
+    win.Destroy()
+
+class DebugWindow(wx.Dialog):
+    def __init__(self, parent, ID, title, text, size=wx.DefaultSize,
+           pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
+           tsize=[600,500]):
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, "I18nManager Resource Debugger",
-                   pos, size, style)
+        pre.Create(parent, ID, title, pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -377,17 +394,19 @@ class I18nManagerDebugWindow(wx.Dialog):
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        text = wx.TextCtrl(self, -1,
-               i18n._I18nManager.getDebugString(),
-               pos=wx.DefaultPosition, size=[600,500], 
+        txt = wx.TextCtrl(self, -1, text,
+               pos=wx.DefaultPosition, size=tsize,
                style=wx.TE_MULTILINE)
 
-        text.ShowPosition(text.GetLastPosition())
+        txt.SetEditable(False)
 
-        sizer.Add(text, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+        txt.ShowPosition(txt.GetLastPosition())
 
-        line = wx.StaticLine(self, -1, size=(20,-1), 
+        sizer.Add(txt, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+
+        line = wx.StaticLine(self, -1, size=(20,-1),
                             style=wx.LI_HORIZONTAL)
+
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)

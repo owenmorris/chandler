@@ -33,19 +33,23 @@ INVALID_EMAIL_ADDRESS = _(u"Email Address %(emailAddress)s is not valid")
 
 """Translatable message strings for downloads (POP, IMAP)"""
 DOWNLOAD_ERROR = _(u"An error occurred while downloading:\n%(error)s")
-DOWNLOAD_NO_MESSAGES = _(u"No new messages found")
-DOWNLOAD_MESSAGES = _(u"%(numberOfMessages)s messages downloaded to Chandler")
-DOWNLOAD_CHECK_MESSAGES = _(u"Checking for new mail messages")
 DOWNLOAD_REQUIRES_TLS = _(u"The Server only allows secure login. Please enable TLS or SSL.")
-DOWNLOAD_OFFLINE = _(u"Offline Mode: no mail downloaded")
-DOWNLOAD_START = _(u"Getting new Mail")
+
+DOWNLOAD_NO_MESSAGES = _(u"%(accountName)s: no new messages found")
+DOWNLOAD_MESSAGES = _(u"%(accountName)s: %(numberOfMessages)s messages downloaded to Chandler")
+DOWNLOAD_CHECK_MESSAGES = _(u"%(accountName)s: checking for new mail messages")
+DOWNLOAD_START_MESSAGES = _(u"%(accountName)s: downloading %(numberOfMessages)s messages to Chandler")
+DOWNLOAD_OFFLINE = _(u"%(accountName)s: offline mode no mail downloaded")
+DOWNLOAD_START = _(u"%(accountName)s: connecting to server %(serverDNSName)s")
 
 """Translatable message strings for uploads(SMTP)"""
 UPLOAD_BAD_REPLY_ADDRESS = _(u"The Reply-To Address %(emailAddress)s is not valid")
 UPLOAD_FROM_REQUIRED = _(u"A From Address is required to send a Mail Message")
 UPLOAD_TO_REQUIRED = _(u"A To Address is required to send an SMTP Mail Message")
-UPLOAD_OFFLINE = _(u'Offline Mode: Mail "%(subject)s" queued for sending.')
-UPLOAD_START = _(u'Sending mail ...')
+
+UPLOAD_OFFLINE = _(u'%(accountName)s: Chandler is offline, "%(subject)s" queued for sending')
+UPLOAD_START = _(u'%(accountName)s: sending mail message "%(subject)s"')
+UPLOAD_SENT = _(u'%(accountName)s: mail message "%(subject)s" sent')
 
 
 """Translatable message strings for account testing"""

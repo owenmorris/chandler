@@ -286,22 +286,22 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
             # from the all collection if they're unstamped
             #
             # Make an email ...
-            aMessage = Mail.MailMessage("aNewMessage", itsView=view).itsItem
-            self.setAttributes(aMessage)
-            
+            aMessage = Mail.MailMessage("aNewMessage", itsView=view)
+            self.setAttributes(aMessage.itsItem)
+
             # Make sure it's in "Out"
-            Mail.MailStamp(aMessage).isOutbound = True
+            aMessage.fromMe = True
             outCollection = schema.ns("osaf.pim", view).outCollection
-            
-            self.failUnless(aMessage in outCollection)
-            
+
+            self.failUnless(aMessage.itsItem in outCollection)
+
             # unstamp its emailness
-            self.traverseStampSquence(aMessage,
+            self.traverseStampSquence(aMessage.itsItem,
                                       (('add', taskStamp),
                                       ('remove', mailStamp)))
             
             allCollection = schema.ns("osaf.pim", view).allCollection
-            self.failUnless(aMessage in allCollection)
+            self.failUnless(aMessage.itsItem in allCollection)
             
     def testStampWelcomeNote(self):
         

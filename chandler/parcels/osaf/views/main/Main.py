@@ -112,7 +112,9 @@ class MainView(View):
         Called when the SMTP Send was successful.
         """
         if mailMessage is not None and mailMessage.isOutbound:
-            self.setStatusMessage (_(u'Mail "%(subject)s" sent.') % {'subject': mailMessage.subject})
+            self.setStatusMessage (constants.UPLOAD_SENT % \
+                                   {'accountName': mailMessage.parentAccount.displayName,
+                                   'subject': mailMessage.subject})
 
         # If this was a sharing invitation, find its collection and remove the
         # successfully-notified addressees from the invites list.
@@ -861,6 +863,8 @@ class MainView(View):
         )
         rv.commit()
 
+    def onShowMeAddressCollectionDebugWindowEvent(self, event):
+        application.dialogs.Util.displayMeAddressDebugWindow(wx.GetApp().mainFrame, self.itsView)
 
     def onShowI18nManagerDebugWindowEvent(self, event):
         application.dialogs.Util.displayI18nManagerDebugWindow(wx.GetApp().mainFrame)

@@ -44,12 +44,17 @@ from osaf.pim.calendar import EventStamp
 from osaf.pim import Remindable
 
 """
+
+ISSUES:
+===========
+1. Why is from check getting called with invalid address and then called again. The first call
+   is always the current me address wierd.
+
 TO DO:
+=========
 1. Rethink MailDeliveryError logic
 2. Reread POP spec for UID logic
 3. Rename messageDownloadSequence
-4. Deprecate isOutbound when in / out collection logic complete
-5. Incoming message a good place to set in collection logic
 
 Design Issues:
       1. Is tries really needed
@@ -83,6 +88,7 @@ def __populateBody(mailStamp, bodyHeader=u"", includeMailHeaders=False, includeE
             buffer.append(u"> Cc: %s" % ", ".join(cc))
 
         m = PyICU.DateFormat.createDateTimeInstance(PyICU.DateFormat.kMedium)
+
         dateSent = _(u"Sent: %(dateSent)s") % {'dateSent': m.format(mailStamp.dateSent)}
         buffer.append(u"> %s" % dateSent)
 
@@ -155,6 +161,8 @@ def __actionOnMessage(view, mailStamp, action="REPLY"):
     assert(action == "REPLY" or action == "REPLYALL" or action == "FORWARD")
 
     newMailStamp = MailMessage(itsView=view)
+    newMailStamp.InitOutgoingAttributes()
+
     hasEvent = stamping.has_stamp(mailStamp.itsItem, EventStamp)
 
     #This could be None
@@ -242,6 +250,10 @@ def __actionOnMessage(view, mailStamp, action="REPLY"):
 
         newMailStamp.body = __populateBody(mailStamp, bodyHeader, True, hasEvent)
 
+    #add to dashboard by making mine
+    schema.ns('osaf.pim', view).allCollection.add(newMailStamp.itsItem)
+    newMailStamp.itsItem.mine = True
+
     try:
         view.commit()
     except RepositoryError, e:
@@ -269,32 +281,61 @@ def forwardMessage(view, mailStamp):
     """
     return __actionOnMessage(view, mailStamp, "FORWARD")
 
-def __resetMailStamp(mailStamp):
-    mailStamp.toAddress = []
-    mailStamp.ccAddress = []
-    mailStamp.bccAddress = []
-    mailStamp.fromAddress = None
-    mailStamp.replyToAddress = None
-    mailStamp.chandlerHeaders.clear()
-    mailStamp.headers.clear()
-    mailStamp.dateSentString = u""
-    mailStamp.deliveryExtension = None
-    #XXX this value will soon be deprecated
-    mailStamp.isOutbound = True
-    mailStamp.referencesMID = []
-    mailStamp.spamScore = 0.0
-    mailStamp.mimeContent = None
-    mailStamp.messageId = u""
 
-    try:
-        # Clear the lob value
-        stream = mailStamp.rfc2822Message.getOutputStream()
-        stream.close()
-    except AttributeError:
-        pass
+def checkIfToMe(mailStamp, type):
+    assert(isinstance(mailStamp, MailStamp))
 
-    mailStamp.itsItem.body = u""
+    view = mailStamp.itsItem.itsView
 
+    meAddressCollection = schema.ns("osaf.pim", view).meAddressCollection
+
+    found = False
+
+    if type == 0:
+        for addr in mailStamp.toAddress:
+            if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
+                found = True
+                break
+
+    elif type == 1:
+        if mailStamp.ccAddress:
+            for addr in mailStamp.ccAddress:
+                if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
+                    found = True
+                    break
+    else:
+        #invalid type passed
+        return
+
+    if found != mailStamp.toMe:
+        mailStamp.toMe = found
+
+def checkIfFromMe(mailStamp, type):
+    assert(isinstance(mailStamp, MailStamp))
+
+    view = mailStamp.itsItem.itsView
+
+    meAddressCollection = schema.ns("osaf.pim", view).meAddressCollection
+
+    found = False
+
+    if type == 0:
+        if mailStamp.fromAddress is not None and \
+           EmailAddress.findEmailAddress(view, mailStamp.fromAddress.emailAddress, \
+                                         meAddressCollection):
+            found = True
+
+    elif type == 1:
+        if mailStamp.replyToAddress != None and \
+           EmailAddress.findEmailAddress(view, mailStamp.replyToAddress.emailAddress, \
+                                         meAddressCollection):
+            found = True
+    else:
+        #invalid type passed
+        return
+
+    if found != mailStamp.fromMe:
+        mailStamp.fromMe = found
 
 def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
     """
@@ -456,7 +497,7 @@ class DownloadAccountBase(AccountBase):
     downloadMax = schema.One(
         schema.Integer,
         doc = 'The maximum number of messages to download before forcing a repository commit',
-        initialValue = 20,
+        initialValue = 6,
     )
 
     replyToAddress = schema.One(
@@ -470,6 +511,32 @@ class DownloadAccountBase(AccountBase):
     fullName = schema.One(
         redirectTo = 'replyToAddress.fullName',
     )
+
+    @schema.observer(replyToAddress)
+    def onReplyToAddressChange(self, op, name):
+        emailAddress = getattr(self, 'emailAddress', None)
+
+        if emailAddress and EmailAddress.isValidEmailAddress(emailAddress):
+            meAddressCollection = schema.ns("osaf.pim", self.itsView).meAddressCollection
+
+            addr = EmailAddress.findEmailAddress(self.itsView, emailAddress, meAddressCollection)
+
+            if addr is None:
+                meAddressCollection.append(self.replyToAddress)
+
+                for item in self.replyToAddress.messagesFrom:
+                    checkIfFromMe(MailStamp(item), 0)
+
+                for item in self.replyToAddress.messagesReplyTo:
+                    checkIfFromMe(MailStamp(item), 1)
+
+                for item in self.replyToAddress.messagesTo:
+                    checkIfToMe(MailStamp(item), 0)
+
+                for item in self.replyToAddress.messagesCc:
+                    checkIfToMe(MailStamp(item), 1)
+
+                self.itsView.commit()
 
 
 class SMTPAccount(AccountBase):
@@ -531,6 +598,32 @@ class SMTPAccount(AccountBase):
         for item in cls.iterItems(view):
             if item.isActive and item.host:
                 yield item
+
+    @schema.observer(fromAddress)
+    def onFromAddressChange(self, op, name):
+        emailAddress = getattr(self, 'emailAddress', None)
+
+        if emailAddress and EmailAddress.isValidEmailAddress(emailAddress):
+            meAddressCollection = schema.ns("osaf.pim", self.itsView).meAddressCollection
+
+            addr = EmailAddress.findEmailAddress(self.itsView, emailAddress, meAddressCollection)
+
+            if addr is None:
+                meAddressCollection.append(self.fromAddress)
+
+                for item in self.fromAddress.messagesFrom:
+                    checkIfFromMe(MailStamp(item), 0)
+
+                for item in self.fromAddress.messagesReplyTo:
+                    checkIfFromMe(MailStamp(item), 1)
+
+                for item in self.fromAddress.messagesTo:
+                    checkIfToMe(MailStamp(item), 0)
+
+                for item in self.fromAddress.messagesCc:
+                    checkIfToMe(MailStamp(item), 1)
+
+                self.itsView.commit()
 
 class IMAPAccount(DownloadAccountBase):
 
@@ -788,19 +881,19 @@ class MailStamp(stamping.Stamp):
 
     schema.kindInfo(annotates = notes.Note)
     __use_collection__ = True
-    
+
     mimeContent = schema.One(
         MIMEContainer,
         defaultValue=None,
     )
-    
+
     deliveryExtension = schema.One(
         MailDeliveryBase,
         initialValue = None,
         inverse = MailDeliveryBase.mailMessage,
     )
 
-    isOutbound = schema.One(schema.Boolean, initialValue = True)
+    isOutbound = schema.One(schema.Boolean, initialValue = False)
 
     parentAccount = schema.One(
         AccountBase, initialValue = None, inverse = AccountBase.mailMessages,
@@ -845,9 +938,34 @@ class MailStamp(stamping.Stamp):
 
     chandlerHeaders = schema.Mapping(schema.Text, initialValue = {})
 
+    fromMe = schema.One(schema.Boolean, initialValue=False, doc = "Boolean flag used to signal that the MailStamp instance contains a from or reply to address that matches one or more of the me addresses")
+
+    toMe = schema.One(schema.Boolean, initialValue=False, doc = "boolean flag used to signal that the MailStamp instance contains a to or cc address that matches one or more of the me addresses")
+
+    @schema.observer(fromAddress, replyToAddress)
+    def onFromMeChange(self, op, name):
+        if op != "set":
+            return
+
+        if name.endswith("fromAddress"):
+            checkIfFromMe(self, 0)
+        else:
+            checkIfFromMe(self, 1)
+
+    @schema.observer(toAddress, ccAddress)
+    def onToMeChange(self, op, name):
+        if op != "set":
+            return
+
+        if name.endswith("toAddress"):
+            checkIfToMe(self, 0)
+        else:
+            checkIfToMe(self, 1)
+
     @schema.observer(toAddress, isOutbound, stamping.Stamp.stamp_types)
     def onAddressChange(self, op, name):
         self.itsItem.updateDisplayWho(op, name)
+
     def addDisplayWhos(self, whos):
         # @@@ This code doesn't choose the right 'who' yet, but has enough
         # context to make the decision here. (If the decision depends
@@ -866,11 +984,11 @@ class MailStamp(stamping.Stamp):
 
     schema.addClouds(
         sharing = schema.Cloud(
-            byValue = [fromAddress, toAddress,
+            byValue = [fromAddress, toAddress, dateSent,
                        ccAddress, bccAddress, replyToAddress],
         ),
         copying = schema.Cloud(
-            mimeContent,
+            mimeContent, dateSent,
             fromAddress, toAddress, ccAddress, bccAddress, replyToAddress,
         ),
     )
@@ -880,6 +998,7 @@ class MailStamp(stamping.Stamp):
         Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
+        self.isOutbound = True
         self.itsItem.InitOutgoingAttributes()
 
     # [Bug 6815] Because of schema loading issues, not all
@@ -904,7 +1023,7 @@ class MailStamp(stamping.Stamp):
         """
 
         super(MailStamp, self).add()
-        
+
         if getattr(self, 'mimeContent', None) is None:
             self.mimeContent = MIMEContainer(itsView=self.itsItem.itsView,
                                                mimeType='message/rfc822')
@@ -932,22 +1051,27 @@ class MailStamp(stamping.Stamp):
         if self.deliveryExtension is None:
             self.deliveryExtension = SMTPDelivery(itsView=self.itsItem.itsView)
 
-        #XXX: Get rid of this
         self.isOutbound = True
         self.parentAccount = account
 
     def incomingMessage(self, account, type="IMAP"):
         assert isinstance(account, DownloadAccountBase)
 
+        view = self.itsItem.itsView
+
         if self.deliveryExtension is None:
             if type == "IMAP":
-                 self.deliveryExtension = IMAPDelivery(itsView=self.itsItem.itsView)
+                 self.deliveryExtension = IMAPDelivery(itsView=view)
             elif type == "POP":
-                 self.deliveryExtension = POPDelivery(itsView=self.itsItem.itsView)
+                 self.deliveryExtension = POPDelivery(itsView=view)
 
-        #XXX: Get rid of this
         self.isOutbound = False
         self.parentAccount = account
+
+        #Add to the dashboard
+        schema.ns('osaf.pim', view).allCollection.add(self.itsItem)
+        self.itsItem.mine = True
+
 
     def getAttachments(self):
         """
@@ -1316,11 +1440,14 @@ Issues:
         return cmp(self.fullName.lower(), other.fullName.lower())
 
     @classmethod
-    def findEmailAddress(cls, view, emailAddress):
+    def findEmailAddress(cls, view, emailAddress, collection=None):
         """
         Find a single EmailAddress that exactly matches this one.
         """
-        collection = schema.ns("osaf.pim", view).emailAddressCollection
+
+        if collection is None:
+            collection = schema.ns("osaf.pim", view).emailAddressCollection
+
         emailAddress = emailAddress.lower()
 
         def compareAddr(uuid):

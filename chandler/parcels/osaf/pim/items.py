@@ -170,6 +170,7 @@ class ContentItem(schema.Item):
         doc="A flag indicating that the user wants to reply to this item"
     )
 
+
     createdOn = schema.One(
         schema.DateTimeTZ,
         doc="DateTime this item was created"

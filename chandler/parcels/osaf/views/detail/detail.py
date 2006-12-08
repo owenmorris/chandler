@@ -453,34 +453,36 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
         item = self.item
         if item is None or not self._isStampable(item):
             return
-            
+
         stampClass = self.stampClass
         if pim.has_stamp(item, self.stampClass):
             stampClass(item).remove()
         else:
             startTimeExists = hasattr(item, pim.EventStamp.startTime.name)
             stampClass(item).add()
-  
+
+            if stampClass == Mail.MailStamp:
+                stampClass(item).InitOutgoingAttributes()
+
             if stampClass == Calendar.EventStamp and not startTimeExists:
                 # If the item is being stamped as CalendarEvent, parse the body
                 # of the item for date/time information, if the item does not
                 # already have a startTime. 
                 startTime, endTime, countFlag, typeFlag = \
                          pim.calendar.Calendar.parseText(item.body)
-                
+
                 statusMsg = { 0:_(u"No date/time found"),
                               1:_(u"Event set to the date/time found"),
                               2:_(u"Multiple date/times found")}
-                             
+
                 # Set the appropriate status message in the status bar
                 wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage',
                                                 statusMsg[countFlag])
-                                        
+
                 # Set the event's start and end date/time
                 pim.calendar.Calendar.setEventDateTime(item, startTime, endTime,
                                                        typeFlag)
-                  
-                
+
         #logger.debug("%s: stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
         #logger.debug("%s: done stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
 
@@ -1724,7 +1726,7 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
         """
         choices = []
         for acct in Mail.DownloadAccountBase.getKind(self.item.itsView).iterItems():
-            if (acct.isActive and acct.replyToAddress is not None 
+            if (acct.isActive and acct.replyToAddress is not None
                 and len(acct.replyToAddress.emailAddress) > 0):
                 addr = unicode(acct.replyToAddress) # eg "name <addr@ess>"
                 if not addr in choices:
@@ -1732,7 +1734,7 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
 
         # Also include any SMTP accounts which have their 'fromAddress' set:
         for acct in Mail.SMTPAccount.getKind(self.item.itsView).iterItems():
-            if (acct.isActive and acct.fromAddress is not None 
+            if (acct.isActive and acct.fromAddress is not None
                 and len(acct.fromAddress.emailAddress) > 0):
                 addr = unicode(acct.fromAddress) # eg "name <addr@ess>"
                 if not addr in choices:

@@ -112,6 +112,7 @@ class SearchEvent(AddToSidebarEvent):
             pim.calendar.Calendar.EventStamp(item).add()
         if msgFlag:
             pim.mail.MailStamp(item).add()
+            pim.mail.MailStamp(item).InitOutgoingAttributes()
    
         # Set a reminder if the item is not an event but it has time
         if (not eventFlag) and (typeFlag != 0) :
@@ -356,6 +357,8 @@ def makeMainEvents(parcel):
     BlockEvent.template('i18nMailTest').install(parcel)
 
     BlockEvent.template('ShowI18nManagerDebugWindow').install(parcel)
+
+    BlockEvent.template('ShowMeAddressCollectionDebugWindow').install(parcel)
 
     BlockEvent.template('ShowLogWindow').install(parcel)
 

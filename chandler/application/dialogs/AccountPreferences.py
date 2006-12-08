@@ -22,7 +22,7 @@ import wx.xrc
 import webbrowser
 
 import application.schema as schema
-import application.Globals
+from   application import Globals
 import application.Parcel
 import application.dialogs.Util
 import osaf.pim.mail as Mail
@@ -954,7 +954,7 @@ class AccountPreferencesDialog(wx.Dialog):
             if self.modal:
                 self.EndModal(True)
             self.rv.commit()
-            application.Globals.mailService.refreshMailServiceCache()
+            Globals.mailService.refreshMailServiceCache()
             self.Destroy()
 
     def OnCancel(self, evt):
@@ -1052,7 +1052,14 @@ class AccountPreferencesDialog(wx.Dialog):
         account.password = data['IMAP_PASSWORD']
 
         self.rv.commit()
-        AccountTestDialog.TestAccountSettingsDialog("IMAP", account)
+
+        if Globals.options.offline:
+            from osaf.mail import constants
+            wx.GetApp().CallItemMethodAsync("MainView", \
+                                            "alertUser", \
+                                            constants.TEST_OFFLINE)
+        else:
+            AccountTestDialog.TestAccountSettingsDialog("IMAP", account)
 
     def OnTestSMTP(self, evt):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1071,7 +1078,14 @@ class AccountPreferencesDialog(wx.Dialog):
         account.password = data['SMTP_PASSWORD']
 
         self.rv.commit()
-        AccountTestDialog.TestAccountSettingsDialog("SMTP", account)
+
+        if Globals.options.offline:
+            from osaf.mail import constants
+            wx.GetApp().CallItemMethodAsync("MainView", \
+                                            "alertUser", \
+                                             constants.TEST_OFFLINE)
+        else:
+            AccountTestDialog.TestAccountSettingsDialog("SMTP", account)
 
     def OnTestPOP(self, evt):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1089,7 +1103,13 @@ class AccountPreferencesDialog(wx.Dialog):
         account.password = data['POP_PASSWORD']
 
         self.rv.commit()
-        AccountTestDialog.TestAccountSettingsDialog("POP", account)
+        if Globals.options.offline:
+            from osaf.mail import constants
+            wx.GetApp().CallItemMethodAsync("MainView", \
+                                            "alertUser", \
+                                            constants.TEST_OFFLINE)
+        else:
+            AccountTestDialog.TestAccountSettingsDialog("POP", account)
 
     def OnTestWebDAV(self, evt):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1226,7 +1246,7 @@ class AccountPreferencesDialog(wx.Dialog):
 def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
 
     # Parse the XRC resource file:
-    xrcFile = os.path.join(application.Globals.chandlerDirectory,
+    xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'AccountPreferences.xrc')
 
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths

@@ -113,6 +113,14 @@ def installParcel(parcel, oldVersion=None):
 
     mine = UnionCollection.update(parcel, 'mine')
 
+    meAddressCollection = ListCollection.update(
+        parcel, 'meAddressCollection')
+
+    meAddressCollection.addIndex('emailAddress', 'compare',
+                                    compare='_compareAddr',
+                                    monitor='emailAddress')
+
+
     # it would be nice to get rid of these intermediate fully-fledged
     # item collections, and replace them with lower level Set objects
     mineNotes = IntersectionCollection.update(parcel, 'mineNotes',
@@ -249,7 +257,7 @@ def installParcel(parcel, oldVersion=None):
     locations.addIndex('locationName', 'attribute', attribute = 'displayName')
 
     mailCollection = mail.MailStamp.getCollection(view)
-    
+
     emailAddressCollection = \
         KindCollection.update(parcel, 'emailAddressCollection',
                               kind=mail.EmailAddress.getKind(view),
@@ -264,10 +272,10 @@ def installParcel(parcel, oldVersion=None):
     inSource = FilteredCollection.update(
         parcel, 'inSource',
         source=mailCollection,
-        filterExpression="not view.findValue(uuid, '%s', True)" % 
-                            (mail.MailStamp.isOutbound.name,),
-        filterAttributes=[mail.MailStamp.isOutbound.name])
-    # this index must be added to shield from the duplicate 
+        filterExpression="view.findValue(uuid, '%s', True)" % 
+                            (mail.MailStamp.toMe.name,),
+        filterAttributes=[mail.MailStamp.toMe.name])
+    # this index must be added to shield from the duplicate
     # source (mailCollection) that is going to be in mine
     inSource.addIndex('__adhoc__', 'numeric')
 
@@ -282,9 +290,9 @@ def installParcel(parcel, oldVersion=None):
     outSource = FilteredCollection.update(parcel, 'outSource',
         source=mailCollection,
         filterExpression=u"view.findValue(uuid, '%s', False)" %
-                           (mail.MailStamp.isOutbound.name,),
-        filterAttributes=[mail.MailStamp.isOutbound.name])
-    # this index must be added to shield from the duplicate 
+                           (mail.MailStamp.fromMe.name,),
+        filterAttributes=[mail.MailStamp.fromMe.name])
+    # this index must be added to shield from the duplicate
     # source (mailCollection) that is going to be in mine
     outSource.addIndex('__adhoc__', 'numeric')
 
@@ -306,7 +314,7 @@ def installParcel(parcel, oldVersion=None):
         displayName=_(u"Notifications"),
         kind=UserNotification.getKind(view),
         recursive=True).addIndex('timestamp', 'value', attribute='timestamp')
-        
+
     tzInstallParcel(parcel)
 
 del schema  # don't leave this lying where others might accidentally import it

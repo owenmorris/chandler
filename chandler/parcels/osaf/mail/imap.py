@@ -240,7 +240,8 @@ class IMAPClient(base.AbstractDownloadClient):
             callMethodInUIThread(self.callback, (1, None))
             return self._actionCompleted()
 
-        setStatusMessage(constants.DOWNLOAD_CHECK_MESSAGES)
+        setStatusMessage(constants.DOWNLOAD_CHECK_MESSAGES % \
+                        {'accountName': self.account.displayName})
 
         d = self.proto.select("INBOX"
                    ).addCallback(self._checkForNewMessages
@@ -261,7 +262,9 @@ class IMAPClient(base.AbstractDownloadClient):
             return self._actionCompleted()
 
         if msgs['EXISTS'] == 0:
-            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES)
+            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
+                             {'accountName': self.account.displayName})
+
             return self._actionCompleted()
 
         if self._getNextUID() == 0:
@@ -291,9 +294,17 @@ class IMAPClient(base.AbstractDownloadClient):
             if not "\\Deleted" in message['FLAGS']:
                 self.pending.append([luid, message['FLAGS']])
 
-        if len(self.pending) == 0:
-            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES)
+        numPending = len(self.pending)
+
+        if numPending == 0:
+            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
+                             {'accountName': self.account.displayName})
+
             return self._actionCompleted()
+
+        setStatusMessage(constants.DOWNLOAD_START_MESSAGES % \
+                         {"accountName": self.account.displayName,
+                          "numberOfMessages": numPending})
 
         self._getNextMessageSet()
 
