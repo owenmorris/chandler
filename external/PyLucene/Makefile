@@ -136,7 +136,7 @@ build: expand apply
 test:
 	$(MAKE) -C $(SRC) PYTHON=$(PYTHON) test
 
-ifeq (/,$(SRC))
+ifneq (/,$(SRC))
 clean: $(SRC)
 	$(MAKE) -C $(SRC) clean
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst

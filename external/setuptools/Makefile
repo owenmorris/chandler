@@ -34,3 +34,8 @@ install: $(TARBALL)
 drop:
 	# chandler/Makefile expects it there
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
+
+ifneq (/,$(SRC)/$(BUILD))
+clean:
+	rm -rf $(SRC)/$(BUILD)
+endif
