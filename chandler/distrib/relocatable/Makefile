@@ -29,7 +29,6 @@ deploy:
 	mkdir -p $(DSTDIR)/chandler/windows/archives
 	mkdir -p $(DSTDIR)/chandler/profile
 	cd $(DSTDIR)/chandler; svn co $(SVNURL) chandler
-	cp -p ../../Makefile $(DSTDIR)/chandler/chandler/Makefile
 	$(MAKE) -f $(DSTDIR)/chandler/chandler/Makefile -e \
                 CHANDLERBIN="$(DSTDIR)/chandler/mac" \
                 CHANDLERARCHIVES="$(DSTDIR)/chandler/mac/archives" \
