@@ -1,3 +1,75 @@
+
+
+"""
+This module supports serializing of EIM recordsets to "EIMML" and back.
+
+>>> from osaf import sharing
+>>> class TestRecord(sharing.Record):
+...     textField = sharing.field(sharing.TextType(size=100))
+...     decimalField = sharing.field(sharing.DecimalType(digits=11,
+...                                  decimal_places=2))
+...     dateField = sharing.field(sharing.DateType)
+
+
+Translate text values:
+
+>>> value = deserializeValue(TestRecord.textField.typeinfo, 'xyzzy')
+>>> value
+'xyzzy'
+>>> serializeValue(TestRecord.textField.typeinfo, value)
+'xyzzy'
+
+
+Translate decimal values:
+
+>>> value = deserializeValue(TestRecord.decimalField.typeinfo, '123.45')
+>>> value
+Decimal("123.45")
+>>> serializeValue(TestRecord.decimalField.typeinfo, value)
+'123.45'
+
+
+Translate datetime values:
+
+>>> value = deserializeValue(TestRecord.decimalField.typeinfo, '123.45')
+>>> value
+Decimal("123.45")
+>>> serializeValue(TestRecord.decimalField.typeinfo, value)
+'123.45'
+
+
+TODO: int, lob, bytes
+
+
+Serialize and deserialize entire record sets:
+
+>>> sample = '''<?xml version="1.0" encoding="UTF-8"?>
+...
+... <eim:records
+... xmlns:eim="http://osafoundation.org/eimml/core"
+... xmlns:item="http://osafoundation.org/eimml/item"
+... xmlns:event="http://osafoundation.org/eimml/event"
+... xmlns:note="http://osafoundation.org/eimml/note">
+... <eim:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
+...    <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" created_on ="2006-11-29 12:25:31 US/Pacific" />
+...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="VGhpcyBpcyB0aGUgYm9keQ==" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
+...    <event:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" rrule="FREQ=WEEKLY" status="CONFIRMED" />
+... </eim:recordset>
+... </eim:records>'''
+
+>>> recordSets = deserialize(sample)
+>>> recordSets
+{'8501de14-1dc9-40d4-a7d4-f289feff8214': [ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]}
+
+>>> text = serialize(recordSets)
+>>> text
+'<ns0:records xmlns:ns0="http://osafoundation.org/eimml/core"><ns0:item uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record created_on="2006-11-29 12:25:31 US/Pacific" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns1="http://osafoundation.org/eimml/item" /><ns1:record body="VGhpcyBpcyB0aGUgYm9keQ==" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns1="http://osafoundation.org/eimml/note" /><ns1:record dtend="20061130T150000" dtstart="20061130T140000" rrule="FREQ=WEEKLY" status="CONFIRMED" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns1="http://osafoundation.org/eimml/event" /></ns0:item></ns0:records>'
+
+>>> recordSets = deserialize(text)
+>>> recordSets
+{'8501de14-1dc9-40d4-a7d4-f289feff8214': [ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]}
+"""
+
 from osaf import sharing
 from osaf.sharing import recordtypes
 from osaf.sharing.simplegeneric import generic
@@ -6,7 +78,6 @@ import datetime, base64, decimal
 from xml.etree.ElementTree import (
     Element, SubElement, ElementTree, parse, tostring, fromstring
 )
-
 
 
 
@@ -117,76 +188,74 @@ def deserialize_date(typeinfo, text):
 
 
 
-class RecordSetSerializer(object):
+recordsURI = "http://osafoundation.org/eimml/core"
+recordSetURI = "http://osafoundation.org/eimml/core"
 
-    recordsURI = "http://osafoundation.org/eimml/core"
-    recordSetURI = "http://osafoundation.org/eimml/core"
+def serialize(recordSets):
+    """ Convert a list of record sets to XML text """
 
-    def serialize(self, recordSets):
-        """ Convert a list of record sets to XML text """
+    recordsElement = Element("{%s}records" % recordsURI)
 
-        recordsElement = Element("{%s}records" % self.recordsURI)
+    for uuid, recordSet in recordSets.iteritems():
+        recordSetElement = SubElement(recordsElement,
+            "{%s}item" % recordSetURI, uuid=uuid)
 
-        for uuid, recordSet in recordSets.iteritems():
-            recordSetElement = SubElement(recordsElement,
-                "{%s}item" % self.recordSetURI, uuid=uuid)
+        for record in recordSet:
+            fields = {}
+            for field in record.__fields__:
+                value = record[field.offset]
+                if value != sharing.NoChange:
+                    serialized = serializeValue(field.typeinfo,
+                        record[field.offset])
+                    fields[field.name] = serialized
+            recordURI = record.URI
+            recordElement = SubElement(recordSetElement,
+                "{%s}record" % (recordURI), **fields)
 
-            for record in recordSet:
-                fields = {}
-                for field in record.__fields__:
-                    value = record[field.offset]
-                    if value != sharing.NoChange:
-                        serialized = serializeValue(field.typeinfo,
-                            record[field.offset])
-                        fields[field.name] = serialized
-                recordURI = record.URI
-                recordElement = SubElement(recordSetElement,
-                    "{%s}record" % (recordURI), **fields)
-
-        return tostring(recordsElement)
+    return tostring(recordsElement)
 
 
-    def deserialize(self, text):
-        """ Parse XML text into a list of record sets """
+def deserialize(text):
+    """ Parse XML text into a list of record sets """
 
-        recordSets = {}
+    recordSets = {}
 
-        recordsElement = fromstring(text) # xml parser
+    recordsElement = fromstring(text) # xml parser
 
-        for recordSetElement in recordsElement:
-            uuid = recordSetElement.get("uuid")
-            recordSet = RecordSet()
+    for recordSetElement in recordsElement:
+        uuid = recordSetElement.get("uuid")
+        recordSet = RecordSet()
 
-            for recordElement in recordSetElement:
-                ns, name = recordElement.tag[1:].split("}")
+        for recordElement in recordSetElement:
+            ns, name = recordElement.tag[1:].split("}")
 
-                # recordClass = eim.lookupRecordType(ns)
+            # recordClass = eim.lookupRecordType(ns)
 
-                # Fake lookup method:
-                if ns == "http://osafoundation.org/eimml/item":
-                    recordClass = recordtypes.ItemRecord
-                elif ns == "http://osafoundation.org/eimml/note":
-                    recordClass = recordtypes.NoteRecord
-                elif ns == "http://osafoundation.org/eimml/task":
-                    recordClass = recordtypes.TaskRecord
-                elif ns == "http://osafoundation.org/eimml/event":
-                    recordClass = recordtypes.EventRecord
+            # Fake lookup method:
+            if ns == "http://osafoundation.org/eimml/item":
+                recordClass = recordtypes.ItemRecord
+            elif ns == "http://osafoundation.org/eimml/note":
+                recordClass = recordtypes.NoteRecord
+            elif ns == "http://osafoundation.org/eimml/task":
+                recordClass = recordtypes.TaskRecord
+            elif ns == "http://osafoundation.org/eimml/event":
+                recordClass = recordtypes.EventRecord
 
-                values = []
-                for field in recordClass.__fields__:
-                    value = recordElement.get(field.name)
-                    if value is not None:
-                        value = deserializeValue(field.typeinfo, value)
-                    else:
-                        value = sharing.NoChange
-                    values.append(value)
+            values = []
+            for field in recordClass.__fields__:
+                value = recordElement.get(field.name)
+                if value is not None:
+                    value = deserializeValue(field.typeinfo, value)
+                else:
+                    value = sharing.NoChange
+                values.append(value)
 
-                record = recordClass(*values)
-                recordSet.append(record)
+            record = recordClass(*values)
+            recordSet.append(record)
 
-            recordSets[uuid] = recordSet
+        recordSets[uuid] = recordSet
 
-        return recordSets
+    return recordSets
 
 
 
@@ -272,10 +341,9 @@ sample2 = """<?xml version="1.0" encoding="UTF-8"?>
 </eim:records>
 """
 
+def _test():
+    import doctest
+    doctest.testmod()
+
 if __name__ == "__main__":
-    s = RecordSetSerializer()
-    recordSets = s.deserialize(sample)
-    text = s.serialize(recordSets)
-    print text
-    recordSets = s.deserialize(text)
-    print recordSets
+    _test()
