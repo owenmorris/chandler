@@ -1,0 +1,8 @@
+#!/bin/sh
+
+cd $(dirname "${0}")
+execdir="$PWD"
+rootdir="$(dirname $(dirname $(dirname $PWD)))"
+export CHANDLERHOME="${rootdir}/chandler"
+export CHANDLERBIN="${rootdir}/mac"
+exec "${CHANDLERBIN}/release/RunChandler" --profileDir="${rootdir}/profile" --repodir="${CHANDLERBIN}" --datadir=../../profile/data --logdir=../../profile/logs

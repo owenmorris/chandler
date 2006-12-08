@@ -2,7 +2,7 @@
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/ or internal/
 
-.PHONY: default install-core install distrib clean download downloads build-plugins install-plugin-core rst docs
+.PHONY: default install-core install distrib clean download downloads build-plugins install-plugin-core rst docs archives
 
 default: install
 
@@ -133,7 +133,11 @@ else
 endif
 
 # readline is only needed for OS X
-ifeq ($(OS),Darwin)
+# use PLATFORM so this target can be run on another OS
+ifeq ($(PLATFORM),macosx)
+    ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
+endif
+ifeq ($(PLATFORM),maciosx)
     ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
 endif
 
@@ -262,7 +266,9 @@ else
 manifest_exe:
 endif
 
-install-core: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe
+archives: $(ARCHIVES) $(ARCHIVES_INST)
+
+install-core: archives manifest_exe
 
 install-plugin-core: $(SETUPTOOLS_EGG) $(PYEGGS) setuptools chandler-locale-data $(PYEGGS_INST)
 
@@ -347,3 +353,19 @@ distclean: clean
 realclean: distclean
 	rm -f $(ARCHIVES)
 
+
+relocatable-distro:
+	$(MAKE) -C distrib/relocatable \
+                DSTDIR=`pwd`/relocatable \
+                SVNURL=`svn info | grep URL | sed 's/URL: //'` \
+                distro
+
+relocatable-starters:
+	$(MAKE) -C distrib/relocatable \
+                DSTDIR=`pwd`/relocatable \
+                starters
+
+relocatable-archive:
+	$(MAKE) -C distrib/relocatable \
+                DSTDIR=`pwd`/relocatable \
+                archive
