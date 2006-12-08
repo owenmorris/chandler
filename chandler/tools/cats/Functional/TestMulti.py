@@ -70,10 +70,17 @@ class TestMulti(ChandlerTestCase):
         note = QAUITestAppLib.UITestItem("Note", self.logger)
         # action -- Add to TestCollection
         note.AddCollection(uw("TestCollection"))
-        # action -- Set Note attributes
-        note.SetAttr(displayName=uw("Test Note in TestCollection"), body=uw("This is the body, can i give it \n for new line."))
         # action -- Stamp as Mail message
         note.StampAsMailMessage(True)
+
+        # action -- Set Note attributes
+        #XXX Moving the attribute setting after stamping
+        #    fixes an issue where the displayName was not getting set.
+        #    I am not sure of the reasoning of why this was
+        #    failing but believe it has to do
+        #    with either the CATS or CPIA layers
+        note.SetAttr(displayName= uw("Test Note in TestCollection"), body=uw("This is the body, can i give it \n for new line."))
+
         # action -- Set attributes for mail sending
         note.SetAttr(toAddress="demo2@osafoundation.org")
         # action -- Send the Mail message
@@ -82,6 +89,7 @@ class TestMulti(ChandlerTestCase):
         note.StampAsCalendarEvent(True)
         # action -- Set Event attributes
         note.SetAttr(startDate="09/12/2004", startTime="6:00 PM", location=uw("Club101"), status="FYI",timeZone="US/Central", recurrence="Daily", recurrenceEnd="9/14/2005")
+
         
         # verification -- Collection Display
         col.Check_CollectionExistence(uw("TestCollection"))
