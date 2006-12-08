@@ -179,7 +179,7 @@ static PyTypeObject DBEnvType = {
 };
 
 
-static int _t_env_close(t_env *self, int flags)
+static int _t_env_close(t_env *self, int flags, int noError)
 {
     if (self->db_env)
     {
@@ -193,7 +193,8 @@ static int _t_env_close(t_env *self, int flags)
 
         if (err)
         {
-            raiseDBError(err);
+            if (!noError)
+                raiseDBError(err);
             return -1;
         }
 
@@ -207,7 +208,7 @@ static int _t_env_close(t_env *self, int flags)
 
 static void t_env_dealloc(t_env *self)
 {
-    _t_env_close(self, 0);
+    _t_env_close(self, 0, 1);
     Py_XDECREF(self->errfile);
     self->ob_type->tp_free((PyObject *) self);
 }
@@ -286,7 +287,7 @@ static PyObject *t_env_close(t_env *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "|i", &flags))
         return NULL;
 
-    if (_t_env_close(self, flags) < 0)
+    if (_t_env_close(self, flags, 0) < 0)
         return NULL;
         
     Py_RETURN_NONE;

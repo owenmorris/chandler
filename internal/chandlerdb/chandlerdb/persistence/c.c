@@ -44,6 +44,7 @@ PyObject *PyExc_DBNotFoundError = NULL;
 PyObject *PyExc_DBNoSuchFileError = NULL;
 PyObject *PyExc_DBPermissionsError = NULL;
 PyObject *PyExc_DBVersionMismatchError = NULL;
+PyObject *PyExc_DBRunRecoveryError = NULL;
 
 
 PyObject *raiseDBError(int err)
@@ -80,6 +81,9 @@ PyObject *raiseDBError(int err)
         break;
       case DB_NOTFOUND:
         obj = PyExc_DBNotFoundError;
+        break;
+      case DB_RUNRECOVERY:
+        obj = PyExc_DBRunRecoveryError;
         break;
       case DB_PYTHON_ERROR:
         return NULL;
@@ -137,6 +141,7 @@ void initc(void)
     MAKE_EXC(m, DBNoSuchFileError, DBError);
     MAKE_EXC(m, DBPermissionsError, DBError);
     MAKE_EXC(m, DBVersionMismatchError, DBError);
+    MAKE_EXC(m, DBRunRecoveryError, DBError);
 
     PyModule_AddIntConstant(m, "DB_VERSION_MAJOR", DB_VERSION_MAJOR);
     PyModule_AddIntConstant(m, "DB_VERSION_MINOR", DB_VERSION_MINOR);
