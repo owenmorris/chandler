@@ -20,10 +20,9 @@ logger = logging.getLogger(__name__)
 # collaborate on them
 
 
-text20 = sharing.TextType("http://osafoundation.org/xyzzy/text20", size=20)
-text256 = sharing.TextType("http://osafoundation.org/xyzzy/text256", size=256)
-text1024 = sharing.TextType("http://osafoundation.org/xyzzy/text1024",
-    size=1024)
+text20 = sharing.TextType(size=20)
+text256 = sharing.TextType(size=256)
+text1024 = sharing.TextType(size=1024)
 
 class ItemRecord(sharing.Record):
     URI = "http://osafoundation.org/eimml/item"
