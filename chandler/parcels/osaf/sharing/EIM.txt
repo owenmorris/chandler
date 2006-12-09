@@ -59,8 +59,17 @@ Lost update checking/conflict detection between diff records::
     >>> diff1 - diff3   # if diff1 is overwritten by diff3, the lost update is:
     NoChange
 
+Record addition (second record overwrites fields in first, unless NoChange,
+as long as keys match::
 
+    >>> r1 + diff1
+    Demo(1, u'Bar', u'This is a foo', Decimal("1.29"))
 
+    >>> r1 + Demo(2, "spam", "wah", sharing.NoChange)
+    Traceback (most recent call last):
+      ...
+    ValueError: Can't add itemNumber 1 to itemNumber 2
+   
 You can get a unique key for a record using its ``getKey()`` method.  The
 return value is a tuple containing the record type, followed by the values of
 the record's key fields, in the order they were defined::
@@ -78,8 +87,61 @@ the record's key fields, in the order they were defined::
     (<class 'Demo2'>, 27, Decimal("16.2"))
 
 
-TODO: Record sets, w/add and subtract
-TODO: Record addition (overwrite)
+Record Sets
+===========
+
+    >>> class R(sharing.Record):
+    ...     k = sharing.key(int)
+    ...     v = sharing.field(int)
+
+    >>> r1 = R(1, 2)
+    >>> r2 = R(1, -2)
+    >>> r3 = R(3, 3)
+
+    >>> rs = sharing.RecordSet([r1])
+
+    >>> rs.inclusions == set([r1])
+    True
+    >>> rs.exclusions == set()
+    True
+
+    >>> rs == sharing.RecordSet([r2])
+    False
+    >>> rs != sharing.RecordSet([r2])
+    True
+    >>> rs == sharing.RecordSet([r1])
+    True
+    >>> rs != sharing.RecordSet([r1])
+    False
+
+    >>> rs - rs
+    RecordSet(set([]), set([]))
+
+    >>> rs+sharing.RecordSet([r3]) == sharing.RecordSet([r1,r3], [])
+    True
+    >>> rs-sharing.RecordSet([r3]) == sharing.RecordSet([r1],[r3])
+    True
+
+    >>> rs+sharing.RecordSet([r2]) == sharing.RecordSet([r2])
+    True
+
+    >>> sharing.RecordSet([r2]) + rs == rs
+    True
+
+    >>> rs - sharing.RecordSet([r2]) == rs
+    True
+
+    >>> rs_old = rs
+    >>> rs += sharing.RecordSet([r2])
+    >>> rs == sharing.RecordSet([r2])
+    True
+
+    >>> rs is rs_old
+    True
+
+
+TODO: Verify conflict detection when subtracting recordset diffs from each other   
+TODO: Filtering API
 TODO: Record type URIs, foreign key refs
 TODO: importers, exporters, and Translators
 
@@ -104,8 +166,7 @@ Notes on Filtering and Sync algorithms::
             dLocal = rsNewBase[itemUUID] - rsOldBase[itemUUID]
             dLost[itemUUID] = dLocal - dInbound
             rsNewBase[itemUUID] += dInbound
-        translator.importRecords(sync_filter(dInbound))
-        translator.deleteRecords(dInbound.deletions)
+        translator.processRecords(sync_filter(dInbound)) #import and/or delete
         rsOldBase[itemUUID] += dInbound
     
     for itemUUID, rs in rsNewBase.items():

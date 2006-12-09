@@ -285,6 +285,88 @@ linecache.checkcache = checkcache
 
 
 
+class RecordSet(object):
+    """Collection of "positive" and "negative" records"""
+
+    def __init__(self, inclusions=(), exclusions=()):
+        self._index, self.inclusions, self.exclusions = {}, set(), set()
+        if inclusions or exclusions:
+            self.update(inclusions, exclusions)
+
+    def __repr__(self):
+        return "RecordSet(%r, %r)" % (self.inclusions, self.exclusions)
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, RecordSet) and self.inclusions==other.inclusions
+            and self.exclusions==other.exclusions
+        )
+
+    def __ne__(self, other):
+        return not self==other
+
+    def update(self, inclusions, exclusions):
+        ind = self._index
+        for r in inclusions:
+            k = r.getKey()
+            if k in ind:
+                ind[k] += r
+            else:
+                ind[k] = r            
+        for r in exclusions:
+            k = r.getKey()
+            if k in ind:
+                r = ind[k] - r
+                if r is NoChange:
+                    del ind[k]
+                    continue
+                else:
+                    ind[k] = r
+            else:
+                self.exclusions.add(r)
+        self.inclusions = set(ind.values())
+
+    def __sub__(self, other):
+        rs = RecordSet(self.inclusions, self.exclusions)
+        rs.update(other.exclusions, other.inclusions)
+        return rs
+        
+    def __add__(self, other):
+        rs = RecordSet(self.inclusions, self.exclusions)
+        rs.update(other.inclusions, other.exclusions)
+        return rs
+
+    def __iadd__(self, other):
+        self.update(other.inclusions, other.exclusions)
+        return self
+
+    #def __nonzero__(self):
+    #    return 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def _constructor_for(name, cdict, fields):
     fname = "EIM-Generated Constructor for %s.%s" % (cdict['__module__'],name)
     args =', '.join(f.name for f in fields)
@@ -454,6 +536,42 @@ class Record(tuple):
             [self[f.offset] for f in self.__fields__ if isinstance(f,key)]
         )
 
+    def __add__(self, other):
+        t = type(self)
+        if type(other) is not t:
+            raise TypeError(
+                '%r is not a %s record' % (other, self.__class__.__name__)
+            )
+        res = []
+        for f, new, old in zip(self.__fields__, other[1:], self[1:]):
+            if isinstance(f,key):
+                if old!=new:
+                    raise ValueError(
+                        "Can't add %s %r to %s %r" %
+                        (f.name, old, f.name, new)
+                    )
+            if new is NoChange:
+                res.append(old)
+            else:
+                res.append(new)
+        return t(*res)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def create_default_converter(t):
     converter = generic(default_converter)
     converter.when_object(NoChange)(lambda val: val)
@@ -487,6 +605,8 @@ def item_uuid_converter(item):
 add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
 add_converter(UUIDType, str, unicode)
+
+
 
 
 
