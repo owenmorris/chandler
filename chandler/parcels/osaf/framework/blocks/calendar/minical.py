@@ -426,9 +426,8 @@ class PyMiniCalendar(wx.PyControl):
         (region, value) = self.HitTest(event.GetPosition())
 
         if region == CAL_HITTEST_DAY:
-            date = value
-            if self.IsDateInRange(date):
-                self.ChangeDay(date)
+            if self.IsDateInRange(value):
+                self.ChangeDay(value)
                 self.GenerateEvents(EVT_MINI_CALENDAR_DAY_CHANGED,
                                     EVT_MINI_CALENDAR_SEL_CHANGED)
 
@@ -436,17 +435,15 @@ class PyMiniCalendar(wx.PyControl):
             event.Skip()
 
         elif region == CAL_HITTEST_TODAY:
-            date = value
-            self.SetDateAndNotify(date)
+            self.SetDateAndNotify(value)
+            self.SetVisibleDateAndNotify(value, True)
+
 
         elif region == CAL_HITTEST_SURROUNDING_WEEK:
-            date = value
-            self.SetVisibleDateAndNotify(date, False)
-            # self.SetDateAndNotify(date)
+            self.SetVisibleDateAndNotify(value, False)
 
         elif region in (CAL_HITTEST_DECMONTH, CAL_HITTEST_INCMONTH):
-            date = value
-            self.SetVisibleDate(date, True)
+            self.SetVisibleDate(value, True)
 
         elif region == CAL_HITTEST_NOWHERE:
             event.Skip()
