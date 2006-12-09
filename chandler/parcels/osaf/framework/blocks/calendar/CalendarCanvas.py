@@ -321,6 +321,11 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         self.collection = collection
         self.primaryCollection = primaryCollection
 
+        pim_ns = schema.ns('osaf.pim', collection.itsView)
+        self.ignoreCollections =  [pim_ns.allCollection, pim_ns.inCollection,
+                                   pim_ns.outCollection]
+        
+
         self.isActive = primaryCollection is collection
 
     def GetEditorPosition(self):
@@ -526,16 +531,17 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 # only draw date/time on first item
                 if drawEventText:
                     # collection swatches should be drawn if the item is
-                    # in at least one other collection (not counting the
-                    # dashboard).
+                    # in at least one other collection (not counting out of the 
+                    # box collections).
+                    
                     master = event.getMaster().itsItem
-                    colls = len(getattr(master, 'appearsIn', []))
+                    colls = len([i for i in getattr(master, 'appearsIn', []) if
+                                 i not in self.ignoreCollections])
                     # for some reason primaryCollection and allCollection don't
                     # compare as equal when they ought to, so compare UUIDs
-                    drawSwatches = (colls > 2 or (colls == 2 and
-                       (master not in allCollection or 
-                       self.primaryCollection.itsUUID == allCollection.itsUUID))
-                                    )
+                    drawSwatches = (colls > 1 or (colls == 1 and
+                                            (self.primaryCollection.itsUUID == 
+                                             allCollection.itsUUID)))
                     
                     # only draw time on timed events
                     if not isAnyTimeOrAllDay and timeHeight > 0:
@@ -725,8 +731,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         count = 0
         for coll in reversed([i for i in sidebarCollections if 
-                              master in i and i not in 
-                              (self.collection, allCollection)]):
+                              master in i and i is not self.collection and 
+                              i not in self.ignoreCollections]):
             swatchBR = bottomRight - count * delta
             swatchTL = swatchBR - SWATCH_HEIGHT_VECTOR - SWATCH_WIDTH_VECTOR
             
