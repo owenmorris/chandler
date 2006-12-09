@@ -208,9 +208,12 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         def drawCanvasItems(canvasItems, selected):
             for canvasItem in canvasItems:
-                pastEnd = canvasItem.event.endTime >= self.blockItem.rangeEnd
-                canvasItem.Draw(dc, styles,
-                                selected, rightSideCutOff=pastEnd)
+                event = canvasItem.event
+                cutRight = event.endTime >= self.blockItem.rangeEnd
+                cutLeft = event.effectiveStartTime < self.blockItem.rangeStart
+                canvasItem.Draw(dc, styles, selected,
+                                leftSideCutoff=cutLeft,
+                                rightSideCutOff=cutRight)
 
         unselectedBoxes = []
         

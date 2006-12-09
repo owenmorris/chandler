@@ -417,7 +417,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 
 
 
-    def Draw(self, dc, styles, selected, rightSideCutOff=False):
+    def Draw(self, dc, styles, selected, leftSideCutoff=False, 
+             rightSideCutOff=False):
         # @@@ add a general cutoff parameter?
         event = self.event
         # recurring items, when deleted or stamped non-Calendar, are sometimes
@@ -475,7 +476,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 if rectIndex == len(self.GetBoundsRects())-1:
                     hasBottomRightRounded = True
            
-                hasLeftRounded = True #always rounding left side
+                hasLeftRounded = not leftSideCutoff 
 
                 dc.SetBrush(wx.WHITE_BRUSH)
                 dc.SetPen(wx.Pen(wx.WHITE, 1))
