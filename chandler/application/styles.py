@@ -25,7 +25,9 @@ can be changed by users in the course of using chandler.
 import os
 from configobj import ConfigObj
 from ConfigParser import DuplicateSectionError, NoSectionError
+import PyICU
 
+ICUnumberParse = PyICU.NumberFormat.createInstance(PyICU.Locale.getUS()).parse
 cfg = None
 
 class AcceptEmptyConfig(ConfigObj):
@@ -72,7 +74,8 @@ class AcceptEmptyConfig(ConfigObj):
 
     def getfloat(self, section, option):
         try:
-            return self[unicode(section)].as_float(unicode(option))
+            numberAsString = self[unicode(section)][unicode(option)]
+            return ICUnumberParse(numberAsString).getDouble()
         except:
             return None
 
