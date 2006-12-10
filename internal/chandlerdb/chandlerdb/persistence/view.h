@@ -51,11 +51,13 @@ enum {
     DEBUG      = 0x00002000,
     RAMDB      = 0x00004000,
     CLOSED     = 0x00008000,
-    COMMITREQ  = 0x00010000,
-
-    /*
-     * merge flags from CItem
-     */
+    /* VMERGED    = 0x00010000, from CItem */
+    /* RMERGED    = 0x00020000, from CItem */
+    /* NMERGED    = 0x00040000, from CItem */
+    /* CMERGED    = 0x00080000, from CItem */
+    COMMITREQ  = 0x00100000,
+    BADPASSWD  = 0x00200000,
+    ENCRYPTED  = 0x00400000,
 };
 
 

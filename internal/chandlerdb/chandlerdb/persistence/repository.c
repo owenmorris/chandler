@@ -227,6 +227,8 @@ void _init_repository(PyObject *m)
             PyDict_SetItemString_Int(dict, "DEBUG", DEBUG);
             PyDict_SetItemString_Int(dict, "RAMDB", RAMDB);
             PyDict_SetItemString_Int(dict, "CLOSED", CLOSED);
+            PyDict_SetItemString_Int(dict, "BADPASSWD", BADPASSWD);
+            PyDict_SetItemString_Int(dict, "ENCRYPTED", ENCRYPTED);
         }
     }
 }
