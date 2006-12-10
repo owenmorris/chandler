@@ -14,6 +14,7 @@
 
 
 import sys, os
+
 from types import GeneratorType
 from code import interact
 
@@ -49,8 +50,9 @@ def startup(**kwds):
     parcelPath = Utility.initParcelEnv(Globals.chandlerDirectory,
                                        Globals.options.parcelPath)
 
-    view = Utility.initRepository(Utility.locateRepositoryDirectory(profileDir, Globals.options),
-                                  Globals.options)
+    Globals.options.getPassword = getPassword
+    repoDir = Utility.locateRepositoryDirectory(profileDir, Globals.options)
+    view = Utility.initRepository(repoDir, Globals.options)
 
     verify, repoVersion, schemaVersion = Utility.verifySchema(view)
     if not verify:
@@ -65,6 +67,26 @@ def startup(**kwds):
         util.GenerateItemsFromFile.RunScript(view)
 
     return view
+
+
+def getPassword(create=False, again=False):
+    from getpass import getpass
+
+    while True:
+        if again:
+            print "Invalid password"
+
+        if create:
+            password = getpass("Create password: ")
+            confirmed = getpass("Confirm password: ")
+        else:
+            password = getpass("Enter password: ")
+
+        if create and password != confirmed:
+            print "Passwords do not match"
+        else:
+            return password
+
 
 def exportMethod(method):
     """ Add the method to exportedSymbols """

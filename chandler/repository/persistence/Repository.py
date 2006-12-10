@@ -101,7 +101,9 @@ class Repository(CRepository):
 
     def _init(self, **kwds):
 
-        self._status = Repository.CLOSED
+        self._status &= Repository.BADPASSWD
+        self._status |= Repository.CLOSED
+
         self.logger = logging.getLogger('repository')
 
         def addHandler():

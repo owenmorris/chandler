@@ -399,6 +399,8 @@ class wxApplication (wx.App):
         repoDir = Utility.locateRepositoryDirectory(Globals.options.profileDir, Globals.options)
             
         try:
+            from application.dialogs.GetPasswordDialog import getPassword
+            Globals.options.getPassword = getPassword
             view = Utility.initRepository(repoDir, Globals.options)
         except RepositoryVersionError, e:
             if self.ShowSchemaMismatchWindow():

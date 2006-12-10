@@ -1691,8 +1691,9 @@ class ValueContainer(DBContainer):
     # 0.6.8: added commits log db
     # 0.6.9: Term vectors stored in Lucene indexes
     # 0.6.10: FileContainer changed to contain both file info and data blocks
+    # 0.6.11: Renamed DB_VERSION to DB_INFO
 
-    FORMAT_VERSION = 0x00060a00
+    FORMAT_VERSION = 0x00060b00
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)

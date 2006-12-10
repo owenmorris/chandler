@@ -463,18 +463,16 @@ def initRepository(directory, options, allowSchemaView=False):
     while True:
         try:
             if options.encrypt:
-                from getpass import getpass
-                kwds['password'] = getpass("password> ")
+                kwds['password'] = options.getPassword
+            else:
+                kwds.pop('password', None)
 
             if options.create:
                 repository.create(**kwds)
             else:
                 repository.open(**kwds)
         except RepositoryPasswordError, e:
-            if options.encrypt:
-                print e.args[0]
-            else:
-                options.encrypt = True
+            options.encrypt = e.args[0]
             continue
         except RepositoryVersionError:
             repository.close()

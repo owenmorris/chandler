@@ -66,7 +66,6 @@ class DBRepository(OnDemandRepository):
         self._exclusiveLock = None
         self._env = None
         self._checkpointThread = None
-        self._encrypted = False
 
         atexit.register(self.close)
 
@@ -116,7 +115,7 @@ class DBRepository(OnDemandRepository):
 
         if kwds.get('ramdb', False):
             flags = DBEnv.DB_INIT_MPOOL | DBEnv.DB_PRIVATE | DBEnv.DB_THREAD
-            self._env = self._createEnv(True, kwds)
+            self._env = self._createEnv(True, True, kwds)
             self._env.open(self.dbHome, DBEnv.DB_CREATE | flags, 0)
             
         else:
@@ -140,7 +139,7 @@ class DBRepository(OnDemandRepository):
                     os.makedirs(logdir)
 
             self._lockOpen()
-            self._env = self._createEnv(True, kwds)
+            self._env = self._createEnv(True, True, kwds)
             self._env.open(self.dbHome, DBEnv.DB_CREATE | self.OPEN_FLAGS, 0)
 
         self.store = self._createStore()
@@ -191,7 +190,24 @@ class DBRepository(OnDemandRepository):
             lock.close(self._openLock)
             self._openLock = None
 
-    def _createEnv(self, create, kwds):
+    def _encrypt(self, env, create, kwds):
+
+        try:
+            password = kwds.get('password', None)
+            if callable(password):
+                again = self._status & Repository.BADPASSWD != 0
+                env.set_encrypt(password(create, again), DBEnv.DB_ENCRYPT_AES)
+            elif isinstance(password, str):
+                env.set_encrypt(password, DBEnv.DB_ENCRYPT_AES)
+            else:
+                return False
+            self._status |= Repository.ENCRYPTED
+        except DBInvalidArgError:
+            raise RepositoryPasswordError, False
+
+        return True
+
+    def _createEnv(self, configure, create, kwds):
 
         self._status &= ~Repository.CLOSED
 
@@ -200,19 +216,29 @@ class DBRepository(OnDemandRepository):
         locks = 32767
         cache = 0x4000000
 
-        if create and not ramdb:
-            db_version = file(join(dbHome, 'DB_VERSION'), 'w+b')
-            db_version.write("%d.%d.%d\n" %(DB_VERSION_MAJOR,
-                                            DB_VERSION_MINOR,
-                                            DB_VERSION_PATCH))
-            db_version.close()
+        env = DBEnv()
+
+        if configure and not ramdb:
+            db_info = file(join(dbHome, 'DB_INFO'), 'w+b')
+            try:
+                db_info.write("%d.%d.%d\n" %(DB_VERSION_MAJOR,
+                                             DB_VERSION_MINOR,
+                                             DB_VERSION_PATCH))
+                if 'password' in kwds and self._encrypt(env, create, kwds):
+                    db_info.write('encrypted\n')
+                else:
+                    db_info.write('not encrypted\n')
+            finally:
+                db_info.close()
+
             db_config = file(join(dbHome, 'DB_CONFIG'), 'w+b')
 
-        elif not (create or ramdb):
+        elif not (configure or ramdb):
             try:
-                db_version = file(join(dbHome, 'DB_VERSION'))
-                version = db_version.readline().strip()
-                db_version.close()
+                db_info = file(join(dbHome, 'DB_INFO'))
+                version = db_info.readline().strip()
+                encrypted = db_info.readline().strip() == 'encrypted'
+                db_info.close()
             except Exception, e:
                 raise RepositoryVersionError, ("Repository database version could not be determined", e)
             else:
@@ -222,22 +248,19 @@ class DBRepository(OnDemandRepository):
                 if version != expected:
                     raise RepositoryDatabaseVersionError, (expected, version)
 
-        env = DBEnv()
+                if encrypted and not self._encrypt(env, create, kwds):
+                    raise RepositoryPasswordError, True
 
-        if 'password' in kwds:
-            env.set_encrypt(kwds['password'], DBEnv.DB_ENCRYPT_AES)
-            self._encrypted = True
-
-        if create or ramdb:
+        if configure or ramdb:
             env.lk_detect = DBEnv.DB_LOCK_MAXWRITE
             env.lk_max_locks = locks
             env.lk_max_objects = locks
-        if create and not ramdb:
+        if configure and not ramdb:
             db_config.write("set_lk_detect DB_LOCK_MAXWRITE\n")
             db_config.write("set_lk_max_locks %d\n" %(locks))
             db_config.write("set_lk_max_objects %d\n" %(locks))
 
-        if create and not ramdb:
+        if configure and not ramdb:
             memorylog = kwds.get('memorylog', None)
             if memorylog:
                 memorylog = int(memorylog) * 1048576
@@ -260,9 +283,9 @@ class DBRepository(OnDemandRepository):
                 db_config.write("set_data_dir %s\n" %(datadir))
 
         if os.name == 'nt':
-            if create or ramdb:
+            if configure or ramdb:
                 env.cachesize = (0, cache, 1)
-            if create and not ramdb:
+            if configure and not ramdb:
                 db_config.write("set_cachesize 0 %d 1\n" %(cache))
 
         elif os.name == 'posix':
@@ -273,17 +296,17 @@ class DBRepository(OnDemandRepository):
 
                 if (DB_VERSION <= 0x04031d and osname == 'Linux' or
                     DB_VERSION >= 0x040410 and osname in ('Linux', 'Darwin')):
-                    if create or ramdb:
+                    if configure or ramdb:
                         env.cachesize = (0, cache, 1)
-                    if create and not ramdb:
+                    if configure and not ramdb:
                         db_config.write("set_cachesize 0 %d 1\n" %(cache))
 
                 if osname == 'Darwin':
-                    if create and not ramdb:
+                    if configure and not ramdb:
                         env.set_flags(DBEnv.DB_DSYNC_LOG, 1)
                         db_config.write("set_flags DB_DSYNC_LOG\n")
 
-        if create and not ramdb:
+        if configure and not ramdb:
             db_config.close()
 
         return env
@@ -298,7 +321,7 @@ class DBRepository(OnDemandRepository):
                 if (name.startswith('__db') or
                     name.startswith('log.') or
                     name.endswith('.db') or
-                    name in ('DB_CONFIG', 'DB_VERSION')):
+                    name in ('DB_CONFIG', 'DB_INFO')):
                     path = join(dbHome, name)
                     if not os.path.isdir(path):
                         os.remove(path)
@@ -380,10 +403,10 @@ class DBRepository(OnDemandRepository):
                         outFile.write(line)
                 outFile.close()
             
-            if exists(join(self.dbHome, 'DB_VERSION')):
-                dstPath = join(dbHome, 'DB_VERSION')
+            if exists(join(self.dbHome, 'DB_INFO')):
+                dstPath = join(dbHome, 'DB_INFO')
                 self.logger.info(dstPath)
-                shutil.copy2(join(self.dbHome, 'DB_VERSION'), dstPath)
+                shutil.copy2(join(self.dbHome, 'DB_INFO'), dstPath)
 
             if not withLog:
                 env = None
@@ -392,7 +415,7 @@ class DBRepository(OnDemandRepository):
                     env.open(dbHome, (DBEnv.DB_RECOVER_FATAL | DBEnv.DB_CREATE |
                                       self.OPEN_FLAGS), 0)
 
-                    if self._encrypted:
+                    if self._status & Repository.ENCRYPTED:
                         flags = DB.DB_ENCRYPT
                     else:
                         flags = 0
@@ -447,7 +470,7 @@ class DBRepository(OnDemandRepository):
                         dstPath = join(datadir, f)
                     elif f.startswith('log.'):
                         dstPath = join(logdir, f)
-                    elif f in ('DB_CONFIG', 'DB_VERSION'):
+                    elif f in ('DB_CONFIG', 'DB_INFO'):
                         dstPath = join(dbHome, f)
                     else:
                         continue
@@ -466,7 +489,7 @@ class DBRepository(OnDemandRepository):
                         dstPath = datadir
                     elif f.startswith('log.'):
                         dstPath = logdir
-                    elif f in ('DB_CONFIG', 'DB_VERSION'):
+                    elif f in ('DB_CONFIG', 'DB_INFO'):
                         dstPath = dbHome
                     else:
                         continue
@@ -631,7 +654,7 @@ class DBRepository(OnDemandRepository):
                     return self.create(**kwds)
 
             self._lockOpen()
-            self._env = self._createEnv(configure, kwds)
+            self._env = self._createEnv(configure, False, kwds)
 
             if not recover and exclusive:
                 if exists(self._openDir) and os.listdir(self._openDir):
@@ -701,7 +724,7 @@ class DBRepository(OnDemandRepository):
 
             except DBInvalidArgError, e:
                 if "no encryption key" in e.args[1]:
-                    raise RepositoryPasswordError, e.args[1]
+                    raise RepositoryPasswordError, True
                 if "Invalid argument" in e.args[1] and not recover:
                     self._status |= Repository.CLOSED
                     raise RepositoryRunRecoveryError, recover
@@ -709,7 +732,11 @@ class DBRepository(OnDemandRepository):
 
             except DBPermissionsError, e:
                 if "Invalid password" in e.args[1]:
-                    raise RepositoryPasswordError, e.args[1]
+                    self._status |= Repository.BADPASSWD
+                    raise RepositoryPasswordError, True
+                if "Operation not permitted" in e.args[1]:
+                    self._status |= Repository.BADPASSWD
+                    raise RepositoryPasswordError, True
                 raise
 
             except DBVersionMismatchError:
@@ -723,6 +750,7 @@ class DBRepository(OnDemandRepository):
                 raise RepositoryRunRecoveryError, recover
 
             self._status |= Repository.OPEN
+            self._status &= ~Repository.BADPASSWD
             self._afterOpen()
 
     def _afterOpen(self):
