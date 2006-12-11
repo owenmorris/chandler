@@ -59,7 +59,7 @@ Serialize and deserialize entire record sets:
 
 >>> recordSets = deserialize(sample)
 >>> recordSets
-{'8501de14-1dc9-40d4-a7d4-f289feff8214': [ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]}
+{'8501de14-1dc9-40d4-a7d4-f289feff8214': RecordSet(set([ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]), set([]))}
 
 >>> text = serialize(recordSets)
 >>> text
@@ -67,8 +67,7 @@ Serialize and deserialize entire record sets:
 
 >>> recordSets = deserialize(text)
 >>> recordSets
-{'8501de14-1dc9-40d4-a7d4-f289feff8214': [ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]}
-
+{'8501de14-1dc9-40d4-a7d4-f289feff8214': RecordSet(set([ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]), set([]))}
 
 RecordSets can be stored and retrieved by UUID:
 
@@ -76,12 +75,11 @@ RecordSets can be stored and retrieved by UUID:
 >>> recordSet = recordSets[uuidString]
 >>> from repository.persistence.RepositoryView import NullRepositoryView
 >>> rv = NullRepositoryView()
->>> share = sharing.Share(itsView=rv, itsName="testshare")
+>>> share = sharing.Share(itsView=rv)
 >>> saveRecordSet(share, uuidString, recordSet)
 >>> recordSet = getRecordSet(share, uuidString)
 >>> recordSet
-[ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]
-
+RecordSet(set([ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]), set([]))
 
 (end of doctest)
 """
@@ -104,13 +102,6 @@ from xml.etree.ElementTree import (
 
 
 
-class RecordSet(list): # pje to flesh this out
-    pass
-
-
-
-
-
 
 
 class Baseline(schema.Item):
@@ -118,10 +109,7 @@ class Baseline(schema.Item):
 
 
 def saveRecordSet(share, uuidString, recordSet):
-    # Baseline.update(share, uuidString, records=list(recordSet.inclusions))
-    # Until RecordSet gets fleshed out:
-    Baseline.update(share, uuidString, records=recordSet)
-
+    Baseline.update(share, uuidString, records=list(recordSet.inclusions))
 
 def getRecordSet(share, uuidString):
     recordSet = None
@@ -129,10 +117,11 @@ def getRecordSet(share, uuidString):
     if baseline is not None:
         # recordSet = RecordSet.from_tuples(baseline.records)
         # Until RecordSet gets fleshed out:
-        recordSet = RecordSet()
+        records = []
         tupleNew = tuple.__new__
         for tup in baseline.records:
-            recordSet.append(tupleNew(tup[0], tup))
+            records.append(tupleNew(tup[0], tup))
+        recordSet = sharing.RecordSet(records)
     return recordSet
 
 
@@ -251,7 +240,7 @@ def serialize(recordSets):
         recordSetElement = SubElement(recordsElement,
             "{%s}item" % recordSetURI, uuid=uuid)
 
-        for record in recordSet:
+        for record in list(recordSet.inclusions):
             fields = {}
             for field in record.__fields__:
                 value = record[field.offset]
@@ -275,7 +264,7 @@ def deserialize(text):
 
     for recordSetElement in recordsElement:
         uuid = recordSetElement.get("uuid")
-        recordSet = RecordSet()
+        records = []
 
         for recordElement in recordSetElement:
             ns, name = recordElement.tag[1:].split("}")
@@ -301,9 +290,9 @@ def deserialize(text):
                     value = sharing.NoChange
                 values.append(value)
 
-            record = recordClass(*values)
-            recordSet.append(record)
+            records.append(recordClass(*values))
 
+        recordSet = sharing.RecordSet(records)
         recordSets[uuid] = recordSet
 
     return recordSets
