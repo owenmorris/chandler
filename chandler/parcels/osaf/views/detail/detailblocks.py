@@ -393,6 +393,7 @@ def makeCalendarArea(parcel, oldVersion):
                 makeLabel(parcel, _(u'status')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditTransparency',
+                    baseClass=CalendarTransparencyAEBlock,
                     viewAttribute=pim.EventStamp.transparency.name,
                     presentationStyle={
                         'format': 'popup',

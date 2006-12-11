@@ -2294,7 +2294,7 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
         """
         Set our state.
         """
-        control.SetValue(value)
+        control.SetValue(bool(value))
 
 class AEChoice(ShownSynchronizer, wx.Choice):
     def ActivateInPlace(self):

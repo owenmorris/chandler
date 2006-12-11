@@ -46,7 +46,6 @@ from detail import (
     MailMessageButtonBlock,
     OutboundOnlyAreaBlock,
     PrivateSwitchButtonBlock, 
-    StampAreaBlock,
     StaticRedirectAttribute,
     StaticRedirectAttributeLabel, 
     StaticTextLabel, 

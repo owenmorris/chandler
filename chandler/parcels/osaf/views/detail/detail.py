@@ -408,7 +408,8 @@ class StaticRedirectAttributeLabel(StaticTextLabel):
 class DetailSynchronizedContentItemDetail(DetailSynchronizer, ControlBlocks.ContentItemDetail):
     pass
 
-class DetailSynchronizedAttributeEditorBlock(DetailSynchronizer, ControlBlocks.AEBlock):
+class DetailSynchronizedAttributeEditorBlock(DetailSynchronizer,
+                                             ControlBlocks.AEBlock):
     """
     A L{ControlBlocks.AEBlock} that participates in detail view synchronization.
     """
@@ -483,6 +484,7 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
                 pim.calendar.Calendar.setEventDateTime(item, startTime, endTime,
                                                        typeFlag)
 
+                
         #logger.debug("%s: stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
         #logger.debug("%s: done stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
 
@@ -717,6 +719,60 @@ class AppearsInAttributeEditor(StaticStringAttributeEditor):
         return _(u"Appears in: %(collectionNames)s") \
                % {'collectionNames': collectionNames }
 
+# Classes to support blocks that are only shown if the item has a particular
+# stamp class
+class StampConditionalArea(Item):
+    """
+    An C{Item} subclass designed to mixed in with a
+    C{DetailSynchronizedContentItemDetail} block. Its C{shouldShow()} method
+    only allows items that have a certain stamp. If you subclass to add extra
+    conditions in C{shouldShow()}, make sure to check C{super}'s value
+    first.
+    
+    @ivar stampClass: Items must have been stamped with this C{Stamp} subclass
+                      for C{shouldShow()} to return C{True}.
+    @type stampClass: C{type}
+    """
+    stampClass = None
+    
+    def shouldShow(self, item):
+        return (self.stampClass is not None and
+                pim.has_stamp(item, self.stampClass))
+                
+    def getWatchList(self):
+        watchList = super(StampConditionalArea, self).getWatchList()
+        watchList.extend(((self.item, pim.Stamp.stamp_types.name),),)
+        return watchList
+        
+class MailConditionalArea(StampConditionalArea):
+    """
+    A C{StampConditionalArea} subclass that checks for
+    C{osaf.pim.mail.MailStamp}"
+    """
+    stampClass = pim.mail.MailStamp
+
+class EventConditionalArea(StampConditionalArea):
+    """
+    A C{StampConditionalArea} subclass that checks for C{osaf.pim.EventStamp}"
+    """
+    stampClass = pim.EventStamp
+
+class TaskConditionalArea(StampConditionalArea):
+    """
+    A C{StampConditionalArea} subclass that checks for C{osaf.pim.TaskStamp}"
+    """
+    stampClass = pim.TaskStamp
+    
+class MailAreaBlock(MailConditionalArea, DetailSynchronizedContentItemDetail):
+    pass
+
+class EventAreaBlock(EventConditionalArea, DetailSynchronizedContentItemDetail):
+    pass
+
+class TaskAreaBlock(StampConditionalArea, DetailSynchronizedContentItemDetail):
+    pass
+
+
 # Classes to support CalendarEvent details - first, areas that show/hide
 # themselves based on readonlyness and attribute values
 
@@ -729,23 +785,25 @@ class CalendarAllDayAreaBlock(DetailSynchronizedContentItemDetail):
         watchList.append((self.item, pim.EventStamp.allDay.name))
         return watchList
 
-class CalendarLocationAreaBlock(DetailSynchronizedContentItemDetail):
+class CalendarLocationAreaBlock(EventAreaBlock):
     def shouldShow(self, item):
         attributeName = pim.EventStamp.location.name
-        return item.isAttributeModifiable(attributeName) \
-               or hasattr(item, attributeName)
+        return (super(CalendarLocationAreaBlock, self).shouldShow(item) and
+                (item.isAttributeModifiable(attributeName) or
+                 hasattr(item, attributeName)))
 
     def getWatchList(self):
         watchList = super(CalendarLocationAreaBlock, self).getWatchList()
         watchList.append((self.item, pim.EventStamp.location.name))
         return watchList
         
-class TimeConditionalBlock(Item):
+class TimeConditionalBlock(EventAreaBlock):
     def shouldShow(self, item):
         event = pim.EventStamp(item)
-        return not event.allDay and \
-               (item.isAttributeModifiable(pim.EventStamp.startTime.name) \
-                or not event.anyTime)
+        return (super(TimeConditionalBlock, self).shouldShow(item) and
+                not event.allDay and
+                (item.isAttributeModifiable(pim.EventStamp.startTime.name)
+                or not event.anyTime))
 
     def getWatchList(self):
         watchList = super(TimeConditionalBlock, self).getWatchList()
@@ -821,6 +879,8 @@ def getReminderType(item):
 class ReminderConditionalBlock(Item):
     def shouldShow(self, item):
         # Don't show if we have no reminder and the user can't add one.
+        if item is None:
+            return False
         reminder = pim.Remindable(item).getUserReminder()
         return(reminder is not None or
                 item.isAttributeModifiable(pim.Remindable.reminders.name))
@@ -854,7 +914,8 @@ class ReminderAbsoluteAreaBlock(ReminderConditionalBlock,
         return (super(ReminderAbsoluteAreaBlock, self).shouldShow(item) and
                 (getReminderType(item) == 'custom'))
 
-class ReminderAEBlock(DetailSynchronizedAttributeEditorBlock):
+class ReminderAEBlock(ReminderConditionalBlock,
+                      DetailSynchronizedAttributeEditorBlock):
     def getWatchList(self):
         watchList = super(ReminderAEBlock, self).getWatchList()
         watchList.extend([(self.item, pim.Remindable.reminders.name),
@@ -1034,12 +1095,14 @@ class ReminderUnitsAttributeEditor(StringAttributeEditor):
             setattr(item, pim.Remindable.userReminderInterval.name,
                     scaleTimeDelta(value, scale, isAfter))
 
-class TransparencyConditionalBlock(Item):
+class TransparencyConditionalBlock(EventConditionalArea):
     def shouldShow(self, item):
         # don't show for anyTime or @time events (but do show for allDay
         # events, which happen to be anyTime too)
         event = pim.EventStamp(item)
-        return not ((event.anyTime and not event.allDay) or not event.duration)
+        return (super(TransparencyConditionalBlock, self).shouldShow(item) and
+                (not ((event.anyTime and not event.allDay) or
+                 not event.duration)))
 
     def getWatchList(self):
         watchList = super(TransparencyConditionalBlock, self).getWatchList()
@@ -1056,31 +1119,17 @@ class CalendarTransparencyAreaBlock(TransparencyConditionalBlock,
                                     DetailSynchronizedContentItemDetail):
     pass
 
-
-class StampAreaBlock(DetailSynchronizedContentItemDetail):
-    stampClass = None
-    
-    def shouldShow(self, item):
-        return (self.stampClass is not None and
-                pim.has_stamp(item, self.stampClass))
-                
-    def getWatchList(self):
-        watchList = super(StampAreaBlock, self).getWatchList()
-        watchList.extend(((self.item, pim.Stamp.stamp_types.name),),)
-        return watchList
+class CalendarTransparencyAEBlock(EventConditionalArea,
+                                  DetailSynchronizedAttributeEditorBlock):
+    pass
         
-class MailAreaBlock(StampAreaBlock):
-    stampClass = pim.mail.MailStamp
-
-class EventAreaBlock(StampAreaBlock):
-    stampClass = pim.EventStamp
-
-class TaskAreaBlock(StampAreaBlock):
-    stampClass = pim.TaskStamp
 
 
-class TimeZoneConditionalBlock(Item):
+class TimeZoneConditionalBlock(EventConditionalArea):
     def shouldShow(self, item):
+        # Only show for events
+        if not super(TimeZoneConditionalBlock, self).shouldShow(item):
+            return False
         # allDay and anyTime items never show the timezone popup
         event = pim.EventStamp(item)
         if event.allDay or event.anyTime:
@@ -1113,7 +1162,7 @@ class CalendarTimeZoneAEBlock(DetailSynchronizedAttributeEditorBlock):
         watchList.append((timezones, 'wellKnownIDs'))
         return watchList
 
-class RecurrenceConditionalBlock(Item):
+class RecurrenceConditionalBlock(EventConditionalArea):
     # Centralize the recurrence blocks' visibility decisions. Subclass will
     # declare a visibilityFlags class member composed of these bit values:
     showPopup = 1 # Show the area containing the popup
@@ -1122,30 +1171,31 @@ class RecurrenceConditionalBlock(Item):
 
     def recurrenceVisibility(self, item):
         result = 0
-        freq = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
-        modifiable = item.isAttributeModifiable(pim.EventStamp.rruleset.name)
-        
-        # Show the popup only if it's modifiable, or if it's not
-        # modifiable but not the default value.
-        if modifiable or (freq != RecurrenceAttributeEditor.onceIndex):
-            result |= self.showPopup
-                
-            if freq == RecurrenceAttributeEditor.customIndex:
-                # We'll show the "custom" flag only if we're custom, duh.
-                result |= self.showCustom
-            elif freq != RecurrenceAttributeEditor.onceIndex:
-                # We're not custom and not "once": We'll show "ends" if we're 
-                # modifiable, or if we have an "ends" value.
-                if modifiable:
-                    result |= self.showEnds
-                else:
-                    event = pim.EventStamp(item)
-                    try:
-                        endDate = event.rruleset.rrules.first().until
-                    except AttributeError:
-                        pass
-                    else:
+        if super(RecurrenceConditionalBlock, self).shouldShow(item):
+            freq = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
+            modifiable = item.isAttributeModifiable(pim.EventStamp.rruleset.name)
+            
+            # Show the popup only if it's modifiable, or if it's not
+            # modifiable but not the default value.
+            if modifiable or (freq != RecurrenceAttributeEditor.onceIndex):
+                result |= self.showPopup
+                    
+                if freq == RecurrenceAttributeEditor.customIndex:
+                    # We'll show the "custom" flag only if we're custom, duh.
+                    result |= self.showCustom
+                elif freq != RecurrenceAttributeEditor.onceIndex:
+                    # We're not custom and not "once": We'll show "ends" if we're 
+                    # modifiable, or if we have an "ends" value.
+                    if modifiable:
                         result |= self.showEnds
+                    else:
+                        event = pim.EventStamp(item)
+                        try:
+                            endDate = event.rruleset.rrules.first().until
+                        except AttributeError:
+                            pass
+                        else:
+                            result |= self.showEnds
         return result
 
     def shouldShow(self, item):
@@ -1668,28 +1718,34 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
                         
                 wx.CallAfter(changeRecurrenceEnd, self, item, value)
 
-class OutboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
+class OutboundOnlyAreaBlock(MailAreaBlock):
     """ 
     This block will only be visible on outbound messages
     (like the outbound version of 'from', and 'bcc' which won't ever
     show a value for inbound messages.)
     """
     def shouldShow(self, item):
-        return pim.mail.MailStamp(item).isOutbound
+        return (super(OutboundOnlyAreaBlock, self).shouldShow(item) and
+                pim.mail.MailStamp(item).isOutbound)
 
-    def whichAttribute(self):
-        return pim.mail.MailStamp.isOutbound.name
+    def getWatchList(self):
+        watchList = super(OutboundOnlyAreaBlock, self).getWatchList()
+        watchList.append((self.item, pim.mail.MailStamp.isOutbound.name),)
+        return watchList
            
-class InboundOnlyAreaBlock(DetailSynchronizedContentItemDetail):
+class InboundOnlyAreaBlock(MailAreaBlock):
     """
     This block will only be visible on inbound messages
     (like the inbound version of 'from'.)
     """
     def shouldShow(self, item):
-        return not pim.mail.MailStamp(item).isOutbound
+        return (super(InboundOnlyAreaBlock, self).shouldShow(item) and
+                not pim.mail.MailStamp(item).isOutbound)
 
-    def whichAttribute(self):
-        return pim.mail.MailStamp.isOutbound.name
+    def getWatchList(self):
+        watchList = super(InboundOnlyAreaBlock, self).getWatchList()
+        watchList.append((self.item, pim.mail.MailStamp.isOutbound.name),)
+        return watchList
 
 class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
     """
