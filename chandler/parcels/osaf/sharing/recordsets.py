@@ -5,6 +5,8 @@ This module supports serializing of EIM recordsets to "EIMML" and back.
 
 >>> from osaf import sharing
 >>> from osaf.sharing.recordsets import *
+>>> from PyICU import ICUtzinfo
+>>> import datetime
 >>> class TestRecord(sharing.Record):
 ...     textField = sharing.field(sharing.TextType(size=100))
 ...     decimalField = sharing.field(sharing.DecimalType(digits=11,
@@ -58,17 +60,24 @@ Serialize and deserialize entire record sets:
 ... </eim:recordset>
 ... </eim:records>'''
 
+>>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.recordtypes.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), sharing.NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('US/Pacific'))), sharing.recordtypes.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.recordtypes.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', sharing.NoChange, u'FREQ=WEEKLY', sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange, u'CONFIRMED')])}
+
 >>> recordSets = deserialize(sample)
->>> recordSets
-{'8501de14-1dc9-40d4-a7d4-f289feff8214': RecordSet(set([ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]), set([]))}
+>>> recordSets == expectedRecordSets
+True
 
 >>> text = serialize(recordSets)
 >>> text
 '<ns0:records xmlns:ns0="http://osafoundation.org/eimml/core"><ns0:item uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record created_on="2006-11-29 12:25:31 US/Pacific" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns1="http://osafoundation.org/eimml/item" /><ns1:record body="VGhpcyBpcyB0aGUgYm9keQ==" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns1="http://osafoundation.org/eimml/note" /><ns1:record dtend="20061130T150000" dtstart="20061130T140000" rrule="FREQ=WEEKLY" status="CONFIRMED" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns1="http://osafoundation.org/eimml/event" /></ns0:item></ns0:records>'
 
 >>> recordSets = deserialize(text)
->>> recordSets
-{'8501de14-1dc9-40d4-a7d4-f289feff8214': RecordSet(set([ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]), set([]))}
+>>> recordSets == expectedRecordSets
+True
+
+
+
+
+
 
 RecordSets can be stored and retrieved by UUID:
 
@@ -78,10 +87,9 @@ RecordSets can be stored and retrieved by UUID:
 >>> rv = NullRepositoryView()
 >>> share = sharing.Share(itsView=rv)
 >>> saveRecordSet(share, uuidString, recordSet)
->>> recordSet = getRecordSet(share, uuidString)
->>> recordSet
-RecordSet(set([ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]), set([]))
-
+>>> newRecordSet = getRecordSet(share, uuidString)
+>>> recordSet == newRecordSet
+True
 
 
 RecordSets can be synchronized:
