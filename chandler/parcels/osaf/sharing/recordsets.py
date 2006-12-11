@@ -4,6 +4,7 @@
 This module supports serializing of EIM recordsets to "EIMML" and back.
 
 >>> from osaf import sharing
+>>> from osaf.sharing.recordsets import *
 >>> class TestRecord(sharing.Record):
 ...     textField = sharing.field(sharing.TextType(size=100))
 ...     decimalField = sharing.field(sharing.DecimalType(digits=11,
@@ -81,6 +82,12 @@ RecordSets can be stored and retrieved by UUID:
 >>> recordSet
 RecordSet(set([ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', Decimal("123456789.12"), NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: US/Pacific>)), NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), EventRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', NoChange, u'FREQ=WEEKLY', NoChange, NoChange, NoChange, NoChange, u'CONFIRMED')]), set([]))
 
+
+
+RecordSets can be synchronized:
+
+
+
 (end of doctest)
 """
 
@@ -88,6 +95,7 @@ RecordSet(set([ItemRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to 
 
 
 
+from application import schema
 from osaf import sharing
 from osaf.sharing import recordtypes
 from osaf.sharing.simplegeneric import generic
@@ -299,6 +307,16 @@ def deserialize(text):
 
 
 
+def synchronize(newBase, oldBase, inboundDiff):
+    for itemUUID, rs in inboundDiff.items():
+        dInbound = rs - oldBase.setdefault(itemUUID, empty_rs)
+
+
+
+
+
+
+
 
 # This is a much more compact xml format, where fields map directly to
 # attributes.  The current code handles this format:
@@ -380,6 +398,13 @@ sample2 = """<?xml version="1.0" encoding="UTF-8"?>
 
 </eim:records>
 """
+
+def test_suite():
+    import doctest
+    return doctest.DocFileSuite(
+        'recordsets.py',
+        optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
+    )
 
 def _test():
     import doctest
