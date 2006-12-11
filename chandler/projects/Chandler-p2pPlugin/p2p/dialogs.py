@@ -53,26 +53,25 @@ class SubscribeDialog(wx.Dialog):
         # contents
         
         sizer = wx.BoxSizer(wx.VERTICAL)
-        
+        grid = wx.GridSizer(2, 2)
+
         # Collection name (text control)....
-        box = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, _m_(u"Collection:"))
-        box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.nameText = wx.TextCtrl(self, -1, u"",
                                     wx.DefaultPosition, [150, -1])
-        box.Add(self.nameText, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        grid.Add(self.nameText, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
                 
         # RemoteId (text control):
-        box = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, _m_(u"From:"))
-        box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         self.remoteIdText = wx.TextCtrl(self, -1, u"",
                                     wx.DefaultPosition, [150, -1])
-        box.Add(self.remoteIdText, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        grid.Add(self.remoteIdText, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
 
+        sizer.Add(grid, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        
         sizer.Add(self.CreateStdDialogButtonSizer(wx.OK | wx.CANCEL), 0,
                   wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
@@ -109,6 +108,7 @@ class LoginDialog(wx.Dialog):
         # contents
         
         sizer = wx.BoxSizer(wx.VERTICAL)
+        grid = wx.GridSizer(5, 2)
 
         protocol = PROTOCOLS[0]
         for account in defaultAccounts:
@@ -125,52 +125,44 @@ class LoginDialog(wx.Dialog):
             self.useSSL = False
         
         # Userid (text control)....
-        box = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, _m_(u"Userid:"))
-        box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.useridText = wx.TextCtrl(self, -1, self.userid,
                                       wx.DefaultPosition, [150, -1])
-        box.Add(self.useridText, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        grid.Add(self.useridText, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
                 
         # Password (text control):
-        box = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, _m_(u"Password:"))
-        box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         self.passwordText = wx.TextCtrl(self, -1, self.password,
                                         wx.DefaultPosition, [150, -1],
                                         wx.TE_PASSWORD)
-        box.Add(self.passwordText, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        grid.Add(self.passwordText, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         # Server (text control)....
-        box = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, _m_(u"Server:"))
-        box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.serverText = wx.TextCtrl(self, -1, self.server,
                                       wx.DefaultPosition, [150, -1])
-        box.Add(self.serverText, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        grid.Add(self.serverText, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
                 
         # SSL (checkbox)....
-        box = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, _m_(u"Secure connection:"))
-        box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.sslCheck = wx.CheckBox(self, -1, "SSL",
                                     wx.DefaultPosition, [150, -1])
         self.sslCheck.SetValue(self.useSSL)
-        box.Add(self.sslCheck, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        grid.Add(self.sslCheck, 0, wx.ALIGN_LEFT|wx.ALL, 5)
                 
         # Protocol (choice)....
-        box = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, _m_(u"Over:"))
-        box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.protocolsChoice = wx.Choice(self, -1, choices=PROTOCOL_NAMES)
-        box.Add(self.protocolsChoice, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
+        grid.Add(self.protocolsChoice, 1, wx.ALIGN_LEFT|wx.ALL, 5)
         self.protocolsChoice.SetSelection(0)
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+
+        sizer.Add(grid, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
         sizer.Add(self.CreateStdDialogButtonSizer(wx.OK | wx.CANCEL), 0,
                   wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)

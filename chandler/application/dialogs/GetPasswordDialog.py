@@ -38,38 +38,38 @@ class GetPasswordDialog(wx.Dialog):
         self.this = pre.this
 
         sizer = wx.BoxSizer(wx.VERTICAL)
+        if create:
+            grid = wx.GridSizer(2, 2)
+        else:
+            grid = wx.GridSizer(1, 2)
 
         # Enter Password (text control):
-        box = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, _m_(u"Enter Password:"))
-        box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+        grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         self.passwordText = wx.TextCtrl(self, -1, u"",
                                         wx.DefaultPosition, [150, -1],
                                         wx.TE_PASSWORD)
-        box.Add(self.passwordText, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        grid.Add(self.passwordText, 1, wx.ALIGN_LEFT|wx.ALL, 5)
 
         if create:
             # Confirm Password (text control):
-            box = wx.BoxSizer(wx.HORIZONTAL)
             label = wx.StaticText(self, -1, _m_(u"Confirm Password:"))
-            box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+            grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
             self.confirmText = wx.TextCtrl(self, -1, u"",
                                            wx.DefaultPosition, [150, -1],
                                            wx.TE_PASSWORD)
-            box.Add(self.confirmText, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
-            sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+            grid.Add(self.confirmText, 1, wx.ALIGN_LEFT|wx.ALL, 5)
         else:
             self.confirmText = None
 
         if msg:
             # Message (static text control):
-            box = wx.BoxSizer(wx.HORIZONTAL)
             label = wx.StaticText(self, -1, msg)
-            box.Add(label, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
-            sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+            grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+
+        sizer.Add(grid, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
         sizer.Add(self.CreateStdDialogButtonSizer(wx.OK | wx.CANCEL), 0,
                   wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
