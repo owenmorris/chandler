@@ -463,7 +463,11 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
             stampClass(item).add()
 
             if stampClass == Mail.MailStamp:
-                stampClass(item).InitOutgoingAttributes()
+                #Set the message as outbound.
+                #This flag tells the detail view
+                #whether to display the outgoing or
+                #incoming message UI
+                stampClass(item).isOutbound = True
 
             if stampClass == Calendar.EventStamp and not startTimeExists:
                 # If the item is being stamped as CalendarEvent, parse the body
