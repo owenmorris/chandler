@@ -584,12 +584,13 @@ class EventStamp(Stamp):
             fmt = _(u'%(startDay)s, %(startDate)s at %(startTimeTz)s%(recurrenceSeparator)s%(recurrence)s')
         else:
             sameDate = self.endTime.date() == self.startTime.date()
-            if self.anyTime:
-                fmt = (sameDate and _(u'%(startDay)s, %(startDate)s any time%(recurrenceSeparator)s%(recurrence)s')
-                       or _(u'%(startDate)s - %(endDate)s, any time%(recurrenceSeparator)s%(recurrence)s'))
-            elif self.allDay:
+            # allDay should be first, because it takes precedence over anyTime
+            if self.allDay: 
                 fmt = (sameDate and _(u'%(startDay)s, %(startDate)s all day%(recurrenceSeparator)s%(recurrence)s')
                        or _(u'%(startDate)s - %(endDate)s all day%(recurrenceSeparator)s%(recurrence)s'))
+            elif self.anyTime:
+                fmt = (sameDate and _(u'%(startDay)s, %(startDate)s any time%(recurrenceSeparator)s%(recurrence)s')
+                       or _(u'%(startDate)s - %(endDate)s, any time%(recurrenceSeparator)s%(recurrence)s'))
             else:
                 fmt = (sameDate and _(u'%(startDay)s, %(startDate)s %(startTime)s - %(endTimeTz)s%(recurrenceSeparator)s%(recurrence)s')
                        or _(u'%(startDay)s, %(startDate)s %(startTime)s - %(endDay)s, %(endDate)s %(endTimeTz)s%(recurrenceSeparator)s%(recurrence)s'))
