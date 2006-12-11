@@ -67,8 +67,6 @@ Serialize and deserialize entire record sets:
 True
 
 >>> text = serialize(recordSets)
->>> text
-'<ns0:records xmlns:ns0="http://osafoundation.org/eimml/core"><ns0:item uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record created_on="2006-11-29 12:25:31 US/Pacific" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns1="http://osafoundation.org/eimml/item" /><ns1:record body="VGhpcyBpcyB0aGUgYm9keQ==" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns1="http://osafoundation.org/eimml/note" /><ns1:record dtend="20061130T150000" dtstart="20061130T140000" rrule="FREQ=WEEKLY" status="CONFIRMED" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns1="http://osafoundation.org/eimml/event" /></ns0:item></ns0:records>'
 
 >>> recordSets = deserialize(text)
 >>> recordSets == expectedRecordSets
