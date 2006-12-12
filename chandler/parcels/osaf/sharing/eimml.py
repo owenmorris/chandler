@@ -1,109 +1,8 @@
 
 
-"""
-This module supports serializing of EIM recordsets to "EIMML" and back.
-
->>> from osaf import sharing
->>> from osaf.sharing.eimml import *
->>> from PyICU import ICUtzinfo
->>> import datetime
->>> class TestRecord(sharing.Record):
-...     URI = 'cid:TestRecord@osaf.us'
-...     textField = sharing.field(sharing.TextType(size=100))
-...     decimalField = sharing.field(sharing.DecimalType(digits=11,
-...                                  decimal_places=2))
-...     dateField = sharing.field(sharing.DateType)
-
-
-Translate text values:
-
->>> value = deserializeValue(TestRecord.textField.typeinfo, 'xyzzy')
->>> value
-'xyzzy'
->>> serializeValue(TestRecord.textField.typeinfo, value)
-'xyzzy'
-
-
-Translate decimal values:
-
->>> value = deserializeValue(TestRecord.decimalField.typeinfo, '123.45')
->>> value
-Decimal("123.45")
->>> serializeValue(TestRecord.decimalField.typeinfo, value)
-'123.45'
-
-
-Translate datetime values:
-
->>> value = deserializeValue(TestRecord.decimalField.typeinfo, '123.45')
->>> value
-Decimal("123.45")
->>> serializeValue(TestRecord.decimalField.typeinfo, value)
-'123.45'
-
-
-TODO: int, lob, bytes
-
-
-Serialize and deserialize entire record sets:
-
->>> sample = '''<?xml version="1.0" encoding="UTF-8"?>
-...
-... <eim:records
-... xmlns:eim="http://osafoundation.org/eimml/core"
-... xmlns:item="http://osafoundation.org/eimml/item"
-... xmlns:event="http://osafoundation.org/eimml/event"
-... xmlns:note="http://osafoundation.org/eimml/note">
-... <eim:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
-...    <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" created_on ="2006-11-29 12:25:31 US/Pacific" />
-...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="VGhpcyBpcyB0aGUgYm9keQ==" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
-...    <event:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" rrule="FREQ=WEEKLY" status="CONFIRMED" />
-... </eim:recordset>
-... </eim:records>'''
-
->>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), sharing.NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('US/Pacific'))), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', sharing.NoChange, u'FREQ=WEEKLY', sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange, u'CONFIRMED')])}
-
->>> recordSets = deserialize(sample)
->>> recordSets == expectedRecordSets
-True
-
->>> text = serialize(recordSets)
-
->>> recordSets = deserialize(text)
->>> recordSets == expectedRecordSets
-True
-
-
-
-
-
-
-RecordSets can be stored and retrieved by UUID:
-
->>> uuidString = '8501de14-1dc9-40d4-a7d4-f289feff8214'
->>> recordSet = recordSets[uuidString]
->>> from repository.persistence.RepositoryView import NullRepositoryView
->>> rv = NullRepositoryView()
->>> share = sharing.Share(itsView=rv)
->>> saveRecordSet(share, uuidString, recordSet)
->>> newRecordSet = getRecordSet(share, uuidString)
->>> recordSet == newRecordSet
-True
-
-
-
-
-
-(end of doctest)
-"""
-
-
-
-
-
 from application import schema
 from osaf import sharing
-from osaf.sharing import model
+from osaf.sharing import model, serializers
 from osaf.sharing.simplegeneric import generic
 from PyICU import ICUtzinfo
 import datetime, base64, decimal
@@ -116,27 +15,6 @@ from xml.etree.ElementTree import (
 
 
 
-
-
-class Baseline(schema.Item):
-    records = schema.Sequence(schema.Tuple)
-
-
-def saveRecordSet(share, uuidString, recordSet):
-    Baseline.update(share, uuidString, records=list(recordSet.inclusions))
-
-def getRecordSet(share, uuidString):
-    recordSet = None
-    baseline = share.getItemChild(uuidString)
-    if baseline is not None:
-        # recordSet = RecordSet.from_tuples(baseline.records)
-        # Until RecordSet gets fleshed out:
-        records = []
-        tupleNew = tuple.__new__
-        for tup in baseline.records:
-            records.append(tupleNew(tup[0], tup))
-        recordSet = sharing.RecordSet(records)
-    return recordSet
 
 
 
@@ -245,63 +123,65 @@ def deserialize_date(typeinfo, text):
 recordsURI = "http://osafoundation.org/eimml/core"
 recordSetURI = "http://osafoundation.org/eimml/core"
 
-def serialize(recordSets):
-    """ Convert a list of record sets to XML text """
+class EIMMLSerializer(serializers.Serializer):
 
-    recordsElement = Element("{%s}records" % recordsURI)
+    def serialize(self, recordSets):
+        """ Convert a list of record sets to XML text """
 
-    for uuid, recordSet in recordSets.iteritems():
-        recordSetElement = SubElement(recordsElement,
-            "{%s}item" % recordSetURI, uuid=uuid)
+        recordsElement = Element("{%s}records" % recordsURI)
 
-        for record in list(recordSet.inclusions):
-            fields = {}
-            for field in record.__fields__:
-                value = record[field.offset]
-                if value is not sharing.NoChange:
-                    serialized = serializeValue(field.typeinfo,
-                        record[field.offset])
-                    fields[field.name] = serialized
-            recordURI = record.URI
-            recordElement = SubElement(recordSetElement,
-                "{%s}record" % (recordURI), **fields)
+        for uuid, recordSet in recordSets.iteritems():
+            recordSetElement = SubElement(recordsElement,
+                "{%s}item" % recordSetURI, uuid=uuid)
 
-    return tostring(recordsElement)
+            for record in list(recordSet.inclusions):
+                fields = {}
+                for field in record.__fields__:
+                    value = record[field.offset]
+                    if value is not sharing.NoChange:
+                        serialized = serializeValue(field.typeinfo,
+                            record[field.offset])
+                        fields[field.name] = serialized
+                recordURI = record.URI
+                recordElement = SubElement(recordSetElement,
+                    "{%s}record" % (recordURI), **fields)
+
+        return tostring(recordsElement)
 
 
-def deserialize(text):
-    """ Parse XML text into a list of record sets """
+    def deserialize(self, text):
+        """ Parse XML text into a list of record sets """
 
-    recordSets = {}
+        recordSets = {}
 
-    recordsElement = fromstring(text) # xml parser
+        recordsElement = fromstring(text) # xml parser
 
-    for recordSetElement in recordsElement:
-        uuid = recordSetElement.get("uuid")
-        records = []
+        for recordSetElement in recordsElement:
+            uuid = recordSetElement.get("uuid")
+            records = []
 
-        for recordElement in recordSetElement:
-            ns, name = recordElement.tag[1:].split("}")
+            for recordElement in recordSetElement:
+                ns, name = recordElement.tag[1:].split("}")
 
-            recordClass = sharing.lookupSchemaURI(ns)
-            if recordClass is None:
-                continue    # XXX handle error?  logging?
+                recordClass = sharing.lookupSchemaURI(ns)
+                if recordClass is None:
+                    continue    # XXX handle error?  logging?
 
-            values = []
-            for field in recordClass.__fields__:
-                value = recordElement.get(field.name)
-                if value is not None:
-                    value = deserializeValue(field.typeinfo, value)
-                else:
-                    value = sharing.NoChange
-                values.append(value)
+                values = []
+                for field in recordClass.__fields__:
+                    value = recordElement.get(field.name)
+                    if value is not None:
+                        value = deserializeValue(field.typeinfo, value)
+                    else:
+                        value = sharing.NoChange
+                    values.append(value)
 
-            records.append(recordClass(*values))
+                records.append(recordClass(*values))
 
-        recordSet = sharing.RecordSet(records)
-        recordSets[uuid] = recordSet
+            recordSet = sharing.RecordSet(records)
+            recordSets[uuid] = recordSet
 
-    return recordSets
+        return recordSets
 
 
 
@@ -396,7 +276,7 @@ sample2 = """<?xml version="1.0" encoding="UTF-8"?>
 def test_suite():
     import doctest
     return doctest.DocFileSuite(
-        'eimml.py',
+        'EIMML.txt',
         optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
     )
 
