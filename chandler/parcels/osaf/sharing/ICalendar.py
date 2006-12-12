@@ -145,6 +145,9 @@ def itemsToVObject(view, items, cal=None, filters=None):
             comp.add('location').value = event.location.displayName
         except AttributeError:
             pass
+        
+        timestamp = datetime.datetime.utcnow()
+        comp.add('dtstamp').value = timestamp.replace(tzinfo=utc)
 
         if not filters or Remindable.reminders.name not in filters:
             firstReminder = Remindable(item).getUserReminder()
@@ -879,6 +882,11 @@ class ICalendarFormat(formats.ImportExportFormat):
     def exportProcess(self, share, depth=0):
         cal = itemsToVObject(self.itsView, share.contents,
                              filters=self.share.filterAttributes)
+        if self.fileStyle() == formats.STYLE_SINGLE:
+            # don't add a METHOD to CalDAV serializations, because CalDAV
+            # forbids them, but do add one when serializing monolithic ics files
+            # because Outlook requires them (bug 7121)
+            cal.add('method').value="PUBLISH"
         try:
             cal.add('x-wr-calname').value = share.contents.displayName
         except:

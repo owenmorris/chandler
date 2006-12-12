@@ -231,8 +231,11 @@ def __actionOnMessage(view, mailStamp, action="REPLY"):
             event = EventStamp(mailStamp.itsItem)
             calendar = ICalendar.itemsToVObject(view, [event],
                            filters=(Remindable.reminders.name,))
-
-            calendar.add('method').value="REQUEST"
+            
+            # it's possibly more accurate to use a REQUEST method instead of
+            # PUBLISH, but as long as we don't include ATTENDEES, this causes
+            # problems for iCal, so setting the method to PUBLISH for now (bug 7478)
+            calendar.add('method').value="PUBLISH"
             ics = calendar.serialize()
             icsName = u"%s.ics" % mailStamp.itsItem.displayName
 
