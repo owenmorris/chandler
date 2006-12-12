@@ -34,7 +34,7 @@ def guessFormat(stream):
         # this is potentially expensive, but vobject is much more picky than
         # email's parser, so false positives seem much less likely trying
         # vobject first
-        vobj = vobject.readOne(stream)
+        vobj = vobject.readOne(stream, ignoreUnreadable=True)
         if vobj.behavior == vobject.icalendar.VCalendar2_0:
             return ICALENDAR_FORMAT
         # one day we could test if it's a VCARD...

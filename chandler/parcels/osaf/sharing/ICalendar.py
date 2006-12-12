@@ -393,7 +393,8 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
     calname = None
 
     # iterate over calendars, usually only one, but more are allowed
-    for calendar in vobject.readComponents(text, validate=True):
+    for calendar in vobject.readComponents(text, validate=True,
+                                           ignoreUnreadable=True):
         modificationQueue = []
 
         # just grab the first calendar name
@@ -767,7 +768,8 @@ def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
     Calendar.ensureIndexed(busyCollection)
     
     # iterate over calendars, usually only one, but more are allowed
-    for calendar in vobject.readComponents(text, validate=True):
+    for calendar in vobject.readComponents(text, validate=True,
+                                           ignoreUnreadable=True):
         calname = calendar.getChildValue('x_wr_calname')
             
         for vfreebusy in calendar.vfreebusy_list:
