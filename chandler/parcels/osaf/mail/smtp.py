@@ -24,6 +24,7 @@ from twisted.internet import threads
 #python imports
 import cStringIO as StringIO
 from datetime import datetime
+import socket
 
 #PyICU imports
 from PyICU import ICUtzinfo
@@ -43,6 +44,17 @@ import errors
 from utils import *
 from message import *
 import message
+
+NAME_OR_ADDRESS = None
+
+if smtp.DNSNAME:
+    tpl = socket.gethostbyname_ex(smtp.DNSNAME)
+
+    if len(tpl[2]):
+        #We are not currently handling IPv6 addresses
+        NAME_OR_ADDRESS = "[%s]" % tpl[2][0]
+    else:
+        NAME_OR_ADDRESS = smtp.DNSNAME
 
 __all__ = ['SMTPClient']
 
@@ -354,8 +366,15 @@ class SMTPClient(object):
                                           1, heloFallback, authRequired,
                                           securityRequired)
 
-        factory.protocol   = _TwistedESMTPSender
-        factory.testing    = testing
+        factory.protocol = _TwistedESMTPSender
+        factory.testing  = testing
+
+        if NAME_OR_ADDRESS:
+            # Instead of using the dns name, use the
+            # IPv4 address of the client in
+            # EHLO / HELO commands sent to the SMTP
+            # Server.
+            factory.domain = NAME_OR_ADDRESS
 
         if self.account.connectionSecurity == 'SSL':
             ssl.connectSSL(self.account.host, self.account.port, factory,
