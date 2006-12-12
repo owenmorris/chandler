@@ -12,44 +12,32 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'LobType', 'DecimalType', 'get_converter', 'add_converter',
-    'subtype', 'typedef', 'field', 'key', 'NoChange', 'Record', 'RecordSet'
+    'subtype', 'typedef', 'field', 'key', 'NoChange', 'Record', 'RecordSet',
+    'lookupSchemaURI',
 ]
+
 from symbols import Symbol  # XXX change this to peak.util.symbols
 from simplegeneric import generic
 from weakref import WeakValueDictionary
 import linecache, os, decimal, datetime
 from application import schema
 from chandlerdb.util.c import UUID
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @generic
 def get_converter(context):
@@ -80,6 +68,18 @@ def add_converter(context, from_type, converter):
         get_converter.when_object(context)(lambda context: gf)
     gf.when_type(from_type)(converter)
 
+
+
+
+
+
+
+
+
+
+
+
+
 class UnknownType(KeyError):
     """An object was not recognized as a type, alias, context, or URI"""
 
@@ -98,16 +98,6 @@ def typeinfo_for(context):
     raise UnknownType(context)
 
 
-types_by_uri = WeakValueDictionary()
-
-@typeinfo_for.when_type(str)
-def lookup_by_uri(context):
-    try:
-        return types_by_uri[context]
-    except KeyError:
-        return typeinfo_for.default(context)
-
-
 def typedef(alias, typeinfo):
     """Register `alias` as an alias for `typeinfo`
 
@@ -117,6 +107,16 @@ def typedef(alias, typeinfo):
     An error occurs if `alias` is already registered."""
     typeinfo = typeinfo_for(typeinfo)   # unaliases and validates typeinfo
     typeinfo_for.when_object(alias)(lambda context: typeinfo)
+
+
+@typeinfo_for.when_type(str)
+def lookup_ti_by_uri(context):
+    ti = lookupSchemaURI(context)
+    if ti is None:
+        return typeinfo_for.default(context)
+    return typeinfo_for(ti)
+
+
 
 
 
@@ -132,10 +132,8 @@ class TypeInfo(object):
                 "sharing.%s is an abstract type; use a subtype"
                 % self.__class__.__name__
             )
-        if uri is not None and uri in types_by_uri:
-            raise TypeError("A type already exists for "+repr(uri))
+        registerURI(uri, self, None)
         self.uri = uri
-        types_by_uri[uri] = self
 
     def __setattr__(self, attr, value):
         if hasattr(self, 'uri'):    # have we been initialized?
@@ -152,6 +150,7 @@ class TypeInfo(object):
     def clone(self, uri=None, *args, **kw):
         return self.__class__(uri, *args, **kw)
 
+
 @get_converter.when_type(TypeInfo)
 def get_default_converter_for_primitive_type(context):
     return get_converter(type(context))
@@ -159,6 +158,7 @@ def get_default_converter_for_primitive_type(context):
 @typeinfo_for.when_type(TypeInfo)
 def return_typeinfo(context):
     return context  # TypeInfo can be used as-is
+
 
 
 
@@ -186,20 +186,20 @@ class SizedType(TypeInfo):
         return self.__class__(uri, size, *args, **kw)
 
 
+uri_registry = WeakValueDictionary()
 
+def registerURI(uri, ob, message="A URI must be provided"):
+    if uri is None:
+        if message:
+            raise TypeError(message)
+        else:
+            return
+    elif uri_registry.setdefault(uri, ob) is not ob:
+        raise TypeError("URI %r is already in use" % (uri,))
 
-
-
-
-
-
-
-
-
-
-
-
-
+def lookupSchemaURI(uri, default=None):
+    """Look up a filter, record type, or field type by URI"""
+    return uri_registry.get(uri,default)
 
 
 
@@ -367,6 +367,88 @@ class RecordSet(object):
 
 
 
+class Filter:
+    """Suppress inclusion of specified field(s) in Records and RecordSets"""
+
+    def __init__(self, uri, description):
+        registerURI(uri, self, None)
+        self.uri = uri
+        self.description = description
+        self.fields = set()
+        self.types = {RecordSet: self.filter_rs}
+
+    def __repr__(self):
+        return "Filter(%r, %r)" % (self.uri, self.description)
+
+    def filter_rs(self, recordset):
+        return RecordSet(
+            map(self.sync_filter, recordset.inclusions), recordset.exclusions
+        )
+
+    def __iadd__(self, other):
+        if isinstance(other, field):
+            flist = [other]
+        elif isinstance(other, Filter):
+            flist = other.fields
+        else:
+            raise TypeError("Can't add %r to Filter" % (other,))
+
+        for f in flist:
+            if f.owner in self.types:
+                del self.types[f.owner]
+            self.fields.add(f)
+
+        return self
+
+        
+
+
+
+
+
+
+
+    def sync_filter(self, record_or_set):
+        try:
+            # Lookup cached filter function by type
+            ff = self.types[type(record_or_set)]
+
+        except KeyError:
+            # No cached filter function, build one or use default
+            
+            t = type(record_or_set)
+            if not isinstance(t, RecordClass):
+                # Only record types allowed!
+                raise TypeError(
+                    "Not a Record or RecordSet: %r" % (record_or_set,)
+                )
+
+            all_fields = t.__fields__
+            to_filter = frozenset(f for f in all_fields if f in self.fields)
+
+            if to_filter:
+                # Define a custom filter function
+                def ff(record):
+                    return t(*[
+                        (NoChange if f in to_filter else record[f.offset])
+                        for f in all_fields
+                    ])
+            else:
+                # This isn't a record type we care about
+                ff = _no_filtering
+
+            self.types[t] = ff
+
+        return ff(record_or_set)
+        
+
+def _no_filtering(record):
+    # Fast default filter function used when the Filter doesn't apply to a type
+    return record
+
+
+
+
 def _constructor_for(name, cdict, fields):
     fname = "EIM-Generated Constructor for %s.%s" % (cdict['__module__'],name)
     args =', '.join(f.name for f in fields)
@@ -413,10 +495,12 @@ class RecordClass(type):
         try:
             Record
         except NameError:
-            pass
+            message = None  # Record itself doesn't need a URI
         else:
+            message = "Record classes must have a `URI` attribute"
             if bases != (Record,):
                 raise TypeError("Record classes cannot be subclassed")
+
         fields = []
         for attr, val in cdict.items():
             if isinstance(val, field):
@@ -432,17 +516,15 @@ class RecordClass(type):
         cdict['__slots__'] = ()
         cdict['__fields__'] = tuple(fields)
         exec _constructor_for(name, cdict, fields) in globals(), cdict
+
         cls = type.__new__(meta, name, bases, cdict)
         for n,f in enumerate(fields):
             f.owner = cls
             f.offset = n+1
+            for ff in f.filters: ff += f    # add fields to filters
+
+        registerURI(cdict.get('URI'), cls, message)
         return cls
-
-
-
-
-
-
 
 
 
@@ -452,13 +534,16 @@ class RecordClass(type):
 _field_num = 1
 
 class field(object):
-    __slots__ = "owner", "name", "type", "typeinfo", "seq", "offset"
-    def __init__(self, type):
+    __slots__ = "owner", "name", "type", "typeinfo", "seq", "offset", "filters"
+
+    def __init__(self, type, filters=()):
         global _field_num
         self.owner = self.name = None
         self.type = type
         self.typeinfo = typeinfo_for(type)
         self.seq = _field_num = _field_num + 1
+        if filters or not hasattr(self, 'filters'):
+            self.filters = filters
 
     def __setattr__(self, attr, val):
         if hasattr(self,'offset'):
@@ -479,15 +564,12 @@ class field(object):
 def return_typeinfo(context):
     return context.typeinfo
 
+
 class key(field):
-    """Primary key field"""
-
-
-
-
-
-
-
+    """Primary key field (can't be filtered)"""
+    __slots__ = filters = ()
+    def __init__(self, type):
+        field.__init__(self, type)        
 
 
 NoChange = Symbol('NoChange', __name__)

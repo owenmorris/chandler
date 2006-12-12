@@ -1,5 +1,3 @@
-
-
 """
 This module supports serializing of EIM recordsets to "EIMML" and back.
 
@@ -8,6 +6,7 @@ This module supports serializing of EIM recordsets to "EIMML" and back.
 >>> from PyICU import ICUtzinfo
 >>> import datetime
 >>> class TestRecord(sharing.Record):
+...     URI = 'cid:TestRecord@osaf.us'
 ...     textField = sharing.field(sharing.TextType(size=100))
 ...     decimalField = sharing.field(sharing.DecimalType(digits=11,
 ...                                  decimal_places=2))
@@ -96,7 +95,6 @@ RecordSets can be synchronized:
 
 (end of doctest)
 """
-
 
 
 
@@ -258,7 +256,7 @@ def serialize(recordSets):
             fields = {}
             for field in record.__fields__:
                 value = record[field.offset]
-                if value != sharing.NoChange:
+                if value is not sharing.NoChange:
                     serialized = serializeValue(field.typeinfo,
                         record[field.offset])
                     fields[field.name] = serialized
@@ -283,18 +281,10 @@ def deserialize(text):
         for recordElement in recordSetElement:
             ns, name = recordElement.tag[1:].split("}")
 
-            # recordClass = eim.lookupRecordType(ns)
-
-            # Fake lookup method:
-            if ns == "http://osafoundation.org/eimml/item":
-                recordClass = recordtypes.ItemRecord
-            elif ns == "http://osafoundation.org/eimml/note":
-                recordClass = recordtypes.NoteRecord
-            elif ns == "http://osafoundation.org/eimml/task":
-                recordClass = recordtypes.TaskRecord
-            elif ns == "http://osafoundation.org/eimml/event":
-                recordClass = recordtypes.EventRecord
-
+            recordClass = sharing.lookupSchemaURI(ns)
+            if recordClass is None:
+                continue    # XXX handle error?  logging?
+                
             values = []
             for field in recordClass.__fields__:
                 value = recordElement.get(field.name)

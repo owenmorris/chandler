@@ -10,7 +10,11 @@ The Sharing Record API
 Record Types and Fields
 =======================
 
+Record types are defined by subclassing ``sharing.Record`` and creating
+``sharing.key`` and ``sharing.field`` attributes to describe their layout::
+
     >>> class Demo(sharing.Record):
+    ...     URI = 'cid:eim.test.demo-record@osaf.us'
     ...     itemNumber  = sharing.key(int)
     ...     itemName    = sharing.field(sharing.TextType(size=50))
     ...     description = sharing.field(sharing.TextType(size=500))
@@ -20,6 +24,21 @@ Record Types and Fields
 
     >>> r1
     Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
+
+Each record type can have an (optional) unique URI, that can be looked up using
+the ``sharing.lookupSchemaURI()`` API:
+
+    >>> sharing.lookupSchemaURI('cid:eim.test.demo-record@osaf.us')
+    <class 'Demo'>
+
+But each record type must have a *unique* URI; duplicating the URI is an
+error::
+
+    >>> class Wrong(sharing.Record):
+    ...     URI = 'cid:eim.test.demo-record@osaf.us'    # same as before
+    Traceback (most recent call last):
+      ...
+    TypeError: URI 'cid:eim.test.demo-record@osaf.us' is already in use
 
 
 Creating diffs from records::
@@ -48,7 +67,7 @@ Lost update checking/conflict detection between diff records::
 
     >>> diff1 = Demo(1, "Bar", sharing.NoChange, Decimal('1.29'))
     >>> diff2 = Demo(1, sharing.NoChange, "This is NOT a foo", Decimal('2.50'))
-    
+
     >>> diff1 - diff2   # if diff1 is overwritten by diff2, the lost update is:
     Demo(1, NoChange, NoChange, Decimal("1.29"))
 
@@ -69,7 +88,7 @@ as long as keys match::
     Traceback (most recent call last):
       ...
     ValueError: Can't add itemNumber 1 to itemNumber 2
-   
+
 You can get a unique key for a record using its ``getKey()`` method.  The
 return value is a tuple containing the record type, followed by the values of
 the record's key fields, in the order they were defined::
@@ -78,6 +97,7 @@ the record's key fields, in the order they were defined::
     (<class 'Demo'>, 1)
 
     >>> class Demo2(sharing.Record):
+    ...     URI         = 'cid:eim.Demo2@osaf.us'
     ...     itemName    = sharing.field(sharing.TextType(size=50))
     ...     itemNumber  = sharing.key(int)
     ...     description = sharing.field(sharing.TextType(size=500))
@@ -88,9 +108,10 @@ the record's key fields, in the order they were defined::
 
 
 Record Sets
-===========
+-----------
 
     >>> class R(sharing.Record):
+    ...     URI = 'cid:eim.R@osaf.us'
     ...     k = sharing.key(int)
     ...     v = sharing.field(int)
 
@@ -140,26 +161,117 @@ Record Sets
     True
 
 
-TODO: Verify conflict detection when subtracting recordset diffs from each other   
-TODO: Filtering API
-TODO: Record type URIs, foreign key refs
+TODO: Verify conflict detection when subtracting recordset diffs from each other
+TODO: foreign key refs
 TODO: importers, exporters, and Translators
+
+
+Filters
+-------
+
+Filters are used to suppress the inclusion of selected fields from shared
+records.  To define one, you must provide a unique URI, and a human-readable
+description (in Unicode) of the filter::
+
+    >>> Reminders = sharing.Filter('cid:reminder-filter@osaf.us', u"Reminders")
+    >>> Passwords = sharing.Filter('cid:password-filter@osaf.us', u"Passwords")
+
+    >>> sharing.lookupSchemaURI('cid:reminder-filter@osaf.us')
+    Filter('cid:reminder-filter@osaf.us', u'Reminders')
+
+    >>> sharing.lookupSchemaURI('cid:password-filter@osaf.us')
+    Filter('cid:password-filter@osaf.us', u'Passwords')
+
+
+When you define record types, you can provide a list of filters to one or more
+fields::
+
+    >>> t50 = sharing.TextType(size=50)
+    >>> d62 = sharing.DecimalType(None, 6, 2)
+    >>> t500 = sharing.TextType(size=500)
+
+    >>> class SomeType(sharing.Record):
+    ...     URI = 'cid:SomeType-for-eim@osaf.us'
+    ...     foo = sharing.key(int)
+    ...     bar = sharing.field(t50, [Reminders, Passwords])
+    ...     baz = sharing.field(d62, [Reminders])
+    ...     spam  = sharing.field(t500)
+    ...     pin = sharing.field(int, [Passwords])
+
+These fields are then suppressed whenever you take the ``sync_filter()`` of an
+applicable record::
+
+    >>> r4 = SomeType(42, u'password reminder', Decimal('3'), u'blah', 2001)
+    >>> r4
+    SomeType(42, u'password reminder', Decimal("3"), u'blah', 2001)
+
+    >>> Reminders.sync_filter(r4)   # remove other fields
+    SomeType(42, NoChange, NoChange, u'blah', 2001)
+
+    >>> Passwords.sync_filter(r4)   # remove Password fields
+    SomeType(42, NoChange, Decimal("3"), u'blah', NoChange)
+
+Record types that are not linked to the filter are returned unchanged from
+``sync_filter()``::
+
+    >>> Reminders.sync_filter(r1)
+    R(1, 2)
+
+    >>> Passwords.sync_filter(r3)
+    R(3, 3)
+
+You can also pass ``RecordSet`` instances to ``sync_filter``, and the result is
+a new ``RecordSet``::
+
+    >>> r4s = sharing.RecordSet([r4])
+    >>> Passwords.sync_filter(r4s)  # doctest: +NORMALIZE_WHITESPACE
+    RecordSet(set([SomeType(42, NoChange, Decimal("3"), u'blah', NoChange)]),
+              set([]))
+
+But only the ``inclusions`` are filtered, not the ``exclusions``::
+
+    >>> r4s = sharing.RecordSet(exclusions=[r4])
+    >>> Passwords.sync_filter(r4s)  # doctest: +NORMALIZE_WHITESPACE
+    RecordSet(set([]),
+              set([SomeType(42, u'password reminder', Decimal("3"), u'blah',
+                   2001)]))
+
+Filter Arithmetic
+-----------------
+
+You can add fields to an existing filter using the ``+=`` operator::
+
+    >>> Reminders.sync_filter(r1)
+    R(1, 2)
+
+    >>> Reminders += R.v
+
+    >>> Reminders.sync_filter(r1)
+    R(1, NoChange)
+
+You can also combined filters using ``+=``.  Normally this will be used by
+sharing conduits to construct filters according to the share's filtering
+options::
+
+    >>> conduit_filter = sharing.Filter(None, u'Temporary filter')
+    >>> conduit_filter += Reminders     # add in active filters for this share
+    >>> conduit_filter += Passwords     # (real code would use lookupSchemaURI)
+
+    >>> conduit_filter.sync_filter(r1)
+    R(1, NoChange)
+
+    >>> conduit_filter.sync_filter(r4)
+    SomeType(42, NoChange, NoChange, u'blah', NoChange)
 
 
 Notes on Filtering and Sync algorithms::
 
-    Reminders = sharing.Filter(_("Reminders"))
-    class SomeType:
-        foo = sharing.field(..., filter=Reminders, default=...)
-        bar = sharing.field(..., filter=Reminders, default=...)
-    
-    Reminders.sync_filter(record)
-    Reminders.publish_filter(record)
-    
-    *******
+    Note: We may need a publish_filter() capability if Cosmo can't handle
+          missing fields
+
     for item in changed_items:
         rsNewBase[item.itsUUID] = Recordset(translator.exportItem(item))
-    
+
     for itemUUID, rs in inbound_diff.items():
         dInbound = rs - rsOldBase.setdefault(itemUUID, empty_rs)    # Cosmo 0.6
         if itemUUID in rsNewBase:
@@ -168,7 +280,7 @@ Notes on Filtering and Sync algorithms::
             rsNewBase[itemUUID] += dInbound
         translator.processRecords(sync_filter(dInbound)) #import and/or delete
         rsOldBase[itemUUID] += dInbound
-    
+
     for itemUUID, rs in rsNewBase.items():
         if itemUUID in rsOldBase:
             dOutbound = sync_filter(rs - rsOldBase[itemUUID])
@@ -214,7 +326,7 @@ But only one type can exist for a given URI at a given point in time::
     >>> another_text = sharing.TextType("cid:some_text_type@osaf.us", 99)
     Traceback (most recent call last):
       ...
-    TypeError: A type already exists for 'cid:some_text_type@osaf.us'
+    TypeError: URI 'cid:some_text_type@osaf.us' is already in use
 
     >>> del my_text     # no conflicting definition now
     >>> another_text = sharing.TextType("cid:some_text_type@osaf.us", 99)
@@ -237,6 +349,7 @@ Now, ``my_int`` can be used directly as a field type in a ``sharing.Record``
 class, instead of using the ``IntType`` object::
 
     >>> class DemoRecord(sharing.Record):
+    ...     URI = 'cid:eim.DemoRecord@osaf.us'
     ...     an_int = sharing.field(my_int)
 
     >>> DemoRecord.an_int.type
@@ -288,6 +401,7 @@ creating a record.
     >>> hexint = sharing.IntType('cid:hexint_example@osaf.us')
 
     >>> class HexRecord(sharing.Record):
+    ...     URI = 'cid:eim.HexRecord@osaf.us'
     ...     aField = sharing.field(hexint)
 
 By default, there is no converter registered to convert strings to integers,
@@ -415,6 +529,7 @@ No such type::
 Recordtype/field creation and sequence numbers::
 
     >>> class MyRecord(sharing.Record):
+    ...     URI = 'cid:eim.MyRecord@osaf.us'
     ...     f1, f2 = sharing.field(hexint), sharing.field(hexint)
 
     >>> f1, f2 = MyRecord.f1, MyRecord.f2
@@ -446,6 +561,7 @@ Recordtype/field creation and sequence numbers::
     False
 
     >>> class MR2(sharing.Record):
+    ...     URI = 'cid:eim.MR2@osaf.us'
     ...     f3 = sharing.field(my_int)
 
     >>> r = MyRecord("23", f2=3)
@@ -520,10 +636,25 @@ Can't subclass an existing record type, or reuse fields in other record types::
     TypeError: Record classes cannot be subclassed
 
     >>> class CantDoThis(sharing.Record):
+    ...     URI = 'cid:eim.CantDoThis@osaf.us'
     ...     f3 = MyRecord.f1
     Traceback (most recent call last):
       ...
     TypeError: Can't reuse field 'MyRecord.f1' as 'CantDoThis.f3'
+
+Can't filter a non-record type::
+
+    >>> Passwords.sync_filter(42)
+    Traceback (most recent call last):
+      ...
+    TypeError: Not a Record or RecordSet: 42
+
+Can't add non-field, non-filter to filter::
+
+    >>> Passwords += 42
+    Traceback (most recent call last):
+      ...
+    TypeError: Can't add 42 to Filter
 
 
 XXX typeinfo_for(obj) -> TypeInfo
