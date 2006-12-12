@@ -509,6 +509,13 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                             
                         eventItem = uidMatchItem.getRecurrenceID(recurrenceID)
                         if eventItem == None:
+                            # Some calendars, notably Oracle, serialize
+                            # recurrence-id as UTC, which wreaks havoc with 
+                            # noTZ mode. So move recurrenceID to the same tzinfo
+                            # as dtstart, bug 6830
+                            tweakedID = recurrenceID.astimezone(ICUtzinfo.default)
+                            eventItem = uidMatchItem.getRecurrenceID(tweakedID)
+                        if eventItem == None:                            
                             # our recurrenceID didn't match an item we know
                             # about.  This may be because the item is created
                             # by a later modification, a case we're not dealing

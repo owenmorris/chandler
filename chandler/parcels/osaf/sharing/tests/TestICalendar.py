@@ -274,7 +274,22 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         vcalendar.behavior.generateImplicitParameters(vcalendar)
         self.assertEqual(vcalendar.vtimezone.tzid.value, "US/Eastern")
 
-
+    def testImportOracleModification(self):
+        # switch to no-timezones mode
+        schema.ns('osaf.app', self.view).TimezonePrefs.showUI = False
+        # Oracle modifies recurring events by first, if the time changed, adding
+        # an EXDATE for the old time plus an RDATE for the new time, then
+        # creating a VEVENT with RECURRENCE-ID matching the RDATE, except the
+        # RECURRENCE-ID is in UTC, as is the modifications DTSTART.
+        self.Import(self.view, u'oracle_mod.ics')
+        master = pim.EventStamp(Calendar.findUID(self.view,
+                                        'abbfc510-4d8f-11db-c525-001346a711f0'))
+        modTime = datetime.datetime(2006, 9, 29, 13, tzinfo=ICalendar.utc)
+        changed = master.getRecurrenceID(modTime)
+        self.assert_(changed is not None)
+        self.assertEqual(changed.itsItem.displayName,
+                         "Modification title changed")
+        
 
 
 

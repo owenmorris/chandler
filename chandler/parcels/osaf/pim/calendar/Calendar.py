@@ -1037,8 +1037,11 @@ class EventStamp(Stamp):
             
 
         # take duration into account if after is set
-        if not exact and after is not None:
-            start = prepDatetime(after) - first.duration
+        if after is not None:
+            if exact:
+                start = prepDatetime(after)
+            else:
+                start = prepDatetime(after) - first.duration 
         else:
             start = prepDatetime(self.effectiveStartTime)
 
