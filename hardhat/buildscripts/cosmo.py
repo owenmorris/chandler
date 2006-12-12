@@ -27,7 +27,7 @@ import hardhatutil, hardhatlib
 path       = os.environ.get('PATH', os.environ.get('path'))
 whereAmI   = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 svnProgram = hardhatutil.findInPath(path, "svn")
-antProgram = hardhatutil.findInPath(path, "maven")
+antProgram = hardhatutil.findInPath(path, "mvn")
 logPath    = 'hardhat.log'
 separator  = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
@@ -37,12 +37,12 @@ sleepMinutes = 30
 reposRoot    = 'http://svn.osafoundation.org/server'
 reposModules = [('cosmo',  'cosmo/trunk',),
                ]
-reposBuild   = [('cosmo',  'clean dist'),
+reposBuild   = [('cosmo',  'clean package'),
                ]
-reposTest    = [('cosmo',  'clean test'),
+reposTest    = [('cosmo',  'clean compile test'),
                ]
-reposDist    = [('cosmo',  'clean dist:release', 'dist', 'cosmo*.tar.gz'),
-                ('cosmo',  'clean war:deploy',   None,   None),
+reposDist    = [('cosmo',  'clean package', 'dist', 'cosmo*.tar.gz'),
+                #('cosmo',  'clean war:deploy',   None,   None),
                ]
 
 def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, branchID=None, revID=None):
@@ -150,17 +150,13 @@ def doBuild(workingDir, log):
 
     for (module, target) in reposBuild:
         moduleDir = os.path.join(workingDir, module)
-        mavenDir  = os.path.join(workingDir, '..', 'tbox_maven', module)
 
         print "Building [%s]" % module
 
         try:
             os.chdir(moduleDir)
 
-            outputList = hardhatutil.executeCommandReturnOutput(
-                            [antProgram,
-                             '-Dmaven.home.local=' + mavenDir,
-                             target])
+            outputList = hardhatutil.executeCommandReturnOutput([antProgram, target])
 
             hardhatutil.dumpOutputList(outputList, log)
 
