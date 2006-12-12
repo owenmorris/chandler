@@ -16,9 +16,6 @@ from application import schema
 import logging
 logger = logging.getLogger(__name__)
 
-# These may eventually live elsewhere, but checking them in here so we can
-# collaborate on them
-
 
 text20 = sharing.TextType(size=20)
 text256 = sharing.TextType(size=256)

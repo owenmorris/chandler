@@ -18,7 +18,6 @@ __all__ = [
     'BaseConduit',
     'LinkableConduit',
     'ManifestEngineMixin',
-    'TokenEngineMixin',
     'HTTPMixin',
     'SimpleHTTPConduit',
     'isReadOnlyMode',
@@ -1301,17 +1300,6 @@ class HTTPMixin(pim.ContentItem):
 
         return url
 
-
-
-
-class TokenEngineMixin(pim.ContentItem):
-    syncToken = schema.One(
-        schema.Text,
-        doc = "Sync token returned from server",
-    )
-
-
-    # def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
 
 
 

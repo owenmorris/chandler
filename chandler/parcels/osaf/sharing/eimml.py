@@ -1,8 +1,10 @@
+
+
 """
 This module supports serializing of EIM recordsets to "EIMML" and back.
 
 >>> from osaf import sharing
->>> from osaf.sharing.recordsets import *
+>>> from osaf.sharing.eimml import *
 >>> from PyICU import ICUtzinfo
 >>> import datetime
 >>> class TestRecord(sharing.Record):
@@ -59,7 +61,7 @@ Serialize and deserialize entire record sets:
 ... </eim:recordset>
 ... </eim:records>'''
 
->>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.recordtypes.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), sharing.NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('US/Pacific'))), sharing.recordtypes.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.recordtypes.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', sharing.NoChange, u'FREQ=WEEKLY', sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange, u'CONFIRMED')])}
+>>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), sharing.NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('US/Pacific'))), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', sharing.NoChange, u'FREQ=WEEKLY', sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange, u'CONFIRMED')])}
 
 >>> recordSets = deserialize(sample)
 >>> recordSets == expectedRecordSets
@@ -89,7 +91,6 @@ RecordSets can be stored and retrieved by UUID:
 True
 
 
-RecordSets can be synchronized:
 
 
 
@@ -99,9 +100,10 @@ RecordSets can be synchronized:
 
 
 
+
 from application import schema
 from osaf import sharing
-from osaf.sharing import recordtypes
+from osaf.sharing import model
 from osaf.sharing.simplegeneric import generic
 from PyICU import ICUtzinfo
 import datetime, base64, decimal
@@ -284,7 +286,7 @@ def deserialize(text):
             recordClass = sharing.lookupSchemaURI(ns)
             if recordClass is None:
                 continue    # XXX handle error?  logging?
-                
+
             values = []
             for field in recordClass.__fields__:
                 value = recordElement.get(field.name)
@@ -302,10 +304,6 @@ def deserialize(text):
     return recordSets
 
 
-
-def synchronize(newBase, oldBase, inboundDiff):
-    for itemUUID, rs in inboundDiff.items():
-        dInbound = rs - oldBase.setdefault(itemUUID, empty_rs)
 
 
 
@@ -398,7 +396,7 @@ sample2 = """<?xml version="1.0" encoding="UTF-8"?>
 def test_suite():
     import doctest
     return doctest.DocFileSuite(
-        'recordsets.py',
+        'eimml.py',
         optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
     )
 
