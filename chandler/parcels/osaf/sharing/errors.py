@@ -75,3 +75,14 @@ class VersionMismatch(SharingError):
     Exception raised if syncing with a CloudXML share of an old version
     """
 
+class TokenMismatch(SharingError):
+    """
+    Exception raised when we perform a Cosmo operation and our sync token
+    is out of date
+    """
+
+class MalformedToken(SharingError):
+    """
+    Exception raised when we pass a token which Cosmo doesn't understand
+    """
+

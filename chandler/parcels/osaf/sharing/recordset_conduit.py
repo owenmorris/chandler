@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import conduits, errors, formats, serializers, eim
+import conduits, errors, formats, eim
 from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
@@ -25,31 +25,14 @@ logger = logging.getLogger(__name__)
 class Baseline(schema.Item):
     records = schema.Sequence(schema.Tuple)
 
-def saveRecordSet(share, uuidString, recordSet):
-    Baseline.update(share, uuidString, records=list(recordSet.inclusions))
-
-def getRecordSet(share, uuidString):
-    recordSet = None
-    baseline = share.getItemChild(uuidString)
-    if baseline is not None:
-        # recordSet = RecordSet.from_tuples(baseline.records)
-        # Until RecordSet gets fleshed out:
-        records = []
-        tupleNew = tuple.__new__
-        for tup in baseline.records:
-            records.append(tupleNew(tup[0], tup))
-        recordSet = eim.RecordSet(records)
-    return recordSet
-
 
 
 
 
 class RecordSetConduit(conduits.BaseConduit):
 
-    # translator = schema.One(eim.Translator)
-    translator = schema.One(schema.Item)
-    serializer = schema.One(serializers.Serializer)
+    translator = schema.One(schema.Class)
+    serializer = schema.One(schema.Class)
     syncToken = schema.One(schema.Text)
 
     def sync(self, modOverride=None, updateCallback=None, forceUpdate=None):
@@ -67,25 +50,29 @@ class RecordSetConduit(conduits.BaseConduit):
         rsNewBase = { }
         for uuid in changedItems:
             item = rv.findUUID(uuid)
-            # @@@MOR: what if item is deleted?
-            outbound[uuid] = eim.RecordSet(self.translator.exportItem(item))
+            if item is not None and item.isLive():
+                rs = eim.RecordSet(self.translator.exportItem(item))
+            else:
+                rs = eim.RecordSet()
+            rsNewBase[uuid] = rs
 
 
         # Get inbound diffs
-        inbound = self._get( )
+        inbound = self._get()
 
         # Merge
-        toSend, toApply, lost = self.merge(self.share, outbound, inbound)
+        toSend, toApply, lost = self.merge(rsNewBase, inbound)
 
         # Apply
         for itemUUID, rs in toApply.items():
             self.translator.processRecords(rs)
 
+
         # Send
         self._put(toSend)
 
 
-    def merge(self, baselineParent, rsNewBase, inboundDiff=None):
+    def merge(self, rsNewBase, inboundDiff):
 
         # The new sync algorithm
 
@@ -96,26 +83,20 @@ class RecordSetConduit(conduits.BaseConduit):
         for itemUUID, rs in inboundDiff.items():
             # Until Cosmo supports diffs, we need to compute the diffs
             # ourselves:
-            rsOld = getRecordSet(baselineParent, itemUUID)
-            if rsOld is None:
-                rsOld = eim.RecordSet()
+            rsOld = self.getRecordSet(itemUUID)
             dInbound = rs - rsOld
 
             if itemUUID in rsNewBase:
                 dLocal = rsNewBase[itemUUID] - rsOld
                 lost[itemUUID] = dLocal - dInbound
                 rsNewBase[itemUUID] += dInbound
-            toApply[itemUUID] = sync_filter(dInbound)
+            toApply[itemUUID] = sync_filter(dInbound)  # @@@MOR Hook up
             rsOld += dInbound
-            saveRecordSet(baselineParent, itemUUID, rsOld)
+            self.saveRecordSet(itemUUID, rsOld)
 
         for itemUUID, rs in rsNewBase.items():
-            rsOld = getRecordSet(baselineParent, itemUUID)
-            if rsOld is not None:
-                dOutbound = sync_filter(rs - rsOld)
-            else:
-                dOutbound = sync_filter(rs)
-                rsOld = eim.RecordSet()
+            rsOld = self.getRecordSet(itemUUID)
+            dOutbound = sync_filter(rs - rsOld)  # @@@MOR Hook up
 
             # If/when Cosmo supports diffs, use the following line:
             # toSend[itemUUID] = dOutbound
@@ -125,16 +106,31 @@ class RecordSetConduit(conduits.BaseConduit):
             # ...until Cosmo supports diffs, use the following line:
             toSend[itemUUID] = rsOld
 
-            saveRecordSet(baselineParent, itemUUID, rsOld)
+            self.saveRecordSet(itemUUID, rsOld)
 
         return toSend, toApply, lost
 
 
+    def saveRecordSet(self, uuidString, recordSet):
+        Baseline.update(self.share, uuidString,
+            records=list(recordSet.inclusions))
+
+    def getRecordSet(self, uuidString):
+        baseline = self.share.getItemChild(uuidString)
+        if baseline is None:
+            recordSet = eim.RecordSet()
+        else:
+            # recordSet = RecordSet.from_tuples(baseline.records)
+            # Until RecordSet gets fleshed out:
+            records = []
+            tupleNew = tuple.__new__
+            for tup in baseline.records:
+                records.append(tupleNew(tup[0], tup))
+            recordSet = eim.RecordSet(records)
+        return recordSet
+
 
 class CosmoRecordSetConduit(RecordSetConduit, conduits.HTTPMixin):
-
-    def __init__(self, *args, **kw):
-        super(CosmoEIMConduit, self).__init__(*args, **kw)
 
     def _get(self):
         pass
@@ -143,9 +139,6 @@ class CosmoRecordSetConduit(RecordSetConduit, conduits.HTTPMixin):
         pass
 
 class InMemoryRecordSetConduit(RecordSetConduit, conduits.HTTPMixin):
-
-    def __init__(self, *args, **kw):
-        super(InMemoryRecordSetConduit, self).__init__(*args, **kw)
 
     def _get(self):
         pass

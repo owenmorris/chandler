@@ -2,7 +2,7 @@
 
 from application import schema
 from osaf import sharing
-from osaf.sharing import model, serializers
+from osaf.sharing import model
 from osaf.sharing.simplegeneric import generic
 from PyICU import ICUtzinfo
 import datetime, base64, decimal
@@ -123,9 +123,10 @@ def deserialize_date(typeinfo, text):
 recordsURI = "http://osafoundation.org/eimml/core"
 recordSetURI = "http://osafoundation.org/eimml/core"
 
-class EIMMLSerializer(serializers.Serializer):
+class EIMMLSerializer(object):
 
-    def serialize(self, recordSets):
+    @classmethod
+    def serialize(cls, recordSets):
         """ Convert a list of record sets to XML text """
 
         recordsElement = Element("{%s}records" % recordsURI)
@@ -148,8 +149,8 @@ class EIMMLSerializer(serializers.Serializer):
 
         return tostring(recordsElement)
 
-
-    def deserialize(self, text):
+    @classmethod
+    def deserialize(cls, text):
         """ Parse XML text into a list of record sets """
 
         recordSets = {}

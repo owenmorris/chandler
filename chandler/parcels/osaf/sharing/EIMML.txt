@@ -5,7 +5,8 @@
 >>> import datetime, decimal
 >>> from repository.persistence.RepositoryView import NullRepositoryView
 >>> rv = NullRepositoryView()
->>> serializer = eimml.EIMMLSerializer(itsView=rv)
+
+
 >>> class TestRecord(sharing.Record):
 ...     URI = 'cid:TestRecord@osaf.us'
 ...     textField = sharing.field(sharing.TextType(size=100))
@@ -62,13 +63,13 @@ Serialize and deserialize entire record sets:
 
 >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), sharing.NoChange, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('US/Pacific'))), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', sharing.NoChange, u'FREQ=WEEKLY', sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange, u'CONFIRMED')])}
 
->>> recordSets = serializer.deserialize(sample)
+>>> recordSets = eimml.EIMMLSerializer.deserialize(sample)
 >>> recordSets == expectedRecordSets
 True
 
->>> text = serializer.serialize(recordSets)
+>>> text = eimml.EIMMLSerializer.serialize(recordSets)
 
->>> recordSets = serializer.deserialize(text)
+>>> recordSets = eimml.EIMMLSerializer.deserialize(text)
 >>> recordSets == expectedRecordSets
 True
 
@@ -79,8 +80,10 @@ RecordSets can be stored and retrieved by UUID:
 >>> uuidString = '8501de14-1dc9-40d4-a7d4-f289feff8214'
 >>> recordSet = recordSets[uuidString]
 >>> share = sharing.Share(itsView=rv)
->>> recordset_conduit.saveRecordSet(share, uuidString, recordSet)
->>> newRecordSet = recordset_conduit.getRecordSet(share, uuidString)
+>>> conduit = recordset_conduit.RecordSetConduit(itsView=rv)
+>>> share.conduit = conduit
+>>> conduit.saveRecordSet(uuidString, recordSet)
+>>> newRecordSet = conduit.getRecordSet(uuidString)
 >>> recordSet == newRecordSet
 True
 
