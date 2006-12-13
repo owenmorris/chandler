@@ -33,14 +33,15 @@ class RecordSetConduit(conduits.BaseConduit):
 
     translator = schema.One(schema.Class)
     serializer = schema.One(schema.Class)
-    syncToken = schema.One(schema.Text)
+    syncToken = schema.One(schema.Text, initialValue=None)
 
     def sync(self, modOverride=None, updateCallback=None, forceUpdate=None):
 
         rv = self.itsView
 
-        # Determine which items have changed:
+        translator = self.translator()
 
+        # Determine which items have changed:
         changedItems = set()
         for uuid, version, kind, status, values, references, prevKind in \
             rv.mapHistory(self.itemsMarker.itsVersion, rv.itsVersion):
@@ -51,25 +52,26 @@ class RecordSetConduit(conduits.BaseConduit):
         for uuid in changedItems:
             item = rv.findUUID(uuid)
             if item is not None and item.isLive():
-                rs = eim.RecordSet(self.translator.exportItem(item))
+                rs = eim.RecordSet(translator.exportItem(item))
             else:
                 rs = eim.RecordSet()
             rsNewBase[uuid] = rs
 
 
         # Get inbound diffs
-        inbound = self._get()
+        text = self.get()
+        inboundDiff = self.serializer.deserialize(text)
 
         # Merge
-        toSend, toApply, lost = self.merge(rsNewBase, inbound)
+        toSend, toApply, lost = self.merge(rsNewBase, inboundDiff)
 
         # Apply
         for itemUUID, rs in toApply.items():
-            self.translator.processRecords(rs)
-
+            translator.processRecords(rs)
 
         # Send
-        self._put(toSend)
+        text = self.serializer.serialize(toSend)
+        self.put(text)
 
 
     def merge(self, rsNewBase, inboundDiff):
@@ -111,9 +113,12 @@ class RecordSetConduit(conduits.BaseConduit):
         return toSend, toApply, lost
 
 
+
     def saveRecordSet(self, uuidString, recordSet):
         Baseline.update(self.share, uuidString,
             records=list(recordSet.inclusions))
+
+
 
     def getRecordSet(self, uuidString):
         baseline = self.share.getItemChild(uuidString)
@@ -130,19 +135,96 @@ class RecordSetConduit(conduits.BaseConduit):
         return recordSet
 
 
+
+
+
+
+
 class CosmoRecordSetConduit(RecordSetConduit, conduits.HTTPMixin):
 
-    def _get(self):
+    def get(self):
         pass
 
-    def _put(self):
+    def put(self):
         pass
 
-class InMemoryRecordSetConduit(RecordSetConduit, conduits.HTTPMixin):
 
-    def _get(self):
-        pass
 
-    def _put(self):
-        pass
 
+
+
+shareDict = { }
+
+class InMemoryRecordSetConduit(RecordSetConduit):
+
+    def get(self):
+        self.syncToken, text = self.serverGet(self.shareName, self.syncToken)
+        return text
+
+    def put(self, text):
+        if self.syncToken is None:
+            self.syncToken = self.serverPut(self.shareName, text)
+        else:
+            self.syncToken = self.serverPost(self.shareName, self.syncToken,
+                                             text)
+
+
+    # simulate cosmo:
+
+    def _getCollection(self, path):
+        return shareDict.setdefault(path, { "tokens" : [], "recordsets" : {} })
+
+    def _storeUUIDs(self, tokens, uuids):
+        tokens.append(uuids)
+        return len(tokens)
+
+    def serverPut(self, path, text):
+        recordsets = self.serializer.deserialize(text)
+        coll = self._getCollection(path)
+        uuids = set()
+        for uuid, rs in recordsets.items():
+            coll["recordsets"][uuid] = rs
+            uuids.add(uuid)
+        token = self._storeUUIDs(coll["tokens"], uuids)
+        return token
+
+    def serverPost(self, path, token, text):
+        token = int(token)
+        coll = self._getCollection(path)
+        current = len(coll["tokens"])
+
+        if token != current:
+            raise errors.TokenMismatch("%s != %s" % (token, current))
+
+        recordsets = self.serializer.deserialize(text)
+        uuids = set()
+        for uuid, rs in recordsets.items():
+            coll["recordsets"][uuid] = rs
+            uuids.add(uuid)
+        token = self._storeUUIDs(coll["tokens"], uuids)
+        return token
+
+    def serverGet(self, path, token):
+
+        if token is None:
+            token = 0
+        else:
+            token = int(token)
+
+        coll = self._getCollection(path)
+
+        current = len(coll["tokens"])
+        if token > current:
+            raise errors.MalformedToken(token)
+
+        uuids = set()
+        for uuid_set in coll["tokens"][token:]:
+            uuids |= uuid_set
+
+        recordsets = {}
+        for uuid in uuids:
+            recordsets[uuid] = coll["recordsets"][uuid]
+
+        text = self.serializer.serialize(recordsets)
+
+        return current, text

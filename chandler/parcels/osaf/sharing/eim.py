@@ -16,7 +16,7 @@ __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'LobType', 'DecimalType', 'get_converter', 'add_converter',
     'subtype', 'typedef', 'field', 'key', 'NoChange', 'Record', 'RecordSet',
-    'lookupSchemaURI',
+    'lookupSchemaURI', 'Filter'
 ]
 
 from symbols import Symbol  # XXX change this to peak.util.symbols

@@ -11,24 +11,36 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 from osaf import sharing
 from application import schema
 import logging
 logger = logging.getLogger(__name__)
+
+# TODO: Reminders, MailMessage
 
 
 text20 = sharing.TextType(size=20)
 text256 = sharing.TextType(size=256)
 text1024 = sharing.TextType(size=1024)
 
+
+triageFilter = sharing.Filter('cid:triage-filter@osaf.us', u"Triage Status")
+
+eventStatusFilter = sharing.Filter('cid:event-status-filter@osaf.us',
+    u"Event Status")
+
+remindersFilter = sharing.Filter('cid:reminders-filter@osaf.us', u"Reminders")
+
+
 class ItemRecord(sharing.Record):
     URI = "http://osafoundation.org/eimml/item"
 
     uuid = sharing.key(schema.UUID)
     title = sharing.field(text256)
-    triage_status = sharing.field(text256)
+    triage_status = sharing.field(text256, [triageFilter])
     triage_status_changed = sharing.field(sharing.DecimalType(digits=11,
-        decimal_places=2))
+        decimal_places=2), [triageFilter])
     last_modified_by = sharing.field(text256) # storing an email address
     created_on = sharing.field(sharing.DateType)
 
@@ -56,7 +68,7 @@ class EventRecord(sharing.Record):
     rdate = sharing.field(text1024)
     exdate = sharing.field(text1024)
     recurrenceid = sharing.field(text20)
-    status = sharing.field(text256)
+    status = sharing.field(text256, [eventStatusFilter])
     # anyTime -- may need for Apple iCal?
     # allDay
 
