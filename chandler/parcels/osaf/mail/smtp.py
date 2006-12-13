@@ -45,23 +45,32 @@ from utils import *
 from message import *
 import message
 
-NAME_OR_ADDRESS = None
-
-#if smtp.DNSNAME:
-#    tpl = socket.gethostbyname_ex(smtp.DNSNAME)
-#
-#    if len(tpl[2]):
-#        #We are not currently handling IPv6 addresses
-#        NAME_OR_ADDRESS = "[%s]" % tpl[2][0]
-#    else:
-#        NAME_OR_ADDRESS = smtp.DNSNAME
-
 __all__ = ['SMTPClient']
 
 class _TwistedESMTPSender(smtp.ESMTPSender):
 
     # Turn off Twisted SMTPClient logging
     debug = False
+
+    def connectionMade(self):
+        #twisted.internet.address.IPv4Address Object
+        ipAddr = self.transport.getHost()
+
+        if ipAddr:
+            # Get the IPv4 address and use instead
+            # of the DNS name for EHLO / HELO
+            # commands.
+            # This is a workaround for SMTP servers
+            # that require fully qualified domains.
+            # Windows and Linux clients do not
+            # provide fully qualified domains by
+            # default which means with out this
+            # feature users would manually have
+            # to set his or her domain settings.
+
+            self.identity = "[%s]" % ipAddr.host
+
+        return smtp.ESMTPSender.connectionMade(self)
 
     def tryTLS(self, code, resp, items):
         """Checks if the client has requested
@@ -368,13 +377,6 @@ class SMTPClient(object):
 
         factory.protocol = _TwistedESMTPSender
         factory.testing  = testing
-
-        if NAME_OR_ADDRESS:
-            # Instead of using the dns name, use the
-            # IPv4 address of the client in
-            # EHLO / HELO commands sent to the SMTP
-            # Server.
-            factory.domain = NAME_OR_ADDRESS
 
         if self.account.connectionSecurity == 'SSL':
             ssl.connectSSL(self.account.host, self.account.port, factory,
