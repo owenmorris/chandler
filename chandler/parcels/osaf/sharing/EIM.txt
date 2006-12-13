@@ -160,8 +160,46 @@ Record Sets
     >>> rs is rs_old
     True
 
+Record set conflict detection::
 
-TODO: Verify conflict detection when subtracting recordset diffs from each other
+    >>> rs_inc1 = sharing.RecordSet([R(1, 2)])
+    >>> rs_inc2 = sharing.RecordSet([R(1, -2)])
+    >>> rs_exc1 = sharing.RecordSet(exclusions=[R(1, 2)])
+    >>> rs_empty = sharing.RecordSet()
+    >>> recordsets = [rs_empty, rs_exc1, rs_inc1, rs_inc2]
+    >>> names = "Empty", "Exc 1", "Inc 1", "Inc 2"
+
+    >>> for name, base in zip(names, recordsets):   
+    ...     if name==names[0]:  # print heading
+    ...         print "<<<"
+    ...         print " "*8+"  ".join(names)
+    ...         print " "*8+"  ".join(["-----"]*len(names))
+    ...     print name+": ",
+    ...     for other in recordsets:
+    ...         cfrs = base.conflicts(other)
+    ...         print names[recordsets.index(cfrs)]+" ",
+    ...
+    ...     print   # doctest: +NORMALIZE_WHITESPACE
+    <<<
+            Empty  Exc 1  Inc 1  Inc 2
+            -----  -----  -----  -----
+    Empty:  Empty  Empty  Empty  Empty
+    Exc 1:  Empty  Empty  Exc 1  Exc 1
+    Inc 1:  Empty  Inc 1  Empty  Inc 1
+    Inc 2:  Empty  Inc 2  Inc 2  Empty
+
+In the above table, the rows represent a base "diff" recordset, such as
+Chandler's local changes during sharing.  The columns represent a second,
+overwriting diff (such as Cosmo's changes during sharing).  The result
+represents the changes in the base diff that are lost as a result of applying
+the overwriting diff.  As you can see, the resulting diff is the same as the
+base diff in cases where there is a conflict, and empty otherwise.
+
+(Of course, this truth table is generated using only records with one
+changeable field, and having at most one key value.  Real-life recordsets will
+be more complex, and the relationships shown above will apply on a per-record
+and per-field basis, rather than at the recordset level.)
+
 TODO: foreign key refs
 TODO: importers, exporters, and Translators
 

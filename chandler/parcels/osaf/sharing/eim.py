@@ -340,31 +340,31 @@ class RecordSet(object):
         self.update(other.inclusions, other.exclusions)
         return self
 
+    def conflicts(self, other):
+        """Changes in this diff that would be lost by applying `other`"""
+        incs = []
+        excs = []
+
+        for key in self._index:
+            if key in other._index:
+                lost = self._index[key] - other._index[key]
+                if lost is not NoChange:
+                    incs.append(lost)
+
+        for r in self.exclusions:
+            key = r.getKey()
+            if key in other._index:
+                excs.append(r)
+
+        for r in other.exclusions:
+            key = r.getKey()
+            if key in self._index:
+                incs.append(self._index[key])
+            
+        return RecordSet(incs, excs)
+
     #def __nonzero__(self):
     #    return 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class Filter:
