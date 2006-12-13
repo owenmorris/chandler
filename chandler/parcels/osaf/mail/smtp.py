@@ -24,7 +24,6 @@ from twisted.internet import threads
 #python imports
 import cStringIO as StringIO
 from datetime import datetime
-import socket
 
 #PyICU imports
 from PyICU import ICUtzinfo
