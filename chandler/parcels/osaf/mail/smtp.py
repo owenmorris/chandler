@@ -47,14 +47,14 @@ import message
 
 NAME_OR_ADDRESS = None
 
-if smtp.DNSNAME:
-    tpl = socket.gethostbyname_ex(smtp.DNSNAME)
-
-    if len(tpl[2]):
-        #We are not currently handling IPv6 addresses
-        NAME_OR_ADDRESS = "[%s]" % tpl[2][0]
-    else:
-        NAME_OR_ADDRESS = smtp.DNSNAME
+#if smtp.DNSNAME:
+#    tpl = socket.gethostbyname_ex(smtp.DNSNAME)
+#
+#    if len(tpl[2]):
+#        #We are not currently handling IPv6 addresses
+#        NAME_OR_ADDRESS = "[%s]" % tpl[2][0]
+#    else:
+#        NAME_OR_ADDRESS = smtp.DNSNAME
 
 __all__ = ['SMTPClient']
 
