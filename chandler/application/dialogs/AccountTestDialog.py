@@ -122,12 +122,10 @@ class ProgressPanel(wx.Panel):
 
         self.progress = 0
         self.timeout = gaugeTime
-        self.boldFont = wx.Font(13, wx.SWISS, wx.NORMAL, wx.BOLD)
 
         txt = _(u"Connecting to server '%(hostName)s'") % {'hostName': self.dialog.account.host}
 
         self.label = wx.StaticText(self, -1, txt, size=(450,-1))
-        self.label.SetFont(self.boldFont)
         self.gauge = wx.Gauge(self, -1, gaugeTime, size=(400, 25))
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -158,7 +156,6 @@ class ResultsPanel(wx.Panel):
     def __init__(self, parent, err=None):
         super(ResultsPanel, self).__init__(parent, -1)
         self.dialog = parent
-        self.boldFont = wx.Font(13, wx.SWISS, wx.NORMAL, wx.BOLD)
 
         if err:
             txt = _(u"The server '%(hostName)s' raised the following error:\n\n\t%(errText)s") % \
@@ -168,7 +165,6 @@ class ResultsPanel(wx.Panel):
                     {'hostName': self.dialog.account.host}
 
         self.label = wx.StaticText(self, -1, txt, size=(450, 100))
-        self.label.SetFont(self.boldFont)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.label, 0, wx.ALIGN_LEFT|wx.ALL, 10)
