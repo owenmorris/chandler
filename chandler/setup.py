@@ -27,3 +27,7 @@ setup(
     include_package_data = True,
     zip_safe             = True,
 )
+
+entry_points = {
+    "chandler.parcels": ["Script Recording = osaf.framework.script_recording"]
+}
