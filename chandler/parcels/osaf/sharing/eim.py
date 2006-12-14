@@ -16,6 +16,7 @@ __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'LobType', 'DecimalType', 'get_converter', 'add_converter',
     'subtype', 'typedef', 'field', 'key', 'NoChange', 'Record', 'RecordSet',
+    'lookupSchemaURI', 'Filter', 'Translator',
     'lookupSchemaURI', 'Filter'
 ]
 
@@ -25,7 +26,6 @@ from weakref import WeakValueDictionary
 import linecache, os, decimal, datetime
 from application import schema
 from chandlerdb.util.c import UUID
-
 
 
 
@@ -653,6 +653,47 @@ class Record(tuple):
 
 
 
+
+required_translator_attrs = dict(
+    version=int, URI=str, description=unicode
+).items()
+
+class TranslatorClass(type):
+    def __new__(meta, name, bases, cdict):
+        try:
+            Translator
+        except NameError:
+            pass    # Translator doesn't need any attributes set
+        else:
+            for attr,t in required_translator_attrs:
+                if type(cdict.get(attr)) is not t:
+                    raise TypeError(
+                        "Translator classes must have a `%s` attribute of"
+                        " type `%s`" % (attr, t.__name__)
+                    )
+            message = "Translator classes must have a `URI` attribute"
+
+        cls = type.__new__(meta, name, bases, cdict)
+        registerURI(cdict.get('URI'), cls, None)
+        return cls
+
+class Translator:
+    """Base class for import/export between Items and Records"""
+
+    __metaclass__ = TranslatorClass
+
+    def __init__(self, rv):
+        self.rv = rv
+
+    def startImport(self):
+        """Called before an import transaction begins"""
+    def finishImport(self):
+        """Called after an import transaction ends"""
+    def startExport(self):
+        """Called before an import transaction begins"""
+    def finishExport(self):
+        """Called after an import transaction ends"""
+        return ()
 
 def create_default_converter(t):
     converter = generic(default_converter)

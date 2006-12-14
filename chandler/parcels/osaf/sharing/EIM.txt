@@ -169,7 +169,7 @@ Record set conflict detection::
     >>> recordsets = [rs_empty, rs_exc1, rs_inc1, rs_inc2]
     >>> names = "Empty", "Exc 1", "Inc 1", "Inc 2"
 
-    >>> for name, base in zip(names, recordsets):   
+    >>> for name, base in zip(names, recordsets):
     ...     if name==names[0]:  # print heading
     ...         print "<<<"
     ...         print " "*8+"  ".join(names)
@@ -328,6 +328,84 @@ Notes on Filtering and Sync algorithms::
         #send(dOutbound)
         rsOldBase[itemUUID] += dOutbound
         send(rsOldBase[itemUUID])   # Cosmo 0.6
+
+
+The Translator Framework
+========================
+
+A ``sharing.Translator`` is an object that handles importing and exporting of
+Chandler items as EIM records.  It must have ``URI`` (string), ``version``
+(integer), and ``description`` (unicode) attributes::
+
+    >>> class DemoTranslator(sharing.Translator):
+    ...     """Demonstration translator"""
+    ...     URI = "cid:demotranslator@osaf.us"
+    ...     version = 1
+    ...     description = u"Localized human-readable description here"
+
+When we support user-defined translator classes, we will probably need to use
+either "entry points" or some repository registry to look them up for
+importing.  However, once imported, translator classes can be looked up using
+the standard ``lookupSchemaURI()`` API::
+
+    >>> sharing.lookupSchemaURI("cid:demotranslator@osaf.us")
+    <class 'DemoTranslator'>
+
+The sharing layer creates a new translator instance for each import or export
+operation.  The constructor accepts a single argument, a repository view, which
+is stored in the ``rv`` attribute::
+
+    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> rv = NullRepositoryView(verify=True)  # report errors immediately
+
+    >>> t = DemoTranslator(rv)
+    >>> t.rv is rv
+    True
+
+(Note: the attribute is called ``rv`` instead of ``itsView`` because translator
+instances are *not* stored in the repository; calling it ``itsView`` would
+imply it was actually associated with the view in some way.  It's not.)
+
+
+Exporting (Sharing Layer)
+-------------------------
+
+The sharing layer calls a translator instance's  ``startExport()`` and
+``finishExport()`` methods at the beginning and end of an export operation.
+The default implementations do nothing, although they can be overridden in
+subclasses.  ``finishExport()`` must yield or return a (possibly-empty)
+sequence of records, while the return value of ``startExport()``, if any,
+is ignored::
+
+    >>> t = DemoTranslator(rv)
+    >>> t.startExport()
+    >>> list(t.finishExport())
+    []
+
+TODO: exporters are called based on MRO+definition order
+TODO: unrecognized item classes are ignored
+TODO: exporters are inherited in groups
+
+
+Importing (Sharing Layer)
+-------------------------
+
+The sharing layer calls a translator instance's  ``startImport()`` and
+``finishImport()`` methods at the beginning and end of an import operation.
+The default implementations do nothing, although they can be overridden in
+subclasses.  The return values, if any, are ignored::
+
+    >>> t = DemoTranslator(rv)
+    >>> t.startImport()
+    >>> t.finishImport()
+
+TODO: importers called based on exact type
+TODO: unrecognized record types are ignored
+TODO: importers are inherited
+
+TODO: loadItemByUUID
+
+
 
 
 Defining and Using Field Types
@@ -693,6 +771,38 @@ Can't add non-field, non-filter to filter::
     Traceback (most recent call last):
       ...
     TypeError: Can't add 42 to Filter
+
+Translators *must* have all required attributes, of the right types, and with
+unique URIs::
+
+    >>> class MissingURI(sharing.Translator):
+    ...     version = 1
+    ...     description = u"Localized human-readable description here"
+    Traceback (most recent call last):
+      ...
+    TypeError: Translator classes must have a `URI` attribute of type `str`
+
+    >>> class MissingVersion(sharing.Translator):
+    ...     URI = 'cid:foo@bar.osaf.us'
+    ...     description = u"Localized human-readable description here"
+    Traceback (most recent call last):
+      ...
+    TypeError: Translator classes must have a `version` attribute of type `int`
+
+    >>> class MissingDescr(sharing.Translator):
+    ...     URI = 'cid:foo@bar.osaf.us'
+    ...     version = 42
+    Traceback (most recent call last):
+      ...
+    TypeError: ... must have a `description` attribute of type `unicode`
+
+    >>> class DupeURI(sharing.Translator):
+    ...     URI = 'cid:eim.R@osaf.us'   # already in use above
+    ...     version = 1
+    ...     description = u"Localized human-readable description here"
+    Traceback (most recent call last):
+      ...
+    TypeError: URI 'cid:eim.R@osaf.us' is already in use
 
 
 XXX typeinfo_for(obj) -> TypeInfo
