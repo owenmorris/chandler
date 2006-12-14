@@ -12,5 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from application import schema
 from prefs import Preferences
 
+def installParcel(parcel, oldVersion=None):
+  schema.synchronize(parcel.itsView, 'osaf.framework.script_recording')

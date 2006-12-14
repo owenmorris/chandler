@@ -277,6 +277,14 @@ def _mergeFunction(code, item, attribute, value):
 class wxApplication (wx.App):
 
     outputWindowClass = feedback.FeedbackWindow
+    
+    #List of callable for register to be called during FilterEvent
+    filterEventCallables = set()
+
+    def FilterEvent (self, event):
+        for callable in self.filterEventCallables:
+            callable (event)
+        return -1
 
     def OnInit(self):
         """
