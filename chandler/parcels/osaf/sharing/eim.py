@@ -17,7 +17,6 @@ __all__ = [
     'IntType', 'LobType', 'DecimalType', 'get_converter', 'add_converter',
     'subtype', 'typedef', 'field', 'key', 'NoChange', 'Record', 'RecordSet',
     'lookupSchemaURI', 'Filter', 'Translator',
-    'lookupSchemaURI', 'Filter'
 ]
 
 from symbols import Symbol  # XXX change this to peak.util.symbols
@@ -26,6 +25,7 @@ from weakref import WeakValueDictionary
 import linecache, os, decimal, datetime
 from application import schema
 from chandlerdb.util.c import UUID
+
 
 
 
