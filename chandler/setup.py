@@ -26,8 +26,7 @@ setup(
     license      = "Apache License, Version 2.0",
     include_package_data = True,
     zip_safe             = True,
+    entry_points = {"chandler.parcels": ["Script Recording = osaf.framework.script_recording"]
+                   }
 )
 
-entry_points = {
-    "chandler.parcels": ["Script Recording = osaf.framework.script_recording"]
-}
