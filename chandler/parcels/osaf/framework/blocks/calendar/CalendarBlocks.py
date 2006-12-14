@@ -633,11 +633,9 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         dc.SetTextForeground( unselectedColor )
         r = self.GetRect()
 
-        def setClipping():
-            dc.SetClippingRegion(self.hMargin, self.vMargin,
-                                 r.width - (2 * self.hMargin),
-                                 r.height - (2 * self.vMargin))
-        setClipping()
+        dc.SetClippingRegion(self.hMargin, self.vMargin,
+                             r.width - (2 * self.hMargin),
+                             r.height - (2 * self.vMargin))
 
         if self.labelPosition == -1:
             # First time - do a little measuring
