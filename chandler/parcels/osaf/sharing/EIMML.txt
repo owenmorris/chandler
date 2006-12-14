@@ -1,12 +1,16 @@
 
+Serializing Values
+------------------
+
+
+First define a record type::
+
     >>> from osaf import sharing
     >>> from osaf.sharing import eimml, recordset_conduit
     >>> from PyICU import ICUtzinfo
     >>> import datetime, decimal
     >>> from repository.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView()
-
-
     >>> class TestRecord(sharing.Record):
     ...     URI = 'cid:TestRecord@osaf.us'
     ...     textField = sharing.field(sharing.TextType(size=100))
@@ -15,7 +19,7 @@
     ...     dateField = sharing.field(sharing.DateType)
 
 
-Translate text values:
+Translate text values::
 
     >>> value = eimml.deserializeValue(TestRecord.textField.typeinfo, 'xyzzy')
     >>> value
@@ -24,7 +28,7 @@ Translate text values:
     'xyzzy'
 
 
-Translate decimal values:
+Translate decimal values::
 
     >>> value = eimml.deserializeValue(TestRecord.decimalField.typeinfo, '123.45')
     >>> value
@@ -33,7 +37,7 @@ Translate decimal values:
     '123.45'
 
 
-Translate datetime values:
+Translate datetime values::
 
     >>> value = eimml.deserializeValue(TestRecord.decimalField.typeinfo, '123.45')
     >>> value
@@ -45,7 +49,7 @@ Translate datetime values:
 TODO: int, lob, bytes
 
 
-Serialize and deserialize entire record sets:
+Serialize and deserialize entire record sets::
 
     >>> sample = '''<?xml version="1.0" encoding="UTF-8"?>
     ...
@@ -75,7 +79,11 @@ Serialize and deserialize entire record sets:
 
 
 
-RecordSets can be stored and retrieved by UUID:
+Persisting RecordSets
+---------------------
+
+
+RecordSets can be stored and retrieved by UUID::
 
     >>> uuidString = '8501de14-1dc9-40d4-a7d4-f289feff8214'
     >>> recordSet = recordSets[uuidString]
@@ -89,17 +97,17 @@ RecordSets can be stored and retrieved by UUID:
 
 
 
-InMemoryRecordSetConduit
-------------------------
+Inmemory Cosmo Replacement
+--------------------------
 
-Send a recordset
+You can "send" a recordset::
 
     >>> conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=rv, shareName="foo", serializer=eimml.EIMMLSerializer)
     >>> conduit.put(text)
     >>> conduit.syncToken
     1
 
-If you don't use the previous token, you'll get a failure
+If you don't use the previous token, you'll get a failure::
 
     >>> conduit.syncToken = 42
     >>> conduit.put(text)
@@ -107,14 +115,14 @@ If you don't use the previous token, you'll get a failure
     ...
     TokenMismatch: 42 != 1
 
-The token increments
+The token changes whenever you modify the collection::
 
     >>> conduit.syncToken = 1
     >>> conduit.put(text)
     >>> conduit.syncToken
     2
 
-Send a new item
+Send a new item::
 
     >>> text = '''<?xml version="1.0" encoding="UTF-8"?>
     ...
@@ -134,7 +142,7 @@ Send a new item
     >>> conduit.syncToken
     3
 
-Doing a "get" with the most recent token returns no changes
+Doing a "get" with the most recent token returns no changes::
 
     >>> text = conduit.get()
     >>> conduit.syncToken
@@ -143,7 +151,7 @@ Doing a "get" with the most recent token returns no changes
     '<ns0:records xmlns:ns0="http://osafoundation.org/eimml/core" />'
 
 You can ask for recordsets that have been updated since a previous token was
-created
+created::
 
     >>> conduit.syncToken = 1
     >>> text = conduit.get()

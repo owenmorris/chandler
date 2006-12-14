@@ -16,6 +16,7 @@ import conduits, errors, formats, eim
 from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
+import zanshin
 
 logger = logging.getLogger(__name__)
 
@@ -142,11 +143,66 @@ class RecordSetConduit(conduits.BaseConduit):
 
 class CosmoRecordSetConduit(RecordSetConduit, conduits.HTTPMixin):
 
-    def get(self):
-        pass
+    # TODO:
+    # getLocation()
 
-    def put(self):
-        pass
+    def get(self):
+        location = self.getLocation()
+
+        if self.syncToken is not None:
+            location += "?token=%s" % self.syncToken
+
+        resp = self._send('GET', location)
+
+        self.syncToken = resp.headers.getHeader('X-MorseCode-SyncToken')
+        # # @@@MOR what if this header is missing?
+
+        text = resp.body
+
+    def put(self, text):
+        location = self.getLocation()
+
+        if self.syncToken is not None:
+            location += "?token=%s" % self.syncToken
+            method = 'POST'
+        else:
+            method = 'PUT'
+
+        resp = self._send(method, location, text)
+
+        self.syncToken = resp.headers.getHeader('X-MorseCode-SyncToken')
+        # # @@@MOR what if this header is missing?
+
+        text = resp.body
+
+
+
+    def _send(self, methodName, path, body=None):
+
+        handle = self._getServerHandle()
+
+        extraHeaders = { }
+        if hasattr(self, 'ticket'):
+            extraHeaders['Ticket'] = self.ticket
+
+        request = zanshin.http.Request(methodName, path, extraHeaders, body)
+
+        try:
+            return handle.blockUntil(handle.addRequest, request)
+
+        except zanshin.webdav.ConnectionError, err:
+            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+
+        except M2Crypto.BIO.BIOError, err:
+            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+
+        except zanshin.webdav.WebDAVError, e:
+            if e.status == twisted.web.http.NOT_FOUND:
+                raise errors.NotFound(_(u"%(location)s not found") % {'location': location})
+            if e.status == twisted.web.http.UNAUTHORIZED:
+                raise errors.NotAllowed(_(u"Not authorized to get %(location)s") % {'location': location})
+
+            raise errors.SharingError(_(u"The following sharing error occurred: %(error)s") % {'error': e})
 
 
 
