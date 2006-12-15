@@ -1315,7 +1315,7 @@ proj.pyexec = {None: ('custom',
                       'debug/Library/Frameworks/Python.framework/Versions/Cu'\
                       'rrent/Resources/Python.app/Contents/MacOS/Python')}
 proj.pypath = {None: ('custom',
-                      './')}
+                      '.')}
 proj.shared-attribute-names = ['proj.shared-attribute-names',
                                'proj.file-list',
                                'proj.file-type',
