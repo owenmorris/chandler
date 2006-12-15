@@ -29,6 +29,9 @@ from optparse import OptionParser
 from types import *
 from util import killableprocess
 
+
+modes = ['release', 'debug']
+
     # tests to run if no tests are specified on the command line
 _all_modules = ['application', 'i18n', 'repository', 'osaf']
 
@@ -138,15 +141,22 @@ def callRun_Test(cmd):
 
 
 def doTest(test):
-    cmd = ['./release/RunPython', './tools/run_tests.py']
+    result = 0
 
-    if options.verbose:
-        cmd += ['-v']
+    for mode in modes:
+        cmd = ['./%s/RunPython' % mode, './tools/run_tests.py']
 
-    cmd += [test]
+        if options.verbose:
+            cmd += ['-v']
 
-    return callRun_Test(cmd)
+        cmd += [test]
 
+        result = callRun_Test(cmd)
+
+        if result <> 0 and not options.nonstop:
+            break
+
+    return result
 
 def runSuite(testlist):
     print 'Running tests as a suite'
@@ -196,6 +206,19 @@ if __name__ == '__main__':
     if options.help:
         print __doc__
         sys.exit(2)
+
+    if options.mode is not None:
+        m = [options.mode]
+    else:
+        m = modes
+
+    modes = []
+
+    for item in m:
+        if os.path.isdir(item):
+            modes.append(item)
+        else:
+            print 'Requested mode (%s) not availble - ignoring' % item
 
     if options.unitSuite and options.unit:
         print "both --unit and --unitSuite are specified, but only one of them is allowed at a time."
