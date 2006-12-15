@@ -25,6 +25,10 @@ chandler/util/feedparser.py
     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
     POSSIBILITY OF SUCH DAMAGE."""
 
+chandler/util/killableprocess.py
+chandler/util/winprocess.py
+
+	license info to be filled in when the author (Benjamin Smedberg) adds it to his files
 
 chandler/tools/py2depgraph.py,
 chandler/tools/depgraph2dot.py
