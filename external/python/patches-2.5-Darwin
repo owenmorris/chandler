@@ -1,0 +1,39 @@
+--- Python-2.5/configure	2006-09-04 19:54:42.000000000 -0700
++++ Python-2.5-patched/configure	2006-12-14 16:13:35.000000000 -0800
+@@ -4628,17 +4628,17 @@
+ 
+ 
+ 
+ 
+ 
+ 
+ for ac_header in asm/types.h conio.h curses.h direct.h dlfcn.h errno.h \
+ fcntl.h grp.h \
+-shadow.h io.h langinfo.h libintl.h ncurses.h poll.h process.h pthread.h \
++shadow.h io.h langinfo.h ncurses.h poll.h process.h pthread.h \
+ signal.h stropts.h termios.h thread.h \
+ unistd.h utime.h \
+ sys/audioio.h sys/bsdtty.h sys/file.h sys/loadavg.h sys/lock.h sys/mkdev.h \
+ sys/modem.h \
+ sys/param.h sys/poll.h sys/select.h sys/socket.h sys/statvfs.h sys/stat.h \
+ sys/time.h \
+ sys/times.h sys/types.h sys/un.h sys/utsname.h sys/wait.h pty.h libutil.h \
+ sys/resource.h netpacket/packet.h sysexits.h bluetooth.h \
+@@ -11534,17 +11534,16 @@
+       conftest$ac_exeext conftest.$ac_ext
+ LIBS=$ac_check_lib_save_LIBS
+ fi
+ echo "$as_me:$LINENO: result: $ac_cv_lib_intl_textdomain" >&5
+ echo "${ECHO_T}$ac_cv_lib_intl_textdomain" >&6
+ if test $ac_cv_lib_intl_textdomain = yes; then
+ 
+ cat >>confdefs.h <<\_ACEOF
+-#define WITH_LIBINTL 1
+ _ACEOF
+ 
+ fi
+ 
+ 
+ # checks for system dependent C++ extensions support
+ case "$ac_sys_system" in
+ 	AIX*)	echo "$as_me:$LINENO: checking for genuine AIX C++ extensions support" >&5
