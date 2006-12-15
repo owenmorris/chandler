@@ -17,7 +17,7 @@ from application import schema
 import logging
 logger = logging.getLogger(__name__)
 
-# TODO: Reminders, MailMessage
+# TODO: MailMessage
 
 
 text20 = sharing.TextType(size=20)
@@ -43,12 +43,13 @@ class ItemRecord(sharing.Record):
         decimal_places=2), [triageFilter])
     last_modified_by = sharing.field(text256) # storing an email address
     created_on = sharing.field(sharing.DateType)
+    remind_on = sharing.field(sharing.DateType) # reminder, absolute datetime
 
 class NoteRecord(sharing.Record):
     URI = "http://osafoundation.org/eimml/note"
 
     uuid = sharing.key(ItemRecord.uuid)
-    body = sharing.field(sharing.LobType())
+    body = sharing.field(sharing.LobType)
     icaluid = sharing.field(text256)
 
 class TaskRecord(sharing.Record):
@@ -69,8 +70,21 @@ class EventRecord(sharing.Record):
     exdate = sharing.field(text1024)
     recurrenceid = sharing.field(text20)
     status = sharing.field(text256, [eventStatusFilter])
+    trigger = sharing.field(sharing.IntType) # reminder, in seconds after
+                                             # dtstart; negative value means
+                                             # prior to dtstart
+
     # anyTime -- may need for Apple iCal?
     # allDay
+
+
+class ICalExtensionRecord(sharing.Record):
+    URI = "http://osafoundation.org/eimml/icalext"
+
+    uuid = sharing.key(ItemRecord.uuid)
+    name = sharing.key(text256)
+    value = sharing.field(text1024)
+
 
 
 class MailMessageRecord(sharing.Record):
