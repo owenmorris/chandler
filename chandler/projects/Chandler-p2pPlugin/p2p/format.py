@@ -82,10 +82,7 @@ class CloudXMLDiffFormat(formats.CloudXMLFormat):
                 if cardinality == 'single':
                     mimeType = attrs.get('mimetype')
                     encoding = attrs.get('encoding') or 'utf-8'
-                    if valueElement.children:
-                        content = valueElement.children[0]
-                    else:
-                        content = u""
+                    content = dom.getContent(valueElement)
 
                     if mimeType: # Lob
                         indexed = mimeType == "text/plain"
@@ -117,10 +114,7 @@ class CloudXMLDiffFormat(formats.CloudXMLFormat):
                                 value.encoding = encoding
 
                         else:
-                            if child.children:
-                                content = child.children[0]
-                            else:
-                                content = u""
+                            content = dom.getContent(child)
                             value = attrType.makeValue(content)
 
                         values.append(value)
@@ -133,9 +127,7 @@ class CloudXMLDiffFormat(formats.CloudXMLFormat):
     def importProcess(self, dom, element, item=None,
                       updateCallback=None, stats=None):
 
-        attributes = element.attributes
         view = self.itsView
-
         item, stamps, done = self._importItem(dom, view, element,
                                               item, updateCallback, stats)
         if done:
@@ -166,7 +158,9 @@ class CloudXMLDiffFormat(formats.CloudXMLFormat):
             keys = set()
 
         if key in keys:
-            return dom.addElement(element, kind.itsName, uuid=key.str64())
+            dom.openElement(element, kind.itsName, uuid=key.str64())
+            dom.closeElement(element, kind.itsName)
+            return None
 
         keys.add(key)
 
@@ -177,14 +171,13 @@ class CloudXMLDiffFormat(formats.CloudXMLFormat):
         stampClasses = values.pop()
         elementName, classes = self._getElementName(kind, stampClasses)
 
-        item = dom.addElement(element, elementName)
-        dom.setAttributes(item, ('class', classes), ('uuid', key.str64()))
+        attrs = { 'class': classes, 'uuid': key.str64() }
+        item = dom.openElement(element, elementName, **attrs)
 
         for attrName, attrValue in izip(attributes, values):
-            value = dom.addElement(item, 'value', name=attrName)
-
             if attrValue is Nil:
-                dom.setAttribute(value, 'status', 'nil')
+                dom.openElement(item, 'value', name=attrName, status='nil')
+                dom.closeElement(item, 'value')
 
             else:
                 attribute = kind.getAttribute(attrName) 
@@ -193,50 +186,57 @@ class CloudXMLDiffFormat(formats.CloudXMLFormat):
                 otherName = attribute.getAspect('otherName', None)
 
                 if otherName:
+                    value = dom.openElement(item, 'value', name=attrName)
+
                     if isuuid(attrValue):
                         self.exportProcess(dom, attrValue, value,
                                            changes, keys)
-
                     elif cardinality == 'list':
                         for attrKey in attrValue.iterkeys():
                             self.exportProcess(dom, attrKey, value,
                                                changes, keys)
 
+                    dom.closeElement(item, 'value')
                 else:
                     if cardinality == 'single':
                         if issingleref(attrValue):
+                            value = dom.openElement(item, 'value', name=attrName)
                             attrValue = attrValue.itsUUID
                             self.exportProcess(dom, attrValue, value,
                                                changes, keys)
+                            dom.closeElement(item, 'value')
                         else:
-                            (mimetype, encoding, attrValue) = \
-                                utility.serializeLiteral(attrValue, attrType)
+                            mimetype, encoding, attrValue = utility.serializeLiteral(attrValue, attrType)
 
-                        if mimetype:
-                            value['mimetype'] = mimetype
-                        if encoding:
-                            value['encoding'] = encoding
-                            attrValue = unicode(attrValue, encoding)
-                        else:
-                            attrValue = unicode(attrValue, 'utf-8')
+                            attrs = { 'name': attrName }
+                            if mimetype:
+                                attrs['mimetype'] = mimetype
+                            if encoding:
+                                attrs['encoding'] = encoding
+                                attrValue = unicode(attrValue, encoding)
+                            else:
+                                attrValue = unicode(attrValue, 'utf-8')
 
-                        dom.addContent(value, attrValue)
+                            dom.openElement(item, 'value',
+                                            content=attrValue, **attrs)
+                            dom.closeElement(item, 'value')
 
                     elif cardinality == 'list':
+                        value = dom.openElement(item, 'value', name=attrName)
                         for v in attrValue:
-                            element = dom.addElement(value, 'value')
-
-                            (mimetype, encoding, v) = \
-                                utility.serializeLiteral(v, attrType)
+                            attrs = {}
+                            mimetype, encoding, v = utility.serializeLiteral(v, attrType)
 
                             if mimetype:
-                                dom.setAttribute(element, 'mimetype', mimetype)
+                                attrs['mimetype'] = mimetype
                             if encoding:
-                                dom.setAttribute(element, 'encoding', encoding)
+                                attrs['encoding'] = encoding
                                 v = unicode(v, encoding)
                             else:
                                 v = unicode(v, 'utf-8')
 
-                            dom.addContent(element, v)
+                            dom.openElement(value, 'value', content=v, **attrs)
+                            dom.closeElement(value, 'value')
+                        dom.closeElement(item, 'value')
 
-        return item
+        dom.closeElement(element, elementName)

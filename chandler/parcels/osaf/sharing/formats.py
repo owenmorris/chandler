@@ -74,18 +74,18 @@ class ImportExportFormat(pim.ContentItem):
 
 class AbstractDOM(object):
 
-    def addElement(self, parent, tag, content=None, **attrs):
-        raise NotImplementedError, "%s.addElement" %(type(self))
+    def openElement(self, parent, tag, content=None, **attrs):
+        raise NotImplementedError, "%s.openElement" %(type(self))
 
-    def addContent(self, element, content):
+    def closeElement(self, parent, tag):
+        raise NotImplementedError, "%s.closeElement" %(type(self))
+
+    def addContent(self, parent, data):
         raise NotImplementedError, "%s.addContent" %(type(self))
-        
-    def setAttribute(self, element, name, value):
-        raise NotImplementedError, "%s.setAttribute" %(type(self))
 
-    def setAttributes(self, element, *pairs, **kwds):
-        raise NotImplementedError, "%s.setAttributes" %(type(self))
-        
+    def getContent(self, parent):
+        raise NotImplementedError, "%s.getContent" %(type(self))
+
     def getTag(self, element):
         raise NotImplementedError, "%s.getTag" %(type(self))
 
@@ -104,17 +104,41 @@ class AbstractDOM(object):
 
 class ElementTreeDOM(AbstractDOM):
 
+    def openElement(self, parent, tag, content=None, **attrs):
+        # parent is TreeBuilder instance
+        parent.start(tag, attrs)
+        if content:
+            parent.data(content)
+        return parent
+
+    def closeElement(self, parent, tag):
+        # parent is TreeBuilder instance
+        parent.end(tag)
+
+    def addContent(self, parent, content):
+        # parent is TreeBuilder instance
+        parent.data(content)
+
+    def getContent(self, parent):
+        return parent.text or u''
+
     def getTag(self, element):
         return element.tag
 
     def getAttribute(self, element, name):
         return element.get(name)
 
+    def getAttributes(self, element):
+        return element.attrib
+
     def iterElements(self, element):
         return element.getchildren()
 
     def getFirstChildElement(self, element):
-        return element.getchildren()[0]
+        children = element.getchildren()
+        if children:
+            return children[0]
+        return None
 
 
 class CloudXMLFormat(ImportExportFormat):

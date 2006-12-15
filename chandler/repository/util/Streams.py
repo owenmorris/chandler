@@ -219,6 +219,14 @@ class StringOutputStream(object):
         self.output.flush()
         self.string = self.output.getvalue()
         self.output.close()
+
+    def getString(self):
+
+        string = getattr(self, 'string', None)
+        if string is None:
+            raise ValueError, 'StreamOutputStream is still open'
+
+        return string
         
 
 class BufferedOutputStream(object):

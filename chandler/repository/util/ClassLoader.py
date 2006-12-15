@@ -59,7 +59,8 @@ class ClassLoader(object):
             except AttributeError:
                 raise ImportError, "Module %s has no class %s" %(module, name)
 
-        except ImportError:
+        except ImportError, e:
+            logging.getLogger(__name__).exception('Importing class %s.%s failed', module, name)
             if self.missingClass is not None:
                 return self.missingClass
             raise

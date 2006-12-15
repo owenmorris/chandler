@@ -18,6 +18,10 @@ from osaf.sharing import conduits, shares
 from repository.item.Principal import Principal
 
 
+def findAccounts(view):
+    return [account for account in Account.iterItems(view)]
+
+
 def findDefaultAccounts(view):
     return [account for account in Account.iterItems(view)
             if account.default]
@@ -47,13 +51,22 @@ class AllGroup(Group):
 
 class Account(schema.Item):
 
-    user = schema.One(otherName='accounts', initialValue=None)
     userid = schema.One(schema.Text)
+    server = schema.One(schema.Importable)
     protocol = schema.One(schema.Symbol)
-    useSSL = schema.One(schema.Boolean, initialValue=False)
+    user = schema.One(otherName='accounts', initialValue=None)
     default = schema.One(schema.Boolean, initialValue=False)
     autoLogin = schema.One(schema.Boolean, initialValue=False)
     conduits = schema.Sequence(otherName='account')
+
+    _clients = {}
+
+    def __init__(self, *args, **kwds):
+
+        super(Account, self).__init__(*args, **kwds)
+
+        if self.user is None:
+            self.user = User(itsView=self.itsView, name=self.userid)
 
     def login(self, printf, autoLogin=False):
         raise NotImplementedError, "%s.login" %(type(self))
@@ -67,6 +80,14 @@ class Account(schema.Item):
     def sync(self, share):
         raise NotImplementedError, "%s.sync" %(type(self))
 
+    def _getClient(self):
+        return type(self)._clients.get(self.itsUUID)
+
+    def _setClient(self, client):
+        type(self)._clients[self.itsUUID] = client
+
+    client = property(_getClient, _setClient)
+
 
 class Conduit(conduits.Conduit):
 
@@ -74,6 +95,10 @@ class Conduit(conduits.Conduit):
 
 
 class Share(shares.Share):
+
+    repoId = schema.One(schema.UUID)
+    remoteVersion = schema.One(schema.Long)
+    localVersion = schema.One(schema.Long)
 
     def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
 

@@ -14,23 +14,27 @@
 
 import traceback
 
+from base64 import b64encode, b64decode
+from bz2 import compress, decompress
+from cStringIO import StringIO
+from xml.etree.ElementTree import ElementTree, TreeBuilder
 from twisted.words.protocols.jabber import client, jid
 from twisted.words.xish import domish
 from twisted.internet import reactor
 
 from chandlerdb.item.c import CItem
 from chandlerdb.util.c import UUID
-from repository.persistence.Repository import RepositoryWorker
-from repository.item.Access import AccessDeniedError, ACL, ACE, Permissions
+from repository.item.Access import ACL, ACE, Permissions
 
 from application import schema
 from osaf import pim
 from osaf.sharing import formats
 from osaf.framework.certstore import ssl
 
-from p2p.account import Account, Conduit, User, Share
+from p2p.account import Account, Conduit, Share
 from p2p.format import CloudXMLDiffFormat
 from p2p.errors import RepositoryMismatchError
+from p2p.worker import Worker
 
 
 def canonize(id, server):
@@ -72,11 +76,9 @@ def login(view, printf, id, server, password, useSSL):
 
 class JabberAccount(Account):
 
-    server = schema.One(schema.Importable)
+    useSSL = schema.One(schema.Boolean, initialValue=False)
     password = schema.One(schema.Text)
     resource = schema.One(schema.Text, initialValue='chandler')
-
-    _clients = {}
 
     def __init__(self, *args, **kwds):
 
@@ -103,8 +105,8 @@ class JabberAccount(Account):
             repository = self.itsView.repository
             repoId, x, x = repository.getSchemaInfo()
             self.client = client = JabberClient(repoId, self, printf)
-            server = JabberServer(repository)
-            server.start(client)
+            worker = JabberWorker(repository)
+            worker.start(client)
 
         reactor.callFromThread(client.connect, self.password,
                                self.useSSL, False, self.itsView)
@@ -153,21 +155,18 @@ class JabberAccount(Account):
 
         return None
 
-    def _getClient(self):
-        return JabberAccount._clients.get(self.itsUUID)
-
-    def _setClient(self, client):
-        JabberAccount._clients[self.itsUUID] = client
-
-    client = property(_getClient, _setClient)
 
 
 class JabberShare(Share):
 
-    repoId = schema.One(schema.UUID)
-    remoteVersion = schema.One(schema.Long)
-    localVersion = schema.One(schema.Long)
-    collectionName = schema.One(schema.Text)
+    def __init__(self, view, account, repoId, peerId):
+
+        super(JabberShare, self).__init__(itsView=view, repoId=repoId)
+
+        self.conduit = JabberConduit(itsParent=self, peerId=peerId,
+                                     account=account)
+        self.format = CloudXMLDiffFormat(itsParent=self)
+
 
 
 class JabberConduit(Conduit):
@@ -177,7 +176,7 @@ class JabberConduit(Conduit):
 
 class DomishDOM(formats.AbstractDOM):
 
-    def addElement(self, parent, tag, content=None, **attrs):
+    def openElement(self, parent, tag, content=None, **attrs):
 
         element = parent.addElement(tag)
 
@@ -188,17 +187,16 @@ class DomishDOM(formats.AbstractDOM):
 
         return element
 
+    def closeElement(self, parent, tag):
+        pass
+
     def addContent(self, element, content):
         element.children.append(content)
 
-    def setAttribute(self, element, name, value):
-        element[name] = value
-
-    def setAttributes(self, element, *pairs, **kwds):
-        for key, value in pairs:
-            element[key] = value
-        for key, value in kwds.iteritems():
-            element[key] = value
+    def getContent(self, element):
+        if element.children:
+            return element.children[0]
+        return u''
 
     def getTag(self, element):
         return element.name
@@ -214,7 +212,6 @@ class DomishDOM(formats.AbstractDOM):
 
     def getFirstChildElement(self, element):
         return element.firstChildElement()
-
 
 
 def subscribe(view, printf, to):
@@ -332,7 +329,9 @@ class JabberClient(object):
         if uuid is not None:
             sync['uuid'] = uuid.str64()
         sync['version'] = str(version)
+
         iq.send(to)
+        self.worker.ops[iq['id']] = ('sync', name)
 
     def invaliduser(self, elem):
         self.output("INVALIDUSER: %s" %(elem.toXml().encode('utf-8')))
@@ -370,28 +369,24 @@ class JabberClient(object):
             if iq['type'] == 'error':
                 print 'ERROR', iq.toXml().encode('utf-8')
 
-            self.server.queueRequest(iq)
+            self.worker.queueRequest(iq)
         except Exception, e:
             print 'ERROR', e.__class__.__name__, e
 
 
-class JabberServer(RepositoryWorker):
+class JabberWorker(Worker):
 
+    shareClass = JabberShare
+    
     def __init__(self, repository):
 
-        super(JabberServer, self).__init__('__jabber__', repository)
-        self._repoId, x, x = repository.getSchemaInfo()
+        super(JabberWorker, self).__init__('__jabber__', repository)
+        self.ops = {}
 
-    def start(self, client):
-
-        self.client = client
-        client.server = self
-
-        super(JabberServer, self).start()
-
-    def findShare(self, view, collection, repoId, peerId):
+    def findAccount(self, view, peerId):
 
         userid, server, resource = canonize(peerId, self.client.host)
+
         for account in JabberAccount.getKind(view).iterItems():
             if (account.userid == userid and
                 account.server == server and
@@ -399,116 +394,29 @@ class JabberServer(RepositoryWorker):
                 break
         else:
             account = JabberAccount(itsView=view, userid=userid,
-                                    server=server, resource=resource,
-                                    user=User(itsView=view, name=userid))
+                                    server=server, resource=resource)
             view.commit()
 
-        acl = collection.getACL('p2p', None)
-        if acl is None or not acl.verify(account.user, Permissions.READ):
-            raise AccessDeniedError
-
-        for share in collection.shares:
-            if isinstance(share, JabberShare):
-                if share.repoId == repoId:
-                    return share
-
-        share = JabberShare(itsView=view, repoId=repoId)
-        share.conduit = JabberConduit(itsParent=share, peerId=peerId,
-                                      account=view[self.client.account])
-        share.format = CloudXMLDiffFormat(itsParent=share)
-        share.contents = collection
-        share.localVersion = view.itsVersion + 1
-        view.commit()
-
-        return share
-
-    def computeChanges(self, view, fromVersion, collection, share):
-
-        if fromVersion > 0:
-            view.refresh(None, fromVersion, False)
-
-        attributes = {}
-        changes = {}
-        origKeys = set()
-        references = set()
-
-        for key in collection.iterkeys():
-            for cloud in view.kindForKey(key).getClouds('sharing'):
-                cloud.getKeys(key, 'sharing', origKeys, references)
-
-        if fromVersion > 0:
-            view.refresh(None, None, False)
-
-            currKeys = set()
-            references = set()
-            for key in collection.iterkeys():
-                for cloud in view.kindForKey(key).getClouds('sharing'):
-                    cloud.getKeys(key, 'sharing', currKeys, references)
-
-            for (uItem, itemVersion, kind, status, values, references,
-                 prevKind) in view.mapHistory(fromVersion, view.itsVersion):
-                if uItem in origKeys or uItem in currKeys:
-
-                    if uItem not in changes:
-                        _changes, s = set(), status
-                    else:
-                        _changes, s = changes[uItem]
-
-                    if status & CItem.DELETED:
-                        if uItem not in origKeys:
-                            continue
-                    else:
-                        uKind = kind.itsUUID
-                        if uKind not in attributes:
-                            attributes[uKind] = share.getSharedAttributes(kind)
-                        if uItem not in origKeys:
-                            s |= CItem.NEW
-                            
-                    if status & CItem.DELETED:
-                        _changes = None
-                    elif s & CItem.NEW:
-                        status = CItem.NEW
-                        _changes = attributes[kind.itsUUID]
-                    else:
-                        names = attributes[kind.itsUUID]
-                        values = [value for value in values if value in names]
-                        references = [ref for ref in references if ref in names]
-                        if not (values or references):
-                            continue
-
-                        _changes.update(values)
-                        _changes.update(references)
-
-                    changes[uItem] = (_changes, status)
-
-        else:
-            for key in origKeys:
-                kind = view.kindForKey(key)
-                uKind = kind.itsUUID
-                _changes = attributes.get(uKind)
-                if _changes is None:
-                    _changes = share.getSharedAttributes(kind)
-                    attributes[uKind] = _changes
-                changes[key] = (_changes, 0)
-
-        return changes
+        return account
 
     def processRequest(self, view, iq):
 
         iqType = iq['type']
+        inResponseTo = self.ops.pop(iq['id'], None)
+        view = self.getView(view)
 
         if iqType == 'get':
-            view = self._processGet(view, iq)
+            view = self._processGet(view, iq, inResponseTo)
         elif iqType == 'result':
-            view = self._processResult(view, iq)
+            view = self._processResult(view, iq, inResponseTo)
         elif iqType == 'error':
-            view = self._processError(view, iq)
+            view = self._processError(view, iq, inResponseTo)
         else:
             raise NotImplementedError, iqType
 
         return view
 
-    def _processGet(self, view, iq):
+    def _processGet(self, view, iq, inResponseTo):
 
         self.client.output("processing request")
 
@@ -517,9 +425,6 @@ class JabberServer(RepositoryWorker):
         responses = []
 
         try:
-            if view is None:
-                view = self._repository.createView("Jabber")
-
             for elem in iq.query.elements():
                 method = getattr(self, '_get_' + elem.name, None)
                 if method is not None:
@@ -544,14 +449,15 @@ class JabberServer(RepositoryWorker):
 
         return view
 
-    def _processResult(self, view, iq):
+    def _processResult(self, view, iq, inResponseTo):
 
-        self.client.output("processing result")
+        if inResponseTo:
+            op, arg = inResponseTo
+            self.client.output("%s '%s': processing result" %(op, arg))
+        else:
+            self.client.output("processing result")
 
         try:
-            if view is None:
-                view = self._repository.createView("Jabber")
-
             for elem in iq.query.elements():
                 method = getattr(self, '_result_' + elem.name, None)
                 if method is not None:
@@ -564,7 +470,7 @@ class JabberServer(RepositoryWorker):
 
         return view
 
-    def _processError(self, view, iq):
+    def _processError(self, view, iq, inResponseTo):
 
         self.client.output("processing error")
 
@@ -580,6 +486,14 @@ class JabberServer(RepositoryWorker):
                     share.delete()
             view.commit()
 
+        else:
+            errorName = className.rsplit('.', 1)[-1]
+            if inResponseTo:
+                op, arg = inResponseTo
+                self.client.output("%s '%s' failed: %s" %(op, arg, errorName))
+            else:
+                self.client.output("received error: %s" %(errorName))
+
     def _get_sync(self, view, iq, args):
 
         try:
@@ -591,20 +505,11 @@ class JabberServer(RepositoryWorker):
             repoId = UUID(args['fromRepoId'])
             name = args['name']
             version = int(args.get('version', '0'))
+            uuid = args.get('uuid')
+            if uuid is not None:
+                uuid = UUID(uuid)
 
-            if 'uuid' in args:
-                uuid = UUID(args['uuid'])
-                collection = view.find(uuid)
-                if collection is None:
-                    raise NameError, ('no such collection', uuid)
-            else:
-                sidebar = schema.ns('osaf.app', view).sidebarCollection
-                for collection in sidebar:
-                    if collection.displayName == name:
-                        break
-                else:
-                    raise NameError, ('no such collection', name)
-
+            collection, name, uuid = self.findCollection(view, name, uuid)
             share = self.findShare(view, collection, repoId, iq['from'])
 
             iq = client.IQ(self.client.xmlstream, "result")
@@ -612,29 +517,49 @@ class JabberServer(RepositoryWorker):
             sync = query.addElement('sync')
             sync['name'] = name
 
-            dom = DomishDOM()
-            keys = set()
             changes = self.computeChanges(view, version, collection, share)
+            keys = set()
+            compressed = len(changes) > 16
+
+            if compressed:
+                builder = TreeBuilder()
+                dom = formats.ElementTreeDOM()
+                data = dom.openElement(builder, 'data')
+            else:
+                dom = DomishDOM()
+                data = dom.openElement(sync, 'data')
+
             for key, (_changes, status) in changes.iteritems():
                 if key not in keys:
-                    item = sync.addElement('item')
-                    item['uuid'] = key.str64()
                     if status & CItem.DELETED:
-                        item['status'] = 'deleted'
+                        dom.openElement(data, 'item', uuid=key.str64(),
+                                        status='deleted')
                     else:
+                        attrs = { 'uuid': key.str64() }
                         if key in collection:
-                            item['status'] = 'member'
+                            attrs['status'] = 'member'
+                        item = dom.openElement(data, 'item', **attrs)
                         share.format.exportProcess(dom, key, item,
                                                    changes, keys)
+                    dom.closeElement(data, 'item')
                 elif key in collection:
-                    item = sync.addElement('item')
-                    item['uuid'] = key.str64()
-                    item['status'] = 'member'
+                    dom.openElement(data, 'item', uuid=key.str64(),
+                                    status='member')
+                    dom.closeElement(data, 'item')
+
+            dom.closeElement(data, 'data')
 
             sync['fromRepoId'] = self._repoId.str64()
             sync['toRepoId'] = repoId.str64()
             sync['version'] = str(view.itsVersion)
             sync['uuid'] = collection.itsUUID.str64()
+
+            if compressed:
+                sync['compressed'] = 'true'
+                out = StringIO()
+                ElementTree(builder.close()).write(out, 'utf-8')
+                sync.children.append(b64encode(compress(out.getvalue())))
+                out.close()
 
         except:
             view.cancel()
@@ -684,19 +609,27 @@ class JabberServer(RepositoryWorker):
                 if not changes:
                     share.localVersion = view.itsVersion + 1
 
-            dom = DomishDOM()
+            if sync.attributes.get('compressed') == 'true':
+                dom = formats.ElementTreeDOM()
+                input = StringIO(decompress(b64decode(sync.children[0])))
+                data = ElementTree(file=input).getroot()
+                input.close()
+            else:
+                dom = DomishDOM()
+                data = sync.firstChildElement()
+
             share.remoteVersion = version
             view.deferDelete()
 
-            for itemElement in sync.elements():
-                attributes = itemElement.attributes
+            for itemElement in dom.iterElements(data):
+                attributes = dom.getAttributes(itemElement)
                 status = attributes.get('status')
                 if status == 'deleted':
                     item = view.findUUID(attributes['uuid'])
                     if item is not None:
                         item.delete()
                 else:
-                    child = itemElement.firstChildElement()
+                    child = dom.getFirstChildElement(itemElement)
                     if child is not None:
                         item = format.importProcess(dom, child)
                     else:
@@ -718,7 +651,7 @@ class JabberServer(RepositoryWorker):
 
         share.established = True
         view.commit()
-        self.client.output("%s synchronized" %(collection.displayName))
+        self.client.output("'%s' synchronized" %(collection.displayName))
 
         to = iq['from']
         iq = client.IQ(self.client.xmlstream, 'result')

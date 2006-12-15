@@ -46,34 +46,44 @@ def installParcel(parcel, version=None):
     main = schema.ns('osaf.views.main', parcel)
 
     handler = p2pHandler.update(parcel, 'p2pHandler',
-                                blockName='p2pHandler')
+                                blockName='_p2p_p2pHandler')
 
     # Add an event for p2p subscribing to collections
     subscribeEvent = BlockEvent.update(parcel, None,
-                                       blockName='Subscribe',
+                                       blockName='_p2p_Subscribe',
                                        dispatchEnum='SendToBlockByReference',
                                        destinationBlockReference=handler)
-    # Add an event for managing p2p access to collections
-    accessEvent = BlockEvent.update(parcel, None,
-                                    blockName='Access',
-                                    dispatchEnum='SendToBlockByReference',
-                                    destinationBlockReference=handler)
-
     # Add an event for p2p login
     loginEvent = BlockEvent.update(parcel, None,
-                                   blockName='Login',
+                                   blockName='_p2p_Login',
                                    dispatchEnum='SendToBlockByReference',
                                    destinationBlockReference=handler)
+    # Add an event for managing p2p access to collections
+    accessEvent = BlockEvent.update(parcel, None,
+                                    blockName='_p2p_Access',
+                                    dispatchEnum='SendToBlockByReference',
+                                    destinationBlockReference=handler)
+    # Add an event send a collection via p2p email
+    sendMailEvent = BlockEvent.update(parcel, None,
+                                      blockName='_p2p_SendMail',
+                                      dispatchEnum='SendToBlockByReference',
+                                      destinationBlockReference=handler)
+    # Add an event check for p2p email
+    checkMailEvent = BlockEvent.update(parcel, None,
+                                       blockName='_p2p_CheckMail',
+                                       dispatchEnum='SendToBlockByReference',
+                                       destinationBlockReference=handler)
+
 
     # Add a separator to the "Experimental" menu ...
     MenuItem.update(parcel, 'menuSeparator',
-                    blockName='menuSeparator',
+                    blockName='_p2p_menuSeparator',
                     menuItemKind='Separator',
                     parentBlock=main.ExperimentalMenu)
 
     # Add a menu item to the "Experimental" menu to login to a peer network
     MenuItem.update(parcel, "LoginMenuItem",
-                    blockName="LoginMenuItem",
+                    blockName="_p2p_LoginMenuItem",
                     title=_m_(u"Login to a peer network"),
                     event=loginEvent,
                     eventsForNamedLookup=[loginEvent],
@@ -81,7 +91,7 @@ def installParcel(parcel, version=None):
 
     # ... and, below it, a menu item to p2p subscribe to a collection
     MenuItem.update(parcel, "SubscribeMenuItem",
-                    blockName="SubscribeMenuItem",
+                    blockName="_p2p_SubscribeMenuItem",
                     title=_m_(u"Subscribe to a peer collection"),
                     event=subscribeEvent,
                     eventsForNamedLookup=[subscribeEvent],
@@ -89,14 +99,30 @@ def installParcel(parcel, version=None):
 
     # ... and, below it, a menu item to manage p2p permissions to a collection
     MenuItem.update(parcel, "AccessMenuItem",
-                    blockName="AccessMenuItem",
+                    blockName="_p2p_AccessMenuItem",
                     title=_m_(u"Grant peer access to ..."),
                     event=accessEvent,
                     eventsForNamedLookup=[accessEvent],
                     parentBlock=main.ExperimentalMenu)
 
+    # ... and, below it, a menu item to send a collection via email
+    MenuItem.update(parcel, "SendMailMenuItem",
+                    blockName="_p2p_SendMailMenuItem",
+                    title=_m_(u"Send ... via p2p email"),
+                    event=sendMailEvent,
+                    eventsForNamedLookup=[sendMailEvent],
+                    parentBlock=main.ExperimentalMenu)
+
+    # ... and, below it, a menu item to check for p2p email
+    MenuItem.update(parcel, "CheckMailMenuItem",
+                    blockName="_p2p_CheckMailMenuItem",
+                    title=_m_(u"Check p2p email"),
+                    event=checkMailEvent,
+                    eventsForNamedLookup=[checkMailEvent],
+                    parentBlock=main.ExperimentalMenu)
+
     PeriodicTask.update(parcel, "loginTask",
-                        invoke="p2p.LoginTask",
+                        invoke="_p2p_LoginTask",
                         interval=timedelta(days=1),
                         run_at_startup=True)
 
