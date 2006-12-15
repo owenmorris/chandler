@@ -595,7 +595,7 @@ use them directly in fields::
 Type Conversion
 ---------------
 
-Because there are only five primitive EIM types (bytes, text, integer,
+Because there are only six primitive EIM types (bytes, text, integer, decimal,
 date/time, and "lob"), it is usually necessary to convert some application-
 level data types to the corresponding primitive type.
 
