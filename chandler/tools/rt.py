@@ -22,7 +22,9 @@ rt.py -- Run Chandler tests
 # TODO Add Signal checks so if main program is halted all child programs are killed
 #
 
-import sys, os, unittest
+import sys, os
+import string
+import unittest
 from optparse import OptionParser
 from types import *
 from util import killableprocess
@@ -34,7 +36,7 @@ _all_modules = ['application', 'i18n', 'repository', 'osaf']
 def parseOptions():
     _configItems = {
         'mode':      ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
-        'continue':  ('-C', '--continue',           'b', False, 'Continue even after test failures'),
+        'nonstop':   ('-C', '--continue',           'b', False, 'Continue even after test failures'),
         'unit':      ('-u', '--unit',               'b', False, 'unit tests each in own process'),
         'unitSuite': ('-U', '--unitSuite',          'b', False, 'unit tests in same process, all arguments treated as unittest.main arguments'),
         'verbose':   ('-v', '--verbose',            'b', False, 'Verbose output for unit tests'),
@@ -91,11 +93,10 @@ def buildList(tests):
 
 
 def buildTestList(args, individual=False):
-    sys.argv = args[:]
-
     from application import Utility
 
-    options = Utility.initOptions()
+    sys.argv = args[:]
+    options  = Utility.initOptions()
 
     Utility.initProfileDir(options)
     Utility.initI18n(options)
@@ -110,94 +111,83 @@ def buildTestList(args, individual=False):
 
         testlist = _all_modules
     else:
-        # if individual tests are required (-u) then we need to
-        # discover each test name so we can pass it to run_tests
-        # otherwise we can just pass the parameters to run_tests
-        # because it will discover them
-        if individual:
-            from util import test_finder
+        testlist += args
 
-            loader = test_finder.ScanningLoader()
-            tests  = loader.loadTestsFromNames(args, None)
+    # if individual tests are required (-u or -t) then we need to
+    # discover each test name so we can pass it to run_tests
+    # otherwise we can just pass the parameters to run_tests
+    # because it will discover them
+    if individual:
+        from util import test_finder
 
-            testlist = buildList(tests)
-        else:
-            testlist += args
+        loader   = test_finder.ScanningLoader()
+        tests    = loader.loadTestsFromNames(testlist, None)
+        testlist = buildList(tests)
 
     return testlist
 
 
-def runSuites(sys_argv):
-    sys.argv = sys_argv[:]
-
-    # Need to remove incompatible options
-    sys.argv.remove('-U')
-
-    from application import Utility
-    from util import test_finder
-
-    options = Utility.initOptions()
-
-    Utility.initProfileDir(options)
-    Utility.initI18n(options)
-    Utility.initLogging(options)
-
-    # Rebuild the command line for unittest.main
-    args = [sys.argv[0]]
-
-    # options.args has all the leftover arguments from Utility
-    args += options.args
-
-    if len(args) == 1:
-        args = args + _all_modules
-
-    if options.verbose:
-        args.insert(1, '-v')
-
-    unittest.main(module=None, argv=args, testLoader=test_finder.ScanningLoader())
-
-
-def callRunTest(cmd):
+def callRun_Test(cmd):
     if options.verbose:
         print 'Calling:', cmd
 
     p = killableprocess.Popen(' '.join(cmd), shell=True)
-    r = os.waitpid(p.pid, 0)
+    r = p.wait()
 
-    return r[1]
+    return r
 
 
-def runSuite(testlist):
-    print 'Running tests as a suite'
-
+def doTest(test):
     cmd = ['./release/RunPython', './tools/run_tests.py']
 
     if options.verbose:
         cmd += ['-v']
 
-    cmd += testlist
+    cmd += [test]
 
-    return callRunTest(cmd)
+    return callRun_Test(cmd)
 
 
-def runIndividual(testlist):
-    print 'Running each test individually'
+def runSuite(testlist):
+    print 'Running tests as a suite'
 
-    r  = 0
-    rt = ['./release/RunPython', './tools/run_tests.py']
+    return doTest(' '.join(testlist))
 
-    if options.verbose:
-        rt += ['-v']
+
+def runTests(testlist):
+    result = 0
 
     for test in testlist:
-        cmd = rt + [test]
+        result = doTest(test)
 
-        r = callRunTest(cmd)
-
-        if r <> 0:
+        if result <> 0 and not options.nonstop:
             break
 
-    return r
+    return result
+
+
+def runTest(testlist, target):
+    result   = 0
+    tests    = []
+    target_l = target.lower()
+
+    for test in testlist:
+        pieces   = test.split('.')
+        pieces_l = []
+
+        for item in pieces:
+            pieces_l.append(item.lower())
+
+        if target_l in pieces_l:
+            i        = pieces_l.index(target_l)
+            testname = '.'.join(pieces[:i + 1])
+
+            tests.append(testname)
+
+    if len(tests) > 0:
+        result = runTests(tests)
+
+    return result
 
 
 if __name__ == '__main__':
@@ -211,19 +201,23 @@ if __name__ == '__main__':
         print "both --unit and --unitSuite are specified, but only one of them is allowed at a time."
         sys.exit(1)
 
-    testlist = buildTestList(options.args, options.unit)
+    if options.single and (options.unitSuite or options.unit):
+            print "Single test run (-t) only allowed by itself"
+            sys.exit(1)
+
+    testlist = buildTestList(options.args, options.unit or len(options.single) > 0)
+    result   = 0
 
     if options.unitSuite:
-        r = runSuite(testlist)
-
-        if r <> 0:
-            print '\n\nerror during run [%s]' % r
-            sys.exit(r)
+        result = runSuite(testlist)
 
     if options.unit:
-        r = runIndividual(testlist)
+        result = runTests(testlist)
 
-        if r <> 0:
-            print '\n\nerror during run [%s]' % r
-            sys.exit(r)
+    if options.single:
+        result = runTest(testlist, options.single)
+
+    if result <> 0:
+        print '\n\nError generated during run: %s' % result
+        sys.exit(result)
 
