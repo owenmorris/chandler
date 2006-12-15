@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2006 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,61 +15,21 @@
 
 """
 rt.py -- Run Chandler tests
-
-Usage
------
-
-NOTE: rt.py must be called using Chandler's RunPython
-
-Run Unit Tests
-
-    All::
-
-        RunPython ./tools/rt.py -U
-
-    Specific python module::
-
-        RunPython ./tools/rt.py -U repository.tests.TestText
-
-    Specific test class::
-
-        RunPython ./tools/rt.py -U repository.tests.TestText.TestText
-
-    Specific test method::
-
-        RunPython ./tools/rt.py -U repository.tests.TestText.TestText.testAppend
-
-    All tests in a suite::
-
-        RunPython ./tools/rt.py -U application.tests.TestSchemaAPI.suite
-
-    All tests in all modules in a package and its sub-packages::
-
-        RunPython ./tools/rt.py -U application.tests
-
-
-If you have doctests or other tests not based on the Python unittest
-module, you should add them to an 'additional_tests' function in your
-module, in order for run_test's test finder to be able to locate them.
-The function should return a 'unittest.TestSuite' object (such as is
-returned by 'doctest.DocFileSuite' or 'doctest.DocTestSuite').
-
-Logging is configured in the same manner as for Chandler or headless.py,
-i.e. by setting the CHANDLERLOGCONFIG environment variable or the -L <file>
-command line argument to specify a logging configuration file.  For example:
-
-    RunPython ./tools/rt.py -L custom.conf -v application osaf
-
-(Note: specifying package names on the 'run_tests' command line will
-cause *all* modules in all sub-packages of that package to be imported.)
-
 """
 
-import sys, unittest
+#
+# TODO Implement logging
+# TODO Add Signal checks so if main program is halted all child programs are killed
+#
+
+import sys, os, unittest
 from optparse import OptionParser
 from types import *
+from util import killableprocess
 
+    # tests to run if no tests are specified on the command line
 _all_modules = ['application', 'i18n', 'repository', 'osaf']
+
 
 def parseOptions():
     _configItems = {
@@ -118,14 +78,56 @@ def parseOptions():
     return options
 
 
-def dumpTests(tests):
+_templist = []
+
+def buildList(tests):
     for item in tests:
         if isinstance(item, unittest.TestSuite):
-            dumpTests(item)
+            buildList(item)
         else:
-            print 'Test: %s' % item
+            _templist.append(item.id())
 
-def unitSuite(sys_argv):
+    return _templist
+
+
+def buildTestList(args, individual=False):
+    sys.argv = args[:]
+
+    from application import Utility
+
+    options = Utility.initOptions()
+
+    Utility.initProfileDir(options)
+    Utility.initI18n(options)
+    Utility.initLogging(options)
+
+    args    += options.args
+    testlist = []
+
+    if len(args) == 0:
+        if options.verbose:
+            print 'defaulting to all modules'
+
+        testlist = _all_modules
+    else:
+        # if individual tests are required (-u) then we need to
+        # discover each test name so we can pass it to run_tests
+        # otherwise we can just pass the parameters to run_tests
+        # because it will discover them
+        if individual:
+            from util import test_finder
+
+            loader = test_finder.ScanningLoader()
+            tests  = loader.loadTestsFromNames(args, None)
+
+            testlist = buildList(tests)
+        else:
+            testlist += args
+
+    return testlist
+
+
+def runSuites(sys_argv):
     sys.argv = sys_argv[:]
 
     # Need to remove incompatible options
@@ -152,14 +154,54 @@ def unitSuite(sys_argv):
     if options.verbose:
         args.insert(1, '-v')
 
-    print args
-
     unittest.main(module=None, argv=args, testLoader=test_finder.ScanningLoader())
 
 
+def callRunTest(cmd):
+    if options.verbose:
+        print 'Calling:', cmd
+
+    p = killableprocess.Popen(' '.join(cmd), shell=True)
+    r = os.waitpid(p.pid, 0)
+
+    return r[1]
+
+
+def runSuite(testlist):
+    print 'Running tests as a suite'
+
+    cmd = ['./release/RunPython', './tools/run_tests.py']
+
+    if options.verbose:
+        cmd += ['-v']
+
+    cmd += testlist
+
+    return callRunTest(cmd)
+
+
+def runIndividual(testlist):
+    print 'Running each test individually'
+
+    r  = 0
+    rt = ['./release/RunPython', './tools/run_tests.py']
+
+    if options.verbose:
+        rt += ['-v']
+
+    for test in testlist:
+        cmd = rt + [test]
+
+        r = callRunTest(cmd)
+
+        if r <> 0:
+            break
+
+    return r
+
+
 if __name__ == '__main__':
-    sys_argv = sys.argv[:]
-    options  = parseOptions()
+    options = parseOptions()
 
     if options.help:
         print __doc__
@@ -169,11 +211,19 @@ if __name__ == '__main__':
         print "both --unit and --unitSuite are specified, but only one of them is allowed at a time."
         sys.exit(1)
 
-    if options.unitSuite:
-        # XXX We should probably launch run_tests.py again with Chandler
-        # XXX python in a subprocess so that we don't need to terminate.
-        unitSuite(sys_argv)
-        sys.exit(0)
+    testlist = buildTestList(options.args, options.unit)
 
-    print __doc__
-    raise NotImplementedError
+    if options.unitSuite:
+        r = runSuite(testlist)
+
+        if r <> 0:
+            print '\n\nerror during run [%s]' % r
+            sys.exit(r)
+
+    if options.unit:
+        r = runIndividual(testlist)
+
+        if r <> 0:
+            print '\n\nerror during run [%s]' % r
+            sys.exit(r)
+
