@@ -200,9 +200,6 @@ changeable field, and having at most one key value.  Real-life recordsets will
 be more complex, and the relationships shown above will apply on a per-record
 and per-field basis, rather than at the recordset level.)
 
-TODO: foreign key refs
-TODO: importers, exporters, and Translators
-
 
 Filters
 -------
@@ -337,11 +334,40 @@ A ``sharing.Translator`` is an object that handles importing and exporting of
 Chandler items as EIM records.  It must have ``URI`` (string), ``version``
 (integer), and ``description`` (unicode) attributes::
 
+    >>> from application import schema
+    >>> from osaf import pim
+
     >>> class DemoTranslator(sharing.Translator):
     ...     """Demonstration translator"""
     ...     URI = "cid:demotranslator@osaf.us"
     ...     version = 1
     ...     description = u"Localized human-readable description here"
+    ...
+    ...     @Demo.importer
+    ...     def import_Demo_record(self, r):
+    ...         print "importing Demo record:", r
+    ...
+    ...     @Demo.deleter
+    ...     def delete_Demo_record(self, r):
+    ...         print "deleting Demo:", r
+    ...
+    ...     @R.importer
+    ...     def import_R_record(self, r):
+    ...         print "importing R record:", r
+    ...
+    ...     @R.deleter
+    ...     def delete_R_record(self, r):
+    ...         print "deleting R:", r
+    ...
+    ...     @sharing.exporter(schema.Item)
+    ...     def export_item(self, item):
+    ...         print "exporting item"
+    ...         yield R(1,2)
+    ...
+    ...     @sharing.exporter(pim.ContentItem)
+    ...     def export_contentitem(self, item):
+    ...         print "exporting ContentItem"
+    ...         yield R(3,4)
 
 When we support user-defined translator classes, we will probably need to use
 either "entry points" or some repository registry to look them up for
@@ -375,16 +401,23 @@ The sharing layer calls a translator instance's  ``startExport()`` and
 The default implementations do nothing, although they can be overridden in
 subclasses.  ``finishExport()`` must yield or return a (possibly-empty)
 sequence of records, while the return value of ``startExport()``, if any,
-is ignored::
+is ignored.
+
+In between the two calls, ``exportItem()`` can be called zero or more times
+to yield EIM records for a given item::
+
+::
 
     >>> t = DemoTranslator(rv)
     >>> t.startExport()
+
+    >>> list(t.exportItem(pim.ContentItem(itsName="foo", itsParent=rv)))
+    exporting item
+    exporting ContentItem
+    [R(1, 2), R(3, 4)]
+
     >>> list(t.finishExport())
     []
-
-TODO: exporters are called based on MRO+definition order
-TODO: unrecognized item classes are ignored
-TODO: exporters are inherited in groups
 
 
 Importing (Sharing Layer)
@@ -393,19 +426,80 @@ Importing (Sharing Layer)
 The sharing layer calls a translator instance's  ``startImport()`` and
 ``finishImport()`` methods at the beginning and end of an import operation.
 The default implementations do nothing, although they can be overridden in
-subclasses.  The return values, if any, are ignored::
+subclasses.  The return values, if any, are ignored.
+
+In between the two calls, ``importRecords()`` can be called zero or more times
+to process a ``RecordSet`` object's inclusions (adds/updates) and exclusions
+(deletions).
+
+::
 
     >>> t = DemoTranslator(rv)
     >>> t.startImport()
+
+    >>> d = Demo(1,"Foo", "This is a foo", Decimal('2.50'))
+
+    >>> t.importRecords(sharing.RecordSet([R(1,2)], [d]))
+    importing R record: R(1, 2)
+    deleting Demo: Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
+
+    >>> t.importRecords(sharing.RecordSet([d], [R(1,2)]))
+    importing Demo record: Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
+    deleting R: R(1, 2)
+
     >>> t.finishImport()
 
-TODO: importers called based on exact type
-TODO: unrecognized record types are ignored
-TODO: importers are inherited
+
+Translator Inheritance
+----------------------
+
+Importers, deleters, and exporters are inherited by translator subclasses::
+
+    >>> class DemoTranslator2(DemoTranslator):
+    ...     """Demonstration translator 2"""
+    ...     URI = "cid:demotranslator2@osaf.us"
+    ...     version = 1
+    ...     description = u"Localized human-readable description here"
+    ...
+    ...     @Demo.importer
+    ...     def import_Demo_record(self, r):
+    ...         print "welcome,", r
+    ...
+    ...     @Demo.deleter
+    ...     def delete_Demo_record(self, r):
+    ...         print "farewell,", r
+    ...
+    ...     @sharing.exporter(schema.Item)
+    ...     def export_item(self, item):
+    ...         print "exporting item"
+    ...         yield R(-1, -2)
+
+    >>> t = DemoTranslator2(rv)
+    >>> t.startImport()
+
+    >>> t.importRecords(sharing.RecordSet([R(1,2)], [d]))
+    importing R record: R(1, 2)
+    farewell, Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
+
+    >>> t.importRecords(sharing.RecordSet([d], [R(1,2)]))
+    welcome, Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
+    deleting R: R(1, 2)
+
+    >>> t.finishImport()
+
+    >>> t.startExport()
+    >>> list(t.exportItem(rv['foo']))
+    exporting item
+    exporting ContentItem
+    [R(-1, -2), R(3, 4)]
+
+    >>> list(t.finishExport())
+    []
+
 
 TODO: loadItemByUUID
-
-
+TODO: foreign key refs/ordering
+TODO: rewrite this crazy doctest as a parcel dev tutorial & a sharing reference
 
 
 Defining and Using Field Types
@@ -804,7 +898,80 @@ unique URIs::
       ...
     TypeError: URI 'cid:eim.R@osaf.us' is already in use
 
+More than one import or delete type can be declared for a given function::
 
-XXX typeinfo_for(obj) -> TypeInfo
-   descr -> typeinfo_for(descr.type)
+    >>> class Testlator1(sharing.Translator):
+    ...     URI = 'cid:testlator1@osaf.us'   # already in use above
+    ...     version = 1
+    ...     description = u"Blah"
+    ...
+    ...     @R.importer
+    ...     @MyRecord.importer
+    ...     def import_something(self, record):
+    ...         print "yo!", record
+    ...
+    ...     @R.deleter
+    ...     @MyRecord.deleter
+    ...     def delete_something(self, record):
+    ...         print "hasta la vista,", record
+
+    >>> t = Testlator1(rv)
+    >>> t.startImport()
+    >>> t.importRecords(sharing.RecordSet([R(1,2)], [MyRecord(3,4)]))
+    yo! R(1, 2)
+    hasta la vista, MyRecord(3, 4)
+
+    >>> t.finishImport()
+
+But it's an error to define more than one importer or deleter for a given type
+in a given translator class::
+
+    >>> class Testlator2(sharing.Translator):
+    ...     URI = 'cid:testlator2@osaf.us'   # already in use above
+    ...     version = 1
+    ...     description = u"Blah"
+    ...
+    ...     @R.importer
+    ...     def import_something(self, record):
+    ...         print "yo!", record
+    ...
+    ...     @R.importer
+    ...     def extra_import(self, record):
+    ...         print "howzit,", record
+    Traceback (most recent call last):
+      ...
+    TypeError: Multiple importers defined for <class 'R'> in <class 'Testlator2'>
+
+    >>> class Testlator3(sharing.Translator):
+    ...     URI = 'cid:testlator3@osaf.us'   # already in use above
+    ...     version = 1
+    ...     description = u"Blah"
+    ...
+    ...     @R.deleter
+    ...     def del_something(self, record):
+    ...         print "adios!", record
+    ...
+    ...     @R.deleter
+    ...     def extra_del(self, record):
+    ...         print "see ya,", record
+    Traceback (most recent call last):
+      ...
+    TypeError: Multiple deleters defined for <class 'R'> in <class 'Testlator3'>
+
+    >>> class Testlator4(sharing.Translator):
+    ...     URI = 'cid:testlator4@osaf.us'   # already in use above
+    ...     version = 1
+    ...     description = u"Blah"
+    ...
+    ...     @sharing.exporter(schema.Item, pim.ContentItem)
+    ...     def export_something(self, record):
+    ...         return []
+    ...
+    ...     @sharing.exporter(schema.Item)
+    ...     def extra_export(self, record):
+    ...         return []
+    Traceback (most recent call last):
+      ...
+    TypeError: Multiple exporters defined for <class '...Item'> in <class 'Testlator4'>
+
 

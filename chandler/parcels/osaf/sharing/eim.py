@@ -16,7 +16,7 @@ __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'LobType', 'DecimalType', 'get_converter', 'add_converter',
     'subtype', 'typedef', 'field', 'key', 'NoChange', 'Record', 'RecordSet',
-    'lookupSchemaURI', 'Filter', 'Translator',
+    'lookupSchemaURI', 'Filter', 'Translator', 'exporter'
 ]
 
 from symbols import Symbol  # XXX change this to peak.util.symbols
@@ -27,12 +27,12 @@ from application import schema
 from chandlerdb.util.c import UUID
 
 
-
-
-
-
-
-
+def exporter(*types):
+    """Mark a translator method as exporting the specified item type(s)"""
+    def decorate(func):
+        func.__dict__.setdefault('_eim_exporter_for',[]).extend(types)
+        return func
+    return decorate
 
 
 
@@ -466,31 +466,9 @@ def _constructor_for(name, cdict, fields):
     return compile(source, fname, "exec")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class RecordClass(type):
+    """Metaclass for records"""
+
     def __new__(meta, name, bases, cdict):
         try:
             Record
@@ -525,6 +503,28 @@ class RecordClass(type):
 
         registerURI(cdict.get('URI'), cls, message)
         return cls
+
+    def deleter(cls, func):
+        func.__dict__.setdefault('_eim_deleter_for',[]).append(cls)
+        return func
+
+    def importer(cls, func):
+        func.__dict__.setdefault('_eim_importer_for',[]).append(cls)
+        return func
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -655,8 +655,7 @@ class Record(tuple):
 
 
 required_translator_attrs = dict(
-    version=int, URI=str, description=unicode
-).items()
+    version=int, URI=str, description=unicode).items()
 
 class TranslatorClass(type):
     def __new__(meta, name, bases, cdict):
@@ -675,7 +674,26 @@ class TranslatorClass(type):
 
         cls = type.__new__(meta, name, bases, cdict)
         registerURI(cdict.get('URI'), cls, None)
+
+        for regname, attrname in (
+            ('importers','_eim_importer_for'), ('deleters','_eim_deleter_for'),
+            ('exporters', '_eim_exporter_for'),
+        ):
+            reg = {}
+            setattr(cls, regname, reg)
+            for v in cdict.values():
+                for ftype in getattr(v, attrname, ()):
+                    if reg.setdefault(ftype,v) is not v:
+                        raise TypeError(
+                            "Multiple %s defined for %r in %r"
+                            % (regname, ftype, cls)
+                        )
+            # Inherit registry contents from base classes
+            for t in cls.__mro__[1:]:
+                for k, v in t.__dict__.get(regname, {}).items():
+                   reg.setdefault(k, v)
         return cls
+
 
 class Translator:
     """Base class for import/export between Items and Records"""
@@ -687,13 +705,36 @@ class Translator:
 
     def startImport(self):
         """Called before an import transaction begins"""
+
     def finishImport(self):
         """Called after an import transaction ends"""
+
     def startExport(self):
         """Called before an import transaction begins"""
+
     def finishExport(self):
         """Called after an import transaction ends"""
         return ()
+
+    def importRecords(self, rs):
+        for r in rs.inclusions:
+            importer = self.importers.get(type(r))
+            if importer: importer(self, r)
+
+        for r in rs.exclusions:
+            deleter = self.deleters.get(type(r))
+            if deleter: deleter(self, r)
+
+    def exportItem(self, item):
+        for t in reversed(type(item).__mro__):
+            exporter = self.exporters.get(t)
+            if exporter:
+                for record in exporter(self, item):
+                    yield record
+
+
+
+
 
 def create_default_converter(t):
     converter = generic(default_converter)
@@ -715,7 +756,6 @@ add_converter(LobType, str, unicode)
 
 
 
-
 UUIDType = BytesType("cid:uuid_type@osaf.us", size=36)
 typedef(schema.UUID, UUIDType)
 
@@ -728,6 +768,7 @@ def item_uuid_converter(item):
 add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
 add_converter(UUIDType, str, unicode)
+
 
 
 
