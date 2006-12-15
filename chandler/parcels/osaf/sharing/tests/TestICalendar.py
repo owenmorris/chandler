@@ -290,6 +290,13 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.assertEqual(changed.itsItem.displayName,
                          "Modification title changed")
         
+        # test that a few of the custom fields were preserved when exporting
+        
+        vcalendar = ICalendar.itemsToVObject(self.view, [master])
+        self.assertEqual(vcalendar.vevent.organizer.params['X-ORACLE-GUID'][0],
+                         '07FC24E37F395815E0405794071A700C')
+        self.assertEqual(vcalendar.vevent.created.value, '20060926T202203Z')
+        
 
 
 

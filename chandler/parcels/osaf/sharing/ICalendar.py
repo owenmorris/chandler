@@ -167,6 +167,25 @@ def itemsToVObject(view, items, cal=None, filters=None):
             
             recurrenceid.value = makeDateTimeValue(event.recurrenceID, allDay)
         
+        # this should be changed over in the recurrence branch to distinguish 
+        # between local attributes and attributes on the master, attributes on
+        # the master can be ignored
+        if event.icalendarProperties is not None:
+            for name, value in event.icalendarProperties.iteritems():
+                prop = comp.add(name)
+                prop.isNative = False
+                prop.value = value
+                
+        if event.icalendarParameters is not None:
+            for name, paramstring in event.icalendarParameters.iteritems():
+                paramdict = comp.contents[name][0].params
+                for paramlist in vobject.base.parseParams(paramstring):
+                    # parseParams gives a list of lists of parameters, with the
+                    # first element of each list being the name of the
+                    # parameter, followed by the parameter values, if any
+                    paramvalues = paramdict.setdefault(paramlist[0].upper(), [])
+                    paramvalues.extend(paramlist[1:])
+        
         # logic for serializing rrules needs to move to vobject
         try: # hack, create RRULE line last, because it means running transformFromNative
             if event.getMaster().itsItem is event.itsItem and event.rruleset is not None:
@@ -368,6 +387,15 @@ def makeNaiveteMatch(dt, tzinfo):
         if tzinfo is None:
             dt = TimeZone.stripTimeZone(dt)
     return dt
+
+# attributes to avoid reusing when serializing events that were originally
+# imported
+attributesUnderstood = ['recurrence-id', 'summary', 'description', 'location',
+                        'status', 'duration', 'dtstart', 'dtend', 'uid',
+                        'valarm', 'dtstamp', 'rrule', 'exrule', 'rdate',
+                        'exdate']
+
+parametersUnderstood = ['tzid', 'x-vobj-original-tzid', 'x-osaf-anytime-param']
 
 def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                      monolithic = True, updateCallback=None, stats=None):
@@ -644,7 +672,25 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     ruleSetItem = RecurrenceRuleSet(None, itsView=view)
                     ruleSetItem.setRuleFromDateUtil(rruleset)
                     changeLast.append((EventStamp.rruleset.name, ruleSetItem))
-                    
+                
+                ignoredProperties = {}
+                ignoredParameters = {}
+                for line in event.lines():
+                    name = line.name.lower()
+                    if name not in attributesUnderstood:
+                        line.transformFromNative()
+                        ignoredProperties[name] = line.value
+                    params=u''
+                    for key, paramvals in line.params.iteritems():
+                        if key.lower() not in parametersUnderstood:
+                            vals = map(vobject.base.dquoteEscape, paramvals)
+                            params += ';' + key + '=' + ','.join(vals)
+                    if len(params) > 0:
+                        ignoredParameters[name] = params
+
+                change('icalendarProperties', ignoredProperties)
+                change('icalendarParameters', ignoredParameters)
+                
                 if itemChangeCallback is None:
                     # create a new item
 

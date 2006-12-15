@@ -456,6 +456,22 @@ class EventStamp(Stamp):
         schema.Boolean,
         defaultValue=False
     )
+    
+    icalendarProperties = schema.Mapping(
+        schema.Text,
+        defaultValue = None,
+        doc="Original icalendar property name/value pairs not understood "
+            "by Chandler.  Subcomponents (notably VALARMS) aren't stored."
+    )
+
+    icalendarParameters = schema.Mapping(
+        schema.Text,
+        defaultValue = None,
+        doc="property name/parameter pairs for parameters not understood by "
+            "Chandler.  The parameter value is the concatenation of "
+            "paramater key/value pairs, separated by semi-colons, like the "
+            "iCalendar serialization of those parameters"
+    )
 
     recurrenceEnd = schema.One(
         schema.DateTimeTZ,

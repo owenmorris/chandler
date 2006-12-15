@@ -20,6 +20,8 @@ import os
 import conduits, formats, errors
 from i18n import ChandlerMessageFactory as _
 
+import logging
+logger = logging.getLogger(__name__)
 
 class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
 
