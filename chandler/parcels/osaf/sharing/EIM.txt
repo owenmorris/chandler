@@ -638,6 +638,12 @@ You can also override the conversion function(s) on a field-by-field basis::
     >>> HexRecord("23")
     HexRecord(19)
 
+There is a default converter registered to accept a value of  None for all
+types::
+
+    >>> HexRecord(None)
+    HexRecord(None)
+
 XXX Need more default encoders for primitive types; only int->IntType currently
     works
 

@@ -144,7 +144,8 @@ class RecordSetConduit(conduits.BaseConduit):
 class CosmoRecordSetConduit(RecordSetConduit, conduits.HTTPMixin):
 
     # TODO:
-    # getLocation()
+    # getLocation() -- if sharePath is "" and shareName is "collections/uuid"
+    # then getLocation() should work
 
     def get(self):
         location = self.getLocation()
@@ -190,20 +191,13 @@ class CosmoRecordSetConduit(RecordSetConduit, conduits.HTTPMixin):
         try:
             return handle.blockUntil(handle.addRequest, request)
 
+            # @@@MOR Should I check the response.status here or in the caller?
+
         except zanshin.webdav.ConnectionError, err:
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
         except M2Crypto.BIO.BIOError, err:
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
-
-        except zanshin.webdav.WebDAVError, e:
-            if e.status == twisted.web.http.NOT_FOUND:
-                raise errors.NotFound(_(u"%(location)s not found") % {'location': location})
-            if e.status == twisted.web.http.UNAUTHORIZED:
-                raise errors.NotAllowed(_(u"Not authorized to get %(location)s") % {'location': location})
-
-            raise errors.SharingError(_(u"The following sharing error occurred: %(error)s") % {'error': e})
-
 
 
 

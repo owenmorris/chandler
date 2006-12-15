@@ -139,7 +139,7 @@ class EIMMLSerializer(object):
                 fields = {}
                 for field in record.__fields__:
                     value = record[field.offset]
-                    if value is not sharing.NoChange:
+                    if value is not None:
                         serialized = serializeValue(field.typeinfo,
                             record[field.offset])
                         fields[field.name] = serialized
@@ -174,7 +174,7 @@ class EIMMLSerializer(object):
                     if value is not None:
                         value = deserializeValue(field.typeinfo, value)
                     else:
-                        value = sharing.NoChange
+                        value = None
                     values.append(value)
 
                 records.append(recordClass(*values))

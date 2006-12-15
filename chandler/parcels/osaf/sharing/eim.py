@@ -739,6 +739,7 @@ class Translator:
 def create_default_converter(t):
     converter = generic(default_converter)
     converter.when_object(NoChange)(lambda val: val)
+    converter.when_object(None)(lambda val: val)
     get_converter.when_object(t)(lambda ctx: converter)
 
 map(create_default_converter,
