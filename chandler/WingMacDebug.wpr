@@ -5,10 +5,11 @@
 ##################################################################
 [project attributes]
 debug.run-args = {loc('Chandler.py'): '--catch=never'}
-proj.env-vars = {None: ('custom',
-                        ['DYLD_LIBRARY_PATH=debug/lib:debug/db/lib:debug/icu'\
-                         '/lib',
-                         'DYLD_FRAMEWORK_PATH=debug/Library/Frameworks'])}
+proj.env-vars = {loc('Chandler.py'): ('merge',
+                                      ['DYLD_LIBRARY_PATH=debug/lib:debug/db'\
+                                       '/lib:debug/icu/lib',
+                                       'DYLD_FRAMEWORK_PATH=debug/Library/Fr'\
+                                       'ameworks'])}
 proj.file-list = [loc('application/AboutBox.py'),
                   loc('application/Application.py'),
                   loc('application/dialogs/AccountInfoPrompt.py'),

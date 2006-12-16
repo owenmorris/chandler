@@ -491,8 +491,6 @@ proj.file-list = [loc('application/AboutBox.py'),
                   loc('parcels/osaf/framework/scripting/script.py'),
                   loc('parcels/osaf/framework/scripting/User.py'),
                   loc('parcels/osaf/framework/scripting/__init__.py'),
-                  loc('parcels/osaf/framework/script_recording/script_lib.py'),
-                  loc('parcels/osaf/framework/script_recording/__init__.py'),
                   loc('parcels/osaf/framework/twisted/testreactor.py'),
                   loc('parcels/osaf/framework/twisted/tests/TestTestReactor.py'),
                   loc('parcels/osaf/framework/twisted/tests/__init__.py'),
@@ -1319,7 +1317,7 @@ proj.pyexec = {None: ('custom',
                       'release/Library/Frameworks/Python.framework/Versions/'\
                       'Current/Resources/Python.app/Contents/MacOS/Python')}
 proj.pypath = {None: ('custom',
-                      './')}
+                      '.')}
 proj.shared-attribute-names = ['proj.shared-attribute-names',
                                'proj.file-list',
                                'proj.file-type',
