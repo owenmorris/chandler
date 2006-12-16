@@ -994,6 +994,7 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         self.control.blockItem.stopWatchingForChanges()
         if value == 'none':
             setattr(item, pim.Remindable.userReminderTime.name, None)
+            setattr(item, pim.Remindable.userReminderInterval.name, None)            
         elif value in ('before', 'after'):
             if reminderType in ('before', 'after'):
                 # Just change the sign of the old reminder

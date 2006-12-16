@@ -319,6 +319,7 @@ class UITestItem(object):
             ('timeZone', self.SetTimeZone),
             ('recurrence', self.SetRecurrence),
             ('recurrenceEnd', self.SetRecurrenceEnd),
+            ('eventReminder', self.SetEventReminder),
             )
         
         self.FocusInDetailView()
@@ -788,7 +789,19 @@ class UITestItem(object):
         else:
             self.logger.addComment("SetTimeZone is not available for this kind of item")
             return
-        
+
+    def SetEventReminder(self, reminderType, timeInfo=True):
+        """
+        Set the reminder type ("None", "Before event", "After event")
+        @type reminderType : string
+        @type timeInfo: boolean
+        """
+        if self.isEvent:
+            self.SetBlockMenu("EditReminderType", reminderType, timeInfo=timeInfo)
+        else:
+            self.logger.addComment("SetEventReminder is not available for this kind of item")
+            return    
+
     def SetRecurrence(self, recurrence, timeInfo=True):
         """
         Set the recurrence

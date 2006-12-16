@@ -105,6 +105,11 @@ class TestNewEvent(ChandlerTestCase):
             CalendarEndAtLabel=(True,)
             )
         
+        # Create a reminder on the item
+        event.SetAttr("Adding reminder", eventReminder="Before event")
+        event.CheckDisplayedValues("Checking recurrence",
+            EditReminderType=(True, "Before event"))  
+        
         # Make it recur
         event.SetAttr("Making it recur",
                       recurrence="Daily", 
@@ -143,6 +148,24 @@ class TestNewEvent(ChandlerTestCase):
             HeadlineBlock=(True, uw("Birthday Party")),
             EditCalendarStartDate=(True, evtThirdDate),
             )
+
+        # Remove reminders from all occurrences
+        event.SelectItem()
+        event.SetAttr("Removing reminder", eventReminder="None")
+        scripting.User.idle()
+        
+        # handle the recurrence dialog
+        recurrenceDialog = wx.FindWindowByName(u'RecurrenceDialog')
+        if recurrenceDialog is None:
+            self.logger.endAction(False, "Didn't see the recurrence dialog when removing reminder")
+        else:
+            scripting.User.emulate_click(recurrenceDialog.futureButton)
+            scripting.User.idle()
+            
+        # bug 7422, make sure remove reminder works
+        event.CheckDisplayedValues("Checking reminder set to None",
+            EditReminderType=(True, "None"),
+            )              
         
         #leave Chandler with timezones turned off
         tzPrefs.showUI = False
