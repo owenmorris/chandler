@@ -121,6 +121,15 @@ Record Sets
 
     >>> rs = sharing.RecordSet([r1])
 
+    >>> bool(rs)
+    True
+
+    >>> bool(sharing.RecordSet())
+    False
+
+    >>> bool(sharing.RecordSet([],[r1]))
+    True
+
     >>> rs.inclusions == set([r1])
     True
     >>> rs.exclusions == set()
@@ -420,6 +429,9 @@ to yield EIM records for a given item::
     []
 
 
+TODO: Exporters for stamp classes
+
+
 Importing (Sharing Layer)
 -------------------------
 
@@ -496,6 +508,9 @@ Importers, deleters, and exporters are inherited by translator subclasses::
     >>> list(t.finishExport())
     []
 
+
+Creating/Updating Items
+-----------------------
 
 TODO: loadItemByUUID
 TODO: foreign key refs/ordering

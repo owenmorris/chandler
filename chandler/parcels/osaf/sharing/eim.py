@@ -363,8 +363,8 @@ class RecordSet(object):
             
         return RecordSet(incs, excs)
 
-    #def __nonzero__(self):
-    #    return 
+    def __nonzero__(self):
+        return bool(self.inclusions or self.exclusions)
 
 
 class Filter:
