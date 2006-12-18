@@ -102,7 +102,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
         for itemUUID, rs in rsNewBase.items():
             rsOld = self.getRecordSet(itemUUID)
-            dOutbound = filter.sync_filter(rs - rsOld)
+            dOutbound = filter.sync_filter(rs) - filter.sync_filter(rsOld)
             if dOutbound:
                 # If/when Cosmo supports diffs, use the following line:
                 # toSend[itemUUID] = dOutbound
