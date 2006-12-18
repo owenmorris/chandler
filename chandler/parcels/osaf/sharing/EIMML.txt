@@ -193,6 +193,20 @@ Verify the old baseline is empty::
     >>> conduit.getRecordSet('1') == rs(set([]), set([]))
     True
 
+Test a no-op (no inbound nor outbound changes)::
+
+    >>> rsNewBase = { }
+    >>> inboundDiff = { }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == { }
+    True
+    >>> toApply == { }
+    True
+    >>> lost == { }
+    True
+    >>> conduit.getRecordSet('1') == rs(set([]), set([]))
+    True
+
 Merge a local addition with no inbound changes::
 
     >>> rsNewBase = { '1' : rs([Demo(1, 1, 1)]) }
@@ -210,18 +224,72 @@ Verify the old baseline has been updated::
     >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,1)]), set([]))
     True
 
+Merge in an inbound change::
+
+    >>> rsNewBase = { }
+    >>> inboundDiff = { '1' : rs([Demo(1, 1, 2)]) }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == { }
+    True
+    >>> toApply == {'1': rs(set([Demo(1, nc, 2)]), set([]))}
+    True
+    >>> lost == { }
+    True
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,2)]), set([]))
+    True
+
+Merge non-overlapping inbound and outbound changes::
+
+    >>> rsNewBase = { '1' : rs([Demo(1, 3, 2)]) }
+    >>> inboundDiff = { '1' : rs([Demo(1, 1, 3)]) }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == {'1': rs(set([Demo(1, 3, 3)]), set([]))}
+    True
+    >>> toApply == {'1': rs(set([Demo(1, nc, 3)]), set([]))}
+    True
+    >>> lost == { }
+    True
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,3,3)]), set([]))
+    True
+
+Merge overlapping and non-overlapping inbound and outbound changes::
+
+    >>> rsNewBase = { '1' : rs([Demo(1, 4, 4)]) }
+    >>> inboundDiff = { '1' : rs([Demo(1, 5, 3)]) }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == {'1': rs(set([Demo(1, 5, 4)]), set([]))}
+    True
+    >>> toApply == {'1': rs(set([Demo(1, 5, nc)]), set([]))}
+    True
+    >>> lost == {'1': rs(set([Demo(1, 4, nc)]), set([]))}
+    True
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,4)]), set([]))
+    True
+
+Merge only overlapping inbound and outbound changes::
+
+    >>> rsNewBase = { '1' : rs([Demo(1, 5, 6)]) }
+    >>> inboundDiff = { '1' : rs([Demo(1, 5, 7)]) }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == { }
+    True
+    >>> toApply == {'1': rs(set([Demo(1, nc, 7)]), set([]))}
+    True
+    >>> lost == {'1': rs(set([Demo(1, nc, 6)]), set([]))}
+    True
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,7)]), set([]))
+    True
+
+
 Add in a filter, make a local change and no inbound changes::
 
     >>> conduit.filters = ['cid:bar-filter@osaf.us']
-    >>> rsNewBase = { '1' : rs([Demo(1, 2, 2)]) }
+    >>> rsNewBase = { '1' : rs([Demo(1, 6, 8)]) }
     >>> inboundDiff = { }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 1, 2)]), set([]))}
+    >>> toSend == {'1': rs(set([Demo(1, 5, 8)]), set([]))}
     True
-
-Verify the old baseline has been updated::
-
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,2)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,8)]), set([]))
     True
 
 Even though we locally modified the 'bar' field, the outbound record still
@@ -231,15 +299,12 @@ There can be multiple filters in effect; note how the outbound record hasn't
 changed at all::
 
     >>> conduit.filters = ['cid:bar-filter@osaf.us', 'cid:baz-filter@osaf.us']
-    >>> rsNewBase = { '1' : rs([Demo(1, 3, 3)]) }
+    >>> rsNewBase = { '1' : rs([Demo(1, 7, 9)]) }
     >>> inboundDiff = { }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == {}
     True
-
-Verify the old baseline is still the same::
-
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,2)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,8)]), set([]))
     True
 
 
@@ -248,7 +313,8 @@ Set up a conduit, with a filter this time from the start::
     >>> conduit = recordset_conduit.RecordSetConduit(itsView=rv)
     >>> conduit.filters = ['cid:bar-filter@osaf.us']
 
-Merge a local addition with no inbound changes::
+Merge a local addition with no inbound changes; note that the outbound
+record has a NoChange value on the filtered field::
 
     >>> rsNewBase = { '1' : rs([Demo(1, 1, 1)]) }
     >>> inboundDiff = { }

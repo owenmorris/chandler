@@ -94,7 +94,9 @@ class RecordSetConduit(conduits.BaseConduit):
 
             if itemUUID in rsNewBase:
                 dLocal = rsNewBase[itemUUID] - rsOld
-                lost[itemUUID] = dLocal.conflicts(dInbound)
+                conflicts = dLocal.conflicts(dInbound)
+                if conflicts:
+                    lost[itemUUID] = conflicts
                 rsNewBase[itemUUID] += dInbound
             toApply[itemUUID] = filter.sync_filter(dInbound)
             rsOld += dInbound
