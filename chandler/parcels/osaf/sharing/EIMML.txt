@@ -381,26 +381,32 @@ Verify that a missing inbound record is applied as a deletion::
     >>> conduit.getRecordSet('1') == rs()
     True
 
-Start over, adding two records::
+Start over, adding two records (one of a new record type)::
+
+    >>> class Demo2(sharing.Record):
+    ...     URI = 'cid:eim.test.demo2-record@osaf.us'
+    ...     foo = sharing.key(int)
+    ...     bar = sharing.field(int, [barFilter])
+    ...     baz = sharing.field(int, [bazFilter])
 
     >>> conduit.filters = []
-    >>> rsNewBase =   { '1' : rs([Demo(1, 1, 1), Demo(1, 2, 2)]) }
+    >>> rsNewBase =   { '1' : rs([Demo(1, 1, 1), Demo2(1, 2, 2)]) }
     >>> inboundDiff = { }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 1, 1), Demo(1, 2, 2)]))}
+    >>> toSend == {'1': rs(set([Demo(1, 1, 1), Demo2(1, 2, 2)]))}
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,1), Demo(1,2,2)]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,1), Demo2(1,2,2)]))
     True
 
-...now remove one (1,1,1):
+...now remove the Demo(1,1,1), and the result of the merge will be that we
+will send only the remaining record::
 
-    >>> rsNewBase =   { '1' : rs(set([Demo(1,2,2)])) }
+    >>> rsNewBase =   { '1' : rs(set([Demo2(1,2,2)])) }
     >>> inboundDiff = { }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == { }
+    >>> toSend == {'1' : rs(set([Demo2(1,2,2)])) }
     True
 
-@@@MOR: Actually we want toSend to be {'1' : rs(set([Demo(1,2,2)])) }
 
 
 Set up a conduit, with a filter this time from the start::
