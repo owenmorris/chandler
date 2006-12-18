@@ -527,7 +527,8 @@ def makeSummaryBlocks(parcel):
         attributeSourceName = 'displayWhoSource',
         attributes=[
             pim.ContentItem.displayWho.name,
-            pim.ContentItem.displayDate.name,
+            pim.ContentItem.triageStatus.name, 
+            pim.ContentItem.triageStatusChanged.name,
         ])
     
     titleColumn = makeColumnAndIndexes('SumColAbout',
@@ -538,7 +539,8 @@ def makeSummaryBlocks(parcel):
         attributeName='displayName',
         attributes=[
             pim.ContentItem.displayName.name, 
-            pim.ContentItem.displayDate.name,
+            pim.ContentItem.triageStatus.name, 
+            pim.ContentItem.triageStatusChanged.name,
         ])
 
     reminderColumn = makeColumnAndIndexes('SumColCalendarEvent',

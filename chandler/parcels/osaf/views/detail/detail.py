@@ -1106,8 +1106,7 @@ class TransparencyConditionalBlock(EventConditionalArea):
         # events, which happen to be anyTime too)
         event = pim.EventStamp(item)
         return (super(TransparencyConditionalBlock, self).shouldShow(item) and
-                (not ((event.anyTime and not event.allDay) or
-                 not event.duration)))
+                not event.anyTime and (event.allDay or bool(event.duration)))
 
     def getWatchList(self):
         watchList = super(TransparencyConditionalBlock, self).getWatchList()

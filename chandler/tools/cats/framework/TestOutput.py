@@ -28,6 +28,9 @@ import os.path
 import time 
 import wx
 import osaf.framework.scripting.User as User
+import logging
+
+pyLogger = logging.getLogger(__name__)
 
 class datetime(dtime):
     """Class for overriding datetime's normal string method"""
@@ -320,8 +323,10 @@ class TestOutput:
             """
             leadchar = '-'
             if result: leadchar = '+'
-            self._write( u'%s%s\n' % (leadchar * (4 - level) * 3, string))
-            
+            message =  u'%s%s' % (leadchar * (4 - level) * 3, string)
+            self._write(u'%s\n' % message)
+            pyLogger.debug(message)
+
         if self.debug == 0 and result == True:
             return #don't print passes when debug = 0
         if level >= self.mask:
