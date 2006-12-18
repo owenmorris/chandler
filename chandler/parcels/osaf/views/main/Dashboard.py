@@ -56,6 +56,19 @@ class wxDashboard(wxTable):
         gridWindow.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
         gridWindow.Bind(wx.EVT_MOUSE_CAPTURE_LOST, self.OnMouseCaptureLost)
         
+    def Destroy(self):
+        # Release the mouse capture, if we had it
+        if getattr(self.blockItem, 'mouseCaptured', False):
+            delattr(self.blockItem, 'mouseCaptured')
+            gridWindow = self.GetGridWindow()
+            if gridWindow.HasCapture():
+                #logger.debug("wxDashboard.Destroy: ReleaseMouse")
+                gridWindow.ReleaseMouse()
+            #else:
+                #logger.debug("wxDashboard.Destroy: would ReleaseMouse, but not HasCapture.")
+
+        return super(wxDashboard, self).Destroy()
+
     def CalculateCellRect(self, cell):
         cellRect = self.CellToRect(cell[1], cell[0])
         cellRect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
@@ -151,14 +164,15 @@ class wxDashboard(wxTable):
             hasCapture = getattr(self.blockItem, 'mouseCaptured', False)
             if wantsCapture:
                 if not hasCapture:
-                    #logger.debug("Capturing mouse...")
-                    ## @@@ Temporarily commented out to workaround bug 7526
-                    #gridWindow.CaptureMouse()
+                    #logger.debug("OnMouseEvents: CaptureMouse")
+                    gridWindow.CaptureMouse()
                     self.blockItem.mouseCaptured = True
             elif hasCapture:
-                #logger.debug("Releasing mouse...")
-                ## @@@ Temporarily commented out to workaround bug 7526
-                #gridWindow.ReleaseMouse()
+                if gridWindow.HasCapture():
+                    #logger.debug("OnMouseEvents: ReleaseMouse")
+                    gridWindow.ReleaseMouse()
+                #else:
+                    #logger.debug("OnMouseEvents: would ReleaseMouse, but not HasCapture")
                 del self.blockItem.mouseCaptured
 
     def OnMouseCaptureLost(self, event):
@@ -197,11 +211,6 @@ class DashboardBlock(Table):
         prefs = schema.ns('osaf.views.main', view).dashboardPrefs
         view.unwatchItem(self, prefs, 'onEnableSectionsPref')
         
-        if getattr(self, 'mouseCaptured', False):
-            delattr(self, 'mouseCaptured')
-            # @@@ Temporarily commented out to workaround bug 7526
-            #self.widget.GetGridWindow().ReleaseMouse()
-
         super(DashboardBlock, self).onDestroyWidget(*args, **kwds)
 
     def onEnableSectionsPref(self, op, item, names):
