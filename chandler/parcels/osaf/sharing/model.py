@@ -43,7 +43,8 @@ class ItemRecord(sharing.Record):
         decimal_places=2), [triageFilter])
     last_modified_by = sharing.field(text256) # storing an email address
     created_on = sharing.field(sharing.DateType)
-    remind_on = sharing.field(sharing.DateType) # reminder, absolute datetime
+    remind_on = sharing.field(sharing.DateType, [remindersFilter]) # reminder,
+                                                            # absolute datetime
 
 class NoteRecord(sharing.Record):
     URI = "http://osafoundation.org/eimml/note"
@@ -70,7 +71,8 @@ class EventRecord(sharing.Record):
     exdate = sharing.field(text1024)
     recurrenceid = sharing.field(text20)
     status = sharing.field(text256, [eventStatusFilter])
-    trigger = sharing.field(sharing.IntType) # reminder, in seconds after
+    trigger = sharing.field(sharing.IntType, [remindersFilter]) # reminder,
+                                             # in seconds after
                                              # dtstart; negative value means
                                              # prior to dtstart
 

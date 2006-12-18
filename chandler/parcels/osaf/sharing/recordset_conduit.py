@@ -35,6 +35,7 @@ class RecordSetConduit(conduits.BaseConduit):
     translator = schema.One(schema.Class)
     serializer = schema.One(schema.Class)
     syncToken = schema.One(schema.Text, initialValue=None)
+    filters = schema.Sequence(schema.Text)
 
     def sync(self, modOverride=None, updateCallback=None, forceUpdate=None):
 
@@ -83,6 +84,8 @@ class RecordSetConduit(conduits.BaseConduit):
         toApply = {}
         lost = {}
 
+        filter = self.getFilter()
+
         for itemUUID, rs in inboundDiff.items():
             # Until Cosmo supports diffs, we need to compute the diffs
             # ourselves:
@@ -93,36 +96,36 @@ class RecordSetConduit(conduits.BaseConduit):
                 dLocal = rsNewBase[itemUUID] - rsOld
                 lost[itemUUID] = dLocal.conflicts(dInbound)
                 rsNewBase[itemUUID] += dInbound
-            toApply[itemUUID] = sync_filter(dInbound)  # @@@MOR Hook up
+            toApply[itemUUID] = filter.sync_filter(dInbound)
             rsOld += dInbound
             self.saveRecordSet(itemUUID, rsOld)
 
         for itemUUID, rs in rsNewBase.items():
             rsOld = self.getRecordSet(itemUUID)
-            dOutbound = sync_filter(rs - rsOld)  # @@@MOR Hook up
+            dOutbound = filter.sync_filter(rs - rsOld)
+            if dOutbound:
+                # If/when Cosmo supports diffs, use the following line:
+                # toSend[itemUUID] = dOutbound
 
-            # If/when Cosmo supports diffs, use the following line:
-            # toSend[itemUUID] = dOutbound
+                rsOld += dOutbound
 
-            rsOld += dOutbound
+                # ...until Cosmo supports diffs, use the following line:
+                toSend[itemUUID] = rsOld
 
-            # ...until Cosmo supports diffs, use the following line:
-            toSend[itemUUID] = rsOld
-
-            self.saveRecordSet(itemUUID, rsOld)
+                self.saveRecordSet(itemUUID, rsOld)
 
         return toSend, toApply, lost
 
 
 
     def saveRecordSet(self, uuidString, recordSet):
-        Baseline.update(self.share, uuidString,
+        Baseline.update(self, uuidString,
             records=list(recordSet.inclusions))
 
 
 
     def getRecordSet(self, uuidString):
-        baseline = self.share.getItemChild(uuidString)
+        baseline = self.getItemChild(uuidString)
         if baseline is None:
             recordSet = eim.RecordSet()
         else:
@@ -136,6 +139,11 @@ class RecordSetConduit(conduits.BaseConduit):
         return recordSet
 
 
+    def getFilter(self):
+        filter = eim.Filter(None, u'Temporary filter')
+        for uri in getattr(self, 'filters', []):
+            filter += eim.lookupSchemaURI(uri)
+        return filter
 
 
 

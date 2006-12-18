@@ -102,7 +102,7 @@ Inmemory Cosmo Replacement
 
 You can "send" a recordset::
 
-    >>> conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=rv, shareName="foo", serializer=eimml.EIMMLSerializer)
+    >>> conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=rv, shareName="test1", serializer=eimml.EIMMLSerializer)
     >>> conduit.put(text)
     >>> conduit.syncToken
     1
@@ -160,4 +160,100 @@ created::
     >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('US/Pacific')), None), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)]), '9501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('US/Pacific')), None), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)]) }
     >>> recordSets = eimml.EIMMLSerializer.deserialize(text)
     >>> recordSets == expectedRecordSets
+    True
+
+
+
+Merging
+-------
+
+The RecordSetConduit class has a merge method which will compare inbound
+and outbound changes, merge the non-overlapping changes, and return the
+set of records to send outbound, the set of records to apply locally, and
+the local changes that were lost due to conflict::
+
+    >>> from osaf.sharing import RecordSet as rs, NoChange as nc
+
+    >>> barFilter = sharing.Filter('cid:bar-filter@osaf.us', u"Bars")
+    >>> bazFilter = sharing.Filter('cid:baz-filter@osaf.us', u"Bazzes")
+
+    >>> class Demo(sharing.Record):
+    ...     URI = 'cid:eim.test.demo-record@osaf.us'
+    ...     foo = sharing.key(int)
+    ...     bar = sharing.field(int, [barFilter])
+    ...     baz = sharing.field(int, [bazFilter])
+
+Set up a conduit::
+
+    >>> conduit = recordset_conduit.RecordSetConduit(itsView=rv)
+    >>> conduit.filters = []
+
+Verify the old baseline is empty::
+
+    >>> conduit.getRecordSet('1') == rs(set([]), set([]))
+    True
+
+Merge a local addition with no inbound changes::
+
+    >>> rsNewBase = { '1' : rs([Demo(1, 1, 1)]) }
+    >>> inboundDiff = { }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == {'1': rs(set([Demo(1, 1, 1)]), set([]))}
+    True
+    >>> toApply == { }
+    True
+    >>> lost == { }
+    True
+
+Verify the old baseline has been updated::
+
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,1)]), set([]))
+    True
+
+Add in a filter, make a local change and no inbound changes::
+
+    >>> conduit.filters = ['cid:bar-filter@osaf.us']
+    >>> rsNewBase = { '1' : rs([Demo(1, 2, 2)]) }
+    >>> inboundDiff = { }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == {'1': rs(set([Demo(1, 1, 2)]), set([]))}
+    True
+
+Verify the old baseline has been updated::
+
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,2)]), set([]))
+    True
+
+Even though we locally modified the 'bar' field, the outbound record still
+contains the previous, externally seen value.
+
+There can be multiple filters in effect; note how the outbound record hasn't
+changed at all::
+
+    >>> conduit.filters = ['cid:bar-filter@osaf.us', 'cid:baz-filter@osaf.us']
+    >>> rsNewBase = { '1' : rs([Demo(1, 3, 3)]) }
+    >>> inboundDiff = { }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == {'1': rs(set([Demo(1, 1, 2)]), set([]))}
+    True
+
+@@@MOR: However, the above toSend really should be empty
+
+Verify the old baseline is still the same::
+
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,2)]), set([]))
+    True
+
+
+Set up a conduit, with a filter this time from the start::
+
+    >>> conduit = recordset_conduit.RecordSetConduit(itsView=rv)
+    >>> conduit.filters = ['cid:bar-filter@osaf.us']
+
+Merge a local addition with no inbound changes::
+
+    >>> rsNewBase = { '1' : rs([Demo(1, 1, 1)]) }
+    >>> inboundDiff = { }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == {'1': rs(set([Demo(1, nc, 1)]), set([]))}
     True
