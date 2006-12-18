@@ -84,6 +84,7 @@ class RecordSetConduit(conduits.BaseConduit):
         toApply = {}
         lost = {}
 
+
         filter = self.getFilter()
 
         for itemUUID, rs in inboundDiff.items():
@@ -93,12 +94,17 @@ class RecordSetConduit(conduits.BaseConduit):
             dInbound = rs - rsOld
 
             if itemUUID in rsNewBase:
-                dLocal = rsNewBase[itemUUID] - rsOld
+                dLocal = (filter.sync_filter(rsNewBase[itemUUID]) -
+                          filter.sync_filter(rsOld))
                 conflicts = dLocal.conflicts(dInbound)
                 if conflicts:
                     lost[itemUUID] = conflicts
                 rsNewBase[itemUUID] += dInbound
-            toApply[itemUUID] = filter.sync_filter(dInbound)
+
+            dFilteredIn = filter.sync_filter(rs) - filter.sync_filter(rsOld)
+            if dFilteredIn:
+                toApply[itemUUID] = dFilteredIn
+
             rsOld += dInbound
             self.saveRecordSet(itemUUID, rsOld)
 
