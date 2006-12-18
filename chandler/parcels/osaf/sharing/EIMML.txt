@@ -102,7 +102,8 @@ Inmemory Cosmo Replacement
 
 You can "send" a recordset::
 
-    >>> conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=rv, shareName="test1", serializer=eimml.EIMMLSerializer)
+    >>> conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=rv,
+    ...     shareName="test1", serializer=eimml.EIMMLSerializer)
     >>> conduit.put(text)
     >>> conduit.syncToken
     1
@@ -164,8 +165,10 @@ created::
 
 
 
-Merging
--------
+
+
+Merging RecordSets
+------------------
 
 The RecordSetConduit class has a merge method which will compare inbound
 and outbound changes, merge the non-overlapping changes, and return the
@@ -190,7 +193,7 @@ Set up a conduit::
 
 Verify the old baseline is empty::
 
-    >>> conduit.getRecordSet('1') == rs(set([]), set([]))
+    >>> conduit.getRecordSet('1') == rs()
     True
 
 Test a no-op (no inbound nor outbound changes)::
@@ -204,7 +207,7 @@ Test a no-op (no inbound nor outbound changes)::
     True
     >>> lost == { }
     True
-    >>> conduit.getRecordSet('1') == rs(set([]), set([]))
+    >>> conduit.getRecordSet('1') == rs()
     True
 
 Merge a local addition with no inbound changes::
@@ -212,7 +215,7 @@ Merge a local addition with no inbound changes::
     >>> rsNewBase =   { '1' : rs([Demo(1, 1, 1)]) }
     >>> inboundDiff = { }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 1, 1)]), set([]))}
+    >>> toSend == {'1': rs(set([Demo(1, 1, 1)]))}
     True
     >>> toApply == { }
     True
@@ -221,7 +224,7 @@ Merge a local addition with no inbound changes::
 
 Verify the old baseline has been updated::
 
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,1)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,1)]))
     True
 
 Merge in an inbound change (no outbound changes)::
@@ -231,11 +234,11 @@ Merge in an inbound change (no outbound changes)::
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }
     True
-    >>> toApply == {'1': rs(set([Demo(1, nc, 2)]), set([]))}
+    >>> toApply == {'1': rs(set([Demo(1, nc, 2)]))}
     True
     >>> lost == { }
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,2)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,2)]))
     True
 
 Merge non-overlapping inbound and outbound changes::
@@ -243,13 +246,13 @@ Merge non-overlapping inbound and outbound changes::
     >>> rsNewBase =   { '1' : rs([Demo(1, 3, 2)]) }
     >>> inboundDiff = { '1' : rs([Demo(1, 1, 3)]) }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 3, 3)]), set([]))}
+    >>> toSend == {'1': rs(set([Demo(1, 3, 3)]))}
     True
-    >>> toApply == {'1': rs(set([Demo(1, nc, 3)]), set([]))}
+    >>> toApply == {'1': rs(set([Demo(1, nc, 3)]))}
     True
     >>> lost == { }
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,3,3)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,3,3)]))
     True
 
 Merge overlapping and non-overlapping inbound and outbound changes::
@@ -257,13 +260,13 @@ Merge overlapping and non-overlapping inbound and outbound changes::
     >>> rsNewBase =   { '1' : rs([Demo(1, 4, 4)]) }
     >>> inboundDiff = { '1' : rs([Demo(1, 5, 3)]) }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 5, 4)]), set([]))}
+    >>> toSend == {'1': rs(set([Demo(1, 5, 4)]))}
     True
-    >>> toApply == {'1': rs(set([Demo(1, 5, nc)]), set([]))}
+    >>> toApply == {'1': rs(set([Demo(1, 5, nc)]))}
     True
-    >>> lost == {'1': rs(set([Demo(1, 4, nc)]), set([]))}
+    >>> lost == {'1': rs(set([Demo(1, 4, nc)]))}
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,4)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,4)]))
     True
 
 Merge only overlapping inbound and outbound changes::
@@ -273,13 +276,12 @@ Merge only overlapping inbound and outbound changes::
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }
     True
-    >>> toApply == {'1': rs(set([Demo(1, nc, 7)]), set([]))}
+    >>> toApply == {'1': rs(set([Demo(1, nc, 7)]))}
     True
-    >>> lost == {'1': rs(set([Demo(1, nc, 6)]), set([]))}
+    >>> lost == {'1': rs(set([Demo(1, nc, 6)]))}
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,7)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,7)]))
     True
-
 
 Add in a filter, make a local change and no inbound changes::
 
@@ -287,9 +289,9 @@ Add in a filter, make a local change and no inbound changes::
     >>> rsNewBase = { '1' : rs([Demo(1, 6, 8)]) }
     >>> inboundDiff = { }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 5, 8)]), set([]))}
+    >>> toSend == {'1': rs(set([Demo(1, 5, 8)]))}
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,8)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,8)]))
     True
 
 Even though we locally modified the 'bar' field, the outbound record still
@@ -304,9 +306,8 @@ changed at all::
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == {}
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,8)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,8)]))
     True
-
 
 Verify that inbound changes to filtered fields are not applied locally::
 
@@ -319,7 +320,7 @@ Verify that inbound changes to filtered fields are not applied locally::
     True
     >>> toApply == { }
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,6,8)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,6,8)]))
     True
 
 Verify that inbound changes to unfiltered fields (when filters are active)
@@ -331,9 +332,9 @@ are applied locally::
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }
     True
-    >>> toApply == {'1': rs(set([Demo(1, nc, 9)]), set([]))}
+    >>> toApply == {'1': rs(set([Demo(1, nc, 9)]))}
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,6,9)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,6,9)]))
     True
 
 Verify that inbound and outbound changes to a filtered field is not considered
@@ -348,7 +349,7 @@ a conflict::
     True
     >>> lost == { }
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,8,9)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,8,9)]))
     True
 
 Verify that conflicts can still be detected when at least one conflicting
@@ -359,12 +360,47 @@ field is not filtered::
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }
     True
-    >>> toApply == {'1': rs(set([Demo(1, nc, 11)]), set([]))}
+    >>> toApply == {'1': rs(set([Demo(1, nc, 11)]))}
     True
-    >>> lost == {'1': rs(set([Demo(1, nc, 10)]), set([]))}
+    >>> lost == {'1': rs(set([Demo(1, nc, 10)]))}
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,10,11)]), set([]))
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,10,11)]))
     True
+
+Verify that a missing inbound record is applied as a deletion::
+
+    >>> rsNewBase =   { }
+    >>> inboundDiff = { '1' : rs() }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == { }
+    True
+    >>> toApply == {'1': rs(set([]), set([Demo(1, nc, 11)]))}
+    True
+    >>> lost == {}
+    True
+    >>> conduit.getRecordSet('1') == rs()
+    True
+
+Start over, adding two records::
+
+    >>> conduit.filters = []
+    >>> rsNewBase =   { '1' : rs([Demo(1, 1, 1), Demo(1, 2, 2)]) }
+    >>> inboundDiff = { }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == {'1': rs(set([Demo(1, 1, 1), Demo(1, 2, 2)]))}
+    True
+    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,1), Demo(1,2,2)]))
+    True
+
+...now remove one (1,1,1):
+
+    >>> rsNewBase =   { '1' : rs(set([Demo(1,2,2)])) }
+    >>> inboundDiff = { }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == { }
+    True
+
+@@@MOR: Actually we want toSend to be {'1' : rs(set([Demo(1,2,2)])) }
 
 
 Set up a conduit, with a filter this time from the start::
@@ -378,5 +414,5 @@ record has a NoChange value on the filtered field::
     >>> rsNewBase = { '1' : rs([Demo(1, 1, 1)]) }
     >>> inboundDiff = { }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, nc, 1)]), set([]))}
+    >>> toSend == {'1': rs(set([Demo(1, nc, 1)]))}
     True
