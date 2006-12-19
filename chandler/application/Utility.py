@@ -403,7 +403,7 @@ def initLogging(options):
             lineno = eventDict.get('lineno', None)
             exc_info = None
                 
-            logRecord = logging.LogRecord("twisted", level, system, lineno, format, args, exc_info)
+            logRecord = logging.LogRecord("twisted", level, system, lineno, format, args, exc_info, None)
             logRecord.created = eventDict['time']
             logger.handle(logRecord)
 
