@@ -41,7 +41,7 @@ def ProcessEvent (theClass, properties , attributes):
     
     sentToWidget = NameToWidget (properties ["sentTo"])
     
-    assert isinstance (sentToWidget, wx.Window)
+    assert isinstance (sentToWidget, wx.Window) or isinstance (sentToWidget, wx.Menu)
     event.SetEventObject (sentToWidget)
     eventType = properties["eventType"]
     event.SetEventType (eventType.evtType[0])

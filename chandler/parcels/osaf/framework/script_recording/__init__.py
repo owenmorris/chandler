@@ -65,20 +65,20 @@ class Controller (Block.Block):
             theApp.SetCallFilterEvent (False)
 
             dialog = wx.FileDialog (None,
-                                    message = "Save script as ...",
-                                    defaultDir = os.getcwd(), 
-                                    defaultFile = "",
-                                    wildcard = "*.py",
-                                    style=wx.SAVE)
-            dialog.SetFilterIndex (2)
+                                    message = _(u"Save script as ..."),
+                                    defaultFile = u"",
+                                    wildcard = u"*.py",
+                                    style = wx.SAVE|wx.CHANGE_DIR)
     
             if dialog.ShowModal () == wx.ID_OK:
                 #Change the working directory so the next time you save a script
                 # you will be where you saved the last one.
                 path = dialog.GetPath()
-                os.chdir (os.path.dirname (path))
                 
                 #Save the script
+                (root, ext) = os.path.splitext (path)
+                if len (ext) == 0:
+                    path += ".py"
                 theFile = file (path, 'wb')
                 theFile.write (self.script)
                 theFile.close()
