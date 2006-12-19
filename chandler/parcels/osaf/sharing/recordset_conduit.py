@@ -117,8 +117,9 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 rsOld += dOutbound
 
-                # ...until Cosmo supports diffs, use the following line:
-                toSend[itemUUID] = rsOld
+                # ...until Cosmo supports diffs, use the following:
+                if rsOld.inclusions:
+                    toSend[itemUUID] = rsOld
 
                 self.saveRecordSet(itemUUID, rsOld)
 

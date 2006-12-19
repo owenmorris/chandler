@@ -409,21 +409,22 @@ will send only the remaining record::
     >>> conduit.getRecordSet('1') == rs(set([Demo2(1,2,2)]))
     True
 
-If a record is removed inbound and outbound, that is not a conflict::
+If a record is removed inbound and outbound, that is not a conflict.  Note
+that a double-deletion results in an unnecessary record deletion in toApply,
+but record adding and deleting need to be idempotent anyway, so it's ok::
 
     >>> rsNewBase =   { '1' : rs() }
     >>> inboundDiff =   { '1' : rs() }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1' : rs(set([]), set([Demo2(1,2,2)]))}
+    >>> toSend == { }
     True
-    >>> toApply == {'1' : rs(set([]), set([Demo2(1,2,2)]))}
+    >>> toApply == {'1' : rs(set([]), set([Demo2(1,2,2)]))} # will be a no-op
     True
     >>> lost == { }
     True
     >>> conduit.getRecordSet('1') == rs()
     True
 
-@@@MOR: Actually, toSend and toApply should be { }
 
 
 Set up a conduit, with a filter this time from the start::
