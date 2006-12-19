@@ -25,19 +25,19 @@ from weakref import WeakValueDictionary
 import linecache, os, decimal, datetime
 from application import schema
 from chandlerdb.util.c import UUID
-
+from osaf import pim
 
 def exporter(*types):
     """Mark a translator method as exporting the specified item type(s)"""
+    for t in types:
+        if not issubclass(t,(pim.Stamp, schema.Item)) or t is pim.Stamp:
+            raise TypeError("%r is not a `schema.Item` or `pim.Stamp` subclass"
+                % (t,)
+            )
     def decorate(func):
         func.__dict__.setdefault('_eim_exporter_for',[]).extend(types)
         return func
     return decorate
-
-
-
-
-
 
 @generic
 def get_converter(context):
@@ -702,6 +702,7 @@ class Translator:
 
     def __init__(self, rv):
         self.rv = rv
+        self.export_cache = {}
 
     def startImport(self):
         """Called before an import transaction begins"""
@@ -725,12 +726,52 @@ class Translator:
             deleter = self.deleters.get(type(r))
             if deleter: deleter(self, r)
 
+    def _exportablesFor(self, item):
+        yield item, object
+
+        if isinstance(item, pim.ContentItem):
+            for stamp in pim.Stamp(item).stamps:
+                yield stamp, pim.Stamp
+
+
+
+
     def exportItem(self, item):
-        for t in reversed(type(item).__mro__):
-            exporter = self.exporters.get(t)
-            if exporter:
+        """Export an item and its stamps, if any"""
+
+        for item, skipType in self._exportablesFor(item):
+
+            try:
+                exporters = self.export_cache[type(item)]
+
+            except KeyError:
+                # Compute and cache the list of applicable exporters, in the
+                # correct order for subsequent execution
+                t = type(item)
+                mro = t.__mro__
+                mro = mro[:list(mro).index(skipType)]
+                exporters = self.export_cache[t] = []
+                for t in reversed(mro):
+                    exporter = self.exporters.get(t)
+                    if exporter:
+                        exporters.append(exporter)
+
+                # fall through to fast path    
+
+            for exporter in exporters:
                 for record in exporter(self, item):
                     yield record
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -769,7 +810,6 @@ def item_uuid_converter(item):
 add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
 add_converter(UUIDType, str, unicode)
-
 
 
 

@@ -429,9 +429,6 @@ to yield EIM records for a given item::
     []
 
 
-TODO: Exporters for stamp classes
-
-
 Importing (Sharing Layer)
 -------------------------
 
@@ -465,7 +462,12 @@ to process a ``RecordSet`` object's inclusions (adds/updates) and exclusions
 Translator Inheritance
 ----------------------
 
-Importers, deleters, and exporters are inherited by translator subclasses::
+Importers, deleters, and exporters are inherited by translator subclasses, and
+stamp classes can be used as export targets::
+
+    >>> class DemoStamp(pim.Stamp):
+    ...     schema.kindInfo(annotates = pim.ContentItem)
+    ...     data = schema.One(schema.Integer)
 
     >>> class DemoTranslator2(DemoTranslator):
     ...     """Demonstration translator 2"""
@@ -485,6 +487,11 @@ Importers, deleters, and exporters are inherited by translator subclasses::
     ...     def export_item(self, item):
     ...         print "exporting item"
     ...         yield R(-1, -2)
+    ...
+    ...     @sharing.exporter(DemoStamp)
+    ...     def export_stamp(self, stamp):
+    ...         print "exporting stamp"
+    ...         yield R(stamp.data, 42)
 
     >>> t = DemoTranslator2(rv)
     >>> t.startImport()
@@ -504,6 +511,15 @@ Importers, deleters, and exporters are inherited by translator subclasses::
     exporting item
     exporting ContentItem
     [R(-1, -2), R(3, 4)]
+
+    >>> theItem = rv['foo']
+    >>> DemoStamp(theItem).add()
+    >>> DemoStamp(theItem).data = 99
+    >>> list(t.exportItem(theItem))
+    exporting item
+    exporting ContentItem
+    exporting stamp
+    [R(-1, -2), R(3, 4), R(99, 42)]
 
     >>> list(t.finishExport())
     []
@@ -944,8 +960,8 @@ More than one import or delete type can be declared for a given function::
 
     >>> t.finishImport()
 
-But it's an error to define more than one importer or deleter for a given type
-in a given translator class::
+But it's an error to define more than one importer, exporter, or deleter for
+a given type in a given translator class::
 
     >>> class Testlator2(sharing.Translator):
     ...     URI = 'cid:testlator2@osaf.us'   # already in use above
@@ -985,14 +1001,31 @@ in a given translator class::
     ...     description = u"Blah"
     ...
     ...     @sharing.exporter(schema.Item, pim.ContentItem)
-    ...     def export_something(self, record):
+    ...     def export_something(self, item):
     ...         return []
     ...
     ...     @sharing.exporter(schema.Item)
-    ...     def extra_export(self, record):
+    ...     def extra_export(self, item):
     ...         return []
     Traceback (most recent call last):
       ...
     TypeError: Multiple exporters defined for <class '...Item'> in <class 'Testlator4'>
+
+Exporters can only be registered for ``schema.Item`` classes and ``pim.Stamp``
+subclasses::
+
+    >>> @sharing.exporter(object)
+    ... def wont_work(self, item):
+    ...     return []
+    Traceback (most recent call last):
+      ...
+    TypeError: <type 'object'> is not a `schema.Item` or `pim.Stamp` subclass
+
+    >>> @sharing.exporter(pim.Stamp)    # has to be a *subclass* of Stamp
+    ... def wont_work(self, item):
+    ...     return []
+    Traceback (most recent call last):
+      ...
+    TypeError: <class ...Stamp'> is not a `schema.Item` or `pim.Stamp` subclass
 
 
