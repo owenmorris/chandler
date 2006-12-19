@@ -97,9 +97,9 @@ class Conduit(conduits.Conduit):
 class Share(shares.Share):
 
     repoId = schema.One(schema.UUID)
-    remoteVersion = schema.One(schema.Long)
+    remoteVersion = schema.One(schema.Long, initialValue=0L)
     localVersion = schema.One(schema.Long)
+    ackPending = schema.One(schema.Boolean, initialValue=False)
 
     def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
-
         return self.conduit.account.sync(self)

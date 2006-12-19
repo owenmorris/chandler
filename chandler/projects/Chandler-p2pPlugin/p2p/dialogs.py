@@ -378,7 +378,7 @@ def subscribe(view):
     dialog.Destroy()
 
     if params is not None:
-        account.subscribe(params['name'], params['remoteId'])
+        account.subscribe(params['remoteId'], params['name'])
 
 
 def sendmail(collection):
@@ -414,7 +414,7 @@ def sendmail(collection):
         if commit:
             view.commit()
         account.login(setStatusMessage)
-        account.send(name, params['to'])
+        account.send(params['to'], name)
 
 
 def checkmail(view):
@@ -439,7 +439,7 @@ def checkmail(view):
             view.commit()
 
         account.login(setStatusMessage)
-        account.check(params['from'])
+        account.check(params['from'], None)
 
 
 class p2pHandler(Block):

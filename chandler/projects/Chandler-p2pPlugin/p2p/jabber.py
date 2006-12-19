@@ -17,7 +17,7 @@ import traceback
 from base64 import b64encode, b64decode
 from bz2 import compress, decompress
 from cStringIO import StringIO
-from xml.etree.ElementTree import ElementTree, TreeBuilder
+from xml.etree.cElementTree import ElementTree, TreeBuilder
 from twisted.words.protocols.jabber import client, jid
 from twisted.words.xish import domish
 from twisted.internet import reactor
@@ -111,7 +111,7 @@ class JabberAccount(Account):
         reactor.callFromThread(client.connect, self.password,
                                self.useSSL, False, self.itsView)
 
-    def subscribe(self, name, peerId):
+    def subscribe(self, peerId, name):
 
         if not self.isLoggedIn():
             raise ValueError, "no connection"
@@ -121,10 +121,7 @@ class JabberAccount(Account):
 
         view = self.itsView
         sidebar = schema.ns('osaf.app', view).sidebarCollection
-
-        version = 0
-        repoId = None
-        uuid = None
+        share = None
 
         for collection in sidebar:
             if collection.displayName == name:
@@ -132,29 +129,17 @@ class JabberAccount(Account):
                     conduit = share.conduit
                     if isinstance(conduit, JabberConduit):
                         if conduit.peerId == peerId:
-                            version = share.remoteVersion
-                            repoId = share.repoId
-                            uuid = collection.itsUUID
-                            break
-                if version:
-                    break
+                            return self.client.sync(share, None, None)
 
-        reactor.callFromThread(self.client.sync,
-                               peerId, repoId, name, uuid, version)
+        return self.client.sync(None, peerId, name)
 
     def sync(self, share):
 
         if not self.isLoggedIn():
             raise ValueError, "no connection"
             
-        collection = share.contents
-        reactor.callFromThread(self.client.sync,
-                               share.conduit.peerId, share.repoId,
-                               collection.displayName,
-                               collection.itsUUID, share.remoteVersion)
-
-        return None
-
+        self.client.sync(share)
+        return Nil
 
 
 class JabberShare(Share):
@@ -166,7 +151,6 @@ class JabberShare(Share):
         self.conduit = JabberConduit(itsParent=self, peerId=peerId,
                                      account=account)
         self.format = CloudXMLDiffFormat(itsParent=self)
-
 
 
 class JabberConduit(Conduit):
@@ -317,7 +301,19 @@ class JabberClient(object):
 
         self.xmlstream.send(presence)
 
-    def sync(self, to, repoId, name, uuid, version):
+    def sync(self, share, peerId=None, name=None):
+
+        if share is None:
+            repoId = None
+            uuid = None
+            version = 0
+        else:
+            peerId = share.conduit.peerId
+            repoId = share.repoId
+            collection = share.contents
+            name = collection.displayName
+            uuid = collection.itsUUID
+            version = share.remoteVersion
 
         iq = client.IQ(self.xmlstream, "get")
         iq.addElement(("jabber:x:chandler", "query"))
@@ -330,7 +326,7 @@ class JabberClient(object):
             sync['uuid'] = uuid.str64()
         sync['version'] = str(version)
 
-        iq.send(to)
+        reactor.callFromThread(iq.send, peerId)
         self.worker.ops[iq['id']] = ('sync', name)
 
     def invaliduser(self, elem):
@@ -567,6 +563,7 @@ class JabberWorker(Worker):
 
         share.localVersion = view.itsVersion + 1
         share.established = True
+        share.ackPending = True
         view.commit()
 
         return iq
@@ -656,14 +653,14 @@ class JabberWorker(Worker):
         to = iq['from']
         iq = client.IQ(self.client.xmlstream, 'result')
         iq.addElement(('jabber:x:chandler', 'query'))
-        version = iq.query.addElement('version')
-        version['fromRepoId'] = self._repoId.str64()
-        version['toRepoId'] = repoId.str64()
-        version['uuid'] = collection.itsUUID.str64()
-        version['version'] = str(share.localVersion)
+        receipt = iq.query.addElement('receipt')
+        receipt['fromRepoId'] = self._repoId.str64()
+        receipt['toRepoId'] = repoId.str64()
+        receipt['uuid'] = collection.itsUUID.str64()
+        receipt['version'] = str(share.localVersion)
         reactor.callFromThread(iq.send, to)
 
-    def _result_version(self, view, iq, elem, args):
+    def _result_receipt(self, view, iq, elem, args):
 
         try:
             view.refresh(None, None, False)
@@ -678,6 +675,7 @@ class JabberWorker(Worker):
 
             share = self.findShare(view, collection, repoId, iq['from'])
             share.remoteVersion = version
+            share.ackPending = False
         except:
             view.cancel()
             raise

@@ -69,7 +69,14 @@ class Worker(RepositoryWorker):
 
         for share in collection.shares:
             if isinstance(share, self.shareClass):
-                if share.repoId == repoId:
+                if share.repoId is None:
+                    if (share.ackPending and
+                        share.contents is collection and
+                        share.conduit.account is account and
+                        share.conduit.peerId == peerId):
+                        share.repoId = repoId
+                        return share
+                elif share.repoId == repoId:
                     return share
 
         share = self.shareClass(view, view[self.client.account], repoId, peerId)

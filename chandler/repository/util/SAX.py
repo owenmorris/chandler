@@ -15,7 +15,7 @@
 
 import sys, traceback
 
-from xml.etree.ElementTree import ElementTree, TreeBuilder
+from xml.etree.cElementTree import ElementTree, TreeBuilder
 from xml.sax import InputSource, make_parser, handler
 from cStringIO import StringIO
 

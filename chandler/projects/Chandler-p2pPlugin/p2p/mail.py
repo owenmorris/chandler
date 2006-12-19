@@ -14,9 +14,10 @@
 
 from bz2 import compress, decompress
 from base64 import b64decode
-from xml.etree.ElementTree import ElementTree, TreeBuilder
+from xml.etree.cElementTree import ElementTree, TreeBuilder
 from email.MIMEBase import MIMEBase
 from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
 from email.Encoders import encode_base64
 from email import message_from_string
 from twisted.internet.defer import Deferred
@@ -30,12 +31,12 @@ from cStringIO import StringIO
 
 from application import schema
 from chandlerdb.item.c import CItem
-from chandlerdb.util.c import UUID
+from chandlerdb.util.c import UUID, Nil
 from repository.item.Access import ACL, ACE, Permissions
 from osaf import pim
 from osaf.sharing.formats import ElementTreeDOM
 from osaf.framework.certstore import ssl
-from osaf.mail import smtp
+from osaf.mail.smtp import _TwistedESMTPSender
 
 from p2p.account import Conduit, Account, Share
 from p2p.worker import Worker
@@ -82,7 +83,7 @@ class MailAccount(Account):
             worker = MailWorker(repository)
             worker.start(client)
 
-    def send(self, name, peerId):
+    def send(self, peerId, name):
 
         if not self.isLoggedIn():
             raise ValueError, "no mail client"
@@ -90,31 +91,35 @@ class MailAccount(Account):
         view = self.itsView
         sidebar = schema.ns('osaf.app', view).sidebarCollection
 
-        version = 0
-        repoId = None
-        uuid = None
-
         for collection in sidebar:
             if collection.displayName == name:
                 for share in collection.shares:
                     conduit = share.conduit
                     if isinstance(conduit, MailConduit):
                         if conduit.peerId == peerId:
-                            version = share.remoteVersion
-                            repoId = share.repoId
-                            uuid = collection.itsUUID
-                            break
-                if version:
-                    break
+                            return self.client.send(share, None, None, 'sync')
 
-        self.client.send(peerId, repoId, name, uuid, version)
+        return self.client.send(None, peerId, name, 'send')
 
-    def check(self, peerId):
+    def check(self, peerId, name):
         
         if not self.isLoggedIn():
             raise ValueError, "no mail client"
 
-        self.client.check(peerId, None, None, None, 0)
+        self.client.check(None, peerId, name, 'sync')
+
+    def sync(self, share):
+
+        if not self.isLoggedIn():
+            raise ValueError, "no mail client"
+
+        if share.ackPending:
+            self.client.check(share, None, None, 'receipt')
+
+        self.client.check(share, None, None, 'sync')
+        self.client.send(share, None, None, 'sync')
+
+        return Nil
 
 
 class MailClient(object):
@@ -137,15 +142,23 @@ class MailClient(object):
         else:
             print string
 
-    def send(self, peerId, repoId, name, uuid, version):
+    def send(self, share, peerId, name, op):
 
-        self.worker.queueRequest(('send', (self._repoId, repoId,
-                                           name, uuid, version, peerId)))
+        if share is None:
+            shareId = None
+        else:
+            shareId = share.itsUUID
 
-    def check(self, peerId, repoId, name, uuid, version):
+        self.worker.queueRequest(('send', (shareId, peerId, name, op)))
 
-        self.worker.queueRequest(('check', (self._repoId, repoId,
-                                            name, uuid, version, peerId)))
+    def check(self, share, peerId, name, op):
+
+        if share is None:
+            shareId = None
+        else:
+            shareId = share.itsUUID
+
+        self.worker.queueRequest(('check', (shareId, peerId, name, op)))
 
     def sendMail(self, view, message):
 
@@ -169,13 +182,18 @@ class MailClient(object):
         deferred.addCallback(self._sendSuccess)
         deferred.addErrback(self._sendFailure)
 
+        class _protocol(_TwistedESMTPSender):
+            def connectionMade(_self):
+                self.output("smtp: connected to %s" %(account.host))
+                _TwistedESMTPSender.connectionMade(_self)
+
         # the code below comes from osaf.mail.smtp
         factory = ESMTPSenderFactory(username, password, message['From'],
                                      message['To'], StringIO(str(message)),
                                      deferred, retries, timeout,
                                      1, heloFallback, authRequired,
                                      securityRequired)
-        factory.protocol = smtp._TwistedESMTPSender
+        factory.protocol = _protocol
         factory.testing = False
 
         if account.connectionSecurity == 'SSL':
@@ -193,7 +211,7 @@ class MailClient(object):
 
         self.output('error sending mail: %s' %(exception))
 
-    def checkMail(self, view, fromAddress):
+    def checkMail(self, view, peerId, repoId, name, uuid, version, op):
 
         account = view[self.account].imap
         useTLS = account.connectionSecurity == 'TLS'
@@ -204,8 +222,10 @@ class MailClient(object):
             username = username.encode('utf-8')
         if isinstance(password, unicode):
             password = password.encode('utf-8')
-        if isinstance(fromAddress, unicode):
-            fromAddress = fromAddress.encode('utf-8')
+        if isinstance(peerId, unicode):
+            peerId = peerId.encode('utf-8')
+        if isinstance(name, unicode):
+            name = name.encode('utf-8')
 
         class _protocol(IMAP4Client):
             MAX_LENGTH = 1048576  # max line length,
@@ -240,18 +260,26 @@ class MailClient(object):
                 return d.addCallback(_self._searchMail)
 
             def _searchMail(_self, result):
-                headerQuery = Query(header=('X-chandler', 'p2p'))
-                fromQuery = Query(header=('from', fromAddress))
-                notDeletedQuery = Not(Query(deleted=True))
-                d = _self.search(headerQuery, fromQuery, notDeletedQuery,
-                                 uid=True)
+                self.output("searching for p2p mail")
+                queries = []
+                queries.append(Query(header=('X-chandler', 'p2p')))
+                queries.append(Query(header=('from', peerId)))
+                queries.append(Query(header=('X-chandler-p2p-op', op)))
+                queries.append(Not(Query(deleted=True)))
+                if repoId is not None:
+                    queries.append(Query(header=('X-chandler-p2p-from',
+                                                 repoId.str64())))
+                if name is not None:
+                    queries.append(Query(header=('X-chandler-p2p-name',
+                                                 name)))
+                d = _self.search(*queries, **{'uid':True })
                 d = d.addCallback(_self._foundMail)
                 return d.addErrback(_self.catchErrors)
 
             def _foundMail(_self, result):
                 self.output("imap: found %d messages" %(len(result)))
                 if result:
-                    _self.messages = messages = MessageSet()
+                    messages = MessageSet()
                     for uid in result:
                         messages.add(uid)
                     d = _self.fetchMessage(messages, uid=True)
@@ -263,13 +291,17 @@ class MailClient(object):
 
             def _gotMail(_self, result):
                 self.output("imap: got mail")
+                messages = MessageSet()
                 for data in result.itervalues():
                     message = message_from_string(data['RFC822'])
-                    args = (data['UID'], message, fromAddress)
-                    self.worker.queueRequest(('receive', args))
+                    toRepoId = message.get('X-chandler-p2p-to')
+                    if toRepoId is None or UUID(toRepoId) == self._repoId:
+                        args = (data['UID'], message, peerId)
+                        self.worker.queueRequest(('receive', args))
+                        messages.add(data['UID'])
 #                d = _self.logout()
 #                d = d.addCallback(_self._done)
-                d = _self.addFlags(_self.messages, ('\\Deleted',), uid=True)
+                d = _self.addFlags(messages, ('\\Deleted',), uid=True)
                 d = d.addCallback(_self._flagsAdded)
                 return d.addErrback(_self.catchErrors)
 
@@ -317,6 +349,12 @@ class MailShare(Share):
                                    account=account)
         self.format = CloudXMLDiffFormat(itsParent=self)
 
+    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
+
+        account = self.conduit.account
+        account.login(None)
+        return account.sync(self)
+
 
 class MailWorker(Worker):
 
@@ -356,39 +394,82 @@ class MailWorker(Worker):
 
         return view
 
-    def _processSend(self, view, fromRepoId, toRepoId, name, uuid, version,
-                     toAddress):
+    def _processSend(self, view, shareId, peerId, name, op):
 
-        message = self._get_sync(view, fromRepoId, toRepoId,
-                                 name, uuid, version, toAddress)
-        self.client.sendMail(view, message)
+        view.refresh()
+
+        message = self._get_sync(view, shareId, peerId, name, op)
+        if message is not None:
+            self.client.sendMail(view, message)
+
         return view
 
-    def _processCheck(self, view, fromRepoId, toRepoId, name, uuid, version,
-                      fromAddress):
+    def _processCheck(self, view, shareId, peerId, name, op):
 
-        self.client.checkMail(view, fromAddress)
+        view.refresh()
+
+        if shareId is not None:
+            share = view[shareId]
+            peerId = share.conduit.peerId
+            repoId = share.repoId
+            collection = share.contents
+            name = collection.displayName
+            uuid = collection.itsUUID
+            version = share.remoteVersion
+        else:
+            repoId = None
+            uuid = None
+            version = 0
+
+        self.client.checkMail(view, peerId, repoId, name, uuid, version, op)
+
         return view
 
     def _processReceive(self, view, uid, message, fromAddress):
 
-        self._result_sync(view, uid, message, fromAddress)
+        op = message['X-chandler-p2p-op']
+
+        if op == 'sync':
+            receipt = self._result_sync(view, uid, message, fromAddress)
+            self.client.sendMail(view, receipt)
+
+        elif op == 'receipt':
+            self._result_receipt(view, uid, message, fromAddress)
+
         return view
 
-    def _get_sync(self, view, fromRepoId, toRepoId, name, uuid, version, to):
+    def _get_sync(self, view, shareId, peerId, name, op):
 
         try:
             view.refresh(None, None, False)
 
-            replyTo = view[self.client.account].imap.replyToAddress.emailAddress
+            if shareId is not None:
+                share = view[shareId]
+                peerId = share.conduit.peerId
+                toRepoId = share.repoId
+                collection = share.contents
+                name = collection.displayName
+                uuid = collection.itsUUID
+                version = share.localVersion
+            else:
+                collection, name, uuid = self.findCollection(view, name, None)
+                toRepoId = None
+                version = 0
 
-            collection, name, uuid = self.findCollection(view, name, uuid)
-            share = self.findShare(view, collection, fromRepoId, replyTo)
+            replyTo = view[self.client.account].imap.replyToAddress.emailAddress
+            share = self.findShare(view, collection, toRepoId, peerId)
+
+            changes = self.computeChanges(view, version, collection, share)
+            if op == 'sync' and not changes:
+                share.localVersion = view.itsVersion + 1
+                view.commit()
+                return None
 
             message = MIMEMultipart()
             message['From'] = replyTo
-            message['To'] = to
-            message['Subject'] = "chandler sent '%s'" %(name)
+            message['Reply-To'] = replyTo
+            message['To'] = peerId
+            message['Subject'] = 'Chandler sent "%s" collection' %(name)
             message['X-chandler'] = 'p2p'
             textPart = MIMEBase('text', 'plain')
             textPart.set_payload('Chandler sent "%s"' %(name))
@@ -400,7 +481,6 @@ class MailWorker(Worker):
             data = dom.openElement(builder, 'data')
 
             keys = set()
-            changes = self.computeChanges(view, version, collection, share)
             for key, (_changes, status) in changes.iteritems():
                 if key not in keys:
                     attrs = { 'uuid': key.str64() }
@@ -426,11 +506,12 @@ class MailWorker(Worker):
             out.close()
 
             message['X-chandler-p2p-name'] = name
-            message['X-chandler-p2p-from'] = fromRepoId.str64()
+            message['X-chandler-p2p-from'] = self._repoId.str64()
             if toRepoId is not None:
                 message['X-chandler-p2p-to'] = toRepoId.str64()
             message['X-chandler-p2p-item'] = "%s-%d" %(uuid.str64(),
                                                        view.itsVersion)
+            message['X-chandler-p2p-op'] = 'sync'
 
             attachment.set_payload(data)
             encode_base64(attachment)
@@ -443,6 +524,7 @@ class MailWorker(Worker):
 
         share.localVersion = view.itsVersion + 1
         share.established = True
+        share.ackPending = True
         view.commit()
 
         return message
@@ -451,11 +533,6 @@ class MailWorker(Worker):
 
         try:
             view.refresh(None, None, False)
-
-            if 'X-chandler-p2p-to' in message:
-                toRepoId = UUID(message['X-chandler-p2p-to'])
-                if toRepoId != self._repoId:
-                    raise RepositoryMismatchError, toRepoId
 
             repoId = UUID(message['X-chandler-p2p-from'])
             uuid, version = message['X-chandler-p2p-item'].split('-')
@@ -530,3 +607,44 @@ class MailWorker(Worker):
         share.established = True
         view.commit()
         self.client.output("'%s' synchronized" %(collection.displayName))
+
+        replyTo = view[self.client.account].imap.replyToAddress.emailAddress
+
+        receipt = MIMEText('Chandler sent a receipt for "%s"' %(name))
+        receipt['From'] = replyTo
+        receipt['Reply-To'] = replyTo
+        receipt['To'] = message.get('replyTo') or fromAddress
+        receipt['Subject'] = "Chandler sent a receipt"
+        receipt['X-chandler'] = 'p2p'
+        receipt['X-chandler-p2p-name'] = name
+        receipt['X-chandler-p2p-from'] = self._repoId.str64()
+        receipt['X-chandler-p2p-to'] = repoId.str64()
+        receipt['X-chandler-p2p-item'] = "%s-%d" %(uuid.str64(),
+                                                   share.localVersion)
+        receipt['X-chandler-p2p-op'] = 'receipt'
+
+        return receipt
+
+    def _result_receipt(self, view, uid, message, fromAddress):
+
+        try:
+            view.refresh(None, None, False)
+
+            repoId = UUID(message['X-chandler-p2p-from'])
+            uuid, version = message['X-chandler-p2p-item'].split('-')
+            uuid = UUID(uuid)
+            version = int(version)
+            collection = view.find(uuid)
+
+            if collection is None:
+                raise NameError, ('no such collection', uuid)
+
+            share = self.findShare(view, collection, repoId, fromAddress)
+            share.remoteVersion = version
+            share.ackPending = False
+        except:
+            view.cancel()
+            raise
+
+        view.commit()
+        self.client.output(None)
