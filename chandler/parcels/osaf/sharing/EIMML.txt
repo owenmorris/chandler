@@ -406,7 +406,24 @@ will send only the remaining record::
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == {'1' : rs(set([Demo2(1,2,2)])) }
     True
+    >>> conduit.getRecordSet('1') == rs(set([Demo2(1,2,2)]))
+    True
 
+If a record is removed inbound and outbound, that is not a conflict::
+
+    >>> rsNewBase =   { '1' : rs() }
+    >>> inboundDiff =   { '1' : rs() }
+    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == {'1' : rs(set([]), set([Demo2(1,2,2)]))}
+    True
+    >>> toApply == {'1' : rs(set([]), set([Demo2(1,2,2)]))}
+    True
+    >>> lost == { }
+    True
+    >>> conduit.getRecordSet('1') == rs()
+    True
+
+@@@MOR: Actually, toSend and toApply should be { }
 
 
 Set up a conduit, with a filter this time from the start::
