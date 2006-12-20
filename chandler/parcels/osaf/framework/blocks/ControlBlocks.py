@@ -315,6 +315,10 @@ class Column(schema.Item):
                       doc="An optional name of an image to "
                       "display instead of a label")
     
+    format = schema.One(schema.Text,
+                        doc="Optional influence for the attribute editor "
+                            "used to present cells in this column")
+    
     useSortArrows = schema.One(schema.Boolean, defaultValue=True,
                                doc="Show arrows when sorting by this column?")
     
@@ -454,6 +458,9 @@ class AttributeDelegate (ListDelegate):
                     pass
                 else:
                     typeName = type (value).__name__
+            format = getattr(col, 'format', None)
+            if format is not None:
+                typeName = "%s+%s" % (typeName, format)
         return typeName
 
     def GetElementValue (self, row, column):

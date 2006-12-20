@@ -101,6 +101,14 @@ def getFont(characterStyle=None, family=None, size=rawDefaultFontSize,
     Scales the requested point size relative to the idealized 11-point size 
     on Mac that Mimi bases her specs on.
     """
+    # Check the cache if we're using a style that we've used before
+    if characterStyle is not None:
+        key = getattr(characterStyle, 'fontKey', None)
+        if key is not None:
+            font = fontCache.get(key)
+            if font is not None:
+                return font
+            
     # First time, get a couple of defaults
     global platformDefaultFaceName, platformDefaultFamily, platformSizeScalingFactor
     if platformDefaultFaceName is None:
@@ -144,18 +152,29 @@ def getFont(characterStyle=None, family=None, size=rawDefaultFontSize,
     
     # Do we have this already?
     key = (scaledSize, family, style, weight, underline)
-    try:
-        font = fontCache[key]
-    except KeyError:
+    font = fontCache.get(key)
+    if font is None:
         font = wx.Font(scaledSize, family, style, weight, underline, name)
-        # Don't do this for now: it upsets Linux: assert key == getFontKey(font)
+        # For a while, this assert was commented out, saying: "Don't do this 
+        # for now: it upsets Linux". It doesn't seem to be upsetting Linux
+        # anymore, so I'm putting it back.
+        assert key == getFontKey(font)
+        
+        # Put the key in the font, as well as the characterStyle if we have one;
+        # they'll let us shortcut the lookup process later.
+        font.fontKey = key
+        if characterStyle is not None:
+            characterStyle.fontKey = key
+        
         fontCache[key] = font
 
     return font
 
 def getFontKey(font):
-    key = (font.GetPointSize(), font.GetFamily(), font.GetStyle(), 
-           font.GetWeight(), font.GetUnderlined())
+    key = getattr(font, 'fontKey', None)
+    if key is None:
+        key = (font.GetPointSize(), font.GetFamily(), font.GetStyle(), 
+               font.GetWeight(), font.GetUnderlined())
     return key
     
 def getMeasurements(font):

@@ -21,7 +21,7 @@ from application import schema
 from osaf.framework import Preferences
 from osaf.framework.blocks import (Block, debugName, Table, 
                                    wxTable, GridCellAttributeEditor, 
-                                   GridCellAttributeRenderer)
+                                   GridCellAttributeRenderer, Styles)
 from osaf.framework.attributeEditors import AttributeEditors
 import wx
 import logging
@@ -187,6 +187,20 @@ class DashboardBlock(Table):
     This class works with the expectation that the delegate is the
     SectionedGridDelegate from the Sections module.
     """
+
+    # A few extra character styles
+    prefixCharacterStyle = schema.One(Styles.CharacterStyle)
+    triageStatusCharacterStyle = schema.One(Styles.CharacterStyle)
+    sectionLabelCharacterStyle = schema.One(Styles.CharacterStyle)
+    sectionCountCharacterStyle = schema.One(Styles.CharacterStyle)
+    
+    schema.addClouds(
+        copying = schema.Cloud(
+            byRef=[prefixCharacterStyle, triageStatusCharacterStyle,
+                   sectionLabelCharacterStyle, sectionCountCharacterStyle]
+        )
+    )
+
     def instantiateWidget (self):
         widget = wxDashboard(self.parentBlock.widget, 
                              Block.Block.getWidgetID(self),

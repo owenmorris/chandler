@@ -48,35 +48,41 @@ def SetTextColorsAndFont(grid, attr, dc, isSelected):
 
     dc.SetFont (attr.GetFont())
 
-# used to be called "DrawWrappedText"
-def DrawClippedTextWithDots(dc, string, rect, alignRight=False):
+def DrawClippedTextWithDots(dc, text, rect, alignRight=False, top=None):
     rectX = rect.x + 1
     rectY = rect.y
     rowHeight = rect.GetHeight()
-    for line in unicode(string).split (os.linesep):
-        # test for flicker by drawing a random character first each time we draw
-        # line = chr(ord('a') + random.randint(0,25)) + line
-        lineWidth, lineHeight = dc.GetTextExtent (line)
-        if alignRight:
-            x = rect.x + rect.width - lineWidth - 1
-        else:
-            x = rectX
+        
+    # test for flicker by drawing a random character first each time we draw
+    # line = chr(ord('a') + random.randint(0,25)) + line
+    
+    lineWidth, lineHeight = dc.GetTextExtent(text)
+    if alignRight:
+        x = rect.x + rect.width - lineWidth - 1
+    else:
+        x = rectX
+    
+    if top is None:
         y = rectY + (rowHeight - lineHeight) / 2
-        dc.DrawText (line, x, y)
+    else:
+        y = rectY + top
         
-        # If the text doesn't fit within the box we want to clip it and
-        # put '...' at the end.  This method may chop a character in half,
-        # but is a lot faster than doing the proper calculation of where
-        # to cut off the text.  Eventually we will want a solution that
-        # doesn't chop chars, but that will come along with multiline 
-        # wrapping and hopefully won't be done at the python level.
-        if lineWidth > rect.width - 2:
-            width, height = dc.GetTextExtent('...')
-            x = rect.x + rect.width - width - 1
-            dc.DrawRectangle (x, y, width + 1, height)
-            dc.DrawText('...', x, y)
-        rectY += lineHeight
+    dc.DrawText (text, x, y)
+    
+    # If the text doesn't fit within the box we want to clip it and
+    # put '...' at the end.  This method may chop a character in half,
+    # but is a lot faster than doing the proper calculation of where
+    # to cut off the text.  Eventually we will want a solution that
+    # doesn't chop chars, but that will come along with multiline 
+    # wrapping and hopefully won't be done at the python level.
+    if lineWidth > rect.width - 2:
+        width, height = dc.GetTextExtent('...')
+        x = rect.x + rect.width - width - 1
+        dc.DrawRectangle (x, y, width + 1, height)
+        dc.DrawText('...', x, y)
+        lineWidth = 0 # note that we filled it.
         
+    return lineWidth
 
 def DrawWrappedText(dc, text, rect, measurements=None):
     """

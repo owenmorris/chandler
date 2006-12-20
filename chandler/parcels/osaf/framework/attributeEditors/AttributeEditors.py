@@ -174,6 +174,8 @@ def getSingleton (typeName, format=None):
     @return: The attribute editor instance
     @rtype: BaseAttributeEditor
     """
+    if format is None and '+' in typeName:
+        (typeName, format) = typeName.split('+')
     try:
         instance = _TypeToEditorInstances [(typeName, format)]
     except KeyError:
@@ -294,13 +296,15 @@ class BaseAttributeEditor (object):
         else:
             return not isAttrModifiable(attribute)
 
-    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
+    def Draw (self, grid, dc, rect, (item, attributeName), isInSelection=False):
         """ 
         Draw the value of the this item attribute.
         
         Used only for shared attribute editors (used by the Summary Table),
         not for AEs in the detail view.
         
+        @param grid: The wxGrid in which we're drawing
+        @type grid: wxGrid
         @param dc: The device context in which we'll draw
         @type dc: DC
         @param rect: the rectangle in which to draw
@@ -1091,7 +1095,27 @@ class StringAttributeEditor (BaseAttributeEditor):
             fixedWidth = False # yes, let our textctrl fill the space.
         return fixedWidth
 
-    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
+    def GetTextToDraw(self, item, attributeName):
+        """
+        Get a tuple: the text to be drawn as our static representation, and 
+        whether it's the sample text, and a prefix if any (which is to be drawn
+        in gray before the real text).
+        """
+        # Get the text we'll display, and note whether it's the sample text.
+        isSample = False
+        theText = None # assume that we won't use the sample.
+        if not self.HasValue(item, attributeName):
+            # Consider using the sample text
+            theText = self.GetSampleText(item, attributeName)
+        if theText is None:
+            # No sample text, or we have a value. Use the value.
+            theText = self.GetAttributeValue(item, attributeName)
+        elif len(theText) > 0:
+            # theText is the sample text - switch to gray
+            isSample = True            
+        return (None, theText, isSample)
+
+    def Draw (self, grid, dc, rect, (item, attributeName), isInSelection=False):
         """
         Draw this control's value; used only by Grid when the attribute's not
         being edited.
@@ -1111,25 +1135,45 @@ class StringAttributeEditor (BaseAttributeEditor):
         dc.DrawRectangleRect (rect)
 
         # Get the text we'll display, and note whether it's the sample text.
-        theText = None # assume that we won't use the sample.
-        if not self.HasValue(item, attributeName):
-            # Consider using the sample text
-            theText = self.GetSampleText(item, attributeName)
-        if theText is None:
-            # No sample text, or we have a value. Use the value.
-            theText = self.GetAttributeValue(item, attributeName)
-        elif len(theText) > 0:
-            # theText is the sample text - switch to gray
-            dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
+        prefix, theText, isSample = self.GetTextToDraw(item, attributeName)
 
         if len(theText) > 0:
+            # We'll draw the sample or prefix in gray (unless it's part of the
+            # selection, in which case we'll leave it white)
+            if not isInSelection and (isSample or prefix is not None):
+                oldForeground = wx.Colour(dc.GetTextForeground())
+                dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
+
             # Draw inside the lines.
             dc.SetBackgroundMode (wx.TRANSPARENT)
             rect.Inflate (-1, -1)
             dc.SetClippingRect (rect)
             
-            # theText = "%s %s" % (dc.GetFont().GetFaceName(), dc.GetFont().GetPointSize())
-            DrawingUtilities.DrawClippedTextWithDots (dc, theText, rect)
+            textFont = Styles.getFont(grid.blockItem.characterStyle)
+            textMeasurements = Styles.getMeasurements(textFont)
+            textHeight = textMeasurements.height
+            textTop = (rect.GetHeight() - textHeight) / 2
+            
+            if prefix is not None:
+                # Match up baselines
+                prefixFont = Styles.getFont(grid.blockItem.prefixCharacterStyle)
+                prefixMeasurements = Styles.getMeasurements(prefixFont)
+                prefixHeight = prefixMeasurements.height
+                prefixTop = textTop + ((textHeight - textMeasurements.descent) -
+                                       (prefixHeight - prefixMeasurements.descent))
+                dc.SetFont(prefixFont)
+                width = DrawingUtilities.DrawClippedTextWithDots(dc, prefix, 
+                                                                 rect, 
+                                                                 top=prefixTop)
+                if width > 0:
+                    rect.x += width
+                    rect.width -= width
+                if not isInSelection:
+                    dc.SetTextForeground(oldForeground)
+                dc.SetFont(textFont)
+            
+            DrawingUtilities.DrawClippedTextWithDots (dc, theText, rect, 
+                                                      top=textTop)
                 
             dc.DestroyClippingRegion()
         
@@ -1721,7 +1765,7 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         # more robust parsing of the date/time info the user enters.
         return True
 
-    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
+    def Draw (self, grid, dc, rect, (item, attributeName), isInSelection=False):
         """
         Draw the date & time, somewhat in the style that Apple Mail does:
         Date left justified, time right justified.
@@ -2254,7 +2298,7 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
     """
     A checkbox control.
     """
-    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
+    def Draw (self, grid, dc, rect, (item, attributeName), isInSelection=False):
         # We have to implement Draw, but we don't need to do anything
         # because we've always got a control to do it for us.
         pass
@@ -2316,7 +2360,7 @@ class ChoiceAttributeEditor(BasePermanentAttributeEditor):
     """
     A pop-up control. The list of choices comes from presentationStyle.choices.
     """
-    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
+    def Draw (self, grid, dc, rect, (item, attributeName), isInSelection=False):
         """
         Assumes that the attribute is an enum, and uses that to draw
         the locale-sensitive string returned from GetChoices().
@@ -2542,7 +2586,7 @@ class IconAttributeEditor (BaseAttributeEditor):
         # By default, we use the value as the icon state as-is.
         return state
 
-    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
+    def Draw (self, grid, dc, rect, (item, attributeName), isInSelection=False):
         """
         Draw the appropriate variation from the set of icons for this state.
         """

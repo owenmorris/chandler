@@ -153,7 +153,14 @@ def installParcel(parcel, oldName=None):
         fontFamily="DefaultUIFont", fontStyle = "bold",
     )
 
-    CharacterStyle.update(parcel, "SummaryRowStyle", fontFamily="DefaultUIFont")
+    CharacterStyle.update(parcel, "SummaryRowStyle", fontFamily="DefaultUIFont", fontSize=12)
+    CharacterStyle.update(parcel, "SummaryPrefixStyle", fontFamily="DefaultUIFont", fontSize=10)
+    CharacterStyle.update(parcel, "SummaryTriageStatusStyle", fontFamily="DefaultUIFont", 
+        fontSize=10, fontStyle="bold")
+    CharacterStyle.update(parcel, "SummarySectionLabelStyle", fontFamily="DefaultUIFont", 
+        fontStyle="bold")
+    CharacterStyle.update(parcel, "SummarySectionCountStyle", fontFamily="DefaultUIFont", 
+        fontSize=10)
 
     CharacterStyle.update(parcel, "SidebarRowStyle", fontFamily="DefaultUIFont", fontSize=12)
 

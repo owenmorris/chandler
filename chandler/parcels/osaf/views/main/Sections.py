@@ -361,7 +361,7 @@ class SectionAttributeEditor(BaseAttributeEditor):
         setattr(self, cacheAttribute, triBitmapInfo)
         return triBitmapInfo
                      
-    def Draw(self, dc, rect, 
+    def Draw(self, grid, dc, rect, 
              (attributeName, label, count, colorName, expanded, last), 
              isInSelection=False):
         dc.SetPen(wx.TRANSPARENT_PEN)
@@ -386,7 +386,8 @@ class SectionAttributeEditor(BaseAttributeEditor):
         dc.SetTextBackground(sectionBackgroundColor)
 
         # We'll center the 12-point text on the row, not counting descenders.
-        dc.SetFont(Styles.getFont(size=12))
+        labelFont = Styles.getFont(grid.blockItem.sectionLabelCharacterStyle)
+        dc.SetFont(labelFont)
         (labelWidth, labelHeight, labelDescent, ignored) = dc.GetFullTextExtent(label)
         labelTop = rect.y + ((rect.height - labelHeight) / 2)
                 
@@ -406,11 +407,12 @@ class SectionAttributeEditor(BaseAttributeEditor):
             itemCount = _(u" 1 item   ") % {'count': count }
         else:
             itemCount = _(u" %(count)d items   ") % {'count': count }
-        dc.SetFont(Styles.getFont(size=10))
-        (countWidth, countHeight, countDescent, ignored) = \
-            dc.GetFullTextExtent(itemCount)
-        countTop = labelTop + (labelHeight - countHeight) \
-                   - (labelDescent - countDescent)
+        countFont = Styles.getFont(grid.blockItem.sectionCountCharacterStyle)
+        dc.SetFont(countFont)
+        labelMeasurements = Styles.getMeasurements(labelFont)
+        countMeasurements = Styles.getMeasurements(countFont)
+        countTop = labelTop + ((labelHeight - labelMeasurements.descent) -
+                               (countMeasurements.height - countMeasurements.descent))
         dc.SetTextForeground(sectionCountColor)
         dc.DrawText(itemCount, countPosition, countTop)
                 

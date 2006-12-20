@@ -20,6 +20,7 @@ from osaf.framework import attributeEditors
 from util.MultiStateButton import BitmapInfo, MultiStateBitmapCache
 from application.dialogs import RecurrenceDialog
 from chandlerdb.util.c import UUID
+from i18n import ChandlerMessageFactory as _
 import wx.grid
 
 # IndexDefinition subclasses for the dashboard indexes
@@ -93,15 +94,44 @@ class CalendarColumnIndexDefinition(pim.IndexDefinition):
                                      pim.ContentItem.triageStatus.name,
                                      pim.ContentItem.triageStatusChanged.name,))
 
+class WhoAttributeEditor(attributeEditors.StringAttributeEditor):
+    def GetTextToDraw(self, item, attributeName):
+        prefix, theText, isSample = \
+            super(WhoAttributeEditor, self).GetTextToDraw(item, attributeName)
+        
+        if not isSample:
+            # OVerride the prefix if we have one we recognize
+            # (these are in order of how frequently I think they'll occur)
+            # Note that there's a space at the end of each one, which separates
+            # the prefix from the value.
+            whoSource = getattr(item, 'displayWhoSource', '')
+            if len(whoSource) > 0:
+                if whoSource == 'creator': # ContentItem
+                    prefix = _(u'cr ')
+                #elif whoSource == '?': # @@@ not sure where 'edited by' will come from
+                    #prefix = _(u'ed')
+                #elif whoSource == '?': # @@@ not sure where 'updated by' will come from
+                    #prefix = _(u'up')
+                elif whoSource == 'to': # Mail
+                    prefix = _(u'to ')
+                elif whoSource == 'from': # Mail
+                    prefix = _(u'fr ')
+                elif whoSource == 'owner': # Flickr
+                    prefix = _(u'ow ')
+                elif whoSource == 'author': # Feeds
+                    prefix = _(u'au ')
+            
+        return (prefix, theText, isSample)
+
 class TriageAttributeEditor(attributeEditors.BaseAttributeEditor):
     # Set this to '' to show/edit the "real" triageStatus everywhere.
     editingAttribute = 'unpurgedTriageStatus'
 
-    def Draw (self, dc, rect, (item, attributeName), isInSelection=False):
+    def Draw (self, grid, dc, rect, (item, attributeName), isInSelection=False):
         # Get the value we'll draw, and its label
         item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
         value = getattr(item, self.editingAttribute or attributeName, '')
-        label = value and pim.getTriageStatusName(value) or u''
+        label = (pim.getTriageStatusName(value).upper() if value else u'')
 
         # Paint our box in the right color
         backgroundColor = styles.cfg.get('summary', 'SectionSample_%s_%s'
@@ -114,6 +144,7 @@ class TriageAttributeEditor(attributeEditors.BaseAttributeEditor):
         # Draw the text
         dc.SetBackgroundMode (wx.TRANSPARENT)
         dc.SetTextForeground(wx.WHITE)
+        dc.SetFont(Styles.getFont(grid.blockItem.triageStatusCharacterStyle))
         (labelWidth, labelHeight, labelDescent, ignored) = dc.GetFullTextExtent(label)
         labelTop = rect.y + ((rect.height - labelHeight) / 2)
         labelLeft = rect.x + ((rect.width - labelWidth) / 2)
@@ -465,6 +496,7 @@ def makeSummaryBlocks(parcel):
     aeDict = {
         'EventStamp': 'ReminderColumnAttributeEditor',
         'MailStamp': 'CommunicationsColumnAttributeEditor',
+        'Text+who': 'WhoAttributeEditor',
         'TaskStamp': 'TaskColumnAttributeEditor',
         'TriageEnum': 'TriageAttributeEditor',
     }
@@ -525,6 +557,7 @@ def makeSummaryBlocks(parcel):
         indexName='%s.displayWho' % __name__,
         attributeName='displayWho',
         attributeSourceName = 'displayWhoSource',
+        format='who',
         attributes=[
             pim.ContentItem.displayWho.name,
             pim.ContentItem.triageStatus.name, 
@@ -609,6 +642,11 @@ def makeSummaryBlocks(parcel):
                 ],
                 characterStyle = blocks.SummaryRowStyle,
                 headerCharacterStyle = blocks.SummaryHeaderStyle,
+                prefixCharacterStyle = blocks.SummaryPrefixStyle,
+                triageStatusCharacterStyle = blocks.SummaryTriageStatusStyle,
+                sectionLabelCharacterStyle = blocks.SummarySectionLabelStyle,
+                sectionCountCharacterStyle = blocks.SummarySectionCountStyle,
+                rowHeight = 19,
                 elementDelegate = 'osaf.views.main.SectionedGridDelegate',
                        defaultEditableAttribute = u'displayName',
                 selection = [[0,0]]),

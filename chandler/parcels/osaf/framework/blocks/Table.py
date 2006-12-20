@@ -608,7 +608,7 @@ class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
         DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isInSelection)
         value = grid.GetElementValue (row, column)
         assert len(value) != 2 or not value[0].isDeleted()            
-        self.delegate.Draw (dc, rect, value, isInSelection)
+        self.delegate.Draw(grid, dc, rect, value, isInSelection)
 
 class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
     def __init__(self, type):
@@ -739,7 +739,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         aeKind = AttributeEditors.AttributeEditorMapping.getKind(self.itsView)
         for ae in aeKind.iterItems():
             key = ae.itsName
-            if key != defaultName and not '+' in key:
+            if key != defaultName:
                 widget.RegisterDataType (key,
                                          GridCellAttributeRenderer (key),
                                          GridCellAttributeEditor (key))

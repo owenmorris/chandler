@@ -983,7 +983,7 @@ class MailStamp(stamping.Stamp):
             fromText = unicode(self.fromAddress)
             if len(fromText) > 0:
                 fromPriority = self.isOutbound and 2 or 1
-                whos.append((fromPriority, fromText, 'to'))
+                whos.append((fromPriority, fromText, 'from'))
 
     schema.addClouds(
         sharing = schema.Cloud(
