@@ -476,7 +476,8 @@ class DragAndDropTextCtrl(ShownSynchronizer,
         if self.IsSingleLine() and event.LeftDown():
             selStart, selEnd = self.GetSelection()
             if selStart==0 and selEnd>1 and selEnd==self.GetLastPosition():
-                if event.LeftIsDown(): # still down?
+                # not the initial left-down event, but is it a dragging while left-down?
+                if event.Dragging() and event.LeftIsDown(): 
                     # have we had the focus for a little while?
                     if hasattr(self, 'focusedSince'):
                         if datetime.now() - self.focusedSince > timedelta(seconds=.2):
@@ -748,7 +749,7 @@ class AETypeOverTextCtrl(wxRectangularChild):
         staticControl = AEStaticText(self, -1, pos=position, size=staticSize,
                                      style=style, *args, **keys)
         self.staticControl = staticControl
-        staticControl.Bind(wx.EVT_LEFT_DOWN, self.OnStaticClick)
+        staticControl.Bind(wx.EVT_LEFT_UP, self.OnStaticClick)
 
         self.shownControl = staticControl
         self.otherControl = editControl
@@ -853,6 +854,8 @@ class AETypeOverTextCtrl(wxRectangularChild):
             self.otherControl = shownControl
             self._resize()
             self.Thaw()
+            if '__WXGTK__' in wx.PlatformInfo:
+                self.GetGrandParent().Refresh()
 
     def _resize(self):
         if self.IsShown():
