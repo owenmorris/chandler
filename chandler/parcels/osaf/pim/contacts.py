@@ -102,6 +102,7 @@ class Contact(items.ContentItem):
         self.contactName.firstName = ''
         self.contactName.lastName = ''
 
+    @classmethod
     def getContactForEmailAddress(cls, view, address):
         """ Given an email address string, find (or create) a matching contact.
 
@@ -121,5 +122,3 @@ class Contact(items.ContentItem):
         contact.emailAddress = address
         contact.contactName = None
         return contact
-
-    getContactForEmailAddress = classmethod(getContactForEmailAddress)
