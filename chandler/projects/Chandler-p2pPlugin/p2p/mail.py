@@ -261,18 +261,17 @@ class MailClient(object):
 
             def _searchMail(_self, result):
                 self.output("searching for p2p mail")
-                queries = []
-                queries.append(Query(header=('X-chandler', 'p2p')))
-                queries.append(Query(header=('from', peerId)))
-                queries.append(Query(header=('X-chandler-p2p-op', op)))
-                queries.append(Not(Query(deleted=True)))
+                queries = [Query(header=('X-chandler', 'p2p')),
+                           Query(header=('from', peerId)),
+                           Query(header=('X-chandler-p2p-op', op)),
+                           Not(Query(deleted=True))]
                 if repoId is not None:
                     queries.append(Query(header=('X-chandler-p2p-from',
                                                  repoId.str64())))
                 if name is not None:
                     queries.append(Query(header=('X-chandler-p2p-name',
                                                  name)))
-                d = _self.search(*queries, **{'uid':True })
+                d = _self.search(*queries, **{'uid': True})
                 d = d.addCallback(_self._foundMail)
                 return d.addErrback(_self.catchErrors)
 
@@ -324,13 +323,12 @@ class MailClient(object):
         class _factory(ClientFactory):
             protocol = _protocol
         
-        factory = _factory()
         if account.connectionSecurity == 'SSL':
             reactor.callFromThread(ssl.connectSSL, account.host, account.port,
-                                   factory, view)
+                                   _factory(), view)
         else:
             reactor.callFromThread(ssl.connectTCP, account.host, account.port,
-                                   factory, view)
+                                   _factory(), view)
 
 
 

@@ -122,7 +122,7 @@ def installParcel(parcel, version=None):
                     parentBlock=main.ExperimentalMenu)
 
     PeriodicTask.update(parcel, "loginTask",
-                        invoke="_p2p_LoginTask",
+                        invoke="p2p.LoginTask",
                         interval=timedelta(days=1),
                         run_at_startup=True)
 
