@@ -540,8 +540,8 @@ Custom Types
 ------------
 
 The most basic kinds of field types can be created using the ``BytesType``,
-``TextType``, ``IntType``, ``DateType``, ``DecimalType``, and ``LobType``
-constructors::
+``TextType``, ``IntType``, ``DateType``, ``DecimalType``, ``BlobType`` and
+``ClobType`` constructors::
 
     >>> my_date = sharing.DateType()
     >>> my_date
@@ -610,14 +610,17 @@ an already-registered alias::
     True
 
 There are also built-in aliases for anonymous versions of the sizeless
-primitive types (``IntType``, ``LobType``, and ``DateType``), so you can
-use them directly in fields::
+primitive types (``IntType``, ``BlobType``, ``ClobType``, and ``DateType``),
+so you can use them directly in fields::
 
     >>> sharing.typeinfo_for(sharing.IntType)
     sharing.IntType(None)
 
-    >>> sharing.typeinfo_for(sharing.LobType)
-    sharing.LobType(None)
+    >>> sharing.typeinfo_for(sharing.BlobType)
+    sharing.BlobType(None)
+
+    >>> sharing.typeinfo_for(sharing.ClobType)
+    sharing.ClobType(None)
 
     >>> sharing.typeinfo_for(sharing.DateType)
     sharing.DateType(None)

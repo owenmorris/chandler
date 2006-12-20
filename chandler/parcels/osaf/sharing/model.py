@@ -34,7 +34,7 @@ remindersFilter = sharing.Filter('cid:reminders-filter@osaf.us', u"Reminders")
 
 
 class ItemRecord(sharing.Record):
-    URI = "http://osafoundation.org/eimml/item"
+    URI = "http://osafoundation.org/eim/item"
 
     uuid = sharing.key(schema.UUID)
     title = sharing.field(text256)
@@ -47,19 +47,19 @@ class ItemRecord(sharing.Record):
                                                             # absolute datetime
 
 class NoteRecord(sharing.Record):
-    URI = "http://osafoundation.org/eimml/note"
+    URI = "http://osafoundation.org/eim/note"
 
     uuid = sharing.key(ItemRecord.uuid)
-    body = sharing.field(sharing.LobType)
+    body = sharing.field(sharing.ClobType)
     icaluid = sharing.field(text256)
 
 class TaskRecord(sharing.Record):
-    URI = "http://osafoundation.org/eimml/task"
+    URI = "http://osafoundation.org/eim/task"
 
     uuid = sharing.key(ItemRecord.uuid)
 
 class EventRecord(sharing.Record):
-    URI = "http://osafoundation.org/eimml/event"
+    URI = "http://osafoundation.org/eim/event"
 
     uuid = sharing.key(ItemRecord.uuid)
     dtstart = sharing.field(text20)
@@ -81,7 +81,7 @@ class EventRecord(sharing.Record):
 
 
 class ICalExtensionRecord(sharing.Record):
-    URI = "http://osafoundation.org/eimml/icalext"
+    URI = "http://osafoundation.org/eim/icalext"
 
     uuid = sharing.key(ItemRecord.uuid)
     name = sharing.key(text256)
@@ -90,7 +90,7 @@ class ICalExtensionRecord(sharing.Record):
 
 
 class MailMessageRecord(sharing.Record):
-    URI = "http://osafoundation.org/eimml/mail"
+    URI = "http://osafoundation.org/eim/mail"
 
     uuid = sharing.key(ItemRecord.uuid)
     subject = sharing.field(text256)

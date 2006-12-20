@@ -49,34 +49,77 @@ Translate datetime values::
 TODO: int, lob, bytes
 
 
-Serialize and deserialize entire record sets::
+Serialize and deserialize entire record sets using EIMMLSerializerLite::
 
-    >>> sample = '''<?xml version="1.0" encoding="UTF-8"?>
+    >>> sampleLite = '''<?xml version="1.0" encoding="UTF-8"?>
     ...
     ... <eim:records
-    ... xmlns:eim="http://osafoundation.org/eimml/core"
-    ... xmlns:item="http://osafoundation.org/eimml/item"
-    ... xmlns:event="http://osafoundation.org/eimml/event"
-    ... xmlns:note="http://osafoundation.org/eimml/note">
+    ... xmlns:eim="http://osafoundation.org/eim"
+    ... xmlns:item="http://osafoundation.org/eim/item"
+    ... xmlns:event="http://osafoundation.org/eim/event"
+    ... xmlns:note="http://osafoundation.org/eim/note">
     ... <eim:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
-    ...    <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" created_on ="2006-11-29 12:25:31 US/Pacific" />
-    ...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="VGhpcyBpcyB0aGUgYm9keQ==" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
-    ...    <event:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" rrule="FREQ=WEEKLY" status="CONFIRMED" />
+    ...    <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" last_modified_by="foo@example.com" created_on="2006-11-29T12:25:31" />
+    ...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
+    ...    <event:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" location="San Jose" rrule="FREQ=WEEKLY" status="CONFIRMED" />
     ... </eim:recordset>
     ... </eim:records>'''
 
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('US/Pacific')), None), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)])}
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)])}
+
+    >>> recordSets = eimml.EIMMLSerializerLite.deserialize(sampleLite)
+    >>> recordSets == expectedRecordSets
+    True
+
+    >>> text = eimml.EIMMLSerializerLite.serialize(recordSets)
+
+    >>> recordSets = eimml.EIMMLSerializerLite.deserialize(text)
+    >>> recordSets == expectedRecordSets
+    True
+
+
+Serialize and deserialize entire record sets using EIMMLSerializer::
+
+    >>> sample = '''<?xml version='1.0' encoding='UTF-8'?>
+    ...
+    ... <eim:records
+    ... xmlns:eim="http://osafoundation.org/eim">
+    ...   <eim:recordset
+    ...      eim:uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
+    ...     <item:record
+    ...        xmlns:item="http://osafoundation.org/eim/item">
+    ...       <item:uuid eim:type="text"><![CDATA[8501de14-1dc9-40d4-a7d4-f289feff8214]]></item:uuid>
+    ...       <item:title eim:type="text"><![CDATA[Welcome to Cosmo]]></item:title>
+    ...       <item:triage_status eim:type="text"><![CDATA[now]]></item:triage_status>
+    ...       <item:triage_status_changed eim:type="decimal"><![CDATA[123456789.12]]></item:triage_status_changed>
+    ...       <item:last_modified_by eim:type="text"><![CDATA[foo@example.com]]></item:last_modified_by>
+    ...       <item:created_on eim:type="datetime"><![CDATA[2006-11-29T12:25:31]]></item:created_on>
+    ...     </item:record>
+    ...     <note:record
+    ...        xmlns:note="http://osafoundation.org/eim/note">
+    ...       <note:uuid eim:type="text"><![CDATA[8501de14-1dc9-40d4-a7d4-f289feff8214]]></note:uuid>
+    ...       <note:body eim:type="clob"><![CDATA[This is the body]]></note:body>
+    ...       <note:icaluid eim:type="text"><![CDATA[1e2d48c0-d66b-494c-bb33-c3d75a1ba66b]]></note:icaluid>
+    ...     </note:record>
+    ...     <event:record
+    ...        xmlns:event="http://osafoundation.org/eim/event">
+    ...       <event:uuid eim:type="text"><![CDATA[8501de14-1dc9-40d4-a7d4-f289feff8214]]></event:uuid>
+    ...       <event:dtstart eim:type="text"><![CDATA[20061130T140000]]></event:dtstart>
+    ...       <event:dtend eim:type="text"><![CDATA[20061130T150000]]></event:dtend>
+    ...       <event:location eim:type="text"><![CDATA[San Jose]]></event:location>
+    ...       <event:rrule eim:type="text"><![CDATA[FREQ=WEEKLY]]></event:rrule>
+    ...       <event:exrule eim:type="text" />
+    ...       <event:rdate eim:type="text" />
+    ...       <event:exdate eim:type="text" />
+    ...       <event:recurrenceId eim:type="text" />
+    ...       <event:status eim:type="text"><![CDATA[CONFIRMED]]></event:status>
+    ...     </event:record>
+    ...   </eim:recordset>
+    ... </eim:records>'''
 
     >>> recordSets = eimml.EIMMLSerializer.deserialize(sample)
     >>> recordSets == expectedRecordSets
     True
-
-    >>> text = eimml.EIMMLSerializer.serialize(recordSets)
-
-    >>> recordSets = eimml.EIMMLSerializer.deserialize(text)
-    >>> recordSets == expectedRecordSets
-    True
-
 
 
 Persisting RecordSets
@@ -103,7 +146,7 @@ Inmemory Cosmo Replacement
 You can "send" a recordset::
 
     >>> conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=rv,
-    ...     shareName="test1", serializer=eimml.EIMMLSerializer)
+    ...     shareName="test1", serializer=eimml.EIMMLSerializerLite)
     >>> conduit.put(text)
     >>> conduit.syncToken
     1
@@ -128,13 +171,13 @@ Send a new item::
     >>> text = '''<?xml version="1.0" encoding="UTF-8"?>
     ...
     ... <eim:records
-    ... xmlns:eim="http://osafoundation.org/eimml/core"
-    ... xmlns:item="http://osafoundation.org/eimml/item"
-    ... xmlns:event="http://osafoundation.org/eimml/event"
-    ... xmlns:note="http://osafoundation.org/eimml/note">
+    ... xmlns:eim="http://osafoundation.org/eim"
+    ... xmlns:item="http://osafoundation.org/eim/item"
+    ... xmlns:event="http://osafoundation.org/eim/event"
+    ... xmlns:note="http://osafoundation.org/eim/note">
     ... <eim:recordset uuid="9501de14-1dc9-40d4-a7d4-f289feff8214">
-    ...    <item:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" created_on ="2006-11-29 12:25:31 US/Pacific" />
-    ...    <note:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" body="VGhpcyBpcyB0aGUgYm9keQ==" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
+    ...    <item:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" created_on ="2006-11-29T12:25:31" />
+    ...    <note:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
     ...    <event:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" rrule="FREQ=WEEKLY" status="CONFIRMED" />
     ... </eim:recordset>
     ... </eim:records>'''
@@ -149,7 +192,7 @@ Doing a "get" with the most recent token returns no changes::
     >>> conduit.syncToken
     3
     >>> text
-    '<ns0:records xmlns:ns0="http://osafoundation.org/eimml/core" />'
+    '<ns0:records xmlns:ns0="http://osafoundation.org/eim" />'
 
 You can ask for recordsets that have been updated since a previous token was
 created::
@@ -158,8 +201,8 @@ created::
     >>> text = conduit.get()
     >>> conduit.syncToken
     3
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('US/Pacific')), None), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)]), '9501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('US/Pacific')), None), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)]) }
-    >>> recordSets = eimml.EIMMLSerializer.deserialize(text)
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)]), '9501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)]) }
+    >>> recordSets = eimml.EIMMLSerializerLite.deserialize(text)
     >>> recordSets == expectedRecordSets
     True
 

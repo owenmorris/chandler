@@ -14,9 +14,10 @@
 
 __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
-    'IntType', 'LobType', 'DecimalType', 'get_converter', 'add_converter',
-    'subtype', 'typedef', 'field', 'key', 'NoChange', 'Record', 'RecordSet',
-    'lookupSchemaURI', 'Filter', 'Translator', 'exporter'
+    'IntType', 'BlobType', 'ClobType', 'DecimalType', 'get_converter',
+    'add_converter', 'subtype', 'typedef', 'field', 'key', 'NoChange',
+    'Record', 'RecordSet', 'lookupSchemaURI', 'Filter', 'Translator',
+    'exporter'
 ]
 
 from symbols import Symbol  # XXX change this to peak.util.symbols
@@ -234,11 +235,13 @@ class BytesType(SizedType): __slots__ = ()
 class TextType(SizedType):  __slots__ = ()
 class IntType(TypeInfo):    __slots__ = ()
 class DateType(TypeInfo):   __slots__ = ()
-class LobType(TypeInfo):    __slots__ = ()
+class BlobType(TypeInfo):    __slots__ = ()
+class ClobType(TypeInfo):    __slots__ = ()
 
 # define aliases so () is optional for anonymous unsized field types
-typedef(IntType,  IntType())
-typedef(LobType,  LobType())
+typedef(IntType, IntType())
+typedef(BlobType, BlobType())
+typedef(ClobType, ClobType())
 typedef(DateType, DateType())
 
 
@@ -784,7 +787,7 @@ def create_default_converter(t):
     get_converter.when_object(t)(lambda ctx: converter)
 
 map(create_default_converter,
-    [BytesType, TextType, IntType, DateType, LobType, DecimalType]
+    [BytesType, TextType, IntType, DateType, BlobType, ClobType, DecimalType]
 )
 
 add_converter(IntType, int, int)
@@ -793,7 +796,8 @@ add_converter(TextType, str, unicode)
 add_converter(TextType, unicode, unicode)
 add_converter(DateType, datetime.datetime, lambda v:v)
 add_converter(DecimalType, decimal.Decimal, decimal.Decimal)
-add_converter(LobType, str, unicode)
+add_converter(BlobType, str, unicode)
+add_converter(ClobType, str, unicode)
 
 
 
