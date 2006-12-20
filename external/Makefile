@@ -122,11 +122,11 @@ world: all binaries install
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) world
 	$(MAKE) -C $(CHANDLERBIN) DEBUG=$(DEBUG) install
 
-cleanworld: $(addprefix clean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
+cleanworld: clean
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) clean
 	$(MAKE) -C ../chandler DEBUG=$(DEBUG) clean
 
-realcleanworld: $(addprefix realclean-, $(BUILD_ONLY_SYSTEMS) $(SYSTEMS))
+realcleanworld: realclean
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) realclean
 	$(MAKE) -C ../chandler DEBUG=$(DEBUG) realclean
 
