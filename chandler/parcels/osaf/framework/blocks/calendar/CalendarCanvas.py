@@ -2161,7 +2161,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         sizer.Add(weekColumnHeader, 0, wx.EXPAND)
         
         self.SetSizer(sizer)
-        sizer.SetSizeHints(self)
         self.Layout()
 
     def OnInit(self):
