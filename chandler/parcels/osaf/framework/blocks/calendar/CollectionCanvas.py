@@ -340,6 +340,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         self.dragState = self.draggedOutState = self._linuxHackDragState = None
         self.coercedCanvasItem = None
+
+        self._cursorID = wx.CURSOR_DEFAULT
         
     def OnInit(self):
         # _focusWindow is used because wxPanel is much happier if it
@@ -397,9 +399,15 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         """
         hitBox = self.GetCanvasItemAt(unscrolledPosition)
         if hitBox and hitBox.isHitResize(unscrolledPosition):
-            self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
+            c = wx.CURSOR_SIZENS
         else:
-            self.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
+            c = wx.CURSOR_DEFAULT
+        # Only change the cursor if we currently have a different one.
+        # This removes some cursor flicker on wxGTK for some
+        # platforms.
+        if c != self._cursorID:
+            self.SetCursor(wx.StockCursor(c))
+            self._cursorID = c
             
     def _handleDoubleClick(self, unscrolledPosition):
         """
@@ -604,6 +612,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                     self.dragState.ResetDrag()
                     self.dragState = None
                     self.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
+                    self._cursorID = wx.CURSOR_DEFAULT
                     self.RefreshCanvasItems(resort=False)            
                     
             event.Skip()
