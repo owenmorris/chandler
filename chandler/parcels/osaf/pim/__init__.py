@@ -21,10 +21,12 @@ from items import (
     Project, Tag, TriageEnum, getTriageStatusName,
     getNextTriageStatus, UserNotification, isDead
 )
-from collections import KindCollection, ContentCollection, \
-     DifferenceCollection, UnionCollection, IntersectionCollection, \
-     FilteredCollection, ListCollection, SmartCollection, AppCollection, \
-     IndexedSelectionCollection, AllIndexDefinitions, IndexDefinition
+from collections import (
+    KindCollection, ContentCollection, DifferenceCollection, UnionCollection,
+    IntersectionCollection, FilteredCollection, ListCollection, SmartCollection, 
+    AppCollection, IndexedSelectionCollection, AllIndexDefinitions,
+    IndexDefinition, AttributeIndexDefinition, MethodIndexDefinition
+)
 
 from stamping import Stamp, has_stamp
 from notes import Note

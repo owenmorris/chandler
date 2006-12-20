@@ -514,7 +514,7 @@ def makeSummaryBlocks(parcel):
         attributes = kwargs.pop('attributes', [])
         useCompare = kwargs.pop('useCompare', False)
         useMaster = kwargs.pop('useMaster', True)
-        baseClass = kwargs.pop('baseClass', pim.IndexDefinition)
+        baseClass = kwargs.pop('baseClass', pim.AttributeIndexDefinition)
         baseClass.update(parcel, indexName,
                          useMaster=useMaster,
                          attributes=attributes)

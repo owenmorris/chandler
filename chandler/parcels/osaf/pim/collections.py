@@ -89,8 +89,31 @@ class IndexDefinition(schema.Item):
 
     def makeIndexOn(self, collection):
         """ Create the index we describe on this collection """
+        raise TypeError(
+            "pim.IndexDefinition is an abstract type; use a subtype that " \
+            "overrides makeIndexOn"
+        )
+
+class AttributeIndexDefinition(IndexDefinition):
+    def makeIndexOn(self, collection):
+        """ Create the index we describe on this collection """
         collection.addIndex(self.itsName, 'attribute',
                             attributes=self.attributes)
+
+class MethodIndexDefinition(IndexDefinition):
+    def makeIndexOn(self, collection):
+        """ Create the index we describe on this collection """
+        collection.addIndex(self.itsName, 'method',
+                            method=(self, 'compare'),
+                            monitor=self.attributes)
+
+    def compare(self, u1, u2):
+        """Compare two items, given their uuids"""
+        raise TypeError(
+            "pim.MethodIndexDefinition is an abstract type; use a subtype " \
+            "that overrides compare"
+        )
+
 
 class AllIndexDefinitions(schema.Item):
     """

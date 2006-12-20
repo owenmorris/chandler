@@ -118,7 +118,7 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(self.nh1 is not None)
         self.failUnless(self.nh2 is not None)
         
-        IndexDefinition(itsView=self.view, itsName='label',
+        AttributeIndexDefinition(itsView=self.view, itsName='label',
                         attributes=['label'], useMaster=False)
         
 
@@ -769,6 +769,90 @@ class TestCollections(RepositoryTestCase):
 
         self.assert_(view.check())
 
+class IndexDefinitionTestCase(CollectionTestCase):
+    indexName = 'myIndex'
+
+    def setUp(self):
+        super(IndexDefinitionTestCase, self).setUp()
+        self.sandbox = pim.ContentItem("sandbox", self.view)
+        self.collection = ListCollection(itsParent=self.sandbox)
+
+        
+    def runTheTest(self, indexDefinition):
+        indexDefinition.makeIndex(self.collection)
+        
+        i1 = pim.ContentItem(itsParent=self.sandbox, displayName=u"woo")
+        i2 = pim.ContentItem(itsParent=self.sandbox, displayName=u"zoo")
+
+        self.failUnlessEqual(
+            list(self.collection.iterindexvalues(self.indexName)),
+            [])
+        
+        self.collection.add(i2)
+        self.collection.add(i1)
+
+        self.failUnlessEqual(
+            list(self.collection.iterindexvalues(self.indexName)),
+            [i1, i2])
+            
+        i2.displayName=i2.displayName.replace(u'z', u'p')
+        
+        self.failUnlessEqual(
+            list(self.collection.iterindexvalues(self.indexName)),
+            [i2, i1])
+            
+    def testAttributeIndex(self):
+        
+        indexDefinition = AttributeIndexDefinition(
+            itsParent=self.sandbox, itsName=self.indexName,
+            attributes=['displayName'],
+        )
+        self.runTheTest(indexDefinition)
+        
+    def testMasterAttributeIndex(self):
+        indexDefinition = AttributeIndexDefinition(
+            itsParent=self.sandbox, itsName=self.indexName,
+            userMaster=True, attributes=['displayName'],
+        )
+        self.runTheTest(indexDefinition)
+        contentItems = schema.ns("osaf.pim", self.view).contentItems
+        self.failUnlessEqual(
+            len(contentItems),
+            len(list(contentItems.iterindexvalues(self.indexName)))
+        )
+
+    class MyMethodIndexDefinition(MethodIndexDefinition):
+        callCount = 0
+        def compare(self, u1, u2):
+        
+            self.callCount += 1
+        
+            v1 = self.itsView.findValue(u1, 'displayName', None)
+            v2 = self.itsView.findValue(u2, 'displayName', None)
+            
+            return cmp(v1, v2)
+
+    def testMethodIndex(self):
+
+        indexDefinition = self.MyMethodIndexDefinition(
+            itsParent=self.sandbox, itsName=self.indexName,
+            attributes=['displayName'],
+        )
+        self.runTheTest(indexDefinition)
+        self.failUnless(indexDefinition.callCount > 0)
+        
+
+    def testMasterAttributeIndex(self):
+        indexDefinition = self.MyMethodIndexDefinition(
+            itsParent=self.sandbox, itsName=self.indexName,
+            userMaster=True, attributes=['displayName'],
+        )
+        self.runTheTest(indexDefinition)
+        contentItems = schema.ns("osaf.pim", self.view).contentItems
+        self.failUnlessEqual(
+            len(contentItems),
+            len(list(contentItems.iterindexvalues(self.indexName)))
+        )
 
 if __name__ == "__main__":
 #    import hotshot
