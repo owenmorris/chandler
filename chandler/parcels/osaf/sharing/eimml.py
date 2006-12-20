@@ -45,7 +45,11 @@ def serialize_blob(typeinfo, value):
 def serialize_clob(typeinfo, value):
     return value
 
-@serializeValue.when_type(sharing.DateType)
+# TODO
+# @serializeValue.when_type(sharing.DateType)
+# def serialize_date(typeinfo, value):
+
+@serializeValue.when_type(sharing.TimestampType)
 def serialize_date(typeinfo, value):
     return value.strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -85,7 +89,11 @@ def deserialize_clob(typeinfo, text):
 def deserialize_decimal(typeinfo, text):
     return decimal.Decimal(text)
 
-@deserializeValue.when_type(sharing.DateType)
+# TODO
+# @deserializeValue.when_type(sharing.DateType)
+# def deserialize_date(typeinfo, text):
+
+@deserializeValue.when_type(sharing.TimestampType)
 def deserialize_date(typeinfo, text):
     tuples = time.strptime(text, "%Y-%m-%dT%H:%M:%SZ")[0:6]
     utc = ICUtzinfo.getInstance('UTC')
@@ -132,7 +140,7 @@ class EIMMLSerializer(object):
         recordsElement = fromstring(text) # xml parser
 
         for recordSetElement in recordsElement:
-            uuid = recordSetElement.get("{%s}uuid" % eimURI)
+            uuid = recordSetElement.get("uuid")
             records = []
 
             for recordElement in recordSetElement:

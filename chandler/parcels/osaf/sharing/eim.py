@@ -17,7 +17,7 @@ __all__ = [
     'IntType', 'BlobType', 'ClobType', 'DecimalType', 'get_converter',
     'add_converter', 'subtype', 'typedef', 'field', 'key', 'NoChange',
     'Record', 'RecordSet', 'lookupSchemaURI', 'Filter', 'Translator',
-    'exporter'
+    'exporter', 'TimestampType'
 ]
 
 from symbols import Symbol  # XXX change this to peak.util.symbols
@@ -235,6 +235,7 @@ class BytesType(SizedType): __slots__ = ()
 class TextType(SizedType):  __slots__ = ()
 class IntType(TypeInfo):    __slots__ = ()
 class DateType(TypeInfo):   __slots__ = ()
+class TimestampType(TypeInfo):   __slots__ = ()
 class BlobType(TypeInfo):    __slots__ = ()
 class ClobType(TypeInfo):    __slots__ = ()
 
@@ -243,6 +244,7 @@ typedef(IntType, IntType())
 typedef(BlobType, BlobType())
 typedef(ClobType, ClobType())
 typedef(DateType, DateType())
+typedef(TimestampType, TimestampType())
 
 
 
@@ -787,7 +789,8 @@ def create_default_converter(t):
     get_converter.when_object(t)(lambda ctx: converter)
 
 map(create_default_converter,
-    [BytesType, TextType, IntType, DateType, BlobType, ClobType, DecimalType]
+    [BytesType, TextType, IntType, DateType, TimestampType, BlobType, ClobType,
+    DecimalType]
 )
 
 add_converter(IntType, int, int)
@@ -795,6 +798,7 @@ typedef(int, IntType)
 add_converter(TextType, str, unicode)
 add_converter(TextType, unicode, unicode)
 add_converter(DateType, datetime.datetime, lambda v:v)
+add_converter(TimestampType, datetime.datetime, lambda v:v)
 add_converter(DecimalType, decimal.Decimal, decimal.Decimal)
 add_converter(BlobType, str, unicode)
 add_converter(ClobType, str, unicode)

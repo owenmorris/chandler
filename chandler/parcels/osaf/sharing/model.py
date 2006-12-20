@@ -38,13 +38,13 @@ class ItemRecord(sharing.Record):
 
     uuid = sharing.key(schema.UUID)
     title = sharing.field(text256)
-    triage_status = sharing.field(text256, [triageFilter])
-    triage_status_changed = sharing.field(sharing.DecimalType(digits=11,
+    triageStatus = sharing.field(text256, [triageFilter])
+    triageStatusChanged = sharing.field(sharing.DecimalType(digits=11,
         decimal_places=2), [triageFilter])
-    last_modified_by = sharing.field(text256) # storing an email address
-    created_on = sharing.field(sharing.DateType)
-    remind_on = sharing.field(sharing.DateType, [remindersFilter]) # reminder,
-                                                            # absolute datetime
+    lastModifiedBy = sharing.field(text256) # storing an email address
+    createdOn = sharing.field(sharing.TimestampType)
+    remindOn = sharing.field(sharing.TimestampType, [remindersFilter])
+        # reminder in absolute datetime
 
 class NoteRecord(sharing.Record):
     URI = "http://osafoundation.org/eim/note"
