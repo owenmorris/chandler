@@ -116,6 +116,11 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
     >>> recordSets == expectedRecordSets
     True
 
+    >>> text = eimml.EIMMLSerializer.serialize(recordSets)
+
+    >>> recordSets = eimml.EIMMLSerializer.deserialize(text)
+    >>> recordSets == expectedRecordSets
+    True
 
 
 Persisting RecordSets
@@ -143,14 +148,14 @@ You can "send" a recordset::
 
     >>> conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=rv,
     ...     shareName="test1", serializer=eimml.EIMMLSerializerLite)
-    >>> conduit.put(text)
+    >>> conduit.put(sampleLite)
     >>> conduit.syncToken
     1
 
 If you don't use the previous token, you'll get a failure::
 
     >>> conduit.syncToken = 42
-    >>> conduit.put(text)
+    >>> conduit.put(sampleLite)
     Traceback (most recent call last):
     ...
     TokenMismatch: 42 != 1
@@ -158,7 +163,7 @@ If you don't use the previous token, you'll get a failure::
 The token changes whenever you modify the collection::
 
     >>> conduit.syncToken = 1
-    >>> conduit.put(text)
+    >>> conduit.put(sampleLite)
     >>> conduit.syncToken
     2
 

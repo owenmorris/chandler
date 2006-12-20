@@ -118,16 +118,21 @@ class EIMMLSerializer(object):
                 "{%s}recordset" % eimURI, uuid=uuid)
 
             for record in list(recordSet.inclusions):
-                fields = {}
+                recordElement = SubElement(recordSetElement,
+                    "{%s}record" % (record.URI))
+
                 for field in record.__fields__:
                     value = record[field.offset]
                     if value is not None:
                         serialized = serializeValue(field.typeinfo,
                             record[field.offset])
-                        fields[field.name] = serialized
-                recordURI = record.URI
-                recordElement = SubElement(recordSetElement,
-                    "{%s}record" % (recordURI), **fields)
+                        if isinstance(field, sharing.key):
+                            fieldElement = SubElement(recordElement,
+                                "{%s}%s" % (record.URI, field.name), key="true")
+                        else:
+                            fieldElement = SubElement(recordElement,
+                                "{%s}%s" % (record.URI, field.name))
+                        fieldElement.text = serialized
 
         return tostring(recordsElement)
 
