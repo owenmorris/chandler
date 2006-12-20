@@ -47,7 +47,7 @@ def serialize_clob(typeinfo, value):
 
 @serializeValue.when_type(sharing.DateType)
 def serialize_date(typeinfo, value):
-    return value.strftime("%Y-%m-%dT%H:%M:%S")
+    return value.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 @serializeValue.when_type(sharing.DecimalType)
 def serialize_decimal(typeinfo, value):
@@ -87,7 +87,7 @@ def deserialize_decimal(typeinfo, text):
 
 @deserializeValue.when_type(sharing.DateType)
 def deserialize_date(typeinfo, text):
-    tuples = time.strptime(text, "%Y-%m-%dT%H:%M:%S")[0:6]
+    tuples = time.strptime(text, "%Y-%m-%dT%H:%M:%SZ")[0:6]
     utc = ICUtzinfo.getInstance('UTC')
     return datetime.datetime(*tuples).replace(tzinfo=utc)
 

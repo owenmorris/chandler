@@ -59,7 +59,7 @@ Serialize and deserialize entire record sets using EIMMLSerializerLite::
     ... xmlns:event="http://osafoundation.org/eim/event"
     ... xmlns:note="http://osafoundation.org/eim/note">
     ... <eim:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
-    ...    <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" last_modified_by="foo@example.com" created_on="2006-11-29T12:25:31" />
+    ...    <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" last_modified_by="foo@example.com" created_on="2006-11-29T12:25:31Z" />
     ...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
     ...    <event:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" location="San Jose" rrule="FREQ=WEEKLY" status="CONFIRMED" />
     ... </eim:recordset>
@@ -93,7 +93,7 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
     ...       <item:triage_status eim:type="text"><![CDATA[now]]></item:triage_status>
     ...       <item:triage_status_changed eim:type="decimal"><![CDATA[123456789.12]]></item:triage_status_changed>
     ...       <item:last_modified_by eim:type="text"><![CDATA[foo@example.com]]></item:last_modified_by>
-    ...       <item:created_on eim:type="datetime"><![CDATA[2006-11-29T12:25:31]]></item:created_on>
+    ...       <item:created_on eim:type="datetime"><![CDATA[2006-11-29T12:25:31Z]]></item:created_on>
     ...     </item:record>
     ...     <note:record
     ...        xmlns:note="http://osafoundation.org/eim/note">
@@ -176,7 +176,7 @@ Send a new item::
     ... xmlns:event="http://osafoundation.org/eim/event"
     ... xmlns:note="http://osafoundation.org/eim/note">
     ... <eim:recordset uuid="9501de14-1dc9-40d4-a7d4-f289feff8214">
-    ...    <item:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" created_on ="2006-11-29T12:25:31" />
+    ...    <item:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage_status="now" triage_status_changed="123456789.12" created_on ="2006-11-29T12:25:31Z" />
     ...    <note:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
     ...    <event:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" rrule="FREQ=WEEKLY" status="CONFIRMED" />
     ... </eim:recordset>
