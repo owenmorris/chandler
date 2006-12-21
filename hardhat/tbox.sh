@@ -307,6 +307,12 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
 
     TESTS=`find $C_DIR/tools/QATestScripts/Performance -name 'Perf*.py' -print`
 
+    rm -fr $C_DIR/__repository__.0*
+    REPO=$C_DIR/__repository__.001
+    if [ "$OSTYPE" = "cygwin" ]; then
+        REPO=`cygpath -w $REPO`
+    fi
+    
     for test in $TESTS ; do
         # Don't run large data tests here
         if [ `echo $test | grep -v PerfLargeData` ]; then
@@ -353,27 +359,12 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
 	    fi
     done
     
-    echo Creating a large repository backup for the remaining tests | tee -a $BUILDLOG
-    rm -fr $C_DIR/__repository__.0*
-    REPO=$C_DIR/__repository__.001
-    BACKUP_REPO=$C_DIR/tools/QATestScripts/Performance/LargeDataBackupRepository.py
-    if [ "$OSTYPE" = "cygwin" ]; then
-        REPO=`cygpath -w $REPO`
-        BACKUP_REPO=`cygpath -w $BACKUP_REPO`
-    fi
-    
-    cd $C_DIR
-    $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$BACKUP_REPO" &> $C_DIR/test.log
-    
-    # scan the test output for the success message "OK"
-    RESULT=`grep '#TINDERBOX# Status = PASSED' $C_DIR/test.log`
-    
     if [ "$RESULT" = "" ]; then
         for test in $TESTS ; do
             FAILED_TESTS="$FAILED_TESTS $test"
         done
     else
-        # Then run all tests with restored large repository
+        # Run all tests with restored large repository
         for test in $TESTS ; do
             # Only run the large data tests
             if [ `echo $test | grep PerfLargeData` ]; then
