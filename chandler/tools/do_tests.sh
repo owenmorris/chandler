@@ -377,6 +377,12 @@ else
             break
         done
 
+        rm -fr $PC_DIR/__repository__.0*
+        REPO=$PC_DIR/__repository__.001
+        if [ "$OSTYPE" = "cygwin" ]; then
+            REPO=`cygpath -w $REPO`
+        fi
+
         # First run tests with empty repository
         for test in $TESTS ; do
             rm -f $TIME_LOG
@@ -413,32 +419,12 @@ else
             fi
         done
 
-        echo -n Creating a large repository backup for the remaining tests
-        rm -fr $PC_DIR/__repository__.0*
-        REPO=$PC_DIR/__repository__.001
-        BACKUP_REPO=$C_DIR/tools/QATestScripts/Performance/LargeDataBackupRepository.py
-        if [ "$OSTYPE" = "cygwin" ]; then
-            REPO=`cygpath -w $REPO`
-            BACKUP_REPO=`cygpath -w $BACKUP_REPO`
-        fi
-
-        cd $C_DIR
-        $CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$BACKUP_REPO" &> $TESTLOG
-
-        # scan the test output for the success message "OK"
-        RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
-
-        cat $TESTLOG >> $PERF_LOG
-
         if [ "$RESULT" = "" ]; then
             for test in $TESTS ; do
                 FAILED_TESTS="$FAILED_TESTS $test"
             done
         else
-            # Show the time it took to create backup
-            echo \ \[`<$TIME_LOG`s\]
-
-            # Then run large data tests with restored large repository
+            # Run large data tests with restored large repository
             for test in $TESTS ; do
                 rm -f $TIME_LOG
 
