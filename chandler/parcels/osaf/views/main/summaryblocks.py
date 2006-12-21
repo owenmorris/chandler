@@ -123,54 +123,36 @@ class WhoAttributeEditor(attributeEditors.StringAttributeEditor):
             
         return (prefix, theText, isSample)
 
-class TriageAttributeEditor(attributeEditors.BaseAttributeEditor):
+class TriageAttributeEditor(attributeEditors.IconAttributeEditor):
     # Set this to '' to show/edit the "real" triageStatus everywhere.
     editingAttribute = 'unpurgedTriageStatus'
 
-    def Draw (self, grid, dc, rect, (item, attributeName), isInSelection=False):
-        # Get the value we'll draw, and its label
-        item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
-        value = getattr(item, self.editingAttribute or attributeName, '')
-        label = (pim.getTriageStatusName(value).upper() if value else u'')
+    def makeStates(self):
+        # The state name has the state in lowercase, which matches the "name"
+        # attribute of the various TriageEnums. The state values are mixed-case,
+        # which matches the actual icon filenames.
+        states = [ BitmapInfo(stateName="Triage.%s" % s.lower(),
+                       normal="Triage%s" % s,
+                       selected="Triage%s" % s,
+                       rollover="Triage%sRollover" % s,
+                       rolloverselected="Triage%sRollover" % s,
+                       mousedown="Triage%sMousedown" % s,
+                       mousedownselected="Triage%sMousedown" % s)
+                   for s in "Now", "Later", "Done" ]
+        return states
+        
+    def GetAttributeValue(self, item, attributeName):
+        # Determine what state this item is in. 
+        value = getattr(item, self.editingAttribute or attributeName)
+        return value
 
-        # Paint our box in the right color
-        backgroundColor = styles.cfg.get('summary', 'SectionSample_%s_%s'
-                                         % (attributeName, value)) or '#000000'
-        dc.SetPen(wx.WHITE_PEN)
-        brush = wx.Brush(backgroundColor, wx.SOLID)
-        dc.SetBrush(brush)
-        dc.DrawRectangleRect(rect)
-
-        # Draw the text
-        dc.SetBackgroundMode (wx.TRANSPARENT)
-        dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(Styles.getFont(grid.blockItem.triageStatusCharacterStyle))
-        (labelWidth, labelHeight, labelDescent, ignored) = dc.GetFullTextExtent(label)
-        labelTop = rect.y + ((rect.height - labelHeight) / 2)
-        labelLeft = rect.x + ((rect.width - labelWidth) / 2)
-        dc.DrawText(label, labelLeft, labelTop)
-
-    def OnMouseChange(self, event):
-        """
-        Handle live changes of mouse state related to our cell; return True
-        if we want the mouse captured for future updates.
-        """
-        # Note down-ness changes; eat the event if the downness changed, and
-        # trigger an advance if appropriate.
-        isDown = event.LeftDown()
-        if isDown != getattr(self, 'wasDown', False):
-            if not isDown and event.isInCell:
-                item, attributeName = event.getCellValue()
-                attributeName = self.editingAttribute or attributeName
-                oldValue = self.GetAttributeValue(item, attributeName)
-                newValue = pim.getNextTriageStatus(oldValue)
-                self.SetAttributeValue(item, attributeName, newValue)
-                event.Skip(False) # Eat the event
-            if isDown:
-                self.wasDown = True
-            else:
-                del self.wasDown
-        return False # we don't want capture
+    def mapValueToIconState(self, value):
+        return "Triage.%s" % value.name
+    
+    def advanceState(self, item, attributeName):
+        oldValue = getattr(item, self.editingAttribute or attributeName)
+        newValue = pim.getNextTriageStatus(oldValue)
+        self.SetAttributeValue(item, self.editingAttribute or attributeName, newValue)        
 
     def ReadOnly (self, (item, attribute)):
         # @@@ For now, treat recurring events as readOnly.
@@ -605,7 +587,7 @@ def makeSummaryBlocks(parcel):
         icon = 'ColHTriageStatus',
         useSortArrows = False,
         defaultSort = True,
-        width = 40,
+        width = 42,
         scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
         collapsedSections=set([str(pim.TriageEnum.later), str(pim.TriageEnum.done)]), 
         attributeName = 'triageStatus',
