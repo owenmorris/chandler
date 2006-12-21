@@ -134,6 +134,19 @@ class EIMMLSerializer(object):
                                 "{%s}%s" % (record.URI, field.name))
                         fieldElement.text = serialized
 
+            for record in list(recordSet.exclusions):
+                recordElement = SubElement(recordSetElement,
+                    "{%s}record" % (record.URI), deleted="true")
+
+                for field in record.__fields__:
+                    if isinstance(field, sharing.key):
+                        value = record[field.offset]
+                        serialized = serializeValue(field.typeinfo,
+                            record[field.offset])
+                        fieldElement = SubElement(recordElement,
+                            "{%s}%s" % (record.URI, field.name), key="true")
+                        fieldElement.text = serialized
+
         return tostring(recordsElement)
 
     @classmethod

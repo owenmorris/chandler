@@ -6,7 +6,8 @@ Serializing Values
 First define a record type::
 
     >>> from osaf import sharing
-    >>> from osaf.sharing import eimml, recordset_conduit
+    >>> from osaf.sharing import ( eimml, recordset_conduit,
+    ...                            RecordSet as rs, NoChange as nc )
     >>> from PyICU import ICUtzinfo
     >>> import datetime, decimal
     >>> from repository.persistence.RepositoryView import NullRepositoryView
@@ -65,7 +66,7 @@ Serialize and deserialize entire record sets using EIMMLSerializerLite::
     ... </eim:recordset>
     ... </eim:records>'''
 
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)])}
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)])}
 
     >>> recordSets = eimml.EIMMLSerializerLite.deserialize(sampleLite)
     >>> recordSets == expectedRecordSets
@@ -120,6 +121,13 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
 
     >>> recordSets = eimml.EIMMLSerializer.deserialize(text)
     >>> recordSets == expectedRecordSets
+    True
+
+Any records in a recordset's exclusions are serialized as deletions::
+
+    >>> deletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs(set([]), set([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None)]))}
+    >>> text = eimml.EIMMLSerializer.serialize(deletion)
+    >>> text == '<ns0:records xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record deleted="true" xmlns:ns1="http://osafoundation.org/eim/item"><ns1:uuid key="true">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid></ns1:record></ns0:recordset></ns0:records>'
     True
 
 
@@ -202,7 +210,7 @@ created::
     >>> text = conduit.get()
     >>> conduit.syncToken
     3
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)]), '9501de14-1dc9-40d4-a7d4-f289feff8214': sharing.RecordSet([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)]) }
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)]), '9501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED', None)]) }
     >>> recordSets = eimml.EIMMLSerializerLite.deserialize(text)
     >>> recordSets == expectedRecordSets
     True
@@ -218,8 +226,6 @@ The RecordSetConduit class has a merge method which will compare inbound
 and outbound changes, merge the non-overlapping changes, and return the
 set of records to send outbound, the set of records to apply locally, and
 the local changes that were lost due to conflict::
-
-    >>> from osaf.sharing import RecordSet as rs, NoChange as nc
 
     >>> barFilter = sharing.Filter('cid:bar-filter@osaf.us', u"Bars")
     >>> bazFilter = sharing.Filter('cid:baz-filter@osaf.us', u"Bazzes")
