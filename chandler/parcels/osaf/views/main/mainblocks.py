@@ -171,7 +171,7 @@ def makeMainView(parcel):
             ToolbarItem.template('ApplicationBarSearchField',
                 event = main.Search,
                 title = u'',
-                toolbarItemKind = 'Text',
+                toolbarItemKind = 'Search',
                 helpString = _(u'Search field - enter text to find')),
              ToolbarItem.template('ApplicationSeparator3',
                 toolbarItemKind = 'Separator'),

@@ -978,7 +978,7 @@ class wxTextCtrl(wx.TextCtrl):
         super (wxTextCtrl, self).onDestroy(event)
 
 class toolbarItemKindEnumType(schema.Enumeration):
-    values = "Button", "Separator", "Check", "Radio", "Text", "Combo", "Choice", "Status"
+    values = "Button", "Separator", "Check", "Radio", "Text", "Search", "Combo", "Choice", "Status"
 
 class ToolbarItem(Block.Block, DynamicChild):
     """
@@ -1079,6 +1079,16 @@ class ToolbarItem(Block.Block, DynamicChild):
                                 wx.TE_PROCESS_ENTER)
             tool.SetName(self.title)
             theToolbar.AddControl (tool)
+            tool.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand, id=id)
+        elif self.toolbarItemKind == 'Search':
+            # unlike other Toolbar items, a 'text' item actually creates a
+            # real wx control
+            tool = wx.SearchCtrl (theToolbar, id, "Search",
+                                wx.DefaultPosition,
+                                size=(250,-1),
+                                style=wx.TE_PROCESS_ENTER)
+            tool.SetName(self.title)
+            theToolbar.AddControl(tool)
             tool.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand, id=id)
         elif self.toolbarItemKind == 'Combo':
             proto = self.prototype
