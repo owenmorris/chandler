@@ -28,7 +28,7 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)3.tar.gz \
            $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)10.tar.gz \
            $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-458-$(BP)3.tar.gz \
+           $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.17-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-66-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-7-$(BP)1.tar.gz \
