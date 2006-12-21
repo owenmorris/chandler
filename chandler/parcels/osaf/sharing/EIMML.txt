@@ -290,7 +290,7 @@ Merge non-overlapping inbound and outbound changes::
     >>> rsNewBase =   { '1' : rs([Demo(1, 3, 2)]) }
     >>> inboundDiff = { '1' : rs([Demo(1, 1, 3)]) }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 3, 3)]))}
+    >>> toSend == {'1': rs(set([Demo(1, 3, nc)]))}
     True
     >>> toApply == {'1': rs(set([Demo(1, nc, 3)]))}
     True
@@ -304,7 +304,7 @@ Merge overlapping and non-overlapping inbound and outbound changes::
     >>> rsNewBase =   { '1' : rs([Demo(1, 4, 4)]) }
     >>> inboundDiff = { '1' : rs([Demo(1, 5, 3)]) }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 5, 4)]))}
+    >>> toSend == {'1': rs(set([Demo(1, nc, 4)]))}
     True
     >>> toApply == {'1': rs(set([Demo(1, 5, nc)]))}
     True
@@ -333,7 +333,7 @@ Add in a filter, make a local change and no inbound changes::
     >>> rsNewBase = { '1' : rs([Demo(1, 6, 8)]) }
     >>> inboundDiff = { }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 5, 8)]))}
+    >>> toSend == {'1': rs(set([Demo(1, nc, 8)]))}
     True
     >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,8)]))
     True
@@ -447,7 +447,7 @@ will send only the remaining record::
     >>> rsNewBase =   { '1' : rs(set([Demo2(1,2,2)])) }
     >>> inboundDiff = { }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1' : rs(set([Demo2(1,2,2)])) }
+    >>> toSend == {'1' : rs(set([]), set([Demo(1,1,1)])) }
     True
     >>> conduit.getRecordSet('1') == rs(set([Demo2(1,2,2)]))
     True
@@ -459,7 +459,7 @@ but record adding and deleting need to be idempotent anyway, so it's ok::
     >>> rsNewBase =   { '1' : rs() }
     >>> inboundDiff =   { '1' : rs() }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == { }
+    >>> toSend == {'1' : rs(set([]), set([Demo2(1,2,2)]))} # will be a no-op
     True
     >>> toApply == {'1' : rs(set([]), set([Demo2(1,2,2)]))} # will be a no-op
     True
