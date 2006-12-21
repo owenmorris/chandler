@@ -1,16 +1,13 @@
 
-# r458 == M2Crypto 0.16
-VERSION=458
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
+VERSION=0.17
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
 BUILD=build_$(SNAP)
 TARBALL=m2crypto-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
 
-apply: patches
-	patch -Nup0 < patches || true
-	cd $(SRC); patch -Nup0 < ../bug7068.diff || true
+apply:
 
 
 ifeq ($(OS),Cygwin)
@@ -22,7 +19,7 @@ build: expand apply
                     --library-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/lib` \
                     --include-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/include` \
           build --build-base=$(BUILD) $(DIST_OPT) \
-          install --force
+          install_lib --force
 
 else
 build: expand apply
@@ -33,15 +30,15 @@ build: expand apply
                     --library-dirs=$(BUILD_ROOT)/$(SNAP)/lib \
                     --include-dirs=$(BUILD_ROOT)/$(SNAP)/include \
           build --build-base=$(BUILD) $(DIST_OPT) \
-          install --force
+          install_lib --force
 
 endif
 
 tests:
-	cd $(SRC)/tests; $(PYTHON) alltests.py
+	cd $(SRC)/; $(PYTHON) setup.py test -q
 
 M2Crypto-$(VERSION).tar.gz:
-	svn export -r $(VERSION) http://svn.osafoundation.org/m2crypto/trunk M2Crypto-$(VERSION)
+	svn export http://svn.osafoundation.org/m2crypto/tags/$(VERSION) M2Crypto-$(VERSION)
 	tar czf M2Crypto-$(VERSION).tar.gz M2Crypto-$(VERSION)
 
 sources: M2Crypto-$(VERSION).tar.gz
