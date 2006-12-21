@@ -1787,6 +1787,13 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         if itemDateTime.tzinfo is not None:
             itemDateTime = itemDateTime.astimezone(ICUtzinfo.default)
 
+        # Is this date the start time of an anytime or allday event?
+        # (We won't want to show the time if so, bug 7325)
+        hideTime = False
+        if attributeName == 'displayDate' and item.displayDateSource == 'startTime':
+            event = pim.EventStamp(item)
+            hideTime = event.allDay or event.anyTime
+
         itemDate = itemDateTime.date()
         today = datetime.today()
         todayDate = today.date()
@@ -1795,7 +1802,8 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         preferDate = True
         if itemDate == todayDate:
             # Today? say so, and show the time if we only have room for one value
-            preferDate = False
+            # (unless it's allDay/anyTime)
+            preferDate = hideTime
             dateString = _(u'Today')
         elif itemDate == (today + timedelta(days=-1)).date(): 
             # Yesterday? say so.
@@ -1810,7 +1818,7 @@ class DateTimeAttributeEditor(StringAttributeEditor):
 
         if dateString is None:
             dateString = pim.mediumDateFormat.format(itemDateTime)
-        if timeString is None:
+        if timeString is None and not hideTime:
             timeString = pim.shortTimeFormat.format(itemDateTime)
 
         # Draw inside the lines.
@@ -1819,7 +1827,7 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         dc.SetClippingRect (rect)
         
         dateWidth, ignored = dc.GetTextExtent(dateString)
-        timeWidth, ignored = dc.GetTextExtent(timeString)
+        timeWidth, ignored = dc.GetTextExtent(timeString) if not hideTime else (0, 0)
         spaceWidth, ignored = dc.GetTextExtent('  ')
 
         # If we don't have room for both values, draw one, clipped if necessary.
@@ -1832,7 +1840,9 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         else:
             # Enough room to draw both            
             dc.DrawText(dateString, rect.x + 1, rect.y + 1)
-            dc.DrawText(timeString, rect.x + rect.width - (timeWidth + 2), rect.y + 1)
+            if not hideTime:
+                dc.DrawText(timeString, rect.x + rect.width - (timeWidth + 2), 
+                            rect.y + 1)
         
         dc.DestroyClippingRegion()
             
