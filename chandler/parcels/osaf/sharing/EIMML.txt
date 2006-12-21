@@ -125,10 +125,18 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
 
 Any records in a recordset's exclusions are serialized as deletions::
 
-    >>> deletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs(set([]), set([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None)]))}
-    >>> text = eimml.EIMMLSerializer.serialize(deletion)
+    >>> recordDeletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs(set([]), set([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=ICUtzinfo.getInstance('UTC')), None)]))}
+    >>> text = eimml.EIMMLSerializer.serialize(recordDeletion)
     >>> text == '<ns0:records xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record deleted="true" xmlns:ns1="http://osafoundation.org/eim/item"><ns1:uuid key="true">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid></ns1:record></ns0:recordset></ns0:records>'
     True
+
+To indicate that item has been deleted, pass None instead of a recordset::
+
+    >>> itemDeletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214' : None }
+    >>> text = eimml.EIMMLSerializer.serialize(itemDeletion)
+    >>> text == '<ns0:records xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset deleted="true" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" /></ns0:records>'
+    True
+
 
 
 Persisting RecordSets
@@ -465,7 +473,7 @@ but record adding and deleting need to be idempotent anyway, so it's ok::
     >>> rsNewBase =   { '1' : rs() }
     >>> inboundDiff =   { '1' : rs() }
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1' : rs(set([]), set([Demo2(1,2,2)]))} # will be a no-op
+    >>> toSend == {'1' : None} # an item deletion indicator
     True
     >>> toApply == {'1' : rs(set([]), set([Demo2(1,2,2)]))} # will be a no-op
     True

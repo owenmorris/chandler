@@ -114,38 +114,49 @@ class EIMMLSerializer(object):
         recordsElement = Element("{%s}records" % eimURI)
 
         for uuid, recordSet in recordSets.iteritems():
-            recordSetElement = SubElement(recordsElement,
-                "{%s}recordset" % eimURI, uuid=uuid)
 
-            for record in list(recordSet.inclusions):
-                recordElement = SubElement(recordSetElement,
-                    "{%s}record" % (record.URI))
+            if recordSet is not None:
 
-                for field in record.__fields__:
-                    value = record[field.offset]
-                    if value is not None:
-                        serialized = serializeValue(field.typeinfo,
-                            record[field.offset])
-                        if isinstance(field, sharing.key):
-                            fieldElement = SubElement(recordElement,
-                                "{%s}%s" % (record.URI, field.name), key="true")
-                        else:
-                            fieldElement = SubElement(recordElement,
-                                "{%s}%s" % (record.URI, field.name))
-                        fieldElement.text = serialized
+                recordSetElement = SubElement(recordsElement,
+                    "{%s}recordset" % eimURI, uuid=uuid)
 
-            for record in list(recordSet.exclusions):
-                recordElement = SubElement(recordSetElement,
-                    "{%s}record" % (record.URI), deleted="true")
+                for record in list(recordSet.inclusions):
+                    recordElement = SubElement(recordSetElement,
+                        "{%s}record" % (record.URI))
 
-                for field in record.__fields__:
-                    if isinstance(field, sharing.key):
+                    for field in record.__fields__:
                         value = record[field.offset]
-                        serialized = serializeValue(field.typeinfo,
-                            record[field.offset])
-                        fieldElement = SubElement(recordElement,
-                            "{%s}%s" % (record.URI, field.name), key="true")
-                        fieldElement.text = serialized
+                        if value is not None:
+                            serialized = serializeValue(field.typeinfo,
+                                record[field.offset])
+                            if isinstance(field, sharing.key):
+                                fieldElement = SubElement(recordElement,
+                                    "{%s}%s" % (record.URI, field.name),
+                                    key="true")
+                            else:
+                                fieldElement = SubElement(recordElement,
+                                    "{%s}%s" % (record.URI, field.name))
+                            fieldElement.text = serialized
+
+                for record in list(recordSet.exclusions):
+                    recordElement = SubElement(recordSetElement,
+                        "{%s}record" % (record.URI), deleted="true")
+
+                    for field in record.__fields__:
+                        if isinstance(field, sharing.key):
+                            value = record[field.offset]
+                            serialized = serializeValue(field.typeinfo,
+                                record[field.offset])
+                            fieldElement = SubElement(recordElement,
+                                "{%s}%s" % (record.URI, field.name),
+                                key="true")
+                            fieldElement.text = serialized
+
+            else: # item deletion indicated
+
+                recordSetElement = SubElement(recordsElement,
+                    "{%s}recordset" % eimURI, uuid=uuid, deleted="true")
+
 
         return tostring(recordsElement)
 

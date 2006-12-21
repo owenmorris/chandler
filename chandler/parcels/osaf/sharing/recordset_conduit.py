@@ -112,7 +112,10 @@ class RecordSetConduit(conduits.BaseConduit):
             rsOld = self.getRecordSet(itemUUID)
             dOutbound = filter.sync_filter(rs) - filter.sync_filter(rsOld)
             if dOutbound:
-                toSend[itemUUID] = dOutbound
+                if rsNewBase[itemUUID].inclusions:
+                    toSend[itemUUID] = dOutbound
+                else: # deleted item
+                    toSend[itemUUID] = None # marker indicating deletion
                 rsOld += dOutbound
                 self.saveRecordSet(itemUUID, rsOld)
 
