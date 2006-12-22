@@ -54,25 +54,20 @@ class CommunicationColumnIndexDefinition(pim.MethodIndexDefinition):
         ('triageStatusChanged', 0)
     )
     def compare(self, u1, u2):
-    
-        def readUnreadNeedsReplyState(read, needsReply):
+        def getCompareTuple(uuid):
+            read, needsReply, triage, triageChanged = \
+                self.itsView.findValues(uuid, *self.findParams)
+            
             if not read:
-                return 0
-            if needsReply:
-                return 1
-            return 2
+                readUnreadNeedsReplyState = 0
+            elif needsReply:
+                readUnreadNeedsReplyState = 1
+            else:
+                readUnreadNeedsReplyState = 2
+                
+            return (readUnreadNeedsReplyState, triage, triageChanged)
 
-    
-        attrs = (('read', False),
-                 ('needsReply', False),
-                 ('triageStatus', pim.TriageEnum.done),
-                 ('triageStatusChanged', 0))
-                 
-        values1 = self.itsView.findValues(u1, *self.findParams)
-        values2 = self.itsView.findValues(u2, *self.findParams)
-        
-        return (cmp(not values1[0], not values2[0]) or
-                cmp(values1[1:], values2[1:]))
+        return cmp(getCompareTuple(u1), getCompareTuple(u2))
     
 def compareForDashboardCalendarColumn(item1, item2):
     def remState(item):
