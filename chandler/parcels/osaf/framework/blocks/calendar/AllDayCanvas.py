@@ -276,8 +276,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if self.dragState.dragged:
             (startTime, endTime) = self.GetDragAdjustedTimes()
             duration = endTime - startTime
-            (startTime, endTime) = self.GetDragAdjustedTimes()
-            duration = endTime - startTime
             stampedProxy = Calendar.EventStamp(proxy)
             stampedProxy.duration = duration
             stampedProxy.startTime = startTime
@@ -315,6 +313,26 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         self.FinishDrag()
         self.RebuildCanvasItems(resort=True)
 
+    def GetDragAdjustedStartTime(self, tzinfo):
+        """
+        Get the number of columns the item has been dragged and adjust start
+        time appropriately, allowing start time to be before the beginning of
+        the canvas item (the beginning of the canvas item can't start before
+        the beginning of the week in week view).  Or fall back to the drag position's start time
+        if the item's been dragged from somewhere else (like the timed canvas).
+
+        """
+        dragState = self.dragState
+        if dragState is None or not hasattr(dragState, 'dragOffset'):
+            return
+
+        event  = dragState.originalDragBox.event
+        origin = dragState.originalDragBox.GetDragOrigin()
+
+        currentDate  = self.getDayFromPosition(dragState.currentPosition)
+        originalDate = self.getDayFromPosition(dragState._originalPosition)
+
+        return event.startTime + (currentDate - originalDate)
 
     def GetDragAdjustedTimes(self):
         """
@@ -457,7 +475,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
     expandedHeight = property(GetExpandedHeight)
     
     def GetCanvasItem(self, item, dayStart, dayEnd, gridRow):
-        size = self.GetSize()
         calendarBlock = self.blockItem
 
         startX, width = self.getColumnForDay(dayStart, dayEnd)

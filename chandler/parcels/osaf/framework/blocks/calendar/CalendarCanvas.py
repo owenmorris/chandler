@@ -1554,6 +1554,19 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
 
         return result
 
+    def getDayFromPosition(self, position):
+        """Determine the day from the given position, return a date."""
+        startDay = self.blockItem.rangeStart.date()
+        if self.blockItem.dayMode:
+            return startDay
+        else:
+            drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+            # find the first column holding position.x
+            # subtract one to ignore the "Week" column, plus one more because
+            # bisect will skip over the lower pixel boundary for the column
+            deltaDays = bisect(drawInfo.columnPositions, position.x) - 2
+            return startDay + timedelta(deltaDays)
+            
     def getDateTimeFromPosition(self, position, tzinfo=None, mustBeInBounds=True):
         """
         Calculate the date based on the x,y coordinates on the canvas.
@@ -1563,24 +1576,12 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         """
 
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
-        position = \
-            self.getBoundedPosition(position, drawInfo, mustBeInBounds)
+        position = self.getBoundedPosition(position, drawInfo, mustBeInBounds)
 
+        midnight = time(0, tzinfo = ICUtzinfo.default)
+        newDay = datetime.combine(self.getDayFromPosition(position), midnight)
+        newTime = newDay + self.getRelativeTimeFromPosition(drawInfo, position)
 
-        # find the first column holding position.x
-        if self.blockItem.dayMode:
-            deltaDays = 0
-        else:
-            # get the index of the nearest column
-            deltaDays = bisect(drawInfo.columnPositions, position.x) - 1
-            deltaDays -= 1 # subtract one to ignore the "Week" column
-            
-        startDay = self.blockItem.rangeStart
-        deltaDays = timedelta(days=deltaDays)
-        deltaTime = self.getRelativeTimeFromPosition(drawInfo, position)
-        newTime = startDay + deltaDays + deltaTime
-
-        newTime = newTime.replace(tzinfo=ICUtzinfo.default)
         if tzinfo:
             newTime = newTime.astimezone(tzinfo)
         return newTime
