@@ -185,7 +185,7 @@ class TimezoneTable(wx.grid.PyGridTableBase):
         
         if colName == 'checked':
             nameColumn  = colData['name']['sort']
-            name = self.data[row][nameColumn]                    
+            name = self.data[row][nameColumn]
             # ^ is XOR, note that int(True) == 1
             return value ^ self.changed.get(name, 0)
         elif colName == 'offset':
@@ -202,6 +202,8 @@ class TimezoneTable(wx.grid.PyGridTableBase):
             return value
 
     def Toggle(self, row):
+        if row == self.unexpandedSize:
+            return # ignore the buffer row
         nameColumn  = colData['name']['sort']
         name = self.data[row][nameColumn]
         self.changed[name] = not self.changed.get(name, False)

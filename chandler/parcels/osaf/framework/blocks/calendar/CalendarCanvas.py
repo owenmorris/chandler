@@ -892,15 +892,15 @@ class CalendarEventHandler(object):
         choiceIndex = control.GetSelection()
         if choiceIndex != -1:
             view = self.blockItem.itsView
-            
+            oldTZ = TimeZoneInfo.get(view).default
             newTZ = control.GetClientData(choiceIndex)
             if newTZ == TimeZoneList.TIMEZONE_OTHER_FLAG:
                 newTZ = TimeZoneList.pickTimeZone(view)
                 if newTZ is None:
-                    newTZ = TimeZoneInfo.get(view).default
+                    newTZ = oldTZ
                 TimeZoneList.buildTZChoiceList(view, control, newTZ)
 
-            if newTZ != TimeZoneInfo.get(view).default:
+            if newTZ != oldTZ:
                 TimeZoneInfo.get(view).default = newTZ
                 view.commit()
                 
