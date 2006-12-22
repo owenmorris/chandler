@@ -2583,12 +2583,13 @@ class IconAttributeEditor (BaseAttributeEditor):
         """
         return getattr(item, attributeName, '')
     
-    def getImageVariation(self, item, attributeName, isReadOnly, isDown, isSelected, isOver):
+    def getImageVariation(self, item, attributeName, isReadOnly, isDown, 
+                          isSelected, isOver, justClicked):
         """ Pick the right variation """
         readOnly = isReadOnly and IconAttributeEditor.readOnlyBit or 0
         selected = isSelected and IconAttributeEditor.selectedBit or 0
         mouseDown = isDown and IconAttributeEditor.mouseDownBit or 0
-        rolledOver = isOver and IconAttributeEditor.rolledOverBit or 0
+        rolledOver = (not justClicked and isOver) and IconAttributeEditor.rolledOverBit or 0
         return IconAttributeEditor.variationMap[readOnly | selected |
                                                 mouseDown | rolledOver]
 
@@ -2622,10 +2623,8 @@ class IconAttributeEditor (BaseAttributeEditor):
             return # no images for this state (or we didn't get a state value)
 
         imageVariation = self.getImageVariation(item, attributeName, isReadOnly,
-                                                isDown, isInSelection, isOver)
-        #logger.debug("Draw: %s isOver=%s, isDown=%s, isInSel=%s: using %s/%s, variation '%s'", 
-                     #attributeName, isOver, isDown, isInSelection, state, iconState, imageVariation)
-        
+                                                isDown, isInSelection, isOver,
+                                                justClicked)        
         image = getattr(imageSet, imageVariation, None)
         if image is None:
             logger.debug("Hey, missing image!")
@@ -2659,7 +2658,7 @@ class IconAttributeEditor (BaseAttributeEditor):
         if downChanged and advanceStateMethod is not None:
             if isIn and not isDown:
                 advanceStateMethod(item, attributeName)
-                justClicked = True;
+                justClicked = True
             if isDown:
                 self.wasDown = True
             else:
