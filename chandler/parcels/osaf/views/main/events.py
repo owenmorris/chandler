@@ -38,7 +38,8 @@ class SearchEvent(AddToSidebarEvent):
         """
         
         query = query.strip()
-        
+        if query == '':
+            return False
         msgFlag = False
         eventFlag = False
         taskFlag = False
@@ -191,7 +192,7 @@ class SearchEvent(AddToSidebarEvent):
         self.arguments['sender'].widget.SetValue('')
                 
         # Check if the query is a quick item entry or not
-        if (query != None) and (self.parseCommand(query) is False) and (query != ''):
+        if (query != None) and (self.parseCommand(query) is False) and (query.strip() != ''):
             
             if not (query.startswith('/search') or query.startswith('/Search')):
                 # Query is not a valid command
