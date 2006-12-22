@@ -19,9 +19,10 @@ from osaf import pim
 from osaf.framework import attributeEditors
 from util.MultiStateButton import BitmapInfo, MultiStateBitmapCache
 from application.dialogs import RecurrenceDialog
-from chandlerdb.util.c import UUID
 from i18n import ChandlerMessageFactory as _
 import wx.grid
+
+CommunicationStatus = pim.mail.CommunicationStatus
 
 # IndexDefinition subclasses for the dashboard indexes
 # These all create 'compare' indexes for now, and add the comparison function
@@ -45,29 +46,34 @@ class TaskColumnIndexDefinition(pim.IndexDefinition):
                                      pim.ContentItem.triageStatus.name,
                                      pim.ContentItem.triageStatusChanged.name,))
 
-def compareForDashboardCommunicationColumn(item1, item2):
-    def readUnreadNeedsReplyState(item):
-        if not getattr(item, 'read', False):
-            return 0
-        if getattr(item, 'needsReply', False):
-            return 1
-        return 2
-    return (cmp(readUnreadNeedsReplyState(item1), readUnreadNeedsReplyState(item2)) or
-            cmp(getattr(item1, 'triageStatus', pim.TriageEnum.done), 
-                getattr(item2, 'triageStatus', pim.TriageEnum.done)) or
-            cmp(getattr(item1, 'triageStatusChanged', 0), 
-                getattr(item2, 'triageStatusChanged', 0)))
-pim.ContentItem.compareForDashboardCommunicationColumn = compareForDashboardCommunicationColumn
+class CommunicationColumnIndexDefinition(pim.MethodIndexDefinition):
+    findParams = (
+        ('read', False),
+        ('needsReply', False),
+        ('triageStatus', pim.TriageEnum.done),
+        ('triageStatusChanged', 0)
+    )
+    def compare(self, u1, u2):
+    
+        def readUnreadNeedsReplyState(read, needsReply):
+            if not read:
+                return 0
+            if needsReply:
+                return 1
+            return 2
 
-class CommunicationColumnIndexDefinition(pim.IndexDefinition):
-    def makeIndexOn(self, collection):
-        collection.addIndex(self.itsName, 'compare',
-                            compare='compareForDashboardCommunicationColumn',
-                            monitor=(pim.ContentItem.read.name,
-                                     pim.ContentItem.needsReply.name,
-                                     pim.ContentItem.triageStatus.name,
-                                     pim.ContentItem.triageStatusChanged.name,))
-
+    
+        attrs = (('read', False),
+                 ('needsReply', False),
+                 ('triageStatus', pim.TriageEnum.done),
+                 ('triageStatusChanged', 0))
+                 
+        values1 = self.itsView.findValues(u1, *self.findParams)
+        values2 = self.itsView.findValues(u2, *self.findParams)
+        
+        return (cmp(not values1[0], not values2[0]) or
+                cmp(values1[1:], values2[1:]))
+    
 def compareForDashboardCalendarColumn(item1, item2):
     def remState(item):
         if pim.Remindable(item).getUserReminder(expiredToo=True) is not None:
@@ -219,44 +225,6 @@ class ReminderColumnAttributeEditor(attributeEditors.IconAttributeEditor):
         """
         return False
 
-# These flag bits govern the sort position of each communications state:
-# Update     =         1
-# In         =        1
-# Out        =       1
-# Draft      =      1
-# Queued     =     1
-# Sent       =    1
-# NeedsReply =   1
-# Read       =  1
-# Error      = 1
-updateBit = 1
-inBit = updateBit * 2
-outBit = inBit * 2
-draftBit = outBit * 2
-queuedBit = draftBit * 2
-sentBit = queuedBit * 2
-needsReplyBit = sentBit * 2
-readBit = needsReplyBit * 2
-errorBit = readBit * 2
-
-# For each bit, the attribute that contributes to it
-# @@@ The ones given as strings are just placeholders.
-bitSources = (
-    (updateBit, 'isUpdate'),
-    (inBit, 'toMe'),
-    (outBit, 'fromMe'),
-    (draftBit, 'isDraft'),
-    (queuedBit, 'isQueued'),
-    (sentBit, 'isSent'),
-    (needsReplyBit, pim.ContentItem.needsReply.name),
-    (readBit, pim.ContentItem.read.name),
-    (errorBit, 'error'),
-)
-
-# All the attribute names from the above, to use for 
-# monitoring on the index we build
-bitSourceAttributes = map(lambda x: x[1], bitSources)
-
 # Each entry in this list corresponds to a row in the icon grid in 
 # the spec. Each will have "Read", "Unread", and "NeedsReply" tacked on
 # when we ask the domain model.       
@@ -276,47 +244,34 @@ statePairNames = (
     ("Error", True),
 )
 
-def getItemCommState(itemOrUUID):
-    """ Given an item or a UUID, determine its communications state """
-    result = 0
-    if isinstance(itemOrUUID, UUID):
-        values = view.findValues(itemOrUUID, bitSourceAttributes)
-        for (bit, ignored), v in izip(bitSources, values):
-            if v:
-                result |= bit
-    else:        
-        for (bit, attributeName) in bitSources:
-            if getattr(itemOrUUID, attributeName, False):
-                result |= bit
-    return result
-
 def getCommStateName(commState):
     """ Return the actual name for this state """
     
-    read = (commState & readBit) and "Read" or "Unread"
-    needsReply = (commState & needsReplyBit) and "NeedsReply" or ""
+    read = (commState & CommunicationStatus.READ) and "Read" or "Unread"
+    needsReply = (commState & CommunicationStatus.NEEDS_REPLY) and "NeedsReply" or ""
 
     # These don't depend on in vs out, so check them first.
-    if commState & errorBit:
+    if commState & CommunicationStatus.ERROR:
         return "Error%s%s" % (read, needsReply)
-    if commState & queuedBit:
+    if commState & CommunicationStatus.QUEUED:
         return "Queued%s%s" % (read, needsReply)
     
     # Note In vs Out (Out wins if both) vs Plain (if neither, we're done).
-    if commState & outBit:
+    if commState & CommunicationStatus.OUT:
         inOut = "Out"
         #  # and keep going...
-    elif commState & inBit:
+    elif commState & CommunicationStatus.IN:
         inOut = "In"
         # and keep going...
     else:
         return "Plain%s%s" % (read, needsReply)
     
     # We're Out or In -- do Updating and Draft.
-    updating = (commState & updateBit) and "date" or ""
-    draft = (commState & draftBit) and "Draft" or ""    
-    return "%s%s%s%s" % (inOut, updating, draft, needsReply)
-    
+    updating = (commState & CommunicationStatus.UPDATE) and "date" or ""
+    draft = (commState & CommunicationStatus.DRAFT) and "Draft" or ""    
+    return "%s%s%s%s%s" % (inOut, updating, draft, read, needsReply)
+
+        
 class CommunicationsColumnAttributeEditor(attributeEditors.IconAttributeEditor):
     def makeStates(self):
         states = []
@@ -371,8 +326,9 @@ class CommunicationsColumnAttributeEditor(attributeEditors.IconAttributeEditor):
         return state
         
     def GetAttributeValue(self, item, attributeName):
-        # Determine what state this item is in. 
-        return getCommStateName(getItemCommState(item))        
+        # Determine what state this item is in.
+        return getCommStateName(CommunicationStatus(item).status)
+                
 
     def SetAttributeValue(self, item, attributeName, value):
         # Don't bother implementing this - the only changes made in
@@ -523,13 +479,10 @@ def makeSummaryBlocks(parcel):
         useSortArrows=False,
         scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
         readOnly=True,
-        indexName='%s.communicationStatus' % __name__,
-        attributeName='communicationStatus',
-        attributes=[
-            # pim.mail.MailStamp.communicationStatus.name, 
-            pim.ContentItem.triageStatus.name, 
-            pim.ContentItem.triageStatusChanged.name,
-        ])
+        indexName=CommunicationStatus.status.name,
+        attributeName=CommunicationStatus.status.name,
+        baseClass=CommunicationColumnIndexDefinition,
+        attributes=list(dict(CommunicationColumnIndexDefinition.findParams)),)
 
     whoColumn = makeColumnAndIndexes('SumColWho',
         heading=_(u'Who'),

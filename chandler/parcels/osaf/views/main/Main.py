@@ -31,7 +31,7 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
 from repository.item.Item import MissingClass
 from osaf import pim, sharing, messages, webserver, settings
 
-from osaf.pim import Contact, ContentCollection, mail, IndexedSelectionCollection
+from osaf.pim import Contact, ContentCollection, mail, Modification
 from osaf.usercollections import UserCollection
 import osaf.pim.generate as generate
 
@@ -80,7 +80,7 @@ class MainView(View):
     def displayMailError (self, message, account):
         application.dialogs.Util.mailError(wx.GetApp().mainFrame, self.itsView, message, account)
 
-    def displaySMTPSendError (self, mailMessage):
+    def displaySMTPSendError(self, mailMessage):
         """
         Called when the SMTP Send generated an error.
         """
@@ -100,6 +100,8 @@ class MainView(View):
                 errorMessage = _(u"An error occurred while sending:\n%(translatedErrorStrings)s") % {
                                   'translatedErrorStrings': u', '.join(errorStrings)}
 
+            mailMessage.itsItem.error = u', '.join(errorStrings)
+            mailMessage.itsItem.itsView.commit()
 
             """
             Clear the status message.
@@ -115,7 +117,7 @@ class MainView(View):
             self.setStatusMessage (constants.UPLOAD_SENT % \
                                    {'accountName': mailMessage.parentAccount.displayName,
                                    'subject': mailMessage.subject})
-
+            
         # If this was a sharing invitation, find its collection and remove the
         # successfully-notified addressees from the invites list.
         try:
@@ -130,6 +132,11 @@ class MainView(View):
                 invitation = mail.CollectionInvitation(itemCollection)
                 if addresseeContact in invitation.invitees:
                     invitation.invitees.remove(addresseeContact)
+
+        # Probably need to set who here, to point to the
+        # correct email address?
+        mailMessage.itsItem.changeEditState(Modification.sent)
+        mailMessage.itsItem.itsView.commit()
 
     def onAboutEvent(self, event):
         # The "Help | About Chandler..." menu item

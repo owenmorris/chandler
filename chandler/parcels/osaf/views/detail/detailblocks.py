@@ -492,16 +492,6 @@ def makeCalendarArea(parcel, oldVersion):
  
 def makeMailArea(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)    
-    outboundFromArea = \
-        makeArea(parcel, 'OutboundFromArea',
-            baseClass=OutboundOnlyAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'from')),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditMailOutboundFrom',
-                    presentationStyle={'format': 'outbound'},
-                    viewAttribute=MailStamp.fromAddress.name)],
-            position=0.1).install(parcel)
     inboundFromArea = \
         makeArea(parcel, 'InboundFromArea',
             baseClass=InboundOnlyAreaBlock,
@@ -548,6 +538,29 @@ def makeMailArea(parcel, oldVersion):
             position=0.112,
             border=RectType(0, 0, 6, 6)).install(parcel)
 
+    '''
+    sendAsArea = \
+        makeArea(parcel, 'SendAsArea',
+            baseClass=SendAsAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'send as')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditMailOutboundFrom',
+                    presentationStyle={'format': 'outbound'},
+                    viewAttribute=MailStamp.fromAddress.name)],
+            position=0.113).install(parcel)
+    '''
+    outboundFromArea = \
+        makeArea(parcel, 'OutboundFromArea',
+            baseClass=OutboundOnlyAreaBlock,
+            childrenBlocks=[
+                makeLabel(parcel, _(u'send as')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditMailOutboundFrom',
+                    presentationStyle={'format': 'outbound'},
+                    viewAttribute=MailStamp.fromAddress.name)],
+            position=0.113).install(parcel)
+
     #acceptShareButton = \
         #AcceptShareButtonBlock.template('AcceptShareButton').install(parcel)
         ## (We'll flesh out this definition below; we predeclare it for the event.)        
@@ -588,11 +601,11 @@ def makeMailArea(parcel, oldVersion):
             orientationEnum='Vertical',
             position=0.1,
             childrenBlocks = [
-                outboundFromArea, 
                 inboundFromArea, 
                 toArea,
                 ccArea,
                 bccArea,
+                outboundFromArea,
                 # @@@ Disabled until we resume work on sharing invitations
                 # acceptShareButton,
                 # @@@ disabled until we rewrite the attachment AE.
@@ -689,6 +702,26 @@ def makeNoteSubtree(parcel, oldVersion):
     """
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
 
+    bylineArea = \
+        makeArea(parcel, 'BylineArea',
+            baseClass=BylineAEBlock,
+            childrenBlocks=[
+                makeEditor(parcel, 'BylineArea',
+                    viewAttribute='byline',
+                    presentationStyle={'format' : 'static'})],
+            position=0.4,
+            border=RectType(0, 0, 6, 6)).install(parcel)
+
+    errorArea = \
+        makeArea(parcel, 'ErrorArea',
+            baseClass=ErrorAEBlock,
+            childrenBlocks=[
+                makeEditor(parcel, 'ErrorArea',
+                    viewAttribute='error',
+                    presentationStyle={'format' : 'static'})],
+            position=0.4,
+            border=RectType(0, 0, 6, 6)).install(parcel)
+
     # First, the headline AEBlock and the area it sits in
     headlineAEBlock = makeEditor(parcel, 'HeadlineBlock',
                                  viewAttribute=u'displayName',
@@ -769,6 +802,8 @@ def makeNoteSubtree(parcel, oldVersion):
                 ],
             position=0.82).install(parcel)
 
+
+
     # The Note AEBlock
     notesBlock = makeEditor(parcel, 'NotesBlock',
                             viewAttribute=u'body',
@@ -802,9 +837,11 @@ def makeNoteSubtree(parcel, oldVersion):
     makeSubtree(parcel, osaf.pim.Note, [
         makeSpacer(parcel, height=6, position=0.01).install(parcel),
         parcel['MarkupBar'],
+        errorArea,
         headlineArea, 
         makeSpacer(parcel, height=7, baseClass=ReminderSpacerBlock,
                    position=0.809999).install(parcel),
+        bylineArea,
         reminderTypeArea,
         reminderRelativeArea,
         reminderAbsoluteArea,

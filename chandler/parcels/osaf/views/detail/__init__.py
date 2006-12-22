@@ -23,6 +23,7 @@ from detailblocks import (
 )
 
 from detail import (
+    BylineAEBlock,
     CalendarAllDayAreaBlock,
     EventAreaBlock,
     CalendarConditionalLabelBlock,

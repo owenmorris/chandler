@@ -17,14 +17,15 @@
 Classes used for Mail parcel kinds.
 """
 
-__all__ = [
-    'AccountBase', 'DownloadAccountBase', 'EmailAddress', 'IMAPAccount',
-    'IMAPDelivery', 'MIMEBase', 'MIMEBinary', 'MIMEContainer', 'MIMENote',
-    'MIMESecurity', 'MIMEText', 'MailDeliveryBase', 'MailDeliveryError',
-    'MailMessage', 'MailStamp', 'POPAccount', 'POPDelivery', 'SMTPAccount',
-    'SMTPDelivery', 'replyToMessage', 'replyAllToMessage', 'forwardMessage',
-     'getCurrentSMTPAccount', 'getCurrentMailAccount',
-    'ACCOUNT_TYPES']
+__all__ = (
+    'AccountBase', 'CommunicationStatus', 'DownloadAccountBase', 'EmailAddress',
+    'IMAPAccount', 'IMAPDelivery', 'MIMEBase', 'MIMEBinary', 'MIMEContainer',
+    'MIMENote', 'MIMESecurity', 'MIMEText', 'MailDeliveryBase',
+    'MailDeliveryError', 'MailMessage', 'MailStamp', 'POPAccount',
+    'POPDelivery', 'SMTPAccount', 'SMTPDelivery', 'replyToMessage',
+    'replyAllToMessage', 'forwardMessage', 'getCurrentSMTPAccount',
+    'getCurrentMailAccount', 'ACCOUNT_TYPES'
+)
 
 
 import application
@@ -34,7 +35,9 @@ import items, notes, stamping, collections
 import email.Utils as Utils
 import re as re
 import chandlerdb.item.ItemError as ItemError
+from chandlerdb.util.c import UUID
 import PyICU
+
 
 from repository.util.Path import Path
 from i18n import ChandlerMessageFactory as _
@@ -1612,3 +1615,94 @@ ACCOUNT_TYPES = {
     'SMTP': SMTPAccount,
     'IMAP': IMAPAccount,
 }
+
+
+class CommunicationStatus(schema.Annotation):
+    schema.kindInfo(annotates=items.ContentItem)
+
+    # These flag bits govern the sort position of each communications state:
+    # UPDATE      =         1
+    # IN          =        1
+    # OUT         =       1
+    # DRAFT       =      1
+    # QUEUED      =     1
+    # SENT        =    1
+    # NEEDS_REPLY =   1
+    # READ        =  1
+    # ERROR       = 1
+    UPDATE, IN, OUT, DRAFT, QUEUED, SENT, NEEDS_REPLY, READ, ERROR = (
+        1<<n for n in xrange(9)
+    )
+    
+    @staticmethod
+    def getItemCommState(itemOrUUID, view=None):
+        """ Given an item or a UUID, determine its communications state """
+
+        if isinstance(itemOrUUID, UUID):
+            uuid = itemOrUUID
+            assert view is not None, "Need a view for the UUID case!"
+        else:
+            uuid = itemOrUUID.itsUUID
+            view = itemOrUUID.itsView
+        
+        modifiedFlags, lastMod, stampTypes, fromMe, \
+        toMe, needsReply, read, error = \
+            view.findValues(uuid, *(CommunicationStatus.attributeValues))
+
+        result = 0
+        
+        if MailStamp in stampTypes:
+            # update
+            if items.Modification.sent in modifiedFlags:
+                result |= CommunicationStatus.UPDATE
+    
+            # in
+            if toMe:
+                result |= CommunicationStatus.IN
+            # out
+            if fromMe:
+                result |= CommunicationStatus.OUT
+            # draft
+            if lastMod in (None, items.Modification.edited):
+                result |= CommunicationStatus.DRAFT
+            # queued
+            if items.Modification.queued in modifiedFlags:
+                result |= CommunicationStatus.QUEUED
+            # update
+            if items.Modification.sent in modifiedFlags:
+                result |= CommunicationStatus.UPDATE
+            # sent
+            if lastMod in (items.Modification.sent, items.Modification.updated):
+                result |= CommunicationStatus.SENT
+                
+        # needsReply
+        if needsReply:
+            result |= CommunicationStatus.NEEDS_REPLY
+            
+        # read
+        if read:
+            result |= CommunicationStatus.READ
+        
+        # error
+        if error:
+            result |= CommunicationStatus.ERROR
+    
+        return result
+
+    attributeValues = (
+        (items.ContentItem.modifiedFlags, set()),
+        (items.ContentItem.lastModification, None),
+        (stamping.Stamp.stamp_types, set()),
+        (MailStamp.fromMe, False),
+        (MailStamp.toMe, False),
+        (items.ContentItem.needsReply, False),
+        (items.ContentItem.read, True),
+        (items.ContentItem.error, None)
+    )
+    status = schema.Calculated(
+        schema.Integer,
+        basedOn=tuple(t[0] for t in attributeValues),
+        fget=lambda self: self.getItemCommState(self.itsItem),
+    )
+    attributeValues = tuple((attr.name, val) for attr, val in attributeValues)
+

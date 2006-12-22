@@ -67,6 +67,13 @@ triageStatusClickSequence = { TriageEnum.now: TriageEnum.done,
                               TriageEnum.later: TriageEnum.now }
 def getNextTriageStatus(value):
     return triageStatusClickSequence[value]
+    
+class Modification(schema.Enumeration):
+    """
+    Enumeration of the types of modification that are part of
+    the edit/update workflows (a.k.a. "Stamping Storyboards")
+    """
+    values = { "edited":100, "queued":200, "sent":300, "updated":400 }
 
 def isDead(item):
     """
@@ -132,26 +139,76 @@ class ContentItem(schema.Item):
         doc="Link to the contact who created the item."
     )
 
-    modifiedOn = schema.One(
+    modifiedFlags = schema.Many(
+        Modification,
+        initialValue=set([]),
+        description='Used to track the modification state of the item'
+    )
+    
+    lastModified = schema.One(
         schema.DateTimeTZ,
-        doc="DateTime this item was last modified"
+        doc="DateTime (including timezone) this item was last modified",
+        defaultValue=None,
     )
 
     lastModifiedBy = schema.One(
         # Contact
         doc="Link to the contact who last modified the item.",
+        defaultValue=None,
+    )
+    
+    lastModification = schema.One(
+        Modification,
+        doc="What the last modification was"
     )
 
+    def getByline(self):
+        lastModification = getattr(self, 'lastModification', None)
+        
+        if lastModification is None:
+            fmt = _(u"Created by %(user)s on %(date)s")
+        elif lastModification == Modification.edited:
+            fmt = _(u"Edited by %(user)s on %(date)s")
+        elif lastModification == Modification.updated:
+            fmt = _(u"Updated by %(user)s on %(date)s")
+        elif lastModification in (Modification.queued, Modification.sent):
+            fmt = _(u"Sent by %(user)s on %(date)s")
+        else:
+            assert False, \
+                "Unrecognized lastModification value %s" % (lastModification,)
+                
+        user = self.lastModifiedBy or messages.ME
+        # fall back to createdOn
+        lastModified = (self.lastModified or getattr(self, 'createdOn', None) or
+                       datetime.now(ICUtzinfo.default))
+        
+        shortDateFormat = schema.importString("osaf.pim.shortDateFormat")
+        date = shortDateFormat.format(lastModified)
+        
+        return fmt % dict(user=user, date=date)
+        
+    error = schema.One(
+        schema.Text,
+        doc="A user-visible string containing the last error that occurred. "
+            "Typically, this should be set by the sharing or email layers when "
+            "a conflict or delivery problem occurs.",
+        defaultValue=None
+    )
+
+    byline = schema.Calculated(
+        schema.Text,
+        basedOn=(modifiedFlags, lastModified, lastModification, lastModifiedBy),
+        fget=getByline
+    )
+    
     importance = schema.One(ImportanceEnum,
-        doc="Most items are of normal importance (no value need be show), "
+        doc="Most items are of normal importance (no value need be shown), "
             "however some things may be flagged either highly important or "
             "merely 'fyi'. This attribute is also used in the mail schema, so "
             "we shouldn't make any changes here that would break e-mail "
             "interoperability features.",
         initialValue="normal",
     )
-
-    lastModified = schema.One(schema.Text)
 
     mine = schema.One(schema.Boolean, initialValue=True)
 
@@ -344,6 +401,44 @@ class ContentItem(schema.Item):
         """
         return self
 
+    def changeEditState(self, modType=Modification.edited, who=None,
+                        when=None):
+        """
+        @param modType: What kind of modification you are making. Used to set
+                        the value of C{self.lastModification}.
+        @type modType: C{Modification}
+        
+        @param who: May be C{None}, which is interpreted as the current user.
+                    Used to set the value of {self.lastModifiedBy}.
+        @type who: C{Contact}
+        
+        @param when: The date&time of this change. Used to set the value
+                     of C{self.lastModified}. The default, C{None}, sets
+                     the 
+        @type when: C{datetime}
+        """
+        
+        currentModFlags = self.modifiedFlags
+        
+        if modType == Modification.sent:
+            if Modification.sent in currentModFlags:
+                raise ValueError, "You can't send an item twice"
+            elif Modification.queued in currentModFlags:
+                currentModFlags.remove(Modification.queued)
+        elif modType == Modification.updated:
+            if not Modification.sent in currentModFlags:
+                raise ValueError, "You can't update an item till it's been sent"
+        # Clear the edited flag and error on send/update/queue
+        if (modType in (Modification.sent, Modification.updated, 
+                        Modification.queued)):
+            if Modification.edited in currentModFlags:
+                currentModFlags.remove(Modification.edited)
+            del self.error
+
+        currentModFlags.add(modType)
+        self.lastModification = modType
+        self.lastModified = when or datetime.now(ICUtzinfo.default)
+        self.lastModifiedBy = who # None => me
 
     """
     ACCESSORS

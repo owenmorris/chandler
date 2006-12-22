@@ -173,33 +173,32 @@ def getProxy(context, obj, createNew=True, endCallback=None):
     is already a cached proxy for obj.
     
     """
-    if has_stamp(obj, EventStamp):
-        # Don't cache an EventStamp object
-        obj = EventStamp(obj).itsItem
-        if (not _proxies.has_key(context) or
-            _proxies[context][0] != obj.itsUUID):
-            if createNew:
-                logger.info('creating proxy in context: %s, for uuid: %s' % (context, obj.itsUUID))
-                proxy = OccurrenceProxy(obj)
-                _proxies[context] = (obj.itsUUID, proxy)
-            else:
-                return obj
+    obj = Stamp(obj).itsItem
+    if (not _proxies.has_key(context) or
+        _proxies[context][0] != obj.itsUUID):
+        if createNew:
+            logger.info('creating proxy in context: %s, for uuid: %s' % (context, obj.itsUUID))
+            proxy = UserChangeProxy(obj)
+            _proxies[context] = (obj.itsUUID, proxy)
+            return proxy
         else:
-            # We've already got a proxy for this item - we'll reuse it.
-            proxy = _proxies[context][1]
-            
-            # [Bug 7034]
-            # It's possible for proxiedItem to have gone stale; this
-            # happens sometimes in Tinderbox testing, where a collection
-            # is deleted and re-subscribed to (since Cloud XML sharing
-            # preserves UUIDs).
-            if proxy.proxiedItem.isStale():
-                proxy.proxiedItem = obj
-            
-            # Before we return it, update its __class__ in case it was stamped
-            # since the last time it got used. (see bug 4660)
-            # @@@ [grant] unnecessary in the stamping-as-annotation world
-            proxy.__class__ = obj.__class__
+            return obj
+    else:
+        # We've already got a proxy for this item - we'll reuse it.
+        proxy = _proxies[context][1]
+        
+        # [Bug 7034]
+        # It's possible for proxiedItem to have gone stale; this
+        # happens sometimes in Tinderbox testing, where a collection
+        # is deleted and re-subscribed to (since Cloud XML sharing
+        # preserves UUIDs).
+        if proxy.proxiedItem.isStale():
+            proxy.proxiedItem = obj
+        
+        # Before we return it, update its __class__ in case it was stamped
+        # since the last time it got used. (see bug 4660)
+        # @@@ [grant] unnecessary in the stamping-as-annotation world
+        proxy.__class__ = obj.__class__
 
         # sometimes a cancel requires that some UI element needs to
         # be "reset" to the original state.. so queue up the cancel changes
@@ -207,16 +206,15 @@ def getProxy(context, obj, createNew=True, endCallback=None):
             endCallback not in proxy.endCallbacks):
             proxy.endCallbacks.append(endCallback)
         return proxy
-    else:
-        return obj
 
-
-class OccurrenceProxy(object):
-    """Proxy which pops up a RecurrenceDialog when it's changed."""
+class UserChangeProxy(object):
+    """Proxy which records user changes to an item, by marking them at commit time."""
     __class__ = 'temp'
-    proxyAttributes = 'proxiedItem', 'currentlyModifying', '__class__', \
-                      'dialogUp', 'changeBuffer', 'endCallbacks', \
-                      EventStamp.IGNORE_CHANGE_ATTR
+    proxyAttributes = (
+        'proxiedItem', 'currentlyModifying', '__class__',
+        'dialogUp', 'changeBuffer', 'endCallbacks',
+         EventStamp.IGNORE_CHANGE_ATTR,
+    )
 
     
     def __init__(self, item):
@@ -266,8 +264,10 @@ class OccurrenceProxy(object):
     def __setattr__(self, name, value):
         if name in self.proxyAttributes:
             object.__setattr__(self, name, value)
-        elif EventStamp(self.proxiedItem).rruleset is None:
+        elif (not has_stamp(self.proxiedItem, EventStamp) or
+              EventStamp(self.proxiedItem).rruleset is None):
             setattr(self.proxiedItem, name, value)
+            self.proxiedItem.changeEditState()
         else:
             testedEqual = False
             
@@ -408,28 +408,31 @@ class OccurrenceProxy(object):
 
     
     def propagateChange(self, name, value):
-        proxiedEvent = EventStamp(self.proxiedItem)
-        
-        master = proxiedEvent.getMaster()
-        isFirst = (proxiedEvent != master and
-                   proxiedEvent.recurrenceID == master.effectiveStartTime)
+        if has_stamp(self.proxiedItem, EventStamp):
+            proxiedEvent = EventStamp(self.proxiedItem)
             
-        
-        table = {'this'          : proxiedEvent.changeThis,
-                 'thisandfuture' : proxiedEvent.changeThisAndFuture}
-        table[self.currentlyModifying](name, value)
-        
-        # If the recurrence change caused our item to get deleted, and
-        # we were the first occurrence, try to make our item point to
-        # the new occurrence instead. This takes care of the case where
-        # the recurrence proxy has been asked to make two THISANDFUTURE
-        # changes on an event, like Bug 7448.
-        #
-        if isDead(self.proxiedItem) and isFirst and not isDead(master.itsItem):
-            newEvent = master.getRecurrenceID(master.effectiveStartTime)
+            master = proxiedEvent.getMaster()
+            isFirst = (proxiedEvent != master and
+                       proxiedEvent.recurrenceID == master.effectiveStartTime)
+                
             
-            if newEvent is not None:
-                self.proxiedItem = newEvent.itsItem
+            table = {'this'          : proxiedEvent.changeThis,
+                     'thisandfuture' : proxiedEvent.changeThisAndFuture}
+            table[self.currentlyModifying](name, value)
+            
+            # If the recurrence change caused our item to get deleted, and
+            # we were the first occurrence, try to make our item point to
+            # the new occurrence instead. This takes care of the case where
+            # the recurrence proxy has been asked to make two THISANDFUTURE
+            # changes on an event, like Bug 7448.
+            #
+            if isDead(self.proxiedItem) and isFirst and not isDead(master.itsItem):
+                newEvent = master.getRecurrenceID(master.effectiveStartTime)
+                
+                if newEvent is not None:
+                    self.proxiedItem = newEvent.itsItem
+
+        self.proxiedItem.changeEditState() # Mark it edited
 
     def propagateDelete(self, collection):
         proxiedEvent = EventStamp(self.proxiedItem)

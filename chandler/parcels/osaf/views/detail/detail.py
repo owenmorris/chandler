@@ -39,7 +39,6 @@ from osaf.pim.tasks import TaskStamp
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.calendar.Recurrence as Recurrence
 from osaf.pim.calendar import TimeZoneInfo
-from osaf.pim.contacts import ContactName
 from osaf.pim.collections import ListCollection
 from osaf.pim import ContentItem
 import application.dialogs.Util as Util
@@ -349,10 +348,12 @@ class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
                 self.setFiringTime(None)
             
     def onUnreadTimeoutEvent(self, event):
-        item = getattr(self, 'item', None) 
+        # We change self.contents here because we want the unproxied item
+        # (i.e. we don't want this showing up as a user edit).
+        item = getattr(self, 'contents', None) 
         if item is not None:
             logger.debug("Clearing unread flag for %s", debugName(item))
-            self.item.read = True
+            item.read = True
     
 class StaticTextLabel(DetailSynchronizer, ControlBlocks.StaticText):
     def staticTextLabelValue(self, item):
@@ -1722,6 +1723,39 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
                         
                 wx.CallAfter(changeRecurrenceEnd, self, item, value)
 
+class BylineAEBlock(DetailSynchronizedAttributeEditorBlock):
+    def shouldShow(self, item):
+        lastMod = getattr(self.item, 'lastModification', None)
+        return (not pim.has_stamp(self.item, pim.mail.MailStamp) or
+                not lastMod in (None, pim.Modification.edited))
+
+    def getWatchList(self):
+        watchList = super(BylineAEBlock, self).getWatchList()
+        watchList.extend(((self.item, pim.Stamp.stamp_types.name),
+                          (self.item, ContentItem.lastModification.name)))
+        return watchList
+
+class ErrorAEBlock(DetailSynchronizedAttributeEditorBlock):
+    def shouldShow(self, item):
+        error = getattr(self.item, 'error', None)
+        return bool(error)
+
+    def getWatchList(self):
+        watchList = super(ErrorAEBlock, self).getWatchList()
+        watchList.append((self.item, pim.ContentItem.error.name),)
+        return watchList
+
+class SendAsAreaBlock(BylineAEBlock):
+    """ 
+    This block will only be visible on outbound messages
+    (like the outbound version of 'from', and 'bcc' which won't ever
+    show a value for inbound messages.)
+    """
+    def shouldShow(self, item):
+        result = not super(SendAsAreaBlock, self).shouldShow(item)
+        print "SendAsAreaBlock.shouldShow(%s): returning %s" % (item, result)
+        return result
+           
 class OutboundOnlyAreaBlock(MailAreaBlock):
     """ 
     This block will only be visible on outbound messages

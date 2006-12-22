@@ -20,7 +20,7 @@ import unittest, os
 
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 import osaf.pim.mail as Mail
-from osaf.pim import has_stamp, Note, ContentItem
+from osaf.pim import has_stamp, Modification, Note, ContentItem
 from application import schema
 
 from datetime import datetime
@@ -233,8 +233,108 @@ class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
         notStampedMsg = Mail.MailStamp(note)
         notStampedMsg.toAddress=[self.address]
         self.failUnless (not hasattr (notStampedMsg.itsItem, 'displayWho'))
+        
+class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
+    def setUp(self):
+        super(CommunicationStatusTestCase, self).setUp()
+        self.address = Mail.EmailAddress(
+                        itsView=self.rep.view,
+                        fullName=u"Mr. President",
+                        emailAddress=u"kemal@aturk.tr")
+        #account = Mail.IMAPAccount(itsView=self.rep.view,
+        #                           replyToAddress=self.address)
+        schema.ns('osaf.pim', self.rep.view).meAddressCollection.add(self.address)
+        self.note = Note(itsView=self.rep.view)
+        
 
+    def testOrder(self):
+        self.failUnless(Mail.CommunicationStatus.UPDATE      <
+                        Mail.CommunicationStatus.IN          <
+                        Mail.CommunicationStatus.OUT         <
+                        Mail.CommunicationStatus.DRAFT       <
+                        Mail.CommunicationStatus.QUEUED      <
+                        Mail.CommunicationStatus.SENT        <
+                        Mail.CommunicationStatus.NEEDS_REPLY <
+                        Mail.CommunicationStatus.READ        <
+                        Mail.CommunicationStatus.ERROR)
+
+    def checkStatus(self, startStatus, *flagNames):
+        expectedStatus = startStatus
+        for name in flagNames:
+            expectedStatus |= getattr(Mail.CommunicationStatus, name)
+        status = Mail.CommunicationStatus(self.note).status
+        self.failUnlessEqual(status, expectedStatus)
+                        
+    def testNote(self):
+        
+        self.checkStatus(0)
+        self.note.changeEditState(Modification.edited)
+        self.checkStatus(0)
+        
+    def testMail(self):
+        self.note = Note(itsView=self.rep.view)
+        Mail.MailStamp(self.note).add()
+        self.checkStatus(0, 'DRAFT')
+                        
+        # Remove the MailStamp; that should make it no longer a Draft
+        Mail.MailStamp(self.note).remove()
+        self.checkStatus(0)
+
+
+    def runMailTest(self, incoming=False, outgoing=False):
+
+        self.note = Note(itsView=self.rep.view)
+
+        mail = Mail.MailStamp(self.note)
+        mail.add()
+        self.checkStatus(0, 'DRAFT')
+
+        inoutFlags = 0
+        if incoming:
+            inoutFlags |= Mail.CommunicationStatus.IN
+            mail.toAddress = self.address
+
+        if outgoing:
+            inoutFlags |= Mail.CommunicationStatus.OUT
+            mail.fromAddress = self.address
+        
+
+        self.checkStatus(inoutFlags, 'DRAFT')        
+
+        self.note.changeEditState(Modification.queued)
+        self.checkStatus(inoutFlags, 'QUEUED')        
                              
+        self.note.changeEditState(Modification.sent)
+        # Check this one -- grant. Is UPDATE supposed to be enabled
+        # before you've made edits?
+        self.checkStatus(inoutFlags, 'UPDATE', 'SENT')
+
+        self.note.changeEditState(Modification.edited)
+        # Check this one -- grant. Is UPDATE supposed to be enabled
+        # before you've made edits
+        self.checkStatus(inoutFlags, 'UPDATE', 'DRAFT')
+
+        # Remove the MailStamp; that should make it no longer a Draft
+        mail.remove()
+        self.checkStatus(0)
+        
+        # Re-add the stamp
+        mail.add()
+        self.checkStatus(inoutFlags, 'UPDATE', 'DRAFT')
+                     
+        # and finally, re-send it
+        self.note.changeEditState(Modification.updated)
+        self.checkStatus(inoutFlags, 'UPDATE', 'SENT')
+
+
+    def testOutgoingMail(self):
+        self.runMailTest(outgoing=True)
+        
+    def testIncomingMail(self):
+        self.runMailTest(incoming=True)
+        
+    def testInOutMail(self):
+        self.runMailTest(incoming=True, outgoing=True)
     
 if __name__ == "__main__":
     unittest.main()

@@ -31,6 +31,7 @@ from PyICU import ICUtzinfo
 #Chandler imports
 from application import Globals
 import osaf.pim.mail as Mail
+from osaf.pim import Modification
 from osaf.framework.certstore import ssl
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryError \
@@ -152,7 +153,9 @@ class SMTPClient(object):
         if __debug__:
             trace("sendMail")
 
-        reactor.callFromThread(self._prepareForSend, mailMessage.itsItem.itsUUID)
+        mailItem = mailMessage.itsItem
+        mailItem.changeEditState(Modification.queued)
+        reactor.callFromThread(self._prepareForSend, mailItem.itsUUID)
 
     def testAccountSettings(self, callback):
         """Tests the user entered settings for C{SMTPAccount}"""

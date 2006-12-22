@@ -18,8 +18,8 @@
 #
 from items import (
     ContentKind, ContentItem, ImportanceEnum, Group, Principal, 
-    Project, Tag, TriageEnum, getTriageStatusName,
-    getNextTriageStatus, UserNotification, isDead
+    Project, Tag, TriageEnum, getTriageStatusName, getNextTriageStatus,
+    Modification, UserNotification, isDead
 )
 from collections import (
     KindCollection, ContentCollection, DifferenceCollection, UnionCollection,
