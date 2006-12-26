@@ -421,7 +421,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
     calname = None
 
     # iterate over calendars, usually only one, but more are allowed
-    for calendar in vobject.readComponents(text, validate=True,
+    for calendar in vobject.readComponents(text, validate=False,
                                            ignoreUnreadable=True):
         modificationQueue = []
 
