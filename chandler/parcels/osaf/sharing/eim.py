@@ -11,13 +11,12 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'BlobType', 'ClobType', 'DecimalType', 'get_converter',
     'add_converter', 'subtype', 'typedef', 'field', 'key', 'NoChange',
     'Record', 'RecordSet', 'lookupSchemaURI', 'Filter', 'Translator',
-    'exporter', 'TimestampType'
+    'exporter', 'TimestampType', 'IncompatibleTypes',
 ]
 
 from symbols import Symbol  # XXX change this to peak.util.symbols
@@ -84,7 +83,10 @@ def add_converter(context, from_type, converter):
 class UnknownType(KeyError):
     """An object was not recognized as a type, alias, context, or URI"""
 
+class IncompatibleTypes(TypeError):
+    """An item's existing type can't be changed to the requested type"""
 
+    
 @generic
 def typeinfo_for(context):
     """Return the relevant ``sharing.TypeInfo`` for `context`
@@ -116,9 +118,6 @@ def lookup_ti_by_uri(context):
     if ti is None:
         return typeinfo_for.default(context)
     return typeinfo_for(ti)
-
-
-
 
 
 
@@ -240,11 +239,7 @@ class BlobType(TypeInfo):    __slots__ = ()
 class ClobType(TypeInfo):    __slots__ = ()
 
 # define aliases so () is optional for anonymous unsized field types
-typedef(IntType, IntType())
-typedef(BlobType, BlobType())
-typedef(ClobType, ClobType())
-typedef(DateType, DateType())
-typedef(TimestampType, TimestampType())
+[typedef(t, t()) for t in IntType, BlobType, ClobType, DateType, TimestampType]
 
 
 
@@ -782,6 +777,47 @@ class Translator:
 
 
 
+    def loadItemByUUID(self, uuid, itype=schema.Item, **attrs):
+        """Load/create/upgrade/stamp item by UUID and type, w/optional attrs"""
+
+        if issubclass(itype, pim.Stamp):
+            stamp = itype(self.loadItemByUUID(uuid, pim.ContentItem))
+            if not stamp.stamp_types or itype not in stamp.stamp_types:
+                stamp.add()
+
+            item = stamp    # fall through to attribute-setting below
+
+        else:
+            item = self.rv.findUUID(uuid)
+
+            if item is None:
+                # Create the item
+                if isinstance(uuid, basestring):
+                    uuid = UUID(uuid)
+                item = itype(itsView=self.rv, _uuid=uuid)
+
+            elif not isinstance(item, itype):
+                # Upgrade its type, if compatible
+                if not issubclass(itype, type(item)):
+                    raise IncompatibleTypes(type(item), itype)
+                else:
+                    item.__class__ = itype
+                    item.itsKind = itype.getKind(self.rv)
+
+        # Set specified attributes, skipping NoChange attrs       
+        for attr, val in attrs.items():
+            if val is not NoChange:
+                setattr(item, attr, val)
+
+        return item
+
+
+
+
+
+
+
+
 def create_default_converter(t):
     converter = generic(default_converter)
     converter.when_object(NoChange)(lambda val: val)
@@ -818,9 +854,6 @@ def item_uuid_converter(item):
 add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
 add_converter(UUIDType, str, unicode)
-
-
-
 
 
 

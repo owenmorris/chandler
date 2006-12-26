@@ -528,7 +528,85 @@ stamp classes can be used as export targets::
 Creating/Updating Items
 -----------------------
 
-TODO: loadItemByUUID
+Importers will usually use the translator's ``loadItemByUUID()`` method to
+create, upgrade the type of, or retrieve an existing item by its UUID.
+
+If an item of the correct UUID exists, it's returned::
+
+    >>> t.loadItemByUUID(theItem.itsUUID) is theItem
+    True
+
+
+If it doesn't exist, an item of the specified type (``schema.Item`` by default)
+is created::
+
+    >>> uuid1 = '0c7c6c5c-4a04-4d5a-8997-2fcef848c92d'
+    >>> an_item = t.loadItemByUUID(uuid1)
+
+    >>> an_item
+    <Item (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
+
+If it does exist, but isn't an instance of the specified type, its type is
+upgraded::
+
+    >>> type(an_item)   # before
+    <class 'application.schema.Item'>
+
+    >>> an_item.itsKind
+    <Kind (new): Item ...>
+
+    >>> t.loadItemByUUID(uuid1, pim.ContentItem)
+    <ContentItem (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
+
+    >>> type(an_item)   # after
+    <class 'osaf.pim.items.ContentItem'>
+
+    >>> an_item.itsKind
+    <Kind (new): ContentItem ...>
+
+Note, however, that the requested type must be a subclass or superclass of the
+item's current type, or you will get a ``sharing.IncompatibleTypes`` error::
+
+    >>> class NonContent(schema.Item):
+    ...     pass
+
+    >>> t.loadItemByUUID(uuid1, NonContent)
+    Traceback (most recent call last):
+      ...
+    IncompatibleTypes: (<class '...ContentItem'>, <class 'NonContent'>)
+
+Also note that the item's type is NOT downgraded if the requested type is a
+superclass of the item's existing type.  So, if ``an_item`` is a
+``pim.ContentItem``, asking for a ``schema.Item`` will leave it unchanged::
+
+    >>> t.loadItemByUUID(uuid1, schema.Item)
+    <ContentItem (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
+
+If you specify a ``pim.Stamp`` subclass as the item type, a stamp is returned.
+If the item didn't already have a stamp of the given type, it's added for you,
+and the item's type is upgraded to ``pim.ContentItem`` if necessary.  Also, you
+can set attributes on the returned object using keyword arguments::
+
+    >>> pim.has_stamp(an_item, DemoStamp)   # before
+    False
+
+    >>> a_stamp = t.loadItemByUUID(uuid1, DemoStamp, data=42)
+
+    >>> pim.has_stamp(an_item, DemoStamp)   # after
+    True
+
+    >>> a_stamp.data    # attributes are set from keywords
+    42
+
+Attributes set to ``sharing.NoChange`` are ignored, as this makes it easier to
+process "diff" records when importing (no need to check for no-change values)::
+
+    >>> a_stamp = t.loadItemByUUID(uuid1, DemoStamp, data=sharing.NoChange)
+    >>> a_stamp.data    # value is unchanged
+    42
+
+
+
 TODO: foreign key refs/ordering
 TODO: rewrite this crazy doctest as a parcel dev tutorial & a sharing reference
 
