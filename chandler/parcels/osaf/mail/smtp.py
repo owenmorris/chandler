@@ -155,6 +155,10 @@ class SMTPClient(object):
 
         mailItem = mailMessage.itsItem
         mailItem.changeEditState(Modification.queued)
+        # Make sure we save changes before callFromThread(); else there
+        # can be race conditions where the view in the twisted thread
+        # doesn't pick up the changes from this view.
+        mailItem.itsView.commit()
         reactor.callFromThread(self._prepareForSend, mailItem.itsUUID)
 
     def testAccountSettings(self, callback):
