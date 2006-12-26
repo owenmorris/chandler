@@ -167,6 +167,14 @@ class MainView(View):
         sidebar = Block.findBlockByName("Sidebar")
         classParameter = event.classParameter
 
+        if classParameter is MissingClass:
+            classParameter = sidebar.filterClass
+            
+        if issubclass(classParameter, pim.Stamp):
+            stampClass = classParameter
+        else:
+            stampClass = MissingClass
+             
         # onNewItem method takes precedence of classParameter
         onNewItemMethod = getattr(event, "onNewItem", None)
         if onNewItemMethod is not None:
@@ -176,15 +184,7 @@ class MainView(View):
         else:
             # A classParameter of MissingClass stamps a Note with the sidebar's
             # filterClass
-            
-            if classParameter is MissingClass:
-                classParameter = sidebar.filterClass
-                
-            if issubclass(classParameter, pim.Stamp):
-                stampClass = classParameter
-            else:
-                stampClass = MissingClass
-             
+        
             if classParameter is MissingClass or stampClass is not MissingClass:
                 kindToCreate = pim.Note.getKind(self.itsView)
             else:
