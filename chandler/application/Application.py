@@ -438,8 +438,6 @@ class wxApplication (wx.App):
             splash.updateGauge('parcels')
         Utility.initParcels(view, parcelPath)
 
-        EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
-
         self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
         self.Bind(wx.EVT_TOOL, self.OnCommand, id=-1)
         self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
@@ -618,8 +616,14 @@ class wxApplication (wx.App):
                    wxRectangularChild.CalculateWXFlag(mainViewRoot), 
                    wxRectangularChild.CalculateWXBorder(mainViewRoot))
         sizer.Layout()
+        #allow callbacks from other threads
+        EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
+
 
     def UnRenderMainView (self):
+        #disable callbacks from other threads since they may depend on blocks
+        #(i.e. the StatusBar being rendered
+        EVT_MAIN_THREAD_CALLBACK(self, None)
         mainViewRoot = self.mainFrame.mainViewRoot.unRender()
         if __debug__:
             from osaf.framework.blocks.Block import Block
