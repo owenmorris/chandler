@@ -15,6 +15,8 @@
 import wx
 from osaf.framework.blocks.Block import Block
 
+lastFocus = None
+
 def ProcessEvent (theClass, properties , attributes):
     def NameToWidget (name):
         """
@@ -23,6 +25,8 @@ def ProcessEvent (theClass, properties , attributes):
         if type (name) is str:
             if name == "MainFrame":
                 sentTo = application.mainFrame
+            elif name == "__FocusWindow__":
+                sentTo = wx.Window_FindFocus()
             else:
                 sentTo = Block.findBlockByName (name)
                 if sentTo is not None:
@@ -32,6 +36,8 @@ def ProcessEvent (theClass, properties , attributes):
         else:
             sentTo = wx.Window.FindWindowById (name)
         return sentTo
+
+    global lastFocus
 
     application = wx.GetApp()
     event = theClass()
@@ -51,12 +57,38 @@ def ProcessEvent (theClass, properties , attributes):
     if associatedBlock is not None:
         event.SetId (Block.findBlockByName (associatedBlock).widget.GetId())
 
-    if (eventType is wx.EVT_CHECKBOX):
-        event.SetInt (1)
+    # Special case clicks on checkboxes to toggle the widget's value
+    if eventType is wx.EVT_CHECKBOX:
+        sentToWidget.SetValue(not sentToWidget.GetValue())
+
+    # Check to see if the correct window has focus
+    if ProcessEvent.includeTests:
+        focusWindow = wx.Window_FindFocus()
+        newFocusWindow = properties.get ("newFocusWindow", None)
+        
+        # Check to makee sure the focus window changes as expected
+        if lastFocus != focusWindow:
+            assert newFocusWindow is not None, "Focus window unexpectedly changed"
+            
+            # And that we get the expected focus window
+            if type (newFocusWindow) is str:
+                assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
+            else:
+                (theClass, id) = newFocusWindow
+                assert isinstance (focusWindow, theClass)
+                if id > 0:
+                    assert focusWindow.GetId() == id, "Focus window has unexpected id"
+                else:
+                    assert focusWindow.GetId() < 0, "Focus window has unexpected id"
+
+            lastFocus = focusWindow
+        else:
+            assert newFocusWindow is None, "Focus window should have changed"
+
 
     if not sentToWidget.ProcessEvent (event):
         # Special case key downs
-        if (eventType is wx.EVT_KEY_DOWN):
+        if eventType is wx.EVT_KEY_DOWN:
             # Try EmulateKeyPress
             EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
             if EmulateKeyPress is not None:
@@ -68,6 +100,10 @@ def ProcessEvent (theClass, properties , attributes):
                     writeMethod (str(chr(event.GetKeyCode())))
                 else:
                     assert False, "wx.EVT_KEY_DOWN failed"
+        elif eventType is wx.EVT_CHECKBOX:
+            widget.SetValue(not widget.GetValue())
+
+
 
     application.propagateAsynchronousNotifications()
     application.Yield()

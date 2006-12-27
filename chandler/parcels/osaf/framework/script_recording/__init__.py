@@ -23,43 +23,45 @@ _wxEventClasses = set([wx.CommandEvent,
                        wx.MouseEvent,
                        wx.KeyEvent])
 
+_wxEventTypes = ["EVT_MENU",
+                 "EVT_KEY_DOWN",
+                 "EVT_LEFT_DOWN",
+                 "EVT_RIGHT_DOWN",
+                 "EVT_LEFT_DCLICK",
+                 "EVT_RIGHT_DCLICK",
+                 "EVT_SCROLLWIN_LINEUP",
+                 "EVT_SCROLLWIN_LINEDOWN",
+                 "EVT_SCROLLWIN_PAGEUP",
+                 "EVT_SCROLLWIN_PAGEDOWN",
+                 "EVT_SCROLLWIN_THUMBTRACK",
+                 "EVT_SCROLLWIN_THUMBRELEASE",
+
+                 "EVT_ACTIVATE",
+                 "EVT_SET_FOCUS",
+                 "EVT_BUTTON",
+                 "EVT_CHECKBOX"]
+
 _wxEventClasseInfo = {}
-
-_wxEventTypeMapping = {
-    wx.EVT_MENU.evtType[0]: "wx.EVT_MENU",
-    wx.EVT_KEY_DOWN.evtType[0]: "wx.EVT_KEY_DOWN",
-    wx.EVT_LEFT_DOWN.evtType[0]: "wx.EVT_LEFT_DOWN",
-    wx.EVT_RIGHT_DOWN.evtType[0]: "wx.EVT_RIGHT_DOWN",
-    wx.EVT_LEFT_DCLICK.evtType[0]: "wx.EVT_LEFT_DCLICK",
-    wx.EVT_RIGHT_DCLICK.evtType[0]: "wx.EVT_RIGHT_DCLICK",
-    wx.EVT_SCROLLWIN_LINEUP.evtType[0]: "wx.EVT_SCROLLWIN_LINEUP",
-    wx.EVT_SCROLLWIN_LINEDOWN.evtType[0]: "wx.EVT_SCROLLWIN_LINEDOWN",
-    wx.EVT_SCROLLWIN_PAGEUP.evtType[0]: "wx.EVT_SCROLLWIN_PAGEUP",
-    wx.EVT_SCROLLWIN_PAGEDOWN.evtType[0]: "wx.EVT_SCROLLWIN_PAGEDOWN",
-    wx.EVT_SCROLLWIN_THUMBTRACK.evtType[0]: "wx.EVT_SCROLLWIN_THUMBTRACK",
-    wx.EVT_SCROLLWIN_THUMBRELEASE.evtType[0]: "wx.EVT_SCROLLWIN_THUMBRELEASE",
-
-    wx.EVT_ACTIVATE.evtType[0]: "wx.EVT_ACTIVATE",
-    wx.EVT_SET_FOCUS.evtType[0]: "wx.EVT_SET_FOCUS",
-    wx.EVT_BUTTON.evtType[0]: "wx.EVT_BUTTON",
-    wx.EVT_CHECKBOX.evtType[0]: "wx.EVT_CHECKBOX"
-}
+_wxEventTypeReverseMapping = {}
 
 class Controller (Block.Block):
     """
     Class to handle recording events
     """
-    logging = schema.One(schema.Boolean, initialValue=False)
+    includeTests = schema.One(schema.Boolean, initialValue=True)
 
     def onToggleRecordingEvent (self, event):
         theApp = wx.GetApp()
 
         if self.FilterEvent not in theApp.filterEventCallables:
-            self.script = "import wx" + os.linesep
+            self.script = "import wx, osaf" + os.linesep
             self.script += "from " + __name__ + ".script_lib import ProcessEvent" + os.linesep + os.linesep
             self.script += "def run():" + os.linesep
+            self.script += "    ProcessEvent.includeTests = " + str (self.includeTests) + os.linesep
+            
             theApp.filterEventCallables.add (self.FilterEvent)
             theApp.SetCallFilterEvent()
+            self.lastFocus = None
         else:
             theApp.filterEventCallables.remove (self.FilterEvent)
             theApp.SetCallFilterEvent (False)
@@ -92,6 +94,12 @@ class Controller (Block.Block):
             event.arguments['Text'] = _(u'Stop Recording')
         else:
             event.arguments['Text'] = _(u'Record Script')
+
+    def onIncludeTestsEvent (self, event):
+        self.includeTests = not self.includeTests
+
+    def onIncludeTestsEventUpdateUI (self, event):
+        event.arguments['Check'] = self.includeTests
 
     def onPlayScriptEvent (self, event):
         dialog = wx.FileDialog (None,
@@ -135,6 +143,8 @@ class Controller (Block.Block):
                     widgetParent = widget.GetParent()
                     if isinstance (widgetParent, wx.grid.Grid):
                         name = widgetParent.blockItem.blockName
+                    elif widget == wx.Window_FindFocus():
+                        name = "__FocusWindow__"
                     else:
                         # We don't recognize the window, so use it's Id
                         name = widget.GetId()
@@ -148,16 +158,21 @@ class Controller (Block.Block):
                 return '"' + value + '"'
             else:
                 return value
-    
-        def getClassInfo (theClass):
+
+        def getClassName (theObject):
+            # Introspect the name of the class
+            theClass = theObject.__class__
+            module = theClass.__module__
+            if module == "wx._core":
+                module = "wx"
+            return module + '.' + theClass.__name__
+
+        def getClassInfo (theObject):
+            theClass = theObject.__class__
             classInfo =  _wxEventClasseInfo.get (theClass, None)
             if classInfo is None:
                 
-                # Introspect the name of the class
-                className = str (theClass)
-                start = className.find ("e.") + 1
-                className = 'wx' + className [start:className.find("'",start)]
-                classInfo = {"className":className}
+                classInfo = {"className": getClassName (theObject)}
                 
                 # Introspect the class's attribute and their default values
                 newInstance = theClass()
@@ -172,8 +187,15 @@ class Controller (Block.Block):
                 _wxEventClasseInfo [theClass] = classInfo
             return classInfo
     
+        def getEventType (event):
+            if len (_wxEventTypeReverseMapping) == 0:
+                for eventTypeName in _wxEventTypes:
+                    eventType = wx.__dict__[eventTypeName]
+                    _wxEventTypeReverseMapping [eventType.evtType[0]] = "wx." + eventTypeName
+            return _wxEventTypeReverseMapping.get (event.GetEventType(), None)
+    
         if event.__class__ in _wxEventClasses:
-            eventType =  _wxEventTypeMapping.get (event.GetEventType(), None)
+            eventType =  getEventType (event)
             if eventType is not None:
                 sentToWidget = event.GetEventObject()
     
@@ -196,10 +218,25 @@ class Controller (Block.Block):
                         if associatedBlock != "RecordingMenuItem":
                             values.append ('"eventType":' + eventType)
                             values.append ('"sentTo":' + quoteIfString (sentToName))
+
+                            if self.includeTests:
+                                focusWindow = wx.Window_FindFocus()
+                                if self.lastFocus != focusWindow:
+                                    
+                                    # Keep track of the focus window changes
+                                    self.lastFocus = focusWindow
+                                    
+                                    # The newFocusWindow is either a blockName or a tupe of class, id
+                                    newFocusWindow = widgetToName (focusWindow)
+                                    if newFocusWindow == "__FocusWindow__" or type (newFocusWindow) is int:
+                                        newFocusWindow = '(' + getClassName (focusWindow) + ',' + str(focusWindow.GetId()) + ')'
+                                    else:
+                                        newFocusWindow = quoteIfString (newFocusWindow)
+                                    values.append ('"newFocusWindow":' + newFocusWindow)
                             properties = "{" + ", ".join (values) + "}"
 
                             values = []
-                            classInfo = getClassInfo (event.__class__)
+                            classInfo = getClassInfo (event)
                             for (attribute, defaultValue) in classInfo["attributes"]:
                                 value = getattr (event, attribute)
                                 if value != defaultValue:
@@ -209,9 +246,9 @@ class Controller (Block.Block):
                                                                                  properties ,
                                                                                  attributes,
                                                                                  os.linesep))
-                        # Comment in for testing
-                        #else:
-                            #print "unnamed block with id", sentToName, sentToWidget
+                    # Comment in for testing
+                    #else:
+                        #print "unnamed block with id", sentToName, sentToWidget
 
 def installParcel(parcel, old_version=None):
     main = schema.ns('osaf.views.main', parcel.itsView)
@@ -239,6 +276,23 @@ def installParcel(parcel, old_version=None):
         helpString = _(u'Record commands in Chandler'),
         event = ToggleRecording,
         eventsForNamedLookup = [ToggleRecording],
+        parentBlock = main.TestMenu)
+
+    # Add menu and event to include testing in script
+    IncludeTests = BlockEvent.update(
+        parcel, 'IncludeTests',
+        blockName = 'IncludeTests',
+        dispatchEnum = 'SendToBlockByReference',
+        destinationBlockReference = controller)
+
+    MenuItem.update(
+        parcel, 'IncludeTestsMenuItem',
+        menuItemKind = 'Check',
+        blockName = 'IncludeTeststMenuItem',
+        title = _(u'Include Tests in Script'),
+        helpString = _(u"Includes code in the script to verify that the UI's data matches the state when the script was recorded"),
+        event = IncludeTests,
+        eventsForNamedLookup = [IncludeTests],
         parentBlock = main.TestMenu)
 
     # Add menu and event to play a recording
