@@ -55,9 +55,12 @@ class Controller (Block.Block):
 
         if self.FilterEvent not in theApp.filterEventCallables:
             self.script = "import wx, osaf" + os.linesep
-            self.script += "from " + __name__ + ".script_lib import ProcessEvent" + os.linesep + os.linesep
+            self.script += "from " + __name__ + ".script_lib import includeTests, lastFocus, lastSentToWidget, ProcessEvent" + os.linesep + os.linesep
             self.script += "def run():" + os.linesep
-            self.script += "    ProcessEvent.includeTests = " + str (self.includeTests) + os.linesep
+            self.script += "    includeTests = " + str (self.includeTests) + os.linesep
+            if self.includeTests:
+                self.script += "    lastFocus = None" + os.linesep
+                self.script += "    lastSentToWidget = None" + os.linesep
             
             theApp.filterEventCallables.add (self.FilterEvent)
             theApp.SetCallFilterEvent()
@@ -153,9 +156,14 @@ class Controller (Block.Block):
                 name = block.blockName
             return name
     
-        def quoteIfString (value):
-            if type (value) is str:
+        def valueToString (value):
+            theType = type (value)
+            if theType is str:
                 return '"' + value + '"'
+            elif theType is unicode:
+                return 'u"' + value + '"'
+            elif theType is bool:
+                return str(value)
             else:
                 return value
 
@@ -217,7 +225,7 @@ class Controller (Block.Block):
                         # Don't record the stop recording event
                         if associatedBlock != "RecordingMenuItem":
                             values.append ('"eventType":' + eventType)
-                            values.append ('"sentTo":' + quoteIfString (sentToName))
+                            values.append ('"sentTo":' + valueToString (sentToName))
 
                             if self.includeTests:
                                 focusWindow = wx.Window_FindFocus()
@@ -231,8 +239,18 @@ class Controller (Block.Block):
                                     if newFocusWindow == "__FocusWindow__" or type (newFocusWindow) is int:
                                         newFocusWindow = '(' + getClassName (focusWindow) + ',' + str(focusWindow.GetId()) + ')'
                                     else:
-                                        newFocusWindow = quoteIfString (newFocusWindow)
+                                        newFocusWindow = valueToString (newFocusWindow)
                                     values.append ('"newFocusWindow":' + newFocusWindow)
+
+                                # Record the state of the last widget so we can check
+                                # that the state is the same afer the event is played back
+                                lastSentToWidget = getattr (self, "lastSentToWidget", None)
+                                if lastSentToWidget is not None:
+                                    method = getattr (lastSentToWidget, "GetValue", None)
+                                    if method is not None:
+                                        values.append ('"lastWidgetValue":' + valueToString (method()))
+
+                                        
                             properties = "{" + ", ".join (values) + "}"
 
                             values = []
@@ -240,12 +258,13 @@ class Controller (Block.Block):
                             for (attribute, defaultValue) in classInfo["attributes"]:
                                 value = getattr (event, attribute)
                                 if value != defaultValue:
-                                    values.append ('"%s":%s' % (attribute, quoteIfString (value)))
+                                    values.append ('"%s":%s' % (attribute, valueToString (value)))
                             attributes = "{" + ", ".join (values) + "}"
                             self.script += ("    ProcessEvent (%s, %s, %s)%s" % (classInfo ["className"],
                                                                                  properties ,
                                                                                  attributes,
                                                                                  os.linesep))
+                            self.lastSentToWidget = sentToWidget
                     # Comment in for testing
                     #else:
                         #print "unnamed block with id", sentToName, sentToWidget

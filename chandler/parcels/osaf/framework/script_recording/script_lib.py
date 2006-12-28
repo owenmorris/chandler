@@ -16,6 +16,8 @@ import wx
 from osaf.framework.blocks.Block import Block
 
 lastFocus = None
+lastSentToWidget = None
+includeTests = False
 
 def ProcessEvent (theClass, properties , attributes):
     def NameToWidget (name):
@@ -37,7 +39,7 @@ def ProcessEvent (theClass, properties , attributes):
             sentTo = wx.Window.FindWindowById (name)
         return sentTo
 
-    global lastFocus
+    global includeTests, lastFocus, lastSentToWidget
 
     application = wx.GetApp()
     event = theClass()
@@ -62,7 +64,7 @@ def ProcessEvent (theClass, properties , attributes):
         sentToWidget.SetValue(not sentToWidget.GetValue())
 
     # Check to see if the correct window has focus
-    if ProcessEvent.includeTests:
+    if includeTests:
         focusWindow = wx.Window_FindFocus()
         newFocusWindow = properties.get ("newFocusWindow", None)
         
@@ -84,7 +86,16 @@ def ProcessEvent (theClass, properties , attributes):
             lastFocus = focusWindow
         else:
             assert newFocusWindow is None, "Focus window should have changed"
-
+            
+        # Check to make sure last event caused expected change
+        if lastSentToWidget is not None:
+            method = getattr (lastSentToWidget, "GetValue", None)
+            lastWidgetValue = properties.get ("lastWidgetValue", None)
+            if method is not None:
+                value = method()
+                assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
+            else:
+                assert lastWidgetValue is None, "last widget differes from its value when the script was recorded"
 
     if not sentToWidget.ProcessEvent (event):
         # Special case key downs
@@ -103,7 +114,7 @@ def ProcessEvent (theClass, properties , attributes):
         elif eventType is wx.EVT_CHECKBOX:
             widget.SetValue(not widget.GetValue())
 
-
+    lastSentToWidget = sentToWidget
 
     application.propagateAsynchronousNotifications()
     application.Yield()
