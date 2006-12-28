@@ -1026,6 +1026,10 @@ class TransportWrapper (object):
         """
         Construct a TransportWrapper from an object.
         """
+        if isinstance(possibleItem, schema.Annotation):
+            self.annotationClass = type(possibleItem)
+            possibleItem = possibleItem.itsItem
+
         try:
             self.itemUUID = possibleItem.itsUUID
         except AttributeError:
@@ -1040,8 +1044,11 @@ class TransportWrapper (object):
             theUUID = self.itemUUID
         except AttributeError:
             return self.nonItem
-        else:
-            item = wx.GetApp().UIRepositoryView.findUUID (theUUID)
+
+        item = wx.GetApp().UIRepositoryView.findUUID(theUUID)
+        try:
+            return self.annotationClass(item)
+        except (TypeError, AttributeError):
             return item
 
 class StartupSplash(wx.Frame):
