@@ -55,9 +55,9 @@ class Controller (Block.Block):
 
         if self.FilterEvent not in theApp.filterEventCallables:
             self.script = "import wx, osaf" + os.linesep
-            self.script += "from " + __name__ + ".script_lib import includeTests, lastFocus, lastSentToWidget, ProcessEvent" + os.linesep + os.linesep
+            self.script += "from " + __name__ + ".script_lib import ProcessEvent" + os.linesep + os.linesep
             self.script += "def run():" + os.linesep
-            self.script += "    includeTests = " + str (self.includeTests) + os.linesep
+            self.script += "    ProcessEvent.includeTests = " + str (self.includeTests) + os.linesep
             if self.includeTests:
                 self.script += "    lastFocus = None" + os.linesep
                 self.script += "    lastSentToWidget = None" + os.linesep
