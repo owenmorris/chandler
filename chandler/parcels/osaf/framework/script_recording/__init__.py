@@ -19,30 +19,33 @@ from osaf.framework.blocks import Block, BlockEvent
 from osaf.framework.blocks.MenusAndToolbars import MenuItem
 from i18n import ChandlerMessageFactory as _
 
-_wxEventClasses = set([wx.CommandEvent,
-                       wx.MouseEvent,
-                       wx.KeyEvent])
+wxEventClasses = set([wx.CommandEvent,
+                      wx.MouseEvent,
+                      wx.KeyEvent])
 
-_wxEventTypes = ["EVT_MENU",
-                 "EVT_KEY_DOWN",
-                 "EVT_LEFT_DOWN",
-                 "EVT_RIGHT_DOWN",
-                 "EVT_LEFT_DCLICK",
-                 "EVT_RIGHT_DCLICK",
-                 "EVT_SCROLLWIN_LINEUP",
-                 "EVT_SCROLLWIN_LINEDOWN",
-                 "EVT_SCROLLWIN_PAGEUP",
-                 "EVT_SCROLLWIN_PAGEDOWN",
-                 "EVT_SCROLLWIN_THUMBTRACK",
-                 "EVT_SCROLLWIN_THUMBRELEASE",
+wxEventTypes = ["EVT_MENU",
+                "EVT_KEY_DOWN",
+                "EVT_LEFT_DOWN",
+                "EVT_RIGHT_DOWN",
+                "EVT_LEFT_DCLICK",
+                "EVT_RIGHT_DCLICK",
+                "EVT_SCROLLWIN_LINEUP",
+                "EVT_SCROLLWIN_LINEDOWN",
+                "EVT_SCROLLWIN_PAGEUP",
+                "EVT_SCROLLWIN_PAGEDOWN",
+                "EVT_SCROLLWIN_THUMBTRACK",
+                "EVT_SCROLLWIN_THUMBRELEASE",
 
-                 "EVT_ACTIVATE",
-                 "EVT_SET_FOCUS",
-                 "EVT_BUTTON",
-                 "EVT_CHECKBOX"]
+                "EVT_ACTIVATE",
+                "EVT_SET_FOCUS",
+                "EVT_BUTTON",
+                "EVT_CHECKBOX"]
 
-_wxEventClasseInfo = {}
-_wxEventTypeReverseMapping = {}
+ignoreBlocks = set (["RecordingMenuItem",
+                     "IncludeTeststMenuItem"])
+
+wxEventClasseInfo = {}
+wxEventTypeReverseMapping = {}
 
 class Controller (Block.Block):
     """
@@ -55,16 +58,13 @@ class Controller (Block.Block):
 
         if self.FilterEvent not in theApp.filterEventCallables:
             self.script = "import wx, osaf" + os.linesep
-            self.script += "from " + __name__ + ".script_lib import ProcessEvent" + os.linesep + os.linesep
+            self.script += "from " + __name__ + ".script_lib import ProcessEvent, VerifyOn" + os.linesep + os.linesep
             self.script += "def run():" + os.linesep
-            self.script += "    ProcessEvent.includeTests = " + str (self.includeTests) + os.linesep
-            if self.includeTests:
-                self.script += "    lastFocus = None" + os.linesep
-                self.script += "    lastSentToWidget = None" + os.linesep
-            
+            self.verifyOn = None
+            self.lastFocus = None
+
             theApp.filterEventCallables.add (self.FilterEvent)
             theApp.SetCallFilterEvent()
-            self.lastFocus = None
         else:
             theApp.filterEventCallables.remove (self.FilterEvent)
             theApp.SetCallFilterEvent (False)
@@ -100,6 +100,9 @@ class Controller (Block.Block):
 
     def onIncludeTestsEvent (self, event):
         self.includeTests = not self.includeTests
+        if self.includeTests:
+            self.lastFocus = None
+
 
     def onIncludeTestsEventUpdateUI (self, event):
         event.arguments['Check'] = self.includeTests
@@ -177,7 +180,7 @@ class Controller (Block.Block):
 
         def getClassInfo (theObject):
             theClass = theObject.__class__
-            classInfo =  _wxEventClasseInfo.get (theClass, None)
+            classInfo =  wxEventClasseInfo.get (theClass, None)
             if classInfo is None:
                 
                 classInfo = {"className": getClassName (theObject)}
@@ -192,17 +195,17 @@ class Controller (Block.Block):
                         attributes.append ((key, defaultValue))
                 classInfo ["attributes"] = attributes
     
-                _wxEventClasseInfo [theClass] = classInfo
+                wxEventClasseInfo [theClass] = classInfo
             return classInfo
     
         def getEventType (event):
-            if len (_wxEventTypeReverseMapping) == 0:
-                for eventTypeName in _wxEventTypes:
+            if len (wxEventTypeReverseMapping) == 0:
+                for eventTypeName in wxEventTypes:
                     eventType = wx.__dict__[eventTypeName]
-                    _wxEventTypeReverseMapping [eventType.evtType[0]] = "wx." + eventTypeName
-            return _wxEventTypeReverseMapping.get (event.GetEventType(), None)
+                    wxEventTypeReverseMapping [eventType.evtType[0]] = "wx." + eventTypeName
+            return wxEventTypeReverseMapping.get (event.GetEventType(), None)
     
-        if event.__class__ in _wxEventClasses:
+        if event.__class__ in wxEventClasses:
             eventType =  getEventType (event)
             if eventType is not None:
                 sentToWidget = event.GetEventObject()
@@ -223,7 +226,7 @@ class Controller (Block.Block):
                             values.append ('"associatedBlock":"' + associatedBlock + '"')
 
                         # Don't record the stop recording event
-                        if associatedBlock != "RecordingMenuItem":
+                        if (associatedBlock not in ignoreBlocks):
                             values.append ('"eventType":' + eventType)
                             values.append ('"sentTo":' + valueToString (sentToName))
 
@@ -260,6 +263,13 @@ class Controller (Block.Block):
                                 if value != defaultValue:
                                     values.append ('"%s":%s' % (attribute, valueToString (value)))
                             attributes = "{" + ", ".join (values) + "}"
+                            if self.verifyOn is not self.includeTests:
+                                self.script += "    VerifyOn ("
+                                if not self.includeTests:
+                                    self.script += "False"
+                                self.script += ")" + os.linesep
+                                self.verifyOn = self.includeTests
+
                             self.script += ("    ProcessEvent (%s, %s, %s)%s" % (classInfo ["className"],
                                                                                  properties ,
                                                                                  attributes,

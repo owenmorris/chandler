@@ -16,6 +16,7 @@ import wx
 from osaf.framework.blocks.Block import Block
 
 def ProcessEvent (theClass, properties , attributes):
+
     def NameToWidget (name):
         """
         Given a name, returns the corresponding widget.
@@ -58,7 +59,7 @@ def ProcessEvent (theClass, properties , attributes):
         sentToWidget.SetValue(not sentToWidget.GetValue())
 
     # Check to see if the correct window has focus
-    if ProcessEvent.includeTests:
+    if ProcessEvent.verifyOn:
         # Make sure the menu or button is enabled
         if eventType is wx.EVT_MENU:
             updateUIEvent = wx.UpdateUIEvent (event.GetId())
@@ -124,6 +125,8 @@ def ProcessEvent (theClass, properties , attributes):
     application.propagateAsynchronousNotifications()
     application.Yield()
 
-ProcessEvent.lastFocus = None
-ProcessEvent.lastSentToWidget = None
-ProcessEvent.includeTests = False
+def VerifyOn (verifyOn = True):
+    ProcessEvent.verifyOn = verifyOn
+    if verifyOn:
+        ProcessEvent.lastFocus = None
+        ProcessEvent.lastSentToWidget = None
