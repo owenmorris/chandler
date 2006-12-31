@@ -784,13 +784,6 @@ class wxApplication (wx.App):
         event.Skip()
 
     def fireAsynchronousNotifications(self):
-
-        # Fire set notifications that require mapChanges
-        # and pickup changes from other views
-        self.repository.view.refresh(_mergeFunction)
-
-    def propagateAsynchronousNotifications(self):
-
         view = self.UIRepositoryView
 
         try:
@@ -798,14 +791,21 @@ class wxApplication (wx.App):
             # and pickup changes from other views
             view.refresh(_mergeFunction)
         except:
+            # This exception shuld never happen. However, because of bugs in the repository
+            # during development, it may occur -- and when it does we get a cascade of errors.
+            # S instead we'll handle it by logging an error and raising another exception.
             logger.exception("Changes cancelled because of refresh error")
             view.itsVersion -= 1
             view.refresh()
             raise
 
+    def propagateAsynchronousNotifications(self):
+        self.fireAsynchronousNotifications()
+
         # synchronize dirtied blocks to reflect changes to the data
         from osaf.framework.blocks.Block import Block
         # make the list first in case it gets tweaked during synchronizeWidget
+        view = self.UIRepositoryView
         dirtyBlocks = [view[theUUID] for theUUID in Block.dirtyBlocks]
 
         # synchronize affected widgets
