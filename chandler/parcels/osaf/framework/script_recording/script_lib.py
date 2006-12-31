@@ -15,7 +15,12 @@
 import wx
 from osaf.framework.blocks.Block import Block
 
+verifyOn = False
+lastFocus = None
+lastSentToWidget = None
+
 def ProcessEvent (theClass, properties , attributes):
+    global verifyOn, lastFocus, lastSentToWidget
 
     def NameToWidget (name):
         """
@@ -59,7 +64,7 @@ def ProcessEvent (theClass, properties , attributes):
         sentToWidget.SetValue(not sentToWidget.GetValue())
 
     # Check to see if the correct window has focus
-    if ProcessEvent.verifyOn:
+    if verifyOn:
         # Make sure the menu or button is enabled
         if eventType is wx.EVT_MENU:
             updateUIEvent = wx.UpdateUIEvent (event.GetId())
@@ -82,20 +87,20 @@ def ProcessEvent (theClass, properties , attributes):
                 else:
                     assert focusWindow.GetId() < 0, "Focus window has unexpected id"
 
-        if ProcessEvent.lastFocus != focusWindow:
+        if lastFocus != focusWindow:
             assert newFocusWindow is not None, "Focus window unexpectedly changed"
             
             # And that we get the expected focus window
             focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
 
-            ProcessEvent.lastFocus = focusWindow
+            lastFocus = focusWindow
         else:
             if newFocusWindow is not None:
                 focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
 
         # Check to make sure last event caused expected change
-        if ProcessEvent.lastSentToWidget is not None:
-            method = getattr (ProcessEvent.lastSentToWidget, "GetValue", None)
+        if lastSentToWidget is not None:
+            method = getattr (lastSentToWidget, "GetValue", None)
             lastWidgetValue = properties.get ("lastWidgetValue", None)
             if method is not None:
                 value = method()
@@ -120,13 +125,14 @@ def ProcessEvent (theClass, properties , attributes):
         elif eventType is wx.EVT_CHECKBOX:
             widget.SetValue(not widget.GetValue())
 
-    ProcessEvent.lastSentToWidget = sentToWidget
+    lastSentToWidget = sentToWidget
 
     application.propagateAsynchronousNotifications()
     application.Yield()
 
-def VerifyOn (verifyOn = True):
-    ProcessEvent.verifyOn = verifyOn
+def VerifyOn (verify = True):
+    global verifyOn, lastFocus, lastSentToWidget
+    verifyOn = verify
     if verifyOn:
-        ProcessEvent.lastFocus = None
-        ProcessEvent.lastSentToWidget = None
+        lastFocus = None
+        lastSentToWidget = None
