@@ -278,7 +278,7 @@ class wxApplication (wx.App):
 
     outputWindowClass = feedback.FeedbackWindow
     
-    #List of callable for register to be called during FilterEvent
+    #List of callables for registering to be called during FilterEvent
     filterEventCallables = set()
 
     def FilterEvent (self, event):
