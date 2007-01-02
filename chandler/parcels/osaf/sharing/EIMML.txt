@@ -497,3 +497,4 @@ record has a NoChange value on the filtered field::
     >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == {'1': rs(set([Demo(1, nc, 1)]))}
     True
+

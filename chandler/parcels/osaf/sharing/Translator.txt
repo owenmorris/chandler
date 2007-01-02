@@ -1,0 +1,145 @@
+
+PIM Translator
+--------------
+
+
+PIMTranslator implements the callbacks for converting between items and
+records.
+
+    >>> from osaf import sharing, pim
+    >>> from datetime import datetime
+    >>> from decimal import Decimal
+    >>> from PyICU import ICUtzinfo
+    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> rv = NullRepositoryView()
+
+
+    >>> t = sharing.translator.PIMTranslator(rv)
+
+
+ItemRecord type
+- - - - - - - -
+
+Importing:
+
+    >>> t.startImport()
+
+    >>> utc = ICUtzinfo.getInstance('UTC')
+    >>> rec = sharing.model.ItemRecord(
+    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
+    ...         title='Translator test',
+    ...         triageStatus='later',
+    ...         triageStatusChanged=Decimal("-1167792143.0"),
+    ...         lastModifiedBy='example@example.com',
+    ...         createdOn=datetime(2006, 11, 29, 12, 25, 31, tzinfo=utc),
+    ...         remindOn=datetime(2006, 11, 30, 12, 25, 31, tzinfo=utc)
+    ... )
+
+    >>> rs = sharing.RecordSet([rec])
+
+    >>> t.importRecords(rs)
+    >>> t.finishImport()
+
+    >>> item = rv.findUUID('f230dcd4-7c32-4c3f-908b-d92081cc9a89')
+    >>> item is not None
+    True
+
+    >>> item.itsKind.itsName
+    'ContentItem'
+
+    >>> item.displayName
+    u'Translator test'
+
+    >>> item.triageStatus
+    u'later'
+
+    >>> item.createdOn == datetime(2006, 11, 29, 12, 25, 31, tzinfo=utc)
+    True
+
+TODO: lastModifiedBy
+TODO: remindOn
+
+
+Exporting:
+
+(Note that when we check the results for triageStatusChanged an ellipsis marker
+is being used because t-s-c doesn't round-trip precisely)
+
+    >>> t.startExport()
+    >>> records = list(t.exportItem(item))
+    >>> records
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: UTC>), None)]
+
+TODO: lastModifiedBy
+TODO: remindOn
+
+
+
+
+NoteRecord type
+- - - - - - - -
+
+Importing:
+
+    >>> rec = sharing.model.NoteRecord(
+    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
+    ...         body='This is the body',
+    ...         icaluid=None
+    ... )
+
+    >>> rs = sharing.RecordSet([rec])
+
+    >>> t.startImport()
+    >>> t.importRecords(rs)
+    >>> t.finishImport()
+
+    >>> item.itsKind.itsName
+    'Note'
+
+    >>> item.body
+    u'This is the body'
+
+TODO: icaluid
+
+Exporting:
+
+    >>> t.startExport()
+    >>> records = list(t.exportItem(item))
+    >>> records
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: UTC>), None), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None)]
+
+TODO: icaluid
+
+
+
+
+TaskRecord type
+- - - - - - - -
+
+Importing:
+
+    >>> pim.stamping.has_stamp(item, pim.TaskStamp)
+    False
+
+    >>> rec = sharing.model.TaskRecord(
+    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89'
+    ... )
+
+    >>> rs = sharing.RecordSet([rec])
+
+    >>> t.startImport()
+    >>> t.importRecords(rs)
+    >>> t.finishImport()
+
+    >>> item.itsKind.itsName
+    'Note'
+
+    >>> pim.stamping.has_stamp(item, pim.TaskStamp)
+    True
+
+Exporting:
+
+    >>> t.startExport()
+    >>> records = list(t.exportItem(item))
+    >>> records
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: UTC>), None), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]

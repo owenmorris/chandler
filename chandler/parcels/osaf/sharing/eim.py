@@ -838,6 +838,7 @@ add_converter(TimestampType, datetime.datetime, lambda v:v)
 add_converter(DecimalType, decimal.Decimal, decimal.Decimal)
 add_converter(BlobType, str, unicode)
 add_converter(ClobType, str, unicode)
+add_converter(ClobType, unicode, unicode)
 
 
 
