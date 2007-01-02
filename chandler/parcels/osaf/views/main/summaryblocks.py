@@ -535,7 +535,7 @@ def makeSummaryBlocks(parcel):
         icon = 'ColHTriageStatus',
         useSortArrows = False,
         defaultSort = True,
-        width = 42,
+        width = 39,
         scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
         collapsedSections=set([str(pim.TriageEnum.later), str(pim.TriageEnum.done)]), 
         attributeName = 'triageStatus',

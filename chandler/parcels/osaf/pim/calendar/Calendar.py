@@ -715,7 +715,7 @@ class EventStamp(Stamp):
         # Update the reminder we use to update triageStatus at startTime, 
         # if it's in the future. First, find any existing startTime reminder.
         existing = [r for r in getattr(Remindable(self), 'reminders', [])
-                      if not r.userCreated]
+                      if not (r.userCreated or r.promptUser)]
         assert len(existing) <= 1
         existing = len(existing) and existing[0] or None
         assert not existing or existing.absoluteTime is not None

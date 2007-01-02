@@ -144,8 +144,14 @@ class ReminderDialog(wx.Dialog):
                                                   remindable.itsItem.displayName)
                 self.remindersInList[index] = t
 
-                # Make a relative expression of its time ("3 minutes from now")
-                eventTime = reminder.getBaseTimeFor(remindable)
+                # Make a relative expression of its time ("3 minutes from now").
+                # If we're a snooze reminder, display the user reminder time we 
+                # started with. (@@@ this assumes there's only one user reminder,
+                # but works whether it's expired or not)
+                isSnooze = reminder.promptUser and not reminder.userCreated
+                displayReminder = isSnooze and remindable.getUserReminder() or \
+                                  reminder
+                eventTime = displayReminder.getBaseTimeFor(remindable)
                 deltaMessage = self.RelativeDateTimeMessage(eventTime)
                 listCtrl.SetStringItem(index, 1, deltaMessage)
 
