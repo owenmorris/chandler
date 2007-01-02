@@ -1071,7 +1071,7 @@ class ToolbarItem(Block.Block, DynamicChild):
             tool.SetName(self.title)
             theToolbar.AddControl (tool)
         elif self.toolbarItemKind == 'Text':
-            # unlike other Toolbar items, a 'text' item actually creates a
+            # unlike most other Toolbar items, a 'text' item actually creates a
             # real wx control
             tool = wx.TextCtrl (theToolbar, id, "",
                                 wx.DefaultPosition,
@@ -1081,11 +1081,11 @@ class ToolbarItem(Block.Block, DynamicChild):
             theToolbar.AddControl (tool)
             tool.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand, id=id)
         elif self.toolbarItemKind == 'Search':
-            # unlike other Toolbar items, a 'text' item actually creates a
+            # unlike most other Toolbar items, a 'search' item actually creates a
             # real wx control
             tool = wx.SearchCtrl (theToolbar, id, "Search",
                                 wx.DefaultPosition,
-                                size=(250,-1),
+                                size=(200,-1),
                                 style=wx.TE_PROCESS_ENTER)
             tool.SetName(self.title)
             theToolbar.AddControl(tool)
