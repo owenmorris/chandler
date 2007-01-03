@@ -14,7 +14,6 @@
  *  limitations under the License.
  */
 
-
 #if defined(_MSC_VER)
 #include <winsock2.h>
 #elif defined(__MACH__)

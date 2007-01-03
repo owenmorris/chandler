@@ -14,6 +14,16 @@
  *  limitations under the License.
  */
 
+#if defined(_MSC_VER)
+#include <winsock2.h>
+#elif defined(__MACH__)
+#include <arpa/inet.h>
+#elif defined(linux)
+#include <netinet/in.h>
+#else
+#error system is not linux, os x or winnt
+#endif
+
 #include <Python.h>
 #include "structmember.h"
 
@@ -759,7 +769,7 @@ PyObject *t_record_getTypes(t_record *self)
 
 int _t_record_write(t_record *self, unsigned char *data, int len)
 {
-    int i, count, offset = 0;
+    int i, count, size, offset = 0;
     unsigned long long i64;
     unsigned long i32;
     unsigned short i16;
@@ -936,23 +946,23 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
             break;
 
           case R_STRING:
-            i32 = PyString_GET_SIZE(value);
-            if (offset + i32 + 4 > len)
+            size = PyString_GET_SIZE(value);
+            if (offset + size + 4 > len)
                 goto overflow;
-            *((unsigned long *) (data + offset)) = htonl(i32 + 1);
+            *((unsigned long *) (data + offset)) = htonl(size + 1);
             offset += 4;
-            memcpy(data + offset, PyString_AS_STRING(value), i32);
-            offset += i32;
+            memcpy(data + offset, PyString_AS_STRING(value), size);
+            offset += size;
             break;
 
           case -R_STRING:
-            i32 = PyString_GET_SIZE(value);
-            if (offset + i32 + 4 > len)
+            size = PyString_GET_SIZE(value);
+            if (offset + size + 4 > len)
                 goto overflow;
-            *((unsigned long *) (data + offset)) = htonl(-(i32 + 1));
+            *((unsigned long *) (data + offset)) = htonl(-(size + 1));
             offset += 4;
-            memcpy(data + offset, PyString_AS_STRING(value), i32);
-            offset += i32;
+            memcpy(data + offset, PyString_AS_STRING(value), size);
+            offset += size;
             break;
 
           case R_STRING_OR_NONE:
@@ -964,26 +974,26 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
             }
             else
             {
-                i32 = PyString_GET_SIZE(value);
-                if (offset + i32 + 5 > len)
+                size = PyString_GET_SIZE(value);
+                if (offset + size + 5 > len)
                     goto overflow;
                 data[offset++] = R_STRING;
-                *((unsigned long *) (data + offset)) = htonl(i32 + 1);
+                *((unsigned long *) (data + offset)) = htonl(size + 1);
                 offset += 4;
-                memcpy(data + offset, PyString_AS_STRING(value), i32);
-                offset += i32;
+                memcpy(data + offset, PyString_AS_STRING(value), size);
+                offset += size;
             }
             break;
 
           case -R_STRING_OR_NONE:
-            i32 = PyString_GET_SIZE(value);
-            if (offset + i32 + 5 > len)
+            size = PyString_GET_SIZE(value);
+            if (offset + size + 5 > len)
                 goto overflow;
             data[offset++] = R_STRING;
-            *((unsigned long *) (data + offset)) = htonl(-(i32 + 1));
+            *((unsigned long *) (data + offset)) = htonl(-(size + 1));
             offset += 4;
-            memcpy(data + offset, PyString_AS_STRING(value), i32);
-            offset += i32;
+            memcpy(data + offset, PyString_AS_STRING(value), size);
+            offset += size;
             break;
 
           case R_HASH:
