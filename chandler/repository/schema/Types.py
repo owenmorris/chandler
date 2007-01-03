@@ -22,7 +22,9 @@ from PyICU import ICUtzinfo, FloatingTZ
 from decimal import Decimal as decimal
 
 from chandlerdb.schema.c import CAttribute
-from chandlerdb.util.c import _hash, _combine, Nil, packDigits, unpackDigits
+from chandlerdb.util.c import \
+    _hash, _combine, Nil, packDigits, unpackDigits, isuuid
+from chandlerdb.persistence.c import Record
 from chandlerdb.item.c import isitem
 from repository.item.Item import Item
 from repository.item.PersistentCollections import \
@@ -130,8 +132,7 @@ class Type(Item):
         self._registerTypeHandler(self.getImplementationType(), view)
 
     def getImplementationType(self):
-        return self.getAttributeValue('implementationTypes',
-                                      self._values)['python']
+        return self._values['implementationTypes']['python']
 
     def handlerName(self):
         return None
@@ -186,12 +187,12 @@ class Type(Item):
     def getParsedValue(self, itemHandler, data):
         return self.makeValue(data)
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
         raise NotImplementedError, "%s._writeValue" %(type(self))
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-        raise NotImplementedError, "%s._readValue" %(type(self))
+        raise NotImplementedError, "%s.readValue" %(type(self))
 
     def hashValue(self, value):
         return _hash(self.makeString(value))
@@ -201,12 +202,16 @@ class Type(Item):
 
 class StringType(Type):
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-        return itemWriter.writeString(buffer, value)
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        record += (Record.STRING, value)
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-        return itemReader.readString(offset, data)
+        return offset+1, data[offset]
+
+    def getFlags(self):
+        return CAttribute.SIMPLE
 
     def typeXML(self, value, generator, withSchema):
         generator.characters(value)
@@ -320,14 +325,16 @@ class Symbol(BString):
 
         return self.illegal.search(value) is None
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-
-        return itemWriter.writeSymbol(buffer, value)
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        record += (Record.SYMBOL, value)
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-        
-        return itemReader.readSymbol(offset, data)
+        return offset+1, data[offset] or ''
+
+    def getFlags(self):
+        return 0
 
 
 class Importable(Symbol):
@@ -349,12 +356,16 @@ class Integer(Type):
     def _compareTypes(self, other):
         return -1
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-        return itemWriter.writeInteger(buffer, value)
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        record += (Record.INT, value)
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-        return itemReader.readInteger(offset, data)
+        return offset+1, data[offset]
+
+    def getFlags(self):
+        return CAttribute.SIMPLE
 
     def hashValue(self, value):
         return _hash(pack('>l', value))
@@ -381,12 +392,16 @@ class Long(Type):
             return -1
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-        return itemWriter.writeLong(buffer, value)
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        record += (Record.LONG, value)
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-        return itemReader.readLong(offset, data)
+        return offset+1, data[offset]
+
+    def getFlags(self):
+        return CAttribute.SIMPLE
 
     def hashValue(self, value):
         return _hash(pack('>q', value))
@@ -409,12 +424,16 @@ class Float(Type):
     def _compareTypes(self, other):
         return 1
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-        return itemWriter.writeFloat(buffer, value)
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        record += (Record.DOUBLE, value)
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-        return itemReader.readFloat(offset, data)
+        return offset+1, data[offset]
+
+    def getFlags(self):
+        return CAttribute.SIMPLE
 
     def hashValue(self, value):
         return _hash(pack('>d', value))
@@ -431,20 +450,15 @@ class Complex(Type):
     def makeValue(self, data):
         return complex(data[1:-1])
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-
-        size = itemWriter.writeFloat(buffer, value.real)
-        size += itemWriter.writeFloat(buffer, value.imag)
-
-        return size
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        record += (Record.DOUBLE, value.real, Record.DOUBLE, value.imag)
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        offset, real = itemReader.readFloat(offset, data)
-        offset, imag = itemReader.readFloat(offset, data)
-
-        return offset, complex(real, imag)
+        # real, imag
+        return offset+2, complex(*data[offset:offset+2])
 
     def hashValue(self, value):
 
@@ -462,42 +476,28 @@ class Decimal(Type):
     def makeValue(self, data):
         return decimal(data)
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
         
         sign, digits, exponent = value.as_tuple()
 
-        size = itemWriter.writeByte(buffer, sign)
-        size += itemWriter.writeString(buffer, packDigits(digits))
+        record += (Record.BYTE, sign,
+                   Record.STRING, packDigits(digits))
         if isinstance(exponent, int):
-            size += itemWriter.writeByte(buffer, 0)
-            size += itemWriter.writeInteger(buffer, exponent)
+            record += (Record.INT, exponent)
         elif isinstance(exponent, long):
-            size += itemWriter.writeByte(buffer, 1)
-            size += itemWriter.writeLong(buffer, exponent)
+            record += (Record.LONG, exponent)
         elif isinstance(exponent, str):
-            size += itemWriter.writeByte(buffer, 2)
-            size += itemWriter.writeString(buffer, exponent)
+            record += (Record.STRING, exponent)
         else:
             raise TypeError, type(exponent)
 
-        return size
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        offset, sign = itemReader.readByte(offset, data)
-        offset, digits = itemReader.readString(offset, data)
-        offset, n = itemReader.readByte(offset, data)
-        if n == 0:
-            offset, exponent = itemReader.readInteger(offset, data)
-        elif n == 1:
-            offset, exponent = itemReader.readLong(offset, data)
-        elif n == 2:
-            offset, exponent = itemReader.readString(offset, data)
-        else:
-            raise ValueError, n
-
-        return offset, decimal((sign, unpackDigits(digits), exponent))
+        sign, digits, exponent = data[offset:offset+3]
+        return offset+3, decimal((sign, unpackDigits(digits), exponent))
 
     def hashValue(self, value):
 
@@ -521,14 +521,16 @@ class Boolean(Type):
         else:
             raise ValueError, "'%s' is not 'T|true' or 'F|false'" %(data)
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-
-        return itemWriter.writeBoolean(buffer, value)
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        record += (Record.BOOLEAN, not not value)
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
+        return offset+1, data[offset]
 
-        return itemReader.readBoolean(offset, data)
+    def getFlags(self):
+        return CAttribute.SIMPLE
 
     def hashValue(self, value):
 
@@ -577,23 +579,16 @@ class UUID(Type):
 
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-
-        if value is None:
-            buffer.append('\0')
-            return 1
-        else:
-            buffer.append('\1')
-            buffer.append(value._uuid)
-            return 17
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        record += (Record.UUID_OR_NONE, value)
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
+        return offset+1, data[offset]
 
-        if data[offset] == '\0':
-            return offset+1, None
-        
-        return offset+17, UUIDType(data[offset+1:offset+17])
+    def getFlags(self):
+        return CAttribute.SIMPLE
 
     def hashValue(self, value):
 
@@ -645,24 +640,23 @@ class SingleRef(Type):
 
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
         if value is None:
-            buffer.append('\0')
-            return 1
+            record += (Record.UUID_OR_NONE, value)
         else:
-            buffer.append('\1')
-            buffer.append(value._uuid._uuid)
-            return 17
+            record += (Record.UUID_OR_NONE, value.itsUUID)
+
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        if data[offset] == '\0':
-            return offset+1, None
-        
-        uuid = UUIDType(data[offset+1:offset+17])
-        return offset+17, SingleRefType(uuid)
+        value = data[offset]
+        if isuuid(value):
+            value = SingleRefType(value)
+
+        return offset+1, value
 
     def getFlags(self):
 
@@ -719,25 +713,23 @@ class Path(Type):
 
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        if value is None:
-            buffer.append('\0')
-            size = 1
-        else:
-            buffer.append('\1')
-            size = 1 + itemWriter.writeString(buffer, str(value))
+        if value is not None:
+            value = str(value)
 
-        return size
+        record += (Record.STRING_OR_NONE, value)
+
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        if data[offset] == '\0':
-            return offset+1, None
+        value = data[offset]
+        if value is not None:
+            value = PathType(value)
         
-        offset, string = itemReader.readString(offset+1, data)
-        return offset, PathType(string)
+        return offset+1, value
 
     def hashValue(self, value):
 
@@ -775,25 +767,23 @@ class URL(Type):
 
         return -1
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        if value is None:
-            buffer.append('\0')
-            size = 1
-        else:
-            buffer.append('\1')
-            size = 1 + itemWriter.writeString(buffer, str(value))
+        if value is not None:
+            value = str(value)
 
-        return size
+        record += (Record.STRING_OR_NONE, value)
+
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-
-        if data[offset] == '\0':
-            return offset+1, None
         
-        offset, string = itemReader.readString(offset+1, data)
-        return offset, URLType(string)
+        value = data[offset]
+        if value is not None:
+            value = URLType(value)
+
+        return offset+1, value
 
     def hashValue(self, value):
 
@@ -823,15 +813,16 @@ class NoneType(Type):
     def _compareTypes(self, other):
         return -1
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-        buffer.append('\0')
-        return 1
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        record += (Record.NONE, None)
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-        if data[offset] != '\0':
-            raise AssertionError, 'invalid byte for None'
-        return offset+1, None
+        return offset+1, data[offset]
+
+    def getFlags(self):
+        return CAttribute.SIMPLE
 
     def hashValue(self, value):
         return 0
@@ -854,13 +845,13 @@ class Class(Type):
     def makeString(self, value):
         return '.'.join((value.__module__, value.__name__))
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-        return itemWriter.writeString(buffer, self.makeString(value))
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        record += (Record.STRING, self.makeString(value))
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-        offset, string = itemReader.readString(offset, data)
-        return offset, view.classLoader.loadClass(string)
+        return offset+1, view.classLoader.loadClass(data[offset])
 
     def hashValue(self, value):
         return _combine(_hash(str(self.itsPath)), _hash(self.makeString(value)))
@@ -881,24 +872,26 @@ class Enumeration(Type):
         return value
 
     def recognizes(self, value):
-        return value in self.values
+        return value in self._values['values']
 
     # it is assumed that an enum is not having more than 256 values
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
         if withSchema:
-            return itemWriter.writeString(buffer, value)
+            record += (Record.STRING, value)
         else:
-            buffer.append(chr(self.values.index(value)))
-            return 1
+            record += (Record.BYTE, self._values['values'].index(value))
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-        
-        if withSchema:
-            return itemReader.readString(offset, data)
 
-        return offset+1, self._values['values'][ord(data[offset])]
+        if withSchema:
+            value = data[offset]
+        else:
+            value = self._values['values'][data[offset]]
+
+        return offset+1, value
 
     def hashValue(self, value):
         return _combine(_hash(str(self.itsPath)), _hash(self.makeString(value)))
@@ -1010,21 +1003,23 @@ class ConstantEnumeration(Enumeration):
         return str(value)
 
     # it is assumed that an enum is not having more than 256 values
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
         if withSchema:
-            return itemWriter.writeString(buffer, str(value))
+            record += (Record.STRING, str(value))
         else:
-            buffer.append(chr(self.constants.index(value)))
-            return 1
+            record += (Record.BYTE, self.constants.index(value))
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
         
         if withSchema:
-            return self.makeValue(itemReader.readString(offset, data))
+            value = self.makeValue(data[offset])
+        else:
+            value = self.constants[data[offset]]
 
-        return offset+1, self.constants[ord(data[offset])]
+        return offset+1, value
 
     def _afterValuesChange(self, op, name):
 
@@ -1101,7 +1096,7 @@ class Struct(Type):
             value = itemHandler.makeValue(attrs['type'], itemHandler.data)
         else:
             value = itemHandler.data
-            field = self.getAttributeValue('fields', _attrDict=self._values)[name]
+            field = self._values['fields'][name]
             typeHandler = field.get('type', None)
             if typeHandler is not None:
                 try:
@@ -1114,7 +1109,7 @@ class Struct(Type):
     def recognizes(self, value):
 
         if super(Struct, self).recognizes(value):
-            for fieldName, field in self.fields.iteritems():
+            for fieldName, field in self._values['fields'].iteritems():
                 typeHandler = field.get('type', None)
                 if typeHandler is not None:
                     fieldValue = getattr(value, fieldName, Nil)
@@ -1162,7 +1157,7 @@ class Struct(Type):
 
         return ",".join(strings)
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
         size = 0
 
@@ -1175,11 +1170,11 @@ class Struct(Type):
                     continue
             
                 fieldType = field.get('type', None)
-                size += itemWriter.writeSymbol(buffer, fieldName)
-                size += itemWriter.writeValue(buffer, item, version,
+                record += (Record.SYMBOL, fieldName)
+                size += itemWriter.writeValue(record, item, version,
                                               fieldValue, withSchema, fieldType)
 
-        size += itemWriter.writeSymbol(buffer, '')
+        record += (Record.SYMBOL, None)
 
         return size
 
@@ -1190,16 +1185,16 @@ class Struct(Type):
         value = self.getImplementationType()()
 
         while True:
-            offset, fieldName = itemReader.readSymbol(offset, data)
-            if fieldName != '':
+            fieldName = data[offset]
+            if fieldName:
                 fieldType = fields[fieldName].get('type', None)
                 offset, fieldValue = \
-                    itemReader._readValue(offset, data,
+                    itemReader._readValue(offset + 1, data,
                                           withSchema, fieldType,
                                           view, name, afterLoadHooks)
                 setattr(value, fieldName, fieldValue)
             else:
-                return offset, value
+                return offset+1, value
 
     def hashValue(self, value):
 
@@ -1251,18 +1246,16 @@ class DateStruct(Struct):
 
         flds = {}
         while True:
-            offset, fieldName = itemReader.readSymbol(offset, data)
-            if fieldName != '':
+            fieldName = data[offset]
+            if fieldName:
                 fieldType = fields[fieldName].get('type', None)
                 offset, fieldValue = \
-                    itemReader._readValue(offset, data,
+                    itemReader._readValue(offset + 1, data,
                                           withSchema, fieldType,
                                           view, name, afterLoadHooks)
                 flds[fieldName] = fieldValue
             else:
-                break
-
-        return offset, self._valueFromFields(flds)
+                return offset+1, self._valueFromFields(flds)
 
     def parseSecond(self, second):
 
@@ -1284,39 +1277,31 @@ class DateStruct(Struct):
 
         return int(ss), us
     
-    def writeTime(self, itemWriter, buffer, value):
+    def writeTime(self, itemWriter, record, value):
 
         seconds = value.hour * 3600 + value.minute * 60 + value.second
         tzname = value.tzname()
-        size = itemWriter.writeInteger(buffer, seconds)
-        size += itemWriter.writeInteger(buffer, value.microsecond)
 
-        if tzname is not None:
-            buffer.append('\1')
-            size += 1 + itemWriter.writeString(buffer, tzname)
-        else:
-            buffer.append('\0')
-            size += 1
+        record += (Record.INT, seconds,
+                   Record.INT, value.microsecond,
+                   Record.SYMBOL, tzname)
 
-        return size
+        return 0
 
     def readTime(self, itemReader, offset, data):
 
-        offset, seconds = itemReader.readInteger(offset, data)
-        offset, microsecond = itemReader.readInteger(offset, data) 
-        
-        if data[offset] == '\1':
-            offset, tzname = itemReader.readString(offset + 1, data)
-            tz = ICUtzinfo.getInstance(tzname)
-        else:
-            offset += 1
+        seconds, microsecond, tzname = data[offset:offset+3]
+
+        if tzname is None:
             tz = None
+        else:
+            tz = ICUtzinfo.getInstance(tzname)
 
         hour = seconds / 3600
         minute = (seconds % 3600) / 60
         second = seconds % 60
 
-        return offset, time(hour, minute, second, microsecond, tz)
+        return offset+3, time(hour, minute, second, microsecond, tz)
 
 
 class DateTime(DateStruct):
@@ -1391,18 +1376,18 @@ class DateTime(DateStruct):
                         flds['hour'], flds['minute'], flds['second'],
                         flds['microsecond'], tz)
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        size = itemWriter.writeInteger(buffer, value.toordinal())
-        size += self.writeTime(itemWriter, buffer, value)
+        record += (Record.INT, value.toordinal())
+        size = self.writeTime(itemWriter, record, value)
 
         return size
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        offset, then = itemReader.readInteger(offset, data)
-        offset, time = self.readTime(itemReader, offset, data)
+        then = data[offset]
+        offset, time = self.readTime(itemReader, offset + 1, data)
 
         return offset, datetime.combine(date.fromordinal(then), time)
 
@@ -1472,15 +1457,13 @@ class Date(DateStruct):
 
         return date(flds['year'], flds['month'], flds['day'])
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-
-        return itemWriter.writeInteger(buffer, value.toordinal())
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        record += (Record.INT, value.toordinal())
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-
-        offset, then = itemReader.readInteger(offset, data)
-        return offset, date.fromordinal(then)
+        return offset+1, date.fromordinal(data[offset])
 
 
 class Time(DateStruct):
@@ -1546,9 +1529,9 @@ class Time(DateStruct):
         return time(flds['hour'], flds['minute'], flds['second'],
                     flds['microsecond'], tz)
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        return self.writeTime(itemWriter, buffer, value)
+        return self.writeTime(itemWriter, record, value)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
@@ -1644,22 +1627,19 @@ class TimeDelta(DateStruct):
                          flds.get('seconds', 0),
                          flds.get('microseconds', 0))
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        size = itemWriter.writeInteger(buffer, value.days)
-        size += itemWriter.writeInteger(buffer, value.seconds)
-        size += itemWriter.writeInteger(buffer, value.microseconds)
+        record += (Record.INT, value.days,
+                   Record.INT, value.seconds,
+                   Record.INT, value.microseconds)
 
-        return size
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
         
-        offset, days = itemReader.readInteger(offset, data)
-        offset, seconds = itemReader.readInteger(offset, data)
-        offset, microseconds = itemReader.readInteger(offset, data)
-
-        return offset, timedelta(days, seconds, microseconds)
+        # days, seconds, microseconds
+        return offset+3, timedelta(*data[offset:offset+3])
 
 
 class TimeZone(Type):
@@ -1694,25 +1674,23 @@ class TimeZone(Type):
 
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        if value is None:
-            buffer.append('\0')
-            size = 1
-        else:
-            buffer.append('\1')
-            size = 1 + itemWriter.writeString(buffer, str(value))
+        if value is not None:
+            value = str(value)
 
-        return size
+        record += (Record.SYMBOL, value)
+
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        if data[offset] == '\0':
-            return offset+1, None
-        
-        offset, string = itemReader.readString(offset+1, data)
-        return offset, ICUtzinfo.getInstance(string)
+        value = data[offset]
+        if value is not None:
+            value = ICUtzinfo.getInstance(value)
+
+        return offset+1, value
 
     def hashValue(self, value):
 
@@ -1828,9 +1806,9 @@ class Dictionary(Collection):
 
         return PersistentDict()
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        return itemWriter.writeDict(buffer, item, version,
+        return itemWriter.writeDict(record, item, version,
                                     value, withSchema, None)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
@@ -1894,9 +1872,9 @@ class List(Collection):
 
         return PersistentList()
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        return itemWriter.writeList(buffer, item, version,
+        return itemWriter.writeList(record, item, version,
                                     value, withSchema, None)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
@@ -1959,9 +1937,9 @@ class Tuple(Collection):
         values = super(Tuple, self).getParsedValue(itemHandler, data)
         return PersistentTuple(None, None, values, False)
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        return itemWriter.writeList(buffer, item, version,
+        return itemWriter.writeList(record, item, version,
                                     value, withSchema, None)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
@@ -2016,9 +1994,9 @@ class Set(Collection):
 
         return PersistentSet()
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        return itemWriter.writeSet(buffer, item, version,
+        return itemWriter.writeSet(record, item, version,
                                    value, withSchema, None)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
@@ -2054,22 +2032,20 @@ class AbstractSet(Type):
 
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        string = AbstractSetType.makeString(value)
-        size = itemWriter.writeString(buffer, string)
-        size += itemWriter.writeIndexes(buffer, item, version, value)
+        record += (Record.STRING, AbstractSetType.makeString(value))
+        size = itemWriter.writeIndexes(record, item, version, value)
 
         return size
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        offset, string = itemReader.readString(offset, data)
-        value = AbstractSetType.makeValue(string)
+        value = AbstractSetType.makeValue(data[offset])
         value._setView(view)
 
-        offset = itemReader._readIndexes(offset, data, value, afterLoadHooks)
+        offset = itemReader._readIndexes(offset+1, data, value, afterLoadHooks)
 
         return offset, value
 
@@ -2130,9 +2106,9 @@ class Lob(Type):
 
         value._xmlValue(generator)
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
-        return value._writeValue(itemWriter, buffer, version, withSchema)
+        return value._writeValue(itemWriter, record, version, withSchema)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):

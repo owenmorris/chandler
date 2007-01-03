@@ -16,7 +16,7 @@
 Test merging of items
 """
 
-import unittest, os
+import unittest, os, logging
 from datetime import date
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.persistence.RepositoryError import MergeError
@@ -244,22 +244,28 @@ class TestMerge(RepositoryTestCase):
 
     def testRenameSameDifferent(self):
         try:
+            level = self.setLoggerLevel(logging.CRITICAL)
             self.rename('foo', 'bar')
         except MergeError, e:
-            #print e
             self.assert_(e.getReasonCode() == MergeError.RENAME)
+        else:
+            self.assert_(False)
+        finally:
+            self.setLoggerLevel(level)
 
     def testMoveSame(self):
         self.move('foo', 'foo')
 
     def testMoveDifferent(self):
         try:
+            level = self.setLoggerLevel(logging.CRITICAL)
             self.move('foo', 'bar')
         except MergeError, e:
-            #print e
             self.assert_(e.getReasonCode() == MergeError.MOVE)
         else:
             self.assert_(False)
+        finally:
+            self.setLoggerLevel(level)
 
     def testCreateSameName(self):
         view = self.rep.createView('view')
@@ -275,12 +281,14 @@ class TestMerge(RepositoryTestCase):
         km.newItem('foo', pm)
 
         try:
+            level = self.setLoggerLevel(logging.CRITICAL)
             main.commit()
         except MergeError, e:
-            #print e
             self.assert_(e.getReasonCode() == MergeError.NAME)
         else:
             self.assert_(False)
+        finally:
+            self.setLoggerLevel(level)
 
     def testRenameDifferentSameName(self):
         main = self.rep.view
@@ -301,12 +309,14 @@ class TestMerge(RepositoryTestCase):
         pm['bar'].rename('baz')
 
         try:
+            level = self.setLoggerLevel(logging.CRITICAL)
             main.commit()
         except MergeError, e:
-            #print e
             self.assert_(e.getReasonCode() == MergeError.NAME)
         else:
             self.assert_(False)
+        finally:
+            self.setLoggerLevel(level)
 
     def testMoveFirst(self):
         main = self.rep.view
@@ -358,13 +368,14 @@ class TestMerge(RepositoryTestCase):
         pm['i1'].move(qm)
 
         try:
+            level = self.setLoggerLevel(logging.CRITICAL)
             main.commit()
         except MergeError, e:
-            #print e
             self.assert_(e.getReasonCode() == MergeError.MOVE)
         else:
             self.assert_(main.check())
-            #self.assert_(False)
+        finally:
+            self.setLoggerLevel(level)
 
     def testRemove1Change1(self):
 
@@ -700,12 +711,15 @@ class TestMerge(RepositoryTestCase):
         m.title = 'changed title again'
 
         try:
+            level = self.setLoggerLevel(logging.CRITICAL)
             version = main.itsVersion
             main.commit()
         except MergeError:
             self.assert_(main.check())
             self.assert_(main.itsVersion == version)
             self.assertEquals(m.title, 'changed title')
+        finally:
+            self.setLoggerLevel(level)
 
     def testMergeOverlapVDifferentWithCallback(self):
 
@@ -788,9 +802,12 @@ class TestMerge(RepositoryTestCase):
         m1.director = m4.director
 
         try:
+            level = self.setLoggerLevel(logging.CRITICAL)
             main.commit()
         except MergeError, e:
             self.assert_(e.getReasonCode() == MergeError.REF)
+        finally:
+            self.setLoggerLevel(level)
 
         self.assertEquals(m1.director, m2.director)
         self.assert_(main.check(), 'main view did not check out')
@@ -1025,7 +1042,7 @@ class TestMerge(RepositoryTestCase):
             from random import randint
             name = "uuids_%0.4x.txt" %(randint(0, 65535))
             outFile = file(name, 'w')
-            print "Saving uuids to ", name
+            print "Saving uuids to", name
             for uuid in uuids:
                 print >>outFile, uuid.str64()
             outFile.close()
@@ -1062,12 +1079,15 @@ class TestMerge(RepositoryTestCase):
         m1.director = k.movies.next(m1).director
 
         try:
+            level = self.setLoggerLevel(logging.CRITICAL)
             main.commit(None)
         except MergeError, e:
             self.assert_(e.getReasonCode() == MergeError.DELETE)
         else:
             if not m1.isDeleted():
                 self.assert_(False, "MergeError not caught")
+        finally:
+            self.setLoggerLevel(level)
 
         main.commit(mergeFn)
         self.assert_(m1.isDeleted())

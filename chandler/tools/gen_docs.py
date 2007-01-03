@@ -16,7 +16,7 @@
 import os, sys, re, string, errno, shutil, time
 import repository
 
-from application import Utility, schema
+from application import Globals, Utility, schema
 from repository.item.RefCollections import RefList
 from chandlerdb.util.c import SingleRef
 
@@ -754,9 +754,8 @@ def generateDocs(options, outputDir):
 
 
 if __name__ == '__main__':
-    options = Utility.initOptions()
+    options = Globals.options
     
-    Utility.initProfileDir(options)
     Utility.initLogging(options)
 
     if options.args:

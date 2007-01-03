@@ -15,9 +15,10 @@
 
 from struct import pack, unpack
 
-from chandlerdb.persistence.c import DBLockDeadlockError
+from chandlerdb.persistence.c import DBLockDeadlockError, Record
 from chandlerdb.util.c import Nil, Default, UUID, _hash, isuuid
 from chandlerdb.item.c import isitem, CItem, CValues
+from chandlerdb.schema.c import CAttribute
 from chandlerdb.item.ItemValue import Indexable
 from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References
@@ -63,8 +64,7 @@ class DBItemWriter(ItemWriter):
             prevKind = None
 
         size = super(DBItemWriter, self).writeItem(item, version)
-        size += self.store._items.saveItem(self.valueBuffer,
-                                           item.itsUUID, version,
+        size += self.store._items.saveItem(item.itsUUID, version,
                                            self.uKind, prevKind,
                                            item._status & CItem.SAVEMASK,
                                            self.uParent, self.name,
@@ -75,143 +75,64 @@ class DBItemWriter(ItemWriter):
 
         return size
 
-    def writeString(self, buffer, value):
-
-        if isinstance(value, unicode):
-            value = value.encode('utf-8')
-            size = len(value)
-            buffer.append(pack('>i', size + 1))
-        else:
-            size = len(value)
-            buffer.append(pack('>i', -(size + 1)))
-            
-        buffer.append(value)
-
-        return 4 + size
-
-    def writeSymbol(self, buffer, value):
-
-        if isinstance(value, unicode):
-            value = value.encode('ascii')
-
-        buffer.append(pack('>H', len(value)))
-        buffer.append(value)
-
-        return 2 + len(value)
-
-    def writeBoolean(self, buffer, value):
-
-        if value is None:
-            buffer.append('\2')
-        elif value:
-            buffer.append('\1')
-        else:
-            buffer.append('\0')
-
-        return 1
-
-    def writeByte(self, buffer, value):
-
-        buffer.append(pack('>b', value))
-        return 1
-
-    def writeShort(self, buffer, value):
-
-        buffer.append(pack('>h', value))
-        return 2
-
-    def writeInteger(self, buffer, value):
-
-        buffer.append(pack('>i', value))
-        return 4
-
-    def writeLong(self, buffer, value):
-        
-        buffer.append(pack('>q', value))
-        return 8
-        
-    def writeFloat(self, buffer, value):
-
-        buffer.append(pack('>d', value))
-        return 8
-
-    def writeUUID(self, buffer, value):
-
-        buffer.append(value._uuid)
-        return 16
-
-    def writeLob(self, buffer, value, indexed):
-
-        self.lobs.append(value)
-        size = self.writeUUID(buffer, value)
-        size += self.writeBoolean(buffer, indexed)
-
-        return size
-
-    def writeIndex(self, buffer, value):
-
-        self.indexes.append(value)
-        return self.writeUUID(buffer, value)
-
-    def writeValue(self, buffer, item, version, value, withSchema, attrType):
+    def writeValue(self, record, item, version, value, withSchema, attrType):
 
         flags = DBItemWriter.SINGLE | DBItemWriter.VALUE
-        attrType = self._type(buffer, flags, item, value, True,
+        attrType = self._type(record, flags, item, value, True,
                               withSchema, attrType)
-        return attrType.writeValue(self, buffer, item, version,
+        return attrType.writeValue(self, record, item, version,
                                    value, withSchema)
 
-    def writeList(self, buffer, item, version, value, withSchema, attrType):
+    def writeList(self, record, item, version, value, withSchema, attrType):
 
         flags = DBItemWriter.LIST | DBItemWriter.VALUE
-        attrType = self._type(buffer, flags, item, value, False,
+        attrType = self._type(record, flags, item, value, False,
                               withSchema, attrType)
-        buffer.append(pack('>I', len(value)))
-        size = 4
+        record += (Record.INT, len(value))
+        size = 0
         for v in value:
-            size += self.writeValue(buffer, item, version,
+            size += self.writeValue(record, item, version,
                                     v, withSchema, attrType)
 
         return size
 
-    def writeSet(self, buffer, item, version, value, withSchema, attrType):
+    def writeSet(self, record, item, version, value, withSchema, attrType):
 
         flags = DBItemWriter.SET | DBItemWriter.VALUE
-        attrType = self._type(buffer, flags, item, value, False,
+        attrType = self._type(record, flags, item, value, False,
                               withSchema, attrType)
-        buffer.append(pack('>I', len(value)))
-        size = 4
+        record += (Record.INT, len(value))
+        size = 0
         for v in value:
-            size += self.writeValue(buffer, item, version,
+            size += self.writeValue(record, item, version,
                                     v, withSchema, attrType)
 
         return size
 
-    def writeDict(self, buffer, item, version, value, withSchema, attrType):
+    def writeDict(self, record, item, version, value, withSchema, attrType):
 
         flags = DBItemWriter.DICT | DBItemWriter.VALUE
-        attrType = self._type(buffer, flags, item, value, False,
+        attrType = self._type(record, flags, item, value, False,
                               withSchema, attrType)
-        buffer.append(pack('>I', len(value)))
-        size = 4
+        record += (Record.INT, len(value))
+        size = 0
         for k, v in value._iteritems():
-            size += self.writeValue(buffer, item, version,
+            size += self.writeValue(record, item, version,
                                     k, False, None)
-            size += self.writeValue(buffer, item, version,
+            size += self.writeValue(record, item, version,
                                     v, withSchema, attrType)
 
         return size
 
-    def writeIndexes(self, buffer, item, version, value):
+    def writeIndexes(self, record, item, version, value):
 
         if value._indexes:
-            buffer.append(pack('>H', len(value._indexes)))
-            size = 2 + value._saveIndexes(self, buffer, version)
+            record += (Record.BYTE, len(value._indexes))
+            return value._saveIndexes(self, record, version)
         else:
-            buffer.append('\0\0')
-            size = 2
+            record += (Record.BYTE, 0)
 
-        return size
+        return 0
 
     def _kind(self, kind):
 
@@ -292,15 +213,12 @@ class DBItemWriter(ItemWriter):
             if indexed is None:
                 indexed = False
         else:
-            uAttr = attribute._uuid
+            uAttr = attribute.itsUUID
             c = attribute.c
             attrCard = c.cardinality
-            attrType = attribute.getAspect('type', None)
+            attrType = attribute.type
             if indexed is None:
                 indexed = c.indexed
-            
-        buffer = self.dataBuffer
-        del buffer[:]
 
         if indexed:
             if view.isBackgroundIndexed():
@@ -309,23 +227,26 @@ class DBItemWriter(ItemWriter):
                 indexed = False
             else:
                 flags |= CValues.INDEXED
-        buffer.append(chr(flags))
 
+        record = Record(Record.UUID, attribute.itsUUID,
+                        Record.BYTE, flags)
+
+        valueRecord = Record()
         if withSchema:
-            self.writeSymbol(buffer, name)
+            valueRecord += (Record.SYMBOL, name)
 
         try:
             if attrCard == 'single':
-                self.writeValue(buffer, item, version,
+                self.writeValue(valueRecord, item, version,
                                 value, withSchema, attrType)
             elif attrCard == 'list':
-                self.writeList(buffer, item, version,
+                self.writeList(valueRecord, item, version,
                                value, withSchema, attrType)
             elif attrCard == 'set':
-                self.writeSet(buffer, item, version,
+                self.writeSet(valueRecord, item, version,
                               value, withSchema, attrType)
             elif attrCard == 'dict':
-                self.writeDict(buffer, item, version,
+                self.writeDict(valueRecord, item, version,
                                value, withSchema, attrType)
         except DBLockDeadlockError:
             raise
@@ -349,16 +270,20 @@ class DBItemWriter(ItemWriter):
             else:
                 raise NotImplementedError, (attrCard, "full text indexing")
 
+        record += (Record.RECORD, valueRecord)
+
+        lobRecord = Record()
         for uuid in self.lobs:
-            self.writeUUID(buffer, uuid)
+            lobRecord += (Record.UUID, uuid)
+        record += (Record.RECORD, lobRecord)
+
+        indexRecord = Record()
         for uuid in self.indexes:
-            self.writeUUID(buffer, uuid)
+            indexRecord += (Record.UUID, uuid)
+        record += (Record.RECORD, indexRecord)
 
-        buffer.append(pack('>H', len(self.lobs)))
-        buffer.append(pack('>H', len(self.indexes)))
-
-        return self.store._values.c.saveValue(self.store.txn,
-                                              uAttr, uValue, ''.join(buffer))
+        return self.store._values.put_record(Record(Record.UUID, uValue),
+                                             record)
 
     def indexValue(self, view, value, uItem, uAttr, uValue, version):
 
@@ -379,12 +304,12 @@ class DBItemWriter(ItemWriter):
 
         return 0
 
-    def _type(self, buffer, flags, item, value, verify, withSchema, attrType):
+    def _type(self, record, flags, item, value, verify, withSchema, attrType):
 
         if attrType is None:
             if verify:
                 attrType = TypeHandler.typeHandler(item.itsView, value)
-                typeId = attrType._uuid
+                typeId = attrType.itsUUID
             else:
                 typeId = None
 
@@ -394,7 +319,7 @@ class DBItemWriter(ItemWriter):
                 if aliasType is None:
                     raise TypeError, "%s does not alias type of value '%s' of type %s" %(attrType.itsPath, value, type(value))
                 attrType = aliasType
-                typeId = attrType._uuid
+                typeId = attrType.itsUUID
             else:
                 typeId = None
             
@@ -403,44 +328,50 @@ class DBItemWriter(ItemWriter):
                 raise TypeError, "value '%s' of type %s is not recognized by type %s" %(value, type(value), attrType.itsPath)
 
             if withSchema:
-                typeId = attrType._uuid
+                typeId = attrType.itsUUID
             else:
                 typeId = None
 
-        if typeId is None:
-            buffer.append(chr(flags))
+        if (flags & DBItemWriter.SINGLE and
+            attrType is not None and
+            attrType.getFlags() & CAttribute.SIMPLE):
+            flags |= DBItemWriter.SIMPLE
+            record += (Record.BYTE, flags)
+        elif typeId is None:
+            record += (Record.BYTE, flags)
         else:
             flags |= DBItemWriter.TYPED
-            buffer.append(chr(flags))
-            buffer.append(typeId._uuid)
+            record += (Record.BYTE, flags,
+                       Record.UUID, typeId)
 
         return attrType
 
     def _ref(self, item, name, value, version, flags, withSchema, attribute):
 
+        self.indexes = []
         uValue = UUID()
         self.values.append((name, uValue))
         size = 0
 
-        buffer = self.dataBuffer
-        del buffer[:]
+        record = Record(Record.UUID, attribute.itsUUID,
+                        Record.BYTE, flags)
 
-        buffer.append(chr(flags))
+        refRecord = Record()
         if withSchema:
-            self.writeSymbol(buffer, name)
+            refRecord += (Record.SYMBOL, name)
 
         if value is None:
-            buffer.append(chr(DBItemWriter.NONE | DBItemWriter.REF))
+            refRecord += (Record.BYTE, DBItemWriter.NONE | DBItemWriter.REF)
 
         elif isuuid(value):
             if withSchema:
                 raise AssertionError, 'withSchema is True'
-            buffer.append(chr(DBItemWriter.SINGLE | DBItemWriter.REF))
-            buffer.append(value._uuid)
+            refRecord += (Record.BYTE, DBItemWriter.SINGLE | DBItemWriter.REF,
+                          Record.UUID, value)
 
         elif isitem(value):
-            buffer.append(chr(DBItemWriter.SINGLE | DBItemWriter.REF))
-            buffer.append(value.itsUUID._uuid)
+            refRecord += (Record.BYTE, DBItemWriter.SINGLE | DBItemWriter.REF,
+                          Record.UUID, value.itsUUID)
 
         elif value._isRefs():
             attrCard = attribute.c.cardinality
@@ -448,34 +379,29 @@ class DBItemWriter(ItemWriter):
                 flags = DBItemWriter.LIST | DBItemWriter.REF
                 if withSchema:
                     flags |= DBItemWriter.TYPED
-                buffer.append(chr(flags))
-                buffer.append(value.uuid._uuid)
+                refRecord += (Record.BYTE, flags,
+                              Record.UUID, value.uuid)
                 if withSchema:
-                    self.writeSymbol(buffer, item.itsKind.getOtherName(name, item))
+                    refRecord += (Record.SYMBOL,
+                                  item.itsKind.getOtherName(name, item))
                 size += value._saveValues(version)
 
             elif attrCard == 'set':
-                flags = DBItemWriter.SET | DBItemWriter.REF
-                buffer.append(chr(flags))
-                self.writeString(buffer, value.makeString(value))
+                refRecord += (Record.BYTE, DBItemWriter.SET | DBItemWriter.REF,
+                              Record.STRING, value.makeString(value))
 
             elif attrCard == 'dict':
                 flags = DBItemWriter.DICT | DBItemWriter.REF
                 if withSchema:
                     flags |= DBItemWriter.TYPED
-                buffer.append(chr(flags))
+                refRecord += (Record.BYTE, flags)
                 if withSchema:
-                    self.writeSymbol(buffer, item.itsKind.getOtherName(name, item))
-                buffer.append(pack('>H', len(value._dict)))
-                size = 2
+                    refRecord += (Record.SYMBOL,
+                                  item.itsKind.getOtherName(name, item))
+                refRecord += (Record.SHORT, len(value._dict))
                 for key, refList in value._dict.iteritems():
-                    if isuuid(key):
-                        buffer.append('\0')
-                        buffer.append(key._uuid)
-                    else:
-                        buffer.append('\1')
-                        self.writeSymbol(buffer, key)
-                    buffer.append(refList.uuid._uuid)
+                    refRecord += (Record.UUID_OR_SYMBOL, key,
+                                  Record.UUID, refList.uuid)
                     if refList._isDirty():
                         size += refList._saveValues(version)
 
@@ -483,18 +409,21 @@ class DBItemWriter(ItemWriter):
                 raise NotImplementedError, attrCard
 
             if attrCard != 'dict':
-                self.indexes = []
-                size += self.writeIndexes(buffer, item, version, value)
-                for uuid in self.indexes:
-                    self.writeUUID(buffer, uuid)
-                buffer.append(pack('>H', len(self.indexes)))
+                size += self.writeIndexes(refRecord, item, version, value)
 
         else:
             raise TypeError, value
 
-        size += self.store._values.c.saveValue(self.store.txn,
-                                               attribute.itsUUID, uValue,
-                                               ''.join(buffer))
+        record += (Record.RECORD, refRecord,
+                   Record.RECORD, Record())
+
+        indexRecord = Record()
+        for uuid in self.indexes:
+            indexRecord += (Record.UUID, uuid)
+        record += (Record.RECORD, indexRecord)
+
+        size += self.store._values.put_record(Record(Record.UUID, uValue),
+                                              record)
 
         return size
 
@@ -505,12 +434,15 @@ class DBItemWriter(ItemWriter):
     SINGLE   = 0x10
     LIST     = 0x20
     DICT     = 0x40
-    NONE     = 0x80
+    NONE     = 0x80  # only used with REF
+    SIMPLE   = 0x80  # only used with VALUE
     
     NOITEM = UUID('6d4df428-32a7-11d9-f701-000393db837c')
 
 
 class DBValueReader(ValueReader):
+
+    VALUE_TYPES = (Record.UUID, Record.BYTE, Record.RECORD)
 
     def __init__(self, store, status, version):
 
@@ -524,25 +456,31 @@ class DBValueReader(ValueReader):
     def readValue(self, view, uValue, toIndex=False):
 
         store = self.store
-        uAttr, vFlags, data = store._values.c.loadValue(store.txn, uValue)
 
-        if toIndex and not (ord(vFlags) & CValues.TOINDEX):
+        record = store._values.c.loadValue(uValue, DBValueReader.VALUE_TYPES,
+                                           store.txn)
+        uAttr, vFlags, data = record.data
+
+        if toIndex and not (vFlags & CValues.TOINDEX):
             return uAttr, Nil
 
         withSchema = (self.status & CItem.WITHSCHEMA) != 0
 
         if withSchema:
             attribute = None
-            offset, name = self.readSymbol(0, data)
+            offset, name = 1, data[0]
         else:
             attribute = view[uAttr]
             offset, name = 0, attribute.itsName
 
-        flags = ord(data[offset])
+        flags = data[offset]
 
         if flags & DBItemWriter.VALUE:
-            offset, value = self._value(offset, data, None, withSchema,
-                                        attribute, view, name, [])
+            if flags & DBItemWriter.SIMPLE:
+                value = data[offset + 1]
+            else:
+                offset, value = self._value(offset, data, None, withSchema,
+                                            attribute, view, name, [])
             return uAttr, value
 
         elif flags & DBItemWriter.REF:
@@ -550,31 +488,30 @@ class DBValueReader(ValueReader):
                 return uAttr, None
 
             elif flags & DBItemWriter.SINGLE:
-                offset, uuid = self.readUUID(offset + 1, data)
-                return uAttr, uuid
+                return uAttr, data[offset + 1]
 
             elif flags & DBItemWriter.LIST:
-                offset, uuid = self.readUUID(offset + 1, data)
-                return uAttr, DBStandAloneRefList(view, uuid, self.version)
+                return uAttr, DBStandAloneRefList(view, data[offset + 1],
+                                                  self.version)
 
             elif flags & DBItemWriter.SET:
-                offset, value = self.readString(offset + 1, data)
-                value = AbstractSet.makeValue(value)
+                value = AbstractSet.makeValue(data[offset + 1])
                 value._setView(view)
                 return uAttr, value
 
             elif flags & DBItemWriter.DICT:
                 if withSchema:
-                    offset, otherName = self.readSymbol(offset, data)
+                    otherName = data[offset + 1]
+                    offset += 2
+                else:
+                    offset += 1
+
                 value = {}
-                offset, count = self.readShort(offset + 1, data)
+                count = data[offset]
+                offset += 1
                 for i in xrange(count):
-                    t = data[offset]
-                    if t == '\0':
-                        offset, key = self.readUUID(offset + 1, data)
-                    else:
-                        offset, key = self.readSymbol(offset + 1, data)
-                    offset, uuid = self.readUUID(offset, data)
+                    key, uuid = data[offset:offset+2]
+                    offset += 2
                     value[key] = DBStandAloneRefList(view, uuid, self.version)
                 return uAttr, value
 
@@ -587,22 +524,28 @@ class DBValueReader(ValueReader):
     def hasTrueValue(self, view, uValue):
 
         store = self.store
-        uAttr, vFlags, data = store._values.c.loadValue(store.txn, uValue)
+
+        record = store._values.c.loadValue(uValue, DBValueReader.VALUE_TYPES,
+                                           store.txn)
+        uAttr, vFlags, data = record.data
 
         withSchema = (self.status & CItem.WITHSCHEMA) != 0
 
         if withSchema:
             attribute = None
-            offset, name = self.readSymbol(0, data)
+            offset, name = 1, data[0]
         else:
             attribute = view[uAttr]
             offset, name = 0, attribute.itsName
 
-        flags = ord(data[offset])
+        flags = data[offset]
 
         if flags & DBItemWriter.VALUE:
-            offset, value = self._value(offset, data, None, withSchema,
-                                        attribute, view, name, [])
+            if flags & DBItemWriter.SIMPLE:
+                value = data[offset + 1]
+            else:
+                offset, value = self._value(offset, data, None, withSchema,
+                                            attribute, view, name, [])
             return not not value
 
         elif flags & DBItemWriter.REF:
@@ -610,17 +553,16 @@ class DBValueReader(ValueReader):
                 return False
 
             elif flags & DBItemWriter.SINGLE:
-                offset, uuid = self.readUUID(offset + 1, data)
                 return True
 
             elif flags & DBItemWriter.LIST:
-                offset, uuid = self.readUUID(offset + 1, data)
-                ref = self.store._refs.loadRef(view, uuid, self.version, uuid)
+                uuid = data[offset + 1]
+                ref = self.store._refs.loadRef(view, uuid, self.version, uuid,
+                                               True)
                 return ref[2] > 0
 
             elif flags & DBItemWriter.SET:
-                offset, value = self.readString(offset + 1, data)
-                value = AbstractSet.makeValue(value)
+                value = AbstractSet.makeValue(data[offset + 1])
                 value._setView(view)
                 return not not value
 
@@ -638,7 +580,7 @@ class DBValueReader(ValueReader):
         else:
             attrType = attribute.getAspect('type', None)
 
-        flags = ord(data[offset])
+        flags = data[offset]
 
         if flags & DBItemWriter.SINGLE:
             return self._readValue(offset, data, withSchema, attrType,
@@ -659,19 +601,21 @@ class DBValueReader(ValueReader):
     def _ref(self, offset, data, kind, withSchema, attribute, view, name,
              afterLoadHooks):
 
-        flags = ord(data[offset])
+        flags = data[offset]
         offset += 1
         
         if flags & DBItemWriter.NONE:
             return offset, None
 
         elif flags & DBItemWriter.SINGLE:
-            return self.readUUID(offset, data)
+            return offset+1, data[offset]
 
         elif flags & DBItemWriter.LIST:
-            offset, uuid = self.readUUID(offset, data)
+            uuid = data[offset]
+            offset += 1
             if withSchema:
-                offset, otherName = self.readSymbol(offset, data)
+                otherName = data[offset]
+                offset += 1
             else:
                 otherName = kind.getOtherName(name, None)
             value = view._createRefList(None, name, otherName, None,
@@ -681,27 +625,26 @@ class DBValueReader(ValueReader):
             return offset, value
 
         elif flags & DBItemWriter.SET:
-            offset, string = self.readString(offset, data)
-            value = AbstractSet.makeValue(string)
+            value = AbstractSet.makeValue(data[offset])
             value._setView(view)
-            offset = self._readIndexes(offset, data, value, afterLoadHooks)
+            offset = self._readIndexes(offset + 1, data, value, afterLoadHooks)
 
             return offset, value
 
         elif flags & DBItemWriter.DICT:
             if withSchema:
-                offset, otherName = self.readSymbol(offset, data)
+                otherName = data[offset]
+                offset += 1
             else:
                 otherName = kind.getOtherName(name, None)
+
             value = RefDict(None, name, otherName)
-            offset, count = self.readShort(offset, data)
+            count = data[offset]
+            offset += 1
+
             for i in xrange(count):
-                t = data[offset]
-                if t == '\0':
-                    offset, key = self.readUUID(offset + 1, data)
-                else:
-                    offset, key = self.readSymbol(offset + 1, data)
-                offset, uuid = self.readUUID(offset, data)
+                key, uuid = data[offset:offset+2]
+                offset += 2
                 value._dict[key] = view._createRefList(None, name, otherName,
                                                        key, False, False, uuid)
 
@@ -713,10 +656,10 @@ class DBValueReader(ValueReader):
 
     def _type(self, offset, data, attrType, view, name):
 
-        if ord(data[offset]) & DBItemWriter.TYPED:
-            typeId = UUID(data[offset+1:offset+17])
+        if data[offset] & DBItemWriter.TYPED:
+            typeId = data[offset+1]
             try:
-                return offset+17, view[typeId]
+                return offset+2, view[typeId]
             except KeyError:
                 raise LoadValueError, (self.name or self.uItem, name,
                                        "type not found: %s" %(typeId))
@@ -725,6 +668,9 @@ class DBValueReader(ValueReader):
 
     def _readValue(self, offset, data, withSchema, attrType, view, name,
                    afterLoadHooks):
+
+        if data[offset] & DBItemWriter.SIMPLE:
+            return offset+2, data[offset+1]
 
         offset, attrType = self._type(offset, data, attrType, view, name)
         if attrType is None:
@@ -738,8 +684,8 @@ class DBValueReader(ValueReader):
                   afterLoadHooks):
 
         offset, attrType = self._type(offset, data, attrType, view, name)
-        count, = unpack('>I', data[offset:offset+4])
-        offset += 4
+        count = data[offset]
+        offset += 1
 
         value = PersistentList()
         for i in xrange(count):
@@ -753,8 +699,8 @@ class DBValueReader(ValueReader):
                  afterLoadHooks):
 
         offset, attrType = self._type(offset, data, attrType, view, name)
-        count, = unpack('>I', data[offset:offset+4])
-        offset += 4
+        count = data[offset]
+        offset += 1
 
         value = PersistentSet()
         for i in xrange(count):
@@ -768,8 +714,8 @@ class DBValueReader(ValueReader):
                   afterLoadHooks):
 
         offset, attrType = self._type(offset, data, attrType, view, name)
-        count, = unpack('>I', data[offset:offset+4])
-        offset += 4
+        count = data[offset]
+        offset += 1
 
         value = PersistentDict()
         for i in xrange(count):
@@ -783,8 +729,8 @@ class DBValueReader(ValueReader):
 
     def _readIndexes(self, offset, data, value, afterLoadHooks):
 
-        count, = unpack('>H', data[offset:offset+2])
-        offset += 2
+        count = data[offset]
+        offset += 1
 
         if count > 0:
             for i in xrange(count):
@@ -793,77 +739,19 @@ class DBValueReader(ValueReader):
 
         return offset
 
-    def readString(self, offset, data):
-
-        offset, len = offset+4, unpack('>i', data[offset:offset+4])[0]
-        if len >= 0:
-            len -= 1
-            return offset+len, unicode(data[offset:offset+len], 'utf-8')
-        else:
-            len += 1
-            return offset-len, data[offset:offset-len]
-
-    def readSymbol(self, offset, data):
-
-        offset, len, = offset+2, unpack('>H', data[offset:offset+2])[0]
-        return offset+len, data[offset:offset+len]
-
-    def readBoolean(self, offset, data):
-
-        value = data[offset]
-
-        if value == '\0':
-            value = False
-        elif value == '\1':
-            value = True
-        else:
-            value = None
-
-        return offset+1, value
-
-    def readByte(self, offset, data):
-        return offset+1, unpack('>b', data[offset:offset+1])[0]
-
-    def readShort(self, offset, data):
-        return offset+2, unpack('>h', data[offset:offset+2])[0]
-
-    def readInteger(self, offset, data):
-        return offset+4, unpack('>i', data[offset:offset+4])[0]
-
-    def readLong(self, offset, data):
-        return offset+8, unpack('>q', data[offset:offset+8])[0]
-        
-    def readFloat(self, offset, data):
-        return offset+8, unpack('>d', data[offset:offset+8])[0]
-
-    def readUUID(self, offset, data):
-        return offset+16, UUID(data[offset:offset+16])
-
-    def readLob(self, offset, data):
-        offset, uuid = self.readUUID(offset, data)
-        offset, indexed = self.readBoolean(offset, data)
-        return offset, uuid, indexed
-
-    def readIndex(self, offset, data):
-        return self.readUUID(offset, data)
-
 
 class DBItemReader(ItemReader, DBValueReader):
 
-    def __init__(self, store, uItem,
-                 version, uKind, status, uParent,
-                 name, moduleName, className, uValues):
+    def __init__(self, store, uItem, version, item):
 
         self.store = store
         self.uItem = uItem
         self.version = version
-        self.uKind = uKind
-        self.status = status
-        self.uParent = uParent
-        self.name = name
-        self.moduleName = moduleName
-        self.className = className
-        self.uValues = uValues
+
+        (self.uKind, self.status, self.uParent, values, x,
+         self.name, self.moduleName, self.className) = item.data
+
+        self.uValues = [uValue for uValue in values.data if isuuid(uValue)]
 
     def __repr__(self):
 
@@ -995,27 +883,33 @@ class DBItemReader(ItemReader, DBValueReader):
         store = self.store
         c = store._values.c
         txn = store.txn
+        record = DBValueReader.VALUE_TYPES
 
-        for uuid in uValues:
-            attrId, vFlags, data = c.loadValue(txn, uuid)
+        for uValue in uValues:
+            record = c.loadValue(uValue, record, txn)
+            uAttr, vFlags, data = record.data
+
             if withSchema:
                 attribute = None
-                offset, name = self.readSymbol(0, data)
+                offset, name = 1, data[0]
             else:
                 try:
-                    attribute = view[attrId]
+                    attribute = view[uAttr]
                 except KeyError:
                     raise LoadError, (self.name or self.uItem,
-                                      "attribute not found: %s" %(attrId))
+                                      "attribute not found: %s" %(uAttr))
                 else:
                     offset, name = 0, attribute.itsName
 
-            flags = ord(data[offset])
+            flags = data[offset]
 
             if flags & DBItemWriter.VALUE:
-                offset, value = self._value(offset, data, kind, withSchema,
-                                            attribute, view, name,
-                                            afterLoadHooks)
+                if flags & DBItemWriter.SIMPLE:
+                    offset, value = offset+2, data[offset + 1]
+                else:
+                    offset, value = self._value(offset, data, kind, withSchema,
+                                                attribute, view, name,
+                                                afterLoadHooks)
                 d = values
             elif flags & DBItemWriter.REF:
                 offset, value = self._ref(offset, data, kind, withSchema,
@@ -1028,13 +922,18 @@ class DBItemReader(ItemReader, DBValueReader):
 
             if value is not Nil:
                 d[name] = value
-                if vFlags != '\0':
-                    vFlags = ord(vFlags) & CValues.SAVEMASK
-                    if vFlags:
-                        d._setFlags(name, vFlags)
+                vFlags &= CValues.SAVEMASK
+                if vFlags:
+                    d._setFlags(name, vFlags)
+
+            if offset != len(data):
+                import pdb; pdb.set_trace()
+                raise ValueError, (name, 'short read')
 
 
 class DBItemPurger(ItemPurger):
+
+    VALUE_TYPES = DBValueReader.VALUE_TYPES + (Record.RECORD, Record.RECORD)
 
     def __init__(self, txn, store, uItem, keepValues,
                  indexSearcher, indexReader, status):
@@ -1049,40 +948,38 @@ class DBItemPurger(ItemPurger):
         keepOne = (status & CItem.DELETED) == 0
         keepDocuments = set()
 
+        record = DBItemPurger.VALUE_TYPES
+
         for value in keepValues:
-            uAttr, vFlags, data = store._values.c.loadValue(txn, value)
+            record = store._values.c.loadValue(value, record, store.txn)
+            uAttr, vFlags, data, lobs, indexes = record.data
 
             if withSchema:
-                offset = self.skipSymbol(0, data)
+                offset = 1
             else:
                 offset = 0
                 
-            flags = ord(data[offset])
+            flags = data[offset]
             offset += 1
 
             if flags & DBItemWriter.VALUE:
-                for uuid in self.iterLobs(flags, data):
-                    self.keep.add(uuid)
-                if ord(vFlags) & CValues.INDEXED:   # full text indexed
+                self.keep.update(lobs)
+                if vFlags & CValues.INDEXED:   # full text indexed
                     keepDocuments.add(uAttr)
 
             elif flags & DBItemWriter.REF:
                 if flags & DBItemWriter.LIST:
-                    self.keep.add(UUID(data[offset:offset+16]))
+                    self.keep.add(data[offset])
                 elif flags & DBItemWriter.DICT:
                     if withSchema:
-                        offset = self.skipSymbol(offset, data)
-                    offset, size = self.readShort(offset, data)
+                        offset += 1
+                    size = data[offset]
+                    offset += 1
                     for i in xrange(size):
-                        t = data[offset]
-                        if t == '\0':
-                            offset += 17
-                        else:
-                            offset = self.skipSymbol(offset + 1, data)
-                        self.keep.add(UUID(data[offset:offset+16]))
-                        offset += 16
+                        self.keep.add(data[offset + 1])
+                        offset += 2
 
-            self.keep.update(self.iterIndexes(flags, data))
+            self.keep.update(indexes)
 
         self.itemCount = 0
         self.valueCount = self.lobCount = self.blockCount = self.indexCount = 0
@@ -1092,41 +989,6 @@ class DBItemPurger(ItemPurger):
             store._index.purgeDocuments(indexSearcher, indexReader,
                                         uItem, keepDocuments)
 
-    def iterLobs(self, flags, data):
-
-        if flags & DBItemWriter.VALUE:
-            lobCount, indexCount = unpack('>HH', data[-4:])
-
-            lobStart = -(lobCount * 16 + indexCount * 16) - 4
-            for i in xrange(lobCount):
-                uuid = UUID(data[lobStart:lobStart+16])
-                lobStart += 16
-                yield uuid
-
-    def iterIndexes(self, flags, data):
-
-        if flags & DBItemWriter.VALUE:
-            indexCount, = unpack('>H', data[-2:])
-            indexStart = -indexCount * 16 - 4
-            for i in xrange(indexCount):
-                yield UUID(data[indexStart:indexStart+16])
-                indexStart += 16
-
-        elif flags & DBItemWriter.REF:
-            if flags & (DBItemWriter.LIST | DBItemWriter.SET):
-                indexCount, = unpack('>H', data[-2:])
-                indexStart = -indexCount * 16 - 2
-                for i in xrange(indexCount):
-                    yield UUID(data[indexStart:indexStart+16])
-                    indexStart += 16
-
-    def skipSymbol(self, offset, data):
-        offset, len, = offset+2, unpack('>H', data[offset:offset+2])[0]
-        return offset + len
-
-    def readShort(self, offset, data):
-        return offset+2, unpack('>h', data[offset:offset+2])[0]
-
     def purgeItem(self, txn, values, version, status):
 
         withSchema = (status & CItem.WITHSCHEMA) != 0
@@ -1134,32 +996,35 @@ class DBItemPurger(ItemPurger):
         keep = self.keep
         done = self.done
 
+        record = DBItemPurger.VALUE_TYPES
+
         for uValue in values:
             if not (uValue in keep or uValue in done):
-                uAttr, vFlags, data = store._values.c.loadValue(txn, uValue)
+                record = store._values.c.loadValue(uValue, record, store.txn)
+                uAttr, vFlags, data, lobs, indexes = record.data
 
                 if withSchema:
-                    offset = self.skipSymbol(0, data)
+                    offset = 1
                 else:
                     offset = 0
 
-                flags = ord(data[offset])
+                flags = data[offset]
                 offset += 1
 
                 if flags & DBItemWriter.VALUE:
-                    for uuid in self.iterLobs(flags, data):
+                    for uuid in lobs:
                         if not (uuid in keep or uuid in done):
                             count = store._lobs.purgeLob(txn, uuid)
                             self.lobCount += count[0]
                             self.blockCount += count[1]
                             done.add(uuid)
-                    for uuid in self.iterIndexes(flags, data):
+                    for uuid in indexes:
                         if uuid not in done:
                             self.indexCount += store._indexes.purgeIndex(txn, uuid, uuid in keep)
                             done.add(uuid)
 
                 elif flags & DBItemWriter.REF:
-                    uuid = UUID(data[offset:offset+16])
+                    uuid = data[offset]
                     if flags & DBItemWriter.LIST:
                         if uuid not in done:
                             count = store._refs.purgeRefs(txn, uuid,
@@ -1169,16 +1034,12 @@ class DBItemPurger(ItemPurger):
                             done.add(uuid)
                     elif flags & DBItemWriter.DICT:
                         if withSchema:
-                            offset = self.skipSymbol(offset, data)
-                        offset, size = self.readShort(offset, data)
+                            offset += 1
+                        size = data[offset]
+                        offset += 1
                         for i in xrange(size):
-                            t = data[offset]
-                            if t == '\0':
-                                offset += 17
-                            else:
-                                offset = self.skipSymbol(offset + 1, data)
-                            uuid = UUID(data[offset:offset+16])
-                            offset += 16
+                            uuid = data[offset + 1]
+                            offset += 2
                             if uuid not in done:
                                 count = store._refs.purgeRefs(txn, uuid,
                                                               uuid in keep)
@@ -1186,7 +1047,7 @@ class DBItemPurger(ItemPurger):
                                 self.nameCount += count[1]
                                 done.add(uuid)
                     if flags & (DBItemWriter.LIST | DBItemWriter.SET):
-                        for uuid in self.iterIndexes(flags, data):
+                        for uuid in indexes:
                             if uuid not in done:
                                 self.indexCount += store._indexes.purgeIndex(txn, uuid, uuid in keep)
                                 done.add(uuid)
@@ -1198,6 +1059,8 @@ class DBItemPurger(ItemPurger):
 
 
 class DBItemUndo(object):
+
+    VALUE_TYPES = DBValueReader.VALUE_TYPES + (Record.RECORD, Record.RECORD)
 
     def __init__(self, repository, uItem, version,
                  uKind, status, uParent, prevKind, dirties):
@@ -1214,101 +1077,65 @@ class DBItemUndo(object):
         else:
             self.hashes = list(dirties)
 
-    def skipSymbol(self, offset, data):
-        offset, len, = offset+2, unpack('>H', data[offset:offset+2])[0]
-        return offset + len
-
-    def readShort(self, offset, data):
-        return offset+2, unpack('>h', data[offset:offset+2])[0]
-
-    def iterLobs(self, flags, data):
-
-        if flags & DBItemWriter.VALUE:
-            lobCount, indexCount = unpack('>HH', data[-4:])
-
-            lobStart = -(lobCount * 16 + indexCount * 16) - 4
-            for i in xrange(lobCount):
-                uuid = UUID(data[lobStart:lobStart+16])
-                lobStart += 16
-                yield uuid
-
-    def iterIndexes(self, flags, data):
-
-        if flags & DBItemWriter.VALUE:
-            indexCount, = unpack('>H', data[-2:])
-            indexStart = -indexCount * 16 - 4
-            for i in xrange(indexCount):
-                yield UUID(data[indexStart:indexStart+16])
-                indexStart += 16
-
-        elif flags & DBItemWriter.REF:
-            if flags & (DBItemWriter.LIST | DBItemWriter.SET):
-                indexCount, = unpack('>H', data[-2:])
-                indexStart = -indexCount * 16 - 2
-                for i in xrange(indexCount):
-                    yield UUID(data[indexStart:indexStart+16])
-                    indexStart += 16
-
     def undoItem(self, txn, indexReader, indexSearcher):
         
         store = self.repository.store
-        items = store._items
-        values = store._values
-        refs = store._refs
-        lobs = store._lobs
-        indexes = store._indexes
+        _items = store._items
+        _values = store._values
+        _refs = store._refs
+        _lobs = store._lobs
+        _indexes = store._indexes
 
         withSchema = (self.status & CItem.WITHSCHEMA) != 0
         isNew = (self.status & CItem.NEW) != 0
         uItem = self.uItem
         version = self.version
 
-        status, uValues = items.findValues(None, version, uItem,
-                                           self.hashes, True)
+        record = DBItemPurger.VALUE_TYPES
+
+        status, uValues = _items.findValues(None, version, uItem,
+                                            self.hashes, True)
 
         for uValue in uValues:
             if uValue is not None:
-                uAttr, vFlags, data = values.c.loadValue(txn, uValue)
+                record = _values.c.loadValue(uValue, record, txn)
+                uAttr, vFlags, data, lobs, indexes = record.data
                         
                 if withSchema:
-                    offset = self.skipSymbol(0, data)
+                    offset = 1
                 else:
                     offset = 0
 
-                flags = ord(data[offset])
+                flags = data[offset]
                 offset += 1
 
                 if flags & DBItemWriter.VALUE:
                     if isNew:
-                        for uLob in self.iterLobs(flags, data):
-                            lobs.purgeLob(txn, uLob)
-                    for uIndex in self.iterIndexes(flags, data):
-                        indexes.undoIndex(txn, uIndex, version)
+                        for uLob in lobs:
+                            _lobs.purgeLob(txn, uLob)
+                    for uIndex in indexes:
+                        _indexes.undoIndex(txn, uIndex, version)
             
                 elif flags & DBItemWriter.REF:
                     if flags & DBItemWriter.LIST:
-                        uRefs = UUID(data[offset:offset+16])
-                        refs.undoRefs(txn, uRefs, version)
+                        uRefs = data[offset]
+                        _refs.undoRefs(txn, uRefs, version)
                     elif flags & DBItemWriter.DICT:
                         if withSchema:
-                            offset = self.skipSymbol(offset, data)
-                        offset, count = self.readShort(offset, data)
+                            offset += 1
+                        count = data[offset]
+                        offset  += 1
                         for i in xrange(count):
-                            t = data[offset]
-                            if t == '\0':
-                                offset += 17
-                            else:
-                                offset = self.skipSymbol(offset + 1, data)
-                            uRefs = UUID(data[offset:offset+16])
-                            offset += 16
-                            refs.undoRefs(txn, uRefs, version)
+                            uRefs = data[offset + 1]
+                            offset += 2
+                            _refs.undoRefs(txn, uRefs, version)
                     if flags & (DBItemWriter.LIST | DBItemWriter.SET):
-                        for uIndex in self.iterIndexes(flags, data):
-                            indexes.undoIndex(txn, uIndex, version)
+                        for uIndex in indexes:
+                            _indexes.undoIndex(txn, uIndex, version)
     
-                values.purgeValue(txn, uValue)
+                _values.purgeValue(txn, uValue)
         
-        refs.undoRefs(txn, uItem, version) # children
+        _refs.undoRefs(txn, uItem, version) # children
         store._index.undoDocuments(indexSearcher, indexReader, uItem, version)
 
-        items.purgeItem(txn, uItem, version)
+        _items.purgeItem(txn, uItem, version)

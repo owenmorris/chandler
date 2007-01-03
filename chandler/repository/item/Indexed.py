@@ -14,6 +14,7 @@
 
 
 from chandlerdb.item.c import CItem
+from chandlerdb.persistence.c import Record
 from chandlerdb.item.ItemError import *
 from chandlerdb.util.c import Nil, Default
 from repository.item.Indexes import __index_classes__
@@ -303,18 +304,18 @@ class Indexed(object):
             else:
                 self.fillIndex(index)
 
-    def _saveIndexes(self, itemWriter, buffer, version):
+    def _saveIndexes(self, itemWriter, record, version):
 
         size = 0
         for name, index in self._indexes.iteritems():
-            itemWriter.writeSymbol(buffer, name)
-            itemWriter.writeSymbol(buffer, index.getIndexType())
-            index._writeValue(itemWriter, buffer, version)
+            record += (Record.SYMBOL, name,
+                       Record.SYMBOL, index.getIndexType())
+            index._writeValue(itemWriter, record, version)
             size += index._saveValues(version)
 
         return size
 
-    def _clearIndexDirties(self):
+    def _clearDirties(self):
 
         if self._indexes:
             for index in self._indexes.itervalues():
@@ -322,11 +323,11 @@ class Indexed(object):
 
     def _loadIndex(self, itemReader, offset, data):
 
-        offset, indexName = itemReader.readSymbol(offset, data)
-        offset, indexType = itemReader.readSymbol(offset, data)
+        indexName = data[offset]
+        indexType = data[offset + 1]
         index = self.addIndex(indexName, indexType, loading=True)
 
-        return index._readValue(itemReader, offset, data)
+        return index._readValue(itemReader, offset + 2, data)
 
     def findInIndex(self, indexName, mode, callable, *args):
         """

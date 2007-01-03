@@ -18,13 +18,18 @@ import sys, os
 from types import GeneratorType
 from code import interact
 
+if '-A' in sys.argv:
+    commitOnExit = False
+    sys.argv.remove('-A')
+else:
+    commitOnExit = True
+
 from application import schema, Utility, Globals
 from repository.item.Item import Item
 from repository.persistence.DBRefs import DBRefList
 
 view = None
 app = None
-commitOnExit = True
 
 # This dictionary is a mapping of symbols that other modules might want
 # to use; it's populated by the @exportMethod decorator below.
@@ -33,12 +38,9 @@ exportedSymbols = { }
 def startup(**kwds):
     global view, commitOnExit
 
-    if '-A' in sys.argv:
-        commitOnExit = False
-        sys.argv.remove('-A')
+    if kwds:
+        Globals.options = Globals.initOptions(**kwds)
 
-    Globals.options = Utility.initOptions(**kwds)
-    Utility.initProfileDir(Globals.options)
     Globals.chandlerDirectory = Utility.locateChandlerDirectory()
     os.chdir(Globals.chandlerDirectory)
     Utility.initI18n(Globals.options)

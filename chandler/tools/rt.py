@@ -96,12 +96,11 @@ def buildList(tests):
 
 
 def buildTestList(args, individual=False):
-    from application import Utility
+    from application import Globals, Utility
 
     sys.argv = args[:]
-    options  = Utility.initOptions()
+    options  = Globals.options
 
-    Utility.initProfileDir(options)
     Utility.initI18n(options)
     Utility.initLogging(options)
 

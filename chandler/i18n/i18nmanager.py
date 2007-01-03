@@ -39,6 +39,10 @@ TO DO:
 
 """
 
+# remember if I18nManager.initialize() was called so that it 
+# can be lazily called if needed
+_MANAGER_INITIALIZED = False
+
 # Keep a Global reference to the PyICU Locale
 # To ensure it does not get unloaded during the
 # application life cycle. There can be only one
@@ -80,7 +84,7 @@ class I18nManager(EggTranslations):
 
     __slots__ = ["_testing", "_lookupCache", "_wx_filehandler",
                  "_DEFAULT_PROJECT", "_DEFAULT_CATALOG", "_DEFAULT_IMAGE",
-                 "_DEFAULT_HTML", "_RUNNING_IN_UNIT_TEST"]
+                 "_DEFAULT_HTML"]
 
     def __init__(self, DEFAULT_PROJECT, DEFAULT_CATALOG,
                  DEFAULT_IMAGE, DEFAULT_HTML):
@@ -107,13 +111,6 @@ class I18nManager(EggTranslations):
         self._lookupCache = None
         self._wx_filehandler = None
         self._testing = False
-
-        # This is a signal that _I18nManager is being run with unit test
-        # framework. Since the framework does not yet initialize the
-        # _I18nManager before running the tests the translation API
-        # is disabled :(
-        self._RUNNING_IN_UNIT_TEST = os.environ.has_key("UNIT_TESTING") and \
-                                     os.environ["UNIT_TESTING"] == "True"
 
     def __repr__(self):
         return "I18nManager(%s, %s, %s, %s)" % (
@@ -212,6 +209,8 @@ class I18nManager(EggTranslations):
             self._wx_filehandler = I18nFileSystemHandler(self)
             wx.FileSystem.AddHandler(self._wx_filehandler)
 
+        global _MANAGER_INITIALIZED
+        _MANAGER_INITIALIZED = True
 
     def discoverLocaleSet(self):
         """
@@ -481,15 +480,11 @@ class I18nManager(EggTranslations):
                  localization found.
         """
 
-        try:
-            res = super(I18nManager, self).getText(project, name,
-                        txt, *args)
-        except TypeError, e:
-            if self._RUNNING_IN_UNIT_TEST:
-                return args and args[0] or txt
-            # the c{cEggTranslations.getText} method will only raise an
-            # exception if it has not been initialized.
-            raise I18nException("I18nManager getText method called before initialization")
+        if not _MANAGER_INITIALIZED:
+            from application import Globals
+            self.initialize(Globals.options.locale)
+
+        res = super(I18nManager, self).getText(project, name, txt, *args)
 
         #If the additional argument passed to getText is
         #the same as res meaning no translation was found

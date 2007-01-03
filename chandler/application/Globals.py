@@ -13,18 +13,19 @@
 #   limitations under the License.
 
 """
-  Globals variables
+  Globals variables and options
+
+  Importing this file initializes the command line options
 
   Initialized by Application, which must be created before they can be used.
   Don't add to the globals without reviewing the addition.
 """
 
-from repository.util.Path import Path
+from Utility import initOptions
 
 
 chandlerDirectory = None      # Directory containing chandler executable
 wxApplication = None          # The application object. Use only to test to see if we have
                               # an application. Use wx.GetApp() to get the application object.
 mailService = None            # Mail Service (IMAP, POP, SMTP)
-options = None                # Command line options
-args = None                   # Command line arguments
+options = initOptions()       # Command line options

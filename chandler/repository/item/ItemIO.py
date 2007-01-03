@@ -56,36 +56,6 @@ class ItemWriter(object):
 
         return size
 
-    def writeString(self, buffer, value):
-        raise NotImplementedError, "%s.writeString" %(type(self))
-
-    def writeSymbol(self, buffer, value):
-        raise NotImplementedError, "%s.writeSymbol" %(type(self))
-
-    def writeBoolean(self, buffer, value):
-        raise NotImplementedError, "%s.writeBoolean" %(type(self))
-
-    def writeShort(self, buffer, value):
-        raise NotImplementedError, "%s.writeShort" %(type(self))
-
-    def writeInteger(self, buffer, value):
-        raise NotImplementedError, "%s.writeInteger" %(type(self))
-
-    def writeLong(self, buffer, value):
-        raise NotImplementedError, "%s.writeLong" %(type(self))
-
-    def writeFloat(self, buffer, value):
-        raise NotImplementedError, "%s.writeFloat" %(type(self))
-
-    def writeUUID(self, buffer, value):
-        raise NotImplementedError, "%s.writeUUID" %(type(self))
-
-    def writeLOB(self, buffer, value):
-        raise NotImplementedError, "%s.writeLOB" %(type(self))
-
-    def writeIndex(self, buffer, value):
-        raise NotImplementedError, "%s.writeIndex" %(type(self))
-
     def writeList(self, buffer, item, version, value, withSchema, attrType):
         raise NotImplementedError, "%s.writeList" %(type(self))
 

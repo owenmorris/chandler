@@ -448,7 +448,7 @@ class RefList(LinkedMap, Indexed):
                 else:
                     raise DanglingRefError, (self._item, self._name, key)
 
-            previousKey, nextKey, alias, otherKey = ref
+            previousKey, nextKey, alias, otherKey = ref[0:4]
             self._dict[key] = CLink(self, other, previousKey, nextKey,
                                     alias, otherKey)
             if alias is not None:
@@ -721,9 +721,6 @@ class RefList(LinkedMap, Indexed):
 
         return result and self._checkIndexes(logger, self._item, self._name,
                                              repair)
-
-    def _clearDirties(self):
-        pass
 
     def _hashValues(self):
 

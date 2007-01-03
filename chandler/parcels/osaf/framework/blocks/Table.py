@@ -381,7 +381,10 @@ class wxTable(DragAndDrop.DraggableWidget,
                 newRowSelection = -1
     
                 # now just do the selection update
-                self.SelectBlock (rowStart, 0, rowEnd, columns, True)
+                try:
+                    self.SelectBlock (rowStart, 0, rowEnd, columns, True)
+                except:
+                    import pdb; pdb.set_trace()
     
             # now auto-select a row if necessary
             if newRowSelection != -1:

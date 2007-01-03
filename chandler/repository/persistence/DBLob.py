@@ -15,6 +15,7 @@
 
 from chandlerdb.item.ItemValue import ItemValue, Indexable
 from chandlerdb.util.c import UUID
+from chandlerdb.persistence.c import Record
 
 from repository.util.Lob import Lob
 from repository.util.Streams import ConcatenatedInputStream, NullInputStream
@@ -67,58 +68,35 @@ class DBLob(Lob, ItemValue):
                                  uItem, uAttr, uValue, version)
         reader.close()
 
-    def _writeValue(self, itemWriter, buffer, version, withSchema):
+    def _writeValue(self, itemWriter, record, version, withSchema):
 
-        if self._uuid is None:
-            self._uuid = UUID()
-            self._dirty = True
-        elif not self._append:
+        if self._uuid is None or not self._append:
             self._uuid = UUID()
             self._dirty = True
 
         store = self._view.repository.store
         size = self._writeData(version, store._lobs)
 
-        itemWriter.writeLob(buffer, self._uuid, self._indexed)
-        itemWriter.writeString(buffer, self.mimetype)
-
-        if self.encoding:
-            itemWriter.writeString(buffer, self.encoding)
-        else:
-            itemWriter.writeString(buffer, '')
-
-        if self._compression:
-            itemWriter.writeSymbol(buffer, self._compression)
-        else:
-            itemWriter.writeSymbol(buffer, '')
-
-        if self._encryption:
-            itemWriter.writeSymbol(buffer, self._encryption)
-        else:
-            itemWriter.writeSymbol(buffer, '')
-
-        if self._iv:
-            itemWriter.writeString(buffer, self._iv)
-        else:
-            itemWriter.writeString(buffer, '')
+        itemWriter.lobs.append(self._uuid)
+        record += (Record.UUID, self._uuid,
+                   Record.BOOLEAN, self._indexed,
+                   Record.SYMBOL, self.mimetype,
+                   Record.SYMBOL, self.encoding,
+                   Record.SYMBOL, self._compression,
+                   Record.SYMBOL, self._encryption,
+                   Record.SYMBOL, self._iv)
 
         return size
 
     def _readValue(self, itemReader, offset, data, withSchema):
 
-        offset, self._uuid, self._indexed = itemReader.readLob(offset, data)
-        offset, self.mimetype = itemReader.readString(offset, data)
+        self._uuid, self._indexed = data[offset:offset+2]
+        offset += 2
 
-        offset, encoding = itemReader.readString(offset, data)
-        self.encoding = encoding or None
-        offset, _compression = itemReader.readSymbol(offset, data)
-        self._compression = _compression or None
-        offset, _encryption = itemReader.readSymbol(offset, data)
-        self._encryption = _encryption or None
-        offset, _iv = itemReader.readString(offset, data)
-        self._iv = _iv or None
+        (self.mimetype, self.encoding, self._compression,
+         self._encryption, self._iv) = data[offset:offset+5]
 
-        return offset, self
+        return offset+5, self
 
     def _xmlValue(self, generator):
 

@@ -22,7 +22,7 @@ from chandlerdb.util import lock
 from chandlerdb.util.c import Nil, Default, UUID, _hash
 from chandlerdb.item.c import CItem, CValues
 from chandlerdb.item.ItemValue import Indexable
-from chandlerdb.persistence.c import DBEnv, DB, \
+from chandlerdb.persistence.c import DBEnv, DB, Transaction, \
     DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \
     DBLockDeadlockError, DBVersionMismatchError, DBRunRecoveryError, \
     DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH
@@ -822,54 +822,21 @@ class DBRepository(OnDemandRepository):
                   DBEnv.DB_INIT_TXN | DBEnv.DB_THREAD)
 
 
-class DBTxn(object):
+class DBTransaction(Transaction):
 
-    def __init__(self, store, _txn, status):
+    def start(self, store, _txn):
 
         if store._ramdb:
-            self._txn = None
+            return None
         else:
-            self._txn = store.repository._env.txn_begin(_txn)
-            
-        self._status = status
-        self._count = 1
+            return store.repository._env.txn_begin(_txn)
 
-    def abort(self, status):
-
-        assert self._count
-
-        self._count -= 1
-        if self._count == 0:
-#            if status & DBStore.TXN_STARTED == 0:
-#                print 'out of order abort'
-            if self._txn is not None:
-                self._txn.abort()
-                self._txn = None
-            return True
-
-        return False
-
-    def commit(self, status):
-        
-        assert self._count
-
-        self._count -= 1
-        if self._count == 0:
-#            if status & DBStore.TXN_STARTED == 0:
-#                print 'out of order commit'
-            if self._txn is not None:
-                self._txn.commit()
-                self._txn = None
-            return True
-
-        return False
-        
 
 class DBStore(Store):
 
     def __init__(self, repository):
 
-        self._threaded = threading.local()
+        super(DBStore, self).__init__(repository)
 
         self._values = ValueContainer(self)
         self._items = ItemContainer(self)
@@ -880,8 +847,6 @@ class DBStore(Store):
         self._acls = ACLContainer(self)
         self._indexes = IndexesContainer(self)
         self._commits = CommitsContainer(self)
-
-        super(DBStore, self).__init__(repository)
 
     def open(self, **kwds):
 
@@ -994,11 +959,12 @@ class DBStore(Store):
 
     def loadItem(self, view, version, uuid):
 
-        args = self._items.loadItem(view, version, uuid)
-        if args is None:
+        version, item = self._items.findItem(view, version, uuid,
+                                             ItemContainer.NO_DIRTIES_TYPES)
+        if item is None:
             return None
 
-        itemReader = DBItemReader(self, uuid, *args)
+        itemReader = DBItemReader(self, uuid, version, item)
         if itemReader.isDeleted():
             return None
 
@@ -1053,10 +1019,6 @@ class DBStore(Store):
 
         return self._names.readNames(view, version, key)
 
-    def writeName(self, version, key, name, uuid):
-
-        return self._names.writeName(version, key, name, uuid)
-
     def loadACL(self, view, version, uuid, name):
 
         return self._acls.readACL(view, version, uuid, name)
@@ -1069,9 +1031,9 @@ class DBStore(Store):
 
         if kind is not None:
             items = self._items
-            for uuid, args in items.kindQuery(view, version, kind):
-                if items.getItemVersion(view, version, uuid) == args[0]:
-                    yield DBItemReader(self, uuid, *args)
+            for uItem, vItem, item in items.kindQuery(view, version, kind):
+                if items.getItemVersion(view, version, uItem) == vItem:
+                    yield DBItemReader(self, uItem, vItem, item)
 
         elif attribute is not None:
             raise NotImplementedError, 'attribute query'
@@ -1084,9 +1046,9 @@ class DBStore(Store):
         if kind is not None:
             items = self._items
             itemFinder = items._itemFinder(view)
-            for uuid, ver in items.kindQuery(view, version, kind, True):
-                if itemFinder.getVersion(version, uuid) == ver:
-                    yield uuid
+            for uItem, vItem in items.kindQuery(view, version, kind, True):
+                if itemFinder.getVersion(version, uItem) == vItem:
+                    yield uItem
 
         elif attribute is not None:
             raise NotImplementedError, 'attribute query'
@@ -1157,21 +1119,22 @@ class DBStore(Store):
 
         status = 0
         locals = self._threaded
-        txn = getattr(locals, 'txn', None)
+        txn = locals.get('txn')
 
         if view is not None and txn is None and view._acquireExclusive():
-            status = DBStore.EXCLUSIVE
+            status = Transaction.EXCLUSIVE
 
         if txn is None:
-            status |= DBStore.TXN_STARTED
-            locals.txn = DBTxn(self, None, status)
+            status |= Transaction.TXN_STARTED
+            locals['txn'] = DBTransaction(self, None, status)
         elif nested:
-            try:
-                locals.txns.append(txn)
-            except AttributeError:
-                locals.txns = [txn]
-            status |= DBStore.TXN_STARTED | DBStore.TXN_NESTED
-            locals.txn = DBTxn(self, txn._txn, status)
+            txns = locals.get('txns')
+            if txns is None:
+                locals['txns'] = [txn]
+            else:
+                locals['txns'].append(txn)
+            status |= Transaction.TXN_STARTED | Transaction.TXN_NESTED
+            locals['txn'] = DBTransaction(self, txn._txn, status)
         else:
             txn._count += 1
 
@@ -1180,21 +1143,21 @@ class DBStore(Store):
     def commitTransaction(self, view, status):
 
         locals = self._threaded
-        txn = locals.txn
+        txn = locals['txn']
 
         try:
             if txn is not None:
-                if txn.commit(status):
+                if txn.commit():
                     status = txn._status
-                    if status & DBStore.TXN_NESTED:
-                        locals.txn = locals.txns.pop()
+                    if status & Transaction.TXN_NESTED:
+                        locals['txn'] = locals['txns'].pop()
                     else:
-                        locals.txn = None
-                elif status & DBStore.EXCLUSIVE:
-                    txn._status |= DBStore.EXCLUSIVE
-                    status &= ~DBStore.EXCLUSIVE
+                        locals['txn'] = None
+                elif status & Transaction.EXCLUSIVE:
+                    txn._status |= Transaction.EXCLUSIVE
+                    status &= ~Transaction.EXCLUSIVE
         finally:
-            if status & DBStore.EXCLUSIVE:
+            if status & Transaction.EXCLUSIVE:
                 view._releaseExclusive()
 
         return status
@@ -1202,32 +1165,24 @@ class DBStore(Store):
     def abortTransaction(self, view, status):
 
         locals = self._threaded
-        txn = locals.txn
+        txn = locals['txn']
 
         try:
             if txn is not None:
-                if txn.abort(status):
+                if txn.abort():
                     status = txn._status
-                    if status & DBStore.TXN_NESTED:
-                        locals.txn = locals.txns.pop()
+                    if status & Transaction.TXN_NESTED:
+                        locals['txn'] = locals['txns'].pop()
                     else:
-                        locals.txn = None
-                elif status & DBStore.EXCLUSIVE:
-                    txn._status |= DBStore.EXCLUSIVE
-                    status &= ~DBStore.EXCLUSIVE
+                        locals['txn'] = None
+                elif status & Transaction.EXCLUSIVE:
+                    txn._status |= Transaction.EXCLUSIVE
+                    status &= ~Transaction.EXCLUSIVE
         finally:
-            if status & DBStore.EXCLUSIVE:
+            if status & Transaction.EXCLUSIVE:
                 view._releaseExclusive()
 
         return status
-
-    def _getTxn(self):
-
-        txn = getattr(self._threaded, 'txn', None)
-        if txn is None:
-            return None
-
-        return txn._txn
 
     def _getEnv(self):
 
@@ -1235,10 +1190,10 @@ class DBStore(Store):
 
     def _getLockId(self):
 
-        lockId = getattr(self._threaded, 'lockId', None)
+        lockId = self._threaded.get('lockId')
         if lockId is None:
             lockId = self.repository._env.lock_id()
-            self._threaded.lockId = lockId
+            self._threaded['lockId'] = lockId
         return lockId
 
     def acquireLock(self):
@@ -1262,12 +1217,7 @@ class DBStore(Store):
         self.repository.logger.warning("Thread '%s' db deadlock detected at %s, line %d", threading.currentThread().getName(), frame.f_code.co_filename, frame.f_lineno)
         time.sleep(1)
 
-    TXN_STARTED = 0x0001
-    TXN_NESTED  = 0x0002
-    EXCLUSIVE   = 0x0004
-
     env = property(_getEnv)
-    txn = property(_getTxn)
 
 
 class DBCheckpointThread(threading.Thread):
@@ -1350,6 +1300,7 @@ class DBIndexerThread(RepositoryThread):
                     break
 
                 while True:
+                    txnStatus = 0
                     try:
                         txnStatus = store.startTransaction(None)
                         latestVersion = store.getVersion()

@@ -311,6 +311,9 @@ def initOptions(**kwds):
         options.scriptFile = "tools/cats/Functional/FunctionalTestSuite.py"
     if options.nocatch:
         options.catch = "tests"
+
+    # Ensure a profile directory
+    initProfileDir(options)
         
     # Store up the remaining args
     options.args = args

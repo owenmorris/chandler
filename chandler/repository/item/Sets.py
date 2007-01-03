@@ -570,9 +570,6 @@ class AbstractSet(ItemValue, Indexed):
     def _unloadRefs(self):
         pass
 
-    def _clearDirties(self):
-        self._clearIndexDirties()
-
     def clear(self):
         self._removeRefs()
 

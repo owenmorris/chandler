@@ -16,48 +16,47 @@
 import wx
 from struct import pack, unpack
 from application import schema
+from chandlerdb.persistence.c import Record
 
 
 class SizeType(schema.Struct):
     __slots__ = 'width', 'height'
 
     @classmethod
-    def writeValue(cls, value, itemWriter, buffer):
-        bytes = pack('>ii', value.width, value.height)
-        buffer.append(bytes)
-        return 8
+    def writeValue(cls, value, itemWriter, record):
+        record += (Record.INT, value.width, Record.INT, value.height)
+        return 0
 
     @classmethod
     def readValue(cls, itemReader, offset, data):
-        return offset+8, cls(*unpack('>ii', data[offset:offset+8]))
+        return offset+2, cls(*data[offset:offset+2])
 
 
 class PositionType(schema.Struct):
     __slots__ = 'x', 'y'
 
     @classmethod
-    def writeValue(cls, value, itemWriter, buffer):
-        bytes = pack('>ii', value.x, value.y)
-        buffer.append(bytes)
-        return 8
+    def writeValue(cls, value, itemWriter, record):
+        record += (Record.INT, value.x, Record.INT, value.y)
+        return 0
 
     @classmethod
     def readValue(cls, itemReader, offset, data):
-        return offset+8, cls(*unpack('>ii', data[offset:offset+8]))
+        return offset+2, cls(*data[offset:offset+2])
 
 
 class RectType(schema.Struct):
     __slots__ = 'top', 'left', 'bottom', 'right'
 
     @classmethod
-    def writeValue(cls, value, itemWriter, buffer):
-        bytes = pack('>iiii', value.top, value.left, value.bottom, value.right)
-        buffer.append(bytes)
-        return 16
+    def writeValue(cls, value, itemWriter, record):
+        record += (Record.INT, value.top, Record.INT, value.left,
+                   Record.INT, value.bottom, Record.INT, value.right)
+        return 0
 
     @classmethod
     def readValue(cls, itemReader, offset, data):
-        return offset+16, cls(*unpack('>iiii', data[offset:offset+16]))
+        return offset+4, cls(*data[offset:offset+4])
 
 
 class ColorType(schema.Struct):
@@ -72,11 +71,11 @@ class ColorType(schema.Struct):
         return (self.red, self.green, self.blue)
 
     @classmethod
-    def writeValue(cls, value, itemWriter, buffer):
-        bytes = pack('BBBB', value.red, value.green, value.blue, value.alpha)
-        buffer.append(bytes)
-        return 4
+    def writeValue(cls, value, itemWriter, record):
+        record += (Record.BYTE, value.red, Record.BYTE, value.green,
+                   Record.BYTE, value.blue, Record.BYTE, value.alpha)
+        return 0
 
     @classmethod
     def readValue(cls, itemReader, offset, data):
-        return offset+4, cls(*unpack('BBBB', data[offset:offset+4]))
+        return offset+4, cls(*data[offset:offset+4])

@@ -26,29 +26,20 @@ from repository.persistence.RepositoryView import NullRepositoryView
 class NRVTestCase(unittest.TestCase):
 
     def setUp(self):
-        Globals.options = Utility.initOptions()
-        Utility.initProfileDir(Globals.options)
-        profileDir = Globals.options.profileDir
         Utility.initLogging(Globals.options)
         self.view = NullRepositoryView()
 
 class SingleRepositoryTestCase(unittest.TestCase):
 
     def setUp(self):
-        Globals.options = Utility.initOptions()
-        Utility.initProfileDir(Globals.options)
         Globals.options.ramdb = True
-        profileDir = Globals.options.profileDir
         Utility.initLogging(Globals.options)
         self.view = Utility.initRepository("", Globals.options, True)
 
 class DualRepositoryTestCase(unittest.TestCase):
 
     def setUp(self):
-        Globals.options = Utility.initOptions()
-        Utility.initProfileDir(Globals.options)
         Globals.options.ramdb = True
-        profileDir = Globals.options.profileDir
         Utility.initLogging(Globals.options)
         self.views = []
         for i in xrange(2):

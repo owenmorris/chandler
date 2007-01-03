@@ -56,7 +56,7 @@ cause *all* modules in all sub-packages of that package to be imported.)
 import sys
 
 from unittest import main
-from application import Utility
+from application import Globals, Utility
 from util import test_finder
 
 
@@ -66,8 +66,7 @@ if __name__ == '__main__':
         print __doc__
         sys.exit(2)
 
-    options = Utility.initOptions()
-    Utility.initProfileDir(options)
+    options = Globals.options
     Utility.initI18n(options)
     Utility.initLogging(options)
 

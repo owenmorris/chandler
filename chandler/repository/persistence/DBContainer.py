@@ -17,10 +17,11 @@ import sys, threading, time
 
 from struct import pack, unpack
 
-from chandlerdb.util.c import UUID, _hash, SkipList, HashTuple, Nil, Default
+from chandlerdb.util.c import \
+    UUID, isuuid, _hash, HashTuple, Nil, Default, SkipList
 from chandlerdb.item.c import CItem, CValues
 from chandlerdb.persistence.c import \
-    DBSequence, DB, \
+    Record, DB, \
     CContainer, CValueContainer, CRefContainer, CItemContainer, \
     DBNotFoundError, DBLockDeadlockError, DBNoSuchFileError
 
@@ -29,6 +30,8 @@ from repository.persistence.Repository import Repository
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryError import \
     RepositoryFormatVersionError, RepositorySchemaVersionError
+
+NONE_PAIR = (None, None)
 
 
 class DBContainer(object):
@@ -115,6 +118,14 @@ class DBContainer(object):
         db.put(key, value, self.store.txn)
         return len(key) + len(value)
 
+    def put_record(self, key, value, db=None):
+
+        if db is None:
+            db = self._db
+
+        db.put_record(key, value, self.store.txn)
+        return key.size + value.size
+
     def delete(self, key, txn=None):
 
         try:
@@ -130,6 +141,20 @@ class DBContainer(object):
         while True:
             try:
                 return db.get(key, self.store.txn, self._flags, None)
+            except DBLockDeadlockError:
+                self.store._logDL()
+                if self.store.txn is not None:
+                    raise
+
+    def get_record(self, key, args, db=None):
+
+        if db is None:
+            db = self._db
+
+        while True:
+            try:
+                return db.get_record(key, args,
+                                     self.store.txn, self._flags, None)
             except DBLockDeadlockError:
                 self.store._logDL()
                 if self.store.txn is not None:
@@ -169,107 +194,70 @@ class DBContainer(object):
                 
             cursor.close()
 
-    def _readValue(self, value, offset):
+    def _readKeyword(self, value, offset):
 
-        code = value[offset]
+        len, = unpack('>b', value[offset])
         offset += 1
 
-        if code == '\0':
+        if len == 0:
+            return offset, None
+
+        if len < 0:
+            return offset-len, value[offset:offset-len]
+
+        return offset+len, unicode(value[offset:offset+len], 'utf-8')
+
+    def _readSymbol(self, value, offset):
+
+        len = ord(value[offset])
+        offset += 1
+
+        if len == 0:
+            return offset, None
+
+        return offset+len, value[offset:offset+len]
+
+    def _readValue(self, value, offset):
+
+        code = ord(value[offset])
+        offset += 1
+
+        if code == Record.NONE:
             return (1, None)
 
-        if code == '\1':
+        if code == Record.TRUE:
             return (1, True)
 
-        if code == '\2':
+        if code == Record.FALSE:
             return (1, False)
 
-        if code == '\3':
+        if code == Record.UUID:
             return (17, UUID(value[offset:offset+16]))
 
-        if code == '\4':
+        if code == Record.INT:
             return (5, unpack('>l', value[offset:offset+4])[0])
 
-        if code == '\5':
+        if code == Record.STRING:
             l, = unpack('>H', value[offset:offset+2])
             offset += 2
             return (l + 3, value[offset:offset+l])
 
-        if code == '\6':
-            l, = unpack('>H', value[offset:offset+2])
-            offset += 2
-            return (l + 3, unicode(value[offset:offset+l], 'utf-8'))
-
         raise ValueError, code
-
-    def _writeUUID(self, buffer, value):
-
-        if value is None:
-            buffer.append('\0')
-        else:
-            buffer.append('\3')
-            buffer.append(value._uuid)
-
-    def _writeString(self, buffer, value):
-
-        if value is None:
-            buffer.append('\0')
-        
-        elif isinstance(value, str):
-            buffer.append('\5')
-            buffer.append(pack('>H', len(value)))
-            buffer.append(value)
-
-        elif isinstance(value, unicode):
-            value = value.encode('utf-8')
-            buffer.append('\5')
-            buffer.append(pack('>H', len(value)))
-            buffer.append(value)
-
-        else:
-            raise TypeError, type(value)
-
-    def _writeBoolean(self, buffer, value):
-
-        if value is True:
-            buffer.append('\1')
-
-        elif value is False:
-            buffer.append('\2')
-        
-        else:
-            raise TypeError, type(value)
-
-    def _writeInteger(self, buffer, value):
-
-        if value is None:
-            buffer.append('\0')
-        
-        buffer.append('\4')
-        buffer.append(pack('>l', value))
-
-    def _writeValue(self, buffer, value):
-
-        if value is None:
-            buffer.append('\0')
-
-        elif value is True or value is False:
-            self._writeBoolean(buffer, value)
-
-        elif isinstance(value, str) or isinstance(value, unicode):
-            self._writeString(buffer, value)
-
-        elif isinstance(value, int) or isinstance(value, long):
-            self._writeInteger(buffer, value)
-
-        elif isinstance(value, UUID):
-            self._writeUUID(buffer, value)
-
-        else:
-            raise NotImplementedError, "value: %s, type: %s" %(value,
-                                                               type(value))
 
 
 class RefContainer(DBContainer):
+
+    KEY_TYPES = (Record.UUID,
+                 Record.INT,
+                 Record.UUID)
+    HEAD_TYPES = (Record.UUID_OR_NONE,
+                  Record.UUID_OR_NONE,
+                  Record.INT,
+                  Record.UUID_OR_KEYWORD)
+    REF_TYPES = (Record.UUID_OR_NONE,
+                 Record.UUID_OR_NONE,
+                 Record.KEYWORD,
+                 Record.UUID_OR_KEYWORD)
 
     def __init__(self, store):
 
@@ -326,25 +314,33 @@ class RefContainer(DBContainer):
             def next(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.openCursor(self._history)
+                _self.cursor = cursor = self.openCursor(self._history)
                 
                 try:
-                    value = _self.cursor.set_range(pack('>16sl', uuid._uuid,
-                                                        fromVersion + 1),
-                                                   self._flags, None)
+                    key = Record(Record.UUID, uuid,
+                                 Record.INT, fromVersion + 1)
+                    keyTypes = RefContainer.KEY_TYPES
+                    dataTypes = RefContainer.REF_TYPES
+                    flags = self._flags
 
-                    while value is not None:
-                        uCol, version, uRef = unpack('>16sl16s', value[0])
-                        if version > toVersion or uCol != uuid._uuid:
+                    key, ref = cursor.find_record(key, keyTypes, dataTypes,
+                                                  flags, NONE_PAIR)
+
+                    while ref is not None:
+                        uCol, version, uRef = key.data
+                        if version > toVersion or uCol != uuid:
                             break
 
                         if refsOnly:
-                            yield UUID(uRef)
+                            yield uRef
                         else:
-                            yield (version, (uuid, UUID(uRef)),
-                                   self._readRef(value[1]))
+                            if ref.size == 1: # deleted ref
+                                yield version, (uuid, uRef), None
+                            else:
+                                yield version, (uuid, uRef), ref.data
 
-                        value = _self.cursor.next(self._flags, None)
+                        key, ref = cursor.next_record(key, ref,
+                                                      flags, NONE_PAIR)
 
                     yield False
 
@@ -365,34 +361,19 @@ class RefContainer(DBContainer):
 
     def deleteRef(self, uCol, version, uRef):
 
-        return self.put(pack('>16s16sl', uCol._uuid, uRef._uuid,
-                             ~version), '\0')
+        return self.put_record(Record(Record.UUID, uCol,
+                                      Record.UUID, uRef,
+                                      Record.INT, ~version),
+                               Record(Record.NONE, None))
 
-    def _readRef(self, value):
-
-        if len(value) == 1:   # deleted ref
-            return None
-
-        else:
-            offset = 0
-
-            l, previous = self._readValue(value, offset)
-            offset += l
-
-            l, next = self._readValue(value, offset)
-            offset += l
-
-            l, alias = self._readValue(value, offset)
-            offset += l
-
-            l, otherKey = self._readValue(value, offset)
-            offset += l
-
-            return previous, next, alias, otherKey
-
-    def loadRef(self, view, uCol, version, uRef):
+    def loadRef(self, view, uCol, version, uRef, head=False):
 
         store = self.store
+
+        if head:
+            types = RefContainer.HEAD_TYPES
+        else:
+            types = RefContainer.REF_TYPES
 
         while True:
             txnStatus = 0
@@ -402,15 +383,16 @@ class RefContainer(DBContainer):
                 txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
 
-                try:
-                    return self.c.loadRef(cursor, uCol._uuid, uRef._uuid,
-                                          version, self._flags)
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        store._logDL(19)
-                        continue
-                    else:
-                        raise
+                return self.c.find_ref(cursor, uCol, uRef, ~version, types,
+                                       self._flags)
+            
+            except DBLockDeadlockError:
+                if txnStatus & store.TXN_STARTED:
+                    store._logDL()
+                    continue
+                else:
+                    raise
+
             finally:
                 self.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
@@ -449,8 +431,8 @@ class RefContainer(DBContainer):
             def next(_self, uRef):
 
                 try:
-                    return self.c.loadRef(_self.cursor, uCol._uuid, uRef._uuid,
-                                          version, self._flags)
+                    return self.c.find_ref(_self.cursor, uCol, uRef, ~version,
+                                           RefContainer.REF_TYPES, self._flags)
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
                         store._logDL()
@@ -543,19 +525,20 @@ class RefContainer(DBContainer):
 
 class NamesContainer(DBContainer):
 
+    KEY_TYPES = (Record.UUID,   # key
+                 Record.HASH,   # name hash
+                 Record.INT)    # ~version
+    NAME_TYPES = (Record.UUID,) # corresponding uuid
+
     def writeName(self, version, key, name, uuid):
 
-        if name is None:
-            raise ValueError, 'name is None'
-        
-        if isinstance(name, unicode):
-            name = name.encode('utf-8')
-            
         if uuid is None:
             uuid = key
 
-        return self.put(pack('>16sll', key._uuid, _hash(name), ~version),
-                        uuid._uuid)
+        return self.put_record(Record(Record.UUID, key,
+                                      Record.HASH, name,
+                                      Record.INT, ~version),
+                               Record(Record.UUID, uuid))
 
     def purgeNames(self, txn, uuid, keepOne):
 
@@ -607,13 +590,12 @@ class NamesContainer(DBContainer):
         finally:
             self.closeCursor(cursor)
 
-    def readName(self, view, version, key, name):
+    def readName(self, view, version, uKey, name):
 
-        if name is None:
-            raise ValueError, 'name is None'
-        
-        cursorKey = pack('>16sl', key._uuid, _hash(name))
         store = self.store
+        key = Record(Record.UUID, uKey,
+                     Record.HASH, name,
+                     Record.INT, ~version)
         
         while True:
             txnStatus = 0
@@ -623,50 +605,39 @@ class NamesContainer(DBContainer):
                 txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
                 
-                try:
-                    value = cursor.set_range(cursorKey, self._flags, None)
-                    if value is None:
+                name = self.c.find_record(cursor, key,
+                                          NamesContainer.NAME_TYPES,
+                                          self._flags, None)
+                if name is not None:
+                    uValue = name[0]
+                    if uValue == uKey:    # deleted name
                         return None
 
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        continue
-                    else:
-                        raise
-
-                try:
-                    while value is not None and value[0].startswith(cursorKey):
-                        nameVer = ~unpack('>l', value[0][-4:])[0]
-                
-                        if nameVer <= version:
-                            if value[1] == value[0][0:16]:    # deleted name
-                                return None
-
-                            return UUID(value[1])
-
-                        else:
-                            value = cursor.next(self._flags, None)
-
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        continue
-                    else:
-                        raise
+                    return uValue
 
                 return None
+
+            except DBLockDeadlockError:
+                if txnStatus & store.TXN_STARTED:
+                    store._logDL()
+                    continue
+                else:
+                    raise
 
             finally:
                 self.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
 
-    def readNames(self, view, version, key):
+    def readNames(self, view, version, uKey):
 
         results = []
-        cursorKey = key._uuid
         store = self.store
-        
+
+        key = Record(Record.UUID, uKey)
+        keyTypes = NamesContainer.KEY_TYPES
+        dataTypes = NamesContainer.NAME_TYPES
+        flags = self._flags
+
         while True:
             txnStatus = 0
             cursor = None
@@ -675,40 +646,34 @@ class NamesContainer(DBContainer):
                 txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
                 
-                try:
-                    value = cursor.set_range(cursorKey, self._flags, None)
-                    if value is None:
-                        return results
-
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        continue
-                    else:
-                        raise
+                key, name = cursor.find_record(key, keyTypes, dataTypes,
+                                               flags, NONE_PAIR)
+                if name is None:
+                    return results
 
                 currentHash = None
                 
-                try:
-                    while value is not None and value[0].startswith(cursorKey):
-                        nameHash, nameVer = unpack('>ll', value[0][-8:])
-                
-                        if nameHash != currentHash and ~nameVer <= version:
-                            currentHash = nameHash
+                while name is not None:
+                    uuid, hash, nameVer = key.data
+                    if uuid != uKey:
+                        break
 
-                            if value[1] != value[0][0:16]:    # !deleted name
-                                results.append(UUID(value[1]))
+                    if hash != currentHash and ~nameVer <= version:
+                        currentHash = nameHash
+                        uValue = name[0]
+                        if uValue != uKey:    # !deleted name
+                            results.append(uValue)
 
-                        value = cursor.next(self._flags, None)
-
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        continue
-                    else:
-                        raise
+                    key, name = cursor.next_record(key, name, flags, NONE_PAIR)
 
                 return results
+
+            except DBLockDeadlockError:
+                if txnStatus & store.TXN_STARTED:
+                    store._logDL()
+                    continue
+                else:
+                    raise
 
             finally:
                 self.closeCursor(cursor)
@@ -717,34 +682,49 @@ class NamesContainer(DBContainer):
 
 class ACLContainer(DBContainer):
 
+    KEY_TYPES = (Record.UUID,   # uKey
+                 Record.HASH,   # name hash or 0
+                 Record.INT)    # ~version
+
+    ACL_TYPES = (Record.BYTE,   # number of aces
+                 Record.RECORD) # aces
+
     def writeACL(self, version, key, name, acl):
 
         if name is None:
-            key = pack('>16sll', key._uuid, 0, ~version)
+            key = Record(Record.UUID, key,
+                         Record.INT, 0,
+                         Record.INT, ~version)
         else:
-            if isinstance(name, unicode):
-                name = name.encode('utf-8')
-            key = pack('>16sll', key._uuid, _hash(name), ~version)
+            key = Record(Record.UUID, key,
+                         Record.HASH, name,
+                         Record.INT, ~version)
 
         if acl is None:    # deleted acl
-            value = '\0\0\0\0'
+            record = Record(Record.BYTE, 0)
         else:
-            value = "".join([pack('>16sl', ace.pid._uuid, ace.perms)
-                             for ace in acl])
+            record = Record(Record.BYTE, len(acl))
+            acesRecord = Record()
+            for ace in acl:
+                acesRecord += (Record.UUID, ace.pid,
+                               Record.INT, ace.perms)
+            record += (Record.RECORD, acesRecord)
 
-        return self.put(key, value)
+        return self.put_record(key, record)
 
-    def readACL(self, view, version, key, name):
-
-        if name is None:
-            cursorKey = pack('>16sl', key._uuid, 0)
-        else:
-            if isinstance(name, unicode):
-                name = name.encode('utf-8')
-            cursorKey = pack('>16sl', key._uuid, _hash(name))
+    def readACL(self, view, version, uKey, name):
 
         store = self.store
         
+        if name is None:
+            key = Record(Record.UUID, uKey,
+                         Record.INT, 0,
+                         Record.INT, ~version)
+        else:
+            key = Record(Record.UUID, uKey,
+                         Record.HASH, name,
+                         Record.INT, ~version)
+
         while True:
             txnStatus = 0
             cursor = None
@@ -753,46 +733,27 @@ class ACLContainer(DBContainer):
                 txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
                 
-                try:
-                    value = cursor.set_range(cursorKey, self._flags, None)
-                    if value is None:
+                acl = self.c.find_record(cursor, key,
+                                         ACLContainer.ACL_TYPES,
+                                         self._flags, None)
+                if acl is not None:
+                    if acl.size == 1:  # deleted acl
                         return None
 
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        continue
-                    else:
-                        raise
-
-                try:
-                    while value is not None and value[0].startswith(cursorKey):
-                        key, aces = value
-                        aclVer = ~unpack('>l', key[-4:])[0]
-                
-                        if aclVer <= version:
-                            if len(aces) == 4:    # deleted acl
-                                return None
-
-                            acl = ACL()
-                            for i in xrange(0, len(aces), 20):
-                                pid = UUID(aces[i:i+16])
-                                perms = unpack('>l', aces[i+16:i+20])[0]
-                                acl.append(ACE(pid, perms))
-
-                            return acl
-                        
-                        else:
-                            value = cursor.next(self._flags, None)
-
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        continue
-                    else:
-                        raise
+                    count, aces = acl.data
+                    acl = ACL()
+                    for i in xrange(0, count*2, 2):
+                        acl.append(ACE(*aces[i:i+2]))
+                    return acl
 
                 return None
+
+            except DBLockDeadlockError:
+                if txnStatus & store.TXN_STARTED:
+                    store._logDL()
+                    continue
+                else:
+                    raise
 
             finally:
                 self.closeCursor(cursor)
@@ -801,36 +762,42 @@ class ACLContainer(DBContainer):
 
 class IndexesContainer(DBContainer):
 
-    def _packKey(self, buffer, key, version=None):
+    KEY_TYPES = (Record.UUID,     # uIndex
+                 Record.UUID,     # uKey
+                 Record.INT)      # ~version
+    ENTRY_TYPES = (Record.BYTE,   # level
+                   Record.INT,    # entry value
+                   Record.RECORD) # points
 
-        if version is None:
-            return buffer + key._uuid
-
-        return buffer + key._uuid + pack('>l', ~version)
-
-    def saveKey(self, keyBuffer, version, key, node):
-
-        buffer = []
+    def saveKey(self, uIndex, version, uKey, node):
 
         if node is not None:
             level = len(node)
-            buffer.append(pack('b', level))
-            buffer.append(pack('>l', node._entryValue))
+            record = Record(Record.BYTE, level,
+                            Record.INT, node._entryValue)
+            pointsRecord = Record()
             for lvl in xrange(1, level + 1):
                 point = node[lvl]
-                self._writeUUID(buffer, point.prevKey)
-                self._writeUUID(buffer, point.nextKey)
-                buffer.append(pack('>l', point.dist))
+                pointsRecord += (Record.UUID_OR_NONE, point.prevKey,
+                                 Record.UUID_OR_NONE, point.nextKey,
+                                 Record.INT, point.dist)
+            record += (Record.RECORD, pointsRecord)
         else:
-            buffer.append('\0')
-            
-        return self.put(self._packKey(keyBuffer, key, version), ''.join(buffer))
+            record = Record(Record.BYTE, 0)
 
-    def loadKey(self, view, keyBuffer, version, key):
+        return self.put_record(Record(Record.UUID, uIndex,
+                                      Record.UUID, uKey,
+                                      Record.INT, ~version),
+                               record)
+
+    def loadKey(self, view, uIndex, version, uKey):
         
-        cursorKey = self._packKey(keyBuffer, key)
         store = self.store
         
+        key = Record(Record.UUID, uIndex,
+                     Record.UUID, uKey,
+                     Record.INT, ~version)
+
         while True:
             txnStatus = 0
             cursor = None
@@ -839,60 +806,32 @@ class IndexesContainer(DBContainer):
                 txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
 
-                try:
-                    value = cursor.set_range(cursorKey, self._flags, None)
-                    if value is None:
+                entry = self.c.find_record(cursor, key,
+                                           IndexesContainer.ENTRY_TYPES,
+                                           self._flags, None)
+                if entry is not None:
+                    level, entryValue, points = entry.data
+                    if level == 0:  # deleted entry
                         return None
-
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        continue
-                    else:
-                        raise
-
-                try:
-                    while value is not None and value[0].startswith(cursorKey):
-                        keyVer = ~unpack('>l', value[0][32:36])[0]
-                
-                        if keyVer <= version:
-                            value = value[1]
-                            level = unpack('b', value[0])[0]
-
-                            if level == 0:
-                                return None
                     
-                            node = SkipList.Node(level)
-                            node._entryValue = unpack('>l', value[1:5])[0]
-                            offset = 5
-                            
-                            for lvl in xrange(1, level + 1):
-                                point = node[lvl]
+                    node = SkipList.Node(level)
+                    node._entryValue = entryValue
 
-                                l, prevKey = self._readValue(value, offset)
-                                offset += l
-                                l, nextKey = self._readValue(value, offset)
-                                offset += l
-                                dist = unpack('>l', value[offset:offset+4])[0]
-                                offset += 4
+                    for lvl in xrange(0, level):
+                        point = node[lvl+1]
+                        (point.prevKey, point.nextKey,
+                         point.dist) = points[lvl*3:(lvl+1)*3]
 
-                                point.prevKey = prevKey
-                                point.nextKey = nextKey
-                                point.dist = dist
-
-                            return node
-                        
-                        else:
-                            value = cursor.next(self._flags, None)
-
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        continue
-                    else:
-                        raise
+                    return node
 
                 return None
+                        
+            except DBLockDeadlockError:
+                if txnStatus & store.TXN_STARTED:
+                    store._logDL()
+                    continue
+                else:
+                    raise
 
             finally:
                 self.closeCursor(cursor)
@@ -948,7 +887,7 @@ class IndexesContainer(DBContainer):
         finally:
             self.closeCursor(cursor)
 
-    def nodeIterator(self, view, keyBuffer, version):
+    def nodeIterator(self, view, uIndex, version):
         
         store = self.store
 
@@ -970,53 +909,32 @@ class IndexesContainer(DBContainer):
                 _self.cursor = None
                 _self.txnStatus = 0
 
-            def next(_self, key):
+            def next(_self, uKey):
+
+                key = Record(Record.UUID, uIndex,
+                             Record.UUID, uKey,
+                             Record.INT, ~version)
 
                 try:
-                    cursorKey = self._packKey(keyBuffer, key)
-                    value = _self.cursor.set_range(cursorKey, self._flags, None)
-                    if value is None:
-                        return None
-                except DBLockDeadlockError:
-                    if _self.txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        return True
-                    else:
-                        raise
-
-                try:
-                    while value is not None and value[0].startswith(cursorKey):
-                        keyVer = ~unpack('>l', value[0][32:36])[0]
-                
-                        if keyVer <= version:
-                            value = value[1]
-                            level = unpack('b', value[0])[0]
-
-                            if level == 0:
-                                return False
+                    entry = self.c.find_record(_self.cursor, key,
+                                               IndexesContainer.ENTRY_TYPES,
+                                               self._flags, None)
+                    if entry is not None:
+                        level, entryValue, points = entry.data
+                        if level == 0:  # deleted entry
+                            return None
                     
-                            node = SkipList.Node(level)
-                            node._entryValue = unpack('>l', value[1:5])[0]
-                            offset = 5
-                            
-                            for lvl in xrange(1, level + 1):
-                                point = node[lvl]
+                        node = SkipList.Node(level)
+                        node._entryValue = entryValue
 
-                                l, prevKey = self._readValue(value, offset)
-                                offset += l
-                                l, nextKey = self._readValue(value, offset)
-                                offset += l
-                                dist = unpack('>l', value[offset:offset+4])[0]
-                                offset += 4
+                        for lvl in xrange(0, level):
+                            point = node[lvl+1]
+                            (point.prevKey, point.nextKey,
+                             point.dist) = points[lvl*3:(lvl+1)*3]
 
-                                point.prevKey = prevKey
-                                point.nextKey = nextKey
-                                point.dist = dist
+                        return node
 
-                            return node
-                        
-                        else:
-                            value = _self.cursor.next(self._flags, None)
+                    return None
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
@@ -1029,6 +947,24 @@ class IndexesContainer(DBContainer):
 
 
 class ItemContainer(DBContainer):
+
+    KEY_TYPES = (Record.UUID,           # item uuid
+                 Record.INT)            # ~version
+
+    ITEM_TYPES = (Record.UUID,          # kind
+                  Record.INT,           # status
+                  Record.UUID,          # parent
+                  Record.RECORD,        # values
+                  Record.UUID_OR_NONE,  # previous kind or None
+                  Record.KEYWORD,       # name or None
+                  Record.SYMBOL,        # module name or None
+                  Record.SYMBOL,        # class name or None
+                  Record.RECORD)        # dirty values
+
+    KIND_TYPES = ITEM_TYPES[0:1]
+    PARENT_TYPES = ITEM_TYPES[0:3]
+    VALUES_TYPES = ITEM_TYPES[0:4]
+    NO_DIRTIES_TYPES = ITEM_TYPES[0:-1]
 
     def __init__(self, store):
 
@@ -1076,70 +1012,36 @@ class ItemContainer(DBContainer):
         self._kinds.compact(txn)
         self._versions.compact(txn)
 
-    def saveItem(self, buffer, uItem, version, uKind, prevKind, status,
+    def saveItem(self, uItem, version, uKind, prevKind, status,
                  uParent, name, moduleName, className,
                  values, dirtyValues, dirtyRefs):
 
-        del buffer[:]
+        record = Record(Record.UUID, uKind,
+                        Record.INT, status,
+                        Record.UUID, uParent)
 
-        buffer.append(uKind._uuid)
-        buffer.append(pack('>l', status))
-        buffer.append(uParent._uuid)
-        if not (status & CItem.NEW) and (status & CItem.KDIRTY):
-            buffer.append(prevKind._uuid)
+        valuesRecord = Record()
+        for valueName, uValue in values:
+            valuesRecord += (Record.HASH, valueName, Record.UUID, uValue)
+        record += (Record.RECORD, valuesRecord)
 
-        self._writeString(buffer, name)
-        self._writeString(buffer, moduleName)
-        self._writeString(buffer, className)
+        record += (Record.UUID_OR_NONE, prevKind,
+                   Record.KEYWORD, name,
+                   Record.SYMBOL, moduleName,
+                   Record.SYMBOL, className)
 
-        def writeName(name):
-            if isinstance(name, unicode):
-                name = name.encode('utf-8')
-            buffer.append(pack('>l', _hash(name)))
-            
-        for name, uValue in values:
-            writeName(name)
-            buffer.append(uValue._uuid)
-
-        count = 0
+        dirtiesRecord = Record()
         for name in dirtyValues:
-            writeName(name)
-            count += 1
+            dirtiesRecord += (Record.HASH, name)
         for name in dirtyRefs:
-            writeName(name)
-            count += 1
-        buffer.append(pack('>l', len(values)))
-        buffer.append(pack('>l', count))
+            dirtiesRecord += (Record.HASH, name)
+        record += (Record.RECORD, dirtiesRecord)
 
-        # (uItem, version), (uKind, status, uParent, ...)
+        # (uItem, ~version), (uKind, status, uParent, values, ...)
 
-        return self.put(pack('>16sl', uItem._uuid, ~version), ''.join(buffer))
-
-    def _readItem(self, itemVer, value):
-
-        uKind = UUID(value[0:16])
-        status, = unpack('>l', value[16:20])
-        uParent = UUID(value[20:36])
-        
-        offset = 36
-        if not (status & CItem.NEW) and (status & CItem.KDIRTY):
-            offset += 16
-
-        l, name = self._readValue(value, offset)
-        offset += l
-        l, moduleName = self._readValue(value, offset)
-        offset += l
-        l, className = self._readValue(value, offset)
-        offset += l
-
-        count, = unpack('>l', value[-8:-4])
-        values = []
-        for i in xrange(count):
-            values.append(UUID(value[offset+4:offset+20]))
-            offset += 20
-
-        return (itemVer, uKind, status, uParent, name,
-                moduleName, className, values)
+        return self.put_record(Record(Record.UUID, uItem,
+                                      Record.INT, ~version),
+                               record)
 
     def _itemFinder(self, view):
 
@@ -1162,29 +1064,18 @@ class ItemContainer(DBContainer):
                 _self.cursor = None
                 _self.txnStatus = 0
 
-            def _find(_self, version, uuid):
+            def _find(_self, version, uuid, dataTypes):
 
-                key = uuid._uuid
-
-                try:
-                    value = _self.cursor.set_range(key, self._flags, None)
-                    if value is None:
-                        return None, None
-                except DBLockDeadlockError:
-                    if _self.txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        return True, None
-                    else:
-                        raise
+                key = Record(Record.UUID, uuid,
+                             Record.INT, ~version)
 
                 try:
-                    while value is not None and value[0].startswith(key):
-                        itemVer = ~unpack('>l', value[0][16:20])[0]
-                
-                        if itemVer <= version:
-                            return itemVer, value[1]
-                        else:
-                            value = _self.cursor.next(self._flags, None)
+                    key, item = self.c.find_record(_self.cursor, key, dataTypes,
+                                                   self._flags, NONE_PAIR, True)
+                    if item is not None:
+                        return ~key[1], item
+
+                    return NONE_PAIR
 
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
@@ -1192,23 +1083,21 @@ class ItemContainer(DBContainer):
                         return True, None
                     else:
                         raise
-
-                return None, None
 
             def findItem(_self, version, uuid):
 
                 while True:
-                    v, i = _self._find(version, uuid)
+                    v, i = _self._find(version, uuid, ItemContainer.ITEM_TYPES)
                     if v is True:
                         continue
                     if i is None:
-                        return None, None
+                        return NONE_PAIR
                     return v, i
 
             def getVersion(_self, version, uuid):
 
                 while True:
-                    v, i = _self._find(version, uuid)
+                    v, i = _self._find(version, uuid, Nil)
                     if v is True:
                         continue
                     if i is None:
@@ -1217,10 +1106,12 @@ class ItemContainer(DBContainer):
 
         return _finder()
 
-    def _findItem(self, view, version, uuid):
+    def findItem(self, view, version, uuid, dataTypes):
 
-        key = uuid._uuid
         store = self.store
+
+        key = Record(Record.UUID, uuid,
+                     Record.INT, ~version)
 
         while True:
             txnStatus = 0
@@ -1230,35 +1121,20 @@ class ItemContainer(DBContainer):
                 txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
 
-                try:
-                    value = cursor.set_range(key, self._flags, None)
-                    if value is None:
-                        return None, None
+                key, item = self.c.find_record(cursor, key, dataTypes,
+                                               self._flags, NONE_PAIR,
+                                               True)
+                if item is not None:
+                    return ~key[1], item
 
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        continue
-                    else:
-                        raise
+                return NONE_PAIR
 
-                try:
-                    while value is not None and value[0].startswith(key):
-                        itemVer = ~unpack('>l', value[0][16:20])[0]
-                
-                        if itemVer <= version:
-                            return itemVer, value[1]
-                        else:
-                            value = cursor.next(self._flags, None)
-
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        continue
-                    else:
-                        raise
-
-                return None, None
+            except DBLockDeadlockError:
+                if txnStatus & store.TXN_STARTED:
+                    store._logDL()
+                    continue
+                else:
+                    raise
 
             finally:
                 self.closeCursor(cursor)
@@ -1266,28 +1142,15 @@ class ItemContainer(DBContainer):
 
     def getItemValues(self, version, uuid):
 
-        item = self.get(pack('>16sl', uuid._uuid, ~version))
+        item = self.get_record(Record(Record.UUID, uuid,
+                                      Record.INT, ~version),
+                               ItemContainer.VALUES_TYPES)
         if item is None:
             return None
 
-        vCount, dCount = unpack('>ll', item[-8:])
-        offset = -(vCount * 20 + dCount * 4 + 8)
-        values = {}
-
-        for i in xrange(vCount):
-            hash, uuid = unpack('>l16s', item[offset:offset+20])
-            values[hash] = UUID(uuid)
-            offset += 20
-
-        return values
-
-    def loadItem(self, view, version, uuid):
-
-        version, item = self._findItem(view, version, uuid)
-        if item is not None:
-            return self._readItem(version, item)
-
-        return None
+        values = item[-1]
+        return dict(values[offset:offset+2]
+                    for offset in xrange(0, len(values), 2))
 
     def purgeItem(self, txn, uuid, version):
 
@@ -1297,38 +1160,34 @@ class ItemContainer(DBContainer):
     def isValue(self, view, version, uItem, uValue, exact=False):
 
         if exact:
-            item = self.get(pack('>16sl', uItem._uuid, ~version))
+            item = self.get_record(Record(Record.UUID, uuid,
+                                          Record.INT, ~version),
+                                   ItemContainer.VALUES_TYPES)
         else:
-            version, item = self._findItem(view, version, uItem)
+            version, item = self.findItem(view, version, uItem,
+                                          ItemContainer.VALUES_TYPES)
 
         if item is not None:
-            uValue = uValue._uuid
-            vCount, dCount = unpack('>ll', item[-8:])
-            pos = -(dCount + 2) * 4 - vCount * 20
-
-            for i in xrange(vCount):
-                if item.startswith(uValue, pos + 4, pos + 20):
-                    return True
-                pos += 20
+            return uValue in item[-1]
 
         return False
 
     def findValue(self, view, version, uuid, hash, exact=False):
 
         if exact:
-            item = self.get(pack('>16sl', uuid._uuid, ~version))
+            item = self.get_record(Record(Record.UUID, uuid,
+                                          Record.INT, ~version),
+                                   ItemContainer.VALUES_TYPES)
         else:
-            version, item = self._findItem(view, version, uuid)
+            version, item = self.findItem(view, version, uuid,
+                                          ItemContainer.VALUES_TYPES)
 
         if item is not None:
-            vCount, dCount = unpack('>ll', item[-8:])
-            pos = -(dCount + 2) * 4 - vCount * 20
-
-            for i in xrange(vCount):
-                h, uValue = unpack('>l16s', item[pos:pos+20])
+            i = iter(item[-1].data)
+            for h in i:
+                value = i.next()
                 if h == hash:
-                    return unpack('>l', item[16:20])[0], UUID(uValue)
-                pos += 20
+                    return item[1], value
 
             return None, Default
 
@@ -1341,52 +1200,50 @@ class ItemContainer(DBContainer):
         assert hashes is None or type(hashes) is list
 
         if exact:
-            item = self.get(pack('>16sl', uuid._uuid, ~version))
+            item = self.get_record(Record(Record.UUID, uuid,
+                                          Record.INT, ~version),
+                                   ItemContainer.VALUES_TYPES)
         else:
-            version, item = self._findItem(view, version, uuid)
+            version, item = self.findItem(view, version, uuid,
+                                          ItemContainer.VALUES_TYPES)
 
         if item is not None:
-            vCount, dCount = unpack('>ll', item[-8:])
-            pos = -(dCount + 2) * 4 - vCount * 20
-
+            values = item[-1].data
             if hashes is None: # return all values
-                uValues = []
-                for i in xrange(vCount):
-                    h, uValue = unpack('>l16s', item[pos:pos+20])
-                    uValues.append(UUID(uValue))
-                    pos += 20
+                return item[1], [uValue for uValue in values if isuuid(uValue)]
 
-            else:
-                uValues = [None] * len(hashes)
-                for i in xrange(vCount):
-                    h, uValue = unpack('>l16s', item[pos:pos+20])
-                    if h in hashes:
-                        uValues[hashes.index(h)] = UUID(uValue)
-                    pos += 20
+            uValues = [None] * len(hashes)
+            i = iter(values)
+            for h in i:
+                uValue = i.next()
+                if h in hashes:
+                    uValues[hashes.index(h)] = uValue
 
-            return unpack('>l', item[16:20])[0], uValues
+            return item[1], uValues
 
         return None, Nil
 
     def getItemParentId(self, view, version, uuid):
 
-        version, item = self._findItem(view, version, uuid)
+        version, item = self.findItem(view, version, uuid,
+                                      ItemContainer.PARENT_TYPES)
         if item is not None:
-            return UUID(item[20:36])
+            return item[2]
 
         return None
 
     def getItemKindId(self, view, version, uuid):
 
-        version, item = self._findItem(view, version, uuid)
+        version, item = self.findItem(view, version, uuid,
+                                      ItemContainer.KIND_TYPES)
         if item is not None:
-            return UUID(item[0:16])
+            return item[0]
 
         return None
 
     def getItemVersion(self, view, version, uuid):
 
-        version, item = self._findItem(view, version, uuid)
+        version, item = self.findItem(view, version, uuid, Nil)
         if item is not None:
             return version
 
@@ -1416,38 +1273,39 @@ class ItemContainer(DBContainer):
             def run(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.openCursor(self._kinds)
-                
+                _self.cursor = cursor = self.openCursor(self._kinds)
+
+                keyTypes = (Record.UUID, Record.UUID, Record.INT)
+                if keysOnly:
+                    dataTypes = Nil
+                else:
+                    dataTypes = ItemContainer.NO_DIRTIES_TYPES
+
+                flags = self._flags
+
                 try:
-                    value = _self.cursor.set_range(uuid._uuid, self._flags,
-                                                   None)
-                    if value is None:
+                    key = Record(Record.UUID, uuid)
+                    key, item = cursor.find_record(key, keyTypes, dataTypes,
+                                                   flags, NONE_PAIR)
+                    if item is None:
                         yield False
 
-                except DBLockDeadlockError:
-                    if _self.txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        yield True
-                    else:
-                        raise
-
-                try:
                     lastItem = None
-                    while value is not None:
-                        uKind, uItem, vItem = unpack('>16s16sl', value[0])
-                        if uKind != uuid._uuid:
+                    while item is not None:
+                        uKind, uItem, vItem = key.data
+                        if uKind != uuid:
                             break
 
                         vItem = ~vItem
                         if vItem <= version and uItem != lastItem:
                             if keysOnly:
-                                yield UUID(uItem), vItem
+                                yield uItem, vItem
                             else:
-                                args = self._readItem(vItem, value[1])
-                                yield UUID(uItem), args
+                                yield uItem, vItem, item
                             lastItem = uItem
 
-                        value = _self.cursor.next(self._flags, None)
+                        key, item = cursor.next_record(key, item,
+                                                       flags, NONE_PAIR)
 
                     yield False
 
@@ -1490,37 +1348,36 @@ class ItemContainer(DBContainer):
             def next(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.openCursor(self._versions)
-                
-                try:
-                    value = _self.cursor.set_range(pack('>l', fromVersion + 1),
-                                                   self._flags, None)
+                _self.cursor = cursor = self.openCursor(self._versions)
 
-                    while value is not None:
-                        version, uItem = unpack('>l16s', value[0])
+                keyTypes = (Record.INT, Record.UUID)
+                dataTypes = ItemContainer.ITEM_TYPES
+                flags = self._flags
+
+                try:
+                    key = Record(Record.INT, fromVersion + 1)
+                    key, item = cursor.find_record(key, keyTypes, dataTypes,
+                                                   flags, NONE_PAIR)
+
+                    while item is not None:
+                        version, uItem = key.data
                         if version > toVersion:
                             break
 
-                        value = value[1]
-                        uKind, status, uParent = unpack('>16sl16s', value[0:36])
-                        if not (status & CItem.NEW) and (status & CItem.KDIRTY):
-                            prevKind = UUID(value[36:52])
-                        else:
-                            prevKind = None
+                        (uKind, status, uParent, x, prevKind,
+                         x, x, x, dirties) = item.data
 
                         if status & CItem.DELETED:
                             dirties = HashTuple()
                         else:
-                            pos = -(unpack('>l', value[-4:])[0] + 2) << 2
-                            value = value[pos:-8]
-                            dirties = unpack('>%dl' %(len(value) >> 2), value)
-                            dirties = HashTuple(dirties)
+                            dirties = HashTuple(dirties.data)
 
-                        yield (UUID(uItem), version,
-                               UUID(uKind), status, UUID(uParent), prevKind,
+                        yield (uItem, version,
+                               uKind, status, uParent, prevKind,
                                dirties)
-
-                        value = _self.cursor.next(self._flags, None)
+                        
+                        key, item = cursor.next_record(key, item,
+                                                       flags, NONE_PAIR)
 
                     yield False
 
@@ -1563,27 +1420,25 @@ class ItemContainer(DBContainer):
             def next(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.openCursor()
+                _self.cursor = cursor = self.openCursor()
+
+                key = ItemContainer.KEY_TYPES
+                item = ItemContainer.VALUES_TYPES
+                flags = self._flags
                 
                 try:
                     while True:
-                        value = _self.cursor.next(self._flags, None)
-                        if value is None:
+                        key, item = cursor.next_record(key, item,
+                                                       flags, NONE_PAIR)
+                        if item is None:
                             break
 
-                        uuid, version = unpack('>16sl', value[0])
+                        uuid, version = key.data
+                        x, status, x, values = item.data
 
-                        value = value[1]
-                        status, = unpack('>l', value[16:20])
-                        vCount, dCount = unpack('>ll', value[-8:])
-                        offset = -(vCount * 20 + dCount * 4 + 8)
-
-                        values = []
-                        for i in xrange(vCount):
-                            values.append(UUID(value[offset+4:offset+20]))
-                            offset += 20
-
-                        yield UUID(uuid), ~version, status, values
+                        yield (uuid, ~version, status,
+                               tuple([uValue for uValue in values.data
+                                      if isuuid(uValue)]))
 
                     yield False
 
@@ -1626,28 +1481,36 @@ class ItemContainer(DBContainer):
             def next(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.openCursor()
-                
+                _self.cursor = cursor = self.openCursor()
+
+                key = Record(Record.UUID, uItem,
+                             Record.INT, ~fromVersion)
+                keyTypes = ItemContainer.KEY_TYPES
+                dataTypes = (Record.UUID, Record.INT)
+                flags = self._flags
+
                 try:
-                    key = uItem._uuid
-                    value = _self.cursor.set_range(pack('>16sl', key,
-                                                        ~fromVersion),
-                                                   self._flags, None)
-                    if not (value is None or value[0].startswith(key)):
-                        value = _self.cursor.prev(self._flags, None)
+                    key, item = cursor.find_record(key, keyTypes, dataTypes,
+                                                   flags, NONE_PAIR)
 
-                    while value is not None and value[0].startswith(key):
-                        version = ~unpack('>l', value[0][16:20])[0]
+                    if not (key is None or key[0] == uItem):
+                        key, item = cursor.prev_record(key, item,
+                                                       flags, NONE_PAIR)
 
+                    while key is not None:
+                        uuid, version = key.data
+                        if uuid != uItem:
+                            break
+
+                        version = ~version
                         if toVersion and version > toVersion:
                             break
-                        elif version >= fromVersion:
-                            value = value[1]
-                            status, = unpack('>l', value[16:20])
 
-                            yield version, status
+                        if version >= fromVersion:
+                            yield version, item[1]
 
-                        value = _self.cursor.prev(self._flags, None)
+                        key, item = cursor.prev_record(key, item,
+                                                       flags, NONE_PAIR)
 
                     yield False
 
@@ -1692,8 +1555,9 @@ class ValueContainer(DBContainer):
     # 0.6.9: Term vectors stored in Lucene indexes
     # 0.6.10: FileContainer changed to contain both file info and data blocks
     # 0.6.11: Renamed DB_VERSION to DB_INFO
+    # 0.6.12: added Record C type to serialize into DB
 
-    FORMAT_VERSION = 0x00060b00
+    FORMAT_VERSION = 0x00060c00
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)

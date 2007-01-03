@@ -487,13 +487,13 @@ class wxApplication (wx.App):
         if splash:
             splash.updateGauge('mainview')
 
-        #import hotshot
         self.RenderMainView()
-        #prof = hotshot.Profile('4117.prof')
-        #prof.runcall(self.RenderMainView)
-        #prof.close()
 
         wx.Yield()
+#        import hotshot
+#        prof = hotshot.Profile('commit.log')
+#        prof.runcall(self.UIRepositoryView.commit)
+#        prof.close()
         self.UIRepositoryView.commit()
             
         # Start the WakeupCaller Service

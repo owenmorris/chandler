@@ -16,7 +16,8 @@
 from new import classobj
 
 from chandlerdb.util.c import \
-    UUID, SingleRef, _hash, _combine, issingleref, Nil, Default
+    UUID, SingleRef, _hash, _combine, isuuid, issingleref, Nil, Default
+from chandlerdb.persistence.c import Record
 from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
 from chandlerdb.item.c import isitem, CItem
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
@@ -811,23 +812,23 @@ class Kind(Item):
             
         generator.characters(data)
 
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
 
         if value is None:
-            buffer.append('\0')
-            return 1
+            record += (Record.UUID_OR_NONE, None)
         else:
-            buffer.append('\1')
-            buffer.append(value.itsUUID._uuid)
-            return 17
+            record += (Record.UUID_OR_NONE, value.itsUUID)
+
+        return 0
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
 
-        if data[offset] == '\0':
-            return offset+1, None
+        value = data[offset]
+        if isuuid(value):
+            value = SingleRef(value)
         
-        return offset+17, SingleRef(UUID(data[offset+1:offset+17]))
+        return offset+1, value
 
     def hashValue(self, value):
 

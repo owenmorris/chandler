@@ -18,18 +18,12 @@ Chandler startup
 """
 
 import os, PyLucene
-import application.Globals as Globals
-import application.Utility as Utility
+from application import Globals, Utility
 
 def main():
 
-    # Process any command line switches and any environment variable values
-    Globals.options = Utility.initOptions()
-
     def realMain():
         
-        Utility.initProfileDir(Globals.options)
-
         from application import feedback
         feedback.initRuntimeLog(Globals.options.profileDir)
         

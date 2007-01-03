@@ -687,7 +687,7 @@ def makeSummaryBlocks(parcel):
 if __name__ == "__main__":
     # Code to generate a web page for checking the communications column's
     # icon mappings. To generate "icontest.html" in your $CHANDLERHOME, do:
-    #   cd $CHANDLERHOME; UNIT_TESTING=True $CHANDLERBIN/release/RunPython.bat parcels/osaf/views/main/summaryblocks.py
+    #   cd $CHANDLERHOME; $CHANDLERBIN/release/RunPython.bat parcels/osaf/views/main/summaryblocks.py
     # (leave off the .bat if you're not on windows)
     # Then, view file:///path/to/your/CHANDLERHOME/icontest.html
     # in your browser.

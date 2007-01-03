@@ -14,9 +14,11 @@
 
 
 from chandlerdb.util.c import Nil, UUID, CLink, CLinkedMap
+from chandlerdb.persistence.c import Record
 from repository.item.Children import Children
 from repository.item.RefCollections import RefList
 from repository.item.Indexes import NumericIndex
+from repository.item.Indexed import Indexed
 from repository.persistence.RepositoryError import MergeError
 
 
@@ -52,7 +54,7 @@ class PersistentRefs(object):
                 if ref is None:
                     refIterator.close()
                     raise KeyError, ('refIterator', key)
-                pKey, nKey, alias, otherKey = ref
+                pKey, nKey, alias, otherKey = ref[0:4]
                 map[key] = link = CLink(self, key, pKey, nKey, alias, otherKey)
                 if alias is not None:
                     aliases = self._aliases
@@ -140,9 +142,10 @@ class PersistentRefs(object):
 
         if not self._flags & self.NEW:
             ref = self.store._refs.loadRef(self.view, self.uuid,
-                                           self._item.itsVersion, self.uuid)
+                                           self._item.itsVersion, self.uuid,
+                                           True)
             if ref is not None:
-                self._firstKey, self._lastKey, self._count, x = ref
+                self._firstKey, self._lastKey, self._count = ref[0:3]
 
     def _changeRef(self, key, link, oldAlias=Nil):
 
@@ -183,15 +186,19 @@ class PersistentRefs(object):
             else:
                 op, alias = changedRefs.get(key, (-1, Nil))
                 if op == -1:
-                    if link.alias is None:
-                        alias = Nil
-                    else:
-                        alias = link.alias
-                    changedRefs[key] = (1, alias)
+                    if not self._flags & CLinkedMap.NEW:
+                        if link.alias is None:
+                            alias = Nil
+                        else:
+                            alias = link.alias
+                        changedRefs[key] = (1, alias)
                 elif op == 0:
-                    if alias is Nil and link.alias is not None:
-                        alias = link.alias
-                    changedRefs[key] = (1, alias)
+                    if self._flags & CLinkedMap.NEW:
+                        del changedRefs[key]
+                    else:
+                        if alias is Nil and link.alias is not None:
+                            alias = link.alias
+                        changedRefs[key] = (1, alias)
             return link
         else:
             raise ValueError, '_removeRef_ during load'
@@ -211,15 +218,6 @@ class PersistentRefs(object):
         
         return self.store._refs.loadRef(self.view, self.uuid,
                                         self._item.itsVersion, key)
-
-    def _writeRef(self, key, version, previous, next, alias, otherKey):
-
-        if key is None:
-            raise ValueError, 'key is None'
-
-        store = self.store
-        return store._refs.c.saveRef(store.txn, self.uuid._uuid, version,
-                                     key._uuid, previous, next, alias, otherKey)
 
     def _deleteRef(self, key, version):
 
@@ -371,6 +369,8 @@ class DBRefList(RefList, PersistentRefs):
     def _saveValues(self, version):
 
         store = self.store
+        refs = store._refs
+        names = store._names
         uuid = self.uuid
         item = self._item
         aliases = self._aliases
@@ -382,8 +382,13 @@ class DBRefList(RefList, PersistentRefs):
                 raise AssertionError, '%s.%s not marked dirty' %(item._repr_(),
                                                                  self._name)
 
-        size = self._writeRef(uuid, version,
-                              self._firstKey, self._lastKey, self._count, None)
+        size = refs.put_record(Record(Record.UUID, uuid,
+                                      Record.UUID, uuid,
+                                      Record.INT, ~version),
+                               Record(Record.UUID_OR_NONE, self._firstKey,
+                                      Record.UUID_OR_NONE, self._lastKey,
+                                      Record.INT, self._count,
+                                      Record.UUID_OR_KEYWORD, None))
         nilNone = (Nil, None)
             
         for key, (op, oldAlias) in self._changedRefs.iteritems():
@@ -395,19 +400,24 @@ class DBRefList(RefList, PersistentRefs):
                 alias = link.alias
                 otherKey = link._otherKey
 
-                size += self._writeRef(key, version, previous, next,
-                                       alias, otherKey)
+                size += refs.put_record(Record(Record.UUID, uuid,
+                                               Record.UUID, key,
+                                               Record.INT, ~version),
+                                        Record(Record.UUID_OR_NONE, previous,
+                                               Record.UUID_OR_NONE, next,
+                                               Record.KEYWORD, alias,
+                                               Record.UUID_OR_KEYWORD, otherKey))
                 if (oldAlias not in nilNone and
                     oldAlias != alias and
                     oldAlias not in aliases):
-                    size += store.writeName(version, uuid, oldAlias, None)
+                    size += names.writeName(version, uuid, oldAlias, None)
                 if alias is not None:
-                    size += store.writeName(version, uuid, alias, key)
+                    size += names.writeName(version, uuid, alias, key)
                         
             elif op == 1:             # remove
                 size += self._deleteRef(key, version)
                 if oldAlias not in nilNone and oldAlias not in aliases:
-                    size += store.writeName(version, uuid, oldAlias, None)
+                    size += names.writeName(version, uuid, oldAlias, None)
 
             else:                     # error
                 raise ValueError, op
@@ -419,7 +429,7 @@ class DBRefList(RefList, PersistentRefs):
         self._flags &= ~CLinkedMap.NEW
 
         PersistentRefs._clearDirties(self)
-        self._clearIndexDirties()
+        Indexed._clearDirties(self)
 
     def _isDirty(self):
 
@@ -483,7 +493,6 @@ class DBNumericIndex(NumericIndex):
 
     def __init(self):
     
-        self._key = self._uuid._uuid
         self._version = 0
 
     def _keyChanged(self, key):
@@ -518,8 +527,8 @@ class DBNumericIndex(NumericIndex):
         
         view = self.view
         self._version = version
-        head = indexes.loadKey(view, self._key, version, self._headKey)
-        tail = indexes.loadKey(view, self._key, version, self._tailKey)
+        head = indexes.loadKey(view, self._uuid, version, self._headKey)
+        tail = indexes.loadKey(view, self._uuid, version, self._tailKey)
 
         if head is not None:
             self.skipList._head = head
@@ -536,7 +545,7 @@ class DBNumericIndex(NumericIndex):
                 return None
 
             view = self.view
-            node = view.store._indexes.loadKey(view, self._key, version, key)
+            node = view.store._indexes.loadKey(view, self._uuid, version, key)
             if node is not None:
                 self[key] = node
 
@@ -566,7 +575,7 @@ class DBNumericIndex(NumericIndex):
                     if version == 0:
                         raise KeyError, key
                     indexes = view.store._indexes
-                    nodeIterator = indexes.nodeIterator(view, self._key,
+                    nodeIterator = indexes.nodeIterator(view, self._uuid,
                                                         version)
                 node = nodeIterator.next(key)
                 self[key] = node
@@ -580,38 +589,37 @@ class DBNumericIndex(NumericIndex):
         if lastKey is not None:
             yield lastKey
 
-    def _writeValue(self, itemWriter, buffer, version):
+    def _writeValue(self, itemWriter, record, version):
 
-        super(DBNumericIndex, self)._writeValue(itemWriter, buffer, version)
+        super(DBNumericIndex, self)._writeValue(itemWriter, record, version)
 
-        itemWriter.writeInteger(buffer, self._count)
-        itemWriter.writeIndex(buffer, self._uuid)
-        itemWriter.writeUUID(buffer, self._headKey)
-        itemWriter.writeUUID(buffer, self._tailKey)
+        itemWriter.indexes.append(self._uuid)
+        record += (Record.INT, self._count,
+                   Record.UUID, self._uuid,
+                   Record.UUID, self._headKey,
+                   Record.UUID, self._tailKey)
 
     def _readValue(self, itemReader, offset, data):
 
         offset = super(DBNumericIndex, self)._readValue(itemReader,
                                                         offset, data)
-        offset, self._count = itemReader.readInteger(offset, data)
-        offset, self._uuid = itemReader.readIndex(offset, data)
-        offset, self._headKey = itemReader.readUUID(offset, data)
-        offset, self._tailKey = itemReader.readUUID(offset, data)
+        (self._count, self._uuid,
+         self._headKey, self._tailKey) = data[offset:offset+4]
 
         self.__init()
 
-        return offset
+        return offset + 4
 
     def _saveValues(self, version):
 
         indexes = self.view.store._indexes
 
-        size = indexes.saveKey(self._key, version, self._headKey,
+        size = indexes.saveKey(self._uuid, version, self._headKey,
                                self.skipList._head)
-        size += indexes.saveKey(self._key, version, self._tailKey,
+        size += indexes.saveKey(self._uuid, version, self._tailKey,
                                 self.skipList._tail)
         for key, node in self._changedKeys.iteritems():
-            size += indexes.saveKey(self._key, version, key, node)
+            size += indexes.saveKey(self._uuid, version, key, node)
 
         self._version = version
 
@@ -666,7 +674,7 @@ class DBChildren(Children, PersistentRefs):
             ref = self._loadRef(key)
             if ref is None:  # during merge it may not be there
                 return False
-            prevKey, nextKey, alias, otherKey = ref
+            prevKey, nextKey, alias, otherKey = ref[0:4]
             self._dict[key] = CLink(self, child, prevKey, nextKey,
                                     alias, otherKey)
             if alias is not None:
@@ -729,10 +737,19 @@ class DBChildren(Children, PersistentRefs):
     def _saveValues(self, version):
 
         store = self.store
+        refs = store._refs
+        names = store._names
+        uuid = self.uuid
         unloads = []
         
-        size = self._writeRef(self.uuid, version,
-                              self._firstKey, self._lastKey, self._count, None)
+        size = refs.put_record(Record(Record.UUID, uuid,
+                                      Record.UUID, uuid,
+                                      Record.INT, ~version),
+                               Record(Record.UUID_OR_NONE, self._firstKey,
+                                      Record.UUID_OR_NONE, self._lastKey,
+                                      Record.INT, self._count,
+                                      Record.UUID_OR_KEYWORD, None))
+                
         nilNone = (Nil, None)
         for key, (op, oldAlias) in self._changedRefs.iteritems():
     
@@ -743,14 +760,20 @@ class DBChildren(Children, PersistentRefs):
                 alias = link.alias
                 otherKey = link._otherKey
 
-                size += self._writeRef(key, version, previous, next,
-                                       alias, otherKey)
+                size += refs.put_record(Record(Record.UUID, uuid,
+                                               Record.UUID, key,
+                                               Record.INT, ~version),
+                                        Record(Record.UUID_OR_NONE, previous,
+                                               Record.UUID_OR_NONE, next,
+                                               Record.KEYWORD, alias,
+                                               Record.UUID_OR_KEYWORD, otherKey))
+
                 if (oldAlias not in nilNone and
                     oldAlias != alias and
                     oldAlias not in self._aliases):
-                    size += store.writeName(version, self.uuid, oldAlias, None)
+                    size += names.writeName(version, self.uuid, oldAlias, None)
                 if alias is not None:
-                    size += store.writeName(version, self.uuid, alias, key)
+                    size += names.writeName(version, self.uuid, alias, key)
 
                 if link.value is None:
                     unloads.append((key, link.alias))
@@ -758,7 +781,7 @@ class DBChildren(Children, PersistentRefs):
             elif op == 1:             # remove
                 size += self._deleteRef(key, version)
                 if oldAlias not in nilNone and oldAlias not in self._aliases:
-                    size += store.writeName(version, self.uuid, oldAlias, None)
+                    size += names.writeName(version, self.uuid, oldAlias, None)
 
             else:                     # error
                 raise ValueError, op

@@ -24,9 +24,6 @@ import util.timing
 class AllParcelsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
     def testAllParcels(self):
-        Globals.options = Utility.initOptions()
-        Utility.initProfileDir(Globals.options)
-
         """
         Test to ensure all parcels load
         """

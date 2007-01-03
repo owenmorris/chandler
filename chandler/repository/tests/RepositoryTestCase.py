@@ -113,3 +113,8 @@ class RepositoryTestCase(TestCase):
 
     def assertItemPathEqual(self, item, string):
         self.assertEqual(str(item.itsPath), string)
+
+    def setLoggerLevel(self, level):
+        current = self.rep.logger.level
+        self.rep.logger.setLevel(level)
+        return current

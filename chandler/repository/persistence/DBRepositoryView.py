@@ -181,8 +181,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             try:
                 self.store._index.abortIndexWriter(self._indexWriter)
             except:
-                pass
-                #self.logger.exception('Ignorable exception while closing indexWriter during _abortTransaction')
+                pass # ignorable exception
             self._indexWriter = None
             
         self.store.abortTransaction(self, status)

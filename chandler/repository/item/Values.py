@@ -133,15 +133,6 @@ class Values(CValues):
         return [ key for key, flags in self._flags.iteritems()
                  if flags & Values.DIRTY ]
 
-    def _clearDirties(self):
-
-        _flags = self._flags
-        for key, flags in _flags.iteritems():
-            if flags & Values.DIRTY:
-                _flags[key] &= ~Values.DIRTY
-
-        self._clearValueDirties()
-
     def _clearValueDirties(self):
 
         # clearing according to flags is not enough, flags not set on new items
@@ -200,7 +191,7 @@ class Values(CValues):
 
             if persisted:
                 if attribute is not None:
-                    attrType = attribute.getAspect('type')
+                    attrType = attribute.type
                     attrCard = c.cardinality
                     attrId = attribute.itsUUID
                 else:
@@ -243,7 +234,7 @@ class Values(CValues):
                 value = self[name]
                 
                 if attribute is not None:
-                    attrType = attribute.getAspect('type')
+                    attrType = attribute.type
                 else:
                     attrType = None
 
@@ -303,7 +294,7 @@ class Values(CValues):
             logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', item._repr_(), key, kind.itsPath)
             return False
 
-        attrType = attribute.getAspect('type', None)
+        attrType = attribute.type
         if attrType is not None:
             attrCard = attribute.c.cardinality
 

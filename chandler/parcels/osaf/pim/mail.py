@@ -542,8 +542,6 @@ class DownloadAccountBase(AccountBase):
                 for item in self.replyToAddress.messagesCc:
                     checkIfToMe(MailStamp(item), 1)
 
-                self.itsView.commit()
-
 
 class SMTPAccount(AccountBase):
 

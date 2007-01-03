@@ -135,6 +135,7 @@
       <value>_afterAspectChange</value>
       <value>_afterTypeChange</value>
     </attribute>
+    <attribute name="defaultValue" type="none"></attribute>
   </item>
 
   <item withSchema="True" coreSchema="True">

@@ -18,6 +18,7 @@ from itertools import izip
 from traceback import format_exc
 
 from chandlerdb.item.c import CIndex, DelegatingIndex
+from chandlerdb.persistence.c import Record
 from chandlerdb.util.c import Nil, Default, SkipList, CLinkedMap
 from PyICU import Collator, Locale
   
@@ -75,7 +76,7 @@ class Index(CIndex):
     def isPersistent(self):
         return False
 
-    def _writeValue(self, itemWriter, buffer, version):
+    def _writeValue(self, itemWriter, record, version):
         pass
 
     def _readValue(self, itemReader, offset, data):
@@ -303,37 +304,34 @@ class NumericIndex(Index):
             self.removeKey(key)
             key = next
 
-    def _writeValue(self, itemWriter, buffer, version):
+    def _writeValue(self, itemWriter, record, version):
 
-        super(NumericIndex, self)._writeValue(itemWriter, buffer, version)
+        super(NumericIndex, self)._writeValue(itemWriter, record, version)
 
         if self._ranges is not None:
             ranges = self._ranges.ranges
-            buffer.append(pack('>bi', 1, len(ranges)))
-            buffer.extend((pack('>ii', *range) for range in ranges))
+            record += (Record.BYTE, 1,
+                       Record.INT, len(ranges))
+            for s, e in ranges:
+                record += (Record.INT, s, Record.INT, e)
         else:
-            buffer.append('\0')
+            record += (Record.BYTE, 0)
 
     def _readValue(self, itemReader, offset, data):
 
         offset = super(NumericIndex, self)._readValue(itemReader, offset, data)
 
-        if data[offset] == '\1':
-            count, = unpack('>i', data[offset+1:offset+5])
-            start = offset + 5
-            offset = start + count * 8
+        withRanges = data[offset]
+        offset += 1
 
-            if count > 0:
-                format = '>%di' %(count * 2)
-                numbers = iter(unpack(format, data[start:offset]))
-                ranges = [(a, b) for a, b in izip(numbers, numbers)]
-            else:
-                ranges = []
-
+        if withRanges:
+            count = data[offset] * 2
+            offset += 1
+            ranges = [data[i:i+2] for i in xrange(offset, offset+count, 2)]
             self._ranges = RangeSet(ranges)
+            offset += count
 
         else:
-            offset += 1
             self._ranges = None
 
         return offset
@@ -504,32 +502,33 @@ class SortedIndex(DelegatingIndex):
 
         self._index._xmlValues(generator, version, attrs, mode)
 
-    def _writeValue(self, itemWriter, buffer, version):
+    def _writeValue(self, itemWriter, record, version):
 
-        self._index._writeValue(itemWriter, buffer, version)
-        itemWriter.writeBoolean(buffer, self._descending)
+        self._index._writeValue(itemWriter, record, version)
+        record += (Record.BOOLEAN, self._descending)
         if self._subIndexes:
-            itemWriter.writeShort(buffer, len(self._subIndexes))
+            record += (Record.SHORT, len(self._subIndexes))
             for uuid, attr, name in self._subIndexes:
-                itemWriter.writeUUID(buffer, uuid)
-                itemWriter.writeSymbol(buffer, attr)
-                itemWriter.writeSymbol(buffer, name)
+                record += (Record.UUID, uuid,
+                           Record.SYMBOL, attr,
+                           Record.SYMBOL, name)
         else:
-            itemWriter.writeShort(buffer, 0)
+            record += (Record.SHORT, 0)
 
     def _readValue(self, itemReader, offset, data):
 
         offset = self._index._readValue(itemReader, offset, data)
-        offset, self._descending = itemReader.readBoolean(offset, data)
-        offset, count = itemReader.readShort(offset, data)
+
+        self._descending = data[offset]
+        count = data[offset + 1]
+        offset += 2
 
         if count > 0:
             self._subIndexes = set()
             for i in xrange(count):
-                offset, uuid = itemReader.readUUID(offset, data)
-                offset, attr = itemReader.readSymbol(offset, data)
-                offset, name = itemReader.readSymbol(offset, data)
-                self._subIndexes.add((uuid, attr, name))
+                # uuid, attr, name
+                self._subIndexes.add(data[offset:offset+3])
+                offset += 3
         else:
             self._subIndexes = None
 
@@ -673,22 +672,22 @@ class AttributeIndex(SortedIndex):
         attrs['attributes'] = ','.join(self._attributes)
         super(AttributeIndex, self)._xmlValues(generator, version, attrs, mode)
 
-    def _writeValue(self, itemWriter, buffer, version):
+    def _writeValue(self, itemWriter, record, version):
 
-        super(AttributeIndex, self)._writeValue(itemWriter, buffer, version)
-        itemWriter.writeShort(buffer, len(self._attributes))
+        super(AttributeIndex, self)._writeValue(itemWriter, record, version)
+        record += (Record.SHORT, len(self._attributes))
         for attribute in self._attributes:
-            itemWriter.writeSymbol(buffer, attribute)
+            record += (Record.SYMBOL, attribute)
 
     def _readValue(self, itemReader, offset, data):
 
         offset = super(AttributeIndex, self)._readValue(itemReader,
                                                         offset, data)
-        offset, len = itemReader.readShort(offset, data)
-        self._attributes = []
-        for i in xrange(len):
-            offset, attribute = itemReader.readSymbol(offset, data)
-            self._attributes.append(attribute)
+        len = data[offset]
+        offset += 1
+
+        self._attributes = data[offset:offset+len]
+        offset += len
 
         return offset
 
@@ -813,26 +812,25 @@ class StringIndex(AttributeIndex):
 
         super(StringIndex, self)._xmlValues(generator, version, attrs, mode)
 
-    def _writeValue(self, itemWriter, buffer, version):
+    def _writeValue(self, itemWriter, record, version):
 
-        super(StringIndex, self)._writeValue(itemWriter, buffer, version)
-        itemWriter.writeInteger(buffer, self._strength or -1)
-        itemWriter.writeSymbol(buffer, self._locale or '')
+        super(StringIndex, self)._writeValue(itemWriter, record, version)
+        record += (Record.INT, self._strength or -1,
+                   Record.SYMBOL, self._locale)
 
     def _readValue(self, itemReader, offset, data):
 
         offset = super(StringIndex, self)._readValue(itemReader, offset, data)
-        offset, strength = itemReader.readInteger(offset, data)
-        offset, locale = itemReader.readSymbol(offset, data)
+
+        strength = data[offset]
+        self._locale = data[offset + 1]
 
         if strength != -1:
             self._strength = strength
-        if locale != '':
-            self._locale = locale
 
         self._init()
 
-        return offset
+        return offset + 2
 
 
 class CompareIndex(SortedIndex):
@@ -864,17 +862,17 @@ class CompareIndex(SortedIndex):
         attrs['compare'] = self._compare
         super(CompareIndex, self)._xmlValues(generator, version, attrs, mode)
 
-    def _writeValue(self, itemWriter, buffer, version):
+    def _writeValue(self, itemWriter, record, version):
 
-        super(CompareIndex, self)._writeValue(itemWriter, buffer, version)
-        itemWriter.writeSymbol(buffer, self._compare)
+        super(CompareIndex, self)._writeValue(itemWriter, record, version)
+        record += (Record.SYMBOL, self._compare)
 
     def _readValue(self, itemReader, offset, data):
 
         offset = super(CompareIndex, self)._readValue(itemReader, offset, data)
-        offset, self._compare = itemReader.readSymbol(offset, data)
+        self._compare = data[offset]
 
-        return offset
+        return offset + 1
 
 
 class MethodIndex(SortedIndex):
@@ -911,23 +909,20 @@ class MethodIndex(SortedIndex):
 
         super(MethodIndex, self)._xmlValues(generator, version, attrs, mode)
 
-    def _writeValue(self, itemWriter, buffer, version):
+    def _writeValue(self, itemWriter, record, version):
 
-        super(MethodIndex, self)._writeValue(itemWriter, buffer, version)
+        super(MethodIndex, self)._writeValue(itemWriter, record, version)
 
         uItem, methodName = self._method
-        itemWriter.writeUUID(buffer, uItem)
-        itemWriter.writeSymbol(buffer, methodName)
+        record += (Record.UUID, uItem,
+                   Record.SYMBOL, methodName)
 
     def _readValue(self, itemReader, offset, data):
 
         offset = super(MethodIndex, self)._readValue(itemReader, offset, data)
+        self._method = data[offset:offset+2]
 
-        offset, uItem = itemReader.readUUID(offset, data)
-        offset, methodName = itemReader.readSymbol(offset, data)
-        self._method = (uItem, methodName)
-
-        return offset
+        return offset + 2
 
 
 class SubIndex(SortedIndex):
@@ -972,26 +967,23 @@ class SubIndex(SortedIndex):
         attrs['superindex'] = "%s,%s,%s" %(uuid.str64(), attr, name)
         super(SubIndex, self)._xmlValues(generator, version, attrs, mode)
 
-    def _writeValue(self, itemWriter, buffer, version):
+    def _writeValue(self, itemWriter, record, version):
 
-        super(SubIndex, self)._writeValue(itemWriter, buffer, version)
+        super(SubIndex, self)._writeValue(itemWriter, record, version)
 
         uuid, attr, name = self._super
-        itemWriter.writeUUID(buffer, uuid)
-        itemWriter.writeSymbol(buffer, attr)
-        itemWriter.writeSymbol(buffer, name)
+        record += (Record.UUID, uuid,
+                   Record.SYMBOL, attr,
+                   Record.SYMBOL, name)
 
     def _readValue(self, itemReader, offset, data):
 
         offset = super(SubIndex, self)._readValue(itemReader, offset, data)
 
-        offset, uuid = itemReader.readUUID(offset, data)
-        offset, attr = itemReader.readSymbol(offset, data)
-        offset, name = itemReader.readSymbol(offset, data)
+        # uuid, attr, name
+        self._super = data[offset:offset+3]
 
-        self._super = (uuid, attr, name)
-
-        return offset
+        return offset + 3
 
     def _checkIndex(self, _index, logger, name, value, item, attribute, count,
                     repair):

@@ -16,7 +16,7 @@
 import sys, logging, threading, PyLucene, time, Queue
 
 from chandlerdb.util.c import Nil, Default
-from chandlerdb.persistence.c import CRepository
+from chandlerdb.persistence.c import CRepository, CStore
 from repository.item.Item import Item
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryView import OnDemandRepositoryView
@@ -125,6 +125,7 @@ class Repository(CRepository):
         if kwds.get('verify', False):
             self._status |= Repository.VERIFY
 
+        self._testing = kwds.get('testing', False)
         self._deferDelete = not kwds.get('nodeferdelete', False)
 
     def close(self):
@@ -270,12 +271,10 @@ class OnDemandRepository(Repository):
         return OnDemandRepositoryView(self, name, version, deferDelete)
 
 
-class Store(object):
+class Store(CStore):
 
     def __init__(self, repository):
-
-        super(Store, self).__init__()
-        self.repository = repository
+        super(Store, self).__init__(repository)
 
     def open(self, create=False):
         raise NotImplementedError, "%s.open" %(type(self))
