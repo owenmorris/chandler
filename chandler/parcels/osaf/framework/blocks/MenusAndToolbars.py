@@ -978,11 +978,11 @@ class wxTextCtrl(wx.TextCtrl):
         super (wxTextCtrl, self).onDestroy(event)
 
 class toolbarItemKindEnumType(schema.Enumeration):
-    values = "Button", "Separator", "Check", "Radio", "Text", "Search", "Combo", "Choice", "Status"
+    values = "Button", "Separator", "Radio", "Search"
 
 class ToolbarItem(Block.Block, DynamicChild):
     """
-    Button (or other control) that lives in a Toolbar.
+    Item, e.g. button, that lives in a Toolbar.
     """
     prototype = schema.One(
         Block.Block, doc = 'The prototype block to be placed in the Toolbar',
@@ -1019,104 +1019,61 @@ class ToolbarItem(Block.Block, DynamicChild):
                 disabledBitmap = app.GetImage (disabledBitmap)
             return bitmap, disabledBitmap
 
-        # can't instantiate ourself without a toolbar
-        try:
-            theToolbar = self.dynamicParent.widget
-        except AttributeError:
-            return None
-
         tool = None
-        id = self.getWidgetID()
-        self.toolID = id
-        # Bug 4090 - long help never appears in the status bar
-        # for this reason I'm putting the longhelp into shorthelp too.
-        shortHelp = self.helpString
-        longHelp = self.helpString
-        theApp = wx.GetApp()
-        toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin'
+        # can't instantiate ourself without a toolbar widget
+        theToolbar = getattr (self.dynamicParent, "widget", None)
+        if theToolbar is not None:
 
-        if (self.toolbarItemKind == 'Button' or
-            self.toolbarItemKind == 'Radio'):
-
-            bitmap, disabledBitmap = getBitmaps (self)
-            if self.toggle:
-                theKind = wx.ITEM_CHECK
-            elif self.toolbarItemKind == 'Radio':
-                theKind = wx.ITEM_RADIO
+            id = self.getWidgetID()
+            self.toolID = id
+            # Bug 4090 - long help never appears in the status bar
+            # for this reason I'm putting the longhelp into shorthelp too.
+            shortHelp = self.helpString
+            longHelp = self.helpString
+            theApp = wx.GetApp()
+    
+            # First consider toolBarItems that don't have tools
+            if self.toolbarItemKind == 'Separator':
+                theToolbar.AddSeparator()
             else:
-                theKind = wx.ITEM_NORMAL
-
-            tool = theToolbar.DoAddTool (id,
-                                        self.title,
-                                        bitmap,
-                                        disabledBitmap,
-                                        kind = theKind,
-                                        shortHelp=shortHelp,
-                                        longHelp=longHelp)
-            mixinAClass (tool, toolWidgetMixin)
-            theToolbar.SetToolLongHelp(id, longHelp)
-            theToolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)
-        elif self.toolbarItemKind == 'Separator':
-            theToolbar.AddSeparator()
-        elif self.toolbarItemKind == 'Check':
-            theKind = wx.ITEM_CHECK
-            bitmap, disabledBitmap = getBitmaps (self)
-            tool = theToolbar.DoAddTool (id,
-                                        self.title,
-                                        bitmap,
-                                        disabledBitmap,
-                                        kind = theKind,
-                                        shortHelp=shortHelp,
-                                        longHelp=longHelp)
-            tool.SetName(self.title)
-            theToolbar.AddControl (tool)
-        elif self.toolbarItemKind == 'Text':
-            # unlike most other Toolbar items, a 'text' item actually creates a
-            # real wx control
-            tool = wx.TextCtrl (theToolbar, id, "",
-                                wx.DefaultPosition,
-                                wx.Size(250,-1),
-                                wx.TE_PROCESS_ENTER)
-            tool.SetName(self.title)
-            theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand, id=id)
-        elif self.toolbarItemKind == 'Search':
-            # unlike most other Toolbar items, a 'search' item actually creates a
-            # real wx control
-            tool = wx.SearchCtrl (theToolbar, id, "Search",
-                                wx.DefaultPosition,
-                                size=(200,-1),
-                                style=wx.TE_PROCESS_ENTER)
-            tool.SetName(self.title)
-            theToolbar.AddControl(tool)
-            tool.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand, id=id)
-        elif self.toolbarItemKind == 'Combo':
-            proto = self.prototype
-            choices = proto.choices
-            tool = wx.ComboBox (theToolbar,
-                                -1,
-                                proto.selection,
-                                wx.DefaultPosition,
-                                (proto.minimumSize.width, proto.minimumSize.height),
-                                proto.choices)
-            theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_COMBOBOX, theApp.OnCommand, id=id)
-            tool.Bind(wx.EVT_TEXT, theApp.OnCommand, id=id)
-        elif self.toolbarItemKind == 'Choice':
-            proto = self.prototype
-            choices = proto.choices
-            tool = wx.Choice (theToolbar,
-                              -1,
-                              wx.DefaultPosition,
-                              (proto.minimumSize.width, proto.minimumSize.height),
-                              proto.choices)
-            theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_CHOICE, theApp.OnCommand, id=id)
-        elif __debug__:
-            assert False, "unknown toolbarItemKind"
-
-        # downcast the item created by wx into a toolbarMixin, so
-        # it has the extra methods needed by CPIA.
-        if tool is not None and not isinstance(tool, wxToolbarItemMixin):
-            mixinAClass (tool, toolWidgetMixin)
+                toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin'
+                # Next consider toolBarItems that aren't controls
+                if (self.toolbarItemKind == 'Button' or
+                    self.toolbarItemKind == 'Radio'):
+        
+                    bitmap, disabledBitmap = getBitmaps (self)
+                    if self.toggle:
+                        theKind = wx.ITEM_CHECK
+                    elif self.toolbarItemKind == 'Radio':
+                        theKind = wx.ITEM_RADIO
+                    else:
+                        theKind = wx.ITEM_NORMAL
+        
+                    tool = theToolbar.DoAddTool (id,
+                                                self.title,
+                                                bitmap,
+                                                disabledBitmap,
+                                                kind = theKind,
+                                                shortHelp=shortHelp,
+                                                longHelp=longHelp)
+                    # add toolbarMixin, so
+                    # it has the extra methods needed for Bind.
+                    mixinAClass (tool, toolWidgetMixin)
+                    theToolbar.SetToolLongHelp(id, longHelp)
+                    theToolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)
+                else:
+                    # Finally consider toolBarItems that are controls
+                    if self.toolbarItemKind == 'Search':
+                        # unlike most other Toolbar items, a 'search' item actually creates a
+                        # real wx control
+                        tool = wx.SearchCtrl (theToolbar, id, "Search",
+                                            wx.DefaultPosition,
+                                            size=(200,-1),
+                                            style=wx.TE_PROCESS_ENTER)
+                        tool.SetName(self.title)
+                        tool.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand, id=id)
+                        mixinAClass (tool, toolWidgetMixin)
+                        theToolbar.AddControl (tool)
+                    assert tool is not None, "unknown toolbarItemKind"
+        
         return tool

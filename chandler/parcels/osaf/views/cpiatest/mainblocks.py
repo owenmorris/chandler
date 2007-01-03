@@ -144,7 +144,7 @@ def makeCPIATestMainView (parcel):
             ToolbarItem.template('ApplicationBarSearchField',
                 event = main.Search,
                 title = u'',
-                toolbarItemKind = 'Text',
+                toolbarItemKind = 'Search',
                 helpString = _(u'Search field - enter text to find'))
         ]
     ) # Toolbar ApplicationBar
