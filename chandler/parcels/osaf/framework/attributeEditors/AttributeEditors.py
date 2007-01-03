@@ -289,12 +289,14 @@ class BaseAttributeEditor (object):
         @return: True if this Attribute Editor shouldn't edit, else False.
         @rtype: Boolean
         """
-        try:
-            isAttrModifiable = item.isAttributeModifiable
-        except AttributeError:
+        isAttrModifiableMethod = getattr(item, 'isAttributeModifiable', None)
+        if isAttrModifiableMethod is None:
             return False
-        else:
-            return not isAttrModifiable(attribute)
+        # In case this editor is keyed off a stamp class instead of an attribute,
+        # map to an actual attribute name.
+        if not isinstance(attribute, basestring):
+            attribute = 'body'
+        return not isAttrModifiableMethod(attribute)
 
     def Draw (self, grid, dc, rect, (item, attributeName), isInSelection=False):
         """ 

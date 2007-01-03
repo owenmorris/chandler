@@ -379,12 +379,6 @@ class TaskColumnAttributeEditor(attributeEditors.IconAttributeEditor):
             states.append(bmInfo)
 
         return states
-
-    def ReadOnly(self, (item, attributeName)):
-        # Our "attributeName" is a Stamp; substitute a real attribute.
-        readOnly = super(TaskColumnAttributeEditor, self).ReadOnly((item, 'body'))
-
-        return readOnly
     
     def GetAttributeValue(self, item, attributeName):
         isStamped = pim.has_stamp(item, pim.TaskStamp)
@@ -429,8 +423,8 @@ def makeSummaryBlocks(parcel):
     aeDict = {
         'EventStamp': 'ReminderColumnAttributeEditor',
         'MailStamp': 'CommunicationsColumnAttributeEditor',
-        'Text+who': 'WhoAttributeEditor',
         'TaskStamp': 'TaskColumnAttributeEditor',
+        'Text+who': 'WhoAttributeEditor',
         'TriageEnum': 'TriageAttributeEditor',
     }
     attributeEditors.AttributeEditorMapping.register(parcel, aeDict, __name__)
