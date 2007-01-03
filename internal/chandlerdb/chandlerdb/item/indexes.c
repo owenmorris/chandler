@@ -22,12 +22,6 @@
 
 /* Index */
 
-typedef struct {
-    PyObject_HEAD
-    PyObject *dict;
-    int count;
-} t_index;
-
 static void t_index_dealloc(t_index *self);
 static int t_index_traverse(t_index *self, visitproc visit, void *arg);
 static int t_index_clear(t_index *self);
@@ -57,6 +51,7 @@ static PyObject *iterkeys_NAME;
 static PyMemberDef t_index_members[] = {
     { "_dict", T_OBJECT, offsetof(t_index, dict), 0, "" },
     { "_count", T_UINT, offsetof(t_index, count), 0, "" },
+    { "_changedKeys", T_OBJECT, offsetof(t_index, changedKeys), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -145,12 +140,14 @@ static void t_index_dealloc(t_index *self)
 static int t_index_traverse(t_index *self, visitproc visit, void *arg)
 {
     Py_VISIT(self->dict);
+    Py_VISIT(self->changedKeys);
     return 0;
 }
 
 static int t_index_clear(t_index *self)
 {
     Py_CLEAR(self->dict);
+    Py_CLEAR(self->changedKeys);
     return 0;
 }
 
@@ -159,7 +156,10 @@ static PyObject *t_index_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     t_index *self = (t_index *) type->tp_alloc(type, 0);
 
     if (self)
+    {
         self->dict = PyDict_New();
+        self->changedKeys = NULL;
+    }
 
     return (PyObject *) self;
 }

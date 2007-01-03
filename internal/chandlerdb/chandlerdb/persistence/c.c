@@ -30,9 +30,11 @@ PyTypeObject *CDBCursor = NULL;
 PyTypeObject *CDBEnv = NULL;
 PyTypeObject *CDBTxn = NULL;
 PyTypeObject *CDBLock = NULL;
+PyTypeObject *Record = NULL;
 
 PyUUID_Check_fn PyUUID_Check = NULL;
 PyUUID_Make16_fn PyUUID_Make16 = NULL;
+_hash_bytes_fn _hash_bytes = NULL;
 
 PyObject *PyExc_DBError = NULL;
 PyObject *PyExc_DBLockDeadlockError = NULL;
@@ -45,6 +47,8 @@ PyObject *PyExc_DBNoSuchFileError = NULL;
 PyObject *PyExc_DBPermissionsError = NULL;
 PyObject *PyExc_DBVersionMismatchError = NULL;
 PyObject *PyExc_DBRunRecoveryError = NULL;
+
+PyObject *Nil = NULL;
 
 
 PyObject *raiseDBError(int err)
@@ -127,6 +131,8 @@ void initc(void)
     _init_env(m);
     _init_txn(m);
     _init_lock(m);
+    _init_record(m);
+    _init_store(m);
 
     PyExc_DBError = PyErr_NewException("chandlerdb.persistence.c.DBError",
                                        NULL, NULL);
@@ -147,13 +153,17 @@ void initc(void)
     PyModule_AddIntConstant(m, "DB_VERSION_MINOR", DB_VERSION_MINOR);
     PyModule_AddIntConstant(m, "DB_VERSION_PATCH", DB_VERSION_PATCH);
 
-    m = PyImport_ImportModule("chandlerdb.util.c");
+    if (!(m = PyImport_ImportModule("chandlerdb.util.c")))
+        return;
     LOAD_TYPE(m, SingleRef);
     LOAD_FN(m, PyUUID_Check);
     LOAD_FN(m, PyUUID_Make16);
+    LOAD_FN(m, _hash_bytes);
+    LOAD_OBJ(m, Nil);
     Py_DECREF(m);
 
-    m = PyImport_ImportModule("chandlerdb.item.c");
+    if (!(m = PyImport_ImportModule("chandlerdb.item.c")))
+        return;
     LOAD_TYPE(m, CItem);
     Py_DECREF(m);
 }

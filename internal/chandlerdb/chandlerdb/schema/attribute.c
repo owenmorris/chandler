@@ -984,6 +984,7 @@ void _init_attribute(PyObject *m)
             PyDict_SetItemString_Int(dict, "ALIAS", ALIAS);
             PyDict_SetItemString_Int(dict, "KIND", KIND);
             PyDict_SetItemString_Int(dict, "NOINHERIT", NOINHERIT);
+            PyDict_SetItemString_Int(dict, "SIMPLE", SIMPLE);
             PyDict_SetItemString_Int(dict, "DEFAULT", DEFAULT);
             PyDict_SetItemString_Int(dict, "PROCESS", PROCESS);
             PyDict_SetItemString_Int(dict, "CARDINALITY", CARDINALITY);

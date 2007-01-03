@@ -29,7 +29,7 @@ enum {
     ALIAS        = 0x00000400,
     KIND         = 0x00000800,
     NOINHERIT    = 0x00001000,
-
+    SIMPLE       = 0x00002000,
     INDEXED      = 0x00004000,
     DEFAULT      = 0x00008000,
     AFTERCHANGE  = 0x00010000,

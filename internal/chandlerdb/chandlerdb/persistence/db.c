@@ -31,7 +31,9 @@ static PyObject *t_db_close(t_db *self, PyObject *args);
 static PyObject *t_db_associate(t_db *self, PyObject *args);
 static PyObject *t_db_compact(t_db *self, PyObject *args);
 static PyObject *t_db_get(t_db *self, PyObject *args);
+static PyObject *t_db_get_record(t_db *self, PyObject *args);
 static PyObject *t_db_put(t_db *self, PyObject *args);
+static PyObject *t_db_put_record(t_db *self, PyObject *args);
 static PyObject *t_db_delete(t_db *self, PyObject *args);
 static PyObject *t_db_cursor(t_db *self, PyObject *args);
 
@@ -49,7 +51,9 @@ static PyMethodDef t_db_methods[] = {
     { "associate", (PyCFunction) t_db_associate, METH_VARARGS, NULL },
     { "compact", (PyCFunction) t_db_compact, METH_VARARGS, NULL },
     { "get", (PyCFunction) t_db_get, METH_VARARGS, NULL },
+    { "get_record", (PyCFunction) t_db_get_record, METH_VARARGS, NULL },
     { "put", (PyCFunction) t_db_put, METH_VARARGS, NULL },
+    { "put_record", (PyCFunction) t_db_put_record, METH_VARARGS, NULL },
     { "delete", (PyCFunction) t_db_delete, METH_VARARGS, NULL },
     { "cursor", (PyCFunction) t_db_cursor, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
@@ -435,6 +439,70 @@ int _t_db_get(DBT *dbt, int offset, void *data, int len, int mode)
     return 0;
 }
 
+int _t_db_write_record(DBT *dbt, int offset, void *data, int len, int mode)
+{
+    PyGILState_STATE state = PyGILState_Ensure();
+    int res;
+
+    if (offset)
+    {
+        PyErr_SetString(PyExc_NotImplementedError, "usercopy with offset");
+
+        PyGILState_Release(state);
+        return DB_PYTHON_ERROR;
+    }
+
+    res = _t_record_write((t_record *) dbt->app_data,
+                          (unsigned char *) data, len);
+
+    PyGILState_Release(state);
+    return res < 0 ? DB_PYTHON_ERROR : 0;
+}
+
+int _t_db_read_record(DBT *dbt, int offset, void *data, int len, int mode)
+{
+    PyGILState_STATE state = PyGILState_Ensure();
+    t_record *record;
+    int res;
+
+    if (offset == 0)
+    {
+        record = _t_record_new_read((PyObject *) dbt->app_data);
+        if (!record)
+        {
+            PyGILState_Release(state);
+            return DB_PYTHON_ERROR;
+        }
+        dbt->app_data = record;
+    }
+    else
+        record = (t_record *) dbt->app_data;
+
+    res = _t_record_read(record, (unsigned char *) data, len);
+    if (res < 0)
+        Py_CLEAR(record);
+
+    PyGILState_Release(state);
+    return res < 0 ? DB_PYTHON_ERROR : 0;
+}
+
+int _t_db_read_write_record(DBT *dbt, int offset, void *data, int len, int mode)
+{
+    switch (mode) {
+      case DB_USERCOPY_GETDATA:
+        return _t_db_write_record(dbt, offset, data, len, mode);
+      case DB_USERCOPY_SETDATA:
+        return _t_db_read_record(dbt, offset, data, len, mode);
+      default:
+        return -1;
+    }
+}
+
+int _t_db_discard(DBT *dbt, int offset, void *data, int len, int mode)
+{
+    return 0;
+}
+
 static PyObject *t_db_get(t_db *self, PyObject *args)
 {
     DBT key;
@@ -481,6 +549,89 @@ static PyObject *t_db_get(t_db *self, PyObject *args)
     }
 }
 
+static PyObject *t_db_get_record(t_db *self, PyObject *args)
+{
+    DBT key, data;
+    PyObject *txn = Py_None, *defaultValue = NULL;
+    int flags = 0;
+    char keyBuffer[256];
+
+    memset(&key, 0, sizeof(key));
+    memset(&data, 0, sizeof(data));
+
+    if (!PyArg_ParseTuple(args, "OO|OiO", &key.app_data, &data.app_data,
+                          &txn, &flags, &defaultValue))
+        return NULL;
+
+    if (!PyObject_TypeCheck((PyObject *) key.app_data, Record))
+    {
+        PyErr_SetObject(PyExc_TypeError, (PyObject *) key.app_data);
+        return NULL;
+    }
+
+    if (!PyTuple_CheckExact((PyObject *) data.app_data))
+    {
+        PyErr_SetObject(PyExc_TypeError, (PyObject *) data.app_data);
+        return NULL;
+    }
+
+    if (txn != Py_None && !PyObject_TypeCheck(txn, CDBTxn))
+    {
+        PyErr_SetObject(PyExc_TypeError, txn);
+        return NULL;
+    }
+
+    key.size = ((t_record *) key.app_data)->size;
+    if (key.size > sizeof(keyBuffer))
+    {
+        key.flags = DB_DBT_USERCOPY;
+        key.usercopy = (usercopy_fn) _t_db_write_record;
+    }
+    else
+    {
+        if (_t_record_write((t_record *) key.app_data,
+                            (unsigned char *) keyBuffer, key.size) < 0)
+            return NULL;
+        key.data = keyBuffer;
+    }
+
+    data.flags = DB_DBT_USERCOPY;
+    data.usercopy = (usercopy_fn) _t_db_read_record;
+
+    {
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
+        int err;
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db->get(self->db, db_txn, &key, &data, flags);
+        Py_END_ALLOW_THREADS;
+
+        switch (err) {
+          case 0:
+            return (PyObject *) data.app_data;
+          case DB_NOTFOUND:
+            if (defaultValue)
+            {
+                Py_INCREF(defaultValue);
+                return defaultValue;
+            }
+          default:
+            return raiseDBError(err);
+        }
+    }
+}
+
+PyObject *_t_db_make_record(PyObject *types, char *data, int size)
+{
+    t_record *record = _t_record_new_read(types);
+
+    if (record && _t_record_read(record, (unsigned char *) data, size) < 0)
+        Py_CLEAR(record);
+
+    return (PyObject *) record;
+}
+
+
 static PyObject *t_db_put(t_db *self, PyObject *args)
 {
     DBT key, data;
@@ -499,6 +650,82 @@ static PyObject *t_db_put(t_db *self, PyObject *args)
     {
         PyErr_SetObject(PyExc_TypeError, txn);
         return NULL;
+    }
+
+    {
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
+        int err;
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db->put(self->db, db_txn, &key, &data, flags);
+        Py_END_ALLOW_THREADS;
+        
+        if (err)
+            return raiseDBError(err);
+
+        Py_RETURN_NONE;
+    }
+}
+
+
+static PyObject *t_db_put_record(t_db *self, PyObject *args)
+{
+    DBT key, data;
+    PyObject *txn = Py_None;
+    int flags = 0;
+    char keyBuffer[128], dataBuffer[1024];
+
+    memset(&key, 0, sizeof(key));
+    memset(&data, 0, sizeof(data));
+
+    if (!PyArg_ParseTuple(args, "OO|Oi",
+                          &key.app_data, &data.app_data, &txn, &flags))
+        return NULL;
+
+    if (!PyObject_TypeCheck((PyObject *) key.app_data, Record))
+    {
+        PyErr_SetObject(PyExc_TypeError, (PyObject *) key.app_data);
+        return NULL;
+    }
+
+    if (!PyObject_TypeCheck((PyObject *) data.app_data, Record))
+    {
+        PyErr_SetObject(PyExc_TypeError, (PyObject *) data.app_data);
+        return NULL;
+    }
+
+    if (txn != Py_None && !PyObject_TypeCheck(txn, CDBTxn))
+    {
+        PyErr_SetObject(PyExc_TypeError, txn);
+        return NULL;
+    }
+
+    key.size = ((t_record *) key.app_data)->size;
+    if (key.size > sizeof(keyBuffer))
+    {
+        key.flags = DB_DBT_USERCOPY;
+        key.usercopy = (usercopy_fn) _t_db_write_record;
+    }
+    else
+    {
+        if (_t_record_write((t_record *) key.app_data,
+                            (unsigned char *) keyBuffer, key.size) < 0)
+            return NULL;
+        key.data = keyBuffer;
+    }
+
+    data.size = ((t_record *) data.app_data)->size;
+    if (data.size > sizeof(dataBuffer))
+    {
+        data.flags = DB_DBT_USERCOPY;
+        data.usercopy = (usercopy_fn) _t_db_write_record;
+    }
+    else
+    {
+        if (_t_record_write((t_record *) data.app_data,
+                            (unsigned char *) dataBuffer, data.size) < 0)
+            return NULL;
+        data.data = dataBuffer;
     }
 
     {

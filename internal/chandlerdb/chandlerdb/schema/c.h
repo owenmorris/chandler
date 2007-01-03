@@ -34,6 +34,7 @@ extern PyTypeObject *CDescriptor;
 extern PyTypeObject *CAttribute;
 extern PyTypeObject *CItem;
 extern PyTypeObject *CValues;
+extern PyTypeObject *CLinkedMap;
 extern PyObject *PyExc_StaleItemError;
 
 

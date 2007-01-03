@@ -41,12 +41,14 @@ static PyObject *t_values__isTransient(t_values *self, PyObject *key);
 static PyObject *t_values__setTransient(t_values *self, PyObject *key);
 static PyObject *t_values__clearTransient(t_values *self, PyObject *key);
 static PyObject *t_values__isDirty(t_values *self, PyObject *key);
+static PyObject *t_values__clearDirties(t_values *self);
 
 static PyObject *t_values__getDict(t_values *self, void *data);
 static PyObject *t_values__getItem(t_values *self, void *data);
 static int t_values__setItem(t_values *self, PyObject *item, void *data);
 
 static PyObject *_setOwner_NAME;
+static PyObject *_clearDirties_NAME;
 
 
 static PyMemberDef t_values_members[] = {
@@ -67,6 +69,7 @@ static PyMethodDef t_values_methods[] = {
     { "_clearTransient", (PyCFunction) t_values__clearTransient, METH_O, "" },
     { "_isDirty", (PyCFunction) t_values__isDirty, METH_O, "" },
     { "_setDirty", (PyCFunction) t_values__setDirty, METH_O, "" },
+    { "_clearDirties", (PyCFunction) t_values__clearDirties, METH_NOARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -363,6 +366,71 @@ static PyObject *t_values__clearTransient(t_values *self, PyObject *key)
     return clear_bit(self, key, V_TRANSIENT);
 }
 
+static int _t_values__clearValueDirties(t_values *self, PyObject *value)
+{
+    PyObject *method = PyObject_GetAttr((PyObject *) value->ob_type,
+                                        _clearDirties_NAME);
+
+    if (PyCallable_Check(method))
+    {
+        PyObject *args = PyTuple_Pack(1, value);
+        PyObject *result = PyObject_Call(method, args, NULL);
+
+        Py_DECREF(args);
+        Py_DECREF(method);
+
+        if (result)
+            Py_DECREF(result);
+        else
+            return -1;
+    }
+    else
+        PyErr_Clear();
+
+    return 0;
+}
+
+static PyObject *t_values__clearDirties(t_values *self)
+{
+    int isNew = self->item && ((t_item *) self->item)->status & NEW;
+    PyObject *key, *value;
+    Py_ssize_t pos;
+
+    if (self->flags != Nil)
+    {    
+        PyObject *flags;
+
+        pos = 0;
+        while (PyDict_Next(self->flags, &pos, &key, &flags)) {
+            unsigned int f = PyInt_AS_LONG(flags);
+
+            if (f & V_DIRTY)
+            {
+                f &= ~V_DIRTY;
+                PyDict_SetItem(self->flags, key, PyInt_FromLong(f));
+
+                if (!isNew)
+                {
+                    value = PyDict_GetItem(self->dict, key);
+                    if (value && _t_values__clearValueDirties(self, value) < 0)
+                        return NULL;
+                }
+            }
+        }
+    }
+     
+    /* when item is NEW, all values are dirty and thus are not flagged */
+    if (isNew)
+    {
+        pos = 0;
+        while (PyDict_Next(self->dict, &pos, &key, &value))
+            if (_t_values__clearValueDirties(self, value) < 0)
+                return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
 
 /* _dict property */
 
@@ -432,6 +500,7 @@ void _init_values(PyObject *m)
             PyDict_SetItemString_Int(dict, "COPYMASK", V_COPYMASK);
 
             _setOwner_NAME = PyString_FromString("_setOwner");
+            _clearDirties_NAME = PyString_FromString("_clearDirties");
         }
     }
 }

@@ -33,6 +33,13 @@ static PyObject *t_cursor_prev(t_cursor *self, PyObject *args);
 static PyObject *t_cursor_next(t_cursor *self, PyObject *args);
 static PyObject *t_cursor_current(t_cursor *self, PyObject *args);
 
+static PyObject *t_cursor_find_record(t_cursor *self, PyObject *args);
+static PyObject *t_cursor_first_record(t_cursor *self, PyObject *args);
+static PyObject *t_cursor_last_record(t_cursor *self, PyObject *args);
+static PyObject *t_cursor_prev_record(t_cursor *self, PyObject *args);
+static PyObject *t_cursor_next_record(t_cursor *self, PyObject *args);
+static PyObject *t_cursor_current_record(t_cursor *self, PyObject *args);
+
 static PyMemberDef t_cursor_members[] = {
     { NULL, 0, 0, 0, NULL }
 };
@@ -47,6 +54,12 @@ static PyMethodDef t_cursor_methods[] = {
     { "prev", (PyCFunction) t_cursor_prev, METH_VARARGS, NULL },
     { "next", (PyCFunction) t_cursor_next, METH_VARARGS, NULL },
     { "current", (PyCFunction) t_cursor_current, METH_VARARGS, NULL },
+    { "find_record", (PyCFunction) t_cursor_find_record, METH_VARARGS, NULL },
+    { "first_record", (PyCFunction) t_cursor_first_record, METH_VARARGS, NULL },
+    { "last_record", (PyCFunction) t_cursor_last_record, METH_VARARGS, NULL },
+    { "prev_record", (PyCFunction) t_cursor_prev_record, METH_VARARGS, NULL },
+    { "next_record", (PyCFunction) t_cursor_next_record, METH_VARARGS, NULL },
+    { "current_record", (PyCFunction) t_cursor_current_record, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -289,6 +302,201 @@ static PyObject *t_cursor_set_range(t_cursor *self, PyObject *args)
         }
     }
 }
+
+static PyObject *t_cursor_find_record(t_cursor *self, PyObject *args)
+{
+    DBT key, data;
+    int flags = 0, err, keySize;
+    PyObject *keyRecord, *types, *defaultValue = NULL;
+    char keyBuffer[256];
+
+    if (self->dbc == NULL)
+        return raiseDBError(EINVAL);
+
+    memset(&key, 0, sizeof(key));
+    memset(&data, 0, sizeof(data));
+
+    if (!PyArg_ParseTuple(args, "OOO|iO", &keyRecord, &types, &data.app_data,
+                          &flags, &defaultValue))
+        return NULL;
+
+    if (!PyObject_TypeCheck(keyRecord, Record))
+    {
+        PyErr_SetObject(PyExc_TypeError, keyRecord);
+        return NULL;
+    }
+
+    if (types->ob_type != Record && !PyTuple_CheckExact(types))
+    {
+        PyErr_SetObject(PyExc_TypeError, types);
+        return NULL;
+    }
+
+    if (data.app_data != Nil &&
+        ((PyObject *) data.app_data)->ob_type != Record &&
+        !PyTuple_CheckExact((PyObject *) data.app_data))
+    {
+        PyErr_SetObject(PyExc_TypeError, (PyObject *) data.app_data);
+        return NULL;
+    }
+
+    keySize = ((t_record *) keyRecord)->size;
+    if (keySize > sizeof(keyBuffer))
+    {
+        PyErr_SetString(PyExc_OverflowError, "key > 256 bytes");
+        return NULL;
+    }
+    else
+    {
+        if (_t_record_write((t_record *) keyRecord,
+                            (unsigned char *) keyBuffer, keySize) < 0)
+            return NULL;
+
+        key.size = keySize;
+        key.data = keyBuffer;
+        key.ulen = sizeof(keyBuffer);
+        key.flags = DB_DBT_USERMEM;
+    }
+
+    data.flags = DB_DBT_USERCOPY;
+    if (data.app_data == Nil)
+        data.usercopy = (usercopy_fn) _t_db_discard;
+    else
+        data.usercopy = (usercopy_fn) _t_db_read_record;
+
+    Py_BEGIN_ALLOW_THREADS;
+    err = self->dbc->c_get(self->dbc, &key, &data, flags | DB_SET_RANGE);
+    Py_END_ALLOW_THREADS;
+
+    switch (err) {
+      case 0:
+      {
+          t_record *record = _t_record_new_read(types);
+          PyObject *tuple;
+
+          if (_t_record_read(record, (unsigned char *) keyBuffer, key.size) < 0)
+          {
+              Py_DECREF(record);
+              return NULL;
+          }
+
+          tuple = PyTuple_New(2);
+          PyTuple_SET_ITEM(tuple, 0, (PyObject *) record);
+          PyTuple_SET_ITEM(tuple, 1, data.app_data);
+          if (data.app_data == Nil)
+              Py_INCREF(Nil);
+
+          return tuple;
+      }
+
+      case DB_NOTFOUND:
+        if (defaultValue)
+        {
+            Py_INCREF(defaultValue);
+            return defaultValue;
+        }
+        PyErr_SetObject(PyExc_KeyError, keyRecord);
+        return NULL;
+
+      default:
+        return raiseDBError(err);
+    }
+}
+
+static PyObject *_t_cursor_get_record(t_cursor *self, PyObject *args, int flag)
+{
+    DBT key, data;
+    int flags = 0, err;
+    PyObject *defaultValue = NULL;
+
+    if (self->dbc == NULL)
+        return raiseDBError(EINVAL);
+
+    memset(&key, 0, sizeof(key));
+    memset(&data, 0, sizeof(data));
+
+    if (!PyArg_ParseTuple(args, "OO|iO", &key.app_data, &data.app_data,
+                          &flags, &defaultValue))
+        return NULL;
+
+    if (((PyObject *) key.app_data)->ob_type != Record &&
+        !PyTuple_CheckExact((PyObject *) key.app_data))
+    {
+        PyErr_SetObject(PyExc_TypeError, (PyObject *) key.app_data);
+        return NULL;
+    }
+
+    if (data.app_data != Nil &&
+        ((PyObject *) data.app_data)->ob_type != Record &&
+        !PyTuple_CheckExact((PyObject *) data.app_data))
+    {
+        PyErr_SetObject(PyExc_TypeError, (PyObject *) data.app_data);
+        return NULL;
+    }
+
+    key.flags = DB_DBT_USERCOPY;
+    key.usercopy = (usercopy_fn) _t_db_read_record;
+
+    data.flags = DB_DBT_USERCOPY;
+    if (data.app_data == Nil)
+        data.usercopy = (usercopy_fn) _t_db_discard;
+    else
+        data.usercopy = (usercopy_fn) _t_db_read_record;
+
+    Py_BEGIN_ALLOW_THREADS;
+    err = self->dbc->c_get(self->dbc, &key, &data, flags | flag);
+    Py_END_ALLOW_THREADS;
+
+    switch (err) {
+      case 0:
+      {
+          PyObject *tuple = PyTuple_New(2);
+
+          PyTuple_SET_ITEM(tuple, 0, key.app_data);
+          PyTuple_SET_ITEM(tuple, 1, data.app_data);
+          if (data.app_data == Nil)
+              Py_INCREF(Nil);
+
+          return tuple;
+      }
+
+      case DB_NOTFOUND:
+        if (defaultValue)
+        {
+            Py_INCREF(defaultValue);
+            return defaultValue;
+        }
+
+      default:
+        return raiseDBError(err);
+    }
+}
+
+static PyObject *t_cursor_first_record(t_cursor *self, PyObject *args)
+{
+    return _t_cursor_get_record(self, args, DB_FIRST);
+}
+
+static PyObject *t_cursor_last_record(t_cursor *self, PyObject *args)
+{
+    return _t_cursor_get_record(self, args, DB_LAST);
+}
+
+static PyObject *t_cursor_prev_record(t_cursor *self, PyObject *args)
+{
+    return _t_cursor_get_record(self, args, DB_PREV);
+}
+
+static PyObject *t_cursor_next_record(t_cursor *self, PyObject *args)
+{
+    return _t_cursor_get_record(self, args, DB_NEXT);
+}
+
+static PyObject *t_cursor_current_record(t_cursor *self, PyObject *args)
+{
+    return _t_cursor_get_record(self, args, DB_CURRENT);
+}
+
 
 static PyObject *_t_cursor_get_pair(t_cursor *self, PyObject *args, int flag)
 {

@@ -19,10 +19,14 @@
 
 #include "../item/item.h"
 #include "../util/uuid.h"
+#include "record.h"
 #include "view.h"
 
 #define LOAD_TYPE(m, name) \
     name = (PyTypeObject *) PyObject_GetAttrString(m, #name);
+
+#define LOAD_OBJ(m, name) \
+    name = PyObject_GetAttrString(m, #name);
 
 #define LOAD_FN(m, name) \
     { PyObject *cobj = PyObject_GetAttrString(m, #name); \
@@ -78,6 +82,18 @@ typedef struct {
     int held;
 } t_lock;
 
+typedef struct {
+    PyObject_HEAD
+    PyObject *txn;
+    int status;
+    int count;
+} t_transaction;
+
+typedef struct {
+    PyObject_HEAD
+    PyObject *repository;
+    PyObject *key;
+} t_store;
 
 extern PyTypeObject *SingleRef;
 extern PyTypeObject *CView;
@@ -88,9 +104,11 @@ extern PyTypeObject *CDBCursor;
 extern PyTypeObject *CDBEnv;
 extern PyTypeObject *CDBTxn;
 extern PyTypeObject *CDBLock;
+extern PyTypeObject *Record;
 
 extern PyUUID_Check_fn PyUUID_Check;
 extern PyUUID_Make16_fn PyUUID_Make16;
+extern _hash_bytes_fn _hash_bytes;
 
 extern PyObject *PyExc_DBError;
 extern PyObject *PyExc_DBLockDeadlockError;
@@ -102,6 +120,8 @@ extern PyObject *PyExc_DBNotFoundError;
 extern PyObject *PyExc_DBNoSuchFileError;
 extern PyObject *PyExc_DBPermissionsError;
 
+extern PyObject *Nil;
+
 PyObject *raiseDBError(int err);
 void PyDict_SetItemString_Int(PyObject *dict, char *key, int value);
 
@@ -109,6 +129,13 @@ typedef int (*usercopy_fn)(DBT *, unsigned int, void *, unsigned int,
                            unsigned int);
 
 int _t_db_get(DBT *dbt, int offset, void *data, int len, int mode);
+int _t_db_read_record(DBT *dbt, int offset, void *data, int len, int mode);
+int _t_db_write_record(DBT *dbt, int offset, void *data, int len, int mode);
+int _t_db_read_write_record(DBT *dbt, int offset, void *data, int len,
+                            int mode);
+int _t_db_discard(DBT *dbt, int offset, void *data, int len, int mode);
+PyObject *_t_db_make_record(PyObject *types, char *data, int size);
+
 PyObject *t_cursor_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 int _t_cursor_init(t_cursor *self, DB *db, DB_TXN *txn, int flags);
 PyObject *t_txn_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
@@ -127,3 +154,5 @@ void _init_cursor(PyObject *m);
 void _init_env(PyObject *m);
 void _init_txn(PyObject *m);
 void _init_lock(PyObject *m);
+void _init_record(PyObject *m);
+void _init_store(PyObject *m);

@@ -295,6 +295,7 @@ PyObject *PyUUID_Make16(PyObject *str16)
     return (PyObject *) uuid;
 }
 
+
 void _init_uuid(PyObject *m)
 {
     if (PyType_Ready(&UUIDType) >= 0)
@@ -313,6 +314,8 @@ void _init_uuid(PyObject *m)
             PyModule_AddObject(m, "PyUUID_Check", cobj);
             cobj = PyCObject_FromVoidPtr(PyUUID_Make16, NULL);
             PyModule_AddObject(m, "PyUUID_Make16", cobj);
+            cobj = PyCObject_FromVoidPtr(hash_bytes, NULL);
+            PyModule_AddObject(m, "_hash_bytes", cobj);
 
             debug = !Py_OptimizeFlag;
             inList = outList = NULL;

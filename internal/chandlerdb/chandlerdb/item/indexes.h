@@ -14,14 +14,10 @@
  *  limitations under the License.
  */
 
-
 typedef struct {
     PyObject_HEAD
-    PyObject *uuid;
-    int hash;
-} t_uuid;
+    PyObject *dict;
+    int count;
+    PyObject *changedKeys;
+} t_index;
 
-typedef int (*PyUUID_Check_fn)(PyObject *obj);
-/* steals reference to obj */
-typedef PyObject *(*PyUUID_Make16_fn)(PyObject *obj);
-typedef int (*_hash_bytes_fn)(char *obj, int len);

@@ -16,6 +16,7 @@
 
 
 #include "item.h"
+#include "indexes.h"
 #include "../util/uuid.h"
 #include "../util/singleref.h"
 #include "../persistence/view.h"

@@ -219,9 +219,15 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                 }
                 else if (flags & REF)
                 {
-                    if (PyDict_Contains(attrDict->dict, self->name))
+                    value = PyDict_GetItem(attrDict->dict, self->name);
+                    if (value != NULL)
                     {
-                        value = PyObject_CallMethodObjArgs((PyObject *) attrDict, _getRef_NAME, self->name, Py_None, attr->otherName, NULL);
+                        if (value == Py_None ||
+                            PyObject_TypeCheck(value, CItem) ||
+                            PyObject_TypeCheck(value, CLinkedMap))
+                            Py_INCREF(value);
+                        else
+                            value = PyObject_CallMethodObjArgs((PyObject *) attrDict, _getRef_NAME, self->name, Py_None, attr->otherName, NULL);
                         found = 1;
                     }
                     else

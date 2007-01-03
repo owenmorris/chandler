@@ -77,6 +77,8 @@ def main():
                            'chandlerdb/persistence/env.c',
                            'chandlerdb/persistence/txn.c',
                            'chandlerdb/persistence/lock.c',
+                           'chandlerdb/persistence/record.c',
+                           'chandlerdb/persistence/store.c',
                            'chandlerdb/persistence/c.c']
     if os.name == 'nt':
         dbver = ''.join(DB_VER.split('.'))
@@ -93,6 +95,7 @@ def main():
     else:
         ext = Extension('chandlerdb.persistence.c',
                         sources=persistence_sources,
+                        extra_compile_args = defines,
                         library_dirs=[os.path.join(PREFIX, 'db', 'lib')],
                         include_dirs=[os.path.join(PREFIX, 'db', 'include')],
                         libraries=['db-%s' %(DB_VER)])

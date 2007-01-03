@@ -28,7 +28,7 @@ static PyObject *t_nil_get(t_nil *self, PyObject *args);
 static PyObject *t_nil_iternext(t_nil *self);
 static Py_ssize_t t_nil_length(t_nil *self);
 static PyObject *t_nil_dict_get(t_nil *self, PyObject *key);
-
+static int t_nil_contains(t_nil *self, PyObject *obj);
 
 static PyMethodDef t_nil_methods[] = {
     { "get", (PyCFunction) t_nil_get, METH_VARARGS, NULL },
@@ -47,7 +47,9 @@ static PySequenceMethods nil_as_sequence = {
     0,                                  /* sq_slice */
     0,                                  /* sq_ass_item */
     0,                                  /* sq_ass_slice */
-    0,                                  /* sq_contains */
+    (objobjproc) t_nil_contains,        /* sq_contains */
+    0,                                  /* sq_inplace_concat */
+    0,                                  /* sq_inplace_repeat */
 };
 
 static PyMappingMethods nil_as_mapping = {
@@ -101,6 +103,11 @@ static PyTypeObject NilType = {
 
 
 static Py_ssize_t t_nil_length(t_nil *self)
+{
+    return 0;
+}
+
+static int t_nil_contains(t_nil *self, PyObject *obj)
 {
     return 0;
 }

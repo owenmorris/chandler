@@ -133,7 +133,8 @@ void initc(void)
     _init_values(m);
     _init_indexes(m);
 
-    m = PyImport_ImportModule("chandlerdb.util.c");
+    if (!(m = PyImport_ImportModule("chandlerdb.util.c")))
+        return;
     LOAD_TYPE(m, SingleRef);
     LOAD_TYPE(m, CLinkedMap);
     LOAD_FN(m, PyUUID_Check);
@@ -141,15 +142,18 @@ void initc(void)
     LOAD_OBJ(m, Default);
     Py_DECREF(m);
 
-    m = PyImport_ImportModule("chandlerdb.item.ItemValue");
+    if (!(m = PyImport_ImportModule("chandlerdb.item.ItemValue")))
+        return;
     LOAD_TYPE(m, ItemValue);
     Py_DECREF(m);
 
-    m = PyImport_ImportModule("chandlerdb.item.ItemError");
+    if (!(m = PyImport_ImportModule("chandlerdb.item.ItemError")))
+        return;
     LOAD_TYPE(m, StaleItemAttributeError);
     Py_DECREF(m);
 
-    m = PyImport_ImportModule("chandlerdb.schema.c");
+    if (!(m = PyImport_ImportModule("chandlerdb.schema.c")))
+        return;
     LOAD_TYPE(m, CKind);
     LOAD_TYPE(m, CAttribute);
     LOAD_TYPE(m, CDescriptor);
@@ -157,7 +161,8 @@ void initc(void)
     LOAD_FN(m, C_countAccess);
     Py_DECREF(m);
 
-    m = PyImport_ImportModule("chandlerdb.persistence.c");
+    if (!(m = PyImport_ImportModule("chandlerdb.persistence.c")))
+        return;
     LOAD_FN(m, CView_invokeMonitors);
     Py_DECREF(m);
 }    

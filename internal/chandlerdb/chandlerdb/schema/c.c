@@ -25,6 +25,7 @@ PyTypeObject *CDescriptor = NULL;
 PyTypeObject *CAttribute = NULL;
 PyTypeObject *CItem = NULL;
 PyTypeObject *CValues = NULL;
+PyTypeObject *CLinkedMap = NULL;
 PyObject *PyExc_StaleItemError;
 
 
@@ -69,12 +70,19 @@ void initc(void)
     cobj = PyCObject_FromVoidPtr(_countAccess, NULL);
     PyModule_AddObject(m, "C_countAccess", cobj);
 
-    m = PyImport_ImportModule("chandlerdb.item.ItemError");
+    if (!(m = PyImport_ImportModule("chandlerdb.item.ItemError")))
+        return;
     PyExc_StaleItemError = PyObject_GetAttrString(m, "StaleItemError");
     Py_DECREF(m);
     
-    m = PyImport_ImportModule("chandlerdb.item.c");
+    if (!(m = PyImport_ImportModule("chandlerdb.item.c")))
+        return;
     LOAD_TYPE(m, CItem);
     LOAD_TYPE(m, CValues);
+    Py_DECREF(m);
+
+    if (!(m = PyImport_ImportModule("chandlerdb.util.c")))
+        return;
+    LOAD_TYPE(m, CLinkedMap);
     Py_DECREF(m);
 }
