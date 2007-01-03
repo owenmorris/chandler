@@ -21,7 +21,7 @@ from chandlerdb.util.c import \
     UUID, isuuid, _hash, HashTuple, Nil, Default, SkipList
 from chandlerdb.item.c import CItem, CValues
 from chandlerdb.persistence.c import \
-    Record, DB, \
+    Record, DB, DBEnv, \
     CContainer, CValueContainer, CRefContainer, CItemContainer, \
     DBNotFoundError, DBLockDeadlockError, DBNoSuchFileError
 
@@ -41,7 +41,7 @@ class DBContainer(object):
         self.store = store
         self._db = None
 
-    def openDB(self, txn, name, dbname, ramdb, create):
+    def openDB(self, txn, name, dbname, ramdb, create, mvcc):
 
         db = DB(self.store.env)
         db.lorder = 4321
@@ -50,16 +50,14 @@ class DBContainer(object):
             name = None
             dbname = None
 
+        flags = DB.DB_THREAD | self._flags;
         if create:
-            db.open(filename = name, dbname = dbname,
-                    dbtype = DB.DB_BTREE,
-                    flags = DB.DB_CREATE | DB.DB_THREAD | self._flags,
-                    txn = txn)
-        else:
-            db.open(filename = name, dbname = dbname, 
-                    dbtype = DB.DB_BTREE,
-                    flags = DB.DB_THREAD | self._flags,
-                    txn = txn)
+            flags |= DB.DB_CREATE
+        if mvcc:
+            flags |= DB.DB_MULTIVERSION
+
+        db.open(filename = name, dbname = dbname,
+                dbtype = DB.DB_BTREE, flags = flags, txn = txn)
 
         return db
 
@@ -74,14 +72,16 @@ class DBContainer(object):
 
         self._db = self.openDB(txn, name, kwds.get('dbname', None),
                                kwds.get('ramdb', False),
-                               kwds.get('create', False))
+                               kwds.get('create', False),
+                               kwds.get('mvcc', False))
         self.openC()
 
     def openIndex(self, name, dbname, txn, **kwds):
 
         index = self.openDB(txn, name, dbname,
                             kwds.get('ramdb', False),
-                            kwds.get('create', False))
+                            kwds.get('create', False),
+                            kwds.get('mvcc', False))
 
         self.associateIndex(index, dbname, txn)
 
@@ -1576,7 +1576,8 @@ class ValueContainer(DBContainer):
 
         self._version = self.openDB(txn, name, 'version',
                                     kwds.get('ramdb', False),
-                                    kwds.get('create', False))
+                                    kwds.get('create', False),
+                                    kwds.get('mvcc', False))
 
         if kwds.get('create', False):
             self._version.put(ValueContainer.SCHEMA_KEY,

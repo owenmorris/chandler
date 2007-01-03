@@ -43,7 +43,8 @@ class FileContainer(DBContainer):
 
         self._blocks = self.openDB(txn, name, 'blocks',
                                    kwds.get('ramdb', False),
-                                   kwds.get('create', False))
+                                   kwds.get('create', False),
+                                   kwds.get('mvcc', False))
 
     def close(self):
 

@@ -261,6 +261,7 @@ def initOptions(**kwds):
         'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions or until <check> or <repair> passes'),
         'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
         'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
+        'mvcc':       ('',   '--mvcc',       'b', False, None, 'run repository with multi version concurrency control'),
     }
 
 
@@ -453,6 +454,7 @@ def initRepository(directory, options, allowSchemaView=False):
              'recover': options.recover,
              'exclusive': not options.nonexclusive,
              'memorylog': options.memorylog,
+             'mvcc': options.mvcc,
              'logdir': options.logdir,
              'datadir': options.datadir,
              'nodeferdelete': options.nodeferdelete,

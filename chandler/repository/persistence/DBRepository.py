@@ -828,6 +828,8 @@ class DBTransaction(Transaction):
 
         if store._ramdb:
             return None
+        elif store._mvcc:
+            return store.repository._env.txn_begin(_txn, DBEnv.DB_TXN_SNAPSHOT)
         else:
             return store.repository._env.txn_begin(_txn)
 
@@ -851,6 +853,7 @@ class DBStore(Store):
     def open(self, **kwds):
 
         self._ramdb = kwds.get('ramdb', False)
+        self._mvcc = kwds.get('mvcc', False)
         txnStatus = 0
         
         try:
