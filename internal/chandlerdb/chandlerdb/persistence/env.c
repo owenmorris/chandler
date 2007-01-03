@@ -1232,6 +1232,7 @@ void _init_env(PyObject *m)
             SET_DB_INT(dict, DB_TXN_WRITE_NOSYNC);
             SET_DB_INT(dict, DB_TXN_NOWAIT);
             SET_DB_INT(dict, DB_TXN_SYNC);
+            SET_DB_INT(dict, DB_TXN_SNAPSHOT);
             SET_DB_INT(dict, DB_AUTO_COMMIT);
             SET_DB_INT(dict, DB_CDB_ALLDB);
             SET_DB_INT(dict, DB_DIRECT_DB);
