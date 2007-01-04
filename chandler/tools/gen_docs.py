@@ -754,7 +754,7 @@ def generateDocs(options, outputDir):
 
 
 if __name__ == '__main__':
-    options = Globals.options
+    options = Utility.initOptions()
     
     Utility.initLogging(options)
 

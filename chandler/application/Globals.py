@@ -21,11 +21,11 @@
   Don't add to the globals without reviewing the addition.
 """
 
-from Utility import initOptions
+from Utility import initDefaults
 
 
 chandlerDirectory = None      # Directory containing chandler executable
 wxApplication = None          # The application object. Use only to test to see if we have
                               # an application. Use wx.GetApp() to get the application object.
 mailService = None            # Mail Service (IMAP, POP, SMTP)
-options = initOptions()       # Command line options
+options = initDefaults()      # Command line options

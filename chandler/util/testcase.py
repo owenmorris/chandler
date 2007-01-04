@@ -26,12 +26,14 @@ from repository.persistence.RepositoryView import NullRepositoryView
 class NRVTestCase(unittest.TestCase):
 
     def setUp(self):
+        Globals.options = Utility.initOptions()
         Utility.initLogging(Globals.options)
         self.view = NullRepositoryView()
 
 class SingleRepositoryTestCase(unittest.TestCase):
 
     def setUp(self):
+        Globals.options = Utility.initOptions()
         Globals.options.ramdb = True
         Utility.initLogging(Globals.options)
         self.view = Utility.initRepository("", Globals.options, True)
@@ -39,6 +41,7 @@ class SingleRepositoryTestCase(unittest.TestCase):
 class DualRepositoryTestCase(unittest.TestCase):
 
     def setUp(self):
+        Globals.options = Utility.initOptions()
         Globals.options.ramdb = True
         Utility.initLogging(Globals.options)
         self.views = []

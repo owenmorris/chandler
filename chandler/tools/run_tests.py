@@ -66,7 +66,7 @@ if __name__ == '__main__':
         print __doc__
         sys.exit(2)
 
-    options = Globals.options
+    options = Utility.initOptions()
     Utility.initI18n(options)
     Utility.initLogging(options)
 

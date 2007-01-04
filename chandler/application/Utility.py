@@ -203,90 +203,106 @@ def getUserAgent():
 
     return 'Chandler/%s (%s; U; %s; %s)' % (version.version, platform, cpu, locale)
 
+# short opt, long opt, type flag, default value, env var, help text
+COMMAND_LINE_OPTIONS = {
+    'parcelPath': ('-p', '--parcelPath', 's', None,  'PARCELPATH', 'Parcel search path'),
+    'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
+    'profileDir': ('-P', '--profileDir', 's', '',  'PROFILEDIR', 'location of the Chandler user profile directory (relative to CHANDLERHOME)'),
+    'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
+    'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
+    'chandlerTests': ('', '--chandlerTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by new framework'),
+    'chandlerTestSuite': ('-T', '--chandlerTestSuite', 'b', False, None, 'run the functional test suite'),
+    'chandlerTestDebug': ('-D', '--chandlerTestDebug', 's', 0, None, '0=print only failures, 1=print pass and fail, 2=print pass & fail & check repository after each test'),
+    'chandlerTestMask': ('-M', '--chandlerTestMask', 's', 3, None, '0=print all, 1=hide reports, 2=also hide actions, 3=also hide test names'),
+    'chandlerPerformanceTests': ('', '--chandlerPerformanceTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by performance new framework'),
+    'chandlerTestLogfile': ('', '--chandlerTestLogfile', 's', None, None, 'file for chandlerTests output'),
+    'continueTestsOnFailure': ('-F','--continueTestsOnFailure', 'b', False, None, 'Do not stop functional test suite on first failure'),
+    'scriptTimeout': ('-s', '--scriptTimeout', 's', 0,  None, 'script file timeout'),
+    'catsProfile':('',   '--catsProfile','s', None,  None, 'file for hotshot profile of script execution'),
+    'catsPerfLog':('',   '--catsPerfLog','s', None,  None, 'file to output a performance number'),
+    'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
+    'create':     ('-c', '--create',     'b', False, "CREATE", 'Force creation of a new repository'),
+    'ask':        ('',   '--ask',        'b', False, None, 'give repository options on startup'),
+    'ramdb':      ('-m', '--ramdb',      'b', False, None, ''),
+    'restore':    ('-r', '--restore',    's', None,  None, 'repository backup to restore from before repository open'),
+    'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
+    # --nocatch is deprecated and will be removed soon: use --catch=tests or --catch=never instead
+    'nocatch':    ('-n', '--nocatch',    'b', False, 'CHANDLERNOCATCH', ''),
+    'catch':      ('',   '--catch',      's', 'normal', 'CHANDLERCATCH', '"normal" leaves outer and test exception handlers in place (the default); "tests" removes the outer one, and "never" removes both.'),
+    'wing':       ('-w', '--wing',       'b', False, None, ''),
+    'komodo':     ('-k', '--komodo',     'b', False, None, ''),
+    'refreshui':  ('-u', '--refresh-ui', 'b', False, None, 'Refresh the UI from the repository during startup'),
+    'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
+    'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
+    'nosplash':   ('-N', '--nosplash',   'b', False, 'CHANDLERNOSPLASH', ''),
+    'logging':    ('-L', '--logging',    's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),
+    'createData': ('-C', '--createData', 's', None,  None, 'csv file with items definition to load after startup'),
+    'verbose':    ('-v', '--verbose',    'b', False, None, 'Verbosity option (currently just for run_tests.py)'),
+    'quiet':      ('-q', '--quiet',      'b', False, None, 'Quiet option (currently just for run_tests.py)'),
+    'offline':    ('', '--offline',    'b', False, 'CHANDLEROFFLINE', 'Takes the Chandler Mail Service Offline'),
+    'verify':     ('-V', '--verify-assignments', 'b', False, None, 'Verify attribute assignments against schema'),
+    'debugOn':    ('-d', '--debugOn',    's', None,  None, 'Enter PDB upon this exception being raised'),
+    'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, 'Parcel that defines the core application'),
+    'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
+    'memorylog':  ('', '--memorylog', 's', None, None, 'Specify a buffer size (in MB) for in-memory transaction logs'),
+    'logdir':     ('', '--logdir', 's', None, None, 'Specify a directory for transaction logs (relative to the __repository__ directory'),
+    'datadir':    ('', '--datadir', 's', None, None, 'Specify a directory for database files (relative to the __repository__ directory'),
+    'repodir':    ('', '--repodir', 's', None, None, "Specify a home directory for the __repository__ directory (relative to the profile directory)"),
+    'nodeferdelete':   ('', '--nodeferdelete','b', False, None, 'do not defer item deletions in all views by default'),
+    'indexer':    ('-i', '--indexer',    's', 'background', None, 'Run Lucene indexing in the background or foreground'),
+    'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
+    'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions or until <check> or <repair> passes'),
+    'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
+    'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
+    'mvcc':       ('',   '--mvcc',       'b', False, None, 'run repository with multi version concurrency control'),
+}
+
+def initDefaults(**kwds):
+    """
+    Return a default command line options object from
+    COMMAND_LINE_OPTIONS dict, optional env vars and optional kwd args
+    """
+
+    class _options(object): pass
+    options = _options()
+
+    for name, (x, x, x, defaultValue, environName,
+               x) in COMMAND_LINE_OPTIONS.iteritems():
+        if environName and environName in os.environ:
+            defaultValue = os.environ[environName]
+        setattr(options, name, defaultValue)
+    options.__dict__.update(kwds)
+
+    return options
+
 def initOptions(**kwds):
     """
     Load and parse the command line options, with overrides in **kwds.
     Returns options
     """
     #XXX i18n parcelPath, profileDir could have non-ascii paths
-    #    option name,  (value, short cmd, long cmd, type flag, default, environment variable, help text)
-    _configItems = {
-        'parcelPath': ('-p', '--parcelPath', 's', None,  'PARCELPATH', 'Parcel search path'),
-        'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
-        'profileDir': ('-P', '--profileDir', 's', None,  'PROFILEDIR', 'location of the Chandler user profile directory (relative to CHANDLERHOME)'),
-        'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
-        'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
-        'chandlerTests': ('', '--chandlerTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by new framework'),
-        'chandlerTestSuite': ('-T', '--chandlerTestSuite', 'b', False, None, 'run the functional test suite'),
-        'chandlerTestDebug': ('-D', '--chandlerTestDebug', 's', 0, None, '0=print only failures, 1=print pass and fail, 2=print pass & fail & check repository after each test'),
-        'chandlerTestMask': ('-M', '--chandlerTestMask', 's', 3, None, '0=print all, 1=hide reports, 2=also hide actions, 3=also hide test names'),
-        'chandlerPerformanceTests': ('', '--chandlerPerformanceTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by performance new framework'),
-        'chandlerTestLogfile': ('', '--chandlerTestLogfile', 's', None, None, 'file for chandlerTests output'),
-        'continueTestsOnFailure': ('-F','--continueTestsOnFailure', 'b', False, None, 'Do not stop functional test suite on first failure'),
-        'scriptTimeout': ('-s', '--scriptTimeout', 's', 0,  None, 'script file timeout'),
-        'catsProfile':('',   '--catsProfile','s', None,  None, 'file for hotshot profile of script execution'),
-        'catsPerfLog':('',   '--catsPerfLog','s', None,  None, 'file to output a performance number'),
-        'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
-        'create':     ('-c', '--create',     'b', False, "CREATE", 'Force creation of a new repository'),
-        'ask':        ('',   '--ask',        'b', False, None, 'give repository options on startup'),
-        'ramdb':      ('-m', '--ramdb',      'b', False, None, ''),
-        'restore':    ('-r', '--restore',    's', None,  None, 'repository backup to restore from before repository open'),
-        'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
-        # --nocatch is deprecated and will be removed soon: use --catch=tests or --catch=never instead
-        'nocatch':    ('-n', '--nocatch',    'b', False, 'CHANDLERNOCATCH', ''),
-        'catch':      ('',   '--catch',      's', 'normal', 'CHANDLERCATCH', '"normal" leaves outer and test exception handlers in place (the default); "tests" removes the outer one, and "never" removes both.'),
-        'wing':       ('-w', '--wing',       'b', False, None, ''),
-        'komodo':     ('-k', '--komodo',     'b', False, None, ''),
-        'refreshui':  ('-u', '--refresh-ui', 'b', False, None, 'Refresh the UI from the repository during startup'),
-        'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
-        'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
-        'nosplash':   ('-N', '--nosplash',   'b', False, 'CHANDLERNOSPLASH', ''),
-        'logging':    ('-L', '--logging',    's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),
-        'createData': ('-C', '--createData', 's', None,  None, 'csv file with items definition to load after startup'),
-        'verbose':    ('-v', '--verbose',    'b', False, None, 'Verbosity option (currently just for run_tests.py)'),
-        'quiet':      ('-q', '--quiet',      'b', False, None, 'Quiet option (currently just for run_tests.py)'),
-        'offline':    ('', '--offline',    'b', False, 'CHANDLEROFFLINE', 'Takes the Chandler Mail Service Offline'),
-        'verify':     ('-V', '--verify-assignments', 
-                                             'b', False, None, 'Verify attribute assignments against schema'),
-        'debugOn':    ('-d', '--debugOn',    's', None,  None, 'Enter PDB upon this exception being raised'),
-        'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, 'Parcel that defines the core application'),
-        'nonexclusive':  ('', '--nonexclusive', 'b', False, 'CHANDLERNONEXCLUSIVEREPO', 'Enable non-exclusive repository access'),
-        'memorylog':  ('', '--memorylog', 's', None, None, 'Specify a buffer size (in MB) for in-memory transaction logs'),
-        'logdir':     ('', '--logdir', 's', None, None, 'Specify a directory for transaction logs (relative to the __repository__ directory'),
-        'datadir':    ('', '--datadir', 's', None, None, 'Specify a directory for database files (relative to the __repository__ directory'),
-        'repodir':    ('', '--repodir', 's', None, None, "Specify a home directory for the __repository__ directory (relative to the profile directory)"),
-        'nodeferdelete':   ('', '--nodeferdelete','b', False, None, 'do not defer item deletions in all views by default'),
-        'indexer':    ('-i', '--indexer',    's', 'background', None, 'Run Lucene indexing in the background or foreground'),
-        'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
-        'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions or until <check> or <repair> passes'),
-        'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
-        'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
-        'mvcc':       ('',   '--mvcc',       'b', False, None, 'run repository with multi version concurrency control'),
-    }
-
 
     # %prog expands to os.path.basename(sys.argv[0])
     usage  = "usage: %prog [options]"
     parser = OptionParser(usage=usage, version="%prog")
 
-    for key in _configItems:
-        (shortCmd, longCmd, optionType, defaultValue, environName, helpText) \
-            = _configItems[key]
+    for name, (shortCmd, longCmd, optionType, defaultValue,
+               environName, helpText) in COMMAND_LINE_OPTIONS.iteritems():
 
-        if environName and os.environ.has_key(environName):
+        if environName and environName in os.environ:
             defaultValue = os.environ[environName]
 
         if optionType == 'b':
             parser.add_option(shortCmd,
                               longCmd,
-                              dest=key,
+                              dest=name,
                               action='store_true',
                               default=defaultValue,
                               help=helpText)
         else:
             parser.add_option(shortCmd,
                               longCmd,
-                              dest=key,
+                              dest=name,
                               default=defaultValue,
                               help=helpText)
 

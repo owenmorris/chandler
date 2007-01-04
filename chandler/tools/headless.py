@@ -38,9 +38,7 @@ exportedSymbols = { }
 def startup(**kwds):
     global view, commitOnExit
 
-    if kwds:
-        Globals.options = Globals.initOptions(**kwds)
-
+    Globals.options = Utility.initOptions(**kwds)
     Globals.chandlerDirectory = Utility.locateChandlerDirectory()
     os.chdir(Globals.chandlerDirectory)
     Utility.initI18n(Globals.options)

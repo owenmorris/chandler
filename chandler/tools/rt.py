@@ -99,6 +99,7 @@ def buildTestList(args, individual=False):
     from application import Globals, Utility
 
     sys.argv = args[:]
+    Globals.options = Utility.initOptions()
     options  = Globals.options
 
     Utility.initI18n(options)

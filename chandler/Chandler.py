@@ -22,6 +22,9 @@ from application import Globals, Utility
 
 def main():
 
+    # Process any command line switches and any environment variable values
+    Globals.options = Utility.initOptions()
+
     def realMain():
         
         from application import feedback
