@@ -30,8 +30,10 @@ def makeMainMenus(parcel):
 
     if '__WXMAC__' in wx.PlatformInfo:
         platform_delete = _(u'Back')
+        platform_command_delete = _(u'Ctrl+Back')
     else:
         platform_delete = _(u'Del')
+        platform_command_delete = _(u'Ctrl+Del')
 
     
     def makeColorMenuItems (parcel, cls, hues):
@@ -220,7 +222,7 @@ def makeMainMenus(parcel):
                     MenuItem.template('DeleteItem',
                         event = main.Delete,
                         title = _(u'Delete'),
-                        accel = _(u'Ctrl+D'),
+                        accel = platform_command_delete,
                         helpString = _(u'Move the current selection to the trash')),
                     MenuItem.template('EmptyTrashItem',
                         event = main.EmptyTrash,
