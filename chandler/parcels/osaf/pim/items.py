@@ -378,7 +378,7 @@ class ContentItem(schema.Item):
         collection.add(self)
 
     def removeFromCollection(self, collection, cutting = False):
-        """Remove self from the given collection.
+        """Remove self from the given collection.        
 
         For most items, just call collection.remove(self), but for recurring
         events, this method is intercepted by a proxy and buffered while the
@@ -388,8 +388,21 @@ class ContentItem(schema.Item):
         Cutting is typically equivalent to remove, but recurrence has different
         behavior for cutting operations than delete.
 
+        The special mine collection behavior that removed items should remain in
+        the Dashboard is implemented here.
+
         """
+        allCollection = schema.ns("osaf.pim", self.itsView).allCollection
+        inDashboard = self in allCollection
         collection.remove(self)
+        if (inDashboard and self not in allCollection and 
+            collection is not allCollection):
+            # removal from a mine collection shouldn't remove the item
+            # from the dashboard, add the real item back.  This could be
+            # optimized to not send out unnecessary notifications by checking
+            # if self is in only one mine collection and adding self to
+            # allCollection's inclusion list before remove is called.
+            allCollection.add(self)        
 
     def getMembershipItem(self):
         """ Get the item that should be used to test for membership

@@ -26,6 +26,7 @@ from osaf.usercollections import UserCollection
 from osaf.framework.blocks import Block, BlockEvent, debugName, getProxiedItem
 from application import schema
 from application.dialogs.RecurrenceDialog import getProxy
+import application.dialogs.DeleteDialog as DeleteDialog
 from chandlerdb.util.c import issingleref
 
 # hack workaround for bug 4747
@@ -342,98 +343,23 @@ class FocusEventHandlers(Item):
             menuTitle = _(u'Run "%(name)s"') % { 'name': item.displayName }
         else:
             menuTitle = _(u'Run a Script')
-        event.arguments ['Text'] = menuTitle
-
-    def CanRemove(self):
-        """
-        The spec is very complex here.  The basic idea, beyond basic
-        read-onlyness and such, is that and item can be removed from a
-        collection as long as it will continue to exist in some other
-        obvious collection.
-
-        I've tried to optimize this for the more common cases, so that
-        we do the least amount of work the most often.
-        """
-        selectedCollection = self.__getPrimaryCollection()
-        selection = self.__getSelectedItems()
-        if not isValidSelection(selection, selectedCollection):
-            return False
-
-        app_ns = schema.ns('osaf.app', self.itsView)
-        pim_ns = schema.ns('osaf.pim', self.itsView)
-
-        # you can never 'remove' from the trash
-        if selectedCollection is pim_ns.trashCollection:
-            return False
-
-        # for OOTB collections, you can only remove not-mine items
-        if UserCollection(selectedCollection).outOfTheBoxCollection:
-            return not AllItemsInCollection(selection, pim_ns.mine)
-
-        # For "mine" collections, item is always removable
-        isMineCollection = selectedCollection in pim_ns.mine.sources
-        if isMineCollection:
-            return True
-
-        # for "not mine" collections, each item has to exist at least
-        # somewhere else... but it's possible that each item exists in
-        # a separate collection (i.e. every item of the selection may
-        # not appear in a single 'other' collection)
-        sidebarCollections = app_ns.sidebarCollection
-        for selectedItem in selection:
-            selectedItem = selectedItem.getMembershipItem()
-
-            # after alpha2 this should be
-            # for otherCollection in selectedItem.appearsIn':
-            # ...and exclude allCollection and selectedCollection
-            for otherCollection in sidebarCollections:
-                
-                if (otherCollection is selectedCollection or
-                    UserCollection(otherCollection).outOfTheBoxCollection):
-                    continue
-
-                # found an 'other' collection, skip ahead to next
-                # selectedItem
-                if selectedItem in otherCollection:
-                    break
-            else:
-                # as soon as we find any item that isn't in another
-                # collection, bail.
-                return False
-
-        return True
+        event.arguments ['Text'] = menuTitle        
 
     def CanDelete(self):
         """
-        The trick here is that Deleting is really 'move to trash' -
-        which means if you're deleting items, you're affecting their
-        membership in other collections... so those collections can't be
-        readonly
+        Deleting is really 'move to trash' - which means if you're deleting
+        items, you're affecting their membership in other collections... so
+        those collections can't be readonly.
+        
+        However, the current plan is to pop up a dialog if delete can't
+        happen, so always allow delete if there's anything selected.
+        
         """
-        selectedCollection = self.__getPrimaryCollection()
-        selection = self.__getSelectedItems()
-        
-        if not isValidSelection(selection, selectedCollection):
-            return False
+        return isValidSelection(self.__getSelectedItems(),
+                                self.__getPrimaryCollection())
 
-        app_ns = schema.ns('osaf.app', self.itsView)
-        sidebarCollections = app_ns.sidebarCollection
+    CanRemove = CanDelete
 
-        # Make sure that there are no items in the selection that are
-        # in a readonly collection
-        
-        # pre-cache the readwrite collections in the sidebar
-        readonlyCollections = [collection for collection in sidebarCollections
-                               if sidebarCollections.isReadOnly()]
-        
-        for selectedItem in selection:
-            selectedItem = selectedItem.getMembershipItem()
-            for sidebarCollection in readonlyCollections:
-                if selectedItem in sidebarCollection:
-                    return False
-                    
-        return True
-    
     def onRemoveEventUpdateUI(self, event):
         event.arguments['Enable'] = self.CanRemove()
 
@@ -444,32 +370,46 @@ class FocusEventHandlers(Item):
         """
         Actually perform a remove
         """
-
-        # Destructive action, worth an extra assert
-        assert self.CanRemove(), "Can't remove right now.. some updateUI logic may be broken"
         selectedCollection = self.__getPrimaryCollection()
         selection = self.__getSelectedItems()
 
         assert selectedCollection, "Can't remove without a primary collection!"
-        
-        trash = schema.ns('osaf.pim', self.itsView).trashCollection
-        if selectedCollection == trash:
-            def removeItem(item):
-                item.delete()
+
+        itemsAndStates = []
+        removals = []
+        for item in selection:
+            state = DeleteDialog.GetItemRemovalState(selectedCollection, item,
+                                                     self.itsView)
+            if state == DeleteDialog.REMOVE_NORMAL:
+                removals.append(item)
+            else:
+                itemsAndStates.append((item, state))
+
+        def deleteItem(item):
+            # probably need to handle recurrence here...
+            item.delete()
+
+        pim_ns = schema.ns('osaf.pim', self.itsView)
+        if selectedCollection == pim_ns.trashCollection:
+            removeItem = deleteItem
         else:
             def removeItem(item):
                 item.removeFromCollection(selectedCollection)
 
-        for selectedItem in selection:
-            removeItem(getProxy(u'ui', selectedItem))
-            
-        self.postEventByName("SelectItemsBroadcast",
-                             {'items': [],
-                              'collection': selectedCollection })
+        for item in removals:
+            removeItem(getProxy(u'ui', item))
+        
+        if len(itemsAndStates) == 0:
+            self.postEventByName("SelectItemsBroadcast",
+                                 {'items': [],
+                                  'collection': selectedCollection })
+        else:
+            DeleteDialog.ShowDeleteDialog(wx.GetApp().mainFrame,
+                                          view=self.itsView,
+                                          selectedCollection=selectedCollection,
+                                          itemsAndStates=itemsAndStates)            
 
     def onDeleteEvent(self, event):
-        # Destructive action, worth an extra assert
-        assert self.CanDelete(), "Can't delete right now.. some updateUI logic may be broken"
         selectedCollection = self.__getPrimaryCollection()
         selection = self.__getSelectedItems()
 
@@ -490,22 +430,6 @@ class FocusEventHandlers(Item):
                              {'items': [],
                               'collection': selectedCollection })
 
-def AllItemsInCollection(items, collection):
-    """
-    Helper routine - Checks if all items actually exist in the
-    collection, using getMembershipItem() to make sure the 'in' test
-    is valid. 
-
-    Should this be in ContentCollection? (not sure if thats
-    appropriate or not.. -alecf)
-    """
-    for item in items:
-        item = item.getMembershipItem()
-        if item not in collection:
-            return False
-    return True
-    
+                        
 def isValidSelection(selection, selectedCollection):
-    return (len(selection) != 0  and
-            selectedCollection is not None and
-            not selectedCollection.isReadOnly())
+    return (len(selection) != 0 and selectedCollection is not None)

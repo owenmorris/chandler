@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="ISO-8859-15"?>
+<resource>
+  <object class="wxDialog" name="DeleteDialog">
+    <object class="wxBoxSizer">
+      <object class="sizeritem">
+        <object class="wxStaticText" name="BoldText">
+          <label>Some text</label>
+          <size>350,-1</size>
+        </object>
+        <flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT</flag>
+        <border>10</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticText" name="NormalText">
+          <label>Secondary text</label>
+          <size>350,-1</size>
+        </object>
+        <flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT</flag>
+        <border>10</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxFlexGridSizer">
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="ApplyAll">
+              <label>Apply to all</label>
+            </object>
+            <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <flag>wxALL|wxALIGN_CENTRE|wxALIGN_CENTRE_VERTICAL</flag>
+                <object class="wxButton" name="wxID_OK">
+                  <label>OK</label>
+                  <default>1</default>
+                </object>
+                <border>5</border>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALL|wxALIGN_CENTRE|wxALIGN_CENTRE_VERTICAL</flag>
+                <object class="wxButton" name="MoveToTrash">
+                  <label>Move to Trash</label>
+                </object>
+                <border>5</border>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALL|wxALIGN_CENTRE|wxALIGN_CENTRE_VERTICAL</flag>
+                <object class="wxButton" name="wxID_CANCEL">
+                  <label>Cancel</label>
+                  <default>1</default>
+                </object>
+                <border>5</border>
+              </object>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+          </object>
+          <cols>4</cols>
+          <hgap></hgap>
+          <growablecols>1</growablecols>
+        </object>
+        <flag>wxALL|wxEXPAND|wxGROW|wxALIGN_CENTRE</flag>
+        <border>5</border>
+      </object>
+      <orient>wxVERTICAL</orient>
+    </object>
+    <title></title>
+    <centered>1</centered>
+    <size>400, 100</size>
+  </object>
+</resource>

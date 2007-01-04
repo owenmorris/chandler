@@ -342,9 +342,9 @@ class UserChangeProxy(object):
         """
         proxiedEvent = EventStamp(self.proxiedItem)
         if proxiedEvent.rruleset is None:
-            collection.remove(EventStamp(proxiedEvent).getMaster().itsItem)
+            self.proxiedItem.removeFromCollection(collection, cutting)
         else:
-            change = dict(method=self.propagateDelete,
+            change = dict(method=self.propagateDeleteOrRemove,
                           args=(collection,),
                           question=_(u'"%(displayName)s" is a recurring event. Do you want to delete:'))
             if cutting:
@@ -434,31 +434,38 @@ class UserChangeProxy(object):
 
         self.proxiedItem.changeEditState() # Mark it edited
 
-    def propagateDelete(self, collection):
+    def propagateDeleteOrRemove(self, collection):
         proxiedEvent = EventStamp(self.proxiedItem)
         table = {'this'          : proxiedEvent.deleteThis,
                  'thisandfuture' : proxiedEvent.deleteThisAndFuture,
-                 'all'           : lambda: self.trashAddOrDelete(collection)
+                 'all'           : lambda: self.trashAddOrRemove(collection)
                 }
         table[self.currentlyModifying]()
 
-    def trashAddOrDelete(self, collection):
+    def trashAddOrRemove(self, collection):
         """
         If collection is trash, deletion action was triggered by adding to
         trash, so add self.proxiedItem to trash, which appears to the user as
         removing the item from all collections it was in.
         
-        If collection isn't trash, then this was called from a normal delete,
+        If collection isn't trash, then this was called from a normal remove,
         just remove self.proxiedItem from that collection.
 
         """
-        trash = schema.ns('osaf.pim', self.proxiedItem.itsView).trashCollection
+        pim_ns = schema.ns('osaf.pim', self.proxiedItem.itsView)
+        trash = pim_ns.trashCollection
+        allCollection = pim_ns.allCollection
         masterItem = EventStamp(self.proxiedItem).getMaster().itsItem
         if collection == trash:
             collection.add(masterItem)
         else:
+            inDashboard = masterItem in pim_ns.allCollection
             collection.remove(masterItem)
-
+            if (inDashboard and masterItem not in allCollection and
+                collection is not allCollection):
+                # removal from a mine collection shouldn't remove the item
+                # from the dashboard, add the real item back.
+                allCollection.add(masterItem)       
 
     def propagateAddToCollection(self, collection):
         collection.add(EventStamp(self.proxiedItem).getMaster().itsItem)
