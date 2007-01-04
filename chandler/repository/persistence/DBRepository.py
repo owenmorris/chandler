@@ -1120,15 +1120,11 @@ class DBStore(Store):
 
     def startTransaction(self, view, nested=False):
 
-        status = 0
         locals = self._threaded
         txn = locals.get('txn')
 
-        if view is not None and txn is None and view._acquireExclusive():
-            status = Transaction.EXCLUSIVE
-
         if txn is None:
-            status |= Transaction.TXN_STARTED
+            status = Transaction.TXN_STARTED
             locals['txn'] = DBTransaction(self, None, status)
         elif nested:
             txns = locals.get('txns')
@@ -1136,9 +1132,10 @@ class DBStore(Store):
                 locals['txns'] = [txn]
             else:
                 locals['txns'].append(txn)
-            status |= Transaction.TXN_STARTED | Transaction.TXN_NESTED
+            status = Transaction.TXN_STARTED | Transaction.TXN_NESTED
             locals['txn'] = DBTransaction(self, txn._txn, status)
         else:
+            status = 0
             txn._count += 1
 
         return status
@@ -1148,20 +1145,13 @@ class DBStore(Store):
         locals = self._threaded
         txn = locals['txn']
 
-        try:
-            if txn is not None:
-                if txn.commit():
-                    status = txn._status
-                    if status & Transaction.TXN_NESTED:
-                        locals['txn'] = locals['txns'].pop()
-                    else:
-                        locals['txn'] = None
-                elif status & Transaction.EXCLUSIVE:
-                    txn._status |= Transaction.EXCLUSIVE
-                    status &= ~Transaction.EXCLUSIVE
-        finally:
-            if status & Transaction.EXCLUSIVE:
-                view._releaseExclusive()
+        if txn is not None:
+            if txn.commit():
+                status = txn._status
+                if status & Transaction.TXN_NESTED:
+                    locals['txn'] = locals['txns'].pop()
+                else:
+                    locals['txn'] = None
 
         return status
 
@@ -1170,20 +1160,13 @@ class DBStore(Store):
         locals = self._threaded
         txn = locals['txn']
 
-        try:
-            if txn is not None:
-                if txn.abort():
-                    status = txn._status
-                    if status & Transaction.TXN_NESTED:
-                        locals['txn'] = locals['txns'].pop()
-                    else:
-                        locals['txn'] = None
-                elif status & Transaction.EXCLUSIVE:
-                    txn._status |= Transaction.EXCLUSIVE
-                    status &= ~Transaction.EXCLUSIVE
-        finally:
-            if status & Transaction.EXCLUSIVE:
-                view._releaseExclusive()
+        if txn is not None:
+            if txn.abort():
+                status = txn._status
+                if status & Transaction.TXN_NESTED:
+                    locals['txn'] = locals['txns'].pop()
+                else:
+                    locals['txn'] = None
 
         return status
 

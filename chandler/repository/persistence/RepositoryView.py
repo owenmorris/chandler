@@ -1290,25 +1290,23 @@ class OnDemandRepositoryView(RepositoryView):
 
         release = False
         try:
-            try:
-                loading = self.isLoading()
-                if not loading:
-                    release = self._acquireExclusive()
-                    self._setLoading(True)
-                    self._hooks = []
+            loading = self.isLoading()
+            if not loading:
+                release = self._acquireExclusive()
+                self._setLoading(True)
+                self._hooks = []
 
-                item = itemReader.readItem(self, self._hooks)
-            except:
-                if not loading:
-                    self._setLoading(False, False)
-                    self._hooks = []
-                raise
-        
+            item = itemReader.readItem(self, self._hooks)
+        except:
+            if not loading:
+                self._setLoading(False, False)
+                self._hooks = []
+            raise
+        else:
             if not loading:
                 self._setLoading(False, True)
 
             return item
-
         finally:
             if release:
                 self._releaseExclusive()
