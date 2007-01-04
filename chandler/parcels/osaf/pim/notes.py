@@ -26,6 +26,20 @@ from application import schema
 from i18n import ChandlerMessageFactory as _
 
 class Note(items.ContentItem):
+
+    icalUID = schema.One(
+        schema.Text,
+        doc="iCalendar uses arbitrary strings for UIDs, not UUIDs.  We can "
+            "set UID to a string representation of UUID, but we need to be "
+            "able to import iCalendar events with arbitrary UIDs."
+    )
+
+    schema.addClouds(
+        sharing = schema.Cloud(
+            literal = [icalUID],
+        )
+    )
+
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.

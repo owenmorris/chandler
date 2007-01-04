@@ -361,10 +361,10 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         self.failUnlessEqual(len(list(self.event._generateRule())), 2)
 
     def testIcalUID(self):
-        self.assertEqual(self.event.icalUID, unicode(self.event.itsItem.itsUUID))
+        self.assertEqual(self.event.itsItem.icalUID, unicode(self.event.itsItem.itsUUID))
         self.event.rruleset = self._createRuleSetItem('weekly')
-        self.assertEqual(self.event.icalUID, 
-                         self.event.getFirstOccurrence().icalUID)
+        self.assertEqual(self.event.itsItem.icalUID, 
+                         self.event.getFirstOccurrence().itsItem.icalUID)
 
     def testBug5483(self):
         """Check that an EXDATE of the first occurrence is correctly excluded."""
@@ -569,7 +569,8 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(second.summary, uw('Modified title'))
         self.assertEqual(list(second.rruleset.rrules)[0].freq, 'weekly')
         self.assertEqual(second.startTime, second.recurrenceID)
-        self.assertEqual(second.icalUID, unicode(second.itsItem.itsUUID))
+        self.assertEqual(second.itsItem.icalUID,
+                         unicode(second.itsItem.itsUUID))
         self.assertEqual(second.getLastUntil(), lastUntil)
 
         # make sure second is not one of its own occurrences
@@ -594,8 +595,8 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(fourth.recurrenceID,
                          fourth.startTime + timedelta(hours=1))
         self.assertEqual(third.rruleset, fourth.rruleset)
-        self.assertEqual(third.icalUID, fourth.icalUID)
-        self.assertNotEqual(second.icalUID, third.icalUID)
+        self.assertEqual(third.itsItem.icalUID, fourth.itsItem.icalUID)
+        self.assertNotEqual(second.itsItem.icalUID, third.itsItem.icalUID)
 
         # make sure second's rruleset was updated
         self.assert_(list(second.rruleset.rrules)[0].until < thirdChangedStart)
@@ -661,9 +662,10 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
         # Because fourth is a modification, its title should NOT have changed
         self.assertEqual(fourth.summary, uw('Twice modified title'))
 
-        self.assertNotEqual(thirdModified.icalUID, second.icalUID)
-        self.assertEqual(thirdModified.icalUID, third.icalUID)
-        self.assertEqual(third.icalUID, fourth.icalUID)
+        self.assertNotEqual(thirdModified.itsItem.icalUID,
+                            second.itsItem.icalUID)
+        self.assertEqual(thirdModified.itsItem.icalUID, third.itsItem.icalUID)
+        self.assertEqual(third.itsItem.icalUID, fourth.itsItem.icalUID)
         self.assertEqual(third.rruleset, fourth.rruleset)
 
         self.assertEqual(third.summary, uw('Yet another title'))
@@ -718,8 +720,8 @@ class RecurringEventTest(TestDomainModel.DomainModelTestCase):
 
         second.changeThisAndFuture('displayName', uw('changed title'))
 
-        self.assertNotEqual(self.event.icalUID, second.icalUID)
-        self.assertEqual(second.icalUID, third.icalUID)
+        self.assertNotEqual(self.event.itsItem.icalUID, second.itsItem.icalUID)
+        self.assertEqual(second.itsItem.icalUID, third.itsItem.icalUID)
         self.assertEqual(third.modificationFor, second.occurrenceFor)
 
     def _checkDeleted(self, items, notdeleted):

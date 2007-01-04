@@ -300,20 +300,16 @@ class EventTestCase(SharingTestCase):
         # Check the base item (i.e. the notes)
         self.failUnless(isinstance(eventItem, pim.Note))
         expected = dict((key, self.attributes.get(key)) for key in
-                            ('itsUUID', 'displayName', 'createdOn', 'body',
-                             'triageStatusChanged'))
+                            ('itsUUID', 'icalUID', 'displayName',
+                             'createdOn', 'body', 'triageStatusChanged'))
         self.checkImportedAttributes(eventItem, expected=expected)
         
         # Make sure we ended up with the right stamps
         self.failUnlessEqual(list(pim.Stamp(eventItem).stamp_types),
                              [pim.EventStamp])
 
-        # ... and now check various stamped attributes. (Many of the event
-        # ones will be missing because we applied the CALDAVFILTER).
-        event = pim.EventStamp(eventItem)
-        expected = dict((key, self.attributes.get(key)) for key in
-                            ('icalUID',))
-        self.checkImportedAttributes(event, expected=expected)
+        # There are no event attributes to check; they are all missing
+        # because we applied the CALDAVFILTER).
         
         # Make sure importing an Event didn't delete attributes
         # on MailStamp.
@@ -670,7 +666,7 @@ class EventTaskTestCase(SharingTestCase):
         # Check the base item (i.e. the notes)
         self.failUnless(isinstance(eventItem, pim.Note))
         expected = dict((key, self.attributes.get(key)) for key in
-                            ('itsUUID', 'displayName', 'createdOn',
+                            ('itsUUID', 'icalUID', 'displayName', 'createdOn',
                              'triageStatusChanged', 'triageStatus'))
         self.checkImportedAttributes(eventItem, expected=expected)
         
@@ -678,12 +674,8 @@ class EventTaskTestCase(SharingTestCase):
         self.failUnlessEqual(set(pim.Stamp(eventItem).stamp_types),
                              set([pim.EventStamp, pim.TaskStamp]))
 
-        # ... and now check various stamped attributes. (Many of the event
-        # ones will be missing because we applied the CALDAVFILTER).
-        event = pim.EventStamp(eventItem)
-        expected = dict((key, self.attributes.get(key)) for key in
-                            ('icalUID',))
-        self.checkImportedAttributes(event, expected=expected)
+        # There are no event attributes to check; they are all missing
+        # because we applied the CALDAVFILTER).
 
 
 class MailedEventTaskTestCase(SharingTestCase):
@@ -737,16 +729,12 @@ class MailedEventTaskTestCase(SharingTestCase):
                                   pim.mail.MailStamp]))
 
         expected = dict((key, self.attributes.get(key)) for key in
-                            ('itsUUID', 'displayName', 'createdOn',
+                            ('itsUUID', 'icalUID', 'displayName', 'createdOn',
                              'triageStatusChanged', 'triageStatus'))
         self.checkImportedAttributes(eventItem, expected=expected)
         
-        # ... and now check various stamped attributes. (Many of the event
-        # ones will be missing because we applied the CALDAVFILTER).
-        event = pim.EventStamp(eventItem)
-        expected = dict((key, self.attributes.get(key)) for key in
-                            ('icalUID',))
-        self.checkImportedAttributes(event, expected=expected)
+        # There are no event attributes to check; they are all missing
+        # because we applied the CALDAVFILTER).
         
 class ShareTestCase(SharingTestCase):
 

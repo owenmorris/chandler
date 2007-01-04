@@ -191,7 +191,7 @@ def installParcel(parcel, oldVersion=None):
                     monitor=(EventStamp.startTime, EventStamp.allDay,
                              EventStamp.anyTime, EventStamp.duration))
     
-    EventStamp.addIndex(view, 'icalUID', 'value', attribute=EventStamp.icalUID)
+    EventStamp.addIndex(view, 'icalUID', 'value', attribute=Note.icalUID)
     
     # floatingEvents need to be reindexed in effectiveStart and effectiveEnd
     # when the floating timezone changes

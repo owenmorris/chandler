@@ -68,7 +68,7 @@ class DuplicateIcalUIDTestCase(testcase.DualRepositoryTestCase):
         c.startTime = datetime.datetime(2005, 10, 31, 12, 0, 0, 0, tzinfo)
         c.duration = datetime.timedelta(minutes=60)
         c.anyTime = False
-        c.icalUID = "dc969288-7029-11db-df82-93e0418c9857"
+        c.itsItem.icalUID = "dc969288-7029-11db-df82-93e0418c9857"
         coll.add(c.itsItem)
 
     def PrepareShares(self):

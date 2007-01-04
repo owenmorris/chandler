@@ -64,7 +64,7 @@ def findUID(view, uid):
     Return the master event whose icalUID matched uid, or None.
     """
     events = EventStamp.getCollection(view)
-    eventItem = indexes.valueLookup(events, 'icalUID', EventStamp.icalUID.name, uid)
+    eventItem = indexes.valueLookup(events, 'icalUID', Note.icalUID.name, uid)
     if eventItem is None:
         return None
     else:
@@ -414,13 +414,6 @@ class EventStamp(Stamp):
         inverse=Contact.participatingEvents
     )
 
-    icalUID = schema.One(
-        schema.Text,
-        doc="iCalendar uses arbitrary strings for UIDs, not UUIDs.  We can "
-            "set UID to a string representation of UUID, but we need to be "
-            "able to import iCalendar events with arbitrary UIDs."
-    )
-
     modifies = schema.One(
         ModificationEnum,
         defaultValue=None,
@@ -484,7 +477,7 @@ class EventStamp(Stamp):
         copying = schema.Cloud(organizer,location,rruleset,participants),
         sharing = schema.Cloud(
             literal = [startTime, duration, allDay, anyTime, modifies,
-                       transparency, isGenerated, recurrenceID, icalUID],
+                       transparency, isGenerated, recurrenceID],
             byValue = [location], 
             byCloud = [modifications, rruleset, occurrenceFor]
         )
@@ -546,8 +539,8 @@ class EventStamp(Stamp):
         if not hasattr(self, 'organizer'):
             self.organizer = schema.ns("osaf.pim", self.itsItem.itsView).currentContact.item
 
-        if not hasattr(self, 'icalUID'):
-            self.icalUID = unicode(self.itsItem.itsUUID)
+        if not hasattr(self.itsItem, 'icalUID'):
+            self.itsItem.icalUID = unicode(self.itsItem.itsUUID)
 
         # TBD - set participants to any existing "who"
         # participants are currently not implemented.
@@ -1341,7 +1334,7 @@ class EventStamp(Stamp):
             modEvent.modificationFor = self.itsItem
             modEvent.occurrenceFor = self.itsItem
             modEvent.rruleset = self.rruleset
-            modEvent.icalUID = self.icalUID
+            modEvent.itsItem.icalUID = self.itsItem.icalUID
 
     def changeThisAndFuture(self, attr=None, value=None):
         """Modify this and all future events."""
@@ -1412,7 +1405,7 @@ class EventStamp(Stamp):
                     self.recurrenceID = startMidnight
                 else:
                     self.recurrenceID = self.startTime
-                self.icalUID = unicode(self.itsItem.itsUUID)
+                self.itsItem.icalUID = unicode(self.itsItem.itsUUID)
                 self.copyCollections(master, self)
     
             # determine what type of change to make
@@ -1473,7 +1466,7 @@ class EventStamp(Stamp):
                             self.rruleset = newfirst.rruleset
                             newfirst.startTime = self.recurrenceID
                             newfirst.occurrenceFor = None #self overrides newfirst
-                            newfirst.icalUID = self.icalUID = str(
+                            newfirst.itsItem.icalUID = self.itsItem.icalUID = str(
                                                            newfirst.itsItem.itsUUID)
                             newfirst._makeGeneralChange()
                             self.occurrenceFor = self.modificationFor = newfirstItem
@@ -1484,7 +1477,7 @@ class EventStamp(Stamp):
                                 if mod.recurrenceID > newfirst.startTime:
                                     mod.occurrenceFor = newfirstItem
                                     mod.modificationFor = newfirstItem
-                                    mod.icalUID = newfirst.icalUID
+                                    mod.itsItem.icalUID = newfirstItem.icalUID
                                     mod.rruleset = newfirst.rruleset
                                     #rruleset needs to change, so does icalUID
                         finally:
@@ -1810,7 +1803,7 @@ class EventStamp(Stamp):
                 del event.modificationFor
                 # events with the same icalUID but different UUID drive
                 # sharing crazy, so change icalUID of master
-                event.icalUID = unicode(event.itsItem.itsUUID)
+                event.itsItem.icalUID = unicode(event.itsItem.itsUUID)
                 masterHadModification = True
             else:
                 # now that we've disconnected this event from the master,

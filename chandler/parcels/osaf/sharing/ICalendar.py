@@ -83,9 +83,9 @@ def itemsToVObject(view, items, cal=None, filters=None):
         
         item = event.itsItem
         
-        if item.getAttributeValue(EventStamp.icalUID.name, default=None) is None:
+        if item.getAttributeValue(Note.icalUID.name, default=None) is None:
             item.icalUID = unicode(item.itsUUID)
-        comp.add('uid').value = event.icalUID
+        comp.add('uid').value = item.icalUID
 
         try:
             comp.add('summary').value = item.displayName
@@ -724,7 +724,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                             stats['modified'].append(item.itsUUID)
                     eventItem = EventStamp(item)
                     eventItem.add()
-                    eventItem.icalUID = uid
+                    item.icalUID = uid
 
                     for tup in changeLast:
                         eventItem.changeThis(*tup)
