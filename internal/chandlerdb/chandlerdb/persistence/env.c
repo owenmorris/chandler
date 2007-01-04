@@ -61,6 +61,8 @@ static PyObject *t_env_get_data_dirs(t_env *self, void *data);
 static PyObject *t_env_set_data_dir(t_env *self, PyObject *args);
 static PyObject *t_env_get_lg_dir(t_env *self, void *data);
 static int t_env_set_lg_dir(t_env *self, PyObject *value, void *data);
+static PyObject *t_env_get_tx_max(t_env *self, void *data);
+static int t_env_set_tx_max(t_env *self, PyObject *value, void *data);
 
 static char *_t_env_encode_path(char *path, int len, PyObject **string);
 static PyObject *_t_env_decode_path(const char *path);
@@ -133,6 +135,9 @@ static PyGetSetDef t_env_properties[] = {
     { "errfile",
       (getter) t_env_get_errfile, (setter) t_env_set_errfile,
       "error filename", NULL },
+    { "tx_max",
+      (getter) t_env_get_tx_max, (setter) t_env_set_tx_max,
+      "tx max", NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
 
@@ -1205,6 +1210,38 @@ static int t_env_set_errfile(t_env *self, PyObject *value, void *data)
                 }
             }
         }
+    }
+
+    return 0;
+}
+
+
+/* tx_max */
+
+static PyObject *t_env_get_tx_max(t_env *self, void *data)
+{
+    unsigned int tx_max;
+    int err = self->db_env->get_tx_max(self->db_env, &tx_max);
+
+    if (err)
+        return raiseDBError(err);
+
+    return PyInt_FromLong(tx_max);
+}
+
+static int t_env_set_tx_max(t_env *self, PyObject *value, void *data)
+{
+    unsigned int tx_max = PyInt_AsLong(value);
+    int err;
+
+    if (tx_max < 0 && PyErr_Occurred())
+        return -1;
+
+    err = self->db_env->set_tx_max(self->db_env, tx_max);
+    if (err)
+    {
+        raiseDBError(err);
+        return -1;
     }
 
     return 0;

@@ -28,7 +28,6 @@ static PyObject *txn_NAME;
 enum {
     TXN_STARTED = 0x0001,
     TXN_NESTED  = 0x0002,
-    EXCLUSIVE   = 0x0004,
 };
 
 static PyObject *t_transaction_new(PyTypeObject *type,
@@ -435,7 +434,6 @@ void _init_store(PyObject *m)
 
             PyDict_SetItemString_Int(dict, "TXN_STARTED", TXN_STARTED);
             PyDict_SetItemString_Int(dict, "TXN_NESTED", TXN_NESTED);
-            PyDict_SetItemString_Int(dict, "EXCLUSIVE", EXCLUSIVE);
 
             start_NAME = PyString_FromString("start");
             abort_NAME = PyString_FromString("abort");
