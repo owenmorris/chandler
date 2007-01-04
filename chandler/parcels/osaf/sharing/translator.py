@@ -16,7 +16,6 @@ class PIMTranslator(eim.Translator):
     # ItemRecord -------------
 
     # TODO: lastModifiedBy
-    # TODO: remindOn
 
     @model.ItemRecord.importer
     def import_item(self, record):
@@ -29,25 +28,17 @@ class PIMTranslator(eim.Translator):
             # Convert to user's tz:
             createdOn = inUTC.astimezone(ICUtzinfo.default)
 
-        # @@@MOR
-        # This is bogus, there isn't actually a remindOn attribute, so this
-        # needs to be updated -- talk to Jeffrey/Grant to see what item
-        # attribute(s) to set:
-
-        if record.remindOn is not eim.NoChange:
-            # This assumes the remindOn field has no timezone:
-            inUTC = record.remindOn.replace(tzinfo=utc)
-            # Convert to user's tz:
-            remindOn = inUTC.astimezone(ICUtzinfo.default)
+        if record.triageStatus is not eim.NoChange:
+            # @@@MOR -- is this the right way to get an enum?  (it works)
+            triageStatus = getattr(pim.TriageEnum, record.triageStatus)
 
         self.loadItemByUUID(
             record.uuid,
             pim.ContentItem,
             displayName=record.title,
-            triageStatus=record.triageStatus,
+            triageStatus=triageStatus,
             triageStatusChanged=float(record.triageStatusChanged),
-            createdOn=createdOn,
-            remindOn=remindOn
+            createdOn=createdOn
         ) # incomplete
 
 
@@ -57,18 +48,17 @@ class PIMTranslator(eim.Translator):
         yield model.ItemRecord(
             item.itsUUID,                               # uuid
             item.displayName,                           # title
-            item.triageStatus,                          # triageStatus
+            str(item.triageStatus),                     # triageStatus
             decimal.Decimal("%.2f" % item.triageStatusChanged), # t_s_changed
             None,                                       # lastModifiedBy
-            item.createdOn.astimezone(utc),             # createdOn
-            None                                        # remindOn
+            item.createdOn.astimezone(utc)              # createdOn
         )
 
 
 
     # NoteRecord -------------
 
-    # TODO: icaluid
+    # TODO: icaluid (Grant is moving it to Note)
 
     @model.NoteRecord.importer
     def import_note(self, record):

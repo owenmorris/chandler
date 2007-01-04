@@ -34,21 +34,29 @@ class RecordSetConduit(conduits.BaseConduit):
 
     translator = schema.One(schema.Class)
     serializer = schema.One(schema.Class)
-    syncToken = schema.One(schema.Text, initialValue=None)
+    syncToken = schema.One(schema.Text, defaultValue="")
     filters = schema.Sequence(schema.Text)
 
-    def sync(self, modOverride=None, updateCallback=None, forceUpdate=None):
+    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
 
         rv = self.itsView
 
-        translator = self.translator()
+        translator = self.translator(rv)
 
-        # Determine which items have changed:
         changedItems = set()
-        for uuid, version, kind, status, values, references, prevKind in \
-            rv.mapHistory(self.itemsMarker.itsVersion, rv.itsVersion):
-            # @@@MOR: Doublecheck the above version numbers's are correct
-            changedItems.add(uuid)
+
+        if self.syncToken:  # We've been synced before
+            # Determine which items have changed:
+            for uuid, version, kind, status, values, references, prevKind in \
+                rv.mapHistory(self.itemsMarker.itsVersion-1, rv.itsVersion):
+                # @@@MOR: Doublecheck the above version numbers's are correct
+                changedItems.add(uuid)
+
+        else:               # We've not been synced before
+            if self.share.contents is not None:
+                for item in self.share.contents:
+                    changedItems.add(item.itsUUID.str16())
+
 
         rsNewBase = { }
         for uuid in changedItems:
@@ -69,7 +77,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
         # Apply
         for itemUUID, rs in toApply.items():
-            translator.processRecords(rs)
+            translator.importRecords(rs)
 
         # Send
         text = self.serializer.serialize(toSend)
@@ -163,7 +171,7 @@ class CosmoRecordSetConduit(RecordSetConduit, conduits.HTTPMixin):
     def get(self):
         location = self.getLocation()
 
-        if self.syncToken is not None:
+        if self.syncToken:
             location += "?token=%s" % self.syncToken
 
         resp = self._send('GET', location)
@@ -176,7 +184,7 @@ class CosmoRecordSetConduit(RecordSetConduit, conduits.HTTPMixin):
     def put(self, text):
         location = self.getLocation()
 
-        if self.syncToken is not None:
+        if self.syncToken:
             location += "?token=%s" % self.syncToken
             method = 'POST'
         else:
@@ -225,12 +233,20 @@ class InMemoryRecordSetConduit(RecordSetConduit):
         return text
 
     def put(self, text):
-        if self.syncToken is None:
-            self.syncToken = self.serverPut(self.shareName, text)
-        else:
+        if self.syncToken:
             self.syncToken = self.serverPost(self.shareName, self.syncToken,
                                              text)
+        else:
+            self.syncToken = self.serverPut(self.shareName, text)
 
+    def exists(self):
+        return shareDict.has_key(self.shareName)
+
+    def destroy(self):
+        del shareDict[self.shareName]
+
+    def create(self):
+        self._getCollection(self.shareName)
 
     # simulate cosmo:
 
@@ -249,7 +265,7 @@ class InMemoryRecordSetConduit(RecordSetConduit):
             coll["recordsets"][uuid] = rs
             uuids.add(uuid)
         token = self._storeUUIDs(coll["tokens"], uuids)
-        return token
+        return str(token)
 
     def serverPost(self, path, token, text):
         token = int(token)
@@ -265,14 +281,14 @@ class InMemoryRecordSetConduit(RecordSetConduit):
             coll["recordsets"][uuid] = rs
             uuids.add(uuid)
         token = self._storeUUIDs(coll["tokens"], uuids)
-        return token
+        return str(token)
 
     def serverGet(self, path, token):
 
-        if token is None:
-            token = 0
-        else:
+        if token:
             token = int(token)
+        else:
+            token = 0
 
         coll = self._getCollection(path)
 
@@ -290,4 +306,4 @@ class InMemoryRecordSetConduit(RecordSetConduit):
 
         text = self.serializer.serialize(recordsets)
 
-        return current, text
+        return str(current), text

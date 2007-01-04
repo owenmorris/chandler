@@ -31,8 +31,7 @@ Importing:
     ...         triageStatus='later',
     ...         triageStatusChanged=Decimal("-1167792143.0"),
     ...         lastModifiedBy='example@example.com',
-    ...         createdOn=datetime(2006, 11, 29, 12, 25, 31, tzinfo=utc),
-    ...         remindOn=datetime(2006, 11, 30, 12, 25, 31, tzinfo=utc)
+    ...         createdOn=datetime(2006, 11, 29, 12, 25, 31, tzinfo=utc)
     ... )
 
     >>> rs = sharing.RecordSet([rec])
@@ -51,13 +50,12 @@ Importing:
     u'Translator test'
 
     >>> item.triageStatus
-    u'later'
+    TriageEnum.later
 
     >>> item.createdOn == datetime(2006, 11, 29, 12, 25, 31, tzinfo=utc)
     True
 
 TODO: lastModifiedBy
-TODO: remindOn
 
 
 Exporting:
@@ -68,10 +66,9 @@ is being used because t-s-c doesn't round-trip precisely)
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: UTC>), None)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: UTC>))]
 
 TODO: lastModifiedBy
-TODO: remindOn
 
 
 
@@ -106,7 +103,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: UTC>), None), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: UTC>)), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None)]
 
 TODO: icaluid
 
@@ -142,4 +139,4 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: UTC>), None), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, datetime.datetime(2006, 11, 29, 12, 25, 31, tzinfo=<ICUtzinfo: UTC>)), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]

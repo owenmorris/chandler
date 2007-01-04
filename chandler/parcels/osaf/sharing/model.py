@@ -33,6 +33,18 @@ eventStatusFilter = sharing.Filter('cid:event-status-filter@osaf.us',
 remindersFilter = sharing.Filter('cid:reminders-filter@osaf.us', u"Reminders")
 
 
+
+
+
+class CollectionRecord(sharing.Record):
+    URI = "http://osafoundation.org/eim/collection"
+
+    uuid = sharing.key(schema.UUID)
+
+
+
+
+
 class ItemRecord(sharing.Record):
     URI = "http://osafoundation.org/eim/item"
 
@@ -43,8 +55,6 @@ class ItemRecord(sharing.Record):
         decimal_places=2), [triageFilter])
     lastModifiedBy = sharing.field(text256) # storing an email address
     createdOn = sharing.field(sharing.TimestampType)
-    remindOn = sharing.field(sharing.TimestampType, [remindersFilter])
-        # reminder in absolute datetime
 
 class NoteRecord(sharing.Record):
     URI = "http://osafoundation.org/eim/note"
@@ -71,10 +81,6 @@ class EventRecord(sharing.Record):
     exdate = sharing.field(text1024)
     recurrenceid = sharing.field(text20)
     status = sharing.field(text256, [eventStatusFilter])
-    trigger = sharing.field(sharing.IntType, [remindersFilter]) # reminder,
-                                             # in seconds after
-                                             # dtstart; negative value means
-                                             # prior to dtstart
 
     # anyTime -- may need for Apple iCal?
     # allDay
