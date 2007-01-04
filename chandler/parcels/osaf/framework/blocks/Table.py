@@ -761,7 +761,7 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
             
         # Sometimes you need a non-readonly collection. Should we be
         # checking if the collection has an 'add' attribute too?
-        if not (writable and not collection.isReadOnly()):
+        if not (writable and collection.isReadOnly()):
             return collection
 
     def onSetContentsEvent (self, event):
