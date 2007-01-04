@@ -54,7 +54,8 @@ class ItemRecord(sharing.Record):
     triageStatusChanged = sharing.field(sharing.DecimalType(digits=11,
         decimal_places=2), [triageFilter])
     lastModifiedBy = sharing.field(text256) # storing an email address
-    createdOn = sharing.field(sharing.TimestampType)
+    createdOn = sharing.field(sharing.DecimalType(digits=20,
+        decimal_places=0))
 
 class NoteRecord(sharing.Record):
     URI = "http://osafoundation.org/eim/note"

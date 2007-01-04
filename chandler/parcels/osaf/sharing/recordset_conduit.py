@@ -307,3 +307,6 @@ class InMemoryRecordSetConduit(RecordSetConduit):
         text = self.serializer.serialize(recordsets)
 
         return str(current), text
+
+    def dump(self):
+        print shareDict

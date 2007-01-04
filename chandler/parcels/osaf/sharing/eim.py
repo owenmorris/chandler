@@ -843,7 +843,7 @@ add_converter(ClobType, unicode, unicode)
 
 
 
-UUIDType = BytesType("cid:uuid_type@osaf.us", size=36)
+UUIDType = TextType("cid:uuid_type@osaf.us", size=36)
 typedef(schema.UUID, UUIDType)
 
 def uuid_converter(uuid):

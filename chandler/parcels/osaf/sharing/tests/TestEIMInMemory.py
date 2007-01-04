@@ -109,6 +109,7 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
             n = view1.findUUID(uuid)
             self.assertEqual(self.uuids[uuid], n.displayName)
 
+        self.share0.conduit.dump()
 
 if __name__ == "__main__":
     unittest.main()

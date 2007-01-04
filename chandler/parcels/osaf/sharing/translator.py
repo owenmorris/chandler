@@ -2,8 +2,9 @@ from application import schema
 from osaf import pim
 from osaf.sharing import eim, model
 from PyICU import ICUtzinfo
-import decimal
-
+import time
+from datetime import datetime
+from decimal import Decimal
 
 
 class PIMTranslator(eim.Translator):
@@ -23,8 +24,9 @@ class PIMTranslator(eim.Translator):
         utc = ICUtzinfo.getInstance('UTC')
 
         if record.createdOn is not eim.NoChange:
-            # This assumes the createdOn field has no timezone:
-            inUTC = record.createdOn.replace(tzinfo=utc)
+            # createdOn is a Decimal we need to change to datetime
+            naive = datetime.utcfromtimestamp(float(record.createdOn))
+            inUTC = naive.replace(tzinfo=utc)
             # Convert to user's tz:
             createdOn = inUTC.astimezone(ICUtzinfo.default)
 
@@ -49,9 +51,9 @@ class PIMTranslator(eim.Translator):
             item.itsUUID,                               # uuid
             item.displayName,                           # title
             str(item.triageStatus),                     # triageStatus
-            decimal.Decimal("%.2f" % item.triageStatusChanged), # t_s_changed
+            Decimal("%.2f" % item.triageStatusChanged), # t_s_changed
             None,                                       # lastModifiedBy
-            item.createdOn.astimezone(utc)              # createdOn
+            Decimal(int(time.mktime(item.createdOn.timetuple()))) # createdOn
         )
 
 

@@ -27,7 +27,7 @@ def serializeValue(typeinfo, value):
 
 @serializeValue.when_type(sharing.BytesType)
 def serialize_bytes(typeinfo, value):
-    return value
+    return base64.b64encode(value)
 
 @serializeValue.when_type(sharing.IntType)
 def serialize_int(typeinfo, value):
@@ -49,9 +49,9 @@ def serialize_clob(typeinfo, value):
 # @serializeValue.when_type(sharing.DateType)
 # def serialize_date(typeinfo, value):
 
-@serializeValue.when_type(sharing.TimestampType)
-def serialize_date(typeinfo, value):
-    return value.strftime("%Y-%m-%dT%H:%M:%SZ")
+# @serializeValue.when_type(sharing.TimestampType)
+# def serialize_date(typeinfo, value):
+#     return value.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 @serializeValue.when_type(sharing.DecimalType)
 def serialize_decimal(typeinfo, value):
@@ -67,7 +67,7 @@ def deserializeValue(typeinfo, text):
 
 @deserializeValue.when_type(sharing.BytesType)
 def deserialize_bytes(typeinfo, text):
-    return text
+    return base64.b64decode(text)
 
 @deserializeValue.when_type(sharing.IntType)
 def deserialize_int(typeinfo, text):
@@ -93,11 +93,11 @@ def deserialize_decimal(typeinfo, text):
 # @deserializeValue.when_type(sharing.DateType)
 # def deserialize_date(typeinfo, text):
 
-@deserializeValue.when_type(sharing.TimestampType)
-def deserialize_date(typeinfo, text):
-    tuples = time.strptime(text, "%Y-%m-%dT%H:%M:%SZ")[0:6]
-    utc = ICUtzinfo.getInstance('UTC')
-    return datetime.datetime(*tuples).replace(tzinfo=utc)
+# @deserializeValue.when_type(sharing.TimestampType)
+# def deserialize_date(typeinfo, text):
+#     tuples = time.strptime(text, "%Y-%m-%dT%H:%M:%SZ")[0:6]
+#     utc = ICUtzinfo.getInstance('UTC')
+#     return datetime.datetime(*tuples).replace(tzinfo=utc)
 
 
 
