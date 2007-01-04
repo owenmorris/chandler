@@ -303,6 +303,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self._status |= RepositoryView.REFRESHING
                 forwards = False
                 while True:
+                    txnStatus = 0
                     try:
                         txnStatus = self._startTransaction(False)
                         forwards = self._refresh(mergeFn, version, notify)

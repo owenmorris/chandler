@@ -218,6 +218,9 @@ class DBRepository(OnDemandRepository):
 
         env = DBEnv()
 
+        if not ramdb and kwds.get('mvcc', False):
+            env.tx_max = 256
+
         if configure and not ramdb:
             db_info = file(join(dbHome, 'DB_INFO'), 'w+b')
             try:
@@ -852,10 +855,14 @@ class DBStore(Store):
 
     def open(self, **kwds):
 
-        self._ramdb = kwds.get('ramdb', False)
-        self._mvcc = kwds.get('mvcc', False)
+        if kwds.get('ramdb', False):
+            self._ramdb = True
+            self._mvcc = False
+        else:
+            self._ramdb = False
+            self._mvcc = kwds.get('mvcc', False)
+
         txnStatus = 0
-        
         try:
             txnStatus = self.startTransaction(None)
             txn = self.txn

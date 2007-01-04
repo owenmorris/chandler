@@ -53,7 +53,7 @@ class DBContainer(object):
         flags = DB.DB_THREAD | self._flags;
         if create:
             flags |= DB.DB_CREATE
-        if mvcc:
+        if mvcc and not ramdb:
             flags |= DB.DB_MULTIVERSION
 
         db.open(filename = name, dbname = dbname,
