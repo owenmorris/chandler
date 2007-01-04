@@ -21,7 +21,6 @@ from Block import (
 )
 from osaf.pim.structs import PositionType, SizeType
 import DragAndDrop
-from MenusAndToolbars import Toolbar as Toolbar
 from repository.item.Item import Item
 from application import schema
 import wx
@@ -85,102 +84,6 @@ class BoxContainer(RectangularChild):
         return widget
 
     
-class wxLayoutChooser(wxBoxContainer):
-    def __init__(self, *arguments, **keywords):
-        super (wxLayoutChooser, self).__init__ (*arguments, **keywords)
-            
-    def wxSynchronizeWidget(self, useHints=False):
-        selectedChoice = self._getSelectedChoice()
-        if selectedChoice != self.blockItem.selection:
-            for childBlock in self.blockItem.childrenBlocks:
-                if not isinstance(childBlock, Toolbar):
-                    childBlock.parentBlock = None
-                    if hasattr(childBlock, 'widget'):
-                        childBlock.widget.Destroy()
-            super(wxLayoutChooser, self).wxSynchronizeWidget()
-
-            try: # @@@ Until all the views have the necessary choices
-                choice = self.blockItem.choices[selectedChoice]
-            except IndexError:
-                choice = self.blockItem.choices[0]
-            self.blockItem.selection = selectedChoice
-            sizer = self.GetSizer()
-            choice.parentBlock = self.blockItem
-            choice.render()
-            sizer.Add(choice.widget,
-                      choice.stretchFactor,
-                      wxRectangularChild.CalculateWXFlag(choice),
-                      wxRectangularChild.CalculateWXBorder(choice))
-            self.Layout()    
-
-    def setSelectedChoice(self, selectedIndex):
-        index = 0
-        for childBlock in self.blockItem.childrenBlocks:
-            if isinstance(childBlock, Toolbar):
-                for toolbarItem in childBlock.widget.toolItemList:
-                    toolbarItemId = toolbarItem.widget.GetId()
-                    if index == selectedIndex:
-                        if not childBlock.widget.GetToolState(toolbarItemId):                                
-                            childBlock.widget.ToggleTool(toolbarItemId, True)                            
-                    else:
-                        if childBlock.widget.GetToolState(toolbarItemId):
-                            childBlock.widget.ToggleTool(toolbarItemId, False)
-                    index += 1
-                                        
-    def _getSelectedChoice(self):
-        index = 0
-        for childBlock in self.blockItem.childrenBlocks:
-            if isinstance(childBlock, Toolbar):
-                for toolbarItem in childBlock.widget.toolItemList:
-                    if childBlock.widget.GetToolState(toolbarItem.widget.GetId()):
-                        return index
-                    index += 1
-        # @@@ On the Mac, the radio buttons are not given a default selection.
-        # This is a bug in wxWidgets that should be fixed.
-        return 0
-            
-    def getIdPos(self, id):
-        index = 0
-        for childBlock in self.blockItem.childrenBlocks:
-            if isinstance(childBlock, Toolbar):
-                for toolbarItem in childBlock.widget.toolItemList:
-                    if id == toolbarItem.widget.GetId():
-                        return index
-                    index += 1
-        return LayoutChooser.NONE_SELECTED
-    
-
-class LayoutChooser(BoxContainer):
-
-    choices = schema.Sequence(Block)
-    schema.addClouds(
-        copying = schema.Cloud(byCloud=[choices])
-    )
-
-    NONE_SELECTED = -1
-    
-    def instantiateWidget (self):
-        self.selection = LayoutChooser.NONE_SELECTED
-
-        parentWidget = self.parentBlock.widget 
-        return wxLayoutChooser(parentWidget, self.getWidgetID())
-
-    def changeSelection(self, selectionIndex):
-        self.widget.setSelectedChoice(selectionIndex)
-        self.synchronizeWidget()
-
-    def onChangeLayoutEvent(self, event):
-        # @@@ On the Mac, radio buttons do not work as radio
-        # buttons, but rather they behave as individual toggle
-        # buttons.  As a workaround, we deselect the other 
-        # radio buttons.
-        if '__WXMAC__' in wx.PlatformInfo:
-            itemId = event.arguments['sender'].widget.GetId()
-            pos = self.widget.getIdPos(itemId)
-            self.widget.setSelectedChoice(pos)
-        self.synchronizeWidget()
-
-        
 class wxScrolledContainer (wx.ScrolledWindow):
     def wxSynchronizeWidget(self, useHints=False):
         if self.blockItem.isShown:

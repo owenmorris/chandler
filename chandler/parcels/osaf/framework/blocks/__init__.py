@@ -27,7 +27,7 @@ from Block import (
 )
 
 from ContainerBlocks import (
-    BoxContainer, FrameWindow, LayoutChooser, ScrolledContainer,
+    BoxContainer, FrameWindow, ScrolledContainer,
     SplitterWindow, TabbedContainer, ViewContainer
 )
 
