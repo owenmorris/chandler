@@ -254,7 +254,7 @@ COMMAND_LINE_OPTIONS = {
     'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions or until <check> or <repair> passes'),
     'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
     'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
-    'mvcc':       ('',   '--mvcc',       'b', False, None, 'run repository with multi version concurrency control'),
+    'mvcc':       ('',   '--mvcc',       'b', False, 'MVCC', 'run repository with multi version concurrency control'),
 }
 
 def initDefaults(**kwds):
@@ -266,10 +266,13 @@ def initDefaults(**kwds):
     class _options(object): pass
     options = _options()
 
-    for name, (x, x, x, defaultValue, environName,
+    for name, (x, x, optionType, defaultValue, environName,
                x) in COMMAND_LINE_OPTIONS.iteritems():
         if environName and environName in os.environ:
-            defaultValue = os.environ[environName]
+            if optionType == 'b':
+                defaultValue = True
+            else:
+                defaultValue = os.environ[environName]
         setattr(options, name, defaultValue)
     options.__dict__.update(kwds)
 
@@ -290,7 +293,10 @@ def initOptions(**kwds):
                environName, helpText) in COMMAND_LINE_OPTIONS.iteritems():
 
         if environName and environName in os.environ:
-            defaultValue = os.environ[environName]
+            if optionType == 'b':
+                defaultValue = True
+            else:
+                defaultValue = os.environ[environName]
 
         if optionType == 'b':
             parser.add_option(shortCmd,
