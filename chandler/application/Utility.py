@@ -34,7 +34,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "291" # grant: Move icalUID from EventStamp to Note 
+SCHEMA_VERSION = "292" # stearns: more dashboard column method indexes
 
 logger = None # initialized in initLogging()
 

@@ -25,26 +25,19 @@ import wx.grid
 CommunicationStatus = pim.mail.CommunicationStatus
 
 # IndexDefinition subclasses for the dashboard indexes
-# These all create 'compare' indexes for now, and add the comparison function
-# to ContentItem - the functions take two items. Eventually, they'll probably
-# be rewritten as 'method' indexes; the functions will take two UUIDs and won't 
-# need to be added to ContentItem.
-def compareForDashboardTaskColumn(item1, item2):
-    return (cmp(not pim.has_stamp(item1, pim.TaskStamp), 
-                not pim.has_stamp(item2, pim.TaskStamp)) or
-            cmp(getattr(item1, 'triageStatus', pim.TriageEnum.done), 
-                getattr(item2, 'triageStatus', pim.TriageEnum.done)) or
-            cmp(getattr(item1, 'triageStatusChanged', 0), 
-                getattr(item2, 'triageStatusChanged', 0)))
-pim.ContentItem.compareForDashboardTaskColumn = compareForDashboardTaskColumn
-
-class TaskColumnIndexDefinition(pim.IndexDefinition):
-    def makeIndexOn(self, collection):
-        collection.addIndex(self.itsName, 'compare',
-                            compare='compareForDashboardTaskColumn',
-                            monitor=(pim.ContentItem.displayName.name,
-                                     pim.ContentItem.triageStatus.name,
-                                     pim.ContentItem.triageStatusChanged.name,))
+class TaskColumnIndexDefinition(pim.MethodIndexDefinition):
+    findParams = (
+        (pim.Stamp.stamp_types.name, []),
+        ('displayName', u''),
+        ('triageStatus', pim.TriageEnum.done),
+        ('triageStatusChanged', 0)
+    )
+    def compare(self, u1, u2):
+        def getCompareTuple(uuid):
+            stamp_types, displayName, triage, triageChanged = \
+                self.itsView.findValues(uuid, *self.findParams)
+            return (pim.TaskStamp in stamp_types, displayName, triage, triageChanged)
+        return cmp(getCompareTuple(u1), getCompareTuple(u2))
 
 class CommunicationColumnIndexDefinition(pim.MethodIndexDefinition):
     findParams = (
@@ -69,31 +62,70 @@ class CommunicationColumnIndexDefinition(pim.MethodIndexDefinition):
 
         return cmp(getCompareTuple(u1), getCompareTuple(u2))
     
-def compareForDashboardCalendarColumn(item1, item2):
-    def remState(item):
-        if pim.Remindable(item).getUserReminder(expiredToo=True) is not None:
-            return 0
-        if pim.has_stamp(item, pim.EventStamp):
-            return 1
-        return 2
-    return (cmp(remState(item1), remState(item2)) or
-            cmp(getattr(item1, 'displayDate', pim.Reminder.farFuture), 
-                getattr(item2, 'displayDate', pim.Reminder.farFuture)) or
-            cmp(getattr(item1, 'triageStatus', pim.TriageEnum.done), 
-                getattr(item2, 'triageStatus', pim.TriageEnum.done)) or
-            cmp(getattr(item1, 'triageStatusChanged', 0), 
-                getattr(item2, 'triageStatusChanged', 0)))
-pim.ContentItem.compareForDashboardCalendarColumn = compareForDashboardCalendarColumn
-        
-class CalendarColumnIndexDefinition(pim.IndexDefinition):
-    def makeIndexOn(self, collection):
-        collection.addIndex(self.itsName, 'compare',
-                            compare='compareForDashboardCalendarColumn',
-                            monitor=(pim.Remindable.reminders.name,
-                                     pim.Stamp.stamp_types.name,
-                                     pim.ContentItem.displayDate.name,
-                                     pim.ContentItem.triageStatus.name,
-                                     pim.ContentItem.triageStatusChanged.name,))
+class CalendarColumnIndexDefinition(pim.MethodIndexDefinition):
+    findParams = (
+        (pim.Stamp.stamp_types.name, []),
+        (pim.Remindable.reminders.name, None),
+        (pim.Remindable.expiredReminders.name, None),
+        ('displayDate', pim.Reminder.farFuture),
+        ('triageStatus', pim.TriageEnum.done),
+        ('triageStatusChanged', 0)
+    )
+    def compare(self, u1, u2):
+        def getCompareTuple(uuid):
+            stamp_types, reminders, expiredReminders, displayDate, triage, triageChanged = \
+                self.itsView.findValues(uuid, *self.findParams)
+            
+            # We need to do this:
+            #   hasUserReminder = pim.Remindable(item).getUserReminder(expiredToo=True) is not None
+            # while avoiding loading the items. @@@ Note: This code matches the 
+            # implementation of Remindable.getUserReminder - be sure to change 
+            # that if you change this!
+            def hasAUserReminder(remList):
+                if remList is not None:
+                    for reminderUUID in remList.iterkeys():
+                        userCreated = self.itsView.findValue(reminderUUID, 'userCreated', False)
+                        if userCreated:
+                            return True
+                return False
+            hasUserReminder = hasAUserReminder(reminders) or \
+                              hasAUserReminder(expiredReminders)
+            if hasUserReminder:
+                reminderState = 0
+            elif pim.EventStamp in stamp_types:
+                reminderState = 1
+            else:
+                reminderState = 2
+                
+            return (reminderState, displayDate, triage, triageChanged)
+
+        return cmp(getCompareTuple(u1), getCompareTuple(u2))
+
+class WhoColumnIndexDefinition(pim.MethodIndexDefinition):
+    findParams = (
+        ('displayWho', u''),
+        ('triageStatus', pim.TriageEnum.done),
+        ('triageStatusChanged', 0)
+    )
+    def compare(self, u1, u2):
+        def getCompareTuple(uuid):
+            displayWho, triage, triageChanged = \
+                self.itsView.findValues(uuid, *self.findParams)                    
+            return (displayWho.lower(), triage, triageChanged)
+        return cmp(getCompareTuple(u1), getCompareTuple(u2))
+
+class TitleColumnIndexDefinition(pim.MethodIndexDefinition):
+    findParams = (
+        ('displayName', u''),
+        ('triageStatus', pim.TriageEnum.done),
+        ('triageStatusChanged', 0)
+    )
+    def compare(self, u1, u2):
+        def getCompareTuple(uuid):
+            displayName, triage, triageChanged = \
+                self.itsView.findValues(uuid, *self.findParams)                    
+            return (displayName.lower(), triage, triageChanged)
+        return cmp(getCompareTuple(u1), getCompareTuple(u2))
 
 class WhoAttributeEditor(attributeEditors.StringAttributeEditor):
     def GetTextToDraw(self, item, attributeName):
@@ -458,7 +490,8 @@ def makeSummaryBlocks(parcel):
         scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
         readOnly=True,
         indexName='%s.taskStatus' % __name__,
-        baseClass=TaskColumnIndexDefinition)
+        baseClass=TaskColumnIndexDefinition,
+        attributes=list(dict(TaskColumnIndexDefinition.findParams)),)
 
     commColumn = makeColumnAndIndexes('SumColMail',
         icon='ColHMail',
@@ -482,11 +515,8 @@ def makeSummaryBlocks(parcel):
         attributeName='displayWho',
         attributeSourceName = 'displayWhoSource',
         format='who',
-        attributes=[
-            pim.ContentItem.displayWho.name,
-            pim.ContentItem.triageStatus.name, 
-            pim.ContentItem.triageStatusChanged.name,
-        ])
+        baseClass=WhoColumnIndexDefinition,
+        attributes=list(dict(WhoColumnIndexDefinition.findParams)),)
     
     titleColumn = makeColumnAndIndexes('SumColAbout',
         heading=_(u'Title'),
@@ -494,11 +524,8 @@ def makeSummaryBlocks(parcel):
         scaleColumn = wx.grid.Grid.GRID_COLUMN_SCALABLE,
         indexName='%s.displayName' % __name__,
         attributeName='displayName',
-        attributes=[
-            pim.ContentItem.displayName.name, 
-            pim.ContentItem.triageStatus.name, 
-            pim.ContentItem.triageStatusChanged.name,
-        ])
+        baseClass=TitleColumnIndexDefinition,
+        attributes=list(dict(TitleColumnIndexDefinition.findParams)),)
 
     reminderColumn = makeColumnAndIndexes('SumColCalendarEvent',
         icon = 'ColHEvent',
@@ -509,7 +536,8 @@ def makeSummaryBlocks(parcel):
         scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
         readOnly = True,
         indexName = '%s.calendarStatus' % __name__,
-        baseClass=CalendarColumnIndexDefinition)
+        baseClass=CalendarColumnIndexDefinition,
+        attributes=list(dict(CalendarColumnIndexDefinition.findParams)),)
 
     dateColumn = makeColumnAndIndexes('SumColDate',
         heading = _(u'Date'),

@@ -163,6 +163,8 @@ class Remindable(schema.Annotation):
         instead of just returning the reminder, we can return a
         tuple containing (the reflist we found it in, and the reminder).
         """
+        # @@@ Note: This code is reimplemented in the index for the dashboard
+        # calendar column: be sure to change that if you change this!
         attrsToSearch = (expiredToo and (Remindable.reminders,
                                          Remindable.expiredReminders)
                                     or (Remindable.reminders,))

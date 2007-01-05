@@ -274,6 +274,10 @@ def _mergeFunction(code, item, attribute, value):
     # return value                              # Let changes from the
                                                 # main view win
 
+# We'll create a singleton item to remember our locale, to detect changes.
+class LocaleInfo(schema.Item):
+    localeName = schema.One(schema.Text)
+
 class wxApplication (wx.App):
 
     outputWindowClass = feedback.FeedbackWindow
@@ -433,11 +437,19 @@ class wxApplication (wx.App):
 
         self.UIRepositoryView = view
 
+        # If the locale changed, force index rebuild. (We'll save the locale
+        # below if it changed - we'll need the parcels loaded for that)
+        if self.localeChanged():
+            view.check(True)
+            
         # Load Parcels
         if splash:
             splash.updateGauge('parcels')
         Utility.initParcels(view, parcelPath)
 
+        # Now that the parcel world exists, save our locale for next time.
+        self.saveLocale()
+        
         self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
         self.Bind(wx.EVT_TOOL, self.OnCommand, id=-1)
         self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
@@ -555,6 +567,41 @@ class wxApplication (wx.App):
 
         return True    # indicates we succeeded with initialization
 
+    def localeChanged(self):
+        """
+        See if the locale changed since the last time we ran Chandler.
+        (Called at startup to see if we need to blow away any locale-sensitive
+        repository indexes. Only checks once, then caches the result in a non-
+        persistent attribute)
+        """
+        itChanged = getattr(self, '_localeChanged', None)
+        if itChanged is not None:
+            return itChanged
+        
+        localeInfo = self.UIRepositoryView.findPath('//parcels/localeInfo')
+        if localeInfo is None:
+            return False # we've never recorded a locale, so it can't have changed.
+        
+        import i18n
+        itChanged = localeInfo.localeName != i18n.getLocaleSet()[0]
+        self._localeChanged = itChanged
+        return itChanged
+    
+    def saveLocale(self):
+        """ Save our locale, if it changed or we hadn't saved it yet """
+        # Don't bother saving unless it changed.
+        if not getattr(self, '_localeChanged', True):
+            return
+        import i18n
+        localeInfo = self.UIRepositoryView.findPath('//parcels/localeInfo')
+        localeName = i18n.getLocaleSet()[0]
+        if localeInfo is None:
+            localeInfo = LocaleInfo.update(self.UIRepositoryView.getRoot('parcels'),
+                                           'localeInfo',
+                                           localeName=localeName)
+        else:
+            localeInfo.localeName = localeName
+        
     def LoadMainViewRoot (self, delete=False):
         mainViewRoot = self.UIRepositoryView.findPath('//parcels/osaf/views/main/MainViewRoot')
 
