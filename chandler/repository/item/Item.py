@@ -2350,6 +2350,12 @@ class Watch(Item):
                                     view.find(type(self).kind))
 
         self.watchingItem = watchingItem
+        self.setPinned()
+
+    def _fillItem(self, *args):
+
+        super(Watch, self)._fillItem(*args)
+        self.setPinned()
 
 
 class WatchSet(Watch):

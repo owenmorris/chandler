@@ -96,7 +96,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             self._roots._clearDirties()
             self.setDirty(0)
 
-        self.prune(10000)
+        self.prune(self.pruneSize)
 
     def queryItems(self, kind=None, attribute=None):
 
@@ -346,7 +346,8 @@ class DBRepositoryView(OnDemandRepositoryView):
             else:
                 self._refreshForwards(mergeFn, newVersion, False)
 
-            self.prune(10000)
+            if not self._status & RepositoryView.COMMITTING:
+                self.prune(self.pruneSize)
             return True
 
         elif newVersion == self.itsVersion:
@@ -695,6 +696,8 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self._status &= ~RepositoryView.COMMITTING
                 if release:
                     self._releaseExclusive()
+
+        self.prune(self.pruneSize)
 
     def _saveItem(self, item, newVersion, itemWriter):
 

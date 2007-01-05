@@ -46,15 +46,16 @@ class DBContainer(object):
         db = DB(self.store.env)
         db.lorder = 4321
         
+        flags = DB.DB_THREAD | self._flags
+
         if ramdb:
             name = None
             dbname = None
-
-        flags = DB.DB_THREAD | self._flags;
+        elif mvcc:
+            flags |= DB.DB_MULTIVERSION
+            
         if create:
             flags |= DB.DB_CREATE
-        if mvcc and not ramdb:
-            flags |= DB.DB_MULTIVERSION
 
         db.open(filename = name, dbname = dbname,
                 dbtype = DB.DB_BTREE, flags = flags, txn = txn)

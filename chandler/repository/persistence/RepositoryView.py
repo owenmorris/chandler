@@ -87,8 +87,10 @@ class RepositoryView(CView):
         if not name:
             name = threading.currentThread().getName()
 
-        if repository is not None and not repository.isOpen():
-            raise RepositoryError, "Repository is not open"
+        if repository is not None:
+            if not repository.isOpen():
+                raise RepositoryError, "Repository is not open"
+            self.pruneSize = repository.pruneSize
 
         super(RepositoryView, self).__init__(repository, name,
                                              RepositoryView.itsUUID)
@@ -1363,27 +1365,30 @@ class OnDemandRepositoryView(RepositoryView):
     def prune(self, size):
 
         registry = self._registry
-        
-        if len(registry) > size * 1.1:
+        viewSize = len(registry)
+
+        if viewSize > size * 1.2:
             gc.collect()
             heap = [(item._lastAccess, item.itsUUID)
                     for item in registry.itervalues()
                     if not item._status & (item.PINNED | item.DIRTY)]
-
+            heapSize = len(heap)
             heapq.heapify(heap)
 
-            count = len(heap) - int(size * 0.9)
+            count = viewSize - int(size * 0.8)
             if count > 0:
-                self.logger.info('pruning %d items', count)
                 debug = self.isDebug()
 
                 if self.isRefCounted():
-                    for i in xrange(count):
+                    for i in xrange(heapSize):
                         item = registry[heapq.heappop(heap)[1]]
                         itemRefs = item._refCount()
                         pythonRefs = sys.getrefcount(item)
                         if pythonRefs - itemRefs <= 3:
                             item._unloadItem(False, self)
+                            count -= 1
+                            if count == 0:
+                                break
                         elif debug:
                             self.logger.debug('not pruning %s (refCount %d)',
                                               item._repr_(),
@@ -1391,6 +1396,7 @@ class OnDemandRepositoryView(RepositoryView):
                 else:
                     for i in xrange(count):
                         registry[heapq.heappop(heap)[1]]._unloadItem(False, self)
+                self.logger.info('%s pruned to %d items', self, len(registry))
 
 
 class NullRepositoryView(RepositoryView):

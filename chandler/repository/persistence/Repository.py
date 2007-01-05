@@ -127,6 +127,7 @@ class Repository(CRepository):
 
         self._testing = kwds.get('testing', False)
         self._deferDelete = not kwds.get('nodeferdelete', False)
+        self.pruneSize = kwds.get('prune', 10000)
 
     def close(self):
         """
