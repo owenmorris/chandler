@@ -393,11 +393,8 @@ static PyObject *t_store_getTxn(t_store *self, void *data)
     {
         PyObject *txn = PyDict_GetItem(threaded, txn_NAME);
 
-        if (txn)
+        if (txn && txn != Py_None)
         {
-            if (txn == Py_None)
-                Py_RETURN_NONE;
-            
             if (!PyObject_TypeCheck(txn, &TransactionType))
             {
                 PyErr_SetObject(PyExc_TypeError, txn);
@@ -410,7 +407,7 @@ static PyObject *t_store_getTxn(t_store *self, void *data)
             return txn;
         }
 
-        PyErr_SetObject(PyExc_KeyError, txn_NAME);
+        Py_RETURN_NONE;
     }
 
     return NULL;
