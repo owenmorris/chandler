@@ -414,7 +414,6 @@ def getCurrentMailAccount(view, uuid=None):
 
     return account
 
-
 class connectionSecurityEnum(schema.Enumeration):
     values = "NONE", "TLS", "SSL"
 
@@ -649,8 +648,8 @@ class IMAPAccount(DownloadAccountBase):
 
     #This is contains the last downloaded IMAP Message UID
     messageDownloadSequence = schema.One(
-        schema.Long,
-        initialValue = 0L,
+        schema.Integer,
+        initialValue = 0,
     )
 
 

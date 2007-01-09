@@ -286,7 +286,7 @@ class IMAPClient(base.AbstractDownloadClient):
         nextUID = self._getNextUID()
 
         for message in msgs.itervalues():
-            luid = long(message['UID'])
+            luid = int(message['UID'])
 
             if luid < nextUID:
                 continue
