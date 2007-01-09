@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 REMOVE_NORMAL           = 1
 DELETE_DASHBOARD        = 2
 DELETE_LAST             = 3
-DASHBOARD_AND_READ_ONLY = 4
+IN_READ_ONLY_COLLECTION = 4
 READ_ONLY_SELECTED      = 5
 
 
@@ -40,7 +40,7 @@ dialogTextData = {
                       _(u"Removing it from '%(collectionName)s' will move it to the Trash.")),
           'multi'  : (_(u"This is your only instance of '%(itemName)s'."),
                       _(u"Removing it from '%(collectionName)s' will move it to the Trash."))},
-    DASHBOARD_AND_READ_ONLY :
+    IN_READ_ONLY_COLLECTION :
         { 'single' : (_(u"Read-only item"),
                       _(u"You cannot delete '%(itemName)s'. "
                         u"It belongs to the read-only collection '%(readOnlyCollectionName)s'.")),
@@ -100,7 +100,7 @@ def GetItemRemovalState(selectedCollection, item, view):
             if GetReadOnlyCollection(item, view) is None:
                 return DELETE_DASHBOARD
             else:
-                return DASHBOARD_AND_READ_ONLY
+                return IN_READ_ONLY_COLLECTION
         else:
             if len(memberItem.appearsIn) > 1:
                 return REMOVE_NORMAL
@@ -153,7 +153,7 @@ class DeleteDialog(wx.Dialog):
         # count whether Apply to alls should be shown
         self.countDict = {DELETE_DASHBOARD        : 0, 
                           DELETE_LAST             : 0,
-                          DASHBOARD_AND_READ_ONLY : 0,
+                          IN_READ_ONLY_COLLECTION : 0,
                           READ_ONLY_SELECTED      : 0}
 
         for item, state in itemsAndStates:
@@ -221,7 +221,7 @@ class DeleteDialog(wx.Dialog):
                         continue
                     else:
                         self.DeletePrompt()
-                elif state == DASHBOARD_AND_READ_ONLY:
+                elif state == IN_READ_ONLY_COLLECTION:
                     if self.readOnlyApplyAll:
                         continue
                     else:
@@ -235,7 +235,7 @@ class DeleteDialog(wx.Dialog):
         textDict = dict(collectionName = self.selectedCollection.displayName,
                         itemName       = item.displayName,
                         count          = self.countDict[state])
-        if state == DASHBOARD_AND_READ_ONLY:
+        if state == IN_READ_ONLY_COLLECTION:
             readOnlyCollection = GetReadOnlyCollection(item, self.view)
             textDict['readOnlyCollectionName'] = readOnlyCollection.displayName
         return textDict
@@ -263,7 +263,7 @@ class DeleteDialog(wx.Dialog):
         cardinality = self.countDict[state] > 1 and 'multi' or 'single'
         
         
-        if state == DASHBOARD_AND_READ_ONLY and cardinality == 'multi':
+        if state == IN_READ_ONLY_COLLECTION and cardinality == 'multi':
             self.checkbox.Show()
             self.checkbox.SetValue(False)
         else:
@@ -301,7 +301,7 @@ class DeleteDialog(wx.Dialog):
                 self.dashboardRemoveAll = True
             elif state == DELETE_LAST:
                 self.lastItemApplyAll = True
-            elif state == DASHBOARD_AND_READ_ONLY:
+            elif state == IN_READ_ONLY_COLLECTION:
                 self.readOnlyApplyAll = True
 
     def ProcessOK(self, evt):
@@ -340,4 +340,3 @@ class DeleteDialog(wx.Dialog):
 
     def _resize(self):
         self.Fit()
-

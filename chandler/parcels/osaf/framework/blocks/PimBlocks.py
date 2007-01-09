@@ -423,12 +423,23 @@ class FocusEventHandlers(Item):
             def deleteItem(item):
                 item.addToCollection(trash)
         
-        for selectedItem in selection:
-            deleteItem(getProxy(u'ui', selectedItem))
+        readonly  = []
+        for item in selection:
+            if DeleteDialog.GetReadOnlyCollection(item, self.itsView) is None:
+                deleteItem(getProxy(u'ui', item))
+            else:
+                readonly.append((item, DeleteDialog.IN_READ_ONLY_COLLECTION))
 
-        self.postEventByName("SelectItemsBroadcast",
-                             {'items': [],
-                              'collection': selectedCollection })
+        if len(readonly) == 0:
+            self.postEventByName("SelectItemsBroadcast",
+                                 {'items': [],
+                                  'collection': selectedCollection })
+        else:
+            DeleteDialog.ShowDeleteDialog(wx.GetApp().mainFrame,
+                                          view=self.itsView,
+                                          selectedCollection=selectedCollection,
+                                          itemsAndStates=readonly,
+                                          originalAction='delete')            
 
                         
 def isValidSelection(selection, selectedCollection):
