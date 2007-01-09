@@ -1066,11 +1066,20 @@ class ToolbarItem(Block.Block, DynamicChild):
                     if self.toolbarItemKind == 'Search':
                         # unlike most other Toolbar items, a 'search' item actually creates a
                         # real wx control
-                        tool = wx.SearchCtrl (theToolbar, id, "Search",
-                                            wx.DefaultPosition,
-                                            size=(200,-1),
-                                            style=wx.TE_PROCESS_ENTER)
-                        tool.SetName(self.title)
+                        tool = wx.SearchCtrl (theToolbar,
+                                              id,
+                                              "",
+                                              wx.DefaultPosition,
+                                              size=(200,-1),
+                                              style=wx.TE_PROCESS_ENTER)
+                        # show (x) cancel button
+                        tool.ShowCancelButton(1)
+                        # don't show search magnification icon
+                        tool.ShowSearchButton(0)
+                        # called when user clicks on (x) in search tool
+                        def ClearSearch(evt):
+                            tool.SetValue("")
+                        tool.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, ClearSearch)
                         tool.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand, id=id)
                         mixinAClass (tool, toolWidgetMixin)
                         theToolbar.AddControl (tool)

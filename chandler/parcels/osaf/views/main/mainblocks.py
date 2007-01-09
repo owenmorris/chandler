@@ -178,9 +178,9 @@ def makeMainView(parcel):
                 toolbarItemKind = 'Separator'),
             ToolbarItem.template('ApplicationBarSearchField',
                 event = main.Search,
-                title = u'',
+                title = u'', # text here will be the default, non-grey, editable text
                 toolbarItemKind = 'Search',
-                helpString = _(u'Search field - enter text to find')),
+                helpString = _(u'Command field - enter command, or /search to search')),
         ]
     ) # Toolbar ApplicationBar
 
