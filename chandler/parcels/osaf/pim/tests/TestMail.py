@@ -249,32 +249,36 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
 
     def testOrder(self):
         self.failUnless(Mail.CommunicationStatus.UPDATE      <
-                        Mail.CommunicationStatus.IN          <
                         Mail.CommunicationStatus.OUT         <
-                        Mail.CommunicationStatus.DRAFT       <
-                        Mail.CommunicationStatus.QUEUED      <
+                        Mail.CommunicationStatus.IN          <
+                        Mail.CommunicationStatus.NEITHER     <
+                        Mail.CommunicationStatus.EDITED      <
                         Mail.CommunicationStatus.SENT        <
+                        Mail.CommunicationStatus.ERROR       <
+                        Mail.CommunicationStatus.QUEUED      <
+                        Mail.CommunicationStatus.DRAFT       <
                         Mail.CommunicationStatus.NEEDS_REPLY <
-                        Mail.CommunicationStatus.READ        <
-                        Mail.CommunicationStatus.ERROR)
+                        Mail.CommunicationStatus.READ)
 
     def checkStatus(self, startStatus, *flagNames):
         expectedStatus = startStatus
         for name in flagNames:
             expectedStatus |= getattr(Mail.CommunicationStatus, name)
         status = Mail.CommunicationStatus(self.note).status
-        self.failUnlessEqual(status, expectedStatus)
+        self.failUnlessEqual(status, expectedStatus, 
+            "Unexpected communication status: got %s, expected %s" % 
+            (Mail.CommunicationStatus.dump(status), 
+             Mail.CommunicationStatus.dump(expectedStatus)))
                         
     def testNote(self):
-        
         self.checkStatus(0)
         self.note.changeEditState(Modification.edited)
-        self.checkStatus(0)
+        self.checkStatus(0, 'EDITED')
         
     def testMail(self):
         self.note = Note(itsView=self.rep.view)
         Mail.MailStamp(self.note).add()
-        self.checkStatus(0, 'DRAFT')
+        self.checkStatus(0, 'DRAFT', 'NEITHER')
                         
         # Remove the MailStamp; that should make it no longer a Draft
         Mail.MailStamp(self.note).remove()
@@ -287,17 +291,17 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
 
         mail = Mail.MailStamp(self.note)
         mail.add()
-        self.checkStatus(0, 'DRAFT')
+        self.checkStatus(0, 'DRAFT', 'NEITHER')
 
         inoutFlags = 0
         if incoming:
             inoutFlags |= Mail.CommunicationStatus.IN
             mail.toAddress = self.address
-
         if outgoing:
             inoutFlags |= Mail.CommunicationStatus.OUT
             mail.fromAddress = self.address
-        
+        elif not incoming:
+            inoutFlags |= Mail.CommunicationStatus.NEITHER
 
         self.checkStatus(inoutFlags, 'DRAFT')        
 
@@ -312,15 +316,15 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
         self.note.changeEditState(Modification.edited)
         # Check this one -- grant. Is UPDATE supposed to be enabled
         # before you've made edits
-        self.checkStatus(inoutFlags, 'UPDATE', 'DRAFT')
+        self.checkStatus(inoutFlags, 'UPDATE')
 
         # Remove the MailStamp; that should make it no longer a Draft
         mail.remove()
-        self.checkStatus(0)
+        self.checkStatus(0, 'EDITED')
         
         # Re-add the stamp
         mail.add()
-        self.checkStatus(inoutFlags, 'UPDATE', 'DRAFT')
+        self.checkStatus(inoutFlags, 'UPDATE')
                      
         # and finally, re-send it
         self.note.changeEditState(Modification.updated)

@@ -1615,20 +1615,50 @@ ACCOUNT_TYPES = {
 
 
 class CommunicationStatus(schema.Annotation):
+    """
+    Generate a value that expresses the communications status of an item, 
+    such that the values can be compared for indexing for the communications
+    status column of the Dashboard.
+    
+    The sort terms are:
+      1. unread, needs-reply, read
+      2. Not mail (and no error), sent mail, error, queued mail, draft mail
+      3a. If #2 is not mail: created, edited
+      3b. If #2 is mail: out, in, other
+      4b. If #2 is mail: firsttime, updated
+    """
     schema.kindInfo(annotates=items.ContentItem)
 
     # These flag bits govern the sort position of each communications state:
-    # UPDATE      =         1
-    # IN          =        1
-    # OUT         =       1
-    # DRAFT       =      1
-    # QUEUED      =     1
-    # SENT        =    1
-    # NEEDS_REPLY =   1
-    # READ        =  1
-    # ERROR       = 1
-    UPDATE, IN, OUT, DRAFT, QUEUED, SENT, NEEDS_REPLY, READ, ERROR = (
-        1<<n for n in xrange(9)
+    # Terms with set "1"s further left will sort earlier.
+    # 1:
+    # (unread has neither of these set)
+    # NEEDS_REPLY =  1
+    # READ        = 1
+
+    # 2:
+    # (non-mail has none of these set)
+    # SENT        =      1
+    # ERROR       =     1
+    # QUEUED      =    1
+    # DRAFT       =   1
+
+    # 3a:
+    # (created has this bit unset)
+    # EDITED      =       1
+        
+    # 3b:
+    # OUT         =          1
+    # IN          =         1
+    # NEITHER     =        1
+    
+    # 4b:
+    # (firsttime has this bit unset)
+    # UPDATE      =           1
+
+    
+    UPDATE, OUT, IN, NEITHER, EDITED, SENT, ERROR, QUEUED, DRAFT, NEEDS_REPLY, READ = (
+        1<<n for n in xrange(11)
     )
     
     @staticmethod
@@ -1653,15 +1683,14 @@ class CommunicationStatus(schema.Annotation):
             if items.Modification.sent in modifiedFlags:
                 result |= CommunicationStatus.UPDATE
     
-            # in
+            # in, out, neither
             if toMe:
                 result |= CommunicationStatus.IN
-            # out
             if fromMe:
                 result |= CommunicationStatus.OUT
-            # draft
-            if lastMod in (None, items.Modification.edited):
-                result |= CommunicationStatus.DRAFT
+            elif not toMe:
+                result |= CommunicationStatus.NEITHER
+                
             # queued
             if items.Modification.queued in modifiedFlags:
                 result |= CommunicationStatus.QUEUED
@@ -1671,6 +1700,14 @@ class CommunicationStatus(schema.Annotation):
             # sent
             if lastMod in (items.Modification.sent, items.Modification.updated):
                 result |= CommunicationStatus.SENT
+            # draft if it's not one of the above
+            if  result & (CommunicationStatus.SENT | CommunicationStatus.QUEUED
+                          | CommunicationStatus.UPDATE) == 0:
+                result |= CommunicationStatus.DRAFT
+        else:
+            # edited
+            if items.Modification.edited in modifiedFlags:
+                result |= CommunicationStatus.EDITED
                 
         # needsReply
         if needsReply:
@@ -1685,6 +1722,24 @@ class CommunicationStatus(schema.Annotation):
             result |= CommunicationStatus.ERROR
     
         return result
+    
+    @staticmethod
+    def dump(status):
+        """ 
+        For debugging (and helpful unit-test messages), explain our flags. 
+        'status' can be a set of flags, an item, or an item UUID.
+        """
+        if not isinstance(status, int):
+            status = CommunicationStatus.getItemCommState(status)
+        if status == 0:
+            return "(none)"
+        result = [ flagName for flagName in ('UPDATE', 'OUT', 'IN', 
+                                             'NEITHER', 'EDITED', 
+                                             'SENT', 'QUEUED', 
+                                             'DRAFT', 'NEEDS_REPLY', 
+                                             'READ')
+                   if status & getattr(CommunicationStatus, flagName)]
+        return '+'.join(result)
 
     attributeValues = (
         (items.ContentItem.modifiedFlags, set()),

@@ -41,24 +41,14 @@ class TaskColumnIndexDefinition(pim.MethodIndexDefinition):
 
 class CommunicationColumnIndexDefinition(pim.MethodIndexDefinition):
     findParams = (
-        ('read', False),
-        ('needsReply', False),
         ('triageStatus', pim.TriageEnum.done),
         ('triageStatusChanged', 0)
     )
     def compare(self, u1, u2):
-        def getCompareTuple(uuid):
-            read, needsReply, triage, triageChanged = \
-                self.itsView.findValues(uuid, *self.findParams)
-            
-            if not read:
-                readUnreadNeedsReplyState = 0
-            elif needsReply:
-                readUnreadNeedsReplyState = 1
-            else:
-                readUnreadNeedsReplyState = 2
-                
-            return (readUnreadNeedsReplyState, triage, triageChanged)
+        def getCompareTuple(uuid):                            
+            triage, triageChanged = self.itsView.findValues(uuid, *self.findParams)
+            commState = CommunicationStatus.getItemCommState(uuid, self.itsView)
+            return (commState, triage, triageChanged)
 
         return cmp(getCompareTuple(u1), getCompareTuple(u2))
     
@@ -504,7 +494,8 @@ def makeSummaryBlocks(parcel):
         indexName=CommunicationStatus.status.name,
         attributeName=CommunicationStatus.status.name,
         baseClass=CommunicationColumnIndexDefinition,
-        attributes=list(dict(CommunicationColumnIndexDefinition.findParams)),)
+        attributes=list(dict(CommunicationColumnIndexDefinition.findParams)) + \
+                   list(dict(pim.mail.CommunicationStatus.attributeValues)),)
 
     whoColumn = makeColumnAndIndexes('SumColWho',
         heading=_(u'Who'),
