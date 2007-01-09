@@ -30,28 +30,21 @@ READ_ONLY_SELECTED      = 5
 
 DELETE_STATES = (DELETE_DASHBOARD, DELETE_LAST)
 
-# structure is [itemState][cardinality](bold text, normal text)
+# structure is [itemState](title text, dialog text)
 dialogTextData = {
     DELETE_DASHBOARD :
-        { 'single' : (_(u""), _(u"Removing '%(itemName)s' from the Dashboard will move it to the Trash.")),
-          'multi'  : (_(u""), _(u"Removing '%(itemName)s' from the Dashboard will move it to the Trash."))},
+        (_(u"Remove from Dashboard"), 
+         _(u"Removing '%(itemName)s' from the Dashboard will move it to the Trash.")),
     DELETE_LAST :
-        { 'single' : (_(u"This is your only instance of '%(itemName)s'."),
-                      _(u"Removing it from '%(collectionName)s' will move it to the Trash.")),
-          'multi'  : (_(u"This is your only instance of '%(itemName)s'."),
-                      _(u"Removing it from '%(collectionName)s' will move it to the Trash."))},
+        (_(u"Only instance of item"),
+         _(u"Removing '%(itemName)s' from '%(collectionName)s' will move it to the Trash.")),
     IN_READ_ONLY_COLLECTION :
-        { 'single' : (_(u"Read-only item"),
-                      _(u"You cannot delete '%(itemName)s'. "
-                        u"It belongs to the read-only collection '%(readOnlyCollectionName)s'.")),
-          'multi'  : (_(u"%(count)s Read-only items"),
-                      _(u"You cannot delete '%(itemName)s'. "
-                        u"It belongs to the read-only collection '%(readOnlyCollectionName)s'."))},    
+        (_(u"Read-only item"),
+         _(u"You cannot delete '%(itemName)s'. "
+           u"It belongs to the read-only collection '%(readOnlyCollectionName)s'.")),
     READ_ONLY_SELECTED :
-        { 'single' : (_(u"Read-only collection"),
-                      _(u"You cannot make changes to '%(collectionName)s'")),
-          'multi'  : (_(u"Read-only collection"),
-                      _(u"You cannot make changes to '%(collectionName)s'"))},
+        (_(u"Read-only collection"),
+         _(u"You cannot make changes to '%(collectionName)s'")),
 }
 
 def GetReadOnlyCollection(item, view):
@@ -167,29 +160,9 @@ class DeleteDialog(wx.Dialog):
         self.resources.LoadOnDialog(pre, parent, "DeleteDialog")
         self.PostCreate(pre)
 
-        plural = len(itemsAndStates) > 1
-        textData = {'collectionName' : selectedCollection.displayName}
-        if originalAction == 'remove':
-            if plural:
-                title = _(u"Remove items from %(collectionName)s" % textData)
-            else:
-                title = _(u"Remove item from %(collectionName)s" % textData)
-        else:
-            if plural:
-                title = _(u"Move items to trash")
-            else:
-                title = _(u"Move item to trash")
-        
-        self.SetTitle(title)
-
-        self.boldText = wx.xrc.XRCCTRL(self, "BoldText")
-        self.normalText = wx.xrc.XRCCTRL(self, "NormalText")        
+        self.text = wx.xrc.XRCCTRL(self, "Text")
         self.checkbox = wx.xrc.XRCCTRL(self, "ApplyAll")
         
-        boldSize = self.Font.GetPointSize() + 1
-        bold = wx.Font(boldSize, wx.NORMAL, wx.NORMAL, wx.BOLD)        
-        self.boldText.SetFont(bold)
-
         self.Bind(wx.EVT_BUTTON, self.ProcessOK, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnDone, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_BUTTON, self.ProcessDelete,
@@ -243,27 +216,21 @@ class DeleteDialog(wx.Dialog):
     def SetText(self):
         item, state = self.itemsAndStates[self.itemNumber]
         textDict = self.GetTextDict()
-        cardinality = self.countDict[state] > 1 and 'multi' or 'single'
-        boldText, normalText = dialogTextData[state][cardinality]
+        title, text = dialogTextData[state]
+        
+        self.checkbox.SetLabel(_(u"Apply to all (%(count)s)") % textDict)
+        self.SetTitle(title % textDict)
+        
+        self.text.Show()
+        self.text.SetLabel(text % textDict)
+        self.text.Wrap(350)
 
-        self.boldText.SetLabel(boldText     % textDict)
-        self.normalText.SetLabel(normalText % textDict)
-        self.boldText.Wrap(350)
-        self.normalText.Wrap(350)
-        
-        if boldText == '':
-            self.boldText.Hide()
-        else:
-            self.boldText.Show()
-        
     def ReadOnlyPrompt(self):
         self.AdjustButtons()
 
-        item, state = self.itemsAndStates[self.itemNumber]
-        cardinality = self.countDict[state] > 1 and 'multi' or 'single'
+        item, state = self.itemsAndStates[self.itemNumber]        
         
-        
-        if state == IN_READ_ONLY_COLLECTION and cardinality == 'multi':
+        if state == IN_READ_ONLY_COLLECTION and self.countDict[state] > 1:
             self.checkbox.Show()
             self.checkbox.SetValue(False)
         else:
@@ -279,9 +246,8 @@ class DeleteDialog(wx.Dialog):
         self.AdjustButtons()
 
         item, state = self.itemsAndStates[self.itemNumber]
-        cardinality = self.countDict[state] > 1 and 'multi' or 'single'
         
-        if cardinality == 'multi':
+        if self.countDict[state] > 1:
             self.checkbox.Show()
             self.checkbox.SetValue(False)
         else:
@@ -337,6 +303,3 @@ class DeleteDialog(wx.Dialog):
             wx.xrc.XRCCTRL(self, "wxID_CANCEL").Hide()
             wx.xrc.XRCCTRL(self, "MoveToTrash").Hide()
             wx.xrc.XRCCTRL(self,     "wxID_OK").Show()
-
-    def _resize(self):
-        self.Fit()
