@@ -697,14 +697,16 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         
         menu = wx.Menu()
 
-        addTxt = _(u"Create a new item in '%(collection)s'") 
-        menuItem = wx.MenuItem(menu, wx.NewId(), addTxt % data)
-        menu.AppendItem(menuItem)
-        menuItem.Enable(self.blockItem.CanAdd())
-        eventcallback = lambda event: self.OnCreateItem(unscrolledPosition)
-        menu.Bind(wx.EVT_MENU, eventcallback, menuItem)
-        
-        if canvasItem:
+        if not canvasItem:
+            addTxt = _(u"Create a new item in '%(collection)s'") 
+            menuItem = wx.MenuItem(menu, wx.NewId(), addTxt % data)
+            menu.AppendItem(menuItem)
+            menuItem.Enable(self.blockItem.CanAdd())
+            eventcallback = lambda event: self.OnCreateItem(unscrolledPosition)
+            menu.Bind(wx.EVT_MENU, eventcallback, menuItem)
+
+            self.OnSelectNone(unscrolledPosition)        
+        else:
             item = canvasItem.item
             selection = self.blockItem.GetSelection()
             self.OnSelectItem(item)
@@ -729,9 +731,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             menu.AppendItem(menuItem)
             menuItem.Enable(self.blockItem.CanDelete())
             menu.Bind(wx.EVT_MENU, self.blockItem.onDeleteEvent, menuItem)
-
-        else:
-            self.OnSelectNone(unscrolledPosition)
             
         self.PopupMenu(menu, position)
 
