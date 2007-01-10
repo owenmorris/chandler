@@ -679,6 +679,8 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     name = line.name.lower()
                     if name not in attributesUnderstood:
                         line.transformFromNative()
+                        if not line.encoded and line.behavior:
+                            line.behavior.encode(line)
                         ignoredProperties[name] = line.value
                     params=u''
                     for key, paramvals in line.params.iteritems():
