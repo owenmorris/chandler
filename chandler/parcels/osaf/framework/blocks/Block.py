@@ -313,6 +313,11 @@ class Block(schema.Item):
                 wx.GetApp().needsUpdateUI = True
                 assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
                 self.widget = widget
+                
+                method = getattr (widget, "SetName", None)
+                if method is not None:
+                    method (self.blockName)
+
                 widget.blockItem = self
                 """
                 After the blocks are wired up, call OnInit if it exists.
