@@ -142,7 +142,7 @@ def publishSubscribe(testClass):
 
         # Two clicks are required to select the collection (this is the second)
         scripting.User.emulate_sidebarClick(sidebar, "testSharing")
-        App_ns.root.Remove()
+        App_ns.root.Remove({'testing' : True})
         scripting.User.idle()
 
         # Subscribe to the remote collection, forcing the subscribed name to
@@ -184,7 +184,7 @@ def publishSubscribe(testClass):
             # so remove this one when done
             collection = sidebarCollectionNamed('testSharing')
             sharing.unpublish(collection)
-            App_ns.root.Remove()
+            App_ns.root.Remove({'testing' : True})
         else:
             testClass.logger.endAction(False, "(On Subscribe collection)")
 
@@ -946,7 +946,7 @@ class UITestItem(object):
             if timeInfo:
                 self.logger.startAction("Remove collection")
             # Processing of the corresponding CPIA event
-            App_ns.root.Remove()
+            App_ns.root.Remove({'testing' : True})
             # give the Yield
             wx.GetApp().Yield()
             if timeInfo:

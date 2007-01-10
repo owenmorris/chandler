@@ -961,24 +961,24 @@ class SidebarBlock(Table):
         mineMessage = _(u'Do you want to delete the items in %(collectionName)s?')
         notMineMessage = _(u"Deleting %(collectionName)s will move its contents to the Trash")
         
-        for collection in self.contents.iterSelection():
-            dataDict = {'collectionName' : collection.displayName}
-            if collection in mine.sources:
-                shouldClearCollection = \
-                    promptYesNoCancel(mineMessage % dataDict,
-                                      viewsmain.clearCollectionPref)
-
-                if shouldClearCollection is None: # user pressed cancel
-                    return
-
-            else:
-                sure = Util.okCancel(parent=None, 
-                                     message=notMineMessage % dataDict,
-                                     caption=_(u"Delete collection"))
-                if not sure:
-                    return
-                
-
+        # don't pop up a dialog when running functional tests
+        if not event.arguments.get('testing'):
+            for collection in self.contents.iterSelection():
+                dataDict = {'collectionName' : collection.displayName}
+                if collection in mine.sources:
+                    shouldClearCollection = \
+                        promptYesNoCancel(mineMessage % dataDict,
+                                          viewsmain.clearCollectionPref)
+    
+                    if shouldClearCollection is None: # user pressed cancel
+                        return
+    
+                else:
+                    sure = Util.okCancel(parent=None, 
+                                         message=notMineMessage % dataDict,
+                                         caption=_(u"Delete collection"))
+                    if not sure:
+                        return
 
         def deleteItem(collection):
 
