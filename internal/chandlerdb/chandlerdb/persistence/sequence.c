@@ -380,14 +380,14 @@ static int t_sequence__set_cachesize(t_sequence *self, PyObject *value,
         return -1;
     }
 
-    if (!PyInt_CheckExact(value))
+    if (value && !PyInt_CheckExact(value))
     {
         PyErr_SetObject(PyExc_TypeError, value);
         return -1;
     }
 
     {
-        int32_t size = PyInt_AS_LONG(value);
+        int32_t size = value ? PyInt_AS_LONG(value) : 0;
         int err;
 
         Py_BEGIN_ALLOW_THREADS;
@@ -438,7 +438,7 @@ static int t_sequence__set_range(t_sequence *self, PyObject *value,
         return -1;
     }
 
-    if (!PyArg_ParseTuple(value, "LL", &min_r, &max_r))
+    if (!PyArg_ParseTuple(value ? value : Py_None, "LL", &min_r, &max_r))
         return -1;
 
     {
@@ -484,7 +484,7 @@ static PyObject *t_sequence__get_flags(t_sequence *self, void *data)
 static int t_sequence__set_flags(t_sequence *self, PyObject *value,
                                  void *data)
 {
-    u_int32_t flags = PyInt_AsLong(value);
+    u_int32_t flags = value ? PyInt_AsLong(value) : 0;
     
     if (!self->seq)
     {
@@ -569,7 +569,7 @@ static int t_sequence__set_initial_value(t_sequence *self, PyObject *value,
     }
 
     {
-        db_seq_t initial_value = PyLong_AsLongLong(value);
+        db_seq_t initial_value = value ? PyLong_AsLongLong(value) : 0;
 
         if (PyErr_Occurred())
             return -1;

@@ -271,7 +271,7 @@ static PyObject *t_txn_get_name(t_txn *self, void *data)
 
 static int t_txn_set_name(t_txn *self, PyObject *value, void *data)
 {
-    char *name = PyString_AsString(value);
+    char *name = value ? PyString_AsString(value) : "";
     int err;
 
     if (PyErr_Occurred())

@@ -18,7 +18,6 @@
 #include "item.h"
 #include "indexes.h"
 #include "../util/uuid.h"
-#include "../util/singleref.h"
 #include "../persistence/view.h"
 #include "../schema/kind.h"
 #include "../schema/attribute.h"
@@ -42,7 +41,7 @@
       Py_DECREF(fn); }
 
 
-extern PyTypeObject *SingleRef;
+extern PyTypeObject *ItemRef;
 extern PyTypeObject *CLinkedMap;
 extern PyTypeObject *CItem;
 extern PyTypeObject *CValues;
@@ -51,6 +50,7 @@ extern PyTypeObject *CAttribute;
 extern PyTypeObject *CDescriptor;
 extern PyTypeObject *ItemValue;
 extern PyTypeObject *StaleItemAttributeError;
+extern PyTypeObject *CView;
 
 extern PyObject *Nil;
 extern PyObject *Default;
@@ -63,8 +63,12 @@ extern long itemCount;
 extern CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange;
 
 void _init_item(PyObject *m);
+void _init_itemref(PyObject *m);
 void _init_values(PyObject *m);
 void _init_indexes(PyObject *m);
 
 PyObject *t_values__setDirty(t_values *self, PyObject *key);
 void PyDict_SetItemString_Int(PyObject *dict, char *key, int value);
+t_itemref *_t_itemref_new(PyObject *uuid, t_view *view, t_item *item);
+PyObject *t_itemref_call(t_itemref *self, PyObject *args, PyObject *kwds);
+t_item *_t_itemref_call(t_itemref *self); /* borrows reference */

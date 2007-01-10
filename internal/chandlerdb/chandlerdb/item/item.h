@@ -31,24 +31,32 @@
 
 typedef struct {
     PyObject_HEAD
-    PyObject *item;
+    PyObject *uuid;
+    PyObject *view;
+    struct _t_item *item;
+    PyObject *weakrefs;
+} t_itemref;
+
+typedef struct {
+    PyObject_HEAD
+    t_itemref *ref;
     PyObject *dict;
     PyObject *flags;
 } t_values;
 
-typedef struct {
+typedef struct _t_item {
     PyObject_HEAD
     Item_HEAD
     unsigned long lastAccess;
-    PyObject *uuid;
+    t_itemref *ref;
     t_values *values;
     t_values *references;
     PyObject *kind;
-    PyObject *parent;
+    PyObject *parentRef;              /* an ItemRef or a CView */
     PyObject *children;
-    PyObject *root;
     PyObject *acls;
     PyObject *c;
+    PyObject *weakrefs;
 } t_item;
 
 enum {

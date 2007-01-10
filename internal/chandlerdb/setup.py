@@ -35,7 +35,6 @@ def main():
     defines = []
     sources=['chandlerdb/util/uuid.c',
              'chandlerdb/util/pyuuid.c',
-             'chandlerdb/util/singleref.c',
              'chandlerdb/util/linkedmap.c',
              'chandlerdb/util/skiplist.c',
              'chandlerdb/util/hashtuple.c',
@@ -64,6 +63,7 @@ def main():
     extensions.append(Extension('chandlerdb.item.c',
                                 extra_compile_args = defines,
                                 sources=['chandlerdb/item/item.c',
+                                         'chandlerdb/item/itemref.c',
                                          'chandlerdb/item/values.c',
                                          'chandlerdb/item/indexes.c',
                                          'chandlerdb/item/c.c']))

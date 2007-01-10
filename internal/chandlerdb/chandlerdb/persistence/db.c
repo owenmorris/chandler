@@ -828,7 +828,7 @@ static PyObject *t_db_get_lorder(t_db *self, void *data)
 
 static int t_db_set_lorder(t_db *self, PyObject *value, void *data)
 {
-    int lorder = PyInt_AsLong(value);
+    int lorder = value ? PyInt_AsLong(value) : 0;
     int err;
 
     if (PyErr_Occurred())

@@ -200,6 +200,9 @@ static PyObject *t_point_getPrevKey(t_point *self, void *data)
 
 static int t_point_setPrevKey(t_point *self, PyObject *value, void *data)
 {
+    if (!value)
+        value = Py_None;
+
     Py_INCREF(value); Py_XDECREF(self->prevKey);
     self->prevKey = value;
 
@@ -218,6 +221,9 @@ static PyObject *t_point_getNextKey(t_point *self, void *data)
 
 static int t_point_setNextKey(t_point *self, PyObject *value, void *data)
 {
+    if (!value)
+        value = Py_None;
+
     Py_INCREF(value); Py_XDECREF(self->nextKey);
     self->nextKey = value;
 

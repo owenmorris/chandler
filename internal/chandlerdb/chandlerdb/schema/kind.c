@@ -226,10 +226,7 @@ static PyObject *t_kind_getAttribute(t_kind *self, PyObject *args)
             t_attribute *attr = descriptor->attr;
 
             if (attr)
-            {
-                PyObject *view = ((t_item *) self->kind->root)->parent;
-                return PyObject_GetItem(view, attr->attrID);
-            }
+                return PyObject_GetItem(self->kind->ref->view, attr->attrID);
         }
     }
 
@@ -249,15 +246,10 @@ static PyObject *t_kind_getMonitorSchema(t_kind *self, void *data)
 
 static int t_kind_setMonitorSchema(t_kind *self, PyObject *arg, void *data)
 {
-    if (arg == Py_True)
+    if (arg && PyObject_IsTrue(arg))
         self->flags |= MONITOR_SCHEMA;
-    else if (arg == Py_False)
-        self->flags &= ~MONITOR_SCHEMA;
     else
-    {
-        PyErr_SetObject(PyExc_ValueError, arg);
-        return -1;
-    }
+        self->flags &= ~MONITOR_SCHEMA;
 
     return 0;
 }
@@ -275,15 +267,10 @@ static PyObject *t_kind_getAttributesCached(t_kind *self, void *data)
 
 static int t_kind_setAttributesCached(t_kind *self, PyObject *arg, void *data)
 {
-    if (arg == Py_True)
+    if (arg && PyObject_IsTrue(arg))
         self->flags |= ATTRIBUTES_CACHED;
-    else if (arg == Py_False)
-        self->flags &= ~ATTRIBUTES_CACHED;
     else
-    {
-        PyErr_SetObject(PyExc_ValueError, arg);
-        return -1;
-    }
+        self->flags &= ~ATTRIBUTES_CACHED;
 
     return 0;
 }
@@ -301,15 +288,10 @@ static PyObject *t_kind_getSuperKindsCached(t_kind *self, void *data)
 
 static int t_kind_setSuperKindsCached(t_kind *self, PyObject *arg, void *data)
 {
-    if (arg == Py_True)
+    if (arg && PyObject_IsTrue(arg))
         self->flags |= SUPERKINDS_CACHED;
-    else if (arg == Py_False)
-        self->flags &= ~SUPERKINDS_CACHED;
     else
-    {
-        PyErr_SetObject(PyExc_ValueError, arg);
-        return -1;
-    }
+        self->flags &= ~SUPERKINDS_CACHED;
 
     return 0;
 }
@@ -328,15 +310,10 @@ static PyObject *t_kind_getDescriptorsInstalled(t_kind *self, void *data)
 static int t_kind_setDescriptorsInstalled(t_kind *self, PyObject *arg,
                                           void *data)
 {
-    if (arg == Py_True)
+    if (arg && PyObject_IsTrue(arg))
         self->flags |= DESCRIPTORS_INSTALLED;
-    else if (arg == Py_False)
-        self->flags &= ~DESCRIPTORS_INSTALLED;
     else
-    {
-        PyErr_SetObject(PyExc_ValueError, arg);
-        return -1;
-    }
+        self->flags &= ~DESCRIPTORS_INSTALLED;
 
     return 0;
 }
@@ -355,15 +332,10 @@ static PyObject *t_kind_getDescriptorsInstalling(t_kind *self, void *data)
 static int t_kind_setDescriptorsInstalling(t_kind *self, PyObject *arg,
                                           void *data)
 {
-    if (arg == Py_True)
+    if (arg && PyObject_IsTrue(arg))
         self->flags |= DESCRIPTORS_INSTALLING;
-    else if (arg == Py_False)
-        self->flags &= ~DESCRIPTORS_INSTALLING;
     else
-    {
-        PyErr_SetObject(PyExc_ValueError, arg);
-        return -1;
-    }
+        self->flags &= ~DESCRIPTORS_INSTALLING;
 
     return 0;
 }

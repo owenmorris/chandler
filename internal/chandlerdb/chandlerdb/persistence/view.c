@@ -20,7 +20,6 @@
 #include "frameobject.h"
 
 #include "c.h"
-#include "../util/singleref.h"
 
 static void t_view_dealloc(t_view *self);
 static int t_view_traverse(t_view *self, visitproc visit, void *arg);
@@ -65,6 +64,7 @@ static PyObject *t_view_getSingleton(t_view *self, PyObject *key);
 static PyObject *t_view_setSingleton(t_view *self, PyObject *args);
 static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args);
 static PyObject *t_view_debugOn(t_view *self, PyObject *arg);
+static PyObject *t_view__unregisterItem(t_view *self, PyObject *args);
 
 static Py_ssize_t t_view_dict_length(t_view *self);
 static PyObject *t_view_dict_get(t_view *self, PyObject *key);
@@ -91,7 +91,9 @@ static PyMemberDef t_view_members[] = {
     { "_changeNotifications", T_OBJECT, offsetof(t_view, changeNotifications),
       0, "" },
     { "_registry", T_OBJECT, offsetof(t_view, registry), 0, "" },
+    { "_refRegistry", T_OBJECT, offsetof(t_view, refRegistry), 0, "" },
     { "_deletedRegistry", T_OBJECT, offsetof(t_view, deletedRegistry), 0, "" },
+    { "_instanceRegistry", T_OBJECT, offsetof(t_view, instanceRegistry), 0, "" },
     { "_monitors", T_OBJECT, offsetof(t_view, monitors), 0, "" },
     { "_watchers", T_OBJECT, offsetof(t_view, watchers), 0, "" },
     { "_debugOn", T_OBJECT, offsetof(t_view, debugOn), 0, "" },
@@ -126,6 +128,7 @@ static PyMethodDef t_view_methods[] = {
     { "setSingleton", (PyCFunction) t_view_setSingleton, METH_VARARGS, "" },
     { "invokeMonitors", (PyCFunction) t_view_invokeMonitors, METH_VARARGS, "" },
     { "debugOn", (PyCFunction) t_view_debugOn, METH_O, "" },
+    { "_unregisterItem", (PyCFunction) t_view__unregisterItem, METH_VARARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -214,7 +217,9 @@ static int t_view_traverse(t_view *self, visitproc visit, void *arg)
     Py_VISIT(self->repository);
     Py_VISIT(self->changeNotifications);
     Py_VISIT(self->registry);
+    Py_VISIT(self->refRegistry);
     Py_VISIT(self->deletedRegistry);
+    Py_VISIT(self->instanceRegistry);
     Py_VISIT(self->uuid);
     Py_VISIT(self->singletons);
     Py_VISIT(self->monitors);
@@ -231,7 +236,9 @@ static int t_view_clear(t_view *self)
     Py_CLEAR(self->repository);
     Py_CLEAR(self->changeNotifications);
     Py_CLEAR(self->registry);
+    Py_CLEAR(self->refRegistry);
     Py_CLEAR(self->deletedRegistry);
+    Py_CLEAR(self->instanceRegistry);
     Py_CLEAR(self->uuid);
     Py_CLEAR(self->singletons);
     Py_CLEAR(self->monitors);
@@ -269,7 +276,9 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
     Py_INCREF(repository); self->repository = repository;
     Py_INCREF(Py_None); self->changeNotifications = Py_None;
     self->registry = NULL;
+    self->refRegistry = NULL;
     self->deletedRegistry = NULL;
+    self->instanceRegistry = NULL;
     Py_INCREF(uuid); self->uuid = uuid;
     self->singletons = PyDict_New();
     self->monitors = NULL;
@@ -507,7 +516,7 @@ static PyObject *t_view__getMONITORING(t_view *self, void *data)
 
 static int t_view__setMONITORING(t_view *self, PyObject *value, void *data)
 {
-    if (PyObject_IsTrue(value))
+    if (value && PyObject_IsTrue(value))
         self->status |= MONITORING;
     else
         self->status &= ~MONITORING;
@@ -780,7 +789,7 @@ static PyObject *t_view_setSingleton(t_view *self, PyObject *args)
             PyDict_DelItem(self->singletons, key);
     }
     else if (PyObject_TypeCheck(item, CItem))
-        PyDict_SetItem(self->singletons, key, ((t_item *) item)->uuid);
+        PyDict_SetItem(self->singletons, key, ((t_item *) item)->ref->uuid);
     else if (PyUUID_Check(item))
         PyDict_SetItem(self->singletons, key, item);
     else
@@ -861,14 +870,11 @@ static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
             if (monitoringItem == NULL)
                 continue;
 
-            if (PyUUID_Check(monitoringItem))
+            if (monitoringItem->ob_type == ItemRef)
             {
-                monitoringItem = t_view_dict_get(self, monitoringItem);
-                if (monitoringItem == NULL)
-                {
-                    Py_DECREF(args);
+                monitoringItem = PyObject_Call(monitoringItem, NULL, NULL);
+                if (!monitoringItem)
                     return NULL;
-                }
             }
             else
                 Py_INCREF(monitoringItem);
@@ -1004,6 +1010,41 @@ static PyObject *t_view_debugOn(t_view *self, PyObject *arg)
 
     if (debugOn)
         return debugOn;
+
+    Py_RETURN_NONE;
+}
+
+int _t_view__unregisterItem(t_view *self, t_item *item, int reloadable)
+{
+    PyObject *uuid = item->ref->uuid;
+
+    if (item->ref->view != (PyObject *) self)
+    {
+        PyErr_SetObject(PyExc_AssertionError, (PyObject *) item);
+        return -1;
+    }
+
+    if (item->status & DELETING)
+        PyDict_SetItem(self->deletedRegistry, uuid, (PyObject *) item);
+    else if (reloadable)
+        PyDict_SetItem(self->instanceRegistry, uuid, (PyObject *) item);
+
+    if (PyDict_DelItem(self->registry, uuid) < 0)
+        return -1;
+
+    return 0;
+}
+
+static PyObject *t_view__unregisterItem(t_view *self, PyObject *args)
+{
+    PyObject *item;
+    int reloadable;
+
+    if (!PyArg_ParseTuple(args, "Oi", &item, &reloadable))
+        return NULL;
+
+    if (_t_view__unregisterItem(self, (t_item *) item, reloadable) < 0)
+        return NULL;
 
     Py_RETURN_NONE;
 }

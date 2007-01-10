@@ -209,9 +209,12 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                 if (!(flags & PROCESS_GET))
                 {
                     value = PyDict_GetItem(attrDict->dict, self->name);
-                    if (value != NULL)
+                    if (value)
                     {
-                        Py_INCREF(value);
+                        if (value->ob_type == ItemRef)
+                            value = PyObject_Call(value, True_TUPLE, NULL);
+                        else
+                            Py_INCREF(value);
                         found = 1;
                     }
                     else
@@ -220,11 +223,12 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                 else if (flags & REF)
                 {
                     value = PyDict_GetItem(attrDict->dict, self->name);
-                    if (value != NULL)
+                    if (value)
                     {
-                        if (value == Py_None ||
-                            PyObject_TypeCheck(value, CItem) ||
-                            PyObject_TypeCheck(value, CLinkedMap))
+                        if (value->ob_type == ItemRef)
+                            value = PyObject_Call(value, True_TUPLE, NULL);
+                        else if (value == Py_None ||
+                                 PyObject_TypeCheck(value, CLinkedMap))
                             Py_INCREF(value);
                         else
                             value = PyObject_CallMethodObjArgs((PyObject *) attrDict, _getRef_NAME, self->name, Py_None, attr->otherName, NULL);
@@ -286,6 +290,9 @@ static int t_descriptor___set__(t_descriptor *self,
             {
                 PyObject *oldValue =
                     PyDict_GetItem(attrDict->dict, self->name);
+
+                if (oldValue && oldValue->ob_type == ItemRef)
+                    oldValue = (PyObject *) ((t_itemref *) oldValue)->item;
 
                 if (value == oldValue)
                     return 0;

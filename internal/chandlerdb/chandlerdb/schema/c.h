@@ -33,10 +33,11 @@ extern long _lastAccess;
 extern PyTypeObject *CDescriptor;
 extern PyTypeObject *CAttribute;
 extern PyTypeObject *CItem;
+extern PyTypeObject *ItemRef;
 extern PyTypeObject *CValues;
 extern PyTypeObject *CLinkedMap;
 extern PyObject *PyExc_StaleItemError;
-
+extern PyObject *True_TUPLE;
 
 void _init_descriptor(PyObject *m);
 void _init_attribute(PyObject *m);

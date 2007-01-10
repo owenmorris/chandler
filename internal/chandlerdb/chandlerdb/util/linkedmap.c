@@ -43,10 +43,10 @@ static PyObject *t_link_getAlias(t_link *self, void *data);
 static int t_link_setAlias(t_link *self, PyObject *arg, void *data);
 
 
-static PyObject *t_lm_has_key(t_lm *self, PyObject *key);
 static PyObject *t_lm_get(t_lm *self, PyObject *args);
 static t_link *_t_lm__get(t_lm *self, PyObject *key, int load, int noError);
 static PyObject *t_lm__get(t_lm *self, PyObject *args);
+static int t_lm_dict_contains(t_lm *self, PyObject *key);
 static PyObject *t_lm_dict_clear(t_lm *self, PyObject *args);
 
 static PyObject *t_lm__getDict(t_lm *self, void *data);
@@ -64,7 +64,7 @@ static PyObject *view_NAME;
 
 
 static PyMemberDef t_link_members[] = {
-    { "_value", T_OBJECT, offsetof(t_link, value), 0, "" },
+    { "_value", T_OBJECT, offsetof(t_link, value), READONLY, "" },
     { "_otherKey", T_OBJECT, offsetof(t_link, otherKey), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
@@ -192,11 +192,11 @@ static int _t_link_init(t_link *self,
                         PyObject *previousKey, PyObject *nextKey,
                         PyObject *alias, PyObject *otherKey)
 {
+    if (t_link_setValue(self, value, NULL) < 0)
+        return -1;
+
     Py_INCREF(owner); Py_XDECREF(self->owner);
     self->owner = owner;
-
-    Py_INCREF(value); Py_XDECREF(self->value);
-    self->value = value;
 
     Py_INCREF(previousKey); Py_XDECREF(self->previousKey);
     self->previousKey = previousKey;
@@ -229,14 +229,15 @@ static int t_link_init(t_link *self, PyObject *args, PyObject *kwds)
 
 static PyObject *t_link_repr(t_link *self)
 {
-    PyObject *value = PyObject_Repr(self->value);
+    PyObject *value = self->value ? PyObject_Repr(self->value) : NULL;
     PyObject *repr;
 
     if (!value)
         return NULL;
 
-    repr = PyString_FromFormat("<link: %s>", PyString_AsString(value));
-    Py_DECREF(value);
+    repr = PyString_FromFormat("<link: %s>",
+                               value ? PyString_AsString(value) : "(null)");
+    Py_XDECREF(value);
 
     return repr;
 }
@@ -300,6 +301,9 @@ static int _t_link_setPreviousKey(t_link *self,
 {
     t_lm *owner = (t_lm *) self->owner;
 
+    if (!previousKey)
+        previousKey = Py_None;
+
     if (previousKey == Py_None)
     {
         t_lm___setFirstKey(owner, key, NULL);
@@ -341,6 +345,9 @@ static int _t_link_setNextKey(t_link *self, PyObject *nextKey, PyObject *key)
 {
     t_lm *owner = (t_lm *) self->owner;
 
+    if (!nextKey)
+        nextKey = Py_None;
+
     if (nextKey == Py_None)
     {
         t_lm___setLastKey(owner, key, NULL);
@@ -372,33 +379,24 @@ static int t_link__setNextKey(t_link *self, PyObject *value, void *data)
 
 static PyObject *t_link_getValue(t_link *self, void *data)
 {
-    t_lm *owner = (t_lm *) self->owner;
-    PyObject *value = self->value;
+    if (self->value)
+        return PyObject_Call(self->value, Empty_TUPLE, NULL);
 
-    if (owner->flags & LM_LOAD && PyObject_TypeCheck(value, UUID))
-    {
-        PyObject *view = PyObject_GetAttr((PyObject *) owner, view_NAME);
-
-        if (!view)
-            return NULL;
-
-        value = PyObject_GetItem(view, value);
-        Py_DECREF(view);
-
-        if (!value)
-            return NULL;
-        
-        Py_XDECREF(self->value);
-        self->value = value;
-    }
-
-    Py_INCREF(value);
-    return value;
+    Py_RETURN_NONE;
 }
 
 static int t_link_setValue(t_link *self, PyObject *value, void *data)
 {
-    Py_INCREF(value); Py_XDECREF(self->value);
+    if (value == Py_None)
+        value = NULL;
+
+    if (value && !value->ob_type->tp_call)
+    {
+        PyErr_SetString(PyExc_TypeError, "link value is not callable");
+        return -1;
+    }
+
+    Py_XINCREF(value); Py_XDECREF(self->value);
     self->value = value;
 
     return 0;
@@ -417,6 +415,9 @@ static PyObject *t_link_getAlias(t_link *self, void *data)
 
 static int t_link_setAlias(t_link *self, PyObject *alias, void *data)
 {
+    if (!alias)
+        alias = Py_None;
+
     Py_INCREF(alias); Py_XDECREF(self->alias);
     self->alias = alias;
 
@@ -448,8 +449,6 @@ static PyMemberDef t_lm_members[] = {
 static PyMethodDef t_lm_methods[] = {
     { "get", (PyCFunction) t_lm_get, METH_VARARGS, "" },
     { "_get", (PyCFunction) t_lm__get, METH_VARARGS, "" },
-    { "__contains__", (PyCFunction) t_lm_has_key, METH_O|METH_COEXIST, "" },
-    { "has_key", (PyCFunction) t_lm_has_key, METH_O, "" },
     { "clear", (PyCFunction) t_lm_dict_clear, METH_NOARGS, "" },
     { "firstKey", (PyCFunction) t_lm__getFirstKey, METH_NOARGS, "" },
     { "lastKey", (PyCFunction) t_lm__getLastKey, METH_NOARGS, "" },
@@ -477,6 +476,19 @@ static PyGetSetDef t_lm_properties[] = {
     { NULL, NULL, NULL, NULL, NULL }
 };
 
+static PySequenceMethods t_lm_as_sequence = {
+    (lenfunc) t_lm_dict_length,       /* sq_length */
+    0,                                /* sq_concat */
+    0,                                /* sq_repeat */
+    0,                                /* sq_item */
+    0,                                /* sq_slice */
+    0,                                /* sq_ass_item */
+    0,                                /* sq_ass_slice */
+    (objobjproc) t_lm_dict_contains,  /* sq_contains */
+    0,                                /* sq_inplace_concat */
+    0,                                /* sq_inplace_repeat */
+};
+
 static PyMappingMethods t_lm_as_mapping = {
     (lenfunc) t_lm_dict_length,
     (binaryfunc) t_lm_dict_get,
@@ -496,7 +508,7 @@ static PyTypeObject LinkedMapType = {
     0,                                /* tp_compare */
     0,                                /* tp_repr */
     0,                                /* tp_as_number */
-    0,                                /* tp_as_sequence */
+    &t_lm_as_sequence,                /* tp_as_sequence */
     &t_lm_as_mapping,                 /* tp_as_mapping */
     0,                                /* tp_hash  */
     0,                                /* tp_call */
@@ -739,12 +751,27 @@ static PyObject *t_lm_get(t_lm *self, PyObject *args)
     }
 }
 
-static PyObject *t_lm_has_key(t_lm *self, PyObject *key)
+static int t_lm_dict_contains(t_lm *self, PyObject *key)
 {
     if (PyDict_Contains(self->dict, key))
-        Py_RETURN_TRUE;
+        return 1;
+    
+    if (self->flags & LM_LOAD)
+    {
+        PyObject *loaded = PyObject_CallMethodObjArgs((PyObject *) self,
+                                                      _load_NAME, key, NULL);
+        if (loaded)
+        {
+            int result = PyObject_IsTrue(loaded);
 
-    Py_RETURN_FALSE;
+            Py_DECREF(loaded);
+            return result;
+        }
+
+        return -1;
+    }
+    
+    return 0;
 }
 
 static PyObject *t_lm_dict_clear(t_lm *self, PyObject *args)
@@ -817,6 +844,9 @@ static PyObject *t_lm__getAliases(t_lm *self, void *data)
 
 static int t_lm__setAliases(t_lm *self, PyObject *arg, void *data)
 {
+    if (!arg)
+        arg = Py_None;
+
     if (self->aliases != arg)
     {
         Py_DECREF(self->aliases);
@@ -842,6 +872,9 @@ static int t_lm___setFirstKey(t_lm *self, PyObject *arg, void *data)
 {
     t_link *head = (t_link *) self->head;
 
+    if (!arg)
+        arg = Py_None;
+
     Py_INCREF(arg); Py_XDECREF(head->previousKey);
     head->previousKey = arg;
 
@@ -863,6 +896,9 @@ static PyObject *t_lm__getLastKey(t_lm *self, void *data)
 static int t_lm___setLastKey(t_lm *self, PyObject *arg, void *data)
 {
     t_link *head = (t_link *) self->head;
+
+    if (!arg)
+        arg = Py_None;
 
     Py_INCREF(arg); Py_XDECREF(head->nextKey);
     head->nextKey = arg;

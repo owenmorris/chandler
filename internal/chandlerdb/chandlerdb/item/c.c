@@ -20,7 +20,7 @@
 
 #include "c.h"
 
-PyTypeObject *SingleRef = NULL;
+PyTypeObject *ItemRef = NULL;
 PyTypeObject *CLinkedMap = NULL;
 PyTypeObject *CItem = NULL;
 PyTypeObject *CValues = NULL;
@@ -29,6 +29,7 @@ PyTypeObject *CAttribute = NULL;
 PyTypeObject *CDescriptor = NULL;
 PyTypeObject *ItemValue = NULL;
 PyTypeObject *StaleItemAttributeError = NULL;
+PyTypeObject *CView = NULL;
 PyObject *Nil = NULL;
 PyObject *Default = NULL;
 long itemCount = 0;
@@ -42,6 +43,14 @@ CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange;
 static PyObject *isitem(PyObject *self, PyObject *obj)
 {
     if (PyObject_TypeCheck(obj, CItem))
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+static PyObject *isitemref(PyObject *self, PyObject *obj)
+{
+    if (obj->ob_type == ItemRef)
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
@@ -108,6 +117,8 @@ static PyObject *_install__doc__(PyObject *self, PyObject *args)
 static PyMethodDef c_funcs[] = {
     { "isitem", (PyCFunction) isitem, METH_O,
       "isinstance(), but not as easily fooled" },
+    { "isitemref", (PyCFunction) isitemref, METH_O,
+      "isinstance(obj, ItemRef)"},
     { "getItemCount", (PyCFunction) getItemCount, METH_NOARGS,
       "the number of item instances currently allocated by this process" },
     { "_install__doc__", (PyCFunction) _install__doc__, METH_VARARGS,
@@ -130,12 +141,12 @@ void initc(void)
     PyObject *m = Py_InitModule3("c", c_funcs, "C item types module");
 
     _init_item(m);
+    _init_itemref(m);
     _init_values(m);
     _init_indexes(m);
 
     if (!(m = PyImport_ImportModule("chandlerdb.util.c")))
         return;
-    LOAD_TYPE(m, SingleRef);
     LOAD_TYPE(m, CLinkedMap);
     LOAD_FN(m, PyUUID_Check);
     LOAD_OBJ(m, Nil);
@@ -163,6 +174,7 @@ void initc(void)
 
     if (!(m = PyImport_ImportModule("chandlerdb.persistence.c")))
         return;
+    LOAD_TYPE(m, CView);
     LOAD_FN(m, CView_invokeMonitors);
     Py_DECREF(m);
 }    

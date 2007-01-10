@@ -25,7 +25,9 @@ typedef struct {
     PyObject *repository;
     PyObject *changeNotifications;
     PyObject *registry;
+    PyObject *refRegistry;
     PyObject *deletedRegistry;
+    PyObject *instanceRegistry;
     PyObject *uuid;
     PyObject *singletons;
     PyObject *monitors;

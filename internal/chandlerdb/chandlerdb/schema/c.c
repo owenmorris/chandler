@@ -24,10 +24,11 @@ long _lastAccess = 0L;
 PyTypeObject *CDescriptor = NULL;
 PyTypeObject *CAttribute = NULL;
 PyTypeObject *CItem = NULL;
+PyTypeObject *ItemRef = NULL;
 PyTypeObject *CValues = NULL;
 PyTypeObject *CLinkedMap = NULL;
-PyObject *PyExc_StaleItemError;
-
+PyObject *PyExc_StaleItemError = NULL;
+PyObject *True_TUPLE = NULL;
 
 static PyObject *countAccess(PyObject *self, t_item *item)
 {
@@ -67,6 +68,8 @@ void initc(void)
     _init_kind(m);
     _init_redirector(m);
 
+    True_TUPLE = PyTuple_Pack(1, Py_True);
+
     cobj = PyCObject_FromVoidPtr(_countAccess, NULL);
     PyModule_AddObject(m, "C_countAccess", cobj);
 
@@ -78,6 +81,7 @@ void initc(void)
     if (!(m = PyImport_ImportModule("chandlerdb.item.c")))
         return;
     LOAD_TYPE(m, CItem);
+    LOAD_TYPE(m, ItemRef);
     LOAD_TYPE(m, CValues);
     Py_DECREF(m);
 

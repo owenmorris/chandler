@@ -324,7 +324,7 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds)
                 {
                     PyObject *typeFlags =
                         PyObject_CallMethodObjArgs(type, getFlags_NAME, NULL);
-                    PyObject *uuid = ((t_item *) type)->uuid;
+                    PyObject *uuid = ((t_item *) type)->ref->uuid;
 
                     Py_INCREF(uuid);
                     self->typeID = uuid;
@@ -353,7 +353,8 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds)
         }
 
         self->flags = flags;
-        self->attrID = ((t_item *) attribute)->uuid; Py_INCREF(self->attrID);
+        self->attrID = ((t_item *) attribute)->ref->uuid;
+        Py_INCREF(self->attrID);
 
         return 0;
     }
@@ -508,7 +509,10 @@ static PyObject *t_attribute__getCardinality(t_attribute *self, void *data)
 static int t_attribute__setCardinality(t_attribute *self, t_values *values,
                                        void *data)
 {
-    if (!PyObject_TypeCheck((PyObject *) values, CValues))
+    if (!values)
+        values = (t_values *) Py_None;
+
+    if (!PyObject_TypeCheck(values, CValues))
     {
         PyErr_SetObject(PyExc_TypeError, (PyObject *) values);
         return -1;
@@ -560,15 +564,10 @@ static PyObject *t_attribute__getRequired(t_attribute *self, void *data)
 static int t_attribute__setRequired(t_attribute *self, PyObject *value,
                                     void *data)
 {
-    if (value == Py_True)
+    if (value && PyObject_IsTrue(value))
         self->flags |= REQUIRED;
-    else if (value == Py_False)
-        self->flags &= ~REQUIRED;
     else
-    {
-        PyErr_SetObject(PyExc_ValueError, value);
-        return -1;
-    }
+        self->flags &= ~REQUIRED;
 
     return 0;
 }
@@ -592,15 +591,10 @@ static PyObject *t_attribute__getIndexed(t_attribute *self, void *data)
 static int t_attribute__setIndexed(t_attribute *self, PyObject *value,
                                     void *data)
 {
-    if (value == Py_True)
+    if (value && PyObject_IsTrue(value))
         self->flags |= INDEXED;
-    else if (value == Py_False)
-        self->flags &= ~INDEXED;
     else
-    {
-        PyErr_SetObject(PyExc_ValueError, value);
-        return -1;
-    }
+        self->flags &= ~INDEXED;
 
     return 0;
 }
@@ -618,6 +612,9 @@ static PyObject *t_attribute__getNoInherit(t_attribute *self, void *data)
 static int t_attribute__setNoInherit(t_attribute *self, PyObject *value,
                                      void *data)
 {
+    if (!value)
+        value = Py_None;
+
     if (!PyTuple_CheckExact(value))
     {
         PyErr_SetObject(PyExc_TypeError, value);
@@ -675,6 +672,9 @@ static PyObject *t_attribute__getDefaultValue(t_attribute *self, void *data)
 static int t_attribute__setDefaultValue(t_attribute *self, t_values *values,
                                         void *data)
 {
+    if (!values)
+        values = (t_values *) Py_None;
+
     if (!PyObject_TypeCheck(values, CValues))
     {
         PyErr_SetObject(PyExc_TypeError, (PyObject *) values);
@@ -719,6 +719,9 @@ static PyObject *t_attribute__getAfterChange(t_attribute *self, void *data)
 static int t_attribute__setAfterChange(t_attribute *self, t_values *values,
                                        void *data)
 {
+    if (!values)
+        values = (t_values *) Py_None;
+
     if (!PyObject_TypeCheck(values, CValues))
     {
         PyErr_SetObject(PyExc_TypeError, (PyObject *) values);
@@ -768,6 +771,12 @@ static PyObject *t_attribute__getRedirectTo(t_attribute *self, void *data)
 static int t_attribute__setRedirectTo(t_attribute *self, PyObject *value,
                                       void *data)
 {
+    if (!value)
+    {
+        PyErr_SetObject(PyExc_ValueError, Py_None);
+        return -1;
+    }
+    
     if (t_attribute__setNoInherit(self, value, data))
         return -1;
     else
@@ -818,6 +827,9 @@ static PyObject *t_attribute__getOtherName(t_attribute *self, void *data)
 static int t_attribute__setOtherName(t_attribute *self, t_values *values,
                                      void *data)
 {
+    if (!values)
+        values = (t_values *) Py_None;
+
     if (!PyObject_TypeCheck(values, CValues))
     {
         PyErr_SetObject(PyExc_TypeError, (PyObject *) values);
@@ -835,7 +847,7 @@ static int t_attribute__setOtherName(t_attribute *self, t_values *values,
         self->flags &= ~ATTRDICT;
         if (otherName == NULL || otherName == Py_None)
         {
-            t_item *item = (t_item *) values->item;
+            t_item *item = values->ref->item;
             t_values *references = item->references;
 
             return t_attribute__setTypeID(self, references, data);
@@ -884,6 +896,9 @@ static int t_attribute__setTypeID(t_attribute *self, t_values *refs, void *data)
 {
     if (!(self->flags & (REDIRECT | REF)))
     {
+        if (!refs)
+            refs = (t_values *) Py_None;
+
         if (!PyObject_TypeCheck(refs, CValues))
         {
             PyErr_SetObject(PyExc_TypeError, (PyObject *) refs);
@@ -929,9 +944,9 @@ static int t_attribute__setTypeID(t_attribute *self, t_values *refs, void *data)
                 self->flags |= PyInt_AsLong(typeFlags);
                 Py_DECREF(typeFlags);
 
-                Py_INCREF(((t_item *) type)->uuid);
+                Py_INCREF(((t_item *) type)->ref->uuid);
                 Py_XDECREF(self->typeID);
-                self->typeID = ((t_item *) type)->uuid;
+                self->typeID = ((t_item *) type)->ref->uuid;
                 Py_DECREF(type);
             }
         }

@@ -95,10 +95,10 @@ typedef struct {
     PyObject *key;
 } t_store;
 
-extern PyTypeObject *SingleRef;
 extern PyTypeObject *CView;
 extern PyTypeObject *CRepository;
 extern PyTypeObject *CItem;
+extern PyTypeObject *ItemRef;
 extern PyTypeObject *CDB;
 extern PyTypeObject *CDBCursor;
 extern PyTypeObject *CDBEnv;

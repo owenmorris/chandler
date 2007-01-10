@@ -647,7 +647,7 @@ int _t_record_inplace_concat(t_record *self, PyObject *args)
             }
             else if (PyLong_CheckExact(value))
             {
-                PyLong_AsLongLong(value);
+                PyLong_AsUnsignedLongLong(value);
                 if (PyErr_Occurred())
                     return -1;
                 size += 8;
@@ -1041,12 +1041,13 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
           case R_LONG:
             if (offset + 8 > len)
                 goto overflow;
-            i64 = PyLong_AsLongLong(value);
+            i64 = PyLong_AsUnsignedLongLong(value);
             i32 = (unsigned long) (i64 >> 32);
             *((unsigned long *) (data + offset)) = htonl(i32);
+            offset += 4;
             i32 = (unsigned long) (i64 & 0xffffffff);
             *((unsigned long *) (data + offset)) = htonl(i32);
-            offset += 8;
+            offset += 4;
             break;
 
           case R_DOUBLE:

@@ -13,12 +13,19 @@
 #   limitations under the License.
 
 
+from chandlerdb.util.c import Nil
+
+
 class ItemValue(object):
     'A superclass for values that are owned by an item.'
     
     def __init__(self, item=None, attribute=None):
 
-        self._item = item
+        if item is None:
+            self._owner = Nil
+        else:
+            self._owner = item.itsRef
+
         self._attribute = attribute
         self._dirty = False
         self._readOnly = False
@@ -30,41 +37,44 @@ class ItemValue(object):
     def _setOwner(self, item, attribute):
 
         if item is not None:
-            if self._item is not None and self._item is not item:
-                raise ValueError, (self._item, self._attribute, self)
+            if self._owner is not Nil and self._owner is not item.itsRef:
+                raise ValueError, (self._owner(), self._attribute, self)
         
-        oldItem = self._item
+        oldItem = self._owner()
         oldAttribute = self._attribute
 
-        self._item = item
+        if item is None:
+            self._owner = Nil
+        else:
+            self._owner = item.itsRef
+
         self._attribute = attribute
 
         return oldItem, oldAttribute
 
     def _getOwner(self):
 
-        return (self._item, self._attribute)
+        return self._owner(), self._attribute
 
     def _getItem(self):
 
-        return self._item
+        return self._owner()
 
     def _getAttribute(self):
 
         return self._attribute
 
-    def _refCount(self):
-
-        return 1
-
     def _isReadOnly(self):
 
-        return self._readOnly and self._item is not None
+        return self._readOnly and self._owner is not Nil
 
     def _setDirty(self, noMonitors=False):
 
+        if self._readOnly:
+            raise ReadOnlyAttributeError, self._attribute
+
         self._dirty = True
-        item = self._item
+        item = self._owner()
         if item is not None:
             item.setDirty(item.VDIRTY, self._attribute,
                           item._values, noMonitors)
@@ -79,8 +89,10 @@ class ItemValue(object):
 
     def _check(self, logger, item, attribute, repair):
 
-        if not (item is self._item and attribute == self._attribute):
-            logger.error('Value %s of type %s in attribute %s on %s is owned by  attribute %s on %s', self, type(self), attribute, item._repr_(), self._attribute, self._item)
+        owner = self._owner(True)
+
+        if not (item is owner and attribute == self._attribute):
+            logger.error('Value %s of type %s in attribute %s on %s is owned by  attribute %s on %s', self, type(self), attribute, item._repr_(), self._attribute, owner)
             return False
 
         return True

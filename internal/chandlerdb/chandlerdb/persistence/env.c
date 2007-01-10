@@ -649,7 +649,7 @@ static PyObject *t_env_get_lg_dir(t_env *self, void *data)
 
 static int t_env_set_lg_dir(t_env *self, PyObject *value, void *data)
 {
-    PyObject *args = PyTuple_Pack(1, value);
+    PyObject *args = PyTuple_Pack(1, value ? value : Py_None);
     PyObject *string = NULL;
     char *path;
     int len, err;
@@ -885,7 +885,7 @@ static PyObject *t_env_get_lk_detect(t_env *self, void *data)
 
 static int t_env_set_lk_detect(t_env *self, PyObject *value, void *data)
 {
-    u_int32_t detect = (u_int32_t) PyInt_AsLong(value);
+    u_int32_t detect = value ? PyInt_AsLong(value) : 0;
     int err;
 
     if (PyErr_Occurred())
@@ -934,7 +934,7 @@ static PyObject *t_env_get_lk_max_locks(t_env *self, void *data)
 
 static int t_env_set_lk_max_locks(t_env *self, PyObject *value, void *data)
 {
-    u_int32_t max_locks = (u_int32_t) PyInt_AsLong(value);
+    u_int32_t max_locks = value ? PyInt_AsLong(value) : 0;
     int err;
 
     if (PyErr_Occurred())
@@ -983,7 +983,7 @@ static PyObject *t_env_get_lk_max_lockers(t_env *self, void *data)
 
 static int t_env_set_lk_max_lockers(t_env *self, PyObject *value, void *data)
 {
-    u_int32_t max_lockers = (u_int32_t) PyInt_AsLong(value);
+    u_int32_t max_lockers = value ? PyInt_AsLong(value) : 0;
     int err;
 
     if (PyErr_Occurred())
@@ -1032,7 +1032,7 @@ static PyObject *t_env_get_lk_max_objects(t_env *self, void *data)
 
 static int t_env_set_lk_max_objects(t_env *self, PyObject *value, void *data)
 {
-    u_int32_t max_objects = (u_int32_t) PyInt_AsLong(value);
+    u_int32_t max_objects = value ? PyInt_AsLong(value) : 0;
     int err;
 
     if (PyErr_Occurred())
@@ -1085,7 +1085,8 @@ static int t_env_set_cachesize(t_env *self, PyObject *value, void *data)
     u_int32_t gbytes, bytes;
     int err, ncache;
 
-    if (!PyArg_ParseTuple(value, "IIi", &gbytes, &bytes, &ncache))
+    if (!PyArg_ParseTuple(value ? value : Py_None,
+                          "IIi", &gbytes, &bytes, &ncache))
         return -1;
 
     if (self->db_env)
@@ -1131,7 +1132,7 @@ static PyObject *t_env_get_lg_bsize(t_env *self, void *data)
 
 static int t_env_set_lg_bsize(t_env *self, PyObject *value, void *data)
 {
-    u_int32_t bytes = (u_int32_t) PyInt_AsLong(value);
+    u_int32_t bytes = value ? PyInt_AsLong(value) : 0;
     int err;
 
     if (PyErr_Occurred())
@@ -1167,6 +1168,9 @@ static PyObject *t_env_get_errfile(t_env *self, void *data)
 static int t_env_set_errfile(t_env *self, PyObject *value, void *data)
 {
     int cmp;
+
+    if (!value)
+        value = Py_None;
 
     if (PyObject_Cmp(self->errfile, value, &cmp) < 0)
         return -1;
@@ -1231,7 +1235,7 @@ static PyObject *t_env_get_tx_max(t_env *self, void *data)
 
 static int t_env_set_tx_max(t_env *self, PyObject *value, void *data)
 {
-    unsigned int tx_max = PyInt_AsLong(value);
+    unsigned int tx_max = value ? PyInt_AsLong(value) : 0;
     int err;
 
     if (tx_max < 0 && PyErr_Occurred())

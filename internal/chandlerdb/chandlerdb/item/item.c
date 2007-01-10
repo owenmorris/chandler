@@ -46,11 +46,7 @@ static PyObject *t_item__isNoDirty(t_item *self);
 static PyObject *t_item_isMutating(t_item *self);
 static PyObject *t_item_isMutatingOrDeleting(t_item *self);
 static PyObject *t_item_isDeferringOrDeleting(t_item *self);
-static PyObject *t_item__isRepository(t_item *self);
-static PyObject *t_item__isView(t_item *self);
-static PyObject *t_item__isItem(t_item *self);
 static PyObject *t_item__isRefs(t_item *self);
-static PyObject *t_item__isUUID(t_item *self);
 static PyObject *t_item__isMerged(t_item *self);
 static PyObject *t_item_isWatched(t_item *self);
 static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args);
@@ -67,9 +63,12 @@ static int t_item__setKind(t_item *self, PyObject *kind, void *data);
 static PyObject *t_item__getView(t_item *self, void *data);
 static PyObject *t_item__getParent(t_item *self, void *data);
 static int t_item__setParent(t_item *self, PyObject *parent, void *data);
+static PyObject *t_item___getParent(t_item *self, void *data);
+static int t_item___setParent(t_item *self, PyObject *parent, void *data);
 static PyObject *t_item__getName(t_item *self, void *data);
 static int t_item__setName(t_item *self, PyObject *name, void *data);
 static PyObject *t_item__getRoot(t_item *self, void *data);
+static PyObject *t_item__getRef(t_item *self, void *data);
 static PyObject *t_item__getUUID(t_item *self, void *data);
 static PyObject *t_item__getPath(t_item *self, void *data);
 static PyObject *t_item__getStatus(t_item *self, void *data);
@@ -96,9 +95,9 @@ static PyObject *_clearDirties_NAME;
 static PyObject *_flags_NAME;
 static PyObject *watchers_NAME;
 static PyObject *filterItem_NAME;
-static PyObject *_setParent_NAME;
 static PyObject *_setItem_NAME;
 static PyObject *getAttributeValue_NAME;
+static PyObject *_addItem_NAME;
 
 /* NULL docstrings are set in chandlerdb/__init__.py
  * "" docstrings are missing docstrings
@@ -107,14 +106,11 @@ static PyObject *getAttributeValue_NAME;
 static PyMemberDef t_item_members[] = {
     { "_status", T_UINT, offsetof(t_item, status), 0, "item status flags" },
     { "_lastAccess", T_UINT, offsetof(t_item, lastAccess), 0, "access stamp" },
-    { "_uuid", T_OBJECT, offsetof(t_item, uuid), 0, "item uuid" },
     { "_name", T_OBJECT, offsetof(t_item, name), 0, "item name" },
     { "_values", T_OBJECT, offsetof(t_item, values), 0, "literals" },
     { "_references", T_OBJECT, offsetof(t_item, references), 0, "references" },
     { "_kind", T_OBJECT, offsetof(t_item, kind), 0, "item kind" },
-    { "_parent", T_OBJECT, offsetof(t_item, parent), 0, "item parent" },
     { "_children", T_OBJECT, offsetof(t_item, children), 0, "item children" },
-    { "_root", T_OBJECT, offsetof(t_item, root), 0, "item root" },
     { "_acls", T_OBJECT, offsetof(t_item, acls), 0, "item acls" },
     { "c", T_OBJECT, offsetof(t_item, c), 0, "item c buddy" },
     { NULL, 0, 0, 0, NULL }
@@ -140,11 +136,7 @@ static PyMethodDef t_item_methods[] = {
     { "isMutating", (PyCFunction) t_item_isMutating, METH_NOARGS, NULL },
     { "isMutatingOrDeleting", (PyCFunction) t_item_isMutatingOrDeleting, METH_NOARGS, NULL },
     { "isDeferringOrDeleting", (PyCFunction) t_item_isDeferringOrDeleting, METH_NOARGS, NULL },
-    { "_isRepository", (PyCFunction) t_item__isRepository, METH_NOARGS, "" },
-    { "_isView", (PyCFunction) t_item__isView, METH_NOARGS, "" },
-    { "_isItem", (PyCFunction) t_item__isItem, METH_NOARGS, "" },
     { "_isRefs", (PyCFunction) t_item__isRefs, METH_NOARGS, "" },
-    { "_isUUID", (PyCFunction) t_item__isUUID, METH_NOARGS, "" },
     { "_isMerged", (PyCFunction) t_item__isMerged, METH_NOARGS, "" },
     { "isWatched", (PyCFunction) t_item_isWatched, METH_NOARGS, "" },
     { "getAttributeAspect", (PyCFunction) t_item_getAttributeAspect, METH_VARARGS, NULL },
@@ -165,11 +157,17 @@ static PyGetSetDef t_item_properties[] = {
       NULL, NULL },
     { "itsParent", (getter) t_item__getParent, (setter) t_item__setParent,
       NULL, NULL },
+    { "_parent", (getter) t_item___getParent, (setter) t_item___setParent,
+      NULL, NULL },
     { "itsName", (getter) t_item__getName, (setter) t_item__setName,
       NULL, NULL },
     { "itsRoot", (getter) t_item__getRoot, NULL,
       NULL, NULL },
+    { "itsRef", (getter) t_item__getRef, NULL,
+      NULL, NULL },
     { "itsUUID", (getter) t_item__getUUID, NULL,
+      NULL, NULL },
+    { "_uuid", (getter) t_item__getUUID, NULL,
       NULL, NULL },
     { "itsPath", (getter) t_item__getPath, NULL,
       NULL, NULL },
@@ -210,7 +208,7 @@ static PyTypeObject ItemType = {
     (traverseproc)t_item_traverse,             /* tp_traverse */
     (inquiry)t_item_clear,                     /* tp_clear */
     0,                                         /* tp_richcompare */
-    0,                                         /* tp_weaklistoffset */
+    offsetof(t_item, weakrefs),                /* tp_weaklistoffset */
     0,                                         /* tp_iter */
     0,                                         /* tp_iternext */
     t_item_methods,                            /* tp_methods */
@@ -229,6 +227,9 @@ static PyTypeObject ItemType = {
 
 static void t_item_dealloc(t_item *self)
 {
+    if (self->weakrefs)
+        PyObject_ClearWeakRefs((PyObject *) self);
+
     t_item_clear(self);
     self->ob_type->tp_free((PyObject *) self);
 
@@ -237,14 +238,13 @@ static void t_item_dealloc(t_item *self)
 
 static int t_item_traverse(t_item *self, visitproc visit, void *arg)
 {
-    Py_VISIT(self->uuid);
+    Py_VISIT(self->ref);
     Py_VISIT(self->name);
     Py_VISIT((PyObject *) self->values);
     Py_VISIT((PyObject *) self->references);
     Py_VISIT(self->kind);
-    Py_VISIT(self->parent);
+    Py_VISIT(self->parentRef);
     Py_VISIT(self->children);
-    Py_VISIT(self->root);
     Py_VISIT(self->acls);
     Py_VISIT(self->c);
 
@@ -253,14 +253,16 @@ static int t_item_traverse(t_item *self, visitproc visit, void *arg)
 
 static int t_item_clear(t_item *self)
 {
-    Py_CLEAR(self->uuid);
+    if (self->ref && self->ref->item == self)
+        self->ref->item = NULL;
+
+    Py_CLEAR(self->ref);
     Py_CLEAR(self->name);
     Py_CLEAR(self->values);
     Py_CLEAR(self->references);
     Py_CLEAR(self->kind);
-    Py_CLEAR(self->parent);
+    Py_CLEAR(self->parentRef);
     Py_CLEAR(self->children);
-    Py_CLEAR(self->root);
     Py_CLEAR(self->acls);
     Py_CLEAR(self->c);
 
@@ -278,14 +280,13 @@ static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         self->lastAccess = 0;
         self->status = RAW;
         self->version = 0;
-        self->uuid = NULL;
+        self->ref = NULL;
         self->name = NULL;
         self->values = NULL;
         self->references = NULL;
         self->kind = NULL;
-        self->parent = NULL;
+        self->parentRef = NULL;
         self->children = NULL;
-        self->root = NULL;
         self->acls = NULL;
         self->c = NULL;
     }
@@ -295,6 +296,41 @@ static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 static int t_item_init(t_item *self, PyObject *args, PyObject *kwds)
 {
+    PyObject *uuid, *name, *parent, *view;
+
+    if (!PyArg_ParseTuple(args, "OOO", &uuid, &name, &parent))
+        return -1;
+
+    if (!PyUUID_Check(uuid))
+    {
+        PyErr_SetObject(PyExc_TypeError, uuid);
+        return -1;
+    }
+
+    if (PyObject_TypeCheck(parent, CView))
+        view = parent;
+    else if (PyObject_TypeCheck(parent, CItem))
+        view = ((t_item *) parent)->ref->view;
+    else
+    {
+        PyErr_SetObject(PyExc_TypeError, parent);
+        return -1;
+    }
+
+    Py_INCREF(name); Py_XDECREF(self->name);
+    self->name = name;
+
+    self->ref = _t_itemref_new(uuid, (t_view *) view, self);
+    if (!self->ref)
+        return -1;
+
+    if (t_item___setParent(self, parent, NULL) < 0)
+    {
+        PyDict_DelItem(((t_view *) view)->registry, uuid);
+        Py_CLEAR(self->ref);
+        return -1;
+    }
+
     self->status = NEW;
 
     return 0;
@@ -328,18 +364,21 @@ static PyObject *t_item_repr(t_item *self)
             name = NULL;
 
         type = PyObject_GetAttrString((PyObject *) self->ob_type, "__name__");
-        uuid = PyObject_Str(self->uuid);
+        if (self->ref && self->ref->uuid)
+            uuid = PyObject_Str(self->ref->uuid);
+        else
+            uuid = NULL;
         
         repr = PyString_FromFormat("<%s%s:%s%s %s>",
                                    PyString_AsString(type),
                                    status,
                                    name ? " " : "",
                                    name ? PyString_AsString(name) : "",
-                                   PyString_AsString(uuid));
+                                   uuid ? PyString_AsString(uuid) : "(no ref)");
 
         Py_DECREF(type);
         Py_XDECREF(name);
-        Py_DECREF(uuid);
+        Py_XDECREF(uuid);
 
         return repr;
     }
@@ -552,30 +591,7 @@ static PyObject *t_item_isDeferringOrDeleting(t_item *self)
         Py_RETURN_FALSE;
 }
 
-static PyObject *t_item__isRepository(t_item *self)
-{
-    Py_RETURN_FALSE;
-}
-
-static PyObject *t_item__isView(t_item *self)
-{
-    Py_RETURN_FALSE;
-}
-
-static PyObject *t_item__isItem(t_item *self)
-{
-    if (PyObject_TypeCheck(self, &ItemType))
-        Py_RETURN_TRUE;
-
-    Py_RETURN_FALSE;
-}
-
 static PyObject *t_item__isRefs(t_item *self)
-{
-    Py_RETURN_FALSE;
-}
-
-static PyObject *t_item__isUUID(t_item *self)
 {
     Py_RETURN_FALSE;
 }
@@ -633,11 +649,8 @@ static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args)
         }
 
         if (attrID != Py_None)
-        {
-            PyObject *view = ((t_item *) self->root)->parent;
-            attribute = PyObject_CallMethodObjArgs(view, find_NAME,
+            attribute = PyObject_CallMethodObjArgs(self->ref->view, find_NAME,
                                                    attrID, NULL);
-        }
         else
             attribute = PyObject_CallMethodObjArgs(self->kind,
                                                    getAttribute_NAME,
@@ -885,8 +898,8 @@ static PyObject *_t_item__fireChanges(t_item *self,
     /* during SYSMONONLY only sys monitors fire */
     {
         PyObject *args = PyTuple_Pack(3, op, self, name);
-        t_view *view = (t_view *) ((t_item *) self->root)->parent;
-        PyObject *result = CView_invokeMonitors(view, args);
+        PyObject *result = CView_invokeMonitors((t_view *) self->ref->view,
+                                                args);
 
         Py_DECREF(args);
         if (result == NULL)
@@ -922,13 +935,14 @@ static PyObject *t_item__fireChanges(t_item *self, PyObject *args)
 
 static PyObject *t_item__fillItem(t_item *self, PyObject *args)
 {
-    PyObject *name, *parent, *kind, *uuid, *values, *references, *hooks;
+    PyObject *name, *parent, *kind, *uuid, *view, *values, *references, *hooks;
     int status, update;
     unsigned long version;
     PyObject *result;
+    t_itemref *ref;
 
-    if (!PyArg_ParseTuple(args, "OOOOOOik|Oi", &name, &parent, &kind,
-                          &uuid, &values, &references, &status, &version,
+    if (!PyArg_ParseTuple(args, "OOOOOOOik|Oi", &name, &parent, &kind,
+                          &uuid, &view, &values, &references, &status, &version,
                           &hooks, &update))
         return NULL;
 
@@ -938,9 +952,24 @@ static PyObject *t_item__fillItem(t_item *self, PyObject *args)
 
     self->status = status;
 
-    Py_INCREF(uuid); Py_XDECREF(self->uuid);
-    self->uuid = uuid;
+    if (name != Py_None && !PyObject_IsTrue(name))
+        name = Py_None;
+    Py_INCREF(name); Py_XDECREF(self->name);
+    self->name = name;
 
+    ref = _t_itemref_new(uuid, (t_view *) view, self);
+    if (!ref)
+        return NULL;
+    Py_XDECREF(self->ref);
+    self->ref = ref;
+
+    if (t_item___setParent(self, parent, NULL) < 0)
+    {
+        PyDict_DelItem(((t_view *) view)->registry, uuid);
+        Py_CLEAR(self->ref);
+        return NULL;
+    }
+    
     if (!PyObject_TypeCheck(values, CValues))
     {
         PyErr_SetObject(PyExc_TypeError, values);
@@ -957,20 +986,9 @@ static PyObject *t_item__fillItem(t_item *self, PyObject *args)
     Py_INCREF(references); Py_XDECREF(self->references);
     self->references = (t_values *) references;
 
-    if (name != Py_None && !PyObject_IsTrue(name))
-        name = Py_None;
-    Py_INCREF(name); Py_XDECREF(self->name);
-    self->name = name;
-
     Py_INCREF(kind); Py_XDECREF(self->kind);
     self->kind = kind;
 
-    result = PyObject_CallMethodObjArgs((PyObject *) self,
-                                        _setParent_NAME, parent, NULL);
-    if (!result)
-        return NULL;
-    Py_DECREF(result);
-                
     result = PyObject_CallMethodObjArgs(values, _setItem_NAME, self, NULL);
     if (!result)
         return NULL;
@@ -981,15 +999,9 @@ static PyObject *t_item__fillItem(t_item *self, PyObject *args)
         return NULL;
     Py_DECREF(result);
 
-    if (self->parent == Py_None || ((t_item *) self->parent)->status & STALE)
+    if (!self->parentRef)
     {
-        PyErr_SetString(PyExc_AssertionError, "stale or None parent");
-        return NULL;
-    }
-
-    if (self->root == Py_None || ((t_item *) self->root)->status & STALE)
-    {
-        PyErr_SetString(PyExc_AssertionError, "stale or None root");
+        PyErr_SetString(PyExc_AssertionError, "no parent");
         return NULL;
     }
 
@@ -1054,7 +1066,7 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
 
     if (dirty)
     {
-        t_view *view = (t_view *) ((t_item *) self->root)->parent;
+        t_view *view = (t_view *) self->ref->view;
 
         if (dirty & VRDIRTY)
         {
@@ -1186,7 +1198,7 @@ static int invokeWatchers(PyObject *dispatch, PyObject *name,
 static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
 {
     PyObject *op, *change, *name, *other, *dispatch;
-    t_view *view = (t_view *) ((t_item *) self->root)->parent;
+    t_view *view = (t_view *) self->ref->view;
 
     if (self->status & NODIRTY)
         Py_RETURN_NONE;
@@ -1202,7 +1214,7 @@ static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
 
     if (view->watchers)
     {
-        dispatch = PyDict_GetItem(view->watchers, self->uuid);
+        dispatch = PyDict_GetItem(view->watchers, self->ref->uuid);
 
         if (dispatch && PySequence_Contains(dispatch, name))
             if (invokeWatchers(dispatch, name, op, change,
@@ -1257,20 +1269,21 @@ static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *names)
         PyObject *dispatch = PyDict_GetItem(self->references->dict,
                                             watchers_NAME);
 
-        if (dispatch && PySequence_Contains(dispatch, self->uuid))
-            return invokeItemWatchers(dispatch, self->uuid, op, names);
+        if (dispatch && PySequence_Contains(dispatch, self->ref->uuid))
+            return invokeItemWatchers(dispatch, self->ref->uuid, op, names);
     }
 
     if (self->status & T_WATCHED)
     {
-        t_view *view = (t_view *) ((t_item *) self->root)->parent;
+        t_view *view = (t_view *) self->ref->view;
 
         if (view->watchers)
         {
-            PyObject *dispatch = PyDict_GetItem(view->watchers, self->uuid);
+            PyObject *dispatch = PyDict_GetItem(view->watchers,
+                                                self->ref->uuid);
 
-            if (dispatch && PySequence_Contains(dispatch, self->uuid))
-                return invokeItemWatchers(dispatch, self->uuid, op, names);
+            if (dispatch && PySequence_Contains(dispatch, self->ref->uuid))
+                return invokeItemWatchers(dispatch, self->ref->uuid, op, names);
         }
     }
 
@@ -1299,8 +1312,8 @@ static PyObject *t_item__getKind(t_item *self, void *data)
 
     if (kind != Py_None && ((t_item *) kind)->status & STALE)
     {
-        PyObject *view = ((t_item *) self->root)->parent;
-        PyObject *uuid = ((t_item *) kind)->uuid;
+        PyObject *view = self->ref->view;
+        PyObject *uuid = ((t_item *) kind)->ref->uuid;
         PyObject *newKind = PyObject_GetItem(view, uuid);
 
         if (newKind)
@@ -1334,13 +1347,7 @@ static int t_item__setKind(t_item *self, PyObject *kind, void *data)
 
 static PyObject *t_item__getView(t_item *self, void *data)
 {
-    PyObject *root = self->root;
-    PyObject *view;
-
-    if (root != Py_None)
-        view = ((t_item *) root)->parent;
-    else
-        view = Py_None;
+    PyObject *view = self->ref->view;
 
     Py_INCREF(view);
     return view;
@@ -1351,36 +1358,94 @@ static PyObject *t_item__getView(t_item *self, void *data)
 
 static PyObject *t_item__getParent(t_item *self, void *data)
 {
-    PyObject *parent = self->parent;
+    PyObject *parentRef = self->parentRef;
 
-    if (parent != Py_None && ((t_item *) parent)->status & STALE)
+    if (parentRef)
     {
-        PyObject *view = ((t_item *) self->root)->parent;
-        PyObject *uuid = ((t_item *) parent)->uuid;
-        PyObject *newParent = PyObject_GetItem(view, uuid);
+        if (parentRef->ob_type == ItemRef)
+            return t_itemref_call((t_itemref *) parentRef, NULL, NULL);
 
-        if (newParent)
-        {
-            Py_DECREF(parent);
-            self->parent = parent = newParent;
-        }
-        else
-            return NULL;
+        Py_INCREF(parentRef); /* a view */
+        return parentRef;
     }
 
-    Py_INCREF(parent);
-    return parent;
+    Py_RETURN_NONE;
 }
 
 static int t_item__setParent(t_item *self, PyObject *parent, void *data)
 {
     PyObject *result =
-        PyObject_CallMethodObjArgs((PyObject *) self, move_NAME, parent, NULL);
+        PyObject_CallMethodObjArgs((PyObject *) self, move_NAME,
+                                   parent ? parent : Py_None, NULL);
 
     if (!result)
         return -1;
 
     Py_DECREF(result);
+    return 0;
+}
+
+
+/* _parent */
+
+static PyObject *t_item___getParent(t_item *self, void *data)
+{
+    PyObject *parentRef = self->parentRef;
+
+    if (parentRef)
+    {
+        if (parentRef->ob_type == ItemRef)
+        {
+            t_item *parent = ((t_itemref *) parentRef)->item;
+
+            if (parent)
+            {
+                Py_INCREF(parent);
+                return (PyObject *) parent;
+            }
+        }
+        else if (PyObject_TypeCheck(parentRef, CView))
+        {
+            Py_INCREF(parentRef);
+            return parentRef;
+        }
+    }
+
+    Py_RETURN_NONE;
+}
+
+static int t_item___setParent(t_item *self, PyObject *parent, void *data)
+{
+    PyObject *parentRef = NULL;
+
+    if (parent == Py_None)
+        parent = NULL;
+
+    if (parent)
+    {
+        PyObject *result;
+
+        if (PyObject_TypeCheck(parent, CItem))
+            parentRef = (PyObject *) ((t_item *) parent)->ref;
+        else if (PyObject_TypeCheck(parent, CView))
+            parentRef = parent;
+        else
+        {
+            PyErr_SetObject(PyExc_TypeError, parent);
+            return -1;
+        }
+
+        result = PyObject_CallMethodObjArgs(parent, _addItem_NAME, self, NULL);
+        if (!result)
+            return -1;
+        Py_DECREF(result);
+
+        Py_INCREF(parentRef);
+    }
+
+    Py_XDECREF(self->parentRef);
+    self->parentRef = parentRef;
+
     return 0;
 }
 
@@ -1398,7 +1463,8 @@ static PyObject *t_item__getName(t_item *self, void *data)
 static int t_item__setName(t_item *self, PyObject *name, void *data)
 {
     PyObject *result =
-        PyObject_CallMethodObjArgs((PyObject *) self, rename_NAME, name, NULL);
+        PyObject_CallMethodObjArgs((PyObject *) self, rename_NAME,
+                                   name ? name : Py_None, NULL);
 
     if (!result)
         return -1;
@@ -1412,25 +1478,42 @@ static int t_item__setName(t_item *self, PyObject *name, void *data)
 
 static PyObject *t_item__getRoot(t_item *self, void *data)
 {
-    PyObject *root = self->root;
+    t_item *root = self;
 
-    if (root != Py_None && ((t_item *) root)->status & STALE)
-    {
-        PyObject *view = ((t_item *) root)->parent;
-        PyObject *uuid = ((t_item *) root)->uuid;
-        PyObject *newRoot = PyObject_GetItem(view, uuid);
+    while (root) {
+        PyObject *parentRef = root->parentRef;
 
-        if (newRoot)
-        {
-            Py_DECREF(root);
-            self->root = root = newRoot;
-        }
+        if (!parentRef)
+            Py_RETURN_NONE;
+
+        if (parentRef->ob_type != ItemRef)
+            break;
         else
-            return NULL;
+            root = ((t_itemref *) parentRef)->item;
     }
 
+    if (!root)
+        Py_RETURN_NONE;
+
+    if (root->status & STALE)
+        return PyObject_GetItem(root->ref->view, root->ref->uuid);
+
     Py_INCREF(root);
-    return root;
+    return (PyObject *) root;
+}
+
+
+/* itsRef */
+
+static PyObject *t_item__getRef(t_item *self, void *data)
+{
+    if (self->ref)
+    {
+        Py_INCREF(self->ref);
+        return (PyObject *) self->ref;
+    }
+
+    Py_RETURN_NONE;
 }
 
 
@@ -1438,10 +1521,15 @@ static PyObject *t_item__getRoot(t_item *self, void *data)
 
 static PyObject *t_item__getUUID(t_item *self, void *data)
 {
-    PyObject *uuid = self->uuid;
+    if (self->ref)
+    {
+        PyObject *uuid = self->ref->uuid;
 
-    Py_INCREF(uuid);
-    return uuid;
+        Py_INCREF(uuid);
+        return uuid;
+    }
+    
+    Py_RETURN_NONE;
 }
 
 
@@ -1472,7 +1560,9 @@ static int t_item__setVersion(t_item *self, PyObject *value, void *data)
 {
     unsigned long version;
 
-    if (PyInt_Check(value))
+    if (!value)
+        version = 0;
+    else if (PyInt_Check(value))
         version = PyInt_AS_LONG(value);
     else if (PyLong_Check(value))
         version = PyLong_AsUnsignedLong(value);
@@ -1557,9 +1647,9 @@ void _init_item(PyObject *m)
             _flags_NAME = PyString_FromString("_flags");
             watchers_NAME = PyString_FromString("watchers");
             filterItem_NAME = PyString_FromString("filterItem");
-            _setParent_NAME = PyString_FromString("_setParent");
             _setItem_NAME = PyString_FromString("_setItem");
             getAttributeValue_NAME = PyString_FromString("getAttributeValue");
+            _addItem_NAME = PyString_FromString("_addItem");
         }
     }
 }

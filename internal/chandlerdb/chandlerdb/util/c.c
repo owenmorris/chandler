@@ -21,7 +21,6 @@
 #include "c.h"
 
 PyTypeObject *UUID = NULL;
-PyTypeObject *SingleRef = NULL;
 PyTypeObject *Key = NULL;
 PyTypeObject *Cipher = NULL;
 PyTypeObject *CLinkedMap = NULL;
@@ -32,18 +31,11 @@ PyTypeObject *SkipList = NULL;
 
 PyObject *Nil = NULL;
 PyObject *Default = NULL;
+PyObject *Empty_TUPLE = NULL;
 
 static PyObject *isuuid(PyObject *self, PyObject *obj)
 {
     if (PyObject_TypeCheck(obj, UUID))
-        Py_RETURN_TRUE;
-
-    Py_RETURN_FALSE;
-}
-
-static PyObject *issingleref(PyObject *self, PyObject *obj)
-{
-    if (PyObject_TypeCheck(obj, SingleRef))
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
@@ -188,7 +180,6 @@ static PyObject *unpackDigits(PyObject *self, PyObject *arg)
 
 static PyMethodDef c_funcs[] = {
     { "isuuid", (PyCFunction) isuuid, METH_O, "isinstance(UUID)" },
-    { "issingleref", (PyCFunction) issingleref, METH_O, "isinstance(SingleRef)" },
     { "_hash", (PyCFunction) hash, METH_VARARGS, "hash bytes" },
     { "_combine", (PyCFunction) combine, METH_VARARGS, "combine two hashes" },
     { "loadUUIDs", (PyCFunction) loadUUIDs, METH_O,
@@ -222,8 +213,9 @@ void initc(void)
 {
     PyObject *m = Py_InitModule3("c", c_funcs, "C util types module");
 
+    Empty_TUPLE = PyTuple_New(0);
+
     _init_uuid(m);
-    _init_singleref(m);
     _init_rijndael(m);
     _init_linkedmap(m);
     _init_skiplist(m);

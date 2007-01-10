@@ -21,10 +21,10 @@
 #include <db.h>
 #include "c.h"
 
-PyTypeObject *SingleRef = NULL;
 PyTypeObject *CView = NULL;
 PyTypeObject *CRepository = NULL;
 PyTypeObject *CItem = NULL;
+PyTypeObject *ItemRef = NULL;
 PyTypeObject *CDB = NULL;
 PyTypeObject *CDBCursor = NULL;
 PyTypeObject *CDBEnv = NULL;
@@ -155,7 +155,6 @@ void initc(void)
 
     if (!(m = PyImport_ImportModule("chandlerdb.util.c")))
         return;
-    LOAD_TYPE(m, SingleRef);
     LOAD_FN(m, PyUUID_Check);
     LOAD_FN(m, PyUUID_Make16);
     LOAD_FN(m, _hash_bytes);
@@ -165,5 +164,6 @@ void initc(void)
     if (!(m = PyImport_ImportModule("chandlerdb.item.c")))
         return;
     LOAD_TYPE(m, CItem);
+    LOAD_TYPE(m, ItemRef);
     Py_DECREF(m);
 }

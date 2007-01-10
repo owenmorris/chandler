@@ -28,6 +28,7 @@ static PyObject *t_values_new(PyTypeObject *type,
 static int t_values_init(t_values *self, PyObject *args, PyObject *kwds);
 
 static Py_ssize_t t_values_dict_length(t_values *self);
+static int t_values_dict_contains(t_values *self, PyObject *key);
 static PyObject *t_values_dict_get(t_values *self, PyObject *key);
 static int t_values_dict_set(t_values *self, PyObject *key, PyObject *value);
 
@@ -35,7 +36,6 @@ static PyObject *t_values_get(t_values *self, PyObject *args);
 static PyObject *t_values_keys(t_values *self, PyObject *arg);
 static PyObject *t_values_items(t_values *self, PyObject *arg);
 static PyObject *t_values_copy(t_values *self, PyObject *arg);
-static PyObject *t_values_has_key(t_values *self, PyObject *key);
 static PyObject *t_values__isReadOnly(t_values *self, PyObject *key);
 static PyObject *t_values__isTransient(t_values *self, PyObject *key);
 static PyObject *t_values__setTransient(t_values *self, PyObject *key);
@@ -53,6 +53,7 @@ static PyObject *_clearDirties_NAME;
 
 static PyMemberDef t_values_members[] = {
     { "_flags", T_OBJECT, offsetof(t_values, flags), 0, "" },
+    { "_ref", T_OBJECT, offsetof(t_values, ref), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -61,8 +62,6 @@ static PyMethodDef t_values_methods[] = {
     { "keys", (PyCFunction) t_values_keys, METH_NOARGS, "" },
     { "items", (PyCFunction) t_values_items, METH_NOARGS, "" },
     { "copy", (PyCFunction) t_values_copy, METH_NOARGS, "" },
-    { "__contains__", (PyCFunction) t_values_has_key, METH_O|METH_COEXIST, "" },
-    { "has_key", (PyCFunction) t_values_has_key, METH_O, "" },
     { "_isReadOnly", (PyCFunction) t_values__isReadOnly, METH_O, "" },
     { "_isTransient", (PyCFunction) t_values__isTransient, METH_O, "" },
     { "_setTransient", (PyCFunction) t_values__setTransient, METH_O, "" },
@@ -84,6 +83,19 @@ static PyGetSetDef t_values_properties[] = {
     { NULL, NULL, NULL, NULL, NULL }
 };
 
+static PySequenceMethods t_values_as_sequence = {
+    (lenfunc) t_values_dict_length,       /* sq_length */
+    0,                                    /* sq_concat */
+    0,                                    /* sq_repeat */
+    0,                                    /* sq_item */
+    0,                                    /* sq_slice */
+    0,                                    /* sq_ass_item */
+    0,                                    /* sq_ass_slice */
+    (objobjproc) t_values_dict_contains,  /* sq_contains */
+    0,                                    /* sq_inplace_concat */
+    0,                                    /* sq_inplace_repeat */
+};
+
 static PyMappingMethods t_values_as_mapping = {
     (lenfunc) t_values_dict_length,
     (binaryfunc) t_values_dict_get,
@@ -103,7 +115,7 @@ static PyTypeObject ValuesType = {
     0,                                         /* tp_compare */
     0,                                         /* tp_repr */
     0,                                         /* tp_as_number */
-    0,                                         /* tp_as_sequence */
+    &t_values_as_sequence,                     /* tp_as_sequence */
     &t_values_as_mapping,                      /* tp_as_mapping */
     0,                                         /* tp_hash  */
     0,                                         /* tp_call */
@@ -143,7 +155,7 @@ static void t_values_dealloc(t_values *self)
 
 static int t_values_traverse(t_values *self, visitproc visit, void *arg)
 {
-    Py_VISIT(self->item);
+    Py_VISIT(self->ref);
     Py_VISIT(self->dict);
     Py_VISIT(self->flags);
 
@@ -152,7 +164,7 @@ static int t_values_traverse(t_values *self, visitproc visit, void *arg)
 
 static int t_values_clear(t_values *self)
 {
-    Py_CLEAR(self->item);
+    Py_CLEAR(self->ref);
     Py_CLEAR(self->dict);
     Py_CLEAR(self->flags);
 
@@ -166,7 +178,7 @@ static PyObject *t_values_new(PyTypeObject *type,
 
     if (self)
     {
-        self->item = NULL;
+        self->ref = NULL;
         self->dict = PyDict_New();
         self->flags = Nil; Py_INCREF(Nil);
     }
@@ -186,7 +198,7 @@ static PyObject *t_values_copy(t_values *self, PyObject *args)
 
     if (copy)
     {
-        copy->item = NULL;
+        copy->ref = NULL;
         copy->dict = PyDict_Copy(self->dict);
         copy->flags = Nil; Py_INCREF(Nil);
     }
@@ -199,13 +211,22 @@ static Py_ssize_t t_values_dict_length(t_values *self)
     return PyDict_Size(self->dict);
 }
 
+static int t_values_dict_contains(t_values *self, PyObject *key)
+{
+    return PyDict_Contains(self->dict, key);
+}
+
 static PyObject *t_values_dict_get(t_values *self, PyObject *key)
 {
     PyObject *value = PyDict_GetItem(self->dict, key);
 
     if (value)
     {
-        Py_INCREF(value);
+        if (value->ob_type == ItemRef)
+            value = PyObject_Call(value, NULL, NULL);
+        else
+            Py_INCREF(value);
+
         return value;
     }
 
@@ -215,9 +236,7 @@ static PyObject *t_values_dict_get(t_values *self, PyObject *key)
 
 static int t_values_dict_set(t_values *self, PyObject *key, PyObject *value)
 {
-    t_item *item = (t_item *) self->item;
-
-    if (item != NULL && item->values == self)
+    if (self->ref != NULL)
     {
         PyObject *oldValue = PyDict_GetItem(self->dict, key);
 
@@ -237,8 +256,11 @@ static int t_values_dict_set(t_values *self, PyObject *key, PyObject *value)
         }
     }
 
-    if (value == NULL)
+    if (!value)
         return PyDict_DelItem(self->dict, key);
+    else if (PyObject_TypeCheck(value, CItem))
+        return PyDict_SetItem(self->dict, key,
+                              (PyObject *) ((t_item *) value)->ref);
     else
         return PyDict_SetItem(self->dict, key, value);
 }
@@ -254,9 +276,15 @@ static PyObject *t_values_get(t_values *self, PyObject *args)
         PyObject *value = PyDict_GetItem(self->dict, key);
 
         if (!value)
+        {
             value = defaultValue;
+            Py_INCREF(value);
+        }
+        else if (value->ob_type == ItemRef)
+            value = PyObject_Call(value, NULL, NULL);
+        else
+            Py_INCREF(value);
 
-        Py_INCREF(value);
         return value;
     }
 }
@@ -269,14 +297,6 @@ static PyObject *t_values_keys(t_values *self, PyObject *arg)
 static PyObject *t_values_items(t_values *self, PyObject *arg)
 {
     return PyDict_Items(self->dict);
-}
-
-static PyObject *t_values_has_key(t_values *self, PyObject *key)
-{
-    if (PyDict_Contains(self->dict, key))
-        Py_RETURN_TRUE;
-
-    Py_RETURN_FALSE;
 }
 
 
@@ -392,7 +412,7 @@ static int _t_values__clearValueDirties(t_values *self, PyObject *value)
 
 static PyObject *t_values__clearDirties(t_values *self)
 {
-    int isNew = self->item && ((t_item *) self->item)->status & NEW;
+    int isNew = self->ref && self->ref->item->status & NEW;
     PyObject *key, *value;
     Py_ssize_t pos;
 
@@ -446,30 +466,38 @@ static PyObject *t_values__getDict(t_values *self, void *data)
 
 static PyObject *t_values__getItem(t_values *self, void *data)
 {
-    PyObject *item = self->item;
+    t_itemref *ref = self->ref;
 
-    if (item == NULL)
-        item = Py_None;
+    if (ref == NULL)
+        Py_RETURN_NONE;
 
-    Py_INCREF(item);
-    return item;
+    if (!ref->item)
+    {
+        PyErr_SetString(PyExc_AssertionError, "no item");
+        return NULL;
+    }
+
+    Py_INCREF(ref->item);
+    return (PyObject *) ref->item;
 }
 
 static int t_values__setItem(t_values *self, PyObject *item, void *data)
 {
-    if (item == Py_None)
+    if (!item || item == Py_None)
     {
-        Py_XDECREF(self->item);
-        self->item = NULL;
+        Py_XDECREF(self->ref);
+        self->ref = NULL;
         
         return 0;
     }
 
     if (PyObject_TypeCheck(item, CItem))
     {
-        Py_INCREF(item);
-        Py_XDECREF(self->item);
-        self->item = item;
+        t_itemref *ref = ((t_item *) item)->ref;
+
+        Py_XINCREF(ref);
+        Py_XDECREF(self->ref);
+        self->ref = ref;
 
         return 0;
     }

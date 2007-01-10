@@ -29,6 +29,7 @@ static PyObject *t_nil_iternext(t_nil *self);
 static Py_ssize_t t_nil_length(t_nil *self);
 static PyObject *t_nil_dict_get(t_nil *self, PyObject *key);
 static int t_nil_contains(t_nil *self, PyObject *obj);
+static PyObject *t_nil_call(t_nil *self, PyObject *args, PyObject *kwds);
 
 static PyMethodDef t_nil_methods[] = {
     { "get", (PyCFunction) t_nil_get, METH_VARARGS, NULL },
@@ -75,7 +76,7 @@ static PyTypeObject NilType = {
     &nil_as_sequence,                          /* tp_as_sequence */
     &nil_as_mapping,                           /* tp_as_mapping */
     0,                                         /* tp_hash  */
-    0,                                         /* tp_call */
+    (ternaryfunc)t_nil_call,                   /* tp_call */
     0,                                         /* tp_str */
     0,                                         /* tp_getattro */
     0,                                         /* tp_setattro */
@@ -133,6 +134,11 @@ static PyObject *t_nil_iternext(t_nil *self)
 {
     PyErr_SetNone(PyExc_StopIteration);
     return NULL;
+}
+
+static PyObject *t_nil_call(t_nil *self, PyObject *args, PyObject *kwds)
+{
+    Py_RETURN_NONE;
 }
 
 
