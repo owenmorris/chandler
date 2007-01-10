@@ -24,7 +24,6 @@ class Monitors(Item):
 
     def onItemLoad(self, view):
 
-        self.setPinned()
         view.MONITORING = False
         view.setSingleton(view.MONITORS, self)
 

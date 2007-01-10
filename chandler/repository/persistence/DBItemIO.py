@@ -17,7 +17,7 @@ from struct import pack, unpack
 
 from chandlerdb.persistence.c import DBLockDeadlockError, Record
 from chandlerdb.util.c import Nil, Default, UUID, _hash, isuuid
-from chandlerdb.item.c import isitem, CItem, CValues
+from chandlerdb.item.c import isitem, CItem, isitemref, ItemRef, CValues
 from chandlerdb.schema.c import CAttribute
 from chandlerdb.item.ItemValue import Indexable
 from repository.item.Sets import AbstractSet
@@ -369,7 +369,7 @@ class DBItemWriter(ItemWriter):
             refRecord += (Record.BYTE, DBItemWriter.SINGLE | DBItemWriter.REF,
                           Record.UUID, value)
 
-        elif isitem(value):
+        elif isitemref(value):
             refRecord += (Record.BYTE, DBItemWriter.SINGLE | DBItemWriter.REF,
                           Record.UUID, value.itsUUID)
 
@@ -608,7 +608,7 @@ class DBValueReader(ValueReader):
             return offset, None
 
         elif flags & DBItemWriter.SINGLE:
-            return offset+1, data[offset]
+            return offset+1, ItemRef(data[offset], view)
 
         elif flags & DBItemWriter.LIST:
             uuid = data[offset]
@@ -783,13 +783,13 @@ class DBItemReader(ItemReader, DBValueReader):
         cls = self._class(self.moduleName, self.className, withSchema, kind,
                           view, afterLoadHooks)
 
-        values = Values(None)
-        references = References(None)
+        values = Values()
+        references = References()
 
         self._values(values, references, self.uValues, kind,
                      withSchema, view, afterLoadHooks)
 
-        instance = view._reuseItemInstance(self.uItem)
+        instance = view._instanceRegistry.pop(self.uItem, None)
         if instance is not None:
             if cls is not type(instance):
                 instance.__class__ = cls
@@ -804,7 +804,7 @@ class DBItemReader(ItemReader, DBValueReader):
         if hasattr(cls, 'onItemLoad'):
             afterLoadHooks.append(item.onItemLoad)
 
-        item._fillItem(self.name, parent, kind, self.uItem,
+        item._fillItem(self.name, parent, kind, self.uItem, view,
                        values, references, status, self.version,
                        afterLoadHooks, False)
 
@@ -927,7 +927,6 @@ class DBItemReader(ItemReader, DBValueReader):
                     d._setFlags(name, vFlags)
 
             if offset != len(data):
-                import pdb; pdb.set_trace()
                 raise ValueError, (name, 'short read')
 
 

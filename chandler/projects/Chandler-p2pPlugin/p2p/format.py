@@ -16,7 +16,8 @@ import base64
 
 from itertools import izip
 
-from chandlerdb.util.c import UUID, isuuid, issingleref, Nil
+from chandlerdb.util.c import UUID, isuuid, Nil
+from chandlerdb.item.c import isitemref
 from repository.schema.Kind import Kind
 from application import schema
 from osaf.sharing import formats, utility
@@ -199,7 +200,7 @@ class CloudXMLDiffFormat(formats.CloudXMLFormat):
                     dom.closeElement(item, 'value')
                 else:
                     if cardinality == 'single':
-                        if issingleref(attrValue):
+                        if isitemref(attrValue):
                             value = dom.openElement(item, 'value', name=attrName)
                             attrValue = attrValue.itsUUID
                             self.exportProcess(dom, attrValue, value,

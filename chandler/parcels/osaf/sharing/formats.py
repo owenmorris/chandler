@@ -407,7 +407,7 @@ class CloudXMLFormat(ImportExportFormat):
 
                 result += indent * depth
 
-            else: # it's a literal (@@@MOR could be SingleRef though)
+            else: # it's a literal (@@@MOR could be ItemRef though)
 
                 # Since 'displayName' is being renamed 'title', let's keep
                 # existing shares backwards-compatible and continue to read/

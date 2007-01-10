@@ -331,9 +331,7 @@ class AbstractSet(ItemValue, Indexed):
 
     def _collectionChanged(self, op, change, other, local=False):
 
-        item = self._item
-        attribute = self._attribute
-
+        item, attribute = self._getOwner()
         if item is not None:
             if change == 'collection':
 
@@ -475,7 +473,7 @@ class AbstractSet(ItemValue, Indexed):
     def _setDirty(self, noFireChanges=False):
 
         self._dirty = True
-        item = self._item
+        item = self._owner()
         if item is not None:
             try:
                 view = item.itsView
@@ -529,16 +527,10 @@ class AbstractSet(ItemValue, Indexed):
     def _isDict(self):
         return False
     
-    def _isItem(self):
-        return False
-    
-    def _isUUID(self):
-        return False
-
     def _setRef(self, other, alias=None, dictKey=None, otherKey=None,
                 ignore=False):
 
-        self._item.add(other)
+        self._owner().add(other)
         self._view._notifyChange(self._collectionChanged,
                                  'add', 'collection', other.itsUUID,
                                  True)
@@ -546,7 +538,7 @@ class AbstractSet(ItemValue, Indexed):
     def _removeRef(self, other, dictKey=None):
 
         if other in self:
-            self._item.remove(other)
+            self._owner().remove(other)
             self._view._notifyChange(self._collectionChanged,
                                      'remove', 'collection', other.itsUUID,
                                      True)
@@ -555,20 +547,14 @@ class AbstractSet(ItemValue, Indexed):
         
         if self._otherName is not None:
             for item in self:
-                item._references._removeRef(self._otherName, self._item)
+                item._references._removeRef(self._otherName, self._owner())
 
     def _fillRefs(self):
 
         if self._otherName is not None:
             for item in self:
-                item._references._setRef(self._otherName, self._item,
+                item._references._setRef(self._otherName, self._owner(),
                                          self._attribute)
-
-    def _unloadRef(self, other, dictKey=None):
-        pass
-
-    def _unloadRefs(self):
-        pass
 
     def clear(self):
         self._removeRefs()

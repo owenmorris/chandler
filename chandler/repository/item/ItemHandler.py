@@ -547,7 +547,7 @@ class ItemHandler(ValueHandler):
             else:
                 cls = self.kind.getItemClass()
 
-        instance = self.view._reuseItemInstance(self.uuid)
+        instance = self.view._instanceRegistry.pop(self.uuid, None)
         if instance is not None:
             if cls is not type(instance):
                 raise TypeError, 'Class for item has changed from %s to %s' %(type(instance), cls)
@@ -581,15 +581,12 @@ class ItemHandler(ValueHandler):
         else:
             item = self.item = cls.__new__(cls)
 
-        item._fillItem(self.name, self.parent, self.kind, self.uuid,
+        item._fillItem(self.name, self.parent, self.kind, self.uuid, self.view,
                        self.values, self.references, status, self.version,
                        self.afterLoadHooks, not not self.update)
 
         if self.isContainer and item._children is None:
             item._children = self.view._createChildren(item, self.new)
-
-        if not (self.update or self.delete):
-            self.view._registerItem(item)
 
         for refArgs in self.refs:
             other = refArgs._setItem(item)

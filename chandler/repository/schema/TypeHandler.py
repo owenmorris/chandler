@@ -13,8 +13,8 @@
 #   limitations under the License.
 
 
-from chandlerdb.item.c import isitem
-from chandlerdb.util.c import UUID, SingleRef
+from chandlerdb.item.c import isitem, isitemref, ItemRef
+from chandlerdb.util.c import UUID, Nil
 from repository.util.Path import Path
 
 
@@ -35,7 +35,7 @@ class TypeHandler(object):
             pass
 
         if isitem(value):
-            return cls.typeHandlers[view][SingleRef][0]
+            return cls.typeHandlers[view][ItemRef][0]
 
         try:
             typeKind = cls.typeHandlers[view][None]
@@ -59,6 +59,8 @@ class TypeHandler(object):
 
         if typeName == 'class':
             return view.classLoader.loadClass(data)
+        elif typeName == 'ref':
+            return ItemRef(UUID(data), view)
 
         try:
             return cls.typeDispatch[typeName](data)
@@ -84,11 +86,10 @@ class TypeHandler(object):
         'unicode': unicode,
         'uuid': UUID,
         'path': Path,
-        'ref': lambda(data): SingleRef(UUID(data)),
         'bool': lambda(data): data != 'False',
         'int': int,
         'long': long,
         'float': float,
         'complex': complex,
-        'none': lambda(data): None,
+        'none': Nil,
     }

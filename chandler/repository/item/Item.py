@@ -14,9 +14,9 @@
 
 
 from chandlerdb.util.c import \
-    UUID, SingleRef, _hash, _combine, isuuid, issingleref, Nil, Default
+    UUID, _hash, _combine, isuuid, Nil, Default
 from chandlerdb.schema.c import _countAccess
-from chandlerdb.item.c import CItem, isitem
+from chandlerdb.item.c import CItem, isitem, isitemref
 from chandlerdb.item.ItemValue import ItemValue
 from chandlerdb.item.ItemError import *
 
@@ -62,21 +62,8 @@ class Item(CItem):
         """
 
         # this constructor should not be run more than once
-        if self._uuid is not None:
+        if self.itsUUID is not None:
             return
-
-        super(Item, self).__init__()
-
-        cls = type(self)
-        self._values = Values(self)
-        self._references = References(self)
-        self._uuid = _uuid or UUID()
-        self._name = itsName or None
-        self._kind = itsKind
-        self._version = 0L
-
-        if itsKind is not None:
-            itsKind._setupClass(cls)
 
         if itsParent is None:
             raise ValueError, 'parent cannot be None, for roots use a view'
@@ -84,7 +71,16 @@ class Item(CItem):
         if itsName is None and not isitem(itsParent):
             raise AnonymousRootError, self
 
-        self._setParent(itsParent)
+        super(Item, self).__init__(_uuid or UUID(), itsName or None, itsParent)
+
+        cls = type(self)
+        self._values = Values(self)
+        self._references = References(self)
+        self._kind = itsKind
+        self._version = 0L
+
+        if itsKind is not None:
+            itsKind._setupClass(cls)
 
         try:
             if itsKind is not None:
@@ -219,10 +215,7 @@ class Item(CItem):
 
         if isItem or value is None:
             if _attrDict is _values:
-                if isItem:
-                    _values[name] = value = SingleRef(value.itsUUID)
-                else:
-                    _values[name] = None
+                _values[name] = value
                 dirty = Item.VDIRTY
             else:
                 if otherName is None:
@@ -446,10 +439,8 @@ class Item(CItem):
             _attrDict is None and name in self._values):
             value = self._values.get(name, Nil)
             if value is not Nil:
-                if issingleref(value):
-                    item = self.itsView.find(value.itsUUID)
-                    if item is not None:
-                        return item
+                if isitemref(value):
+                    return value(True)
                 return value
 
         elif (_attrDict is self._references or
@@ -671,16 +662,14 @@ class Item(CItem):
 
         if not referencesOnly:
             for name, value in self._values._dict.iteritems():
-                if issingleref(value):
-                    item = self.itsView.find(value.itsUUID)
-                    if item is not None:
-                        value = item
+                if isitemref(value):
+                    value = value(True)
                 yield name, value
 
         if not valuesOnly:
             for name, ref in self._references._dict.iteritems():
-                if ref is not None and isuuid(ref):
-                    ref = self._references._getRef(name, ref)
+                if isitemref(ref):
+                    ref = ref()
                 yield name, ref
 
     def iterAttributeNames(self, valuesOnly=False, referencesOnly=False):
@@ -1046,7 +1035,7 @@ class Item(CItem):
             if isinstance(value, dict):
                 if alias is not None:
                     return value.resolveAlias(alias) is not None
-                return value.has_key(key)
+                return key in value
             elif isinstance(value, list):
                 return 0 <= key and key < len(value)
             elif value is not None:
@@ -1226,7 +1215,7 @@ class Item(CItem):
 
         By default, an attribute's copyPolicy aspect is C{remove} for
         bi-directional references and C{copy} for
-        L{SingleRef<chandlerdb.util.c.SingleRef>} values.
+        L{ItemRef<chandlerdb.item.c.ItemRef>} values.
 
         Attribute copy policies can be overriden with a
         L{Cloud<repository.schema.Cloud.Cloud>} instance to drive the copy
@@ -1274,8 +1263,8 @@ class Item(CItem):
         if parent is None:
             parent = self.itsParent
         hooks = []
-        item._fillItem(name, parent, kind, UUID(),
-                       Values(item), References(item), 0, 0,
+        item._fillItem(name, parent, kind, UUID(), self.itsView,
+                       Values(), References(), 0, 0,
                        hooks, False)
         copies[self._uuid] = item
 
@@ -1334,8 +1323,8 @@ class Item(CItem):
         if parent is None:
             parent = self.itsParent
         hooks = []
-        item._fillItem(name, parent, kind, UUID(),
-                       Values(item), References(item), 0, 0,
+        item._fillItem(name, parent, kind, UUID(), self.itsView,
+                       Values(), References(), 0, 0,
                        hooks, False)
 
         try:
@@ -1533,7 +1522,7 @@ class Item(CItem):
             view._unregisterItem(self, False)
             self._status |= Item.DELETED
         else:
-            self._setRoot(None, view)
+            view._unregisterItem(self, False)
             self._status |= Item.DELETED | Item.STALE
 
         self._status &= ~(Item.DELETING | Item.DEFERRED)
@@ -1581,20 +1570,6 @@ class Item(CItem):
 
         return count
 
-    def _refCount(self):
-
-        count = 0
-
-        if not self.isStale():
-            count += self._values._refCount()
-            count += self._references._refCount()
-            if self._children is not None:
-                count += self._children._refCount()
-            if not self._parent.isStale():
-                count += 1  #parent
-
-        return count
-
     def _getPath(self, path=None):
 
         if path is None:
@@ -1604,32 +1579,6 @@ class Item(CItem):
         path.append(self.itsName or self.itsUUID)
 
         return path
-
-    def _setRoot(self, root, oldView):
-
-        if root is not self._root:
-            if root is None:
-                newView = None
-            else:
-                newView = root._parent
-
-            if oldView is not newView:
-                if oldView is not None and newView is not None:
-                    raise NotImplementedError, 'changing views'
-
-                if oldView is not None:
-                    oldView._unregisterItem(self, False)
-
-                if newView is not None:
-                    newView._registerItem(self)
-
-            self._root = root
-
-            for child in self.iterChildren(False):
-                child._setRoot(root, oldView)
-
-        elif root is not None:
-            root.itsView._registerItem(self)
 
     def _setKind(self, kind, _noFireChanges=False):
 
@@ -1882,25 +1831,10 @@ class Item(CItem):
             
         parent = self.itsParent
         if parent is not newParent:
-            oldView = parent.itsView
-            parent._removeItem(self)
-            self._setParent(newParent, oldView)
+            if parent is not None:
+                parent._removeItem(self)
+            self._parent = newParent
             self.setDirty(Item.NDIRTY)
-
-    def _setParent(self, parent, oldView=None):
-
-        if parent is not None:
-            if self._parent is not parent:
-                if parent._isRepository():
-                    parent = parent.view
-                self._parent = parent
-                self._setRoot(parent._addItem(self), oldView)
-            elif parent._isView():
-                self._setRoot(self, oldView)
-            else:
-                self._setRoot(parent.itsRoot, oldView)
-        else:
-            self._parent = None
 
     def _addItem(self, item):
 
@@ -1917,8 +1851,6 @@ class Item(CItem):
             self._children = self.itsView._createChildren(self, True)
 
         self._children._append(item)
-
-        return self.itsRoot
 
     def _removeItem(self, item):
 
@@ -2207,7 +2139,6 @@ class Item(CItem):
             if self._references:
                 self._references._unload(clean)
 
-            self._parent._unloadChild(self)
             if self._children is not None:
                 self._children.clear()
                 self._children = None
@@ -2216,15 +2147,9 @@ class Item(CItem):
 
             if not reloadable:
                 self._parent = None
-                self._root = None
                 self._kind = None
             
             self._status |= Item.STALE
-
-    def _unloadChild(self, child):
-
-        if self._children is not None:
-            self._children._unloadChild(child)
 
     def _refList(self, name, otherName=None, dictKey=None):
 
@@ -2350,12 +2275,6 @@ class Watch(Item):
                                     view.find(type(self).kind))
 
         self.watchingItem = watchingItem
-        self.setPinned()
-
-    def _fillItem(self, *args):
-
-        super(Watch, self)._fillItem(*args)
-        self.setPinned()
 
 
 class WatchSet(Watch):

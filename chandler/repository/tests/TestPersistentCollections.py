@@ -72,7 +72,7 @@ class TestPersistentCollections(RepositoryTestCase):
     def _testList(self, item, values):
 
         self.assert_(item.list is not values)
-        self.assert_(item.list != values, "items are stored as SingleRefs")
+        self.assert_(item.list != values, "items are stored as ItemRefs")
         self.assert_(len(item.list) == len(values))
         self.assert_(type(item.list) is PersistentList)
 
@@ -117,7 +117,7 @@ class TestPersistentCollections(RepositoryTestCase):
 
         self.assert_(item.dictionary is not values)
         self.assert_(item.dictionary != values,
-                     "items are stored as SingleRefs")
+                     "items are stored as ItemRefs")
         self.assert_(len(item.dictionary) == len(values))
         self.assert_(type(item.dictionary) is PersistentDict)
 
@@ -159,7 +159,7 @@ class TestPersistentCollections(RepositoryTestCase):
     def _testTuple(self, item, values):
 
         self.assert_(item.tuple is not values)
-        self.assert_(item.tuple != values, "items are stored as SingleRefs")
+        self.assert_(item.tuple != values, "items are stored as ItemRefs")
         self.assert_(len(item.tuple) == len(values))
 
         for v in item.tuple:
@@ -200,7 +200,7 @@ class TestPersistentCollections(RepositoryTestCase):
     def _testSet(self, item, values):
 
         self.assert_(item.set is not values)
-        self.assert_(item.set != values, "items are stored as SingleRefs")
+        self.assert_(item.set != values, "items are stored as ItemRefs")
         self.assert_(len(item.set) == len(values))
 
         for v in item.set:

@@ -377,7 +377,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/SingleRef</ref>
+         type="path" otherCard="list">/Core/ItemRef</ref>
   </item>
 
   <item withSchema="True" coreSchema="True">
@@ -392,7 +392,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/SingleRef</ref>
+         type="path" otherCard="list">/Core/ItemRef</ref>
 
     <attribute name="cardinality">dict</attribute>
   </item>

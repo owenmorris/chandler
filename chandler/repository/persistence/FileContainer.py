@@ -12,11 +12,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import heapq
-
 from struct import pack, unpack
 from cStringIO import StringIO
 from time import time
+from heapq import heapify, heappop
 
 from PyLucene import \
     Document, Field, RAMDirectory, DbDirectory, StandardAnalyzer, \
@@ -601,9 +600,9 @@ class IndexContainer(FileContainer):
                 hits = _self.collector.hits
 
                 if hits:
-                    heapq.heapify(hits)
+                    heapify(hits)
                     while hits:
-                        score, id = heapq.heappop(hits)
+                        score, id = heappop(hits)
                         doc = searcher.doc(id)
                         uItem = UUID(doc['item'])
                         

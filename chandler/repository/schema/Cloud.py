@@ -15,8 +15,8 @@
 
 from itertools import izip
 
-from chandlerdb.util.c import isuuid, issingleref, Nil, Default
-from chandlerdb.item.c import isitem
+from chandlerdb.util.c import isuuid, Nil, Default
+from chandlerdb.item.c import isitem, isitemref
 from chandlerdb.item.ItemError import RecursiveDeleteError
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
@@ -458,7 +458,7 @@ class Endpoint(Item):
     def iterValues(self, item):
 
         def append(values, value):
-            if not (value is None or issingleref(value)):
+            if not (value is None or isitemref(value)):
                 if isitem(value) or isinstance(value, RefList):
                     values.append(value)
                 elif isinstance(value, PersistentCollection):
@@ -496,7 +496,7 @@ class Endpoint(Item):
                 value = values
             else:
                 value = value.getAttributeValue(name, None, None, None)
-                if value is None or issingleref(value):
+                if value is None or isitemref(value):
                     break
                 if not (isitem(value) or
                         isinstance(value, (PersistentCollection,
@@ -523,7 +523,7 @@ class Endpoint(Item):
             if value is not None:
                 if isuuid(value) or isinstance(value, RefList):
                     values.append(value)
-                elif isitem(value) or issingleref(value):
+                elif isitem(value) or isitemref(value):
                     values.append(value.itsUUID)
                 elif isinstance(value, PersistentCollection):
                     values.extend(value._iterKeys())
@@ -568,7 +568,7 @@ class Endpoint(Item):
                 value = view.findValue(value, name, None)
                 if value is None:
                     break
-                if issingleref(value) or isitem(value):
+                if isitemref(value) or isitem(value):
                     value = value.itsUUID
                 elif not (isuuid(value) or
                           isinstance(value, (PersistentCollection,
@@ -582,7 +582,7 @@ class Endpoint(Item):
         if isuuid(value):
             return [value]
 
-        if issingleref(value) or isitem(value):
+        if isitemref(value) or isitem(value):
             return [value.itsUUID]
 
         if isinstance(value, PersistentCollection):

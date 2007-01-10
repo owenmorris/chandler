@@ -460,7 +460,7 @@ a description, initialValue, or other options):
     >>> class School(schema.Item):
     ...     attendees = schema.Sequence(Person, inverse=schema.One())
 
-    >>> joes_school = School(None,None,None,rv,"Hogwart's", attendees=[Joe])
+    >>> joes_school = School("Hogwart's",None,None,rv,attendees=[Joe])
     >>> list(joes_school.attendees)
     [Joe Schmoe]
 
@@ -489,7 +489,7 @@ You can use this constructed name with standard APIs to retrieve its value from
 items of the target kind::
 
     >>> getattr(Joe, 'application.tests.School.attendees.inverse')
-    <School ... Hogwart's>
+    <School ... Hogwart's ...>
 
     >>> delattr(Joe, 'application.tests.School.attendees.inverse')
     >>> list(joes_school.attendees)

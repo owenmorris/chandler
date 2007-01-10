@@ -25,7 +25,7 @@ from chandlerdb.schema.c import CAttribute
 from chandlerdb.util.c import \
     _hash, _combine, Nil, packDigits, unpackDigits, isuuid
 from chandlerdb.persistence.c import Record
-from chandlerdb.item.c import isitem
+from chandlerdb.item.c import isitem, isitemref
 from repository.item.Item import Item
 from repository.item.PersistentCollections import \
      PersistentList, PersistentDict, PersistentTuple, PersistentSet
@@ -34,7 +34,7 @@ from repository.schema.Kind import Kind
 from repository.schema.TypeHandler import TypeHandler
 
 from chandlerdb.util.c import UUID as UUIDType
-from chandlerdb.util.c import SingleRef as SingleRefType
+from chandlerdb.item.c import ItemRef as ItemRefType
 from repository.util.Path import Path as PathType
 from repository.util.URL import URL as URLType
 from repository.item.Sets import AbstractSet as AbstractSetType
@@ -87,13 +87,13 @@ class Type(Item):
 
         super(Type, self).__init__(*args, **kw)
 
-        self._status |= Item.SCHEMA | Item.PINNED
+        self._status |= Item.SCHEMA
         TypeHandler.typeHandlers[self.itsView][None].types.append(self)
         
     def _fillItem(self, *args):
 
         super(Type, self)._fillItem(*args)
-        self._status |= Item.SCHEMA | Item.PINNED
+        self._status |= Item.SCHEMA
 
     def _registerTypeHandler(self, implementationType, view):
 
@@ -598,7 +598,7 @@ class UUID(Type):
         return value._hash        
 
 
-class SingleRef(Type):
+class ItemRef(Type):
 
     def handlerName(self):
 
@@ -610,24 +610,22 @@ class SingleRef(Type):
             return None
         
         uuid = UUIDType(data)
-        return SingleRefType(uuid)
+        return ItemRefType(uuid, self.itsView)
 
     def makeString(self, value):
 
         if value is None:
             return Type.NoneString
         
-        return str(value)
+        return str(value.itsUUID)
     
     def recognizes(self, value):
 
-        return (value is None or
-                type(value) is SingleRefType or
-                isitem(value))
+        return value is None or isitemref(value) or isitem(value)
 
     def eval(self, value):
 
-        return self.itsView[value.itsUUID]
+        return value()
 
     def _compareTypes(self, other):
 
@@ -654,20 +652,20 @@ class SingleRef(Type):
 
         value = data[offset]
         if isuuid(value):
-            value = SingleRefType(value)
+            value = ItemRefType(value, view)
 
         return offset+1, value
 
     def getFlags(self):
 
-        return CAttribute.PROCESS
+        return CAttribute.PROCESS_SET
 
     def hashValue(self, value):
 
         if value is None:
             return 0
 
-        return _combine(_hash(str(self.itsPath)), value._uuid._hash)
+        return _combine(_hash(str(self.itsPath)), value.itsUUID._hash)
 
 
 class Path(Type):

@@ -38,7 +38,7 @@ class RefList(LinkedMap, Indexed):
         
         super(RefList, self).__init__(lmflags)
         self._init_indexed()
-        self._item = None
+        self._owner = Nil
         self._name = name
         self._otherName = otherName
         self._dictKey = dictKey
@@ -61,19 +61,13 @@ class RefList(LinkedMap, Indexed):
     def _isDict(self):
         return False
     
-    def _isItem(self):
-        return False
-    
-    def _isUUID(self):
-        return False
-    
     def _isDirty(self):
         return False
 
     def _setDirty(self, noFireChanges=False):
 
         if self._flags & RefList.SETDIRTY:
-            item = self._item
+            item = self._owner()
             item.setDirty(item.RDIRTY, self._name, item._references, noFireChanges)
 
     def _setFlag(self, flag, on):
@@ -146,27 +140,28 @@ class RefList(LinkedMap, Indexed):
 
     def _setOwner(self, item, name):
 
-        if self._item is not None and self._item is not item:
+        if self._owner is not Nil and self._owner() is not item:
             raise AssertionError, 'Item is already set'
         
-        self._item = item
         if item is not None:
+            self._owner = item.itsRef
             self._flags |= RefList.SETDIRTY
         else:
+            self._owner = Nil
             self._flags &= ~RefList.SETDIRTY
 
     def _getView(self):
 
-        return self._item.itsView
+        return self._owner.itsView
 
     def _getOwner(self):
 
-        return (self._item, self._name)
+        return self._owner(), self._name
 
     def __repr__(self):
 
         return '<%s: %s.%s<->%s>' %(type(self).__name__,
-                                    self._item.itsPath,
+                                    self._owner(True),
                                     self._name, self._otherName)
 
     def __contains__(self, key, excludeMutating=False, excludeIndexes=False):
@@ -244,16 +239,16 @@ class RefList(LinkedMap, Indexed):
             aliasedKey = self.resolveAlias(alias)
             if aliasedKey is not None:
                 raise ValueError, "alias '%s' already set for key %s" %(alias, aliasedKey)
-        self._item._references._setValue(self._name, item, self._otherName,
-                                         _noFireChanges, 'list',
-                                         alias, self._dictKey, otherKey)
+        self._owner()._references._setValue(self._name, item, self._otherName,
+                                            _noFireChanges, 'list',
+                                            alias, self._dictKey, otherKey)
 
     def clear(self):
         """
         Remove all references from this ref collection.
         """
 
-        view = self._item.itsView
+        view = self._owner.itsView
         for uOther in self.iterkeys():
             other = view.find(uOther)
             if other is not None:
@@ -268,11 +263,11 @@ class RefList(LinkedMap, Indexed):
             if otherValue is None:
                 self._removeRef(other)
             elif otherValue._isRefs():
-                if self._item in otherValue:
+                if self._owner() in otherValue:
                     self.remove(other)
                 else:
                     self._removeRef(other)
-            elif otherValue is self._item:
+            elif otherValue is self._owner():
                 self.remove(other)
             else:
                 self._removeRef(other)
@@ -287,12 +282,12 @@ class RefList(LinkedMap, Indexed):
     def _setRef(self, other, alias=None, dictKey=None, otherKey=None,
                 fireChanges=False):
 
-        if otherKey is not None and other in self:
+        if otherKey is not None and other.itsUUID in self:
             if self.getOtherKey(other) != otherKey:
                 self.remove(other)
 
         key = other.itsUUID
-        link = CLink(self, other, None, None, alias, otherKey);
+        link = CLink(self, other.itsRef, None, None, alias, otherKey);
         self[key] = link
 
         if self._indexes:
@@ -388,18 +383,18 @@ class RefList(LinkedMap, Indexed):
         @type item: an C{Item} instance
         """
 
-        self._item._references._removeValue(self._name, item,
-                                            self._otherName, self._dictKey)
+        self._owner()._references._removeValue(self._name, item,
+                                               self._otherName, self._dictKey)
             
     def __delitem__(self, key):
 
-        self._item._references._removeValue(self._name, self[key],
-                                            self._otherName, self._dictKey)
+        self._owner()._references._removeValue(self._name, self[key],
+                                               self._otherName, self._dictKey)
 
     def _removeRef_(self, other):
 
         if self._flags & RefList.READONLY:
-            raise ReadOnlyAttributeError, (self._item, self._name)
+            raise ReadOnlyAttributeError, (self._owner(), self._name)
 
         key = other.itsUUID
         
@@ -416,7 +411,7 @@ class RefList(LinkedMap, Indexed):
 
         link = self._removeRef_(other)
         if link is not None:
-            item = self._item
+            item = self._owner()
             view = item.itsView
             view._notifyChange(item._collectionChanged,
                                'remove', 'collection', self._name,
@@ -436,7 +431,7 @@ class RefList(LinkedMap, Indexed):
         if ref is None:
             return False
         
-        view = self._item.itsView
+        view = self._owner.itsView
             
         try:
             loading = view._setLoading(True)
@@ -446,10 +441,10 @@ class RefList(LinkedMap, Indexed):
                 if self._flags & CLinkedMap.MERGING:
                     other = key
                 else:
-                    raise DanglingRefError, (self._item, self._name, key)
+                    raise DanglingRefError, (self._owner(), self._name, key)
 
             previousKey, nextKey, alias, otherKey = ref[0:4]
-            self._dict[key] = CLink(self, other, previousKey, nextKey,
+            self._dict[key] = CLink(self, other.itsRef, previousKey, nextKey,
                                     alias, otherKey)
             if alias is not None:
                 aliases = self._aliases
@@ -463,18 +458,6 @@ class RefList(LinkedMap, Indexed):
             view._setLoading(loading, True)
 
         return False
-
-    def _unloadRefs(self):
-
-        references = self._item._references
-        name = self._name
-        otherName = self._otherName
-        dictKey = self._dictKey
-
-        for link in self._values():
-            # accessing _value directly to prevent reloading
-            references._unloadValue(name, link._value, otherName,
-                                    dictKey, link._otherKey)
 
     def get(self, key, default=None, load=True):
         """
@@ -557,10 +540,6 @@ class RefList(LinkedMap, Indexed):
         
         return len(self)
 
-    def _refCount(self):
-
-        return len(self._dict) + 1
-
     def _xmlValue(self, name, item, generator, withSchema, version, attrs):
 
         attrs['name'] = name
@@ -578,7 +557,7 @@ class RefList(LinkedMap, Indexed):
 
     def _xmlValues(self, generator, version):
 
-        refs = self._item._references
+        refs = self._owner()._references
         for key in self.iterkeys():
             link = self._get(key)
             refs._xmlRef(key, link.value,
@@ -643,7 +622,7 @@ class RefList(LinkedMap, Indexed):
             if key in self:
                 raise
             else:
-                raise NoSuchItemInCollectionError, (self._item, self._name,
+                raise NoSuchItemInCollectionError, (self._owner(), self._name,
                                                     previous)
 
         if nextKey is not None:
@@ -669,7 +648,7 @@ class RefList(LinkedMap, Indexed):
             if key in self:
                 raise
             else:
-                raise NoSuchItemInCollectionError, (self._item, self._name,
+                raise NoSuchItemInCollectionError, (self._owner, self._name,
                                                     next)
 
         if previousKey is not None:
@@ -689,12 +668,12 @@ class RefList(LinkedMap, Indexed):
         l = len(self)
         logger = self._getView().logger
 
-        if item is not self._item or name != self._name:
+        if item is not self._owner() or name != self._name:
             logger.error('Ref collection not owned by %s.%s: %s',
-                         self._item.itsPath, self._name, self)
+                         self._owner, self._name, self)
             return False
         
-        refs = self._item._references
+        refs = self._owner()._references
         result = True
 
         key = self.firstKey()
@@ -719,7 +698,7 @@ class RefList(LinkedMap, Indexed):
             logger.error("iterator on %s doesn't finish on last key %s but on %s", self, self.lastKey(), prevKey)
             return False
 
-        return result and self._checkIndexes(logger, self._item, self._name,
+        return result and self._checkIndexes(logger, self._owner(), self._name,
                                              repair)
 
     def _hashValues(self):
@@ -767,7 +746,11 @@ class RefDict(object):
         
         super(RefDict, self).__init__()
 
-        self._item = item
+        if item is None:
+            self._owner = Nil
+        else:
+            self._owner = item.itsRef
+            
         self._name = name
         self._otherName = otherName
         self._dict = {}
@@ -784,12 +767,6 @@ class RefDict(object):
     def _isDict(self):
         return True
     
-    def _isItem(self):
-        return False
-    
-    def _isUUID(self):
-        return False
-    
     def _refList(self, dictKey):
 
         if dictKey is None:
@@ -797,9 +774,8 @@ class RefDict(object):
 
         refList = self._dict.get(dictKey)
         if refList is None:
-            self._dict[dictKey] = refList = self._item._refList(self._name,
-                                                                self._otherName,
-                                                                dictKey)
+            self._dict[dictKey] = refList = \
+                self._owner()._refList(self._name, self._otherName, dictKey)
 
         return refList
 
@@ -817,16 +793,6 @@ class RefDict(object):
     def _removeRefs(self):
 
         self.clear()
-
-    def _unloadRefs(self):
-
-        for refList in self._dict.itervalues():
-            refList._unloadRefs()
-
-    def _unloadRef(self, other, dictKey):
-        
-        if dictKey in self._dict:
-            self._dict[dictKey]._unloadRef(other)
 
     def add(self, dictKey, other, alias=None, otherKey=None):
 
@@ -916,7 +882,11 @@ class RefDict(object):
 
     def _setOwner(self, item, name):
         
-        self._item = item
+        if item is None:
+            self._owner = Nil
+        else:
+            self._owner = item.itsRef
+
         for refList in self._dict.itervalues():
             refList._setOwner(item, name)
 
@@ -957,11 +927,6 @@ class RefDict(object):
         return sum(refList.refCount(loaded) for refList in
                    self._dict.itervalues())
             
-    def _refCount(self):
-
-        return sum(refList._refCount() for refList in
-                   self._dict.itervalues()) + 1
-
     # copy the refs from self into copyItem._references
     def _copy(self, copyItem, name, policy, copyFn, refDict=None):
 

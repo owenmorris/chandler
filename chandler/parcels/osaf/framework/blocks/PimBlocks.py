@@ -27,11 +27,11 @@ from osaf.framework.blocks import Block, BlockEvent, debugName, getProxiedItem
 from application import schema
 from application.dialogs.RecurrenceDialog import getProxy
 import application.dialogs.DeleteDialog as DeleteDialog
-from chandlerdb.util.c import issingleref
+from chandlerdb.item.c import isitemref
 
 # hack workaround for bug 4747
 def FilterGone(list):
-    return [x for x in list if not issingleref(x)]
+    return [x for x in list if not isitemref(x)]
 
 """
 Chandler-specific Blocks

@@ -22,7 +22,7 @@ from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.persistence.RepositoryError import MergeError
 from repository.util.Path import Path
 from repository.item.Sets import Set
-
+from chandlerdb.item.ItemError import ChildNameError
 
 class TestMerge(RepositoryTestCase):
     """ Test item merging """
@@ -193,9 +193,9 @@ class TestMerge(RepositoryTestCase):
         km = main.find(TestMerge.cPath)
 
         cm = km.newItem('child', pm)
-        km.newItem(m_name, self.rep)
+        km.newItem(m_name, main)
         if o_name != m_name:
-            km.newItem(o_name, self.rep)
+            km.newItem(o_name, main)
             
         main.commit()
         
@@ -311,6 +311,8 @@ class TestMerge(RepositoryTestCase):
         try:
             level = self.setLoggerLevel(logging.CRITICAL)
             main.commit()
+        except ChildNameError:
+            pass
         except MergeError, e:
             self.assert_(e.getReasonCode() == MergeError.NAME)
         else:
@@ -348,7 +350,7 @@ class TestMerge(RepositoryTestCase):
         main = self.rep.view
         pm = main['p']
         km = main.find(TestMerge.cPath)
-        km.newItem('q', self.rep)
+        km.newItem('q', main)
         km.newItem('foo', pm)
         km.newItem('bar', pm)
         km.newItem('i1', pm)
@@ -382,7 +384,7 @@ class TestMerge(RepositoryTestCase):
         main = self.rep.view
         pm = main['p']
         km = main.find(TestMerge.cPath)
-        km.newItem('q', self.rep)
+        km.newItem('q', main)
         km.newItem('foo', pm)
         km.newItem('bar', pm)
         km.newItem('i1', pm)
@@ -409,7 +411,7 @@ class TestMerge(RepositoryTestCase):
         main = self.rep.view
         pm = main['p']
         km = main.find(TestMerge.cPath)
-        km.newItem('q', self.rep)
+        km.newItem('q', main)
         km.newItem('foo', pm)
         km.newItem('bar', pm)
         km.newItem('i1', pm)
@@ -1234,7 +1236,7 @@ class TestMerge(RepositoryTestCase):
         m2 = movies.next(m1)
         m3 = movies.next(m2)
         m1.title = 'View Changed Title'
-        m3.set = Set((movies._item, 'movies'))
+        m3.set = Set((movies._owner(), 'movies'))
         m3.set.addIndex('t', 'attribute', attribute='title')
         view.commit()
 

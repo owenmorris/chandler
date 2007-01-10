@@ -25,7 +25,8 @@ from application import schema
 from repository.schema.Kind import Kind
 import repository.item.Item as Item
 from chandlerdb.item.ItemError import NoLocalValueForAttributeError
-from chandlerdb.util.c import Nil, issingleref
+from chandlerdb.util.c import Nil
+from chandlerdb.item.c import isitemref
 import logging
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
@@ -77,10 +78,10 @@ class Modification(schema.Enumeration):
 
 def isDead(item):
     """
-    Return True if the item is None, a singleref, stale, or deferred.
+    Return True if the item is None, an itemref, stale, or deferred.
     
     """
-    return (item is None or issingleref(item) or item.isStale() or
+    return (item is None or isitemref(item) or item.isStale() or
             item.isDeferred())
 
 # For use in indexing time-related attributes. We only use this for 

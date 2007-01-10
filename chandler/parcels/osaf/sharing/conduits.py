@@ -63,7 +63,7 @@ class Conduit(pim.ContentItem):
 
 class BaseConduit(Conduit):
 
-    itemsMarker = schema.One(schema.SingleRef)
+    itemsMarker = schema.One(schema.ItemRef)
 
     sharePath = schema.One(
         schema.Text,

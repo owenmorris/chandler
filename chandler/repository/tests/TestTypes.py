@@ -25,7 +25,8 @@ from PyICU import ICUtzinfo
 
 from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
-from chandlerdb.util.c import UUID, SingleRef
+from chandlerdb.util.c import UUID
+from chandlerdb.item.c import ItemRef
 from datetime import datetime, timedelta
 
 
@@ -43,7 +44,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         self.typeKind = self._find('//Schema/Core/Type')
 
         self.typenames=['String', 'Symbol', 'Integer', 'Long', 'Float',
-                        'Complex', 'Boolean', 'UUID', 'SingleRef', 'Path',
+                        'Complex', 'Boolean', 'UUID', 'ItemRef', 'Path',
                         'NoneType', 'Class', 'Enumeration', 'Struct',
                         'DateTime', 'TimeDelta',
                         'Collection', 'Dictionary', 'List', 'Lob']
@@ -66,7 +67,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         # None entries mean we don't test -- handlername is unimplmented for these
         handlerNames = { 'String':'unicode', 'Symbol':'str', 'Integer':'int',
                          'Long':'long', 'Float':'float', 'Complex':'complex',
-                         'Boolean':'bool', 'UUID':'uuid', 'SingleRef':'ref',
+                         'Boolean':'bool', 'UUID':'uuid', 'ItemRef':'ref',
                          'Path':'path', 'NoneType':None, 'Class':'class',
                          'Enumeration':'ref', 'Struct':'ref', 'DateTime':None,
                          'TimeDelta':None,
@@ -85,7 +86,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         implTypeNames = { 'String':'unicode', 'Symbol':'str', 'Integer':'int',
                           'Long':'long', 'Float':'float', 'Complex':'complex',
                           'Boolean':'bool', 'UUID':'UUID',
-                          'SingleRef':'SingleRef',
+                          'ItemRef':'ItemRef',
                           'Path':'Path', 'Class':'type',
                           'DateTime':'datetime',
                           'TimeDelta':'timedelta',
@@ -109,7 +110,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         typeStrings = { 'String':'abcde', 'Symbol':'str', 'Integer':'123',
                         'Long':'456', 'Float':'123.456', 'Complex':'(34.4+3j)',
                         'Boolean':'True', 'UUID':str(self.attrKind.itsUUID),
-                        'SingleRef':str(self.attrKind.itsUUID),
+                        'ItemRef':str(self.attrKind.itsUUID),
                         'Path':'//Schema/Core/Item', 'NoneType':None,
                         'Class':'repository.item.Item.Item', 'Enumeration':'ref',
                         'Struct':'ref', 'DateTime':'2004-01-08 12:34:56.15',
@@ -135,7 +136,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         self.uuidString = str(self.uuid)
         self.pathString = '//Schema/Core/Item'
         self.path = Path(self.pathString)
-        self.singleRef = SingleRef(self.uuid)
+        self.itemRef = ItemRef(self.uuid, view)
         self.itemClass = eval('repository.item.Item.Item')
         self.dateTimeString = '2004-01-08 12:34:56 US/Mountain'
         self.dateTime = datetime(2004, 1, 8, 12, 34, 56,
@@ -172,7 +173,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         typeStrings = { 'String':'abcde', 'Symbol':'str', 'Integer':'123',
                         'Long':'456', 'Float':'123.456', 'Complex':'(2.4+8j)',
                         'Boolean':'True', 'UUID':self.uuidString,
-                        'SingleRef':self.uuidString, 'Path':self.pathString,
+                        'ItemRef':self.uuidString, 'Path':self.pathString,
                         'NoneType':None, 'Class':'repository.item.Item.Item',
                         'Enumeration':'green',
                         'Struct':'ref',
@@ -186,7 +187,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         typeValues = { 'String':'abcde', 'Symbol':'str', 'Integer':123,
                        'Long':456, 'Float':123.456, 'Complex':2.4+8j,
                        'Boolean':True, 'UUID':self.uuid,
-                       'SingleRef':self.singleRef, 'Path':self.path,
+                       'ItemRef':self.itemRef, 'Path':self.path,
                        'NoneType':None, 'Class': self.itemClass,
                        'Enumeration':self.enum, 'Struct':self.struct,
                        'DateTime':self.dateTime,
@@ -235,7 +236,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                        'Integer':(123,[1234.43]), 'Long':(456,[1.5]),
                        'Float':(123.456,['abcd']), 'Complex':(2.4+8j,['abcd']),
                        'Boolean':(True, ['abcd']), 'UUID':(self.uuid,['abcd']),
-                       'SingleRef':(self.singleRef, ['abcde']),
+                       'ItemRef':(self.itemRef, ['abcde']),
                        'Path':(self.path, ['abcde']),
                        'NoneType':(None, [None]),
                        'Class': (self.itemClass, ['abcde']),
@@ -292,10 +293,10 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         floatTypes = [ self.types['Float'] ]
         complexTypes = [ self.types['Complex'] ]
         booleanTypes = [ self.types['Boolean'] ]
-        singleRefTypes = [ self.types['SingleRef'] ]
+        itemRefTypes = [ self.types['ItemRef'] ]
         uuidTypes = [ self.types['UUID'] ]
         pathTypes = [ self.types['Path'] ]
-        noneTypes = [ self._find('//Schema/Core/None'), self.types['Path'], self.types['SingleRef'], self.types['UUID'] ]
+        noneTypes = [ self._find('//Schema/Core/None'), self.types['Path'], self.types['ItemRef'], self.types['UUID'] ]
         classTypes = [ self.types['Class'] ]
         enumTypes = [ self.types['Enumeration'] ]
         structTypes = [ self.types['Struct'] ]
@@ -311,7 +312,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         values = {"abacde":stringTypes, "1234":stringTypes, 123:integerTypes,
                   1234.456:floatTypes, 1.23+45j:complexTypes,
                   True: booleanTypes, False: booleanTypes,
-                  self.uuid: uuidTypes, self.singleRef: singleRefTypes,
+                  self.uuid: uuidTypes, self.itemRef: itemRefTypes,
                   self.path: pathTypes,
                   None:noneTypes, self.itemClass:classTypes,
 # findTypes doesn' work for structs and enums

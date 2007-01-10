@@ -30,13 +30,13 @@ class AttributeTestCase(RepositoryTestCase.RepositoryTestCase):
         itemKind = self._find('//Schema/Core/Item')
         attrKind = itemKind.itsParent['Attribute']
 
-        managerKind = kind.newItem('manager', self.rep)
+        managerKind = kind.newItem('manager', self.rep.view)
         employeesAttribute = Attribute('employees',managerKind, attrKind)
         employeesAttribute.cardinality = type
         employeesAttribute.otherName = 'manager'
         managerKind.addValue('attributes',
                              employeesAttribute,alias='employees')
-        employeeKind = kind.newItem('employee', self.rep)
+        employeeKind = kind.newItem('employee', self.rep.view)
         managerAttribute = Attribute('manager',employeeKind, attrKind)
         managerAttribute.otherName = 'employees'
         employeeKind.addValue('attributes',

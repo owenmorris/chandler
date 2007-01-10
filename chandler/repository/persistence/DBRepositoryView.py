@@ -147,12 +147,6 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         return DBNumericIndex(self, **kwds)
     
-    def _registerItem(self, item):
-
-        super(DBRepositoryView, self)._registerItem(item)
-        if item.isDirty():
-            self._log.add(item)
-
     def _unregisterItem(self, item, reloadable):
 
         super(DBRepositoryView, self)._unregisterItem(item, reloadable)

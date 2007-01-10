@@ -14,8 +14,8 @@
 
 
 from chandlerdb.util.c import \
-    UUID, SingleRef, _hash, _combine, isuuid, issingleref, Nil, Default
-from chandlerdb.item.c import CValues, CItem, isitem
+    UUID, _hash, _combine, isuuid, Nil, Default
+from chandlerdb.item.c import CValues, CItem, isitem, isitemref
 from chandlerdb.item.ItemError import *
 from chandlerdb.item.ItemValue import ItemValue
 
@@ -29,7 +29,7 @@ from repository.persistence.RepositoryError import MergeError
 
 class Values(CValues):
 
-    def __init__(self, item):
+    def __init__(self, item=None):
 
         if item is not None:
             self._setItem(item)
@@ -55,16 +55,6 @@ class Values(CValues):
             if isinstance(value, ItemValue):
                 value._setOwner(item, name)
 
-    def _refCount(self):
-
-        count = 1
-
-        for value in self._dict.itervalues():
-            if isinstance(value, ItemValue):
-                count += value._refCount()
-
-        return count
-
     def _copy(self, orig, copyPolicy, copyFn):
 
         item = self._item
@@ -74,17 +64,17 @@ class Values(CValues):
                 value._setOwner(item, name)
                 self[name] = value
 
-            elif issingleref(value):
+            elif isitemref(value):
                 policy = (copyPolicy or
                           item.getAttributeAspect(name, 'copyPolicy',
                                                   False, None, 'copy'))
-                other = item.find(value.itsUUID)
-                if other is None:
+                other = value(True)
+                if isitemref(other):
                     self[name] = value
                 else:
                     copyOther = copyFn(item, other, policy)
                     if copyOther is not Nil:
-                        self[name] = SingleRef(copyOther.itsUUID)
+                        self[name] = copyOther.itsRef
 
             else:
                 self[name] = value
@@ -117,8 +107,7 @@ class Values(CValues):
 
         self._dict.clear()
         self._flags = Nil
-        if not clean:
-            self._item = None
+        self._item = None
 
     def _setFlags(self, key, flags):
 
@@ -522,37 +511,14 @@ class References(Values):
                 raise KeyError, name
             if value is None or isitem(value) or value._isRefs():
                 return value
-            if isuuid(value):
-                try:
-                    other = item.itsView[value]
-                except KeyError:
-                    raise DanglingRefError, (item, name, value)
-                
-                self[name] = other
-                kind = item.itsKind
-                if kind is not None:  # kind may be None during bootstrap
-                    if otherName is None:
-                        otherName = kind.getOtherName(name, item)
-                    other._references._getRef(otherName, item, name)
-                return other
 
             raise TypeError, '%s, type: %s' %(value, type(value))
 
         if value is other:
-            if isuuid(value):
-                try:
-                    other = item.itsView[value]
-                except KeyError:
-                    raise DanglingRefError, (item, name, value)
-                self[name] = other
             return other
 
         if value is self or value is None:
             raise BadRefError, (item, name, value, other)
-
-        if value == other.itsUUID:
-            self[name] = other
-            return other
 
         if value._isRefs():
             if other in value:
@@ -575,7 +541,7 @@ class References(Values):
 
     def _removeRef(self, name, other, dictKey=None):
 
-        value = self.get(name, self)
+        value = self._dict.get(name, self)
         if value is self:
             return
 
@@ -595,9 +561,9 @@ class References(Values):
                 del self[name]
             item.setDirty(dirty, name, self, True)
             item._fireChanges('remove', name)
-        elif (isuuid(value) and (value == other or
-                                 isitem(other) and value == other.itsUUID) or
-              isitem(value) and isuuid(other) and value.itsUUID == other):
+        elif (isitemref(value) and
+              other is not None and
+              value.itsUUID == other.itsUUID):
             del self[name]
             item.setDirty(CItem.VDIRTY, name, self, True)
             item._fireChanges('remove', name)
@@ -606,26 +572,6 @@ class References(Values):
         else:
             raise BadRefError, (self._item, name, other, value)
         
-    def _unloadValue(self, name, other, otherName, dictKey=None, otherKey=None):
-
-        if other is not None:
-            self._unloadRef(name, other, dictKey)
-            if isitem(other):
-                other._references._unloadRef(otherName, self._item, otherKey)
-
-    def _unloadRef(self, name, other, dictKey=None):
-
-        if not (other is None or isuuid(other)):
-            value = self.get(name, None)
-            if value is None or value is other:
-                self[name] = other.itsUUID
-            elif value._isRefs():
-                value._unloadRef(other, dictKey)
-            elif isuuid(value) and value == other.itsUUID:
-                pass
-            else:
-                raise BadRefError, (self._item, name, other, value)
-
     def clear(self):
 
         item = self._item
@@ -649,25 +595,13 @@ class References(Values):
 
         value = self._dict.get(name)
         if value is not None:
-            if isitem(value):
-                count += 1
+            if isitemref(value):
+                if not loaded:
+                    count += 1
+                elif isitem(value.itsItem):
+                    count += 1
             elif value._isRefs():
                 count += value.refCount(loaded)
-            elif not loaded and isuuid(value):
-                count += 1
-
-        return count
-
-    def _refCount(self):
-
-        count = 1
-
-        for value in self._dict.itervalues():
-            if value is not None:
-                if isitem(value):
-                    count += 1
-                elif value._isRefs():
-                    count += value._refCount()
 
         return count
 
@@ -690,6 +624,8 @@ class References(Values):
             if value is not None and value._isRefs():
                 value._copy(item, name, policy, copyFn)
             else:
+                if isitemref(value):
+                    value = value()
                 orig._copyRef(item, name, value, policy, copyFn)
             self._copyFlags(orig, name)
 
@@ -712,36 +648,17 @@ class References(Values):
                 value._clone(item)  # attribute value is set in _clone()
                 continue
 
-            if isuuid(value):
-                value = item.itsView[value]
-
+            value = value()
             otherName = kind.getOtherName(name, item)
             otherCard = value.getAttributeAspect(otherName, 'cardinality',
                                                  False, None, 'single')
             if otherCard == 'list':
                 self._setValue(name, value, otherName)
 
-    def _unload(self, clean=True):
-
-        if clean:
-            for name, value in self._dict.iteritems():
-                if value is not None:
-                    if value._isRefs():
-                        value._unloadRefs()
-                    elif isitem(value):
-                        item = self._item
-                        otherName = item.itsKind.getOtherName(name, item)
-                        self._unloadValue(name, value, otherName)
-
-        super(References, self)._unload(clean)
-
     def _isRefs(self, name):
 
-        try:
-            value = self[name]
-            return value is not None and value._isRefs()
-        except KeyError:
-            return False
+        value = self.get(name)
+        return value is not None and value._isRefs()
 
     def _xmlRef(self, name, other, generator, withSchema, version, attrs,
                 previous=None, next=None, alias=None):
@@ -809,9 +726,6 @@ class References(Values):
             if value is Nil:
                 raise ValueError, 'Cannot persist Nil'
 
-            if withSchema and value is not None and isuuid(value):
-                value = self._getRef(name, value, attribute.c.otherName)
-
             size += itemWriter._ref(item, name, value,
                                     version, flags & Values.SAVEMASK, 
                                     withSchema, attribute)
@@ -843,7 +757,7 @@ class References(Values):
                     value._xmlValue(name, item, generator, withSchema,
                                     version, attrs)
                 else:
-                    self._xmlRef(name, value, generator, withSchema,
+                    self._xmlRef(name, value(), generator, withSchema,
                                  version, attrs)
 
         return 0
@@ -865,8 +779,6 @@ class References(Values):
                 
             if value is None:
                 hash = _combine(hash, 0)
-            elif isuuid(value):
-                hash = _combine(hash, value._hash)
             elif isitem(value):
                 hash = _combine(hash, value._uuid._hash)
             elif value._isRefs():
@@ -953,8 +865,8 @@ class References(Values):
         result = True
 
         for key, value in self._dict.iteritems():
-            if value is not None and isuuid(value):
-                value = self._getRef(key, value)
+            if isitemref(value):
+                value = value(True)
                 
             attrCard = item.getAttributeAspect(key, 'cardinality',
                                                False, None, 'single')
@@ -1008,7 +920,7 @@ class References(Values):
                 if item.getAttributeAspect(name, 'cardinality') == 'single':
                     continue
 
-                value = self.get(name, Nil)
+                value = self._dict.get(name, Nil)
 
                 if name in dirties:
                     if value is Nil:
@@ -1055,11 +967,8 @@ class References(Values):
                 if item.getAttributeAspect(name, 'cardinality') != 'single':
                     continue
 
-                value = self.get(name, Nil)
-
-                if isitem(value):
-                    value = value.itsUUID
-                elif not (isuuid(value) or value in (None, Nil)):
+                value = self._dict.get(name, Nil)
+                if not (isitemref(value) or value in (None, Nil)):
                     continue
                 newChanges[name] = (True, value)
 
@@ -1122,28 +1031,28 @@ class References(Values):
         elif flag == CItem.VDIRTY:
             for name, (isRef, newValue) in newChanges[flag].iteritems():
                 if isRef:
-                    value = self.get(name, Nil)
-                    if isitem(value):
-                        value = value.itsUUID
-                    elif not (isuuid(value) or value in (None, Nil)):
+                    value = self._dict.get(name, Nil)
+                    if not (isitemref(value) or value in (None, Nil)):
                         continue
 
                     if newValue != value:
-                        if isuuid(newValue):
-                            newValue = view[newValue]
+                        if isitemref(newValue):
+                            newValue = newValue()
 
                         if name in dirties:
                             nextValue = ask(MergeError.REF, name, newValue)
                             if value not in (Nil, None):
                                 kind = item.itsKind
                                 otherName = kind.getOtherName(name, item)
-                                dangling.append((value, otherName,
+                                dangling.append((value.itsUUID, otherName,
                                                  item.itsUUID))
                             if nextValue is not newValue:
                                 conflicts.append((item.itsUUID,
                                                   name, nextValue))
 
                         if newValue is Nil:
+                            if isitemref(value):
+                                value = value()
                             self._removeRef(name, value)
 
                         else:

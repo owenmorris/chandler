@@ -13,8 +13,8 @@
 #   limitations under the License.
 
 
-from chandlerdb.util.c import Nil, SingleRef, issingleref
-from chandlerdb.item.c import isitem
+from chandlerdb.util.c import Nil
+from chandlerdb.item.c import isitem, isitemref
 from chandlerdb.item.ItemError import ReadOnlyAttributeError, OwnedValueError
 from chandlerdb.item.ItemValue import ItemValue
 
@@ -31,15 +31,6 @@ class PersistentCollection(ItemValue):
 
         super(PersistentCollection, self).__init__(item, attribute)
         self._readOnly = False
-
-    def _refCount(self):
-
-        count = 1
-        for value in self._itervalues():
-            if isinstance(value, ItemValue):
-                count += value._refCount()
-
-        return count
 
     def setReadOnly(self, readOnly=True):
 
@@ -58,20 +49,11 @@ class PersistentCollection(ItemValue):
                 if isinstance(value, ItemValue):
                     value._setOwner(item, attribute)
 
-    def _setDirty(self):
-
-        if self._readOnly:
-            raise ReadOnlyAttributeError, self._owner
-
-        item = self._item
-        if item is not None:
-            item.setDirty(item.VDIRTY, self._attribute, item._values)
-
     @classmethod
     def prepareValue(cls, item, attribute, value, setDirty=True):
         
         if isinstance(value, ItemValue):
-            if value._item is not None:
+            if value._owner is not Nil:
                 value = value._copy(item, attribute, 'copy')
             else:
                 value._setOwner(item, attribute)
@@ -84,17 +66,14 @@ class PersistentCollection(ItemValue):
         elif isinstance(value, set):
             value = PersistentSet(item, attribute, value, setDirty)
         elif isitem(value):
-            value = SingleRef(value.itsUUID)
+            value = value.itsRef
 
         return value
 
     def _restoreValue(self, value):
 
-        item = self._item
-        if item is not None and issingleref(value):
-            item = item.itsView.find(value.itsUUID)
-            if item is not None:
-                return item
+        if self._owner is not Nil and isitemref(value):
+            return value(True)
 
         return value
 
@@ -102,11 +81,11 @@ class PersistentCollection(ItemValue):
 
         if isinstance(value, PersistentCollection):
             return value
-        if issingleref(value):
+        if isitemref(value):
             return value
 
         if isitem(value):
-            return SingleRef(value.itsUUID)
+            return value.itsRef
         elif isinstance(value, list):
             return [self._useValue(v) for v in value]
         elif isinstance(value, set):
@@ -126,8 +105,8 @@ class PersistentCollection(ItemValue):
         if items is None:
             items = {}
         for value in self._itervalues():
-            if issingleref(value):
-                item = self._restoreValue(value)
+            if isitemref(value):
+                item = value(True)
                 if isitem(item):
                     uuid = item.itsUUID
                     if uuid not in items:
@@ -142,7 +121,7 @@ class PersistentCollection(ItemValue):
         if keys is None:
             keys = set()
         for value in self._itervalues():
-            if issingleref(value):
+            if isitemref(value):
                 key = value.itsUUID
                 if key not in keys:
                     keys.add(key)
@@ -244,7 +223,8 @@ class PersistentList(list, PersistentCollection):
 
     def __setitem__(self, index, value):
 
-        value = PersistentCollection.prepareValue(self._item, self._attribute,
+        value = PersistentCollection.prepareValue(self._owner(),
+                                                  self._attribute,
                                                   value)
         super(PersistentList, self).__setitem__(index, value)
         self._setDirty()
@@ -256,7 +236,7 @@ class PersistentList(list, PersistentCollection):
 
     def __setslice__(self, start, end, value):
 
-        item = self._item
+        item = self._owner()
         attribute = self._attribute
         value = [PersistentCollection.prepareValue(item, attribute, v)
                  for v in value]
@@ -270,7 +250,7 @@ class PersistentList(list, PersistentCollection):
 
     def __iadd__(self, value):
 
-        item = self._item
+        item = self._owner()
         attribute = self._attribute
         value = [PersistentCollection.prepareValue(item, attribute, v)
                  for v in value]
@@ -285,7 +265,7 @@ class PersistentList(list, PersistentCollection):
     def append(self, value, setDirty=True, prepare=True):
 
         if prepare:
-            value = PersistentCollection.prepareValue(self._item,
+            value = PersistentCollection.prepareValue(self._owner(),
                                                       self._attribute,
                                                       value)
         super(PersistentList, self).append(value)
@@ -296,7 +276,7 @@ class PersistentList(list, PersistentCollection):
     def add(self, value, setDirty=True, prepare=True):
 
         if prepare:
-            value = PersistentCollection.prepareValue(self._item,
+            value = PersistentCollection.prepareValue(self._owner(),
                                                       self._attribute,
                                                       value)
         super(PersistentList, self).append(value)
@@ -306,7 +286,8 @@ class PersistentList(list, PersistentCollection):
 
     def insert(self, index, value):
 
-        value = PersistentCollection.prepareValue(self._item, self._attribute,
+        value = PersistentCollection.prepareValue(self._owner(),
+                                                  self._attribute,
                                                   value)
         super(PersistentList, self).insert(index, value)
         self._setDirty()
@@ -338,7 +319,7 @@ class PersistentList(list, PersistentCollection):
 
     def extend(self, value, setDirty=True):
 
-        item = self._item
+        item = self._owner()
         attribute = self._attribute
         for v in value:
             self.append(PersistentCollection.prepareValue(item, attribute,
@@ -381,7 +362,7 @@ class PersistentList(list, PersistentCollection):
         sup = super(PersistentList, self)
 
         if level == 0:
-            if sup.__getitem__(key) == SingleRef(item.itsUUID):
+            if sup.__getitem__(key) == item.itsRef:
                 if _remove:
                     self.__delitem__(key)
                 return True
@@ -447,7 +428,7 @@ class PersistentDict(dict, PersistentCollection):
     def __setitem__(self, key, value, setDirty=True, prepare=True):
 
         if prepare:
-            value = PersistentCollection.prepareValue(self._item,
+            value = PersistentCollection.prepareValue(self._owner(),
                                                       self._attribute,
                                                       value)
         super(PersistentDict, self).__setitem__(key, value)
@@ -462,7 +443,7 @@ class PersistentDict(dict, PersistentCollection):
 
     def update(self, value, setDirty=True):
 
-        item = self._item
+        item = self._owner()
         attribute = self._attribute
         for k, v in value.iteritems():
             v = PersistentCollection.prepareValue(item, attribute, v, False)
@@ -475,7 +456,8 @@ class PersistentDict(dict, PersistentCollection):
         if not key in self:
             self._setDirty()
 
-        value = PersistentCollection.prepareValue(self._item, self._attribute,
+        value = PersistentCollection.prepareValue(self._owner(),
+                                                  self._attribute,
                                                   value)
 
         return super(PersistentDict, self).setdefault(key, value)
@@ -545,7 +527,7 @@ class PersistentDict(dict, PersistentCollection):
         sup = super(PersistentDict, self)
 
         if level == 0:
-            if sup.__getitem__(key) == SingleRef(item.itsUUID):
+            if sup.__getitem__(key) == item.itsRef:
                 if _remove:
                     self.__delitem__(key)
                 return True
@@ -641,7 +623,7 @@ class PersistentTuple(tuple, PersistentCollection):
         sup = super(PersistentTuple, self)
 
         if level == 0:
-            if sup.__getitem__(key) == SingleRef(item.itsUUID):
+            if sup.__getitem__(key) == item.itsRef:
                 if _remove:
                     raise TypeError, 'tuple is immutable'
                 return True
@@ -717,7 +699,7 @@ class PersistentSet(set, PersistentCollection):
     def add(self, value, setDirty=True, prepare=True):
         
         if prepare:
-            value = PersistentCollection.prepareValue(self._item,
+            value = PersistentCollection.prepareValue(self._owner(),
                                                       self._attribute,
                                                       value)
         super(PersistentSet, self).add(value)
@@ -753,7 +735,7 @@ class PersistentSet(set, PersistentCollection):
 
     def update(self, value, setDirty=True):
 
-        item = self._item
+        item = self._owner()
         attribute = self._attribute
         for v in value:
             if v not in self:
@@ -794,7 +776,7 @@ class PersistentSet(set, PersistentCollection):
         sup = super(PersistentSet, self)
 
         if level == 0:
-            if sup.__contains__(SingleRef(item.itsUUID)):
+            if sup.__contains__(item.itsRef):
                 if _remove:
                     self.remove(item)
                 return True

@@ -44,17 +44,17 @@ class TestMove(RepositoryTestCase):
         m = k.movies.first()
 
         m.move(view)
-        self.assert_(m._parent is view)
-        self.assert_(m._root is m)
-        self.assert_(c.hasChild(m._name) is False)
+        self.assert_(m.itsParent is view)
+        self.assert_(m.itsRoot is m)
+        self.assert_(c.hasChild(m.itsName) is False)
 
         if withCommit:
             view.commit()
         
         m.move(c)
-        self.assert_(m._parent is c)
-        self.assert_(m._root is c)
-        self.assert_(view.hasRoot(m._name) is False)
+        self.assert_(m.itsParent is c)
+        self.assert_(m.itsRoot is c)
+        self.assert_(view.hasRoot(m.itsName) is False)
 
         if withCommit:
             view.commit()

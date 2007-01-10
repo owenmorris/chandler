@@ -13,6 +13,8 @@
 #   limitations under the License.
 
 
+from weakref import ref
+
 from chandlerdb.item.c import CItem, isitem
 from chandlerdb.util.c import CLink, Nil
 from repository.util.LinkedMap import LinkedMap
@@ -24,38 +26,41 @@ class Children(LinkedMap):
 
         super(Children, self).__init__(lmflags)
 
-        self._item = None
+        self._owner = Nil
         self._setItem(item)
 
     def _setItem(self, item):
 
-        if self._item is not None:
-            assert item.itsUUID == self._item.itsUUID
+        if self._owner is not Nil:
+            assert item.itsUUID == self._owner.itsUUID
 
             for link in self._itervalues():
+                parent = link.value._parent
                 link.value._parent = item
 
         if isitem(item):
             item._status |= CItem.CONTAINER
-            
-        self._item = item
+            self._owner = item.itsRef
+        elif item is None:
+            self._owner = Nil
 
-    def _refCount(self):
+        self._owner = ref(item)
 
-        return len(self._dict) + 1
-        
     def linkChanged(self, link, key, oldAlias=Nil):
 
-        self._item.setDirty(CItem.CDIRTY)
-
-    def _unloadChild(self, child):
-
-        pass
+        self._owner().setDirty(CItem.CDIRTY)
 
     def _append(self, child):
 
-        self[child.itsUUID] = CLink(self, child, None, None,
-                                    child.itsName, None)
+        key = child.itsUUID
+        link = self._get(key, True, True)
+        if link is None:
+            self[key] = CLink(self, child.itsRef, None, None,
+                              child.itsName, None)
+        else:
+            link.value = child.itsRef
+            if link.alias != child.itsName:
+                self.setAlias(key, child.itsName)
     
     def __repr__(self):
 

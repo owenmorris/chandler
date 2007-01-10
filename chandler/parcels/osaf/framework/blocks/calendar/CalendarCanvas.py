@@ -282,7 +282,7 @@ class CalendarSelection(schema.Annotation):
     def iterSelection(self):
         for item in self.selectedOccurrences:
             if not isDead(item):
-                # we could remove Nones and singlerefs, but to do that we'd
+                # we could remove Nones and itemrefs, but to do that we'd
                 # have to create a separate list (can't remove from a set while
                 # iterating it), and that wouldn't be compatible with being a
                 # generator, so for now (till recurrence selection changes)

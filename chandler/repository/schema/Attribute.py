@@ -26,7 +26,7 @@ class Attribute(Item):
     def __init__(self, name, parent, kind, **values):
 
         super(Attribute, self).__init__(name, parent, kind)
-        self._status |= Item.SCHEMA | Item.PINNED
+        self._status |= Item.SCHEMA
         self.c = CAttribute(self)
         self._setInitialValues(values, True)
 
@@ -35,7 +35,7 @@ class Attribute(Item):
         super(Attribute, self)._fillItem(*args)
 
         self.c = CAttribute(self)
-        self._status |= Item.SCHEMA | Item.PINNED
+        self._status |= Item.SCHEMA
 
     def onItemCopy(self, view, orig):
 

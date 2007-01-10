@@ -96,24 +96,6 @@ class LinkedMap(CLinkedMap):
 
         return link
 
-    def has_key(self, key, load=True):
-
-        if self._dict.has_key(key):
-            return True
-
-        return load and self._load(key)
-
-    def _contains_(self, key):
-
-        return key in self._dict
-            
-    def __contains__(self, key):
-
-        if key in self._dict:
-            return True
-
-        return self._load(key)
-
     def get(self, key, default=None, load=True):
 
         link = self._dict.get(key, default)

@@ -18,7 +18,7 @@ import repository
 
 from application import Globals, Utility, schema
 from repository.item.RefCollections import RefList
-from chandlerdb.util.c import SingleRef
+from chandlerdb.item.c import isitemref
 
 
 def generateModelDocs(options, outputDir=None):
@@ -484,7 +484,7 @@ def RenderItem(item, urlRoot):
             result += "</td></tr>\n"
             count += 1
 
-        elif isinstance(value, SingleRef):
+        elif isitemref(value):
             result += oddEvenRow(count)
             result += "<td valign=top>"
             result += "%s" % name

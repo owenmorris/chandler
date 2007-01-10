@@ -13,10 +13,11 @@
 #   limitations under the License.
 
 
-import logging, heapq, sys, gc, threading, os, time
+import logging, sys, gc, threading, os, time
 
 from Queue import Queue
 from itertools import izip
+from heapq import heapify, heappop
 
 from chandlerdb.util.c import UUID, isuuid, Nil, Default, CLinkedMap
 from chandlerdb.item.c import CItem
@@ -71,8 +72,9 @@ class RepositoryView(CView):
     # 0.6.17: removed item import/export code and clouds
     # 0.6.18: removed 'displayName' and 'displayAttribute' from core schema
     # 0.6.19: added WITHSCHEMA flag
+    # 0.6.20: replaced SingleRef with ItemRef
     
-    CORE_SCHEMA_VERSION = 0x00061300
+    CORE_SCHEMA_VERSION = 0x00061400
 
     def __init__(self, repository, name, version, deferDelete=Default):
         """
@@ -151,6 +153,7 @@ class RepositoryView(CView):
         self._version = long(version)
         self._roots = self._createChildren(self, version == 0)
         self._registry = {}
+        self._refRegistry = {}
         self._deletedRegistry = {}
         self._instanceRegistry = {}
         self._loadingRegistry = set()
@@ -828,34 +831,6 @@ class RepositoryView(CView):
 
         del self._roots[item.itsUUID]
 
-    def _unloadChild(self, child):
-
-        self._roots._unloadChild(child)
-
-    def _registerItem(self, item):
-
-        uuid = item.itsUUID
-
-        old = self._registry.get(uuid)
-        if old is not None and old is not item:
-            raise ValueError, '%s: re-registering %s with different object' %(self, item)
-        
-        self._registry[uuid] = item
-
-    def _unregisterItem(self, item, reloadable):
-
-        uuid = item.itsUUID
-        del self._registry[uuid]
-
-        if item.isDeleting():
-            self._deletedRegistry[uuid] = item
-        elif reloadable:
-            self._instanceRegistry[uuid] = item
-
-    def _reuseItemInstance(self, uuid):
-
-        return self._instanceRegistry.pop(uuid, None)
-
     def refresh(self, mergeFn=None, version=None, notify=True):
         """
         Refresh this view to the changes made in other views.
@@ -1371,9 +1346,9 @@ class OnDemandRepositoryView(RepositoryView):
             gc.collect()
             heap = [(item._lastAccess, item.itsUUID)
                     for item in registry.itervalues()
-                    if not item._status & (item.PINNED | item.DIRTY)]
+                    if not item.itsStatus & (item.PINNED | item.DIRTY)]
             heapSize = len(heap)
-            heapq.heapify(heap)
+            heapify(heap)
 
             count = viewSize - int(size * 0.8)
             if count > 0:
@@ -1381,21 +1356,19 @@ class OnDemandRepositoryView(RepositoryView):
 
                 if self.isRefCounted():
                     for i in xrange(heapSize):
-                        item = registry[heapq.heappop(heap)[1]]
-                        itemRefs = item._refCount()
+                        item = registry[heappop(heap)[1]]
                         pythonRefs = sys.getrefcount(item)
-                        if pythonRefs - itemRefs <= 3:
+                        if pythonRefs <= 3:
                             item._unloadItem(False, self)
                             count -= 1
                             if count == 0:
                                 break
                         elif debug:
                             self.logger.debug('not pruning %s (refCount %d)',
-                                              item._repr_(),
-                                              pythonRefs - itemRefs)
+                                              item._repr_(), pythonRefs)
                 else:
                     for i in xrange(count):
-                        registry[heapq.heappop(heap)[1]]._unloadItem(False, self)
+                        registry[heappop(heap)[1]]._unloadItem(False, self)
                 self.logger.info('%s pruned to %d items', self, len(registry))
 
 

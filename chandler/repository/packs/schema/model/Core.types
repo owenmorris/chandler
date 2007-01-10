@@ -211,12 +211,12 @@
   </item>
 
   <item withSchema="True" coreSchema="True">
-    <name>SingleRef</name>
+    <name>ItemRef</name>
     <kind type="path">//Schema/Core/Type</kind>
-    <class module="repository.schema.Types">SingleRef</class>
+    <class module="repository.schema.Types">ItemRef</class>
   
     <attribute name="implementationTypes" cardinality="dict" type="class">
-      <value name="python">chandlerdb.util.c.SingleRef</value>
+      <value name="python">chandlerdb.item.c.ItemRef</value>
     </attribute>
   </item>
 

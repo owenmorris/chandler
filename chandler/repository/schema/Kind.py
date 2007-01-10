@@ -16,10 +16,10 @@
 from new import classobj
 
 from chandlerdb.util.c import \
-    UUID, SingleRef, _hash, _combine, isuuid, issingleref, Nil, Default
+    UUID, _hash, _combine, isuuid, Nil, Default
 from chandlerdb.persistence.c import Record
 from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
-from chandlerdb.item.c import isitem, CItem
+from chandlerdb.item.c import isitem, CItem, isitemref, ItemRef
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 from chandlerdb.item.ItemValue import ItemValue
 
@@ -51,12 +51,12 @@ class Kind(Item):
         self._initialValues = None
         self._initialReferences = None
 
-        self._status |= Item.SCHEMA | Item.PINNED
+        self._status |= Item.SCHEMA
 
-    def _fillItem(self, name, parent, kind, uuid,
+    def _fillItem(self, name, parent, kind, uuid, view,
                   values, references, status, version, hooks, update):
 
-        super(Kind, self)._fillItem(name, parent, kind, uuid,
+        super(Kind, self)._fillItem(name, parent, kind, uuid, view,
                                     values, references, status, version,
                                     hooks, update)
         if not update:
@@ -238,8 +238,8 @@ class Kind(Item):
             cls = self.getItemClass()
 
         item = cls.__new__(cls)
-        item._fillItem(name, parent, self, uuid,
-                       Values(item), References(item), 0, version,
+        item._fillItem(name, parent, self, uuid, self.itsView,
+                       Values(), References(), 0, version,
                        [], False)
 
         self._setupClass(cls)
@@ -778,7 +778,7 @@ class Kind(Item):
                 subKind.flushCaches(reason)
 
 
-    # begin typeness of Kind as SingleRef
+    # begin typeness of Kind as ItemRef
     
     def isValueReady(self, itemHandler):
         return True
@@ -794,14 +794,14 @@ class Kind(Item):
         if data == Kind.NoneString:
             return None
         
-        return SingleRef(UUID(data))
+        return ItemRef(UUID(data), self.itsView)
 
-    def makeString(self, data):
+    def makeString(self, value):
 
-        if data is None:
+        if value is None:
             return Kind.NoneString
         
-        return SingleRef(UUID(data))
+        return str(value.itsUUID)
 
     def typeXML(self, value, generator, withSchema):
 
@@ -826,7 +826,7 @@ class Kind(Item):
 
         value = data[offset]
         if isuuid(value):
-            value = SingleRef(value)
+            value = ItemRef(value, view)
         
         return offset+1, value
 
@@ -835,7 +835,7 @@ class Kind(Item):
         if value is None:
             return 0
 
-        return TypeHandler.hashValue(self.itsView, SingleRef(value.itsUUID))
+        return TypeHandler.hashValue(self.itsView, value.itsUUID._hash)
 
     def indexValue(self, itemWriter, item, name, version, value):
 
@@ -850,9 +850,9 @@ class Kind(Item):
         if value is None:
             return True
 
-        if issingleref(value):
-            item = self.itsView.find(value.itsUUID)
-            if item is not None:
+        if isitemref(value):
+            item = value(True)
+            if isitem(item):
                 return item.isItemOf(self)
             return True
 
@@ -865,7 +865,7 @@ class Kind(Item):
 
         return CAttribute.KIND | CAttribute.PROCESS
 
-    # end typeness of Kind as SingleRef
+    # end typeness of Kind as ItemRef
 
     def getClouds(self, cloudAlias):
         """

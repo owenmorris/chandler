@@ -12,8 +12,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from weakref import ref
 
 from chandlerdb.util.c import Nil, UUID, CLink, CLinkedMap
+from chandlerdb.item.c import isitemref, ItemRef
 from chandlerdb.persistence.c import Record
 from repository.item.Children import Children
 from repository.item.RefCollections import RefList
@@ -34,7 +36,7 @@ class PersistentRefs(object):
         
     def _iterrefs(self, firstKey, lastKey):
 
-        version = self._item.itsVersion
+        version = self._owner().itsVersion
         nextKey = firstKey or self._firstKey
         view = self.view
         refIterator = None
@@ -55,7 +57,8 @@ class PersistentRefs(object):
                     refIterator.close()
                     raise KeyError, ('refIterator', key)
                 pKey, nKey, alias, otherKey = ref[0:4]
-                map[key] = link = CLink(self, key, pKey, nKey, alias, otherKey)
+                map[key] = link = CLink(self, ItemRef(key, view),
+                                        pKey, nKey, alias, otherKey)
                 if alias is not None:
                     aliases = self._aliases
                     if aliases is Nil:
@@ -74,7 +77,7 @@ class PersistentRefs(object):
 
     def _iteraliases(self, firstKey, lastKey):
 
-        version = self._item.itsVersion
+        version = self._owner().itsVersion
         nextKey = firstKey or self._firstKey
         view = self.view
         refIterator = None
@@ -142,7 +145,7 @@ class PersistentRefs(object):
 
         if not self._flags & self.NEW:
             ref = self.store._refs.loadRef(self.view, self.uuid,
-                                           self._item.itsVersion, self.uuid,
+                                           self._owner().itsVersion, self.uuid,
                                            True)
             if ref is not None:
                 self._firstKey, self._lastKey, self._count = ref[0:3]
@@ -162,20 +165,6 @@ class PersistentRefs(object):
                         elif alias == oldAlias:
                             alias = Nil
                     changedRefs[key] = (0, alias)
-
-    def _unloadRef(self, item, dictKey=None):
-
-        key = item.itsUUID
-
-        if self.has_key(key, False):
-            link = self._get(key, False)
-            op, alias = self._changedRefs.get(key, (-1, link.alias))
-            if op == 0:
-                link.value = key
-            else:
-                self._remove(key)                   
-                if link.alias is not None:
-                    del self._aliases[link.alias]
 
     def _removeRef_(self, key, link):
 
@@ -217,7 +206,7 @@ class PersistentRefs(object):
             return None
         
         return self.store._refs.loadRef(self.view, self.uuid,
-                                        self._item.itsVersion, key)
+                                        self._owner().itsVersion, key)
 
     def _deleteRef(self, key, version):
 
@@ -243,6 +232,7 @@ class PersistentRefs(object):
 
     def _applyChanges(self, changes, history, ask):
 
+        view = self.view
         moves = {}
         done = set()
 
@@ -267,7 +257,7 @@ class PersistentRefs(object):
 
                 if op == 1:
                     #if key in history:
-                    #    self.view._e_2_move(self, key)
+                    #    view._e_2_move(self, key)
                     if key in self:
                         self._removeRef(key)
                 else:
@@ -280,8 +270,7 @@ class PersistentRefs(object):
                             else:
                                 newAlias = alias
                             if newAlias == alias:
-                                self.view._e_2_name(self, resolvedKey,
-                                                    key, alias)
+                                view._e_2_name(self, resolvedKey, key, alias)
                             else:
                                 alias = newAlias
                                 resolvedKey = self.resolveAlias(alias)
@@ -291,14 +280,14 @@ class PersistentRefs(object):
                         if oldAlias is not Nil:
                             if link.alias != alias:
                                 if merge and hOldAlias not in (Nil, hAlias):
-                                    self.view._e_1_name(self, key, alias, hAlias)
+                                    view._e_1_name(self, key, alias, hAlias)
                                 self.setAlias(key, alias)
                     elif merge is True and hOp == 1:
                         # conflict: the ref was removed, resolve 
                         #           in favor of history
                         continue
                     else:
-                        self._setRef(key, alias, None, otherKey)
+                        self._setRef(ItemRef(key, view), alias, None, otherKey)
                         link = self._get(key)
 
                     if link._previousKey != prevKey:
@@ -372,7 +361,7 @@ class DBRefList(RefList, PersistentRefs):
         refs = store._refs
         names = store._names
         uuid = self.uuid
-        item = self._item
+        item = self._owner()
         aliases = self._aliases
 
         if __debug__:
@@ -459,10 +448,14 @@ class DBStandAloneRefList(DBRefList):
 
         return iter(self)
 
-    def _setOwner(self, item, name):
+    def _setOwner(self, owner, name):
 
-        self._item = item
-        PersistentRefs._setItem(self, item)
+        if owner is None:
+            self._owner = Nil
+        else:
+            self._owner = ref(owner)
+
+        PersistentRefs._setItem(self, owner)
 
     def _isDirty(self):
 
@@ -657,7 +650,7 @@ class DBChildren(Children, PersistentRefs):
         if not self._isRemoved(key):
             child = self.view.find(key)
             if child is not None or self._flags & CLinkedMap.MERGING:
-                if not self._contains_(key):
+                if key not in self._dict:
                     try:
                         loading = self.view._setLoading(True)
                         if not self._loadChild(key, child):
@@ -670,12 +663,12 @@ class DBChildren(Children, PersistentRefs):
 
     def _loadChild(self, key, child):
 
-        if not self._contains_(key):
+        if key not in self._dict:
             ref = self._loadRef(key)
             if ref is None:  # during merge it may not be there
                 return False
             prevKey, nextKey, alias, otherKey = ref[0:4]
-            self._dict[key] = CLink(self, child, prevKey, nextKey,
+            self._dict[key] = CLink(self, child.itsRef, prevKey, nextKey,
                                     alias, otherKey)
             if alias is not None:
                 aliases = self._aliases
@@ -684,7 +677,7 @@ class DBChildren(Children, PersistentRefs):
                 else:
                     aliases[alias] = key
         else:
-            self._dict[key]._value = child
+            self._dict[key].value = child.itsRef
 
         return True
 
@@ -701,10 +694,6 @@ class DBChildren(Children, PersistentRefs):
         super(DBChildren, self).linkChanged(link, key, oldAlias)
         self._changeRef(key, link, oldAlias)
 
-    def _unloadChild(self, child):
-
-        self._unloadRef(child)
-    
     def __delitem__(self, key):
 
         self._removeRef_(key)
@@ -720,10 +709,10 @@ class DBChildren(Children, PersistentRefs):
 
         return link
 
-    def _setRef(self, key, alias=None, dictKey=None, otherKey=None):
-        
-        link = CLink(self, key, None, None, alias, otherKey)
-        self[key] = link
+    def _setRef(self, other, alias=None, dictKey=None, otherKey=None):
+
+        link = CLink(self, other.itsRef, None, None, alias, otherKey)
+        self[other.itsUUID] = link
 
     def _append(self, child):
 
@@ -731,8 +720,15 @@ class DBChildren(Children, PersistentRefs):
         if loading:
             self._loadChild(child.itsUUID, child)
         else:
-            self[child.itsUUID] = CLink(self, child, None, None,
-                                        child.itsName, None)
+            key = child.itsUUID
+            link = self._get(key, True, True)
+            if link is None:
+                self[key] = CLink(self, child.itsRef, None, None,
+                                  child.itsName, None)
+            else:
+                link.value = child.itsRef
+                if link.alias != child.itsName:
+                    self.setAlias(key, child.itsName)
 
     def _saveValues(self, version):
 

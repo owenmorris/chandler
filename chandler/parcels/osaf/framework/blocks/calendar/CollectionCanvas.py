@@ -20,7 +20,7 @@ __parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
 
-from chandlerdb.util.c import issingleref
+from chandlerdb.item.c import isitemref
 from osaf.framework.blocks import Block, DragAndDrop, FocusEventHandlers
 from application import schema
 from application.dialogs import Util
@@ -1137,7 +1137,7 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
     def DeleteSelection(self, cutting=False, *args, **kwargs):
         selection = self.GetSelection()
         for item in selection.iterSelection():
-            assert not issingleref(item)
+            assert not isitemref(item)
             item.removeFromCollection(self.contentsCollection, cutting)
         self.ClearSelection()
 
