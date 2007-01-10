@@ -27,7 +27,7 @@ from osaf.pim import (
     )
 
 from osaf.framework.prompts import promptYesNoCancel
-from application.dialogs import RecurrenceDialog
+from application.dialogs import RecurrenceDialog, Util
 
 from osaf import sharing, pim
 from osaf.usercollections import UserCollection
@@ -948,7 +948,6 @@ class SidebarBlock(Table):
         Permanently remove the collection - we eventually need a user
         confirmation here
         """
-
         viewsmain = schema.ns('osaf.views.main', self.itsView)
 
         # If there are any "mine" collections selected, ask the user
@@ -958,17 +957,27 @@ class SidebarBlock(Table):
         pim_ns = schema.ns('osaf.pim', self.itsView)
         mine = pim_ns.mine
         allCollection = pim_ns.allCollection
+
+        mineMessage = _(u'Do you want to delete the items in %(collectionName)s?')
+        notMineMessage = _(u"Deleting %(collectionName)s will move its contents to the Trash")
+        
         for collection in self.contents.iterSelection():
+            dataDict = {'collectionName' : collection.displayName}
             if collection in mine.sources:
-                # we found a "mine" collection, so prompt the user
                 shouldClearCollection = \
-                    promptYesNoCancel(_(u'Do you also want to delete the items in this collection?'),
+                    promptYesNoCancel(mineMessage % dataDict,
                                       viewsmain.clearCollectionPref)
 
                 if shouldClearCollection is None: # user pressed cancel
                     return
 
-                break
+            else:
+                sure = Util.okCancel(parent=None, 
+                                     message=notMineMessage % dataDict,
+                                     caption=_(u"Delete collection"))
+                if not sure:
+                    return
+                
 
 
         def deleteItem(collection):
