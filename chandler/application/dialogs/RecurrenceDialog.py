@@ -459,13 +459,7 @@ class UserChangeProxy(object):
         if collection == trash:
             collection.add(masterItem)
         else:
-            inDashboard = masterItem in pim_ns.allCollection
-            collection.remove(masterItem)
-            if (inDashboard and masterItem not in allCollection and
-                collection is not allCollection):
-                # removal from a mine collection shouldn't remove the item
-                # from the dashboard, add the real item back.
-                allCollection.add(masterItem)       
+            masterItem.removeFromCollection(collection)
 
     def propagateAddToCollection(self, collection):
         collection.add(EventStamp(self.proxiedItem).getMaster().itsItem)

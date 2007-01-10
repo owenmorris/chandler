@@ -977,29 +977,8 @@ class SidebarBlock(Table):
             if shouldClearCollection:
                 self.ClearCollectionContents(collection)
             elif collection in mine.sources:
-
-                # if the item doesn't exist in any other 'mine'
-                # collection, we need to manually add it to 'all'
-                # to keep the item 'mine'.
-
-                # We don't want to do this blindly though, or
-                # all's inclusions will get unnecessarily full.
-
-                # We also don't want to remove collection from
-                # mine.sources. That will cause a notification
-                # storm as items temporarily leave and re-enter
-                # being 'mine'
                 for item in collection:
-                    for otherCollection in item.appearsIn:
-                        if otherCollection is collection:
-                            continue
-
-                        if otherCollection in mine.sources:
-                            # we found it in another 'mine'
-                            break
-                    else:
-                        # we didn't find it in a 'mine' Collection
-                        allCollection.add(item)
+                    item._prepareToRemoveFromCollection(collection)
 
             sharing.unsubscribe(collection)
             collection.delete(True)

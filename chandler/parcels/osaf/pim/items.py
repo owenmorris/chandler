@@ -393,17 +393,38 @@ class ContentItem(schema.Item):
         the Dashboard is implemented here.
 
         """
-        allCollection = schema.ns("osaf.pim", self.itsView).allCollection
-        inDashboard = self in allCollection
+        self._prepareToRemoveFromCollection(collection)
         collection.remove(self)
-        if (inDashboard and self not in allCollection and 
-            collection is not allCollection):
-            # removal from a mine collection shouldn't remove the item
-            # from the dashboard, add the real item back.  This could be
-            # optimized to not send out unnecessary notifications by checking
-            # if self is in only one mine collection and adding self to
-            # allCollection's inclusion list before remove is called.
-            allCollection.add(self)        
+
+    def _prepareToRemoveFromCollection(self, collection):
+        """
+        If the collection is a mine collection and the item doesn't exist in any
+        other 'mine' collections, manually add it to 'all' to keep the item
+        'mine'.
+
+        We don't want to do this blindly though, or all's inclusions will get
+        unnecessarily full.
+
+        We also don't want to remove collection from mine.sources. That will
+        cause a notification storm as items temporarily leave and re-enter
+        being 'mine'.
+        
+        """
+        pim_ns = schema.ns('osaf.pim', self.itsView)
+        mine = pim_ns.mine
+        allCollection = pim_ns.allCollection
+
+        if collection in mine.sources:
+            for otherCollection in self.appearsIn:
+                if otherCollection is collection:
+                    continue
+    
+                if otherCollection in mine.sources:
+                    # we found it in another 'mine'
+                    break
+            else:
+                # we didn't find it in a 'mine' Collection
+                allCollection.add(self)        
 
     def getMembershipItem(self):
         """ Get the item that should be used to test for membership

@@ -24,7 +24,7 @@ from repository.item.Sets import \
 from repository.item.Collection import Collection
 
 from osaf.pim.items import ContentItem
-
+from itertools import chain
 # Common attribute for collection inclusions
 inclusions = schema.Sequence(inverse=ContentItem.collections, initialValue=[])
 
@@ -638,9 +638,13 @@ class AppCollection(ContentCollection):
             self.inclusions.remove(item)
 
         trash = self.trash
+        pim_ns = schema.ns('osaf.pim', self.itsView)
+
         if not (isDeleting or trash is None):
             if isinstance(trash, ContentCollection):
-                for collection in trash.trashFor:
+                for collection in chain(trash.trashFor, [pim_ns.allCollection]):
+                    # allCollection isn't in trash.trashFor, but needs to be
+                    # considered
                     if collection is not self and item in collection:
                         # it exists somewhere else, definitely don't add
                         # to trash
