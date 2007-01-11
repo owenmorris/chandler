@@ -342,7 +342,7 @@ class RepositoryWorker(RepositoryThread):
     """
 
     def __init__(self, name, repository):
-        super(RepositoryWorker, self).__init__(name)
+        super(RepositoryWorker, self).__init__(None, None, name)
 
         self._repository = repository
         self._condition = threading.Condition(threading.Lock())
