@@ -160,7 +160,7 @@ class ContentItem(schema.Item):
     
     lastModification = schema.One(
         Modification,
-        doc="What the last modification was"
+        doc="What the last modification was; None = freshly created item"
     )
 
     def getByline(self):
