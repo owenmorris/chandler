@@ -453,7 +453,7 @@ class ContentItem(schema.Item):
         @type when: C{datetime}
         """
         
-        logger.info("ContentItem.changeEditState() self=%s view=%s modType=%s who=%s when=%s", self, self.itsView, modType, who, when)
+        logger.debug("ContentItem.changeEditState() self=%s view=%s modType=%s who=%s when=%s", self, self.itsView, modType, who, when)
         
         currentModFlags = self.modifiedFlags
         
