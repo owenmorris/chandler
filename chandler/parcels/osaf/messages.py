@@ -38,12 +38,14 @@ FORWARD = _(u"Forward")
 STAMP_MAIL = _(u"Address this item")
 STAMP_TASK = _(u"Add to Task list")
 STAMP_CALENDAR = _(u"Add to Calendar")
+STAMP_TRIAGE = _(u"Change the triage state of this item")
 PRIVATE = _(u"Never share this item")
 NOT_PRIVATE = _(u"Allow sharing this item")
 READONLY = _(u"Read only")
 
 STAMP_MAIL_HELP = _(u"Address this item")
 STAMP_TASK_HELP = _(u"Add to task list")
+STAMP_TRIAGE_HELP = _(u"Change the triage state of this item")
 STAMP_CALENDAR_HELP = _(u"Add to Calendar")
 
 """Server Account Settings"""

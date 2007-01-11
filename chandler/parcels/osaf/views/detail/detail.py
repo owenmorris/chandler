@@ -54,6 +54,7 @@ from PyICU import ICUError, ICUtzinfo
 from datetime import datetime, time, timedelta
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
+from util import MultiStateButton
 
 import parsedatetime.parsedatetime as parsedatetime
 import parsedatetime.parsedatetime_consts as ptc
@@ -429,7 +430,78 @@ class DetailSynchronizedAttributeEditorBlock(DetailSynchronizer,
     def OnFinishChangesEvent(self, event):
         self.saveValue(validate=True)
 
-class DetailStampButton(DetailSynchronizer, ControlBlocks.Button):
+class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
+    """
+    A button that controls the triage state of an item
+    """
+    def instantiateWidget(self):
+        id = self.getWidgetID()
+        parentWidget = self.parentBlock.widget
+        # for a Triage, we share button images with the table view, and have these names:
+        #
+        #   Triage{Done,Later,Now}{'',Mousedown,Rollover)
+        #
+        # From these we build the three triage states (Done, Later, Now)
+        #
+        self.icon = "Triage"
+        now = MultiStateButton.BitmapInfo()
+        now.normal   = "%sNow" % self.icon
+        now.selected = "%sNowMousedown" % self.icon
+        now.rollover = "%sNowRollover" % self.icon
+        now.stateName = "%s.now" % self.icon
+        later = MultiStateButton.BitmapInfo()
+        later.normal   = "%sLater" % self.icon
+        later.selected = "%sLaterMousedown" % self.icon
+        later.rollover = "%sLaterRollover" % self.icon
+        later.stateName = "%s.later" % self.icon
+        done = MultiStateButton.BitmapInfo()
+        done.normal   = "%sDone" % self.icon
+        done.selected = "%sDoneMousedown" % self.icon
+        done.rollover = "%sDoneRollover" % self.icon
+        done.stateName = "%s.done" % self.icon
+        button = ControlBlocks.wxChandlerMultiStateButton (parentWidget, 
+                            id, 
+                            wx.DefaultPosition,
+                            (self.minimumSize.width, self.minimumSize.height),
+                            helpString = self.helpString,
+                            multibitmaps=(now, later, done))
+
+        parentWidget.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
+        return button
+    
+    def getState(self):
+        """ If this button has state, return it. """
+        state = getattr(self.widget, 'currentState', '')
+        dotIndex = state.index('.')
+        if dotIndex != -1:
+            state = state[dotIndex+1:]
+        return state
+    
+    def synchronizeWidget(self, useHints=False):
+        super(DetailTriageButton, self).synchronizeWidget(useHints)
+        self.setState()
+    
+    def setState(self):
+        # this button to reflect the kind of the selected item
+        item = self.item
+        if item is not None:
+            self.widget.SetState("%s.%s" % (self.icon, item.unpurgedTriageStatus))
+
+    def onButtonPressedEvent(self, event):
+        oldState = getattr(self.widget, 'currentState', None)
+        if oldState != None:
+            item = self.item
+            assert oldState.startswith('Triage.')
+            newState = pim.getNextTriageStatus(getattr(pim.TriageEnum,
+                                                       oldState[7:]))
+            item.unpurgedTriageStatus = newState
+            self.setState()
+
+    def onButtonPressedEventUpdateUI(self, event):
+        pass
+
+
+class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
     """
     Common base class for the stamping buttons in the Markup Bar.
     """
@@ -524,7 +596,7 @@ class TaskStampButtonBlock(DetailStampButton):
     """ Task button in the Markup Bar. """
     stampClass = TaskStamp
 
-class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.Button):
+class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.StampButton):
     """ "Never share" button in the Markup Bar. """
     def synchronizeWidget(self, useHints=False):
         # toggle this button to reflect the privateness of the selected item        
@@ -546,7 +618,7 @@ class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.Button):
         enable = item is not None and item.isAttributeModifiable('displayName')
         event.arguments ['Enable'] = enable
 
-class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.Button):
+class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.StampButton):
     """
     "Read Only" icon in the Markup Bar.
     """

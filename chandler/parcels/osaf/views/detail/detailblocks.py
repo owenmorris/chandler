@@ -626,7 +626,6 @@ def makeMarkupBar(parcel, oldVersion):
     mailMessageButton = \
         MailMessageButtonBlock.template('MailMessageButton',
                                         title=messages.STAMP_MAIL,
-                                        buttonKind="Stamp",
                                         icon="MarkupMail",
                                         helpString=messages.STAMP_MAIL_HELP,
                                         event=buttonPressed,
@@ -636,7 +635,6 @@ def makeMarkupBar(parcel, oldVersion):
     taskStamp = \
         TaskStampButtonBlock.template('TaskStamp',
                                 title=messages.STAMP_TASK,
-                                buttonKind="Stamp",
                                 icon="MarkupTask",
                                 helpString=messages.STAMP_TASK_HELP,
                                 event=buttonPressed,
@@ -647,11 +645,20 @@ def makeMarkupBar(parcel, oldVersion):
                                     title=u'',
                                     stretchFactor=0.0,
                                     minimumSize=SizeType(30, 18))
+                                        
+    triageStamp = \
+        DetailTriageButton.template('TriageStamp',
+                                title=messages.STAMP_TRIAGE,
+                                icon="TriageDone",
+                                helpString=messages.STAMP_TRIAGE_HELP,
+                                event=buttonPressed,
+                                viewAttribute='unpurgedTriageStatus',
+                                stretchFactor=0.0,
+                                minimumSize=SizeType(30, 18))
 
     calendarStamp = \
         CalendarStampButtonBlock.template('CalendarStamp',
                                     title=messages.STAMP_CALENDAR,
-                                    buttonKind="Stamp",
                                     icon="MarkupEvent",
                                     helpString=messages.STAMP_CALENDAR_HELP,
                                     event=buttonPressed,
@@ -665,7 +672,6 @@ def makeMarkupBar(parcel, oldVersion):
     privateSwitchButton = \
         PrivateSwitchButtonBlock.template('PrivateSwitchButton',
                                     title=messages.PRIVATE,
-                                    buttonKind="Stamp",
                                     icon="MarkupPrivate",
                                     helpString=messages.PRIVATE,
                                     viewAttribute=u'private',
@@ -676,7 +682,6 @@ def makeMarkupBar(parcel, oldVersion):
     readOnlyIcon = \
         ReadOnlyIconBlock.template('ReadOnlyIcon',
                                     title=messages.READONLY,
-                                    buttonKind="Stamp",
                                     icon="MarkupReadOnly",
                                     helpString=messages.READONLY,
                                     event=buttonPressed,
@@ -684,7 +689,8 @@ def makeMarkupBar(parcel, oldVersion):
                                     minimumSize=SizeType(30, 18))
 
     markupBar = ControlBlocks.ContentItemDetail.template('MarkupBar',
-                                    childrenBlocks=[mailMessageButton,
+                                    childrenBlocks=[triageStamp,
+                                                    mailMessageButton,
                                                     taskStamp,
                                                     calendarStamp,
                                                     markupSpacer1,

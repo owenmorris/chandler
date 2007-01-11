@@ -47,10 +47,9 @@ class textAlignmentEnumType(schema.Enumeration):
     values = "Left", "Center", "Right"
 
 class buttonKindEnumType(schema.Enumeration):
-     values = "Text", "Image", "Toggle", "Stamp"
+     values = "Text", "Image", "Toggle"
 
 class Button(RectangularChild):
-
     characterStyle = schema.One(Styles.CharacterStyle)
     title = schema.One(schema.Text)
     buttonKind = schema.One(buttonKindEnumType)
@@ -81,46 +80,11 @@ class Button(RectangularChild):
                                       self.title,
                                       wx.DefaultPosition,
                                       (self.minimumSize.width, self.minimumSize.height))
-        elif self.buttonKind == "Stamp":
-            # for a stamp button, we use "self.icon" as the base name of all bitmaps and look for:
-            #
-            #   {icon}Normal, {icon}Stamped, {icon}Rollover, {icon}Pressed, {icon}Disabled
-            #
-            # From these we build two states suffixed "unstamped" and "stamped", which can
-            # be used the toggle the appearance of the button.
-            #
-            assert len(self.icon) > 0
-
-            assert len(self.icon) > 0
-            normal = MultiStateButton.BitmapInfo()
-            normal.normal   = "%sNormal" % self.icon
-            normal.rollover = "%sRollover" % self.icon
-            normal.disabled = "%sDisabled" % self.icon
-            normal.selected = "%sPressed" % self.icon
-            normal.stateName = "%s.Unstamped" % self.icon
-            stamped = MultiStateButton.BitmapInfo()
-            stamped.normal   = "%sStamped" % self.icon
-            stamped.rollover = "%sStampedRollover" % self.icon
-            stamped.disabled = "%sStampedDisabled" % self.icon
-            stamped.selected = "%sStampedPressed" % self.icon
-            stamped.stateName = "%s.Stamped" % self.icon
-            button = wxChandlerMultiStateButton (parentWidget, 
-                                id, 
-                                wx.DefaultPosition,
-                                (self.minimumSize.width, self.minimumSize.height),
-                                helpString = self.helpString,
-                                multibitmaps=(normal, stamped))
         elif __debug__:
             assert False, "unknown buttonKind"
 
         parentWidget.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
         return button
-
-    def isStamped(self):
-        stamped = False;
-        if self.buttonKind == "Stamp":
-            stamped = (self.widget.currentState == "%s.Stamped" % self.icon)
-        return stamped
 
     def buttonPressed(self, event):
         try:
@@ -130,6 +94,44 @@ class Button(RectangularChild):
         else:
             Block.post(event, {'item':self}, self)
 
+class StampButton(Button):
+    def instantiateWidget(self):
+        id = self.getWidgetID()
+        parentWidget = self.parentBlock.widget
+
+        # for a stamp button, we use "self.icon" as the base name of all bitmaps and look for:
+        #
+        #   {icon}Normal, {icon}Stamped, {icon}Rollover, {icon}Pressed, {icon}Disabled
+        #
+        # From these we build two states suffixed "unstamped" and "stamped", which can
+        # be used the toggle the appearance of the button.
+        #
+        assert len(self.icon) > 0
+        normal = MultiStateButton.BitmapInfo()
+        normal.normal   = "%sNormal" % self.icon
+        normal.rollover = "%sRollover" % self.icon
+        normal.disabled = "%sDisabled" % self.icon
+        normal.selected = "%sPressed" % self.icon
+        normal.stateName = "%s.Unstamped" % self.icon
+        stamped = MultiStateButton.BitmapInfo()
+        stamped.normal   = "%sStamped" % self.icon
+        stamped.rollover = "%sStampedRollover" % self.icon
+        stamped.disabled = "%sStampedDisabled" % self.icon
+        stamped.selected = "%sStampedPressed" % self.icon
+        stamped.stateName = "%s.Stamped" % self.icon
+        button = wxChandlerMultiStateButton (parentWidget, 
+                            id, 
+                            wx.DefaultPosition,
+                            (self.minimumSize.width, self.minimumSize.height),
+                            helpString = self.helpString,
+                            multibitmaps=(normal, stamped))
+
+        parentWidget.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
+        return button
+
+    def isStamped(self):
+        stamped = (self.widget.currentState == "%s.Stamped" % self.icon)
+        return stamped
 
 class wxChandlerMultiStateButton(MultiStateButton.MultiStateButton):
     """
