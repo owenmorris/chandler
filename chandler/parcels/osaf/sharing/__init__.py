@@ -353,6 +353,7 @@ class ProgressMonitor:
                 percent = int(self.workDone * 100 / self.totalWork)
             except ZeroDivisionError:
                 percent = 100
+            percent = min(percent, 100)
         else:
             percent = None
 
