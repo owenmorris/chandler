@@ -1665,12 +1665,9 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         # MSW, not only does the text not scroll, but you can't enter text
         # beyond the size of the editor if TE_NO_VSCROLL and TE_MULTILINE are
         # both set, so on Windows we stick with the a single line for now
-        style = wx.NO_BORDER |  wx.TE_NO_VSCROLL
+        style = wx.NO_BORDER | wx.TE_PROCESS_ENTER | wx.TE_NO_VSCROLL 
         if '__WXMSW__' not in wx.PlatformInfo:
             style |= wx.TE_MULTILINE
-        if '__WXMAC__' not in wx.PlatformInfo:
-            # until we fix the wx assert about this on the Mac
-            style |= wx.TE_PROCESS_ENTER
 
         super(wxInPlaceEditor, self).__init__(parent,
                                               -1, "", wx.DefaultPosition,

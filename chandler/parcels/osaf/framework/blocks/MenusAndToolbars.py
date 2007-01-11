@@ -951,7 +951,7 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
         return toolbar
 
     def calculate_wxStyle (self):
-        style = wx.TB_HORIZONTAL
+        style = wx.TB_HORIZONTAL | wx.TB_MAC_NATIVE_SELECT
         if self.buttons3D:
             style |= wx.TB_3DBUTTONS
         else:
