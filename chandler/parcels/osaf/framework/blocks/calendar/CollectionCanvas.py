@@ -698,7 +698,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         menu = wx.Menu()
 
         if not canvasItem:
-            addTxt = _(u"Create a new item in '%(collection)s'") 
+            addTxt = _(u"Create new item in '%(collection)s'") 
             menuItem = wx.MenuItem(menu, wx.NewId(), addTxt % data)
             menu.AppendItem(menuItem)
             menuItem.Enable(self.blockItem.CanAdd())
@@ -719,8 +719,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                 title = _(u"%(title)s%(ellipsis)s") % trim
             data['title'] = title
             
-            removeTxt = _(u"Remove '%(title)s' from '%(collection)s'") 
-            deleteTxt = _(u"Move '%(title)s' to Trash") 
+            removeTxt = _(u"Remove from '%(collection)s'") 
+            deleteTxt = _(u"Move to Trash") 
             
             menuItem = wx.MenuItem(menu, wx.NewId(), removeTxt % data)
             menu.AppendItem(menuItem)
