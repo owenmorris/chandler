@@ -28,7 +28,7 @@ from osaf.framework.blocks import (
     Block, Styles, DrawingUtilities, ContainerBlocks, DragAndDrop
     )
 
-from osaf.framework import Preferences
+from osaf import Preferences
 import osaf.pim as pim
 import CalendarCanvas
 import osaf.pim.calendar.Calendar as Calendar
@@ -207,7 +207,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         busyFractions = {}
         defaultTzinfo = ICUtzinfo.default
 
-        tzEnabled = schema.ns('osaf.app',
+        tzEnabled = schema.ns('osaf.pim',
                               self.blockItem.itsView).TimezonePrefs.showUI
 
         # The exact algorithm for the busy state is yet to be determined.
@@ -311,7 +311,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             pimNs = schema.ns('osaf.pim', view)
             masterEvents = pimNs.masterEvents
 
-            tzprefs = schema.ns('osaf.app', view).TimezonePrefs
+            tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
             if tzprefs.showUI:
                 startIndex = 'effectiveStart'
                 endIndex   = 'recurrenceEnd'
@@ -428,12 +428,12 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
     def render(self, *args, **kwds):
         super(MiniCalendar, self).render(*args, **kwds)
 
-        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
         self.itsView.watchItem(self, tzPrefs, 'onTZPrefsChange')
 
     def onDestroyWidget(self, *args, **kwds):
 
-        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
         self.itsView.unwatchItem(self, tzPrefs, 'onTZPrefsChange')
 
         super(MiniCalendar, self).onDestroyWidget(*args, **kwds)

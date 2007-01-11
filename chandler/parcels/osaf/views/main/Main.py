@@ -1240,11 +1240,11 @@ class MainView(View):
         view.refresh()
 
     def onEnableTimezonesEventUpdateUI(self, event):
-        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
         event.arguments['Check'] = tzPrefs.showUI
 
     def onEnableTimezonesEvent(self, event):
-        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
         tzPrefs.showUI = not tzPrefs.showUI
 
     def onEnableSectionsEventUpdateUI(self, event):

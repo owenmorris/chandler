@@ -50,7 +50,7 @@ class TimedEventsCanvas(CalendarBlock):
         prefs = schema.ns('osaf.framework.blocks.calendar', self.itsView).calendarPrefs
         self.itsView.watchItem(self, prefs, 'onCalendarPrefsChange')
 
-        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
         self.itsView.watchItem(self, tzPrefs, 'onTZPrefsChange')
 
     def onDestroyWidget(self, *args, **kwds):
@@ -58,7 +58,7 @@ class TimedEventsCanvas(CalendarBlock):
         prefs = schema.ns('osaf.framework.blocks.calendar', self.itsView).calendarPrefs
         self.itsView.unwatchItem(self, prefs, 'onCalendarPrefsChange')
 
-        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
         self.itsView.unwatchItem(self, tzPrefs, 'onTZPrefsChange')
 
         super(TimedEventsCanvas, self).onDestroyWidget(*args, **kwds)
@@ -939,7 +939,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         on the current position and drag state. Handles both move and
         resize drags
         """
-        tzprefs = schema.ns('osaf.app', self.blockItem.itsView).TimezonePrefs
+        tzprefs = schema.ns('osaf.pim', self.blockItem.itsView).TimezonePrefs
         useTZ = tzprefs.showUI
         
         event = Calendar.EventStamp(self.dragState.originalDragBox.item)
@@ -1039,7 +1039,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         # put events onto the canvas translated into the local timezone,
         # unless timezone display is off.
-        if schema.ns('osaf.app', self.blockItem.itsView).TimezonePrefs.showUI:
+        if schema.ns('osaf.pim', self.blockItem.itsView).TimezonePrefs.showUI:
             startTime = coerceTimeZone(startTime, ICUtzinfo.default)
             endTime   = coerceTimeZone(endTime,   ICUtzinfo.default)
         else:

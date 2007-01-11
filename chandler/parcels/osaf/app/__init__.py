@@ -21,26 +21,7 @@ from PyICU import ICUtzinfo
 from osaf import pim, messages
 from osaf.framework import scripting
 
-from osaf.framework import Preferences
-
 import version
-
-class TZPrefs(Preferences):
-    showUI = schema.One(schema.Boolean, initialValue = False)
-
-    @schema.observer(showUI)
-    def onShowUIChanged(self, op, attrName):
-        from osaf.pim.calendar.TimeZone import TimeZoneInfo
-        timeZoneInfo = TimeZoneInfo.get(self.itsView)
-
-        # Sync up the default timezone (i.e. the one used when
-        # creating new events).
-        if self.showUI:
-            timeZoneInfo.default = ICUtzinfo.default
-        else:
-            timeZoneInfo.default = ICUtzinfo.floating
-
-
 
 def installParcel(parcel, oldVersion=None):
 
@@ -301,6 +282,3 @@ The Chandler Team""") % {'version': version.version}
                                         creator = osafDev
                                         )
     newScript.set_file(u"PasteNewItem.py", Scripts.__file__)
-
-
-    TZPrefs.update(parcel, 'TimezonePrefs')

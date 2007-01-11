@@ -123,7 +123,7 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
 
 
         # verify timezone
-        self.assert_(schema.ns("osaf.app", rv).TimezonePrefs.showUI)
+        self.assert_(schema.ns("osaf.pim", rv).TimezonePrefs.showUI)
 
         # verify visible hours
         calPrefs = schema.ns("osaf.framework.blocks.calendar", rv).calendarPrefs

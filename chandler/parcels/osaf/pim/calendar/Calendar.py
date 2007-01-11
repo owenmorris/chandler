@@ -212,7 +212,7 @@ def eventsInRange(view, start, end, filterColl = None, dayItems=True,
     items from that list. This gives us two lists, which we intersect.
 
     """
-    tzprefs = schema.ns('osaf.app', view).TimezonePrefs
+    tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
     if tzprefs.showUI:
         startIndex = 'effectiveStart'
         endIndex   = 'effectiveEnd'
@@ -240,7 +240,7 @@ def recurringEventsInRange(view, start, end, filterColl = None,
     Yield all recurring events between start and end that appear in filterColl.
     """
 
-    tzprefs = schema.ns('osaf.app', view).TimezonePrefs
+    tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
     if tzprefs.showUI:
         startIndex = 'effectiveStart'
         endIndex   = 'recurrenceEnd'
@@ -843,7 +843,7 @@ class EventStamp(Stamp):
         [cf Bug 5598].
         """
 
-        if schema.ns('osaf.app', self.itsItem.itsView).TimezonePrefs.showUI:
+        if schema.ns('osaf.pim', self.itsItem.itsView).TimezonePrefs.showUI:
             # If timezones are enabled, just return the original
             # datetime.
             def prepare(dt):

@@ -14,6 +14,7 @@
 
 
 import application.schema as schema
+from osaf import Preferences
 
 import PyICU
 import dateutil.tz
@@ -162,7 +163,24 @@ class TimeZoneInfo(schema.Item):
             PyICU.TimeZone.setDefault(tz.timezone)
 
 
+class TZPrefs(Preferences):
+    showUI = schema.One(schema.Boolean, initialValue = False)
+
+    @schema.observer(showUI)
+    def onShowUIChanged(self, op, attrName):
+        from osaf.pim.calendar.TimeZone import TimeZoneInfo
+        timeZoneInfo = TimeZoneInfo.get(self.itsView)
+
+        # Sync up the default timezone (i.e. the one used when
+        # creating new events).
+        if self.showUI:
+            timeZoneInfo.default = PyICU.ICUtzinfo.default
+        else:
+            timeZoneInfo.default = PyICU.ICUtzinfo.floating
+
 def installParcel(parcel, oldVersion = None):
+    TZPrefs.update(parcel, 'TimezonePrefs')
+
     # Get our parcel's namespace
     namespace = schema.ns(__name__, parcel.itsView)
 

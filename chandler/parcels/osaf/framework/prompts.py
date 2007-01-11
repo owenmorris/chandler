@@ -15,7 +15,8 @@
 
 import wx
 from application import schema
-from osaf.framework import Preferences
+from osaf import Preferences
+
 from application.dialogs.Util import ShowMessageDialog
 from i18n import ChandlerMessageFactory as _
 

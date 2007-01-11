@@ -18,7 +18,7 @@ Stuff related to the dashboard
 """
 
 from application import schema
-from osaf.framework import Preferences
+from osaf import Preferences
 from osaf.framework.blocks import (Block, debugName, Table, 
                                    wxTable, GridCellAttributeEditor, 
                                    GridCellAttributeRenderer, Styles)

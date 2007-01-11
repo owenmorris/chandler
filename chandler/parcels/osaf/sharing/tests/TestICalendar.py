@@ -276,7 +276,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
     def testImportOracleModification(self):
         # switch to no-timezones mode
-        schema.ns('osaf.app', self.view).TimezonePrefs.showUI = False
+        schema.ns('osaf.pim', self.view).TimezonePrefs.showUI = False
         # Oracle modifies recurring events by first, if the time changed, adding
         # an EXDATE for the old time plus an RDATE for the new time, then
         # creating a VEVENT with RECURRENCE-ID matching the RDATE, except the

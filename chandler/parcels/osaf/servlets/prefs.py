@@ -15,8 +15,7 @@
 
 from application import schema
 
-from osaf import webserver
-from osaf.framework import Preferences
+from osaf import webserver, Preferences
 
 from twisted.web import static
 

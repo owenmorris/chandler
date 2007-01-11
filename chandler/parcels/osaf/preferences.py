@@ -21,7 +21,7 @@ Here's how you should use the Preferences class:
 Declare a new pref class
 ------------------------
 
-from osaf.app import Preferences
+from osaf import Preferences
 class MyPrefs(Preferences):
     textPref = schema.One(schema.Text, defaultValue='somevalue')
 

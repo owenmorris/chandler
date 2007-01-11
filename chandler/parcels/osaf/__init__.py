@@ -40,3 +40,5 @@ class ChandlerException(Exception):
 
     def __unicode__(self):
         return self.message
+
+from preferences import Preferences

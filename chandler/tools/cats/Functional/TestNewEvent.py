@@ -46,7 +46,7 @@ class TestNewEvent(ChandlerTestCase):
         evtRecurrenceEnd = mondayPlus(365)
         
         # Make sure we're not showing timezones now (we'll put it back below)
-        tzPrefs = schema.ns('osaf.app', QAUITestAppLib.App_ns.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', QAUITestAppLib.App_ns.itsView).TimezonePrefs
         oldTZPref = tzPrefs.showUI
         tzPrefs.showUI = False
 

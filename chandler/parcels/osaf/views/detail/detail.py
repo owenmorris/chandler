@@ -1150,12 +1150,12 @@ class TimeZoneConditionalBlock(EventConditionalArea):
             return False
 
         # Otherwise, it depends on the preference
-        tzPrefs = schema.ns('osaf.app', item.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', item.itsView).TimezonePrefs
         return tzPrefs.showUI
 
     def getWatchList(self):
         watchList = super(TimeZoneConditionalBlock, self).getWatchList()
-        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
         watchList.extend(((self.item, pim.EventStamp.allDay.name),
                           (self.item, pim.EventStamp.anyTime.name),
                           (tzPrefs, 'showUI')))

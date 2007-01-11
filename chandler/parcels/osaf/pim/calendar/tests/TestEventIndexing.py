@@ -39,7 +39,7 @@ class TestEventIndexing(TimeZoneTestCase):
         self.tzInfoItem = TimeZoneInfo.get(self.rep.view)
         # eventsInRange will treat all timezones as equivalent unless timezone
         # display is turned on
-        self.tzprefs = schema.ns('osaf.app', self.rep.view).TimezonePrefs
+        self.tzprefs = schema.ns('osaf.pim', self.rep.view).TimezonePrefs
         self.tzprefs.showUI = True
         
         self.pacific  = PyICU.ICUtzinfo.getInstance("US/Pacific")

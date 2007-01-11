@@ -969,7 +969,7 @@ class NaiveTimeZoneRecurrenceTest(TestDomainModel.DomainModelTestCase):
         # restore it once we're done (i.e. in tearDown()).
         super(NaiveTimeZoneRecurrenceTest, self).setUp()
 
-        tzPrefs = schema.ns('osaf.app', self.rep.view).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', self.rep.view).TimezonePrefs
 
         # Stash away the global values
         self._saveTzinfo = ICUtzinfo.default
@@ -997,7 +997,7 @@ class NaiveTimeZoneRecurrenceTest(TestDomainModel.DomainModelTestCase):
         self.event.rruleset = ruleSetItem
 
     def tearDown(self):
-        tzPrefs = schema.ns('osaf.app', self.rep.view).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', self.rep.view).TimezonePrefs
 
         # Put everything back nicely....
         ICUtzinfo.default = self._saveTzinfo

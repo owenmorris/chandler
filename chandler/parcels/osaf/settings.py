@@ -164,7 +164,7 @@ def save(rv, filename):
             
     # Show timezones
     cfg[u"timezones"] = {}
-    showTZ = schema.ns("osaf.app", rv).TimezonePrefs.showUI
+    showTZ = schema.ns("osaf.pim", rv).TimezonePrefs.showUI
     cfg[u"timezones"][u"type"] = u"show timezones"
     cfg[u"timezones"][u"show_timezones"] = showTZ
     
@@ -404,7 +404,7 @@ def restore(rv, filename, testmode=False):
         if sectionname == u"timezones":
             if section.has_key(u"show_timezones"):
                 show = section.as_bool(u"show_timezones")
-                schema.ns("osaf.app", rv).TimezonePrefs.showUI = show
+                schema.ns("osaf.pim", rv).TimezonePrefs.showUI = show
         
         # Visible hours
         elif sectionname == u"visible_hours":

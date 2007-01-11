@@ -340,7 +340,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         on the current position and drag state. Handles both move and
         resize drags
         """
-        tzprefs = schema.ns('osaf.app', self.blockItem.itsView).TimezonePrefs
+        tzprefs = schema.ns('osaf.pim', self.blockItem.itsView).TimezonePrefs
         useTZ = tzprefs.showUI
         
         event = self.dragState.originalDragBox.event

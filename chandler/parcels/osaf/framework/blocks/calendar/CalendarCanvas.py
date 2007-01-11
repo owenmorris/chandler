@@ -45,7 +45,7 @@ from osaf.framework.blocks.DrawingUtilities import (DrawWrappedText, Gradients,
                 DrawClippedText, color2rgb, rgb2color, vector)
 
 from osaf.framework.blocks.calendar import CollectionCanvas
-from osaf.framework import Preferences
+from osaf import Preferences
 
 from colorsys import rgb_to_hsv, hsv_to_rgb
 
@@ -1219,7 +1219,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         Helpful utility to determine if an event is within a given range.
         Assumes the event has a startTime and endTime attribute.
         """
-        tzprefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        tzprefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
         if tzprefs.showUI:
             return ((event.effectiveStartTime <= end) and
                     (event.effectiveEndTime >= start))
@@ -1928,7 +1928,7 @@ class CalendarControl(CalendarBlock):
         return w
 
     def getWatchList(self):
-        tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
         timezones = TimeZoneInfo.get(self.itsView)
         return [ (tzPrefs, 'showUI'), 
                  (timezones, 'wellKnownIDs') ]
@@ -1936,7 +1936,7 @@ class CalendarControl(CalendarBlock):
     def onItemNotification(self, notificationType, data):
         if (notificationType == 'itemChange'):
             op, item, names = data
-            tzPrefs = schema.ns('osaf.app', self.itsView).TimezonePrefs
+            tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
             itemUUID = getattr(item, 'itsUUID', item)
             if tzPrefs.itsUUID == itemUUID:
                 # It's the timezone preference item
@@ -2178,7 +2178,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # onetime measurements
         self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) + 1
 
-        tzPrefs = schema.ns('osaf.app', self.blockItem.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', self.blockItem.itsView).TimezonePrefs
         self.tzChoice.Show(tzPrefs.showUI)
 
         self._doDrawingCalculations() #hopefully this is early enough
