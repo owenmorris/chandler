@@ -465,6 +465,8 @@ class ContentItem(schema.Item):
         elif modType == Modification.updated:
             if not Modification.sent in currentModFlags:
                 raise ValueError, "You can't update an item till it's been sent"
+            elif Modification.queued in currentModFlags:
+                currentModFlags.remove(Modification.queued)
         # Clear the edited flag and error on send/update/queue
         if (modType in (Modification.sent, Modification.updated, 
                         Modification.queued)):

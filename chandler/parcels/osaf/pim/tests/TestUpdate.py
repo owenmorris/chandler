@@ -112,13 +112,32 @@ class UpdateTestCase(NRVTestCase):
         # ... and that its lastModified got set correctly.
         self.failUnlessEqual(item.lastModified, dt)
 
-        # Finally, check that you can't send twice
-        
+        # Check that you can't send twice
         dt += timedelta(seconds=30)
         item.changeEditState(Modification.sent, when=dt)
         self.failUnlessEqual(set(item.modifiedFlags),
                              set([Modification.sent]))
+                             
+        self.failUnlessRaises(ValueError, item.changeEditState,
+                              Modification.sent)
         
+        # Now, queue again
+        dt += timedelta(seconds=30)
+        item.changeEditState(Modification.queued, when=dt)
+
+        # ... check that its lastModification is correct,
+        self.failUnlessEqual(item.lastModification, Modification.queued)
+        self.failUnlessEqual(item.lastModified, dt)
+        self.failUnlessEqual(set(item.modifiedFlags),
+                             set([Modification.queued, Modification.sent]))
+                             
+        # ... and make sure that marking it updated clears the queued flag
+        dt += timedelta(seconds=30)
+        item.changeEditState(Modification.updated, when=dt)
+        self.failUnlessEqual(item.lastModification, Modification.updated)
+        self.failUnlessEqual(item.lastModified, dt)
+        self.failUnlessEqual(set(item.modifiedFlags),
+                             set([Modification.updated, Modification.sent]))
 
         
     def testSend(self):
