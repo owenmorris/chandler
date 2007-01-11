@@ -256,6 +256,13 @@ class DetailSynchronizer(Item):
     Mixin class that handles synchronization and notification common to most
     of the blocks in the detail view.
     """
+    def __init__(self, *args, **kwds):
+        """ 
+        detail items keep track of whether or not they should be shown.
+        """
+        self.hiddenByUser = False
+        super(DetailSynchronizer, self).__init__(*args, **kwds)
+
     def onSetContentsEvent(self, event):
          #logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
                      #event.arguments['item'], event.arguments['collection'])
@@ -270,7 +277,8 @@ class DetailSynchronizer(Item):
         self.show(self.item is not None and self.shouldShow(self.item))
     
     def shouldShow(self, item):
-        return True
+        hiddenByUser = getattr(self, 'hiddenByUser', False)
+        return not hiddenByUser
 
     def show(self, shouldShow):
         # if the show status has changed, tell our widget, and return True
@@ -627,7 +635,7 @@ class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):
     #An area visible only when the item (a mail message) has attachments.
     #"""
     #def shouldShow (self, item):
-        #return item is not None and item.hasAttachments()
+        #return super(AttachmentAreaBlock, self).shouldShow(item) and  item is not None and item.hasAttachments()
 #class AttachmentTextFieldBlock(EditTextAttribute):
     #"""
     #A read-only list of email attachments, for now.
@@ -649,7 +657,7 @@ class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):
 #class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
     #def shouldShow(self, item):
         #showIt = False
-        #if item is not None and not pim.mail.MailStamp(item).isOutbound:
+        #if item is not None and not pim.mail.MailStamp(item).isOutbound and super(AcceptShareButtonBlock, self).shouldShow(item):
             #try:
                 #MailSharing.getSharingHeaderInfo(item)
             #except:       
@@ -710,7 +718,7 @@ def getAppearsInNames(item):
     
 class AppearsInAEBlock(DetailSynchronizedAttributeEditorBlock):
     def shouldShow(self, item):
-        return len(getAppearsInNames(item)) > 0
+        return super(AppearsInAEBlock, self).shouldShow(item) and len(getAppearsInNames(item)) > 0
 
 class AppearsInAttributeEditor(StaticStringAttributeEditor):
     """
@@ -783,7 +791,8 @@ class TaskAreaBlock(StampConditionalArea, DetailSynchronizedContentItemDetail):
 
 class CalendarAllDayAreaBlock(DetailSynchronizedContentItemDetail):
     def shouldShow(self, item):
-        return item.isAttributeModifiable(pim.EventStamp.allDay.name)
+        return (super(CalendarAllDayAreaBlock, self).shouldShow(item) and
+            item.isAttributeModifiable(pim.EventStamp.allDay.name))
 
     def getWatchList(self):
         watchList = super(CalendarAllDayAreaBlock, self).getWatchList()
@@ -793,7 +802,7 @@ class CalendarAllDayAreaBlock(DetailSynchronizedContentItemDetail):
 class CalendarLocationAreaBlock(EventAreaBlock):
     def shouldShow(self, item):
         attributeName = pim.EventStamp.location.name
-        return (super(CalendarLocationAreaBlock, self).shouldShow(item) and
+        return (super(CalendarLocationAreaBlock, self).shouldShow(item) and 
                 (item.isAttributeModifiable(attributeName) or
                  hasattr(item, attributeName)))
 
@@ -1726,8 +1735,9 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
 class BylineAEBlock(DetailSynchronizedAttributeEditorBlock):
     def shouldShow(self, item):
         lastMod = getattr(self.item, 'lastModification', None)
-        return (not pim.has_stamp(self.item, pim.mail.MailStamp) or
-                not lastMod in (None, pim.Modification.edited))
+        return (super(BylineAEBlock, self).shouldShow(item) and
+               (not pim.has_stamp(self.item, pim.mail.MailStamp) or
+                not lastMod in (None, pim.Modification.edited)))
 
     def getWatchList(self):
         watchList = super(BylineAEBlock, self).getWatchList()
@@ -1738,7 +1748,7 @@ class BylineAEBlock(DetailSynchronizedAttributeEditorBlock):
 class ErrorAEBlock(DetailSynchronizedAttributeEditorBlock):
     def shouldShow(self, item):
         error = getattr(self.item, 'error', None)
-        return bool(error)
+        return super(ErrorAEBlock, self).shouldShow(item) and bool(error)
 
     def getWatchList(self):
         watchList = super(ErrorAEBlock, self).getWatchList()
