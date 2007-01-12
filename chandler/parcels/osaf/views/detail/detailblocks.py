@@ -654,7 +654,7 @@ def makeMarkupBar(parcel, oldVersion):
                                 event=buttonPressed,
                                 viewAttribute='unpurgedTriageStatus',
                                 stretchFactor=0.0,
-                                minimumSize=SizeType(30, 18))
+                                minimumSize=SizeType(39, 20))
 
     calendarStamp = \
         CalendarStampButtonBlock.template('CalendarStamp',
