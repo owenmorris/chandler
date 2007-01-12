@@ -25,6 +25,7 @@ rt.py -- Run Chandler tests
 import sys, os
 import string
 import unittest
+import doctest
 from optparse import OptionParser
 from types import *
 from util import killableprocess
@@ -34,6 +35,10 @@ modes = ['release', 'debug']
 
     # tests to run if no tests are specified on the command line
 _all_modules = ['application', 'i18n', 'repository', 'osaf']
+
+    # global variable to force a exit from the test run
+    # even if options.nonstop is True
+_stop_test_run = False
 
 
 def parseOptions():
@@ -48,7 +53,7 @@ def parseOptions():
         'func':      ('-F', '--func',               'b', False, 'Functional tests each in own process'),
         'perf':      ('-p', '--perf',               'b', False, 'Performance tests'),
         'profile':   ('-P', '--profile',            'b', False, 'Profile performance tests'),
-        'single':    ('-t', '--test',               's', None,  'Run single test'),
+        'single':    ('-t', '--test',               's', '',    'Run single test'),
         'tbox':      ('-T', '--tbox',               'b', False, 'Tinderbox output mode'),
         'noEnv':     ('-i', '--ignoreEnv',          'b', False, 'Ignore environment variables'),
         'config':    ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
@@ -86,16 +91,28 @@ def parseOptions():
 _templist = []
 
 def buildList(tests):
+    """
+    Scan thru the list of test instances and build
+    a list of all individual test names.
+    """
     for item in tests:
         if isinstance(item, unittest.TestSuite):
             buildList(item)
         else:
-            _templist.append(item.id())
+            if isinstance(item, unittest.TestCase) and \
+               not isinstance(item, doctest.DocTestCase):
+                _templist.append(item.id())
+            else:
+                print "Skipping %s as it's not a TestCase instance" % item.id()
 
     return _templist
 
 
 def buildTestList(args, individual=False):
+    """
+    Pass the given command line arguments to our scanning loader
+    and create a list of test names.
+    """
     from application import Globals, Utility
 
     sys.argv = args[:]
@@ -106,6 +123,7 @@ def buildTestList(args, individual=False):
     Utility.initLogging(options)
 
     args    += options.args
+    tests    = []
     testlist = []
 
     if len(args) == 0:
@@ -123,24 +141,46 @@ def buildTestList(args, individual=False):
     if individual:
         from util import test_finder
 
-        loader   = test_finder.ScanningLoader()
-        tests    = loader.loadTestsFromNames(testlist, None)
-        testlist = buildList(tests)
+        loader = test_finder.ScanningLoader()
 
-    return testlist
+        for item in testlist:
+            tests += buildList(loader.loadTestsFromName(item))
+    else:
+        tests = testlist
+
+    return tests
 
 
 def callRun_Test(cmd):
+    """
+    Run the given command and return the results.
+    If during the wait a ctrl-c is pressed kill the cmd's process.
+    """
     if options.verbose:
         print 'Calling:', cmd
 
-    p = killableprocess.Popen(' '.join(cmd), shell=True)
-    r = p.wait()
+    try:
+        p = killableprocess.Popen(' '.join(cmd), shell=True)
+        r = p.wait()
+
+    except KeyboardInterrupt:
+        _stop_test_run = True
+
+        print '\nKeyboard Interrupt detected, stopping test run\n'
+
+        try:
+            r = p.kill(group=True)
+
+        except OSError:
+            r = p.wait()
 
     return r
 
 
 def doTest(test):
+    """
+    Run the given test for each of the active modes
+    """
     result = 0
 
     for mode in modes:
@@ -153,18 +193,24 @@ def doTest(test):
 
         result = callRun_Test(cmd)
 
-        if result <> 0 and not options.nonstop:
+        if (result <> 0 and not options.nonstop) or _stop_test_run:
             break
 
     return result
 
 def runSuite(testlist):
+    """
+    Call doTest with all of the given test names
+    """
     print 'Running tests as a suite'
 
     return doTest(' '.join(testlist))
 
 
 def runTests(testlist):
+    """
+    Call doTest once for each given test name
+    """
     result = 0
 
     for test in testlist:
@@ -177,6 +223,10 @@ def runTests(testlist):
 
 
 def runTest(testlist, target):
+    """
+    Scan thru the list of tests and run each test that
+    includes as part of it's class name the target name.
+    """
     result   = 0
     tests    = []
     target_l = target.lower()
