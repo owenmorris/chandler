@@ -36,6 +36,7 @@ SYSTEMS=db \
         pylint \
         parsedatetime \
         configobj \
+        docutils \
         wx
 
 SYS_TESTS=dateutil \
