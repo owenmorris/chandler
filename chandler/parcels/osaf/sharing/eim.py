@@ -367,6 +367,47 @@ class RecordSet(object):
         return bool(self.inclusions or self.exclusions)
 
 
+    def _merge(self, inclusions, exclusions):
+        exc = dict((r.getKey(),r) for r in self.exclusions)
+        ind = self._index
+        conflicts = set()
+
+        for r in inclusions:
+            k = r.getKey()
+            if k in conflicts:
+                continue
+            if k in exc:
+                conflicts.add(k)
+                del exc[k]
+            elif k in ind:
+                r = ind[k] | r
+                if r is NoChange:
+                    conflicts.add(k)
+                    del ind[k]
+                else:
+                    ind[k] = r
+            else:
+                ind[k] = r            
+
+        for r in exclusions:
+            k = r.getKey()
+            if k in conflicts:
+                continue
+            if k in ind:
+                conflicts.add(k)
+                del ind[k]
+            else:
+                exc[k] = r
+
+        self.inclusions = set(ind.values())
+        self.exclusions = set(exc.values())
+
+    def __or__(self, other):
+        rs = RecordSet()
+        rs._merge(self.inclusions|other.inclusions,
+                 self.exclusions|other.exclusions)
+        return rs
+
 class Filter:
     """Suppress inclusion of specified field(s) in Records and RecordSets"""
 
@@ -644,6 +685,47 @@ class Record(tuple):
 
 
 
+
+
+
+
+
+
+
+
+
+
+    def __or__(self, other):
+        t = type(self)
+        if type(other) is not t:
+            raise TypeError(
+                '%r is not a %s record' % (other, self.__class__.__name__)
+            )
+
+        res = []
+        empty = True
+
+        for f, new, old in zip(self.__fields__, other[1:], self[1:]):
+            if new is NoChange:
+                res.append(old)
+            elif old is NoChange:
+                res.append(new)
+            elif old==new:
+                res.append(new)
+            elif isinstance(f,key):
+                raise ValueError(
+                    "Can't merge %s %r and %s %r" % (f.name, old, f.name, new)
+                )
+            else:
+                res.append(NoChange)
+
+            # we're still empty if we just put in a NoChange or a key
+            empty = empty and (res[-1] is NoChange or isinstance(f,key))
+
+        if empty:
+            return NoChange
+        else:
+            return t(*res)
 
 
 

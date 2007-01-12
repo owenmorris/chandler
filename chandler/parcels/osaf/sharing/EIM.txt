@@ -209,6 +209,50 @@ changeable field, and having at most one key value.  Real-life recordsets will
 be more complex, and the relationships shown above will apply on a per-record
 and per-field basis, rather than at the recordset level.)
 
+Extracting Nonconflicting Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The "bitwise OR" operator (|) produces the nonconflicting merge of two diff
+records.  For each field in the original records, the new record contains
+either the value shared by both of the original records, or else
+``sharing.NoChange`` if the values conflicted.  If one of the original records
+has a value of ``sharing.NoChange`` in a given field, the other record's value
+for that field is used.
+
+This allows you to compute the nonconflicting subset of two sets of changes to
+a record::
+
+    >>> class S(sharing.Record):
+    ...     URI = 'cid:eim.S@osaf.us'
+    ...     f1 = sharing.field(int)
+    ...     f2 = sharing.field(int)
+
+    >>> S(1, 2) |  S(1, sharing.NoChange)
+    S(1, 2)
+
+    >>> S(sharing.NoChange, 12) | S(16, sharing.NoChange)
+    S(16, 12)
+
+    >>> S(1,2) | S(1,3)
+    S(1, NoChange)
+
+    >>> S(1,2) | S(3,4)
+    NoChange
+
+    >>> R(1,2) | R(1,3)     # first field is a key
+    NoChange
+
+The bitwise OR operator can also be applied to record sets::
+
+    >>> sharing.RecordSet([R(1,2)]) | sharing.RecordSet([R(1,2)])
+    RecordSet(set([R(1, 2)]), set([]))
+
+    >>> sharing.RecordSet([R(1,3)]) | sharing.RecordSet([R(1,2)])
+    RecordSet(set([]), set([]))
+
+    >>> sharing.RecordSet([R(1,3)]) | sharing.RecordSet([R(1,2), R(1,3), R(1,4)])
+    RecordSet(set([]), set([]))
+
 
 Filters
 -------
@@ -1108,5 +1152,18 @@ subclasses::
     Traceback (most recent call last):
       ...
     TypeError: <class ...Stamp'> is not a `schema.Item` or `pim.Stamp` subclass
+
+RecordSet ``_merge()`` method should handle multiple encounters w/conflicting
+records::
+
+    >>> rs = sharing.RecordSet([R(1,2)])
+    >>> rs._merge([], [R(1,3), R(1,4)])
+    >>> rs
+    RecordSet(set([]), set([]))
+
+    >>> rs = sharing.RecordSet([R(1,2)])
+    >>> rs._merge([R(1,3), R(1,4)], [])
+    >>> rs
+    RecordSet(set([]), set([]))
 
 
