@@ -41,9 +41,9 @@ def main():
 
     parser = OptionParser(usage="%prog [options] type release-num target-dir", version="%prog 2.0")
     (options, args) = parser.parse_args()
-    if len(args) != 3:
+    if len(args) <= 3:
         parser.print_help()
-        parser.error("You must provide [M | R | C], relase number and a directory name: M 0.5.03 0_5_03")
+        parser.error("You must provide [M | R | C | S], relase number and a directory name: M 0.5.03 0_5_03")
 
     rType = args[0]
     release = args[1]
@@ -55,20 +55,28 @@ def main():
         rFormat = "Milestone"
     elif rType == "C":
         rFormat = "Checkpoint"
+    elif rType == "SC":
+        rFormat = "Checkpoint"
+    elif rType == "SR":
+        rFormat = "Release"
     else:
         parser.print_help()
-        parser.error("You must provide [M | R | C], relase number and a directory name: M 0.5.03 0_5_03")
-        
-    print "Making index pages for", rFormat, release
-    CreateIndex(release, targetDir)
-    MakeMaster(release, rFormat, rType, targetDir)
-    MakeJS(release, rFormat, targetDir)
+        parser.error("You must provide [M | R | C | S], relase number and a directory name: M 0.5.03 0_5_03")
+
+    print "Making index pages for", rFormat, release, rType[0]
+    if rType[0] == 'S':
+        CreateSnarfIndex(release, rFormat, targetDir, args[3])
+    else:
+        CreateIndex(release, targetDir)
+        MakeMaster(release, rFormat, rType, targetDir)
+        MakeJS(release, rFormat, targetDir)
 
     print "Complete"
 
 _descriptions = {
     'enduser' : ["End-Users' distribution", "If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, run."],
     'developer' : ["Debug distribution", "If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries. It runs a lot slower than the end-users release. Assertions are active, the __debug__ global is set to True, and memory leaks are listed upon exit. You may also want to use this distribution to develop and test your own parcels (See <a href='http://wiki.osafoundation.org/bin/view/Chandler/ParcelLoading'>Parcel Loading</a> for details on loading your own parcels)."],
+    'snarf': ["OSAF Sharing Server", "If you want to try out Cosmo this distribution contains everything you need.  Download and extract."]
 }
 
 def MakeJS(buildName, buildType, targetDir):
@@ -144,11 +152,66 @@ def CreateIndex(buildName, targetDir):
             print "skipping ", thisFile
 
     html += '</body></html>\n'
-    
-    fileOut = file(buildName+"_index.html", "w")    
+
+    fileOut = file(buildName+"_index.html", "w")
     fileOut.write(html)
     fileOut.close()
 
     shutil.move(fileOut.name, os.path.join("snapshots", targetDir, fileOut.name))
+
+
+def CreateSnarfIndex(buildName, buildType, targetDir, distribName):
+    html =  '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n'
+    html += '<html><head>\n'
+    html += '<link rel="Stylesheet" href="http://www.osafoundation.org/css/OSAF.css" type="text/css" charset="iso-8859-1">\n'
+    html += '<title>Downloads for OSAF Sharing Server: ' + buildName + '</title>\n'
+    html += '</head><body<img src="http://www.osafoundation.org/images/OSAFLogo.gif" alt="[OSAF Logo]">\n'
+    html += '<h2>OSAF Server: ' + buildName + '</h2>\n'
+
+    checkpointDir = os.path.join('/www/downloads/cosmo/checkpoints', targetDir)
+    filename      = os.path.join(checkpointDir, distribName)
+    urlPath       = os.path.join("/cosmo/checkpoints", targetDir, distribName)
+    indexTemplate = 'snarf.index.html'
+    lcBuildType   = buildType.lower()
+
+    print 'Generating data for %s' % filename
+
+    html += '<strong style="font-size: larger;">'
+    html += '<a href="%s">%s</a>'    % (filename, filename)
+    html += ' (%s)</strong>\n'       % hardhatutil.fileSize(filename)
+    html += '<p>%s</p>'              % _descriptions['snarf'][1]
+    html += ' MD5 checksum: %s<br/>' % hardhatutil.MD5sum(filename)
+    html += ' SHA checksum: %s<br/>' % hardhatutil.SHAsum(filename)
+    html += '\n<hr>\n'
+    html += '</body></html>\n'
+
+    text = "document.write(' %s %s, %s');" % (buildType, re.sub(r'_', '.', buildName), time.strftime("%Y-%m-%d"))
+
+    fileIn = file(indexTemplate, "r")
+    index  = fileIn.read()
+    fileIn.close()
+
+    (index, n1) = re.subn(r'XYZZY', buildName, index)
+    (index, n2) = re.subn(r'Plugh', buildType, index)
+    (index, n3) = re.subn(r'plugh', lcBuildType, index)
+    (index, n4) = re.subn(r'YZZXX', distribName, index)
+
+    print "Replaced %i occurrences of XYZZY with %s" % (n1, buildName)
+    print "Replaced %i occurrences of Plugh with %s" % (n2, buildType)
+    print "Replaced %i occurrences of plugh with %s" % (n3, lcBuildType)
+    print "Replaced %i occurrences of YZZXX with %s" % (n4, distribName)
+
+    fileOut = file(os.path.join(checkpointDir, buildName + "_index.html"), "w")
+    fileOut.write(html)
+    fileOut.close()
+
+    fileOut = file(os.path.join(checkpointDir, "id.js"), "w")
+    fileOut.write(text)
+    fileOut.close()
+
+    fileOut = file(os.path.join(checkpointDir, "index.html"), "w")
+    fileOut.write(index)
+    fileOut.close()
+
 
 main()
