@@ -155,6 +155,8 @@ else
 PYLUCENE_SRC_ARCHIVE=PyLucene-src-$(VERSION).tar.gz
 endif
 
+$(SRC): expand
+
 sources: $(PYLUCENE_SRC_ARCHIVE)
 
 $(PYLUCENE_SRC_ARCHIVE):
