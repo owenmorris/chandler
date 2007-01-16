@@ -10,6 +10,12 @@
 
 exclude=.svn,*.pyo,*.pyc
 
+# Grab python scripts
+src=chandler/debug
+dest=debug
+glob=rst*
+bin
+
 # Grab certain dll's from debug/bin
 src=chandler/debug/bin
 dest=debug/bin
@@ -18,7 +24,7 @@ libdb_java45d.dll
 msvcp71d.dll
 msvcr71d.dll
 msvcrtd.dll
-python25_d.dll 
+python25_d.dll
 icudt36.dll
 iculx36d.dll
 icuin36d.dll
@@ -64,7 +70,6 @@ dest=debug/bin/Lib
 recursive=yes
 glob=*
 site-packages
-
 
 # Grab Chandler.py and others
 src=chandler

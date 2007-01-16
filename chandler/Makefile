@@ -42,7 +42,8 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)3.tar.gz \
            $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.0-$(BP)2.tar.gz \
            $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.12.2-$(BP)2.tar.gz \
            $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.0-$(BP)2.tar.gz \
-           $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)1.tar.gz
+           $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz
 
 OS         = $(shell uname)
 PYTHON_VER = 2.5
@@ -104,6 +105,7 @@ PLUGIN_ARCHIVES = $(CHANDLERARCHIVES)
 ifeq ($(OS),Cygwin)
     SITE          = $(SNAP)/bin/Lib/site-packages
     PLATFORM      = windows
+    SCRIPTS       = $(C_BIN)/$(SNAP)/bin/Scripts/
     EASYINSTALL   = $(C_BIN)/$(SNAP)/easy_install.exe
     PLUGIN_PYTHON = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
     RUN_PYTHON    = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/RunPython.bat
@@ -113,6 +115,7 @@ else
         FRAMEWORK     = Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
         SITE          = $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
         ARCH          = $(shell arch)
+        SCRIPTS       = $(C_BIN)/$(SNAP)/$(FRAMEWORK)/bin/
         EASYINSTALL   = MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(C_BIN)/$(SNAP)/easy_install
         PLUGIN_PYTHON = MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
         RUN_PYTHON    = $(C_BIN)/$(SNAP)/RunPython
@@ -126,6 +129,7 @@ else
     else
         SITE          = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
         PLATFORM      = linux
+        SCRIPTS       = $(C_BIN)/$(SNAP)/bin/
         EASYINSTALL   = $(C_BIN)/$(SNAP)/easy_install
         PLUGIN_PYTHON = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
         RUN_PYTHON    = $(C_BIN)/$(SNAP)/RunPython
@@ -183,6 +187,7 @@ ifeq ($(OS),Cygwin)
     PYEGG_INST      := $(shell cygpath -aw $(C_BIN)/$(SITE))
     TOOLS           := $(shell cygpath -aw $(TOOLS))\\
     PYEGG_ARCHIVES  := $(shell cygpath -aw $(CHANDLERARCHIVES))\\
+    SCRIPTS         := $(shell cygpath -wa $(SCRIPTS))\\
 endif
 
 ARCHIVES_INST = \
@@ -311,10 +316,10 @@ RST_DOCS = distrib/docs/parcel-schema-guide.html \
            distrib/docs/running-code-at-startup.html
 
 distrib/docs/parcel-schema-guide.html: application/parcel-schema-guide.txt
-	rst2html.py --stylesheet=distrib/docs/rst-docs.css $< $@
+	$(RUN_PYTHON) '$(SCRIPTS)'rst2html.py --stylesheet=distrib/docs/rst-docs.css $< $@
 
 distrib/docs/running-code-at-startup.html: parcels/osaf/startups.txt
-	rst2html.py --stylesheet=distrib/docs/rst-docs.css $< $@
+	$(RUN_PYTHON) '$(SCRIPTS)'rst2html.py --stylesheet=distrib/docs/rst-docs.css $< $@
 
 rst: $(RST_DOCS)
 

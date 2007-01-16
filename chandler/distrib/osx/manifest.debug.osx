@@ -17,9 +17,16 @@ glob=*
 recursive=yes
 python2.5
 
+# Grab python scripts
+src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.5
+dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5
+glob=rst*
+bin
+
 # Grab python Framework file
 src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.5
 dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5
+glob=*
 Python
 
 # Grab python executable file

@@ -15,6 +15,12 @@ src=chandler/release/bin
 dest=release/bin
 python
 
+# Grab the python scripts
+src=chandler/release
+dest=release
+glob=rst*
+bin
+
 # Grab the WX libs
 src=chandler/release
 recursive=no

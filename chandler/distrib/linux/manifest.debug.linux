@@ -15,6 +15,12 @@ src=chandler/debug/bin
 dest=debug/bin
 python_d
 
+# Grab the python scripts
+src=chandler/debug
+dest=debug
+glob=rst*
+bin
+
 # Grab the WX libs
 src=chandler/debug
 recursive=no
