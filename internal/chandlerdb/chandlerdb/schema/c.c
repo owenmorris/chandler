@@ -28,7 +28,7 @@ PyTypeObject *ItemRef = NULL;
 PyTypeObject *CValues = NULL;
 PyTypeObject *CLinkedMap = NULL;
 PyObject *PyExc_StaleItemError = NULL;
-PyObject *True_TUPLE = NULL;
+PyObject *True_TUPLE, *Empty_TUPLE = NULL;
 
 static PyObject *countAccess(PyObject *self, t_item *item)
 {
@@ -69,6 +69,7 @@ void initc(void)
     _init_redirector(m);
 
     True_TUPLE = PyTuple_Pack(1, Py_True);
+    Empty_TUPLE = PyTuple_New(0);
 
     cobj = PyCObject_FromVoidPtr(_countAccess, NULL);
     PyModule_AddObject(m, "C_countAccess", cobj);

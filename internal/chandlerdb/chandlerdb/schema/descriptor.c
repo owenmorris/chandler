@@ -173,8 +173,6 @@ static t_values *get_attrdict(t_item *item, int flags)
         return item->values;
       case REF:
         return item->references;
-      case REDIRECT:
-        return NULL;
       default:
         return NULL;
     }
@@ -226,7 +224,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                     if (value)
                     {
                         if (value->ob_type == ItemRef)
-                            value = PyObject_Call(value, True_TUPLE, NULL);
+                            value = PyObject_Call(value, Empty_TUPLE, NULL);
                         else if (value == Py_None ||
                                  PyObject_TypeCheck(value, CLinkedMap))
                             Py_INCREF(value);

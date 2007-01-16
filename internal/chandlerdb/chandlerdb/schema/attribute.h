@@ -18,7 +18,7 @@
 enum {
     VALUE        = 0x00000001,
     REF          = 0x00000002,
-    REDIRECT     = 0x00000004,
+
     REQUIRED     = 0x00000008,
     PROCESS_GET  = 0x00000010,
     PROCESS_SET  = 0x00000020,
@@ -34,7 +34,7 @@ enum {
     DEFAULT      = 0x00008000,
     AFTERCHANGE  = 0x00010000,
 
-    ATTRDICT     = VALUE | REF | REDIRECT,
+    ATTRDICT     = VALUE | REF,
     CARDINALITY  = SINGLE | LIST | DICT | SET,
     PROCESS      = PROCESS_GET | PROCESS_SET,
 };
@@ -44,7 +44,6 @@ typedef struct {
     PyObject *attrID;
     unsigned long flags;
     PyObject *otherName;
-    PyObject *redirectTo;
     PyObject *defaultValue;
     PyObject *typeID;
     PyObject *afterChange;
