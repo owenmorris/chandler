@@ -95,6 +95,7 @@ class ImportCertificateDialog(wx.Dialog):
         btn = wx.Button(self, wx.ID_CANCEL)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+        btn.SetFocus()
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
@@ -199,6 +200,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
         btn = wx.Button(self, wx.ID_CANCEL)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+        btn.SetFocus()
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
@@ -284,6 +286,7 @@ class IgnoreSSLErrorDialog(wx.Dialog):
         btn = wx.Button(self, wx.ID_CANCEL, _(u'Disconnect'))
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+        btn.SetFocus()
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
