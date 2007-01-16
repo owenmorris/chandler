@@ -8,7 +8,6 @@
     <ref alias="director" type="path">/CineGuide/Attributes/director</ref>
     <ref alias="title" type="path">/CineGuide/Attributes/title</ref>
     <ref alias="frenchTitle" type="path">/CineGuide/Attributes/frenchTitle</ref>
-    <ref alias="titre" type="path">/CineGuide/Attributes/titre</ref>
     <ref alias="released" type="path">/CineGuide/Attributes/released</ref>
     <ref alias="actors" type="path">/CineGuide/Attributes/actors</ref>
     <ref alias="writers" type="path">/CineGuide/Attributes/writers</ref>

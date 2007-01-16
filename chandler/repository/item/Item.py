@@ -149,15 +149,6 @@ class Item(CItem):
 
         return False
 
-    def _redirectTo(self, redirect, methodName, *args):
-        
-        item = self
-        names = redirect.split('.')
-        for i in xrange(len(names) - 1):
-            item = getattr(item, names[i])
-
-        return getattr(item, methodName)(names[-1], *args)
-        
     def setAttributeValue(self, name, value=None, _attrDict=None,
                           otherName=None, setDirty=True, _noFireChanges=False):
         """
@@ -182,13 +173,6 @@ class Item(CItem):
             elif name in _references:
                 _attrDict = _references
             else:
-                redirect = self.getAttributeAspect(name, 'redirectTo',
-                                                   False, None, None)
-                if redirect is not None:
-                    return self._redirectTo(redirect, 'setAttributeValue',
-                                            value, None, None,
-                                            setDirty, _noFireChanges)
-
                 if otherName is None:
                     otherName = self.itsKind.getOtherName(name, self, Nil)
                 if otherName is not Nil:
@@ -455,15 +439,6 @@ class Item(CItem):
             else:
                 attribute = self.itsKind.getAttribute(name, False, self)
 
-            redirect = attribute.c.getAspect('redirectTo', None)
-            if redirect is not None:
-                value = self
-                for attr in redirect.split('.'):
-                    value = value.getAttributeValue(attr, None, None, default)
-                    if value is default:
-                        break
-                return value
-
             inherit = attribute.getAspect('inheritFrom', None)
             if inherit is not None:
                 value = self
@@ -516,12 +491,6 @@ class Item(CItem):
             elif name in self._references:
                 _attrDict = self._references
             else:
-                redirect = self.getAttributeAspect(name, 'redirectTo',
-                                                   False, _attrID, None)
-                if redirect is not None:
-                    return self._redirectTo(redirect, 'removeAttributeValue',
-                                            None, None, _noFireChanges)
-
                 if hasattr(self, name): # inherited value
                     return
 
@@ -865,12 +834,6 @@ class Item(CItem):
             elif attribute in self._references:
                 _attrDict = self._references
             else:
-                redirect = self.getAttributeAspect(attribute, 'redirectTo',
-                                                   False, None, None)
-                if redirect is not None:
-                    return self._redirectTo(redirect, 'setValue',
-                                            value, key, alias, otherKey)
-
                 if self.itsKind.getOtherName(attribute, self, None):
                     _attrDict = self._references
                 else:
@@ -974,12 +937,6 @@ class Item(CItem):
             elif attribute in self._references:
                 _attrDict = self._references
             else:
-                redirect = self.getAttributeAspect(attribute, 'redirectTo',
-                                                   False, None, None)
-                if redirect is not None:
-                    return self._redirectTo(redirect, 'addValue',
-                                            value, key, alias, otherKey)
-
                 if self.itsKind.getOtherName(attribute, self, None):
                     _attrDict = self._references
                 else:
@@ -1113,12 +1070,6 @@ class Item(CItem):
             elif attribute in self._references:
                 _attrDict = self._references
             else:
-                redirect = self.getAttributeAspect(attribute, 'redirectTo',
-                                                   False, None, None)
-                if redirect is not None:
-                    return self._redirectTo(redirect, 'removeValue',
-                                            value, key, alias)
-
                 if self.itsKind.getOtherName(attribute, self, None):
                     _attrDict = self._references
                 else:

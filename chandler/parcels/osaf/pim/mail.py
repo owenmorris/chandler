@@ -509,13 +509,21 @@ class DownloadAccountBase(AccountBase):
         initialValue = None
     ) # inverse of EmailAddress.accounts
 
-    emailAddress = schema.One(
-        redirectTo = 'replyToAddress.emailAddress',
-    )
+    @apply
+    def emailAddress():
+        def fget(self):
+            return self.replyToAddress.emailAddress
+        def fset(self, value):
+            self.replyToAddress.emailAddress = value
+        return property(fget, fset)
 
-    fullName = schema.One(
-        redirectTo = 'replyToAddress.fullName',
-    )
+    @apply
+    def fullName():
+        def fget(self):
+            return self.replyToAddress.fullName
+        def fset(self, value):
+            self.replyToAddress.fullName = value
+        return property(fget, fset)
 
     @schema.observer(replyToAddress)
     def onReplyToAddressChange(self, op, name):
@@ -554,9 +562,13 @@ class SMTPAccount(AccountBase):
         initialValue = None
     )
 
-    emailAddress = schema.One(
-        redirectTo = 'fromAddress.emailAddress',
-    )
+    @apply
+    def emailAddress():
+        def fget(self):
+            return self.fromAddress.emailAddress
+        def fset(self, value):
+            self.fromAddress.emailAddress = value
+        return property(fget, fset)
 
     port = schema.One(
         schema.Integer,
@@ -927,9 +939,23 @@ class MailStamp(stamping.Stamp):
     # inverse of EmailAddress.messagesCc
     ccAddress = schema.Sequence(initialValue = [])
 
-    subject = schema.One(redirectTo='displayName')
+    @apply
+    def subject():
+        def fget(self):
+            return self.itsItem.displayName
+        def fset(self, value):
+            self.itsItem.displayName = value
+        return schema.Calculated(schema.Text, (items.ContentItem.displayName,),
+                                 fget, fset)
 
-    body = schema.One(redirectTo='body')
+    @apply
+    def body():
+        def fget(self):
+            return self.itsItem.body
+        def fset(self, value):
+            self.itsItem.body = value
+        return schema.Calculated(schema.Text, (items.ContentItem.body,),
+                                 fget, fset)
 
     inReplyTo = schema.One(schema.Text, indexed=False)
 

@@ -17,7 +17,7 @@
          -     required, indexed, notify,
 	 -     cardinality, type,
 	 -     defaultValue, initialValue, afterChange,
-         -     inheritFrom, redirectTo, otherName,
+         -     inheritFrom, otherName,
 	 -     deletePolicy, copyPolicy, countPolicy,
          -     kinds, superAttribute, subAttributes,
 	 -     root, roots, domains
@@ -215,27 +215,6 @@
     <attribute name="afterChange" cardinality="list">
       <value>_afterAspectChange</value>
       <value>_afterInheritFromChange</value>
-    </attribute>
-  </item>
-
-  <item withSchema="True" coreSchema="True">
-    <name>redirectTo</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Core/Attribute</parent>
-
-    <ref name="kinds" otherName="attributes"
-         cardinality="list" otherCard="list">
-      <ref type="path" otherAlias="redirectTo">..</ref>
-    </ref>
-
-    <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/Importable</ref>
-
-    <attribute name="cardinality">single</attribute>
-    <attribute name="afterChange" cardinality="list">
-      <value>_afterAspectChange</value>
-      <value>_afterRedirectToChange</value>
     </attribute>
   </item>
 

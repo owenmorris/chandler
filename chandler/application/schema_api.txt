@@ -229,7 +229,7 @@ Aspect Attributes
     Descriptor objects support setting all of the aspects of a repository
     ``Attribute``, including ``required``, ``persisted``, ``indexed``,
     ``cardinality``, ``defaultValue``, ``initialValue``, ``inheritFrom``,
-    ``redirectTo``, ``otherName``, ``companion``, ``deletePolicy``,
+    ``otherName``, ``companion``, ``deletePolicy``,
     ``copyPolicy``, ``countPolicy``, ``type``, ``superAttribute``, and
     ``description``.  You can supply any of these as
     keyword arguments to a Descriptor constructor (such as ``schema.One``,
@@ -295,19 +295,6 @@ Test error messages:
     Traceback (most recent call last):
       ...
     TypeError: 'foo' is not a schema.Descriptor (One, Many, Sequence, etc.)
-
-Observing an attribute that redirects somewhere else is dangerous, because
-someone else can change the target attribute underneath you - you should
-observe the target attribute directly instead:
-
-    >>> class BadExample2(Example):
-    ...     bar = schema.One(redirectTo="foo")
-    ...     @schema.observer(bar)
-    ...     def __bar_changed(self, op, name):
-    ...         print name, "changed"
-    Traceback (most recent call last):
-      ...
-    TypeError: Can't observe a redirected attribute
 
 Test observers on Annotations:
 
@@ -1056,7 +1043,7 @@ loaded::
     And once a role's ``Attribute`` is generated, you cannot change any of its
     attributes any more::
 
-        >>> Kind.subkinds.redirectTo = "xyz"
+        >>> Kind.subkinds.defaultValue = "xyz"
         Traceback (most recent call last):
         ...
         TypeError: Descriptor object <Descriptor subkinds of <class '...Kind'>> cannot be modified after use

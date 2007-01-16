@@ -61,7 +61,7 @@ class RefCollectionDictionary(schema.Item):
 
         @return: A C{String} for the name of the collection attribute
         """
-        return 'collectionSpecifier' # should be a redirectTo attribute
+        raise NotImplementedError, (type(self), 'getCollectionSpecifier')
 
     def _index(self, key):
         """
@@ -411,11 +411,13 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
         inverse = DynamicChild.dynamicParent, initialValue = [],
     )
 
-    collectionSpecifier = schema.One(redirectTo = 'dynamicChildren')
-
     schema.addClouds(
         copying = schema.Cloud(byCloud = [dynamicChildren])
     )
+
+    def getCollectionSpecifier(self):
+
+        return 'dynamicChildren'
 
     def itemNameAccessor(self, item):
         """

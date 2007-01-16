@@ -167,15 +167,11 @@ class Attribute(Item):
 
     def _afterInheritFromChange(self, op, name):
 
-        self.c.noInherit = (self._values, 'inheritFrom', 'redirectTo')
+        self.c.noInherit = (self._values, 'inheritFrom')
 
     def _afterDefaultValueChange(self, op, name):
 
         self.c.defaultValue = self._values
-
-    def _afterRedirectToChange(self, op, name):
-
-        self.c.redirectTo = (self._values, 'redirectTo', 'inheritFrom')
 
     def _afterOtherNameChange(self, op, name):
 
@@ -191,7 +187,7 @@ class Attribute(Item):
 
     valueAspects = ('required', 'indexed', 'notify',
                     'cardinality', 'defaultValue', 'initialValue',
-                    'inheritFrom', 'redirectTo', 'otherName', 'afterChange',
+                    'inheritFrom', 'otherName', 'afterChange',
                     'deletePolicy', 'copyPolicy', 'countPolicy', 'domains')
 
     refAspects = ('type', 'superAttribute')

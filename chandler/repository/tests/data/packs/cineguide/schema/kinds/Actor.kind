@@ -11,7 +11,6 @@
     <ref alias="movies" type="path">/CineGuide/Attributes/movies</ref>
     <ref alias="rectangle" type="path">/CineGuide/Attributes/rectangle</ref>
     <ref alias="picture" type="path">/CineGuide/Attributes/picture</ref>
-    <ref alias="films" type="path">/CineGuide/Attributes/films</ref>
     <ref alias="set" type="path">/CineGuide/Attributes/set</ref>
     <ref alias="workedWith" type="path">/CineGuide/Attributes/workedWith</ref>
     <ref alias="epoch" type="path">/CineGuide/Attributes/epoch</ref>

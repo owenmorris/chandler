@@ -30,7 +30,7 @@
    <bccAddress>
    </bccAddress>
    <mimeType>message/rfc822</mimeType>
-   <subject>This is the subject</subject>
+   <displayName>This is the subject</displayName>
    <body mimetype='text/plain' encoding='utf-8'>VGhpcyBpcyBhIGhpZ2hseQpwb2lnbmFudCBlbWFpbCBtZXNzYWdlCg==</body>
    <createdOn>2006-08-27 12:1:0.000000 US/Pacific</createdOn>
    <tags>

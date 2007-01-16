@@ -527,14 +527,14 @@ class AccountPreferencesDialog(wx.Dialog):
                 elif desc['type'] == 'itemRef':
                     # Store an itemRef as a UUID
                     try:
-                        setting = item.getAttributeValue(desc['attr']).itsUUID
-                    except:
+                        setting = getattr(item, desc['attr']).itsUUID
+                    except AttributeError:
                         setting = None
 
                 else:
                     # Otherwise store a literal
                     try:
-                        setting = item.getAttributeValue(desc['attr'])
+                        setting = getattr(item, desc['attr'])
                     except AttributeError:
                         try:
                             setting = desc['default']
@@ -624,14 +624,14 @@ class AccountPreferencesDialog(wx.Dialog):
                     elif desc['type'] == 'itemRef':
                         # Find the item for this UUID and assign the itemref:
                         if values[field]:
-                            item.setAttributeValue(desc['attr'],
-                                self.rv.findUUID(values[field]))
+                            setattr(item, desc['attr'],
+                                    self.rv.findUUID(values[field]))
 
                     else:
                         # Otherwise, make the literal assignment:
                         try:
-                            item.setAttributeValue(desc['attr'], values[field])
-                        except:
+                            setattr(item, desc['attr'], values[field])
+                        except AttributeError:
                             pass
 
 

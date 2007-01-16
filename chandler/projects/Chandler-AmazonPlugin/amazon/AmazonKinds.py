@@ -281,7 +281,6 @@ class AmazonItem(ContentItem):
 
     # When you add/remove/modify attributes here remember to update the
     # corresponding names displayed in the user interface in __init__.py
-    ProductName = schema.One(redirectTo = 'displayName')
     ProductDescription = schema.One(schema.Text)
     Author = schema.One(schema.Text)
     Media = schema.One(schema.Text)
@@ -297,6 +296,14 @@ class AmazonItem(ContentItem):
     
     myKindID = None
     myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonItem"
+
+    @apply
+    def productName():
+        def fget(self):
+            return self.displayName
+        def fset(self, value):
+            self.displayName = value
+        return property(fget, fset)
  
     def __init__(self,*args,**kw):
         if 'bag' in kw:

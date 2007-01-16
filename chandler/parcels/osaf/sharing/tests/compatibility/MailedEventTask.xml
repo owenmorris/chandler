@@ -12,7 +12,7 @@
    </ccAddress>
    <bccAddress>
    </bccAddress>
-   <subject>Here we go.....</subject>
+   <displayName>Here we go.....</displayName>
    <mimeParts>
    </mimeParts>
    <mimeType>message/rfc822</mimeType>

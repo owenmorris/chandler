@@ -658,19 +658,11 @@ class ContentItem(schema.Item):
 
     def getBasedAttributes(self, attribute):
         """ Determine the schema attributes that affect this attribute
-        (which might be a redirectTo or a Calculated attribute) """
+        (which might be a Calculated attribute) """
         # Recurse to handle redirection if necessary
         attr = self.itsKind.getAttribute(attribute, True)
-        if attr is not None:
-            redirect = attr.getAspect('redirectTo')
-            if redirect is not None:
-                item = self
-                names = redirect.split('.')
-                for name in names[:-1]:
-                    item = getattr(item, name)
-                return item.getBasedAttributes(names[-1])
 
-        # Not redirected. If it's Calculated, see what it's based on;
+        # If it's Calculated, see what it's based on;
         # otherwise, just return a list containing its own name.
         descriptor = getattr(self.__class__, attribute, None)
         try:

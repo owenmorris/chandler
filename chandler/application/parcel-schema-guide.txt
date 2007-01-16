@@ -1499,7 +1499,7 @@ Attribute descriptors are used to define repository ``Attribute`` objects that
 persistently store the attribute's schema.  When you create an attribute
 descriptor, you may specify keyword arguments that will be used to set the
 corresponding parameters of the repository ``Attribute`` object, such as
-``redirectTo``, ``defaultValue``, ``initialValue``, and so on.  For information
+``defaultValue``, ``initialValue``, and so on.  For information
 on these and other parameters, you can consult the model documentation for
 the ``//Schema/Core/Attribute`` kind.  Any parameters you do not supply will
 take on their normal default values, except for ``otherName``, which is

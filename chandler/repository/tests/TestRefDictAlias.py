@@ -13,7 +13,6 @@
 #   limitations under the License.
 
 """
-Unit tests for the ordering under mixinKinds of the redirectTo aspect 
 """
 
 import RepositoryTestCase, os, unittest

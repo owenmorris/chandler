@@ -57,7 +57,14 @@ class TaskStamp(Stamp):
     dueDate = schema.One(schema.DateTimeTZ)
 
     # Redirections
-    summary = schema.One(redirectTo="displayName")
+    @apply
+    def summary():
+        def fget(self):
+            return self.itsItem.displayName
+        def fset(self, value):
+            self.itsItem.displayName = value
+        return schema.Calculated(schema.Text, (items.ContentItem.displayName,),
+                                 fget, fset)
 
     schema.addClouds(
         copying = schema.Cloud(

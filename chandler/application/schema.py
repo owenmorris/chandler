@@ -1090,10 +1090,6 @@ def observer(*attrs):
                 repr(attr)+
                 " is not a schema.Descriptor (One, Many, Sequence, etc.)"
             )
-        if hasattr(attr, 'redirectTo'):
-            raise TypeError(
-                "Can't observe a redirected attribute"
-            )
     def decorator(func):
         _update_info('observer', '__after_change__', {func.__name__:attrs})
         @addClassAdvisor

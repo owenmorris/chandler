@@ -381,40 +381,6 @@ class StaticTextLabel(DetailSynchronizer, ControlBlocks.StaticText):
         if self.item is not None:
             self.synchronizeLabel(self.staticTextLabelValue(self.item))
 
-def GetRedirectAttribute(item, defaultAttr):
-    """
-    Gets redirectTo for an attribute name, or just returns the attribute
-    name if a there is no redirectTo.
-    """
-    attributeName = item.getAttributeAspect(defaultAttr, 'redirectTo');
-    if attributeName is None:
-        attributeName = defaultAttr
-    return attributeName
-
-
-class StaticRedirectAttribute(StaticTextLabel):
-    """
-    Static text label that displays the attribute value.
-    """
-    def staticTextLabelValue(self, item):
-        try:
-            value = item.getAttributeValue(GetRedirectAttribute(item, self.whichAttribute()))
-            theLabel = unicode(value)
-        except AttributeError:
-            theLabel = u""
-        return theLabel
-
-class StaticRedirectAttributeLabel(StaticTextLabel):
-    """
-    Static Text that displays the name of the selected item's Attribute.
-    """
-    def staticTextLabelValue(self, item):
-        redirectAttr = GetRedirectAttribute(item, self.whichAttribute())
-        # lookup better names for display of some attributes
-        if item.hasAttributeAspect(redirectAttr, 'displayName'):
-            redirectAttr = item.getAttributeAspect(redirectAttr, 'displayName')
-        return redirectAttr
-
 class DetailSynchronizedContentItemDetail(DetailSynchronizer, ControlBlocks.ContentItemDetail):
     pass
 

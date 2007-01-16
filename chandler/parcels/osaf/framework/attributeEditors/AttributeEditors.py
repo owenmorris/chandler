@@ -1640,15 +1640,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         except AttributeError:
             return None
 
-        # Yep, there's supposed to be sample text.
-        if len(sampleText) == 0:
-            # Empty sample text was specified: this means use the attribute's displayName,
-            # or the attribute name itself if no displayName is present. Redirect if 
-            # necessary first.
-            sampleText = item.getAttributeAspect(attributeName, 'redirectTo');
-            if sampleText is None:
-                sampleText = attributeName
-        return sampleText
+        return sampleText or attributeName
 
     def HasValue(self, item, attributeName):
         """

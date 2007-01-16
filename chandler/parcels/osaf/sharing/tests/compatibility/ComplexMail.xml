@@ -23,7 +23,7 @@
    <replyToAddress>
       <EmailAddress uuid='09dd5f96-442a-11db-bd6e-0016cbca6aed' />
    </replyToAddress>
-   <subject>ALTERNATIVE MIMETYPE TEST</subject>
+   <displayName>ALTERNATIVE MIMETYPE TEST</displayName>
    <mimeParts>
       <MIMEBinary class='osaf.pim.mail.MIMEBinary' uuid='09dbbb82-442a-11db-bd6e-0016cbca6aed'>
          <filename>Attachment-1.obj</filename>

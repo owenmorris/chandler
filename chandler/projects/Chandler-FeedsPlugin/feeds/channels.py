@@ -428,7 +428,14 @@ class FeedItem(pim.ContentItem):
     channel = schema.One(FeedChannel)
     content = schema.One(schema.Lob)
     updated = schema.One(schema.Boolean)
-    body = schema.Descriptor(redirectTo="content")
+
+    @apply
+    def body():
+        def fget(self):
+            return self.content
+        def fset(self, value):
+            self.content = value
+        return property(fget, fset)
 
     schema.addClouds(
         sharing = schema.Cloud(

@@ -73,8 +73,9 @@ class RepositoryView(CView):
     # 0.6.18: removed 'displayName' and 'displayAttribute' from core schema
     # 0.6.19: added WITHSCHEMA flag
     # 0.6.20: replaced SingleRef with ItemRef
+    # 0.6.21: removed support for 'redirectTo' attribute aspect
     
-    CORE_SCHEMA_VERSION = 0x00061400
+    CORE_SCHEMA_VERSION = 0x00061500
 
     def __init__(self, repository, name, version, deferDelete=Default):
         """

@@ -193,11 +193,7 @@ class CloudXMLFormat(ImportExportFormat):
     # MailStamp contains a MIMEContainer, so for backward compatibility we
     # have to redirect reading or writing these attributes to that
     # MIMEContainer.
-    #
-    # If you're thinking we could do better with redirectTo, you might be
-    # right. However, redirectTo doesn't work with Annotation (or Stamp)
-    # subclasses.
-    # [grant]
+
     MIME_ATTRIBUTES = (
         pim.mail.MIMEContainer.mimeParts.name,
         pim.mail.MIMEBase.mimeType.name,
@@ -310,19 +306,7 @@ class CloudXMLFormat(ImportExportFormat):
                 # case.
                 attributes.update(self.MIME_ATTRIBUTES)
                 
-                if not pim.mail.MailStamp.subject.name in attributes:
-                     attributes.add(pim.mail.MailStamp.subject.name)
-                
-            
             for attrName in attributes:
-            
-                # @@@ [grant] A hack; cloud xml seems to write out 'subject'
-                # sometimes, and 'displayName' @ others. This might have
-                # something to do with the order of redirected attributes?
-                if hasMailStamp and attrName in ('displayName', 'title'):
-                    continue
-                
-                    
                 splitComponents = attrName.rsplit(".", 1)
                 
                 if len(splitComponents) == 2: # an "annotation" attribute
@@ -665,16 +649,7 @@ class CloudXMLFormat(ImportExportFormat):
         hasMailStamp = (pim.mail.MailStamp in stampClasses)
             
         if hasMailStamp: 
-            if not pim.mail.MailStamp.subject.name in attributes:
-                attributes.add(pim.mail.MailStamp.subject.name)
-                # 'subject' is redirected to 'displayName'
-                # Lack of 'displayName' in XML can cause 'subject' to get
-                # lost during import
-                if 'displayName' in attributes:
-                    attributes.remove('displayName')
-                    
             attributes.update(self.MIME_ATTRIBUTES)
-
 
         for attrName in attributes:
             attrStampClass = None

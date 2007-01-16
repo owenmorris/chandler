@@ -485,8 +485,14 @@ class EventStamp(Stamp):
     
     IGNORE_CHANGE_ATTR = "%s.EventStamp.__ignoreValueChange" % (__module__,)
 
-    # Redirections
-    summary = schema.One(redirectTo="displayName")
+    @apply
+    def summary():
+        def fget(self):
+            return self.itsItem.displayName
+        def fset(self, value):
+            self.itsItem.displayName = value
+        return schema.Calculated(schema.Text, (ContentItem.displayName,),
+                                 fget, fset)
 
     def __disableRecurrenceChanges(self):
         item = self.itsItem
