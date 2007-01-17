@@ -5,4 +5,5 @@
     <kind type="path">//Schema/CineGuide/Kinds/Director</kind>
 
     <attribute name="name">Lowell Sherman</attribute>
+    <attribute name="website">http://imdb.com/name/nm0792514/</attribute>
 </item>

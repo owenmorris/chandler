@@ -23,7 +23,7 @@
       <lob encoding="utf-8" mimetype="text/vnd.osaf-stream64"><![CDATA[ADQSW50ZXJuw6kgZGVwdWlzIHZpbmd0LWNpbnEgYW5zLCB1biBob21tZSBzJ8OpY2hhcHBlIGxlIGpvdXIgb8O5IGlsIGFwcHJlbmQgcXVlIHNhIGZlbW1lIHZhIGRpdm9yY2VyLiBJbCByZXRyb3V2ZSBzYSBmaWxsZSBxdWkgbHVpIGRvbm5lIHRvdXRlIHNvbiBhZmZlY3Rpb24u]]></lob>
     </attribute>
 
-    <attribute name="website">http://www.billthemovie.html</attribute>
+    <attribute name="website">http://imdb.com/title/tt0022685/</attribute>
   </item>
 
   <item>
@@ -34,6 +34,7 @@
     <attribute name="released">1933</attribute>
 
     <ref name="director" type="path">//CineGuide/LSherman</ref>
+    <ref name="inheritFrom" type="path">//CineGuide/LSherman</ref>
     <ref name="writers">
       <ref type="path">//CineGuide/ZAkins</ref>
       <ref type="path">//CineGuide/HJGreen</ref>

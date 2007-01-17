@@ -439,6 +439,7 @@ class Item(CItem):
             else:
                 attribute = self.itsKind.getAttribute(name, False, self)
 
+            # schema-level attribute inheritFrom
             inherit = attribute.getAspect('inheritFrom', None)
             if inherit is not None:
                 value = self
@@ -447,8 +448,13 @@ class Item(CItem):
                     if value is Nil:
                         break
                 if value is not Nil:
-                    if isinstance(value, PersistentCollection):
-                        value.setReadOnly(True)
+                    return value
+
+            # instance-level attribute inheritFrom
+            inherit = self._references.get('inheritFrom')
+            if inherit is not None:
+                value = inherit.getAttributeValue(name, None, None, default)
+                if value is not Default:
                     return value
 
             if default is not Default:
