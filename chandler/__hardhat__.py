@@ -192,16 +192,17 @@ def distribute(buildenv):
 
         # The end-user installer
         if installTargetFile:
-            installSource = os.path.join(buildenv['root'], installTargetFile)
-            installTarget = os.path.join(buildenv['outputdir'], installTargetFile)
+            for installfile in installTargetFile:
+                installSource = os.path.join(buildenv['root'], installfile)
+                installTarget = os.path.join(buildenv['outputdir'], installfile)
 
-            if os.path.exists(installTarget):
-                os.remove(installTarget)
+                if os.path.exists(installTarget):
+                    os.remove(installTarget)
 
-            if os.path.exists(installSource):
-                os.rename(installSource, installTarget)
+                if os.path.exists(installSource):
+                    os.rename(installSource, installTarget)
 
-                _outputLine(outputFlagFile, installTargetFile)
+                    _outputLine(outputFlagFile, installfile)
 
         # write out the compressed image
         _outputLine(outputFlagFile, compFile1)

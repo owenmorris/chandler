@@ -1585,6 +1585,9 @@ def makeInstaller(buildenv, directories, fileRoot, majorVersion='0', minorVersio
     This assumes that directory is an immediate child of the current dir
     """
         # TODO: OS X (dmg?) support
+
+    installFiles = []
+
     if buildenv['os'] == 'win':
         if not buildenv['makensis']:
             raise hardhatutil.CommandNotFound, 'makensis'
@@ -1616,18 +1619,28 @@ def makeInstaller(buildenv, directories, fileRoot, majorVersion='0', minorVersio
 
         os.rename(os.path.join(nsisScriptPath, 'Setup.exe'), installTarget)
 
+        installFiles.append(installTargetFile)
+
     elif buildenv['os'] == 'posix':
-        specPath   = os.path.join(buildenv['root'], "internal", "installers", "rpm")
-        scriptName = os.path.join(specPath, "makeinstaller.sh")
-        version    = '%s.%s' % (majorVersion, minorVersion)
+        rpmPath   = os.path.join(buildenv['root'], "internal", "installers", "rpm")
+        debPath   = os.path.join(buildenv['root'], "internal", "installers", "deb")
+        rpmScript = os.path.join(rpmPath, "makeinstaller.sh")
+        debScript = os.path.join(debPath, "makeinstaller.sh")
+        version   = '%s.%s' % (majorVersion, minorVersion)
 
         executeCommand(buildenv, "HardHat",
-             [scriptName, specPath, os.path.join(specPath, "chandler.spec"), buildenv['root'], fileRoot, version, releaseVersion],
+             [rpmScript, rpmPath, os.path.join(rpmPath, "chandler.spec"), buildenv['root'], fileRoot, version, releaseVersion],
              "Building Linux (RPM) Installer")
 
-        installTargetFile = '%s.i386.rpm' % fileRoot
-        
-    return installTargetFile
+        installFiles.append('%s.i386.rpm' % fileRoot)
+
+        executeCommand(buildenv, "HardHat",
+             [debScript, debPath, buildenv['root'], fileRoot, version, releaseVersion],
+             "Building Linux (DEB) Installer")
+
+        installFiles.append('%s_i386.deb' % fileRoot)
+
+    return installFiles
 
 def convertLineEndings(srcdir):
     """Convert all .txt files in the distribution root to DOS style line endings"""
