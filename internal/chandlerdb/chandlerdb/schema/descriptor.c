@@ -39,6 +39,7 @@ static PyObject *_getRef_NAME;
 static PyObject *getAttributeValue_NAME;
 static PyObject *setAttributeValue_NAME;
 static PyObject *removeAttributeValue_NAME;
+static PyObject *inheritFrom_NAME;
 
 
 static PyMemberDef t_descriptor_members[] = {
@@ -241,6 +242,22 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                 item->lastAccess = ++_lastAccess;
             else if (found < 0 && flags & NOINHERIT)
             {
+                PyObject *inheritFrom = PyDict_GetItem(item->references->dict,
+                                                       inheritFrom_NAME);
+
+                if (inheritFrom && inheritFrom->ob_type == ItemRef)
+                {
+                    inheritFrom = PyObject_Call(inheritFrom, Empty_TUPLE, NULL);
+                    if (inheritFrom)
+                    {
+                        item->lastAccess = ++_lastAccess;
+                        value = PyObject_GetAttr(inheritFrom, self->name);
+                        Py_DECREF(inheritFrom);
+                    }
+                    else
+                        return NULL;
+                }
+
                 if (flags & DEFAULT)
                 {
                     value = attr->defaultValue;
@@ -378,6 +395,7 @@ void _init_descriptor(PyObject *m)
             getAttributeValue_NAME = PyString_FromString("getAttributeValue");
             setAttributeValue_NAME = PyString_FromString("setAttributeValue");
             removeAttributeValue_NAME = PyString_FromString("removeAttributeValue");
+            inheritFrom_NAME = PyString_FromString("inheritFrom");
         }
     }
 }
