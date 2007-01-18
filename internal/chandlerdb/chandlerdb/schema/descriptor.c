@@ -259,7 +259,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                         else
                             return NULL;
                     }
-                    else
+                    else if (inheritFrom != Py_None)
                     {
                         PyErr_SetObject(PyExc_TypeError, inheritFrom);
                         return NULL;
