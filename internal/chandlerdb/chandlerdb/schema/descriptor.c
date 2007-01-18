@@ -244,7 +244,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
             {
                 PyObject *inheritFrom = PyDict_GetItem(item->references->dict,
                                                        inheritFrom_NAME);
-                if (inheritFrom)
+                if (inheritFrom && inheritFrom != Py_None)
                 {
                     if (inheritFrom->ob_type == ItemRef)
                     {
@@ -259,7 +259,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                         else
                             return NULL;
                     }
-                    else if (inheritFrom != Py_None)
+                    else
                     {
                         PyErr_SetObject(PyExc_TypeError, inheritFrom);
                         return NULL;
