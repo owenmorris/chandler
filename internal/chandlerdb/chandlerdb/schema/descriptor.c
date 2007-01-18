@@ -244,21 +244,28 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
             {
                 PyObject *inheritFrom = PyDict_GetItem(item->references->dict,
                                                        inheritFrom_NAME);
-
-                if (inheritFrom && inheritFrom->ob_type == ItemRef)
+                if (inheritFrom)
                 {
-                    inheritFrom = PyObject_Call(inheritFrom, Empty_TUPLE, NULL);
-                    if (inheritFrom)
+                    if (inheritFrom->ob_type == ItemRef)
                     {
-                        item->lastAccess = ++_lastAccess;
-                        value = PyObject_GetAttr(inheritFrom, self->name);
-                        Py_DECREF(inheritFrom);
+                        inheritFrom = PyObject_Call(inheritFrom, Empty_TUPLE,
+                                                    NULL);
+                        if (inheritFrom)
+                        {
+                            item->lastAccess = ++_lastAccess;
+                            value = PyObject_GetAttr(inheritFrom, self->name);
+                            Py_DECREF(inheritFrom);
+                        }
+                        else
+                            return NULL;
                     }
                     else
+                    {
+                        PyErr_SetObject(PyExc_TypeError, inheritFrom);
                         return NULL;
+                    }
                 }
-
-                if (flags & DEFAULT)
+                else if (flags & DEFAULT)
                 {
                     value = attr->defaultValue;
                     Py_INCREF(value);
