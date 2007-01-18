@@ -165,15 +165,19 @@ class TimeZoneInfo(schema.Item):
 
 class TZPrefs(Preferences):
     showUI = schema.One(schema.Boolean, initialValue = False)
+    showPrompt = schema.One(schema.Boolean, initialValue = True,
+                        doc="Show a prompt to turn on timezones when "
+                            "timezone interactions happen")
+
 
     @schema.observer(showUI)
     def onShowUIChanged(self, op, attrName):
-        from osaf.pim.calendar.TimeZone import TimeZoneInfo
         timeZoneInfo = TimeZoneInfo.get(self.itsView)
 
         # Sync up the default timezone (i.e. the one used when
         # creating new events).
         if self.showUI:
+            convertFloatingEvents(self.itsView, PyICU.ICUtzinfo.default)
             timeZoneInfo.default = PyICU.ICUtzinfo.default
         else:
             timeZoneInfo.default = PyICU.ICUtzinfo.floating
@@ -415,3 +419,22 @@ def formatTime(dt, tzinfo=None, noTZ=False):
     formattable = PyICU.Formattable(dt, PyICU.Formattable.kIsDate)
 
     return unicode(format.format([formattable], PyICU.FieldPosition()))
+
+    
+def convertFloatingEvents(view, newTZ):
+    """Convert existing floating events to the default timezone.
+    
+    Don't convert events that are in shared collections, because they may be
+    someone else's events and are intended to be floating. 
+        
+    """
+    pim_ns = schema.ns("osaf.pim", view)
+    # put all floating events in a list, because we can't iterate over 
+    # floatingEvents while we remove items from it
+    for item in list(pim_ns.floatingEvents):
+        event = pim_ns.EventStamp(item)
+        # not all items are actually floating, some will be all day, but those
+        # events still have a floating startTime, might as well put them in
+        # the right timezone if they're changed to timed events
+        if item.sharedIn is None or len(item.sharedIn) == 0:
+            event.startTime = event.startTime.replace(tzinfo=newTZ)

@@ -1938,7 +1938,14 @@ class CalendarControl(CalendarBlock):
             if tzPrefs.itsUUID == itemUUID:
                 # It's the timezone preference item
                 if 'showUI' in names:
-                    self.widget.tzChoice.Show(tzPrefs.showUI)
+                    control = self.widget.tzChoice
+                    control.Show(tzPrefs.showUI)
+                    if (tzPrefs.showUI and
+                        TimeZoneInfo.get(self.itsView).default != 
+                        control.GetClientData(control.GetSelection())):
+                        # the timezone chooser is out of sync, update it
+                        TimeZoneList.buildTZChoiceList(self.itsView, control)
+                        
                     self.widget.Layout()
             else:
                 # It's the list-of-timezones preference item

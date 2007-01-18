@@ -21,6 +21,7 @@ __author__ =  'Mikeal Rogers <mikeal@osafoundation.org>'
 __version__=  '0.2'
 
 import osaf.pim as pim
+from application import schema
 from datetime import date
 import osaf.framework.scripting as scripting
 import sys
@@ -72,6 +73,10 @@ class ChandlerTestCase:
         self.name = name
         self.scripting = scripting
         self.app_ns = scripting.app_ns()
+        
+        # initialize preferences
+        pim_ns = schema.ns('osaf.pim', self.app_ns.itsView)
+        pim_ns.TimezonePrefs.showPrompt = False
         
         sys.stderr = stderr_replacement(self.logger)
         

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="ISO-8859-15"?>
+<resource>
+  <object class="wxDialog" name="TurnOnTimezonesDialog">
+    <title></title>
+    <centered>1</centered>
+    <size>400,70</size>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxFlexGridSizer">
+          <object class="sizeritem">
+            <object class="wxStaticText" name="Text">
+              <label>Here's some text</label>
+            </object>
+            <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxChoice" name="Chooser">
+              <content/>
+            </object>
+            <flag>wxALL|wxALIGN_RIGHT|wxALIGN_BOTTOM</flag>
+            <border>5</border>
+          </object>
+          <cols>2</cols>
+          <growablecols>0</growablecols>
+        </object>
+        <flag>wxALL|wxEXPAND|wxGROW|wxALIGN_LEFT</flag>
+        <border>10</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxFlexGridSizer">
+          <cols>2</cols>
+          <growablecols>0</growablecols>
+          <growablecols></growablecols>
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="Checkbox">
+              <label>Checkbox</label>
+            </object>
+            <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
+            <border>5</border>
+          </object>
+        </object>
+        <flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxGROW</flag>
+        <border>10</border>
+      </object>
+    </object>
+  </object>
+</resource>

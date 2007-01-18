@@ -18,8 +18,9 @@ import unittest, PyICU
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.persistence.RepositoryView import NullRepositoryView
 from osaf.pim.calendar.TimeZone import *
+from osaf.pim.calendar.Calendar import CalendarEvent
 from datetime import datetime
-
+from application import schema
 
 class TimeZoneTestCase(RepositoryTestCase):
     def setUp(self):
@@ -132,6 +133,26 @@ class PersistenceTestCase(RepositoryTestCase):
         # ... and make sure it is still the default!
         self.failUnlessEqual(defaultTzItem.default,
                              PyICU.ICUtzinfo.default)
+        
+    def testTimezoneConversion(self):
+        """
+        Floating events should be converted to non-floating when turning on
+        show timezones.
+        
+        """
+        pacific = PyICU.TimeZone.createTimeZone("US/Pacific")
+        PyICU.TimeZone.setDefault(pacific)
+        tzprefs = schema.ns('osaf.pim', self.rep.view).TimezonePrefs
+        tzprefs.showUI = False
+        
+        start = datetime(2007, 1, 17, 13, tzinfo=PyICU.ICUtzinfo.floating)
+        event = CalendarEvent(None, itsView=self.rep.view)
+        event.startTime = start
+        
+        tzprefs.showUI = True        
+
+        self.failUnlessEqual(event.startTime.tzinfo.timezone.getID(),
+                             "US/Pacific")
 
 class AbstractTimeZoneTestCase(unittest.TestCase):
     def setUp(self):
