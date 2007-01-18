@@ -476,9 +476,11 @@ class wxTable(DragAndDrop.DraggableWidget,
     def EditAttribute(self, attrName):
         contents = self.blockItem.contents
 
-        index = contents.index(contents.getFirstSelectedItem())
+        firstItem = contents.getFirstSelectedItem()
+        if firstItem is None:
+            return
+        index = contents.index(firstItem)
         cursorRow = self.IndexToRow(index)
-        
         if cursorRow == -1:
             return
 
