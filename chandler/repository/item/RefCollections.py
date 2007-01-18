@@ -18,6 +18,7 @@ from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 from repository.item.Indexed import Indexed
 from chandlerdb.item.ItemError import *
+from chandlerdb.item.c import ItemRef
 
 
 class RefList(LinkedMap, Indexed):
@@ -433,31 +434,17 @@ class RefList(LinkedMap, Indexed):
         
         view = self._owner.itsView
             
-        try:
-            loading = view._setLoading(True)
-            try:
-                other = view[key]
-            except KeyError:
-                if self._flags & CLinkedMap.MERGING:
-                    other = key
-                else:
-                    raise DanglingRefError, (self._owner(), self._name, key)
+        previousKey, nextKey, alias, otherKey = ref[0:4]
+        self._dict[key] = CLink(self, ItemRef(key, view), previousKey, nextKey,
+                                alias, otherKey)
+        if alias is not None:
+            aliases = self._aliases
+            if aliases is Nil:
+                self._aliases = {alias: key}
+            else:
+                aliases[alias] = key
 
-            previousKey, nextKey, alias, otherKey = ref[0:4]
-            self._dict[key] = CLink(self, other.itsRef, previousKey, nextKey,
-                                    alias, otherKey)
-            if alias is not None:
-                aliases = self._aliases
-                if aliases is Nil:
-                    self._aliases = {alias: key}
-                else:
-                    aliases[alias] = key
-
-            return True
-        finally:
-            view._setLoading(loading, True)
-
-        return False
+        return True
 
     def get(self, key, default=None, load=True):
         """
