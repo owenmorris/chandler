@@ -776,11 +776,8 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
         self.SetToolSeparation(self.blockItem.separatorWidth)
 
-        try:
-            colorStyle = self.blockItem.colorStyle
-        except AttributeError:
-            pass
-        else:
+        colorStyle = self.blockItem.colorStyle
+        if colorStyle is not None:
             self.SetBackgroundColour(colorStyle.backgroundColor.wxColor())
             self.SetForegroundColour(colorStyle.foregroundColor.wxColor())
 
@@ -929,7 +926,7 @@ from osaf.pim.structs import SizeType
 
 class Toolbar(Block.RectangularChild, DynamicContainer):
 
-    colorStyle = schema.One(ColorStyle)
+    colorStyle = schema.One(ColorStyle, defaultValue = None)
     toolSize = schema.One(SizeType)
     separatorWidth = schema.One(schema.Integer, initialValue = 5)
     buttons3D = schema.One(schema.Boolean, initialValue = False)
@@ -1002,6 +999,7 @@ class ToolbarItem(Block.Block, DynamicChild):
     toolbarItemKind = schema.One(toolbarItemKindEnumType)
 
     text = schema.One(schema.Text) # optional text for the toolbar item, e.g. QuickEntry text
+    lastText = schema.One(schema.Text) # optional lastText for the toolbar item, e.g. QuickEntry last search
     size = schema.One(SizeType) # optional size used in QuickEntry
 
     schema.addClouds(
@@ -1089,9 +1087,8 @@ class wxQuickEntry (wxToolbarItemMixin, wx.SearchCtrl):
         self.Bind(wx.EVT_TEXT_ENTER, wx.GetApp().OnCommand, id=id)
 
     def OnCancelButton (self, event):
-        self.SetValue (u"")
         block = self.blockItem
-        block.post (block.event, {}, sender = block)
+        block.post (block.event, {"cancelClicked": True}, sender = block)
 
     def wxSynchronizeWidget(self, useHints=False):
         super (wxQuickEntry, self).wxSynchronizeWidget()

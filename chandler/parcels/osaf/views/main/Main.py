@@ -256,16 +256,13 @@ class MainView(View):
 
     def onQuickEntryEvent (self, event):
 
-        def parseCommand(self, query):
+        def processQucikEntry(self, command):
             """
             Parses the text in the quick item entry widget in the toolbar. Creates the items 
             depending on the command and adds it to the appropriate collection. Also parses the
             date/time info and sets the start/end time or the reminder time.
             """
             
-            query = query.strip()
-            if query == '':
-                return False
             msgFlag = False
             eventFlag = False
             taskFlag = False
@@ -276,27 +273,25 @@ class MainView(View):
             # Search the text for "/" which indicates it is a quick item entry
             cmd_re = re.compile(r'/(?P<kind>([A-z]+))')
             
-            cmd = cmd_re.match(query)
+            cmd = cmd_re.match(command)
             if cmd is None:
-                # If the text entered does not start with '/', set the flag of the default kind of item
-                if defaultKind is not None:
-                    if defaultKind == pim.tasks.TaskStamp:
-                        taskFlag = True
-                    elif defaultKind == pim.mail.MailStamp:
-                        msgFlag = True
-                    elif defaultKind == pim.calendar.Calendar.EventStamp:
-                        eventFlag = True
-                displayName = query
+                return False
                         
             while cmd is not None:
                 kind = (cmd.group('kind')).lower()
-                displayName = query[(cmd.end()):].strip()
-                query = displayName
+                displayName = command[(cmd.end()):].strip()
+                command = displayName
                 
                 # Set flags depending on its kind
-                if kind == 'search':
-                    # Text in the search bar in not an quick item entry
-                    return False
+                if kind == 'item':
+                    # Create a default item
+                    if defaultKind is not None:
+                        if defaultKind == pim.tasks.TaskStamp:
+                            taskFlag = True
+                        elif defaultKind == pim.mail.MailStamp:
+                            msgFlag = True
+                        elif defaultKind == pim.calendar.Calendar.EventStamp:
+                            eventFlag = True
                 
                 elif kind == 'task':
                     taskFlag = True
@@ -406,60 +401,88 @@ class MainView(View):
                     collection.add(item)
                     #Put the status message in the Status bar
                     wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', statusMsg)
-                    
+            
+            # Clear out the command when it finishes without errors
+            quickEntryWidget.SetValue("")
             return True
         
         
         sidebar = Block.findBlockByName ("Sidebar")
         quickEntryWidget = event.arguments['sender'].widget
-        query = quickEntryWidget.GetValue()
-        quickEntryWidget.blockItem.text = query
+        block = quickEntryWidget.blockItem
+        command = quickEntryWidget.GetValue().strip()
+        showSearchResults = False
         
-        # Check if the query is a quick item entry or not
-        if (query != None) and (parseCommand(self, query) is False) and (query.strip() != ''):
+        cancelClicked = event.arguments.get ("cancelClicked", False)
+        if cancelClicked:
             
-            if not (query.startswith('/search') or query.startswith('/Search')):
-                # Query is not a valid command
-                quickEntryWidget.SetValue(query + ' ?')
-                wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Command entered is not valid"))
-                return
-            
-            # Remove command "/search " from the query before processing it
-            query = query[8:]
-            
-            try:
-                sidebar.setShowSearch (True)
-
-                view = self.itsView
-    
-                # make sure all changes are searchable
-                view.commit()
-                view.repository.notifyIndexer(True)
-                results = view.searchItems(query)
-    
-                searchResults = schema.ns('osaf.pim', view).searchResults
-                searchResults.clear()
-
-                for item in search.processResults(results):
-                    searchResults.add(item)
-                    
-                if len(searchResults) == 0:
-                    # For now we'll write a message to the status bar because it's easy
-                    # When we get more time to work on search, we should write the message
-                    # just below the search box in the toolbar.
-                    wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Search found nothing"))
-            except PyLucene.JavaError, error:
-                message = unicode (error)
-                prefix = u"org.apache.lucene.queryParser.ParseException: "
-                if message.startswith (prefix):
-                    message = message [len(prefix):]
-                
-                message = _(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message
-                
-                Util.ok (None, _(u"Search Error"), message)
+            # When cancel is clicked we toggle between search and non search views
+            if len (command) == 0:
+                lastText = getattr (block, "lastText", None)
+                if lastText is not None:
+                    quickEntryWidget.SetValue (lastText)
+                    showSearchResults = True
             else:
-                return
-        sidebar.setShowSearch (False)
+                quickEntryWidget.SetValue ("")
+                block.lastText = command
+        else:
+            # Try to process as a quick entry command
+            if len (command) != 0 and not processQucikEntry (self, command):
+                
+                if command.startswith('/'):
+                    # command is not a valid
+                    quickEntryWidget.SetValue (command + ' ?')
+                    wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Command entered is not valid"))
+                else:
+                    try:
+                        sidebar.setShowSearch (True)
+                        showSearchResults = True
+        
+                        view = self.itsView
+            
+                        # make sure all changes are searchable
+                        view.commit()
+                        view.repository.notifyIndexer(True)
+                        results = view.searchItems (command)
+            
+                        searchResults = schema.ns('osaf.pim', view).searchResults
+                        searchResults.clear()
+                        
+                        sidebarCollection = schema.ns("osaf.app", self).sidebarCollection
+                        for collection in sidebarCollection:
+                            UserCollection (collection).searchMatches = 0
+
+                        application = wx.GetApp()
+                        for item in search.processResults(results):
+                            if item not in searchResults:
+                                for collection in sidebarCollection:
+                                    if item in collection:
+                                        UserCollection (collection).searchMatches += 1
+                                        searchResults.add(item)
+                                        # Update the display every so often 
+                                        if len (searchResults) % 50 == 0:
+                                            application.propagateAsynchronousNotifications()
+                                            application.Yield()
+
+                            
+                        if len(searchResults) == 0:
+                            # For now we'll write a message to the status bar because it's easy
+                            # When we get more time to work on search, we should write the message
+                            # just below the search box in the toolbar.
+                            wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Search found nothing"))
+                    except PyLucene.JavaError, error:
+                        message = unicode (error)
+                        prefix = u"org.apache.lucene.queryParser.ParseException: "
+                        if message.startswith (prefix):
+                            message = message [len(prefix):]
+                        
+                        message = _(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message
+                        
+                        Util.ok (None, _(u"Search Error"), message)
+                        showSearchResults = False
+
+        block.text = command
+        sidebar.setShowSearch (showSearchResults)
                 
 
     def printEvent(self, isPreview):

@@ -419,10 +419,14 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         item, attribute = grid.GetTable().GetValue (row, col)
 
         name = getattr (item, attribute)
+        sidebar = grid.blockItem
+        if sidebar.showSearch:
+            searchMatches = UserCollection(item).searchMatches
+            if searchMatches != 0:
+                name = name + u"(" + unicode (searchMatches) + u")"
         """
           Draw the buttons
         """
-        sidebar = grid.blockItem
         for button in sidebar.buttons:
             mouseOver = row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND)
             image = button.getButtonImage (item, mouseOver, isSelected)

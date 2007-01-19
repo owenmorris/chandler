@@ -49,6 +49,7 @@ class UserCollection(schema.Annotation):
     outOfTheBoxCollection    = schema.One(schema.Boolean, defaultValue = False)
     canAdd                   = schema.One(schema.Boolean, defaultValue = True)
     allowOverlay             = schema.One(schema.Boolean, defaultValue = True)
+    searchMatches            = schema.One(schema.Integer, defaultValue = 0)
     """
       preferredClass is used as a hint to the user-interface to choose the right
       view for the display, e.g. CalendarView for collections that have a
