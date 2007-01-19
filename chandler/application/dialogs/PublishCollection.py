@@ -24,7 +24,7 @@ from osaf import sharing
 from util import task, viewpool
 from i18n import ChandlerMessageFactory as _
 from osaf.pim import Remindable, EventStamp
-from TurnOnTimezones import ShowTurnOnTimezonesDialog
+from TurnOnTimezones import ShowTurnOnTimezonesDialog, PUBLISH
 import zanshin
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         # Turn on timezones
         notCancelled = ShowTurnOnTimezonesDialog(self, view, modal=True,
-                                                 state=TurnOnTimezones.PUBLISH)
+                                                 state=PUBLISH)
         if notCancelled == False:
             self.OnCancel(None)
             return
