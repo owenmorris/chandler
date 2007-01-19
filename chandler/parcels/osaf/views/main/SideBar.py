@@ -970,6 +970,8 @@ class SidebarBlock(Table):
         # don't pop up a dialog when running functional tests
         if not event.arguments.get('testing'):                
             for collection in self.contents.iterSelection():
+                if len(collection) == 0:
+                    continue
                 dataDict = {'collectionName' : collection.displayName}
                 if collection in mine.sources:
                     shouldClearCollection = \
