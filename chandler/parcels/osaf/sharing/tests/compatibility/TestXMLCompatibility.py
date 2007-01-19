@@ -2,7 +2,7 @@ import os
 import sys
 import unittest
 import pkg_resources
-from xml.etree import ElementTree
+from xml.etree import cElementTree
 
 from PyICU import ICUtzinfo
 import datetime
@@ -153,7 +153,7 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
         # A very rough attempt at canonicalization, so that we'll
         # still be able to compare xml output even if the order of
         # attributes changes.
-        tree = ElementTree.XML(xml) # If this raises, the test fails
+        tree = cElementTree.XML(xml) # If this raises, the test fails
         
         items = []
         remaining = [tree]
@@ -176,7 +176,7 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
                     if child.get('uuid') and child.getchildren():
                         items.append(child)
                         remaining.append(child)
-                        child = ElementTree.Element(child.tag,
+                        child = cElementTree.Element(child.tag,
                                                     uuid=child.get('uuid'))
                         child.tail = '\n'
                     canonicalChildren.append(child)
@@ -197,7 +197,7 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
         for item in sorted(items, key = lambda x: x.get('uuid')):
             tree.append(item)
 
-        return ElementTree.tostring(tree, 'UTF-8')
+        return cElementTree.tostring(tree, 'UTF-8')
                     
         
     def createObject(self, typeName):

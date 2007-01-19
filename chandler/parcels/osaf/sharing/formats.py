@@ -23,8 +23,7 @@ import shares, errors
 from utility import *
 from notifications import *
 import datetime, base64
-from xml.etree.ElementTree import ElementTree, XML
-from xml.parsers import expat
+from xml.etree.cElementTree import ElementTree, XML
 from application import schema
 from osaf import pim
 from i18n import ChandlerMessageFactory as _
@@ -214,7 +213,7 @@ class CloudXMLFormat(ImportExportFormat):
 
         try:
             root = ElementTree(file=StringIO(text)).getroot()
-        except expat.ExpatError, e:
+        except SyntaxError, e:
             logger.exception("CloudXML parsing error")
             raise errors.MalformedData(str(e))
         except:
