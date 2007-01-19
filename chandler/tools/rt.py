@@ -26,6 +26,7 @@ import sys, os
 import string
 import unittest
 import doctest
+import glob
 from optparse import OptionParser
 from types import *
 from util import killableprocess
@@ -249,7 +250,133 @@ def runUnitTest(testlist, target):
     return result
 
 def runFuncSuite():
-    pass
+    """
+    Run the Functional Test Suite
+    """
+
+    # $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests $FORCE_CONT --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=720 --scriptFile="$TESTNAME" -D1 -M2 2>&1 | tee $TESTLOG
+
+    result = 0
+
+    for mode in modes:
+        cmd = [os.path.join(options.chandlerBin, mode, 'RunChandler')]
+
+        cmd += ['--create', '--catch=tests', '--scriptTimeout=720', '-D1', '-M2']
+        cmd += ['--profileDir="%s"' % options.profileDir]
+        cmd += ['--parcelPath="%s"' % options.parcelPath]
+
+        if options.nonstop:
+            cmd += ['-F']
+
+        cmd += ['--scriptFile="%s"' % os.path.join('tools', 'cats', 'Functional', 'FunctionalTestSuite.py')]
+
+        result = doCommand(cmd)
+
+        if (result <> 0 and not options.nonstop) or _stop_test_run:
+            break
+
+    return result
+
+def rmdir_recursive(dir):
+    """
+    Recursively remove a directory.
+    Parameters:
+        dir: directory path
+    Returns:
+        nothing
+    """
+
+    if os.path.islink(dir):
+        os.remove(dir)
+        return
+
+    for name in os.listdir(dir):
+        full_name = os.path.join(dir, name)
+        # on Windows, if we don't have write permission we can't remove
+        # the file/directory either, so turn that on
+        if os.name == 'nt':
+            if not os.access(full_name, os.W_OK):
+                os.chmod(full_name, 0600)
+        if os.path.isdir(full_name):
+            rmdir_recursive(full_name)
+        else:
+            # print "removing file", full_name
+            os.remove(full_name)
+    os.rmdir(dir)
+
+def runPerfSuite():
+    """
+    Run the Performance Test Suite
+    """
+    result = 0
+
+    if 'release' in modes:
+        testlist      = []
+        testlistLarge = []
+
+        timeLog = os.path.join(options.profileDir, 'time.log')
+        repoDir = os.path.join(options.profileDir, '__repository__.001')
+
+        for item in glob.iglob(os.path.join(options.profileDir, '__repository__.0*')):
+            if os.path.isdir(item):
+                rmdir_recursive(item)
+            else:
+                os.remove(item)
+
+        for item in glob.iglob(os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'Perf*.py')):
+            if 'perflargedata' in item.lower():
+                testlistLarge.append(item)
+            else:
+                testlist.append(item)
+
+        for item in testlist:
+            #$CHANDLERBIN/release/$RUN_CHANDLER --mvcc --create --catch=tests
+            #                                   --profileDir="$PC_DIR"
+            #                                   --catsPerfLog="$TIME_LOG"
+            #                                   --scriptTimeout=600
+            #                                   --scriptFile="$TESTNAME" &> $TESTLOG
+
+            if os.path.isfile(timeLog):
+                os.remove(timeLog)
+
+            cmd = [os.path.join(options.chandlerBin, 'release', 'RunChandler')]
+
+            cmd += ['--create', '--mvcc', '--catch=tests', '--scriptTimeout=600']
+            cmd += ['--profileDir="%s"'  % options.profileDir]
+            cmd += ['--parcelPath="%s"'  % options.parcelPath]
+            cmd += ['--catsPerfLog="%s"' % timeLog]
+            cmd += ['--scriptFile="%s"'  % item]
+
+            result = doCommand(cmd)
+
+            if (result <> 0 and not options.nonstop) or _stop_test_run:
+                break
+
+        if result == 0:
+            for item in testlistLarge:
+                #$CHANDLERBIN/release/$RUN_CHANDLER --mvcc --restore="$REPO" --catch=tests
+                #                                   --profileDir="$PC_DIR"
+                #                                   --catsPerfLog="$TIME_LOG"
+                #                                   --scriptTimeout=600
+                #                                   --scriptFile="$TESTNAME" &> $TESTLOG
+
+                cmd = [os.path.join(options.chandlerBin, 'release', 'RunChandler')]
+
+                cmd += ['--mvcc', '--catch=tests', '--scriptTimeout=600']
+                cmd += ['--restore="%s"'    % repoDir]
+                cmd += ['--profileDir="%s"' % options.profileDir]
+                cmd += ['--parcelPath="%s"' % options.parcelPath]
+                cmd += ['--scriptFile="%s"' % item]
+
+                result = doCommand(cmd)
+
+                if (result <> 0 and not options.nonstop) or _stop_test_run:
+                    break
+
+    else:
+        print 'Skipping Performance Tests - release mode not specified'
+
+    return result
 
 
 if __name__ == '__main__':
@@ -259,17 +386,25 @@ if __name__ == '__main__':
         print __doc__
         sys.exit(2)
 
+    options.chandlerBin  = os.path.realpath(os.environ['CHANDLERBIN'])
+    options.chandlerHome = os.path.realpath(os.environ['CHANDLERHOME'])
+
+    if not os.path.isdir(options.chandlerBin):
+        print 'Unable to locate CHANDLERBIN directory'
+        sys.exit(3)
+
+    options.parcelPath = os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'DataFiles')
+    options.profileDir = os.path.join(options.chandlerHome, 'test_profile')
+
+    result   = 0
+    testlist = []
+
     if options.mode is not None:
-        m = [options.mode]
-    else:
-        m = modes
+        modes = [options.mode]
 
-    modes = []
-
-    for item in m:
-        if os.path.isdir(item):
-            modes.append(item)
-        else:
+    for item in modes:
+        if not os.path.isdir(item):
+            modes.remove(item)
             print 'Requested mode (%s) not availble - ignoring' % item
 
     if options.unitSuite and options.unit:
@@ -277,25 +412,28 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if options.single and (options.unitSuite or options.unit):
-            print "Single test run (-t) only allowed by itself"
-            sys.exit(1)
+        print "Single test run (-t) only allowed by itself"
+        sys.exit(1)
 
-    testlist = buildUnitTestList(options.args, options.unit or len(options.single) > 0)
-    result   = 0
+    if options.unitSuite or options.unit:
+        testlist = buildUnitTestList(options.args, options.unit or len(options.single) > 0)
 
-    if options.unitSuite:
-        result = runUnitSuite(testlist)
+        if result == 0 and options.unitSuite:
+            result = runUnitSuite(testlist)
 
-    if options.unit:
-        result = runUnitTests(testlist)
+        if result == 0 and options.unit:
+            result = runUnitTests(testlist)
 
-    if options.single:
+    if result == 0 and options.single:
         result = runUnitTest(testlist, options.single)
 
-    if options.funcSuite:
+    if result == 0 and options.funcSuite:
         result = runFuncSuite()
 
+    if result == 0 and options.perf:
+        result = runPerfSuite()
+
     if result <> 0:
-        print '\n\nError generated during run: %s' % result
+        print '\n\nError generated during run: %d' % result
         sys.exit(result)
 
