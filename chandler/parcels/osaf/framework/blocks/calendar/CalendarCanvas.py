@@ -2010,19 +2010,22 @@ class CalendarControl(CalendarBlock):
         if eventItem.getMaster().itsItem not in self.contents:
             allCollection = schema.ns('osaf.pim', self.itsView).allCollection
             self.SelectCollectionInSidebar(allCollection)
-        
-        if not eventItem.allDay and not eventItem.anyTime:
-            timeBlock = self.calendarContainer.getTimedBlock()
-            timedEventsCanvas = getattr(timeBlock, 'widget', None)
-            # if the dashboard is selected, the calendar won't be displayed
-            if timedEventsCanvas is not None:
-                timedEventsCanvas.ScrollToEvent(eventItem)
-                timedEventsCanvas.SetPanelFocus()
-        else:
-            self.calendarContainer.getAllDayBlock().widget.SetPanelFocus()
-            
-        self.postEventByName("SelectItemsBroadcast",
-                             {'items':[eventItem.itsItem]})
+            self.findBlockByName("TableSummaryView").postEventByName(
+                "SelectItemsBroadcast", 
+                {'items':[eventItem.itsItem]})
+        else:                
+            if not eventItem.allDay and not eventItem.anyTime:
+                timeBlock = self.calendarContainer.getTimedBlock()
+                timedEventsCanvas = getattr(timeBlock, 'widget', None)
+                # if the dashboard is selected, the calendar won't be displayed
+                if timedEventsCanvas is not None:
+                    timedEventsCanvas.ScrollToEvent(eventItem)
+                    timedEventsCanvas.SetPanelFocus()
+            else:
+                self.calendarContainer.getAllDayBlock().widget.SetPanelFocus()
+                
+            self.postEventByName("SelectItemsBroadcast",
+                                 {'items':[eventItem.itsItem]})
 
 
     def setRange(self, date):
